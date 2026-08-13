@@ -265,7 +265,7 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
   test("the cost-to-end profile follows every adopted terminal incumbent", () => {
     const source = readFileSync("scripts/v0/optimizer/handoff.ts", "utf8");
     const writes = [...source.matchAll(/\bincumbentCostToEnd = ([^;]*);/g)].map((m) => m[1]);
-    expect(writes).toEqual(["adoptedCostToEnd", "costToEnd"]);
+    expect(writes).toEqual(["adoptedCostToEnd", "observedCostToEnd"]);
     const adoption = source.indexOf("if (improved && terminal) {");
     const profile = source.indexOf("incumbentCostToEnd = adoptedCostToEnd;");
     const adoptionEnd = source.indexOf("telemetry.hasCompletion = true;", adoption);

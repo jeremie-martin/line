@@ -1160,3 +1160,31 @@ promoted proposal/model information itself instead of reserving a branch
 unconditionally. Per user direction, the full canonical V2 benchmark at 750k
 is now the primary decision tool. No further multi-budget sweep runs unless
 the user explicitly requests one.
+
+### Direct realized-impact proposer model — declared
+
+The promoted 32-tree proposer model was trained to imitate the shipped
+200-tree readiness model. That was a useful cost reduction, but it leaves an
+avoidable proxy layer: the frozen readiness corpus already records the
+scorer-compatible impact fit realized by a viable proposal. The single arm
+replaces the teacher label with that realized value while retaining the same
+corpus, development/validation seed split, 80-feature missing-articulation
+contract, histogram model family, 32 trees, knob grid, ordinary admission,
+proposal count, exact evaluation, candidate breadth, search, repair, register,
+budget, and authored targets.
+
+The offline validation is broad enough to license the compiler comparison,
+not to decide it. On 34,495 held-out contexts, direct training improves MSE
+from 0.0142205 to 0.0125472 (-11.77%) and MAE from 0.0893403 to 0.0842087
+(-5.74%) versus the deployed compact model. Source-macro MSE improves from
+0.0146895 to 0.0130067, with lower MSE in all 44 held-out sources. Python
+serialization parity is exact. Evidence is generated reproducibly by
+`scripts/v0/distill_aim_impact_model.py --target realized-impact-fit` and
+written to `generated/analysis/aim-impact-direct-fit-study.json`.
+
+The active full canonical V2 benchmark at 750k is the only compiler decision
+tool for this arm. It will follow the governed N=8/16/32/48 sequential looks
+against `last-chance-repair-breadth`; no multi-budget scale run is authorized.
+An unfavorable or inconclusive result rejects the direct model without
+blending labels or tuning tree count, loss weight, or model power from the
+canonical outcomes.

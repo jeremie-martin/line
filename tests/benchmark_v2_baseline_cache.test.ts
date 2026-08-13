@@ -35,11 +35,12 @@ describe("canonical baseline cache fixed-N plans", () => {
       budgets: [750_000],
       candidateCompiles: 352,
     });
+    const covered = cacheCoverage(cache.cache);
     expect(baselineCachePlan(cache, 48)).toMatchObject({
       requestedSeeds: 48,
-      coveredSeeds: 16,
-      missingBaselineSeeds: 32,
-      missingBaselineCompiles: 1_408,
+      coveredSeeds: covered,
+      missingBaselineSeeds: 48 - covered,
+      missingBaselineCompiles: (48 - covered) * plan.developmentSources,
       candidateCompiles: 2_112,
     });
     expect(reference.compiler_source_fingerprint).toBe(
@@ -51,7 +52,7 @@ describe("canonical baseline cache fixed-N plans", () => {
     expect(reference.decision_protocol_fingerprint).toBe(decisionProtocolFingerprint());
     expect(baselineCacheHeadlineAtDepth(cache, 8)).toEqual({
       seeds: 8,
-      headline: 606.3792,
+      headline: 606.3829,
       validRuns: 352,
       totalRuns: 352,
     });

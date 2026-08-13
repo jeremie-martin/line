@@ -126,8 +126,8 @@ import {
   readinessScorerGapContext,
 } from "./readiness_features.ts";
 import {
-  distilledAimImpactValidationMae,
-  scoreDistilledAimImpactFeasibility,
+  aimImpactValidationMae,
+  scoreAimImpactFeasibility,
   scoreImpactFeasibility,
 } from "./readiness.ts";
 import type {
@@ -146,7 +146,7 @@ import type { Gap } from "../types.ts";
 /** The enumerative proposer — the aiming lane.
  *  Fit scorer-facing outputs from shared probes, enumerate the configured
  *  knob space inside the model, score each variation by settled incoming
- *  quality × projected outgoing quality × distilled next-contact impact
+ *  quality × projected outgoing quality × compact next-contact impact
  *  feasibility, and propose the top candidates through the unchanged exact
  *  evaluator. Full next-arc readiness enters only after that exact evaluation,
  *  in canonical pool ranking. This lane subsumed every
@@ -166,21 +166,21 @@ const aimModelImpactFeasibilityEnv = compileScopedEnv(
   "LR_AIM_MODEL_IMPACT_FEASIBILITY",
 );
 
-/** Production fixed-count controller. The distilled model changes which fitted
+/** Production fixed-count controller. The compact model changes which fitted
  * knob vectors are proposed, but neither the probe grid nor proposal count.
  * `off` and the much heavier full readiness forest remain explicit diagnostic
  * ablations. */
-type AimModelImpactPolicy = "off" | "full" | "distilled";
+type AimModelImpactPolicy = "off" | "full" | "compact";
 
 function aimModelImpactPolicy(): AimModelImpactPolicy {
   const value = aimModelImpactFeasibilityEnv();
-  if (value === undefined || value === "" || value === "distilled") {
-    return "distilled";
+  if (value === undefined || value === "" || value === "compact") {
+    return "compact";
   }
   if (value === "0" || value === "off") return "off";
   if (value === "1" || value === "full") return "full";
   throw new Error(
-    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, or distilled; got ${value}`,
+    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, or compact; got ${value}`,
   );
 }
 
@@ -188,7 +188,7 @@ function aimModelImpactFeasibilityEnabled(): boolean {
   return aimModelImpactPolicy() !== "off";
 }
 
-/** Study calibration for the distilled factor's log-weight inside the fixed
+/** Study calibration for the compact factor's log-weight inside the fixed
  * proposal ranking. One is the production policy and preserves the exact
  * multiplication path. This is intentionally aim-specific: the global
  * readiness power also changes ordinary pool ranking and would confound the
@@ -222,12 +222,12 @@ function aimImpactResolutionPolicy(): AimImpactResolutionPolicy {
 }
 
 /** Study policy: an impact-driven top-choice change is resolved only when its
- * modeled impact advantage exceeds the distilled model's held-out MAE. */
+ * modeled impact advantage exceeds the compact model's held-out MAE. */
 export function aimImpactTopChoiceIsResolved(
   policy: AimImpactResolutionPolicy,
   topChoiceChanged: boolean,
   modeledImpactAdvantage: number,
-  validationMae = distilledAimImpactValidationMae(),
+  validationMae = aimImpactValidationMae(),
 ): boolean {
   return policy === "off" || !topChoiceChanged ||
     modeledImpactAdvantage > validationMae;
@@ -739,7 +739,7 @@ export type AimStudyStats = {
   /** Mean surrogate-objective gain over δ=0, over emitted. */
   enum_objective_gain_mean: number;
   model_impact_policy: AimModelImpactPolicy;
-  /** Production distilled controller (or full-model diagnostic): modeled
+  /** Production compact controller (or full-model diagnostic): modeled
    *  knob-grid evaluations whose next-contact impact feasibility was inferred, grids
    *  where that extra factor changed the best improving knob vector, missing
    *  modeled arrivals, and the inferred factor's level/spread. The arm does
@@ -1300,8 +1300,8 @@ function modeledImpactFeasibility(
       : readinessScorerGapContext(outgoingGap, outgoingTargets),
     generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
   };
-  const impactFeasibility = aimModelImpactPolicy() === "distilled"
-    ? scoreDistilledAimImpactFeasibility(input)
+  const impactFeasibility = aimModelImpactPolicy() === "compact"
+    ? scoreAimImpactFeasibility(input)
     : scoreImpactFeasibility(input);
   aimTotals.enum_model_impact_scores++;
   aimTotals.enumModelImpactSum += impactFeasibility;

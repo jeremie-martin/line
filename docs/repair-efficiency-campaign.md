@@ -1188,3 +1188,32 @@ against `last-chance-repair-breadth`; no multi-budget scale run is authorized.
 An unfavorable or inconclusive result rejects the direct model without
 blending labels or tuning tree count, loss weight, or model power from the
 canonical outcomes.
+
+### Direct realized-impact proposer model — inconclusive; not promoted
+
+The full canonical run completed all 48 seed blocks. The candidate moved the
+N=48 headline from 604.1850 to 604.5275 (+0.3425), but its seed-block standard
+error was 2.5282, directional probability was only 55.36% against the 97.23%
+final boundary, and the 95% interval was [-6.4447, +7.1297]. Earlier looks were
+negative at N=8, N=16, and N=32. The result is inconclusive, not promotable,
+and the direct model has been removed from production.
+
+Aggregate validity was equal at 2,111/2,112, but not stable. On
+`frontier_pickup_progression_shifted`, the candidate lost seed 612 and gained
+seed 635. That bidirectional capability-basin swap explains the very large
+capability uncertainty; equal totals must not be read as a robustness gain.
+Representative sources were only +0.3329, legacy regressions -0.3806, and
+development music -1.3369.
+
+The important negative result is sharper than “the model did not win.” Its
+held-out absolute fit improved on all 44 sources, yet compiler value did not.
+The proposer makes within-grid ordering decisions inside a nonlinear search;
+pointwise absolute prediction error is therefore useful diagnostic evidence,
+not the training objective by itself. The accepted teacher-distilled 32-tree
+model remains production. Full decisions, identities, and evidence hashes are
+recorded in
+`benchmark/v2/studies/aim-impact-direct-realized-fit.json`.
+
+The next independent model hypothesis must protect ranking stability using
+only frozen offline evidence before canonical execution. Canonical V2 at 750k
+remains the sole compiler decision tool; no multi-budget sweep is authorized.

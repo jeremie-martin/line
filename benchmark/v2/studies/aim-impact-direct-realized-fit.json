@@ -1,0 +1,87 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-direct-realized-fit.v1",
+  "recorded_at": "2026-08-13T23:16:16Z",
+  "status": "inconclusive_not_promoted",
+  "hypothesis": "Training the fixed-cost 32-tree aim impact proposer directly on realized impact fit would improve proposal ranking relative to distilling the 200-tree readiness teacher.",
+  "fixed_contract": {
+    "budget": 750000,
+    "maximum_seeds": 48,
+    "model_family": "hist_gradient_boosting_regressor",
+    "trees": 32,
+    "features": 80,
+    "proposal_count_change": 0,
+    "probe_count_change": 0,
+    "ordinary_admission_set_change": false,
+    "authored_targets_changed": false
+  },
+  "offline_validation": {
+    "validation_contexts": 34495,
+    "incumbent_mse": 0.014220495468193444,
+    "candidate_mse": 0.01254720987819807,
+    "mse_relative_change": -0.1176671793,
+    "incumbent_mae": 0.08934030279415026,
+    "candidate_mae": 0.08420873974841922,
+    "mae_relative_change": -0.0574383888,
+    "source_macro_incumbent_mse": 0.014689535608017971,
+    "source_macro_candidate_mse": 0.013006708751732689,
+    "sources_improved": 44,
+    "sources_worsened": 0,
+    "export_parity_max_absolute_error": 0
+  },
+  "canonical_decision": {
+    "outcome": "inconclusive",
+    "promotable": false,
+    "stopping_depth": 48,
+    "base_headline": 604.185,
+    "candidate_headline": 604.5275,
+    "delta": 0.3425,
+    "standard_error": 2.5282,
+    "directional_probability": 0.55359132,
+    "required_directional_probability": 0.97226547,
+    "central_95_interval": [-6.4447, 7.1297],
+    "base_valid": 2111,
+    "candidate_valid": 2111,
+    "paired_cells": 2112,
+    "gained_valid": 1,
+    "lost_valid": 1,
+    "sequential_looks": [
+      { "depth": 8, "delta": -0.9288, "standard_error": 1.1869, "directional_probability": 0.22977231 },
+      { "depth": 16, "delta": -5.05, "standard_error": 4.7703, "directional_probability": 0.15325873 },
+      { "depth": 32, "delta": -2.2613, "standard_error": 2.546, "directional_probability": 0.19064257 },
+      { "depth": 48, "delta": 0.3425, "standard_error": 2.5282, "directional_probability": 0.55359132 }
+    ],
+    "stratum_deltas": {
+      "representative": 0.3329,
+      "capability": 1.4291,
+      "legacy_regression": -0.3806,
+      "development_music": -1.3369
+    },
+    "validity_swap": {
+      "source": "frontier_pickup_progression_shifted",
+      "candidate_lost_actual_seed": 612,
+      "candidate_gained_actual_seed": 635,
+      "interpretation": "The equal aggregate validity masks a bidirectional capability-basin swap and dominates the seed-block uncertainty; it is not evidence of robust validity improvement."
+    }
+  },
+  "identity": {
+    "base_candidate_fingerprint": "406549bb45124919682fdeaf7bb8a3442d40f7dbd0bc93f08cf8d8d62d9359d2",
+    "candidate_fingerprint": "1bd933c5a43db283f6ea2f176814f2222ca604a695b5fbd0e28587637760ee6c",
+    "implementation_fingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4",
+    "candidate_archive_sha256": "b2d83837b9e41eb123d1e2090129318b3be8964a452b1fc6ac56260aec77f067",
+    "candidate_compressed_archive_sha256": "815155e79a56b4038fb91ea520dde77bc193a7a82f75eaf8db0dedeae2b1b32e",
+    "compiler_snapshot_sha256": "554b0eeea92da0440faca6ffc2860ff50b16c406d62d65b9ff59a6994fa3a550"
+  },
+  "evidence": {
+    "offline_study": "generated/analysis/aim-impact-direct-fit-study.json",
+    "offline_study_sha256": "19af352d59204f1c530f65e6dd32da603d94bd81dc761755263f85d030d446fa",
+    "offline_model": "generated/analysis/aim-impact-direct-fit-model.json",
+    "offline_model_sha256": "8321ad3a1d76e2e15842da077dbb1f25ebe6f3670d36be25cc123069be1d470a",
+    "canonical_comparison": "benchmark/v2/runs/aim-impact-direct-fit-comparison.json",
+    "canonical_comparison_sha256": "58c96348dc92e457457772b1846130445b72adf7d8a91392a327ccd619f2db8a",
+    "canonical_archive": "benchmark/v2/runs/aim-impact-direct-fit-development-750k-N48.N48.json.gz",
+    "compiler_snapshot": "benchmark/v2/runs/aim-impact-direct-fit-development-750k-N48-compiler-snapshot.tar.gz"
+  },
+  "interpretation": "The absolute realized-impact target improved every offline source, but it did not deliver stable compiler value. Pointwise fit is not the proposal-ranking objective: small ranking changes alter nonlinear search basins, including one validity loss and one validity gain in the same capability source.",
+  "cleanup": "The direct model was removed from production after the governed decision. The reproducible offline training mode and evidence remain.",
+  "next": "Retain the accepted 32-tree teacher-distilled proposer. Test a separately declared compact objective whose training selection is based only on frozen offline evidence and protects ranking stability; use only canonical V2 at 750k for compiler decisions."
+}

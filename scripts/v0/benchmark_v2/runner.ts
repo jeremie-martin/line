@@ -1533,14 +1533,14 @@ function printProgress(
 
 type StreamingProgress = {
   completed: number;
-  valid: number;
+  freshValid: number;
   byBudget: Map<number, { count: number }>;
 };
 
 function newStreamingProgress(restored: number, budgets: readonly number[]): StreamingProgress {
   return {
     completed: restored,
-    valid: 0,
+    freshValid: 0,
     byBudget: new Map(budgets.map((budget) => [budget, { count: 0 }])),
   };
 }
@@ -1550,7 +1550,7 @@ function recordStreamingProgress(
   row: WorkerResult & { score: V2RunScore },
 ): void {
   progress.completed++;
-  if (row.score.valid) progress.valid++;
+  if (row.score.valid) progress.freshValid++;
   const budget = progress.byBudget.get(row.task.budget)!;
   budget.count++;
 }
@@ -1567,10 +1567,10 @@ function printStreamingProgress(
   const remaining = total - progress.completed;
   const etaSeconds = rate > 0 ? remaining / rate : 0;
   const budgetText = [...progress.byBudget.entries()].map(([budget, summary]) =>
-    `${budget / 1000}k ${summary.count} rows`
+    `${budget / 1000}k ${summary.count} fresh rows`
   ).join(" | ");
   console.log(
-    `  [${progress.completed}/${total}] valid ${progress.valid}, ${rate.toFixed(2)} runs/s, ETA ${formatDuration(etaSeconds)}; ` +
+    `  [${progress.completed}/${total}] fresh valid ${progress.freshValid}, ${rate.toFixed(2)} runs/s, ETA ${formatDuration(etaSeconds)}; ` +
     `${budgetText}`,
   );
 }

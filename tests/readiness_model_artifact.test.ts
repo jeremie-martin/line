@@ -18,7 +18,7 @@ import aimImpactModel from "../scripts/v0/optimizer/aim_impact_model.json" with 
 import parityFixture from "./fixtures/readiness_model_parity.json" with {
   type: "json",
 };
-import { aimImpactValidationMae } from
+import { distilledAimImpactValidationMae } from
   "../scripts/v0/optimizer/readiness.ts";
 
 function artifact(
@@ -51,10 +51,9 @@ describe("readiness model artifact inference", () => {
         requiredComponents: ["impactFeasibility"],
       })
     ).not.toThrow();
-    expect(aimImpactModel.aimImpactTraining.exportParityMaxAbsoluteError).toBe(0);
-    expect(aimImpactModel.aimImpactTraining.target).toBe("realized-impact-fit");
-    expect(aimImpactValidationMae()).toBe(
-      aimImpactModel.aimImpactTraining.validation.mae,
+    expect(aimImpactModel.distillation.exportParityMaxAbsoluteError).toBe(0);
+    expect(distilledAimImpactValidationMae()).toBe(
+      aimImpactModel.distillation.validation.mae,
     );
     expect(aimImpactModel.components.impactFeasibility.trees).toHaveLength(32);
   });

@@ -76,7 +76,7 @@
   "interpretation": "The mechanism activated exactly and improved repair throughput, acceptance, and internal gain at effectively fixed spend. The authored-score estimate remained below its governed acceptance boundary and its gain was narrowly concentrated: frontier_pickup_progression contributed 0.599 source points while most sources were inert. The arm is not promoted and does not proceed to a canonical run. It supports improving the aimed proposal/ranking information itself, not unconditional repair branch reservation.",
   "implementation": {
     "study_commit": "5e4be72",
-    "closure_commit": null
+    "closure_commit": "7aaeba6"
   },
   "evidence": {
     "n4_comparison": {

@@ -18,6 +18,8 @@ import aimImpactModel from "../scripts/v0/optimizer/aim_impact_model.json" with 
 import parityFixture from "./fixtures/readiness_model_parity.json" with {
   type: "json",
 };
+import { distilledAimImpactValidationMae } from
+  "../scripts/v0/optimizer/readiness.ts";
 
 function artifact(
   component: Record<string, unknown>,
@@ -50,6 +52,9 @@ describe("readiness model artifact inference", () => {
       })
     ).not.toThrow();
     expect(aimImpactModel.distillation.exportParityMaxAbsoluteError).toBe(0);
+    expect(distilledAimImpactValidationMae()).toBe(
+      aimImpactModel.distillation.validation.mae,
+    );
     expect(aimImpactModel.components.impactFeasibility.trees).toHaveLength(32);
   });
 

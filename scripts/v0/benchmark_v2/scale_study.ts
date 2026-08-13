@@ -77,6 +77,7 @@ type StudyTask = {
     | "worst-target-runway-per-cost";
   repairSuffixSearchPolicy?: "target-improvement-first";
   aimImpactPower?: number;
+  aimImpactResolutionPolicy?: "validated-mae-top1";
   aimTopKExponent?: number;
   aimTopKScope?: "repair";
   aimTopKFirstRepairExtra?: number;
@@ -143,6 +144,9 @@ async function main(): Promise<void> {
     0.25,
     4,
   );
+  const aimImpactResolutionPolicy = parseAimImpactResolutionPolicy(
+    argument("aim-impact-resolution-policy"),
+  );
   const aimTopKExponent = optionalBoundedNumber(
     argument("aim-topk-exponent"),
     "aim-topk-exponent",
@@ -203,6 +207,7 @@ async function main(): Promise<void> {
     repairSelectionPolicy,
     repairSuffixSearchPolicy,
     aimImpactPower,
+    aimImpactResolutionPolicy,
     aimTopKExponent,
     aimTopKScope,
     aimTopKFirstRepairExtra,
@@ -232,6 +237,7 @@ async function main(): Promise<void> {
     repairSelectionPolicy,
     repairSuffixSearchPolicy,
     aimImpactPower,
+    aimImpactResolutionPolicy,
     aimTopKExponent,
     aimTopKScope,
     aimTopKFirstRepairExtra,
@@ -398,6 +404,7 @@ async function main(): Promise<void> {
     repairSelectionPolicy,
     repairSuffixSearchPolicy,
     aimImpactPower,
+    aimImpactResolutionPolicy,
     aimTopKExponent,
     aimTopKScope,
     aimTopKFirstRepairExtra,
@@ -577,6 +584,7 @@ function studyPlanFingerprint(input: {
     | "worst-target-runway-per-cost";
   repairSuffixSearchPolicy?: "target-improvement-first";
   aimImpactPower?: number;
+  aimImpactResolutionPolicy?: "validated-mae-top1";
   aimTopKExponent?: number;
   aimTopKScope?: "repair";
   aimTopKFirstRepairExtra?: number;
@@ -610,6 +618,7 @@ function taskKey(task: StudyTask): string {
     task.repairSelectionPolicy ?? "production",
     task.repairSuffixSearchPolicy ?? "production",
     task.aimImpactPower ?? "production",
+    task.aimImpactResolutionPolicy ?? "production",
     task.aimTopKExponent ?? "production",
     task.aimTopKScope ?? "all",
     task.aimTopKFirstRepairExtra ?? "production",
@@ -677,6 +686,13 @@ async function workerMain(task: StudyTask): Promise<void> {
     }
     if (task.aimImpactPower === undefined) delete process.env.LR_AIM_MODEL_IMPACT_POWER;
     else process.env.LR_AIM_MODEL_IMPACT_POWER = String(task.aimImpactPower);
+    if (task.aimImpactResolutionPolicy === undefined) {
+      delete process.env.LR_AIM_MODEL_IMPACT_RESOLUTION_POLICY;
+    } else {
+      process.env.LR_AIM_MODEL_IMPACT_RESOLUTION_POLICY = task.aimImpactResolutionPolicy;
+      // The arm's resolution decisions must be attributable in its archive.
+      process.env.LR_AIM_STUDY_STATS = "1";
+    }
     if (task.aimTopKExponent === undefined) delete process.env.LR_AIM_TOPK_SCALE_EXPONENT;
     else process.env.LR_AIM_TOPK_SCALE_EXPONENT = String(task.aimTopKExponent);
     if (task.aimTopKScope === undefined) delete process.env.LR_AIM_TOPK_SCALE_SCOPE;
@@ -811,6 +827,14 @@ function parseAimTopKScope(value: string | undefined): "repair" | undefined {
   if (value === undefined) return undefined;
   if (value === "repair") return value;
   throw new Error("--aim-topk-scope must be repair");
+}
+
+function parseAimImpactResolutionPolicy(
+  value: string | undefined,
+): "validated-mae-top1" | undefined {
+  if (value === undefined) return undefined;
+  if (value === "validated-mae-top1") return value;
+  throw new Error("--aim-impact-resolution-policy must be validated-mae-top1");
 }
 
 function parseResumePolicy(

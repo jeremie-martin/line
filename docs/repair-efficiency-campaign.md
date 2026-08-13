@@ -456,3 +456,26 @@ Future attempt-value work should predict the global downstream value or basin
 of an alternative, rather than strengthen the selected gap in isolation. Exact
 evidence and hashes are recorded in
 `benchmark/v2/studies/current-scorer-target-improvement-first.json`.
+
+### Distilled-impact top-choice resolution — declared
+
+The accepted proposal controller is the only recent intervention with a large
+authored-score effect. Its 32-tree distillation outperformed the exact 200-tree
+teacher despite approximating that teacher with held-out MAE 0.03894. Better
+teacher imitation is therefore not the objective; the remaining question is
+whether impact-driven proposal changes smaller than the compact model's own
+validated resolution are useful or merely ranking churn.
+
+The single `validated-mae-top1` arm keeps the production scorer unless the
+impact-aware and ordinary objectives choose different top knob vectors and the
+active top vector's modeled impact-feasibility advantage is no larger than the
+artifact's held-out MAE. Only in that case does the grid retain ordinary order.
+There is no fitted threshold: the boundary is read from the shipped model
+artifact. Probe grid, ordinary admission set, proposal count, exact candidate
+evaluation, generic breadth, tree branching, repair policy, and authored
+targets remain unchanged.
+
+The frozen 4/8/16 multi-budget ladder applies. Telemetry must report eligible
+top-choice changes, their mean modeled advantage, and suppressed changes. An
+inconclusive result closes this exact resolution boundary without threshold
+tuning or combination with breadth or repair allocation.

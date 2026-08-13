@@ -58,6 +58,15 @@ const READINESS_CONTEXT_BOOTSTRAP = (() => {
 
 let READINESS_MODEL = parseReadinessModelArtifact(modelJson);
 const AIM_IMPACT_MODEL = parseReadinessModelArtifact(aimImpactModelJson);
+const AIM_IMPACT_DISTILLED_VALIDATION_MAE = (() => {
+  const value = (aimImpactModelJson as {
+    distillation?: { validation?: { mae?: unknown } };
+  }).distillation?.validation?.mae;
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new Error(`aim impact artifact is missing a finite validation MAE`);
+  }
+  return value;
+})();
 if (
   READINESS_MODEL.trainingCorpus.schema === "bootstrap-untrained" &&
   (globalThis as {
@@ -99,6 +108,12 @@ export function scoreDistilledAimImpactFeasibility(
   input: NextArcReadinessInput,
 ): number {
   return scoreImpactFeasibilityWithArtifact(input, AIM_IMPACT_MODEL);
+}
+
+/** Held-out absolute-error resolution of the shipped distilled impact model.
+ * This is artifact evidence, not a compiler-tuned constant. */
+export function distilledAimImpactValidationMae(): number {
+  return AIM_IMPACT_DISTILLED_VALIDATION_MAE;
 }
 
 /** Install the explicit context-selector artifact for a governed corpus

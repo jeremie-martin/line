@@ -55,6 +55,7 @@ export type RepairSelectionPolicy =
   | "late-reserve-cheapest-else-deepest"
   | "worst-target-runway-per-cost";
 export type RepairSuffixSearchPolicy = "target-improvement-first";
+export type AimImpactResolutionPolicy = "validated-mae-top1";
 
 export type MultiBudgetBaseline = {
   schema: typeof SCALE_BASELINE_SCHEMA;
@@ -117,6 +118,7 @@ export function assertScaleArguments(
         "repair-selection-policy",
         "repair-suffix-search-policy",
         "aim-impact-power",
+        "aim-impact-resolution-policy",
         "aim-topk-exponent",
         "aim-topk-scope",
         "aim-topk-first-repair-extra",
@@ -137,6 +139,9 @@ export function assertScaleArguments(
         parseRepairSuffixSearchPolicy(arg.slice(equals + 1));
       }
       if (name === "aim-impact-power") parseAimImpactPower(arg.slice(equals + 1));
+      if (name === "aim-impact-resolution-policy") {
+        parseAimImpactResolutionPolicy(arg.slice(equals + 1));
+      }
       if (name === "aim-topk-exponent") parseAimTopKExponent(arg.slice(equals + 1));
       if (name === "aim-topk-scope") parseAimTopKScope(arg.slice(equals + 1));
       if (name === "aim-topk-first-repair-extra") {
@@ -299,6 +304,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const repairSelectionPolicy = scaleRepairSelectionPolicyArgument(argv);
   const repairSuffixSearchPolicy = scaleRepairSuffixSearchPolicyArgument(argv);
   const aimImpactPower = scaleAimImpactPowerArgument(argv);
+  const aimImpactResolutionPolicy = scaleAimImpactResolutionPolicyArgument(argv);
   const aimTopKExponent = scaleAimTopKExponentArgument(argv);
   const aimTopKScope = scaleAimTopKScopeArgument(argv);
   const aimTopKFirstRepairExtra = scaleAimTopKFirstRepairExtraArgument(argv);
@@ -338,6 +344,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
       repairSelectionPolicy,
       repairSuffixSearchPolicy,
       aimImpactPower,
+      aimImpactResolutionPolicy,
       aimTopKExponent,
       aimTopKScope,
       aimTopKFirstRepairExtra,
@@ -362,6 +369,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
         repairSelectionPolicy,
         repairSuffixSearchPolicy,
         aimImpactPower,
+        aimImpactResolutionPolicy,
         aimTopKExponent,
         aimTopKScope,
         aimTopKFirstRepairExtra,
@@ -467,6 +475,13 @@ async function compareScaleArchives(
         `${candidate.archive.aimImpactPower}; the production reference uses 1`,
     );
   }
+  if (candidate.archive.aimImpactResolutionPolicy !== undefined) {
+    comparabilityNotes.push(
+      `declared study intervention: candidate aim impact resolution policy ` +
+        `${candidate.archive.aimImpactResolutionPolicy}; the production reference uses no ` +
+        `resolution gate`,
+    );
+  }
   if (candidate.archive.aimTopKExponent !== undefined) {
     comparabilityNotes.push(
       `declared study intervention: candidate aim top-K exponent ` +
@@ -547,6 +562,11 @@ async function compareScaleArchives(
               }
             : candidate.archive.aimImpactPower !== undefined
               ? { kind: "candidate-aim-impact-power", power: candidate.archive.aimImpactPower }
+              : candidate.archive.aimImpactResolutionPolicy !== undefined
+                ? {
+                  kind: "candidate-aim-impact-resolution-policy",
+                  policy: candidate.archive.aimImpactResolutionPolicy,
+                }
               : candidate.archive.aimTopKExponent !== undefined
                 ? {
                   kind: "candidate-aim-topk-exponent",
@@ -584,6 +604,9 @@ async function compareScaleArchives(
         (candidate.archive.aimImpactPower === undefined
           ? ""
           : ` --aim-impact-power=${candidate.archive.aimImpactPower}`) +
+        (candidate.archive.aimImpactResolutionPolicy === undefined
+          ? ""
+          : ` --aim-impact-resolution-policy=${candidate.archive.aimImpactResolutionPolicy}`) +
         (candidate.archive.aimTopKExponent === undefined
           ? ""
           : ` --aim-topk-exponent=${candidate.archive.aimTopKExponent}`) +
@@ -610,6 +633,7 @@ function scaleRunnerArgs(
   repairSelectionPolicy: RepairSelectionPolicy | null = null,
   repairSuffixSearchPolicy: RepairSuffixSearchPolicy | null = null,
   aimImpactPower: number | null = null,
+  aimImpactResolutionPolicy: AimImpactResolutionPolicy | null = null,
   aimTopKExponent: number | null = null,
   aimTopKScope: "repair" | null = null,
   aimTopKFirstRepairExtra: number | null = null,
@@ -631,6 +655,9 @@ function scaleRunnerArgs(
       ? []
       : [`--repair-suffix-search-policy=${repairSuffixSearchPolicy}`]),
     ...(aimImpactPower === null ? [] : [`--aim-impact-power=${aimImpactPower}`]),
+    ...(aimImpactResolutionPolicy === null
+      ? []
+      : [`--aim-impact-resolution-policy=${aimImpactResolutionPolicy}`]),
     ...(aimTopKExponent === null ? [] : [`--aim-topk-exponent=${aimTopKExponent}`]),
     ...(aimTopKScope === null ? [] : [`--aim-topk-scope=${aimTopKScope}`]),
     ...(aimTopKFirstRepairExtra === null
@@ -655,6 +682,7 @@ function validateScaleExtension(
   repairSelectionPolicy: RepairSelectionPolicy | null,
   repairSuffixSearchPolicy: RepairSuffixSearchPolicy | null,
   aimImpactPower: number | null,
+  aimImpactResolutionPolicy: AimImpactResolutionPolicy | null,
   aimTopKExponent: number | null,
   aimTopKScope: "repair" | null,
   aimTopKFirstRepairExtra: number | null,
@@ -683,6 +711,9 @@ function validateScaleExtension(
   }
   if ((arm.archive.aimImpactPower ?? null) !== aimImpactPower) {
     throw new Error(`--extend-from used a different candidate aim impact power`);
+  }
+  if ((arm.archive.aimImpactResolutionPolicy ?? null) !== aimImpactResolutionPolicy) {
+    throw new Error(`--extend-from used a different aim impact resolution policy`);
   }
   if ((arm.archive.aimTopKExponent ?? null) !== aimTopKExponent) {
     throw new Error(`--extend-from used a different candidate aim top-K exponent`);
@@ -900,6 +931,22 @@ function parseAimImpactPower(raw: string | undefined): number | null {
 
 export function scaleAimImpactPowerArgument(argv: string[]): number | null {
   return parseAimImpactPower(argumentIn(argv)("aim-impact-power"));
+}
+
+function parseAimImpactResolutionPolicy(
+  raw: string | undefined,
+): AimImpactResolutionPolicy | null {
+  if (raw === undefined) return null;
+  if (raw === "validated-mae-top1") return raw;
+  throw new Error(`--aim-impact-resolution-policy must be validated-mae-top1`);
+}
+
+export function scaleAimImpactResolutionPolicyArgument(
+  argv: string[],
+): AimImpactResolutionPolicy | null {
+  return parseAimImpactResolutionPolicy(
+    argumentIn(argv)("aim-impact-resolution-policy"),
+  );
 }
 
 function parseAimTopKExponent(raw: string | undefined): number | null {

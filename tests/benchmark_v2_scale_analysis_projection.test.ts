@@ -89,4 +89,31 @@ describe("Benchmark V2 scale analysis projection", () => {
       budgetTelemetry: null,
     });
   });
+
+  test("retains only the attributable impact-resolution study counters", () => {
+    const projected = scaleAnalysisRun({
+      stats: {
+        aim: {
+          study: {
+            model_impact_resolution_policy: "validated-mae-top1",
+            enum_model_impact_top1_changed: 9,
+            enum_model_impact_top1_advantage_mean: 0.051,
+            enum_model_impact_top1_resolution_suppressed: 4,
+            enum_model_impact_scores: 999_999,
+          },
+        },
+      },
+      budgetTelemetry: null,
+    });
+    expect(projected.stats).toEqual({
+      aim: {
+        study: {
+          model_impact_resolution_policy: "validated-mae-top1",
+          enum_model_impact_top1_changed: 9,
+          enum_model_impact_top1_advantage_mean: 0.051,
+          enum_model_impact_top1_resolution_suppressed: 4,
+        },
+      },
+    });
+  });
 });

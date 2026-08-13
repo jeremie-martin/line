@@ -659,6 +659,9 @@ export type CompileStats = {
       enum_model_impact_scores: number;
       enum_model_impact_grids: number;
       enum_model_impact_top1_changed: number;
+      model_impact_resolution_policy: "off" | "validated-mae-top1";
+      enum_model_impact_top1_advantage_mean: number;
+      enum_model_impact_top1_resolution_suppressed: number;
       enum_model_impact_state_missing: number;
       enum_model_impact_mean: number;
       enum_model_impact_spread_mean: number;

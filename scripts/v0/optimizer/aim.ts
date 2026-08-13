@@ -126,6 +126,7 @@ import {
   readinessScorerGapContext,
 } from "./readiness_features.ts";
 import {
+  distilledAimImpactValidationMae,
   scoreDistilledAimImpactFeasibility,
   scoreImpactFeasibility,
 } from "./readiness.ts";
@@ -204,6 +205,32 @@ export function aimModelImpactPower(
     throw new Error(`LR_AIM_MODEL_IMPACT_POWER must be in [0.25, 4]; got ${raw}`);
   }
   return value;
+}
+
+export type AimImpactResolutionPolicy = "off" | "validated-mae-top1";
+const aimImpactResolutionPolicyEnv = compileScopedEnv(
+  "LR_AIM_MODEL_IMPACT_RESOLUTION_POLICY",
+);
+
+function aimImpactResolutionPolicy(): AimImpactResolutionPolicy {
+  const value = aimImpactResolutionPolicyEnv();
+  if (value === undefined || value === "" || value === "off") return "off";
+  if (value === "validated-mae-top1") return value;
+  throw new Error(
+    `LR_AIM_MODEL_IMPACT_RESOLUTION_POLICY must be off or validated-mae-top1; got ${value}`,
+  );
+}
+
+/** Study policy: an impact-driven top-choice change is resolved only when its
+ * modeled impact advantage exceeds the distilled model's held-out MAE. */
+export function aimImpactTopChoiceIsResolved(
+  policy: AimImpactResolutionPolicy,
+  topChoiceChanged: boolean,
+  modeledImpactAdvantage: number,
+  validationMae = distilledAimImpactValidationMae(),
+): boolean {
+  return policy === "off" || !topChoiceChanged ||
+    modeledImpactAdvantage > validationMae;
 }
 
 /** Below this |predicted base air − effective ask| the air-matched variant is
@@ -720,6 +747,9 @@ export type AimStudyStats = {
   enum_model_impact_scores: number;
   enum_model_impact_grids: number;
   enum_model_impact_top1_changed: number;
+  model_impact_resolution_policy: AimImpactResolutionPolicy;
+  enum_model_impact_top1_advantage_mean: number;
+  enum_model_impact_top1_resolution_suppressed: number;
   enum_model_impact_state_missing: number;
   enum_model_impact_mean: number;
   enum_model_impact_spread_mean: number;
@@ -843,6 +873,8 @@ const aimTotals = {
   enumProjectionErrSum: 0, enumObjectiveGainSum: 0, enumAchieved: 0,
   enum_model_impact_scores: 0, enum_model_impact_grids: 0,
   enum_model_impact_top1_changed: 0, enum_model_impact_state_missing: 0,
+  enumModelImpactTop1AdvantageSum: 0,
+  enum_model_impact_top1_resolution_suppressed: 0,
   enumModelImpactSum: 0, enumModelImpactSpreadSum: 0,
   enum_model_impact_selected_rank_observations: 0,
   enumModelImpactSelectedMaxOrdinaryRankSum: 0,
@@ -1044,6 +1076,15 @@ export function snapshotAimStats(): AimStats | null {
     enum_model_impact_scores: aimTotals.enum_model_impact_scores,
     enum_model_impact_grids: aimTotals.enum_model_impact_grids,
     enum_model_impact_top1_changed: aimTotals.enum_model_impact_top1_changed,
+    model_impact_resolution_policy: aimImpactResolutionPolicy(),
+    enum_model_impact_top1_advantage_mean: aimTotals.enum_model_impact_top1_changed > 0
+      ? round3(
+        aimTotals.enumModelImpactTop1AdvantageSum /
+          aimTotals.enum_model_impact_top1_changed,
+      )
+      : 0,
+    enum_model_impact_top1_resolution_suppressed:
+      aimTotals.enum_model_impact_top1_resolution_suppressed,
     enum_model_impact_state_missing: aimTotals.enum_model_impact_state_missing,
     enum_model_impact_mean: aimTotals.enum_model_impact_scores > 0
       ? round3(aimTotals.enumModelImpactSum / aimTotals.enum_model_impact_scores)
@@ -1357,6 +1398,7 @@ function scoreConfiguredKnobGrid(
     }
   };
   visit([], 0);
+  let orderKey: "val" | "ordinaryVal" = "val";
   if (
     aimModelImpactFeasibilityEnabled() &&
     nextTargets.impact !== undefined &&
@@ -1371,11 +1413,26 @@ function scoreConfiguredKnobGrid(
       .sort((a, b) => compareConfiguredKnobs(a, b, "val"));
     const ordinaryBest = ordinaryOrder[0];
     const activeBest = activeOrder[0];
-    if (
-      ordinaryBest !== undefined && activeBest !== undefined &&
-      ordinaryBest.values.some((value, index) => Math.abs(value - activeBest.values[index]) > 1e-9)
-    ) aimTotals.enum_model_impact_top1_changed++;
-    const selected = activeOrder.slice(0, Math.min(2, activeOrder.length));
+    const topChoiceChanged = ordinaryBest !== undefined && activeBest !== undefined &&
+      ordinaryBest.values.some(
+        (value, index) => Math.abs(value - activeBest.values[index]) > 1e-9,
+      );
+    if (topChoiceChanged) {
+      aimTotals.enum_model_impact_top1_changed++;
+      const advantage = activeBest!.modelImpactFeasibility -
+        ordinaryBest!.modelImpactFeasibility;
+      aimTotals.enumModelImpactTop1AdvantageSum += advantage;
+      if (!aimImpactTopChoiceIsResolved(
+        aimImpactResolutionPolicy(),
+        true,
+        advantage,
+      )) {
+        orderKey = "ordinaryVal";
+        aimTotals.enum_model_impact_top1_resolution_suppressed++;
+      }
+    }
+    const effectiveOrder = orderKey === "val" ? activeOrder : ordinaryOrder;
+    const selected = effectiveOrder.slice(0, Math.min(2, effectiveOrder.length));
     if (selected.length > 0) {
       const maxOrdinaryRank = Math.max(
         ...selected.map((candidate) => ordinaryOrder.indexOf(candidate) + 1),
@@ -1389,7 +1446,7 @@ function scoreConfiguredKnobGrid(
       }
     }
   }
-  return out.sort((a, b) => compareConfiguredKnobs(a, b, "val"));
+  return out.sort((a, b) => compareConfiguredKnobs(a, b, orderKey));
 }
 
 function compareConfiguredKnobs(

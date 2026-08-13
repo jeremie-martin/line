@@ -77,14 +77,38 @@ const AIM_COMPACT_FIELDS = [
   "aimed_pool_size_sum",
 ] as const;
 
-function compactAimStats(value: unknown): Record<string, number> | null {
+function compactAimStats(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value !== "object") return null;
   const source = value as Record<string, unknown>;
   const entries = AIM_COMPACT_FIELDS.flatMap((field) => {
     const value = finite(source[field]);
     return value === null ? [] : [[field, value] as const];
   });
-  return entries.length === 0 ? null : Object.fromEntries(entries);
+  const resolution = compactAimImpactResolutionStats(source.study);
+  if (entries.length === 0 && resolution === null) return null;
+  return {
+    ...Object.fromEntries(entries),
+    ...(resolution === null ? {} : { study: resolution }),
+  };
+}
+
+function compactAimImpactResolutionStats(value: unknown): Record<string, unknown> | null {
+  if (value === null || typeof value !== "object") return null;
+  const source = value as Record<string, unknown>;
+  const policy = source.model_impact_resolution_policy;
+  const changed = finite(source.enum_model_impact_top1_changed);
+  const advantage = finite(source.enum_model_impact_top1_advantage_mean);
+  const suppressed = finite(source.enum_model_impact_top1_resolution_suppressed);
+  if (
+    (policy !== "off" && policy !== "validated-mae-top1") ||
+    changed === null || advantage === null || suppressed === null
+  ) return null;
+  return {
+    model_impact_resolution_policy: policy,
+    enum_model_impact_top1_changed: changed,
+    enum_model_impact_top1_advantage_mean: advantage,
+    enum_model_impact_top1_resolution_suppressed: suppressed,
+  };
 }
 
 function finite(value: unknown): number | null {

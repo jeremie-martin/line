@@ -1,0 +1,77 @@
+{
+  "schema": "line.benchmark-v2.full-breadth-third-repair-proposal.v1",
+  "recorded_at": "2026-08-13T15:45:00.000Z",
+  "status": "closed_not_promoted",
+  "intervention": {
+    "scope": "independent repair pools only",
+    "sample_breadth": "full production width",
+    "model_proposals_per_refined_base": 3,
+    "reference_model_proposals_per_refined_base": 2,
+    "initial_search_change": false,
+    "resumed_search_change": false,
+    "authored_target_change": false
+  },
+  "decision": {
+    "profile": "compact-budget-response-v1",
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.85,
+    "candidate_headline": 579.9586,
+    "delta": 0.1086,
+    "standard_error": 0.1698,
+    "directional_probability": 0.73395223,
+    "required_directional_probability": 0.99166667,
+    "central_interval_95": [
+      -0.2533,
+      0.4705
+    ],
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "per_budget_delta": {
+      "150000": 0.0398,
+      "250000": -0.6483,
+      "500000": 0.0129,
+      "750000": 1.0662,
+      "1000000": 0.261,
+      "1500000": -0.4133,
+      "2500000": 0.3913,
+      "4000000": 0.1593
+    }
+  },
+  "mechanics": {
+    "first_terminal_frames_delta": 0,
+    "actual_candidate_samples_relative_delta": -0.0259,
+    "aim_candidates_admitted_relative_delta": 0.188367,
+    "aim_pool_top_three_rate_relative_delta": -0.08117,
+    "aim_mean_pool_rank_relative_delta": 0.138,
+    "final_track_aimed_fits_relative_delta": 0.014521,
+    "reference_repair_episodes": 3945,
+    "candidate_repair_episodes": 3616,
+    "reference_terminal_alternatives": 3908,
+    "candidate_terminal_alternatives": 3559,
+    "reference_accepted_alternatives": 1794,
+    "candidate_accepted_alternatives": 1713,
+    "reference_repair_spent_frames": 625691916,
+    "candidate_repair_spent_frames": 625369830,
+    "mean_attempt_cost_relative_delta": 0.085535,
+    "completion_estimate_absolute_error_relative_delta": 0.622255,
+    "distinct_terminal_tracks_relative_delta": -0.047747,
+    "reference_internal_gain": 4954.117471,
+    "candidate_internal_gain": 5052.452063,
+    "reference_gain_per_million_frames": 7.917822,
+    "candidate_gain_per_million_frames": 8.079143,
+    "controller_invariant_violations": 0
+  },
+  "interpretation": "A third fitted-grid proposal increases admitted aim choices and slightly improves aggregate repair value density, but exact evaluation makes each suffix materially more expensive, reduces terminal opportunities, and does not produce a reliable across-budget authored-score gain.",
+  "cleanup": "The repair-only third-proposal default and its test were removed. Production retains full ordinary repair breadth and two model proposals.",
+  "evidence": {
+    "archive": "generated/benchmark-v2/scale/repair-full-breadth-aim-p3-16.json.gz",
+    "archive_sha256": "e087ba02c5dadccb6a7cddeaf9b2d2030fbb47f184f48f48275b575d383bfde6",
+    "comparison": "generated/benchmark-v2/scale/repair-full-breadth-aim-p3-16.comparison.json",
+    "comparison_sha256": "93e4a2b600360c3e793b94992408ea6197600e5973dd498ee6fa7f3dc37b4917",
+    "behavior": "generated/benchmark-v2/scale/repair-full-breadth-aim-p3-16.behavior.json",
+    "behavior_sha256": "383f976c5f109353bfd636b578c4e8e37014aa57076ca25c0afc8ccfacb9a8e3",
+    "compiler_snapshot": "generated/benchmark-v2/scale/repair-full-breadth-aim-p3-4-candidate-compiler-snapshot.tar.gz",
+    "compiler_snapshot_sha256": "85ed95acb7ea5c6c838ea21044bbebc3ecbb0e9e19ca5c23a8b2e8b2f330e4f5"
+  }
+}

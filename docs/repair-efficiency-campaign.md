@@ -961,3 +961,34 @@ completed reallocation and the historical 1/2/3 boundary. The frozen 4/8/16
 multi-budget ladder decides it. The same phase, aim-yield, repair-value,
 validity, and authored-score evidence is required; no favorable-looking source
 or budget gate may be added afterward.
+
+### Full-breadth third repair proposal — not promoted
+
+The third proposal remained inconclusive and budget-inconsistent. The governed
+looks were +0.0140 at N=4, -0.2338 at N=8, and +0.1086 at N=16. The final
+directional probability was 73.40%, the central 95% interval was
+[-0.2533, +0.4705], and validity remained exactly 997/1,024. The 750k slice
+was a credible +1.0662, but 250k was -0.6483 and 1.5M was -0.4133; a favorable
+single budget does not override the declared across-budget decision.
+
+The intervention was active and correctly isolated. First-terminal frames were
+exact, the controller audit found zero violations, admitted fitted proposals
+rose 18.84%, and final tracks contained 1.45% more aimed fits. The extra
+proposal nevertheless consumed exact-evaluation budget: total candidate
+samples fell 2.59%, exact-pool top-three rate fell 8.12%, and mean exact-pool
+rank worsened 13.80%.
+
+Repair spent essentially the same total frames but made each attempt 8.55%
+more expensive. Episodes fell from 3,945 to 3,616, terminal alternatives from
+3,908 to 3,559, and accepted alternatives from 1,794 to 1,713. Completion
+estimate absolute error rose 62.23%; distinct terminal tracks fell 4.77%.
+Aggregate internal gain rose 1.98% and gain per million repair frames rose
+2.04%, but that quality gain was too small to recover the lost attempt
+opportunities reliably in authored score.
+
+Production therefore retains two proposals and full ordinary repair breadth.
+The repair-only proposal-count branch and its test were removed after the exact
+compiler snapshot and N=16 evidence were archived. This closes generic extra
+proposal count and random-sample-to-proposal reallocation; the next proposal
+family must improve the ranking target or information content of the existing
+fixed slots rather than add another fitted-grid choice.

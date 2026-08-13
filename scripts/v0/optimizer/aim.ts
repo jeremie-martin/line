@@ -319,23 +319,12 @@ function aimProbeLayout(): ArcProbeLayoutId {
   return requested as ArcProbeLayoutId;
 }
 
-/** Study default: a third distinct fitted-grid proposal is available only in
- * independent repair. Initial and resumed search retain production's two, so
- * first-terminal work stays exact. */
-export function aimProposalCountForPhase(
-  environment: Record<string, string | undefined> =
-    (globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env ?? {},
-  repairActive = aimRepairLaneActive,
-): number {
+function aimProposalCount(): number {
   const requested = aimControlOverrideActive()
-    ? environment.LR_AIM_PROPOSAL_COUNT
+    ? (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_AIM_PROPOSAL_COUNT
     : undefined;
-  if (requested === undefined || requested === "") {
-    return repairActive
-      ? ARC_CONTROL_DEFAULT.proposalCount + 1
-      : ARC_CONTROL_DEFAULT.proposalCount;
-  }
+  if (requested === undefined || requested === "") return ARC_CONTROL_DEFAULT.proposalCount;
   const value = Number(requested);
   if (!Number.isSafeInteger(value) || value < 1) {
     throw new Error(`invalid LR_AIM_PROPOSAL_COUNT=${requested}`);
@@ -424,7 +413,7 @@ function aimControl(): AimControl {
     probeLayout: aimProbeLayout(),
     probeRangeScale: aimPositiveRangeScale("LR_AIM_PROBE_RANGE_SCALE", ARC_CONTROL_DEFAULT.probeRangeScale),
     proposalRangeScale: aimPositiveRangeScale("LR_AIM_PROPOSAL_RANGE_SCALE", ARC_CONTROL_DEFAULT.proposalRangeScale),
-    proposalCount: aimProposalCountForPhase(),
+    proposalCount: aimProposalCount(),
   };
 }
 

@@ -1061,6 +1061,8 @@ export type HandoffExpansionProbeRecord = {
   poolCandidates: number;
   hasCompletion: boolean;
   nCand: number;
+  repairLane: boolean;
+  repairAnchorGapIndex: number | null;
 };
 
 type HandoffExpansionProbeHook = (record: HandoffExpansionProbeRecord) => void;
@@ -3108,6 +3110,7 @@ function compileHandoffInternal(
         activeRepairProfile = repairRunProfile;
         repairLaneActive = true;
         activeRepairIterationIndex = iterationIndex;
+        activeRepairAnchorGapIndex = k;
         activeRepairTargetGapIndex = kWorst;
         activeRepairTargetGapSse = pickedWeakGapSse;
         setAimRepairLaneActive(true, iterationIndex);
@@ -3117,6 +3120,7 @@ function compileHandoffInternal(
         } finally {
           repairLaneActive = false;
           activeRepairIterationIndex = null;
+          activeRepairAnchorGapIndex = null;
           activeRepairTargetGapIndex = null;
           activeRepairTargetGapSse = null;
           setAimRepairLaneActive(false);
@@ -5276,6 +5280,8 @@ function rankedOptionsAtDeadlinePressure(
     poolCandidates: sorted.length,
     hasCompletion: telemetry.hasCompletion,
     nCand: normalCandidates,
+    repairLane: repairLaneActive,
+    repairAnchorGapIndex: activeRepairAnchorGapIndex,
   });
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
@@ -7007,7 +7013,12 @@ function resolveHandoffSearchPolicy({
   deadlineMargin: number;
   hasCompletion: boolean;
 }): HandoffSearchPolicy {
-  const nCand = qualityHandoffSampleCount(targetProfile, sparseContactCadence, targetBudget);
+  const nCand = qualityHandoffSampleCount(
+    targetProfile,
+    sparseContactCadence,
+    targetBudget,
+    node.gapIndex,
+  );
   return {
     nCand,
     preview: false,
@@ -7091,6 +7102,7 @@ function qualityHandoffSampleCount(
   profile: HandoffTargetProfile,
   sparseContactCadence: boolean,
   targetBudget: number | undefined,
+  gapIndex: number | null = null,
 ): number {
   const base = handoffSampleCount(targetBudget, repairLaneActive);
   if (qualityNCandOverride() !== null) return base;
@@ -7098,6 +7110,7 @@ function qualityHandoffSampleCount(
     qualityBreadth(profile, sparseContactCadence, base),
     repairLaneActive,
     activeRepairIterationIndex,
+    activeRepairAnchorGapIndex !== null && gapIndex === activeRepairAnchorGapIndex,
   );
 }
 
@@ -7236,22 +7249,23 @@ const STUDY_NCAND_EXPONENT_ANCHOR_FRAMES = 750_000;
 const STUDY_NCAND_EXPONENT_ANCHOR_COUNT = HANDOFF_QUALITY_N_CAND_AT_REF *
   (STUDY_NCAND_EXPONENT_ANCHOR_FRAMES / HANDOFF_QUALITY_N_CAND_REF_FRAMES);
 const readStudyNCandExponent = compileScopedEnv("LR_STUDY_NCAND_EXPONENT");
-/** Study-only shapes for the multi-budget benchmark. Unlike the earlier global
- * exponent bracket, all are exactly production through 750k. The hinged arm
- * asks whether mature growth should become sublinear; the cap asks only whether
- * the largest budgets should stop buying ever-wider per-gap batches; the
- * repair-only arm isolates that same hinged shape to marked repair restarts. */
+/** Study-only shapes for the multi-budget benchmark. The high-budget hinged
+ * arms are exactly production through 750k; the remaining repair policies are
+ * explicit phase/suffix allocation studies rather than new global laws. */
 const readStudyNCandPolicy = compileScopedEnv("LR_STUDY_NCAND_POLICY");
 
 /** Apply a declared repair-only breadth intervention after the ordinary
  * target-profile floors. This placement is intentional: a three-quarter arm
  * must reduce the pool the repair lane actually requests, not merely lower a
- * pre-floor base that broad low-budget profiles immediately raise again. The
- * absolute LR_QUALITY_NCAND override bypasses this helper above. */
+ * pre-floor base that broad low-budget profiles immediately raise again.
+ * `repairAnchorBuild` lets the descendant-only arm protect exactly the pool at
+ * the independently selected restart anchor. The absolute LR_QUALITY_NCAND
+ * override bypasses this helper above. */
 export function applyStudyRepairBreadth(
   nCand: number,
   repairLane: boolean,
   repairIterationIndex: number | null = null,
+  repairAnchorBuild = false,
 ): number {
   const policy = readStudyNCandPolicy();
   if (!repairLane) return nCand;
@@ -7262,6 +7276,8 @@ export function applyStudyRepairBreadth(
       : policy === "late-repair-seven-eighth" &&
           repairIterationIndex !== null && repairIterationIndex >= 2
         ? 7 / 8
+      : policy === "repair-descendants-three-quarter" && !repairAnchorBuild
+        ? 3 / 4
       : 1;
   return Math.max(HANDOFF_QUALITY_N_CAND_FLOOR, Math.round(nCand * ratio));
 }
@@ -7290,14 +7306,15 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
   // the base law unchanged here also keeps the initial-search lane exact.
   if (
     policy === "repair-three-quarter" || policy === "repair-seven-eighth" ||
-    policy === "late-repair-seven-eighth"
+    policy === "late-repair-seven-eighth" ||
+    policy === "repair-descendants-three-quarter"
   ) return linear;
   if (policy === "linear-cap-216") return Math.min(linear, 216);
   if (policy !== undefined && policy !== "") {
     throw new Error(
       `LR_STUDY_NCAND_POLICY must be high-budget-three-quarter, ` +
         `repair-high-budget-three-quarter, repair-three-quarter, repair-seven-eighth, ` +
-        `late-repair-seven-eighth, ` +
+        `late-repair-seven-eighth, repair-descendants-three-quarter, ` +
         `or linear-cap-216 ` +
         `(STUDY-ONLY; never set it in production), got "${policy}"`,
     );
@@ -7892,6 +7909,7 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //                              high-budget-three-quarter|
 //                              repair-high-budget-three-quarter|
 //                              repair-three-quarter|repair-seven-eighth|
+//                              late-repair-seven-eighth|repair-descendants-three-quarter|
 //                              linear-cap-216
 // Two more live one module over, in optimizer/deadline.ts, because that is where the
 // constants they re-bracket are derived; they reach this subsystem through the head ramp,
@@ -8095,6 +8113,7 @@ function postCompletionDeadlineScope(): PostCompletionDeadlineScope {
  */
 let repairLaneActive = false;
 let activeRepairIterationIndex: number | null = null;
+let activeRepairAnchorGapIndex: number | null = null;
 let activeRepairTargetGapIndex: number | null = null;
 let activeRepairTargetGapSse: number | null = null;
 
@@ -8104,6 +8123,7 @@ let repairTargetSearchTotals: RepairTargetSearchTotals = emptyRepairTargetSearch
 registerCompileReset(() => {
   repairLaneActive = false;
   activeRepairIterationIndex = null;
+  activeRepairAnchorGapIndex = null;
   activeRepairTargetGapIndex = null;
   activeRepairTargetGapSse = null;
   repairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");

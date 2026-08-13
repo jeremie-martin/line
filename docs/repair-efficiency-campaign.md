@@ -479,3 +479,35 @@ The frozen 4/8/16 multi-budget ladder applies. Telemetry must report eligible
 top-choice changes, their mean modeled advantage, and suppressed changes. An
 inconclusive result closes this exact resolution boundary without threshold
 tuning or combination with breadth or repair allocation.
+
+### Anchor-protected repair candidate breadth — declared
+
+The independent repair controller makes candidate breadth a spatial allocation
+question, not only a scalar count. Prior repair-wide 3/4 narrowing reduced
+actual candidate samples 10.65%, mean episode cost 11.65%, and produced 11.53%
+more repair episodes, but accepted alternatives rose only 2.09% and aggregate
+internal repair gain fell 2.85%. Later 7/8 narrowing under the accepted scorer
+likewise produced 5.37% more episodes while losing 2.00% of aggregate internal
+gain. Both arms narrowed the selected anchor pool together with the suffix.
+
+The single `repair-descendants-three-quarter` arm tests whether that scope
+removed quality at the wrong place. Initial search and resumed ordinary work
+remain production-exact. Inside each repair episode, the selected anchor node
+also retains full production nCand. Only pools strictly after that anchor use
+the already-measured 3/4 ratio, applied after the ordinary target-profile
+floors. This protects the alternative-defining branch—historically 95% of
+divergent repair terminals first diverge at the selected anchor—while making
+the work that carries the branch to the terminal cheaper. Target and anchor
+selection, restart seed, aim refinement breadth, ranking, branch width, episode
+ceiling, acceptance, and authored targets are unchanged.
+
+This is a mechanism-defined scope test, not a new ratio bracket. The 3/4 ratio
+is inherited from the arm that demonstrated the stronger throughput transfer;
+no adjacent ratio or protected-depth tuning follows from the result. The frozen
+4/8/16 multi-budget ladder and trace telemetry apply. V3 atomic-node records
+must prove exact first-terminal work, exact anchor requested width, narrower
+descendant width, and correct episode attribution. Score interpretation must
+also report terminal-returning episodes, anchor divergence, accepted
+alternatives, internal repair gain per frame, final-output lineage, validity,
+and per-budget authored score. A favorable scale decision still requires
+canonical confirmation before promotion.

@@ -140,6 +140,9 @@ describe("Benchmark V2 scale command contract", () => {
       .toBe("repair-seven-eighth");
     expect(scaleBreadthPolicyArgument(["--breadth-policy=late-repair-seven-eighth"]))
       .toBe("late-repair-seven-eighth");
+    expect(scaleBreadthPolicyArgument([
+      "--breadth-policy=repair-descendants-three-quarter",
+    ])).toBe("repair-descendants-three-quarter");
   });
 
   test("resolves the candidate repair intervention passed to scale eval", () => {

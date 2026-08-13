@@ -68,6 +68,7 @@ type StudyTask = {
     | "repair-three-quarter"
     | "repair-seven-eighth"
     | "late-repair-seven-eighth"
+    | "repair-descendants-three-quarter"
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   repairSelectionPolicy?:
@@ -575,6 +576,7 @@ function studyPlanFingerprint(input: {
     | "repair-three-quarter"
     | "repair-seven-eighth"
     | "late-repair-seven-eighth"
+    | "repair-descendants-three-quarter"
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   repairSelectionPolicy?:
@@ -853,6 +855,7 @@ function parseNCandPolicy(
   | "repair-three-quarter"
   | "repair-seven-eighth"
   | "late-repair-seven-eighth"
+  | "repair-descendants-three-quarter"
   | "linear-cap-216"
   | undefined {
   if (value === undefined) return undefined;
@@ -862,12 +865,13 @@ function parseNCandPolicy(
     value === "repair-three-quarter" ||
     value === "repair-seven-eighth" ||
     value === "late-repair-seven-eighth" ||
+    value === "repair-descendants-three-quarter" ||
     value === "linear-cap-216"
   ) return value;
   throw new Error(
     "--ncand-policy must be high-budget-three-quarter, " +
       "repair-high-budget-three-quarter, repair-three-quarter, repair-seven-eighth, " +
-      "late-repair-seven-eighth, " +
+      "late-repair-seven-eighth, repair-descendants-three-quarter, " +
       "or linear-cap-216",
   );
 }

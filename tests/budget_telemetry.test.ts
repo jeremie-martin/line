@@ -1102,6 +1102,47 @@ describe("compile budget telemetry", () => {
     }
   });
 
+  test("protects repair-anchor breadth while narrowing only descendant pools", async () => {
+    const previousPolicy = process.env.LR_STUDY_NCAND_POLICY;
+    const spec = await loadGoldenSpec("cold_start", "base");
+    const builds: HandoffExpansionProbeRecord[] = [];
+    process.env.LR_STUDY_NCAND_POLICY = "repair-descendants-three-quarter";
+    setHandoffExpansionProbeHook((record) => builds.push(record));
+    try {
+      const output = compileHandoff(spec, 0, {
+        budget: 150_000,
+        polish: false,
+        budgetTelemetry: "trace",
+      });
+      const repairs = output.budgetTelemetry!.episodes.filter((episode) =>
+        episode.lane === "repair"
+      );
+      const repairBuilds = builds.filter((build) => build.repairLane);
+      const anchorBuilds = repairBuilds.filter((build) =>
+        build.gapIndex === build.repairAnchorGapIndex
+      );
+      const descendantBuilds = repairBuilds.filter((build) =>
+        build.repairAnchorGapIndex !== null && build.gapIndex > build.repairAnchorGapIndex
+      );
+      expect(repairs.length).toBeGreaterThan(0);
+      expect(repairBuilds.length).toBeGreaterThan(0);
+      expect(repairBuilds.every((build) => build.repairAnchorGapIndex !== null)).toBe(true);
+      expect(anchorBuilds.length).toBeGreaterThan(0);
+      expect(descendantBuilds.length).toBeGreaterThan(0);
+      const fullWidth = Math.max(...repairBuilds.map((build) => build.nCand));
+      const descendantWidth = Math.max(8, Math.round(fullWidth * 3 / 4));
+      expect(anchorBuilds.every((build) => build.nCand === fullWidth)).toBe(true);
+      expect(descendantBuilds.every((build) => build.nCand === descendantWidth)).toBe(true);
+      expect(builds.filter((build) => !build.repairLane).every((build) =>
+        build.repairAnchorGapIndex === null
+      )).toBe(true);
+    } finally {
+      setHandoffExpansionProbeHook(null);
+      if (previousPolicy === undefined) delete process.env.LR_STUDY_NCAND_POLICY;
+      else process.env.LR_STUDY_NCAND_POLICY = previousPolicy;
+    }
+  }, 180_000);
+
   test("recomputes an independent deepest-affordable decision after accepted and rejected alternatives", async () => {
     const spec = await loadGoldenSpec("cold_start", "base");
     const options = {

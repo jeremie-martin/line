@@ -346,6 +346,12 @@ describe("handoff policy boundaries", () => {
       expect(applyStudyRepairBreadth(432, true, 3, false)).toBe(324);
       at(undefined, 4_000_000);
       expect(studyRepairPlanningCostPolicy()).toBe("current_incumbent");
+      expect(at("repair-post-target-three-quarter", 4_000_000)).toBe(432);
+      expect(applyStudyRepairBreadth(432, false, 0, false, true)).toBe(432);
+      expect(applyStudyRepairBreadth(432, true, 0, true, false)).toBe(432);
+      expect(applyStudyRepairBreadth(432, true, 0, false, false)).toBe(432);
+      expect(applyStudyRepairBreadth(432, true, 0, false, true)).toBe(324);
+      expect(applyStudyRepairBreadth(8, true, 0, false, true)).toBe(8);
       expect(() => at("unknown", 1_000_000)).toThrow(/LR_STUDY_NCAND_POLICY must be/);
 
       process.env.LR_STUDY_NCAND_POLICY = "linear-cap-216";

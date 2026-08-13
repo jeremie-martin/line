@@ -161,6 +161,9 @@ describe("Benchmark V2 scale command contract", () => {
     expect(scaleBreadthPolicyArgument([
       "--breadth-policy=repair-descendants-three-quarter-stable-planning",
     ])).toBe("repair-descendants-three-quarter-stable-planning");
+    expect(scaleBreadthPolicyArgument([
+      "--breadth-policy=repair-post-target-three-quarter",
+    ])).toBe("repair-post-target-three-quarter");
   });
 
   test("resolves the candidate repair intervention passed to scale eval", () => {

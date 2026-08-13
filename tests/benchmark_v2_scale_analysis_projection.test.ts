@@ -44,6 +44,12 @@ describe("Benchmark V2 scale analysis projection", () => {
           gap_index: 4,
           requested_normal_proposals: 61,
           large: true,
+        }, {
+          episode_id: 4,
+          lane: "repair",
+          gap_index: 5,
+          requested_normal_proposals: 45,
+          large: true,
         }],
         compile: { work: {} },
         episodes: [{
@@ -98,10 +104,28 @@ describe("Benchmark V2 scale analysis projection", () => {
         requested_normal_proposals_max: 81,
       },
       descendant: {
+        pool_builds: 2,
+        requested_normal_proposals: 106,
+        requested_normal_proposals_min: 45,
+        requested_normal_proposals_max: 61,
+      },
+      before_target_descendant: {
+        pool_builds: 0,
+        requested_normal_proposals: 0,
+        requested_normal_proposals_min: null,
+        requested_normal_proposals_max: null,
+      },
+      target: {
         pool_builds: 1,
         requested_normal_proposals: 61,
         requested_normal_proposals_min: 61,
         requested_normal_proposals_max: 61,
+      },
+      post_target: {
+        pool_builds: 1,
+        requested_normal_proposals: 45,
+        requested_normal_proposals_min: 45,
+        requested_normal_proposals_max: 45,
       },
     });
     expect(projected).not.toHaveProperty(

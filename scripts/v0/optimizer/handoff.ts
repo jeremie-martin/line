@@ -7135,6 +7135,8 @@ function qualityHandoffSampleCount(
     repairLaneActive,
     activeRepairIterationIndex,
     activeRepairAnchorGapIndex !== null && gapIndex === activeRepairAnchorGapIndex,
+    activeRepairTargetGapIndex !== null && gapIndex !== null &&
+      gapIndex > activeRepairTargetGapIndex,
   );
 }
 
@@ -7283,13 +7285,15 @@ const readStudyNCandPolicy = compileScopedEnv("LR_STUDY_NCAND_POLICY");
  * must reduce the pool the repair lane actually requests, not merely lower a
  * pre-floor base that broad low-budget profiles immediately raise again.
  * `repairAnchorBuild` lets the descendant-only arm protect exactly the pool at
- * the independently selected restart anchor. The absolute LR_QUALITY_NCAND
- * override bypasses this helper above. */
+ * the independently selected restart anchor. `repairPostTargetBuild` identifies
+ * only pools strictly after the independently selected target transition. The
+ * absolute LR_QUALITY_NCAND override bypasses this helper above. */
 export function applyStudyRepairBreadth(
   nCand: number,
   repairLane: boolean,
   repairIterationIndex: number | null = null,
   repairAnchorBuild = false,
+  repairPostTargetBuild = false,
 ): number {
   const policy = readStudyNCandPolicy();
   if (!repairLane) return nCand;
@@ -7304,6 +7308,8 @@ export function applyStudyRepairBreadth(
           policy === "repair-descendants-three-quarter" ||
           policy === "repair-descendants-three-quarter-stable-planning"
         ) && !repairAnchorBuild
+        ? 3 / 4
+      : policy === "repair-post-target-three-quarter" && repairPostTargetBuild
         ? 3 / 4
       : 1;
   return Math.max(HANDOFF_QUALITY_N_CAND_FLOOR, Math.round(nCand * ratio));
@@ -7335,7 +7341,8 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
     policy === "repair-three-quarter" || policy === "repair-seven-eighth" ||
     policy === "late-repair-seven-eighth" ||
     policy === "repair-descendants-three-quarter" ||
-    policy === "repair-descendants-three-quarter-stable-planning"
+    policy === "repair-descendants-three-quarter-stable-planning" ||
+    policy === "repair-post-target-three-quarter"
   ) return linear;
   if (policy === "linear-cap-216") return Math.min(linear, 216);
   if (policy !== undefined && policy !== "") {
@@ -7343,7 +7350,7 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
       `LR_STUDY_NCAND_POLICY must be high-budget-three-quarter, ` +
         `repair-high-budget-three-quarter, repair-three-quarter, repair-seven-eighth, ` +
         `late-repair-seven-eighth, repair-descendants-three-quarter, ` +
-        `repair-descendants-three-quarter-stable-planning, ` +
+        `repair-descendants-three-quarter-stable-planning, repair-post-target-three-quarter, ` +
         `or linear-cap-216 ` +
         `(STUDY-ONLY; never set it in production), got "${policy}"`,
     );
@@ -7955,6 +7962,7 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //                              repair-three-quarter|repair-seven-eighth|
 //                              late-repair-seven-eighth|repair-descendants-three-quarter|
 //                              repair-descendants-three-quarter-stable-planning|
+//                              repair-post-target-three-quarter|
 //                              linear-cap-216
 // Two more live one module over, in optimizer/deadline.ts, because that is where the
 // constants they re-bracket are derived; they reach this subsystem through the head ramp,

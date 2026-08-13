@@ -696,3 +696,32 @@ the selected anchor through the selected target remains at production breadth,
 and only post-target carry work is narrowed. This asks whether savings after
 the alternative-defining transition retain more value. Exact decisions and
 hashes are in `benchmark/v2/studies/stable-planning-repair-breadth.json`.
+
+### Post-target repair candidate breadth — declared
+
+The descendant-breadth controls locate the quality loss more precisely. Full
+breadth at the anchor alone does not preserve first-repair value, while holding
+later planning fixed proves that the released compute really can buy many more
+terminal and accepted alternatives. The missing boundary is the transition the
+repair explicitly selected because it is the incumbent's worst affordable
+authored gap.
+
+The single `repair-post-target-three-quarter` arm therefore keeps production
+breadth at the selected anchor, every intervening descendant, and the selected
+target pool. Only pools strictly after the target use the inherited 3/4 ratio.
+This preserves the entire alternative-defining anchor-to-target window and
+reduces only the work that carries that decision to a complete terminal track.
+When target and anchor coincide, all strict descendants are post-target by
+definition. Initial search, resumed work, dynamic measured-cost feedback,
+target/anchor selection, restart seed, branch width, DFS, episode ceiling,
+register acceptance, and authored targets remain production-exact.
+
+This is a semantic boundary test, not a protected-depth or ratio bracket. The
+ratio is inherited from the completed throughput controls, and no adjacent
+ratio follows from the result. Compact trace evidence now separates repair pool
+builds into anchor, pre-target descendant, target, and post-target buckets while
+also retaining the aggregate descendant total. The frozen 4/8/16 ladder must
+show exact first-terminal work and validity; correct spatial breadth; repair
+samples, attempts, terminals, accepted alternatives, spend, internal gain per
+frame, target improvement, final-output lineage, and per-budget authored score.
+Only an accepted scale result proceeds to canonical confirmation.

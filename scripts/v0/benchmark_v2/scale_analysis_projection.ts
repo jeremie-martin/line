@@ -79,12 +79,18 @@ type CompactNodePolicyBucket = {
  * Counts are policy requests at atomic frontier nodes, not candidate samples. */
 function compactRepairNodePolicy(budgetTelemetry: any): Record<string, unknown> | null {
   if (!Array.isArray(budgetTelemetry?.node_events)) return null;
-  const anchorByEpisode = new Map<number, number>();
+  const decisionByEpisode = new Map<number, { anchorGapIndex: number; targetGapIndex: number }>();
   for (const episode of budgetTelemetry.episodes ?? []) {
     if (
       episode?.lane === "repair" && Number.isSafeInteger(episode?.episode_id) &&
-      Number.isSafeInteger(episode?.anchor?.gap_index)
-    ) anchorByEpisode.set(episode.episode_id, episode.anchor.gap_index);
+      Number.isSafeInteger(episode?.anchor?.gap_index) &&
+      Number.isSafeInteger(episode?.repair_decision?.target_gap_index)
+    ) {
+      decisionByEpisode.set(episode.episode_id, {
+        anchorGapIndex: episode.anchor.gap_index,
+        targetGapIndex: episode.repair_decision.target_gap_index,
+      });
+    }
   }
   const empty = (): CompactNodePolicyBucket => ({
     pool_builds: 0,
@@ -93,32 +99,53 @@ function compactRepairNodePolicy(budgetTelemetry: any): Record<string, unknown> 
     requested_normal_proposals_max: null,
   });
   const anchor = empty();
-  const descendant: CompactNodePolicyBucket = {
-    ...empty(),
-  };
+  const beforeTarget = empty();
+  const target = empty();
+  const postTarget = empty();
+  const descendant = empty();
   for (const event of budgetTelemetry.node_events) {
-    const selectedAnchor = anchorByEpisode.get(event?.episode_id);
+    const decision = decisionByEpisode.get(event?.episode_id);
     const requested = finite(event?.requested_normal_proposals);
     if (
-      event?.lane !== "repair" || selectedAnchor === undefined || requested === null ||
+      event?.lane !== "repair" || decision === undefined || requested === null ||
       !Number.isSafeInteger(event?.gap_index)
     ) continue;
-    const bucket = event.gap_index === selectedAnchor
-      ? anchor
-      : event.gap_index > selectedAnchor
-      ? descendant
-      : null;
-    if (bucket === null) continue;
-    bucket.pool_builds++;
-    bucket.requested_normal_proposals += requested;
-    bucket.requested_normal_proposals_min = bucket.requested_normal_proposals_min === null
-      ? requested
-      : Math.min(bucket.requested_normal_proposals_min, requested);
-    bucket.requested_normal_proposals_max = bucket.requested_normal_proposals_max === null
-      ? requested
-      : Math.max(bucket.requested_normal_proposals_max, requested);
+    const record = (bucket: CompactNodePolicyBucket): void => {
+      bucket.pool_builds++;
+      bucket.requested_normal_proposals += requested;
+      bucket.requested_normal_proposals_min = bucket.requested_normal_proposals_min === null
+        ? requested
+        : Math.min(bucket.requested_normal_proposals_min, requested);
+      bucket.requested_normal_proposals_max = bucket.requested_normal_proposals_max === null
+        ? requested
+        : Math.max(bucket.requested_normal_proposals_max, requested);
+    };
+    if (event.gap_index === decision.anchorGapIndex) {
+      record(anchor);
+    } else if (
+      event.gap_index > decision.anchorGapIndex &&
+      event.gap_index < decision.targetGapIndex
+    ) {
+      record(beforeTarget);
+      record(descendant);
+    } else if (
+      event.gap_index === decision.targetGapIndex &&
+      event.gap_index > decision.anchorGapIndex
+    ) {
+      record(target);
+      record(descendant);
+    } else if (event.gap_index > decision.targetGapIndex) {
+      record(postTarget);
+      record(descendant);
+    }
   }
-  return { anchor, descendant };
+  return {
+    anchor,
+    before_target_descendant: beforeTarget,
+    target,
+    post_target: postTarget,
+    descendant,
+  };
 }
 
 const AIM_COMPACT_FIELDS = [

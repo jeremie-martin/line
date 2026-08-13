@@ -1,0 +1,150 @@
+{
+  "schema": "line.benchmark-v2.stable-planning-repair-breadth.v1",
+  "recorded_at": "2026-08-13T09:15:00+02:00",
+  "status": "complete_no_promotion",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "repair_breadth_policy": "production",
+    "scale_headline": 579.8494,
+    "canonical_headline": 605.8725
+  },
+  "comparators": {
+    "dynamic_planning": {
+      "policy": "repair-descendants-three-quarter",
+      "scale_headline": 579.8977,
+      "delta_vs_reference": 0.0483
+    },
+    "stable_planning": {
+      "policy": "repair-descendants-three-quarter-stable-planning",
+      "descendant_breadth_ratio": 0.75,
+      "selected_anchor_uses_production_breadth": true,
+      "strict_descendants_use_reduced_breadth": true,
+      "affordability_profile": "initial_full_breadth_terminal",
+      "actual_work_charged_without_rescaling": true
+    }
+  },
+  "score_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "look_deltas": {
+      "4": 0.054,
+      "8": -0.02,
+      "16": 0.0134
+    },
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.8628,
+    "delta": 0.0134,
+    "directional_probability": 0.52827059,
+    "central_95_interval": [-0.3826, 0.4094],
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": 0.2015,
+    "per_budget_delta": {
+      "150000": -0.1617,
+      "250000": -0.5633,
+      "500000": 0.2757,
+      "750000": 0.2015,
+      "1000000": -0.1355,
+      "1500000": -0.0637,
+      "2500000": 0.4636,
+      "4000000": 0.0906
+    }
+  },
+  "mechanics_vs_reference": {
+    "first_terminal_frames_relative_delta": 0,
+    "repair_candidate_samples_relative_delta": -0.111536,
+    "repair_episodes_relative_delta": 0.217244,
+    "repair_terminal_reached_relative_delta": 0.223041,
+    "repair_accepted_alternatives_relative_delta": 0.129365,
+    "repair_total_spent_frames_relative_delta": -0.001702,
+    "repair_mean_spent_frames_relative_delta": -0.198976,
+    "aggregate_internal_repair_gain_relative_delta": -0.015176,
+    "aggregate_internal_repair_gain_per_frame_relative_delta": -0.013496,
+    "final_output_from_repair_relative_delta": -0.004673,
+    "completion_estimate_absolute_error_relative_delta": 0.699784,
+    "completion_estimate_interval_coverage_relative_delta": -0.144298
+  },
+  "direct_behavior": {
+    "invariant_violations": {
+      "reference": 0,
+      "dynamic_planning": 0,
+      "stable_planning": 0
+    },
+    "reference": {
+      "repairs": 3839,
+      "terminal_returns": 3802,
+      "accepted": 1747,
+      "spent_frames": 625087308,
+      "mean_parent_depth": 3.323522,
+      "mean_anchor_gap": 77.089346,
+      "internal_gain": 4953.500061
+    },
+    "dynamic_planning": {
+      "repairs": 4153,
+      "terminal_returns": 4084,
+      "accepted": 1767,
+      "spent_frames": 625304249,
+      "mean_parent_depth": 3.477005,
+      "mean_anchor_gap": 76.77149,
+      "internal_gain": 4915.089441
+    },
+    "stable_planning": {
+      "repairs": 4673,
+      "terminal_returns": 4650,
+      "accepted": 1973,
+      "spent_frames": 624023129,
+      "mean_parent_depth": 3.078322,
+      "mean_anchor_gap": 79.17462,
+      "internal_gain": 4878.326581
+    },
+    "first_repair_dynamic_and_stable_exact": {
+      "episodes": 989,
+      "terminal_returns": 981,
+      "accepted": 520,
+      "spent_frames": 249791782,
+      "mean_parent_depth": 5.244692,
+      "mean_anchor_gap": 58.75632,
+      "internal_gain": 3260.38406
+    }
+  },
+  "interpretation": "The control proves the expected compute transfer: once cheaper descendant work is prevented from making later anchors more ambitious, the same repair spend buys substantially more independent attempts, terminal alternatives, and accepted alternatives. Those additional later repairs have lower marginal authored value. Aggregate repair gain falls, the multi-budget score remains uncertain and mixed, and the deliberately stale planning profile degrades estimator calibration. The dynamic feedback was a real confound but not the reason descendant narrowing failed to improve score.",
+  "followup": "Protect the complete alternative-defining decision window from the selected anchor through the selected target, and narrow only post-target carry work. This structural boundary tests whether candidate savings can be retained without degrading the high-value target transition; do not tune a protected-depth constant or another scalar breadth ratio.",
+  "compiler_snapshot": {
+    "archive": "generated/benchmark-v2/scale/repair-descendants-stable-planning-4-candidate-compiler-snapshot.tar.gz",
+    "sha256": "eceb8b749d38713494e9025d7d4c4967e100a2c57235bd67219abde449ebfd4d",
+    "candidate_fingerprint": "92ac206301071095ba71364276997c2066fda0edfba2d2792b4962913ccf1c47",
+    "compiler_source_fingerprint": "077a96bb3f7917600dc9367167de098de0f84347124c4a986659787d98aaf8d2"
+  },
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-stable-planning-4.comparison.json",
+      "sha256": "0b79beb03ff2df8cdc0f1745819ef3c3f30accbf6c5765259865552dbbb4c4d1"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-stable-planning-8.comparison.json",
+      "sha256": "25e8087e9697633277914458e44acac889f36b3f8cfe5f947cd2f821833d4577"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-stable-planning-16.comparison.json",
+      "sha256": "10ae3c2cb9ea410ed42d43787b0265576e92c3890c2fdeaa1901bd824ada36f8"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-stable-planning-16.json.gz",
+      "sha256": "c1c2081cafb9e338340817d30b23adfb7fb26e0f5a72771484410f5b6f867fd3"
+    },
+    "n16_analysis_projection": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-stable-planning-16.analysis.json.gz",
+      "sha256": "de117631d4fca56849fa01a25f8f7daf46c41c3f0aafbba9451ad767bb710984"
+    },
+    "behavior_audit": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-stable-planning-16.behavior.json",
+      "sha256": "b7e124a71b277386adc985ee330bc42d3291840a9510f0cb7bd3acb06b5a5302"
+    },
+    "behavior_report": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-stable-planning-16.behavior.md",
+      "sha256": "f0899a0fc4fa89dc51eb11d5964de66c1ed6d935b38a2dcf1c05d3b6b4322fe4"
+    }
+  }
+}

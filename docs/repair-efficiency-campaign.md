@@ -662,3 +662,37 @@ later parent depth and ceiling utilization; actual repair frames, terminal and
 accepted alternatives, internal gain per frame, final-output lineage,
 validity, and per-budget authored score. The result closes this exact feedback
 separation without ratio or cost-profile tuning.
+
+### Stable-planning descendant breadth — useful control, not promoted
+
+The governed ladder was +0.0540 at N=4, -0.0200 at N=8, and +0.0134 at N=16.
+Final directional probability was 52.83%, the central 95% interval was
+[-0.3826, +0.4094], validity stayed exactly 997/1,024, and the 750k slice was
++0.2015. Effects were mixed across budgets, including -0.5633 at 250k and
++0.4636 at 2.5M. The arm is not promotable.
+
+The causal question is answered. First-terminal work was exact, and the first
+repair was exactly identical to the prior dynamic-planning breadth arm: 989
+episodes, 981 terminal returns, 520 accepted alternatives, mean parent depth
+5.2447, and 3,260.38 aggregate internal gain. Thereafter the retained planning
+profile moved work later. Across N=16, the same repair spend bought 4,673
+episodes and 4,650 terminal returns versus 4,153 and 4,084 under dynamic
+planning, while accepted alternatives rose from 1,767 to 1,973.
+
+This is the candidate-breadth behavior originally expected: relative to
+production, repair candidate samples fell 11.15%, mean repair cost fell 19.90%,
+episodes rose 21.72%, terminal returns rose 22.30%, and accepted alternatives
+rose 12.94%. The saving did not disappear into longer anchors once planning
+feedback was held fixed.
+
+The extra repairs were lower-value. Aggregate repair gain fell 1.52% versus
+production and 0.75% versus dynamic planning. The stable profile also made the
+completion estimate deliberately stale: absolute error rose 70.0% and interval
+coverage fell 14.4%. It is therefore a causal control, not a viable production
+controller. The feedback confound is closed without tuning.
+
+The next breadth family protects a semantic region rather than a numeric depth:
+the selected anchor through the selected target remains at production breadth,
+and only post-target carry work is narrowed. This asks whether savings after
+the alternative-defining transition retain more value. Exact decisions and
+hashes are in `benchmark/v2/studies/stable-planning-repair-breadth.json`.

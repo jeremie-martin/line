@@ -819,3 +819,27 @@ repair, register acceptance, and authored targets remain unchanged. The
 artifact has exact Python/TypeScript export parity. The frozen 4/8/16
 multi-budget ladder decides the arm; a non-favorable result closes this
 boundary without trying 8, 24, or other tree counts.
+
+### Regularized distilled-impact boundary — not promoted
+
+The four-seed signal was attractive but did not reproduce. Scale moved +1.9109
+at N=4, then -0.8015 at N=8 and -0.8938 at N=16. Final directional probability
+was 14.47%, the central 95% interval was [-2.6281, +0.8405], and validity fell
+from 997 to 993 cells (8 gained, 12 lost). The 750k slice was -2.0860. Only
+150k (+2.8894) and 1M (+0.2706) were positive at the final look; six of eight
+budgets were negative.
+
+The intervention was active and correctly isolated. It reduced
+impact-versus-ordinary top-choice changes by 20.26%, while actual candidate
+samples changed only -0.017%. Its aimed proposals were 3.75% less likely to
+rank first in the exact pool, 2.47% less likely to rank in the top three, and
+their mean exact-pool rank worsened 1.39%. First terminal work fell 0.76%, but
+repair acceptance fell 2.23%. Aggregate internal repair gain rose 9.41%; that
+association did not translate into authored score or validity.
+
+Production keeps the 32-tree distilled model. The 16-tree boundary is closed
+without intermediate tree-count tuning. Its live compiler mode and serialized
+study artifact were removed after evaluation; the offline exporter retains
+`--selected=hist_16` so the frozen evidence remains reproducible without
+adding a dead production branch. Full decisions, mechanics, and hashes are in
+`benchmark/v2/studies/aim-impact-regularization-boundary.json`.

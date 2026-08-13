@@ -22,7 +22,6 @@ import {
   aimTopKFirstRepairExtra,
   aimTopKBasesEffective,
   aimImpactTopChoiceIsResolved,
-  aimModelImpactPolicyForEnvironment,
   aimModelImpactPower,
   impactSpeedAirOutgoingParetoImproves,
   impactSpeedParetoImproves,
@@ -218,16 +217,6 @@ describe("arc-control probe layouts", () => {
     expect(aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "1.25" })).toBe(1.25);
     expect(() => aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "0.1" })).toThrow();
     expect(() => aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "4.1" })).toThrow();
-  });
-
-  test("validates the frozen aim-impact surrogate study boundary", () => {
-    expect(aimModelImpactPolicyForEnvironment({})).toBe("distilled");
-    expect(aimModelImpactPolicyForEnvironment({
-      LR_AIM_MODEL_IMPACT_FEASIBILITY: "distilled-hist16",
-    })).toBe("distilled-hist16");
-    expect(() => aimModelImpactPolicyForEnvironment({
-      LR_AIM_MODEL_IMPACT_FEASIBILITY: "hist24",
-    })).toThrow();
   });
 
   test("gates only changed top choices below the artifact resolution", () => {

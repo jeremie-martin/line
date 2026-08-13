@@ -128,7 +128,6 @@ import {
 import {
   distilledAimImpactValidationMae,
   scoreDistilledAimImpactFeasibility,
-  scoreDistilledAimImpactFeasibilityHist16,
   scoreImpactFeasibility,
 } from "./readiness.ts";
 import type {
@@ -171,31 +170,18 @@ const aimModelImpactFeasibilityEnv = compileScopedEnv(
  * knob vectors are proposed, but neither the probe grid nor proposal count.
  * `off` and the much heavier full readiness forest remain explicit diagnostic
  * ablations. */
-export type AimModelImpactPolicy =
-  | "off"
-  | "full"
-  | "distilled"
-  | "distilled-hist16";
+type AimModelImpactPolicy = "off" | "full" | "distilled";
 
-export function aimModelImpactPolicyForEnvironment(
-  environment: Record<string, string | undefined>,
-): AimModelImpactPolicy {
-  const value = environment.LR_AIM_MODEL_IMPACT_FEASIBILITY;
+function aimModelImpactPolicy(): AimModelImpactPolicy {
+  const value = aimModelImpactFeasibilityEnv();
   if (value === undefined || value === "" || value === "distilled") {
     return "distilled";
   }
-  if (value === "distilled-hist16") return value;
   if (value === "0" || value === "off") return "off";
   if (value === "1" || value === "full") return "full";
   throw new Error(
-    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, distilled, or distilled-hist16; got ${value}`,
+    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, or distilled; got ${value}`,
   );
-}
-
-function aimModelImpactPolicy(): AimModelImpactPolicy {
-  return aimModelImpactPolicyForEnvironment({
-    LR_AIM_MODEL_IMPACT_FEASIBILITY: aimModelImpactFeasibilityEnv(),
-  });
 }
 
 function aimModelImpactFeasibilityEnabled(): boolean {
@@ -1314,12 +1300,9 @@ function modeledImpactFeasibility(
       : readinessScorerGapContext(outgoingGap, outgoingTargets),
     generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
   };
-  const policy = aimModelImpactPolicy();
-  const impactFeasibility = policy === "distilled"
+  const impactFeasibility = aimModelImpactPolicy() === "distilled"
     ? scoreDistilledAimImpactFeasibility(input)
-    : policy === "distilled-hist16"
-      ? scoreDistilledAimImpactFeasibilityHist16(input)
-      : scoreImpactFeasibility(input);
+    : scoreImpactFeasibility(input);
   aimTotals.enum_model_impact_scores++;
   aimTotals.enumModelImpactSum += impactFeasibility;
   return impactFeasibility;

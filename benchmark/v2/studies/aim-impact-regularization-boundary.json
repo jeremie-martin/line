@@ -1,0 +1,117 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-regularization-boundary.v1",
+  "recorded_at": "2026-08-13T14:51:59+02:00",
+  "status": "complete_no_promotion",
+  "reference": {
+    "policy": "distilled-impact-hist32",
+    "trees": 32,
+    "scale_headline_n16": 579.85,
+    "canonical_baseline": "last-chance-repair-breadth",
+    "canonical_headline_n32": 605.9793
+  },
+  "candidate": {
+    "policy": "distilled-impact-hist16",
+    "trees": 16,
+    "shared_contract": "Same frozen corpus, feature transform, missing-articulation input contract, teacher target, learning rate, maximum leaves, minimum leaf population, and L2 regularization as production hist32.",
+    "probe_count_change": false,
+    "ordinary_admission_change": false,
+    "proposal_count_change": false,
+    "exact_candidate_evaluation_change": false,
+    "repair_policy_change": false
+  },
+  "offline_model_evidence": {
+    "reference_teacher_imitation_mae": 0.03894196588692346,
+    "candidate_teacher_imitation_mae": 0.06503131115811543,
+    "reference_teacher_correlation": 0.9709362515720915,
+    "candidate_teacher_correlation": 0.9474128211108412,
+    "candidate_export_parity_max_absolute_error": 0,
+    "interpretation": "The candidate is a deliberately stronger regularization boundary, not a more accurate teacher surrogate."
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "looks": {
+      "4": {
+        "reference_headline": 578.6064,
+        "candidate_headline": 580.5173,
+        "delta": 1.9109,
+        "directional_probability": 0.66649753
+      },
+      "8": {
+        "reference_headline": 579.5099,
+        "candidate_headline": 578.7084,
+        "delta": -0.8015,
+        "directional_probability": 0.24804586
+      },
+      "16": {
+        "reference_headline": 579.85,
+        "candidate_headline": 578.9562,
+        "delta": -0.8938,
+        "standard_error": 0.8137,
+        "directional_probability": 0.14466598,
+        "required_directional_probability": 0.99166667,
+        "central_95_interval": [-2.6281, 0.8405]
+      }
+    },
+    "reference_valid": 997,
+    "candidate_valid": 993,
+    "gained_valid": 8,
+    "lost_valid": 12,
+    "canonical_750k_delta": -2.086,
+    "per_budget_delta": {
+      "150000": 2.8894,
+      "250000": -4.7731,
+      "500000": -1.1273,
+      "750000": -2.086,
+      "1000000": 0.2706,
+      "1500000": -1.4115,
+      "2500000": -0.2272,
+      "4000000": -0.6852
+    }
+  },
+  "mechanics_n16": {
+    "reference_impact_vs_ordinary_top1_changes": 2787712,
+    "candidate_impact_vs_ordinary_top1_changes": 2222848,
+    "top1_change_relative_delta": -0.202626,
+    "reference_weighted_impact_advantage": 0.1220423,
+    "candidate_weighted_impact_advantage": 0.1171488,
+    "actual_candidate_samples_relative_delta": -0.000172,
+    "aim_refined_bases_relative_delta": -0.002181,
+    "aim_probe_frames_relative_delta": -0.002036,
+    "aim_rank_zero_rate_relative_delta": -0.037512,
+    "aim_top_three_rate_relative_delta": -0.024679,
+    "aim_mean_pool_rank_relative_delta": 0.013935,
+    "final_track_aimed_fits_relative_delta": -0.017661,
+    "first_terminal_frames_relative_delta": -0.007564,
+    "repair_episodes_relative_delta": 0.001521,
+    "repair_accepted_alternatives_relative_delta": -0.022297,
+    "repair_internal_full_score_delta_relative_delta": 0.094133,
+    "interpretation": "The candidate did not save meaningful candidate work. It changed the proposal policy substantially, produced fewer impact-driven top-choice changes, and its aimed proposals ranked worse in exact pools. Earlier first terminals and higher aggregate internal repair gain did not recover authored score or validity."
+  },
+  "decision": "Retain production hist32. The frozen hist16 boundary is closed without trying intermediate or smaller tree counts. The live hist16 compiler mode and serialized study artifact were removed after evaluation; the offline exporter retains --selected=hist_16 so the evidence remains reproducible without production clutter.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-hist16-4.comparison.json",
+      "sha256": "4faa532743eb3121f7dccf4094bc1d8729313093af91fc326b8044fa63b85989"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-hist16-8.comparison.json",
+      "sha256": "f7c85836ed4c6e4070cf568d6a9d5adfcd7f17e26735cc1df32e8b5ae95dc0bd"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-hist16-16.comparison.json",
+      "sha256": "b41e255ad43a3cd0f62b459d5a0c9e3e6839e773fd374b84fee38896f2a523f6"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/aim-impact-hist16-16.json.gz",
+      "sha256": "2b9b4f85f69c1e24c2d0390ab5d890b3af1c98f694968c03b8cfb0a7afe0af16"
+    },
+    "reference_manifest": {
+      "path": "generated/benchmark-v2/scale/last-chance-repair-aim-stats-reference-16-baseline.json",
+      "sha256": "980e2de57c819b1ac9dad6274f21d8591997f482b6f189997a2c3730c8bfb045"
+    }
+  },
+  "implementation": {
+    "study_commit": "310643c"
+  }
+}

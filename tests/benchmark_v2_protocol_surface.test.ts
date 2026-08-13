@@ -22,6 +22,7 @@ import {
   bindDecisionIndexArchive,
   checkpointArchiveChunks,
   checkpointPlanFingerprint,
+  checkpointRequiresStreaming,
   invalidatePublishedRunArtifacts,
   latestCheckpointResults,
   loadCheckpointResultIndex,
@@ -361,6 +362,13 @@ describe("archive artifacts", () => {
 
     const wrongPlanRows = latestCheckpointResults(checkpoint, index, "b".repeat(64));
     await expect(wrongPlanRows.next()).rejects.toThrow(/does not match the current run plan/);
+  });
+
+  test("large resume checkpoints use bounded-memory assembly at canonical task counts", () => {
+    expect(checkpointRequiresStreaming(2_112, true, 256 * 1024 * 1024)).toBe(false);
+    expect(checkpointRequiresStreaming(2_112, true, 256 * 1024 * 1024 + 1)).toBe(true);
+    expect(checkpointRequiresStreaming(2_112, false, 1024 * 1024 * 1024)).toBe(false);
+    expect(checkpointRequiresStreaming(20_001, false, 0)).toBe(true);
   });
 });
 

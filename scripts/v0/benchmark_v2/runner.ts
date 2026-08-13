@@ -10,6 +10,7 @@ import {
   readSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { availableParallelism, arch, cpus, platform } from "node:os";
@@ -95,6 +96,15 @@ const PARTIAL_RUN_SCHEMA = "line.benchmark-v2.partial-run.v1" as const;
  * fragile. Larger confirmations assemble their archive directly from the
  * resumable checkpoint, while retaining the small decision projection. */
 const STREAMING_ARCHIVE_TASK_THRESHOLD = 20_000;
+/** V8 cannot materialize a string above roughly 512 MiB. Resume checkpoints
+ * contain full raw reports, so canonical N=32/48 attempts can cross that cap
+ * long before their task count reaches the deep-archive threshold. */
+const STREAMING_CHECKPOINT_BYTE_THRESHOLD = 256 * 1024 * 1024;
+/** Semantic execution identity for the current runner protocol. Bounded-memory
+ * checkpoint loading changes neither compiled tasks nor scoring, so it remains
+ * compatible with checkpoints created under this identity. */
+const RUNNER_EXECUTION_COMPATIBILITY_FINGERPRINT =
+  "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4";
 
 type RunnerMode = "development" | "qualification";
 
@@ -378,7 +388,8 @@ export async function runBenchmarkV2(
     }
   }
   const engine = process.env.LR_ENGINE ?? "typescript";
-  const implementationFingerprint = fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES);
+  const runnerSourceFingerprint = fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES);
+  const implementationFingerprint = RUNNER_EXECUTION_COMPATIBILITY_FINGERPRINT;
   const executionInput = {
     suiteFingerprint: suiteId.suiteFingerprint,
     executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
@@ -504,15 +515,20 @@ export async function runBenchmarkV2(
   if (throughSeedSlot !== undefined && existsSync(checkpointPath) && !hasFlag("resume")) {
     throw new Error(`wave execution must resume its attempt checkpoint; pass --resume`);
   }
-  const streamingArchive = tasks.length > STREAMING_ARCHIVE_TASK_THRESHOLD;
-  if (roundProgressReference !== undefined && streamingArchive) {
-    throw new Error(`round progress is currently bounded to the active in-memory campaign scope`);
-  }
+  const resume = hasFlag("resume");
+  const checkpointBytes = resume && existsSync(checkpointPath)
+    ? statSync(checkpointPath).size
+    : 0;
+  const streamingArchive = checkpointRequiresStreaming(
+    tasks.length,
+    resume,
+    checkpointBytes,
+  );
   const restored = streamingArchive
     ? []
-    : loadOrInitializeCheckpoint(checkpointPath, runPlanFingerprint, hasFlag("resume"));
+    : loadOrInitializeCheckpoint(checkpointPath, runPlanFingerprint, resume);
   const restoredIndex = streamingArchive
-    ? await loadCheckpointResultIndex(checkpointPath, runPlanFingerprint, hasFlag("resume"))
+    ? await loadCheckpointResultIndex(checkpointPath, runPlanFingerprint, resume)
     : undefined;
   invalidatePublishedRunArtifacts(outputPath);
   const restoredByKey = new Map(restored.map((result) => [taskKey(result.task), result]));
@@ -530,12 +546,30 @@ export async function runBenchmarkV2(
   const streamingProgress = streamingArchive
     ? newStreamingProgress(restoredSuccessKeys.size, effectiveBudgets)
     : undefined;
+  const restoredDecisionProgress: ReturnType<typeof compactDecisionRun>[] = [];
+  if (streamingArchive && roundProgressReference !== undefined) {
+    for await (const result of latestCheckpointResults(
+      checkpointPath,
+      restoredIndex!,
+      runPlanFingerprint,
+    )) {
+      if (result.status !== "ok") continue;
+      restoredDecisionProgress.push(compactDecisionRun(scoreWorkerResult(
+        result,
+        suite,
+        sourceById.get(result.task.sourceId)!,
+        contracts.get(result.task.sourceId)!,
+      )));
+    }
+  }
   const roundProgress = roundProgressReference === undefined
     ? undefined
     : new RoundProgressAccumulator(
       roundProgressReference,
       suite,
-      scoredProgress.map(compactDecisionRun),
+      streamingArchive
+        ? restoredDecisionProgress
+        : scoredProgress.map(compactDecisionRun),
     );
   if (roundProgress !== undefined) {
     writeFileAtomicDurable(
@@ -579,24 +613,30 @@ export async function runBenchmarkV2(
       }
     } else {
       scoredProgress.push(scored);
-      if (roundProgress !== undefined) {
-        const elapsedSeconds = Math.max(0.001, (performance.now() - startedAt) / 1000);
-        const freshDone = Math.max(0, scoredProgress.length - restored.length);
-        const rate = freshDone / elapsedSeconds;
-        const etaSeconds = rate > 0 ? (tasks.length - scoredProgress.length) / rate : 0;
-        const workerFailures = scoredProgress.filter((row) => row.status !== "ok").length;
-        for (const event of roundProgress.record(compactDecisionRun(scored))) {
-          appendFileSync(roundProgressOutputPath!, `${JSON.stringify(event)}\n`);
-          console.log(renderRoundProgress(event, {
-            waveDepth: measuredDepth,
-            workerFailures,
-            rate,
-            etaSeconds,
-          }));
-        }
-      } else if (scoredProgress.length === tasks.length || scoredProgress.length % sources.length === 0) {
-        printProgress(scoredProgress, tasks.length, effectiveBudgets, startedAt, restored.length);
+    }
+    if (roundProgress !== undefined) {
+      const elapsedSeconds = Math.max(0.001, (performance.now() - startedAt) / 1000);
+      const completed = streamingProgress?.completed ?? scoredProgress.length;
+      const freshDone = Math.max(0, completed - restoredSuccessKeys.size);
+      const rate = freshDone / elapsedSeconds;
+      const etaSeconds = rate > 0 ? (tasks.length - completed) / rate : 0;
+      const workerFailures = streamingArchive
+        ? 0
+        : scoredProgress.filter((row) => row.status !== "ok").length;
+      for (const event of roundProgress.record(compactDecisionRun(scored))) {
+        appendFileSync(roundProgressOutputPath!, `${JSON.stringify(event)}\n`);
+        console.log(renderRoundProgress(event, {
+          waveDepth: measuredDepth,
+          workerFailures,
+          rate,
+          etaSeconds,
+        }));
       }
+    } else if (
+      streamingProgress === undefined &&
+      (scoredProgress.length === tasks.length || scoredProgress.length % sources.length === 0)
+    ) {
+      printProgress(scoredProgress, tasks.length, effectiveBudgets, startedAt, restored.length);
     }
   }, !streamingArchive);
   const finalIndex = streamingArchive
@@ -719,6 +759,7 @@ export async function runBenchmarkV2(
     environment: {
       ...runtime,
       logicalCpus: cpus().length,
+      runnerSourceFingerprint,
     },
     linkedDevelopment,
     comparisonRequest,
@@ -1536,6 +1577,15 @@ function printStreamingProgress(
 
 export function checkpointPlanFingerprint(plan: Record<string, unknown>): string {
   return sha256(JSON.stringify(plan));
+}
+
+export function checkpointRequiresStreaming(
+  taskCount: number,
+  resume: boolean,
+  checkpointBytes: number,
+): boolean {
+  return taskCount > STREAMING_ARCHIVE_TASK_THRESHOLD ||
+    (resume && checkpointBytes > STREAMING_CHECKPOINT_BYTE_THRESHOLD);
 }
 
 export function loadOrInitializeCheckpoint(

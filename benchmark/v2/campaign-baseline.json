@@ -284,6 +284,17 @@
         "compressedArchiveSha256": "beadcc6de2aadfca703d6bb8f661ad9b10000dd9019b40a7b14430ccb619ee9f",
         "executionPolicyFingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
         "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
+      },
+      {
+        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
+        "firstSeedSlot": 32,
+        "endSeedSlotExclusive": 48,
+        "archiveSha256": "80e57829124c394917a12a7998225e8924bfc48c34899afd2121cbc467d65b03",
+        "archive": "benchmark/v2/runs/last-chance-repair-breadth-slots-32-48.json",
+        "compressedArchive": "benchmark/v2/runs/last-chance-repair-breadth-slots-32-48.json.gz",
+        "compressedArchiveSha256": "e6c58f28f81ad9c2ce618a6707f503541d47eb54a11edf50f464960fd484cc03",
+        "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
+        "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
       }
     ]
   },
@@ -318,5 +329,16 @@
     ],
     "outcome": "accept",
     "delta": 0.0028
+  },
+  "cache_monitoring": {
+    "schema": "line.benchmark-v2.campaign-cache-monitoring.v1",
+    "authority": "descriptive-only",
+    "generated_at": "2026-08-13T22:46:09.288Z",
+    "coverage_seeds": 48,
+    "canonical_headline": 604.185,
+    "valid_runs": 2111,
+    "total_runs": 2112,
+    "cache_manifest_fingerprint": "fc8c01a74b0fa9e399001c295151b7a77633d781104b1e7c6f8b98e0d8463e33",
+    "note": "This completed-cache headline does not replace the promotion headline or stopping depth."
   }
 }

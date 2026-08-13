@@ -725,3 +725,34 @@ show exact first-terminal work and validity; correct spatial breadth; repair
 samples, attempts, terminals, accepted alternatives, spend, internal gain per
 frame, target improvement, final-output lineage, and per-budget authored score.
 Only an accepted scale result proceeds to canonical confirmation.
+
+### Post-target repair candidate breadth — useful boundary, not promoted
+
+The governed ladder was -0.1443 at N=4, -0.1362 at N=8, and -0.0592 at
+N=16. Final directional probability was 30.23%, the central 95% interval was
+[-0.2978, +0.1794], validity stayed exactly 997/1,024, and the 750k slice was
++0.0525. Budget effects remained mixed: -0.7214 at 250k, +0.2659 at 500k,
+-0.3583 at 1.5M, and +0.3556 at 2.5M. The arm is not promotable.
+
+The semantic boundary was exact. All 862 eligible pre-target rows and all 834
+eligible target rows retained production width; all 850 eligible post-target
+rows used the inherited 3/4 width; 4,007 repair episodes had zero anchor
+closure violations. The comparison audit is now phase-explicit under mechanics
+schema V9. It no longer treats the deliberately mixed descendant region as a
+single constant-width lane.
+
+Post-target breadth was not disposable carry overhead. On the identical first
+repair decisions, narrowing only that region saved 9.02% of frames but reduced
+accepted alternatives from 559 to 526 and aggregate internal gain by 5.21%.
+Across N=16, the saving bought 168 extra repair episodes and 139 extra terminal
+alternatives, but only 15 extra accepted alternatives; total repair gain fell
+2.23% at effectively identical spend. Completion-estimate absolute error also
+rose 63.9%, because observed suffix costs changed beneath the dynamic planner.
+
+This closes fixed-ratio repair breadth reduction across global, late,
+anchor-protected, stable-planning, and post-target scopes. Another ratio,
+protected depth, or affordability-feedback variant is not licensed by the
+evidence. The next family must improve the value of candidate evaluation or
+suffix choice without discarding the breadth that produces valuable completed
+alternatives. Exact decisions, behavior, spatial audit, and evidence hashes are
+in `benchmark/v2/studies/post-target-repair-breadth.json`.

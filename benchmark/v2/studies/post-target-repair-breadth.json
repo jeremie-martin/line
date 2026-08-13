@@ -1,0 +1,159 @@
+{
+  "schema": "line.benchmark-v2.post-target-repair-breadth.v1",
+  "recorded_at": "2026-08-13T10:34:58+02:00",
+  "status": "complete_no_promotion",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "repair_breadth_policy": "production",
+    "scale_headline": 579.8494,
+    "canonical_headline": 605.8725
+  },
+  "candidate": {
+    "policy": "repair-post-target-three-quarter",
+    "initial_search_breadth": "production",
+    "anchor_to_target_breadth": "production",
+    "strictly_post_target_breadth_ratio": 0.75,
+    "planning_profile": "dynamic_observed_suffix_cost",
+    "actual_work_charged_without_rescaling": true
+  },
+  "score_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "look_deltas": {
+      "4": -0.1443,
+      "8": -0.1362,
+      "16": -0.0592
+    },
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.7902,
+    "delta": -0.0592,
+    "directional_probability": 0.3022582,
+    "central_95_interval": [-0.2978, 0.1794],
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": 0.0525,
+    "per_budget_delta": {
+      "150000": 0.0009,
+      "250000": -0.7214,
+      "500000": 0.2659,
+      "750000": 0.0525,
+      "1000000": 0.0296,
+      "1500000": -0.3583,
+      "2500000": 0.3556,
+      "4000000": -0.0982
+    }
+  },
+  "spatial_policy_audit": {
+    "mechanics_schema": "line.benchmark-v2.scale-mechanics.v9",
+    "trace_rows": 1024,
+    "phased_trace_rows": 1024,
+    "repair_episodes": 4007,
+    "anchor_episode_closure_violations": 0,
+    "before_target_full_width": {
+      "eligible_rows": 862,
+      "compliant_rows": 862,
+      "violation_rows": 0
+    },
+    "target_full_width": {
+      "eligible_rows": 834,
+      "compliant_rows": 834,
+      "violation_rows": 0
+    },
+    "post_target_three_quarter_width": {
+      "eligible_rows": 850,
+      "compliant_rows": 850,
+      "violation_rows": 0
+    }
+  },
+  "mechanics_vs_reference": {
+    "first_terminal_frames_relative_delta": 0,
+    "repair_candidate_samples_relative_delta": -0.088903,
+    "repair_episodes_relative_delta": 0.043761,
+    "repair_terminal_reached_relative_delta": 0.03656,
+    "repair_accepted_alternatives_relative_delta": 0.008586,
+    "repair_total_spent_frames_relative_delta": 0.00016,
+    "repair_mean_spent_frames_relative_delta": -0.042355,
+    "aggregate_internal_repair_gain_relative_delta": -0.022277,
+    "aggregate_internal_repair_gain_per_frame_relative_delta": -0.022433,
+    "completion_estimate_absolute_error_relative_delta": 0.639447,
+    "completion_estimate_interval_coverage_relative_delta": -0.05372
+  },
+  "direct_behavior": {
+    "invariant_violations": {
+      "reference": 0,
+      "candidate": 0
+    },
+    "reference": {
+      "repairs": 3839,
+      "terminal_returns": 3802,
+      "accepted": 1747,
+      "spent_frames": 625087308,
+      "internal_gain": 4953.500061
+    },
+    "candidate": {
+      "repairs": 4007,
+      "terminal_returns": 3941,
+      "accepted": 1762,
+      "spent_frames": 625187074,
+      "internal_gain": 4843.149139
+    },
+    "first_repair_reference": {
+      "episodes": 989,
+      "terminal_returns": 978,
+      "accepted": 559,
+      "spent_frames": 280467478,
+      "mean_parent_depth": 5.244692,
+      "mean_anchor_gap": 58.75632,
+      "internal_gain": 3357.500846
+    },
+    "first_repair_candidate": {
+      "episodes": 989,
+      "terminal_returns": 979,
+      "accepted": 526,
+      "spent_frames": 255172277,
+      "mean_parent_depth": 5.244692,
+      "mean_anchor_gap": 58.75632,
+      "internal_gain": 3182.682412
+    }
+  },
+  "interpretation": "The semantic boundary behaved exactly as declared and saved real work: first-repair target and anchor selection were identical, while narrowing only strict post-target carry pools reduced first-repair spend by 9.02%. That saving directly reduced first-repair accepted alternatives by 33 and internal gain by 5.21%. Across the full run, 168 extra repair episodes and 139 extra terminal alternatives recovered only 15 accepted alternatives, while aggregate repair gain fell 2.23%. Candidate breadth after the selected target is therefore not disposable carry overhead; it materially affects the value of the completed suffix. The mixed, negative-leaning score result and lower repair value do not justify promotion.",
+  "followup": "Close scalar and spatial fixed-ratio repair breadth reduction. The next repair family must improve candidate evaluation or suffix choice without reducing the evaluated breadth that produces valuable completed alternatives. Do not tune another ratio, protected depth, or affordability feedback variant from this result.",
+  "compiler_snapshot": {
+    "archive": "generated/benchmark-v2/scale/repair-post-target-three-quarter-4-candidate-compiler-snapshot.tar.gz",
+    "sha256": "2f5a3720ba80eab85dbbc5c8fc48959bf08489735fcd6e9a30b60ff339087501",
+    "candidate_fingerprint": "4570d70f5305b8bc0a4d11699cabd4eb178e458e189fc7f7c649888dc73c1d77",
+    "compiler_source_fingerprint": "58fafd492b97bba1a846a707dd492d915553c945e4cae011026c113fac10d2fb"
+  },
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-post-target-three-quarter-4.comparison.json",
+      "sha256": "72e5e45d29604b141577f868da4f94b4e0420ff62efecaf8d6a137b62a4153dc"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-post-target-three-quarter-8.comparison.json",
+      "sha256": "b140287826d7fa527caff5983d5234f3e944ce3d07d61ca8384c14c6d515af19"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-post-target-three-quarter-16.comparison.json",
+      "sha256": "db5b7601a0e1bb684113c3feeb84d4c8436b708a72bf928def69f0162a573c1b"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/repair-post-target-three-quarter-16.json.gz",
+      "sha256": "fe09976b02ce910934d0a7b3792b8dbef03a809339e94519918da13feee7d0fb"
+    },
+    "n16_analysis_projection": {
+      "path": "generated/benchmark-v2/scale/repair-post-target-three-quarter-16.analysis.json.gz",
+      "sha256": "4fe9ca4af92b023c90314a8c123222e22d9465e56a2bfcdd22b9d2f18af1fa45"
+    },
+    "behavior_audit": {
+      "path": "generated/benchmark-v2/scale/repair-post-target-three-quarter-16.behavior.json",
+      "sha256": "d9e932f613f088f7aaa5a0f3e7c7ec274e05cea3bfe99ffaf4cc2fd7ba8e7b64"
+    },
+    "behavior_report": {
+      "path": "generated/benchmark-v2/scale/repair-post-target-three-quarter-16.behavior.md",
+      "sha256": "188bfd25b7b7f55a7ec03251c74c22935774c52238826d71d0d0fc2d96bdb236"
+    }
+  }
+}

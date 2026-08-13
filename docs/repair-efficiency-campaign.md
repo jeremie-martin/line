@@ -868,3 +868,22 @@ samples, probe work, impact-driven top-choice changes, exact aimed-pool rank,
 final aimed selection, first-terminal work, repair behavior, validity, and
 per-budget authored score. A non-favorable result closes this fixed-count
 two-signal allocation without trying weighted slot schedules.
+
+### Balanced fixed-count aim proposals — behaviorally inert, closed
+
+The N=4 look was byte-exact across all 256 source/budget/seed cells: scale
+headline 578.6064 in both arms, 247/256 valid in both, zero changed tracks, and
+zero movement at every budget from 150k through 4M. The equivalence extends to
+the mechanics: candidate samples, admitted aim proposals, exact pool entries,
+first-terminal frames, repair episodes, and terminal evaluations were all
+identical in every aggregate comparison.
+
+The existing geometric distinctness filter explains the result. Whenever the
+ordinary top choice was inserted after the impact-aware top choice, it was
+either already in the active order or was too close to consume a separate
+proposal slot; the unchanged active order filled the slot. This is stronger
+than an inconclusive score result: the arm generated the same work and paths on
+a broad 256-cell deterministic panel. Extending identical work to N=8 would
+add no useful evidence, so the study branch was removed and production keeps
+the singular impact-ranked implementation. The retained comparison is
+`generated/benchmark-v2/scale/aim-impact-balanced-slots-4.comparison.json`.

@@ -233,54 +233,6 @@ export function aimImpactTopChoiceIsResolved(
     modeledImpactAdvantage > validationMae;
 }
 
-export type AimImpactProposalSelectionPolicy = "impact-ranked" | "balanced";
-
-/** Fixed-count study policy for the two proposal slots. `balanced` keeps the
- * impact-aware top choice and reserves the other slot for the ordinary
- * current/outgoing objective. It changes neither probes nor exact candidate
- * evaluations; it tests whether the two proposal signals are complementary
- * instead of forcing one scalar ranking to spend both slots. */
-export function aimImpactProposalSelectionPolicy(
-  environment: Record<string, string | undefined> =
-    (globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env ?? {},
-): AimImpactProposalSelectionPolicy {
-  const value = environment.LR_AIM_MODEL_IMPACT_PROPOSAL_SELECTION;
-  if (value === undefined || value === "" || value === "balanced") {
-    return "balanced";
-  }
-  if (value === "impact-ranked") return value;
-  throw new Error(
-    `LR_AIM_MODEL_IMPACT_PROPOSAL_SELECTION must be impact-ranked or balanced; got ${value}`,
-  );
-}
-
-/** Priority order consumed by the existing distinctness filter. In the common
- * case where both objectives agree, balanced is exactly the impact-ranked
- * order. When they disagree, the first two priorities represent both signals;
- * the remaining order only fills a slot if those vectors are not distinct. */
-export function aimImpactProposalPriority<T>(
-  impactOrder: readonly T[],
-  ordinaryOrder: readonly T[],
-  policy: AimImpactProposalSelectionPolicy = aimImpactProposalSelectionPolicy(),
-): T[] {
-  if (policy === "impact-ranked") return [...impactOrder];
-  const impactBest = impactOrder[0];
-  const ordinaryBest = ordinaryOrder[0];
-  const priorities = [
-    ...(impactBest === undefined ? [] : [impactBest]),
-    ...(ordinaryBest === undefined ? [] : [ordinaryBest]),
-    ...impactOrder.slice(1),
-    ...ordinaryOrder.slice(1),
-  ];
-  const seen = new Set<T>();
-  return priorities.filter((candidate) => {
-    if (seen.has(candidate)) return false;
-    seen.add(candidate);
-    return true;
-  });
-}
-
 /** Below this |predicted base air − effective ask| the air-matched variant is
  *  not worth a candidate evaluation (blast-radius gate: inert where the base
  *  already lands near the ask). Probe-tuned: 0.18 priced out most emissions
@@ -1479,13 +1431,7 @@ function scoreConfiguredKnobGrid(
         aimTotals.enum_model_impact_top1_resolution_suppressed++;
       }
     }
-    const effectiveOrder = orderKey === "val"
-      ? aimImpactProposalPriority(
-        activeOrder,
-        ordinaryOrder,
-        aimImpactProposalSelectionPolicy(),
-      )
-      : ordinaryOrder;
+    const effectiveOrder = orderKey === "val" ? activeOrder : ordinaryOrder;
     const selected = effectiveOrder.slice(0, Math.min(2, effectiveOrder.length));
     if (selected.length > 0) {
       const maxOrdinaryRank = Math.max(

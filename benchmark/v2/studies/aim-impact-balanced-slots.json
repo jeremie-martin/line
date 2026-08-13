@@ -1,0 +1,57 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-balanced-slots.v1",
+  "recorded_at": "2026-08-13T15:24:00.000Z",
+  "status": "closed_behaviorally_inert",
+  "hypothesis": "At fixed two-proposal cost, reserve one priority for the impact-aware optimum and one for the ordinary current/outgoing optimum.",
+  "isolation": {
+    "proposal_count_change": 0,
+    "probe_count_change": 0,
+    "ordinary_admission_set_change": false,
+    "candidate_breadth_change": false,
+    "authored_target_change": false
+  },
+  "decision": {
+    "profile": "compact-budget-response-v1",
+    "depth": 4,
+    "cells": 256,
+    "budgets": [150000, 250000, 500000, 750000, 1000000, 1500000, 2500000, 4000000],
+    "reference_headline": 578.6064,
+    "candidate_headline": 578.6064,
+    "delta": 0,
+    "reference_valid": 247,
+    "candidate_valid": 247,
+    "changed_tracks": 0,
+    "per_budget_deltas": {
+      "150000": 0,
+      "250000": 0,
+      "500000": 0,
+      "750000": 0,
+      "1000000": 0,
+      "1500000": 0,
+      "2500000": 0,
+      "4000000": 0
+    },
+    "formal_action": "continue",
+    "campaign_action": "close_without_extension",
+    "campaign_action_reason": "The formal sequential rule cannot classify exact zero at N=4, but the intervention produced zero changed tracks and exact-neutral mechanics over all 256 cells. An N=8 extension would repeat an empirically behaviorally inert branch rather than reduce score uncertainty."
+  },
+  "mechanics": {
+    "actual_candidate_samples_delta": 0,
+    "aim_primary_candidates_admitted_delta": 0,
+    "aim_pool_entries_delta": 0,
+    "first_terminal_frames_delta": 0,
+    "repair_episodes_delta": 0,
+    "terminal_node_evaluations_delta": 0
+  },
+  "interpretation": "The ordinary top choice did not survive as a new second proposal under the existing geometric distinctness rule. It was already represented or too close to the impact-aware first choice, after which the unchanged impact order filled the slot. This fixed-count allocation is therefore not a separate compiler behavior.",
+  "cleanup": "The study-only selection policy and tests were removed. Production retains the single impact-ranked proposal path.",
+  "evidence": {
+    "reference_manifest": "generated/benchmark-v2/scale/last-chance-repair-aim-stats-reference-16-baseline.json",
+    "candidate_archive": "generated/benchmark-v2/scale/aim-impact-balanced-slots-4.json.gz",
+    "candidate_archive_sha256": "cfdd97944f872c43a8b217a250baac877edaa4fd6286222eda9a50c7143e47a0",
+    "comparison": "generated/benchmark-v2/scale/aim-impact-balanced-slots-4.comparison.json",
+    "comparison_sha256": "849183ad8f08e005fdcdd5394e77f1054ad4779665b040700b32f4a43911de90",
+    "compiler_snapshot": "generated/benchmark-v2/scale/aim-impact-balanced-slots-4-candidate-compiler-snapshot.tar.gz",
+    "compiler_snapshot_sha256": "3471e717cef80c1d3dde7d71eea2f36a363cbc3cfd960bf16ed2c462ca454306"
+  }
+}

@@ -22,8 +22,6 @@ import {
   aimTopKFirstRepairExtra,
   aimTopKBasesEffective,
   aimImpactTopChoiceIsResolved,
-  aimImpactProposalPriority,
-  aimImpactProposalSelectionPolicy,
   aimModelImpactPower,
   impactSpeedAirOutgoingParetoImproves,
   impactSpeedParetoImproves,
@@ -229,25 +227,6 @@ describe("arc-control probe layouts", () => {
       .toBe(false);
     expect(aimImpactTopChoiceIsResolved("validated-mae-top1", true, 0.0401, 0.04))
       .toBe(true);
-  });
-
-  test("balances the two fixed proposal slots across impact and ordinary objectives", () => {
-    expect(aimImpactProposalSelectionPolicy({})).toBe("balanced");
-    expect(aimImpactProposalSelectionPolicy({
-      LR_AIM_MODEL_IMPACT_PROPOSAL_SELECTION: "impact-ranked",
-    })).toBe("impact-ranked");
-    expect(() => aimImpactProposalSelectionPolicy({
-      LR_AIM_MODEL_IMPACT_PROPOSAL_SELECTION: "unknown",
-    })).toThrow();
-
-    const impact = ["impact-1", "impact-2", "impact-3"];
-    const ordinary = ["ordinary-1", "impact-2", "ordinary-3"];
-    expect(aimImpactProposalPriority(impact, ordinary, "impact-ranked"))
-      .toEqual(impact);
-    expect(aimImpactProposalPriority(impact, ordinary, "balanced").slice(0, 2))
-      .toEqual(["impact-1", "ordinary-1"]);
-    expect(aimImpactProposalPriority(impact, impact, "balanced"))
-      .toEqual(impact);
   });
 
   test("outgoing amplitude study modes separate authored onset and budget maturity", () => {

@@ -599,3 +599,28 @@ target, anchor, affordability, and cost-density decisions; repair spend,
 terminal and acceptance yield; internal gain; final-output lineage; and
 per-budget authored score. Only an accepted scale result can proceed to the
 canonical 750k qualification.
+
+### Worst-target window-per-cost anchor — rejected at N=16
+
+The live arm lost coherently at every governed look: -0.2289 at N=4, -0.2167
+at N=8, and -0.1969 at N=16. The final directional probability was 0.0735%,
+with a central 95% interval [-0.3050, -0.0888]. The 750k slice was -0.0679,
+validity remained exactly 997/1,024, and six of eight budget deltas were
+negative.
+
+The mechanism was active and trustworthy. All repair invariants replayed with
+zero violations across 3,839 reference and 4,906 candidate episodes.
+First-terminal work was exact. The candidate moved anchors later (mean parent
+depth -30.82%), reduced mean repair cost 11.99%, and converted effectively the
+same total repair spend into 27.85% more terminal alternatives and 11.62% more
+accepted alternatives.
+
+More accepted alternatives were not more authored value. Aggregate internal
+repair gain fell from 4,953.50 to 4,700.42 (-5.11%), and gain per repair frame
+fell 15.27%. Direct anchor-to-target authored SSE per estimated cost therefore
+does not identify when the production parent runway can be removed. The law is
+rejected without threshold, reserve, or neighboring-formula tuning. Production
+remains `worst_gap_deepest_affordable`; the next family must improve the value
+of the suffix generated from that anchor rather than manufacture still more
+short alternatives. Exact evidence and hashes are in
+`benchmark/v2/studies/worst-target-window-per-cost-anchor.json`.

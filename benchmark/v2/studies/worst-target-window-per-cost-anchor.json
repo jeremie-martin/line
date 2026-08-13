@@ -1,0 +1,108 @@
+{
+  "schema": "line.benchmark-v2.worst-target-window-per-cost-anchor.v1",
+  "recorded_at": "2026-08-13T07:45:27+02:00",
+  "status": "complete_prefer_reference",
+  "reference": {
+    "selection_policy": "worst_gap_deepest_affordable",
+    "scale_headline": 579.8494,
+    "canonical_headline": 605.8725
+  },
+  "candidate": {
+    "selection_policy": "worst_gap_window_opportunity_per_cost",
+    "target_selection_unchanged": true,
+    "opportunity": "sum of authored axis-error SSE from affordable anchor through selected worst target",
+    "cost": "estimated point completion cost at the anchor",
+    "maximum_parent_depth": 6,
+    "added_headroom": 0,
+    "fitted_thresholds": 0
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "prefer-reference",
+    "look_deltas": { "4": -0.2289, "8": -0.2167, "16": -0.1969 },
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.6525,
+    "delta": -0.1969,
+    "directional_probability": 0.00073475,
+    "central_95_interval": [-0.305, -0.0888],
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": -0.0679,
+    "per_budget_delta": {
+      "150000": -0.5215,
+      "250000": -0.416,
+      "500000": -0.6412,
+      "750000": -0.0679,
+      "1000000": 0.2258,
+      "1500000": -0.3236,
+      "2500000": 0.3265,
+      "4000000": -0.157
+    }
+  },
+  "mechanics": {
+    "first_terminal_frames_relative_delta": 0,
+    "repair_episodes_relative_delta": 0.277937,
+    "repair_terminal_reached_relative_delta": 0.278538,
+    "repair_accepted_alternatives_relative_delta": 0.116199,
+    "repair_mean_parent_depth_relative_delta": -0.30823,
+    "repair_mean_anchor_gap_relative_delta": 0.033477,
+    "repair_mean_spent_frames_relative_delta": -0.119939,
+    "repair_total_spent_frames_relative_delta": -0.000386,
+    "repair_terminal_improvements_per_million_frames_relative_delta": 0.158545,
+    "repair_internal_full_score_delta_relative_delta": -0.051091,
+    "repair_internal_full_score_delta_per_million_frames_relative_delta": -0.152748,
+    "final_output_from_repair_relative_delta": 0.011682
+  },
+  "behavior_audit": {
+    "reference_repairs": 3839,
+    "candidate_repairs": 4906,
+    "reference_invariant_violations": 0,
+    "candidate_invariant_violations": 0,
+    "reference_terminal_returns": 3802,
+    "candidate_terminal_returns": 4861,
+    "reference_accepted_alternatives": 1747,
+    "candidate_accepted_alternatives": 1950,
+    "reference_internal_gain": 4953.500061,
+    "candidate_internal_gain": 4700.419961
+  },
+  "interpretation": "The direct authored-error density law did exactly what it was intended to do: it moved the same selected target to later, cheaper anchors, converted the same total repair spend into 27.85% more terminal alternatives, and accepted 11.62% more of them. Those alternatives were lower value. Aggregate internal repair gain fell 5.11%, gain per repair frame fell 15.27%, and authored multi-budget score lost coherently at all three governed looks. This rejects the hypothesis that anchor-to-target authored SSE per estimated cost identifies when upstream runway is expendable. Keep production deepest-affordable selection and do not tune this density law.",
+  "next_family": "Improve the value of the suffix alternative generated from the accepted anchor. Do not continue later-anchor, reserve, headroom, or scalar candidate-breadth variants without a new causal mechanism.",
+  "compiler_snapshot": {
+    "archive": "generated/benchmark-v2/scale/worst-target-window-per-cost-4-candidate-compiler-snapshot.tar.gz",
+    "sha256": "5a4955d38e3907cea91e5ea7d3f9741515b155553846ebc2e4f964cedaf52a1d",
+    "candidate_fingerprint": "ae36281acd8356d7d594f2e0297d2e31e4ef13dc068890f913aadc2fb6330a96",
+    "compiler_source_fingerprint": "aac5703bea75eef56de29132d3cbceaf5c757d9ce8c8964311f27b738d97b754"
+  },
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/worst-target-window-per-cost-4.comparison.json",
+      "sha256": "caaa67530979daf4351ff7c22546254568bb58009b281f4f1e27cbb28378c79b"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/worst-target-window-per-cost-8.comparison.json",
+      "sha256": "e718fe292fa3925e73b8d9322517395f1330175990af1fcc3631ca0101852ec9"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/worst-target-window-per-cost-16.comparison.json",
+      "sha256": "8052971c20d83c2aebbab9fccd90ae63f010629113d703b12a34fabed5cffe2e"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/worst-target-window-per-cost-16.json.gz",
+      "sha256": "052b0784c055d0151d3cba2d44dcfda9d507a9c12a33836752b3a67e3acbd357"
+    },
+    "n16_analysis_projection": {
+      "path": "generated/benchmark-v2/scale/worst-target-window-per-cost-16.analysis.json.gz",
+      "sha256": "44b06a3a46dd29834f5cd4dcba11e0f2fe22189316a043ae9e5504b86909d6cc"
+    },
+    "behavior_audit": {
+      "path": "generated/benchmark-v2/scale/worst-target-window-per-cost-16.behavior.json",
+      "sha256": "73d2673703bbff4025f419a1ad34d433c790e7bcd311e40d7f767b40a7ed57e7"
+    },
+    "behavior_report": {
+      "path": "generated/benchmark-v2/scale/worst-target-window-per-cost-16.behavior.md",
+      "sha256": "967bd6ca8af0fe2f8c3af9d08c6175f994021237eca7647bc936da35e30a5f4c"
+    }
+  }
+}

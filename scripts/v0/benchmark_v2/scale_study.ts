@@ -429,7 +429,7 @@ async function main(): Promise<void> {
         "compile stats except repair target-search and compact aim mechanics",
         "repair considered-target observations",
         "repair track-identity hashes",
-        "budget-telemetry node events",
+        "budget-telemetry node events (compact repair position aggregates retained)",
       ],
     },
     runs: scored.map(scaleAnalysisRun),

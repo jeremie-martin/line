@@ -206,13 +206,14 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
   }],
   ["repairDistinctAnchorGaps", (row) => new Set(repairEpisodes(row)
     .map((episode) => episode.anchor.gap_index)).size],
-  ["repairAnchorAtomicPoolBuilds", (row) => repairAtomicPoolBuilds(row, "anchor").length],
+  ["repairAnchorAtomicPoolBuilds", (row) =>
+    repairAtomicPoolSummary(row, "anchor")?.poolBuilds ?? null],
   ["repairDescendantAtomicPoolBuilds", (row) =>
-    repairAtomicPoolBuilds(row, "descendant").length],
+    repairAtomicPoolSummary(row, "descendant")?.poolBuilds ?? null],
   ["repairMeanAnchorAtomicRequestedNormalProposals", (row) =>
-    eventMean(repairAtomicPoolBuilds(row, "anchor"))],
+    meanRequestedNormalProposals(repairAtomicPoolSummary(row, "anchor"))],
   ["repairMeanDescendantAtomicRequestedNormalProposals", (row) =>
-    eventMean(repairAtomicPoolBuilds(row, "descendant"))],
+    meanRequestedNormalProposals(repairAtomicPoolSummary(row, "descendant"))],
   ["repairTotalAllocatedFrames", (row) => sumRepairEpisodes(row, (episode) =>
     episode.allocated_frames)],
   ["repairTotalSpentFrames", (row) => sumRepairEpisodes(row, (episode) =>
@@ -607,28 +608,48 @@ function completedRepairEpisodes(row: RunRow): BudgetEpisodeTelemetry[] {
  * anchor. This is deliberately not named candidate samples: an atomic node's
  * requested width is a policy request, while actual sampling (including rescue
  * streams) remains in the episode work ledger. */
-function repairAtomicPoolBuilds(
+function repairAtomicPoolSummary(
   row: RunRow,
   location: "anchor" | "descendant",
-): Array<{ requested_normal_proposals: number }> {
+): { poolBuilds: number; requestedNormalProposals: number } | null {
+  const compact = (telemetry(row) as any).repair_node_policy?.[location];
+  if (
+    compact !== null && typeof compact === "object" &&
+    Number.isSafeInteger(compact.pool_builds) && compact.pool_builds >= 0 &&
+    Number.isFinite(compact.requested_normal_proposals) &&
+    compact.requested_normal_proposals >= 0
+  ) {
+    return {
+      poolBuilds: compact.pool_builds,
+      requestedNormalProposals: compact.requested_normal_proposals,
+    };
+  }
+  if (!Array.isArray(telemetry(row).node_events)) return null;
   const anchorByEpisode = new Map(
     repairEpisodes(row).map((episode) => [episode.episode_id, episode.anchor.gap_index]),
   );
-  return (telemetry(row).node_events ?? []).flatMap((event) => {
-    if (event.lane !== "repair" || event.requested_normal_proposals === null) return [];
+  let poolBuilds = 0;
+  let requestedNormalProposals = 0;
+  for (const event of telemetry(row).node_events ?? []) {
+    if (event.lane !== "repair" || event.requested_normal_proposals === null) continue;
     const anchor = anchorByEpisode.get(event.episode_id);
-    if (anchor === undefined) return [];
+    if (anchor === undefined) continue;
     const matches = location === "anchor"
       ? event.gap_index === anchor
       : event.gap_index > anchor;
-    return matches ? [{ requested_normal_proposals: event.requested_normal_proposals }] : [];
-  });
+    if (!matches) continue;
+    poolBuilds++;
+    requestedNormalProposals += event.requested_normal_proposals;
+  }
+  return { poolBuilds, requestedNormalProposals };
 }
 
-function eventMean(events: Array<{ requested_normal_proposals: number }>): number | null {
-  return events.length === 0
+function meanRequestedNormalProposals(
+  summary: { poolBuilds: number; requestedNormalProposals: number } | null,
+): number | null {
+  return summary === null || summary.poolBuilds === 0
     ? null
-    : mean(events.map((event) => event.requested_normal_proposals));
+    : summary.requestedNormalProposals / summary.poolBuilds;
 }
 
 /** Positive means the start estimate underpredicted charged work to completion. */

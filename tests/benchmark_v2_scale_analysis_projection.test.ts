@@ -32,9 +32,24 @@ describe("Benchmark V2 scale analysis projection", () => {
       },
       budgetTelemetry: {
         schema: "line.compile-budget-telemetry.v9",
-        node_events: [{ large: true }],
+        node_events: [{
+          episode_id: 4,
+          lane: "repair",
+          gap_index: 3,
+          requested_normal_proposals: 81,
+          large: true,
+        }, {
+          episode_id: 4,
+          lane: "repair",
+          gap_index: 4,
+          requested_normal_proposals: 61,
+          large: true,
+        }],
         compile: { work: {} },
         episodes: [{
+          episode_id: 4,
+          lane: "repair",
+          anchor: { gap_index: 3 },
           repair_decision: {
             target_gap_index: 4,
             considered_targets: [{ large: true }],
@@ -75,6 +90,10 @@ describe("Benchmark V2 scale analysis projection", () => {
     expect(projected).not.toHaveProperty("stats.unrelated_large_stats");
     expect(projected).not.toHaveProperty("stats.aim.study");
     expect(projected).not.toHaveProperty("budgetTelemetry.node_events");
+    expect(projected).toHaveProperty("budgetTelemetry.repair_node_policy", {
+      anchor: { pool_builds: 1, requested_normal_proposals: 81 },
+      descendant: { pool_builds: 1, requested_normal_proposals: 61 },
+    });
     expect(projected).not.toHaveProperty(
       "budgetTelemetry.episodes.0.repair_decision.considered_targets",
     );

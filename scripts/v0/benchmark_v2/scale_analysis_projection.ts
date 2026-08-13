@@ -32,8 +32,12 @@ export function scaleAnalysisRun(row: any): Record<string, unknown> {
       ? null
       : (() => {
         const { node_events: _nodeEvents, ...compactTelemetry } = budgetTelemetry;
+        const repairNodePolicy = compactRepairNodePolicy(budgetTelemetry);
         return {
           ...compactTelemetry,
+          ...(repairNodePolicy === null
+            ? {}
+            : { repair_node_policy: repairNodePolicy }),
           episodes: budgetTelemetry.episodes.map((episode: any) => {
             const decision = episode.repair_decision;
             const outcome = episode.outcome;
@@ -62,6 +66,46 @@ export function scaleAnalysisRun(row: any): Record<string, unknown> {
         };
       })(),
   };
+}
+
+type CompactNodePolicyBucket = {
+  pool_builds: number;
+  requested_normal_proposals: number;
+};
+
+/** Preserve the positional nCand evidence without retaining every trace node.
+ * Counts are policy requests at atomic frontier nodes, not candidate samples. */
+function compactRepairNodePolicy(budgetTelemetry: any): Record<string, unknown> | null {
+  if (!Array.isArray(budgetTelemetry?.node_events)) return null;
+  const anchorByEpisode = new Map<number, number>();
+  for (const episode of budgetTelemetry.episodes ?? []) {
+    if (
+      episode?.lane === "repair" && Number.isSafeInteger(episode?.episode_id) &&
+      Number.isSafeInteger(episode?.anchor?.gap_index)
+    ) anchorByEpisode.set(episode.episode_id, episode.anchor.gap_index);
+  }
+  const anchor: CompactNodePolicyBucket = { pool_builds: 0, requested_normal_proposals: 0 };
+  const descendant: CompactNodePolicyBucket = {
+    pool_builds: 0,
+    requested_normal_proposals: 0,
+  };
+  for (const event of budgetTelemetry.node_events) {
+    const selectedAnchor = anchorByEpisode.get(event?.episode_id);
+    const requested = finite(event?.requested_normal_proposals);
+    if (
+      event?.lane !== "repair" || selectedAnchor === undefined || requested === null ||
+      !Number.isSafeInteger(event?.gap_index)
+    ) continue;
+    const bucket = event.gap_index === selectedAnchor
+      ? anchor
+      : event.gap_index > selectedAnchor
+      ? descendant
+      : null;
+    if (bucket === null) continue;
+    bucket.pool_builds++;
+    bucket.requested_normal_proposals += requested;
+  }
+  return { anchor, descendant };
 }
 
 const AIM_COMPACT_FIELDS = [

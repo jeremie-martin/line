@@ -940,3 +940,24 @@ authored score. Production keeps two proposals and full ordinary repair
 breadth. The branch is removed without tuning the ratio, proposal count, or
 phase; full evidence is in
 `benchmark/v2/studies/repair-sampling-to-aim-reallocation.json`.
+
+### Full-breadth third repair proposal — declared
+
+The reallocation arm leaves one causal ambiguity. It improved repair internal
+gain by 1.63% and gain per frame by 1.76%, but it simultaneously replaced 1/8
+of random repair samples with a third fitted-grid proposal. The final authored
+result was weakly positive. The natural isolation is to retain full production
+sample breadth and add only the third proposal during independent repair.
+
+Initial and resumed search still use two proposals and production breadth;
+first-terminal work must be byte-identical. Repair uses production sample
+breadth, aim-base breadth, probes, distilled model, impact-aware order,
+geometric distinctness, exact admission, target/anchor selection, DFS, register
+acceptance, and authored targets. The only change is allowing the unchanged
+distinctness filter to take a third fitted-grid choice per refined repair base.
+
+This is not an adjacent proposal-count sweep: three is inherited from the
+completed reallocation and the historical 1/2/3 boundary. The frozen 4/8/16
+multi-budget ladder decides it. The same phase, aim-yield, repair-value,
+validity, and authored-score evidence is required; no favorable-looking source
+or budget gate may be added afterward.

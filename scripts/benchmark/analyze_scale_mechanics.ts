@@ -15,7 +15,7 @@ import {
   type BudgetRepairGapState,
 } from "../v0/optimizer/budget_telemetry.ts";
 
-export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v7" as const;
+export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v8" as const;
 
 type RunRow = {
   task: { sourceId: string; budget: number; actualSeed: number };
@@ -41,6 +41,29 @@ export type ScaleMechanicsSummary = {
   changedTracks: number;
   rawScoreDeltaMean: number;
   metrics: Record<string, MechanicsMetric>;
+};
+
+export type RepairNodePolicyAudit = {
+  rows: number;
+  traceRows: number;
+  rowsWithoutTraceSummary: number;
+  repairEpisodes: number;
+  anchorPoolBuilds: number;
+  descendantPoolBuilds: number;
+  anchorEpisodeClosureViolations: number;
+  nonconstantAnchorWidthRows: number;
+  nonconstantDescendantWidthRows: number;
+  descendantWithoutAnchorRows: number;
+  threeQuarterEligibleRows: number;
+  threeQuarterCompliantRows: number;
+  byBudget: Array<{
+    budget: number;
+    traceRows: number;
+    anchorWidths: number[];
+    descendantWidths: number[];
+    anchorPoolBuilds: number;
+    descendantPoolBuilds: number;
+  }>;
 };
 
 const METRICS: Array<[string, (row: RunRow) => number | null]> = [
@@ -383,6 +406,10 @@ export function pairedScaleMechanics(
   schema: typeof SCALE_MECHANICS_SCHEMA;
   overall: ScaleMechanicsSummary;
   perBudget: Array<{ budget: number } & ScaleMechanicsSummary>;
+  repairNodePolicy: {
+    reference: RepairNodePolicyAudit;
+    candidate: RepairNodePolicyAudit;
+  };
 } {
   assertUniqueRows("reference", referenceRows);
   assertUniqueRows("candidate", candidateRows);
@@ -406,6 +433,10 @@ export function pairedScaleMechanics(
       budget,
       ...summarizePairs(pairs.filter((pair) => pair.candidate.task.budget === budget)),
     })),
+    repairNodePolicy: {
+      reference: auditRepairNodePolicy(referenceRows),
+      candidate: auditRepairNodePolicy(candidateRows),
+    },
   };
 }
 
@@ -608,10 +639,17 @@ function completedRepairEpisodes(row: RunRow): BudgetEpisodeTelemetry[] {
  * anchor. This is deliberately not named candidate samples: an atomic node's
  * requested width is a policy request, while actual sampling (including rescue
  * streams) remains in the episode work ledger. */
+type RepairAtomicPoolSummary = {
+  poolBuilds: number;
+  requestedNormalProposals: number;
+  requestedMin: number | null;
+  requestedMax: number | null;
+};
+
 function repairAtomicPoolSummary(
   row: RunRow,
   location: "anchor" | "descendant",
-): { poolBuilds: number; requestedNormalProposals: number } | null {
+): RepairAtomicPoolSummary | null {
   const compact = (telemetry(row) as any).repair_node_policy?.[location];
   if (
     compact !== null && typeof compact === "object" &&
@@ -622,6 +660,8 @@ function repairAtomicPoolSummary(
     return {
       poolBuilds: compact.pool_builds,
       requestedNormalProposals: compact.requested_normal_proposals,
+      requestedMin: finite(compact.requested_normal_proposals_min),
+      requestedMax: finite(compact.requested_normal_proposals_max),
     };
   }
   if (!Array.isArray(telemetry(row).node_events)) return null;
@@ -630,6 +670,8 @@ function repairAtomicPoolSummary(
   );
   let poolBuilds = 0;
   let requestedNormalProposals = 0;
+  let requestedMin: number | null = null;
+  let requestedMax: number | null = null;
   for (const event of telemetry(row).node_events ?? []) {
     if (event.lane !== "repair" || event.requested_normal_proposals === null) continue;
     const anchor = anchorByEpisode.get(event.episode_id);
@@ -640,16 +682,84 @@ function repairAtomicPoolSummary(
     if (!matches) continue;
     poolBuilds++;
     requestedNormalProposals += event.requested_normal_proposals;
+    requestedMin = requestedMin === null
+      ? event.requested_normal_proposals
+      : Math.min(requestedMin, event.requested_normal_proposals);
+    requestedMax = requestedMax === null
+      ? event.requested_normal_proposals
+      : Math.max(requestedMax, event.requested_normal_proposals);
   }
-  return { poolBuilds, requestedNormalProposals };
+  return { poolBuilds, requestedNormalProposals, requestedMin, requestedMax };
 }
 
 function meanRequestedNormalProposals(
-  summary: { poolBuilds: number; requestedNormalProposals: number } | null,
+  summary: RepairAtomicPoolSummary | null,
 ): number | null {
   return summary === null || summary.poolBuilds === 0
     ? null
     : summary.requestedNormalProposals / summary.poolBuilds;
+}
+
+function auditRepairNodePolicy(rows: RunRow[]): RepairNodePolicyAudit {
+  const audited = rows.flatMap((row) => {
+    const anchor = repairAtomicPoolSummary(row, "anchor");
+    const descendant = repairAtomicPoolSummary(row, "descendant");
+    return anchor === null || descendant === null ? [] : [{ row, anchor, descendant }];
+  });
+  const budgets = [...new Set(rows.map((row) => row.task.budget))].sort((a, b) => a - b);
+  const widths = (
+    values: Array<{ requestedMin: number | null; requestedMax: number | null }>,
+  ): number[] => [...new Set(values.flatMap((value) =>
+    value.requestedMin !== null && value.requestedMin === value.requestedMax
+      ? [value.requestedMin]
+      : []
+  ))].sort((a, b) => a - b);
+  const bucket = (selected: typeof audited) => ({
+    traceRows: selected.length,
+    anchorWidths: widths(selected.map(({ anchor }) => anchor)),
+    descendantWidths: widths(selected.map(({ descendant }) => descendant)),
+    anchorPoolBuilds: selected.reduce((sum, { anchor }) => sum + anchor.poolBuilds, 0),
+    descendantPoolBuilds: selected.reduce(
+      (sum, { descendant }) => sum + descendant.poolBuilds,
+      0,
+    ),
+  });
+  const eligible = audited.filter(({ anchor, descendant }) =>
+    anchor.poolBuilds > 0 && descendant.poolBuilds > 0 &&
+    anchor.requestedMin !== null && anchor.requestedMin === anchor.requestedMax &&
+    descendant.requestedMin !== null && descendant.requestedMin === descendant.requestedMax
+  );
+  return {
+    rows: rows.length,
+    traceRows: audited.length,
+    rowsWithoutTraceSummary: rows.length - audited.length,
+    repairEpisodes: audited.reduce((sum, { row }) => sum + repairEpisodes(row).length, 0),
+    anchorPoolBuilds: audited.reduce((sum, { anchor }) => sum + anchor.poolBuilds, 0),
+    descendantPoolBuilds: audited.reduce(
+      (sum, { descendant }) => sum + descendant.poolBuilds,
+      0,
+    ),
+    anchorEpisodeClosureViolations: audited.filter(({ row, anchor }) =>
+      repairEpisodes(row).length !== anchor.poolBuilds
+    ).length,
+    nonconstantAnchorWidthRows: audited.filter(({ anchor }) =>
+      anchor.poolBuilds > 0 && anchor.requestedMin !== anchor.requestedMax
+    ).length,
+    nonconstantDescendantWidthRows: audited.filter(({ descendant }) =>
+      descendant.poolBuilds > 0 && descendant.requestedMin !== descendant.requestedMax
+    ).length,
+    descendantWithoutAnchorRows: audited.filter(({ anchor, descendant }) =>
+      descendant.poolBuilds > 0 && anchor.poolBuilds === 0
+    ).length,
+    threeQuarterEligibleRows: eligible.length,
+    threeQuarterCompliantRows: eligible.filter(({ anchor, descendant }) =>
+      descendant.requestedMin === Math.max(8, Math.round(anchor.requestedMin! * 3 / 4))
+    ).length,
+    byBudget: budgets.map((budget) => {
+      const selected = audited.filter(({ row }) => row.task.budget === budget);
+      return { budget, ...bucket(selected) };
+    }),
+  };
 }
 
 /** Positive means the start estimate underpredicted charged work to completion. */

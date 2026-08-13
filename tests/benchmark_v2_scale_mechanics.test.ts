@@ -183,6 +183,20 @@ describe("paired scale mechanics", () => {
       .toMatchObject({ referenceMean: 81, candidateMean: 80 });
     expect(result.overall.metrics.repairMeanDescendantAtomicRequestedNormalProposals)
       .toMatchObject({ referenceMean: 81, candidateMean: 60 });
+    expect(result.repairNodePolicy.candidate).toMatchObject({
+      rows: 2,
+      traceRows: 2,
+      repairEpisodes: 2,
+      anchorPoolBuilds: 2,
+      descendantPoolBuilds: 2,
+      anchorEpisodeClosureViolations: 0,
+      nonconstantAnchorWidthRows: 0,
+      nonconstantDescendantWidthRows: 0,
+      descendantWithoutAnchorRows: 0,
+      threeQuarterEligibleRows: 2,
+      threeQuarterCompliantRows: 2,
+    });
+    expect(result.repairNodePolicy.reference.threeQuarterCompliantRows).toBe(0);
     expect(result.overall.metrics.repairRejectedLocalBridgeEpisodes.delta).toBe(1);
     expect(result.overall.metrics.repairRejectedLocalFollowupBlockedOneStep.delta).toBe(1);
     expect(result.overall.metrics.repairTerminalReachedRate.candidateMean).toBe(1);

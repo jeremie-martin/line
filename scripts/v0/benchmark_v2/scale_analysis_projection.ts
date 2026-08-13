@@ -71,6 +71,8 @@ export function scaleAnalysisRun(row: any): Record<string, unknown> {
 type CompactNodePolicyBucket = {
   pool_builds: number;
   requested_normal_proposals: number;
+  requested_normal_proposals_min: number | null;
+  requested_normal_proposals_max: number | null;
 };
 
 /** Preserve the positional nCand evidence without retaining every trace node.
@@ -84,10 +86,15 @@ function compactRepairNodePolicy(budgetTelemetry: any): Record<string, unknown> 
       Number.isSafeInteger(episode?.anchor?.gap_index)
     ) anchorByEpisode.set(episode.episode_id, episode.anchor.gap_index);
   }
-  const anchor: CompactNodePolicyBucket = { pool_builds: 0, requested_normal_proposals: 0 };
-  const descendant: CompactNodePolicyBucket = {
+  const empty = (): CompactNodePolicyBucket => ({
     pool_builds: 0,
     requested_normal_proposals: 0,
+    requested_normal_proposals_min: null,
+    requested_normal_proposals_max: null,
+  });
+  const anchor = empty();
+  const descendant: CompactNodePolicyBucket = {
+    ...empty(),
   };
   for (const event of budgetTelemetry.node_events) {
     const selectedAnchor = anchorByEpisode.get(event?.episode_id);
@@ -104,6 +111,12 @@ function compactRepairNodePolicy(budgetTelemetry: any): Record<string, unknown> 
     if (bucket === null) continue;
     bucket.pool_builds++;
     bucket.requested_normal_proposals += requested;
+    bucket.requested_normal_proposals_min = bucket.requested_normal_proposals_min === null
+      ? requested
+      : Math.min(bucket.requested_normal_proposals_min, requested);
+    bucket.requested_normal_proposals_max = bucket.requested_normal_proposals_max === null
+      ? requested
+      : Math.max(bucket.requested_normal_proposals_max, requested);
   }
   return { anchor, descendant };
 }

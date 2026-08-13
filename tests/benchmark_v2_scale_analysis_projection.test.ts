@@ -91,8 +91,18 @@ describe("Benchmark V2 scale analysis projection", () => {
     expect(projected).not.toHaveProperty("stats.aim.study");
     expect(projected).not.toHaveProperty("budgetTelemetry.node_events");
     expect(projected).toHaveProperty("budgetTelemetry.repair_node_policy", {
-      anchor: { pool_builds: 1, requested_normal_proposals: 81 },
-      descendant: { pool_builds: 1, requested_normal_proposals: 61 },
+      anchor: {
+        pool_builds: 1,
+        requested_normal_proposals: 81,
+        requested_normal_proposals_min: 81,
+        requested_normal_proposals_max: 81,
+      },
+      descendant: {
+        pool_builds: 1,
+        requested_normal_proposals: 61,
+        requested_normal_proposals_min: 61,
+        requested_normal_proposals_max: 61,
+      },
     });
     expect(projected).not.toHaveProperty(
       "budgetTelemetry.episodes.0.repair_decision.considered_targets",

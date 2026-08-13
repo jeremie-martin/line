@@ -134,6 +134,38 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
     "aimed_pool_entries",
   )],
   ["finalTrackAimedFits", (row) => finite(row.stats?.handoff_aimed_selected)],
+  ["repairAimBranchEligibleFullWidthPools", (row) =>
+    repairAimBranchValue(row, "eligible_full_width_pools")],
+  ["repairAimBranchPoolsWithAimedCandidate", (row) =>
+    repairAimBranchValue(row, "pools_with_aimed_candidate")],
+  ["repairAimBranchAimedAvailabilityRate", (row) => repairAimBranchRate(
+    row,
+    "pools_with_aimed_candidate",
+    "eligible_full_width_pools",
+  )],
+  ["repairAimBranchAlreadySelected", (row) =>
+    repairAimBranchValue(row, "aimed_candidate_already_selected")],
+  ["repairAimBranchInserted", (row) =>
+    repairAimBranchValue(row, "aimed_candidate_inserted")],
+  ["repairAimBranchInsertionRateGivenAimed", (row) => repairAimBranchRate(
+    row,
+    "aimed_candidate_inserted",
+    "pools_with_aimed_candidate",
+  )],
+  ["repairAimBranchInsertedFinalFits", (row) =>
+    repairAimBranchValue(row, "inserted_candidate_final_fits")],
+  ["repairAimBranchMeanAimedQualityRank", (row) => repairAimBranchRate(
+    row,
+    "aimed_quality_rank_sum",
+    "pools_with_aimed_candidate",
+  )],
+  ["repairAimBranchMeanAimedForwardRank", (row) => repairAimBranchRate(
+    row,
+    "aimed_forward_rank_sum",
+    "pools_with_aimed_candidate",
+  )],
+  ["repairAimBranchForwardScoreDebt", (row) =>
+    repairAimBranchValue(row, "displaced_forward_score_debt_sum")],
   ["viableCandidates", (row) => work(row).viable_candidates],
   ["viableCandidateRate", (row) => ratio(
     work(row).viable_candidates,
@@ -905,6 +937,23 @@ function aimRatio(row: RunRow, numeratorField: string, denominatorField: string)
   const numerator = aimStat(row, numeratorField);
   const denominator = aimStat(row, denominatorField);
   return numerator === null || denominator === null ? null : ratio(numerator, denominator);
+}
+
+function repairAimBranchValue(row: RunRow, field: string): number {
+  const value = row.stats?.repair_aim_branch?.[field];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function repairAimBranchRate(
+  row: RunRow,
+  numeratorField: string,
+  denominatorField: string,
+): number | null {
+  if (row.stats?.repair_aim_branch === undefined) return 0;
+  return ratio(
+    repairAimBranchValue(row, numeratorField),
+    repairAimBranchValue(row, denominatorField),
+  );
 }
 
 function sumRepairWork(

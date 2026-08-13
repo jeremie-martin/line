@@ -60,6 +60,7 @@ export type RepairSelectionPolicy =
   | "worst-target-window-per-cost"
   | "worst-target-runway-per-cost";
 export type RepairSuffixSearchPolicy = "target-improvement-first";
+export type RepairAimBranchPolicy = "best-quality";
 export type AimImpactResolutionPolicy = "validated-mae-top1";
 
 export type MultiBudgetBaseline = {
@@ -122,6 +123,7 @@ export function assertScaleArguments(
         "repair-policy",
         "repair-selection-policy",
         "repair-suffix-search-policy",
+        "repair-aim-branch-policy",
         "aim-impact-power",
         "aim-impact-resolution-policy",
         "aim-topk-exponent",
@@ -142,6 +144,9 @@ export function assertScaleArguments(
       }
       if (name === "repair-suffix-search-policy") {
         parseRepairSuffixSearchPolicy(arg.slice(equals + 1));
+      }
+      if (name === "repair-aim-branch-policy") {
+        parseRepairAimBranchPolicy(arg.slice(equals + 1));
       }
       if (name === "aim-impact-power") parseAimImpactPower(arg.slice(equals + 1));
       if (name === "aim-impact-resolution-policy") {
@@ -308,6 +313,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const repairPolicy = scaleRepairPolicyArgument(argv);
   const repairSelectionPolicy = scaleRepairSelectionPolicyArgument(argv);
   const repairSuffixSearchPolicy = scaleRepairSuffixSearchPolicyArgument(argv);
+  const repairAimBranchPolicy = scaleRepairAimBranchPolicyArgument(argv);
   const aimImpactPower = scaleAimImpactPowerArgument(argv);
   const aimImpactResolutionPolicy = scaleAimImpactResolutionPolicyArgument(argv);
   const aimTopKExponent = scaleAimTopKExponentArgument(argv);
@@ -348,6 +354,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
       repairPolicy,
       repairSelectionPolicy,
       repairSuffixSearchPolicy,
+      repairAimBranchPolicy,
       aimImpactPower,
       aimImpactResolutionPolicy,
       aimTopKExponent,
@@ -373,6 +380,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
         repairPolicy,
         repairSelectionPolicy,
         repairSuffixSearchPolicy,
+        repairAimBranchPolicy,
         aimImpactPower,
         aimImpactResolutionPolicy,
         aimTopKExponent,
@@ -502,6 +510,13 @@ async function compareScaleArchives(
         `repair-suffix-search-policy override`,
     );
   }
+  if (candidate.archive.repairAimBranchPolicy !== undefined) {
+    comparabilityNotes.push(
+      `declared study intervention: candidate repair aim-branch policy ` +
+        `${candidate.archive.repairAimBranchPolicy}; the production reference has no ` +
+        `repair aim-branch reservation`,
+    );
+  }
   if (candidate.archive.aimImpactPower !== undefined) {
     comparabilityNotes.push(
       `declared study intervention: candidate aim impact power ` +
@@ -593,6 +608,11 @@ async function compareScaleArchives(
                 kind: "candidate-repair-suffix-search-policy",
                 policy: candidate.archive.repairSuffixSearchPolicy,
               }
+            : candidate.archive.repairAimBranchPolicy !== undefined
+              ? {
+                kind: "candidate-repair-aim-branch-policy",
+                policy: candidate.archive.repairAimBranchPolicy,
+              }
             : candidate.archive.aimImpactPower !== undefined
               ? { kind: "candidate-aim-impact-power", power: candidate.archive.aimImpactPower }
               : candidate.archive.aimImpactResolutionPolicy !== undefined
@@ -634,6 +654,9 @@ async function compareScaleArchives(
         (candidate.archive.repairSuffixSearchPolicy === undefined
           ? ""
           : ` --repair-suffix-search-policy=${candidate.archive.repairSuffixSearchPolicy}`) +
+        (candidate.archive.repairAimBranchPolicy === undefined
+          ? ""
+          : ` --repair-aim-branch-policy=${candidate.archive.repairAimBranchPolicy}`) +
         (candidate.archive.aimImpactPower === undefined
           ? ""
           : ` --aim-impact-power=${candidate.archive.aimImpactPower}`) +
@@ -665,6 +688,7 @@ function scaleRunnerArgs(
   repairPolicy: RepairPolicy | null = null,
   repairSelectionPolicy: RepairSelectionPolicy | null = null,
   repairSuffixSearchPolicy: RepairSuffixSearchPolicy | null = null,
+  repairAimBranchPolicy: RepairAimBranchPolicy | null = null,
   aimImpactPower: number | null = null,
   aimImpactResolutionPolicy: AimImpactResolutionPolicy | null = null,
   aimTopKExponent: number | null = null,
@@ -687,6 +711,9 @@ function scaleRunnerArgs(
     ...(repairSuffixSearchPolicy === null
       ? []
       : [`--repair-suffix-search-policy=${repairSuffixSearchPolicy}`]),
+    ...(repairAimBranchPolicy === null
+      ? []
+      : [`--repair-aim-branch-policy=${repairAimBranchPolicy}`]),
     ...(aimImpactPower === null ? [] : [`--aim-impact-power=${aimImpactPower}`]),
     ...(aimImpactResolutionPolicy === null
       ? []
@@ -714,6 +741,7 @@ function validateScaleExtension(
   repairPolicy: RepairPolicy | null,
   repairSelectionPolicy: RepairSelectionPolicy | null,
   repairSuffixSearchPolicy: RepairSuffixSearchPolicy | null,
+  repairAimBranchPolicy: RepairAimBranchPolicy | null,
   aimImpactPower: number | null,
   aimImpactResolutionPolicy: AimImpactResolutionPolicy | null,
   aimTopKExponent: number | null,
@@ -741,6 +769,9 @@ function validateScaleExtension(
   }
   if ((arm.archive.repairSuffixSearchPolicy ?? null) !== repairSuffixSearchPolicy) {
     throw new Error(`--extend-from used a different candidate repair suffix-search policy`);
+  }
+  if ((arm.archive.repairAimBranchPolicy ?? null) !== repairAimBranchPolicy) {
+    throw new Error(`--extend-from used a different candidate repair aim-branch policy`);
   }
   if ((arm.archive.aimImpactPower ?? null) !== aimImpactPower) {
     throw new Error(`--extend-from used a different candidate aim impact power`);
@@ -960,6 +991,20 @@ export function scaleRepairSuffixSearchPolicyArgument(
   argv: string[],
 ): RepairSuffixSearchPolicy | null {
   return parseRepairSuffixSearchPolicy(argumentIn(argv)("repair-suffix-search-policy"));
+}
+
+function parseRepairAimBranchPolicy(
+  raw: string | undefined,
+): RepairAimBranchPolicy | null {
+  if (raw === undefined) return null;
+  if (raw === "best-quality") return raw;
+  throw new Error(`--repair-aim-branch-policy must be best-quality`);
+}
+
+export function scaleRepairAimBranchPolicyArgument(
+  argv: string[],
+): RepairAimBranchPolicy | null {
+  return parseRepairAimBranchPolicy(argumentIn(argv)("repair-aim-branch-policy"));
 }
 
 function parseAimImpactPower(raw: string | undefined): number | null {

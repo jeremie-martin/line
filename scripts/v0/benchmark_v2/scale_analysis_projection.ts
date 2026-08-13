@@ -1,8 +1,8 @@
 /**
  * Keep the scale decision archive small without discarding mechanics that the
  * scale comparison promises to report. Raw compile stats remain in the full
- * archive. Repair target-search and the small aim-work/yield funnel are the
- * deliberately retained compact subsets.
+ * archive. Repair branch interventions, target-search, and the small
+ * aim-work/yield funnel are the deliberately retained compact subsets.
  */
 export function scaleAnalysisRun(row: any): Record<string, unknown> {
   const {
@@ -14,12 +14,16 @@ export function scaleAnalysisRun(row: any): Record<string, unknown> {
     ...core
   } = row;
   const repairTargetSearch = stats?.repair_target_search;
+  const repairAimBranch = stats?.repair_aim_branch;
   const aim = compactAimStats(stats?.aim);
   const finalTrackAimedFits = finite(stats?.handoff_aimed_selected);
   const compactStats = {
     ...(repairTargetSearch === undefined
       ? {}
       : { repair_target_search: { ...repairTargetSearch } }),
+    ...(repairAimBranch === undefined
+      ? {}
+      : { repair_aim_branch: { ...repairAimBranch } }),
     ...(aim === null ? {} : { aim }),
     ...(finalTrackAimedFits === null
       ? {}

@@ -450,6 +450,62 @@ type RankedOption = {
   forwardContinuation?: boolean;
 };
 
+export type RepairAimBranchPolicy = "best-quality";
+
+export type RepairAimBranchReservation<T> = {
+  options: T[];
+  outcome: "no_candidate" | "already_selected" | "inserted";
+  aimed: T | null;
+  displaced: T | null;
+  aimedEligibleIndex: number | null;
+};
+
+/** Preserve one already-evaluated aimed option without changing branch width.
+ * `qualityRank` is the exact shared quality-objective rank from the original
+ * candidate pool; eligible order is the later forward-search order. */
+export function reserveBestAimedRepairBranch<T>(
+  selected: readonly T[],
+  eligible: readonly T[],
+  isAimed: (option: T) => boolean,
+  qualityRank: (option: T) => number,
+  branchLimit = HANDOFF_BRANCHING,
+): RepairAimBranchReservation<T> {
+  const aimed = eligible
+    .map((option, index) => ({ option, index }))
+    .filter(({ option }) => isAimed(option))
+    .sort((left, right) =>
+      qualityRank(left.option) - qualityRank(right.option) || left.index - right.index
+    )[0];
+  if (aimed === undefined) {
+    return {
+      options: [...selected],
+      outcome: "no_candidate",
+      aimed: null,
+      displaced: null,
+      aimedEligibleIndex: null,
+    };
+  }
+  if (selected.includes(aimed.option)) {
+    return {
+      options: [...selected],
+      outcome: "already_selected",
+      aimed: aimed.option,
+      displaced: null,
+      aimedEligibleIndex: aimed.index,
+    };
+  }
+  const options = [...selected];
+  const displaced = options.length >= branchLimit ? options.pop() ?? null : null;
+  options.push(aimed.option);
+  return {
+    options,
+    outcome: "inserted",
+    aimed: aimed.option,
+    displaced,
+    aimedEligibleIndex: aimed.index,
+  };
+}
+
 export type RepairSuffixSearchPolicy =
   | "ordinary"
   | "target_top_three_first"
@@ -2460,6 +2516,15 @@ function compileHandoffInternal(
           0,
         ) ?? 0;
       }
+      const repairAimBranchStats = snapshotRepairAimBranchStats();
+      if (repairAimBranchStats !== null) {
+        repairAimBranchStats.inserted_candidate_final_fits =
+          bestRegisteredNode?.search.prefixFits.reduce(
+            (count, fit) => count +
+              (fit !== null && repairAimBranchInsertedCandidates.has(fit as Candidate) ? 1 : 0),
+            0,
+          ) ?? 0;
+      }
       const kinematicSupportStats = snapshotKinematicSupportStats();
       const releaseExitStats = snapshotReleaseExitStats();
       const gapfitShortStats = snapshotGapfitShortStats();
@@ -2568,6 +2633,9 @@ function compileHandoffInternal(
             ? { impact_repair_insurance: impactRepairInsuranceStats }
             : {}),
           ...snapshotRepairTargetSearchStats(),
+          ...(repairAimBranchStats === null
+            ? {}
+            : { repair_aim_branch: repairAimBranchStats }),
           ...(kinematicSupportStats !== null ? { kinematic_support: kinematicSupportStats } : {}),
           // Geometric-exit release-read funnel (core/candidate.ts): the
           // fallback-rate monitor. Absent under LR_RANK_QUALITY=off (no read
@@ -5777,6 +5845,7 @@ function rankedOptionsAtDeadlinePressure(
       kinematic[0],
     ];
   selected = applyRepairTargetSearchPolicy(selected, eligible, gap, ctx);
+  selected = applyRepairAimBranchPolicy(selected, eligible, kinematic.length > 0);
   if (impactRepairInsuranceMode() !== null && repairLaneActive) {
     impactRepairInsuranceTotals.eligible_pools++;
     if (kinematic.length > 0) {
@@ -8242,7 +8311,25 @@ let activeRepairTargetGapSse: number | null = null;
 let activeRepairBreadthRatio = 1;
 
 const readRepairSuffixSearchPolicy = compileScopedEnv("LR_REPAIR_SUFFIX_SEARCH_POLICY");
+const readRepairAimBranchPolicy = compileScopedEnv("LR_REPAIR_AIM_BRANCH_POLICY");
 let repairTargetSearchTotals: RepairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");
+type RepairAimBranchStats = NonNullable<CompileStats["repair_aim_branch"]>;
+const emptyRepairAimBranchStats = (): RepairAimBranchStats => ({
+  policy: "best-quality",
+  repair_pool_builds: 0,
+  reduced_width_pools: 0,
+  kinematic_reserved_pools: 0,
+  eligible_full_width_pools: 0,
+  pools_with_aimed_candidate: 0,
+  aimed_candidate_already_selected: 0,
+  aimed_candidate_inserted: 0,
+  inserted_candidate_final_fits: 0,
+  aimed_quality_rank_sum: 0,
+  aimed_forward_rank_sum: 0,
+  displaced_forward_score_debt_sum: 0,
+});
+let repairAimBranchTotals = emptyRepairAimBranchStats();
+let repairAimBranchInsertedCandidates = new WeakSet<Candidate>();
 
 registerCompileReset(() => {
   repairLaneActive = false;
@@ -8252,7 +8339,74 @@ registerCompileReset(() => {
   activeRepairTargetGapSse = null;
   activeRepairBreadthRatio = 1;
   repairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");
+  repairAimBranchTotals = emptyRepairAimBranchStats();
+  repairAimBranchInsertedCandidates = new WeakSet<Candidate>();
 });
+
+export function repairAimBranchPolicy(
+  environment?: Record<string, string | undefined>,
+): RepairAimBranchPolicy | null {
+  const raw = environment === undefined
+    ? readRepairAimBranchPolicy()
+    : environment.LR_REPAIR_AIM_BRANCH_POLICY;
+  if (raw === undefined || raw === "" || raw === "0" || raw === "off") return null;
+  if (raw === "best-quality") return "best-quality";
+  throw new Error(
+    `LR_REPAIR_AIM_BRANCH_POLICY must be off or best-quality; got "${raw}"`,
+  );
+}
+
+/** Give the exact-quality-best aimed candidate the last existing branch slot
+ * only in ordinary full-width repair. The first two forward-ranked branches
+ * retain their order and no candidate, probe, rollout, or branch is added. */
+function applyRepairAimBranchPolicy(
+  selected: RankedOption[],
+  eligible: RankedOption[],
+  hasKinematicReservation: boolean,
+): RankedOption[] {
+  if (repairAimBranchPolicy() === null || !repairLaneActive) return selected;
+  repairAimBranchTotals.repair_pool_builds++;
+  if (activeRepairBreadthRatio < 1) {
+    repairAimBranchTotals.reduced_width_pools++;
+    return selected;
+  }
+  if (hasKinematicReservation) {
+    repairAimBranchTotals.kinematic_reserved_pools++;
+    return selected;
+  }
+  repairAimBranchTotals.eligible_full_width_pools++;
+  const reservation = reserveBestAimedRepairBranch(
+    selected,
+    eligible,
+    (option) => option.candidate?.aimed === true && Number.isFinite(option.score),
+    (option) => option.rank,
+  );
+  if (reservation.aimed === null || reservation.aimedEligibleIndex === null) {
+    return reservation.options;
+  }
+  repairAimBranchTotals.pools_with_aimed_candidate++;
+  repairAimBranchTotals.aimed_quality_rank_sum += reservation.aimed.rank;
+  repairAimBranchTotals.aimed_forward_rank_sum += reservation.aimedEligibleIndex;
+  if (reservation.outcome === "already_selected") {
+    repairAimBranchTotals.aimed_candidate_already_selected++;
+  } else if (reservation.outcome === "inserted") {
+    repairAimBranchTotals.aimed_candidate_inserted++;
+    if (reservation.aimed.candidate !== null) {
+      repairAimBranchInsertedCandidates.add(reservation.aimed.candidate);
+    }
+    if (reservation.displaced !== null) {
+      repairAimBranchTotals.displaced_forward_score_debt_sum += Math.max(
+        0,
+        reservation.aimed.score - reservation.displaced.score,
+      );
+    }
+  }
+  return reservation.options;
+}
+
+function snapshotRepairAimBranchStats(): RepairAimBranchStats | null {
+  return repairAimBranchPolicy() === null ? null : { ...repairAimBranchTotals };
+}
 
 function emptyRepairTargetSearchTotals(
   policy: RepairSuffixSearchPolicy,

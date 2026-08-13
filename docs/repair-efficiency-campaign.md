@@ -1130,3 +1130,27 @@ enum, replay validation, report attribution, and checksummed study record remain
 so archived runs retain their meaning. Do not tune the step or combine it with
 scalar breadth reduction. Evidence and hashes are in
 `benchmark/v2/studies/repeated-rejection-step-later.json`.
+
+### Fixed-cost aimed repair branch insurance — declared
+
+The promoted distilled proposer is the last large causal scoring improvement,
+but an aimed candidate that reaches the exact shared quality-ranked pool can
+still be discarded when the later forward-search rank selects three ordinary
+branches. The next arm tests whether this is unused information rather than a
+need for more candidates.
+
+Only inside an independent full-width repair pool, the candidate preserves the
+finite-forward-score aimed option with the best original exact quality rank. If
+it is not already in the three selected branches, it replaces branch three;
+branches one and two retain production order. Pools using the last-chance
+reduced width or a kinematic reserved branch are untouched. No candidates,
+probes, forward evaluations, branches, repair episodes, budget, acceptance
+rule, authored target, or score definition are added.
+
+The compact archive records repair pools, exclusions, aimed availability,
+already-selected and inserted candidates, exact-quality and forward ranks,
+displaced forward-score debt, and inserted fits surviving in the returned
+track. Decision evidence must also show unchanged first-terminal work and
+candidate/probe counts except for downstream path changes. The arm receives
+the frozen 4/8/16 multi-budget ladder; canonical evaluation is warranted only
+after a broadly favorable governed result.

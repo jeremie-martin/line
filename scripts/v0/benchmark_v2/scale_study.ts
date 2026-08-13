@@ -81,6 +81,7 @@ type StudyTask = {
     | "worst-target-window-per-cost"
     | "worst-target-runway-per-cost";
   repairSuffixSearchPolicy?: "target-improvement-first";
+  repairAimBranchPolicy?: "best-quality";
   aimImpactPower?: number;
   aimImpactResolutionPolicy?: "validated-mae-top1";
   aimTopKExponent?: number;
@@ -142,6 +143,9 @@ async function main(): Promise<void> {
   const repairSelectionPolicy = parseRepairSelectionPolicy(argument("repair-selection-policy"));
   const repairSuffixSearchPolicy = parseRepairSuffixSearchPolicy(
     argument("repair-suffix-search-policy"),
+  );
+  const repairAimBranchPolicy = parseRepairAimBranchPolicy(
+    argument("repair-aim-branch-policy"),
   );
   const aimImpactPower = optionalBoundedNumber(
     argument("aim-impact-power"),
@@ -211,6 +215,7 @@ async function main(): Promise<void> {
     repairPolicy,
     repairSelectionPolicy,
     repairSuffixSearchPolicy,
+    repairAimBranchPolicy,
     aimImpactPower,
     aimImpactResolutionPolicy,
     aimTopKExponent,
@@ -241,6 +246,7 @@ async function main(): Promise<void> {
     repairPolicy,
     repairSelectionPolicy,
     repairSuffixSearchPolicy,
+    repairAimBranchPolicy,
     aimImpactPower,
     aimImpactResolutionPolicy,
     aimTopKExponent,
@@ -408,6 +414,7 @@ async function main(): Promise<void> {
     repairPolicy,
     repairSelectionPolicy,
     repairSuffixSearchPolicy,
+    repairAimBranchPolicy,
     aimImpactPower,
     aimImpactResolutionPolicy,
     aimTopKExponent,
@@ -590,8 +597,10 @@ function studyPlanFingerprint(input: {
     | "reserve-cheapest-repair"
     | "reserve-cheapest-else-deepest"
     | "late-reserve-cheapest-else-deepest"
+    | "worst-target-window-per-cost"
     | "worst-target-runway-per-cost";
   repairSuffixSearchPolicy?: "target-improvement-first";
+  repairAimBranchPolicy?: "best-quality";
   aimImpactPower?: number;
   aimImpactResolutionPolicy?: "validated-mae-top1";
   aimTopKExponent?: number;
@@ -626,6 +635,7 @@ function taskKey(task: StudyTask): string {
     task.repairPolicy ?? "production",
     task.repairSelectionPolicy ?? "production",
     task.repairSuffixSearchPolicy ?? "production",
+    task.repairAimBranchPolicy ?? "production",
     task.aimImpactPower ?? "production",
     task.aimImpactResolutionPolicy ?? "production",
     task.aimTopKExponent ?? "production",
@@ -693,6 +703,11 @@ async function workerMain(task: StudyTask): Promise<void> {
       delete process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY;
     } else {
       process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY = task.repairSuffixSearchPolicy;
+    }
+    if (task.repairAimBranchPolicy === undefined) {
+      delete process.env.LR_REPAIR_AIM_BRANCH_POLICY;
+    } else {
+      process.env.LR_REPAIR_AIM_BRANCH_POLICY = task.repairAimBranchPolicy;
     }
     if (task.aimImpactPower === undefined) delete process.env.LR_AIM_MODEL_IMPACT_POWER;
     else process.env.LR_AIM_MODEL_IMPACT_POWER = String(task.aimImpactPower);
@@ -943,6 +958,14 @@ function parseRepairSuffixSearchPolicy(
   throw new Error(
     "--repair-suffix-search-policy must be target-improvement-first",
   );
+}
+
+function parseRepairAimBranchPolicy(
+  value: string | undefined,
+): "best-quality" | undefined {
+  if (value === undefined) return undefined;
+  if (value === "best-quality") return value;
+  throw new Error("--repair-aim-branch-policy must be best-quality");
 }
 
 function relative(path: string): string {

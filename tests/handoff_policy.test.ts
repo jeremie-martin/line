@@ -12,9 +12,11 @@ import {
   impactResponseAdmissionMode,
   optimisticSuffixAxisQualityBound,
   prioritizeRepairTargetOptions,
+  repairAimBranchPolicy,
   repairRestartCeilingFrames,
   repairSelectionPolicyForIteration,
   repairSuffixSearchPolicy,
+  reserveBestAimedRepairBranch,
   selectLastChanceRepairRestart,
   selectAffordableRepairTarget,
   selectRepairRestart,
@@ -143,6 +145,55 @@ describe("handoff policy boundaries", () => {
     expect(() => impactResponseAdmissionMode({
       LR_IMPACT_RESPONSE_ADMISSION: "active-repair-dose-walk",
     })).toThrow();
+  });
+
+  test("keeps aimed repair branch insurance default-off and validates its policy", () => {
+    expect(repairAimBranchPolicy({})).toBeNull();
+    expect(repairAimBranchPolicy({ LR_REPAIR_AIM_BRANCH_POLICY: "off" })).toBeNull();
+    expect(repairAimBranchPolicy({ LR_REPAIR_AIM_BRANCH_POLICY: "best-quality" }))
+      .toBe("best-quality");
+    expect(() => repairAimBranchPolicy({ LR_REPAIR_AIM_BRANCH_POLICY: "best-forward" }))
+      .toThrow();
+  });
+
+  test("reserves the exact-quality-best aimed option in the last fixed branch", () => {
+    const options = [
+      { id: "ordinary-0", qualityRank: 2, aimed: false },
+      { id: "ordinary-1", qualityRank: 4, aimed: false },
+      { id: "ordinary-2", qualityRank: 6, aimed: false },
+      { id: "aimed-worse", qualityRank: 5, aimed: true },
+      { id: "aimed-best", qualityRank: 3, aimed: true },
+    ];
+    const result = reserveBestAimedRepairBranch(
+      options.slice(0, 3),
+      options,
+      (option) => option.aimed,
+      (option) => option.qualityRank,
+    );
+    expect(result.outcome).toBe("inserted");
+    expect(result.options.map((option) => option.id)).toEqual([
+      "ordinary-0",
+      "ordinary-1",
+      "aimed-best",
+    ]);
+    expect(result.displaced?.id).toBe("ordinary-2");
+    expect(result.aimedEligibleIndex).toBe(4);
+  });
+
+  test("does not duplicate an aimed option already selected", () => {
+    const options = [
+      { id: "ordinary", qualityRank: 0, aimed: false },
+      { id: "aimed", qualityRank: 1, aimed: true },
+      { id: "other", qualityRank: 2, aimed: false },
+    ];
+    const result = reserveBestAimedRepairBranch(
+      options,
+      options,
+      (option) => option.aimed,
+      (option) => option.qualityRank,
+    );
+    expect(result.outcome).toBe("already_selected");
+    expect(result.options).toEqual(options);
   });
 
   test("compares repair alternatives by arc geometry rather than object identity", () => {

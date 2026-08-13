@@ -14,6 +14,13 @@ describe("Benchmark V2 scale analysis projection", () => {
           target_pools: 7,
           reordered: 2,
         },
+        repair_aim_branch: {
+          policy: "best-quality",
+          repair_pool_builds: 11,
+          eligible_full_width_pools: 9,
+          pools_with_aimed_candidate: 6,
+          aimed_candidate_inserted: 3,
+        },
         aim: {
           enum_lane_bases: 12,
           enum_lane_base_skips: 2,
@@ -78,6 +85,13 @@ describe("Benchmark V2 scale analysis projection", () => {
         policy: "target_improvement_first",
         target_pools: 7,
         reordered: 2,
+      },
+      repair_aim_branch: {
+        policy: "best-quality",
+        repair_pool_builds: 11,
+        eligible_full_width_pools: 9,
+        pools_with_aimed_candidate: 6,
+        aimed_candidate_inserted: 3,
       },
       aim: {
         enum_lane_bases: 12,

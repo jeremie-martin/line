@@ -32,6 +32,20 @@ describe("paired scale mechanics", () => {
             local_sse_gain_sum: 0.25,
             forward_score_debt_sum: 0.5,
           },
+          repair_aim_branch: {
+            policy: "best-quality",
+            repair_pool_builds: 12,
+            reduced_width_pools: 2,
+            kinematic_reserved_pools: 1,
+            eligible_full_width_pools: 9,
+            pools_with_aimed_candidate: 6,
+            aimed_candidate_already_selected: 2,
+            aimed_candidate_inserted: 4,
+            inserted_candidate_final_fits: 1,
+            aimed_quality_rank_sum: 18,
+            aimed_forward_rank_sum: 30,
+            displaced_forward_score_debt_sum: 0.75,
+          },
         } : {}),
       },
       budgetTelemetry: {
@@ -175,6 +189,15 @@ describe("paired scale mechanics", () => {
       candidateMean: 30,
     });
     expect(result.overall.metrics.finalTrackAimedFits.delta).toBe(1);
+    expect(result.overall.metrics.repairAimBranchAimedAvailabilityRate.referenceMean).toBe(0);
+    expect(result.overall.metrics.repairAimBranchAimedAvailabilityRate.candidateMean)
+      .toBeCloseTo(6 / 9, 6);
+    expect(result.overall.metrics.repairAimBranchInsertionRateGivenAimed.referenceMean).toBe(0);
+    expect(result.overall.metrics.repairAimBranchInsertionRateGivenAimed.candidateMean)
+      .toBeCloseTo(4 / 6, 6);
+    expect(result.overall.metrics.repairAimBranchMeanAimedQualityRank.candidateMean).toBe(3);
+    expect(result.overall.metrics.repairAimBranchMeanAimedForwardRank.candidateMean).toBe(5);
+    expect(result.overall.metrics.repairAimBranchInsertedFinalFits.candidateMean).toBe(1);
     expect(result.overall.metrics.repairRegisterImprovements.candidateMean).toBe(2);
     expect(result.overall.metrics.repairFirstTerminalReturnEpisodes.candidateMean).toBe(1);
     expect(result.overall.metrics.repairMeanAnchorGap.delta).toBe(1);

@@ -8876,7 +8876,13 @@ function repairConfig(): RepairConfig {
     lateSelectionPolicy: repairSelectionPolicy === "late-reserve-cheapest-else-deepest"
       ? "worst_gap_reserve_cheapest_else_deepest"
       : null,
-    lastChanceThreeQuarter: repairSelectionPolicy === "three-quarter-last-chance",
+    // Accepted scale fallback: after full-width affordability is exhausted,
+    // spend otherwise-low-yield residue on one conservatively priced narrow
+    // suffix. Other explicit selector studies retain their original isolated
+    // behavior; the named value keeps the accepted arm replayable.
+    lastChanceThreeQuarter: repairSelectionPolicy === "three-quarter-last-chance" ||
+      (repairSelectionPolicy === undefined &&
+        (readEnv("LR_STUDY_NCAND_POLICY") ?? "") === ""),
     suffixSearchPolicy: repairSuffixSearchPolicy(),
     // Study-only protected bridge. It may spend one follow-up from a rejected
     // terminal that improved its selected target; it never changes the global

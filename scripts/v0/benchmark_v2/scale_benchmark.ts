@@ -53,6 +53,7 @@ export type RepairPolicy =
   | "protected-one-step-bridge"
   | "optimistic-axis-bound-bridge";
 export type RepairSelectionPolicy =
+  | "three-quarter-last-chance"
   | "reserve-cheapest-repair"
   | "reserve-cheapest-else-deepest"
   | "late-reserve-cheapest-else-deepest"
@@ -920,6 +921,7 @@ export function scaleRepairPolicyArgument(argv: string[]): RepairPolicy | null {
 function parseRepairSelectionPolicy(raw: string | undefined): RepairSelectionPolicy | null {
   if (raw === undefined) return null;
   if (
+    raw === "three-quarter-last-chance" ||
     raw === "reserve-cheapest-repair" ||
     raw === "reserve-cheapest-else-deepest" ||
     raw === "late-reserve-cheapest-else-deepest" ||
@@ -929,7 +931,7 @@ function parseRepairSelectionPolicy(raw: string | undefined): RepairSelectionPol
     return raw;
   }
   throw new Error(
-    `--repair-selection-policy must be reserve-cheapest-repair, ` +
+    `--repair-selection-policy must be three-quarter-last-chance, reserve-cheapest-repair, ` +
       `reserve-cheapest-else-deepest, late-reserve-cheapest-else-deepest, ` +
       `worst-target-window-per-cost, or worst-target-runway-per-cost`,
   );

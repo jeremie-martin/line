@@ -200,6 +200,7 @@ export type BudgetRepairDecision = {
   usable_budget_frames: number;
   selection_policy:
     | "worst_gap_deepest_affordable"
+    | "worst_gap_three_quarter_last_chance"
     | "worst_gap_window_opportunity_per_cost"
     | "worst_gap_runway_opportunity_per_cost"
     | "worst_gap_reserve_cheapest_repair"
@@ -385,7 +386,8 @@ export function replayBudgetRepairSelection(
       anchor: selected.anchor,
     };
   };
-  const choice = decision.selection_policy === "worst_gap_deepest_affordable"
+  const choice = decision.selection_policy === "worst_gap_deepest_affordable" ||
+      decision.selection_policy === "worst_gap_three_quarter_last_chance"
     ? worstGapChoice("none")
     : decision.selection_policy === "worst_gap_window_opportunity_per_cost"
       ? worstGapOpportunityChoice(false)
@@ -1610,6 +1612,7 @@ function validateTelemetryPayload(
           Math.floor(decision.remaining_budget_frames * (1 - decision.headroom_fraction)) ||
         ![
           "worst_gap_deepest_affordable",
+          "worst_gap_three_quarter_last_chance",
           "worst_gap_window_opportunity_per_cost",
           "worst_gap_runway_opportunity_per_cost",
           "worst_gap_reserve_cheapest_repair",

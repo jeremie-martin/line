@@ -177,6 +177,9 @@ describe("Benchmark V2 scale command contract", () => {
   test("resolves the candidate repair-selection intervention passed to scale eval", () => {
     expect(scaleRepairSelectionPolicyArgument([])).toBeNull();
     expect(scaleRepairSelectionPolicyArgument([
+      "--repair-selection-policy=three-quarter-last-chance",
+    ])).toBe("three-quarter-last-chance");
+    expect(scaleRepairSelectionPolicyArgument([
       "--repair-selection-policy=reserve-cheapest-repair",
     ])).toBe("reserve-cheapest-repair");
     expect(scaleRepairSelectionPolicyArgument([

@@ -74,6 +74,7 @@ type StudyTask = {
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   repairSelectionPolicy?:
+    | "three-quarter-last-chance"
     | "reserve-cheapest-repair"
     | "reserve-cheapest-else-deepest"
     | "late-reserve-cheapest-else-deepest"
@@ -585,6 +586,7 @@ function studyPlanFingerprint(input: {
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   repairSelectionPolicy?:
+    | "three-quarter-last-chance"
     | "reserve-cheapest-repair"
     | "reserve-cheapest-else-deepest"
     | "late-reserve-cheapest-else-deepest"
@@ -901,6 +903,7 @@ function parseRepairPolicy(
 function parseRepairSelectionPolicy(
   value: string | undefined,
 ):
+  | "three-quarter-last-chance"
   | "reserve-cheapest-repair"
   | "reserve-cheapest-else-deepest"
   | "late-reserve-cheapest-else-deepest"
@@ -909,6 +912,7 @@ function parseRepairSelectionPolicy(
   | undefined {
   if (value === undefined) return undefined;
   if (
+    value === "three-quarter-last-chance" ||
     value === "reserve-cheapest-repair" ||
     value === "reserve-cheapest-else-deepest" ||
     value === "late-reserve-cheapest-else-deepest" ||
@@ -918,7 +922,7 @@ function parseRepairSelectionPolicy(
     return value;
   }
   throw new Error(
-    "--repair-selection-policy must be reserve-cheapest-repair, " +
+    "--repair-selection-policy must be three-quarter-last-chance, reserve-cheapest-repair, " +
       "reserve-cheapest-else-deepest, late-reserve-cheapest-else-deepest, " +
       "worst-target-window-per-cost, or worst-target-runway-per-cost",
   );

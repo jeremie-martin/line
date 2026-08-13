@@ -15,6 +15,7 @@ import {
   repairRestartCeilingFrames,
   repairSelectionPolicyForIteration,
   repairSuffixSearchPolicy,
+  selectLastChanceRepairRestart,
   selectAffordableRepairTarget,
   selectRepairRestart,
   spliceRepairCostToEnd,
@@ -958,6 +959,50 @@ describe("repair target selection", () => {
       affordableTargetGapIndices: [1, 2],
     });
     expect(selectAffordableRepairTarget(candidates, [81], 100, 0.2, 2)).toBeNull();
+  });
+
+  test("admits a conservatively priced last-chance repair only after full width fails", () => {
+    const targets = [
+      { gapIndex: 2, sse: 5 },
+      { gapIndex: 4, sse: 20 },
+    ];
+    const point = [100, 100, 100, 100, 100];
+    const upper = [110, 110, 110, 110, 110];
+    expect(selectRepairRestart(
+      targets,
+      point,
+      upper,
+      100,
+      0,
+      2,
+      "worst_gap_deepest_affordable",
+    )).toBeNull();
+    expect(selectLastChanceRepairRestart(
+      targets,
+      point,
+      upper,
+      100,
+      0,
+      2,
+    )).toEqual({
+      selectionPolicy: "worst_gap_three_quarter_last_chance",
+      targetGapIndex: 4,
+      anchorGapIndex: 2,
+      parentDepth: 2,
+      targetGapSse: 20,
+      mutableSuffixSse: 25,
+      usableBudgetFrames: 100,
+      affordableTargetGapIndices: [2, 4],
+      affordableAnchorGapIndices: [0, 1, 2, 3, 4],
+    });
+    expect(selectLastChanceRepairRestart(
+      targets,
+      point,
+      [112, 112, 112, 112, 112],
+      100,
+      0,
+      2,
+    )).toBeNull();
   });
 
   test("selects the worst eligible target before choosing its deepest anchor", () => {

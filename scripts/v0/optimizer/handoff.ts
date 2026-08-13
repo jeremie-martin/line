@@ -3011,7 +3011,7 @@ function compileHandoffInternal(
           repair.lateSelectionPolicy,
           iterationIndex,
         );
-        const target = selectRepairRestart(
+        let target = selectRepairRestart(
           targetCandidates,
           pointCostByAnchor,
           upperCostByAnchor,
@@ -3020,6 +3020,18 @@ function compileHandoffInternal(
           repair.maxParentDepth,
           selectionPolicy,
         );
+        let repairBreadthRatio = 1;
+        if (target === null && repair.lastChanceThreeQuarter) {
+          target = selectLastChanceRepairRestart(
+            targetCandidates,
+            pointCostByAnchor,
+            upperCostByAnchor,
+            remaining,
+            repair.headroomFraction,
+            repair.maxParentDepth,
+          );
+          if (target !== null) repairBreadthRatio = REPAIR_LAST_CHANCE_BREADTH_RATIO;
+        }
         if (target === null) break;
         attempts++;
         const kWorst = target.targetGapIndex;
@@ -3033,8 +3045,15 @@ function compileHandoffInternal(
           kWorst,
           incumbentEvaluation.report.gaps.find((g) => g.gap_index === kWorst),
         );
-        const estCost = estCostOf(k);
-        const estCostUpper = upperCostByAnchor[k]!;
+        const repairCostRatio = repairBreadthRatio < 1
+          ? REPAIR_LAST_CHANCE_COST_RATIO
+          : 1;
+        const decisionEstCostOf = (gapIndex: number): number =>
+          estCostOf(gapIndex) * repairCostRatio;
+        const decisionEstCostUpperOf = (gapIndex: number): number =>
+          upperCostByAnchor[gapIndex]! * repairCostRatio;
+        const estCost = decisionEstCostOf(k);
+        const estCostUpper = decisionEstCostUpperOf(k);
         restartCounter++;
         const restartSeed = ((searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
         let prefix = root;
@@ -3095,8 +3114,8 @@ function compileHandoffInternal(
             targetCandidates,
             repair.maxParentDepth,
             target.usableBudgetFrames,
-            estCostOf,
-            estCostUpperOf,
+            decisionEstCostOf,
+            decisionEstCostUpperOf,
             estCostSourceOf,
           ),
         };
@@ -3130,6 +3149,7 @@ function compileHandoffInternal(
         activeRepairAnchorGapIndex = k;
         activeRepairTargetGapIndex = kWorst;
         activeRepairTargetGapSse = pickedWeakGapSse;
+        activeRepairBreadthRatio = repairBreadthRatio;
         setAimRepairLaneActive(true, iterationIndex);
         setImpactCarrierRippleRepairActive(true);
         try {
@@ -3140,6 +3160,7 @@ function compileHandoffInternal(
           activeRepairAnchorGapIndex = null;
           activeRepairTargetGapIndex = null;
           activeRepairTargetGapSse = null;
+          activeRepairBreadthRatio = 1;
           setAimRepairLaneActive(false);
           setImpactCarrierRippleRepairActive(false);
           activeRepairProfile = null;
@@ -3308,6 +3329,10 @@ function compileHandoffInternal(
           completed ? "terminal_considered" : "no_terminal",
           repairEpisodeId,
         );
+        // A narrow suffix is deliberately the final repair iteration. Its
+        // measured cost profile belongs to a different breadth and must not be
+        // reused to price a subsequent full-width decision.
+        if (repairBreadthRatio < 1) break;
         // Ordinary iterations reread the global incumbent from scratch. A
         // scheduled bridge is the sole exception and is consumed exactly once.
       }
@@ -6680,6 +6705,7 @@ export function repairRestartCeilingFrames(
 export type RepairTargetCandidate = { gapIndex: number; sse: number };
 export type RepairSelectionPolicy =
   | "worst_gap_deepest_affordable"
+  | "worst_gap_three_quarter_last_chance"
   | "worst_gap_window_opportunity_per_cost"
   | "worst_gap_runway_opportunity_per_cost"
   | "worst_gap_reserve_cheapest_repair"
@@ -6700,6 +6726,40 @@ export type RepairSelection = AffordableRepairTarget & {
   affordableAnchorGapIndices: number[];
   mutableSuffixSse: number;
 };
+
+/**
+ * Study-only last-chance repair pricing.
+ *
+ * The breadth ratio is inherited from the completed repair-wide bracket.  Its
+ * measured whole-episode cost response was -11.65%, so pricing the arm at a
+ * 10% saving is deliberately conservative.  The arm is considered only after
+ * the ordinary full-width selector returns null and may execute at most once.
+ */
+export const REPAIR_LAST_CHANCE_BREADTH_RATIO = 3 / 4;
+export const REPAIR_LAST_CHANCE_COST_RATIO = 0.9;
+
+export function selectLastChanceRepairRestart(
+  candidates: readonly RepairTargetCandidate[],
+  pointCostByAnchor: readonly number[],
+  upperCostByAnchor: readonly number[],
+  remainingBudgetFrames: number,
+  headroomFraction: number,
+  maxParentDepth: number,
+): RepairSelection | null {
+  const scale = (value: number): number => value * REPAIR_LAST_CHANCE_COST_RATIO;
+  const selected = selectRepairRestart(
+    candidates,
+    pointCostByAnchor.map(scale),
+    upperCostByAnchor.map(scale),
+    remainingBudgetFrames,
+    headroomFraction,
+    maxParentDepth,
+    "worst_gap_deepest_affordable",
+  );
+  return selected === null
+    ? null
+    : { ...selected, selectionPolicy: "worst_gap_three_quarter_last_chance" };
+}
 
 function sha256Json(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -6849,6 +6909,7 @@ export function selectRepairRestart(
   ))].sort((a, b) => a - b);
   if (
     selectionPolicy === "worst_gap_deepest_affordable" ||
+    selectionPolicy === "worst_gap_three_quarter_last_chance" ||
     selectionPolicy === "worst_gap_window_opportunity_per_cost" ||
     selectionPolicy === "worst_gap_runway_opportunity_per_cost" ||
     selectionPolicy === "worst_gap_reserve_cheapest_repair" ||
@@ -6897,7 +6958,10 @@ export function selectRepairRestart(
       if (chosen === undefined) return null;
       anchorGapIndex = chosen.anchorGapIndex;
       parentDepth = chosen.parentDepth;
-    } else if (selectionPolicy !== "worst_gap_deepest_affordable") {
+    } else if (
+      selectionPolicy !== "worst_gap_deepest_affordable" &&
+      selectionPolicy !== "worst_gap_three_quarter_last_chance"
+    ) {
       const reserveUpper = affordableAnchorGapIndices.reduce(
         (minimum, gapIndex) => Math.min(minimum, upperCostByAnchor[gapIndex]!),
         Number.POSITIVE_INFINITY,
@@ -7130,7 +7194,7 @@ function qualityHandoffSampleCount(
 ): number {
   const base = handoffSampleCount(targetBudget, repairLaneActive);
   if (qualityNCandOverride() !== null) return base;
-  return applyStudyRepairBreadth(
+  const studied = applyStudyRepairBreadth(
     qualityBreadth(profile, sparseContactCadence, base),
     repairLaneActive,
     activeRepairIterationIndex,
@@ -7138,6 +7202,12 @@ function qualityHandoffSampleCount(
     activeRepairTargetGapIndex !== null && gapIndex !== null &&
       gapIndex > activeRepairTargetGapIndex,
   );
+  return activeRepairBreadthRatio >= 1
+    ? studied
+    : Math.max(
+      HANDOFF_QUALITY_N_CAND_FLOOR,
+      Math.round(studied * activeRepairBreadthRatio),
+    );
 }
 
 type QualityBreadthRule = {
@@ -8169,6 +8239,7 @@ let activeRepairIterationIndex: number | null = null;
 let activeRepairAnchorGapIndex: number | null = null;
 let activeRepairTargetGapIndex: number | null = null;
 let activeRepairTargetGapSse: number | null = null;
+let activeRepairBreadthRatio = 1;
 
 const readRepairSuffixSearchPolicy = compileScopedEnv("LR_REPAIR_SUFFIX_SEARCH_POLICY");
 let repairTargetSearchTotals: RepairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");
@@ -8179,6 +8250,7 @@ registerCompileReset(() => {
   activeRepairAnchorGapIndex = null;
   activeRepairTargetGapIndex = null;
   activeRepairTargetGapSse = null;
+  activeRepairBreadthRatio = 1;
   repairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");
 });
 
@@ -8717,6 +8789,8 @@ type RepairConfig = {
   headroomFraction: number;
   selectionPolicy: RepairSelectionPolicy;
   lateSelectionPolicy: RepairSelectionPolicy | null;
+  /** One narrower suffix after ordinary full-width affordability is exhausted. */
+  lastChanceThreeQuarter: boolean;
   suffixSearchPolicy: RepairSuffixSearchPolicy;
   rejectedLocalImprovementBridge:
     | "disabled"
@@ -8802,6 +8876,7 @@ function repairConfig(): RepairConfig {
     lateSelectionPolicy: repairSelectionPolicy === "late-reserve-cheapest-else-deepest"
       ? "worst_gap_reserve_cheapest_else_deepest"
       : null,
+    lastChanceThreeQuarter: repairSelectionPolicy === "three-quarter-last-chance",
     suffixSearchPolicy: repairSuffixSearchPolicy(),
     // Study-only protected bridge. It may spend one follow-up from a rejected
     // terminal that improved its selected target; it never changes the global

@@ -480,6 +480,27 @@ top-choice changes, their mean modeled advantage, and suppressed changes. An
 inconclusive result closes this exact resolution boundary without threshold
 tuning or combination with breadth or repair allocation.
 
+### Distilled-impact top-choice resolution result — retired
+
+The artifact-MAE gate lost coherently at every governed look: -6.0491 at N=4,
+-4.7337 at N=8, and -3.5261 at N=16. Final directional probability was 7.72%,
+the 750k slice was -1.2420, and validity fell from 997 to 989 cells (7 gained,
+15 lost). Six budgets from 250k through 1.5M were negative; the +0.4009 and
++0.1424 readings at 2.5M and 4M were small and isolated.
+
+The gate was active, not inert: across 1,024 runs it observed 2,791,131
+impact-versus-ordinary top-choice changes and suppressed 989,162 (35.44%). The
+changed choices had mean modeled impact advantage 0.1221 when weighted by
+eligible decisions. Aggregate repair acceptance and internal repair gain rose
+slightly, but first-terminal work changed, capability validity regressed, and
+authored score fell. Pointwise teacher-approximation MAE is therefore not a
+valid decision boundary for pairwise proposal ranking. The accepted compact
+scorer's useful behavior includes choices below that numerical boundary.
+
+The arm is retired without threshold tuning, and production remains the
+ungated distilled impact scorer. Exact governed evidence and hashes are in
+`benchmark/v2/studies/aim-impact-resolution-gate.json`.
+
 ### Anchor-protected repair candidate breadth — declared
 
 The independent repair controller makes candidate breadth a spatial allocation

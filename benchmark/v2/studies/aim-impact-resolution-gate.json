@@ -1,0 +1,77 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-resolution-gate.v1",
+  "recorded_at": "2026-08-13T05:08:00+02:00",
+  "status": "complete_no_promotion",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "resolution_policy": "off",
+    "scale_headline": 579.8494
+  },
+  "candidate": {
+    "resolution_policy": "validated-mae-top1",
+    "boundary_source": "shipped distilled model held-out MAE",
+    "boundary": 0.0389419659,
+    "ordinary_admission_set_change": false,
+    "proposal_count_change": false
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.8494,
+    "candidate_headline": 576.3233,
+    "delta": -3.5261,
+    "directional_probability": 0.07717242,
+    "canonical_750k_delta": -1.242,
+    "reference_valid": 997,
+    "candidate_valid": 989,
+    "gained_valid": 7,
+    "lost_valid": 15,
+    "changed_tracks": 1020,
+    "look_deltas": {
+      "4": -6.0491,
+      "8": -4.7337,
+      "16": -3.5261
+    },
+    "per_budget_delta": {
+      "150000": 1.9047,
+      "250000": -22.8864,
+      "500000": -1.9593,
+      "750000": -1.242,
+      "1000000": -1.0679,
+      "1500000": -3.5009,
+      "2500000": 0.4009,
+      "4000000": 0.1424
+    }
+  },
+  "mechanics": {
+    "eligible_top_choice_changes": 2791131,
+    "suppressed_top_choice_changes": 989162,
+    "suppression_rate": 0.354394688,
+    "eligible_change_weighted_mean_impact_advantage": 0.1220515533,
+    "first_terminal_frames_relative_delta": -0.005497,
+    "actual_candidate_samples_relative_delta": -0.000234,
+    "repair_episodes_relative_delta": -0.003647,
+    "repair_accepted_alternatives_relative_delta": 0.020607,
+    "repair_internal_full_score_delta_relative_delta": 0.083881,
+    "final_output_from_repair_relative_delta": -0.009346
+  },
+  "interpretation": "The compact model's pointwise validation MAE is not a valid pairwise ranking-resolution threshold. Suppressing more than one third of impact-driven top-choice changes reduced authored score at all three governed looks and lost capability validity. The ungated distilled scorer remains production; this exact boundary is closed without tuning.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-resolution-mae-4.comparison.json",
+      "sha256": "42b2c3a9ba5cd5f12c4e14549ed55b51c34d8c36148e2d42769d6b5a8545a112"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-resolution-mae-8.comparison.json",
+      "sha256": "3fca65653aac0e667bcae8c9c2396d3b0a99c66f2863a6813bf4dd253766633f"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-resolution-mae-16.comparison.json",
+      "sha256": "0d9eac31b0464a53c33350933e9ff2f928bb462e0df8a58c5ef0be35560e9ee8"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/aim-impact-resolution-mae-16.json.gz",
+      "sha256": "4cd91c5bab9e15c7b27b1916c803c23ef39bfd6af1b406299c3a1ad3c48f3cb6"
+    }
+  }
+}

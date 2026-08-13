@@ -434,3 +434,25 @@ requires unchanged validity, a material governed scale decision, mechanics
 consistent with the declared gate, and canonical confirmation. An inconclusive
 result closes this policy under the current scorer without changing the gate,
 widening the pool, or combining it with breadth or anchor interventions.
+
+### Current-scorer improvement-gated suffix ordering result — retired
+
+The current-scorer revalidation stayed practically flat at every look: +0.0067
+at N=4, +0.0049 at N=8, and +0.0032 at N=16. Final directional probability
+was 56.68%, the 750k slice was -0.0162, all eight budget effects straddled a
+narrow mixed range, and validity remained exactly 997/1,024. The arm is not
+promoted and the gated local-SSE policy is closed without tuning.
+
+The mechanism worked exactly as declared. First-terminal frames were identical.
+Across N=16 it observed 5,765 target pools and reordered 225 first branches,
+about 5.5% on a per-run rate basis. Terminal offers improved the selected gap
+5.51 percentage points more often. But repair acceptance rose only 0.34%,
+aggregate internal repair gain rose 0.0065%, and gain per frame fell 0.80%.
+Local target SSE is therefore a valid explanatory signal but not a sufficient
+proxy for marginal global authored value. The accepted distilled scorer does
+not change that conclusion.
+
+Future attempt-value work should predict the global downstream value or basin
+of an alternative, rather than strengthen the selected gap in isolation. Exact
+evidence and hashes are recorded in
+`benchmark/v2/studies/current-scorer-target-improvement-first.json`.

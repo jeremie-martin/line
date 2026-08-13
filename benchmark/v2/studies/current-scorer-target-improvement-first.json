@@ -1,0 +1,77 @@
+{
+  "schema": "line.benchmark-v2.current-scorer-target-improvement-first.v1",
+  "recorded_at": "2026-08-13T03:05:00+02:00",
+  "status": "inconclusive_not_promoted",
+  "reference": {
+    "suffix_search_policy": "ordinary",
+    "proposal_scorer": "distilled-aim-impact-feasibility",
+    "scale_headline": 579.8494
+  },
+  "candidate": {
+    "suffix_search_policy": "target-improvement-first",
+    "proposal_scorer": "distilled-aim-impact-feasibility",
+    "semantics": "At the independently selected repair target only, preserve ordinary branch zero when it lowers incumbent target SSE; otherwise explore first the best already-selected top-three branch that does lower target SSE. Generate no candidates and change no branch width, anchor, budget, other gap ordering, or global acceptance."
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "looks": {
+      "4": { "delta": 0.0067, "directional_probability": 0.534 },
+      "8": { "delta": 0.0049, "directional_probability": 0.5532 },
+      "16": { "delta": 0.0032, "directional_probability": 0.5668 }
+    },
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.8526,
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": -0.0162,
+    "per_budget_delta": {
+      "150000": -0.0326,
+      "250000": 0.008,
+      "500000": 0.0226,
+      "750000": -0.0162,
+      "1000000": 0.0131,
+      "1500000": -0.0624,
+      "2500000": 0.0392,
+      "4000000": 0.0539
+    }
+  },
+  "mechanics": {
+    "first_terminal_frames_relative_delta": 0,
+    "target_pools": 5765,
+    "reordered_first_branches": 225,
+    "repair_target_search_reorder_rate": 0.055258,
+    "terminal_offer_target_gap_improvement_rate_delta": 0.055132,
+    "repair_episode_improvement_rate_relative_delta": 0.003048,
+    "repair_accepted_alternatives_relative_delta": 0.003434,
+    "repair_internal_full_score_delta_relative_delta": 0.000065,
+    "repair_internal_full_score_delta_per_million_frames_relative_delta": -0.00801,
+    "repair_total_spent_frames_relative_delta": -0.000099
+  },
+  "interpretation": "The parameter-free gate reliably improves the selected local gap in terminal offers, but that local alignment does not produce material global authored-score value. The current distilled scorer does not rescue the pre-distillation neutral result. Retire the gate and do not tune, widen, or combine it.",
+  "execution_note": "The N16 48-worker 4M trace tail exposed active-worker memory oversubscription after completed-row retention had already been fixed. At 971 durable cells it was resumed at 16 workers; no completed cell was discarded or recomputed.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-target-improvement-first-4.comparison.json",
+      "sha256": "ec6964b093d361d7849614832c7e82b888c584461f7b288291f53caa5d8bbcf5"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-target-improvement-first-8.comparison.json",
+      "sha256": "2faf9b9f6db6018494e8974386bc5f67eb2bca79c9c9309ead80ced56c522bf6"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-target-improvement-first-16.comparison.json",
+      "sha256": "aa682e282100da661e15969f4e3d676a016256d0c1212c70f8d28429dc207963"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/aim-impact-target-improvement-first-16.json.gz",
+      "sha256": "b3fe2a0de8a234e5977b1f62d351fe9b8e3c953bb4ba22dd7651d955e0fb9599"
+    },
+    "n16_analysis": {
+      "path": "generated/benchmark-v2/scale/aim-impact-target-improvement-first-16.analysis.json.gz",
+      "sha256": "a025c2c8f8ceb7417c2e44b5e22bdaff138733f052564a17876214aee55c3afd"
+    }
+  }
+}

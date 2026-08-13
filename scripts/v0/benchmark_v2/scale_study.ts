@@ -74,6 +74,7 @@ type StudyTask = {
     | "reserve-cheapest-else-deepest"
     | "late-reserve-cheapest-else-deepest"
     | "worst-target-runway-per-cost";
+  repairSuffixSearchPolicy?: "target-improvement-first";
   aimImpactPower?: number;
   aimTopKExponent?: number;
   aimTopKScope?: "repair";
@@ -132,6 +133,9 @@ async function main(): Promise<void> {
   const nCandPolicy = parseNCandPolicy(argument("ncand-policy"));
   const repairPolicy = parseRepairPolicy(argument("repair-policy"));
   const repairSelectionPolicy = parseRepairSelectionPolicy(argument("repair-selection-policy"));
+  const repairSuffixSearchPolicy = parseRepairSuffixSearchPolicy(
+    argument("repair-suffix-search-policy"),
+  );
   const aimImpactPower = optionalBoundedNumber(
     argument("aim-impact-power"),
     "aim-impact-power",
@@ -196,6 +200,7 @@ async function main(): Promise<void> {
     nCandPolicy,
     repairPolicy,
     repairSelectionPolicy,
+    repairSuffixSearchPolicy,
     aimImpactPower,
     aimTopKExponent,
     aimTopKScope,
@@ -224,6 +229,7 @@ async function main(): Promise<void> {
     nCandPolicy,
     repairPolicy,
     repairSelectionPolicy,
+    repairSuffixSearchPolicy,
     aimImpactPower,
     aimTopKExponent,
     aimTopKScope,
@@ -364,6 +370,7 @@ async function main(): Promise<void> {
     nCandPolicy,
     repairPolicy,
     repairSelectionPolicy,
+    repairSuffixSearchPolicy,
     aimImpactPower,
     aimTopKExponent,
     aimTopKScope,
@@ -542,6 +549,7 @@ function studyPlanFingerprint(input: {
     | "reserve-cheapest-else-deepest"
     | "late-reserve-cheapest-else-deepest"
     | "worst-target-runway-per-cost";
+  repairSuffixSearchPolicy?: "target-improvement-first";
   aimImpactPower?: number;
   aimTopKExponent?: number;
   aimTopKScope?: "repair";
@@ -574,6 +582,7 @@ function taskKey(task: StudyTask): string {
     task.nCandPolicy ?? "production",
     task.repairPolicy ?? "production",
     task.repairSelectionPolicy ?? "production",
+    task.repairSuffixSearchPolicy ?? "production",
     task.aimImpactPower ?? "production",
     task.aimTopKExponent ?? "production",
     task.aimTopKScope ?? "all",
@@ -652,6 +661,11 @@ async function workerMain(task: StudyTask): Promise<void> {
       : "1";
     if (task.repairSelectionPolicy === undefined) delete process.env.LR_REPAIR_SELECTION_POLICY;
     else process.env.LR_REPAIR_SELECTION_POLICY = task.repairSelectionPolicy;
+    if (task.repairSuffixSearchPolicy === undefined) {
+      delete process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY;
+    } else {
+      process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY = task.repairSuffixSearchPolicy;
+    }
     if (task.aimImpactPower === undefined) delete process.env.LR_AIM_MODEL_IMPACT_POWER;
     else process.env.LR_AIM_MODEL_IMPACT_POWER = String(task.aimImpactPower);
     if (task.aimTopKExponent === undefined) delete process.env.LR_AIM_TOPK_SCALE_EXPONENT;
@@ -858,6 +872,16 @@ function parseRepairSelectionPolicy(
     "--repair-selection-policy must be reserve-cheapest-repair, " +
       "reserve-cheapest-else-deepest, late-reserve-cheapest-else-deepest, " +
       "or worst-target-runway-per-cost",
+  );
+}
+
+function parseRepairSuffixSearchPolicy(
+  value: string | undefined,
+): "target-improvement-first" | undefined {
+  if (value === undefined) return undefined;
+  if (value === "target-improvement-first") return value;
+  throw new Error(
+    "--repair-suffix-search-policy must be target-improvement-first",
   );
 }
 

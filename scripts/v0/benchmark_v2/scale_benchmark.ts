@@ -54,6 +54,7 @@ export type RepairSelectionPolicy =
   | "reserve-cheapest-else-deepest"
   | "late-reserve-cheapest-else-deepest"
   | "worst-target-runway-per-cost";
+export type RepairSuffixSearchPolicy = "target-improvement-first";
 
 export type MultiBudgetBaseline = {
   schema: typeof SCALE_BASELINE_SCHEMA;
@@ -114,6 +115,7 @@ export function assertScaleArguments(
         "breadth-policy",
         "repair-policy",
         "repair-selection-policy",
+        "repair-suffix-search-policy",
         "aim-impact-power",
         "aim-topk-exponent",
         "aim-topk-scope",
@@ -130,6 +132,9 @@ export function assertScaleArguments(
       if (name === "repair-policy") parseRepairPolicy(arg.slice(equals + 1));
       if (name === "repair-selection-policy") {
         parseRepairSelectionPolicy(arg.slice(equals + 1));
+      }
+      if (name === "repair-suffix-search-policy") {
+        parseRepairSuffixSearchPolicy(arg.slice(equals + 1));
       }
       if (name === "aim-impact-power") parseAimImpactPower(arg.slice(equals + 1));
       if (name === "aim-topk-exponent") parseAimTopKExponent(arg.slice(equals + 1));
@@ -292,6 +297,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const breadthPolicy = scaleBreadthPolicyArgument(argv);
   const repairPolicy = scaleRepairPolicyArgument(argv);
   const repairSelectionPolicy = scaleRepairSelectionPolicyArgument(argv);
+  const repairSuffixSearchPolicy = scaleRepairSuffixSearchPolicyArgument(argv);
   const aimImpactPower = scaleAimImpactPowerArgument(argv);
   const aimTopKExponent = scaleAimTopKExponentArgument(argv);
   const aimTopKScope = scaleAimTopKScopeArgument(argv);
@@ -330,6 +336,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
       breadthPolicy,
       repairPolicy,
       repairSelectionPolicy,
+      repairSuffixSearchPolicy,
       aimImpactPower,
       aimTopKExponent,
       aimTopKScope,
@@ -353,6 +360,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
         breadthPolicy,
         repairPolicy,
         repairSelectionPolicy,
+        repairSuffixSearchPolicy,
         aimImpactPower,
         aimTopKExponent,
         aimTopKScope,
@@ -446,6 +454,13 @@ async function compareScaleArchives(
         `repair-selection-policy override`,
     );
   }
+  if (candidate.archive.repairSuffixSearchPolicy !== undefined) {
+    comparabilityNotes.push(
+      `declared study intervention: candidate repair suffix-search policy ` +
+        `${candidate.archive.repairSuffixSearchPolicy}; the production reference has no ` +
+        `repair-suffix-search-policy override`,
+    );
+  }
   if (candidate.archive.aimImpactPower !== undefined) {
     comparabilityNotes.push(
       `declared study intervention: candidate aim impact power ` +
@@ -525,6 +540,11 @@ async function compareScaleArchives(
               kind: "candidate-repair-selection-policy",
               policy: candidate.archive.repairSelectionPolicy,
             }
+            : candidate.archive.repairSuffixSearchPolicy !== undefined
+              ? {
+                kind: "candidate-repair-suffix-search-policy",
+                policy: candidate.archive.repairSuffixSearchPolicy,
+              }
             : candidate.archive.aimImpactPower !== undefined
               ? { kind: "candidate-aim-impact-power", power: candidate.archive.aimImpactPower }
               : candidate.archive.aimTopKExponent !== undefined
@@ -558,6 +578,9 @@ async function compareScaleArchives(
         (candidate.archive.repairSelectionPolicy === undefined
           ? ""
           : ` --repair-selection-policy=${candidate.archive.repairSelectionPolicy}`) +
+        (candidate.archive.repairSuffixSearchPolicy === undefined
+          ? ""
+          : ` --repair-suffix-search-policy=${candidate.archive.repairSuffixSearchPolicy}`) +
         (candidate.archive.aimImpactPower === undefined
           ? ""
           : ` --aim-impact-power=${candidate.archive.aimImpactPower}`) +
@@ -585,6 +608,7 @@ function scaleRunnerArgs(
   breadthPolicy: BreadthPolicy | null = null,
   repairPolicy: RepairPolicy | null = null,
   repairSelectionPolicy: RepairSelectionPolicy | null = null,
+  repairSuffixSearchPolicy: RepairSuffixSearchPolicy | null = null,
   aimImpactPower: number | null = null,
   aimTopKExponent: number | null = null,
   aimTopKScope: "repair" | null = null,
@@ -603,6 +627,9 @@ function scaleRunnerArgs(
     ...(repairSelectionPolicy === null
       ? []
       : [`--repair-selection-policy=${repairSelectionPolicy}`]),
+    ...(repairSuffixSearchPolicy === null
+      ? []
+      : [`--repair-suffix-search-policy=${repairSuffixSearchPolicy}`]),
     ...(aimImpactPower === null ? [] : [`--aim-impact-power=${aimImpactPower}`]),
     ...(aimTopKExponent === null ? [] : [`--aim-topk-exponent=${aimTopKExponent}`]),
     ...(aimTopKScope === null ? [] : [`--aim-topk-scope=${aimTopKScope}`]),
@@ -626,6 +653,7 @@ function validateScaleExtension(
   breadthPolicy: BreadthPolicy | null,
   repairPolicy: RepairPolicy | null,
   repairSelectionPolicy: RepairSelectionPolicy | null,
+  repairSuffixSearchPolicy: RepairSuffixSearchPolicy | null,
   aimImpactPower: number | null,
   aimTopKExponent: number | null,
   aimTopKScope: "repair" | null,
@@ -649,6 +677,9 @@ function validateScaleExtension(
   }
   if ((arm.archive.repairSelectionPolicy ?? null) !== repairSelectionPolicy) {
     throw new Error(`--extend-from used a different candidate repair selection policy`);
+  }
+  if ((arm.archive.repairSuffixSearchPolicy ?? null) !== repairSuffixSearchPolicy) {
+    throw new Error(`--extend-from used a different candidate repair suffix-search policy`);
   }
   if ((arm.archive.aimImpactPower ?? null) !== aimImpactPower) {
     throw new Error(`--extend-from used a different candidate aim impact power`);
@@ -840,6 +871,22 @@ export function scaleRepairSelectionPolicyArgument(
   argv: string[],
 ): RepairSelectionPolicy | null {
   return parseRepairSelectionPolicy(argumentIn(argv)("repair-selection-policy"));
+}
+
+function parseRepairSuffixSearchPolicy(
+  raw: string | undefined,
+): RepairSuffixSearchPolicy | null {
+  if (raw === undefined) return null;
+  if (raw === "target-improvement-first") return raw;
+  throw new Error(
+    `--repair-suffix-search-policy must be target-improvement-first`,
+  );
+}
+
+export function scaleRepairSuffixSearchPolicyArgument(
+  argv: string[],
+): RepairSuffixSearchPolicy | null {
+  return parseRepairSuffixSearchPolicy(argumentIn(argv)("repair-suffix-search-policy"));
 }
 
 function parseAimImpactPower(raw: string | undefined): number | null {

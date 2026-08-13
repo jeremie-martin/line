@@ -402,3 +402,35 @@ supports a general lesson: more short late repairs are real and cheap, but the
 remaining bottleneck is the marginal authored value of the alternatives they
 produce. Exact evidence and hashes are recorded in
 `benchmark/v2/studies/late-repair-anchor-reserve.json`.
+
+### Current-scorer improvement-gated suffix ordering — declared revalidation
+
+The late breadth and late anchor arms both manufacture more terminal and
+accepted alternatives without a material authored-score gain. The next arm
+therefore changes the value of the first alternative explored inside a repair,
+not the number or price of repair attempts.
+
+`target-improvement-first` acts only when suffix search reaches the independently
+selected target gap. If the ordinary first branch already lowers that gap's
+exact incumbent authored-axis SSE, ordinary ordering is preserved. Otherwise,
+if another already-selected ordinary top-three branch lowers the target SSE,
+that branch is explored first. Candidate generation, evaluation, branch width,
+anchor, budget ceiling, order at every other gap, and global terminal acceptance
+remain unchanged. The boundary is parameter-free and the existing compile
+statistics directly record its eligible pools, reorders, local SSE gain, and
+forward-score debt.
+
+The prior N=16 result under the pre-distillation proposal scorer was neutral:
++0.0037 scale, -0.0402 at 750k, unchanged validity, and 244 reorders among
+5,904 target pools. It improved terminal-offer target quality but added only
+5.48 aggregate internal points. That evidence is stale because the accepted
+distilled next-impact scorer now ranks every repair proposal pool and may change
+both ordinary branch zero and the eligible alternative. This is a single
+current-scorer revalidation, not a reopened bracket: the retired ungated
+top-three and eligible-pool policies remain closed.
+
+The arm uses the frozen 4/8/16 scale ladder with trace telemetry. A promotion
+requires unchanged validity, a material governed scale decision, mechanics
+consistent with the declared gate, and canonical confirmation. An inconclusive
+result closes this policy under the current scorer without changing the gate,
+widening the pool, or combining it with breadth or anchor interventions.

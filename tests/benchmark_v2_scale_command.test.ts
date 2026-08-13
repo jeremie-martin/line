@@ -9,6 +9,7 @@ import {
   scaleBreadthPolicyArgument,
   scaleRepairPolicyArgument,
   scaleRepairSelectionPolicyArgument,
+  scaleRepairSuffixSearchPolicyArgument,
 } from "../scripts/v0/benchmark_v2/scale_benchmark.ts";
 
 describe("Benchmark V2 scale command contract", () => {
@@ -43,6 +44,7 @@ describe("Benchmark V2 scale command contract", () => {
       "--breadth-policy=high-budget-three-quarter",
       "--repair-policy=protected-one-step-bridge",
       "--repair-selection-policy=reserve-cheapest-repair",
+      "--repair-suffix-search-policy=target-improvement-first",
       "--aim-impact-power=1.25",
       "--aim-topk-exponent=0.875",
       "--aim-topk-scope=repair",
@@ -64,6 +66,8 @@ describe("Benchmark V2 scale command contract", () => {
       .toThrow(/repair-policy must be/);
     expect(() => assertScaleArguments("eval", ["--repair-selection-policy=unknown"]))
       .toThrow(/repair-selection-policy must be/);
+    expect(() => assertScaleArguments("eval", ["--repair-suffix-search-policy=unknown"]))
+      .toThrow(/repair-suffix-search-policy must be/);
     expect(() => assertScaleArguments("eval", ["--aim-impact-power=0.1"]))
       .toThrow(/aim-impact-power must be/);
     expect(() => assertScaleArguments("eval", ["--aim-topk-exponent=2.1"]))
@@ -149,5 +153,12 @@ describe("Benchmark V2 scale command contract", () => {
     expect(scaleRepairSelectionPolicyArgument([
       "--repair-selection-policy=worst-target-runway-per-cost",
     ])).toBe("worst-target-runway-per-cost");
+  });
+
+  test("resolves the repair suffix-search intervention passed to scale eval", () => {
+    expect(scaleRepairSuffixSearchPolicyArgument([])).toBeNull();
+    expect(scaleRepairSuffixSearchPolicyArgument([
+      "--repair-suffix-search-policy=target-improvement-first",
+    ])).toBe("target-improvement-first");
   });
 });

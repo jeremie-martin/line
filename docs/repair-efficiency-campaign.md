@@ -1217,3 +1217,42 @@ recorded in
 The next independent model hypothesis must protect ranking stability using
 only frozen offline evidence before canonical execution. Canonical V2 at 750k
 remains the sole compiler decision tool; no multi-budget sweep is authorized.
+
+### Incumbent-anchored realized-impact residual — declared
+
+The direct replacement discarded the useful regularization already encoded by
+the accepted model and changed 23.80% of top choices in a frozen local-ranking
+assay. The next arm preserves the deployed 32-tree ensemble byte-for-byte as a
+prefix and appends a small correction trained only on its realized-impact
+residual. The prefix keeps its original initial value, tree order, and floating
+point association; the correction intercept is folded into its first leaf so
+it is applied only after the exact incumbent prefix.
+
+The offline capacity assay considered 2, 4, 8, and 16 correction trees under
+the inherited learning rate, leaf count, minimum leaf population, L2 penalty,
+development/validation split, feature transform, and missing-articulation
+contract. This assay selected one candidate before compiler execution. The
+16-tree correction dominates the smaller corrections on absolute truth error,
+local pairwise truth accuracy, selected top-one truth, and selected top-two
+truth. It exports 48 trees total.
+
+On 34,495 held-out contexts, MSE improves 0.0142205→0.0117172 (-17.60%) and
+MAE 0.0893403→0.0799863 (-10.47%); source-macro MSE improves in all 44
+sources. The ranking assay forms 3,743 explicit proxy choice sets from rows
+sharing source, seed, durations, and all incoming/outgoing targets. It is not
+claimed to reconstruct production knob grids. On those sets, the correction
+preserves 95.47% of incumbent pairwise orders while improving pairwise truth
+accuracy 60.54%→67.47%, with improvement in all 44 sources. Incumbent top-one
+agreement is 82.39%, versus 76.20% for the failed direct replacement; selected
+top-one realized fit improves in 40/44 sources and top-two in 42/44. The
+incumbent serialized prefix has exact parity, and full composed serialization
+differs from the scikit composition only by 4.45e-16 from association after
+that prefix.
+
+These are licensing diagnostics, not compiler evidence. The candidate changes
+no probe geometry, ordinary admission, proposal count, exact evaluation,
+candidate breadth, search, repair, register, budget, or authored target. It
+adds 16 shallow scoring trees only. One governed canonical V2 comparison at
+750k, with the existing N=8/16/32/48 sequential looks, decides promotion. No
+multi-budget sweep is authorized. A non-accept result removes the correction;
+the canonical outcomes will not select a different residual capacity.

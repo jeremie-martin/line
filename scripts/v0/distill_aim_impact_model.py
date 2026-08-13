@@ -68,11 +68,19 @@ def arguments() -> argparse.Namespace:
 
 def load_dataset(
     path: Path,
-) -> tuple[dict[str, Any], np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[
+    dict[str, Any],
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+]:
     features: list[list[float]] = []
     development: list[bool] = []
     impact_fit: list[float] = []
     sources: list[str] = []
+    seeds: list[int] = []
     with gzip.open(path, "rt", encoding="utf8") as stream:
         metadata = json.loads(next(stream))
         for line in stream:
@@ -86,6 +94,7 @@ def load_dataset(
                 float(value) if isinstance(value, (int, float)) else np.nan
             )
             sources.append(str(row["sourceId"]))
+            seeds.append(int(row["seed"]))
     X = np.asarray(features, dtype=np.float64)
     names = metadata["featureNames"]
     for index, name in enumerate(names):
@@ -98,10 +107,11 @@ def load_dataset(
         np.asarray(development, dtype=bool),
         np.asarray(impact_fit, dtype=np.float64),
         np.asarray(sources, dtype=object),
+        np.asarray(seeds, dtype=np.int64),
     )
 
 
-def predict_histogram(model: dict[str, Any], X: np.ndarray) -> np.ndarray:
+def predict_histogram_raw(model: dict[str, Any], X: np.ndarray) -> np.ndarray:
     prediction = np.full(X.shape[0], float(model["initialPrediction"]), dtype=np.float64)
     rows = np.arange(X.shape[0])
     for raw_tree in model["trees"]:
@@ -125,7 +135,11 @@ def predict_histogram(model: dict[str, Any], X: np.ndarray) -> np.ndarray:
             )
             node[active] = np.where(go_left, left[active_nodes], right[active_nodes])
         prediction += value[node]
-    return np.clip(prediction, 0.0, 1.0)
+    return prediction
+
+
+def predict_histogram(model: dict[str, Any], X: np.ndarray) -> np.ndarray:
+    return np.clip(predict_histogram_raw(model, X), 0.0, 1.0)
 
 
 def metrics(expected: np.ndarray, actual: np.ndarray) -> dict[str, float]:
@@ -190,14 +204,15 @@ def serialize_histogram(model: HistGradientBoostingRegressor) -> dict[str, Any]:
 
 def main() -> None:
     args = arguments()
-    metadata, X, development, impact_fit, sources = load_dataset(args.dataset)
+    metadata, X, development, impact_fit, sources, _seeds = load_dataset(args.dataset)
     artifact = json.loads(args.model.read_text())
     extractor_names = metadata["featureNames"]
     projection = [extractor_names.index(name) for name in artifact["featureNames"]]
     X = X[:, projection]
     teacher_prediction = model_prediction(artifact, X)
     finite_truth = np.isfinite(impact_fit)
-    if args.target == "realized-impact-fit":
+    uses_realized_truth = args.target == "realized-impact-fit"
+    if uses_realized_truth:
         X = X[finite_truth]
         development = development[finite_truth]
         impact_fit = impact_fit[finite_truth]
@@ -290,7 +305,7 @@ def main() -> None:
         "exportParityMaxAbsoluteError": export_parity_max_absolute_error,
         "candidates": results,
     }
-    if args.target == "realized-impact-fit":
+    if uses_realized_truth:
         source_deltas = {}
         for source in np.unique(validation_sources):
             mask = validation_sources == source

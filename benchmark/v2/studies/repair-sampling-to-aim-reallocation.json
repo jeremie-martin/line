@@ -1,0 +1,67 @@
+{
+  "schema": "line.benchmark-v2.repair-sampling-to-aim-reallocation.v1",
+  "recorded_at": "2026-08-13T16:40:00.000Z",
+  "status": "closed_not_promoted",
+  "intervention": {
+    "scope": "ordinary repair pools only",
+    "sample_breadth": "7/8 production width",
+    "model_proposals_per_refined_base": 3,
+    "reference_model_proposals_per_refined_base": 2,
+    "initial_search_change": false,
+    "resumed_search_change": false,
+    "authored_target_change": false
+  },
+  "decision": {
+    "profile": "compact-budget-response-v1",
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.85,
+    "candidate_headline": 579.9346,
+    "delta": 0.0846,
+    "standard_error": 0.1135,
+    "directional_probability": 0.76621738,
+    "required_directional_probability": 0.99166667,
+    "central_interval_95": [-0.1574, 0.3266],
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "per_budget_delta": {
+      "150000": 0.1315,
+      "250000": -0.0102,
+      "500000": 0.4762,
+      "750000": -0.1665,
+      "1000000": 0.3103,
+      "1500000": -0.5137,
+      "2500000": 0.3769,
+      "4000000": 0.0725
+    }
+  },
+  "mechanics": {
+    "first_terminal_frames_delta": 0,
+    "actual_candidate_samples_relative_delta": -0.047939,
+    "aim_candidates_admitted_relative_delta": 0.220273,
+    "aim_pool_top_three_rate_relative_delta": -0.081269,
+    "aim_mean_pool_rank_relative_delta": 0.12768,
+    "final_track_aimed_fits_relative_delta": 0.016451,
+    "reference_repair_episodes": 3945,
+    "candidate_repair_episodes": 3722,
+    "reference_accepted_alternatives": 1794,
+    "candidate_accepted_alternatives": 1728,
+    "reference_internal_gain": 4954.117471,
+    "candidate_internal_gain": 5034.856545,
+    "reference_gain_per_million_frames": 7.917822,
+    "candidate_gain_per_million_frames": 8.056793,
+    "controller_invariant_violations": 0
+  },
+  "interpretation": "Replacing random repair samples with a third model proposal improves repair value density and final aimed lineage, but reduces episode count and does not yield a reliable, budget-consistent authored-score gain.",
+  "cleanup": "The repair-only third-proposal default and its test were removed. Production retains full ordinary repair breadth and two model proposals.",
+  "evidence": {
+    "archive": "generated/benchmark-v2/scale/repair-seven-eighth-aim-p3-16.json.gz",
+    "archive_sha256": "f8ec0e76e49162900436c92d8676449acef0a1d8d79c2ea5994026044a7bf912",
+    "comparison": "generated/benchmark-v2/scale/repair-seven-eighth-aim-p3-16.comparison.json",
+    "comparison_sha256": "eff9d6e31fe32c29f51fda735c79ca1ac442080dd54b48dce08ee526184af1c4",
+    "behavior": "generated/benchmark-v2/scale/repair-seven-eighth-aim-p3-16.behavior.json",
+    "behavior_sha256": "878d81e7a3a4cd4455f4a9a1172437043ae3d751c6065a058211d7c4a2013016",
+    "compiler_snapshot": "generated/benchmark-v2/scale/repair-seven-eighth-aim-p3-4-candidate-compiler-snapshot.tar.gz",
+    "compiler_snapshot_sha256": "aaa990522c310928c420cc6324c7bcfbba18c5072038337b404a4c3c4dbb49d0"
+  }
+}

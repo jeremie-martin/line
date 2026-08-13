@@ -914,3 +914,29 @@ scale ladder decides it. Evidence must separate initial and repair samples,
 aim emissions and exact pool rank, first-terminal identity, repair episodes,
 terminal and accepted alternatives, repair gain and gain per frame, final aim
 lineage, validity, and per-budget authored score.
+
+### Repair sampling-to-proposal reallocation — useful, not promoted
+
+The result remained slightly positive but did not clear the decision boundary.
+Scale moved +0.4137 at N=4, +0.0531 at N=8, and +0.0846 at N=16. Final
+directional probability was 76.62%, the central 95% interval was
+[-0.1574, +0.3266], and validity stayed exactly 997/1,024. Budget effects were
+mixed: +0.4762 at 500k and +0.3769 at 2.5M, but -0.1665 at 750k and -0.5137
+at 1.5M. No canonical promotion follows.
+
+The mechanism was correctly isolated and genuinely reallocated work.
+First-terminal frames were byte-identical and the controller audit reported
+zero invariant violations. Candidate samples fell 4.79%, while admitted model
+proposals rose 22.03%. Those extra proposals were weaker individually—their
+exact-pool top-three rate fell 8.13% and mean rank worsened 12.77%—but final
+tracks contained 1.65% more aimed fits.
+
+This improved repair value density without creating more repairs. At nearly
+identical repair spend, episodes fell from 3,945 to 3,722 and accepted
+alternatives from 1,794 to 1,728, while aggregate internal gain rose from
+4,954.12 to 5,034.86 and gain per million frames from 7.918 to 8.057. The
+quality-over-quantity trade is real, but too small and budget-inconsistent in
+authored score. Production keeps two proposals and full ordinary repair
+breadth. The branch is removed without tuning the ratio, proposal count, or
+phase; full evidence is in
+`benchmark/v2/studies/repair-sampling-to-aim-reallocation.json`.

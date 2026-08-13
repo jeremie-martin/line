@@ -23,7 +23,6 @@ import {
   aimTopKBasesEffective,
   aimImpactTopChoiceIsResolved,
   aimModelImpactPower,
-  aimProposalCountForPhase,
   impactSpeedAirOutgoingParetoImproves,
   impactSpeedParetoImproves,
   setAimRepairLaneActive,
@@ -218,14 +217,6 @@ describe("arc-control probe layouts", () => {
     expect(aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "1.25" })).toBe(1.25);
     expect(() => aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "0.1" })).toThrow();
     expect(() => aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "4.1" })).toThrow();
-  });
-
-  test("spends a third model proposal only in repair", () => {
-    expect(aimProposalCountForPhase({}, false)).toBe(2);
-    expect(aimProposalCountForPhase({}, true)).toBe(3);
-    expect(aimProposalCountForPhase({ LR_AIM_PROPOSAL_COUNT: "1" }, true)).toBe(1);
-    expect(() => aimProposalCountForPhase({ LR_AIM_PROPOSAL_COUNT: "0" }, true))
-      .toThrow();
   });
 
   test("gates only changed top choices below the artifact resolution", () => {

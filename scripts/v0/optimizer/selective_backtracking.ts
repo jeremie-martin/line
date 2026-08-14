@@ -92,6 +92,7 @@ function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
 export class SelectiveAxisRegretController<Node extends object> {
   readonly policy = "selective_axis_regret" as const;
 
+  private readonly gapIndexOf: (node: Node) => number;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
   private readonly stats: SelectiveBacktrackingStats = {
@@ -117,7 +118,9 @@ export class SelectiveAxisRegretController<Node extends object> {
     events: [],
   };
 
-  constructor(private readonly gapIndexOf: (node: Node) => number) {}
+  constructor(gapIndexOf: (node: Node) => number) {
+    this.gapIndexOf = gapIndexOf;
+  }
 
   observeRoot(node: Node): void {
     if (!this.lineage.has(node)) this.lineage.set(node, null);

@@ -27,6 +27,7 @@ export function catchupAlternativeHasSufficientGain(
 
 type AxisRegretWatch<Node extends object> = {
   alternative: Node;
+  additionalAlternatives: readonly Node[];
   branchContactOrdinal: number;
   branchGapIndex: number;
   baselineAxisLoss: number;
@@ -72,12 +73,16 @@ export type SelectiveBacktrackingStats = {
   >;
   contact_expansions_observed: number;
   branch_watches_armed: number;
+  branch_watches_by_alternative_count: Record<string, number>;
   mature_watch_checks: number;
   loss_threshold_crossings: number;
   deadline_suppressed_crossings: number;
   execution_ceiling_suppressed_crossings: number;
   unavailable_alternatives: number;
   selective_backtracks: number;
+  selective_backtracks_with_additional_sibling_available: number;
+  additional_siblings_available_at_selective_backtrack_sum: number;
+  additional_siblings_available_at_selective_backtrack_max: number;
   suspended_continuations_resumed: number;
   catchup_completed: number;
   catchup_alternative_selected: number;
@@ -102,6 +107,7 @@ export type SelectiveBacktrackingEvent = {
   branch_gap_index: number;
   from_gap_index: number;
   alternative_gap_index: number;
+  additional_siblings_available: number;
   contact_advance: number;
   gap_rewind: number;
   baseline_axis_loss: number;
@@ -176,12 +182,16 @@ export class SelectiveAxisRegretController<Node extends object> {
       regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
+      branch_watches_by_alternative_count: {},
       mature_watch_checks: 0,
       loss_threshold_crossings: 0,
       deadline_suppressed_crossings: 0,
       execution_ceiling_suppressed_crossings: 0,
       unavailable_alternatives: 0,
       selective_backtracks: 0,
+      selective_backtracks_with_additional_sibling_available: 0,
+      additional_siblings_available_at_selective_backtrack_sum: 0,
+      additional_siblings_available_at_selective_backtrack_max: 0,
       suspended_continuations_resumed: 0,
       catchup_completed: 0,
       catchup_alternative_selected: 0,
@@ -232,6 +242,7 @@ export class SelectiveAxisRegretController<Node extends object> {
 
     const watch: AxisRegretWatch<Node> = {
       alternative: input.children[1]!,
+      additionalAlternatives: input.children.slice(2),
       branchContactOrdinal: input.contactOrdinal,
       branchGapIndex: this.gapIndexOf(input.parent),
       baselineAxisLoss: input.axisLoss,
@@ -243,6 +254,10 @@ export class SelectiveAxisRegretController<Node extends object> {
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
+    const alternativeCount = input.children.length - 1;
+    const alternativeCountKey = String(alternativeCount);
+    this.stats.branch_watches_by_alternative_count[alternativeCountKey] =
+      (this.stats.branch_watches_by_alternative_count[alternativeCountKey] ?? 0) + 1;
   }
 
   consider(input: {
@@ -339,7 +354,19 @@ export class SelectiveAxisRegretController<Node extends object> {
         continue;
       }
       watch.used = true;
+      const additionalSiblingsAvailable = watch.additionalAlternatives.filter(
+        (alternative) => input.alternativeAvailable(alternative),
+      ).length;
       this.stats.selective_backtracks++;
+      if (additionalSiblingsAvailable > 0) {
+        this.stats.selective_backtracks_with_additional_sibling_available++;
+      }
+      this.stats.additional_siblings_available_at_selective_backtrack_sum +=
+        additionalSiblingsAvailable;
+      this.stats.additional_siblings_available_at_selective_backtrack_max = Math.max(
+        this.stats.additional_siblings_available_at_selective_backtrack_max,
+        additionalSiblingsAvailable,
+      );
       this.stats.selective_backtracks_by_lane[input.lane]++;
       this.stats.axis_loss_delta_sum += axisLossDelta;
       this.stats.axis_loss_delta_max = Math.max(this.stats.axis_loss_delta_max, axisLossDelta);
@@ -353,6 +380,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         branch_gap_index: watch.branchGapIndex,
         from_gap_index: fromGapIndex,
         alternative_gap_index: targetGapIndex,
+        additional_siblings_available: additionalSiblingsAvailable,
         contact_advance: contactAdvance,
         gap_rewind: gapRewind,
         baseline_axis_loss: watch.baselineAxisLoss,
@@ -465,6 +493,9 @@ export class SelectiveAxisRegretController<Node extends object> {
   snapshot(): SelectiveBacktrackingStats {
     return {
       ...this.stats,
+      branch_watches_by_alternative_count: {
+        ...this.stats.branch_watches_by_alternative_count,
+      },
       selective_backtracks_by_lane: { ...this.stats.selective_backtracks_by_lane },
       regret_opportunities_by_min_axis_loss_delta: Object.fromEntries(
         Object.entries(this.stats.regret_opportunities_by_min_axis_loss_delta).map(

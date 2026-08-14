@@ -82,11 +82,12 @@ describe("selective-backtracking controller", () => {
     const parent = { gap: 3, name: "parent" };
     const leader = { gap: 4, name: "leader" };
     const alternative = { gap: 4, name: "alternative" };
+    const secondAlternative = { gap: 4, name: "second-alternative" };
     const descendant = { gap: 5, name: "descendant" };
     controller.observeRoot(parent);
     controller.observeExpansion({
       parent,
-      children: [leader, alternative],
+      children: [leader, alternative, secondAlternative],
       contactExpansion: true,
       contactOrdinal: 3,
       axisLoss: 0.4,
@@ -106,7 +107,7 @@ describe("selective-backtracking controller", () => {
       executionCeilingReached: false,
       totalSpentFrames: 100,
       lane: "initial",
-      alternativeAvailable: (node) => node === alternative,
+      alternativeAvailable: (node) => node === alternative || node === secondAlternative,
       alternativeDeadline: () => ({ margin: 3, pressured: false }),
     });
     expect(decision?.alternative).toBe(alternative);
@@ -143,8 +144,12 @@ describe("selective-backtracking controller", () => {
     })).toBeNull();
     expect(controller.snapshot()).toMatchObject({
       branch_watches_armed: 1,
+      branch_watches_by_alternative_count: { "2": 1 },
       loss_threshold_crossings: 1,
       selective_backtracks: 1,
+      selective_backtracks_with_additional_sibling_available: 1,
+      additional_siblings_available_at_selective_backtrack_sum: 1,
+      additional_siblings_available_at_selective_backtrack_max: 1,
       suspended_continuations_resumed: 1,
       catchup_completed: 1,
       catchup_current_selected: 1,
@@ -162,6 +167,7 @@ describe("selective-backtracking controller", () => {
         branch_gap_index: 3,
         from_gap_index: 5,
         alternative_gap_index: 4,
+        additional_siblings_available: 1,
         alternative_conservative_deadline_margin: 3,
         trigger_total_spent_frames: 100,
         resumed_total_spent_frames: 140,

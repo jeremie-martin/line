@@ -1,0 +1,36 @@
+{
+  "schema": "line.selective-multi-sibling-opportunity-study.v1",
+  "status": "observation-panel-predeclared",
+  "generated_at": "2026-08-14",
+  "question": "When production selective backtracking fires, how often is another accepted sibling beyond the runner-up still present for a broader causal tournament?",
+  "instrumentation": {
+    "behavior": "unchanged",
+    "watch_metric": "branch_watches_by_alternative_count counts accepted nonpreferred children at the causal branch when its watch is armed.",
+    "trigger_metrics": [
+      "selective_backtracks_with_additional_sibling_available",
+      "additional_siblings_available_at_selective_backtrack_sum",
+      "additional_siblings_available_at_selective_backtrack_max",
+      "events[].additional_siblings_available"
+    ],
+    "semantics": "Availability is tested against the live synchronous frontier at the exact admitted production trigger. It is not inferred from configured branch width or the original pool."
+  },
+  "predeclared_panel": {
+    "budget": 750000,
+    "actual_seeds": [38, 39, 40, 41],
+    "sources": [
+      "believer_56_6s",
+      "believer_56_6s_impact_relief",
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5",
+      "sparse_lowline",
+      "sparse_lowline_air_minus_4",
+      "meter_exchange",
+      "meter_exchange_speed_plus_4"
+    ],
+    "cells_per_arm": 32,
+    "reference_commit": "89d58b73",
+    "trust_gate": "All paired tracks, scores, and validity outcomes must be identical because the intervention is observation-only.",
+    "action_gate": "A live multi-sibling arm is justified only if the panel records at least ten production selective backtracks and at least half have an additional sibling available. Otherwise enlarge observation or abandon the mechanism; do not infer breadth from branchLimit=3."
+  },
+  "non_claim": "The counters measure opportunity breadth only. They do not claim that probing another sibling improves score or is affordable."
+}

@@ -578,3 +578,20 @@ tournament changes frontier order and consumes budget, while skipping it makes
 that work available to a different continuation. Historical tournament outcome
 is useful for sizing an action set, but it is not a causal value label. The
 reserve arm is removed, and no neighboring margin is tuned.
+
+### Multi-sibling opportunity map
+
+The current causal watch retains the ranker's first runner-up and selective
+catch-up probes only that sibling. Ordinary search admits up to three children,
+so a second nonpreferred sibling may still be present when regret matures. A
+multi-sibling tournament would be a genuinely broader search strategy: catch
+both alternatives up to the interrupted depth, compare three like-for-like
+prefixes, and schedule the best first while retaining the others.
+
+Configured branch width is not evidence that the third child survives until a
+trigger. Behavior-neutral telemetry now records accepted alternative count at
+watch creation and exact live additional-sibling availability at each executed
+backtrack. A predeclared 32-cell paired panel covers the four believer cases,
+the sparse-lowline pair, and the meter-exchange pair on fresh seeds 38-41. It
+must be byte-identical to its reference. A live arm follows only if at least ten
+production backtracks occur and at least half still have another sibling.

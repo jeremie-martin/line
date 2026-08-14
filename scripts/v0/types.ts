@@ -507,12 +507,16 @@ export type CompileStats = {
     >;
     contact_expansions_observed: number;
     branch_watches_armed: number;
+    branch_watches_by_alternative_count: Record<string, number>;
     mature_watch_checks: number;
     loss_threshold_crossings: number;
     deadline_suppressed_crossings: number;
     execution_ceiling_suppressed_crossings: number;
     unavailable_alternatives: number;
     selective_backtracks: number;
+    selective_backtracks_with_additional_sibling_available: number;
+    additional_siblings_available_at_selective_backtrack_sum: number;
+    additional_siblings_available_at_selective_backtrack_max: number;
     suspended_continuations_resumed: number;
     catchup_completed: number;
     catchup_alternative_selected: number;
@@ -539,6 +543,7 @@ export type CompileStats = {
       branch_gap_index: number;
       from_gap_index: number;
       alternative_gap_index: number;
+      additional_siblings_available: number;
       contact_advance: number;
       gap_rewind: number;
       baseline_axis_loss: number;

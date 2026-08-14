@@ -80,6 +80,7 @@ type RewindChoice = {
 type ProbeResult = {
   route_ordinal: number;
   route_kind: "causal_alternative" | "local_discrepancy";
+  discrepancy_depth: 0 | 1 | 2;
   parent_route_ordinal: number | null;
   parent_local_fallback_choice_ordinal: number | null;
   alternative_ordinal: number;
@@ -193,6 +194,8 @@ for (const row of archive.runs ?? []) {
       ...probe,
       route_ordinal: probe.route_ordinal ?? index + 1,
       route_kind: probe.route_kind ?? "causal_alternative",
+      discrepancy_depth: probe.discrepancy_depth ??
+        ((probe.route_kind ?? "causal_alternative") === "causal_alternative" ? 0 : 1),
       parent_route_ordinal: probe.parent_route_ordinal ?? null,
       parent_local_fallback_choice_ordinal:
         probe.parent_local_fallback_choice_ordinal ?? null,
@@ -480,7 +483,10 @@ const localDiscrepancyEvents = events.filter((event) =>
 const losingLocalRoutes = localDiscrepancyEvents.flatMap((event) =>
   event.catchup_outcome !== "current_selected" ? [] : event.catchup_probe_results
     .filter(
-      (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
+      (probe) =>
+        probe.route_kind === "local_discrepancy" &&
+        probe.discrepancy_depth === 1 &&
+        probe.outcome === "reached_target",
     )
     .map((probe) => ({ event, probe }))
 );
@@ -522,6 +528,12 @@ const oneDiscrepancyExecution = localDiscrepancyEvents.length === 0 ? null : {
   probes: localDiscrepancyEvents.flatMap((event) => event.catchup_probe_results).filter(
     (probe) => probe.route_kind === "local_discrepancy",
   ).length,
+  first_level_probes: localDiscrepancyEvents.flatMap(
+    (event) => event.catchup_probe_results,
+  ).filter((probe) => probe.discrepancy_depth === 1).length,
+  nested_probes: localDiscrepancyEvents.flatMap((event) => event.catchup_probe_results).filter(
+    (probe) => probe.discrepancy_depth === 2,
+  ).length,
   target_reaches: localDiscrepancyEvents.flatMap((event) => event.catchup_probe_results).filter(
     (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
   ).length,
@@ -539,6 +551,12 @@ const oneDiscrepancyExecution = localDiscrepancyEvents.length === 0 ? null : {
     );
     return selected?.route_kind === "local_discrepancy";
   }).length,
+  nested_selected: localDiscrepancyEvents.filter((event) => {
+    const selected = event.catchup_probe_results.find(
+      (probe) => probe.route_ordinal === event.catchup_selected_route_ordinal,
+    );
+    return selected?.discrepancy_depth === 2;
+  }).length,
   current_retained_after_discrepancy: localDiscrepancyEvents.filter(
     (event) => event.catchup_outcome === "current_selected",
   ).length,
@@ -549,7 +567,7 @@ const oneDiscrepancyExecution = localDiscrepancyEvents.length === 0 ? null : {
 };
 const localRouteProgress = localDiscrepancyEvents.flatMap((event) =>
   event.catchup_probe_results
-    .filter((probe) => probe.route_kind === "local_discrepancy")
+    .filter((probe) => probe.route_kind === "local_discrepancy" && probe.discrepancy_depth === 1)
     .map((probe) => {
       const checkpoints = event.catchup_checkpoints.filter(
         (checkpoint) =>
@@ -960,6 +978,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       ...probe,
       route_ordinal: probe.route_ordinal ?? index + 1,
       route_kind: probe.route_kind ?? "causal_alternative",
+      discrepancy_depth: probe.discrepancy_depth ??
+        ((probe.route_kind ?? "causal_alternative") === "causal_alternative" ? 0 : 1),
       parent_route_ordinal: probe.parent_route_ordinal ?? null,
       parent_local_fallback_choice_ordinal:
         probe.parent_local_fallback_choice_ordinal ?? null,
@@ -986,6 +1006,7 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         probe.route_ordinal < 1 ||
         routeOrdinals.has(probe.route_ordinal) ||
         (probe.route_kind !== "causal_alternative" && probe.route_kind !== "local_discrepancy") ||
+        ![0, 1, 2].includes(probe.discrepancy_depth) ||
         !Number.isSafeInteger(probe.alternative_ordinal) ||
         probe.alternative_ordinal < 1 ||
         probe.alternative_ordinal > requested
@@ -994,6 +1015,7 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       }
       if (probe.route_kind === "causal_alternative") {
         if (
+          probe.discrepancy_depth !== 0 ||
           probe.parent_route_ordinal !== null ||
           probe.parent_local_fallback_choice_ordinal !== null ||
           causalAlternativeOrdinals.has(probe.alternative_ordinal)
@@ -1008,8 +1030,9 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
             choice.choice_ordinal === probe.parent_local_fallback_choice_ordinal,
         );
         if (
+          (probe.discrepancy_depth !== 1 && probe.discrepancy_depth !== 2) ||
           parent === undefined ||
-          parent.route_kind !== "causal_alternative" ||
+          parent.discrepancy_depth !== probe.discrepancy_depth - 1 ||
           parent.alternative_ordinal !== probe.alternative_ordinal ||
           parentChoice === undefined ||
           !(parentChoice.current_relative_axis_loss_gain > 0)
@@ -1022,7 +1045,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
             (
               stats.policy !== "selective_axis_regret_catchup_proper_discrepancy" &&
               stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy" &&
-              stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map"
+              stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map" &&
+              stats.policy !== "selective_axis_regret_catchup_nested_discrepancy"
             ) ||
             choice.remaining_gap_advance > 0
           )
@@ -1050,7 +1074,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         if (
           probe.route_kind === "local_discrepancy" &&
           probe.local_fallback_choices.length > 0 &&
-          stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map"
+          stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map" &&
+          stats.policy !== "selective_axis_regret_catchup_nested_discrepancy"
         ) {
           throw new Error(`${label} legacy local route unexpectedly records nested choices`);
         }
@@ -1085,21 +1110,39 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     );
     if (localDiscrepancyResults.length > 0) {
       const causalReached = causalResults.filter((probe) => probe.outcome === "reached_target");
+      const firstLocal = localDiscrepancyResults.filter(
+        (probe) => probe.discrepancy_depth === 1,
+      );
+      const nested = localDiscrepancyResults.filter(
+        (probe) => probe.discrepancy_depth === 2,
+      );
+      const nestedPolicy = stats.policy ===
+        "selective_axis_regret_catchup_nested_discrepancy";
       if (
         (
           stats.policy !== "selective_axis_regret_catchup_one_discrepancy" &&
           stats.policy !== "selective_axis_regret_catchup_proper_discrepancy" &&
           stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy" &&
-          stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map"
+          stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map" &&
+          !nestedPolicy
         ) ||
-        localDiscrepancyResults.length !== 1 ||
+        firstLocal.length !== 1 ||
+        (nestedPolicy ? nested.length > 1 : nested.length !== 0) ||
         causalReached.length === 0 ||
         causalReached.some((probe) => probe.axis_loss! < event.trigger_axis_loss) ||
+        (
+          nested.length === 1 &&
+          (
+            firstLocal[0]!.outcome !== "reached_target" ||
+            firstLocal[0]!.axis_loss! < event.trigger_axis_loss
+          )
+        ) ||
         (
           (
             stats.policy === "selective_axis_regret_catchup_proper_discrepancy" ||
             stats.policy === "selective_axis_regret_catchup_yielding_discrepancy" ||
-            stats.policy === "selective_axis_regret_catchup_nested_discrepancy_map"
+            stats.policy === "selective_axis_regret_catchup_nested_discrepancy_map" ||
+            nestedPolicy
           ) &&
           localDiscrepancyResults.some((probe) => {
             const parent = results.find(
@@ -1360,6 +1403,25 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       return route?.route_kind === "local_discrepancy";
     }).length,
   );
+  assertOptionalStat(
+    "catchup_nested_discrepancy_probe_attempts",
+    probes.filter((probe) => probe.discrepancy_depth === 2).length,
+  );
+  assertOptionalStat(
+    "catchup_nested_discrepancy_probe_target_reaches",
+    probes.filter(
+      (probe) => probe.discrepancy_depth === 2 && probe.outcome === "reached_target",
+    ).length,
+  );
+  assertOptionalStat(
+    "catchup_nested_discrepancy_selected",
+    instrumented.filter((event: any) => {
+      const route = event.catchup_probe_results.find(
+        (probe: any) => probe.route_ordinal === event.catchup_selected_route_ordinal,
+      );
+      return (route?.discrepancy_depth ?? 1) === 2;
+    }).length,
+  );
   if (stats.selective_backtracks_by_signal !== undefined) {
     for (const signal of ["branch_regret", "repair_incumbent_regret"] as const) {
       const expected = instrumented.filter(
@@ -1536,6 +1598,12 @@ function print(analysis: typeof result): void {
       `${live.target_reaches} reached target, ${live.selected} selected, ` +
       `${live.current_retained_after_discrepancy} retained current`,
     );
+    if (live.nested_probes > 0) {
+      console.log(
+        `    ${live.first_level_probes} first-level and ${live.nested_probes} nested routes; ` +
+        `${live.nested_selected} nested routes selected`,
+      );
+    }
     if (live.yielded_to_ordinary_frontier > 0) {
       console.log(
         `    ${live.yielded_to_ordinary_frontier} local routes yielded to frontier; ` +

@@ -18,8 +18,11 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent-once"))
       .toBe("selective_axis_regret_catchup_repair_incumbent_once");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-nested-discrepancy-map"))
-      .toBe("selective_axis_regret_catchup_nested_discrepancy_map");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-nested-discrepancy"))
+      .toBe("selective_axis_regret_catchup_nested_discrepancy");
+    expect(() => parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-nested-discrepancy-map",
+    )).toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-yielding-discrepancy",
     )).toThrow(/LR_FRONTIER_POLICY/);
@@ -251,6 +254,7 @@ describe("selective-backtracking controller", () => {
       probes: [{
         route_ordinal: 1,
         route_kind: "causal_alternative",
+        discrepancy_depth: 0,
         parent_route_ordinal: null,
         parent_local_fallback_choice_ordinal: null,
         alternative_ordinal: 1,
@@ -511,6 +515,7 @@ describe("selective-backtracking controller", () => {
       probes: [{
         route_ordinal: 1,
         route_kind: "causal_alternative",
+        discrepancy_depth: 0,
         parent_route_ordinal: null,
         parent_local_fallback_choice_ordinal: null,
         alternative_ordinal: 1,

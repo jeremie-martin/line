@@ -496,7 +496,7 @@ export type CompileStats = {
     policy:
       | "selective_axis_regret_catchup"
       | "selective_axis_regret_catchup_repair_incumbent_once"
-      | "selective_axis_regret_catchup_nested_discrepancy_map";
+      | "selective_axis_regret_catchup_nested_discrepancy";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -555,6 +555,9 @@ export type CompileStats = {
     catchup_local_discrepancy_probe_attempts: number;
     catchup_local_discrepancy_probe_target_reaches: number;
     catchup_local_discrepancy_selected: number;
+    catchup_nested_discrepancy_probe_attempts: number;
+    catchup_nested_discrepancy_probe_target_reaches: number;
+    catchup_nested_discrepancy_selected: number;
     catchup_additional_probe_attempts: number;
     catchup_additional_probe_target_reaches: number;
     catchup_tournaments_with_additional_probe: number;
@@ -617,6 +620,7 @@ export type CompileStats = {
       catchup_probe_results: Array<{
         route_ordinal: number;
         route_kind: "causal_alternative" | "local_discrepancy";
+        discrepancy_depth: 0 | 1 | 2;
         parent_route_ordinal: number | null;
         parent_local_fallback_choice_ordinal: number | null;
         alternative_ordinal: number;

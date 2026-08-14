@@ -1,7 +1,7 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
   | "selective_axis_regret_catchup_repair_incumbent_once"
-  | "selective_axis_regret_catchup_nested_discrepancy_map";
+  | "selective_axis_regret_catchup_nested_discrepancy";
 
 export type SelectiveBacktrackSignal = "branch_regret" | "repair_incumbent_regret";
 
@@ -35,14 +35,14 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-repair-incumbent-once") {
     return "selective_axis_regret_catchup_repair_incumbent_once";
   }
-  if (raw === "selective-axis-regret-catchup-nested-discrepancy-map") {
-    return "selective_axis_regret_catchup_nested_discrepancy_map";
+  if (raw === "selective-axis-regret-catchup-nested-discrepancy") {
+    return "selective_axis_regret_catchup_nested_discrepancy";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
       `selective-axis-regret-catchup-repair-incumbent-once, or ` +
-      `selective-axis-regret-catchup-nested-discrepancy-map; got ${raw}`,
+      `selective-axis-regret-catchup-nested-discrepancy; got ${raw}`,
   );
 }
 
@@ -117,6 +117,7 @@ export type SelectiveCatchupProbeOutcome =
 export type SelectiveCatchupProbeResult = {
   route_ordinal: number;
   route_kind: "causal_alternative" | "local_discrepancy";
+  discrepancy_depth: 0 | 1 | 2;
   parent_route_ordinal: number | null;
   parent_local_fallback_choice_ordinal: number | null;
   alternative_ordinal: number;
@@ -190,6 +191,9 @@ export type SelectiveBacktrackingStats = {
   catchup_local_discrepancy_probe_attempts: number;
   catchup_local_discrepancy_probe_target_reaches: number;
   catchup_local_discrepancy_selected: number;
+  catchup_nested_discrepancy_probe_attempts: number;
+  catchup_nested_discrepancy_probe_target_reaches: number;
+  catchup_nested_discrepancy_selected: number;
   catchup_additional_probe_attempts: number;
   catchup_additional_probe_target_reaches: number;
   catchup_tournaments_with_additional_probe: number;
@@ -359,6 +363,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_local_discrepancy_probe_attempts: 0,
       catchup_local_discrepancy_probe_target_reaches: 0,
       catchup_local_discrepancy_selected: 0,
+      catchup_nested_discrepancy_probe_attempts: 0,
+      catchup_nested_discrepancy_probe_target_reaches: 0,
+      catchup_nested_discrepancy_selected: 0,
       catchup_additional_probe_attempts: 0,
       catchup_additional_probe_target_reaches: 0,
       catchup_tournaments_with_additional_probe: 0,
@@ -866,12 +873,24 @@ export class SelectiveAxisRegretController<Node extends object> {
       (probe) =>
         probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
     ).length;
+    this.stats.catchup_nested_discrepancy_probe_attempts += input.probes.filter(
+      (probe) => probe.discrepancy_depth === 2,
+    ).length;
+    this.stats.catchup_nested_discrepancy_probe_target_reaches += input.probes.filter(
+      (probe) => probe.discrepancy_depth === 2 && probe.outcome === "reached_target",
+    ).length;
     if (
       input.selectedRouteOrdinal !== null &&
       input.probes.find((probe) => probe.route_ordinal === input.selectedRouteOrdinal)
         ?.route_kind === "local_discrepancy"
     ) {
       this.stats.catchup_local_discrepancy_selected++;
+      if (
+        input.probes.find((probe) => probe.route_ordinal === input.selectedRouteOrdinal)
+          ?.discrepancy_depth === 2
+      ) {
+        this.stats.catchup_nested_discrepancy_selected++;
+      }
     }
     if (input.probes.length > 1) this.stats.catchup_tournaments_with_additional_probe++;
     if ((input.selectedAlternativeOrdinal ?? 0) > 1) {

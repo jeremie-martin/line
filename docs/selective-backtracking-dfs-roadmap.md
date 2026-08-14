@@ -1150,3 +1150,24 @@ both sources and contain 66 qualifying choices (437 admissible choices in
 total). This authorizes exactly one bounded depth-two live policy. It remains
 breadth evidence only: none of those second routes has an observed equal-depth
 or final-score result.
+
+### Bounded nested-discrepancy live arm
+
+The live arm gives routes explicit discrepancy depth. A causal route is depth
+zero, the existing proper local route is depth one, and the single nested route
+is depth two. Each local route names the exact parent route and choice that
+created it. The second route can run only after the first local route reaches
+equal depth and fails to strictly beat the suspended prefix; its choice uses the
+same positive-gain, nonzero-advance, live, affordable, stable maximum gain-times-
+margin rule. The final tournament ranks all completed routes once.
+
+Depth two is a hard categorical boundary. It records no further choices, so the
+implementation cannot silently become a recursive beam. The analyzer proves
+parent depth, parent loss, argmax choice, target reach, route counts, and selected
+depth. The map environment is retired rather than kept beside the live one.
+
+Fresh actual seeds 138-145 cover the believer pair and controls at 750k. The arm
+must preserve validity, have positive total and both source sums, win five seed
+blocks and four cells, avoid a 20-point loss, and execute nested routes across
+six target runs and both sources. Only then can fresh seeds 146-147 receive a
+two-seed all-catalog screen; no canonical or multi-budget run is yet authorized.

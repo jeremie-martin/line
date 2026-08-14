@@ -1053,3 +1053,28 @@ closes without a live arm. Together the two maps show that prefix sign is a
 useful risk signal but not a stopping certificate. The next design should
 preserve recovery paths and alter when their work is scheduled, rather than fit
 another streak length or loss magnitude to these observations.
+
+### Yielding local discrepancy scheduler
+
+The next design uses the validated risk signal without treating it as a death
+certificate. A local discrepancy still starts from the proper positive-gain,
+nonzero-advance choice and follows the ordinary preferred route. If its exact
+gain remains non-positive for three adjacent authored gaps, only its synchronous
+equal-depth excursion stops. The exact live route is placed behind the ordinary
+same-lane frontier, while the suspended prefix resumes immediately. A recovery
+path is therefore postponed, not pruned, and may still be explored by normal
+DFS if budget and frontier order reach it.
+
+This is a categorical work-disposition change rather than another sign
+threshold. Telemetry names `probe_yielded`, binds the final three checkpoints
+to the yielded route, requires adjacency and a pre-target endpoint, and proves
+that the route is neither completed nor tournament-selected. The runtime also
+asserts that the exact SearchNode remains in the frontier. The closed proper-
+discrepancy environment is retired rather than accumulated.
+
+After a known-activity mechanical smoke, fresh actual seeds 128-135 cover the
+believer pair plus controls at 750k. Advancement requires full validity,
+positive target total, five positive seed blocks, both source sums positive,
+four improved cells, no 20-point loss, and yields across five target runs and
+both sources. Only then may fresh seeds 136-137 receive a two-seed all-catalog
+screen. Neither this work nor its maps authorize a multi-budget sweep.

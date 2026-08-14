@@ -496,7 +496,7 @@ export type CompileStats = {
     policy:
       | "selective_axis_regret_catchup"
       | "selective_axis_regret_catchup_repair_incumbent_once"
-      | "selective_axis_regret_catchup_proper_discrepancy";
+      | "selective_axis_regret_catchup_yielding_discrepancy";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -554,6 +554,7 @@ export type CompileStats = {
     catchup_local_fallback_choice_count_max: number;
     catchup_local_discrepancy_probe_attempts: number;
     catchup_local_discrepancy_probe_target_reaches: number;
+    catchup_local_discrepancy_probe_yields: number;
     catchup_local_discrepancy_selected: number;
     catchup_additional_probe_attempts: number;
     catchup_additional_probe_target_reaches: number;
@@ -620,7 +621,12 @@ export type CompileStats = {
         parent_route_ordinal: number | null;
         parent_local_fallback_choice_ordinal: number | null;
         alternative_ordinal: number;
-        outcome: "reached_target" | "probe_dead_end" | "probe_deferred" | "execution_ceiling";
+        outcome:
+          | "reached_target"
+          | "probe_dead_end"
+          | "probe_deferred"
+          | "probe_yielded"
+          | "execution_ceiling";
         end_gap_index: number;
         probe_nodes_processed: number;
         probe_frames: number;

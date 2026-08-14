@@ -1,7 +1,7 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
   | "selective_axis_regret_catchup_repair_incumbent_once"
-  | "selective_axis_regret_catchup_proper_discrepancy";
+  | "selective_axis_regret_catchup_yielding_discrepancy";
 
 export type SelectiveBacktrackSignal = "branch_regret" | "repair_incumbent_regret";
 
@@ -11,6 +11,10 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
+/** A yielding local route must be persistently no better at three adjacent
+ * authored gaps. One- and two-checkpoint signs both recovered in held-out
+ * behavior maps; three is the prospectively validated scheduler boundary. */
+export const SELECTIVE_LOCAL_DISCREPANCY_YIELD_STREAK = 3;
 export const SELECTIVE_REPAIR_INCUMBENT_MIN_LOSS_DELTA = 0.02;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
@@ -35,14 +39,14 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-repair-incumbent-once") {
     return "selective_axis_regret_catchup_repair_incumbent_once";
   }
-  if (raw === "selective-axis-regret-catchup-proper-discrepancy") {
-    return "selective_axis_regret_catchup_proper_discrepancy";
+  if (raw === "selective-axis-regret-catchup-yielding-discrepancy") {
+    return "selective_axis_regret_catchup_yielding_discrepancy";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
       `selective-axis-regret-catchup-repair-incumbent-once, or ` +
-      `selective-axis-regret-catchup-proper-discrepancy; got ${raw}`,
+      `selective-axis-regret-catchup-yielding-discrepancy; got ${raw}`,
   );
 }
 
@@ -112,6 +116,7 @@ export type SelectiveCatchupProbeOutcome =
   | "reached_target"
   | "probe_dead_end"
   | "probe_deferred"
+  | "probe_yielded"
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeResult = {
@@ -189,6 +194,7 @@ export type SelectiveBacktrackingStats = {
   catchup_local_fallback_choice_count_max: number;
   catchup_local_discrepancy_probe_attempts: number;
   catchup_local_discrepancy_probe_target_reaches: number;
+  catchup_local_discrepancy_probe_yields: number;
   catchup_local_discrepancy_selected: number;
   catchup_additional_probe_attempts: number;
   catchup_additional_probe_target_reaches: number;
@@ -358,6 +364,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_local_fallback_choice_count_max: 0,
       catchup_local_discrepancy_probe_attempts: 0,
       catchup_local_discrepancy_probe_target_reaches: 0,
+      catchup_local_discrepancy_probe_yields: 0,
       catchup_local_discrepancy_selected: 0,
       catchup_additional_probe_attempts: 0,
       catchup_additional_probe_target_reaches: 0,
@@ -864,6 +871,10 @@ export class SelectiveAxisRegretController<Node extends object> {
     this.stats.catchup_local_discrepancy_probe_target_reaches += input.probes.filter(
       (probe) =>
         probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
+    ).length;
+    this.stats.catchup_local_discrepancy_probe_yields += input.probes.filter(
+      (probe) =>
+        probe.route_kind === "local_discrepancy" && probe.outcome === "probe_yielded",
     ).length;
     if (
       input.selectedRouteOrdinal !== null &&

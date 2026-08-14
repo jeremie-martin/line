@@ -80,7 +80,12 @@ type ProbeResult = {
   parent_route_ordinal: number | null;
   parent_local_fallback_choice_ordinal: number | null;
   alternative_ordinal: number;
-  outcome: "reached_target" | "probe_dead_end" | "probe_deferred" | "execution_ceiling";
+  outcome:
+    | "reached_target"
+    | "probe_dead_end"
+    | "probe_deferred"
+    | "probe_yielded"
+    | "execution_ceiling";
   end_gap_index: number;
   probe_nodes_processed: number;
   probe_frames: number;
@@ -468,6 +473,11 @@ const oneDiscrepancyExecution = localDiscrepancyEvents.length === 0 ? null : {
   ).length,
   target_reaches: localDiscrepancyEvents.flatMap((event) => event.catchup_probe_results).filter(
     (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
+  ).length,
+  yielded_to_ordinary_frontier: localDiscrepancyEvents.flatMap(
+    (event) => event.catchup_probe_results,
+  ).filter(
+    (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "probe_yielded",
   ).length,
   selected: localDiscrepancyEvents.filter((event) => {
     const selected = event.catchup_probe_results.find(
@@ -954,7 +964,10 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         const eligibleParentChoices = parent.local_fallback_choices.filter((choice) =>
           choice.current_relative_axis_loss_gain > 0 &&
           (
-            stats.policy !== "selective_axis_regret_catchup_proper_discrepancy" ||
+            (
+              stats.policy !== "selective_axis_regret_catchup_proper_discrepancy" &&
+              stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy"
+            ) ||
             choice.remaining_gap_advance > 0
           )
         );
@@ -1012,13 +1025,17 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       if (
         (
           stats.policy !== "selective_axis_regret_catchup_one_discrepancy" &&
-          stats.policy !== "selective_axis_regret_catchup_proper_discrepancy"
+          stats.policy !== "selective_axis_regret_catchup_proper_discrepancy" &&
+          stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy"
         ) ||
         localDiscrepancyResults.length !== 1 ||
         causalReached.length === 0 ||
         causalReached.some((probe) => probe.axis_loss! < event.trigger_axis_loss) ||
         (
-          stats.policy === "selective_axis_regret_catchup_proper_discrepancy" &&
+          (
+            stats.policy === "selective_axis_regret_catchup_proper_discrepancy" ||
+            stats.policy === "selective_axis_regret_catchup_yielding_discrepancy"
+          ) &&
           localDiscrepancyResults.some((probe) => {
             const parent = results.find(
               (candidate) => candidate.route_ordinal === probe.parent_route_ordinal,
@@ -1105,6 +1122,45 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       }
       lastCheckpointByRoute.set(checkpoint.route_ordinal, checkpoint);
     }
+    const yielded = results.filter((probe) => probe.outcome === "probe_yielded");
+    if (yielded.length > 0) {
+      if (
+        stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy" ||
+        yielded.length !== 1 ||
+        yielded[0]!.route_kind !== "local_discrepancy" ||
+        yielded[0]!.axis_loss !== null ||
+        event.catchup_outcome !== "current_selected" ||
+        event.catchup_selected_route_ordinal !== null
+      ) {
+        throw new Error(`${label} has an invalid yielded discrepancy route`);
+      }
+      const route = yielded[0]!;
+      const checkpoints = (event.catchup_checkpoints ?? []).filter(
+        (checkpoint: any) =>
+          (checkpoint.route_ordinal ?? checkpoint.alternative_ordinal ?? 1) ===
+            route.route_ordinal,
+      ).map((rawCheckpoint: any) => ({
+        ...rawCheckpoint,
+        route_ordinal: rawCheckpoint.route_ordinal ?? rawCheckpoint.alternative_ordinal ?? 1,
+        route_kind: rawCheckpoint.route_kind ?? "causal_alternative",
+        alternative_ordinal: rawCheckpoint.alternative_ordinal ?? 1,
+      })) as Checkpoint[];
+      const confirmation = checkpoints.slice(-3);
+      if (
+        confirmation.length !== 3 ||
+        confirmation.some((checkpoint) => checkpoint.alternative_axis_loss_gain > 0) ||
+        confirmation.some(
+          (checkpoint, index) =>
+            index > 0 && checkpoint.gap_index !== confirmation[index - 1]!.gap_index + 1,
+        ) ||
+        confirmation[2]!.gap_index !== route.end_gap_index ||
+        confirmation[2]!.gap_index >= event.from_gap_index ||
+        confirmation[2]!.probe_nodes_processed !== route.probe_nodes_processed ||
+        confirmation[2]!.probe_frames !== route.probe_frames
+      ) {
+        throw new Error(`${label} yielded without three persistent non-positive checkpoints`);
+      }
+    }
   }
 
   const count = (outcome: ProbeResult["outcome"]): number =>
@@ -1156,6 +1212,12 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
   );
   assertStat("catchup_probe_dead_ends", count("probe_dead_end"));
   assertStat("catchup_probe_deferred", count("probe_deferred"));
+  assertOptionalStat(
+    "catchup_local_discrepancy_probe_yields",
+    probes.filter(
+      (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "probe_yielded",
+    ).length,
+  );
   assertStat("catchup_execution_ceiling_stops", count("execution_ceiling"));
   assertStat(
     "catchup_probe_nodes_processed",
@@ -1384,6 +1446,9 @@ function print(analysis: typeof result): void {
       `${live.target_reaches} reached target, ${live.selected} selected, ` +
       `${live.current_retained_after_discrepancy} retained current`,
     );
+    if (live.yielded_to_ordinary_frontier > 0) {
+      console.log(`    ${live.yielded_to_ordinary_frontier} local routes yielded to frontier`);
+    }
   }
   if (analysis.local_route_progress_map !== null) {
     const progress = analysis.local_route_progress_map;

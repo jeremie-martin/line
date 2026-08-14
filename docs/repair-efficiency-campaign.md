@@ -1325,3 +1325,27 @@ identity must remain the incumbent choice in every eligible grid. One governed
 canonical V2 comparison at 750k decides promotion; no multi-budget sweep is
 authorized. A non-accept result removes the residual artifact and selection
 path without testing centered residuals in the compiler.
+
+### Incumbent-first, residual-second fixed pair — closed
+
+The runtime implementation used one append-only 48-tree traversal: its exact
+32-tree checkpoint supplied the incumbent rank and its completed value ranked
+only proposal two. Startup and unit tests enforced byte-identical incumbent
+prefix structure. On the 150k Shelter smoke it preserved proposal one in all
+415 eligible selections and substituted proposal two 143 times (34.46%) while
+passing 113/113 contacts and `endOfSpec`.
+
+The canonical 750k sequence did not accept: Δ -0.114 at N=8, +0.1546 at N=16,
++0.3156 at N=32, and +2.2432 at N=48. The final SE was 1.7983 and P+ 89.08%
+against 97.23% required, with validity 2,111→2,112/2,112. The late headline
+jump is the same recovered `frontier_pickup_progression_shifted` seed-635 cell
+seen in the full residual arm. Across the 2,111 cells valid in both arms, raw
+seed-block Δ was +0.5138±0.2898 SE (P+ 95.87%, 95% interval
+[-0.0691,+1.0968]). That is an encouraging diagnostic, but it also misses the
+promotion standard and cannot override the governed verdict.
+
+The residual artifact and runtime selection path are removed. The frozen
+offline tooling remains useful, and the exact implementation, smoke telemetry,
+canonical result, matched-valid sensitivity, and artifact hashes are recorded
+in `benchmark/v2/studies/aim-impact-residual-second.json`. No multi-budget
+sweep was run.

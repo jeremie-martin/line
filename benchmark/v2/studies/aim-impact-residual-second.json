@@ -1,0 +1,105 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-residual-second.v1",
+  "recorded_at": "2026-08-14T04:45:00Z",
+  "status": "inconclusive_not_promoted",
+  "candidate_commit": "27641a7",
+  "scope": "Keep the accepted incumbent first aim proposal exactly and let the absolute realized-fit residual rank only the second existing proposal slot. Probe geometry, admission, proposal count, exact evaluation, search, repair, budget, and authored targets remain fixed.",
+  "offline_license": {
+    "proxy_groups": 3743,
+    "second_slot_changed_fraction": 0.1846112744,
+    "selected_pair_truth_delta": 0.0035072006,
+    "sources_improved": 38,
+    "sources_worsened": 6,
+    "source": "benchmark/v2/studies/aim-impact-centering-offline-screen.json"
+  },
+  "implementation": {
+    "incumbent_trees": 32,
+    "residual_adjusted_trees": 48,
+    "inference": "One histogram traversal records the exact incumbent checkpoint after tree 32 and the residual-adjusted checkpoint after tree 48.",
+    "prefix_invariant": "The 48-tree artifact initial prediction and first 32 serialized trees must equal the accepted artifact exactly; startup and unit tests fail otherwise.",
+    "selection": "Choose the incumbent geometrically-distinct first proposal, then the highest residual-ranked proposal geometrically distinct from it, then fill any later slots from incumbent order.",
+    "exact_evaluations": "unchanged fixed proposal count"
+  },
+  "verification": {
+    "focused_tests": "14/14",
+    "full_tests": "185 files, 1275 tests",
+    "artifact_reproduction": "Fresh absolute-residual training reproduces the canonicalized checked-in artifact exactly.",
+    "live_wasm_smoke": {
+      "spec": "scripts/v0/specs/shelter_impact_sync.ts",
+      "seed": 0,
+      "budget": 150000,
+      "contacts": "113/113",
+      "terminus": "endOfSpec@3260",
+      "score": 524.6,
+      "eligible_selections": 415,
+      "second_slot_substitutions": 143,
+      "substitution_fraction": 0.3445783133,
+      "distinctness_rejections": 1128,
+      "first_choice_preserved": 415,
+      "stats": "generated/analysis/aim-impact-residual-second-smoke.stats.json",
+      "stats_sha256": "028e0d1334a923af3097749e4925c05ca4a3917726b8343039fe2b6dcde4d330",
+      "report": "generated/analysis/aim-impact-residual-second-smoke.report.json",
+      "report_sha256": "625893100bb663eedde1d2475cd3264cf9ea33227a43783f27c0f89c509713bb"
+    }
+  },
+  "canonical": {
+    "profile": "canonical",
+    "budget": 750000,
+    "maximum_seeds": 48,
+    "candidate_valid": 2112,
+    "candidate_total": 2112,
+    "baseline_valid": 2111,
+    "validity_gained": 1,
+    "validity_lost": 0,
+    "baseline_headline": 604.185,
+    "candidate_headline": 606.4282,
+    "delta": 2.2432,
+    "standard_error": 1.7983,
+    "directional_probability": 0.89078469,
+    "required_directional_probability": 0.97226547,
+    "central_interval_95": [-2.5844, 7.0708],
+    "verdict": "INCONCLUSIVE",
+    "looks": [
+      {"seeds": 8, "delta": -0.114, "standard_error": 0.7354, "directional_probability": 0.44059129},
+      {"seeds": 16, "delta": 0.1546, "standard_error": 0.433, "directional_probability": 0.63698388},
+      {"seeds": 32, "delta": 0.3156, "standard_error": 0.3618, "directional_probability": 0.80512581},
+      {"seeds": 48, "delta": 2.2432, "standard_error": 1.7983, "directional_probability": 0.89078469}
+    ],
+    "strata": {
+      "representative": 0.4332,
+      "capability": 12.4883,
+      "legacy_regression": 0.8884,
+      "development_music": -0.4418
+    },
+    "validity_gain": "frontier_pickup_progression_shifted at actual seed 635"
+  },
+  "matched_valid_sensitivity": {
+    "authority": "diagnostic_only",
+    "cells": 2111,
+    "raw_cell_mean_delta": 0.5130450971,
+    "seed_block_mean_delta": 0.5138449932,
+    "seed_block_standard_error": 0.2897571019,
+    "directional_probability": 0.9586760176,
+    "central_interval_95": [-0.0690711079, 1.0967610943],
+    "improved_cells": 1072,
+    "regressed_cells": 1039,
+    "unchanged_cells": 0,
+    "by_role_raw_mean_delta": {
+      "representative": 0.4695184524,
+      "capability": 0.9137287206,
+      "legacy_regression": 0.8600854167,
+      "development_music": -0.3285890625
+    }
+  },
+  "decision": "Do not promote. The second-slot policy safely contains the full replacement and shows a positive matched-valid lead, but neither the official sequential comparison nor matched-valid sensitivity clears the promotion threshold. Remove the residual artifact and runtime selection path; preserve the offline assay and this evidence record.",
+  "evidence": {
+    "comparison": "benchmark/v2/runs/aim-impact-residual-second-comparison.json",
+    "comparison_sha256": "c8314b3f17e95d2445b25281345caa3f59e7a39ea5d09604acb7b48bdd167449",
+    "archive": "benchmark/v2/runs/aim-impact-residual-second-development-750k-N48.N48.json",
+    "archive_sha256": "0d0416e02e5b0f272584aaf5e8d01d7f855977a2e1d3c31d561b1bfd87adcfab",
+    "decision_index": "benchmark/v2/runs/aim-impact-residual-second-development-750k-N48.N48.json.decision-index.json",
+    "decision_index_sha256": "1fb20055c52420521f5606bbfebc25b394cf0bc8838bc237b9c6f762ce080826",
+    "round_progress": "benchmark/v2/runs/aim-impact-residual-second-development-750k-N48.json.progress.jsonl",
+    "round_progress_sha256": "66454d5721e6b01222e9ec30b73fa08a149fbc2a08f52c4d9198172472b44d50"
+  }
+}

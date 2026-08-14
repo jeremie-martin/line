@@ -187,54 +187,6 @@ export function predictReadinessComponent(
   return Math.max(0, Math.min(1, linked));
 }
 
-/** Infer an identity-linked histogram ensemble at an exact tree prefix and at
- * completion in one traversal. This is used by policies whose challenger is
- * an append-only residual: the prefix remains the incumbent prediction while
- * the complete value includes the correction, without duplicating incumbent
- * tree work or changing floating-point association. */
-export function predictReadinessHistogramCheckpoints(
-  artifact: ReadinessModelArtifact,
-  componentName: string,
-  features: readonly number[],
-  prefixTreeCount: number,
-): { prefix: number; complete: number } {
-  if (features.length !== artifact.featureNames.length) {
-    throw new Error(
-      `readiness feature dimension mismatch: expected ` +
-        `${artifact.featureNames.length}, got ${features.length}`,
-    );
-  }
-  const model = artifact.components[componentName];
-  if (model === undefined) {
-    throw new Error(`unknown readiness component ${JSON.stringify(componentName)}`);
-  }
-  if (model.family !== "hist_gradient_boosting_regressor") {
-    throw new Error(
-      `readiness checkpoints require a histogram gradient-boosted component`,
-    );
-  }
-  if (
-    !Number.isInteger(prefixTreeCount) || prefixTreeCount < 0 ||
-    prefixTreeCount > model.trees.length
-  ) {
-    throw new Error(
-      `readiness checkpoint must be an integer in [0, ${model.trees.length}]`,
-    );
-  }
-
-  let raw = model.initialPrediction;
-  let prefixRaw = prefixTreeCount === 0 ? raw : Number.NaN;
-  for (let index = 0; index < model.trees.length; index++) {
-    raw += predictTree(model.trees[index], features);
-    if (!Number.isFinite(raw)) {
-      throw new Error("histogram gradient-boosted prediction overflowed");
-    }
-    if (index + 1 === prefixTreeCount) prefixRaw = raw;
-  }
-  const clip = (value: number): number => Math.max(0, Math.min(1, value));
-  return { prefix: clip(prefixRaw), complete: clip(raw) };
-}
-
 function parseModel(
   input: unknown,
   featureCount: number,

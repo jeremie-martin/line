@@ -1,0 +1,36 @@
+{
+  "schema": "line.selective-repair-incumbent-regret-opportunity-study.v1",
+  "status": "behavior-neutral-map-predeclared",
+  "generated_at": "2026-08-14",
+  "question": "When a repair DFS continuation is already worse than the complete incumbent at the same authored depth, how often is a mature causal sibling still available and affordable?",
+  "scope": {
+    "phase": "repair only",
+    "comparison": "current repair prefix authored-axis loss minus incumbent authored-axis loss through the same gap",
+    "causal_target": "the exact live sibling already retained by the production selective-backtracking watch",
+    "maturity": "the unchanged two-contact watch maturity",
+    "admission": "the unchanged execution ceiling and conservative deadline test",
+    "thresholds": [0, 0.01, 0.02, 0.05, 0.10]
+  },
+  "semantics": {
+    "crossed_watch": "One causal watch whose mature repair descendant first exceeds the given incumbent-relative loss threshold.",
+    "admissible_watch": "A crossed watch whose exact sibling is still live, whose local ceiling is open, and whose conservative deadline has no pressure.",
+    "non_action": "The compiler only counts these opportunities. It does not reorder, suspend, prune, regenerate, or spend additional simulation work."
+  },
+  "telemetry_invariants": [
+    "counts are unique per causal watch and threshold",
+    "admissible counts never exceed crossed counts",
+    "counts are nested as the threshold rises",
+    "the incumbent and current prefix are compared through the exact same gap"
+  ],
+  "predeclared_map": {
+    "budget": 750000,
+    "actual_seeds": [50, 51],
+    "sources": "all 44 canonical development sources",
+    "candidate_execution": "one behavior-neutral production arm",
+    "reference_reuse": "generated/benchmark-v2/mover-grid/selective-multi-sibling-catchup-full-n2/ref.json.gz",
+    "reference_commit": "b2d520a3",
+    "identity_gate": "All 88 tracks, scores, and validity outcomes must be exact matches before any opportunity count is interpreted.",
+    "live_arm_gate": "A later live arm is justified only if at least one mapped threshold has 20 to 200 admissible watches across at least four sources. Select the highest threshold meeting that breadth rule; do not use output scores to select it."
+  },
+  "non_claim": "This map can establish an actionable incumbent-relative signal population. It cannot estimate the score effect of taking those backtracks, and it does not authorize a canonical or multi-budget run."
+}

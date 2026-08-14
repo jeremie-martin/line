@@ -704,3 +704,25 @@ tournaments. All skip and aggregate invariants pass. This is useful positive
 direction, but not stable evidence: the exact arm closes without replication,
 canonical evaluation, or promotion. A successor should change the signal or
 work scheduling structure, not fit another threshold to these eight outcomes.
+
+### Repair-incumbent regret opportunity map
+
+The next structural signal uses information that does not exist during the
+first completion: every repair has a complete incumbent. At a mature causal
+watch, compare the active repair prefix with that incumbent through the exact
+same authored gap. A positive delta says the attempted suffix is currently
+worse than the track it must eventually beat. This is cumulative prefix loss,
+not only the independently selected repair target's local SSE; earlier target-
+ordering studies showed that improving one gap alone is not enough.
+
+The first step is behavior-neutral. For thresholds 0, 0.01, 0.02, 0.05, and
+0.10, telemetry counts each causal watch once and separately requires its exact
+sibling to remain live, the local ceiling to remain open, and conservative
+deadline pressure to be absent. No frontier order or simulation work changes.
+
+The map reuses the existing all-catalog reference for actual seeds 50 and 51,
+so only one new 88-cell arm is compiled. Exact identity of all tracks, scores,
+and validity is mandatory. A live arm follows only if the highest threshold
+with 20-200 admissible watches still spans at least four sources. That chooses
+action breadth without looking at output deltas and authorizes neither a sweep
+nor a canonical evaluation.

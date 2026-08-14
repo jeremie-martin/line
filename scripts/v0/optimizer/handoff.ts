@@ -2779,6 +2779,9 @@ function compileHandoffInternal(
           node,
           contactOrdinal: contactOrdinalAt(node.search.gapIndex),
           axisLoss: authoredPrefixAxisLoss(node.search),
+          incumbentAxisLoss: lane === "repair" && bestCompleteNode !== null
+            ? authoredPrefixAxisLoss(bestCompleteNode.search, node.search.gapIndex)
+            : null,
           executionCeilingReached: !traversalCanContinue(),
           totalSpentFrames: getSimFrames(),
           lane,

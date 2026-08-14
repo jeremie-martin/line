@@ -9,6 +9,13 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
+export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
+  0,
+  0.01,
+  0.02,
+  0.05,
+  0.10,
+] as const;
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
@@ -55,6 +62,8 @@ type AxisRegretWatch<Node extends object> = {
   deadlineSuppressionRecorded: boolean;
   opportunityCrossedMask: number;
   opportunityAdmissibleMask: number;
+  repairIncumbentOpportunityCrossedMask: number;
+  repairIncumbentOpportunityAdmissibleMask: number;
 };
 
 type WatchLink<Node extends object> = {
@@ -106,6 +115,11 @@ export type SelectiveBacktrackingStats = {
     string,
     { crossed_watches: number; admissible_watches: number }
   >;
+  repair_incumbent_regret_opportunities_by_min_axis_loss_delta: Record<
+    string,
+    { crossed_watches: number; admissible_watches: number }
+  >;
+  repair_incumbent_axis_loss_delta_max: number;
   contact_expansions_observed: number;
   branch_watches_armed: number;
   branch_watches_by_alternative_count: Record<string, number>;
@@ -195,6 +209,15 @@ function emptyRegretOpportunityCounter(): SelectiveBacktrackingStats[
   ]));
 }
 
+function emptyRepairIncumbentRegretOpportunityCounter(): SelectiveBacktrackingStats[
+  "repair_incumbent_regret_opportunities_by_min_axis_loss_delta"
+] {
+  return Object.fromEntries(REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS.map((threshold) => [
+    threshold.toFixed(2),
+    { crossed_watches: 0, admissible_watches: 0 },
+  ]));
+}
+
 /**
  * Compile-local signal and attribution state for the bounded-catch-up strategy.
  *
@@ -227,6 +250,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_axis_loss_gain_threshold: 0,
       mature_axis_loss_delta_max: 0,
       regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
+      repair_incumbent_regret_opportunities_by_min_axis_loss_delta:
+        emptyRepairIncumbentRegretOpportunityCounter(),
+      repair_incumbent_axis_loss_delta_max: 0,
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       branch_watches_by_alternative_count: {},
@@ -305,6 +331,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       deadlineSuppressionRecorded: false,
       opportunityCrossedMask: 0,
       opportunityAdmissibleMask: 0,
+      repairIncumbentOpportunityCrossedMask: 0,
+      repairIncumbentOpportunityAdmissibleMask: 0,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -318,6 +346,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     node: Node;
     contactOrdinal: number;
     axisLoss: number;
+    incumbentAxisLoss?: number | null;
     executionCeilingReached: boolean;
     totalSpentFrames: number;
     lane: FrontierTraversalLane;
@@ -349,6 +378,52 @@ export class SelectiveAxisRegretController<Node extends object> {
         alternativeDeadline ??= input.alternativeDeadline(watch.alternative);
         return alternativeDeadline;
       };
+
+      if (
+        input.lane === "repair" &&
+        input.incumbentAxisLoss !== null &&
+        input.incumbentAxisLoss !== undefined &&
+        Number.isFinite(input.incumbentAxisLoss)
+      ) {
+        const incumbentAxisLossDelta = input.axisLoss - input.incumbentAxisLoss;
+        this.stats.repair_incumbent_axis_loss_delta_max = Math.max(
+          this.stats.repair_incumbent_axis_loss_delta_max,
+          incumbentAxisLossDelta,
+        );
+        let newlyEligibleRepairMask = 0;
+        for (let i = 0; i < REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS.length; i++) {
+          const threshold = REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS[i]!;
+          if (!(incumbentAxisLossDelta > threshold)) continue;
+          const bit = 1 << i;
+          const counter =
+            this.stats.repair_incumbent_regret_opportunities_by_min_axis_loss_delta[
+              threshold.toFixed(2)
+            ]!;
+          if ((watch.repairIncumbentOpportunityCrossedMask & bit) === 0) {
+            watch.repairIncumbentOpportunityCrossedMask |= bit;
+            counter.crossed_watches++;
+          }
+          if ((watch.repairIncumbentOpportunityAdmissibleMask & bit) === 0) {
+            newlyEligibleRepairMask |= bit;
+          }
+        }
+        if (
+          newlyEligibleRepairMask !== 0 &&
+          !input.executionCeilingReached &&
+          readAlternativeAvailable() &&
+          !readAlternativeDeadline().pressured
+        ) {
+          for (let i = 0; i < REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS.length; i++) {
+            const bit = 1 << i;
+            if ((newlyEligibleRepairMask & bit) === 0) continue;
+            watch.repairIncumbentOpportunityAdmissibleMask |= bit;
+            const threshold = REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS[i]!;
+            this.stats.repair_incumbent_regret_opportunities_by_min_axis_loss_delta[
+              threshold.toFixed(2)
+            ]!.admissible_watches++;
+          }
+        }
+      }
 
       let newlyEligibleMask = 0;
       for (let i = 0; i < SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS.length; i++) {
@@ -618,6 +693,11 @@ export class SelectiveAxisRegretController<Node extends object> {
         Object.entries(this.stats.regret_opportunities_by_min_axis_loss_delta).map(
           ([threshold, counts]) => [threshold, { ...counts }],
         ),
+      ),
+      repair_incumbent_regret_opportunities_by_min_axis_loss_delta: Object.fromEntries(
+        Object.entries(
+          this.stats.repair_incumbent_regret_opportunities_by_min_axis_loss_delta,
+        ).map(([threshold, counts]) => [threshold, { ...counts }]),
       ),
       events: this.stats.events.map((event) => ({
         ...event,

@@ -96,6 +96,50 @@ describe("selective-backtracking controller", () => {
     });
   });
 
+  test("maps repair-incumbent regret without changing traversal", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap);
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const descendant = { gap: 3, name: "descendant" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [descendant],
+      contactExpansion: true,
+      contactOrdinal: 2,
+      axisLoss: 0.05,
+    });
+    expect(controller.consider({
+      node: descendant,
+      contactOrdinal: 3,
+      axisLoss: 0.11,
+      incumbentAxisLoss: 0,
+      executionCeilingReached: false,
+      totalSpentFrames: 10,
+      lane: "repair",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+    })).toBeNull();
+    expect(controller.snapshot()).toMatchObject({
+      selective_backtracks: 0,
+      repair_incumbent_axis_loss_delta_max: 0.11,
+      repair_incumbent_regret_opportunities_by_min_axis_loss_delta: {
+        "0.00": { crossed_watches: 1, admissible_watches: 1 },
+        "0.01": { crossed_watches: 1, admissible_watches: 1 },
+        "0.02": { crossed_watches: 1, admissible_watches: 1 },
+        "0.05": { crossed_watches: 1, admissible_watches: 1 },
+        "0.10": { crossed_watches: 1, admissible_watches: 1 },
+      },
+    });
+  });
+
   test("fires once on a mature causal watch and names its concrete sibling", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap);
     const parent = { gap: 3, name: "parent" };

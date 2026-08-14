@@ -78,6 +78,14 @@ type RuleResult = {
   affected_sources: string[];
 };
 
+const REPAIR_INCUMBENT_THRESHOLDS = ["0.00", "0.01", "0.02", "0.05", "0.10"] as const;
+type RepairIncumbentOpportunityRun = {
+  sourceId: string;
+  seed: number;
+  maxDelta: number;
+  counts: Record<string, { crossed_watches: number; admissible_watches: number }>;
+};
+
 const args = process.argv.slice(2);
 const argument = (name: string): string | undefined =>
   args.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -90,6 +98,7 @@ const verified = readVerifiedArtifact(resolve(archivePath));
 const archive = JSON.parse(verified.bytes.toString("utf8"));
 const events: Event[] = [];
 const triggerRuns: SelectiveTriggerOpportunityRun[] = [];
+const repairIncumbentRuns: RepairIncumbentOpportunityRun[] = [];
 for (const row of archive.runs ?? []) {
   const stats = row.stats?.handoff_selective_backtracking;
   validateTournamentTelemetry(stats, `${row.task.sourceId}/seed-${row.task.actualSeed}`);
@@ -98,6 +107,14 @@ for (const row of archive.runs ?? []) {
       sourceId: row.task.sourceId,
       seed: row.task.actualSeed,
       stats,
+    });
+  }
+  if (stats?.repair_incumbent_regret_opportunities_by_min_axis_loss_delta !== undefined) {
+    repairIncumbentRuns.push({
+      sourceId: row.task.sourceId,
+      seed: row.task.actualSeed,
+      maxDelta: stats.repair_incumbent_axis_loss_delta_max,
+      counts: stats.repair_incumbent_regret_opportunities_by_min_axis_loss_delta,
     });
   }
   for (const event of stats?.events ?? []) {
@@ -263,6 +280,9 @@ const result = {
     },
     ...summarizeSelectiveTriggerOpportunities(triggerRuns),
   },
+  repair_incumbent_regret_opportunities: repairIncumbentRuns.length === 0
+    ? null
+    : summarizeRepairIncumbentOpportunities(repairIncumbentRuns),
   checkpoint_sign_stability: stability,
   zero_contradiction_rules: zeroContradiction,
   exploratory_rules: exploratory,
@@ -272,6 +292,84 @@ const result = {
     "Admission-margin rows likewise describe observed tournaments; they are not causal replay. " +
     "Checkpoint rules exclude multi-sibling tournaments because their winner label is not binary.",
 };
+
+function summarizeRepairIncumbentOpportunities(
+  runs: readonly RepairIncumbentOpportunityRun[],
+) {
+  for (const run of runs) {
+    if (!Number.isFinite(run.maxDelta) || run.maxDelta < 0) {
+      throw new Error(`${run.sourceId}/seed-${run.seed} has invalid incumbent-regret maximum`);
+    }
+    let previous: { crossed_watches: number; admissible_watches: number } | null = null;
+    for (const threshold of REPAIR_INCUMBENT_THRESHOLDS) {
+      const current = run.counts[threshold];
+      if (current === undefined) {
+        throw new Error(`${run.sourceId}/seed-${run.seed} lacks threshold ${threshold}`);
+      }
+      if (
+        !Number.isSafeInteger(current.crossed_watches) || current.crossed_watches < 0 ||
+        !Number.isSafeInteger(current.admissible_watches) || current.admissible_watches < 0 ||
+        current.admissible_watches > current.crossed_watches
+      ) {
+        throw new Error(`${run.sourceId}/seed-${run.seed} has invalid threshold ${threshold}`);
+      }
+      if (
+        previous !== null &&
+        (current.crossed_watches > previous.crossed_watches ||
+          current.admissible_watches > previous.admissible_watches)
+      ) {
+        throw new Error(`${run.sourceId}/seed-${run.seed} incumbent-regret counts are not nested`);
+      }
+      previous = current;
+    }
+  }
+  const sum = (values: readonly number[]) => values.reduce((total, value) => total + value, 0);
+  const summarizeThreshold = (
+    sourceRuns: readonly RepairIncumbentOpportunityRun[],
+    threshold: typeof REPAIR_INCUMBENT_THRESHOLDS[number],
+  ) => ({
+    crossed_watches: sum(sourceRuns.map((run) => run.counts[threshold]!.crossed_watches)),
+    admissible_watches: sum(sourceRuns.map((run) => run.counts[threshold]!.admissible_watches)),
+    runs_with_admissible_watch: sourceRuns.filter(
+      (run) => run.counts[threshold]!.admissible_watches > 0,
+    ).length,
+  });
+  const sourceIds = [...new Set(runs.map((run) => run.sourceId))];
+  return {
+    coverage: { runs: runs.length, sources: sourceIds.length },
+    max_axis_loss_delta: Math.max(...runs.map((run) => run.maxDelta)),
+    thresholds: Object.fromEntries(REPAIR_INCUMBENT_THRESHOLDS.map((threshold) => {
+      const summary = summarizeThreshold(runs, threshold);
+      const activeSources = new Set(runs.filter(
+        (run) => run.counts[threshold]!.admissible_watches > 0,
+      ).map((run) => run.sourceId));
+      return [threshold, { ...summary, sources_with_admissible_watch: activeSources.size }];
+    })),
+    by_source: sourceIds.map((sourceId) => {
+      const sourceRuns = runs.filter((run) => run.sourceId === sourceId);
+      return {
+        source_id: sourceId,
+        runs: sourceRuns.length,
+        thresholds: Object.fromEntries(REPAIR_INCUMBENT_THRESHOLDS.map(
+          (threshold) => [threshold, summarizeThreshold(sourceRuns, threshold)],
+        )),
+      };
+    }).sort((left, right) =>
+      right.thresholds["0.02"]!.admissible_watches -
+        left.thresholds["0.02"]!.admissible_watches ||
+      left.source_id.localeCompare(right.source_id)
+    ),
+    trust_checks: {
+      nonnegative_integer_counts: true,
+      admissible_not_above_crossed: true,
+      nested_threshold_counts: true,
+    },
+    caveat:
+      "Each row is a unique causal watch observed during production repair traversal. " +
+      "An admissible watch had its exact sibling live and enough conservative deadline margin. " +
+      "The map sizes possible actions; it does not replay their downstream scores.",
+  };
+}
 
 function validateTournamentTelemetry(stats: any, runKey: string): void {
   if (stats === undefined || !Array.isArray(stats.events)) return;
@@ -534,6 +632,35 @@ function print(analysis: typeof result): void {
         `additional ${String(threshold.additional_admissible_vs_production).padStart(4)}, ` +
         `runs ${threshold.runs_with_admissible_watch}/${row.runs}`,
       );
+    }
+  }
+  if (analysis.repair_incumbent_regret_opportunities !== null) {
+    const opportunity = analysis.repair_incumbent_regret_opportunities;
+    console.log(`\nREPAIR-INCUMBENT REGRET OPPORTUNITIES`);
+    console.log(
+      `  telemetry coverage ${opportunity.coverage.runs}/${analysis.scope.runs} runs; ` +
+      `${opportunity.coverage.sources} sources; max delta ${opportunity.max_axis_loss_delta.toFixed(4)}`,
+    );
+    for (const threshold of REPAIR_INCUMBENT_THRESHOLDS) {
+      const row = opportunity.thresholds[threshold]!;
+      console.log(
+        `  delta > ${threshold}: crossed ${String(row.crossed_watches).padStart(4)}, ` +
+        `admissible ${String(row.admissible_watches).padStart(4)}; ` +
+        `${row.runs_with_admissible_watch} runs / ${row.sources_with_admissible_watch} sources`,
+      );
+    }
+    const leaders = opportunity.by_source.filter(
+      (row) => row.thresholds["0.02"]!.admissible_watches > 0,
+    ).slice(0, 8);
+    if (leaders.length > 0) {
+      console.log(`  leading sources at delta > 0.02:`);
+      for (const row of leaders) {
+        console.log(
+          `    ${row.source_id.padEnd(56)} ` +
+          `admissible ${String(row.thresholds["0.02"]!.admissible_watches).padStart(4)}, ` +
+          `runs ${row.thresholds["0.02"]!.runs_with_admissible_watch}/${row.runs}`,
+        );
+      }
     }
   }
   console.log(`\nCHECKPOINT SIGN VS FULL-DEPTH WINNER`);

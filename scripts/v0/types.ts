@@ -507,6 +507,11 @@ export type CompileStats = {
       string,
       { crossed_watches: number; admissible_watches: number }
     >;
+    repair_incumbent_regret_opportunities_by_min_axis_loss_delta: Record<
+      string,
+      { crossed_watches: number; admissible_watches: number }
+    >;
+    repair_incumbent_axis_loss_delta_max: number;
     contact_expansions_observed: number;
     branch_watches_armed: number;
     branch_watches_by_alternative_count: Record<string, number>;

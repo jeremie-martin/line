@@ -15,6 +15,9 @@
 
 import modelJson from "./readiness_model.json" with { type: "json" };
 import aimImpactModelJson from "./aim_impact_model.json" with { type: "json" };
+import aimImpactResidualModelJson from "./aim_impact_residual_model.json" with {
+  type: "json",
+};
 import type { NextArcReadinessInput } from "./readiness_features.ts";
 import {
   parseReadinessModelArtifact,
@@ -25,6 +28,7 @@ import {
   READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
   type ReadinessScore,
   type ReadinessStudyAblation,
+  scoreImpactFeasibilityCheckpointsWithArtifact,
   scoreImpactFeasibilityWithArtifact,
   scoreReadinessWithArtifact,
 } from "./readiness_scoring.ts";
@@ -58,6 +62,33 @@ const READINESS_CONTEXT_BOOTSTRAP = (() => {
 
 let READINESS_MODEL = parseReadinessModelArtifact(modelJson);
 const AIM_IMPACT_MODEL = parseReadinessModelArtifact(aimImpactModelJson);
+const AIM_IMPACT_RESIDUAL_MODEL = parseReadinessModelArtifact(
+  aimImpactResidualModelJson,
+);
+const AIM_IMPACT_INCUMBENT_TREE_COUNT = (() => {
+  const incumbent = AIM_IMPACT_MODEL.components.impactFeasibility;
+  const residual = AIM_IMPACT_RESIDUAL_MODEL.components.impactFeasibility;
+  if (
+    incumbent?.family !== "hist_gradient_boosting_regressor" ||
+    residual?.family !== "hist_gradient_boosting_regressor"
+  ) {
+    throw new Error("aim impact incumbent and residual must be histogram ensembles");
+  }
+  if (
+    AIM_IMPACT_MODEL.featureNames.length !==
+      AIM_IMPACT_RESIDUAL_MODEL.featureNames.length ||
+    AIM_IMPACT_MODEL.featureNames.some(
+      (name, index) => name !== AIM_IMPACT_RESIDUAL_MODEL.featureNames[index],
+    ) ||
+    incumbent.initialPrediction !== residual.initialPrediction ||
+    residual.trees.length <= incumbent.trees.length ||
+    JSON.stringify(incumbent.trees) !==
+      JSON.stringify(residual.trees.slice(0, incumbent.trees.length))
+  ) {
+    throw new Error("aim impact residual does not preserve the incumbent prefix");
+  }
+  return incumbent.trees.length;
+})();
 const AIM_IMPACT_DISTILLED_VALIDATION_MAE = (() => {
   const value = (aimImpactModelJson as {
     distillation?: { validation?: { mae?: unknown } };
@@ -108,6 +139,18 @@ export function scoreDistilledAimImpactFeasibility(
   input: NextArcReadinessInput,
 ): number {
   return scoreImpactFeasibilityWithArtifact(input, AIM_IMPACT_MODEL);
+}
+
+/** Exact incumbent score plus the append-only realized-fit residual score.
+ * Both checkpoints share one feature extraction and one tree traversal. */
+export function scoreDistilledAimImpactFeasibilityPair(
+  input: NextArcReadinessInput,
+): { incumbent: number; residualAdjusted: number } {
+  return scoreImpactFeasibilityCheckpointsWithArtifact(
+    input,
+    AIM_IMPACT_RESIDUAL_MODEL,
+    AIM_IMPACT_INCUMBENT_TREE_COUNT,
+  );
 }
 
 /** Held-out absolute-error resolution of the shipped distilled impact model.

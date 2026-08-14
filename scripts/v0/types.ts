@@ -517,6 +517,19 @@ export type CompileStats = {
       repair: number;
       resumed: number;
     };
+    events: Array<{
+      lane: "initial" | "snapshot" | "repair" | "resumed";
+      branch_gap_index: number;
+      from_gap_index: number;
+      alternative_gap_index: number;
+      contact_advance: number;
+      gap_rewind: number;
+      baseline_axis_loss: number;
+      trigger_axis_loss: number;
+      axis_loss_delta: number;
+      trigger_total_spent_frames: number;
+      resumed_total_spent_frames: number | null;
+    }>;
   };
   /** Search-lane seed used for candidate sampling/start lookahead. Normally
    *  equals the public compile seed; diagnostics may vary it while keeping the

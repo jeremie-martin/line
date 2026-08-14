@@ -417,6 +417,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         budget: 100_000,
         polish: false,
       }), 100_000);
+      const repeated = checkpoint(compileHandoff(spec, 0, {
+        budget: 100_000,
+        polish: false,
+      }), 100_000);
+      expect(JSON.stringify(repeated)).toBe(JSON.stringify(result));
       const stats = result.stats.handoff_selective_backtracking;
       expect(stats).toBeDefined();
       expect(stats?.policy).toBe("selective_axis_regret");
@@ -428,6 +433,14 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       expect(stats?.suspended_continuations_resumed ?? 0).toBeGreaterThan(0);
       expect(stats?.suspended_continuations_resumed ?? Infinity)
         .toBeLessThanOrEqual(stats?.selective_backtracks ?? 0);
+      expect(stats?.events).toHaveLength(stats?.selective_backtracks ?? 0);
+      expect(stats?.events.every((event) =>
+        event.alternative_gap_index < event.from_gap_index &&
+        event.axis_loss_delta >= (stats?.min_axis_loss_delta ?? Infinity) &&
+        event.trigger_total_spent_frames > 0
+      )).toBe(true);
+      expect(stats?.events.filter((event) => event.resumed_total_spent_frames !== null))
+        .toHaveLength(stats?.suspended_continuations_resumed ?? 0);
       expect(result.stats.first_completion_frame).not.toBeNull();
       expect(result.stats.budget_exhausted).toBe(true);
     } finally {

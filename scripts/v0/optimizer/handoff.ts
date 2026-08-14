@@ -2712,7 +2712,10 @@ function compileHandoffInternal(
           tail_completion_frames: afterTail - afterMain,
           post_tail_work_frames: end - afterTail,
           spent_frames: end - atomicStart,
-          result: result.kind,
+          // Budget Telemetry V9's atomic result is a disposition, not the
+          // policy cause. Selective suspension is therefore `deferred`; its
+          // exact causal event lives in the opt-in frontier-policy telemetry.
+          result: result.kind === "selective_backtrack" ? "deferred" : result.kind,
           register_improvements: register.improvementCount - registerImprovementsBefore,
           terminal_node_evaluations: terminalConsiders - terminalConsidersBefore,
           tail_attempts: telemetry.tailCompletionAttempts - tailAttemptsBefore,
@@ -2759,6 +2762,7 @@ function compileHandoffInternal(
           axisLoss: authoredPrefixAxisLoss(node.search),
           deadlinePressured: deadlinePressure(deadlineMarginAt(node.search)) > 0,
           executionCeilingReached: !traversalCanContinue(),
+          totalSpentFrames: getSimFrames(),
           lane,
           alternativeAvailable,
         });
@@ -2954,7 +2958,8 @@ function compileHandoffInternal(
         if (!keepGoing()) break;
         const node = popNextFrontierNode(pass, fb);
         selectiveBacktracking?.observeRoot(node);
-        const resumeSuspendedContinuation = selectiveBacktracking?.observeSelected(node) ?? false;
+        const resumeSuspendedContinuation =
+          selectiveBacktracking?.observeSelected(node, getSimFrames()) ?? false;
         if (handoffFrontierProbeHook !== null) {
           handoffFrontierProbeHook({
             simFrames: getSimFrames(),

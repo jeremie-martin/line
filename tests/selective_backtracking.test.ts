@@ -43,18 +43,23 @@ describe("selective-backtracking controller", () => {
       axisLoss: 0.61,
       deadlinePressured: false,
       executionCeilingReached: false,
+      totalSpentFrames: 100,
       lane: "initial",
       alternativeAvailable: (node) => node === alternative,
     });
     expect(decision?.alternative).toBe(alternative);
     expect(decision?.contactAdvance).toBe(2);
     expect(decision?.gapRewind).toBe(1);
+    controller.markSuspended(descendant);
+    expect(controller.observeSelected({ gap: 5, name: "different" }, 120)).toBe(false);
+    expect(controller.observeSelected(descendant, 140)).toBe(true);
     expect(controller.consider({
       node: descendant,
       contactOrdinal: 6,
       axisLoss: 1,
       deadlinePressured: false,
       executionCeilingReached: false,
+      totalSpentFrames: 101,
       lane: "initial",
       alternativeAvailable: () => true,
     })).toBeNull();
@@ -62,7 +67,15 @@ describe("selective-backtracking controller", () => {
       branch_watches_armed: 1,
       loss_threshold_crossings: 1,
       selective_backtracks: 1,
+      suspended_continuations_resumed: 1,
       selective_backtracks_by_lane: { initial: 1, snapshot: 0, repair: 0, resumed: 0 },
+      events: [{
+        branch_gap_index: 3,
+        from_gap_index: 5,
+        alternative_gap_index: 4,
+        trigger_total_spent_frames: 100,
+        resumed_total_spent_frames: 140,
+      }],
     });
   });
 
@@ -85,6 +98,7 @@ describe("selective-backtracking controller", () => {
       axisLoss: 1,
       deadlinePressured: false,
       executionCeilingReached: false,
+      totalSpentFrames: 10,
       lane: "repair",
       alternativeAvailable: () => true,
     })).toBeNull();
@@ -101,6 +115,7 @@ describe("selective-backtracking controller", () => {
       axisLoss: 0.5,
       deadlinePressured: true,
       executionCeilingReached: false,
+      totalSpentFrames: 20,
       lane: "repair",
       alternativeAvailable: () => true,
     })).toBeNull();
@@ -137,6 +152,7 @@ describe("selective-backtracking controller", () => {
       axisLoss: 0.3,
       deadlinePressured: false,
       executionCeilingReached: false,
+      totalSpentFrames: 30,
       lane: "resumed",
       alternativeAvailable: () => false,
     })).toBeNull();
@@ -146,14 +162,10 @@ describe("selective-backtracking controller", () => {
     });
   });
 
-  test("counts a suspended continuation only when it is selected again", () => {
+  test("rejects suspension without a causal decision", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap);
     const node = { gap: 8, name: "suspended" };
-    controller.markSuspended(node);
-    expect(controller.observeSelected({ gap: 8, name: "different object" })).toBe(false);
-    expect(controller.snapshot().suspended_continuations_resumed).toBe(0);
-    expect(controller.observeSelected(node)).toBe(true);
-    expect(controller.observeSelected(node)).toBe(false);
-    expect(controller.snapshot().suspended_continuations_resumed).toBe(1);
+    // Use a real decision: suspension without a decision is an invariant error.
+    expect(() => controller.markSuspended(node)).toThrow(/without a causal event/);
   });
 });

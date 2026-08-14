@@ -103,6 +103,9 @@ enabled it records:
 - executed selective backtracks and resumed suspended continuations;
 - sums/maxima for loss delta, contact advance, and gap rewind;
 - executed backtracks split by initial, snapshot, repair, and resumed lane.
+- one event per executed backtrack with its causal branch/current/alternative
+  gaps, baseline and trigger loss, charged-frame timestamp, and nullable
+  resumption timestamp.
 
 The metric `selective_backtracks` means an actual frontier reorder. A signal
 crossing that deadline policy suppresses is not a backtrack.

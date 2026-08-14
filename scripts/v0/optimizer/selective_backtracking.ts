@@ -59,6 +59,21 @@ export type SelectiveBacktrackingStats = {
   gap_rewind_sum: number;
   gap_rewind_max: number;
   selective_backtracks_by_lane: Record<FrontierTraversalLane, number>;
+  events: SelectiveBacktrackingEvent[];
+};
+
+export type SelectiveBacktrackingEvent = {
+  lane: FrontierTraversalLane;
+  branch_gap_index: number;
+  from_gap_index: number;
+  alternative_gap_index: number;
+  contact_advance: number;
+  gap_rewind: number;
+  baseline_axis_loss: number;
+  trigger_axis_loss: number;
+  axis_loss_delta: number;
+  trigger_total_spent_frames: number;
+  resumed_total_spent_frames: number | null;
 };
 
 function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
@@ -77,7 +92,7 @@ export class SelectiveAxisRegretController<Node extends object> {
   readonly policy = "selective_axis_regret" as const;
 
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
-  private readonly suspended = new WeakSet<Node>();
+  private readonly suspended = new WeakMap<Node, number>();
   private readonly stats: SelectiveBacktrackingStats = {
     policy: "selective_axis_regret",
     min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
@@ -98,6 +113,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     gap_rewind_sum: 0,
     gap_rewind_max: 0,
     selective_backtracks_by_lane: emptyLaneCounter(),
+    events: [],
   };
 
   constructor(private readonly gapIndexOf: (node: Node) => number) {}
@@ -108,9 +124,10 @@ export class SelectiveAxisRegretController<Node extends object> {
 
   replaceNode(previous: Node, replacement: Node): void {
     this.lineage.set(replacement, this.lineage.get(previous) ?? null);
-    if (!this.suspended.has(previous)) return;
+    const eventIndex = this.suspended.get(previous);
+    if (eventIndex === undefined) return;
     this.suspended.delete(previous);
-    this.suspended.add(replacement);
+    this.suspended.set(replacement, eventIndex);
   }
 
   /** Propagate all ancestor watches to every child and arm one new watch only
@@ -148,6 +165,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     axisLoss: number;
     deadlinePressured: boolean;
     executionCeilingReached: boolean;
+    totalSpentFrames: number;
     lane: FrontierTraversalLane;
     alternativeAvailable: (node: Node) => boolean;
   }): SelectiveBacktrackDecision<Node> | null {
@@ -196,6 +214,21 @@ export class SelectiveAxisRegretController<Node extends object> {
       this.stats.contact_advance_max = Math.max(this.stats.contact_advance_max, contactAdvance);
       this.stats.gap_rewind_sum += gapRewind;
       this.stats.gap_rewind_max = Math.max(this.stats.gap_rewind_max, gapRewind);
+      const eventIndex = this.stats.events.length;
+      this.stats.events.push({
+        lane: input.lane,
+        branch_gap_index: watch.branchGapIndex,
+        from_gap_index: fromGapIndex,
+        alternative_gap_index: targetGapIndex,
+        contact_advance: contactAdvance,
+        gap_rewind: gapRewind,
+        baseline_axis_loss: watch.baselineAxisLoss,
+        trigger_axis_loss: input.axisLoss,
+        axis_loss_delta: axisLossDelta,
+        trigger_total_spent_frames: input.totalSpentFrames,
+        resumed_total_spent_frames: null,
+      });
+      this.suspended.set(input.node, eventIndex);
       return {
         alternative: watch.alternative,
         branchGapIndex: watch.branchGapIndex,
@@ -209,12 +242,16 @@ export class SelectiveAxisRegretController<Node extends object> {
   }
 
   markSuspended(node: Node): void {
-    this.suspended.add(node);
+    if (!this.suspended.has(node)) {
+      throw new Error("selective backtrack suspended a node without a causal event");
+    }
   }
 
-  observeSelected(node: Node): boolean {
-    if (!this.suspended.has(node)) return false;
+  observeSelected(node: Node, totalSpentFrames: number): boolean {
+    const eventIndex = this.suspended.get(node);
+    if (eventIndex === undefined) return false;
     this.suspended.delete(node);
+    this.stats.events[eventIndex]!.resumed_total_spent_frames = totalSpentFrames;
     this.stats.suspended_continuations_resumed++;
     return true;
   }
@@ -223,6 +260,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     return {
       ...this.stats,
       selective_backtracks_by_lane: { ...this.stats.selective_backtracks_by_lane },
+      events: this.stats.events.map((event) => ({ ...event })),
     };
   }
 }

@@ -580,7 +580,10 @@ export type BudgetAtomicNodeTelemetry = {
   tail_completion_frames: number;
   post_tail_work_frames: number;
   spent_frames: number;
-  result: "captured" | "deferred" | "expanded" | "terminal_limit" | "selective_backtrack";
+  /** Atomic disposition. `deferred` includes both a node's built-in deferred
+   *  expansion and policy-directed selective suspension; the latter's causal
+   *  event is recorded by `handoff_selective_backtracking`. */
+  result: "captured" | "deferred" | "expanded" | "terminal_limit";
   register_improvements: number;
   terminal_node_evaluations: number;
   tail_attempts: number;

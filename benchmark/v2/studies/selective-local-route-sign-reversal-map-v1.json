@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-local-route-sign-reversal-map-study.v1",
-  "status": "predeclared-behavior-neutral-map",
+  "status": "closed-map-guard-not-authorized",
   "generated_at": "2026-08-14",
   "question": "When a proper discrepancy route starts with a positive exact prefix gain but later loses at the tournament target, does its exact current-relative prefix gain usually turn non-positive early enough to stop material losing work, and does it rarely recover afterward?",
   "relationship_to_prior_arm": {
@@ -42,6 +42,36 @@
     "seed_reuse_reason": "These seeds and the prior live arm are deliberately reused only to characterize already-observed route mechanics. Score and validity movement are excluded from selection evidence.",
     "selection_rule": "Build exactly the fixed sign-guard successor only if a first non-positive intermediate gain occurs on at least 12 local routes spanning at least six runs and both requested sources, no more than 10% of those routes recover to a strict target win, and at least 100000 measured local-probe frames occur after the first sign reversal. Otherwise close this guard without a live arm.",
     "next_step_if_selected": "Implement one environment-selected proper-discrepancy sign-guard arm, prove its stop identity and one-action bounds in telemetry, and run a fresh focused 750k screen on actual seeds 120-127 before any catalog or canonical evaluation.",
-    "non_claim": "Observed work after a sign reversal is an upper-bound opportunity in the completed route, not a causal replay or a score estimate. The map cannot authorize promotion, canonical evaluation, or a multi-budget sweep."
+    "non_claim": "Observed work after a sign reversal is an upper-bound opportunity in the completed route, not a causal replay or a score estimate. The map cannot authorize promotion, canonical evaluation, or a multi-budget sweep.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-local-route-sign-reversal-map-n8",
+      "identity": {
+        "cells": 40,
+        "both_valid": 40,
+        "changed_tracks": 0,
+        "score_sum_delta": 0
+      },
+      "route_progress": {
+        "proper_local_routes": 32,
+        "routes_with_intermediate_checkpoint": 21,
+        "routes_with_first_nonpositive_gain": 17,
+        "affected_runs": 11,
+        "affected_sources": [
+          "believer_impact_56s",
+          "believer_impact_56s_amplitude_plus_5"
+        ],
+        "recovered_to_strict_target_win": 2,
+        "recovery_rate": 0.11764705882352941,
+        "did_not_recover_to_strict_target_win": 15,
+        "measured_probe_frames_after_first_reversal": 250899
+      },
+      "decision": "Close without a live sign-guard arm. Event breadth, run/source breadth, and measured-work gates pass, but two of 17 reversing routes recover to a strict target win (11.76%), above the prospectively fixed 10% ceiling.",
+      "interpretation": "Intermediate prefix sign contains useful route-progress information, but a first-crossing stop is not clean enough: it would suppress observed winning routes. The next scheduler must add new categorical evidence, such as persistence or remaining-work context, and predeclare it independently rather than relax this fitted boundary.",
+      "sha256": {
+        "candidate": "3066dfaaee8c5fbe7e7b86763f6b89b67a0feccf845ea260ef6238c7332c63f1",
+        "report": "284162f95d543cce1634abf2b571a12dbfeccee1b4e1f294a54d3ea58b54e5ee",
+        "selective_analysis": "8eeaf34d895c465df6292ef71d41571e91efe9d998f59c56ee4bd4efb0c4df04"
+      }
+    }
   }
 }

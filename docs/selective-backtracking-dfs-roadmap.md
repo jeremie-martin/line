@@ -1013,3 +1013,14 @@ occur on at least 12 routes across six runs and both believer sources, at most
 follow those reversals. That successor would stop the local route at the first
 such checkpoint. The observation remains non-causal: only a fresh live screen
 can measure the changed frontier timing and final score.
+
+The map passes exact identity across all 40 cells. Of 32 proper local routes,
+21 have a genuinely intermediate checkpoint and 17 first become non-positive,
+spanning 11 runs and both sources. A material 250,899 measured probe frames
+follow those first reversals. Two of the 17 routes nevertheless recover to a
+strict win at equal depth: 11.76%, above the prospectively fixed 10% ceiling.
+The breadth and work gates pass, but the recovery gate does not, so the exact
+first-crossing guard closes without a live arm. Prefix sign is informative, not
+yet sufficient. A successor needs a new categorical signal such as persistence
+or remaining-work context; it must not relax the observed threshold after the
+fact.

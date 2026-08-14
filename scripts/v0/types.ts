@@ -495,12 +495,12 @@ export type CompileStats = {
   handoff_selective_backtracking?: {
     policy:
       | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_min_gain_0025"
-      | "selective_axis_regret_catchup_min_gain_005"
-      | "selective_axis_regret_catchup_min_gain_01";
+      | "selective_axis_regret_catchup_tolerance_0025"
+      | "selective_axis_regret_catchup_tolerance_005"
+      | "selective_axis_regret_catchup_tolerance_01";
     min_contact_advance: number;
     min_axis_loss_delta: number;
-    min_catchup_axis_loss_gain: number;
+    catchup_axis_loss_gain_threshold: number;
     contact_expansions_observed: number;
     branch_watches_armed: number;
     mature_watch_checks: number;

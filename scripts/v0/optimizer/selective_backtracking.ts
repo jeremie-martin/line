@@ -1,8 +1,8 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_min_gain_0025"
-  | "selective_axis_regret_catchup_min_gain_005"
-  | "selective_axis_regret_catchup_min_gain_01";
+  | "selective_axis_regret_catchup_tolerance_0025"
+  | "selective_axis_regret_catchup_tolerance_005"
+  | "selective_axis_regret_catchup_tolerance_01";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -15,26 +15,26 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
-  if (raw === "selective-axis-regret-catchup-min-gain-0.0025") {
-    return "selective_axis_regret_catchup_min_gain_0025";
+  if (raw === "selective-axis-regret-catchup-tolerance-0.0025") {
+    return "selective_axis_regret_catchup_tolerance_0025";
   }
-  if (raw === "selective-axis-regret-catchup-min-gain-0.005") {
-    return "selective_axis_regret_catchup_min_gain_005";
+  if (raw === "selective-axis-regret-catchup-tolerance-0.005") {
+    return "selective_axis_regret_catchup_tolerance_005";
   }
-  if (raw === "selective-axis-regret-catchup-min-gain-0.01") {
-    return "selective_axis_regret_catchup_min_gain_01";
+  if (raw === "selective-axis-regret-catchup-tolerance-0.01") {
+    return "selective_axis_regret_catchup_tolerance_01";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or a ` +
-      `selective-axis-regret-catchup-min-gain-{0.0025,0.005,0.01} study arm; got ${raw}`,
+      `selective-axis-regret-catchup-tolerance-{0.0025,0.005,0.01} study arm; got ${raw}`,
   );
 }
 
-export function catchupMinimumAxisLossGain(policy: SelectiveCatchupPolicy): number {
-  if (policy === "selective_axis_regret_catchup_min_gain_0025") return 0.0025;
-  if (policy === "selective_axis_regret_catchup_min_gain_005") return 0.005;
-  if (policy === "selective_axis_regret_catchup_min_gain_01") return 0.01;
+export function catchupAxisLossGainThreshold(policy: SelectiveCatchupPolicy): number {
+  if (policy === "selective_axis_regret_catchup_tolerance_0025") return -0.0025;
+  if (policy === "selective_axis_regret_catchup_tolerance_005") return -0.005;
+  if (policy === "selective_axis_regret_catchup_tolerance_01") return -0.01;
   return 0;
 }
 
@@ -43,7 +43,7 @@ export function catchupAlternativeHasSufficientGain(
   currentAxisLoss: number,
   alternativeAxisLoss: number,
 ): boolean {
-  return currentAxisLoss - alternativeAxisLoss > catchupMinimumAxisLossGain(policy);
+  return currentAxisLoss - alternativeAxisLoss > catchupAxisLossGainThreshold(policy);
 }
 
 type AxisRegretWatch<Node extends object> = {
@@ -83,7 +83,7 @@ export type SelectiveBacktrackingStats = {
   policy: SelectiveCatchupPolicy;
   min_contact_advance: number;
   min_axis_loss_delta: number;
-  min_catchup_axis_loss_gain: number;
+  catchup_axis_loss_gain_threshold: number;
   contact_expansions_observed: number;
   branch_watches_armed: number;
   mature_watch_checks: number;
@@ -176,7 +176,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       policy: this.policy,
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
       min_axis_loss_delta: SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA,
-      min_catchup_axis_loss_gain: catchupMinimumAxisLossGain(this.policy),
+      catchup_axis_loss_gain_threshold: catchupAxisLossGainThreshold(this.policy),
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       mature_watch_checks: 0,

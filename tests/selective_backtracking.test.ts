@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   catchupAlternativeHasSufficientGain,
-  catchupMinimumAxisLossGain,
+  catchupAxisLossGainThreshold,
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
 } from "../scripts/v0/optimizer/selective_backtracking.ts";
@@ -17,40 +17,40 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-min-gain-0.0025"))
-      .toBe("selective_axis_regret_catchup_min_gain_0025");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-min-gain-0.005"))
-      .toBe("selective_axis_regret_catchup_min_gain_005");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-min-gain-0.01"))
-      .toBe("selective_axis_regret_catchup_min_gain_01");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-tolerance-0.0025"))
+      .toBe("selective_axis_regret_catchup_tolerance_0025");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-tolerance-0.005"))
+      .toBe("selective_axis_regret_catchup_tolerance_005");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-tolerance-0.01"))
+      .toBe("selective_axis_regret_catchup_tolerance_01");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("best-first")).toThrow(/LR_FRONTIER_POLICY/);
   });
 
-  test("resolves predeclared equal-depth selection margins", () => {
-    expect(catchupMinimumAxisLossGain("selective_axis_regret_catchup")).toBe(0);
-    expect(catchupMinimumAxisLossGain("selective_axis_regret_catchup_min_gain_0025"))
-      .toBe(0.0025);
-    expect(catchupMinimumAxisLossGain("selective_axis_regret_catchup_min_gain_005"))
-      .toBe(0.005);
-    expect(catchupMinimumAxisLossGain("selective_axis_regret_catchup_min_gain_01"))
-      .toBe(0.01);
+  test("resolves predeclared equal-depth alternative tolerances", () => {
+    expect(catchupAxisLossGainThreshold("selective_axis_regret_catchup")).toBe(0);
+    expect(catchupAxisLossGainThreshold("selective_axis_regret_catchup_tolerance_0025"))
+      .toBe(-0.0025);
+    expect(catchupAxisLossGainThreshold("selective_axis_regret_catchup_tolerance_005"))
+      .toBe(-0.005);
+    expect(catchupAxisLossGainThreshold("selective_axis_regret_catchup_tolerance_01"))
+      .toBe(-0.01);
     expect(catchupAlternativeHasSufficientGain(
       "selective_axis_regret_catchup",
       0.5,
       0.4999,
     )).toBe(true);
     expect(catchupAlternativeHasSufficientGain(
-      "selective_axis_regret_catchup_min_gain_005",
+      "selective_axis_regret_catchup_tolerance_005",
       0.5,
-      0.496,
-    )).toBe(false);
-    expect(catchupAlternativeHasSufficientGain(
-      "selective_axis_regret_catchup_min_gain_005",
-      0.5,
-      0.494,
+      0.504,
     )).toBe(true);
+    expect(catchupAlternativeHasSufficientGain(
+      "selective_axis_regret_catchup_tolerance_005",
+      0.5,
+      0.506,
+    )).toBe(false);
   });
 
   test("fires once on a mature causal watch and names its concrete sibling", () => {

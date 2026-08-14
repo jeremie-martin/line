@@ -410,3 +410,10 @@ tiny positive equal-depth axis gains are useful. It also motivates the mirror
 experiment. The strict zero boundary may be too conservative if a nearly tied
 alternative offers path diversity or better downstream potential. A symmetric
 tolerance bracket can test that with the same work and the same paired funnel.
+
+The mirror study arms therefore set the equal-depth gain threshold to -0.0025,
+-0.005, or -0.01. In the checkpoint panel those doses would newly select 13,
+37, and 62 of the 123 alternatives currently classed as losers. The default
+remains a strict positive-gain comparison. As with the rejected positive
+margin, admission and catch-up work do not change; only which equal-depth prefix
+receives traversal priority changes.

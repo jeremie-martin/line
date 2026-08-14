@@ -8,8 +8,11 @@ type Node = { gap: number; name: string };
 
 describe("selective-backtracking controller", () => {
   test("parses a strict categorical frontier policy", () => {
-    expect(parseFrontierTraversalPolicy(undefined)).toBe("depth_first");
+    expect(parseFrontierTraversalPolicy(undefined)).toBe("selective_axis_regret_catchup");
+    expect(parseFrontierTraversalPolicy("")).toBe("selective_axis_regret_catchup");
     expect(parseFrontierTraversalPolicy("dfs")).toBe("depth_first");
+    expect(parseFrontierTraversalPolicy("off")).toBe("depth_first");
+    expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret"))

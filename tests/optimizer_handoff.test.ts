@@ -383,7 +383,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     })).toThrow(/policyBudget .* exceeds hard budget/);
   }, 60_000);
 
-  test("explicit DFS frontier policy is byte-identical to the unset default", async () => {
+  test("accepted catch-up policy is byte-identical to the unset production default", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previous = process.env.LR_FRONTIER_POLICY;
     try {
@@ -393,14 +393,32 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         maxNodes: 12,
         polish: false,
       }), 20_000);
-      process.env.LR_FRONTIER_POLICY = "dfs";
+      process.env.LR_FRONTIER_POLICY = "selective-axis-regret-catchup";
       const explicit = checkpoint(compileHandoff(spec, 2, {
         budget: 20_000,
         maxNodes: 12,
         polish: false,
       }), 20_000);
       expect(JSON.stringify(explicit)).toBe(JSON.stringify(implicit));
-      expect(explicit.stats.handoff_selective_backtracking).toBeUndefined();
+      expect(explicit.stats.handoff_selective_backtracking?.policy)
+        .toBe("selective_axis_regret_catchup");
+    } finally {
+      if (previous === undefined) delete process.env.LR_FRONTIER_POLICY;
+      else process.env.LR_FRONTIER_POLICY = previous;
+    }
+  }, 60_000);
+
+  test("explicit DFS remains an available diagnostic control", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const previous = process.env.LR_FRONTIER_POLICY;
+    try {
+      process.env.LR_FRONTIER_POLICY = "dfs";
+      const result = compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      });
+      expect(result.stats.handoff_selective_backtracking).toBeUndefined();
     } finally {
       if (previous === undefined) delete process.env.LR_FRONTIER_POLICY;
       else process.env.LR_FRONTIER_POLICY = previous;

@@ -6,10 +6,10 @@ export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
-  if (raw === undefined || raw === "" || raw === "0" || raw === "off" || raw === "dfs") {
-    return "depth_first";
+  if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
+    return "selective_axis_regret_catchup";
   }
-  if (raw === "selective-axis-regret-catchup") return "selective_axis_regret_catchup";
+  if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs or selective-axis-regret-catchup; got ${raw}`,
   );

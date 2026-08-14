@@ -267,9 +267,11 @@ read wall time or benchmark identity.
 
 ### Implemented clean-break arm
 
-`LR_FRONTIER_POLICY=selective-axis-regret-catchup` enables the successor. The
+The accepted successor is the unset production policy.
+`LR_FRONTIER_POLICY=selective-axis-regret-catchup` names it explicitly, while
+`LR_FRONTIER_POLICY=dfs` retains the old traversal as a diagnostic control. The
 closed V1 environment value is rejected; its compiler snapshot remains bound to
-the retained study artifact, so the live code has one experimental strategy.
+the retained study artifact, so the live code has one selective strategy.
 
 For each admitted trigger, the scheduler removes the exact causal sibling from
 the ordinary frontier and follows only its preferred viable child until it
@@ -319,6 +321,7 @@ This result establishes only that this first bounded-catch-up scheme is useful
 at the canonical 750k budget. It does not rank selective-backtracking families,
 identify a best trigger or excursion rule, establish higher-budget behavior,
 or imply that the strategy space is close to exhausted. It is positive evidence
-for continuing the general direction. The environment-gated arm must still be
-made the unset production behavior and reconfirmed with matching compiler
-provenance before the campaign baseline is promoted.
+for continuing the general direction. The formerly environment-gated arm was
+subsequently made the unset production behavior. Because that source change
+gives it a new compiler identity, the canonical result must be reproduced with
+no policy environment before the campaign baseline is promoted.

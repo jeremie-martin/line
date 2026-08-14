@@ -63,8 +63,9 @@ frontier operations.
 
 ## First policy: authored-axis regret V1
 
-`LR_FRONTIER_POLICY=selective-axis-regret` enables the first conservative arm.
-The default is ordinary DFS.
+The retained V1 study snapshot used
+`LR_FRONTIER_POLICY=selective-axis-regret`. That closed value is no longer a
+live compiler mode; the default remains ordinary DFS.
 
 At every contact branch point, the controller remembers the leader, its next
 ranked sibling, the committed-contact ordinal, and the leader's prefix
@@ -136,6 +137,7 @@ crossing that deadline policy suppresses is not a backtrack.
 | 2026-08-14 | Deterministic verification | complete | 47 focused controller/deadline/handoff tests pass; unset default equals explicit DFS as a complete serialized checkpoint; enabled runs are deterministic |
 | 2026-08-14 | Repair-disabled mechanism probe | complete | One-budget panels below; zero unavailable alternatives and no validity loss after the target-aware deadline correction |
 | 2026-08-14 | Canonical V1 evaluation | complete, inconclusive | N=48: delta +0.0035 +/- 0.0340 SE, 95% interval [-0.0878, +0.0948], directional P+ 54.08%; validity unchanged at 2,111/2,112 |
+| 2026-08-14 | Bounded equal-depth catch-up | implemented, verifying | Clean-break `selective-axis-regret-catchup` arm; focused 47/47 tests pass; active 750k probe reaches five tournaments with no starvation |
 
 ## Initial mechanism evidence
 
@@ -259,6 +261,39 @@ This is one especially direct follow-up, not a claim that the scheme space has
 been exhausted or ranked conclusively. Other promising families include local
 watch expiry, score-relative repair traversal, budget-dependent rewind depth,
 interleaved subtree quanta, and alternative target selection. The excursion is
-a general frontier strategy, not repair. Its bound must be expressed in search
-work and remaining-budget evidence, not wall time or benchmark identity. The
-governed V1 attempt must finish before a successor is implemented or evaluated.
+a general frontier strategy, not repair. Its bound is the suspended prefix's
+exact authored gap, with ordinary fixed-budget deadline admission; it does not
+read wall time or benchmark identity.
+
+### Implemented clean-break arm
+
+`LR_FRONTIER_POLICY=selective-axis-regret-catchup` enables the successor. The
+closed V1 environment value is rejected; its compiler snapshot remains bound to
+the retained study artifact, so the live code has one experimental strategy.
+
+For each admitted trigger, the scheduler removes the exact causal sibling from
+the ordinary frontier and follows only its preferred viable child until it
+reaches the suspended prefix's exact gap. Every non-preferred child created by
+that work is retained in its normal frontier lane. Voluntary nested backtracks
+are disabled during the probe. At equal gap, the two prefixes have the same
+authored history: the lower authored-prefix axis loss continues and the other
+prefix remains queued. A dead end, deferred node, or local execution ceiling
+returns immediately to the suspended prefix.
+
+Telemetry closes every trigger with catch-up outcome, end gap, processed nodes,
+charged frames, equal-depth axis loss and gain, selected side, and later
+resumption. Aggregate counters distinguish completed tournaments, current vs
+alternative selection, dead ends, deferrals, and ceiling stops.
+
+On the repair-disabled `believer_impact_56s` seed-0 750k mechanism probe:
+
+- five excursions all reached equal depth;
+- three retained the current prefix and two selected the alternative;
+- four suspended prefixes resumed (V1 resumed none on this probe);
+- 59 preferred-path nodes and 288,947 frames were charged to catch-up;
+- first completion was 422,333, versus 557,454 for V1 and 264,682 for DFS.
+
+This is mechanism evidence, not a performance conclusion. It confirms that the
+new disposition prevents whole-subtree starvation and makes a measured
+like-for-like decision. It also exposes probe work as the next quantity whose
+value must be tested.

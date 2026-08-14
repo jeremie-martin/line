@@ -216,6 +216,7 @@ import {
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
   type FrontierTraversalLane,
+  type SelectiveBacktrackDecision,
 } from "./selective_backtracking.ts";
 import {
   applyImpactWindowAccelerationAfterReference,
@@ -2118,7 +2119,7 @@ function compileHandoffInternal(
     );
     const passStack: HandoffNode[] = root.skippedContacts === 0 ? [root] : [];
     const fallbackStack: HandoffNode[] = root.skippedContacts === 0 ? [] : [root];
-    const selectiveBacktracking = frontierTraversalPolicy === "selective_axis_regret"
+    const selectiveBacktracking = frontierTraversalPolicy === "selective_axis_regret_catchup"
       ? new SelectiveAxisRegretController<HandoffNode>((node) => node.search.gapIndex)
       : null;
     selectiveBacktracking?.observeRoot(root);
@@ -2656,7 +2657,7 @@ function compileHandoffInternal(
       | { kind: "captured" }
       | { kind: "terminal_limit" }
       | { kind: "deferred" }
-      | { kind: "selective_backtrack"; alternative: HandoffNode }
+      | { kind: "selective_backtrack"; decision: SelectiveBacktrackDecision<HandoffNode> }
       | { kind: "expanded"; children: HandoffNode[] };
     let activeTerminalConsiderLimit: number | null = null;
     let observedAtomicCostPerCandidateUpper = 0;
@@ -2680,6 +2681,7 @@ function compileHandoffInternal(
       alternativeAvailable: (candidate: HandoffNode) => boolean,
       resumeSuspendedContinuation: boolean,
       traversalCanContinue: () => boolean,
+      allowSelectiveBacktracking = true,
     ): ProcessResult => {
       const atomicStart = getSimFrames();
       const registerImprovementsBefore = register.improvementCount;
@@ -2758,6 +2760,7 @@ function compileHandoffInternal(
         return finishAtomic({ kind: "terminal_limit" });
       }
       if (
+        allowSelectiveBacktracking &&
         selectiveBacktracking !== null &&
         !nodeTerminal &&
         node.skippedContacts === 0
@@ -2778,7 +2781,7 @@ function compileHandoffInternal(
         if (decision !== null) {
           return finishAtomic({
             kind: "selective_backtrack",
-            alternative: decision.alternative,
+            decision,
           });
         }
       }
@@ -2963,12 +2966,12 @@ function compileHandoffInternal(
       lane: FrontierTraversalLane,
       onProcessed?: () => void,
     ): void => {
-      while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
-        if (!keepGoing()) break;
-        const node = popNextFrontierNode(pass, fb);
+      const processSelected = (
+        node: HandoffNode,
+        resumeSuspendedContinuation: boolean,
+        allowSelectiveBacktracking: boolean,
+      ): ProcessResult => {
         selectiveBacktracking?.observeRoot(node);
-        const resumeSuspendedContinuation =
-          selectiveBacktracking?.observeSelected(node, getSimFrames()) ?? false;
         if (handoffFrontierProbeHook !== null) {
           handoffFrontierProbeHook({
             simFrames: getSimFrames(),
@@ -2996,22 +2999,111 @@ function compileHandoffInternal(
           (candidate) => frontierContains(candidate, pass, fb),
           resumeSuspendedContinuation,
           keepGoing,
+          allowSelectiveBacktracking,
         );
         onProcessed?.();
+        return result;
+      };
+
+      /** Give one causal sibling a bounded preferred-path excursion to the
+       * suspended prefix's exact gap. At equal authored history, continue the
+       * lower-loss prefix and retain the other as ordinary frontier work. */
+      const runCatchup = (
+        suspended: HandoffNode,
+        decision: SelectiveBacktrackDecision<HandoffNode>,
+      ): boolean => {
+        if (!takeFrontierNode(decision.alternative, pass, fb)) {
+          throw new Error("selective catch-up alternative left the synchronous frontier");
+        }
+        selectiveBacktracking!.markSuspended(suspended);
+        const startFrames = getSimFrames();
+        let probe = decision.alternative;
+        let probeNodesProcessed = 0;
+        let resumeProbe = selectiveBacktracking!.observeSelected(probe, startFrames);
+        const finish = (
+          outcome:
+            | "alternative_selected"
+            | "current_selected"
+            | "probe_dead_end"
+            | "probe_deferred"
+            | "execution_ceiling",
+          catchupAxisLoss: number | null,
+        ): void => {
+          selectiveBacktracking!.finishCatchup(decision, {
+            outcome,
+            endGapIndex: probe.search.gapIndex,
+            probeNodesProcessed,
+            probeFrames: getSimFrames() - startFrames,
+            catchupAxisLoss,
+          });
+        };
+
+        while (probe.search.gapIndex < decision.fromGapIndex) {
+          if (!keepGoing() || telemetry.nodesExpanded >= maxNodes) {
+            finish("execution_ceiling", null);
+            enqueueChild(probe, pass, fb);
+            enqueueChild(suspended, pass, fb);
+            return true;
+          }
+          const result = processSelected(probe, resumeProbe, false);
+          resumeProbe = false;
+          probeNodesProcessed++;
+          if (result.kind === "captured" || result.kind === "terminal_limit") {
+            finish("execution_ceiling", null);
+            return true;
+          }
+          if (result.kind === "selective_backtrack") {
+            throw new Error("nested selective backtrack escaped catch-up isolation");
+          }
+          if (result.kind === "deferred") {
+            const replacement = { ...probe, deferExpansion: false };
+            selectiveBacktracking!.replaceNode(probe, replacement);
+            probe = replacement;
+            finish("probe_deferred", null);
+            enqueueDeferred(probe, pass, fb);
+            enqueueChild(suspended, pass, fb);
+            return false;
+          }
+
+          const next = result.children.find((child) => child.skippedContacts === 0);
+          for (let i = result.children.length - 1; i >= 0; i--) {
+            const child = result.children[i]!;
+            if (child !== next) enqueueChild(child, pass, fb);
+          }
+          if (next === undefined) {
+            finish("probe_dead_end", null);
+            enqueueChild(suspended, pass, fb);
+            return false;
+          }
+          probe = next;
+        }
+
+        const catchupAxisLoss = authoredPrefixAxisLoss(probe.search);
+        if (catchupAxisLoss < decision.triggerAxisLoss) {
+          finish("alternative_selected", catchupAxisLoss);
+          enqueueChild(suspended, pass, fb);
+          enqueueChild(probe, pass, fb);
+        } else {
+          finish("current_selected", catchupAxisLoss);
+          enqueueChild(probe, pass, fb);
+          enqueueChild(suspended, pass, fb);
+        }
+        return false;
+      };
+
+      while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
+        if (!keepGoing()) break;
+        const node = popNextFrontierNode(pass, fb);
+        const resumeSuspendedContinuation =
+          selectiveBacktracking?.observeSelected(node, getSimFrames()) ?? false;
+        const result = processSelected(node, resumeSuspendedContinuation, true);
         if (result.kind === "captured" || result.kind === "terminal_limit") return;
         if (result.kind === "deferred") {
           const replacement = { ...node, deferExpansion: false };
           selectiveBacktracking?.replaceNode(node, replacement);
           enqueueDeferred(replacement, pass, fb);
         } else if (result.kind === "selective_backtrack") {
-          // Keep the suspended continuation immediately behind the promoted
-          // sibling. Ordinary DFS explores that sibling's subtree first, then
-          // returns to this exact prefix before unrelated queued alternatives.
-          enqueueChild(node, pass, fb);
-          selectiveBacktracking?.markSuspended(node);
-          if (!promoteFrontierNode(result.alternative, pass, fb)) {
-            throw new Error("selective backtrack alternative left the synchronous frontier");
-          }
+          if (runCatchup(node, result.decision)) return;
         } else {
           for (let i = result.children.length - 1; i >= 0; i--) enqueueChild(result.children[i], pass, fb);
         }
@@ -4088,8 +4180,8 @@ function frontierContains(
   return passStack.includes(node) || fallbackStack.includes(node);
 }
 
-/** Move one concrete queued alternative to the hot end of its existing lane. */
-function promoteFrontierNode(
+/** Remove and return ownership of one concrete queued alternative. */
+function takeFrontierNode(
   node: HandoffNode,
   passStack: HandoffNode[],
   fallbackStack: HandoffNode[],
@@ -4098,7 +4190,6 @@ function promoteFrontierNode(
   const index = stack.indexOf(node);
   if (index < 0) return false;
   stack.splice(index, 1);
-  stack.push(node);
   return true;
 }
 

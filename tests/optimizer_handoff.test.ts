@@ -407,12 +407,12 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     }
   }, 60_000);
 
-  test("selective axis-regret backtracks and resumes without repair", async () => {
+  test("selective axis-regret runs bounded catch-ups without repair", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previousPolicy = process.env.LR_FRONTIER_POLICY;
     const previousRepairMinimum = process.env.LR_REPAIR_MIN_BUDGET;
     try {
-      process.env.LR_FRONTIER_POLICY = "selective-axis-regret";
+      process.env.LR_FRONTIER_POLICY = "selective-axis-regret-catchup";
       process.env.LR_REPAIR_MIN_BUDGET = "100000000";
       const result = checkpoint(compileHandoff(spec, 0, {
         budget: 100_000,
@@ -425,7 +425,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       expect(JSON.stringify(repeated)).toBe(JSON.stringify(result));
       const stats = result.stats.handoff_selective_backtracking;
       expect(stats).toBeDefined();
-      expect(stats?.policy).toBe("selective_axis_regret");
+      expect(stats?.policy).toBe("selective_axis_regret_catchup");
       expect(stats?.selective_backtracks ?? 0).toBeGreaterThan(0);
       expect(stats?.selective_backtracks_by_lane.initial)
         .toBe(stats?.selective_backtracks);
@@ -434,12 +434,24 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       expect(stats?.suspended_continuations_resumed ?? 0).toBeGreaterThan(0);
       expect(stats?.suspended_continuations_resumed ?? Infinity)
         .toBeLessThanOrEqual(stats?.selective_backtracks ?? 0);
+      expect((stats?.catchup_completed ?? 0) +
+        (stats?.catchup_probe_dead_ends ?? 0) +
+        (stats?.catchup_probe_deferred ?? 0) +
+        (stats?.catchup_execution_ceiling_stops ?? 0))
+        .toBe(stats?.selective_backtracks);
+      expect((stats?.catchup_alternative_selected ?? 0) +
+        (stats?.catchup_current_selected ?? 0))
+        .toBe(stats?.catchup_completed);
+      expect(stats?.catchup_probe_nodes_processed ?? 0).toBeGreaterThan(0);
       expect(stats?.events).toHaveLength(stats?.selective_backtracks ?? 0);
       expect(stats?.events.every((event) =>
         event.alternative_gap_index < event.from_gap_index &&
         event.axis_loss_delta >= (stats?.min_axis_loss_delta ?? Infinity) &&
         event.alternative_conservative_deadline_margin >= DEADLINE_MARGIN_NO_PRESSURE &&
-        event.trigger_total_spent_frames > 0
+        event.trigger_total_spent_frames > 0 &&
+        event.catchup_outcome !== null &&
+        event.catchup_end_gap_index === event.from_gap_index &&
+        event.catchup_probe_nodes_processed > 0
       )).toBe(true);
       expect(stats?.events.filter((event) => event.resumed_total_spent_frames !== null))
         .toHaveLength(stats?.suspended_continuations_resumed ?? 0);

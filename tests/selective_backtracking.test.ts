@@ -10,8 +10,10 @@ describe("selective-backtracking controller", () => {
   test("parses a strict categorical frontier policy", () => {
     expect(parseFrontierTraversalPolicy(undefined)).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("dfs")).toBe("depth_first");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret"))
-      .toBe("selective_axis_regret");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
+      .toBe("selective_axis_regret_catchup");
+    expect(() => parseFrontierTraversalPolicy("selective-axis-regret"))
+      .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("best-first")).toThrow(/LR_FRONTIER_POLICY/);
   });
 
@@ -51,6 +53,13 @@ describe("selective-backtracking controller", () => {
     expect(decision?.contactAdvance).toBe(2);
     expect(decision?.gapRewind).toBe(1);
     controller.markSuspended(descendant);
+    controller.finishCatchup(decision!, {
+      outcome: "current_selected",
+      endGapIndex: 5,
+      probeNodesProcessed: 1,
+      probeFrames: 35,
+      catchupAxisLoss: 0.7,
+    });
     expect(controller.observeSelected({ gap: 5, name: "different" }, 120)).toBe(false);
     expect(controller.observeSelected(descendant, 140)).toBe(true);
     expect(controller.consider({
@@ -68,6 +77,11 @@ describe("selective-backtracking controller", () => {
       loss_threshold_crossings: 1,
       selective_backtracks: 1,
       suspended_continuations_resumed: 1,
+      catchup_completed: 1,
+      catchup_current_selected: 1,
+      catchup_alternative_selected: 0,
+      catchup_probe_nodes_processed: 1,
+      catchup_probe_frames: 35,
       selective_backtracks_by_lane: { initial: 1, snapshot: 0, repair: 0, resumed: 0 },
       events: [{
         branch_gap_index: 3,
@@ -76,8 +90,14 @@ describe("selective-backtracking controller", () => {
         alternative_conservative_deadline_margin: 3,
         trigger_total_spent_frames: 100,
         resumed_total_spent_frames: 140,
+        catchup_outcome: "current_selected",
+        catchup_end_gap_index: 5,
+        catchup_probe_nodes_processed: 1,
+        catchup_probe_frames: 35,
+        catchup_axis_loss: 0.7,
       }],
     });
+    expect(controller.snapshot().events[0]?.catchup_axis_loss_gain).toBeCloseTo(-0.09);
   });
 
   test("does not backtrack before maturity or while deadline pressure is active", () => {

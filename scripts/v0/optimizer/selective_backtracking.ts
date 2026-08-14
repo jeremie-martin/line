@@ -1,4 +1,4 @@
-export type FrontierTraversalPolicy = "depth_first" | "selective_axis_regret";
+export type FrontierTraversalPolicy = "depth_first" | "selective_axis_regret_catchup";
 
 export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed";
 
@@ -9,9 +9,9 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === undefined || raw === "" || raw === "0" || raw === "off" || raw === "dfs") {
     return "depth_first";
   }
-  if (raw === "selective-axis-regret") return "selective_axis_regret";
+  if (raw === "selective-axis-regret-catchup") return "selective_axis_regret_catchup";
   throw new Error(
-    `LR_FRONTIER_POLICY must be dfs or selective-axis-regret; got ${raw}`,
+    `LR_FRONTIER_POLICY must be dfs or selective-axis-regret-catchup; got ${raw}`,
   );
 }
 
@@ -32,15 +32,24 @@ type WatchLink<Node extends object> = {
 
 export type SelectiveBacktrackDecision<Node extends object> = {
   alternative: Node;
+  eventIndex: number;
   branchGapIndex: number;
   fromGapIndex: number;
   contactAdvance: number;
   gapRewind: number;
   axisLossDelta: number;
+  triggerAxisLoss: number;
 };
 
+export type SelectiveCatchupOutcome =
+  | "alternative_selected"
+  | "current_selected"
+  | "probe_dead_end"
+  | "probe_deferred"
+  | "execution_ceiling";
+
 export type SelectiveBacktrackingStats = {
-  policy: "selective_axis_regret";
+  policy: "selective_axis_regret_catchup";
   min_contact_advance: number;
   min_axis_loss_delta: number;
   contact_expansions_observed: number;
@@ -52,6 +61,14 @@ export type SelectiveBacktrackingStats = {
   unavailable_alternatives: number;
   selective_backtracks: number;
   suspended_continuations_resumed: number;
+  catchup_completed: number;
+  catchup_alternative_selected: number;
+  catchup_current_selected: number;
+  catchup_probe_dead_ends: number;
+  catchup_probe_deferred: number;
+  catchup_execution_ceiling_stops: number;
+  catchup_probe_nodes_processed: number;
+  catchup_probe_frames: number;
   axis_loss_delta_sum: number;
   axis_loss_delta_max: number;
   contact_advance_sum: number;
@@ -75,6 +92,12 @@ export type SelectiveBacktrackingEvent = {
   alternative_conservative_deadline_margin: number;
   trigger_total_spent_frames: number;
   resumed_total_spent_frames: number | null;
+  catchup_outcome: SelectiveCatchupOutcome | null;
+  catchup_end_gap_index: number | null;
+  catchup_probe_nodes_processed: number;
+  catchup_probe_frames: number;
+  catchup_axis_loss: number | null;
+  catchup_axis_loss_gain: number | null;
 };
 
 function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
@@ -82,21 +105,22 @@ function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
 }
 
 /**
- * Compile-local policy state for the first selective-backtracking strategy.
+ * Compile-local signal and attribution state for the bounded-catch-up strategy.
  *
  * The controller knows no frontier representation and performs no mutation.
- * It only carries causal branch-watch lineage, evaluates the frozen V1 signal,
+ * It only carries causal branch-watch lineage, evaluates the regret signal,
  * and returns the exact queued sibling that the frontier scheduler should
- * promote. This keeps trigger policy independent from suspension/promotion.
+ * probe. This keeps trigger policy independent from catch-up scheduling and
+ * equal-depth selection.
  */
 export class SelectiveAxisRegretController<Node extends object> {
-  readonly policy = "selective_axis_regret" as const;
+  readonly policy = "selective_axis_regret_catchup" as const;
 
   private readonly gapIndexOf: (node: Node) => number;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
   private readonly stats: SelectiveBacktrackingStats = {
-    policy: "selective_axis_regret",
+    policy: "selective_axis_regret_catchup",
     min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
     min_axis_loss_delta: SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA,
     contact_expansions_observed: 0,
@@ -108,6 +132,14 @@ export class SelectiveAxisRegretController<Node extends object> {
     unavailable_alternatives: 0,
     selective_backtracks: 0,
     suspended_continuations_resumed: 0,
+    catchup_completed: 0,
+    catchup_alternative_selected: 0,
+    catchup_current_selected: 0,
+    catchup_probe_dead_ends: 0,
+    catchup_probe_deferred: 0,
+    catchup_execution_ceiling_stops: 0,
+    catchup_probe_nodes_processed: 0,
+    catchup_probe_frames: 0,
     axis_loss_delta_sum: 0,
     axis_loss_delta_max: 0,
     contact_advance_sum: 0,
@@ -233,15 +265,23 @@ export class SelectiveAxisRegretController<Node extends object> {
         alternative_conservative_deadline_margin: alternativeDeadline.margin,
         trigger_total_spent_frames: input.totalSpentFrames,
         resumed_total_spent_frames: null,
+        catchup_outcome: null,
+        catchup_end_gap_index: null,
+        catchup_probe_nodes_processed: 0,
+        catchup_probe_frames: 0,
+        catchup_axis_loss: null,
+        catchup_axis_loss_gain: null,
       });
       this.suspended.set(input.node, eventIndex);
       return {
         alternative: watch.alternative,
+        eventIndex,
         branchGapIndex: watch.branchGapIndex,
         fromGapIndex,
         contactAdvance,
         gapRewind,
         axisLossDelta,
+        triggerAxisLoss: input.axisLoss,
       };
     }
     return null;
@@ -250,6 +290,45 @@ export class SelectiveAxisRegretController<Node extends object> {
   markSuspended(node: Node): void {
     if (!this.suspended.has(node)) {
       throw new Error("selective backtrack suspended a node without a causal event");
+    }
+  }
+
+  finishCatchup(
+    decision: SelectiveBacktrackDecision<Node>,
+    input: {
+      outcome: SelectiveCatchupOutcome;
+      endGapIndex: number;
+      probeNodesProcessed: number;
+      probeFrames: number;
+      catchupAxisLoss: number | null;
+    },
+  ): void {
+    const event = this.stats.events[decision.eventIndex];
+    if (event === undefined || event.catchup_outcome !== null) {
+      throw new Error("selective catch-up completion has no live causal event");
+    }
+    event.catchup_outcome = input.outcome;
+    event.catchup_end_gap_index = input.endGapIndex;
+    event.catchup_probe_nodes_processed = input.probeNodesProcessed;
+    event.catchup_probe_frames = input.probeFrames;
+    event.catchup_axis_loss = input.catchupAxisLoss;
+    event.catchup_axis_loss_gain = input.catchupAxisLoss === null
+      ? null
+      : decision.triggerAxisLoss - input.catchupAxisLoss;
+    this.stats.catchup_probe_nodes_processed += input.probeNodesProcessed;
+    this.stats.catchup_probe_frames += input.probeFrames;
+    if (input.outcome === "alternative_selected") {
+      this.stats.catchup_completed++;
+      this.stats.catchup_alternative_selected++;
+    } else if (input.outcome === "current_selected") {
+      this.stats.catchup_completed++;
+      this.stats.catchup_current_selected++;
+    } else if (input.outcome === "probe_dead_end") {
+      this.stats.catchup_probe_dead_ends++;
+    } else if (input.outcome === "probe_deferred") {
+      this.stats.catchup_probe_deferred++;
+    } else {
+      this.stats.catchup_execution_ceiling_stops++;
     }
   }
 

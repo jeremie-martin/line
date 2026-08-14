@@ -493,7 +493,7 @@ export type CompileStats = {
   /** Present only for an enabled selective-backtracking frontier policy. The
    *  default DFS omits the object so historical/default artifacts are unchanged. */
   handoff_selective_backtracking?: {
-    policy: "selective_axis_regret";
+    policy: "selective_axis_regret_catchup";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     contact_expansions_observed: number;
@@ -505,6 +505,14 @@ export type CompileStats = {
     unavailable_alternatives: number;
     selective_backtracks: number;
     suspended_continuations_resumed: number;
+    catchup_completed: number;
+    catchup_alternative_selected: number;
+    catchup_current_selected: number;
+    catchup_probe_dead_ends: number;
+    catchup_probe_deferred: number;
+    catchup_execution_ceiling_stops: number;
+    catchup_probe_nodes_processed: number;
+    catchup_probe_frames: number;
     axis_loss_delta_sum: number;
     axis_loss_delta_max: number;
     contact_advance_sum: number;
@@ -530,6 +538,18 @@ export type CompileStats = {
       alternative_conservative_deadline_margin: number;
       trigger_total_spent_frames: number;
       resumed_total_spent_frames: number | null;
+      catchup_outcome:
+        | "alternative_selected"
+        | "current_selected"
+        | "probe_dead_end"
+        | "probe_deferred"
+        | "execution_ceiling"
+        | null;
+      catchup_end_gap_index: number | null;
+      catchup_probe_nodes_processed: number;
+      catchup_probe_frames: number;
+      catchup_axis_loss: number | null;
+      catchup_axis_loss_gain: number | null;
     }>;
   };
   /** Search-lane seed used for candidate sampling/start lookahead. Normally

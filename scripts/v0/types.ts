@@ -672,6 +672,10 @@ export type CompileStats = {
       enum_model_impact_selected_within_16: number;
       enum_model_impact_selected_within_32: number;
       enum_model_impact_selected_within_64: number;
+      enum_model_impact_residual_second_eligible_selections: number;
+      enum_model_impact_residual_second_substituted: number;
+      enum_model_impact_residual_second_distinctness_rejections: number;
+      enum_model_impact_residual_first_choice_preserved: number;
       /** R3 joint-model split: rotate recruit rate, rotate-probe failures
        *  and rotated-proposal gate outcomes. */
       enum_rot_probe_crash: number;

@@ -1,7 +1,7 @@
 {
   "schema": "line.benchmark-v2.aim-impact-residual-guarded-second-candidate.v1",
   "recorded_at": "2026-08-14T09:45:00+02:00",
-  "status": "predeclared_before_implementation",
+  "status": "implemented_precanonical_verified",
   "motivation": {
     "closed_study": "benchmark/v2/studies/aim-impact-residual-initial-only-candidate.json",
     "fresh_confirmation": "benchmark/v2/studies/aim-impact-residual-initial-only-n96-confirmation.json",
@@ -37,6 +37,16 @@
     "authored_targets": "unchanged",
     "repair": "unchanged",
     "resumed_search": "unchanged"
+  },
+  "implementation": {
+    "recorded_at": "2026-08-14T11:53:14+02:00",
+    "commit": "833eed05695362176034705f22a17d7f7cdfa1cd",
+    "accepted_model_sha256": "ff8ea92bf9f8bf2df9555635f4f80eb37f99b7475d0fd5ee0e2f1bc5686a436a",
+    "residual_model_sha256": "cfa3a0a7beb99b1810fdcb564f004d33ce16f22efbca16c70ec0703a6fb89388",
+    "artifact_shape": "48-tree append-only histogram ensemble whose first 32 trees and initial prediction exactly equal the accepted artifact",
+    "inference": "one feature extraction and one 48-tree traversal expose the exact accepted 32-tree checkpoint and residual-adjusted completion",
+    "selection": "the guarded helper retains the complete incumbent proposal list unless a different residual challenger clears all three inclusive gates",
+    "lane_isolation": "residual inference and selection run only in the initial lane; repair and resumed lanes call the accepted 32-tree scorer"
   },
   "offline_lead": {
     "authority": "exploratory_proxy_only_not_a_compiler_decision",
@@ -92,6 +102,47 @@
       "the guarded substitution rate is materially below the unrestricted policy"
     ],
     "not_a_score_gate": "Smoke and mechanism checks validate implementation and intervention sparsity only. They do not select on authored score."
+  },
+  "precanonical_verification": {
+    "focused_tests": "71/71 passed",
+    "full_tests": {
+      "passed_files": 184,
+      "total_files": 185,
+      "passed_tests": 1282,
+      "total_tests": 1283,
+      "candidate_failures": 0,
+      "pre_existing_failure": "benchmark_v2_baseline_cache expects the campaign baseline's 799f49... decision-protocol fingerprint, while the current checkpoint-streaming protocol computes 26d6c9...; no candidate file participates in that fingerprint and benchmark status remains comparison-ready"
+    },
+    "candidate_typecheck": "no non-import-path errors in the modified runtime or test files with allowImportingTsExtensions enabled",
+    "live_wasm_smoke": {
+      "spec": "scripts/v0/specs/shelter_impact_sync.ts",
+      "seed": 0,
+      "budget": 150000,
+      "contacts": "113/113",
+      "terminus": "endOfSpec@3260",
+      "score": 533.1,
+      "initial_grids": 399,
+      "initial_eligible_pairs": 398,
+      "different_challengers": 135,
+      "substitutions": 43,
+      "substitution_fraction_of_eligible_pairs": 0.10804020100502512,
+      "prior_unrestricted_substitution_fraction": 0.34366925064599485,
+      "first_choice_preservations": 398,
+      "impact_regret_gate_failures": 10,
+      "utility_regret_gate_failures": 2,
+      "advantage_gate_failures": 90,
+      "accepted_incumbent_impact_regret_mean": 0.000008,
+      "accepted_incumbent_utility_regret_mean": 0.003098,
+      "accepted_impact_advantage_mean": 0.040478,
+      "repair_bypassed_grids": 24,
+      "resumed_bypassed_grids": 24,
+      "telemetry_visibility": "present without LR_AIM_STUDY_STATS",
+      "track_sha256": "719cd26be522073cbf25e3e38a76dd82e2b4519698c20b0b42ecfd4f18cd4a8f",
+      "report_sha256": "34ed3229979a33f60ff673cb73fc09ab0bccf5c96455bd00be48b4265d697eb4",
+      "stats_sha256": "391ae6248ec95ab2a7c03e5fc05ac069b43c4ee13bfdae915950f46ac167e73d",
+      "budget_telemetry_sha256": "41d1f98f8229163aa2e8c3906a4f63f8c848d764a6b7dde9b0646a479328d967"
+    },
+    "contract_result": "passed; the guarded intervention is live, sparse, lane-isolated, and fully attributed"
   },
   "decision_protocol": {
     "benchmark": "full canonical V2",

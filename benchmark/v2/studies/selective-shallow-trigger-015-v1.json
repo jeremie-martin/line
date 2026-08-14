@@ -1,0 +1,44 @@
+{
+  "schema": "line.selective-shallow-trigger-study.v1",
+  "status": "full-catalog-screen-predeclared",
+  "generated_at": "2026-08-14",
+  "intervention": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-shallow-trigger-015"
+    },
+    "rule": "Keep the production 0.20 regret trigger for every rewind. Also admit regret at least 0.15 only when the exact causal sibling is at most seven gaps behind the current prefix.",
+    "unchanged": [
+      "minimum contact advance",
+      "causal sibling identity",
+      "execution-ceiling and conservative-deadline admission",
+      "bounded preferred-child catch-up",
+      "equal-depth authored-axis-loss selection"
+    ]
+  },
+  "design_basis": {
+    "source_study": "benchmark/v2/studies/selective-trigger-015-v1.json",
+    "failed_unbounded_lower_trigger_events": 162,
+    "failed_unbounded_lower_trigger_frames": 6544506,
+    "failed_unbounded_lower_trigger_alternative_selected": 53,
+    "failed_unbounded_lower_trigger_current_selected": 107,
+    "failed_unbounded_lower_trigger_dead_ends": 2,
+    "offline_shallow_subset": {
+      "maximum_gap_rewind": 7,
+      "events": 33,
+      "frames": 775943,
+      "alternative_selected": 15,
+      "current_selected": 16,
+      "dead_ends": 2,
+      "fraction_of_lower_trigger_frames": 0.1185639984
+    },
+    "interpretation": "The failed arm spent most of its added work on long rewinds that usually returned to the current prefix. The shallow subset retains about 12% of that measured work and has a materially higher alternative-selection rate. This is action-set evidence only; live traversal must be measured."
+  },
+  "predeclared_screen": {
+    "budget": 750000,
+    "actual_seeds": [32, 33],
+    "sources": "all 44 canonical development sources",
+    "cells_per_arm": 88,
+    "reference_commit": "7bffd55203bbbf2dbf35bcd55ebbb229a9dcca77",
+    "decision": "Advance to a larger fresh-seed paired screen only if there are no lost completions, the full-catalog score sum is positive, and movement is not a single adverse/beneficial outlier. No canonical evaluation is authorized by this two-seed screen."
+  }
+}

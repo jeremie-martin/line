@@ -1,6 +1,6 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_trigger_015";
+  | "selective_axis_regret_catchup_shallow_trigger_015";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -9,19 +9,20 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
 export const SELECTIVE_AXIS_REGRET_TRIGGER_015_MIN_LOSS_DELTA = 0.15;
+export const SELECTIVE_AXIS_REGRET_LOWER_TRIGGER_MAX_GAP_REWIND = 7;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
-  if (raw === "selective-axis-regret-catchup-trigger-015") {
-    return "selective_axis_regret_catchup_trigger_015";
+  if (raw === "selective-axis-regret-catchup-shallow-trigger-015") {
+    return "selective_axis_regret_catchup_shallow_trigger_015";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
-      `selective-axis-regret-catchup-trigger-015; got ${raw}`,
+      `selective-axis-regret-catchup-shallow-trigger-015; got ${raw}`,
   );
 }
 
@@ -42,6 +43,7 @@ type AxisRegretWatch<Node extends object> = {
   deadlineSuppressionRecorded: boolean;
   opportunityCrossedMask: number;
   opportunityAdmissibleMask: number;
+  lowerTriggerGapRewindSuppressionRecorded: boolean;
 };
 
 type WatchLink<Node extends object> = {
@@ -72,6 +74,8 @@ export type SelectiveBacktrackingStats = {
   min_contact_advance: number;
   min_axis_loss_delta: number;
   catchup_axis_loss_gain_threshold: number;
+  lower_trigger_max_gap_rewind: number | null;
+  lower_trigger_gap_rewind_suppressions: number;
   mature_axis_loss_delta_max: number;
   regret_opportunities_by_min_axis_loss_delta: Record<
     string,
@@ -163,6 +167,7 @@ export class SelectiveAxisRegretController<Node extends object> {
 
   private readonly gapIndexOf: (node: Node) => number;
   private readonly minAxisLossDelta: number;
+  private readonly lowerTriggerMaxGapRewind: number | null;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
   private readonly stats: SelectiveBacktrackingStats;
@@ -175,14 +180,20 @@ export class SelectiveAxisRegretController<Node extends object> {
   ) {
     this.gapIndexOf = gapIndexOf;
     this.policy = options.policy ?? "selective_axis_regret_catchup";
-    this.minAxisLossDelta = this.policy === "selective_axis_regret_catchup_trigger_015"
+    this.minAxisLossDelta = this.policy === "selective_axis_regret_catchup_shallow_trigger_015"
       ? SELECTIVE_AXIS_REGRET_TRIGGER_015_MIN_LOSS_DELTA
       : SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA;
+    this.lowerTriggerMaxGapRewind =
+      this.policy === "selective_axis_regret_catchup_shallow_trigger_015"
+        ? SELECTIVE_AXIS_REGRET_LOWER_TRIGGER_MAX_GAP_REWIND
+        : null;
     this.stats = {
       policy: this.policy,
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
       min_axis_loss_delta: this.minAxisLossDelta,
       catchup_axis_loss_gain_threshold: 0,
+      lower_trigger_max_gap_rewind: this.lowerTriggerMaxGapRewind,
+      lower_trigger_gap_rewind_suppressions: 0,
       mature_axis_loss_delta_max: 0,
       regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
       contact_expansions_observed: 0,
@@ -251,6 +262,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       deadlineSuppressionRecorded: false,
       opportunityCrossedMask: 0,
       opportunityAdmissibleMask: 0,
+      lowerTriggerGapRewindSuppressionRecorded: false,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -328,6 +340,21 @@ export class SelectiveAxisRegretController<Node extends object> {
         watch.signalCrossed = true;
         this.stats.loss_threshold_crossings++;
       }
+
+      const fromGapIndex = this.gapIndexOf(input.node);
+      const targetGapIndex = this.gapIndexOf(watch.alternative);
+      const gapRewind = Math.max(0, fromGapIndex - targetGapIndex);
+      if (
+        this.lowerTriggerMaxGapRewind !== null &&
+        axisLossDelta < SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA &&
+        gapRewind > this.lowerTriggerMaxGapRewind
+      ) {
+        if (!watch.lowerTriggerGapRewindSuppressionRecorded) {
+          watch.lowerTriggerGapRewindSuppressionRecorded = true;
+          this.stats.lower_trigger_gap_rewind_suppressions++;
+        }
+        continue;
+      }
       if (!readAlternativeAvailable()) {
         watch.used = true;
         this.stats.unavailable_alternatives++;
@@ -347,9 +374,6 @@ export class SelectiveAxisRegretController<Node extends object> {
       }
 
       watch.used = true;
-      const fromGapIndex = this.gapIndexOf(input.node);
-      const targetGapIndex = this.gapIndexOf(watch.alternative);
-      const gapRewind = Math.max(0, fromGapIndex - targetGapIndex);
       this.stats.selective_backtracks++;
       this.stats.selective_backtracks_by_lane[input.lane]++;
       this.stats.axis_loss_delta_sum += axisLossDelta;

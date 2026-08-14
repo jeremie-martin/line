@@ -46,7 +46,7 @@ describe("selective trigger opportunity analysis", () => {
     expect(summary.trust_checks).toEqual({
       nested_threshold_counts: true,
       active_threshold_crossings_match: true,
-      active_threshold_admissions_match: true,
+      unconditional_active_threshold_admissions_match: true,
     });
   });
 
@@ -69,6 +69,15 @@ describe("selective trigger opportunity analysis", () => {
     input.stats.loss_threshold_crossings = 2;
     input.stats.selective_backtracks = 2;
     expect(summarizeSelectiveTriggerOpportunities([input]).trust_checks)
-      .toMatchObject({ active_threshold_admissions_match: true });
+      .toMatchObject({ unconditional_active_threshold_admissions_match: true });
+  });
+
+  test("allows a declared policy filter to suppress generic active-threshold admissions", () => {
+    const input = run("a", 16, [[4, 4], [3, 3], [2, 2], [1, 1]]);
+    input.stats.min_axis_loss_delta = 0.15;
+    input.stats.lower_trigger_max_gap_rewind = 7;
+    input.stats.loss_threshold_crossings = 2;
+    input.stats.selective_backtracks = 1;
+    expect(() => summarizeSelectiveTriggerOpportunities([input])).not.toThrow();
   });
 });

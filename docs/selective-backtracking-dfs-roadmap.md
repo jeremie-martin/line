@@ -489,3 +489,26 @@ work has near-zero measured value. Any next lower-trigger experiment should be
 a deliberately broader strategy intervention, measured on the full catalog or
 a source panel fixed before its live outcomes—not another adaptively chosen
 five-source confirmation.
+
+### Shallow lower-trigger hybrid
+
+The failed unbounded 0.15 arm also identifies a cleaner next strategy. Across
+its two eight-seed blocks, 162 tournaments triggered below the production 0.20
+boundary and consumed 6,544,506 frames. Only 33 of those rewound at most seven
+gaps; they consumed 775,943 frames (11.9% of the work). Among completed probes,
+the shallow subset selected the alternative 15/31 times, versus 53/160 for the
+whole lower-trigger set. Long lower-regret rewinds were therefore both the main
+cost and more likely to return to the prefix they interrupted.
+
+The next arm keeps 0.20 as the unrestricted production trigger and admits the
+lower 0.15 threshold only when the concrete rewind is at most seven gaps. This
+is a hybrid trigger surface, not another global threshold. It directly tests
+the earlier idea that available budget should not by itself justify restarting
+far back. The failed pure-0.15 environment value is removed; the live study has
+one categorical name and reports both its lower-trigger rewind cap and unique
+cap suppressions.
+
+Its first screen is fixed before execution: all 44 canonical sources at 750k
+on fresh actual seeds 32 and 33. That avoids selecting sources from the same
+outcomes used to judge the arm. Two seeds can only screen mechanism and
+direction; they cannot authorize a canonical evaluation.

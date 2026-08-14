@@ -16,20 +16,22 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-trigger-015"))
-      .toBe("selective_axis_regret_catchup_trigger_015");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-shallow-trigger-015"))
+      .toBe("selective_axis_regret_catchup_shallow_trigger_015");
+    expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-trigger-015"))
+      .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("best-first")).toThrow(/LR_FRONTIER_POLICY/);
   });
 
-  test("isolates the 0.15 trigger arm from the production 0.20 policy", () => {
+  test("admits a shallow 0.15 trigger without changing the production 0.20 policy", () => {
     const parent = { gap: 1, name: "parent" };
     const leader = { gap: 2, name: "leader" };
     const alternative = { gap: 2, name: "alternative" };
     const descendant = { gap: 3, name: "descendant" };
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
-      policy: "selective_axis_regret_catchup_trigger_015",
+      policy: "selective_axis_regret_catchup_shallow_trigger_015",
     });
     controller.observeExpansion({
       parent,
@@ -57,9 +59,57 @@ describe("selective-backtracking controller", () => {
     });
     expect(decision?.alternative).toBe(alternative);
     expect(controller.snapshot()).toMatchObject({
-      policy: "selective_axis_regret_catchup_trigger_015",
+      policy: "selective_axis_regret_catchup_shallow_trigger_015",
       min_axis_loss_delta: 0.15,
+      lower_trigger_max_gap_rewind: 7,
+      lower_trigger_gap_rewind_suppressions: 0,
       loss_threshold_crossings: 1,
+      selective_backtracks: 1,
+    });
+  });
+
+  test("suppresses only deep lower-threshold rewinds and still admits a later 0.20 trigger", () => {
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const descendant = { gap: 10, name: "descendant" };
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_shallow_trigger_015",
+    });
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.1,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [descendant],
+      contactExpansion: true,
+      contactOrdinal: 2,
+      axisLoss: 0.2,
+    });
+    const input = {
+      node: descendant,
+      contactOrdinal: 3,
+      executionCeilingReached: false,
+      totalSpentFrames: 10,
+      lane: "initial" as const,
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+    };
+    expect(controller.consider({ ...input, axisLoss: 0.26 })).toBeNull();
+    expect(controller.snapshot()).toMatchObject({
+      lower_trigger_gap_rewind_suppressions: 1,
+      selective_backtracks: 0,
+      regret_opportunities_by_min_axis_loss_delta: {
+        "0.15": { crossed_watches: 1, admissible_watches: 1 },
+      },
+    });
+    expect(controller.consider({ ...input, axisLoss: 0.31 })?.alternative).toBe(alternative);
+    expect(controller.snapshot()).toMatchObject({
+      lower_trigger_gap_rewind_suppressions: 1,
       selective_backtracks: 1,
     });
   });

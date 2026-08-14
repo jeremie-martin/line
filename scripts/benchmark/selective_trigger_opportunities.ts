@@ -7,6 +7,7 @@ export const SELECTIVE_TRIGGER_OPPORTUNITY_THRESHOLDS = [
 
 export type SelectiveTriggerOpportunityStats = {
   min_axis_loss_delta: number;
+  lower_trigger_max_gap_rewind?: number | null;
   mature_axis_loss_delta_max: number;
   loss_threshold_crossings: number;
   selective_backtracks: number;
@@ -51,7 +52,7 @@ export type SelectiveTriggerOpportunitySummary = {
   trust_checks: {
     nested_threshold_counts: true;
     active_threshold_crossings_match: true;
-    active_threshold_admissions_match: true;
+    unconditional_active_threshold_admissions_match: true;
   };
   caveat: string;
 };
@@ -129,7 +130,7 @@ export function summarizeSelectiveTriggerOpportunities(
     trust_checks: {
       nested_threshold_counts: true,
       active_threshold_crossings_match: true,
-      active_threshold_admissions_match: true,
+      unconditional_active_threshold_admissions_match: true,
     },
     caveat:
       "Each threshold is observed on production traversal. Counts are unique causal watches, " +
@@ -163,7 +164,13 @@ function validateRun(run: SelectiveTriggerOpportunityRun): void {
   if (active.crossed_watches !== run.stats.loss_threshold_crossings) {
     throw new Error(`${runKey(run)} active-threshold crossing counters disagree`);
   }
-  if (active.admissible_watches !== run.stats.selective_backtracks) {
+  if (run.stats.selective_backtracks > active.admissible_watches) {
+    throw new Error(`${runKey(run)} has more actions than active-threshold admissions`);
+  }
+  if (
+    run.stats.lower_trigger_max_gap_rewind == null &&
+    active.admissible_watches !== run.stats.selective_backtracks
+  ) {
     throw new Error(`${runKey(run)} active-threshold admission counters disagree`);
   }
 }

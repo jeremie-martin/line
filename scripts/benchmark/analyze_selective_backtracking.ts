@@ -1135,6 +1135,7 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     }
     const yielded = results.filter((probe) => probe.outcome === "probe_yielded");
     if (yielded.length > 0) {
+      const route = yielded[0]!;
       if (
         stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy" ||
         yielded.length !== 1 ||
@@ -1155,7 +1156,6 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       ) {
         throw new Error(`${label} has an invalid yielded discrepancy route`);
       }
-      const route = yielded[0]!;
       const checkpoints = (event.catchup_checkpoints ?? []).filter(
         (checkpoint: any) =>
           (checkpoint.route_ordinal ?? checkpoint.alternative_ordinal ?? 1) ===

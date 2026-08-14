@@ -1060,10 +1060,11 @@ The next design uses the validated risk signal without treating it as a death
 certificate. A local discrepancy still starts from the proper positive-gain,
 nonzero-advance choice and follows the ordinary preferred route. If its exact
 gain remains non-positive for three adjacent authored gaps, only its synchronous
-equal-depth excursion stops. The exact live route is placed behind the ordinary
-same-lane frontier, while the suspended prefix resumes immediately. A recovery
-path is therefore postponed, not pruned, and may still be explored by normal
-DFS if budget and frontier order reach it.
+equal-depth excursion stops. The exact live route returns as an ordinary same-
+lane DFS sibling. The tournament-ranked routes, including the suspended prefix,
+are pushed afterward and therefore run first, but the yielded route stays ahead
+of older frontier work. A recovery path is postponed, not pruned, and may still
+be explored by normal DFS if budget and frontier order reach it.
 
 This is a categorical work-disposition change rather than another sign
 threshold. Telemetry names `probe_yielded`, binds the final three checkpoints

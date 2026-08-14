@@ -3224,11 +3224,12 @@ function compileHandoffInternal(
               successiveNonpositiveCheckpoints >=
                 SELECTIVE_LOCAL_DISCREPANCY_YIELD_STREAK
             ) {
-              // Preserve the exact recovery path, but move it behind the
-              // ordinary pass frontier instead of spending the rest of the
-              // synchronous equal-depth tournament on it.
+              // Preserve the exact recovery path as an ordinary DFS sibling.
+              // Tournament-ranked routes are pushed afterward, so they run
+              // first; the yielded route still stays ahead of older frontier
+              // work instead of disappearing at the bottom of the stack.
               finishProbe("probe_yielded", null);
-              enqueueDeferred(probe, pass, fb);
+              enqueueChild(probe, pass, fb);
               if (!frontierContains(probe, pass, fb)) {
                 throw new Error("yielded local discrepancy route was not retained");
               }

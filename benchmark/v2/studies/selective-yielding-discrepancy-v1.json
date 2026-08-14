@@ -7,7 +7,7 @@
     "first_crossing": "benchmark/v2/studies/selective-local-route-sign-reversal-map-v1.json",
     "persistence_validation": "benchmark/v2/studies/selective-local-route-persistent-sign-map-v1.json",
     "evidence": "Prefix sign predicts risk but cannot safely kill a path: first crossing had two recoveries in 17 routes, and fresh three-checkpoint persistence had one recovery in nine target-observed routes. The latter nevertheless identified ten routes across nine runs and both sources, with 181143 measured frames after confirmation.",
-    "categorical_change": "Yield instead of kill. At the third adjacent non-positive checkpoint, stop only synchronous catch-up and put the exact live route behind the ordinary same-lane frontier. The suspended prefix resumes immediately; the yielded path remains available for later DFS exploration.",
+    "categorical_change": "Yield instead of kill. At the third adjacent non-positive checkpoint, stop only synchronous catch-up and put the exact live route back as an ordinary same-lane DFS sibling. Tournament-ranked routes, including the suspended prefix, run first; the yielded path stays ahead of older frontier work and remains available for later exploration.",
     "anti_fit_boundary": "The three-checkpoint signal was fixed before the fresh map. This arm changes work disposition, not its value, and receives wholly fresh score evidence."
   },
   "implementation": {
@@ -19,7 +19,7 @@
       "the production regret trigger and primary causal catch-up route are unchanged",
       "a local route still requires positive starting prefix gain, nonzero remaining authored-gap advance, and the existing stable value-per-work selection",
       "only a local discrepancy route can yield, only before the tournament target, and only after three non-positive checkpoints at adjacent authored gaps",
-      "the yielded SearchNode object is retained at low priority in its ordinary pass or fallback frontier rather than discarded",
+      "the yielded SearchNode object is retained behind the tournament-ranked routes but ahead of older work in its ordinary pass or fallback frontier rather than discarded",
       "the tournament retains the suspended path; no yielded route is reported as completed or selected",
       "deadline, execution ceiling, candidate generation, repair, terminal evaluation, register, and scoring logic remain unchanged"
     ],

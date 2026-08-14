@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-nested-discrepancy-opportunity-study.v1",
-  "status": "predeclared-behavior-neutral-map",
+  "status": "opportunity-confirmed-live-arm-authorized",
   "generated_at": "2026-08-15",
   "question": "When the first proper discrepancy route reaches equal depth and loses, does that route itself contain a broad set of already-generated, locally better runner-ups that can support one bounded second discrepancy?",
   "relationship_to_prior_work": {
@@ -40,6 +40,33 @@
     "seed_reuse_reason": "These seeds are reused only to map mechanics inside already-observed proper-discrepancy routes. Scores are excluded from selection evidence.",
     "selection_rule": "Build exactly the fixed second-discrepancy policy only if at least 12 losing first-local routes have a positive-gain, nonzero-advance nested runner-up, spanning at least six runs and both requested sources. Otherwise close without a live arm.",
     "next_step_if_selected": "Implement one bounded second-discrepancy environment, prove exact parentage, stable argmax, primary/local losses, target reach, and maximum depth two, then run a fresh focused 750k screen on actual seeds 138-145 before any catalog or canonical evaluation.",
-    "non_claim": "The map establishes action-set breadth only. It cannot predict the unexecuted route, final score, headline, multi-budget behavior, or promotion outcome."
+    "non_claim": "The map establishes action-set breadth only. It cannot predict the unexecuted route, final score, headline, multi-budget behavior, or promotion outcome.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-nested-discrepancy-opportunity-n8",
+      "identity": {
+        "cells": 40,
+        "both_valid": 40,
+        "changed_tracks": 0,
+        "score_sum_delta": 0
+      },
+      "nested_opportunity": {
+        "losing_first_local_routes": 27,
+        "admissible_nested_choices": 437,
+        "positive_proper_nested_choices": 66,
+        "actionable_routes": 12,
+        "affected_runs": 9,
+        "affected_sources": [
+          "believer_impact_56s",
+          "believer_impact_56s_amplitude_plus_5"
+        ]
+      },
+      "decision": "Advance exactly the fixed bounded second-discrepancy policy. Twelve qualifying routes meet the fixed route minimum and span nine runs and both sources; exact identity and analyzer trust checks pass.",
+      "interpretation": "The first greedy local route often loses while its own subtree retains an affordable, locally superior branch. This establishes action breadth only; the second route has not yet been executed.",
+      "sha256": {
+        "candidate": "3d8df14f74c13256a7635476eea6de7e47520e5390638f70d2bc60223845691b",
+        "report": "ad1e672a195946a55a41f6703b27837a43f813e129e41a5b5c5813510c800bb1",
+        "selective_analysis": "edebee2336036088cf87ab9fdb41f0677973899e0d910a0ef8cf8cd9fa7e2208"
+      }
+    }
   }
 }

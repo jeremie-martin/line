@@ -1142,3 +1142,11 @@ advance nested choice across six runs and both sources. The fixed live policy
 would choose one stable maximum gain-times-margin option only after the first
 local route loses, extend it to the same target, and stop at discrepancy depth
 two. Fresh seeds 138-145, not these known scores, would evaluate it.
+
+The map passes exact identity on all 40 cells and clears the action-set gate.
+Twenty-seven first-local routes reach equal depth and lose; 12 retain at least
+one positive, nonzero-advance nested choice. Those routes span nine runs and
+both sources and contain 66 qualifying choices (437 admissible choices in
+total). This authorizes exactly one bounded depth-two live policy. It remains
+breadth evidence only: none of those second routes has an observed equal-depth
+or final-score result.

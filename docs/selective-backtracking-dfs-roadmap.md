@@ -325,3 +325,11 @@ for continuing the general direction. The formerly environment-gated arm was
 subsequently made the unset production behavior. Because that source change
 gives it a new compiler identity, the canonical result must be reproduced with
 no policy environment before the campaign baseline is promoted.
+
+That confirmation completed at N=48 with the exact same four look estimates and
+the exact same final +0.0815 delta. Its compiler snapshot declares an empty
+compiler environment and the governed action is `accept`. It was promoted as
+the active 750k campaign baseline `selective-axis-regret-catchup`, with headline
+604.2665. The promotion does not change the conclusion's scope: this is a
+successful first scheme and a foundation for further selective-backtracking
+work, not a final strategy or a claim about unmeasured budgets.

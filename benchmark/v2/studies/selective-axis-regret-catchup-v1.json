@@ -1,7 +1,7 @@
 {
   "schema": "line.benchmark-v2.selective-axis-regret-catchup-v1.v1",
   "recorded_at": "2026-08-14T17:40:00Z",
-  "status": "accepted_arm_pending_default_confirmation",
+  "status": "accepted_and_promoted",
   "scope": {
     "question": "Can a regret-triggered alternative be tested at equal authored depth without surrendering the rest of the compile to its subtree?",
     "policy": "After the proven axis-regret trigger, follow the exact queued sibling's preferred path to the suspended prefix's authored gap, compare authored-prefix axis loss, continue the lower-loss prefix, and retain the other in the ordinary frontier.",
@@ -18,8 +18,10 @@
   "implementation": {
     "strategy_map_commit": "3a76242",
     "implementation_commit": "1e734ab",
+    "production_default_commit": "a66a1c9",
     "snapshot_sha256": "93bc72776ff23ad0dae55ba3a611d02e4743c9571ad07c20619ce43ec2be457c",
-    "tested_default_contract": "The measured compiler required LR_FRONTIER_POLICY=selective-axis-regret-catchup; the unset production behavior remained DFS at this evidence boundary."
+    "initial_evidence_contract": "The first measured compiler required LR_FRONTIER_POLICY=selective-axis-regret-catchup; the unset production behavior remained DFS at that evidence boundary.",
+    "production_default_contract": "The accepted catch-up policy is now the unset behavior; the full test suite proves unset and explicitly named catch-up byte-identical, while explicit dfs remains a diagnostic control."
   },
   "canonical_result": {
     "governed_outcome": "accept",
@@ -94,7 +96,7 @@
     "interpretation": "The bounded tournament fixes V1's whole-subtree starvation and sometimes chooses each side. Its accepted headline is heterogeneous and highly concentrated. Probe cost, trigger coverage, target choice, bound choice, comparison signal, and budget adaptation remain open design axes."
   },
   "decision": {
-    "action": "Adopt this exact accepted scheme as the production default only after an unset-policy confirmation with matching compiler provenance; retain explicit DFS as a diagnostic control.",
+    "action": "Promoted as the unset production policy after an exact no-environment canonical confirmation; retain explicit DFS as a diagnostic control and continue exploring the broader scheme space.",
     "broader_followups": [
       "budget-dependent trigger, rewind, and excursion bounds",
       "local watch expiry and alternative target selection",
@@ -105,16 +107,41 @@
     ]
   },
   "evidence": {
-    "comparison": {
+    "environment_arm_comparison": {
       "path": "generated/benchmark-v2/runs/selective-axis-regret-catchup-v1-max48.comparison.json",
       "sha256": "1856f3df8ac86182713eebf9e91e8a3af5af3a1174493ccc4a410bd90106c7c4"
     },
-    "candidate_archive": {
+    "environment_arm_candidate_archive": {
       "path": "generated/benchmark-v2/runs/selective-axis-regret-catchup-v1-max48.N48.json.gz",
       "raw_archive_sha256": "676f5736c4550d54250c6b639b5aab2f973475457a18009f6af55cd269957e75",
       "compressed_sha256": "fa9bb0ac8c2dd221c32099a772d1956919dec838f806d84882bfe8af0c836af2",
       "decision_index_sha256": "7d89ae5d11a0f25caecc1a8487f3b43507b6bd432f7e1122ba87f6c14fc351d4",
       "summary_sha256": "04c59ab3916dd0d23fc80dd9652fa69fd4cfec2ac1350fbe726f14db65675fdd"
+    },
+    "production_default_confirmation": {
+      "comparison": "generated/benchmark-v2/runs/selective-axis-regret-catchup-default-max48.comparison.json",
+      "comparison_sha256": "824b2eb4331172e95fcd042d458b68685cf5b658f5208c500bf548574678da69",
+      "candidate_archive": "generated/benchmark-v2/runs/selective-axis-regret-catchup-default-max48.N48.json.gz",
+      "raw_archive_sha256": "406f61d16bceeb99aa3d69ff14bf5c6b01b0baf1ed49cb3ae920a12c85e04bcf",
+      "compressed_sha256": "e98eb016c1ed9287af4581f71a69501e95c93947562ab6ce14b7a893e940b188",
+      "decision_index_sha256": "c9797b5740028101cb15d1a31f135f0e8cf4da4d2275e6090ec98aff74e6ed6a",
+      "summary_sha256": "00416816a1b243784b2710ba1a2cdb55aa05d8c65bc4df7f991511da4bf02725",
+      "snapshot_sha256": "8c04fe867138729ffa6c397645a1e05abf1410998a4de3f92e8c49e66c8d644f",
+      "candidate_fingerprint": "e28c8e9bf4f5f58952329bdac76b3a43237b6de4a08415d5a2813a34a00e7b0d",
+      "compiler_environment": {},
+      "governed_outcome": "accept",
+      "headline": 604.2665,
+      "delta": 0.0815,
+      "directional_probability": 0.9862944,
+      "required_directional_probability": 0.97226547
+    },
+    "promotion": {
+      "campaign_label": "selective-axis-regret-catchup",
+      "manifest": "benchmark/v2/campaign-baseline.json",
+      "headline": 604.2665,
+      "promotion_seeds": 48,
+      "compiler_environment": {},
+      "note": "The active 750k campaign changed. Frozen 250k/500k evidence was not run or changed."
     }
   }
 }

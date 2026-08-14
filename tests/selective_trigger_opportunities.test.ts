@@ -80,4 +80,11 @@ describe("selective trigger opportunity analysis", () => {
     input.stats.selective_backtracks = 1;
     expect(() => summarizeSelectiveTriggerOpportunities([input])).not.toThrow();
   });
+
+  test("allows a reserve-margin filter to suppress generic active-threshold admissions", () => {
+    const input = run("a", 16, [[4, 4], [3, 3], [2, 2], [2, 2]]);
+    input.stats.min_conservative_deadline_margin = 2.25;
+    input.stats.selective_backtracks = 1;
+    expect(() => summarizeSelectiveTriggerOpportunities([input])).not.toThrow();
+  });
 });

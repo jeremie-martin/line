@@ -1,0 +1,58 @@
+{
+  "schema": "line.selective-catchup-reserve-margin-study.v1",
+  "status": "full-catalog-screen-predeclared",
+  "generated_at": "2026-08-14",
+  "question": "Can a small explicit budget reserve avoid low-slack selective catch-up tournaments while retaining most observed alternative winners?",
+  "intervention": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-reserve-225"
+    },
+    "rule": "Keep every production trigger and tournament rule, but admit the causal alternative only when its existing conservative completion margin is at least 2.25 instead of merely outside the production pressure region at 2.0.",
+    "unchanged": [
+      "0.20 authored-axis regret trigger",
+      "two-contact maturity",
+      "exact causal sibling",
+      "bounded equal-depth catch-up",
+      "strict positive authored-axis selection"
+    ]
+  },
+  "design_evidence": {
+    "checkpoint_archive": "generated/benchmark-v2/mover-grids/selective-catchup-checkpoints-n16/candidate.json",
+    "checkpoint_analysis": "generated/benchmark-v2/mover-grids/selective-catchup-checkpoints-n16/reserve-margin-analysis.json",
+    "checkpoint_events": 194,
+    "checkpoint_225": {
+      "suppressed_events": 19,
+      "suppressed_alternative_selected": 2,
+      "suppressed_current_selected": 17,
+      "suppressed_probe_dead_ends": 0,
+      "measured_probe_frames": 973373
+    },
+    "canonical_n48_archive": "benchmark/v2/runs/selective-axis-regret-catchup-development-750k-N48.json.gz",
+    "canonical_n48_events": 598,
+    "canonical_n48_225": {
+      "suppressed_events": 79,
+      "affected_runs": 68,
+      "affected_sources": 17,
+      "suppressed_alternative_selected": 18,
+      "suppressed_current_selected": 47,
+      "suppressed_other": 14,
+      "measured_probe_frames": 3598577,
+      "alternative_winner_retention": "176/194"
+    },
+    "interpretation": "The margin is already an online, budget-scaled upper-interval work signal. At 2.25 the historical action set is broad enough to test, retains 90.7% of observed alternative winners, and targets 15.6% of measured catch-up work. Outcome labels describe the observed full tournament and are not a causal score replay.",
+    "sha256": {
+      "checkpoint_archive": "4a4f8c6b1e7fbd27b34630254af05fcc4cdecbcd9ef2687e499e1a8e9734040e",
+      "checkpoint_analysis": "79560e2267d98bdc733088a5a23a558bbc1721bf8a0cb4000c2e1e86ae0e514c",
+      "canonical_n48_archive": "e98eb016c1ed9287af4581f71a69501e95c93947562ab6ce14b7a893e940b188"
+    }
+  },
+  "predeclared_screen": {
+    "budget": 750000,
+    "actual_seeds": [36, 37],
+    "sources": "all 44 canonical development sources",
+    "cells_per_arm": 88,
+    "reference_commit": "6d82246",
+    "decision": "Advance only if all cells retain validity, the full-catalog score sum is positive, and movement is not carried by one isolated cell. Neutral or negative direction closes this single reserve-margin arm; no nearby margin ladder follows."
+  },
+  "non_claim": "This is one budget-aware admission policy at 750k. It does not establish behavior at other budgets or rank the broader selective-backtracking family."
+}

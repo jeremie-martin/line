@@ -1,4 +1,6 @@
-export type SelectiveCatchupPolicy = "selective_axis_regret_catchup";
+export type SelectiveCatchupPolicy =
+  | "selective_axis_regret_catchup"
+  | "selective_axis_regret_catchup_reserve_225";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -6,15 +8,20 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
+export const SELECTIVE_AXIS_REGRET_RESERVE_MIN_CONSERVATIVE_MARGIN = 2.25;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
+  if (raw === "selective-axis-regret-catchup-reserve-225") {
+    return "selective_axis_regret_catchup_reserve_225";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
-    `LR_FRONTIER_POLICY must be dfs or selective-axis-regret-catchup; got ${raw}`,
+    `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
+      `selective-axis-regret-catchup-reserve-225; got ${raw}`,
   );
 }
 
@@ -35,6 +42,7 @@ type AxisRegretWatch<Node extends object> = {
   deadlineSuppressionRecorded: boolean;
   opportunityCrossedMask: number;
   opportunityAdmissibleMask: number;
+  reserveMarginSuppressionRecorded: boolean;
 };
 
 type WatchLink<Node extends object> = {
@@ -65,6 +73,8 @@ export type SelectiveBacktrackingStats = {
   min_contact_advance: number;
   min_axis_loss_delta: number;
   catchup_axis_loss_gain_threshold: number;
+  min_conservative_deadline_margin: number | null;
+  reserve_margin_suppressed_crossings: number;
   mature_axis_loss_delta_max: number;
   regret_opportunities_by_min_axis_loss_delta: Record<
     string,
@@ -155,6 +165,7 @@ export class SelectiveAxisRegretController<Node extends object> {
   readonly policy: SelectiveCatchupPolicy;
 
   private readonly gapIndexOf: (node: Node) => number;
+  private readonly minConservativeDeadlineMargin: number | null;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
   private readonly stats: SelectiveBacktrackingStats;
@@ -167,11 +178,17 @@ export class SelectiveAxisRegretController<Node extends object> {
   ) {
     this.gapIndexOf = gapIndexOf;
     this.policy = options.policy ?? "selective_axis_regret_catchup";
+    this.minConservativeDeadlineMargin =
+      this.policy === "selective_axis_regret_catchup_reserve_225"
+        ? SELECTIVE_AXIS_REGRET_RESERVE_MIN_CONSERVATIVE_MARGIN
+        : null;
     this.stats = {
       policy: this.policy,
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
       min_axis_loss_delta: SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA,
       catchup_axis_loss_gain_threshold: 0,
+      min_conservative_deadline_margin: this.minConservativeDeadlineMargin,
+      reserve_margin_suppressed_crossings: 0,
       mature_axis_loss_delta_max: 0,
       regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
       contact_expansions_observed: 0,
@@ -240,6 +257,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       deadlineSuppressionRecorded: false,
       opportunityCrossedMask: 0,
       opportunityAdmissibleMask: 0,
+      reserveMarginSuppressionRecorded: false,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -335,6 +353,16 @@ export class SelectiveAxisRegretController<Node extends object> {
         if (!watch.deadlineSuppressionRecorded) {
           watch.deadlineSuppressionRecorded = true;
           this.stats.deadline_suppressed_crossings++;
+        }
+        continue;
+      }
+      if (
+        this.minConservativeDeadlineMargin !== null &&
+        admittedAlternativeDeadline.margin < this.minConservativeDeadlineMargin
+      ) {
+        if (!watch.reserveMarginSuppressionRecorded) {
+          watch.reserveMarginSuppressionRecorded = true;
+          this.stats.reserve_margin_suppressed_crossings++;
         }
         continue;
       }

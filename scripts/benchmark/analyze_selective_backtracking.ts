@@ -45,6 +45,7 @@ type Event = {
   from_gap_index: number;
   catchup_outcome: Outcome;
   catchup_probe_frames: number;
+  alternative_conservative_deadline_margin: number;
   catchup_checkpoints: Checkpoint[];
 };
 
@@ -92,6 +93,8 @@ for (const row of archive.runs ?? []) {
       from_gap_index: event.from_gap_index,
       catchup_outcome: event.catchup_outcome,
       catchup_probe_frames: event.catchup_probe_frames,
+      alternative_conservative_deadline_margin:
+        event.alternative_conservative_deadline_margin,
       catchup_checkpoints: event.catchup_checkpoints ?? [],
     });
   }
@@ -160,6 +163,30 @@ const bySource = [...new Set(events.map((event) => event.sourceId))].sort().map(
   };
 }).sort((a, b) => b.events - a.events || a.source_id.localeCompare(b.source_id));
 
+const admissionMarginCounterfactuals = [2, 2.1, 2.2, 2.25, 2.3, 2.4, 2.5].map(
+  (minimumMargin) => {
+    const suppressed = events.filter(
+      (event) => event.alternative_conservative_deadline_margin < minimumMargin,
+    );
+    const countOutcome = (outcome: Outcome): number =>
+      suppressed.filter((event) => event.catchup_outcome === outcome).length;
+    return {
+      minimum_conservative_margin: minimumMargin,
+      suppressed_events: suppressed.length,
+      suppressed_alternative_selected: countOutcome("alternative_selected"),
+      suppressed_current_selected: countOutcome("current_selected"),
+      suppressed_probe_dead_ends: countOutcome("probe_dead_end"),
+      suppressed_probe_deferred: countOutcome("probe_deferred"),
+      suppressed_execution_ceiling: countOutcome("execution_ceiling"),
+      measured_probe_frames_in_suppressed_events: suppressed.reduce(
+        (sum, event) => sum + event.catchup_probe_frames,
+        0,
+      ),
+      affected_sources: [...new Set(suppressed.map((event) => event.sourceId))].sort(),
+    };
+  },
+);
+
 const result = {
   schema: "line.selective-backtracking-offline-guard-analysis.v1",
   source_archive: archivePath,
@@ -172,6 +199,7 @@ const result = {
     outcomes: byOutcome,
   },
   by_source: bySource,
+  admission_margin_counterfactuals: admissionMarginCounterfactuals,
   trigger_opportunities: triggerRuns.length === 0 ? null : {
     coverage: {
       archive_runs: archive.runs?.length ?? 0,
@@ -184,7 +212,8 @@ const result = {
   exploratory_rules: exploratory,
   caveat:
     "Offline rules classify the observed full-tournament winner and measured remaining probe work only. " +
-    "They do not estimate the score or later frontier/repair effects of actually stopping early.",
+    "They do not estimate the score or later frontier/repair effects of actually stopping early. " +
+    "Admission-margin rows likewise describe observed tournaments; they are not causal replay.",
 };
 
 print(result);
@@ -266,6 +295,17 @@ function print(analysis: typeof result): void {
     `${analysis.scope.completed_tournaments} completed tournaments`,
   );
   console.log(`  outcomes ${JSON.stringify(analysis.scope.outcomes)}`);
+  console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);
+  for (const row of analysis.admission_margin_counterfactuals) {
+    console.log(
+      `  margin ${row.minimum_conservative_margin.toFixed(2)}: suppress ` +
+      `${String(row.suppressed_events).padStart(3)} events; alternative/current/other ` +
+      `${row.suppressed_alternative_selected}/${row.suppressed_current_selected}/` +
+      `${row.suppressed_probe_dead_ends + row.suppressed_probe_deferred +
+        row.suppressed_execution_ceiling}; measured frames ` +
+      `${String(row.measured_probe_frames_in_suppressed_events).padStart(9)}`,
+    );
+  }
   if (analysis.trigger_opportunities !== null) {
     console.log(`\nTRIGGER OPPORTUNITIES (PRODUCTION TRAVERSAL)`);
     console.log(

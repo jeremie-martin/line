@@ -16,6 +16,8 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-reserve-225"))
+      .toBe("selective_axis_regret_catchup_reserve_225");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-shallow6-trigger-015"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-shallow-trigger-015"))
@@ -31,6 +33,59 @@ describe("selective-backtracking controller", () => {
     expect(catchupAlternativeHasSufficientGain(0.5, 0.4999)).toBe(true);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5)).toBe(false);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5001)).toBe(false);
+  });
+
+  test("reserve policy suppresses only the added conservative-margin band", () => {
+    const buildController = (policy: "selective_axis_regret_catchup" |
+      "selective_axis_regret_catchup_reserve_225") => {
+      const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, { policy });
+      const parent = { gap: 1, name: "parent" };
+      const leader = { gap: 2, name: "leader" };
+      const alternative = { gap: 2, name: "alternative" };
+      const descendant = { gap: 3, name: "descendant" };
+      controller.observeExpansion({
+        parent,
+        children: [leader, alternative],
+        contactExpansion: true,
+        contactOrdinal: 1,
+        axisLoss: 0,
+      });
+      controller.observeExpansion({
+        parent: leader,
+        children: [descendant],
+        contactExpansion: true,
+        contactOrdinal: 2,
+        axisLoss: 0.1,
+      });
+      return { controller, descendant, alternative };
+    };
+    const consider = (input: ReturnType<typeof buildController>) => input.controller.consider({
+      node: input.descendant,
+      contactOrdinal: 3,
+      axisLoss: 0.21,
+      executionCeilingReached: false,
+      totalSpentFrames: 10,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 2.2, pressured: false }),
+    });
+
+    const production = buildController("selective_axis_regret_catchup");
+    expect(consider(production)?.alternative).toBe(production.alternative);
+    expect(production.controller.snapshot()).toMatchObject({
+      min_conservative_deadline_margin: null,
+      reserve_margin_suppressed_crossings: 0,
+      selective_backtracks: 1,
+    });
+
+    const reserve = buildController("selective_axis_regret_catchup_reserve_225");
+    expect(consider(reserve)).toBeNull();
+    expect(reserve.controller.snapshot()).toMatchObject({
+      min_conservative_deadline_margin: 2.25,
+      reserve_margin_suppressed_crossings: 1,
+      deadline_suppressed_crossings: 0,
+      selective_backtracks: 0,
+    });
   });
 
   test("counts lower-threshold admissible watches without changing traversal", () => {

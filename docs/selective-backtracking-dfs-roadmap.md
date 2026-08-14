@@ -541,3 +541,26 @@ canonical evaluation, and another adjacent integer cap would be parameter
 tuning rather than a new hypothesis. The next strategy should predict the value
 of an individual tournament from its expected work and local evidence instead
 of treating rewind distance itself as the decision rule.
+
+### Conservative-reserve admission
+
+The next arm uses the cost signal the compiler already has. Every prospective
+alternative carries a conservative completion margin: policy budget remaining
+divided by the upper-interval estimate of work from that exact sibling to the
+end. Production admits once this margin is outside deadline pressure (2.0 or
+higher). The study arm requires 2.25, reserving an additional quarter of the
+estimated upper-bound suffix cost for later search and repair work.
+
+This is not a blind time cutoff and it is not fitted from output scores. In the
+retained N48 production archive, the rule would have suppressed 79 of 598
+observed tournaments across 68 runs and 17 sources. Those contain 47 eventual
+current-prefix selections, 14 dead/deferred outcomes, and 18 of 194 eventual
+alternative selections, for 3.60M of 23.07M measured catch-up frames. Thus it
+retains 90.7% of observed alternative winners while targeting 15.6% of work.
+Those labels are design evidence only: changing admission alters later search,
+so a fresh paired run remains necessary.
+
+One categorical arm is predeclared on all 44 sources, fresh actual seeds 36 and
+37, and the canonical 750k budget. It advances only on preserved validity,
+positive total direction, and non-isolated movement. There is no adjacent
+margin sweep; failure closes this hypothesis.

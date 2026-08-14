@@ -7,6 +7,7 @@ export const SELECTIVE_TRIGGER_OPPORTUNITY_THRESHOLDS = [
 
 export type SelectiveTriggerOpportunityStats = {
   min_axis_loss_delta: number;
+  min_conservative_deadline_margin?: number | null;
   lower_trigger_max_gap_rewind?: number | null;
   mature_axis_loss_delta_max: number;
   loss_threshold_crossings: number;
@@ -167,10 +168,10 @@ function validateRun(run: SelectiveTriggerOpportunityRun): void {
   if (run.stats.selective_backtracks > active.admissible_watches) {
     throw new Error(`${runKey(run)} has more actions than active-threshold admissions`);
   }
-  if (
-    run.stats.lower_trigger_max_gap_rewind == null &&
-    active.admissible_watches !== run.stats.selective_backtracks
-  ) {
+  const hasConditionalAdmission =
+    run.stats.lower_trigger_max_gap_rewind != null ||
+    run.stats.min_conservative_deadline_margin != null;
+  if (!hasConditionalAdmission && active.admissible_watches !== run.stats.selective_backtracks) {
     throw new Error(`${runKey(run)} active-threshold admission counters disagree`);
   }
 }

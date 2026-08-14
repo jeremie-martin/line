@@ -1,4 +1,6 @@
-export type SelectiveCatchupPolicy = "selective_axis_regret_catchup";
+export type SelectiveCatchupPolicy =
+  | "selective_axis_regret_catchup"
+  | "selective_axis_regret_catchup_multi_sibling";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -12,9 +14,13 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
+  if (raw === "selective-axis-regret-catchup-multi-sibling") {
+    return "selective_axis_regret_catchup_multi_sibling";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
-    `LR_FRONTIER_POLICY must be dfs or selective-axis-regret-catchup; got ${raw}`,
+    `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
+      `selective-axis-regret-catchup-multi-sibling; got ${raw}`,
   );
 }
 
@@ -45,6 +51,7 @@ type WatchLink<Node extends object> = {
 
 export type SelectiveBacktrackDecision<Node extends object> = {
   alternative: Node;
+  alternatives: readonly Node[];
   eventIndex: number;
   branchGapIndex: number;
   fromGapIndex: number;
@@ -60,6 +67,21 @@ export type SelectiveCatchupOutcome =
   | "probe_dead_end"
   | "probe_deferred"
   | "execution_ceiling";
+
+export type SelectiveCatchupProbeOutcome =
+  | "reached_target"
+  | "probe_dead_end"
+  | "probe_deferred"
+  | "execution_ceiling";
+
+export type SelectiveCatchupProbeResult = {
+  alternative_ordinal: number;
+  outcome: SelectiveCatchupProbeOutcome;
+  end_gap_index: number;
+  probe_nodes_processed: number;
+  probe_frames: number;
+  axis_loss: number | null;
+};
 
 export type SelectiveBacktrackingStats = {
   policy: SelectiveCatchupPolicy;
@@ -90,6 +112,12 @@ export type SelectiveBacktrackingStats = {
   catchup_probe_dead_ends: number;
   catchup_probe_deferred: number;
   catchup_execution_ceiling_stops: number;
+  catchup_probe_attempts: number;
+  catchup_probe_target_reaches: number;
+  catchup_additional_probe_attempts: number;
+  catchup_additional_probe_target_reaches: number;
+  catchup_tournaments_with_additional_probe: number;
+  catchup_additional_alternative_selected: number;
   catchup_probe_nodes_processed: number;
   catchup_probe_frames: number;
   axis_loss_delta_sum: number;
@@ -108,6 +136,7 @@ export type SelectiveBacktrackingEvent = {
   from_gap_index: number;
   alternative_gap_index: number;
   additional_siblings_available: number;
+  catchup_alternatives_requested: number;
   contact_advance: number;
   gap_rewind: number;
   baseline_axis_loss: number;
@@ -122,10 +151,13 @@ export type SelectiveBacktrackingEvent = {
   catchup_probe_frames: number;
   catchup_axis_loss: number | null;
   catchup_axis_loss_gain: number | null;
+  catchup_selected_alternative_ordinal: number | null;
+  catchup_probe_results: SelectiveCatchupProbeResult[];
   catchup_checkpoints: SelectiveCatchupCheckpoint[];
 };
 
 export type SelectiveCatchupCheckpoint = {
+  alternative_ordinal: number;
   gap_index: number;
   contact_advance: number;
   probe_nodes_processed: number;
@@ -199,6 +231,12 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_probe_dead_ends: 0,
       catchup_probe_deferred: 0,
       catchup_execution_ceiling_stops: 0,
+      catchup_probe_attempts: 0,
+      catchup_probe_target_reaches: 0,
+      catchup_additional_probe_attempts: 0,
+      catchup_additional_probe_target_reaches: 0,
+      catchup_tournaments_with_additional_probe: 0,
+      catchup_additional_alternative_selected: 0,
       catchup_probe_nodes_processed: 0,
       catchup_probe_frames: 0,
       axis_loss_delta_sum: 0,
@@ -354,9 +392,13 @@ export class SelectiveAxisRegretController<Node extends object> {
         continue;
       }
       watch.used = true;
-      const additionalSiblingsAvailable = watch.additionalAlternatives.filter(
+      const availableAdditionalAlternatives = watch.additionalAlternatives.filter(
         (alternative) => input.alternativeAvailable(alternative),
-      ).length;
+      );
+      const additionalSiblingsAvailable = availableAdditionalAlternatives.length;
+      const alternatives = this.policy === "selective_axis_regret_catchup_multi_sibling"
+        ? [watch.alternative, ...availableAdditionalAlternatives]
+        : [watch.alternative];
       this.stats.selective_backtracks++;
       if (additionalSiblingsAvailable > 0) {
         this.stats.selective_backtracks_with_additional_sibling_available++;
@@ -381,6 +423,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         from_gap_index: fromGapIndex,
         alternative_gap_index: targetGapIndex,
         additional_siblings_available: additionalSiblingsAvailable,
+        catchup_alternatives_requested: alternatives.length,
         contact_advance: contactAdvance,
         gap_rewind: gapRewind,
         baseline_axis_loss: watch.baselineAxisLoss,
@@ -395,11 +438,14 @@ export class SelectiveAxisRegretController<Node extends object> {
         catchup_probe_frames: 0,
         catchup_axis_loss: null,
         catchup_axis_loss_gain: null,
+        catchup_selected_alternative_ordinal: null,
+        catchup_probe_results: [],
         catchup_checkpoints: [],
       });
       this.suspended.set(input.node, eventIndex);
       return {
         alternative: watch.alternative,
+        alternatives,
         eventIndex,
         branchGapIndex: watch.branchGapIndex,
         fromGapIndex,
@@ -424,13 +470,16 @@ export class SelectiveAxisRegretController<Node extends object> {
    * rule into the compiler. */
   recordCatchupCheckpoint(
     decision: SelectiveBacktrackDecision<Node>,
-    checkpoint: SelectiveCatchupCheckpoint,
+    alternativeOrdinal: number,
+    checkpoint: Omit<SelectiveCatchupCheckpoint, "alternative_ordinal">,
   ): void {
     const event = this.stats.events[decision.eventIndex];
     if (event === undefined || event.catchup_outcome !== null) {
       throw new Error("selective catch-up checkpoint has no live causal event");
     }
-    const previous = event.catchup_checkpoints.at(-1);
+    const previous = event.catchup_checkpoints.filter(
+      (candidate) => candidate.alternative_ordinal === alternativeOrdinal,
+    ).at(-1);
     if (
       checkpoint.gap_index <= (previous?.gap_index ?? decision.branchGapIndex) ||
       checkpoint.gap_index > decision.fromGapIndex ||
@@ -439,16 +488,15 @@ export class SelectiveAxisRegretController<Node extends object> {
     ) {
       throw new Error("selective catch-up checkpoints must advance monotonically to the target");
     }
-    event.catchup_checkpoints.push({ ...checkpoint });
+    event.catchup_checkpoints.push({ ...checkpoint, alternative_ordinal: alternativeOrdinal });
   }
 
   finishCatchup(
     decision: SelectiveBacktrackDecision<Node>,
     input: {
       outcome: SelectiveCatchupOutcome;
-      endGapIndex: number;
-      probeNodesProcessed: number;
-      probeFrames: number;
+      selectedAlternativeOrdinal: number | null;
+      probes: readonly SelectiveCatchupProbeResult[];
       catchupAxisLoss: number | null;
     },
   ): void {
@@ -456,28 +504,55 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (event === undefined || event.catchup_outcome !== null) {
       throw new Error("selective catch-up completion has no live causal event");
     }
+    if (input.probes.length === 0) {
+      throw new Error("selective catch-up completion has no probe result");
+    }
+    const probeNodesProcessed = input.probes.reduce(
+      (sum, probe) => sum + probe.probe_nodes_processed,
+      0,
+    );
+    const probeFrames = input.probes.reduce((sum, probe) => sum + probe.probe_frames, 0);
     event.catchup_outcome = input.outcome;
-    event.catchup_end_gap_index = input.endGapIndex;
-    event.catchup_probe_nodes_processed = input.probeNodesProcessed;
-    event.catchup_probe_frames = input.probeFrames;
+    event.catchup_end_gap_index = Math.max(...input.probes.map((probe) => probe.end_gap_index));
+    event.catchup_probe_nodes_processed = probeNodesProcessed;
+    event.catchup_probe_frames = probeFrames;
     event.catchup_axis_loss = input.catchupAxisLoss;
     event.catchup_axis_loss_gain = input.catchupAxisLoss === null
       ? null
       : decision.triggerAxisLoss - input.catchupAxisLoss;
-    this.stats.catchup_probe_nodes_processed += input.probeNodesProcessed;
-    this.stats.catchup_probe_frames += input.probeFrames;
+    event.catchup_selected_alternative_ordinal = input.selectedAlternativeOrdinal;
+    event.catchup_probe_results = input.probes.map((probe) => ({ ...probe }));
+    this.stats.catchup_probe_nodes_processed += probeNodesProcessed;
+    this.stats.catchup_probe_frames += probeFrames;
+    this.stats.catchup_probe_attempts += input.probes.length;
+    this.stats.catchup_probe_target_reaches += input.probes.filter(
+      (probe) => probe.outcome === "reached_target",
+    ).length;
+    this.stats.catchup_additional_probe_attempts += input.probes.filter(
+      (probe) => probe.alternative_ordinal > 1,
+    ).length;
+    this.stats.catchup_additional_probe_target_reaches += input.probes.filter(
+      (probe) => probe.alternative_ordinal > 1 && probe.outcome === "reached_target",
+    ).length;
+    if (input.probes.length > 1) this.stats.catchup_tournaments_with_additional_probe++;
+    if ((input.selectedAlternativeOrdinal ?? 0) > 1) {
+      this.stats.catchup_additional_alternative_selected++;
+    }
+    this.stats.catchup_probe_dead_ends += input.probes.filter(
+      (probe) => probe.outcome === "probe_dead_end",
+    ).length;
+    this.stats.catchup_probe_deferred += input.probes.filter(
+      (probe) => probe.outcome === "probe_deferred",
+    ).length;
+    this.stats.catchup_execution_ceiling_stops += input.probes.filter(
+      (probe) => probe.outcome === "execution_ceiling",
+    ).length;
     if (input.outcome === "alternative_selected") {
       this.stats.catchup_completed++;
       this.stats.catchup_alternative_selected++;
     } else if (input.outcome === "current_selected") {
       this.stats.catchup_completed++;
       this.stats.catchup_current_selected++;
-    } else if (input.outcome === "probe_dead_end") {
-      this.stats.catchup_probe_dead_ends++;
-    } else if (input.outcome === "probe_deferred") {
-      this.stats.catchup_probe_deferred++;
-    } else {
-      this.stats.catchup_execution_ceiling_stops++;
     }
   }
 
@@ -504,6 +579,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       ),
       events: this.stats.events.map((event) => ({
         ...event,
+        catchup_probe_results: event.catchup_probe_results.map((probe) => ({ ...probe })),
         catchup_checkpoints: event.catchup_checkpoints.map((checkpoint) => ({ ...checkpoint })),
       })),
     };

@@ -610,3 +610,23 @@ using the same authored-prefix axis loss, and schedules the lowest-loss prefix
 first while retaining every other prefix as ordinary frontier work. Trigger,
 maturity, deadline admission, candidate generation, and ordinary DFS stay
 unchanged.
+
+The first implementation probes every live causal sibling sequentially under
+the existing hard ceiling. Dead and deferred probes are recorded individually
+and do not prevent the next sibling from being tried. Successful probes, the
+current prefix, and all generated side branches are retained; only traversal
+priority changes. The equal-depth order is authored-axis loss ascending, stable
+on current prefix then original sibling rank, so production's strict tie rule is
+preserved.
+
+Telemetry is tournament-aware rather than stretching the old singular label:
+each event names alternatives requested, every probe's ordinal/outcome/depth/
+work/loss, and the selected ordinal. Aggregate probe work is the exact sum of
+those records. The offline binary checkpoint analyzer excludes multi-sibling
+events because one tournament winner cannot label several checkpoint streams.
+
+The first live screen is deliberately focused: the two believer impact cases
+that produced all 47 opportunities in the fresh map, actual seeds 42-49, 750k,
+plus Benchmark V2's automatic cross-stratum controls. It advances only with
+preserved validity, positive target-source sum, and more than one positive
+changed target cell. This is a screen, never a promotion decision.

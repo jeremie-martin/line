@@ -1,0 +1,55 @@
+{
+  "schema": "line.selective-multi-sibling-catchup-study.v1",
+  "status": "focused-screen-predeclared",
+  "generated_at": "2026-08-14",
+  "question": "Does comparing both accepted causal siblings at equal depth improve completed-track quality over the promoted runner-up-only tournament?",
+  "intervention": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-multi-sibling"
+    },
+    "rule": "At an otherwise unchanged admitted regret event, independently advance every live causal sibling to the interrupted gap. Stably rank the interrupted prefix and each successful probe by authored-prefix axis loss, schedule the lowest-loss prefix first, and retain every other prefix and every generated side branch as ordinary frontier work.",
+    "unchanged": [
+      "0.20 authored-axis regret trigger",
+      "two-contact maturity",
+      "conservative deadline admission",
+      "candidate generation and ranking",
+      "hard and policy budgets",
+      "ordinary DFS outside the bounded tournament"
+    ],
+    "edge_semantics": {
+      "probe_dead_end_or_deferred": "Record the individual probe outcome and continue with remaining siblings.",
+      "execution_ceiling": "Stop the tournament, retain every materialized prefix, and obey the existing compile ceiling.",
+      "ties": "Current prefix wins an exact tie; otherwise lower authored-axis loss wins, with original sibling rank as the stable tie-break.",
+      "nested_selective_backtracking": "Disabled inside each bounded probe, exactly as in production."
+    }
+  },
+  "telemetry": {
+    "tournament_fields": [
+      "catchup_alternatives_requested",
+      "catchup_selected_alternative_ordinal",
+      "catchup_probe_results"
+    ],
+    "aggregate_fields": [
+      "catchup_probe_attempts",
+      "catchup_probe_target_reaches",
+      "catchup_additional_probe_attempts",
+      "catchup_additional_probe_target_reaches",
+      "catchup_tournaments_with_additional_probe",
+      "catchup_additional_alternative_selected"
+    ],
+    "compatibility": "Existing probe frame/node fields become exact sums over probe_results. Production has one result and retains its prior numerical meaning. Offline binary checkpoint rules explicitly exclude multi-sibling tournaments."
+  },
+  "design_evidence": "benchmark/v2/studies/selective-multi-sibling-opportunity-v1.json",
+  "predeclared_screen": {
+    "budget": 750000,
+    "actual_seeds": [42, 43, 44, 45, 46, 47, 48, 49],
+    "target_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "automatic_controls": "Benchmark V2 back-fills one source in every otherwise empty stratum; controls are expected to remain unchanged unless the mechanism fires.",
+    "reference_commit": "b2d520a3",
+    "decision": "Advance only if all cells retain validity, the target-source score sum is positive, and positive direction is supported by more than one changed target cell. This focused screen cannot authorize promotion or a canonical headline run by itself."
+  },
+  "non_claim": "This evaluates the first full-depth, all-live-sibling tournament at 750k. A negative result would not reject multi-sibling or voluntary-backtracking strategies with different probe allocation, stopping, or selection rules."
+}

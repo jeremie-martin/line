@@ -493,7 +493,9 @@ export type CompileStats = {
   /** Present for the production selective-backtracking frontier policy. An
    *  explicit DFS diagnostic omits the object. */
   handoff_selective_backtracking?: {
-    policy: "selective_axis_regret_catchup";
+    policy:
+      | "selective_axis_regret_catchup"
+      | "selective_axis_regret_catchup_multi_sibling";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -524,6 +526,12 @@ export type CompileStats = {
     catchup_probe_dead_ends: number;
     catchup_probe_deferred: number;
     catchup_execution_ceiling_stops: number;
+    catchup_probe_attempts: number;
+    catchup_probe_target_reaches: number;
+    catchup_additional_probe_attempts: number;
+    catchup_additional_probe_target_reaches: number;
+    catchup_tournaments_with_additional_probe: number;
+    catchup_additional_alternative_selected: number;
     catchup_probe_nodes_processed: number;
     catchup_probe_frames: number;
     axis_loss_delta_sum: number;
@@ -544,6 +552,7 @@ export type CompileStats = {
       from_gap_index: number;
       alternative_gap_index: number;
       additional_siblings_available: number;
+      catchup_alternatives_requested: number;
       contact_advance: number;
       gap_rewind: number;
       baseline_axis_loss: number;
@@ -564,7 +573,17 @@ export type CompileStats = {
       catchup_probe_frames: number;
       catchup_axis_loss: number | null;
       catchup_axis_loss_gain: number | null;
+      catchup_selected_alternative_ordinal: number | null;
+      catchup_probe_results: Array<{
+        alternative_ordinal: number;
+        outcome: "reached_target" | "probe_dead_end" | "probe_deferred" | "execution_ceiling";
+        end_gap_index: number;
+        probe_nodes_processed: number;
+        probe_frames: number;
+        axis_loss: number | null;
+      }>;
       catchup_checkpoints: Array<{
+        alternative_ordinal: number;
         gap_index: number;
         contact_advance: number;
         probe_nodes_processed: number;

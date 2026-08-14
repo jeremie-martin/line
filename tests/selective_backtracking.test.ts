@@ -16,6 +16,8 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-multi-sibling"))
+      .toBe("selective_axis_regret_catchup_multi_sibling");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-reserve-225"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-shallow6-trigger-015"))
@@ -111,10 +113,11 @@ describe("selective-backtracking controller", () => {
       alternativeDeadline: () => ({ margin: 3, pressured: false }),
     });
     expect(decision?.alternative).toBe(alternative);
+    expect(decision?.alternatives).toEqual([alternative]);
     expect(decision?.contactAdvance).toBe(2);
     expect(decision?.gapRewind).toBe(1);
     controller.markSuspended(descendant);
-    controller.recordCatchupCheckpoint(decision!, {
+    controller.recordCatchupCheckpoint(decision!, 1, {
       gap_index: 5,
       contact_advance: 2,
       probe_nodes_processed: 1,
@@ -125,9 +128,15 @@ describe("selective-backtracking controller", () => {
     });
     controller.finishCatchup(decision!, {
       outcome: "current_selected",
-      endGapIndex: 5,
-      probeNodesProcessed: 1,
-      probeFrames: 35,
+      selectedAlternativeOrdinal: null,
+      probes: [{
+        alternative_ordinal: 1,
+        outcome: "reached_target",
+        end_gap_index: 5,
+        probe_nodes_processed: 1,
+        probe_frames: 35,
+        axis_loss: 0.7,
+      }],
       catchupAxisLoss: 0.7,
     });
     expect(controller.observeSelected({ gap: 5, name: "different" }, 120)).toBe(false);
@@ -156,6 +165,12 @@ describe("selective-backtracking controller", () => {
       catchup_alternative_selected: 0,
       catchup_probe_nodes_processed: 1,
       catchup_probe_frames: 35,
+      catchup_probe_attempts: 1,
+      catchup_probe_target_reaches: 1,
+      catchup_additional_probe_attempts: 0,
+      catchup_additional_probe_target_reaches: 0,
+      catchup_tournaments_with_additional_probe: 0,
+      catchup_additional_alternative_selected: 0,
       regret_opportunities_by_min_axis_loss_delta: {
         "0.05": { crossed_watches: 1, admissible_watches: 1 },
         "0.10": { crossed_watches: 1, admissible_watches: 1 },
@@ -168,6 +183,7 @@ describe("selective-backtracking controller", () => {
         from_gap_index: 5,
         alternative_gap_index: 4,
         additional_siblings_available: 1,
+        catchup_alternatives_requested: 1,
         alternative_conservative_deadline_margin: 3,
         trigger_total_spent_frames: 100,
         resumed_total_spent_frames: 140,
@@ -176,7 +192,17 @@ describe("selective-backtracking controller", () => {
         catchup_probe_nodes_processed: 1,
         catchup_probe_frames: 35,
         catchup_axis_loss: 0.7,
+        catchup_selected_alternative_ordinal: null,
+        catchup_probe_results: [{
+          alternative_ordinal: 1,
+          outcome: "reached_target",
+          end_gap_index: 5,
+          probe_nodes_processed: 1,
+          probe_frames: 35,
+          axis_loss: 0.7,
+        }],
         catchup_checkpoints: [{
+          alternative_ordinal: 1,
           gap_index: 5,
           contact_advance: 2,
           probe_nodes_processed: 1,
@@ -189,6 +215,88 @@ describe("selective-backtracking controller", () => {
     });
     expect(controller.snapshot().mature_axis_loss_delta_max).toBeCloseTo(0.21);
     expect(controller.snapshot().events[0]?.catchup_axis_loss_gain).toBeCloseTo(-0.09);
+  });
+
+  test("multi-sibling policy requests every live causal alternative", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_multi_sibling",
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const runnerUp = { gap: 2, name: "runner-up" };
+    const third = { gap: 2, name: "third" };
+    const descendant = { gap: 3, name: "descendant" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, runnerUp, third],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [descendant],
+      contactExpansion: true,
+      contactOrdinal: 2,
+      axisLoss: 0.1,
+    });
+    const decision = controller.consider({
+      node: descendant,
+      contactOrdinal: 3,
+      axisLoss: 0.21,
+      executionCeilingReached: false,
+      totalSpentFrames: 10,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+    });
+    expect(decision?.alternatives).toEqual([runnerUp, third]);
+    expect(controller.snapshot().events[0]).toMatchObject({
+      additional_siblings_available: 1,
+      catchup_alternatives_requested: 2,
+    });
+    controller.markSuspended(descendant);
+    controller.finishCatchup(decision!, {
+      outcome: "alternative_selected",
+      selectedAlternativeOrdinal: 2,
+      probes: [
+        {
+          alternative_ordinal: 1,
+          outcome: "reached_target",
+          end_gap_index: 3,
+          probe_nodes_processed: 1,
+          probe_frames: 20,
+          axis_loss: 0.22,
+        },
+        {
+          alternative_ordinal: 2,
+          outcome: "reached_target",
+          end_gap_index: 3,
+          probe_nodes_processed: 1,
+          probe_frames: 25,
+          axis_loss: 0.15,
+        },
+      ],
+      catchupAxisLoss: 0.15,
+    });
+    expect(controller.snapshot()).toMatchObject({
+      catchup_completed: 1,
+      catchup_alternative_selected: 1,
+      catchup_probe_attempts: 2,
+      catchup_probe_target_reaches: 2,
+      catchup_additional_probe_attempts: 1,
+      catchup_additional_probe_target_reaches: 1,
+      catchup_tournaments_with_additional_probe: 1,
+      catchup_additional_alternative_selected: 1,
+      catchup_probe_nodes_processed: 2,
+      catchup_probe_frames: 45,
+      events: [{
+        catchup_selected_alternative_ordinal: 2,
+        catchup_axis_loss: 0.15,
+        catchup_probe_nodes_processed: 2,
+        catchup_probe_frames: 45,
+      }],
+    });
   });
 
   test("does not backtrack before maturity or while deadline pressure is active", () => {

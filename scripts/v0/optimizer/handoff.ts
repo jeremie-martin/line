@@ -218,6 +218,7 @@ import {
   SelectiveAxisRegretController,
   type FrontierTraversalLane,
   type SelectiveBacktrackDecision,
+  type SelectiveCatchupProbeResult,
 } from "./selective_backtracking.ts";
 import {
   applyImpactWindowAccelerationAfterReference,
@@ -3013,108 +3014,153 @@ function compileHandoffInternal(
         return result;
       };
 
-      /** Give one causal sibling a bounded preferred-path excursion to the
-       * suspended prefix's exact gap. At equal authored history, continue the
-       * lower-loss prefix and retain the other as ordinary frontier work. */
+      /** Give every policy-selected causal sibling an independent bounded
+       * preferred-path excursion to the suspended prefix's exact gap. Rank all
+       * completed equal-depth prefixes by authored-axis loss, continue the
+       * best first, and retain every other prefix as ordinary frontier work. */
       const runCatchup = (
         suspended: HandoffNode,
         decision: SelectiveBacktrackDecision<HandoffNode>,
       ): boolean => {
-        if (!takeFrontierNode(decision.alternative, pass, fb)) {
-          throw new Error("selective catch-up alternative left the synchronous frontier");
-        }
         selectiveBacktracking!.markSuspended(suspended);
-        const startFrames = getSimFrames();
-        let probe = decision.alternative;
-        let probeNodesProcessed = 0;
-        let resumeProbe = selectiveBacktracking!.observeSelected(probe, startFrames);
-        const finish = (
-          outcome:
-            | "alternative_selected"
-            | "current_selected"
-            | "probe_dead_end"
-            | "probe_deferred"
-            | "execution_ceiling",
-          catchupAxisLoss: number | null,
+        const probeResults: SelectiveCatchupProbeResult[] = [];
+        const completed: Array<{
+          node: HandoffNode;
+          alternativeOrdinal: number;
+          axisLoss: number;
+        }> = [];
+        const finishTournament = (
+          outcome: "alternative_selected" | "current_selected" |
+            "probe_dead_end" | "probe_deferred" | "execution_ceiling",
+          selectedAlternativeOrdinal: number | null,
         ): void => {
+          const bestAlternativeAxisLoss = completed.length === 0
+            ? null
+            : Math.min(...completed.map((candidate) => candidate.axisLoss));
           selectiveBacktracking!.finishCatchup(decision, {
             outcome,
-            endGapIndex: probe.search.gapIndex,
-            probeNodesProcessed,
-            probeFrames: getSimFrames() - startFrames,
-            catchupAxisLoss,
+            selectedAlternativeOrdinal,
+            probes: probeResults,
+            catchupAxisLoss: bestAlternativeAxisLoss,
           });
         };
 
-        while (probe.search.gapIndex < decision.fromGapIndex) {
-          if (!keepGoing() || telemetry.nodesExpanded >= maxNodes) {
-            finish("execution_ceiling", null);
-            enqueueChild(probe, pass, fb);
-            enqueueChild(suspended, pass, fb);
-            return true;
+        for (let alternativeIndex = 0; alternativeIndex < decision.alternatives.length;
+          alternativeIndex++) {
+          const alternative = decision.alternatives[alternativeIndex]!;
+          const alternativeOrdinal = alternativeIndex + 1;
+          if (!takeFrontierNode(alternative, pass, fb)) {
+            throw new Error("selective catch-up alternative left the synchronous frontier");
           }
-          const result = processSelected(probe, resumeProbe, false);
-          resumeProbe = false;
-          probeNodesProcessed++;
-          if (result.kind === "captured" || result.kind === "terminal_limit") {
-            finish("execution_ceiling", null);
-            return true;
-          }
-          if (result.kind === "selective_backtrack") {
-            throw new Error("nested selective backtrack escaped catch-up isolation");
-          }
-          if (result.kind === "deferred") {
-            const replacement = { ...probe, deferExpansion: false };
-            selectiveBacktracking!.replaceNode(probe, replacement);
-            probe = replacement;
-            finish("probe_deferred", null);
-            enqueueDeferred(probe, pass, fb);
-            enqueueChild(suspended, pass, fb);
-            return false;
+          const probeStartFrames = getSimFrames();
+          let probe = alternative;
+          let probeNodesProcessed = 0;
+          let resumeProbe = selectiveBacktracking!.observeSelected(probe, probeStartFrames);
+          const finishProbe = (
+            outcome: SelectiveCatchupProbeResult["outcome"],
+            axisLoss: number | null,
+          ): void => {
+            probeResults.push({
+              alternative_ordinal: alternativeOrdinal,
+              outcome,
+              end_gap_index: probe.search.gapIndex,
+              probe_nodes_processed: probeNodesProcessed,
+              probe_frames: getSimFrames() - probeStartFrames,
+              axis_loss: axisLoss,
+            });
+          };
+
+          while (probe.search.gapIndex < decision.fromGapIndex) {
+            if (!keepGoing() || telemetry.nodesExpanded >= maxNodes) {
+              finishProbe("execution_ceiling", null);
+              enqueueChild(probe, pass, fb);
+              for (let i = completed.length - 1; i >= 0; i--) {
+                enqueueChild(completed[i]!.node, pass, fb);
+              }
+              enqueueChild(suspended, pass, fb);
+              finishTournament("execution_ceiling", null);
+              return true;
+            }
+            const result = processSelected(probe, resumeProbe, false);
+            resumeProbe = false;
+            probeNodesProcessed++;
+            if (result.kind === "captured" || result.kind === "terminal_limit") {
+              finishProbe("execution_ceiling", null);
+              finishTournament("execution_ceiling", null);
+              return true;
+            }
+            if (result.kind === "selective_backtrack") {
+              throw new Error("nested selective backtrack escaped catch-up isolation");
+            }
+            if (result.kind === "deferred") {
+              const replacement = { ...probe, deferExpansion: false };
+              selectiveBacktracking!.replaceNode(probe, replacement);
+              probe = replacement;
+              finishProbe("probe_deferred", null);
+              enqueueDeferred(probe, pass, fb);
+              break;
+            }
+
+            const next = result.children.find((child) => child.skippedContacts === 0);
+            for (let i = result.children.length - 1; i >= 0; i--) {
+              const child = result.children[i]!;
+              if (child !== next) enqueueChild(child, pass, fb);
+            }
+            if (next === undefined) {
+              finishProbe("probe_dead_end", null);
+              break;
+            }
+            probe = next;
+            const checkpointGapIndex = probe.search.gapIndex;
+            const currentAxisLoss = authoredPrefixAxisLoss(
+              suspended.search,
+              checkpointGapIndex,
+            );
+            const alternativeAxisLoss = authoredPrefixAxisLoss(probe.search);
+            selectiveBacktracking!.recordCatchupCheckpoint(decision, alternativeOrdinal, {
+              gap_index: checkpointGapIndex,
+              contact_advance:
+                contactOrdinalAt(checkpointGapIndex) - contactOrdinalAt(decision.branchGapIndex),
+              probe_nodes_processed: probeNodesProcessed,
+              probe_frames: getSimFrames() - probeStartFrames,
+              current_axis_loss: currentAxisLoss,
+              alternative_axis_loss: alternativeAxisLoss,
+              alternative_axis_loss_gain: currentAxisLoss - alternativeAxisLoss,
+            });
           }
 
-          const next = result.children.find((child) => child.skippedContacts === 0);
-          for (let i = result.children.length - 1; i >= 0; i--) {
-            const child = result.children[i]!;
-            if (child !== next) enqueueChild(child, pass, fb);
+          if (probe.search.gapIndex >= decision.fromGapIndex) {
+            const axisLoss = authoredPrefixAxisLoss(probe.search);
+            finishProbe("reached_target", axisLoss);
+            completed.push({ node: probe, alternativeOrdinal, axisLoss });
           }
-          if (next === undefined) {
-            finish("probe_dead_end", null);
-            enqueueChild(suspended, pass, fb);
-            return false;
-          }
-          probe = next;
-          const checkpointGapIndex = probe.search.gapIndex;
-          const currentAxisLoss = authoredPrefixAxisLoss(
-            suspended.search,
-            checkpointGapIndex,
-          );
-          const alternativeAxisLoss = authoredPrefixAxisLoss(probe.search);
-          selectiveBacktracking!.recordCatchupCheckpoint(decision, {
-            gap_index: checkpointGapIndex,
-            contact_advance:
-              contactOrdinalAt(checkpointGapIndex) - contactOrdinalAt(decision.branchGapIndex),
-            probe_nodes_processed: probeNodesProcessed,
-            probe_frames: getSimFrames() - startFrames,
-            current_axis_loss: currentAxisLoss,
-            alternative_axis_loss: alternativeAxisLoss,
-            alternative_axis_loss_gain: currentAxisLoss - alternativeAxisLoss,
-          });
         }
 
-        const catchupAxisLoss = authoredPrefixAxisLoss(probe.search);
-        if (catchupAlternativeHasSufficientGain(
-          decision.triggerAxisLoss,
-          catchupAxisLoss,
-        )) {
-          finish("alternative_selected", catchupAxisLoss);
+        if (completed.length === 0) {
+          const outcome = probeResults.some((probe) => probe.outcome === "probe_dead_end")
+            ? "probe_dead_end"
+            : "probe_deferred";
+          finishTournament(outcome, null);
           enqueueChild(suspended, pass, fb);
-          enqueueChild(probe, pass, fb);
-        } else {
-          finish("current_selected", catchupAxisLoss);
-          enqueueChild(probe, pass, fb);
-          enqueueChild(suspended, pass, fb);
+          return false;
         }
+
+        const ranked = [
+          { node: suspended, alternativeOrdinal: null, axisLoss: decision.triggerAxisLoss },
+          ...completed,
+        ].sort((left, right) => {
+          if (catchupAlternativeHasSufficientGain(left.axisLoss, right.axisLoss)) return 1;
+          if (catchupAlternativeHasSufficientGain(right.axisLoss, left.axisLoss)) return -1;
+          return (left.alternativeOrdinal ?? 0) - (right.alternativeOrdinal ?? 0);
+        });
+        for (let i = ranked.length - 1; i >= 0; i--) {
+          enqueueChild(ranked[i]!.node, pass, fb);
+        }
+        const selectedAlternativeOrdinal = ranked[0]!.alternativeOrdinal;
+        finishTournament(
+          selectedAlternativeOrdinal === null ? "current_selected" : "alternative_selected",
+          selectedAlternativeOrdinal,
+        );
         return false;
       };
 

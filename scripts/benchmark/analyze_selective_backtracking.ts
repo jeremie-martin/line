@@ -30,6 +30,7 @@ type Outcome =
   | "execution_ceiling";
 
 type Checkpoint = {
+  alternative_ordinal?: number;
   gap_index: number;
   contact_advance: number;
   probe_nodes_processed: number;
@@ -46,6 +47,7 @@ type Event = {
   catchup_outcome: Outcome;
   catchup_probe_frames: number;
   alternative_conservative_deadline_margin: number;
+  catchup_alternatives_requested: number;
   catchup_checkpoints: Checkpoint[];
 };
 
@@ -95,6 +97,7 @@ for (const row of archive.runs ?? []) {
       catchup_probe_frames: event.catchup_probe_frames,
       alternative_conservative_deadline_margin:
         event.alternative_conservative_deadline_margin,
+      catchup_alternatives_requested: event.catchup_alternatives_requested ?? 1,
       catchup_checkpoints: event.catchup_checkpoints ?? [],
     });
   }
@@ -102,9 +105,13 @@ for (const row of archive.runs ?? []) {
 
 const earliestAdvances = [2, 3, 4, 5, 6, 8];
 const advantages = [0, 0.0025, 0.005, 0.01, 0.02, 0.03, 0.05];
+// A checkpoint rule predicts one alternative's eventual binary disposition.
+// Multi-sibling tournaments contain several checkpoint streams and one final
+// winner, so feeding them through the old rule would silently change meaning.
+const guardEvents = events.filter((event) => event.catchup_alternatives_requested === 1);
 const rules = (["reject_alternative", "accept_alternative"] as const).flatMap((mode) =>
   earliestAdvances.flatMap((earliest) => advantages.map((advantage) =>
-    evaluateRule(events, mode, earliest, advantage)
+    evaluateRule(guardEvents, mode, earliest, advantage)
   ))
 );
 const zeroContradiction = rules
@@ -116,7 +123,7 @@ const exploratory = rules
     a.contradiction_rate! - b.contradiction_rate! || ruleOrder(a, b)
   );
 
-const completed = events.filter((event) =>
+const completed = guardEvents.filter((event) =>
   event.catchup_outcome === "alternative_selected" || event.catchup_outcome === "current_selected"
 );
 const stability = earliestAdvances.map((advance) => {
@@ -195,6 +202,7 @@ const result = {
     runs: archive.runs?.length ?? 0,
     events: events.length,
     events_with_checkpoints: events.filter((event) => event.catchup_checkpoints.length > 0).length,
+    single_alternative_events_for_checkpoint_rules: guardEvents.length,
     completed_tournaments: completed.length,
     outcomes: byOutcome,
   },
@@ -213,7 +221,8 @@ const result = {
   caveat:
     "Offline rules classify the observed full-tournament winner and measured remaining probe work only. " +
     "They do not estimate the score or later frontier/repair effects of actually stopping early. " +
-    "Admission-margin rows likewise describe observed tournaments; they are not causal replay.",
+    "Admission-margin rows likewise describe observed tournaments; they are not causal replay. " +
+    "Checkpoint rules exclude multi-sibling tournaments because their winner label is not binary.",
 };
 
 print(result);

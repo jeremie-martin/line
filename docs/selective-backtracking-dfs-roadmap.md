@@ -397,3 +397,16 @@ score fitting. Of 68 alternative selections, 15 had gain below 0.0025, 30 below
 one half, and two thirds of observed alternative dispositions while charging
 the same tournament work. It tests whether tiny prefix wins are robust enough
 to justify changing paths; it is not expected to save catch-up frames directly.
+
+The compact live bracket rejects that direction. Across the 16 affected cells,
+the 0.0025, 0.005, and 0.01 margins lost 15.1900, 33.4235, and 52.5831 points
+respectively, with no validity changes. Both affected sources were negative at
+every rung in aggregate, and the loss grew monotonically with the margin. The
+arms therefore stop at eight seeds: none warrants replication or canonical
+evaluation.
+
+This result strengthens the comparison signal rather than weakening it: even
+tiny positive equal-depth axis gains are useful. It also motivates the mirror
+experiment. The strict zero boundary may be too conservative if a nearly tied
+alternative offers path diversity or better downstream potential. A symmetric
+tolerance bracket can test that with the same work and the same paired funnel.

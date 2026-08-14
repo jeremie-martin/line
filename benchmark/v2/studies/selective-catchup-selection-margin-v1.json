@@ -1,0 +1,72 @@
+{
+  "schema": "line.benchmark-v2.selective-catchup-selection-margin-v1.v1",
+  "recorded_at": "2026-08-14T20:05:00+02:00",
+  "status": "rejected",
+  "scope": {
+    "question": "Should an equal-depth alternative need more than a strict positive authored-axis loss gain before displacing the current prefix?",
+    "implementation_commit": "e5612e8",
+    "baseline_commit": "a66a1c912a69d633cbdfb5e5691572190df22912",
+    "budget": 750000,
+    "seeds": [16, 17, 18, 19, 20, 21, 22, 23],
+    "affected_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "controls": [
+      "river_reentry",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ],
+    "multi_budget_sweep": false,
+    "non_claim": "This compact bracket rejects positive hysteresis on the dominant 750k action surface. It does not determine the best comparison signal or reject allowing near-tied alternatives to continue."
+  },
+  "offline_dose": {
+    "archive": "generated/benchmark-v2/mover-grids/selective-catchup-checkpoints-n16/candidate.json",
+    "alternative_selections": 68,
+    "gains_below_0_0025": 15,
+    "gains_below_0_005": 30,
+    "gains_below_0_01": 46
+  },
+  "results": [
+    {
+      "minimum_gain": 0.0025,
+      "affected_cells": 16,
+      "changed_cells": 6,
+      "score_sum_delta": -15.19,
+      "mean_delta_per_affected_cell": -0.949375,
+      "seed_block_standard_error": 0.864732,
+      "seed_block_t": -1.0979,
+      "validity_flips": 0
+    },
+    {
+      "minimum_gain": 0.005,
+      "affected_cells": 16,
+      "changed_cells": 10,
+      "score_sum_delta": -33.4235,
+      "mean_delta_per_affected_cell": -2.088969,
+      "seed_block_standard_error": 1.522636,
+      "seed_block_t": -1.3719,
+      "validity_flips": 0
+    },
+    {
+      "minimum_gain": 0.01,
+      "affected_cells": 16,
+      "changed_cells": 11,
+      "score_sum_delta": -52.5831,
+      "mean_delta_per_affected_cell": -3.286444,
+      "seed_block_standard_error": 1.723692,
+      "seed_block_t": -1.9066,
+      "validity_flips": 0
+    }
+  ],
+  "decision": {
+    "action": "Reject all positive-margin arms without replication or a canonical run; remove them from the live code after preserving this commit and evidence.",
+    "reason": "All three rungs were negative on both affected sources in aggregate, and loss increased monotonically with the required gain.",
+    "design_lesson": "Even small positive equal-depth axis gains carry useful downstream information. The mirror question is now more promising: the strict zero boundary may reject near-tied alternatives whose future potential or diversity is worth a tiny local deficit."
+  },
+  "evidence": [
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-min-gain-0025-n8/mover-grid-report.json", "sha256": "43050acc6034f074f6cd4b700c7a9accf63de97652faa8a98b3ff8206af861ea"},
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-min-gain-005-n8-report/mover-grid-report.json", "sha256": "fd4662b86133193e0a36d546988079eb52a724617b015e088d7a7d752aba9f77"},
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-min-gain-01-n8-report/mover-grid-report.json", "sha256": "e12802c79db67cf6a9bf49d160600a82276f058c3017edd6342f6f9d4e9a3be2"}
+  ]
+}

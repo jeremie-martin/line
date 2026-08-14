@@ -1,0 +1,49 @@
+{
+  "schema": "line.selective-repair-incumbent-once-study.v1",
+  "status": "live-screen-predeclared",
+  "generated_at": "2026-08-14",
+  "question": "Can one incumbent-relative redirection per self-contained repair attempt preserve the useful signal while preventing repeated suffix thrashing?",
+  "relationship_to_prior_arm": {
+    "closed_arm": "selective-axis-regret-catchup-repair-incumbent",
+    "evidence": "The unrestricted arm took 47 added repair-incumbent tournaments in eight of 48 runs. One regressing sparse-lowline cell took 28 before returning one terminal.",
+    "categorical_change": "After the first repair-incumbent tournament in a repair attempt, later incumbent-relative signals in that same attempt are observed but suppressed. A new independently allocated repair attempt receives a fresh allowance.",
+    "unchanged": [
+      "the production branch-regret trigger and every branch-regret action",
+      "the strict incumbent-relative authored-prefix loss threshold of 0.02",
+      "two-contact maturity",
+      "exact live-sibling causality",
+      "conservative deadline and execution-ceiling admission",
+      "one-sibling bounded equal-depth catch-up and strict winner selection",
+      "repair anchor allocation, local ceiling, terminal registration, and acceptance"
+    ]
+  },
+  "implementation": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-repair-incumbent-once"
+    },
+    "attempt_identity": "The repair iteration index is passed explicitly into the controller and recorded on every incumbent-relative event.",
+    "trust": [
+      "Every incumbent-relative event must have a nonnegative integer repair-attempt index.",
+      "No run may contain more than one incumbent-relative event for one repair-attempt index.",
+      "The analyzer reports actions and unique later eligible watches suppressed by the limit.",
+      "Branch-regret opportunity identities compare only branch-regret actions; repair-incumbent actions use their separate ledger."
+    ],
+    "retirement": "The unrestricted live environment is removed from the parser; its retained artifacts remain analyzable."
+  },
+  "predeclared_screen": {
+    "budget": 750000,
+    "actual_seeds": [84, 85, 86, 87, 88, 89, 90, 91],
+    "sources": [
+      "wide_breaths",
+      "frontier_pickup_progression",
+      "high_air_drive_air_minus_5",
+      "regression_amplitude_mosaic",
+      "believer_impact_56s",
+      "sparse_lowline_air_minus_4"
+    ],
+    "reference_commit": "a66f91a9",
+    "cells_per_arm": 48,
+    "decision": "Continue only if all paired cells remain valid, score sum is positive, at least three moving seed blocks are positive and positive moving seed blocks outnumber negative ones, improvement spans at least two cells, no cell loses 20 or more points, and the new signal acts in at least four runs. This focused screen cannot authorize canonical evaluation or promotion. If fewer than four runs act, classify it as underpowered rather than negative.",
+    "non_claim": "The screen tests the one-action scheduler on fresh paired cells. It does not estimate a canonical headline and it does not tune the threshold."
+  }
+}

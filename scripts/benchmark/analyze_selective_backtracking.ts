@@ -48,6 +48,7 @@ type Event = {
   trigger_axis_loss: number;
   incumbent_axis_loss: number | null;
   incumbent_axis_loss_delta: number | null;
+  repair_attempt_index: number | null;
   from_gap_index: number;
   catchup_outcome: Outcome;
   catchup_probe_frames: number;
@@ -90,6 +91,12 @@ type RepairIncumbentOpportunityRun = {
   maxDelta: number;
   counts: Record<string, { crossed_watches: number; admissible_watches: number }>;
 };
+type RepairIncumbentAttemptLimitRun = {
+  sourceId: string;
+  seed: number;
+  backtracks: number;
+  suppressedWatches: number;
+};
 
 const args = process.argv.slice(2);
 const argument = (name: string): string | undefined =>
@@ -104,6 +111,7 @@ const archive = JSON.parse(verified.bytes.toString("utf8"));
 const events: Event[] = [];
 const triggerRuns: SelectiveTriggerOpportunityRun[] = [];
 const repairIncumbentRuns: RepairIncumbentOpportunityRun[] = [];
+const repairIncumbentAttemptLimitRuns: RepairIncumbentAttemptLimitRun[] = [];
 for (const row of archive.runs ?? []) {
   const stats = row.stats?.handoff_selective_backtracking;
   validateTournamentTelemetry(stats, `${row.task.sourceId}/seed-${row.task.actualSeed}`);
@@ -122,6 +130,14 @@ for (const row of archive.runs ?? []) {
       counts: stats.repair_incumbent_regret_opportunities_by_min_axis_loss_delta,
     });
   }
+  if (stats?.policy === "selective_axis_regret_catchup_repair_incumbent_once") {
+    repairIncumbentAttemptLimitRuns.push({
+      sourceId: row.task.sourceId,
+      seed: row.task.actualSeed,
+      backtracks: stats.selective_backtracks_by_signal.repair_incumbent_regret,
+      suppressedWatches: stats.repair_incumbent_attempt_limit_suppressed_watches,
+    });
+  }
   for (const event of stats?.events ?? []) {
     if (event.catchup_outcome === null) continue;
     events.push({
@@ -132,6 +148,7 @@ for (const row of archive.runs ?? []) {
       trigger_axis_loss: event.trigger_axis_loss,
       incumbent_axis_loss: event.incumbent_axis_loss ?? null,
       incumbent_axis_loss_delta: event.incumbent_axis_loss_delta ?? null,
+      repair_attempt_index: event.repair_attempt_index ?? null,
       from_gap_index: event.from_gap_index,
       catchup_outcome: event.catchup_outcome,
       catchup_probe_frames: event.catchup_probe_frames,
@@ -299,6 +316,9 @@ const result = {
   repair_incumbent_regret_opportunities: repairIncumbentRuns.length === 0
     ? null
     : summarizeRepairIncumbentOpportunities(repairIncumbentRuns),
+  repair_incumbent_attempt_limit: repairIncumbentAttemptLimitRuns.length === 0
+    ? null
+    : summarizeRepairIncumbentAttemptLimit(repairIncumbentAttemptLimitRuns),
   checkpoint_sign_stability: stability,
   zero_contradiction_rules: zeroContradiction,
   exploratory_rules: exploratory,
@@ -308,6 +328,38 @@ const result = {
     "Admission-margin rows likewise describe observed tournaments; they are not causal replay. " +
     "Checkpoint rules exclude multi-sibling tournaments because their winner label is not binary.",
 };
+
+function summarizeRepairIncumbentAttemptLimit(
+  runs: readonly RepairIncumbentAttemptLimitRun[],
+) {
+  const active = runs.filter((run) => run.backtracks > 0 || run.suppressedWatches > 0);
+  const sourceIds = [...new Set(active.map((run) => run.sourceId))].sort();
+  return {
+    runs: runs.length,
+    backtracks: active.reduce((sum, run) => sum + run.backtracks, 0),
+    suppressed_watches: active.reduce((sum, run) => sum + run.suppressedWatches, 0),
+    runs_with_backtrack: active.filter((run) => run.backtracks > 0).length,
+    runs_with_suppression: active.filter((run) => run.suppressedWatches > 0).length,
+    sources_with_activity: sourceIds.length,
+    by_source: sourceIds.map((sourceId) => {
+      const sourceRuns = active.filter((run) => run.sourceId === sourceId);
+      return {
+        source_id: sourceId,
+        backtracks: sourceRuns.reduce((sum, run) => sum + run.backtracks, 0),
+        suppressed_watches: sourceRuns.reduce((sum, run) => sum + run.suppressedWatches, 0),
+        active_runs: sourceRuns.length,
+      };
+    }).sort((left, right) =>
+      right.suppressed_watches - left.suppressed_watches ||
+      right.backtracks - left.backtracks ||
+      left.source_id.localeCompare(right.source_id)
+    ),
+    trust_checks: {
+      at_most_one_backtrack_per_repair_attempt: true,
+      nonnegative_suppression_counts: true,
+    },
+  };
+}
 
 function summarizeRepairIncumbentOpportunities(
   runs: readonly RepairIncumbentOpportunityRun[],
@@ -414,6 +466,12 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         !(event.incumbent_axis_loss_delta > 0.02)
       ) {
         throw new Error(`${label} has inconsistent repair-incumbent trigger evidence`);
+      }
+      if (
+        stats.policy === "selective_axis_regret_catchup_repair_incumbent_once" &&
+        (!Number.isSafeInteger(event.repair_attempt_index) || event.repair_attempt_index < 0)
+      ) {
+        throw new Error(`${label} has no valid repair attempt attribution`);
       }
     }
     if (!Number.isSafeInteger(requested) || requested < 1) {
@@ -546,6 +604,24 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       if (stats.selective_backtracks_by_signal[signal] !== expected) {
         throw new Error(`${runKey} ${signal} action count disagrees with events`);
       }
+    }
+  }
+  if (stats.policy === "selective_axis_regret_catchup_repair_incumbent_once") {
+    if (stats.repair_incumbent_max_backtracks_per_attempt !== 1) {
+      throw new Error(`${runKey} has an invalid repair-incumbent per-attempt limit`);
+    }
+    if (
+      !Number.isSafeInteger(stats.repair_incumbent_attempt_limit_suppressed_watches) ||
+      stats.repair_incumbent_attempt_limit_suppressed_watches < 0
+    ) {
+      throw new Error(`${runKey} has an invalid repair-incumbent suppression count`);
+    }
+    const incumbentEvents = instrumented.filter(
+      (event: any) => event.trigger_signal === "repair_incumbent_regret",
+    );
+    const attempts = incumbentEvents.map((event: any) => event.repair_attempt_index);
+    if (new Set(attempts).size !== attempts.length) {
+      throw new Error(`${runKey} took more than one repair-incumbent action in one attempt`);
     }
   }
 }
@@ -706,6 +782,21 @@ function print(analysis: typeof result): void {
           `runs ${row.thresholds["0.02"]!.runs_with_admissible_watch}/${row.runs}`,
         );
       }
+    }
+  }
+  if (analysis.repair_incumbent_attempt_limit !== null) {
+    const limit = analysis.repair_incumbent_attempt_limit;
+    console.log(`\nREPAIR-INCUMBENT PER-ATTEMPT LIMIT`);
+    console.log(
+      `  ${limit.backtracks} actions in ${limit.runs_with_backtrack}/${limit.runs} runs; ` +
+      `${limit.suppressed_watches} later eligible watches suppressed in ` +
+      `${limit.runs_with_suppression} runs; ${limit.sources_with_activity} active sources`,
+    );
+    for (const row of limit.by_source.slice(0, 8)) {
+      console.log(
+        `    ${row.source_id.padEnd(56)} actions ${String(row.backtracks).padStart(3)}, ` +
+        `suppressed ${String(row.suppressed_watches).padStart(4)}, active runs ${row.active_runs}`,
+      );
     }
   }
   console.log(`\nCHECKPOINT SIGN VS FULL-DEPTH WINNER`);

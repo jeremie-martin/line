@@ -1,6 +1,6 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_repair_incumbent";
+  | "selective_axis_regret_catchup_repair_incumbent_once";
 
 export type SelectiveBacktrackSignal = "branch_regret" | "repair_incumbent_regret";
 
@@ -24,13 +24,13 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
-  if (raw === "selective-axis-regret-catchup-repair-incumbent") {
-    return "selective_axis_regret_catchup_repair_incumbent";
+  if (raw === "selective-axis-regret-catchup-repair-incumbent-once") {
+    return "selective_axis_regret_catchup_repair_incumbent_once";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
-      `selective-axis-regret-catchup-repair-incumbent; got ${raw}`,
+      `selective-axis-regret-catchup-repair-incumbent-once; got ${raw}`,
   );
 }
 
@@ -54,6 +54,7 @@ type AxisRegretWatch<Node extends object> = {
   opportunityAdmissibleMask: number;
   repairIncumbentOpportunityCrossedMask: number;
   repairIncumbentOpportunityAdmissibleMask: number;
+  repairIncumbentAttemptLimitSuppressionRecorded: boolean;
 };
 
 type WatchLink<Node extends object> = {
@@ -74,6 +75,7 @@ export type SelectiveBacktrackDecision<Node extends object> = {
   triggerSignal: SelectiveBacktrackSignal;
   incumbentAxisLoss: number | null;
   incumbentAxisLossDelta: number | null;
+  repairAttemptIndex: number | null;
 };
 
 export type SelectiveCatchupOutcome =
@@ -113,6 +115,8 @@ export type SelectiveBacktrackingStats = {
     { crossed_watches: number; admissible_watches: number }
   >;
   repair_incumbent_axis_loss_delta_max: number;
+  repair_incumbent_max_backtracks_per_attempt: number;
+  repair_incumbent_attempt_limit_suppressed_watches: number;
   contact_expansions_observed: number;
   branch_watches_armed: number;
   branch_watches_by_alternative_count: Record<string, number>;
@@ -166,6 +170,7 @@ export type SelectiveBacktrackingEvent = {
   axis_loss_delta: number;
   incumbent_axis_loss: number | null;
   incumbent_axis_loss_delta: number | null;
+  repair_attempt_index: number | null;
   alternative_conservative_deadline_margin: number;
   trigger_total_spent_frames: number;
   resumed_total_spent_frames: number | null;
@@ -232,6 +237,7 @@ export class SelectiveAxisRegretController<Node extends object> {
   private readonly gapIndexOf: (node: Node) => number;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
+  private readonly repairAttemptsWithIncumbentBacktrack = new Set<number>();
   private readonly stats: SelectiveBacktrackingStats;
 
   constructor(
@@ -252,6 +258,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       repair_incumbent_regret_opportunities_by_min_axis_loss_delta:
         emptyRepairIncumbentRegretOpportunityCounter(),
       repair_incumbent_axis_loss_delta_max: 0,
+      repair_incumbent_max_backtracks_per_attempt:
+        this.policy === "selective_axis_regret_catchup_repair_incumbent_once" ? 1 : 0,
+      repair_incumbent_attempt_limit_suppressed_watches: 0,
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       branch_watches_by_alternative_count: {},
@@ -332,6 +341,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       opportunityAdmissibleMask: 0,
       repairIncumbentOpportunityCrossedMask: 0,
       repairIncumbentOpportunityAdmissibleMask: 0,
+      repairIncumbentAttemptLimitSuppressionRecorded: false,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -346,6 +356,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     contactOrdinal: number;
     axisLoss: number;
     incumbentAxisLoss?: number | null;
+    repairAttemptIndex?: number | null;
     executionCeilingReached: boolean;
     totalSpentFrames: number;
     lane: FrontierTraversalLane;
@@ -461,13 +472,28 @@ export class SelectiveAxisRegretController<Node extends object> {
         this.stats.loss_threshold_crossings++;
       }
       const repairIncumbentRegretTriggered =
-        this.policy === "selective_axis_regret_catchup_repair_incumbent" &&
+        this.policy === "selective_axis_regret_catchup_repair_incumbent_once" &&
         incumbentAxisLossDelta !== null &&
         incumbentAxisLossDelta > SELECTIVE_REPAIR_INCUMBENT_MIN_LOSS_DELTA;
       if (!branchRegretTriggered && !repairIncumbentRegretTriggered) continue;
       const triggerSignal: SelectiveBacktrackSignal = branchRegretTriggered
         ? "branch_regret"
         : "repair_incumbent_regret";
+      const repairAttemptIndex = input.lane === "repair"
+        ? input.repairAttemptIndex ?? null
+        : null;
+      if (triggerSignal === "repair_incumbent_regret") {
+        if (!Number.isSafeInteger(repairAttemptIndex) || repairAttemptIndex! < 0) {
+          throw new Error("repair-incumbent catch-up requires a repair attempt index");
+        }
+        if (this.repairAttemptsWithIncumbentBacktrack.has(repairAttemptIndex!)) {
+          if (!watch.repairIncumbentAttemptLimitSuppressionRecorded) {
+            watch.repairIncumbentAttemptLimitSuppressionRecorded = true;
+            this.stats.repair_incumbent_attempt_limit_suppressed_watches++;
+          }
+          continue;
+        }
+      }
 
       const fromGapIndex = this.gapIndexOf(input.node);
       const targetGapIndex = this.gapIndexOf(watch.alternative);
@@ -497,6 +523,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       const alternatives = [watch.alternative];
       this.stats.selective_backtracks++;
       this.stats.selective_backtracks_by_signal[triggerSignal]++;
+      if (triggerSignal === "repair_incumbent_regret") {
+        this.repairAttemptsWithIncumbentBacktrack.add(repairAttemptIndex!);
+      }
       if (additionalSiblingsAvailable > 0) {
         this.stats.selective_backtracks_with_additional_sibling_available++;
       }
@@ -529,6 +558,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         axis_loss_delta: axisLossDelta,
         incumbent_axis_loss: input.incumbentAxisLoss ?? null,
         incumbent_axis_loss_delta: incumbentAxisLossDelta,
+        repair_attempt_index: repairAttemptIndex,
         alternative_conservative_deadline_margin: admittedAlternativeDeadline.margin,
         trigger_total_spent_frames: input.totalSpentFrames,
         resumed_total_spent_frames: null,
@@ -556,6 +586,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         triggerSignal,
         incumbentAxisLoss: input.incumbentAxisLoss ?? null,
         incumbentAxisLossDelta,
+        repairAttemptIndex,
       };
     }
     return null;

@@ -760,3 +760,29 @@ allow at most one incumbent-relative intervention per self-contained repair
 attempt, while leaving production branch-regret events untouched; this tests
 whether the useful signal can redirect a repair without repeatedly thrashing
 its suffix.
+
+### One incumbent-relative intervention per repair attempt
+
+This successor makes the repair attempt—not the entire compile and not an
+individual causal watch—the scheduling boundary. The first mature, admissible
+incumbent-relative signal may run the unchanged one-sibling equal-depth
+tournament. Later incumbent-relative signals in that same attempt are counted
+but cannot launch another tournament. When repair independently selects a new
+anchor and starts its next attempt, the allowance resets. Ordinary branch-
+regret backtracks remain eligible regardless of this allowance.
+
+The boundary is explicit in both code and evidence. Repair passes its iteration
+index into the controller; every incumbent-relative event records it; the
+offline validator rejects duplicate incumbent events within an attempt and
+reports unique eligible watches suppressed by the limit. While adding this
+attribution, the generic trigger-opportunity trust identity was corrected to
+compare its branch-regret admission ledger with branch-regret actions only,
+rather than incorrectly mixing in the new repair-incumbent action class.
+
+The unrestricted live environment is retired. A fresh 750k screen uses actual
+seeds 84-91 and the same six mapped sources (48 cells per arm). It requires
+complete validity, positive total completed-track movement, at least three
+positive moving seed blocks with more positive than negative moving blocks,
+non-isolated improvement, no 20-point loss, and actual signal activity in at
+least four runs. Sparse activity is underpowered, not evidence of neutrality;
+passing this focused screen still cannot authorize canonical evaluation.

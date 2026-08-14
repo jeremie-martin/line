@@ -16,8 +16,10 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent"))
-      .toBe("selective_axis_regret_catchup_repair_incumbent");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent-once"))
+      .toBe("selective_axis_regret_catchup_repair_incumbent_once");
+    expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent"))
+      .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-second-chance"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-multi-sibling"))
@@ -271,7 +273,7 @@ describe("selective-backtracking controller", () => {
 
   test("repair-incumbent policy adds one repair-only causal catch-up", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
-      policy: "selective_axis_regret_catchup_repair_incumbent",
+      policy: "selective_axis_regret_catchup_repair_incumbent_once",
     });
     const parent = { gap: 1, name: "parent" };
     const leader = { gap: 2, name: "leader" };
@@ -297,6 +299,7 @@ describe("selective-backtracking controller", () => {
       contactOrdinal: 3,
       axisLoss: 0.11,
       incumbentAxisLoss: 0.08,
+      repairAttemptIndex: 0,
       executionCeilingReached: false,
       totalSpentFrames: 10,
       lane: "repair",
@@ -315,6 +318,7 @@ describe("selective-backtracking controller", () => {
       catchup_alternatives_requested: 1,
       incumbent_axis_loss: 0.08,
       incumbent_axis_loss_delta: 0.03,
+      repair_attempt_index: 0,
     });
     controller.markSuspended(descendant);
     controller.finishCatchup(decision!, {
@@ -337,6 +341,8 @@ describe("selective-backtracking controller", () => {
         branch_regret: 0,
         repair_incumbent_regret: 1,
       },
+      repair_incumbent_max_backtracks_per_attempt: 1,
+      repair_incumbent_attempt_limit_suppressed_watches: 0,
       catchup_probe_attempts: 1,
       catchup_probe_target_reaches: 1,
       catchup_additional_probe_attempts: 0,
@@ -351,6 +357,60 @@ describe("selective-backtracking controller", () => {
         catchup_probe_nodes_processed: 1,
         catchup_probe_frames: 20,
       }],
+    });
+  });
+
+  test("allows only one incumbent-relative backtrack per repair attempt", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_repair_incumbent_once",
+    });
+    const makeOpportunity = (name: string, attempt: number) => {
+      const parent = { gap: 1, name: `${name}-parent` };
+      const leader = { gap: 2, name: `${name}-leader` };
+      const alternative = { gap: 2, name: `${name}-alternative` };
+      const descendant = { gap: 3, name: `${name}-descendant` };
+      controller.observeExpansion({
+        parent,
+        children: [leader, alternative],
+        contactExpansion: true,
+        contactOrdinal: 1,
+        axisLoss: 0.1,
+      });
+      controller.observeExpansion({
+        parent: leader,
+        children: [descendant],
+        contactExpansion: true,
+        contactOrdinal: 2,
+        axisLoss: 0.105,
+      });
+      return controller.consider({
+        node: descendant,
+        contactOrdinal: 3,
+        axisLoss: 0.11,
+        incumbentAxisLoss: 0.08,
+        repairAttemptIndex: attempt,
+        executionCeilingReached: false,
+        totalSpentFrames: 10,
+        lane: "repair",
+        alternativeAvailable: () => true,
+        alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      });
+    };
+
+    expect(makeOpportunity("first", 0)?.triggerSignal).toBe("repair_incumbent_regret");
+    expect(makeOpportunity("same-attempt", 0)).toBeNull();
+    expect(makeOpportunity("next-attempt", 1)?.triggerSignal).toBe("repair_incumbent_regret");
+    expect(controller.snapshot()).toMatchObject({
+      selective_backtracks_by_signal: {
+        branch_regret: 0,
+        repair_incumbent_regret: 2,
+      },
+      repair_incumbent_max_backtracks_per_attempt: 1,
+      repair_incumbent_attempt_limit_suppressed_watches: 1,
+      events: [
+        { repair_attempt_index: 0 },
+        { repair_attempt_index: 1 },
+      ],
     });
   });
 

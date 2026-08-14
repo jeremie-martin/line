@@ -2781,6 +2781,7 @@ function compileHandoffInternal(
           incumbentAxisLoss: lane === "repair" && bestCompleteNode !== null
             ? authoredPrefixAxisLoss(bestCompleteNode.search, node.search.gapIndex)
             : null,
+          repairAttemptIndex: lane === "repair" ? activeRepairIterationIndex : null,
           executionCeilingReached: !traversalCanContinue(),
           totalSpentFrames: getSimFrames(),
           lane,

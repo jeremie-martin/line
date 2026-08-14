@@ -13,6 +13,10 @@ export type SelectiveTriggerOpportunityStats = {
   mature_axis_loss_delta_max: number;
   loss_threshold_crossings: number;
   selective_backtracks: number;
+  selective_backtracks_by_signal?: {
+    branch_regret: number;
+    repair_incumbent_regret: number;
+  };
   regret_opportunities_by_min_axis_loss_delta: Record<
     string,
     { crossed_watches: number; admissible_watches: number }
@@ -163,17 +167,23 @@ function validateRun(run: SelectiveTriggerOpportunityRun): void {
   }
   const activeThreshold = run.stats.min_axis_loss_delta.toFixed(2);
   const active = counts(run, activeThreshold);
+  // Repair-incumbent actions have their own opportunity ledger. Comparing the
+  // combined action count with branch-regret admissions makes a valid repair
+  // policy look corrupt. Older archives have no signal split and retain the
+  // original total-action interpretation.
+  const activeSignalBacktracks = run.stats.selective_backtracks_by_signal?.branch_regret ??
+    run.stats.selective_backtracks;
   if (active.crossed_watches !== run.stats.loss_threshold_crossings) {
     throw new Error(`${runKey(run)} active-threshold crossing counters disagree`);
   }
-  if (run.stats.selective_backtracks > active.admissible_watches) {
+  if (activeSignalBacktracks > active.admissible_watches) {
     throw new Error(`${runKey(run)} has more actions than active-threshold admissions`);
   }
   const hasConditionalAdmission =
     run.stats.lower_trigger_max_gap_rewind != null ||
     run.stats.min_conservative_deadline_margin != null ||
     run.stats.policy !== undefined && run.stats.policy !== "selective_axis_regret_catchup";
-  if (!hasConditionalAdmission && active.admissible_watches !== run.stats.selective_backtracks) {
+  if (!hasConditionalAdmission && active.admissible_watches !== activeSignalBacktracks) {
     throw new Error(`${runKey(run)} active-threshold admission counters disagree`);
   }
 }

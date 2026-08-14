@@ -495,7 +495,7 @@ export type CompileStats = {
   handoff_selective_backtracking?: {
     policy:
       | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_repair_incumbent";
+      | "selective_axis_regret_catchup_repair_incumbent_once";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -512,6 +512,8 @@ export type CompileStats = {
       { crossed_watches: number; admissible_watches: number }
     >;
     repair_incumbent_axis_loss_delta_max: number;
+    repair_incumbent_max_backtracks_per_attempt: number;
+    repair_incumbent_attempt_limit_suppressed_watches: number;
     contact_expansions_observed: number;
     branch_watches_armed: number;
     branch_watches_by_alternative_count: Record<string, number>;
@@ -570,6 +572,7 @@ export type CompileStats = {
       axis_loss_delta: number;
       incumbent_axis_loss: number | null;
       incumbent_axis_loss_delta: number | null;
+      repair_attempt_index: number | null;
       alternative_conservative_deadline_margin: number;
       trigger_total_spent_frames: number;
       resumed_total_spent_frames: number | null;

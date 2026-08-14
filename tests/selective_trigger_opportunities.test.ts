@@ -87,4 +87,15 @@ describe("selective trigger opportunity analysis", () => {
     input.stats.selective_backtracks = 1;
     expect(() => summarizeSelectiveTriggerOpportunities([input])).not.toThrow();
   });
+
+  test("keeps repair-incumbent actions out of the branch-regret trust identity", () => {
+    const input = run("a", 16, [[4, 4], [3, 3], [2, 2], [1, 1]]);
+    input.stats.policy = "selective_axis_regret_catchup_repair_incumbent_once";
+    input.stats.selective_backtracks = 5;
+    input.stats.selective_backtracks_by_signal = {
+      branch_regret: 1,
+      repair_incumbent_regret: 4,
+    };
+    expect(() => summarizeSelectiveTriggerOpportunities([input])).not.toThrow();
+  });
 });

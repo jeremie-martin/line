@@ -244,6 +244,20 @@ describe("selective-backtracking controller", () => {
         probe_nodes_processed: 1,
         probe_frames: 35,
         axis_loss: 0.7,
+        local_fallback_choices: [
+          {
+            gap_index: 4,
+            remaining_gap_advance: 1,
+            current_relative_axis_loss_gain: 0.03,
+            conservative_deadline_margin: 3.5,
+          },
+          {
+            gap_index: 3,
+            remaining_gap_advance: 2,
+            current_relative_axis_loss_gain: -0.01,
+            conservative_deadline_margin: 4,
+          },
+        ],
       }],
       catchupAxisLoss: 0.7,
     });
@@ -279,6 +293,11 @@ describe("selective-backtracking controller", () => {
       catchup_probe_frames: 35,
       catchup_probe_attempts: 1,
       catchup_probe_target_reaches: 1,
+      catchup_probes_with_local_fallback_choice: 1,
+      catchup_probes_with_positive_local_fallback_choice: 1,
+      catchup_local_fallback_choice_count_sum: 2,
+      catchup_positive_local_fallback_choice_count_sum: 1,
+      catchup_local_fallback_choice_count_max: 2,
       catchup_additional_probe_attempts: 0,
       catchup_additional_probe_target_reaches: 0,
       catchup_tournaments_with_additional_probe: 0,
@@ -312,6 +331,20 @@ describe("selective-backtracking controller", () => {
           probe_nodes_processed: 1,
           probe_frames: 35,
           axis_loss: 0.7,
+          local_fallback_choices: [
+            {
+              gap_index: 4,
+              remaining_gap_advance: 1,
+              current_relative_axis_loss_gain: 0.03,
+              conservative_deadline_margin: 3.5,
+            },
+            {
+              gap_index: 3,
+              remaining_gap_advance: 2,
+              current_relative_axis_loss_gain: -0.01,
+              conservative_deadline_margin: 4,
+            },
+          ],
         }],
         catchup_checkpoints: [{
           alternative_ordinal: 1,
@@ -460,6 +493,7 @@ describe("selective-backtracking controller", () => {
         probe_nodes_processed: 1,
         probe_frames: 20,
         axis_loss: 0.07,
+        local_fallback_choices: [],
       }],
       catchupAxisLoss: 0.07,
     });

@@ -1,0 +1,46 @@
+{
+  "schema": "line.selective-one-discrepancy-opportunity-study.v1",
+  "status": "predeclared-map",
+  "generated_at": "2026-08-14",
+  "question": "When the preferred route through a causal catch-up alternative loses at equal depth, is there an already-generated inner runner-up that is locally better than the suspended path and affordable to extend once?",
+  "relationship_to_prior_work": {
+    "production": "Production follows one preferred-child route through the causal sibling. Nonpreferred children created along that route are queued in the ordinary frontier. If the preferred route loses at equal depth, the tournament immediately retains the suspended prefix.",
+    "distinct_from_multi_sibling": "The closed multi-sibling studies tried additional siblings at the original regret branch. This study stays inside the same causal sibling and considers one runner-up created later along its preferred catch-up route.",
+    "scope": "This is a general bounded-search disposition, not a repair-only policy and not a new trigger."
+  },
+  "instrument": {
+    "behavior": "Production selective-axis-regret catch-up; no extra runner-up is processed and frontier order is unchanged.",
+    "choice_set": "Non-skipped, nonpreferred children generated while the primary causal alternative catches up, still present in the frontier and outside conservative deadline pressure when that primary probe ends.",
+    "recorded_per_choice": [
+      "authored gap and remaining advance to the tournament target",
+      "authored-axis loss gain over the suspended prefix through the same gap",
+      "conservative deadline margin"
+    ],
+    "proposed_live_policy": "Only after the primary route reaches equal depth and loses, choose at most one local runner-up with strictly positive current-relative prefix gain. Maximize gain times conservative deadline margin, retain stable generation-order ties, greedily extend it to the same equal-depth target, then rank it with the primary route and suspended prefix using the unchanged strict loss rule.",
+    "trust": [
+      "every recorded choice must be live and outside deadline pressure at the primary probe boundary",
+      "gap plus remaining advance must exactly equal the tournament target gap",
+      "probe- and choice-derived totals must exactly equal compile aggregates",
+      "candidate and reference tracks, scores, and validity must match exactly",
+      "a positive local prefix comparison is an opportunity definition, not a claim about the unexecuted equal-depth or final-track result"
+    ]
+  },
+  "predeclared_map": {
+    "budget": 750000,
+    "actual_seeds": [100, 101, 102, 103],
+    "requested_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "expected_backfilled_controls": [
+      "wide_breaths",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ],
+    "expected_cells_per_arm": 20,
+    "reference_commit": "e4f25232",
+    "selection_rule": "Build the single proposed live policy only if at least 20 current-selected branch-regret events have a positive-gain admissible local runner-up, spanning at least four runs and both requested sources. Select on opportunity breadth only, never score. Otherwise close without a live arm.",
+    "next_step_if_selected": "Implement one environment-selected one-discrepancy arm, prove that it acts only after a losing primary route and processes at most one exactly selected local runner-up, then run a fresh focused 750k screen before any canonical evaluation.",
+    "non_claim": "The map establishes whether this categorical action set is broad. It cannot estimate score direction, replay the added search, authorize promotion or canonical evaluation, or establish multi-budget behavior."
+  }
+}

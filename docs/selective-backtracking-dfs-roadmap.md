@@ -872,3 +872,29 @@ estimated work never differs. Thus older siblings often remain nominally
 available, but nearest-first is already strongly aligned with both conservative
 suffix cost and regret per work. No live arm follows. A successor should change
 the signal or the disposition of catch-up work rather than tune this ranking.
+
+### One-discrepancy catch-up opportunity
+
+The next categorical disposition stays inside the causal sibling rather than
+adding siblings at the original branch. Production catch-up follows one greedy
+preferred-child route to equal depth. Every nonpreferred child created along
+that route is returned to the ordinary frontier. When the preferred route loses
+the equal-depth comparison, the tournament therefore retains the interrupted
+prefix even if an inner runner-up was already locally better at its own depth.
+
+A behavior-neutral map records those inner runner-ups at the instant the primary
+probe ends. A choice counts only if it is still in the frontier, has not skipped
+an authored contact, and is outside conservative deadline pressure. Its axis
+loss is compared with the suspended prefix through exactly the same gap. This
+is not the closed multi-sibling design: those arms tried more siblings at the
+original branch; this one permits one discrepancy later within the same causal
+alternative.
+
+Fresh actual seeds 100-103 cover the believer parent and amplitude variant at
+750k, with the three other stratum controls back-filled (20 cells per arm).
+Exact output identity to `e4f25232` is mandatory. A live arm follows only if at
+least 20 current-selected production events have a strictly positive local
+runner-up across four runs and both requested sources. The fixed policy would
+choose at most one by positive prefix gain times conservative deadline margin,
+extend it greedily to the original target, and use the unchanged strict equal-
+depth winner rule. Opportunity breadth, never score, controls selection.

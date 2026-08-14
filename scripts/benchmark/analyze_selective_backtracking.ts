@@ -59,6 +59,7 @@ type Event = {
   catchup_additional_probes_skipped_after_first_winner: number;
   catchup_probe_results: ProbeResult[];
   catchup_checkpoints: Checkpoint[];
+  local_fallback_telemetry: boolean;
 };
 
 type RewindChoice = {
@@ -77,6 +78,14 @@ type ProbeResult = {
   probe_nodes_processed: number;
   probe_frames: number;
   axis_loss: number | null;
+  local_fallback_choices: LocalFallbackChoice[];
+};
+
+type LocalFallbackChoice = {
+  gap_index: number;
+  remaining_gap_advance: number;
+  current_relative_axis_loss_gain: number;
+  conservative_deadline_margin: number;
 };
 
 type RuleMode = "reject_alternative" | "accept_alternative";
@@ -164,6 +173,10 @@ for (const row of archive.runs ?? []) {
   }
   for (const event of stats?.events ?? []) {
     if (event.catchup_outcome === null) continue;
+    const probeResults = (event.catchup_probe_results ?? []).map((probe: any) => ({
+      ...probe,
+      local_fallback_choices: probe.local_fallback_choices ?? [],
+    }));
     events.push({
       sourceId: row.task.sourceId,
       seed: row.task.actualSeed,
@@ -184,8 +197,13 @@ for (const row of archive.runs ?? []) {
         event.catchup_selected_alternative_ordinal ?? null,
       catchup_additional_probes_skipped_after_first_winner:
         event.catchup_additional_probes_skipped_after_first_winner ?? 0,
-      catchup_probe_results: event.catchup_probe_results ?? [],
+      catchup_probe_results: probeResults,
       catchup_checkpoints: event.catchup_checkpoints ?? [],
+      local_fallback_telemetry:
+        probeResults.length > 0 &&
+        (event.catchup_probe_results ?? []).every(
+          (probe: any) => Array.isArray(probe.local_fallback_choices),
+        ),
     });
   }
 }
@@ -361,6 +379,49 @@ const branchPointChoiceMap = mappedBranchChoiceEvents.length === 0 ? null : {
     "estimated frame up to a common remaining-budget factor. This map changes no traversal.",
 };
 
+const localFallbackTelemetryEvents = events.filter((event) => event.local_fallback_telemetry);
+const summarizeLocalFallbackOutcome = (outcome: Outcome) => {
+  const selectedEvents = localFallbackTelemetryEvents.filter(
+    (event) => event.trigger_signal === "branch_regret" && event.catchup_outcome === outcome,
+  );
+  const choices = selectedEvents.flatMap(
+    (event) => event.catchup_probe_results.flatMap((probe) => probe.local_fallback_choices),
+  );
+  const positiveChoices = choices.filter(
+    (choice) => choice.current_relative_axis_loss_gain > 0,
+  );
+  const actionableEvents = selectedEvents.filter((event) =>
+    event.catchup_probe_results.some((probe) =>
+      probe.local_fallback_choices.some(
+        (choice) => choice.current_relative_axis_loss_gain > 0,
+      )
+    )
+  );
+  return {
+    events: selectedEvents.length,
+    admissible_local_fallback_choices: choices.length,
+    positive_prefix_gain_choices: positiveChoices.length,
+    events_with_positive_prefix_gain_choice: actionableEvents.length,
+    affected_runs: new Set(
+      actionableEvents.map((event) => `${event.sourceId}/${event.seed}`),
+    ).size,
+    affected_sources: [...new Set(actionableEvents.map((event) => event.sourceId))].sort(),
+  };
+};
+const oneDiscrepancyOpportunityMap = localFallbackTelemetryEvents.length === 0 ? null : {
+  telemetry_events: localFallbackTelemetryEvents.length,
+  current_selected: summarizeLocalFallbackOutcome("current_selected"),
+  probe_dead_end: summarizeLocalFallbackOutcome("probe_dead_end"),
+  proposed_policy:
+    "After a primary catch-up reaches equal depth but loses, take at most one already-generated " +
+    "inner runner-up with positive axis-loss gain over the suspended prefix at that runner-up's " +
+    "depth; maximize gain times conservative deadline margin and keep stable generation-order ties.",
+  caveat:
+    "Every listed runner-up was live and outside deadline pressure when its primary probe ended. " +
+    "Positive local gain is an exact prefix comparison, not evidence that greedily extending that " +
+    "runner-up to the tournament target will win or improve the final track.",
+};
+
 const result = {
   schema: "line.selective-backtracking-offline-guard-analysis.v1",
   source_archive: archivePath,
@@ -383,6 +444,7 @@ const result = {
   by_source: bySource,
   multi_sibling: multiSiblingSummary,
   branch_point_choice_map: branchPointChoiceMap,
+  one_discrepancy_opportunity_map: oneDiscrepancyOpportunityMap,
   admission_margin_counterfactuals: admissionMarginCounterfactuals,
   trigger_opportunities: triggerRuns.length === 0 ? null : {
     coverage: {
@@ -682,6 +744,23 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         throw new Error(`${label} has invalid or duplicate probe ordinal`);
       }
       ordinals.add(probe.alternative_ordinal);
+      if (probe.local_fallback_choices !== undefined) {
+        if (!Array.isArray(probe.local_fallback_choices)) {
+          throw new Error(`${label} has invalid local fallback choices`);
+        }
+        for (const choice of probe.local_fallback_choices as LocalFallbackChoice[]) {
+          if (
+            !Number.isSafeInteger(choice.gap_index) || choice.gap_index < 0 ||
+            !Number.isSafeInteger(choice.remaining_gap_advance) ||
+            choice.remaining_gap_advance < 0 ||
+            choice.gap_index + choice.remaining_gap_advance !== event.from_gap_index ||
+            !Number.isFinite(choice.current_relative_axis_loss_gain) ||
+            !Number.isFinite(choice.conservative_deadline_margin)
+          ) {
+            throw new Error(`${label} has an invalid local fallback choice`);
+          }
+        }
+      }
       probes.push(probe);
     }
     const nodes = results.reduce((sum, probe) => sum + probe.probe_nodes_processed, 0);
@@ -782,6 +861,33 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     probes.reduce((sum, probe) => sum + probe.probe_nodes_processed, 0),
   );
   assertStat("catchup_probe_frames", probes.reduce((sum, probe) => sum + probe.probe_frames, 0));
+  const localFallbackChoices = probes.flatMap(
+    (probe) => probe.local_fallback_choices ?? [],
+  );
+  const positiveLocalFallbackChoices = localFallbackChoices.filter(
+    (choice) => choice.current_relative_axis_loss_gain > 0,
+  );
+  assertOptionalStat(
+    "catchup_probes_with_local_fallback_choice",
+    probes.filter((probe) => (probe.local_fallback_choices?.length ?? 0) > 0).length,
+  );
+  assertOptionalStat(
+    "catchup_probes_with_positive_local_fallback_choice",
+    probes.filter((probe) => probe.local_fallback_choices?.some(
+      (choice) => choice.current_relative_axis_loss_gain > 0,
+    )).length,
+  );
+  assertOptionalStat("catchup_local_fallback_choice_count_sum", localFallbackChoices.length);
+  assertOptionalStat(
+    "catchup_positive_local_fallback_choice_count_sum",
+    positiveLocalFallbackChoices.length,
+  );
+  assertOptionalStat(
+    "catchup_local_fallback_choice_count_max",
+    probes.length === 0
+      ? 0
+      : Math.max(...probes.map((probe) => probe.local_fallback_choices?.length ?? 0)),
+  );
   if (stats.selective_backtracks_by_signal !== undefined) {
     for (const signal of ["branch_regret", "repair_incumbent_regret"] as const) {
       const expected = instrumented.filter(
@@ -934,6 +1040,22 @@ function print(analysis: typeof result): void {
         `events; ${policy.affected_runs} runs / ${policy.affected_sources.length} sources`,
       );
     }
+  }
+  if (analysis.one_discrepancy_opportunity_map !== null) {
+    const map = analysis.one_discrepancy_opportunity_map;
+    console.log(`  one-discrepancy map ${map.telemetry_events} instrumented events`);
+    console.log(
+      `    current retained: ${map.current_selected.events} events; ` +
+      `${map.current_selected.admissible_local_fallback_choices} local choices, ` +
+      `${map.current_selected.events_with_positive_prefix_gain_choice} actionable; ` +
+      `${map.current_selected.affected_runs} runs / ` +
+      `${map.current_selected.affected_sources.length} sources`,
+    );
+    console.log(
+      `    primary dead end: ${map.probe_dead_end.events} events; ` +
+      `${map.probe_dead_end.admissible_local_fallback_choices} local choices, ` +
+      `${map.probe_dead_end.events_with_positive_prefix_gain_choice} actionable`,
+    );
   }
   console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);
   for (const row of analysis.admission_margin_counterfactuals) {

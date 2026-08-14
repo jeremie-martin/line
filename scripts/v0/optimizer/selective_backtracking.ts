@@ -116,6 +116,14 @@ export type SelectiveCatchupProbeResult = {
   probe_nodes_processed: number;
   probe_frames: number;
   axis_loss: number | null;
+  local_fallback_choices: SelectiveLocalFallbackChoice[];
+};
+
+export type SelectiveLocalFallbackChoice = {
+  gap_index: number;
+  remaining_gap_advance: number;
+  current_relative_axis_loss_gain: number;
+  conservative_deadline_margin: number;
 };
 
 export type SelectiveBacktrackingStats = {
@@ -164,6 +172,11 @@ export type SelectiveBacktrackingStats = {
   catchup_execution_ceiling_stops: number;
   catchup_probe_attempts: number;
   catchup_probe_target_reaches: number;
+  catchup_probes_with_local_fallback_choice: number;
+  catchup_probes_with_positive_local_fallback_choice: number;
+  catchup_local_fallback_choice_count_sum: number;
+  catchup_positive_local_fallback_choice_count_sum: number;
+  catchup_local_fallback_choice_count_max: number;
   catchup_additional_probe_attempts: number;
   catchup_additional_probe_target_reaches: number;
   catchup_tournaments_with_additional_probe: number;
@@ -322,6 +335,11 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_execution_ceiling_stops: 0,
       catchup_probe_attempts: 0,
       catchup_probe_target_reaches: 0,
+      catchup_probes_with_local_fallback_choice: 0,
+      catchup_probes_with_positive_local_fallback_choice: 0,
+      catchup_local_fallback_choice_count_sum: 0,
+      catchup_positive_local_fallback_choice_count_sum: 0,
+      catchup_local_fallback_choice_count_max: 0,
       catchup_additional_probe_attempts: 0,
       catchup_additional_probe_target_reaches: 0,
       catchup_tournaments_with_additional_probe: 0,
@@ -773,13 +791,32 @@ export class SelectiveAxisRegretController<Node extends object> {
       ? null
       : decision.triggerAxisLoss - input.catchupAxisLoss;
     event.catchup_selected_alternative_ordinal = input.selectedAlternativeOrdinal;
-    event.catchup_probe_results = input.probes.map((probe) => ({ ...probe }));
+    event.catchup_probe_results = input.probes.map((probe) => ({
+      ...probe,
+      local_fallback_choices: probe.local_fallback_choices.map((choice) => ({ ...choice })),
+    }));
     this.stats.catchup_probe_nodes_processed += probeNodesProcessed;
     this.stats.catchup_probe_frames += probeFrames;
     this.stats.catchup_probe_attempts += input.probes.length;
     this.stats.catchup_probe_target_reaches += input.probes.filter(
       (probe) => probe.outcome === "reached_target",
     ).length;
+    for (const probe of input.probes) {
+      const choiceCount = probe.local_fallback_choices.length;
+      const positiveChoiceCount = probe.local_fallback_choices.filter(
+        (choice) => choice.current_relative_axis_loss_gain > 0,
+      ).length;
+      this.stats.catchup_local_fallback_choice_count_sum += choiceCount;
+      this.stats.catchup_positive_local_fallback_choice_count_sum += positiveChoiceCount;
+      this.stats.catchup_local_fallback_choice_count_max = Math.max(
+        this.stats.catchup_local_fallback_choice_count_max,
+        choiceCount,
+      );
+      if (choiceCount > 0) this.stats.catchup_probes_with_local_fallback_choice++;
+      if (positiveChoiceCount > 0) {
+        this.stats.catchup_probes_with_positive_local_fallback_choice++;
+      }
+    }
     this.stats.catchup_additional_probe_attempts += input.probes.filter(
       (probe) => probe.alternative_ordinal > 1,
     ).length;
@@ -844,7 +881,10 @@ export class SelectiveAxisRegretController<Node extends object> {
         admissible_rewind_choices: event.admissible_rewind_choices.map((choice) => ({
           ...choice,
         })),
-        catchup_probe_results: event.catchup_probe_results.map((probe) => ({ ...probe })),
+        catchup_probe_results: event.catchup_probe_results.map((probe) => ({
+          ...probe,
+          local_fallback_choices: probe.local_fallback_choices.map((choice) => ({ ...choice })),
+        })),
         catchup_checkpoints: event.catchup_checkpoints.map((checkpoint) => ({ ...checkpoint })),
       })),
     };

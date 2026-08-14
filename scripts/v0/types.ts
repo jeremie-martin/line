@@ -546,6 +546,11 @@ export type CompileStats = {
     catchup_execution_ceiling_stops: number;
     catchup_probe_attempts: number;
     catchup_probe_target_reaches: number;
+    catchup_probes_with_local_fallback_choice: number;
+    catchup_probes_with_positive_local_fallback_choice: number;
+    catchup_local_fallback_choice_count_sum: number;
+    catchup_positive_local_fallback_choice_count_sum: number;
+    catchup_local_fallback_choice_count_max: number;
     catchup_additional_probe_attempts: number;
     catchup_additional_probe_target_reaches: number;
     catchup_tournaments_with_additional_probe: number;
@@ -611,6 +616,12 @@ export type CompileStats = {
         probe_nodes_processed: number;
         probe_frames: number;
         axis_loss: number | null;
+        local_fallback_choices: Array<{
+          gap_index: number;
+          remaining_gap_advance: number;
+          current_relative_axis_loss_gain: number;
+          conservative_deadline_margin: number;
+        }>;
       }>;
       catchup_checkpoints: Array<{
         alternative_ordinal: number;

@@ -3059,11 +3059,37 @@ function compileHandoffInternal(
           const probeStartFrames = getSimFrames();
           let probe = alternative;
           let probeNodesProcessed = 0;
+          const localFallbackCandidates: HandoffNode[] = [];
           let resumeProbe = selectiveBacktracking!.observeSelected(probe, probeStartFrames);
           const finishProbe = (
             outcome: SelectiveCatchupProbeResult["outcome"],
             axisLoss: number | null,
           ): void => {
+            const seen = new Set<SearchNode>();
+            const localFallbackChoices = outcome === "execution_ceiling"
+              ? []
+              : localFallbackCandidates.flatMap((candidate) => {
+                if (
+                  seen.has(candidate.search) ||
+                  !frontierContains(candidate, pass, fb)
+                ) {
+                  return [];
+                }
+                seen.add(candidate.search);
+                const margin = conservativeDeadlineMarginAtGap(candidate.search.gapIndex);
+                if (deadlinePressure(margin) > 0) return [];
+                return [{
+                  gap_index: candidate.search.gapIndex,
+                  remaining_gap_advance: Math.max(
+                    0,
+                    decision.fromGapIndex - candidate.search.gapIndex,
+                  ),
+                  current_relative_axis_loss_gain:
+                    authoredPrefixAxisLoss(suspended.search, candidate.search.gapIndex) -
+                    authoredPrefixAxisLoss(candidate.search),
+                  conservative_deadline_margin: margin,
+                }];
+              });
             probeResults.push({
               alternative_ordinal: alternativeOrdinal,
               outcome,
@@ -3071,6 +3097,7 @@ function compileHandoffInternal(
               probe_nodes_processed: probeNodesProcessed,
               probe_frames: getSimFrames() - probeStartFrames,
               axis_loss: axisLoss,
+              local_fallback_choices: localFallbackChoices,
             });
           };
 
@@ -3108,7 +3135,15 @@ function compileHandoffInternal(
             const next = result.children.find((child) => child.skippedContacts === 0);
             for (let i = result.children.length - 1; i >= 0; i--) {
               const child = result.children[i]!;
-              if (child !== next) enqueueChild(child, pass, fb);
+              if (child !== next) {
+                enqueueChild(child, pass, fb);
+                if (
+                  child.skippedContacts === 0 &&
+                  child.search.gapIndex <= decision.fromGapIndex
+                ) {
+                  localFallbackCandidates.push(child);
+                }
+              }
             }
             if (next === undefined) {
               finishProbe("probe_dead_end", null);

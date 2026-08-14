@@ -1256,3 +1256,36 @@ adds 16 shallow scoring trees only. One governed canonical V2 comparison at
 750k, with the existing N=8/16/32/48 sequential looks, decides promotion. No
 multi-budget sweep is authorized. A non-accept result removes the correction;
 the canonical outcomes will not select a different residual capacity.
+
+### Incumbent-anchored realized-impact residual — inconclusive; not promoted
+
+The candidate stayed positive at every sequential look but crossed none of the
+registered boundaries: +0.6696 at N=8, +0.8624 at N=16, +0.8259 at N=32, and
++2.2195 at N=48. The final seed-block SE was 1.8464, directional probability
+88.23% versus the required 97.23%, and the 95% interval was
+[-2.7374, +7.1764]. The 16-tree correction is not promoted and production has
+returned to the accepted 32-tree proposer.
+
+This arm was substantially safer than direct replacement. Candidate validity
+was 2,112/2,112, with no loss and one gain over the 2,111/2,112 baseline.
+However, the recovered `frontier_pickup_progression_shifted` seed 635 cell
+contributed +56.21 at the source level and inflated the capability stratum to
++13.00 with an 11.71-point SE. It is a real capability recovery, but one cell
+cannot license the model.
+
+Over the 2,111 cells valid in both arms, a diagnostic unweighted run-score
+comparison is +0.5034 with seed-block SE 0.3437. Representative and capability
+roles are positive (+0.5952 and +0.8259), music is near zero (+0.0706), and
+legacy regression is negative (-0.3495). This sensitivity is not the canonical
+weighted headline and does not replace its decision. It shows a small stable
+lead underneath the validity event, not a conclusive promotion.
+
+The architectural lesson is useful: retaining the incumbent as an exact prefix
+and learning only its residual preserved far more policy stability than model
+replacement. But 16 extra trees add runtime and still change enough decisions
+to produce source-level reversals. Future work may use a lower-capacity or more
+selective residual only under a new predeclared hypothesis; the canonical
+result will not be mined to choose among the already-screened 2/4/8/16
+capacities. Exact evidence is in
+`benchmark/v2/studies/aim-impact-incumbent-residual.json`. Canonical V2 at 750k
+remains the only compiler decision tool; no multi-budget sweep is authorized.

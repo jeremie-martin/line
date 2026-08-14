@@ -1,0 +1,126 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-incumbent-residual.v1",
+  "recorded_at": "2026-08-14T01:03:39Z",
+  "status": "inconclusive_not_promoted",
+  "hypothesis": "Appending a small realized-impact residual to the exact deployed compact model would improve local proposal ordering without the search-policy churn of replacing the model.",
+  "fixed_contract": {
+    "budget": 750000,
+    "maximum_seeds": 48,
+    "incumbent_trees": 32,
+    "correction_trees": 16,
+    "exported_trees": 48,
+    "features": 80,
+    "incumbent_prefix_parity_max_absolute_error": 0,
+    "composed_export_parity_max_absolute_error": 4.440892098500626e-16,
+    "proposal_count_change": 0,
+    "probe_count_change": 0,
+    "ordinary_admission_set_change": false,
+    "authored_targets_changed": false
+  },
+  "offline_selection": {
+    "capacities_considered_before_compiler_execution": [2, 4, 8, 16],
+    "selected_correction_trees": 16,
+    "selection_rule": "dominates smaller corrections on held-out absolute truth error, proxy pairwise truth accuracy, selected top-one truth, and selected top-two truth",
+    "validation_contexts": 34495,
+    "incumbent_mse": 0.014220495468193444,
+    "candidate_mse": 0.011717187001052452,
+    "mse_relative_change": -0.1760352495,
+    "incumbent_mae": 0.08934030279415026,
+    "candidate_mae": 0.07998634033975338,
+    "mae_relative_change": -0.1047003666,
+    "absolute_mse_sources_improved": 44,
+    "absolute_mse_sources_worsened": 0,
+    "ranking_proxy": {
+      "semantics": "held-out rows sharing source, seed, incoming/outgoing durations, and authored target features; diagnostic proxy sets, not production knob-grid identities",
+      "groups": 3743,
+      "grouped_rows": 34366,
+      "median_group_size": 9,
+      "maximum_group_size": 65,
+      "top1_agreement_with_incumbent": 0.8239380176329147,
+      "pairwise_agreement_with_incumbent": 0.9546730846369835,
+      "incumbent_pairwise_truth_accuracy": 0.6053513817609846,
+      "candidate_pairwise_truth_accuracy": 0.6746977577239692,
+      "pairwise_truth_sources_improved": 44,
+      "pairwise_truth_sources_worsened": 0,
+      "top1_truth_sources_improved": 40,
+      "top1_truth_sources_worsened": 4,
+      "top2_truth_sources_improved": 42,
+      "top2_truth_sources_worsened": 2
+    }
+  },
+  "canonical_decision": {
+    "outcome": "inconclusive",
+    "promotable": false,
+    "stopping_depth": 48,
+    "base_headline": 604.185,
+    "candidate_headline": 606.4045,
+    "delta": 2.2195,
+    "standard_error": 1.8464,
+    "directional_probability": 0.88232076,
+    "required_directional_probability": 0.97226547,
+    "central_95_interval": [-2.7374, 7.1764],
+    "base_valid": 2111,
+    "candidate_valid": 2112,
+    "paired_cells": 2112,
+    "gained_valid": 1,
+    "lost_valid": 0,
+    "sequential_looks": [
+      { "depth": 8, "delta": 0.6696, "standard_error": 0.768, "directional_probability": 0.79390997 },
+      { "depth": 16, "delta": 0.8624, "standard_error": 0.4566, "directional_probability": 0.96079042 },
+      { "depth": 32, "delta": 0.8259, "standard_error": 0.368, "directional_probability": 0.98395315 },
+      { "depth": 48, "delta": 2.2195, "standard_error": 1.8464, "directional_probability": 0.88232076 }
+    ],
+    "stratum_deltas": {
+      "representative": 0.4264,
+      "capability": 13.0043,
+      "legacy_regression": -0.3846,
+      "development_music": 0.1768
+    },
+    "validity_gain": {
+      "source": "frontier_pickup_progression_shifted",
+      "actual_seed": 635,
+      "candidate_score": 464.2347,
+      "source_level_reported_delta": 56.21,
+      "interpretation": "A real capability recovery, but one cell dominates final headline uncertainty and cannot by itself license the model."
+    }
+  },
+  "matched_valid_sensitivity": {
+    "authority": "diagnostic_only_raw_run_score_mean",
+    "semantics": "unweighted mean candidate-minus-base run score over the 2,111 cells valid in both arms; not the canonical weighted headline or a replacement decision",
+    "paired_cells": 2111,
+    "mean_delta": 0.5034319754,
+    "seed_block_mean_delta": 0.5045059802,
+    "seed_block_standard_error": 0.3436692015,
+    "role_mean_deltas": {
+      "representative_candidate": 0.5952182292,
+      "capability_candidate": 0.8259318538,
+      "regression_candidate": -0.3495151042,
+      "development_music_candidate": 0.0705552083
+    },
+    "interpretation": "The fully matched behavior is positive but small and uncertain. It supports the residual architecture as a useful lead, not promotion of this capacity."
+  },
+  "identity": {
+    "base_candidate_fingerprint": "406549bb45124919682fdeaf7bb8a3442d40f7dbd0bc93f08cf8d8d62d9359d2",
+    "candidate_fingerprint": "038e610dc9da79a832721f9dbf2069e1fa4194f92449cfe12fcfe20d0a8232e6",
+    "implementation_fingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4",
+    "compiler_source_fingerprint": "dfcf1e4dfa400ed331f3d9f96eb057765babe23d8c60c69136ba5ca9878ad57e",
+    "candidate_archive_sha256": "0780f6b8074fdfe604e6e75d7c099d0ec582cea11eb32d52e61304228a646a29",
+    "candidate_compressed_archive_sha256": "952a3f0a0a6403a90c7eba82ce1a5fb226700cb9386d76d9383bb8cbf0c721a2",
+    "compiler_snapshot_sha256": "33fe13d57bc8002af422a6f2ed2e2b06aa5f38dad05dab7fc8e7af4a511eeb68"
+  },
+  "evidence": {
+    "offline_ranking_assay": "generated/analysis/aim-impact-ranking-residual.json",
+    "offline_ranking_assay_sha256": "078b6d4a8dd40c03051c83e52ee30e4d3599a6a9824550aa9a5d67bc664ccba1",
+    "offline_residual_study": "generated/analysis/aim-impact-residual-16-study.json",
+    "offline_residual_study_sha256": "dbba8a88155f32dfab6ffe214482848af944220ef4dc09e70173ce99a7d60308",
+    "offline_model": "generated/analysis/aim-impact-residual-16-model.json",
+    "offline_model_sha256": "284cf5b7730f140fbbdffa2dca3027eb86e754b00ad17c0d4ab346b267c85138",
+    "canonical_comparison": "benchmark/v2/runs/aim-impact-residual16-comparison.json",
+    "canonical_comparison_sha256": "642c9c74db02cc9c6666017ad29dd2d2331efe2d220549fcbb867b9a5a55fa77",
+    "canonical_archive": "benchmark/v2/runs/aim-impact-residual16-development-750k-N48.N48.json.gz",
+    "compiler_snapshot": "benchmark/v2/runs/aim-impact-residual16-development-750k-N48-compiler-snapshot.tar.gz"
+  },
+  "interpretation": "The incumbent-anchored residual is much safer and more promising than direct replacement: it stayed positive at every look, lost no validity, and recovered one capability cell. It nevertheless missed every sequential acceptance boundary and its N=48 headline is dominated by that single recovery. The exact 16-tree correction is not promoted.",
+  "cleanup": "The residual trees and artifact-contract expectations were removed from production. The offline training and ranking-assay tools remain reproducible.",
+  "next": "Preserve the accepted 32-tree proposer. Future residual work must reduce runtime/policy capacity and target the observed stable matched-valid gain without selecting a different capacity from this canonical outcome. Continue compiler decisions on canonical V2 at 750k only."
+}

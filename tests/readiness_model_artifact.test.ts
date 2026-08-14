@@ -55,16 +55,7 @@ describe("readiness model artifact inference", () => {
     expect(distilledAimImpactValidationMae()).toBe(
       aimImpactModel.distillation.validation.mae,
     );
-    expect(aimImpactModel.aimImpactResidualTraining.correctionTrees).toBe(16);
-    expect(
-      aimImpactModel.aimImpactResidualTraining.incumbentPrefixParityMaxAbsoluteError,
-    ).toBe(0);
-    expect(
-      aimImpactModel.aimImpactResidualTraining.exportParityMaxAbsoluteError,
-    ).toBeLessThanOrEqual(Number.EPSILON * 2);
-    expect(aimImpactModel.components.impactFeasibility.trees).toHaveLength(
-      32 + aimImpactModel.aimImpactResidualTraining.correctionTrees,
-    );
+    expect(aimImpactModel.components.impactFeasibility.trees).toHaveLength(32);
   });
 
   test("previous scorer semantics are legal only for context collection", () => {

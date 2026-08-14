@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-branch-point-choice-map.v1",
-  "status": "predeclared-map",
+  "status": "complete-no-live-arm",
   "generated_at": "2026-08-14",
   "question": "When production selective DFS has already justified a score-directed backtrack, is the nearest admissible causal sibling also the most useful rewind point available at that instant?",
   "relationship_to_production": {
@@ -47,13 +47,41 @@
     ],
     "expected_backfilled_controls": [
       "frontier_pickup_progression",
-      "regression_amplitude_mosaic"
+      "regression_transition_mosaic"
     ],
     "expected_cells_per_arm": 24,
     "reference_commit": "489d6e72",
     "selection_rule": "Build one live maximum-regret-per-estimated-work arm only if it differs from nearest-first on at least 20 mapped events spanning at least four runs and two sources. The rule uses action-set breadth only, never output score. If it fails, close this branch-point policy without a live run.",
     "policy_rationale": "Among already-triggered, equally admissible causal siblings, value-per-estimated-work directly balances the inherited score defect that could be changed against the conservative suffix work needed to test it. Stable ties retain nearest-first.",
     "next_step_if_selected": "Implement a single environment-selected live arm that changes only the selected rewind watch, validate exact policy choice and accounting, then use fresh seeds in a focused 750k screen before considering canonical evaluation.",
-    "non_claim": "This behavior-neutral map establishes whether a meaningfully different action set exists. It cannot establish score direction, estimate a headline, or authorize promotion, canonical evaluation, or a multi-budget sweep."
+    "non_claim": "This behavior-neutral map establishes whether a meaningfully different action set exists. It cannot establish score direction, estimate a headline, or authorize promotion, canonical evaluation, or a multi-budget sweep.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-branch-point-choice-map-n4",
+      "identity": {
+        "cells": 24,
+        "both_valid": 24,
+        "changed_tracks": 0,
+        "score_sum_delta": 0
+      },
+      "observed_choice_set": {
+        "branch_regret_events": 50,
+        "admissible_choices": 138,
+        "events_with_multiple_choices": 29,
+        "maximum_choices": 13
+      },
+      "counterfactual_differences_from_nearest": {
+        "maximum_regret": { "events": 4, "runs": 3, "sources": 2 },
+        "maximum_regret_per_estimated_work": { "events": 4, "runs": 3, "sources": 2 },
+        "minimum_estimated_work": { "events": 0, "runs": 0, "sources": 0 }
+      },
+      "decision": "closed: maximum regret per estimated work differs on only four events in three runs, below the predeclared 20-event and four-run breadth gate. No live arm, confirmation, canonical evaluation, or multi-budget sweep follows.",
+      "interpretation": "Multiple older causal siblings often remain nominally admissible, but nearest-first is strongly aligned with both conservative suffix cost and regret-per-work. The next study should change the backtrack signal or work disposition, not tune this branch-point ranking.",
+      "sha256": {
+        "candidate": "d7713ddcf3c355fbf942f1c9b195ed8a80b041b05384e2d369562eefccd2af37",
+        "reference": "38e7c9bd3cefe370315b28b904e11c37a228829824aabc9dd91807695676a094",
+        "report": "fd76ec52963cc5cb7fffbb23c985d0f429cbbc82378e889fe50a99b8facd39ac",
+        "selective_analysis": "59da9d15332a8f4ee00343cbbc6f84edda157ce11210a753dfedaaf26b021b2d"
+      }
+    }
   }
 }

@@ -862,3 +862,13 @@ regret per estimated work differs from nearest-first on at least 20 events
 spanning four runs and two sources. This gate is score-blind. It asks whether a
 materially different policy exists before spending fresh cells on its outcome;
 the map cannot authorize canonical evaluation or a multi-budget sweep.
+
+The map passes exact identity across all 24 cells. It observes 138 admissible
+choices across 50 production actions; 29 actions have more than one choice and
+one has 13. Yet maximum regret per estimated work differs from nearest-first on
+only four actions in three runs and two sources, below the fixed 20-action,
+four-run gate. Maximum regret differs on the same four actions, while minimum
+estimated work never differs. Thus older siblings often remain nominally
+available, but nearest-first is already strongly aligned with both conservative
+suffix cost and regret per work. No live arm follows. A successor should change
+the signal or the disposition of catch-up work rather than tune this ranking.

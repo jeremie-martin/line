@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-repair-incumbent-once-study.v1",
-  "status": "live-screen-predeclared",
+  "status": "complete-arm-closed",
   "generated_at": "2026-08-14",
   "question": "Can one incumbent-relative redirection per self-contained repair attempt preserve the useful signal while preventing repeated suffix thrashing?",
   "relationship_to_prior_arm": {
@@ -64,6 +64,54 @@
     "reference_commit": "a66f91a9",
     "cells_per_arm": 48,
     "decision": "Continue only if all paired cells remain valid, score sum is positive, at least three moving seed blocks are positive and positive moving seed blocks outnumber negative ones, improvement spans at least two cells, no cell loses 20 or more points, and the new signal acts in at least four runs. This focused screen cannot authorize canonical evaluation or promotion. If fewer than four runs act, classify it as underpowered rather than negative.",
-    "non_claim": "The screen tests the one-action scheduler on fresh paired cells. It does not estimate a canonical headline and it does not tune the threshold."
+    "non_claim": "The screen tests the one-action scheduler on fresh paired cells. It does not estimate a canonical headline and it does not tune the threshold.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-repair-incumbent-once-n8",
+      "validity": {
+        "both_valid": 48,
+        "reference_only_valid": 0,
+        "candidate_only_valid": 0,
+        "neither_valid": 0
+      },
+      "completed_track_quality": {
+        "score_sum_delta": -4.8443,
+        "mean_delta": -0.1009229,
+        "seed_block_standard_error": 0.2117294,
+        "seed_block_t": -0.4767,
+        "improved_cells": 3,
+        "regressed_cells": 2,
+        "tied_cells": 43,
+        "positive_moving_seed_blocks": 2,
+        "negative_moving_seed_blocks": 1,
+        "tied_seed_blocks": 5
+      },
+      "source_attribution": {
+        "wide_breaths": -4.8595,
+        "sparse_lowline_air_minus_4": 0.0152,
+        "other_four_sources": 0
+      },
+      "mechanics": {
+        "repair_incumbent_backtracks": 9,
+        "action_runs": 8,
+        "action_sources": 2,
+        "later_eligible_watches_suppressed": 186,
+        "repair_incumbent_opportunities_at_0_02": {
+          "crossed": 342,
+          "admissible": 140
+        },
+        "trigger_contact_advance": {
+          "advance_2": 8,
+          "advance_3": 1
+        }
+      },
+      "decision": "closed: complete validity, non-isolated movement, maximum-loss, and action-coverage requirements pass; total completed-track movement is negative and only two positive moving seed blocks fall short of the predeclared three. No confirmation, canonical evaluation, or promotion.",
+      "interpretation": "Bounding repeated actions solves the observed thrashing mechanism but not action value. Eight of nine interventions fire at the earliest two-contact maturity and rewind only one gap. The next study should measure whether incumbent-relative regret persists to a deeper causal maturity before changing traversal; it should not fit another loss threshold to these scores.",
+      "sha256": {
+        "candidate": "d81795c5b798a57c6f46961ad36beb4ddc733cc4373c3f9652b214f4e419d66b",
+        "reference": "33878502f52a0ca7c43943c38eff9fa9c81de78bd3e41b08152a9c6c5f3a7bad",
+        "report": "e8632a54db8332159258d3eb64559b418be0880f666e07c08c7feab9ee211b5e",
+        "selective_analysis": "a8e97493362e2a23e68a0e63f532b1a3ee174ba213e2e8f1a9036d72da38ebff"
+      }
+    }
   }
 }

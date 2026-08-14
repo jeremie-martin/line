@@ -793,3 +793,20 @@ fresh seeds. On sparse-lowline actual seed 77, the unrestricted arm had taken
 and records 24 later eligible watches suppressed. All four smoke cells remain
 valid and every analyzer invariant passes. Because that seed was deliberately
 chosen from prior outcomes, its score is excluded from the fresh decision.
+
+The fresh screen closes the arm. All 48 pairs are valid, so the result again
+comes entirely from completed-track quality: three improve, two regress, and 43
+tie for -4.8443 total (mean -0.1009 +/- 0.2117, t = -0.48). Two moving seed
+blocks are positive, one is negative, and five tie; the predeclared gate needed
+a positive total and at least three positive moving blocks. `wide_breaths`
+accounts for -4.8595 while sparse-lowline is nearly neutral at +0.0152.
+
+The scheduler nevertheless does exactly what it was designed to do. It takes
+nine incumbent-relative actions across eight runs and two sources while
+recording 186 later eligible watches suppressed. The unrestricted arm had 47
+actions on its N8 panel. The remaining problem is action value, not repeated
+suffix thrashing: eight of nine retained actions fire at the earliest possible
+two-contact maturity and rewind one gap; the ninth fires after three contacts.
+No confirmation or canonical run follows. The next behavior-neutral map should
+ask whether incumbent-relative regret persists at deeper causal maturity before
+another live traversal change is considered.

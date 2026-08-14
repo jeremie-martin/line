@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-multi-sibling-catchup-study.v1",
-  "status": "focused-screen-predeclared",
+  "status": "focused-positive-full-catalog-screen-predeclared",
   "generated_at": "2026-08-14",
   "question": "Does comparing both accepted causal siblings at equal depth improve completed-track quality over the promoted runner-up-only tournament?",
   "intervention": {
@@ -50,6 +50,88 @@
     "automatic_controls": "Benchmark V2 back-fills one source in every otherwise empty stratum; controls are expected to remain unchanged unless the mechanism fires.",
     "reference_commit": "b2d520a3",
     "decision": "Advance only if all cells retain validity, the target-source score sum is positive, and positive direction is supported by more than one changed target cell. This focused screen cannot authorize promotion or a canonical headline run by itself."
+  },
+  "focused_screen_result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-multi-sibling-catchup-n8",
+    "actual_sources": 5,
+    "cells_per_arm": 40,
+    "outcome_attribution": {
+      "both_valid": 40,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 0
+    },
+    "changed_tracks": 16,
+    "both_valid_score_sum_delta": 39.2286,
+    "better_worse_tied": [12, 4, 24],
+    "seed_blocked_all_cells": {
+      "mean_delta": 0.980715,
+      "standard_error": 0.2719,
+      "t": 3.6069,
+      "degrees_of_freedom": 7,
+      "positive_blocks": "8/8"
+    },
+    "seed_blocked_target_cells": {
+      "mean_delta": 2.4517875,
+      "standard_error": 0.6797511,
+      "t": 3.6069,
+      "degrees_of_freedom": 7,
+      "positive_blocks": "8/8"
+    },
+    "by_target_source": {
+      "believer_impact_56s": {
+        "score_sum_delta": 37.6545,
+        "mean_delta": 4.7068125,
+        "better_worse": [8, 0]
+      },
+      "believer_impact_56s_amplitude_plus_5": {
+        "score_sum_delta": 1.5741,
+        "mean_delta": 0.1967625,
+        "better_worse": [4, 4]
+      }
+    },
+    "mechanics": {
+      "selective_backtracks": "89 -> 61",
+      "probe_attempts": "89 -> 122",
+      "probe_target_reaches": "86 -> 120",
+      "additional_probe_attempts": 61,
+      "additional_probe_target_reaches": 59,
+      "additional_alternative_selected": 13,
+      "catchup_completed": "86 -> 61",
+      "catchup_alternative_selected": "24 -> 25",
+      "catchup_current_selected": "62 -> 36",
+      "probe_dead_ends": "3 -> 2",
+      "catchup_probe_frames": "3544291 -> 4249410",
+      "additional_probe_frames": 705119,
+      "target_mean_first_completion_frame": "484604 -> 528710"
+    },
+    "telemetry_integrity": "The analyzer validates per-event ordinal uniqueness, aggregate frame/node sums, best-alternative loss, selected ordinal, checkpoint bounds, and every compile-level probe counter. All checks pass.",
+    "interpretation": "The focused result clears its gate without a validity confound. The second sibling wins 13 tournaments, and the arm converts greater pre-completion search into positive completed-track quality on every seed block. The amplitude variant remains heterogeneous, so this is promising rather than promotable.",
+    "sha256": {
+      "candidate": "d3fb1e0a3cdd277bebc2eb9470b160c76ad5277b48c75e226c31ab7627ee892f",
+      "reference": "692db02f8ab9c040e64392cea68d5ed68a064e7ac33f22bb9ba10124dc40a222",
+      "report": "7a5b3ef4c5aa649cfc1169868d9a19c4e243f738c910c772fe5a6a0841f7a5b9",
+      "selective_analysis": "7fe2243bca3ef8c7250268bf122d7411bf9b2e2a2a2b3f92a7bec9408776cdc8"
+    }
+  },
+  "production_identity_smoke": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-multi-sibling-default-identity-smoke-n2",
+    "cells_per_arm": 8,
+    "changed_tracks": 0,
+    "valid": "8/8 in each arm",
+    "sha256": {
+      "candidate": "ec7df5ddf1d7d34a3171ceefd3624db2312e0bc55b0505a0da645b42ccd72653",
+      "reference": "5052387030d86f757f3902b91982aa72cf934c74995bdce03427ce21782e4622",
+      "report": "750d80b3e00752627efe5c76ebe6507b3ac1923ad079e5803e45cbeab2427ca7"
+    }
+  },
+  "predeclared_full_catalog_screen": {
+    "budget": 750000,
+    "actual_seeds": [50, 51],
+    "sources": "all 44 canonical development sources",
+    "cells_per_arm": 88,
+    "reference_commit": "b2d520a3",
+    "decision": "Continue to an independent larger confirmation only if all cells retain validity, the full-catalog score sum is positive, and positive movement is not confined to one isolated cell. This N2 breadth screen cannot authorize canonical evaluation or promotion."
   },
   "non_claim": "This evaluates the first full-depth, all-live-sibling tournament at 750k. A negative result would not reject multi-sibling or voluntary-backtracking strategies with different probe allocation, stopping, or selection rules."
 }

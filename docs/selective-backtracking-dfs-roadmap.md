@@ -630,3 +630,24 @@ that produced all 47 opportunities in the fresh map, actual seeds 42-49, 750k,
 plus Benchmark V2's automatic cross-stratum controls. It advances only with
 preserved validity, positive target-source sum, and more than one positive
 changed target cell. This is a screen, never a promotion decision.
+
+The focused screen is strongly positive. All 40 paired cells are valid; the 16
+target tracks all change, with 12 improvements and four regressions, for
++39.2286 total. Every one of eight seed blocks is positive: target mean +2.4518
+with 0.6798 seed-block SE (t = 3.61). The base believer case improves on all
+eight seeds (+37.6545); its amplitude variant is heterogeneous but slightly
+positive (+1.5741).
+
+Mechanically, 61 tournaments run 122 probes, 120 of which reach equal depth;
+the second sibling wins 13 tournaments. Catch-up work rises by 705,119 frames
+and target first completion moves from 484,604 to 528,710 frames on average,
+yet all tracks complete and score improves. The new telemetry validator checks
+every per-probe ordinal, outcome, loss, frame/node sum, checkpoint bound, final
+winner, and compile aggregate; the archive passes. A default-policy refactor
+smoke is also exactly identical on eight paired cells.
+
+The next screen broadens before it deepens: all 44 sources, fresh actual seeds
+50 and 51, 750k. It asks whether movement and direction extend beyond the
+selected believer panel. Only preserved validity, positive full-catalog sum,
+and non-isolated positive movement justify a larger independent confirmation;
+N2 cannot justify canonical evaluation.

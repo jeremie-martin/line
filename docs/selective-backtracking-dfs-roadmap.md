@@ -898,3 +898,11 @@ runner-up across four runs and both requested sources. The fixed policy would
 choose at most one by positive prefix gain times conservative deadline margin,
 extend it greedily to the original target, and use the unchanged strict equal-
 depth winner rule. Opportunity breadth, never score, controls selection.
+
+The map passes exact identity on all 20 cells and clears the action-set gate.
+Of 48 production tournaments, 34 retain the current prefix. Twenty-three of
+those 34 have a positive-gain admissible inner runner-up, spanning all eight
+target runs and both believer sources; together they contain 598 admissible and
+158 positive-gain choices. The fixed one-discrepancy arm is therefore authorized
+for implementation and a fresh focused screen. This is breadth evidence only:
+none of those unexecuted runner-ups has an observed equal-depth or final score.

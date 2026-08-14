@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-one-discrepancy-opportunity-study.v1",
-  "status": "predeclared-map",
+  "status": "opportunity-confirmed-live-arm-authorized",
   "generated_at": "2026-08-14",
   "question": "When the preferred route through a causal catch-up alternative loses at equal depth, is there an already-generated inner runner-up that is locally better than the suspended path and affordable to extend once?",
   "relationship_to_prior_work": {
@@ -33,7 +33,7 @@
       "believer_impact_56s_amplitude_plus_5"
     ],
     "expected_backfilled_controls": [
-      "wide_breaths",
+      "river_reentry",
       "frontier_pickup_progression",
       "regression_transition_mosaic"
     ],
@@ -41,6 +41,39 @@
     "reference_commit": "e4f25232",
     "selection_rule": "Build the single proposed live policy only if at least 20 current-selected branch-regret events have a positive-gain admissible local runner-up, spanning at least four runs and both requested sources. Select on opportunity breadth only, never score. Otherwise close without a live arm.",
     "next_step_if_selected": "Implement one environment-selected one-discrepancy arm, prove that it acts only after a losing primary route and processes at most one exactly selected local runner-up, then run a fresh focused 750k screen before any canonical evaluation.",
-    "non_claim": "The map establishes whether this categorical action set is broad. It cannot estimate score direction, replay the added search, authorize promotion or canonical evaluation, or establish multi-budget behavior."
+    "non_claim": "The map establishes whether this categorical action set is broad. It cannot estimate score direction, replay the added search, authorize promotion or canonical evaluation, or establish multi-budget behavior.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-one-discrepancy-opportunity-n4",
+      "identity": {
+        "cells": 20,
+        "both_valid": 20,
+        "changed_tracks": 0,
+        "score_sum_delta": 0
+      },
+      "production_tournaments": {
+        "events": 48,
+        "alternative_selected": 14,
+        "current_selected": 34,
+        "probe_dead_end": 0
+      },
+      "current_selected_opportunities": {
+        "admissible_local_fallback_choices": 598,
+        "positive_prefix_gain_choices": 158,
+        "events_with_positive_prefix_gain_choice": 23,
+        "affected_runs": 8,
+        "affected_sources": [
+          "believer_impact_56s",
+          "believer_impact_56s_amplitude_plus_5"
+        ]
+      },
+      "decision": "advance exactly the predeclared one-discrepancy live policy: 23 qualifying events across all eight target runs and both sources exceed the 20-event, four-run, two-source breadth gate. This authorizes implementation and a fresh focused screen only.",
+      "interpretation": "The primary greedy catch-up route often loses even though its local subtree already contains a live runner-up with a better exact prefix than the suspended path. The live arm will test one selected runner-up; the map makes no score claim.",
+      "sha256": {
+        "candidate": "e2c3f4b8a1dda886d89bf842cd8bd576caebb867df2e6f39525fc6823f4547a6",
+        "reference": "743a0137f19b05f81576c54c2a2fc3ad269845142d70d55e8bfaec06bad96db2",
+        "report": "0d15a2474e729ff887cb7c75eceff2787a3ec64b210a142f726f88504578fc69",
+        "selective_analysis": "0c1cdfde1b65d16e7baf75067dd4a9085f91b18ff7b7d4b05abd6d1c83be42c3"
+      }
+    }
   }
 }

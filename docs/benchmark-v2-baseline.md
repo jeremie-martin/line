@@ -46,7 +46,7 @@ Identity:
 - inference rule:
   `56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f`;
 - decision protocol:
-  `799f49d3f17bc1f545cefe1e5774b28b0ffe315a4ee58b4cfea17e38a6b58fd3`;
+  `26d6c9d40ab1d867001f171b203d267edc36b969738b2d7ca7aa951732914930`;
 - decision calibration:
   `b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1`;
 - sequential policy:

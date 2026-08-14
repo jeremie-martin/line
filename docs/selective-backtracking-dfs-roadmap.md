@@ -810,3 +810,20 @@ two-contact maturity and rewind one gap; the ninth fires after three contacts.
 No confirmation or canonical run follows. The next behavior-neutral map should
 ask whether incumbent-relative regret persists at deeper causal maturity before
 another live traversal change is considered.
+
+### Repair-incumbent maturity map
+
+The next instrument is behavior-neutral. With the incumbent deficit fixed at
+the score-blind 0.02 selected by the first opportunity map, it counts each
+causal watch at minimum contact advances two through six. “Admissible” retains
+the exact production meaning: the sibling still exists, the local execution
+ceiling is open, and the conservative deadline is not pressured. Counts must be
+nested as maturity rises, and the compile outputs must be exactly identical to
+the reference before any count is interpreted.
+
+Fresh actual seeds 92-95 cover the six mapped sources at 750k (24 cells per
+arm). The score-blind selection rule takes the highest maturity with 12-120
+admissible watches across at least four runs and two sources. If none qualifies,
+the delayed family stops. If one qualifies, only then is a fresh one-action-per-
+repair-attempt live arm predeclared. This small map avoids spending a canonical
+or multi-budget run on an action set we have not established exists.

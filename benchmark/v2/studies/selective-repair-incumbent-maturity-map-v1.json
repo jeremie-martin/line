@@ -1,0 +1,41 @@
+{
+  "schema": "line.selective-repair-incumbent-maturity-map.v1",
+  "status": "map-predeclared",
+  "generated_at": "2026-08-14",
+  "question": "If repair waits beyond the earliest two-contact observation, how much causal incumbent-relative regret remains actionable at deeper maturity?",
+  "motivation": {
+    "direct_observation": "In the closed one-per-attempt screen, eight of nine incumbent-relative interventions fired at contact advance two and rewound one gap; the ninth fired at advance three.",
+    "hypothesis": "The earliest admissible deficit may be transient. Requiring more authored contacts before changing traversal could trade a modest amount of forward work for a better-supported branch decision.",
+    "non_hypothesis": "This does not infer that maturity four or any other value improves score. It first measures action breadth without changing traversal."
+  },
+  "instrument": {
+    "behavior": "Production selective-axis-regret catch-up; no repair-incumbent action is enabled.",
+    "fixed_incumbent_axis_loss_delta": 0.02,
+    "minimum_contact_advances": [2, 3, 4, 5, 6],
+    "crossed_watch": "One causal watch whose repair descendant at or beyond the stated contact advance exceeds the incumbent prefix loss through the same gap by more than 0.02.",
+    "admissible_watch": "A crossed watch whose exact sibling is still live, execution ceiling is open, and conservative deadline has no pressure.",
+    "trust": [
+      "counts are unique per causal watch and maturity",
+      "admissible counts never exceed crossed counts",
+      "counts are nested as minimum maturity increases",
+      "candidate and reference tracks, scores, and validity must be exact matches"
+    ]
+  },
+  "predeclared_map": {
+    "budget": 750000,
+    "actual_seeds": [92, 93, 94, 95],
+    "sources": [
+      "wide_breaths",
+      "frontier_pickup_progression",
+      "high_air_drive_air_minus_5",
+      "regression_amplitude_mosaic",
+      "believer_impact_56s",
+      "sparse_lowline_air_minus_4"
+    ],
+    "cells_per_arm": 24,
+    "reference_commit": "c87f13ea",
+    "selection_rule": "Select the highest minimum contact advance with 12 to 120 admissible watches spanning at least four runs and two sources. This rule uses opportunity breadth only, never output score. If no maturity qualifies, do not build a delayed live arm.",
+    "next_step_if_selected": "Predeclare a fresh live arm that retains at most one incumbent-relative intervention per repair attempt and changes only its maturity requirement.",
+    "non_claim": "The map can select a sufficiently observable delayed action set. It cannot estimate the score effect and cannot authorize canonical evaluation or promotion."
+  }
+}

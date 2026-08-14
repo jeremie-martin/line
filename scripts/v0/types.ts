@@ -511,6 +511,10 @@ export type CompileStats = {
       string,
       { crossed_watches: number; admissible_watches: number }
     >;
+    repair_incumbent_regret_opportunities_by_min_contact_advance: Record<
+      string,
+      { crossed_watches: number; admissible_watches: number }
+    >;
     repair_incumbent_axis_loss_delta_max: number;
     repair_incumbent_max_backtracks_per_attempt: number;
     repair_incumbent_attempt_limit_suppressed_watches: number;

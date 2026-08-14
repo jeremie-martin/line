@@ -85,6 +85,7 @@ type RuleResult = {
 };
 
 const REPAIR_INCUMBENT_THRESHOLDS = ["0.00", "0.01", "0.02", "0.05", "0.10"] as const;
+const REPAIR_INCUMBENT_MATURITY_ADVANCES = ["2", "3", "4", "5", "6"] as const;
 type RepairIncumbentOpportunityRun = {
   sourceId: string;
   seed: number;
@@ -96,6 +97,11 @@ type RepairIncumbentAttemptLimitRun = {
   seed: number;
   backtracks: number;
   suppressedWatches: number;
+};
+type RepairIncumbentMaturityRun = {
+  sourceId: string;
+  seed: number;
+  counts: Record<string, { crossed_watches: number; admissible_watches: number }>;
 };
 
 const args = process.argv.slice(2);
@@ -112,6 +118,7 @@ const events: Event[] = [];
 const triggerRuns: SelectiveTriggerOpportunityRun[] = [];
 const repairIncumbentRuns: RepairIncumbentOpportunityRun[] = [];
 const repairIncumbentAttemptLimitRuns: RepairIncumbentAttemptLimitRun[] = [];
+const repairIncumbentMaturityRuns: RepairIncumbentMaturityRun[] = [];
 for (const row of archive.runs ?? []) {
   const stats = row.stats?.handoff_selective_backtracking;
   validateTournamentTelemetry(stats, `${row.task.sourceId}/seed-${row.task.actualSeed}`);
@@ -136,6 +143,13 @@ for (const row of archive.runs ?? []) {
       seed: row.task.actualSeed,
       backtracks: stats.selective_backtracks_by_signal.repair_incumbent_regret,
       suppressedWatches: stats.repair_incumbent_attempt_limit_suppressed_watches,
+    });
+  }
+  if (stats?.repair_incumbent_regret_opportunities_by_min_contact_advance !== undefined) {
+    repairIncumbentMaturityRuns.push({
+      sourceId: row.task.sourceId,
+      seed: row.task.actualSeed,
+      counts: stats.repair_incumbent_regret_opportunities_by_min_contact_advance,
     });
   }
   for (const event of stats?.events ?? []) {
@@ -319,6 +333,9 @@ const result = {
   repair_incumbent_attempt_limit: repairIncumbentAttemptLimitRuns.length === 0
     ? null
     : summarizeRepairIncumbentAttemptLimit(repairIncumbentAttemptLimitRuns),
+  repair_incumbent_maturity_opportunities: repairIncumbentMaturityRuns.length === 0
+    ? null
+    : summarizeRepairIncumbentMaturityOpportunities(repairIncumbentMaturityRuns),
   checkpoint_sign_stability: stability,
   zero_contradiction_rules: zeroContradiction,
   exploratory_rules: exploratory,
@@ -328,6 +345,77 @@ const result = {
     "Admission-margin rows likewise describe observed tournaments; they are not causal replay. " +
     "Checkpoint rules exclude multi-sibling tournaments because their winner label is not binary.",
 };
+
+function summarizeRepairIncumbentMaturityOpportunities(
+  runs: readonly RepairIncumbentMaturityRun[],
+) {
+  const sourceIds = [...new Set(runs.map((run) => run.sourceId))];
+  const summarize = (selected: readonly RepairIncumbentMaturityRun[], advance: string) => {
+    const values = selected.map((run) => run.counts[advance]!);
+    return {
+      crossed_watches: values.reduce((sum, value) => sum + value.crossed_watches, 0),
+      admissible_watches: values.reduce((sum, value) => sum + value.admissible_watches, 0),
+      runs_with_admissible_watch: values.filter((value) => value.admissible_watches > 0).length,
+    };
+  };
+  for (const run of runs) {
+    let previous: { crossed_watches: number; admissible_watches: number } | null = null;
+    for (const advance of REPAIR_INCUMBENT_MATURITY_ADVANCES) {
+      const current = run.counts[advance];
+      if (
+        current === undefined ||
+        !Number.isSafeInteger(current.crossed_watches) || current.crossed_watches < 0 ||
+        !Number.isSafeInteger(current.admissible_watches) || current.admissible_watches < 0 ||
+        current.admissible_watches > current.crossed_watches
+      ) {
+        throw new Error(`${run.sourceId}/seed-${run.seed} has invalid maturity-${advance} counts`);
+      }
+      if (
+        previous !== null &&
+        (current.crossed_watches > previous.crossed_watches ||
+          current.admissible_watches > previous.admissible_watches)
+      ) {
+        throw new Error(`${run.sourceId}/seed-${run.seed} maturity counts are not nested`);
+      }
+      previous = current;
+    }
+  }
+  return {
+    coverage: { runs: runs.length, sources: sourceIds.length },
+    by_min_contact_advance: Object.fromEntries(REPAIR_INCUMBENT_MATURITY_ADVANCES.map(
+      (advance) => {
+        const summary = summarize(runs, advance);
+        const activeSources = new Set(runs.filter(
+          (run) => run.counts[advance]!.admissible_watches > 0,
+        ).map((run) => run.sourceId));
+        return [advance, { ...summary, sources_with_admissible_watch: activeSources.size }];
+      },
+    )),
+    by_source: sourceIds.map((sourceId) => {
+      const sourceRuns = runs.filter((run) => run.sourceId === sourceId);
+      return {
+        source_id: sourceId,
+        runs: sourceRuns.length,
+        by_min_contact_advance: Object.fromEntries(REPAIR_INCUMBENT_MATURITY_ADVANCES.map(
+          (advance) => [advance, summarize(sourceRuns, advance)],
+        )),
+      };
+    }).sort((left, right) =>
+      right.by_min_contact_advance["4"]!.admissible_watches -
+        left.by_min_contact_advance["4"]!.admissible_watches ||
+      left.source_id.localeCompare(right.source_id)
+    ),
+    trust_checks: {
+      nonnegative_integer_counts: true,
+      admissible_not_above_crossed: true,
+      nested_minimum_maturity_counts: true,
+    },
+    caveat:
+      "Each row counts a causal watch once when a repair descendant at or beyond the stated " +
+      "contact advance exceeds the fixed incumbent-loss delta of 0.02. It maps a delayed " +
+      "policy's possible action set; it does not replay downstream scores.",
+  };
+}
 
 function summarizeRepairIncumbentAttemptLimit(
   runs: readonly RepairIncumbentAttemptLimitRun[],
@@ -796,6 +884,22 @@ function print(analysis: typeof result): void {
       console.log(
         `    ${row.source_id.padEnd(56)} actions ${String(row.backtracks).padStart(3)}, ` +
         `suppressed ${String(row.suppressed_watches).padStart(4)}, active runs ${row.active_runs}`,
+      );
+    }
+  }
+  if (analysis.repair_incumbent_maturity_opportunities !== null) {
+    const maturity = analysis.repair_incumbent_maturity_opportunities;
+    console.log(`\nREPAIR-INCUMBENT MATURITY OPPORTUNITIES (DELTA > 0.02)`);
+    console.log(
+      `  telemetry coverage ${maturity.coverage.runs}/${analysis.scope.runs} runs; ` +
+      `${maturity.coverage.sources} sources`,
+    );
+    for (const advance of REPAIR_INCUMBENT_MATURITY_ADVANCES) {
+      const row = maturity.by_min_contact_advance[advance]!;
+      console.log(
+        `  advance >= ${advance}: crossed ${String(row.crossed_watches).padStart(4)}, ` +
+        `admissible ${String(row.admissible_watches).padStart(4)}; ` +
+        `${row.runs_with_admissible_watch} runs / ${row.sources_with_admissible_watch} sources`,
       );
     }
   }

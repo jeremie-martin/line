@@ -126,7 +126,65 @@ describe("selective-backtracking controller", () => {
         "0.05": { crossed_watches: 1, admissible_watches: 1 },
         "0.10": { crossed_watches: 1, admissible_watches: 1 },
       },
+      repair_incumbent_regret_opportunities_by_min_contact_advance: {
+        "2": { crossed_watches: 1, admissible_watches: 1 },
+        "3": { crossed_watches: 0, admissible_watches: 0 },
+        "4": { crossed_watches: 0, admissible_watches: 0 },
+        "5": { crossed_watches: 0, admissible_watches: 0 },
+        "6": { crossed_watches: 0, admissible_watches: 0 },
+      },
     });
+  });
+
+  test("maps delayed repair-incumbent maturity as nested causal opportunities", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap);
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const early = { gap: 3, name: "early" };
+    const later = { gap: 4, name: "later" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [early],
+      contactExpansion: true,
+      contactOrdinal: 2,
+      axisLoss: 0.01,
+    });
+    const consider = (node: Node, contactOrdinal: number) => controller.consider({
+      node,
+      contactOrdinal,
+      axisLoss: 0.05,
+      incumbentAxisLoss: 0.01,
+      executionCeilingReached: false,
+      totalSpentFrames: 10,
+      lane: "repair",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+    });
+    expect(consider(early, 3)).toBeNull();
+    controller.observeExpansion({
+      parent: early,
+      children: [later],
+      contactExpansion: true,
+      contactOrdinal: 3,
+      axisLoss: 0.05,
+    });
+    expect(consider(later, 5)).toBeNull();
+    expect(controller.snapshot().repair_incumbent_regret_opportunities_by_min_contact_advance)
+      .toEqual({
+        "2": { crossed_watches: 1, admissible_watches: 1 },
+        "3": { crossed_watches: 1, admissible_watches: 1 },
+        "4": { crossed_watches: 1, admissible_watches: 1 },
+        "5": { crossed_watches: 0, admissible_watches: 0 },
+        "6": { crossed_watches: 0, admissible_watches: 0 },
+      });
   });
 
   test("fires once on a mature causal watch and names its concrete sibling", () => {

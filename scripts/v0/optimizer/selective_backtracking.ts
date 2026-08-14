@@ -19,6 +19,13 @@ export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
   0.05,
   0.10,
 ] as const;
+export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_CONTACT_ADVANCES = [
+  2,
+  3,
+  4,
+  5,
+  6,
+] as const;
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
@@ -54,6 +61,8 @@ type AxisRegretWatch<Node extends object> = {
   opportunityAdmissibleMask: number;
   repairIncumbentOpportunityCrossedMask: number;
   repairIncumbentOpportunityAdmissibleMask: number;
+  repairIncumbentMaturityOpportunityCrossedMask: number;
+  repairIncumbentMaturityOpportunityAdmissibleMask: number;
   repairIncumbentAttemptLimitSuppressionRecorded: boolean;
 };
 
@@ -111,6 +120,10 @@ export type SelectiveBacktrackingStats = {
     { crossed_watches: number; admissible_watches: number }
   >;
   repair_incumbent_regret_opportunities_by_min_axis_loss_delta: Record<
+    string,
+    { crossed_watches: number; admissible_watches: number }
+  >;
+  repair_incumbent_regret_opportunities_by_min_contact_advance: Record<
     string,
     { crossed_watches: number; admissible_watches: number }
   >;
@@ -222,6 +235,14 @@ function emptyRepairIncumbentRegretOpportunityCounter(): SelectiveBacktrackingSt
   ]));
 }
 
+function emptyRepairIncumbentMaturityOpportunityCounter(): SelectiveBacktrackingStats[
+  "repair_incumbent_regret_opportunities_by_min_contact_advance"
+] {
+  return Object.fromEntries(REPAIR_INCUMBENT_REGRET_OPPORTUNITY_CONTACT_ADVANCES.map(
+    (advance) => [String(advance), { crossed_watches: 0, admissible_watches: 0 }],
+  ));
+}
+
 /**
  * Compile-local signal and attribution state for the bounded-catch-up strategy.
  *
@@ -257,6 +278,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
       repair_incumbent_regret_opportunities_by_min_axis_loss_delta:
         emptyRepairIncumbentRegretOpportunityCounter(),
+      repair_incumbent_regret_opportunities_by_min_contact_advance:
+        emptyRepairIncumbentMaturityOpportunityCounter(),
       repair_incumbent_axis_loss_delta_max: 0,
       repair_incumbent_max_backtracks_per_attempt:
         this.policy === "selective_axis_regret_catchup_repair_incumbent_once" ? 1 : 0,
@@ -341,6 +364,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       opportunityAdmissibleMask: 0,
       repairIncumbentOpportunityCrossedMask: 0,
       repairIncumbentOpportunityAdmissibleMask: 0,
+      repairIncumbentMaturityOpportunityCrossedMask: 0,
+      repairIncumbentMaturityOpportunityAdmissibleMask: 0,
       repairIncumbentAttemptLimitSuppressionRecorded: false,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
@@ -431,6 +456,41 @@ export class SelectiveAxisRegretController<Node extends object> {
             const threshold = REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS[i]!;
             this.stats.repair_incumbent_regret_opportunities_by_min_axis_loss_delta[
               threshold.toFixed(2)
+            ]!.admissible_watches++;
+          }
+        }
+        let newlyEligibleMaturityMask = 0;
+        if (incumbentAxisLossDelta > SELECTIVE_REPAIR_INCUMBENT_MIN_LOSS_DELTA) {
+          for (let i = 0; i < REPAIR_INCUMBENT_REGRET_OPPORTUNITY_CONTACT_ADVANCES.length; i++) {
+            const advance = REPAIR_INCUMBENT_REGRET_OPPORTUNITY_CONTACT_ADVANCES[i]!;
+            if (contactAdvance < advance) continue;
+            const bit = 1 << i;
+            const counter =
+              this.stats.repair_incumbent_regret_opportunities_by_min_contact_advance[
+                String(advance)
+              ]!;
+            if ((watch.repairIncumbentMaturityOpportunityCrossedMask & bit) === 0) {
+              watch.repairIncumbentMaturityOpportunityCrossedMask |= bit;
+              counter.crossed_watches++;
+            }
+            if ((watch.repairIncumbentMaturityOpportunityAdmissibleMask & bit) === 0) {
+              newlyEligibleMaturityMask |= bit;
+            }
+          }
+        }
+        if (
+          newlyEligibleMaturityMask !== 0 &&
+          !input.executionCeilingReached &&
+          readAlternativeAvailable() &&
+          !readAlternativeDeadline().pressured
+        ) {
+          for (let i = 0; i < REPAIR_INCUMBENT_REGRET_OPPORTUNITY_CONTACT_ADVANCES.length; i++) {
+            const bit = 1 << i;
+            if ((newlyEligibleMaturityMask & bit) === 0) continue;
+            watch.repairIncumbentMaturityOpportunityAdmissibleMask |= bit;
+            const advance = REPAIR_INCUMBENT_REGRET_OPPORTUNITY_CONTACT_ADVANCES[i]!;
+            this.stats.repair_incumbent_regret_opportunities_by_min_contact_advance[
+              String(advance)
             ]!.admissible_watches++;
           }
         }
@@ -715,6 +775,11 @@ export class SelectiveAxisRegretController<Node extends object> {
         Object.entries(
           this.stats.repair_incumbent_regret_opportunities_by_min_axis_loss_delta,
         ).map(([threshold, counts]) => [threshold, { ...counts }]),
+      ),
+      repair_incumbent_regret_opportunities_by_min_contact_advance: Object.fromEntries(
+        Object.entries(
+          this.stats.repair_incumbent_regret_opportunities_by_min_contact_advance,
+        ).map(([advance, counts]) => [advance, { ...counts }]),
       ),
       events: this.stats.events.map((event) => ({
         ...event,

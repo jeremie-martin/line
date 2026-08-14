@@ -1,7 +1,7 @@
 {
   "schema": "line.benchmark-v2.aim-impact-residual-initial-only-candidate.v1",
   "recorded_at": "2026-08-14T03:01:37Z",
-  "status": "candidate_declared_preimplementation",
+  "status": "candidate_implemented_awaiting_canonical",
   "prior_arm": {
     "study": "benchmark/v2/studies/aim-impact-residual-second.json",
     "status": "inconclusive_not_promoted",
@@ -63,6 +63,39 @@
     "resumed_behavior": "accepted proposer ranking and 32-tree inference only",
     "computation": "do not traverse residual trees in bypassed lanes",
     "telemetry": "report initial eligibility, substitutions, first-choice preservation, distinctness rejections, and repair/resumed bypassed impact grids separately"
+  },
+  "implementation": {
+    "commit": "918d8b2",
+    "lane_state": ["initial", "repair", "resumed"],
+    "residual_inference": "initial only",
+    "repair_inference": "accepted 32-tree incumbent only",
+    "resumed_inference": "accepted 32-tree incumbent only",
+    "artifact_prefix_invariant": "the residual artifact begins with the exact accepted 32-tree component",
+    "fixed_pair_selection": "incumbent first proposal plus residual-ranked geometrically distinct second proposal; proposal count remains two"
+  },
+  "verification": {
+    "focused_tests": "35/35 plus the repaired last-chance allocation assertion",
+    "full_tests": "185 files, 1276 tests",
+    "live_wasm_smoke": {
+      "spec": "scripts/v0/specs/shelter_impact_sync.ts",
+      "seed": 0,
+      "budget": 150000,
+      "contacts": "113/113",
+      "terminus": "endOfSpec@3260",
+      "score": 524.6,
+      "initial_impact_grids": 387,
+      "initial_eligible_selections": 387,
+      "initial_second_substitutions": 133,
+      "initial_first_choice_preserved": 387,
+      "repair_impact_grids_bypassed": 16,
+      "resumed_impact_grids_bypassed": 12,
+      "track_sha256": "caf61dfedbec455d568713c898e2d28964b835edff09a74d3121178ccda0b0a7",
+      "same_track_as_all_lane_smoke": true,
+      "stats": "generated/analysis/aim-impact-residual-initial-only-smoke.stats.json",
+      "stats_sha256": "3f11706e321a203a17510e958c2f9f2b84d1141f6e6a8a7af75804d7ca988e01",
+      "report": "generated/analysis/aim-impact-residual-initial-only-smoke.report.json",
+      "report_sha256": "35fae056b7b5210435835636accc8e7baaecf3a89c00482b029847e8a0741497"
+    }
   },
   "decision_protocol": {
     "benchmark": "full canonical V2",

@@ -14,7 +14,6 @@ import {
 import {
   type ReadinessModelArtifact,
   predictReadinessComponent,
-  predictReadinessHistogramCheckpoints,
 } from "./readiness_model_artifact.ts";
 import {
   PRODUCTION_ARC_PROPOSAL_POLICY_ID,
@@ -230,34 +229,6 @@ export function scoreImpactFeasibilityWithArtifact(
   return infer(artifact, "impactFeasibility", readinessFeatureVector(input));
 }
 
-/** Score an append-only impact residual and its incumbent prefix together.
- * The caller owns and verifies the artifact's prefix identity. */
-export function scoreImpactFeasibilityCheckpointsWithArtifact(
-  input: NextArcReadinessInput,
-  artifact: ReadinessModelArtifact,
-  incumbentTreeCount: number,
-): { incumbent: number; residualAdjusted: number } {
-  if (!validatedImpactOnlyArtifacts.has(artifact)) {
-    assertCompatibleReadinessArtifact(artifact, {
-      requiredComponents: ["impactFeasibility"],
-    });
-    validatedImpactOnlyArtifacts.add(artifact);
-  }
-  if (input.incomingGap.scorerTargets.impact === undefined) {
-    return { incumbent: 1, residualAdjusted: 1 };
-  }
-  const prediction = inferHistogramCheckpoints(
-    artifact,
-    "impactFeasibility",
-    readinessFeatureVector(input),
-    incumbentTreeCount,
-  );
-  return {
-    incumbent: prediction.prefix,
-    residualAdjusted: prediction.complete,
-  };
-}
-
 export function assertCompatibleReadinessArtifact(
   artifact: ReadinessModelArtifact,
   compatibility: ReadinessArtifactCompatibility = {},
@@ -339,7 +310,7 @@ export function assertCompatibleReadinessArtifact(
 }
 
 export function applyReadinessStudyAblation(
-  factors: Omit<ReadinessScore, "readiness" | "airFitPredicted">,
+  factors: Omit<ReadinessScore, "readiness">,
   ablation: ReadinessStudyAblation = "normal",
 ): number {
   if (ablation === "neutral") return 1;
@@ -406,32 +377,6 @@ function infer(
     projection.buffer[i] = features[projection.indices[i]];
   }
   return predictReadinessComponent(artifact, component, projection.buffer);
-}
-
-function inferHistogramCheckpoints(
-  artifact: ReadinessModelArtifact,
-  component: "impactFeasibility",
-  features: readonly number[],
-  prefixTreeCount: number,
-): { prefix: number; complete: number } {
-  const projection = featureProjection(artifact);
-  if (projection === null) {
-    return predictReadinessHistogramCheckpoints(
-      artifact,
-      component,
-      features,
-      prefixTreeCount,
-    );
-  }
-  for (let i = 0; i < projection.indices.length; i++) {
-    projection.buffer[i] = features[projection.indices[i]];
-  }
-  return predictReadinessHistogramCheckpoints(
-    artifact,
-    component,
-    projection.buffer,
-    prefixTreeCount,
-  );
 }
 
 function ablatedFactor(

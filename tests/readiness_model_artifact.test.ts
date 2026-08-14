@@ -2,7 +2,6 @@ import { describe, expect, test } from "vitest";
 import {
   parseReadinessModelArtifact,
   predictReadinessComponent,
-  predictReadinessHistogramCheckpoints,
   READINESS_MODEL_ARTIFACT_SCHEMA,
 } from "../scripts/v0/optimizer/readiness_model_artifact.ts";
 import {
@@ -16,10 +15,6 @@ import runtimeModel from "../scripts/v0/optimizer/readiness_model.json" with {
 import aimImpactModel from "../scripts/v0/optimizer/aim_impact_model.json" with {
   type: "json",
 };
-import aimImpactResidualModel from
-  "../scripts/v0/optimizer/aim_impact_residual_model.json" with {
-    type: "json",
-  };
 import parityFixture from "./fixtures/readiness_model_parity.json" with {
   type: "json",
 };
@@ -61,25 +56,6 @@ describe("readiness model artifact inference", () => {
       aimImpactModel.distillation.validation.mae,
     );
     expect(aimImpactModel.components.impactFeasibility.trees).toHaveLength(32);
-    expect(aimImpactResidualModel.components.impactFeasibility.trees)
-      .toHaveLength(48);
-    expect(aimImpactResidualModel.components.impactFeasibility.trees.slice(0, 32))
-      .toEqual(aimImpactModel.components.impactFeasibility.trees);
-    const incumbent = parseReadinessModelArtifact(aimImpactModel);
-    const residual = parseReadinessModelArtifact(aimImpactResidualModel);
-    const features = incumbent.featureNames.map(() => 0);
-    const checkpoints = predictReadinessHistogramCheckpoints(
-      residual,
-      "impactFeasibility",
-      features,
-      32,
-    );
-    expect(checkpoints.prefix).toBe(
-      predictReadinessComponent(incumbent, "impactFeasibility", features),
-    );
-    expect(checkpoints.complete).toBe(
-      predictReadinessComponent(residual, "impactFeasibility", features),
-    );
   });
 
   test("previous scorer semantics are legal only for context collection", () => {
@@ -200,13 +176,6 @@ describe("readiness model artifact inference", () => {
       .toBeCloseTo(0.55, 12);
     expect(predictReadinessComponent(parsed, "score", [Number.NaN, 0]))
       .toBeCloseTo(0.45, 12);
-    expect(predictReadinessHistogramCheckpoints(parsed, "score", [-1, 0], 1))
-      .toEqual({ prefix: 0.4, complete: 0.45 });
-    expect(predictReadinessHistogramCheckpoints(parsed, "score", [1, 0], 0))
-      .toEqual({ prefix: 0.3, complete: 0.55 });
-    expect(() =>
-      predictReadinessHistogramCheckpoints(parsed, "score", [1, 0], 3)
-    ).toThrow(/checkpoint.*\[0, 2\]/);
   });
 
   test("rejects unsupported versions, families, and malformed dimensions", () => {

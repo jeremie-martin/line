@@ -650,6 +650,27 @@ export type CompileStats = {
     aimed_top3: number;
     aimed_rank_sum: number;
     aimed_pool_size_sum: number;
+    /** Always-on attribution for the source-baked guarded residual-second
+     * policy. Gate-failure counters are independent. Means cover accepted
+     * substitutions only. */
+    residual_second_policy: "initial_low_regret_material_advantage_v1";
+    residual_second_maximum_incumbent_impact_regret: number;
+    residual_second_maximum_incumbent_utility_regret: number;
+    residual_second_minimum_impact_advantage: number;
+    residual_second_initial_grids: number;
+    residual_second_repair_bypassed_grids: number;
+    residual_second_resumed_bypassed_grids: number;
+    residual_second_initial_eligible_pairs: number;
+    residual_second_initial_different_challengers: number;
+    residual_second_initial_impact_regret_gate_failures: number;
+    residual_second_initial_utility_regret_gate_failures: number;
+    residual_second_initial_advantage_gate_failures: number;
+    residual_second_initial_substitutions: number;
+    residual_second_initial_distinctness_rejections: number;
+    residual_second_initial_first_choice_preservations: number;
+    residual_second_accepted_incumbent_impact_regret_mean: number;
+    residual_second_accepted_incumbent_utility_regret_mean: number;
+    residual_second_accepted_impact_advantage_mean: number;
     /** Study-only telemetry; emitted only with LR_AIM_STUDY_STATS=1. */
     study?: {
       enum_projection_pairs: number;

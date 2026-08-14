@@ -473,3 +473,19 @@ lower threshold raised tournaments from 100 to 124 and probe frames by 495,905;
 the extra completed decisions overwhelmingly retained the current path (21
 more) rather than selecting the alternative (one more), an important behavior
 to carry into the confirmation analysis.
+
+The fresh seeds 24-31 did not confirm the preview: all cells remained valid,
+but the targeted block lost 11.6737 points, a mean of -0.2918 with 0.4188 SE.
+Across all 14 fresh seeds (18-31), movement is +0.0938 with 0.3193 SE (t =
+0.29), with 14 improved, 13 regressed, and 43 tied cells. The three sparse and
+split-signal sources never moved outside the two source-selection seeds. Only
+the believer pair remained active, with opposing aggregate signs.
+
+The 0.15 arm is therefore closed without a canonical run. This is not evidence
+that lower triggers cannot work: the arm consistently created 24 more
+tournaments per eight-seed block and spent roughly 0.5M-0.6M more catch-up
+frames. It is evidence that this small dose remains too sparse and its added
+work has near-zero measured value. Any next lower-trigger experiment should be
+a deliberately broader strategy intervention, measured on the full catalog or
+a source panel fixed before its live outcomes—not another adaptively chosen
+five-source confirmation.

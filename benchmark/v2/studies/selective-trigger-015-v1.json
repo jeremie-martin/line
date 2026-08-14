@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-trigger-live-study.v1",
-  "status": "fresh-confirmation-predeclared",
+  "status": "closed-no-canonical-evaluation",
   "generated_at": "2026-08-14",
   "intervention": {
     "environment": {
@@ -72,5 +72,49 @@
     "same_budget": 750000,
     "same_intervention": true,
     "decision": "Proceed to canonical V2 only if the new block has no lost completion, its targeted score sum is positive, and the pooled fresh seeds 18 through 31 remain positive. Otherwise close this dose and use the measured failure shape to choose a different trigger scheme."
-  }
+  },
+  "confirmation_result": {
+    "actual_seeds": [24, 25, 26, 27, 28, 29, 30, 31],
+    "cells_per_arm": 56,
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-trigger-015-fresh-n8",
+    "candidate_sha256": "54dda792d1549b08a73e25e86e88ee75203d9f79eca4d1bcd861332cc8882a59",
+    "reference_sha256": "ef691f41ce781745ace24dc5d3fc295643f34076c7286cfddca385e905568a38",
+    "report_sha256": "3f872341adda7f58082d419968fbebbff3fd08ef7abf4303cefa3730499fa4d1",
+    "validity": "56/56 -> 56/56",
+    "changed_cells": 16,
+    "improved_cells": 7,
+    "regressed_cells": 9,
+    "score_sum_delta": -11.6737,
+    "targeted_mean_delta": -0.2918425,
+    "targeted_seed_block_standard_error": 0.4187713446,
+    "targeted_seed_block_t": -0.6969017908,
+    "mechanics": {
+      "selective_backtracks": "94 -> 118",
+      "completed_tournaments": "92 -> 117",
+      "alternative_selected": "33 -> 44",
+      "current_selected": "59 -> 73",
+      "probe_dead_ends": "2 -> 1",
+      "catchup_probe_frames": "3936980 -> 4532375"
+    }
+  },
+  "pooled_fresh_result": {
+    "actual_seeds": [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+    "targeted_cells": 70,
+    "score_sum_delta": 6.5682,
+    "mean_delta": 0.0938314286,
+    "seed_block_standard_error": 0.3192534775,
+    "seed_block_t": 0.2939088692,
+    "improved_cells": 14,
+    "regressed_cells": 13,
+    "tied_cells": 43,
+    "validity_losses": 0,
+    "source_shape": {
+      "split_signal_impact_relief_12": "14/14 unchanged",
+      "sparse_lowline_air_minus_4": "14/14 unchanged",
+      "sparse_lowline": "14/14 unchanged",
+      "believer_impact_56s_score_sum_delta": 12.0048,
+      "believer_impact_56s_amplitude_plus_5_score_sum_delta": -5.4366
+    }
+  },
+  "conclusion": "The 0.15 dose fails its predeclared fresh confirmation and receives no canonical evaluation. Its apparently broad five-source action set was mostly seed-specific: outside selection seeds, only the two believer cases moved. The dose reliably buys more tournaments and spends about 0.5M-0.6M additional catch-up frames per eight-seed focused block, but completed-track quality is noisy and the paired fresh effect is essentially zero."
 }

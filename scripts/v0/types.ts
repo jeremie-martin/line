@@ -493,14 +493,18 @@ export type CompileStats = {
   /** Present for the production selective-backtracking frontier policy. An
    *  explicit DFS diagnostic omits the object. */
   handoff_selective_backtracking?: {
-    policy:
-      | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_tolerance_0025"
-      | "selective_axis_regret_catchup_tolerance_005"
-      | "selective_axis_regret_catchup_tolerance_01";
+    policy: "selective_axis_regret_catchup";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
+    mature_axis_loss_delta_max: number;
+    /** Observation-only unique causal-watch counts. `crossed_watches` reached
+     * the threshold; `admissible_watches` also had its exact sibling available,
+     * no execution ceiling, and no conservative deadline pressure. */
+    regret_opportunities_by_min_axis_loss_delta: Record<
+      string,
+      { crossed_watches: number; admissible_watches: number }
+    >;
     contact_expansions_observed: number;
     branch_watches_armed: number;
     mature_watch_checks: number;

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
   catchupAlternativeHasSufficientGain,
-  catchupAxisLossGainThreshold,
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
 } from "../scripts/v0/optimizer/selective_backtracking.ts";
@@ -17,40 +16,57 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-tolerance-0.0025"))
-      .toBe("selective_axis_regret_catchup_tolerance_0025");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-tolerance-0.005"))
-      .toBe("selective_axis_regret_catchup_tolerance_005");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-tolerance-0.01"))
-      .toBe("selective_axis_regret_catchup_tolerance_01");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("best-first")).toThrow(/LR_FRONTIER_POLICY/);
   });
 
-  test("resolves predeclared equal-depth alternative tolerances", () => {
-    expect(catchupAxisLossGainThreshold("selective_axis_regret_catchup")).toBe(0);
-    expect(catchupAxisLossGainThreshold("selective_axis_regret_catchup_tolerance_0025"))
-      .toBe(-0.0025);
-    expect(catchupAxisLossGainThreshold("selective_axis_regret_catchup_tolerance_005"))
-      .toBe(-0.005);
-    expect(catchupAxisLossGainThreshold("selective_axis_regret_catchup_tolerance_01"))
-      .toBe(-0.01);
-    expect(catchupAlternativeHasSufficientGain(
-      "selective_axis_regret_catchup",
-      0.5,
-      0.4999,
-    )).toBe(true);
-    expect(catchupAlternativeHasSufficientGain(
-      "selective_axis_regret_catchup_tolerance_005",
-      0.5,
-      0.504,
-    )).toBe(true);
-    expect(catchupAlternativeHasSufficientGain(
-      "selective_axis_regret_catchup_tolerance_005",
-      0.5,
-      0.506,
-    )).toBe(false);
+  test("uses the exact sign of equal-depth axis gain", () => {
+    expect(catchupAlternativeHasSufficientGain(0.5, 0.4999)).toBe(true);
+    expect(catchupAlternativeHasSufficientGain(0.5, 0.5)).toBe(false);
+    expect(catchupAlternativeHasSufficientGain(0.5, 0.5001)).toBe(false);
+  });
+
+  test("counts lower-threshold admissible watches without changing traversal", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap);
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const descendant = { gap: 3, name: "descendant" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.1,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [descendant],
+      contactExpansion: true,
+      contactOrdinal: 2,
+      axisLoss: 0.15,
+    });
+    expect(controller.consider({
+      node: descendant,
+      contactOrdinal: 3,
+      axisLoss: 0.22,
+      executionCeilingReached: false,
+      totalSpentFrames: 10,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+    })).toBeNull();
+    expect(controller.snapshot()).toMatchObject({
+      selective_backtracks: 0,
+      mature_axis_loss_delta_max: 0.12,
+      regret_opportunities_by_min_axis_loss_delta: {
+        "0.05": { crossed_watches: 1, admissible_watches: 1 },
+        "0.10": { crossed_watches: 1, admissible_watches: 1 },
+        "0.15": { crossed_watches: 0, admissible_watches: 0 },
+        "0.20": { crossed_watches: 0, admissible_watches: 0 },
+      },
+    });
   });
 
   test("fires once on a mature causal watch and names its concrete sibling", () => {
@@ -127,6 +143,12 @@ describe("selective-backtracking controller", () => {
       catchup_alternative_selected: 0,
       catchup_probe_nodes_processed: 1,
       catchup_probe_frames: 35,
+      regret_opportunities_by_min_axis_loss_delta: {
+        "0.05": { crossed_watches: 1, admissible_watches: 1 },
+        "0.10": { crossed_watches: 1, admissible_watches: 1 },
+        "0.15": { crossed_watches: 1, admissible_watches: 1 },
+        "0.20": { crossed_watches: 1, admissible_watches: 1 },
+      },
       selective_backtracks_by_lane: { initial: 1, snapshot: 0, repair: 0, resumed: 0 },
       events: [{
         branch_gap_index: 3,
@@ -151,6 +173,7 @@ describe("selective-backtracking controller", () => {
         }],
       }],
     });
+    expect(controller.snapshot().mature_axis_loss_delta_max).toBeCloseTo(0.21);
     expect(controller.snapshot().events[0]?.catchup_axis_loss_gain).toBeCloseTo(-0.09);
   });
 
@@ -198,6 +221,12 @@ describe("selective-backtracking controller", () => {
       loss_threshold_crossings: 1,
       deadline_suppressed_crossings: 1,
       selective_backtracks: 0,
+      regret_opportunities_by_min_axis_loss_delta: {
+        "0.05": { crossed_watches: 1, admissible_watches: 0 },
+        "0.10": { crossed_watches: 1, admissible_watches: 0 },
+        "0.15": { crossed_watches: 1, admissible_watches: 0 },
+        "0.20": { crossed_watches: 1, admissible_watches: 0 },
+      },
     });
   });
 

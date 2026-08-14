@@ -1,8 +1,4 @@
-export type SelectiveCatchupPolicy =
-  | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_tolerance_0025"
-  | "selective_axis_regret_catchup_tolerance_005"
-  | "selective_axis_regret_catchup_tolerance_01";
+export type SelectiveCatchupPolicy = "selective_axis_regret_catchup";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -10,40 +6,23 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
+export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
-  if (raw === "selective-axis-regret-catchup-tolerance-0.0025") {
-    return "selective_axis_regret_catchup_tolerance_0025";
-  }
-  if (raw === "selective-axis-regret-catchup-tolerance-0.005") {
-    return "selective_axis_regret_catchup_tolerance_005";
-  }
-  if (raw === "selective-axis-regret-catchup-tolerance-0.01") {
-    return "selective_axis_regret_catchup_tolerance_01";
-  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
-    `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or a ` +
-      `selective-axis-regret-catchup-tolerance-{0.0025,0.005,0.01} study arm; got ${raw}`,
+    `LR_FRONTIER_POLICY must be dfs or selective-axis-regret-catchup; got ${raw}`,
   );
 }
 
-export function catchupAxisLossGainThreshold(policy: SelectiveCatchupPolicy): number {
-  if (policy === "selective_axis_regret_catchup_tolerance_0025") return -0.0025;
-  if (policy === "selective_axis_regret_catchup_tolerance_005") return -0.005;
-  if (policy === "selective_axis_regret_catchup_tolerance_01") return -0.01;
-  return 0;
-}
-
 export function catchupAlternativeHasSufficientGain(
-  policy: SelectiveCatchupPolicy,
   currentAxisLoss: number,
   alternativeAxisLoss: number,
 ): boolean {
-  return currentAxisLoss - alternativeAxisLoss > catchupAxisLossGainThreshold(policy);
+  return currentAxisLoss > alternativeAxisLoss;
 }
 
 type AxisRegretWatch<Node extends object> = {
@@ -54,6 +33,8 @@ type AxisRegretWatch<Node extends object> = {
   used: boolean;
   signalCrossed: boolean;
   deadlineSuppressionRecorded: boolean;
+  opportunityCrossedMask: number;
+  opportunityAdmissibleMask: number;
 };
 
 type WatchLink<Node extends object> = {
@@ -84,6 +65,11 @@ export type SelectiveBacktrackingStats = {
   min_contact_advance: number;
   min_axis_loss_delta: number;
   catchup_axis_loss_gain_threshold: number;
+  mature_axis_loss_delta_max: number;
+  regret_opportunities_by_min_axis_loss_delta: Record<
+    string,
+    { crossed_watches: number; admissible_watches: number }
+  >;
   contact_expansions_observed: number;
   branch_watches_armed: number;
   mature_watch_checks: number;
@@ -147,6 +133,15 @@ function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
   return { initial: 0, snapshot: 0, repair: 0, resumed: 0 };
 }
 
+function emptyRegretOpportunityCounter(): SelectiveBacktrackingStats[
+  "regret_opportunities_by_min_axis_loss_delta"
+] {
+  return Object.fromEntries(SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS.map((threshold) => [
+    threshold.toFixed(2),
+    { crossed_watches: 0, admissible_watches: 0 },
+  ]));
+}
+
 /**
  * Compile-local signal and attribution state for the bounded-catch-up strategy.
  *
@@ -176,7 +171,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       policy: this.policy,
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
       min_axis_loss_delta: SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA,
-      catchup_axis_loss_gain_threshold: catchupAxisLossGainThreshold(this.policy),
+      catchup_axis_loss_gain_threshold: 0,
+      mature_axis_loss_delta_max: 0,
+      regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       mature_watch_checks: 0,
@@ -241,6 +238,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       used: false,
       signalCrossed: false,
       deadlineSuppressionRecorded: false,
+      opportunityCrossedMask: 0,
+      opportunityAdmissibleMask: 0,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -266,13 +265,59 @@ export class SelectiveAxisRegretController<Node extends object> {
       if (contactAdvance < SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE) continue;
       this.stats.mature_watch_checks++;
       const axisLossDelta = input.axisLoss - watch.baselineAxisLoss;
+      this.stats.mature_axis_loss_delta_max = Math.max(
+        this.stats.mature_axis_loss_delta_max,
+        axisLossDelta,
+      );
+
+      let alternativeAvailable: boolean | undefined;
+      let alternativeDeadline: { margin: number; pressured: boolean } | undefined;
+      const readAlternativeAvailable = (): boolean => {
+        alternativeAvailable ??= input.alternativeAvailable(watch.alternative);
+        return alternativeAvailable;
+      };
+      const readAlternativeDeadline = (): { margin: number; pressured: boolean } => {
+        alternativeDeadline ??= input.alternativeDeadline(watch.alternative);
+        return alternativeDeadline;
+      };
+
+      let newlyEligibleMask = 0;
+      for (let i = 0; i < SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS.length; i++) {
+        const threshold = SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS[i]!;
+        if (axisLossDelta < threshold) continue;
+        const bit = 1 << i;
+        const counter = this.stats.regret_opportunities_by_min_axis_loss_delta[
+          threshold.toFixed(2)
+        ]!;
+        if ((watch.opportunityCrossedMask & bit) === 0) {
+          watch.opportunityCrossedMask |= bit;
+          counter.crossed_watches++;
+        }
+        if ((watch.opportunityAdmissibleMask & bit) === 0) newlyEligibleMask |= bit;
+      }
+      if (
+        newlyEligibleMask !== 0 &&
+        !input.executionCeilingReached &&
+        readAlternativeAvailable() &&
+        !readAlternativeDeadline().pressured
+      ) {
+        for (let i = 0; i < SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS.length; i++) {
+          const bit = 1 << i;
+          if ((newlyEligibleMask & bit) === 0) continue;
+          watch.opportunityAdmissibleMask |= bit;
+          const threshold = SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS[i]!;
+          this.stats.regret_opportunities_by_min_axis_loss_delta[
+            threshold.toFixed(2)
+          ]!.admissible_watches++;
+        }
+      }
       if (axisLossDelta < SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA) continue;
 
       if (!watch.signalCrossed) {
         watch.signalCrossed = true;
         this.stats.loss_threshold_crossings++;
       }
-      if (!input.alternativeAvailable(watch.alternative)) {
+      if (!readAlternativeAvailable()) {
         watch.used = true;
         this.stats.unavailable_alternatives++;
         continue;
@@ -281,8 +326,8 @@ export class SelectiveAxisRegretController<Node extends object> {
         this.stats.execution_ceiling_suppressed_crossings++;
         continue;
       }
-      const alternativeDeadline = input.alternativeDeadline(watch.alternative);
-      if (alternativeDeadline.pressured) {
+      const admittedAlternativeDeadline = readAlternativeDeadline();
+      if (admittedAlternativeDeadline.pressured) {
         if (!watch.deadlineSuppressionRecorded) {
           watch.deadlineSuppressionRecorded = true;
           this.stats.deadline_suppressed_crossings++;
@@ -313,7 +358,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         baseline_axis_loss: watch.baselineAxisLoss,
         trigger_axis_loss: input.axisLoss,
         axis_loss_delta: axisLossDelta,
-        alternative_conservative_deadline_margin: alternativeDeadline.margin,
+        alternative_conservative_deadline_margin: admittedAlternativeDeadline.margin,
         trigger_total_spent_frames: input.totalSpentFrames,
         resumed_total_spent_frames: null,
         catchup_outcome: null,
@@ -421,6 +466,11 @@ export class SelectiveAxisRegretController<Node extends object> {
     return {
       ...this.stats,
       selective_backtracks_by_lane: { ...this.stats.selective_backtracks_by_lane },
+      regret_opportunities_by_min_axis_loss_delta: Object.fromEntries(
+        Object.entries(this.stats.regret_opportunities_by_min_axis_loss_delta).map(
+          ([threshold, counts]) => [threshold, { ...counts }],
+        ),
+      ),
       events: this.stats.events.map((event) => ({
         ...event,
         catchup_checkpoints: event.catchup_checkpoints.map((checkpoint) => ({ ...checkpoint })),

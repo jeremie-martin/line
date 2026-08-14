@@ -3104,7 +3104,6 @@ function compileHandoffInternal(
 
         const catchupAxisLoss = authoredPrefixAxisLoss(probe.search);
         if (catchupAlternativeHasSufficientGain(
-          selectiveBacktracking!.policy,
           decision.triggerAxisLoss,
           catchupAxisLoss,
         )) {

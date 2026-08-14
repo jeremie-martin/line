@@ -417,3 +417,20 @@ The mirror study arms therefore set the equal-depth gain threshold to -0.0025,
 remains a strict positive-gain comparison. As with the rejected positive
 margin, admission and catch-up work do not change; only which equal-depth prefix
 receives traversal priority changes.
+
+That mirror bracket is negative too. Across the same 16 affected cells,
+tolerances 0.0025, 0.005, and 0.01 lost 15.0410, 26.3719, and 39.4053 points,
+with no validity changes. The smallest rung has seed-block t = -1.83; the two
+wider rungs are below -2.0. Together with the positive-margin result, this is
+useful local evidence that the sign of authored-axis gain is a meaningful
+disposition boundary. Both experimental families are closed rather than left
+as live knobs.
+
+The next observation pass moves to the trigger. Each causal watch now reports,
+without changing traversal, whether its realized regret ever crosses 0.05,
+0.10, 0.15, or the production 0.20 threshold, and whether the exact sibling is
+actually admissible at that point (present, below the execution ceiling, and
+outside conservative deadline pressure). Counts are unique per watch and each
+threshold, not repeated mature-node checks. One shallow full-catalog pass can
+therefore locate lower-threshold action sets before any live policy variants
+are built.

@@ -54,6 +54,10 @@ import {
 } from "./baseline_cache.ts";
 import { DECISION_INFERENCE_PROTOCOL_FINGERPRINT } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
+import {
+  attachV2OutcomeAttribution,
+  type ReportedV2Decision,
+} from "./outcome_attribution.ts";
 
 const DECISION_SCHEMA = "line.benchmark-v2.decision.v4" as const;
 const BASELINE_CACHE_REFERENCE_SCHEMA = "line.benchmark-v2.baseline-reference.v10" as const;
@@ -129,7 +133,7 @@ export type DecisionArtifact = {
     shardRanges: Array<{ firstSeedSlot: number; endSeedSlotExclusive: number }>;
     compatibilityApprovals: RunnerCompatibilityApproval[];
   };
-  result: V2Decision;
+  result: ReportedV2Decision;
   hint: string | null;
   nextCommand: string;
 };
@@ -167,11 +171,19 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
     }
   }
   const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(base, candidate);
-  const result = pairedV2Decision(baseRuns, candidateRuns, suite, {
+  const decisionOptions = {
     profile,
     mode: args.mode,
     margin: args.margin,
-  });
+  } as const;
+  const governedResult = pairedV2Decision(baseRuns, candidateRuns, suite, decisionOptions);
+  const result = attachV2OutcomeAttribution(
+    governedResult,
+    baseRuns,
+    candidateRuns,
+    suite,
+    decisionOptions,
+  );
   assertStoredHeadline(base.archive, result.baseHeadline, "base");
   assertStoredHeadline(candidate.archive, result.candidateHeadline, "candidate");
   const hint = underPoweredHint(result, suite.profiles[profile].seeds_per_budget);
@@ -450,11 +462,20 @@ export async function evalDecisionAgainstBaselineCache(
     ));
   }
   const candidateRuns = toDecisionRuns(candidate.archive).filter((row) => budgetSet.has(row.budget));
-  const result = pairedV2Decision(baseRuns, candidateRuns, suiteAtDepth(suite, options.depth, budgets), {
+  const comparisonSuite = suiteAtDepth(suite, options.depth, budgets);
+  const decisionOptions = {
     profile: "canonical",
     mode: options.mode,
     margin: options.mode === "simplification" ? options.margin ?? undefined : undefined,
-  });
+  } as const;
+  const governedResult = pairedV2Decision(baseRuns, candidateRuns, comparisonSuite, decisionOptions);
+  const result = attachV2OutcomeAttribution(
+    governedResult,
+    baseRuns,
+    candidateRuns,
+    comparisonSuite,
+    decisionOptions,
+  );
   assertStoredHeadline(candidate.archive, result.candidateHeadline, "candidate");
   const manifestFingerprint = baselineCacheManifestFingerprint(cache.cache);
   const first = evidence[0].archive;
@@ -1117,6 +1138,22 @@ export function renderDecision(artifact: DecisionArtifact, outPath: string): str
     `  validity: ${result.validity.baseValid}/${result.validity.total} -> ` +
       `${result.validity.candidateValid}/${result.validity.total} ` +
       `(gained ${result.validity.gained}, lost ${result.validity.lost})`,
+    `  outcome attribution: both valid ${result.outcomeAttribution.both_valid_pairs}/` +
+      `${result.outcomeAttribution.total_pairs}; ` +
+      `both-valid counterfactual ` +
+      `${formatSigned(result.outcomeAttribution.both_valid_counterfactual_headline_delta)} ` +
+      `(SE ${result.outcomeAttribution.both_valid_counterfactual_confidence.standardError.toFixed(2)}); ` +
+      `validity-sensitive remainder ` +
+      `${formatSigned(result.outcomeAttribution.validity_sensitive_headline_remainder)}`,
+    `    paired both-valid cells: mean ` +
+      `${result.outcomeAttribution.both_valid_score.mean_delta === null
+        ? "n/a"
+        : formatSigned(result.outcomeAttribution.both_valid_score.mean_delta)}; ` +
+      `better ${result.outcomeAttribution.both_valid_score.improved_pairs}, ` +
+      `worse ${result.outcomeAttribution.both_valid_score.regressed_pairs}, ` +
+      `tied ${result.outcomeAttribution.both_valid_score.tied_pairs}; ` +
+      `ref-only valid ${result.outcomeAttribution.reference_only_valid_pairs}, ` +
+      `candidate-only valid ${result.outcomeAttribution.candidate_only_valid_pairs}`,
     "  budgets (delta; stress-calibrated coverage-target interval):",
     ...result.perBudget.map((entry) =>
       `    ${(entry.budget / 1000).toFixed(0).padStart(4)}k  ${formatSigned(entry.delta)}  ` +

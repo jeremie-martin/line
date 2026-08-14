@@ -8,6 +8,7 @@ import {
   type DecisionProfile,
   type DecisionRun,
 } from "../scripts/v0/benchmark_v2/decision_model.ts";
+import { attachV2OutcomeAttribution } from "../scripts/v0/benchmark_v2/outcome_attribution.ts";
 import type { SuiteManifest, SuiteParent } from "../scripts/v0/benchmark_v2/suite_model.ts";
 import {
   summarizeDevelopmentBudget,
@@ -122,6 +123,49 @@ describe("Benchmark V2 decision model", () => {
     expect(decision.confidence.centralLo).toBe(0);
     expect(decision.confidence.centralHi).toBe(0);
     expect(decision.outcome).toBe("inconclusive");
+  });
+
+  test("attributes completed-track score movement separately from validity flips", () => {
+    const s = suite();
+    const base = runs(s, "canonical", () => 0);
+    const candidate = runs(s, "canonical", () => 10);
+    base[0]!.score = { score: 0, valid: false };
+    candidate[1]!.score = { score: 0, valid: false };
+    const options = {
+      profile: "canonical", mode: "improvement", iterations: 500, bootstrapSeed: 1,
+    } as const;
+    const governed = pairedV2Decision(base, candidate, s, options);
+    const decision = attachV2OutcomeAttribution(governed, base, candidate, s, options);
+    expect(decision.outcomeAttribution).toMatchObject({
+      total_pairs: base.length,
+      both_valid_pairs: base.length - 2,
+      reference_only_valid_pairs: 1,
+      candidate_only_valid_pairs: 1,
+      neither_valid_pairs: 0,
+    });
+    expect(decision.outcomeAttribution.both_valid_score.sum_delta)
+      .toBe((base.length - 2) * 10);
+    expect(decision.outcomeAttribution.both_valid_counterfactual_headline_delta)
+      .toBeGreaterThan(0);
+    expect(
+      decision.outcomeAttribution.both_valid_counterfactual_headline_delta +
+        decision.outcomeAttribution.validity_sensitive_headline_remainder,
+    ).toBeCloseTo(decision.delta, 4);
+  });
+
+  test("attributes the entire headline movement to both-valid tracks when validity is unchanged", () => {
+    const s = suite();
+    const base = runs(s, "canonical", () => 0);
+    const candidate = runs(s, "canonical", () => 10);
+    const options = {
+      profile: "canonical", mode: "improvement", iterations: 500, bootstrapSeed: 1,
+    } as const;
+    const governed = pairedV2Decision(base, candidate, s, options);
+    const decision = attachV2OutcomeAttribution(governed, base, candidate, s, options);
+    expect(decision.outcomeAttribution.both_valid_pairs).toBe(base.length);
+    expect(decision.outcomeAttribution.both_valid_counterfactual_headline_delta)
+      .toBe(decision.delta);
+    expect(decision.outcomeAttribution.validity_sensitive_headline_remainder).toBe(0);
   });
 
   test("keeps one-seed runs descriptive and never promotion-authoritative", () => {

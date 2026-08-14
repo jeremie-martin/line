@@ -70,6 +70,7 @@ import {
   assertPairedArms,
   describeArmIdentity,
   pairGridCells,
+  pairedGridOutcomeSummary,
   readGridArm,
   type GridArm,
   type GridCell,
@@ -384,6 +385,7 @@ function report(
   assertPairedArms(candidate, reference);
 
   const { pairs, changed, lost, gained, scoreDelta } = pairGridCells(candidate, reference);
+  const outcomes = pairedGridOutcomeSummary(pairs);
   const keys = pairs.map((pair) => pair.key);
 
   console.log(`GRID  ${keys.length} cells, candidate vs ref`);
@@ -393,6 +395,24 @@ function report(
   console.log(`  gained completions  ${gained.length}`);
   console.log(`  score sum delta     ${scoreDelta >= 0 ? "+" : ""}${scoreDelta.toFixed(1)}` +
     `  (mean ${(scoreDelta / keys.length).toFixed(2)}/cell)`);
+  console.log(`\nSCORE ATTRIBUTION`);
+  console.log(
+    `  both valid          ${outcomes.both_valid_pairs}/${outcomes.total_pairs}; ` +
+      `sum ${formatSigned(outcomes.both_valid_score.sum_delta, 1)}; ` +
+      `mean ${formatNullableSigned(outcomes.both_valid_score.mean_delta, 2)}/cell; ` +
+      `better ${outcomes.both_valid_score.improved_pairs}, ` +
+      `worse ${outcomes.both_valid_score.regressed_pairs}, ` +
+      `tied ${outcomes.both_valid_score.tied_pairs}`,
+  );
+  console.log(
+    `  validity-discordant ref-only ${outcomes.reference_only_valid_pairs}, ` +
+      `candidate-only ${outcomes.candidate_only_valid_pairs}; ` +
+      `score sum ${formatSigned(outcomes.validity_discordant_score_sum_delta, 1)}`,
+  );
+  console.log(
+    `  neither valid       ${outcomes.neither_valid_pairs}; ` +
+      `score sum ${formatSigned(outcomes.neither_valid_score_sum_delta, 1)}`,
+  );
 
   console.log(`\nCAPABILITY GROUPS`);
   console.log(`  ${"group".padEnd(30)} ${"stratum".padEnd(18)} ${"ref".padStart(10)} ${"cand".padStart(10)} ${"delta".padStart(9)}  scope`);
@@ -478,6 +498,7 @@ function writeReport(
   const directory = resolve(out);
   mkdirSync(directory, { recursive: true });
   const path = join(directory, "mover-grid-report.json");
+  const paired = pairGridCells(candidate, reference);
   const cells = [...reference.cells.keys()].sort().map((key) => ({
     ref: reference.cells.get(key)!,
     candidate: candidate.cells.get(key)!,
@@ -492,8 +513,17 @@ function writeReport(
     scorerFingerprint: reference.archive.scorerFingerprint,
     arms: { candidate: candidate.archive.candidate, ref: reference.archive.candidate },
     power,
+    outcomes: pairedGridOutcomeSummary(paired.pairs),
     changedCells: cells.filter((cell) => cell.ref.trackHash !== cell.candidate.trackHash),
     cells,
   }, null, 2)}\n`);
   console.log(`\n  report ${path}`);
+}
+
+function formatSigned(value: number, digits: number): string {
+  return `${value >= 0 ? "+" : ""}${value.toFixed(digits)}`;
+}
+
+function formatNullableSigned(value: number | null, digits: number): string {
+  return value === null ? "n/a" : formatSigned(value, digits);
 }

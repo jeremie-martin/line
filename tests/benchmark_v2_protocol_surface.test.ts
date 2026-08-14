@@ -15,7 +15,8 @@ import {
   type DecisionArtifact,
 } from "../scripts/v0/benchmark_v2/decide.ts";
 import { createHash } from "node:crypto";
-import { studentTQuantile, type V2Decision } from "../scripts/v0/benchmark_v2/decision_model.ts";
+import { studentTQuantile } from "../scripts/v0/benchmark_v2/decision_model.ts";
+import type { ReportedV2Decision } from "../scripts/v0/benchmark_v2/outcome_attribution.ts";
 import {
   acquireRunLock,
   archiveChunks,
@@ -45,7 +46,7 @@ function tempDir(): string {
   return dir;
 }
 
-function decision(overrides: Partial<V2Decision>): V2Decision {
+function decision(overrides: Partial<ReportedV2Decision>): ReportedV2Decision {
   const bounds = {
     available: true,
     estimate: 1.2,
@@ -88,11 +89,33 @@ function decision(overrides: Partial<V2Decision>): V2Decision {
     outcome: "unresolved",
     promotable: false,
     validity: { baseValid: 120, candidateValid: 121, total: 126, gained: 2, lost: 1 },
+    outcomeAttribution: {
+      total_pairs: 126,
+      both_valid_pairs: 123,
+      reference_only_valid_pairs: 1,
+      candidate_only_valid_pairs: 2,
+      neither_valid_pairs: 0,
+      both_valid_score: {
+        reference_mean: 650,
+        candidate_mean: 651.3,
+        sum_delta: 159.9,
+        mean_delta: 1.3,
+        improved_pairs: 70,
+        regressed_pairs: 40,
+        tied_pairs: 13,
+      },
+      validity_discordant_score_sum_delta: -10,
+      neither_valid_score_sum_delta: 0,
+      overall_score_sum_delta: 149.9,
+      both_valid_counterfactual_headline_delta: 1.3,
+      both_valid_counterfactual_confidence: bounds,
+      validity_sensitive_headline_remainder: -0.1,
+    },
     perBudget: [],
     perStratum: [],
     perCase: [],
     ...overrides,
-  } as V2Decision;
+  } as ReportedV2Decision;
 }
 
 describe("run lock", () => {

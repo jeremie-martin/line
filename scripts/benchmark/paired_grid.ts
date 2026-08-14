@@ -28,6 +28,10 @@ import { resolve } from "node:path";
 import { readVerifiedArtifact } from "./study_lib.ts";
 import { BUDGET_TELEMETRY_SCHEMA } from "../v0/optimizer/budget_telemetry.ts";
 import { FROZEN_SCALE_STUDY_SCHEMA } from "../v0/benchmark_v2/scale_profile.ts";
+import {
+  summarizePairedOutcomes,
+  type PairedOutcomeSummary,
+} from "./paired_outcomes.ts";
 
 export const SCALE_STUDY_ARCHIVE_SCHEMA = "line.benchmark-v2.budget-scale-study.v2" as const;
 export const LEGACY_MULTI_BUDGET_ARCHIVE_SCHEMA =
@@ -310,6 +314,13 @@ export function seedBlockPairedDelta(pairs: CellPair[]): SeedBlockDelta {
     ? meanDelta / standardError
     : meanDelta === 0 ? 0 : Math.sign(meanDelta) * Infinity;
   return { blocks, meanDelta, standardDeviation, standardError, t, degreesOfFreedom: Math.max(0, n - 1) };
+}
+
+export function pairedGridOutcomeSummary(pairs: readonly CellPair[]): PairedOutcomeSummary {
+  return summarizePairedOutcomes(pairs.map((pair) => ({
+    reference: pair.ref,
+    candidate: pair.candidate,
+  })));
 }
 
 function short(fingerprint: unknown): string {

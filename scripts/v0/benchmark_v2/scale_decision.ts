@@ -1,4 +1,9 @@
-import type { CellPair, GridCell } from "../../benchmark/paired_grid.ts";
+import {
+  pairedGridOutcomeSummary,
+  type CellPair,
+  type GridCell,
+} from "../../benchmark/paired_grid.ts";
+import type { PairedOutcomeSummary } from "../../benchmark/paired_outcomes.ts";
 import { studentTCdf, studentTQuantile, type ConfidenceBounds } from "./decision_model.ts";
 import {
   multiBudgetSeeds,
@@ -42,6 +47,7 @@ export type ScaleComparisonResult = {
     gained: number;
     lost: number;
   };
+  outcomes: PairedOutcomeSummary;
   changedTracks: number;
   perBudget: Array<{
     budget: number;
@@ -55,6 +61,7 @@ export type ScaleComparisonResult = {
     total: number;
     gained: number;
     lost: number;
+    outcomes: PairedOutcomeSummary;
   }>;
   perSource: Array<{
     sourceId: string;
@@ -66,6 +73,7 @@ export type ScaleComparisonResult = {
     total: number;
     gained: number;
     lost: number;
+    outcomes: PairedOutcomeSummary;
   }>;
   canonicalBudget: {
     budget: number;
@@ -83,6 +91,7 @@ export type ScaleDepthCharacterization = {
   confidence: ConfidenceBounds;
   directionalProbability: number;
   validity: ScaleComparisonResult["validity"];
+  outcomes: PairedOutcomeSummary;
   changedTracks: number;
   perBudget: ScaleComparisonResult["perBudget"];
   perSource: ScaleComparisonResult["perSource"];
@@ -125,6 +134,7 @@ export function pairedScaleComparison(
     looks,
     final,
     validity: characterization.validity,
+    outcomes: characterization.outcomes,
     changedTracks: characterization.changedTracks,
     perBudget: characterization.perBudget,
     perSource: characterization.perSource,
@@ -175,6 +185,7 @@ export function scaleDepthCharacterization(
       confidence: budgetConfidence,
       directionalProbability: directionalProbability(budgetConfidence),
       ...validity(budgetPairs),
+      outcomes: pairedGridOutcomeSummary(budgetPairs),
     };
   });
   const perSource = profile.sources.map(({ id }) => {
@@ -187,6 +198,7 @@ export function scaleDepthCharacterization(
       candidateScore,
       delta: round(candidateScore - referenceScore),
       ...validity(sourcePairs),
+      outcomes: pairedGridOutcomeSummary(sourcePairs),
     };
   });
   const canonical = perBudget.find((budget) => budget.budget === profile.canonicalBudget)!;
@@ -198,6 +210,7 @@ export function scaleDepthCharacterization(
     confidence,
     directionalProbability: roundProbability(directionalProbability(confidence)),
     validity: validity(depthPairs),
+    outcomes: pairedGridOutcomeSummary(depthPairs),
     changedTracks: depthPairs.filter((pair) => pair.ref.trackHash !== pair.candidate.trackHash).length,
     perBudget,
     perSource,

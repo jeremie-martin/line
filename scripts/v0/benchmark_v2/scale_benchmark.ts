@@ -1055,6 +1055,7 @@ function emitComparison(argv: string[], artifactPath: string, artifact: Record<s
     directionalProbability: result.final.directionalProbability,
     canonicalBudgetDelta: result.canonicalBudget.delta,
     validity: result.validity,
+    outcomes: result.outcomes,
     nextCommand: artifact.nextCommand,
   });
 }
@@ -1077,6 +1078,23 @@ function emit(argv: string[], payload: Record<string, unknown>): void {
       `(delta ${signed(Number(payload.delta))}, P+ ${(100 * Number(payload.directionalProbability)).toFixed(2)}%)`,
   );
   console.log(`  750k delta ${signed(Number(payload.canonicalBudgetDelta))}; validity ${JSON.stringify(payload.validity)}`);
+  const outcomes = payload.outcomes as {
+    total_pairs: number;
+    both_valid_pairs: number;
+    reference_only_valid_pairs: number;
+    candidate_only_valid_pairs: number;
+    both_valid_score: { mean_delta: number | null; improved_pairs: number; regressed_pairs: number };
+  };
+  console.log(
+    `  both-valid ${outcomes.both_valid_pairs}/${outcomes.total_pairs}: ` +
+      `mean ${outcomes.both_valid_score.mean_delta === null
+        ? "n/a"
+        : signed(outcomes.both_valid_score.mean_delta)}, ` +
+      `better ${outcomes.both_valid_score.improved_pairs}, ` +
+      `worse ${outcomes.both_valid_score.regressed_pairs}; ` +
+      `ref-only ${outcomes.reference_only_valid_pairs}, ` +
+      `candidate-only ${outcomes.candidate_only_valid_pairs}`,
+  );
   if (payload.nextCommand !== null) console.log(`  next: ${payload.nextCommand}`);
 }
 

@@ -5,11 +5,11 @@
  * ledger, certification menu, or comparison budget in the active workflow.
  */
 
-import type { V2Decision } from "./decision_model.ts";
+import type { ReportedV2Decision } from "./outcome_attribution.ts";
 import type { SequentialLookDecision } from "./sequential_inference.ts";
 
 export type CachedComparisonReport = {
-  result: V2Decision;
+  result: ReportedV2Decision;
   baseLabel: string;
   seeds: number;
   archivePath: string;
@@ -48,6 +48,20 @@ export function renderCachedComparison(report: CachedComparisonReport): string {
     `  validity: ${result.validity.baseValid}/${result.validity.total} -> ` +
       `${result.validity.candidateValid}/${result.validity.total} ` +
       `(gained ${result.validity.gained}, lost ${result.validity.lost})`,
+    `  outcome attribution: both valid ${result.outcomeAttribution.both_valid_pairs}/` +
+      `${result.outcomeAttribution.total_pairs}; ` +
+      `both-valid counterfactual ` +
+      `${formatSigned(result.outcomeAttribution.both_valid_counterfactual_headline_delta)} ` +
+      `(SE ${result.outcomeAttribution.both_valid_counterfactual_confidence.standardError.toFixed(2)}); ` +
+      `validity-sensitive remainder ` +
+      `${formatSigned(result.outcomeAttribution.validity_sensitive_headline_remainder)}`,
+    `    paired both-valid cells: mean ` +
+      `${formatNullableSigned(result.outcomeAttribution.both_valid_score.mean_delta)}; ` +
+      `better ${result.outcomeAttribution.both_valid_score.improved_pairs}, ` +
+      `worse ${result.outcomeAttribution.both_valid_score.regressed_pairs}, ` +
+      `tied ${result.outcomeAttribution.both_valid_score.tied_pairs}; ` +
+      `ref-only valid ${result.outcomeAttribution.reference_only_valid_pairs}, ` +
+      `candidate-only valid ${result.outcomeAttribution.candidate_only_valid_pairs}`,
     `  budgets:`,
     ...result.perBudget.map((entry) =>
       `    ${(entry.budget / 1000).toFixed(0).padStart(4)}k  ${formatSigned(entry.delta)}  ` +
@@ -83,4 +97,8 @@ export function renderCachedComparison(report: CachedComparisonReport): string {
 
 function formatSigned(value: number): string {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+}
+
+function formatNullableSigned(value: number | null): string {
+  return value === null ? "n/a" : formatSigned(value);
 }

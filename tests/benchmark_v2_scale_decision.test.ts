@@ -97,6 +97,14 @@ describe("Benchmark V2 paired multi-budget decision", () => {
 
     const result = pairedScaleComparison(pairs, profile, 4);
     expect(result.validity).toMatchObject({ gained: 1, lost: 1, total: 256 });
+    expect(result.outcomes).toMatchObject({
+      total_pairs: 256,
+      both_valid_pairs: 254,
+      candidate_only_valid_pairs: 1,
+      reference_only_valid_pairs: 1,
+    });
+    expect(result.outcomes.both_valid_score.sum_delta).toBe(0);
+    expect(result.outcomes.validity_discordant_score_sum_delta).toBe(0);
     expect(result.perBudget.find((budget) => budget.budget === 150_000)).toMatchObject({ gained: 1 });
     expect(result.perBudget.find((budget) => budget.budget === 250_000)).toMatchObject({ lost: 1 });
   });

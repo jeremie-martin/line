@@ -786,3 +786,10 @@ positive moving seed blocks with more positive than negative moving blocks,
 non-isolated improvement, no 20-point loss, and actual signal activity in at
 least four runs. Sparse activity is underpowered, not evidence of neutrality;
 passing this focused screen still cannot authorize canonical evaluation.
+
+A known-activity mechanical smoke validates the boundary before consuming
+fresh seeds. On sparse-lowline actual seed 77, the unrestricted arm had taken
+28 incumbent-relative actions; the bounded arm takes one in repair attempt zero
+and records 24 later eligible watches suppressed. All four smoke cells remain
+valid and every analyzer invariant passes. Because that seed was deliberately
+chosen from prior outcomes, its score is excluded from the fresh decision.

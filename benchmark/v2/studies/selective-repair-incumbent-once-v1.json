@@ -30,6 +30,26 @@
     ],
     "retirement": "The unrestricted live environment is removed from the parser; its retained artifacts remain analyzable."
   },
+  "mechanical_smoke": {
+    "purpose": "Exercise the exact historical high-activity sparse-lowline seed without using its score as fresh decision evidence.",
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-repair-incumbent-once-smoke-seed77",
+    "scope": "actual seed 77 at 750k; sparse_lowline_air_minus_4 plus three automatically back-filled stratum controls",
+    "result": {
+      "both_valid": 4,
+      "repair_incumbent_backtracks": 1,
+      "repair_attempt_indices": [0],
+      "later_eligible_watches_suppressed": 24,
+      "analyzer_trust_checks": "pass"
+    },
+    "comparison": "The closed unrestricted arm took 28 incumbent-relative actions on the target cell. The bounded arm takes exactly one and attributes it to repair attempt zero.",
+    "non_claim": "The reused seed was selected for known mechanical activity. Its score is not evidence for the fresh screen.",
+    "sha256": {
+      "candidate": "5a587339dae712c9f8a4d1621fc82b104eb2368cfa1bbda0768ccc1ed43124e4",
+      "reference": "275e700975f0e4ee052424803bd14422ef4331f9dd0974285177401f8784a4cb",
+      "report": "ce824d467083ff4c8959719aded62fa73c51a5b78d082c9ae5770aea8662b1da",
+      "selective_analysis": "4bd71bf7f96f86bd6db2c47d58708b81efb3460aa3395a24bc2136bb835964d0"
+    }
+  },
   "predeclared_screen": {
     "budget": 750000,
     "actual_seeds": [84, 85, 86, 87, 88, 89, 90, 91],

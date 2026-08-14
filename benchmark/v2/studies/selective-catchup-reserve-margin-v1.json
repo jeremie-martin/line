@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-catchup-reserve-margin-study.v1",
-  "status": "full-catalog-screen-predeclared",
+  "status": "closed-negative-screen",
   "generated_at": "2026-08-14",
   "question": "Can a small explicit budget reserve avoid low-slack selective catch-up tournaments while retaining most observed alternative winners?",
   "intervention": {
@@ -53,6 +53,58 @@
     "cells_per_arm": 88,
     "reference_commit": "6d82246",
     "decision": "Advance only if all cells retain validity, the full-catalog score sum is positive, and movement is not carried by one isolated cell. Neutral or negative direction closes this single reserve-margin arm; no nearby margin ladder follows."
+  },
+  "screen_result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-catchup-reserve-225-full-n2",
+    "completed_cells": "88/88 in each arm",
+    "outcome_attribution": {
+      "both_valid": 88,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 0
+    },
+    "changed_tracks": 3,
+    "both_valid_score_sum_delta": -11.2014,
+    "both_valid_score_mean_delta": -0.1273,
+    "better_worse_tied": [1, 2, 85],
+    "mechanics": {
+      "reserve_margin_suppressions": "0 -> 6",
+      "selective_backtracks": "24 -> 22",
+      "suspended_continuations_resumed": "15 -> 15",
+      "catchup_completed": "24 -> 21",
+      "catchup_alternative_selected": "9 -> 7",
+      "catchup_current_selected": "15 -> 14",
+      "catchup_probe_dead_ends": "0 -> 1",
+      "catchup_probe_frames": "919011 -> 761558",
+      "probe_frames_saved": 157453
+    },
+    "affected_cells": [
+      {
+        "source": "believer_impact_56s_amplitude_plus_5",
+        "seed": 36,
+        "score_delta": 1.2085,
+        "reserve_suppressions": 3
+      },
+      {
+        "source": "believer_impact_56s_amplitude_plus_5",
+        "seed": 37,
+        "score_delta": -5.1242,
+        "reserve_suppressions": 2
+      },
+      {
+        "source": "sparse_lowline",
+        "seed": 37,
+        "score_delta": -7.2857,
+        "reserve_suppressions": 1
+      }
+    ],
+    "interpretation": "The policy exercised exactly where intended and saved 157,453 catch-up frames, but the changed search state produced worse completed tracks overall. There was no validity or completion movement. The historical tournament outcome ratio was useful for locating an action set but did not predict causal score value.",
+    "decision": "Reject and remove the categorical arm. It fails the predeclared positive-direction gate; do not tune a neighboring reserve margin.",
+    "sha256": {
+      "candidate": "1dd6ad51bdd797a6da95b1b6ddd65adc899f356290760baa465da5f559b5219d",
+      "reference": "30220160f144c1bfe1edf6f271b7dfaf91600d12fc0cc6b791893e72ed751fc6",
+      "report": "de06bb6931a74d5686dfbf77d21098f29e3dfb8397875e9bfa1ef4931cc4dc76"
+    }
   },
   "non_claim": "This is one budget-aware admission policy at 750k. It does not establish behavior at other budgets or rank the broader selective-backtracking family."
 }

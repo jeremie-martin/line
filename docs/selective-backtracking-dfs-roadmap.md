@@ -564,3 +564,17 @@ One categorical arm is predeclared on all 44 sources, fresh actual seeds 36 and
 37, and the canonical 750k budget. It advances only on preserved validity,
 positive total direction, and non-isolated movement. There is no adjacent
 margin sweep; failure closes this hypothesis.
+
+The fresh screen rejects the arm. Both sides completed all 88 cells, but only
+three tracks changed: one improved, two regressed, and the both-valid score sum
+was -11.2014. The arm did perform its mechanical job: six reserve-band
+suppressions reduced backtracks from 24 to 22 and catch-up work from 919,011 to
+761,558 frames. The saved 157,453 frames nevertheless produced worse completed
+tracks. No validity movement is involved.
+
+This is also a methodological result. A tournament eventually retaining the
+current prefix is not evidence that skipping it is score-neutral: running the
+tournament changes frontier order and consumes budget, while skipping it makes
+that work available to a different continuation. Historical tournament outcome
+is useful for sizing an action set, but it is not a causal value label. The
+reserve arm is removed, and no neighboring margin is tuned.

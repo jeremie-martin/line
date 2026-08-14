@@ -683,3 +683,11 @@ multi-sibling search: the next categorical design asks for the second sibling
 only as a fallback when the runner-up failed to catch up or did not strictly
 beat the interrupted prefix. It preserves an extra escape route while avoiding
 the measured cost of trying to improve an already winning runner-up.
+
+That second-chance design is now predeclared as a clean replacement diagnostic,
+not another live legacy mode. Its fresh 750k screen uses actual seeds 68-75,
+the believer and high-air pairs, the regression-transition source, and one
+automatic capability control (48 cells per arm). It advances only with complete
+validity, positive target sum, at least five of eight positive target seed
+blocks, non-isolated improvement, and no target-cell loss of 20 points or more.
+No multi-budget or canonical run is authorized by this screen.

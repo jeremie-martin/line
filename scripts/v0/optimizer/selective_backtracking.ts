@@ -1,6 +1,6 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_multi_sibling";
+  | "selective_axis_regret_catchup_second_chance";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -14,13 +14,13 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
-  if (raw === "selective-axis-regret-catchup-multi-sibling") {
-    return "selective_axis_regret_catchup_multi_sibling";
+  if (raw === "selective-axis-regret-catchup-second-chance") {
+    return "selective_axis_regret_catchup_second_chance";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
-      `selective-axis-regret-catchup-multi-sibling; got ${raw}`,
+      `selective-axis-regret-catchup-second-chance; got ${raw}`,
   );
 }
 
@@ -29,6 +29,19 @@ export function catchupAlternativeHasSufficientGain(
   alternativeAxisLoss: number,
 ): boolean {
   return currentAxisLoss > alternativeAxisLoss;
+}
+
+/** The second-chance policy spends another bounded probe only when the first
+ * causal sibling has not already produced a strict equal-depth winner. */
+export function shouldSkipAdditionalCatchupProbes(
+  policy: SelectiveCatchupPolicy,
+  currentAxisLoss: number,
+  firstAlternativeAxisLoss: number,
+  remainingAlternatives: number,
+): boolean {
+  return policy === "selective_axis_regret_catchup_second_chance" &&
+    remainingAlternatives > 0 &&
+    catchupAlternativeHasSufficientGain(currentAxisLoss, firstAlternativeAxisLoss);
 }
 
 type AxisRegretWatch<Node extends object> = {
@@ -118,6 +131,7 @@ export type SelectiveBacktrackingStats = {
   catchup_additional_probe_target_reaches: number;
   catchup_tournaments_with_additional_probe: number;
   catchup_additional_alternative_selected: number;
+  catchup_additional_probes_skipped_after_first_winner: number;
   catchup_probe_nodes_processed: number;
   catchup_probe_frames: number;
   axis_loss_delta_sum: number;
@@ -152,6 +166,7 @@ export type SelectiveBacktrackingEvent = {
   catchup_axis_loss: number | null;
   catchup_axis_loss_gain: number | null;
   catchup_selected_alternative_ordinal: number | null;
+  catchup_additional_probes_skipped_after_first_winner: number;
   catchup_probe_results: SelectiveCatchupProbeResult[];
   catchup_checkpoints: SelectiveCatchupCheckpoint[];
 };
@@ -237,6 +252,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_additional_probe_target_reaches: 0,
       catchup_tournaments_with_additional_probe: 0,
       catchup_additional_alternative_selected: 0,
+      catchup_additional_probes_skipped_after_first_winner: 0,
       catchup_probe_nodes_processed: 0,
       catchup_probe_frames: 0,
       axis_loss_delta_sum: 0,
@@ -396,7 +412,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         (alternative) => input.alternativeAvailable(alternative),
       );
       const additionalSiblingsAvailable = availableAdditionalAlternatives.length;
-      const alternatives = this.policy === "selective_axis_regret_catchup_multi_sibling"
+      const alternatives = this.policy === "selective_axis_regret_catchup_second_chance"
         ? [watch.alternative, ...availableAdditionalAlternatives]
         : [watch.alternative];
       this.stats.selective_backtracks++;
@@ -439,6 +455,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         catchup_axis_loss: null,
         catchup_axis_loss_gain: null,
         catchup_selected_alternative_ordinal: null,
+        catchup_additional_probes_skipped_after_first_winner: 0,
         catchup_probe_results: [],
         catchup_checkpoints: [],
       });
@@ -498,6 +515,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       selectedAlternativeOrdinal: number | null;
       probes: readonly SelectiveCatchupProbeResult[];
       catchupAxisLoss: number | null;
+      additionalProbesSkippedAfterFirstWinner: number;
     },
   ): void {
     const event = this.stats.events[decision.eventIndex];
@@ -506,6 +524,26 @@ export class SelectiveAxisRegretController<Node extends object> {
     }
     if (input.probes.length === 0) {
       throw new Error("selective catch-up completion has no probe result");
+    }
+    const skipped = input.additionalProbesSkippedAfterFirstWinner;
+    if (
+      !Number.isSafeInteger(skipped) ||
+      skipped < 0 ||
+      input.probes.length + skipped > decision.alternatives.length
+    ) {
+      throw new Error("selective catch-up has an invalid skipped-probe count");
+    }
+    if (skipped > 0) {
+      const first = input.probes.find((probe) => probe.alternative_ordinal === 1);
+      if (
+        this.policy !== "selective_axis_regret_catchup_second_chance" ||
+        input.probes.length + skipped !== decision.alternatives.length ||
+        first?.outcome !== "reached_target" ||
+        first.axis_loss === null ||
+        !catchupAlternativeHasSufficientGain(decision.triggerAxisLoss, first.axis_loss)
+      ) {
+        throw new Error("selective catch-up skipped probes without a strict first winner");
+      }
     }
     const probeNodesProcessed = input.probes.reduce(
       (sum, probe) => sum + probe.probe_nodes_processed,
@@ -521,6 +559,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       ? null
       : decision.triggerAxisLoss - input.catchupAxisLoss;
     event.catchup_selected_alternative_ordinal = input.selectedAlternativeOrdinal;
+    event.catchup_additional_probes_skipped_after_first_winner =
+      skipped;
     event.catchup_probe_results = input.probes.map((probe) => ({ ...probe }));
     this.stats.catchup_probe_nodes_processed += probeNodesProcessed;
     this.stats.catchup_probe_frames += probeFrames;
@@ -538,6 +578,8 @@ export class SelectiveAxisRegretController<Node extends object> {
     if ((input.selectedAlternativeOrdinal ?? 0) > 1) {
       this.stats.catchup_additional_alternative_selected++;
     }
+    this.stats.catchup_additional_probes_skipped_after_first_winner +=
+      skipped;
     this.stats.catchup_probe_dead_ends += input.probes.filter(
       (probe) => probe.outcome === "probe_dead_end",
     ).length;

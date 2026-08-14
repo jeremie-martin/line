@@ -1,0 +1,69 @@
+{
+  "schema": "line.selective-second-chance-catchup-study.v1",
+  "status": "fresh-focused-screen-predeclared",
+  "generated_at": "2026-08-14",
+  "question": "Can a conditional second-sibling fallback retain useful multi-sibling escapes without paying to improve a runner-up that already beats the interrupted prefix?",
+  "intervention": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-second-chance"
+    },
+    "rule": "At an otherwise unchanged admitted regret event, probe the runner-up to the interrupted depth. If it strictly beats the current prefix on authored-prefix axis loss, end the tournament immediately. Otherwise probe the next live causal sibling and rank all completed equal-depth prefixes normally.",
+    "unprobed_sibling": "It remains live in the ordinary frontier; stopping the bounded tournament does not prune it.",
+    "unchanged": [
+      "0.20 authored-axis regret trigger",
+      "two-contact maturity",
+      "conservative deadline admission",
+      "full-depth catch-up target",
+      "strict authored-prefix axis-loss winner rule",
+      "candidate generation and ranking",
+      "hard and policy budgets",
+      "ordinary DFS outside the bounded tournament"
+    ]
+  },
+  "design_evidence": {
+    "closed_parent_study": "benchmark/v2/studies/selective-multi-sibling-catchup-v1.json",
+    "fresh_confirmation_archive": "generated/benchmark-v2/mover-grid/selective-multi-sibling-catchup-confirmation-n16/candidate.json.gz",
+    "observed_full_depth_tournaments": {
+      "first_sibling_strictly_better": {
+        "events": 50,
+        "second_probe_frames": 1653441,
+        "second_sibling_selected": 16
+      },
+      "first_sibling_not_better": {
+        "events": 76,
+        "second_probe_frames": 2568978,
+        "second_sibling_selected": 12
+      },
+      "first_sibling_failed": {
+        "events": 3,
+        "second_probe_frames": 147615,
+        "second_sibling_selected": 0
+      }
+    },
+    "interpretation": "The rule would avoid the 1,653,441 observed second-probe frames spent after an existing strict winner, while retaining every observed second-sibling rescue after the runner-up failed or did not win. This is allocation evidence only, not a score counterfactual; changed frontier order requires a real paired run."
+  },
+  "telemetry_contract": {
+    "event_field": "catchup_additional_probes_skipped_after_first_winner",
+    "compile_counter": "catchup_additional_probes_skipped_after_first_winner",
+    "invariants": [
+      "a skip requires a reached-target ordinal-1 probe with strictly lower loss than the current prefix",
+      "attempted probes plus explicitly skipped probes equal alternatives requested",
+      "all aggregate counters equal the event records"
+    ]
+  },
+  "predeclared_screen": {
+    "budget": 750000,
+    "actual_seeds": [68, 69, 70, 71, 72, 73, 74, 75],
+    "target_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5",
+      "high_air_drive",
+      "high_air_drive_air_minus_5",
+      "regression_transition_mosaic"
+    ],
+    "automatic_controls": "Benchmark V2 back-fills the otherwise empty capability stratum, yielding six sources and 48 cells per arm.",
+    "reference_commit": "b2d520a3",
+    "decision": "Continue only if every paired cell remains valid, the five target-source score sum is positive, at least five of eight target seed blocks are positive, positive movement spans more than one cell, and no individual target cell loses 20 or more points. This focused screen cannot authorize canonical evaluation or promotion."
+  },
+  "non_claim": "This tests one categorical probe-allocation rule at 750k. It does not estimate multi-budget behavior and does not reject other stopping depths, sibling-selection rules, or voluntary-backtracking strategies if negative."
+}

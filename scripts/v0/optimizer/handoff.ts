@@ -215,6 +215,7 @@ import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
+  shouldSkipAdditionalCatchupProbes,
   SelectiveAxisRegretController,
   type FrontierTraversalLane,
   type SelectiveBacktrackDecision,
@@ -3014,10 +3015,10 @@ function compileHandoffInternal(
         return result;
       };
 
-      /** Give every policy-selected causal sibling an independent bounded
-       * preferred-path excursion to the suspended prefix's exact gap. Rank all
-       * completed equal-depth prefixes by authored-axis loss, continue the
-       * best first, and retain every other prefix as ordinary frontier work. */
+      /** Give policy-selected causal siblings independent bounded preferred-
+       * path excursions to the suspended prefix's exact gap. A policy may stop
+       * after the first strict winner; unprobed siblings stay in the ordinary
+       * frontier. Rank completed equal-depth prefixes by authored-axis loss. */
       const runCatchup = (
         suspended: HandoffNode,
         decision: SelectiveBacktrackDecision<HandoffNode>,
@@ -3029,6 +3030,7 @@ function compileHandoffInternal(
           alternativeOrdinal: number;
           axisLoss: number;
         }> = [];
+        let additionalProbesSkippedAfterFirstWinner = 0;
         const finishTournament = (
           outcome: "alternative_selected" | "current_selected" |
             "probe_dead_end" | "probe_deferred" | "execution_ceiling",
@@ -3042,6 +3044,7 @@ function compileHandoffInternal(
             selectedAlternativeOrdinal,
             probes: probeResults,
             catchupAxisLoss: bestAlternativeAxisLoss,
+            additionalProbesSkippedAfterFirstWinner,
           });
         };
 
@@ -3133,6 +3136,19 @@ function compileHandoffInternal(
             const axisLoss = authoredPrefixAxisLoss(probe.search);
             finishProbe("reached_target", axisLoss);
             completed.push({ node: probe, alternativeOrdinal, axisLoss });
+            const remainingAlternatives = decision.alternatives.length - alternativeOrdinal;
+            if (
+              alternativeOrdinal === 1 &&
+              shouldSkipAdditionalCatchupProbes(
+                selectiveBacktracking!.policy,
+                decision.triggerAxisLoss,
+                axisLoss,
+                remainingAlternatives,
+              )
+            ) {
+              additionalProbesSkippedAfterFirstWinner = remainingAlternatives;
+              break;
+            }
           }
         }
 

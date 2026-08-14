@@ -3,6 +3,7 @@ import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
+  shouldSkipAdditionalCatchupProbes,
 } from "../scripts/v0/optimizer/selective_backtracking.ts";
 
 type Node = { gap: number; name: string };
@@ -16,8 +17,10 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-multi-sibling"))
-      .toBe("selective_axis_regret_catchup_multi_sibling");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-second-chance"))
+      .toBe("selective_axis_regret_catchup_second_chance");
+    expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-multi-sibling"))
+      .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-reserve-225"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-shallow6-trigger-015"))
@@ -35,6 +38,20 @@ describe("selective-backtracking controller", () => {
     expect(catchupAlternativeHasSufficientGain(0.5, 0.4999)).toBe(true);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5)).toBe(false);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5001)).toBe(false);
+  });
+
+  test("spends the second chance only when the runner-up has not won", () => {
+    const policy = "selective_axis_regret_catchup_second_chance";
+    expect(shouldSkipAdditionalCatchupProbes(policy, 0.5, 0.49, 1)).toBe(true);
+    expect(shouldSkipAdditionalCatchupProbes(policy, 0.5, 0.5, 1)).toBe(false);
+    expect(shouldSkipAdditionalCatchupProbes(policy, 0.5, 0.51, 1)).toBe(false);
+    expect(shouldSkipAdditionalCatchupProbes(policy, 0.5, 0.49, 0)).toBe(false);
+    expect(shouldSkipAdditionalCatchupProbes(
+      "selective_axis_regret_catchup",
+      0.5,
+      0.49,
+      1,
+    )).toBe(false);
   });
 
   test("counts lower-threshold admissible watches without changing traversal", () => {
@@ -138,6 +155,7 @@ describe("selective-backtracking controller", () => {
         axis_loss: 0.7,
       }],
       catchupAxisLoss: 0.7,
+      additionalProbesSkippedAfterFirstWinner: 0,
     });
     expect(controller.observeSelected({ gap: 5, name: "different" }, 120)).toBe(false);
     expect(controller.observeSelected(descendant, 140)).toBe(true);
@@ -217,9 +235,9 @@ describe("selective-backtracking controller", () => {
     expect(controller.snapshot().events[0]?.catchup_axis_loss_gain).toBeCloseTo(-0.09);
   });
 
-  test("multi-sibling policy requests every live causal alternative", () => {
+  test("second-chance policy requests every live causal alternative", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
-      policy: "selective_axis_regret_catchup_multi_sibling",
+      policy: "selective_axis_regret_catchup_second_chance",
     });
     const parent = { gap: 1, name: "parent" };
     const leader = { gap: 2, name: "leader" };
@@ -278,6 +296,7 @@ describe("selective-backtracking controller", () => {
         },
       ],
       catchupAxisLoss: 0.15,
+      additionalProbesSkippedAfterFirstWinner: 0,
     });
     expect(controller.snapshot()).toMatchObject({
       catchup_completed: 1,
@@ -288,6 +307,7 @@ describe("selective-backtracking controller", () => {
       catchup_additional_probe_target_reaches: 1,
       catchup_tournaments_with_additional_probe: 1,
       catchup_additional_alternative_selected: 1,
+      catchup_additional_probes_skipped_after_first_winner: 0,
       catchup_probe_nodes_processed: 2,
       catchup_probe_frames: 45,
       events: [{

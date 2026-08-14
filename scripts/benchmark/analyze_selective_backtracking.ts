@@ -49,6 +49,7 @@ type Event = {
   alternative_conservative_deadline_margin: number;
   catchup_alternatives_requested: number;
   catchup_selected_alternative_ordinal: number | null;
+  catchup_additional_probes_skipped_after_first_winner: number;
   catchup_probe_results: ProbeResult[];
   catchup_checkpoints: Checkpoint[];
 };
@@ -112,6 +113,8 @@ for (const row of archive.runs ?? []) {
       catchup_alternatives_requested: event.catchup_alternatives_requested ?? 1,
       catchup_selected_alternative_ordinal:
         event.catchup_selected_alternative_ordinal ?? null,
+      catchup_additional_probes_skipped_after_first_winner:
+        event.catchup_additional_probes_skipped_after_first_winner ?? 0,
       catchup_probe_results: event.catchup_probe_results ?? [],
       catchup_checkpoints: event.catchup_checkpoints ?? [],
     });
@@ -230,6 +233,10 @@ const multiSiblingSummary = {
   additional_alternative_selected: multiSiblingEvents.filter(
     (event) => (event.catchup_selected_alternative_ordinal ?? 0) > 1,
   ).length,
+  additional_probes_skipped_after_first_winner: multiSiblingEvents.reduce(
+    (sum, event) => sum + event.catchup_additional_probes_skipped_after_first_winner,
+    0,
+  ),
   probe_frames: multiSiblingEvents.reduce((sum, event) => sum + event.catchup_probe_frames, 0),
 };
 
@@ -281,6 +288,10 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       throw new Error(`${label} has invalid catchup_alternatives_requested`);
     }
     const results = event.catchup_probe_results as ProbeResult[];
+    const skipped = event.catchup_additional_probes_skipped_after_first_winner ?? 0;
+    if (!Number.isSafeInteger(skipped) || skipped < 0 || skipped >= requested) {
+      throw new Error(`${label} has invalid skipped-after-first-winner count`);
+    }
     if (event.catchup_outcome !== null && results.length === 0) {
       throw new Error(`${label} completed without a probe result`);
     }
@@ -303,6 +314,16 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       throw new Error(`${label} probe aggregates disagree with probe_results`);
     }
     const reached = results.filter((probe) => probe.outcome === "reached_target");
+    if (skipped > 0) {
+      const first = results.find((probe) => probe.alternative_ordinal === 1);
+      if (
+        results.length + skipped !== requested ||
+        first?.outcome !== "reached_target" ||
+        !(first.axis_loss! < event.trigger_axis_loss)
+      ) {
+        throw new Error(`${label} skipped probes without a strict first-sibling winner`);
+      }
+    }
     const bestAlternativeLoss = reached.length === 0
       ? null
       : Math.min(...reached.map((probe) => probe.axis_loss as number));
@@ -342,6 +363,9 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       throw new Error(`${runKey} ${name}=${stats[name]} disagrees with event total ${expected}`);
     }
   };
+  const assertOptionalStat = (name: string, expected: number): void => {
+    if (stats[name] !== undefined) assertStat(name, expected);
+  };
   assertStat("catchup_probe_attempts", probes.length);
   assertStat("catchup_probe_target_reaches", count("reached_target"));
   assertStat(
@@ -363,6 +387,16 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     instrumented.filter((event: any) =>
       (event.catchup_selected_alternative_ordinal ?? 0) > 1
     ).length,
+  );
+  // Archives produced before the second-chance policy have no skip counter.
+  // If present, however, it must exactly equal the event records.
+  assertOptionalStat(
+    "catchup_additional_probes_skipped_after_first_winner",
+    instrumented.reduce(
+      (sum: number, event: any) =>
+        sum + (event.catchup_additional_probes_skipped_after_first_winner ?? 0),
+      0,
+    ),
   );
   assertStat("catchup_probe_dead_ends", count("probe_dead_end"));
   assertStat("catchup_probe_deferred", count("probe_deferred"));

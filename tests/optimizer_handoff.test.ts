@@ -382,6 +382,62 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     })).toThrow(/policyBudget .* exceeds hard budget/);
   }, 60_000);
 
+  test("explicit DFS frontier policy is byte-identical to the unset default", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const previous = process.env.LR_FRONTIER_POLICY;
+    try {
+      delete process.env.LR_FRONTIER_POLICY;
+      const implicit = checkpoint(compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      }), 20_000);
+      process.env.LR_FRONTIER_POLICY = "dfs";
+      const explicit = checkpoint(compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      }), 20_000);
+      expect(JSON.stringify(explicit)).toBe(JSON.stringify(implicit));
+      expect(explicit.stats.handoff_selective_backtracking).toBeUndefined();
+    } finally {
+      if (previous === undefined) delete process.env.LR_FRONTIER_POLICY;
+      else process.env.LR_FRONTIER_POLICY = previous;
+    }
+  }, 60_000);
+
+  test("selective axis-regret backtracks and resumes without repair", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const previousPolicy = process.env.LR_FRONTIER_POLICY;
+    const previousRepairMinimum = process.env.LR_REPAIR_MIN_BUDGET;
+    try {
+      process.env.LR_FRONTIER_POLICY = "selective-axis-regret";
+      process.env.LR_REPAIR_MIN_BUDGET = "100000000";
+      const result = checkpoint(compileHandoff(spec, 0, {
+        budget: 100_000,
+        polish: false,
+      }), 100_000);
+      const stats = result.stats.handoff_selective_backtracking;
+      expect(stats).toBeDefined();
+      expect(stats?.policy).toBe("selective_axis_regret");
+      expect(stats?.selective_backtracks ?? 0).toBeGreaterThan(0);
+      expect(stats?.selective_backtracks_by_lane.initial)
+        .toBe(stats?.selective_backtracks);
+      expect(stats?.selective_backtracks_by_lane.repair).toBe(0);
+      expect(stats?.unavailable_alternatives).toBe(0);
+      expect(stats?.suspended_continuations_resumed ?? 0).toBeGreaterThan(0);
+      expect(stats?.suspended_continuations_resumed ?? Infinity)
+        .toBeLessThanOrEqual(stats?.selective_backtracks ?? 0);
+      expect(result.stats.first_completion_frame).not.toBeNull();
+      expect(result.stats.budget_exhausted).toBe(true);
+    } finally {
+      if (previousPolicy === undefined) delete process.env.LR_FRONTIER_POLICY;
+      else process.env.LR_FRONTIER_POLICY = previousPolicy;
+      if (previousRepairMinimum === undefined) delete process.env.LR_REPAIR_MIN_BUDGET;
+      else process.env.LR_REPAIR_MIN_BUDGET = previousRepairMinimum;
+    }
+  }, 120_000);
+
   test("can return an honest partial/failing prefix under a small budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const result = checkpoint(compileHandoff(spec, 0, {

@@ -31,8 +31,8 @@ best-so-far register keep their existing responsibilities.
   children.
 - **leader**: the preferred child selected by the existing ranker.
 - **causal alternative**: the next ranked child from that same branch point.
-- **suspended continuation**: the current prefix placed behind ordinary live
-  work. It is deferred, not deleted or declared dominated.
+- **suspended continuation**: the current prefix placed immediately behind the
+  promoted alternative. It is deferred, not deleted or declared dominated.
 - **rewind distance**: committed contact count between the current prefix and
   the remembered branch point. Gap indices are reported separately.
 
@@ -75,12 +75,15 @@ may fire once when all of these hold:
 2. combined authored-axis loss has worsened by at least 0.20 (equivalent to an
    RMS normalized-axis error increase of 0.05 under the canonical tolerance);
 3. the remembered sibling is still present in the same live frontier; and
-4. the existing deadline signal reports zero pressure.
+4. the existing deadline signal reports zero pressure and the traversal's
+   concrete local ceiling has not been reached.
 
-The current prefix is then suspended at the cold end of its lane and the
-remembered sibling is promoted to the hot end. Its subtree proceeds under the
-ordinary DFS rules. Nested watches remain causal: each names its own concrete
-branch point and concrete sibling.
+The current prefix is then suspended immediately behind the remembered sibling,
+which is promoted to the hot end. The sibling's subtree proceeds under ordinary
+DFS; if it exhausts before the budget, the exact suspended prefix resumes before
+unrelated alternatives. Resumption starts at expansion and never repeats the
+prefix's detector evaluation or register offer. Nested watches remain causal:
+each names its own concrete branch point and concrete sibling.
 
 The two constants define this policy version, not the scheduler API. Later
 policies may use prediction surprise, equal-depth tournaments, incumbent
@@ -95,7 +98,8 @@ enabled it records:
 - exact policy name and frozen V1 constants;
 - observed and armed branch points;
 - mature watch checks and loss-threshold crossings;
-- deadline-suppressed crossings and missing-target invariant failures;
+- deadline/local-ceiling-suppressed crossings and missing-target invariant
+  failures;
 - executed selective backtracks and resumed suspended continuations;
 - sums/maxima for loss delta, contact advance, and gap rewind;
 - executed backtracks split by initial, snapshot, repair, and resumed lane.

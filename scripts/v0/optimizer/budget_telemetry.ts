@@ -580,7 +580,7 @@ export type BudgetAtomicNodeTelemetry = {
   tail_completion_frames: number;
   post_tail_work_frames: number;
   spent_frames: number;
-  result: "captured" | "deferred" | "expanded" | "terminal_limit";
+  result: "captured" | "deferred" | "expanded" | "terminal_limit" | "selective_backtrack";
   register_improvements: number;
   terminal_node_evaluations: number;
   tail_attempts: number;

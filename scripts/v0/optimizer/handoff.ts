@@ -213,6 +213,11 @@ import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts
 import { getSimFrames, refundSimFramesTo } from "./sim_frames.ts";
 import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
+  parseFrontierTraversalPolicy,
+  SelectiveAxisRegretController,
+  type FrontierTraversalLane,
+} from "./selective_backtracking.ts";
+import {
   applyImpactWindowAccelerationAfterReference,
   setImpactCarrierRippleRepairActive,
   setImpactProfilePressures,
@@ -252,6 +257,7 @@ export type ImpactResponseAdmissionMode =
   | "model-safe-08-admit"
   | "model-safe-08-post";
 const readImpactResponseAdmission = compileScopedEnv("LR_IMPACT_RESPONSE_ADMISSION");
+const readFrontierTraversalPolicy = compileScopedEnv("LR_FRONTIER_POLICY");
 
 export function impactResponseAdmissionMode(
   environment?: Record<string, string | undefined>,
@@ -1953,6 +1959,9 @@ function compileHandoffInternal(
   if (!["legacy", "none", "remainder-aware"].includes(resumePolicy)) {
     throw new Error(`compileHandoff: resumePolicy must be legacy|none|remainder-aware`);
   }
+  const frontierTraversalPolicy = parseFrontierTraversalPolicy(
+    readFrontierTraversalPolicy(),
+  );
   setProposalUtilityPowers();
   setAimCompileBudgetFrames(searchPolicyBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
@@ -2109,6 +2118,29 @@ function compileHandoffInternal(
     );
     const passStack: HandoffNode[] = root.skippedContacts === 0 ? [root] : [];
     const fallbackStack: HandoffNode[] = root.skippedContacts === 0 ? [] : [root];
+    const selectiveBacktracking = frontierTraversalPolicy === "selective_axis_regret"
+      ? new SelectiveAxisRegretController<HandoffNode>((node) => node.search.gapIndex)
+      : null;
+    selectiveBacktracking?.observeRoot(root);
+    const contactOrdinalByGapIndex: number[] = [0];
+    for (const gap of gaps) {
+      contactOrdinalByGapIndex.push(
+        contactOrdinalByGapIndex[contactOrdinalByGapIndex.length - 1]! +
+          (gap.endsWithContact ? 1 : 0),
+      );
+    }
+    const contactOrdinalAt = (gapIndex: number): number =>
+      contactOrdinalByGapIndex[Math.max(0, Math.min(gaps.length, gapIndex))] ?? 0;
+    const authoredPrefixAxisLoss = (search: SearchNode): number => {
+      const errors: number[] = [];
+      for (let i = 0; i < search.gapIndex; i++) {
+        if (!gaps[i]?.endsWithContact) continue;
+        const fit = search.prefixFits[i];
+        if (fit === null || fit === undefined) continue;
+        errors.push(...axisErrorsForTargets(ctx.gapAxisTargets[i], settledIncomingAxes(fit)));
+      }
+      return axisQualityFromErrors(errors).axis_loss;
+    };
     const register = new BestSoFarRegister();
     const telemetry: HandoffTelemetry = {
       frontierSelections: 0,
@@ -2552,6 +2584,9 @@ function compileHandoffInternal(
           handoff_deferred_skips: telemetry.deferredSkips,
           handoff_far_back_pulses: telemetry.farBackPulses,
           handoff_search_seed: best.stats.handoff_search_seed ?? searchSeed,
+          ...(selectiveBacktracking === null
+            ? {}
+            : { handoff_selective_backtracking: selectiveBacktracking.snapshot() }),
           ...snapshotCandidateReleaseCoverage(telemetry),
           ...snapshotCandidatePreviewCoverage(telemetry),
           ...(arcStats ? { arc_placement: arcStats } : {}),
@@ -2621,10 +2656,25 @@ function compileHandoffInternal(
       | { kind: "captured" }
       | { kind: "terminal_limit" }
       | { kind: "deferred" }
+      | { kind: "selective_backtrack"; alternative: HandoffNode }
       | { kind: "expanded"; children: HandoffNode[] };
     let activeTerminalConsiderLimit: number | null = null;
     let observedAtomicCostPerCandidateUpper = 0;
-    const processNode = (node: HandoffNode): ProcessResult => {
+    const deadlineMarginAt = (search: SearchNode): number =>
+      deadline.marginAt({
+        spentFrames: getSimFrames(),
+        gapIndex: firstCompletionFrame >= 0
+          ? search.gapIndex
+          : telemetry.deepestSeenGap,
+        costToEnd: incumbentCostToEnd,
+      });
+    const processNode = (
+      node: HandoffNode,
+      lane: FrontierTraversalLane,
+      alternativeAvailable: (candidate: HandoffNode) => boolean,
+      resumeSuspendedContinuation: boolean,
+      traversalCanContinue: () => boolean,
+    ): ProcessResult => {
       const atomicStart = getSimFrames();
       const registerImprovementsBefore = register.improvementCount;
       const terminalConsidersBefore = terminalConsiders;
@@ -2682,10 +2732,14 @@ function compileHandoffInternal(
         activeRepairProfile.reachFrames.set(node.search, getSimFrames());
       }
       const nodeTerminal = isTerminalNode(node.search, gaps);
-      const mainResult = consider(node, "frontier");
+      // A selectively suspended node was already considered before its branch
+      // switch. Resume at the expansion boundary: do not duplicate detector
+      // work, register offers, or evaluation telemetry merely because the
+      // scheduler revisited the same prefix object.
+      const mainResult = resumeSuspendedContinuation ? null : consider(node, "frontier");
       afterMain = getSimFrames();
       afterTail = afterMain;
-      if (captureFirstCompletion(nodeTerminal, mainResult)) {
+      if (!resumeSuspendedContinuation && captureFirstCompletion(nodeTerminal, mainResult)) {
         return finishAtomic({ kind: "captured" });
       }
       if (
@@ -2693,6 +2747,27 @@ function compileHandoffInternal(
         terminalConsiders >= activeTerminalConsiderLimit
       ) {
         return finishAtomic({ kind: "terminal_limit" });
+      }
+      if (
+        selectiveBacktracking !== null &&
+        !nodeTerminal &&
+        node.skippedContacts === 0
+      ) {
+        const decision = selectiveBacktracking.consider({
+          node,
+          contactOrdinal: contactOrdinalAt(node.search.gapIndex),
+          axisLoss: authoredPrefixAxisLoss(node.search),
+          deadlinePressured: deadlinePressure(deadlineMarginAt(node.search)) > 0,
+          executionCeilingReached: !traversalCanContinue(),
+          lane,
+          alternativeAvailable,
+        });
+        if (decision !== null) {
+          return finishAtomic({
+            kind: "selective_backtrack",
+            alternative: decision.alternative,
+          });
+        }
       }
       const resolvePolicy = (search: SearchNode): HandoffSearchPolicy =>
         resolveHandoffSearchPolicy({
@@ -2719,13 +2794,7 @@ function compileHandoffInternal(
           // adopted (both are written in the same branch of `consider`), so the
           // profile IS the phase flag the margin reads — it never sees the
           // post-completion gap index with a pre-completion (null) profile.
-          deadlineMargin: deadline.marginAt({
-            spentFrames: getSimFrames(),
-            gapIndex: firstCompletionFrame >= 0
-              ? search.gapIndex
-              : telemetry.deepestSeenGap,
-            costToEnd: incumbentCostToEnd,
-          }),
+          deadlineMargin: deadlineMarginAt(search),
           hasCompletion: firstCompletionFrame >= 0,
         });
       const policy = resolvePolicy(node.search);
@@ -2857,6 +2926,17 @@ function compileHandoffInternal(
         policy,
         resumedSearchShapeBudget ?? searchPolicyBudget,
       );
+      selectiveBacktracking?.observeExpansion({
+        parent: node,
+        children,
+        contactExpansion:
+          node.startExpanded &&
+          node.skippedContacts === 0 &&
+          gaps[node.search.gapIndex]?.endsWithContact === true &&
+          children.every((child) => child.skippedContacts === 0),
+        contactOrdinal: contactOrdinalAt(node.search.gapIndex),
+        axisLoss: authoredPrefixAxisLoss(node.search),
+      });
       telemetry.nodesExpanded++;
       return finishAtomic({ kind: "expanded", children });
     };
@@ -2867,11 +2947,14 @@ function compileHandoffInternal(
     // early when a budget snapshot is captured (kind:"captured") so the caller's post-loop runs.
     const runFrontier = (
       pass: HandoffNode[], fb: HandoffNode[], keepGoing: () => boolean,
+      lane: FrontierTraversalLane,
       onProcessed?: () => void,
     ): void => {
       while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
         if (!keepGoing()) break;
         const node = popNextFrontierNode(pass, fb);
+        selectiveBacktracking?.observeRoot(node);
+        const resumeSuspendedContinuation = selectiveBacktracking?.observeSelected(node) ?? false;
         if (handoffFrontierProbeHook !== null) {
           handoffFrontierProbeHook({
             simFrames: getSimFrames(),
@@ -2893,11 +2976,28 @@ function compileHandoffInternal(
           });
         }
         telemetry.frontierSelections++;
-        const result = processNode(node);
+        const result = processNode(
+          node,
+          lane,
+          (candidate) => frontierContains(candidate, pass, fb),
+          resumeSuspendedContinuation,
+          keepGoing,
+        );
         onProcessed?.();
         if (result.kind === "captured" || result.kind === "terminal_limit") return;
         if (result.kind === "deferred") {
-          enqueueDeferred({ ...node, deferExpansion: false }, pass, fb);
+          const replacement = { ...node, deferExpansion: false };
+          selectiveBacktracking?.replaceNode(node, replacement);
+          enqueueDeferred(replacement, pass, fb);
+        } else if (result.kind === "selective_backtrack") {
+          // Keep the suspended continuation immediately behind the promoted
+          // sibling. Ordinary DFS explores that sibling's subtree first, then
+          // returns to this exact prefix before unrelated queued alternatives.
+          enqueueChild(node, pass, fb);
+          selectiveBacktracking?.markSuspended(node);
+          if (!promoteFrontierNode(result.alternative, pass, fb)) {
+            throw new Error("selective backtrack alternative left the synchronous frontier");
+          }
         } else {
           for (let i = result.children.length - 1; i >= 0; i--) enqueueChild(result.children[i], pass, fb);
         }
@@ -2921,7 +3021,8 @@ function compileHandoffInternal(
       const previousTerminalLimit = activeTerminalConsiderLimit;
       activeTerminalConsiderLimit = stopAfterTerminalConsider ?? null;
       try {
-        runFrontier(pass, fb, keepGoing);
+        selectiveBacktracking?.observeRoot(initial);
+        runFrontier(pass, fb, keepGoing, "repair");
       } finally {
         activeTerminalConsiderLimit = previousTerminalLimit;
       }
@@ -3345,6 +3446,7 @@ function compileHandoffInternal(
     runFrontier(passStack, fallbackStack, () =>
       !(repairEnabled && firstCompletionFrame >= 0 &&
         getSimFrames() >= firstCompletionFrame * repair!.mainMargin),
+      initialSnapshot === null ? "initial" : "snapshot",
     );
     const initialSearchEnd = getSimFrames();
     const initialStopReason = captured !== null
@@ -3437,6 +3539,7 @@ function compileHandoffInternal(
           passStack,
           fallbackStack,
           () => getSimFrames() < targetBudget,
+          "resumed",
         );
       } finally {
         resumedSearchShapeBudget = null;
@@ -3961,6 +4064,28 @@ function enqueueDeferred(
 ): void {
   if (node.skippedContacts === 0) passStack.unshift(node);
   else fallbackStack.unshift(node);
+}
+
+function frontierContains(
+  node: HandoffNode,
+  passStack: readonly HandoffNode[],
+  fallbackStack: readonly HandoffNode[],
+): boolean {
+  return passStack.includes(node) || fallbackStack.includes(node);
+}
+
+/** Move one concrete queued alternative to the hot end of its existing lane. */
+function promoteFrontierNode(
+  node: HandoffNode,
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+): boolean {
+  const stack = node.skippedContacts === 0 ? passStack : fallbackStack;
+  const index = stack.indexOf(node);
+  if (index < 0) return false;
+  stack.splice(index, 1);
+  stack.push(node);
+  return true;
 }
 
 function frontierSize(passStack: HandoffNode[], fallbackStack: HandoffNode[]): number {

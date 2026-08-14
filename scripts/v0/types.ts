@@ -490,6 +490,34 @@ export type CompileStats = {
   /** Quality-phase scheduler pulses that selected a lagged pass-frontier branch
    *  instead of the normal LIFO branch. */
   handoff_far_back_pulses?: number;
+  /** Present only for an enabled selective-backtracking frontier policy. The
+   *  default DFS omits the object so historical/default artifacts are unchanged. */
+  handoff_selective_backtracking?: {
+    policy: "selective_axis_regret";
+    min_contact_advance: number;
+    min_axis_loss_delta: number;
+    contact_expansions_observed: number;
+    branch_watches_armed: number;
+    mature_watch_checks: number;
+    loss_threshold_crossings: number;
+    deadline_suppressed_crossings: number;
+    execution_ceiling_suppressed_crossings: number;
+    unavailable_alternatives: number;
+    selective_backtracks: number;
+    suspended_continuations_resumed: number;
+    axis_loss_delta_sum: number;
+    axis_loss_delta_max: number;
+    contact_advance_sum: number;
+    contact_advance_max: number;
+    gap_rewind_sum: number;
+    gap_rewind_max: number;
+    selective_backtracks_by_lane: {
+      initial: number;
+      snapshot: number;
+      repair: number;
+      resumed: number;
+    };
+  };
   /** Search-lane seed used for candidate sampling/start lookahead. Normally
    *  equals the public compile seed; diagnostics may vary it while keeping the
    *  public seed's target jitter fixed. */

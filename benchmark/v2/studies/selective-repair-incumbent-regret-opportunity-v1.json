@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-repair-incumbent-regret-opportunity-study.v1",
-  "status": "map-complete-live-screen-predeclared",
+  "status": "complete-live-arm-closed",
   "generated_at": "2026-08-14",
   "question": "When a repair DFS continuation is already worse than the complete incumbent at the same authored depth, how often is a mature causal sibling still available and affordable?",
   "scope": {
@@ -81,7 +81,57 @@
       "sparse_lowline_air_minus_4"
     ],
     "reference_commit": "a7bce91c",
-    "decision": "Continue only if every paired cell remains valid, the target score sum is positive, at least five of eight target seed blocks are positive, positive movement spans more than one cell, and no target cell loses 20 or more points. This focused screen cannot authorize canonical evaluation or promotion."
+    "decision": "Continue only if every paired cell remains valid, the target score sum is positive, at least five of eight target seed blocks are positive, positive movement spans more than one cell, and no target cell loses 20 or more points. This focused screen cannot authorize canonical evaluation or promotion.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-repair-incumbent-regret-catchup-n8",
+      "validity": {
+        "both_valid": 48,
+        "reference_only_valid": 0,
+        "candidate_only_valid": 0,
+        "neither_valid": 0
+      },
+      "completed_track_quality": {
+        "score_sum_delta": 4.9291,
+        "mean_delta": 0.1026896,
+        "seed_block_standard_error": 0.3867997,
+        "seed_block_t": 0.2655,
+        "improved_cells": 3,
+        "regressed_cells": 2,
+        "tied_cells": 43,
+        "positive_seed_blocks": 2,
+        "negative_seed_blocks": 2,
+        "tied_seed_blocks": 4
+      },
+      "source_attribution": {
+        "wide_breaths": 7.2982,
+        "sparse_lowline_air_minus_4": -2.3691,
+        "other_four_sources": 0
+      },
+      "mechanics": {
+        "candidate_selective_backtracks": 85,
+        "candidate_branch_regret_backtracks": 38,
+        "candidate_repair_incumbent_backtracks": 47,
+        "reference_selective_backtracks": 40,
+        "repair_incumbent_alternative_selected": 23,
+        "repair_incumbent_current_selected": 24,
+        "repair_incumbent_probe_frames": 189854,
+        "repair_incumbent_action_runs": 8,
+        "largest_action_cluster": {
+          "source": "sparse_lowline_air_minus_4",
+          "seed": 77,
+          "repair_incumbent_backtracks": 28,
+          "score_delta": -9.8877
+        }
+      },
+      "decision": "closed: validity, positive sum, non-isolated movement, and maximum-loss gates pass, but only two of eight seed blocks are positive versus the predeclared five-of-eight requirement. No canonical evaluation or promotion.",
+      "interpretation": "The incumbent-relative signal is real and cheap enough to act on, but an unrestricted repair attempt may trigger it repeatedly. Forty-seven new tournaments concentrate in eight runs, including 28 in one regressing cell. The next categorical design should bound repeated incumbent-triggered interventions within one repair attempt rather than tune the 0.02 threshold from these scores.",
+      "sha256": {
+        "candidate": "46a886f4c1dacbfb2121022ed129529c1a60350d1da2d1195a85cd5d71d4c079",
+        "reference": "933328ffa90a781a1ebe0baa9497a370b8fb6f17d3df752a2a15e82301fc5208",
+        "report": "cd3a1ad9337c499224fdee8925b8e35896961471c37248a6a0bb938f74462806",
+        "analysis": "a63b7065db7f1ec3a149c55bddebdb9521536160813c7f700ed0b8e8cf4ff2e9"
+      }
+    }
   },
   "non_claim": "This map can establish an actionable incumbent-relative signal population. It cannot estimate the score effect of taking those backtracks, and it does not authorize a canonical or multi-budget run."
 }

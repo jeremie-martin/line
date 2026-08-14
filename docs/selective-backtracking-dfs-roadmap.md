@@ -739,3 +739,24 @@ through the same gap by more than 0.02. Fresh actual seeds 76-83 cover the six
 mapped sources at 750k. Complete validity, positive total movement, five of
 eight positive seed blocks, non-isolated improvement, and no 20-point loss are
 required merely to continue; this screen cannot promote or launch canonical.
+
+The live arm is positive in aggregate but fails that replication gate. Every
+one of 48 paired cells is valid, so completion failures explain none of the
+movement. Among completed tracks, three improve, two regress, and 43 tie for
++4.9291 total, but only two of eight seed blocks are positive (two negative,
+four exact ties; mean +0.1027 +/- 0.3868, t = 0.27). `wide_breaths` gains
++7.2982 while `sparse_lowline_air_minus_4` loses 2.3691; the other four mapped
+sources are exact.
+
+The causal mechanics expose a better next boundary than threshold tuning.
+The arm takes 47 incumbent-relative tournaments in only eight runs: 23 choose
+the sibling and 24 retain the interrupted prefix for 189,854 probe frames. One
+regressing sparse-lowline cell alone takes 28 of them before its repair attempt
+returns a terminal. An incumbent-relative intervention is therefore not a
+one-time decision under the current rule: each later branch can arm another
+watch and trigger another tournament in the same repair DFS. The unrestricted
+arm closes without canonical evaluation. The next categorical scheduler should
+allow at most one incumbent-relative intervention per self-contained repair
+attempt, while leaving production branch-regret events untouched; this tests
+whether the useful signal can redirect a repair without repeatedly thrashing
+its suffix.

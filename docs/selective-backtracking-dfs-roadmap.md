@@ -364,3 +364,21 @@ suppressed once accumulated charged probe work has reached the quota. This
 keeps the operation deterministic, scales with budget, and never truncates an
 in-flight comparison. These categorical arms are evidence probes, not new
 defaults.
+
+### Catch-up work-quota result
+
+The live paired experiment rejected that global quota family. Quota 20 lost
+43.0668 points over its first 32 affected cells. Quota 25 looked positive in
+its selection block but finished at -10.4256 over 64 affected cells after a
+fresh block. Quota 30 was deliberately carried through all 48 canonical seed
+identities on the two active cases: its three disjoint blocks summed +8.4073,
++0.4808, and -6.0710. Combined, that is only +0.0293 per affected cell with
+0.2208 seed-block SE (t = 0.13), with no validity changes. The base believer
+case regressed while its amplitude variant improved.
+
+No quota arm earned a canonical run or promotion. The conclusion is narrow but
+useful: cumulative probe work alone does not identify expendable tournaments.
+Some late tournaments remain valuable. The next efficient experiment should
+improve the value decision at equal depth (where the promoted policy currently
+switches on any positive authored-axis gain), or estimate tournament value
+before admission; it should not keep sweeping nearby quota percentages.

@@ -1,0 +1,86 @@
+{
+  "schema": "line.benchmark-v2.selective-catchup-work-quota-v1.v1",
+  "recorded_at": "2026-08-14T19:45:00+02:00",
+  "status": "rejected",
+  "scope": {
+    "question": "Does stopping admission of new equal-depth catch-up tournaments after a fixed share of the hard budget improve the promoted selective-backtracking policy?",
+    "baseline_commit": "a66a1c912a69d633cbdfb5e5691572190df22912",
+    "implementation_commit": "65226f9593da75f2253620ac1bcad619aaaf65e0",
+    "budget": 750000,
+    "multi_budget_sweep": false,
+    "policy": "An already-admitted tournament finishes. Once completed catch-up probe work reaches 20%, 25%, or 30% of the fixed hard budget, later signal crossings are suppressed.",
+    "selection_surface": "Exact canonical seed identities in disjoint 16-seed blocks; the two active believer_impact_56s specifications plus unchanged controls.",
+    "non_claim": "This rejects a blind cumulative work quota at 750k. It does not reject budget-aware selective backtracking or policies that estimate the value of each tournament."
+  },
+  "offline_lead": {
+    "archive": "generated/benchmark-v2/mover-grids/selective-catchup-checkpoints-n16/candidate.json",
+    "observation": "At a 30% quota, the first 16-seed panel would have suppressed ten later tournaments, all of which eventually retained the current prefix.",
+    "interpretation": "This justified a live causal test but was not itself performance evidence."
+  },
+  "results": {
+    "quota_20": {
+      "seed_blocks": 16,
+      "affected_cells": 32,
+      "changed_cells": 25,
+      "score_sum_delta": -43.0668,
+      "mean_delta_per_affected_cell": -1.345838,
+      "validity_flips": 0,
+      "decision": "reject_without_replication"
+    },
+    "quota_25": {
+      "seed_blocks": 32,
+      "affected_cells": 64,
+      "changed_cells": 35,
+      "score_sum_delta": -10.4256,
+      "mean_delta_per_affected_cell": -0.1629,
+      "validity_flips": 0,
+      "decision": "reject_after_disjoint_replication"
+    },
+    "quota_30": {
+      "seed_blocks": 48,
+      "affected_cells": 96,
+      "changed_cells": 15,
+      "score_sum_delta": 2.8171,
+      "mean_delta_per_affected_cell": 0.029345,
+      "seed_block_standard_error": 0.220803,
+      "seed_block_t": 0.1329,
+      "positive_seed_blocks": 8,
+      "negative_seed_blocks": 7,
+      "unchanged_seed_blocks": 33,
+      "validity_flips": 0,
+      "by_source": {
+        "believer_impact_56s": {
+          "cells": 48,
+          "score_sum_delta": -13.1245,
+          "mean_delta": -0.273427,
+          "standard_error": 0.211448
+        },
+        "believer_impact_56s_amplitude_plus_5": {
+          "cells": 48,
+          "score_sum_delta": 15.9416,
+          "mean_delta": 0.332117,
+          "standard_error": 0.382676
+        }
+      },
+      "disjoint_blocks": [
+        {"seeds": "16-23,608-615", "score_sum_delta": 8.4073},
+        {"seeds": "616-631", "score_sum_delta": 0.4808},
+        {"seeds": "632-647", "score_sum_delta": -6.071}
+      ],
+      "decision": "reject_without_canonical_run"
+    }
+  },
+  "decision": {
+    "action": "Do not promote any quota arm and do not spend a canonical V2 run on quota-30.",
+    "reason": "The apparent first-block gain decayed monotonically on fresh seed blocks, the combined effect is negligible relative to its uncertainty, and the source effects have opposite signs.",
+    "design_lesson": "Late tournaments are not uniformly wasteful. A successor must distinguish estimated tournament value or improve the equal-depth selection decision instead of stopping solely because cumulative probe work crossed a percentage."
+  },
+  "evidence": [
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-quota-20-n16-report/mover-grid-report.json", "sha256": "e246b4de5ef41c48e1b32f969b72296cea35b75e5183c5829ec3decd6d2b775c"},
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-quota-25-n16-report/mover-grid-report.json", "sha256": "ae59bb49833eeb0f78473c9987d51b354ae557b125dfa4db3aa86249883d8111"},
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-quota-25-replication-n16/mover-grid-report.json", "sha256": "d33ba241a7bc7152119a023912085815443d97c286a7ea8da9e70de79f2eaf2e"},
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-quota-30-n16-report/mover-grid-report.json", "sha256": "936a444ac8cb2e034337aef73e15da869df0d6ea5cd5dafa7af4f1d162a45579"},
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-quota-30-replication-n16-report/mover-grid-report.json", "sha256": "fdf36ea654bf9bb680cb5cfc2704bb80c9f46a5f383db227117e668322a8a4ed"},
+    {"path": "generated/benchmark-v2/mover-grids/selective-catchup-quota-30-confirmation-n16/mover-grid-report.json", "sha256": "48d0ae250f0ea5377bfc3ef76825fdcfdce14e8ca5197dac9784c7ccc289ef7d"}
+  ]
+}

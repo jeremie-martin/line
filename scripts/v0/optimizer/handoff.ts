@@ -215,7 +215,6 @@ import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
-  SELECTIVE_LOCAL_DISCREPANCY_YIELD_STREAK,
   SelectiveAxisRegretController,
   type FrontierTraversalLane,
   type SelectiveBacktrackDecision,
@@ -3075,8 +3074,6 @@ function compileHandoffInternal(
           const probeStartFrames = getSimFrames();
           let probe = start;
           let probeNodesProcessed = 0;
-          let previousCheckpointGap: number | null = null;
-          let successiveNonpositiveCheckpoints = 0;
           const localFallbackCandidates: HandoffNode[] = [];
           let resumeProbe = selectiveBacktracking!.observeSelected(probe, probeStartFrames);
           const finishProbe = (
@@ -3085,8 +3082,11 @@ function compileHandoffInternal(
           ): void => {
             const seen = new Set<SearchNode>();
             let choiceOrdinal = 0;
+            const recordsThisRoute = routeKind === "causal_alternative" ||
+              selectiveBacktracking!.policy ===
+                "selective_axis_regret_catchup_nested_discrepancy_map";
             const localFallbackChoices =
-              outcome === "execution_ceiling" || routeKind === "local_discrepancy"
+              outcome === "execution_ceiling" || !recordsThisRoute
               ? []
               : localFallbackCandidates.flatMap((candidate) => {
                 if (
@@ -3210,37 +3210,6 @@ function compileHandoffInternal(
                 alternative_axis_loss_gain: alternativeAxisLossGain,
               },
             );
-            const adjacent = previousCheckpointGap === null ||
-              checkpointGapIndex === previousCheckpointGap + 1;
-            successiveNonpositiveCheckpoints = alternativeAxisLossGain <= 0
-              ? adjacent ? successiveNonpositiveCheckpoints + 1 : 1
-              : 0;
-            previousCheckpointGap = checkpointGapIndex;
-            if (
-              routeKind === "local_discrepancy" &&
-              selectiveBacktracking!.policy ===
-                "selective_axis_regret_catchup_yielding_discrepancy" &&
-              checkpointGapIndex < decision.fromGapIndex &&
-              successiveNonpositiveCheckpoints >=
-                SELECTIVE_LOCAL_DISCREPANCY_YIELD_STREAK
-            ) {
-              // Preserve the exact recovery path as an ordinary DFS sibling.
-              // Tournament-ranked routes are pushed afterward, so they run
-              // first; the yielded route still stays ahead of older frontier
-              // work instead of disappearing at the bottom of the stack.
-              finishProbe("probe_yielded", null);
-              enqueueChild(probe, pass, fb);
-              if (!frontierContains(probe, pass, fb)) {
-                throw new Error("yielded local discrepancy route was not retained");
-              }
-              selectiveBacktracking!.markYieldedRoute(
-                decision,
-                routeOrdinal,
-                probe,
-                getSimFrames(),
-              );
-              break;
-            }
           }
 
           if (probe.search.gapIndex >= decision.fromGapIndex) {
@@ -3277,7 +3246,7 @@ function compileHandoffInternal(
         const primaryBestAxisLoss = Math.min(...completed.map((candidate) => candidate.axisLoss));
         if (
           selectiveBacktracking!.policy ===
-            "selective_axis_regret_catchup_yielding_discrepancy" &&
+            "selective_axis_regret_catchup_nested_discrepancy_map" &&
           !catchupAlternativeHasSufficientGain(decision.triggerAxisLoss, primaryBestAxisLoss)
         ) {
           const eligible = localFallbackOptions.filter(

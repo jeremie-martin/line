@@ -435,13 +435,16 @@ const summarizeLocalFallbackOutcome = (outcome: Outcome) => {
     (event) => event.trigger_signal === "branch_regret" && event.catchup_outcome === outcome,
   );
   const choices = selectedEvents.flatMap(
-    (event) => event.catchup_probe_results.flatMap((probe) => probe.local_fallback_choices),
+    (event) => event.catchup_probe_results
+      .filter((probe) => probe.route_kind === "causal_alternative")
+      .flatMap((probe) => probe.local_fallback_choices),
   );
   const positiveChoices = choices.filter(
     (choice) => choice.current_relative_axis_loss_gain > 0,
   );
   const actionableEvents = selectedEvents.filter((event) =>
     event.catchup_probe_results.some((probe) =>
+      probe.route_kind === "causal_alternative" &&
       probe.local_fallback_choices.some(
         (choice) => choice.current_relative_axis_loss_gain > 0,
       )
@@ -474,6 +477,46 @@ const oneDiscrepancyOpportunityMap = localFallbackTelemetryEvents.length === 0 ?
 const localDiscrepancyEvents = events.filter((event) =>
   event.catchup_probe_results.some((probe) => probe.route_kind === "local_discrepancy")
 );
+const losingLocalRoutes = localDiscrepancyEvents.flatMap((event) =>
+  event.catchup_outcome !== "current_selected" ? [] : event.catchup_probe_results
+    .filter(
+      (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
+    )
+    .map((probe) => ({ event, probe }))
+);
+const nestedDiscrepancyOpportunityMap = losingLocalRoutes.length === 0 ? null : (() => {
+  const choices = losingLocalRoutes.flatMap(({ event, probe }) =>
+    probe.local_fallback_choices.map((choice) => ({ event, probe, choice }))
+  );
+  const positiveProperChoices = choices.filter(
+    ({ choice }) =>
+      choice.current_relative_axis_loss_gain > 0 && choice.remaining_gap_advance > 0,
+  );
+  const actionable = losingLocalRoutes.filter(({ probe }) =>
+    probe.local_fallback_choices.some(
+      (choice) =>
+        choice.current_relative_axis_loss_gain > 0 && choice.remaining_gap_advance > 0,
+    )
+  );
+  return {
+    losing_local_routes: losingLocalRoutes.length,
+    admissible_nested_choices: choices.length,
+    positive_proper_nested_choices: positiveProperChoices.length,
+    actionable_routes: actionable.length,
+    affected_runs: new Set(actionable.map(
+      ({ event }) => `${event.sourceId}/${event.seed}`,
+    )).size,
+    affected_sources: [...new Set(actionable.map(({ event }) => event.sourceId))].sort(),
+    proposed_policy:
+      "Only after the first proper local route reaches equal depth and loses, take at most one " +
+      "already-generated inner runner-up with positive incumbent-relative prefix gain and " +
+      "nonzero remaining advance; use the same stable gain-times-deadline-margin choice, " +
+      "extend to the original target, and make one final strict equal-depth comparison.",
+    caveat:
+      "These nested nodes remain live in the ordinary frontier. Their prefix gain and breadth " +
+      "are exact, but their unexecuted equal-depth quality and downstream score are unknown.",
+  };
+})();
 const oneDiscrepancyExecution = localDiscrepancyEvents.length === 0 ? null : {
   tournaments: localDiscrepancyEvents.length,
   probes: localDiscrepancyEvents.flatMap((event) => event.catchup_probe_results).filter(
@@ -629,6 +672,7 @@ const result = {
   multi_sibling: multiSiblingSummary,
   branch_point_choice_map: branchPointChoiceMap,
   one_discrepancy_opportunity_map: oneDiscrepancyOpportunityMap,
+  nested_discrepancy_opportunity_map: nestedDiscrepancyOpportunityMap,
   one_discrepancy_execution: oneDiscrepancyExecution,
   local_route_progress_map: localRouteProgressMap,
   admission_margin_counterfactuals: admissionMarginCounterfactuals,
@@ -977,7 +1021,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
           (
             (
               stats.policy !== "selective_axis_regret_catchup_proper_discrepancy" &&
-              stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy"
+              stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy" &&
+              stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map"
             ) ||
             choice.remaining_gap_advance > 0
           )
@@ -1001,6 +1046,13 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       if (probe.local_fallback_choices !== undefined) {
         if (!Array.isArray(probe.local_fallback_choices)) {
           throw new Error(`${label} has invalid local fallback choices`);
+        }
+        if (
+          probe.route_kind === "local_discrepancy" &&
+          probe.local_fallback_choices.length > 0 &&
+          stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map"
+        ) {
+          throw new Error(`${label} legacy local route unexpectedly records nested choices`);
         }
         const choiceOrdinals = new Set<number>();
         for (const choice of probe.local_fallback_choices as LocalFallbackChoice[]) {
@@ -1037,7 +1089,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         (
           stats.policy !== "selective_axis_regret_catchup_one_discrepancy" &&
           stats.policy !== "selective_axis_regret_catchup_proper_discrepancy" &&
-          stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy"
+          stats.policy !== "selective_axis_regret_catchup_yielding_discrepancy" &&
+          stats.policy !== "selective_axis_regret_catchup_nested_discrepancy_map"
         ) ||
         localDiscrepancyResults.length !== 1 ||
         causalReached.length === 0 ||
@@ -1045,7 +1098,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         (
           (
             stats.policy === "selective_axis_regret_catchup_proper_discrepancy" ||
-            stats.policy === "selective_axis_regret_catchup_yielding_discrepancy"
+            stats.policy === "selective_axis_regret_catchup_yielding_discrepancy" ||
+            stats.policy === "selective_axis_regret_catchup_nested_discrepancy_map"
           ) &&
           localDiscrepancyResults.some((probe) => {
             const parent = results.find(
@@ -1488,6 +1542,14 @@ function print(analysis: typeof result): void {
         `${live.yielded_routes_resumed} later resumed`,
       );
     }
+  }
+  if (analysis.nested_discrepancy_opportunity_map !== null) {
+    const nested = analysis.nested_discrepancy_opportunity_map;
+    console.log(
+      `  nested-discrepancy map ${nested.positive_proper_nested_choices} positive proper ` +
+      `choices across ${nested.actionable_routes}/${nested.losing_local_routes} losing routes; ` +
+      `${nested.affected_runs} runs / ${nested.affected_sources.length} sources`,
+    );
   }
   if (analysis.local_route_progress_map !== null) {
     const progress = analysis.local_route_progress_map;

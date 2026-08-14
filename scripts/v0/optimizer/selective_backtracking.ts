@@ -1,7 +1,7 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
   | "selective_axis_regret_catchup_repair_incumbent_once"
-  | "selective_axis_regret_catchup_yielding_discrepancy";
+  | "selective_axis_regret_catchup_nested_discrepancy_map";
 
 export type SelectiveBacktrackSignal = "branch_regret" | "repair_incumbent_regret";
 
@@ -11,10 +11,6 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
-/** A yielding local route must be persistently no better at three adjacent
- * authored gaps. One- and two-checkpoint signs both recovered in held-out
- * behavior maps; three is the prospectively validated scheduler boundary. */
-export const SELECTIVE_LOCAL_DISCREPANCY_YIELD_STREAK = 3;
 export const SELECTIVE_REPAIR_INCUMBENT_MIN_LOSS_DELTA = 0.02;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
@@ -39,14 +35,14 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-repair-incumbent-once") {
     return "selective_axis_regret_catchup_repair_incumbent_once";
   }
-  if (raw === "selective-axis-regret-catchup-yielding-discrepancy") {
-    return "selective_axis_regret_catchup_yielding_discrepancy";
+  if (raw === "selective-axis-regret-catchup-nested-discrepancy-map") {
+    return "selective_axis_regret_catchup_nested_discrepancy_map";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
       `selective-axis-regret-catchup-repair-incumbent-once, or ` +
-      `selective-axis-regret-catchup-yielding-discrepancy; got ${raw}`,
+      `selective-axis-regret-catchup-nested-discrepancy-map; got ${raw}`,
   );
 }
 
@@ -116,7 +112,6 @@ export type SelectiveCatchupProbeOutcome =
   | "reached_target"
   | "probe_dead_end"
   | "probe_deferred"
-  | "probe_yielded"
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeResult = {
@@ -194,8 +189,6 @@ export type SelectiveBacktrackingStats = {
   catchup_local_fallback_choice_count_max: number;
   catchup_local_discrepancy_probe_attempts: number;
   catchup_local_discrepancy_probe_target_reaches: number;
-  catchup_local_discrepancy_probe_yields: number;
-  catchup_local_discrepancy_yielded_routes_resumed: number;
   catchup_local_discrepancy_selected: number;
   catchup_additional_probe_attempts: number;
   catchup_additional_probe_target_reaches: number;
@@ -241,9 +234,6 @@ export type SelectiveBacktrackingEvent = {
   catchup_axis_loss_gain: number | null;
   catchup_selected_alternative_ordinal: number | null;
   catchup_selected_route_ordinal: number | null;
-  catchup_yielded_route_ordinal: number | null;
-  catchup_yielded_route_total_spent_frames: number | null;
-  catchup_yielded_route_resumed_total_spent_frames: number | null;
   catchup_probe_results: SelectiveCatchupProbeResult[];
   catchup_checkpoints: SelectiveCatchupCheckpoint[];
 };
@@ -310,7 +300,6 @@ export class SelectiveAxisRegretController<Node extends object> {
   private readonly gapIndexOf: (node: Node) => number;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
-  private readonly yielded = new WeakMap<Node, number>();
   private readonly repairAttemptsWithIncumbentBacktrack = new Set<number>();
   private readonly stats: SelectiveBacktrackingStats;
 
@@ -369,8 +358,6 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_local_fallback_choice_count_max: 0,
       catchup_local_discrepancy_probe_attempts: 0,
       catchup_local_discrepancy_probe_target_reaches: 0,
-      catchup_local_discrepancy_probe_yields: 0,
-      catchup_local_discrepancy_yielded_routes_resumed: 0,
       catchup_local_discrepancy_selected: 0,
       catchup_additional_probe_attempts: 0,
       catchup_additional_probe_target_reaches: 0,
@@ -399,11 +386,6 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (eventIndex !== undefined) {
       this.suspended.delete(previous);
       this.suspended.set(replacement, eventIndex);
-    }
-    const yieldedEventIndex = this.yielded.get(previous);
-    if (yieldedEventIndex !== undefined) {
-      this.yielded.delete(previous);
-      this.yielded.set(replacement, yieldedEventIndex);
     }
   }
 
@@ -744,9 +726,6 @@ export class SelectiveAxisRegretController<Node extends object> {
         catchup_axis_loss_gain: null,
         catchup_selected_alternative_ordinal: null,
         catchup_selected_route_ordinal: null,
-        catchup_yielded_route_ordinal: null,
-        catchup_yielded_route_total_spent_frames: null,
-        catchup_yielded_route_resumed_total_spent_frames: null,
         catchup_probe_results: [],
         catchup_checkpoints: [],
       });
@@ -811,31 +790,6 @@ export class SelectiveAxisRegretController<Node extends object> {
       route_kind: routeKind,
       alternative_ordinal: alternativeOrdinal,
     });
-  }
-
-  /** Mark a live local route that left the synchronous tournament but remains
-   * owned by the ordinary frontier. Selection is observed separately so the
-   * telemetry distinguishes preservation from eventual reuse. */
-  markYieldedRoute(
-    decision: SelectiveBacktrackDecision<Node>,
-    routeOrdinal: number,
-    node: Node,
-    totalSpentFrames: number,
-  ): void {
-    const event = this.stats.events[decision.eventIndex];
-    if (
-      event === undefined ||
-      event.catchup_outcome !== null ||
-      event.catchup_yielded_route_ordinal !== null ||
-      !Number.isSafeInteger(routeOrdinal) ||
-      routeOrdinal < 1 ||
-      !Number.isFinite(totalSpentFrames)
-    ) {
-      throw new Error("selective catch-up has an invalid yielded route");
-    }
-    event.catchup_yielded_route_ordinal = routeOrdinal;
-    event.catchup_yielded_route_total_spent_frames = totalSpentFrames;
-    this.yielded.set(node, decision.eventIndex);
   }
 
   finishCatchup(
@@ -912,10 +866,6 @@ export class SelectiveAxisRegretController<Node extends object> {
       (probe) =>
         probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
     ).length;
-    this.stats.catchup_local_discrepancy_probe_yields += input.probes.filter(
-      (probe) =>
-        probe.route_kind === "local_discrepancy" && probe.outcome === "probe_yielded",
-    ).length;
     if (
       input.selectedRouteOrdinal !== null &&
       input.probes.find((probe) => probe.route_ordinal === input.selectedRouteOrdinal)
@@ -946,20 +896,6 @@ export class SelectiveAxisRegretController<Node extends object> {
   }
 
   observeSelected(node: Node, totalSpentFrames: number): boolean {
-    const yieldedEventIndex = this.yielded.get(node);
-    if (yieldedEventIndex !== undefined) {
-      this.yielded.delete(node);
-      const yieldedEvent = this.stats.events[yieldedEventIndex];
-      if (
-        yieldedEvent === undefined ||
-        yieldedEvent.catchup_yielded_route_resumed_total_spent_frames !== null ||
-        totalSpentFrames < (yieldedEvent.catchup_yielded_route_total_spent_frames ?? Infinity)
-      ) {
-        throw new Error("yielded selective route resumed with invalid attribution");
-      }
-      yieldedEvent.catchup_yielded_route_resumed_total_spent_frames = totalSpentFrames;
-      this.stats.catchup_local_discrepancy_yielded_routes_resumed++;
-    }
     const eventIndex = this.suspended.get(node);
     if (eventIndex === undefined) return false;
     this.suspended.delete(node);

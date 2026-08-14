@@ -1119,3 +1119,26 @@ the discrepancy search itself, while the current yield rule is only a small,
 heterogeneous modifier. The next work should improve the quality of routes
 inside that search—through a new branch-aware disposition or richer local
 frontier—not tune the closed three-checkpoint guard or waive its catalog gate.
+
+### Nested discrepancy opportunity
+
+The next mechanism targets the larger lead exposed by three-arm attribution.
+When the first proper local route loses at equal depth, it has itself generated
+nonpreferred children along its greedy path. Those nodes already exist in the
+ordinary frontier. A bounded second discrepancy could test one of them instead
+of concluding that the local subtree has no better route.
+
+The first step is again behavior-neutral. A dedicated map policy reproduces
+proper discrepancy exactly and records the same live, affordable, non-skipped,
+incumbent-relative choices on the first local route. First-level opportunity
+counts are explicitly restricted to causal routes so the two depths cannot be
+silently conflated. The closed yield traversal and compiler telemetry are
+deleted; historical validation remains in the offline analyzer only.
+
+The map deliberately reuses actual seeds 128-135 and the retained proper arm
+only for mechanics, requiring exact track, score, and validity identity. A live
+arm is authorized only if 12 losing local routes have a positive, nonzero-
+advance nested choice across six runs and both sources. The fixed live policy
+would choose one stable maximum gain-times-margin option only after the first
+local route loses, extend it to the same target, and stop at discrepancy depth
+two. Fresh seeds 138-145, not these known scores, would evaluate it.

@@ -1,0 +1,45 @@
+{
+  "schema": "line.selective-nested-discrepancy-opportunity-study.v1",
+  "status": "predeclared-behavior-neutral-map",
+  "generated_at": "2026-08-15",
+  "question": "When the first proper discrepancy route reaches equal depth and loses, does that route itself contain a broad set of already-generated, locally better runner-ups that can support one bounded second discrepancy?",
+  "relationship_to_prior_work": {
+    "closed_scheduler": "benchmark/v2/studies/selective-yielding-discrepancy-v1.json",
+    "attribution": "On focused seeds 128-135, proper discrepancy accounts for +27.6140 versus production while yielding adds only +3.3520 versus proper, split six better and six worse. The catalog regressions have no yield actions and also arise from proper discrepancy.",
+    "direction": "Improve route quality inside discrepancy search rather than tune when a single greedy route is stopped.",
+    "cleanup": "The closed yielding policy, outcome, controller state, counters, and live traversal are removed. The offline analyzer retains compatibility for its archived evidence."
+  },
+  "instrument": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-nested-discrepancy-map"
+    },
+    "behavior": "Exactly the retired proper-discrepancy traversal: one positive, nonzero-advance inner runner-up may be extended after the primary causal route loses. No second runner-up is executed.",
+    "new_observation": "For that first local route, record every nonpreferred non-skipped child still live and outside deadline pressure when it ends, using the same exact incumbent-relative prefix gain, remaining advance, and conservative margin semantics as the first-discrepancy map.",
+    "fixed_live_policy_if_supported": "Only if the first local route reaches the tournament target and loses, choose at most one of its positive-gain, nonzero-advance runner-ups by the unchanged stable maximum gain-times-deadline-margin rule, extend it greedily to the original target, and perform one final strict equal-depth comparison. No third discrepancy or recursive beam is allowed.",
+    "trust": [
+      "first-level opportunity summaries must continue to read only causal-route choices",
+      "nested choices must be attributed only to the exact local route that generated them",
+      "every choice must still be live, affordable, non-skipped, and exactly comparable with the suspended prefix at its gap",
+      "candidate and retained proper-discrepancy tracks, scores, and validity must be exactly identical"
+    ]
+  },
+  "predeclared_map": {
+    "budget": 750000,
+    "actual_seeds": [128, 129, 130, 131, 132, 133, 134, 135],
+    "requested_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "expected_backfilled_controls": [
+      "river_reentry",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ],
+    "expected_cells": 40,
+    "reference_archive": "generated/benchmark-v2/mover-grid/selective-yielding-discrepancy-n8/proper-attribution.json",
+    "seed_reuse_reason": "These seeds are reused only to map mechanics inside already-observed proper-discrepancy routes. Scores are excluded from selection evidence.",
+    "selection_rule": "Build exactly the fixed second-discrepancy policy only if at least 12 losing first-local routes have a positive-gain, nonzero-advance nested runner-up, spanning at least six runs and both requested sources. Otherwise close without a live arm.",
+    "next_step_if_selected": "Implement one bounded second-discrepancy environment, prove exact parentage, stable argmax, primary/local losses, target reach, and maximum depth two, then run a fresh focused 750k screen on actual seeds 138-145 before any catalog or canonical evaluation.",
+    "non_claim": "The map establishes action-set breadth only. It cannot predict the unexecuted route, final score, headline, multi-budget behavior, or promotion outcome."
+  }
+}

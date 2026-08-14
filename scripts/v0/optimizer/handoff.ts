@@ -3232,6 +3232,12 @@ function compileHandoffInternal(
               if (!frontierContains(probe, pass, fb)) {
                 throw new Error("yielded local discrepancy route was not retained");
               }
+              selectiveBacktracking!.markYieldedRoute(
+                decision,
+                routeOrdinal,
+                probe,
+                getSimFrames(),
+              );
               break;
             }
           }

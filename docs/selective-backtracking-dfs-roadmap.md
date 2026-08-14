@@ -1069,8 +1069,9 @@ This is a categorical work-disposition change rather than another sign
 threshold. Telemetry names `probe_yielded`, binds the final three checkpoints
 to the yielded route, requires adjacency and a pre-target endpoint, and proves
 that the route is neither completed nor tournament-selected. The runtime also
-asserts that the exact SearchNode remains in the frontier. The closed proper-
-discrepancy environment is retired rather than accumulated.
+asserts that the exact SearchNode remains in the frontier, and telemetry records
+whether and when that exact node is later selected by ordinary DFS. The closed
+proper-discrepancy environment is retired rather than accumulated.
 
 After a known-activity mechanical smoke, fresh actual seeds 128-135 cover the
 believer pair plus controls at 750k. Advancement requires full validity,

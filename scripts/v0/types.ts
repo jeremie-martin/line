@@ -555,6 +555,7 @@ export type CompileStats = {
     catchup_local_discrepancy_probe_attempts: number;
     catchup_local_discrepancy_probe_target_reaches: number;
     catchup_local_discrepancy_probe_yields: number;
+    catchup_local_discrepancy_yielded_routes_resumed: number;
     catchup_local_discrepancy_selected: number;
     catchup_additional_probe_attempts: number;
     catchup_additional_probe_target_reaches: number;
@@ -615,6 +616,9 @@ export type CompileStats = {
       catchup_axis_loss_gain: number | null;
       catchup_selected_alternative_ordinal: number | null;
       catchup_selected_route_ordinal: number | null;
+      catchup_yielded_route_ordinal: number | null;
+      catchup_yielded_route_total_spent_frames: number | null;
+      catchup_yielded_route_resumed_total_spent_frames: number | null;
       catchup_probe_results: Array<{
         route_ordinal: number;
         route_kind: "causal_alternative" | "local_discrepancy";

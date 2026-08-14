@@ -59,6 +59,9 @@ type Event = {
   catchup_alternatives_requested: number;
   catchup_selected_alternative_ordinal: number | null;
   catchup_selected_route_ordinal: number | null;
+  catchup_yielded_route_ordinal: number | null;
+  catchup_yielded_route_total_spent_frames: number | null;
+  catchup_yielded_route_resumed_total_spent_frames: number | null;
   catchup_additional_probes_skipped_after_first_winner: number;
   catchup_probe_results: ProbeResult[];
   catchup_checkpoints: Checkpoint[];
@@ -228,6 +231,11 @@ for (const row of archive.runs ?? []) {
       catchup_alternatives_requested: event.catchup_alternatives_requested ?? 1,
       catchup_selected_alternative_ordinal: selectedAlternativeOrdinal,
       catchup_selected_route_ordinal: selectedRouteOrdinal,
+      catchup_yielded_route_ordinal: event.catchup_yielded_route_ordinal ?? null,
+      catchup_yielded_route_total_spent_frames:
+        event.catchup_yielded_route_total_spent_frames ?? null,
+      catchup_yielded_route_resumed_total_spent_frames:
+        event.catchup_yielded_route_resumed_total_spent_frames ?? null,
       catchup_additional_probes_skipped_after_first_winner:
         event.catchup_additional_probes_skipped_after_first_winner ?? 0,
       catchup_probe_results: probeResults,
@@ -478,6 +486,9 @@ const oneDiscrepancyExecution = localDiscrepancyEvents.length === 0 ? null : {
     (event) => event.catchup_probe_results,
   ).filter(
     (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "probe_yielded",
+  ).length,
+  yielded_routes_resumed: localDiscrepancyEvents.filter(
+    (event) => event.catchup_yielded_route_resumed_total_spent_frames !== null,
   ).length,
   selected: localDiscrepancyEvents.filter((event) => {
     const selected = event.catchup_probe_results.find(
@@ -1130,7 +1141,17 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         yielded[0]!.route_kind !== "local_discrepancy" ||
         yielded[0]!.axis_loss !== null ||
         event.catchup_outcome !== "current_selected" ||
-        event.catchup_selected_route_ordinal !== null
+        event.catchup_selected_route_ordinal !== null ||
+        event.catchup_yielded_route_ordinal !== route.route_ordinal ||
+        !Number.isFinite(event.catchup_yielded_route_total_spent_frames) ||
+        (
+          event.catchup_yielded_route_resumed_total_spent_frames !== null &&
+          (
+            !Number.isFinite(event.catchup_yielded_route_resumed_total_spent_frames) ||
+            event.catchup_yielded_route_resumed_total_spent_frames <
+              event.catchup_yielded_route_total_spent_frames
+          )
+        )
       ) {
         throw new Error(`${label} has an invalid yielded discrepancy route`);
       }
@@ -1160,6 +1181,15 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       ) {
         throw new Error(`${label} yielded without three persistent non-positive checkpoints`);
       }
+    } else if (
+      event.catchup_yielded_route_ordinal !== undefined &&
+      (
+        event.catchup_yielded_route_ordinal !== null ||
+        event.catchup_yielded_route_total_spent_frames !== null ||
+        event.catchup_yielded_route_resumed_total_spent_frames !== null
+      )
+    ) {
+      throw new Error(`${label} names a yielded route without a yielded probe`);
     }
   }
 
@@ -1216,6 +1246,12 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     "catchup_local_discrepancy_probe_yields",
     probes.filter(
       (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "probe_yielded",
+    ).length,
+  );
+  assertOptionalStat(
+    "catchup_local_discrepancy_yielded_routes_resumed",
+    instrumented.filter(
+      (event: any) => event.catchup_yielded_route_resumed_total_spent_frames != null,
     ).length,
   );
   assertStat("catchup_execution_ceiling_stops", count("execution_ceiling"));
@@ -1447,7 +1483,10 @@ function print(analysis: typeof result): void {
       `${live.current_retained_after_discrepancy} retained current`,
     );
     if (live.yielded_to_ordinary_frontier > 0) {
-      console.log(`    ${live.yielded_to_ordinary_frontier} local routes yielded to frontier`);
+      console.log(
+        `    ${live.yielded_to_ordinary_frontier} local routes yielded to frontier; ` +
+        `${live.yielded_routes_resumed} later resumed`,
+      );
     }
   }
   if (analysis.local_route_progress_map !== null) {

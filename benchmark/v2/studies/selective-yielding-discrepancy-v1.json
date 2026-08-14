@@ -27,6 +27,7 @@
       "probe outcome probe_yielded",
       "exact yielded-route count and route-local nodes/frames through existing probe aggregates",
       "route checkpoints proving the three-point sign, adjacency, pre-target position, and exact end counters",
+      "yield-time and later ordinary-frontier resumption time for the exact retained SearchNode",
       "analyzer rejection of yielding under any legacy policy or of a yielded route reported as completed/selected"
     ]
   },

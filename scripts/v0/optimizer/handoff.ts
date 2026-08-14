@@ -3034,15 +3034,6 @@ function compileHandoffInternal(
           routeOrdinal: number;
           axisLoss: number;
         }> = [];
-        const localFallbackOptions: Array<{
-          node: HandoffNode;
-          alternativeOrdinal: number;
-          parentRouteOrdinal: number;
-          choiceOrdinal: number;
-          remainingGapAdvance: number;
-          currentRelativeAxisLossGain: number;
-          conservativeDeadlineMargin: number;
-        }> = [];
         const finishTournament = (
           outcome: "alternative_selected" | "current_selected" |
             "probe_dead_end" | "probe_deferred" | "execution_ceiling",
@@ -3065,8 +3056,6 @@ function compileHandoffInternal(
           routeOrdinal: number,
           routeKind: SelectiveCatchupProbeResult["route_kind"],
           alternativeOrdinal: number,
-          parentRouteOrdinal: number | null,
-          parentLocalFallbackChoiceOrdinal: number | null,
         ): boolean => {
           if (!takeFrontierNode(start, pass, fb)) {
             throw new Error("selective catch-up alternative left the synchronous frontier");
@@ -3108,24 +3097,11 @@ function compileHandoffInternal(
                     authoredPrefixAxisLoss(candidate.search),
                   conservative_deadline_margin: margin,
                 };
-                if (routeKind === "causal_alternative") {
-                  localFallbackOptions.push({
-                    node: candidate,
-                    alternativeOrdinal,
-                    parentRouteOrdinal: routeOrdinal,
-                    choiceOrdinal: choice.choice_ordinal,
-                    remainingGapAdvance: choice.remaining_gap_advance,
-                    currentRelativeAxisLossGain: choice.current_relative_axis_loss_gain,
-                    conservativeDeadlineMargin: margin,
-                  });
-                }
                 return [choice];
               });
             probeResults.push({
               route_ordinal: routeOrdinal,
               route_kind: routeKind,
-              parent_route_ordinal: parentRouteOrdinal,
-              parent_local_fallback_choice_ordinal: parentLocalFallbackChoiceOrdinal,
               alternative_ordinal: alternativeOrdinal,
               outcome,
               end_gap_index: probe.search.gapIndex,
@@ -3227,8 +3203,6 @@ function compileHandoffInternal(
             routeOrdinal,
             "causal_alternative",
             alternativeIndex + 1,
-            null,
-            null,
           )) return true;
         }
 
@@ -3239,42 +3213,6 @@ function compileHandoffInternal(
           finishTournament(outcome, null, null);
           enqueueChild(suspended, pass, fb);
           return false;
-        }
-
-        const primaryBestAxisLoss = Math.min(...completed.map((candidate) => candidate.axisLoss));
-        if (
-          selectiveBacktracking!.policy ===
-            "selective_axis_regret_catchup_proper_discrepancy" &&
-          !catchupAlternativeHasSufficientGain(decision.triggerAxisLoss, primaryBestAxisLoss)
-        ) {
-          const eligible = localFallbackOptions.filter(
-            (option) =>
-              option.currentRelativeAxisLossGain > 0 &&
-              option.remainingGapAdvance > 0 &&
-              frontierContains(option.node, pass, fb) &&
-              deadlinePressure(
-                conservativeDeadlineMarginAtGap(option.node.search.gapIndex),
-              ) === 0,
-          );
-          const selected = eligible.reduce<(typeof eligible)[number] | null>(
-            (best, option) =>
-              best === null ||
-                option.currentRelativeAxisLossGain * option.conservativeDeadlineMargin >
-                  best.currentRelativeAxisLossGain * best.conservativeDeadlineMargin
-                ? option
-                : best,
-            null,
-          );
-          if (selected !== null) {
-            if (runProbe(
-              selected.node,
-              nextRouteOrdinal++,
-              "local_discrepancy",
-              selected.alternativeOrdinal,
-              selected.parentRouteOrdinal,
-              selected.choiceOrdinal,
-            )) return true;
-          }
         }
 
         const ranked = [

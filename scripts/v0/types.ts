@@ -495,8 +495,7 @@ export type CompileStats = {
   handoff_selective_backtracking?: {
     policy:
       | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_repair_incumbent_once"
-      | "selective_axis_regret_catchup_proper_discrepancy";
+      | "selective_axis_regret_catchup_repair_incumbent_once";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -552,9 +551,6 @@ export type CompileStats = {
     catchup_local_fallback_choice_count_sum: number;
     catchup_positive_local_fallback_choice_count_sum: number;
     catchup_local_fallback_choice_count_max: number;
-    catchup_local_discrepancy_probe_attempts: number;
-    catchup_local_discrepancy_probe_target_reaches: number;
-    catchup_local_discrepancy_selected: number;
     catchup_additional_probe_attempts: number;
     catchup_additional_probe_target_reaches: number;
     catchup_tournaments_with_additional_probe: number;
@@ -616,9 +612,7 @@ export type CompileStats = {
       catchup_selected_route_ordinal: number | null;
       catchup_probe_results: Array<{
         route_ordinal: number;
-        route_kind: "causal_alternative" | "local_discrepancy";
-        parent_route_ordinal: number | null;
-        parent_local_fallback_choice_ordinal: number | null;
+        route_kind: "causal_alternative";
         alternative_ordinal: number;
         outcome:
           | "reached_target"
@@ -639,7 +633,7 @@ export type CompileStats = {
       }>;
       catchup_checkpoints: Array<{
         route_ordinal: number;
-        route_kind: "causal_alternative" | "local_discrepancy";
+        route_kind: "causal_alternative";
         alternative_ordinal: number;
         gap_index: number;
         contact_advance: number;

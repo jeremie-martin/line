@@ -1247,3 +1247,13 @@ The strong focused-seed lead therefore does not reproduce as broad canonical
 quality. Close this exact proper-discrepancy policy without promotion, remove
 its live environment fork, preserve the archived telemetry in the analyzer,
 and move to a categorically different selective-search design.
+
+The retirement is complete. The parser no longer accepts the policy, the local
+route execution and its parent/counter fields are deleted, and the normal
+compiler exposes only causal catch-up routes. The causal routes continue to map
+their already-generated inner alternatives because that map is behavior-neutral
+and remains useful for designing a genuinely different strategy; it cannot run
+one of those alternatives. The offline analyzer still validates the archived
+proper-discrepancy evidence. A five-cell seed-128 smoke against the committed
+pre-retirement default is exact: five valid pairs, zero changed tracks, and zero
+score delta.

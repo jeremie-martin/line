@@ -135,5 +135,22 @@
       "candidate_snapshot_sha256": "8cb602adf736730f212b100bb9aab38a27a6c90d8255ee8d892e5096797a36fe"
     },
     "decision": "Close this exact depth-one local-discrepancy policy without promotion. Retain its telemetry and evidence as a selective-search lead, remove the unaccepted live policy fork, and pursue a categorically different backtracking design rather than spending roughly 645 seeds to resolve a +0.0086-point effect."
+  },
+  "retirement": {
+    "live_environment_removed": true,
+    "local_discrepancy_execution_removed": true,
+    "local_discrepancy_parent_and_counter_fields_removed": true,
+    "retained_observation": "Causal catch-up routes still report their already-generated inner alternatives. This is behavior-neutral opportunity telemetry, not a dormant local-discrepancy scheduler.",
+    "archive_compatibility": "The offline analyzer successfully re-read the retained proper-discrepancy seed-128 archive after cleanup.",
+    "production_identity_smoke": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/proper-discrepancy-retirement-default-smoke",
+      "scope": "Actual seed 128; believer pair plus three stratum controls at 750k; cleaned working tree against committed pre-cleanup default production behavior.",
+      "cells": 5,
+      "valid": "5/5 in both arms",
+      "changed_tracks": 0,
+      "score_sum_delta": 0,
+      "candidate_archive_sha256": "2526f1d56f96dff5a777f187af418c7dec6e0641c2b6dfe528869072dbb8a86b",
+      "reference_archive_sha256": "101bd26dcf2d339d0d2c6325481e5bfd9d30190aeb0382edd6c588af2b32fee9"
+    }
   }
 }

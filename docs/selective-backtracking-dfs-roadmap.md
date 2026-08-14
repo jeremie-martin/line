@@ -827,3 +827,13 @@ admissible watches across at least four runs and two sources. If none qualifies,
 the delayed family stops. If one qualifies, only then is a fresh one-action-per-
 repair-attempt live arm predeclared. This small map avoids spending a canonical
 or multi-budget run on an action set we have not established exists.
+
+The map is exactly behavior-neutral: all 24 tracks, scores, and validity
+outcomes match the reference. Regret does persist—admissible counts at advances
+two through six are 38, 33, 26, 21, and 15—but breadth does not. Advances two
+through five touch only three of 24 runs; advance six touches two. No maturity
+meets the predeclared four-run minimum, so no delayed live arm is built. This
+closes the present repair-incumbent signal family: unrestricted action,
+per-attempt bounding, and delayed maturity now have distinct evidence. The next
+policy should change the search signal or work disposition rather than tune the
+same deficit threshold or contact count.

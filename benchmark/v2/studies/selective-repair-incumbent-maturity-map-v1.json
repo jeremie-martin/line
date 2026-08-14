@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-repair-incumbent-maturity-map.v1",
-  "status": "map-predeclared",
+  "status": "complete-no-live-arm",
   "generated_at": "2026-08-14",
   "question": "If repair waits beyond the earliest two-contact observation, how much causal incumbent-relative regret remains actionable at deeper maturity?",
   "motivation": {
@@ -36,6 +36,30 @@
     "reference_commit": "c87f13ea",
     "selection_rule": "Select the highest minimum contact advance with 12 to 120 admissible watches spanning at least four runs and two sources. This rule uses opportunity breadth only, never output score. If no maturity qualifies, do not build a delayed live arm.",
     "next_step_if_selected": "Predeclare a fresh live arm that retains at most one incumbent-relative intervention per repair attempt and changes only its maturity requirement.",
-    "non_claim": "The map can select a sufficiently observable delayed action set. It cannot estimate the score effect and cannot authorize canonical evaluation or promotion."
+    "non_claim": "The map can select a sufficiently observable delayed action set. It cannot estimate the score effect and cannot authorize canonical evaluation or promotion.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-repair-incumbent-maturity-map-n4",
+      "identity": {
+        "cells": 24,
+        "both_valid": 24,
+        "changed_tracks": 0,
+        "score_sum_delta": 0
+      },
+      "opportunities": {
+        "2": { "crossed": 203, "admissible": 38, "runs": 3, "sources": 3 },
+        "3": { "crossed": 194, "admissible": 33, "runs": 3, "sources": 3 },
+        "4": { "crossed": 186, "admissible": 26, "runs": 3, "sources": 3 },
+        "5": { "crossed": 178, "admissible": 21, "runs": 3, "sources": 3 },
+        "6": { "crossed": 170, "admissible": 15, "runs": 2, "sources": 2 }
+      },
+      "decision": "No maturity satisfies the predeclared requirement of 12-120 admissible watches across at least four runs and two sources. Do not build a delayed live arm.",
+      "interpretation": "Incumbent-relative deficits often persist deeper, but the actionable population remains concentrated in only three of 24 runs through advance five and two runs at advance six. The signal family lacks breadth rather than raw watch count.",
+      "sha256": {
+        "candidate": "b79205c165a664b602a4e9e299862c6dea28c126ebd19dd8c6baf4749d46b57a",
+        "reference": "2773c79ca68511a94f035e7257aba69fff8c44a8cd237d8952570f1a7e0159e8",
+        "report": "bbe201d030199d5397131e18888899aa0e2c3fad9e44a93e0ad9b1cbc2a366c1",
+        "selective_analysis": "291c814da9e7ca263b2c78f00283f2e77cd1bfc77ae273a51f0567f3ffbd3f52"
+      }
+    }
   }
 }

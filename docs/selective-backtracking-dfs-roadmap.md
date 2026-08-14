@@ -651,3 +651,18 @@ The next screen broadens before it deepens: all 44 sources, fresh actual seeds
 selected believer panel. Only preserved validity, positive full-catalog sum,
 and non-isolated positive movement justify a larger independent confirmation;
 N2 cannot justify canonical evaluation.
+
+The breadth screen passes narrowly: all 88 cells are valid, five tracks change,
+three improve and two regress, for +0.5988 total. Seeds 50 and 51 have opposite
+small directions. Movement is not believer-only: `high_air_drive_air_minus_5`
+gains +1.2281. Over the believer pair, pooling the untouched focused block and
+these two fresh seeds gives +1.9300 per cell with 0.6475 SE (t = 2.98), nine of
+ten seed blocks positive. This is enough to continue, but far too little to
+call the catalog direction established.
+
+A fresh confirmation is fixed on actual seeds 52-67 and four target sources:
+the believer pair plus `high_air_drive` and its air-minus variant. Benchmark V2
+adds capability and legacy controls, yielding 96 cells per arm. A canonical
+N48 evaluation follows only with preserved validity, positive fresh target sum,
+at least ten of sixteen positive target seed blocks, and non-isolated movement.
+The canonical evaluator—not this screen—remains the promotion authority.

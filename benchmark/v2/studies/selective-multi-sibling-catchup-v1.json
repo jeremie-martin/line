@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-multi-sibling-catchup-study.v1",
-  "status": "focused-positive-full-catalog-screen-predeclared",
+  "status": "catalog-positive-confirmation-predeclared",
   "generated_at": "2026-08-14",
   "question": "Does comparing both accepted causal siblings at equal depth improve completed-track quality over the promoted runner-up-only tournament?",
   "intervention": {
@@ -132,6 +132,75 @@
     "cells_per_arm": 88,
     "reference_commit": "b2d520a3",
     "decision": "Continue to an independent larger confirmation only if all cells retain validity, the full-catalog score sum is positive, and positive movement is not confined to one isolated cell. This N2 breadth screen cannot authorize canonical evaluation or promotion."
+  },
+  "full_catalog_screen_result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-multi-sibling-catchup-full-n2",
+    "cells_per_arm": 88,
+    "outcome_attribution": {
+      "both_valid": 88,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 0
+    },
+    "changed_tracks": 5,
+    "both_valid_score_sum_delta": 0.5988,
+    "better_worse_tied": [3, 2, 83],
+    "seed_blocks": [
+      {
+        "actual_seed": 50,
+        "mean_delta_per_cell": -0.0387705
+      },
+      {
+        "actual_seed": 51,
+        "mean_delta_per_cell": 0.0523795
+      }
+    ],
+    "changed_sources": {
+      "believer_impact_56s": 0.29,
+      "believer_impact_56s_amplitude_plus_5": -0.9193,
+      "high_air_drive_air_minus_5": 1.2281
+    },
+    "mechanics": {
+      "selective_backtracks": "25 -> 18",
+      "probe_attempts": "25 -> 36",
+      "probe_target_reaches": "23 -> 33",
+      "additional_probe_attempts": 18,
+      "additional_alternative_selected": 2,
+      "catchup_completed": "23 -> 17",
+      "catchup_alternative_selected": "7 -> 7",
+      "catchup_current_selected": "16 -> 10",
+      "probe_dead_ends": "2 -> 3",
+      "catchup_probe_frames": "953039 -> 1150052"
+    },
+    "pooled_believer_seeds_42_51": {
+      "seed_blocks": 10,
+      "mean_delta": 1.929965,
+      "standard_error": 0.6475182,
+      "t": 2.9806,
+      "degrees_of_freedom": 9,
+      "positive_blocks": "9/10"
+    },
+    "interpretation": "The breadth gate passes narrowly and without a validity confound. Direction is nearly neutral over all 44 sources at N2, but movement extends to a fresh high-air case and the pooled believer evidence remains positive. This justifies a fresh targeted confirmation, not canonical evaluation.",
+    "sha256": {
+      "candidate": "022ba4345070a7b3104c5092dcbcde9b775060d29254d6eef52872e067e1bf5f",
+      "reference": "3c78308a0926557053ca835703c179f25a103412a41cb79d68619af6ed89df26",
+      "report": "1409b5961cf2f630c3246731935f6b1b42a3b9efe747f80304906813f2540f5f",
+      "selective_analysis": "ab83f3de1a7e901d9f2cee764548f924dd0cb3c2727974629d43ce51a70159a1"
+    }
+  },
+  "predeclared_fresh_confirmation": {
+    "budget": 750000,
+    "actual_seeds": [52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67],
+    "target_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5",
+      "high_air_drive",
+      "high_air_drive_air_minus_5"
+    ],
+    "automatic_controls": "Benchmark V2 back-fills capability and legacy-regression controls.",
+    "expected_cells_per_arm": 96,
+    "reference_commit": "b2d520a3",
+    "decision": "A canonical N48 evaluation is justified only if every cell retains validity, the fresh target-source score sum is positive, at least ten of sixteen target seed blocks are positive, and positive target movement is not confined to one cell. The canonical evaluator remains the only promotion authority."
   },
   "non_claim": "This evaluates the first full-depth, all-live-sibling tournament at 750k. A negative result would not reject multi-sibling or voluntary-backtracking strategies with different probe allocation, stopping, or selection rules."
 }

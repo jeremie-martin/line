@@ -973,3 +973,16 @@ routes run across both target sources, all reach equal depth, one wins, and no
 selected choice has zero remaining advance. The analyzer's parent-choice,
 argmax, primary-loss, one-action, and aggregate invariants all pass. As before,
 the deliberately reused seed contributes no score evidence.
+
+The fresh proper-discrepancy arm is stronger in aggregate but still misses its
+replication gate. All 40 cells are valid. Both source sums are positive
+(+9.3486 and +10.1701), and the target total is +19.5187, or +1.2199 +/-
+0.7484 seed-block SE (t = 1.63). Four substantial improvements outweigh nine
+mostly small regressions. Only four of eight seed blocks are positive, however,
+short of the fixed five, so no catalog or canonical run follows.
+
+Thirty-two proper local routes execute in 15 target runs, 31 reach equal depth,
+and seven win, consuming 502,121 frames. The mechanism is broad and capable of
+large gains, but its direction is not yet stable. A successor should use exact
+route-progress evidence to improve or bound this work, rather than weakening
+the replication rule or fitting a score threshold to these outcomes.

@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-proper-discrepancy-catchup-study.v1",
-  "status": "predeclared-focused-screen",
+  "status": "closed-positive-inconclusive-focused-screen",
   "generated_at": "2026-08-14",
   "question": "Does requiring genuine forward search preserve the useful one-discrepancy behavior while excluding equal-depth sibling selection that belongs to the closed broad-choice family?",
   "relationship_to_prior_arm": {
@@ -75,6 +75,49 @@
     "reference_commit": "0dcad809",
     "decision": "Advance to a fresh two-seed all-catalog 750k breadth screen only if all cells retain validity, total target completed-track movement is positive, at least five of eight target seed blocks are positive, both target-source sums are positive, at least four target cells improve, no target cell loses 20 or more points, and proper discrepancy routes execute in at least eight target runs. Otherwise close without catalog or canonical evaluation.",
     "next_if_passed": "Use actual seeds 120 and 121 over all 44 sources at 750k. Canonical V2 remains unauthorized until that catalog screen preserves validity, has positive total completed-track movement, and improvement is non-isolated.",
-    "non_claim": "This fresh focused screen is evidence for one categorical successor at 750k. It cannot estimate a headline, authorize promotion, or establish multi-budget behavior."
+    "non_claim": "This fresh focused screen is evidence for one categorical successor at 750k. It cannot estimate a headline, authorize promotion, or establish multi-budget behavior.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-proper-discrepancy-n8",
+      "validity": {
+        "both_valid": 40,
+        "reference_only_valid": 0,
+        "candidate_only_valid": 0,
+        "neither_valid": 0
+      },
+      "completed_track_quality": {
+        "target_score_sum_delta": 19.5187,
+        "target_mean_delta": 1.21991875,
+        "seed_block_standard_error": 0.74843648,
+        "seed_block_t": 1.63,
+        "improved_cells": 4,
+        "regressed_cells": 9,
+        "tied_cells": 27,
+        "positive_seed_blocks": 4,
+        "negative_seed_blocks": 4
+      },
+      "source_attribution": {
+        "believer_impact_56s_score_sum_delta": 9.3486,
+        "believer_impact_56s_amplitude_plus_5_score_sum_delta": 10.1701,
+        "three_controls": 0
+      },
+      "mechanics": {
+        "proper_discrepancy_probes": 32,
+        "target_reaches": 31,
+        "local_routes_selected": 7,
+        "current_retained_after_local_route": 24,
+        "action_runs": 15,
+        "action_sources": 2,
+        "local_probe_frames": 502121,
+        "zero_remaining_gap_routes": 0
+      },
+      "decision": "closed without catalog or canonical evaluation: full validity, positive total, both positive source sums, four improvements, bounded losses, and action breadth pass, but only four of eight seed blocks are positive rather than the predeclared five.",
+      "interpretation": "The proper-search boundary improves the aggregate and removes the previous source reversal, but direction remains heterogeneous. Four substantial wins outweigh nine generally small losses. The next scheduler should improve or bound local-route work using route-progress evidence; it should not weaken the replication gate or fit a scalar to these scores.",
+      "sha256": {
+        "candidate": "e8de6258e800ff1949edf3ebaa03c09a8a6f2a464c8b653e232e2eabf1aa1f47",
+        "reference": "9ae6757d988c34f85299dec7fa2e3d6aa83caae2e093e2a7a0e3c6a552f2b850",
+        "report": "488a34783c0687f64b788f195afb8e0ecf048b3108f869612a02be4f01944134",
+        "selective_analysis": "e6b2309c20461fc208faffcaa3563786ddad811ac2128d8eee2455561bd462c4"
+      }
+    }
   }
 }

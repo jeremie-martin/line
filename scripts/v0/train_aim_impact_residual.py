@@ -17,6 +17,7 @@ clip as production inference.
 from __future__ import annotations
 
 import argparse
+from collections import defaultdict
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -40,6 +41,18 @@ def arguments() -> argparse.Namespace:
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--incumbent", type=Path, required=True)
     parser.add_argument("--iterations", type=int, required=True)
+    parser.add_argument(
+        "--target",
+        choices=("absolute", "group-centered"),
+        default="absolute",
+        help="residual target (default: absolute)",
+    )
+    parser.add_argument(
+        "--group-centering-strength",
+        type=float,
+        default=1.0,
+        help="fraction of each proxy group's mean residual removed (default: 1)",
+    )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--artifact-out", type=Path, required=True)
     return parser.parse_args()
@@ -73,16 +86,59 @@ def combined_component(
     }
 
 
+def proxy_group_indexes(
+    X: np.ndarray,
+    feature_names: list[str],
+    sources: np.ndarray,
+    seeds: np.ndarray,
+    development: np.ndarray,
+) -> tuple[list[np.ndarray], list[str]]:
+    context_indexes = [
+        index
+        for index, name in enumerate(feature_names)
+        if name in ("log_duration", "log_duration2")
+        or name.startswith("target:")
+        or name.startswith("missing:")
+        or name.startswith("out:")
+    ]
+    context = np.ascontiguousarray(X[:, context_indexes], dtype=np.float64)
+    grouped: dict[tuple[bool, str, int, bytes], list[int]] = defaultdict(list)
+    for index in range(X.shape[0]):
+        grouped[
+            (
+                bool(development[index]),
+                str(sources[index]),
+                int(seeds[index]),
+                context[index].tobytes(),
+            )
+        ].append(index)
+    return (
+        [
+            np.asarray(indexes, dtype=np.int64)
+            for indexes in grouped.values()
+            if len(indexes) >= 2
+        ],
+        [feature_names[index] for index in context_indexes],
+    )
+
+
 def main() -> None:
     args = arguments()
     if args.iterations <= 0 or args.iterations > 32:
         raise ValueError("--iterations must be in [1, 32]")
-    metadata, X, development, truth, sources, _seeds = load_dataset(args.dataset)
+    if not 0 <= args.group_centering_strength <= 1:
+        raise ValueError("--group-centering-strength must be in [0, 1]")
+    if args.target == "absolute" and args.group_centering_strength != 1:
+        raise ValueError(
+            "--group-centering-strength is legal only with --target=group-centered"
+        )
+    metadata, X, development, truth, sources, seeds = load_dataset(args.dataset)
     finite = np.isfinite(truth)
     X = X[finite]
     development = development[finite]
     truth = truth[finite]
     sources = sources[finite]
+    seeds = seeds[finite]
     artifact = json.loads(args.incumbent.read_text())
     incumbent_sha256 = sha256(args.incumbent.read_bytes()).hexdigest()
     projection = [metadata["featureNames"].index(name) for name in artifact["featureNames"]]
@@ -90,6 +146,39 @@ def main() -> None:
     incumbent_component = artifact["components"]["impactFeasibility"]
     incumbent_raw = predict_histogram_raw(incumbent_component, X)
     incumbent_prediction = np.clip(incumbent_raw, 0.0, 1.0)
+    residual_target = truth - incumbent_raw
+    train_mask = development.copy()
+    target_contract: dict[str, Any] = {
+        "target": "realized-impact-fit-minus-incumbent-raw-prediction",
+    }
+    if args.target == "group-centered":
+        groups, context_features = proxy_group_indexes(
+            X,
+            artifact["featureNames"],
+            sources,
+            seeds,
+            development,
+        )
+        grouped = np.zeros(X.shape[0], dtype=bool)
+        for indexes in groups:
+            residual_target[indexes] -= (
+                args.group_centering_strength * np.mean(residual_target[indexes])
+            )
+            grouped[indexes] = True
+        train_mask &= grouped
+        target_contract = {
+            "target": "within-proxy-group-centered-realized-impact-residual",
+            "groupCenteringStrength": args.group_centering_strength,
+            "proxyGroupSemantics": (
+                "same partition, source, seed, durations, incoming targets, "
+                "and outgoing targets"
+            ),
+            "contextFeatures": context_features,
+            "developmentGroups": sum(bool(development[group[0]]) for group in groups),
+            "validationGroups": sum(not bool(development[group[0]]) for group in groups),
+            "groupedDevelopmentRows": int(np.count_nonzero(grouped & development)),
+            "groupedValidationRows": int(np.count_nonzero(grouped & ~development)),
+        }
     correction = HistGradientBoostingRegressor(
         learning_rate=0.08,
         max_iter=args.iterations,
@@ -100,8 +189,8 @@ def main() -> None:
         random_state=0,
     )
     correction.fit(
-        X[development],
-        truth[development] - incumbent_raw[development],
+        X[train_mask],
+        residual_target[train_mask],
     )
     serialized_correction = serialize_histogram(correction)
     component = combined_component(incumbent_component, serialized_correction)
@@ -130,7 +219,7 @@ def main() -> None:
             "dataset": str(args.dataset),
             "incumbent": str(args.incumbent),
             "incumbentSha256": incumbent_sha256,
-            "target": "realized-impact-fit-minus-incumbent-raw-prediction",
+            **target_contract,
             "articulation": "missing",
             "incumbentTrees": len(incumbent_component["trees"]),
             "correctionTrees": args.iterations,
@@ -174,7 +263,7 @@ def main() -> None:
         "dataset": str(args.dataset),
         "incumbent": str(args.incumbent),
         "incumbentSha256": incumbent_sha256,
-        "target": "realized-impact-fit-minus-incumbent-raw-prediction",
+        **target_contract,
         "articulation": "missing",
         "correctionTrees": args.iterations,
         "validation": report["validation"]["selected"],

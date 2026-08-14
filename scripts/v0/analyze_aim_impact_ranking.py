@@ -97,6 +97,8 @@ def ranking_metrics(
     oracle_top1_truth = 0.0
     incumbent_top2_truth = 0.0
     candidate_top2_truth = 0.0
+    hybrid_top2_truth = 0.0
+    hybrid_second_changed = 0
     pairwise_comparable = 0
     pairwise_agree = 0
     truth_comparable = 0
@@ -108,12 +110,20 @@ def ranking_metrics(
         top1_agree += int(incumbent_order[0] == candidate_order[0])
         incumbent_top = set(incumbent_order[: min(2, len(indexes))].tolist())
         candidate_top = set(candidate_order[: min(2, len(indexes))].tolist())
+        hybrid_second = next(
+            index for index in candidate_order if index != incumbent_order[0]
+        )
+        hybrid_top = {int(incumbent_order[0]), int(hybrid_second)}
+        hybrid_second_changed += int(
+            len(incumbent_order) >= 2 and hybrid_second != incumbent_order[1]
+        )
         top2_overlap += len(incumbent_top & candidate_top) / min(2, len(indexes))
         incumbent_top1_truth += truth[incumbent_order[0]]
         candidate_top1_truth += truth[candidate_order[0]]
         oracle_top1_truth += float(np.max(truth[indexes]))
         incumbent_top2_truth += float(np.mean(truth[list(incumbent_top)]))
         candidate_top2_truth += float(np.mean(truth[list(candidate_top)]))
+        hybrid_top2_truth += float(np.mean(truth[list(hybrid_top)]))
         for left_offset, left in enumerate(indexes[:-1]):
             for right in indexes[left_offset + 1 :]:
                 incumbent_delta = incumbent[left] - incumbent[right]
@@ -153,6 +163,13 @@ def ranking_metrics(
         "candidateTop1Regret": (oracle_top1_truth - candidate_top1_truth) / count,
         "incumbentSelectedTop2TruthMean": incumbent_top2_truth / count,
         "candidateSelectedTop2TruthMean": candidate_top2_truth / count,
+        "hybridIncumbentFirstCandidateSecondChangedFraction": (
+            hybrid_second_changed / count
+        ),
+        "hybridIncumbentFirstCandidateSecondTruthMean": hybrid_top2_truth / count,
+        "hybridTop2TruthDeltaFromIncumbent": (
+            hybrid_top2_truth - incumbent_top2_truth
+        ) / count,
     }
 
 
@@ -169,6 +186,7 @@ def source_ranking_summary(
     top1_deltas: dict[str, float] = {}
     top2_deltas: dict[str, float] = {}
     pairwise_deltas: dict[str, float] = {}
+    hybrid_top2_deltas: dict[str, float] = {}
     for source, source_groups in sorted(by_source.items()):
         summary = ranking_metrics(
             truth, incumbent, candidate, source_groups
@@ -185,6 +203,9 @@ def source_ranking_summary(
             summary["candidatePairwiseTruthAccuracy"]
             - summary["incumbentPairwiseTruthAccuracy"]
         )
+        hybrid_top2_deltas[source] = float(
+            summary["hybridTop2TruthDeltaFromIncumbent"]
+        )
     def aggregate(values: dict[str, float]) -> dict[str, float | int]:
         observed = np.asarray(list(values.values()), dtype=np.float64)
         return {
@@ -198,9 +219,11 @@ def source_ranking_summary(
         "top1Truth": aggregate(top1_deltas),
         "top2Truth": aggregate(top2_deltas),
         "pairwiseTruthAccuracy": aggregate(pairwise_deltas),
+        "hybridTop2Truth": aggregate(hybrid_top2_deltas),
         "top1TruthDeltaBySource": top1_deltas,
         "top2TruthDeltaBySource": top2_deltas,
         "pairwiseTruthAccuracyDeltaBySource": pairwise_deltas,
+        "hybridTop2TruthDeltaBySource": hybrid_top2_deltas,
     }
 
 

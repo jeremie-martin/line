@@ -1,0 +1,51 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-centering-offline-screen.v1",
+  "recorded_at": "2026-08-14T01:15:00Z",
+  "status": "closed_offline_no_compiler_run",
+  "scope": "Fixed 16-tree incumbent-anchored residual target-shape screen. Compiler behavior, capacity, and authored targets were not evaluated or changed.",
+  "arms": {
+    "absolute_residual": {
+      "group_centering_strength": 0,
+      "pairwise_truth_accuracy": 0.6746977577,
+      "selected_top1_truth_mean": 0.6144723305,
+      "selected_top2_truth_mean": 0.5796615603,
+      "top1_truth_sources_improved": 40,
+      "top2_truth_sources_improved": 42
+    },
+    "half_centered_residual": {
+      "group_centering_strength": 0.5,
+      "pairwise_truth_accuracy": 0.676546229,
+      "selected_top1_truth_mean": 0.6121604506,
+      "selected_top2_truth_mean": 0.5781951217,
+      "top1_truth_sources_improved": 39,
+      "top2_truth_sources_improved": 39
+    },
+    "fully_centered_residual": {
+      "group_centering_strength": 1,
+      "pairwise_truth_accuracy": 0.6910412289,
+      "selected_top1_truth_mean": 0.6105892753,
+      "selected_top2_truth_mean": 0.5775491853,
+      "top1_truth_sources_improved": 36,
+      "top2_truth_sources_improved": 37
+    }
+  },
+  "decision": "No centered target dominates the absolute residual. Centering improves all-pairs proxy accuracy but monotonically weakens the top-one/top-two proposals the production lane actually emits. No compiler run is licensed.",
+  "hybrid_followup_license": {
+    "policy": "retain the incumbent top proposal; let the absolute residual rank only the second fixed-cost slot; fall back to the incumbent order if no geometrically distinct residual choice exists",
+    "proxy_second_slot_changed_fraction": 0.1846112744,
+    "hybrid_top2_truth_delta": 0.0035072006,
+    "hybrid_top2_sources_improved": 38,
+    "hybrid_top2_sources_worsened": 6,
+    "comparison": "The absolute residual is the strongest hybrid-second source among direct replacement, half-centered residual, fully centered residual, and absolute residual on the frozen assay."
+  },
+  "evidence": {
+    "centering_bracket": "generated/analysis/aim-impact-ranking-centering-bracket.json",
+    "centering_bracket_sha256": "70a97d5dc5f2b855b1fffde48b01d1ecf506789625469671f4619cf02bd1cdf6",
+    "fully_centered_study": "generated/analysis/aim-impact-group-centered-residual-16-study.json",
+    "fully_centered_study_sha256": "fef5be722bbf27a46c39e87ef59751be79e0535a201265b6419db9b1c9c285fa",
+    "half_centered_study": "generated/analysis/aim-impact-half-centered-residual-16-study.json",
+    "half_centered_study_sha256": "245c48cdbdb99c57161530a51dfc9a92b253f925b29cd13af0f5cc370e2373ae",
+    "hybrid_second_assay": "generated/analysis/aim-impact-ranking-hybrid-second.json",
+    "hybrid_second_assay_sha256": "af262e9ef39c928c7d0a7c74eb93d4dc36cba7cc2fdde702bf27a12ff27ac19a"
+  }
+}

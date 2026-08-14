@@ -1289,3 +1289,39 @@ result will not be mined to choose among the already-screened 2/4/8/16
 capacities. Exact evidence is in
 `benchmark/v2/studies/aim-impact-incumbent-residual.json`. Canonical V2 at 750k
 remains the only compiler decision tool; no multi-budget sweep is authorized.
+
+### Group-centered residual target — closed offline
+
+The fixed 16-tree residual was retrained after subtracting either half or all
+of each frozen proxy group's mean residual. Full centering improved pairwise
+truth accuracy from the absolute residual's 67.47% to 69.10%, but reduced
+selected top-one truth from 0.61447 to 0.61059 and top-two truth from 0.57966
+to 0.57755. Half centering was likewise between the endpoints rather than
+better than both. Because production emits two proposals rather than all
+pairs, neither centered target cleanly improves the relevant offline evidence.
+No compiler run is licensed. The bounded screen and hashes are recorded in
+`benchmark/v2/studies/aim-impact-centering-offline-screen.json`.
+
+### Incumbent-first, residual-second fixed pair — declared
+
+The absolute residual's small matched-valid gain may contain complementary
+information even though replacing both proposal ranks was not promotable. The
+next arm therefore protects the accepted 32-tree model's top proposal exactly.
+Only the second of the existing two slots may come from the frozen 16-tree
+absolute residual correction. If its best remaining vector fails the existing
+geometric distinctness rule, the unchanged incumbent order fills the slot.
+
+On 3,743 held-out proxy sets, this hybrid changes the second choice in 18.46%
+of groups, raises mean selected-pair realized fit by 0.00351, improves 38 of 44
+sources, and worsens 6. It is the strongest hybrid-second source among direct
+replacement, half-centered, fully centered, and absolute-residual artifacts.
+These proxy groups are licensing diagnostics, not production knob grids.
+
+The compiler arm keeps probe geometry, ordinary admission, proposal count,
+exact evaluation, candidate breadth, search, repair, register, budget, and
+authored targets fixed. Telemetry must report eligible two-choice grids and
+actual residual substitutions after geometric distinctness. First-choice
+identity must remain the incumbent choice in every eligible grid. One governed
+canonical V2 comparison at 750k decides promotion; no multi-budget sweep is
+authorized. A non-accept result removes the residual artifact and selection
+path without testing centered residuals in the compiler.

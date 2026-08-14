@@ -31,6 +31,25 @@
       "analyzer rejection of yielding under any legacy policy or of a yielded route reported as completed/selected"
     ]
   },
+  "mechanical_smoke": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-yielding-discrepancy-smoke-seed121-v3",
+    "scope": "Known persistence-map actual seed 121; believer pair plus three controls at 750k. Score is excluded from decision evidence.",
+    "result": {
+      "valid": 5,
+      "runs": 5,
+      "local_discrepancy_probes": 4,
+      "target_reaches": 2,
+      "yielded_routes": 2,
+      "yielded_routes_resumed_before_run_end": 0,
+      "action_sources": 2,
+      "analyzer_trust_checks": "pass"
+    },
+    "interpretation": "The exact yielded SearchNode is asserted present and attributed, but neither yielded node is selected again before this run exhausts its budget. The policy preserves frontier ownership, not a guarantee of later compute; the fresh screen therefore tests budget reallocation and must not be described as ensuring recovery.",
+    "sha256": {
+      "candidate": "aeee2069229bb575e990fe74b982a7adcc5161639310f6f831eda6051f4ef694",
+      "selective_analysis": "3bd1de0cd15b18ffe1d43b8f32adca0efa0c46f7e9c43a32f70840c81e0ae386"
+    }
+  },
   "predeclared_screen": {
     "budget": 750000,
     "actual_seeds": [128, 129, 130, 131, 132, 133, 134, 135],

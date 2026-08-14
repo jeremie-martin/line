@@ -1080,3 +1080,11 @@ positive target total, five positive seed blocks, both source sums positive,
 four improved cells, no 20-point loss, and yields across five target runs and
 both sources. Only then may fresh seeds 136-137 receive a two-seed all-catalog
 screen. Neither this work nor its maps authorize a multi-budget sweep.
+
+The known seed-121 smoke exercises two yields, one on each target source, with
+all five cells valid and all route/aggregate checks passing. Both exact nodes
+remain owned by the frontier at yield time, but neither is selected again before
+the run exhausts 750k. This sharpens the claim: ordinary-DFS placement preserves
+the path, not a promise that it receives later compute. The fresh screen tests
+the resulting budget reallocation. It must not credit the arm with guaranteed
+recovery or interpret the known seed's score.

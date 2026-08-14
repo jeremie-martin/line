@@ -1,0 +1,75 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-residual-initial-only-candidate.v1",
+  "recorded_at": "2026-08-14T03:01:37Z",
+  "status": "candidate_declared_preimplementation",
+  "prior_arm": {
+    "study": "benchmark/v2/studies/aim-impact-residual-second.json",
+    "status": "inconclusive_not_promoted",
+    "policy": "incumbent first proposal plus residual-ranked second proposal in every search lane",
+    "matched_valid_final_score_delta": 0.5130450971103736
+  },
+  "offline_containment_screen": {
+    "question": "Does restricting the residual choice to a fixed incumbent top-K shortlist improve substitution quality on the frozen proxy groups?",
+    "answer": "No. Smaller shortlists remove both good and bad substitutions and monotonically reduce total and source-macro proxy gain. No shortlist candidate is licensed.",
+    "unrestricted": {
+      "second_changed_fraction": 0.1846112743788405,
+      "top2_truth_delta": 0.0035138048869434234,
+      "sources_improved": 38,
+      "sources_worsened": 6
+    },
+    "top4": {
+      "second_changed_fraction": 0.14560512957520705,
+      "top2_truth_delta": 0.0027107333873354015,
+      "sources_improved": 35,
+      "sources_worsened": 9
+    },
+    "top8": {
+      "second_changed_fraction": 0.18193962062516697,
+      "top2_truth_delta": 0.0032911737844611424,
+      "sources_improved": 37,
+      "sources_worsened": 7
+    },
+    "evidence": "generated/analysis/aim-impact-ranking-residual-shortlist.json",
+    "evidence_sha256": "673b81ba48aba725aa0ba6771d583dc845eec7b4c642f3414164fc0a88f01fca"
+  },
+  "canonical_phase_decomposition": {
+    "authority": "descriptive_association_from_closed_arm",
+    "matched_valid_runs": 2111,
+    "candidate_only_valid": 1,
+    "baseline_only_valid": 0,
+    "paired_mean_delta": {
+      "final_score": 0.5130450971103736,
+      "initial_end_register_score": 1.0627566271584805,
+      "post_initial_uplift": -0.549711530048107,
+      "repair_accepted_internal_gain": -0.658725154863934,
+      "repair_accepted_alternatives": -0.07153008053055424,
+      "first_completion_frame": 747.3713879677878
+    },
+    "direction_counts": {
+      "initial_end_register_score": {"improved": 1154, "regressed": 957},
+      "post_initial_uplift": {"improved": 1014, "regressed": 1097},
+      "repair_accepted_internal_gain": {"improved": 997, "unchanged": 22, "regressed": 1092}
+    },
+    "interpretation": "The residual arm's positive matched-cell value was present more strongly at the end of the initial episode, while all later uplift and accepted repair gain were lower. This is not an isolated causal repair effect: the changed initial search supplies a changed repair incumbent. It is nevertheless a direct, fixed phase boundary and a stronger next hypothesis than tuning a numerical residual threshold.",
+    "evidence": "generated/analysis/aim-impact-residual-phase-attribution.json",
+    "evidence_sha256": "d0ac99a8bf28fd2a7a1d9868e9e302db930ff55b2a2b6d17bc29b21296441fa9"
+  },
+  "declared_candidate": {
+    "policy": "Use the incumbent-preserving residual second-slot ranker only during the initial search episode. Repair and resumed search use the accepted 32-tree proposer exactly.",
+    "first_proposal": "byte-for-byte incumbent choice in every lane",
+    "proposal_count": "unchanged fixed count",
+    "exact_evaluation_count": "unchanged fixed count",
+    "repair_behavior": "accepted proposer ranking and 32-tree inference only",
+    "resumed_behavior": "accepted proposer ranking and 32-tree inference only",
+    "computation": "do not traverse residual trees in bypassed lanes",
+    "telemetry": "report initial eligibility, substitutions, first-choice preservation, distinctness rejections, and repair/resumed bypassed impact grids separately"
+  },
+  "decision_protocol": {
+    "benchmark": "full canonical V2",
+    "budget": 750000,
+    "looks": [8, 16, 32, 48],
+    "multi_budget_sweep": false,
+    "promotion": "Only a governed canonical acceptance can promote the candidate. Otherwise remove the residual artifact and runtime path while retaining this analysis and tooling.",
+    "adaptivity_note": "The phase hypothesis was selected after inspecting the closed all-lane arm. The follow-up is mechanistic confirmation, not an untouched independent statistical family; report that limitation with the result."
+  }
+}

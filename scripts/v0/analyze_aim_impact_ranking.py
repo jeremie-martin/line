@@ -40,6 +40,17 @@ def arguments() -> argparse.Namespace:
         metavar="NAME=PATH",
         help="candidate artifact; may be repeated",
     )
+    parser.add_argument(
+        "--hybrid-top-k",
+        action="append",
+        default=[],
+        type=int,
+        metavar="K",
+        help=(
+            "also assay incumbent top-1 plus the candidate's best remaining row "
+            "within the incumbent top-K shortlist; may be repeated"
+        ),
+    )
     parser.add_argument("--out", type=Path)
     return parser.parse_args()
 
@@ -227,9 +238,72 @@ def source_ranking_summary(
     }
 
 
+def shortlist_hybrid_metrics(
+    truth: np.ndarray,
+    incumbent: np.ndarray,
+    candidate: np.ndarray,
+    groups: list[np.ndarray],
+    sources: np.ndarray,
+    top_k: int,
+) -> dict[str, Any]:
+    if top_k < 2:
+        raise ValueError(f"hybrid top-K must be at least 2; got {top_k}")
+    truth_delta = 0.0
+    changed = 0
+    changed_better = 0
+    changed_worse = 0
+    changed_tied = 0
+    source_deltas: dict[str, list[float]] = defaultdict(list)
+    for indexes in groups:
+        incumbent_order = indexes[np.argsort(-incumbent[indexes], kind="stable")]
+        incumbent_second = int(incumbent_order[1])
+        shortlist = incumbent_order[: min(top_k, len(incumbent_order))]
+        eligible = shortlist[shortlist != incumbent_order[0]]
+        candidate_second = int(
+            eligible[np.argmax(candidate[eligible])]
+        )
+        delta = float(
+            (truth[candidate_second] - truth[incumbent_second]) / 2.0
+        )
+        truth_delta += delta
+        source_deltas[str(sources[indexes[0]])].append(delta)
+        if candidate_second != incumbent_second:
+            changed += 1
+            changed_better += int(delta > 0)
+            changed_worse += int(delta < 0)
+            changed_tied += int(delta == 0)
+    source_means = {
+        source: float(np.mean(deltas))
+        for source, deltas in sorted(source_deltas.items())
+    }
+    source_values = np.asarray(list(source_means.values()), dtype=np.float64)
+    count = len(groups)
+    return {
+        "incumbentShortlistSize": top_k,
+        "groups": count,
+        "secondChanged": changed,
+        "secondChangedFraction": changed / count,
+        "changedSecondTruth": {
+            "better": changed_better,
+            "tied": changed_tied,
+            "worse": changed_worse,
+        },
+        "top2TruthDeltaFromIncumbent": truth_delta / count,
+        "sourceTop2Truth": {
+            "sources": len(source_means),
+            "macroMeanDelta": float(np.mean(source_values)),
+            "sourcesImproved": int(np.count_nonzero(source_values > 0)),
+            "sourcesUnchanged": int(np.count_nonzero(source_values == 0)),
+            "sourcesWorsened": int(np.count_nonzero(source_values < 0)),
+            "deltaBySource": source_means,
+        },
+    }
+
+
 def main() -> None:
     args = arguments()
     candidates = parse_candidates(args.candidate)
+    hybrid_top_ks = sorted(set(args.hybrid_top_k))
     metadata, X, development, truth, sources, seeds = load_dataset(args.dataset)
     finite_validation = ~development & np.isfinite(truth)
     X = X[finite_validation]
@@ -280,6 +354,17 @@ def main() -> None:
             "sourceRankingProxy": source_ranking_summary(
                 truth, incumbent, prediction, groups, sources
             ),
+            "shortlistHybrid": {
+                str(top_k): shortlist_hybrid_metrics(
+                    truth,
+                    incumbent,
+                    prediction,
+                    groups,
+                    sources,
+                    top_k,
+                )
+                for top_k in hybrid_top_ks
+            },
         }
     rendered = json.dumps(report, indent=2) + "\n"
     if args.out is not None:

@@ -1,0 +1,39 @@
+{
+  "schema": "line.selective-local-route-persistent-sign-map-study.v1",
+  "status": "predeclared-behavior-neutral-map",
+  "generated_at": "2026-08-14",
+  "question": "On fresh routes, does requiring three successive authored-gap checkpoints with non-positive exact prefix gain identify a broad, persistent losing state without suppressing an observed equal-depth winner?",
+  "hypothesis_source": {
+    "closed_map": "benchmark/v2/studies/selective-local-route-sign-reversal-map-v1.json",
+    "observation": "A first non-positive checkpoint was broad and preceded 250899 frames, but two of 17 routes recovered. Exploratory route-shape decomposition showed that requiring three successive non-positive checkpoints retained six routes, five runs, both sources, and 129998 later frames with no recovery in the hypothesis-generating archive.",
+    "anti_overfit_boundary": "The value three is now fixed and must replicate on fresh route mechanics before any live traversal uses it. Neither score nor final-track movement from the hypothesis-generating seeds participates in the validation decision."
+  },
+  "instrument": {
+    "behavior": "Unchanged selective-axis-regret-catchup-proper-discrepancy traversal with the route-aware exact checkpoints already implemented.",
+    "persistence": "A streak consists of three checkpoints at adjacent authored-gap indices, each with route axis loss no better than the suspended incumbent through the same gap. The confirmation point is the third checkpoint.",
+    "fixed_successor_if_supported": "Stop only the local discrepancy route at its third successive non-positive checkpoint, return its still-live frontier nodes to ordinary search, and retain the suspended path in the tournament. No causal route, trigger, candidate generation, deadline, terminal, repair, or scoring logic changes.",
+    "trust": [
+      "candidate and retained-reference tracks, scores, and validity must be exactly identical",
+      "checkpoint attribution and monotonicity must pass the route-aware analyzer",
+      "recovery uses only routes whose equal-depth target result was observed",
+      "measured work after confirmation is descriptive and cannot be treated as causal savings"
+    ]
+  },
+  "predeclared_map": {
+    "budget": 750000,
+    "actual_seeds": [120, 121, 122, 123, 124, 125, 126, 127],
+    "requested_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "expected_backfilled_controls": [
+      "river_reentry",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ],
+    "expected_cells": 40,
+    "selection_rule": "Build exactly the fixed three-checkpoint persistence guard only if it occurs on at least five target-observed local routes spanning at least four runs and both requested sources, none recovers to a strict equal-depth win, and at least 75000 measured local-probe frames follow confirmation. Otherwise close without a live arm.",
+    "next_step_if_selected": "Implement and mechanically validate one environment-selected persistence-guard arm, then run a fresh focused 750k screen on actual seeds 128-135 before any catalog or canonical evaluation.",
+    "non_claim": "This fresh behavior-neutral map can validate a categorical action set. It cannot estimate live score effects, authorize promotion or canonical evaluation, or establish multi-budget behavior."
+  }
+}

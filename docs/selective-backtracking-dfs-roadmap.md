@@ -1024,3 +1024,22 @@ first-crossing guard closes without a live arm. Prefix sign is informative, not
 yet sufficient. A successor needs a new categorical signal such as persistence
 or remaining-work context; it must not relax the observed threshold after the
 fact.
+
+### Persistent local-route sign validation
+
+The closed first-crossing map can generate a new categorical hypothesis, but
+cannot validate it. Route-shape decomposition—not score—shows why persistence
+is a distinct design: one non-positive checkpoint gives 17 routes and two
+recoveries; two successive checkpoints give nine routes and one recovery;
+three give six routes, no recovery, and 129,998 measured frames after
+confirmation. The value three is fixed here, before fresh evidence, rather
+than selected again on the validation archive.
+
+A fresh behavior-neutral map uses actual seeds 120-127 on the same focused
+pair and controls. A streak requires three non-positive checkpoints at adjacent
+authored gaps; recovery is assessed only when the equal-depth result exists.
+The live persistence guard is authorized only if the event repeats on five
+routes across four runs and both sources, has no observed strict target
+recovery, and precedes at least 75,000 measured frames. Exact output identity
+remains mandatory. If selected, the guard will receive fresh score evidence on
+seeds 128-135; these map scores never participate in that decision.

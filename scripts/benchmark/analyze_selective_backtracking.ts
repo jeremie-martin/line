@@ -504,6 +504,51 @@ const localRouteProgress = localDiscrepancyEvents.flatMap((event) =>
 const signReversals = localRouteProgress.filter(
   (observation) => observation.firstSignReversal !== undefined,
 );
+const firstPersistentNonpositive = (
+  checkpoints: Checkpoint[],
+  requiredStreak: number,
+): Checkpoint | undefined => {
+  let streak = 0;
+  let previousGap: number | null = null;
+  for (const checkpoint of checkpoints) {
+    const consecutive = previousGap === null || checkpoint.gap_index === previousGap + 1;
+    streak = checkpoint.alternative_axis_loss_gain <= 0 && consecutive ? streak + 1
+      : checkpoint.alternative_axis_loss_gain <= 0 ? 1
+      : 0;
+    previousGap = checkpoint.gap_index;
+    if (streak >= requiredStreak) return checkpoint;
+  }
+  return undefined;
+};
+const persistentSignRows = [1, 2, 3, 4].map((requiredStreak) => {
+  const observations = localRouteProgress.flatMap((observation) => {
+    const checkpoint = firstPersistentNonpositive(observation.checkpoints, requiredStreak);
+    return checkpoint === undefined ? [] : [{ ...observation, checkpoint }];
+  });
+  const targetObserved = observations.filter((observation) => observation.targetGain !== null);
+  return {
+    required_successive_nonpositive_checkpoints: requiredStreak,
+    routes: observations.length,
+    routes_with_target_observed: targetObserved.length,
+    recovered_to_strict_target_win: targetObserved.filter(
+      (observation) => observation.targetGain! > 0,
+    ).length,
+    did_not_recover_to_strict_target_win: targetObserved.filter(
+      (observation) => observation.targetGain! <= 0,
+    ).length,
+    measured_probe_frames_after_confirmation: observations.reduce(
+      (sum, observation) =>
+        sum + Math.max(0, observation.probe.probe_frames - observation.checkpoint.probe_frames),
+      0,
+    ),
+    affected_runs: new Set(observations.map(
+      (observation) => `${observation.event.sourceId}/${observation.event.seed}`,
+    )).size,
+    affected_sources: [...new Set(observations.map(
+      (observation) => observation.event.sourceId,
+    ))].sort(),
+  };
+});
 const localRouteProgressMap = localRouteProgress.length === 0 ? null : {
   routes: localRouteProgress.length,
   routes_with_intermediate_checkpoint: localRouteProgress.filter(
@@ -532,6 +577,7 @@ const localRouteProgressMap = localRouteProgress.length === 0 ? null : {
       (observation) => observation.event.sourceId,
     ))].sort(),
   },
+  persistent_nonpositive_sign: persistentSignRows,
   caveat:
     "A local route starts from an exactly positive same-depth prefix gain. A sign reversal is " +
     "the first later authored-gap checkpoint at which its cumulative axis loss is no better " +
@@ -1348,6 +1394,15 @@ function print(analysis: typeof result): void {
       `${reversal.routes}, ${reversal.recovered_to_strict_target_win} recover; ` +
       `${reversal.measured_probe_frames_after_sign} measured frames follow`,
     );
+    for (const row of progress.persistent_nonpositive_sign) {
+      console.log(
+        `    streak ${row.required_successive_nonpositive_checkpoints}: ` +
+        `${row.routes} routes; ${row.recovered_to_strict_target_win}/` +
+        `${row.routes_with_target_observed} recover; ` +
+        `${row.affected_runs} runs / ${row.affected_sources.length} sources; ` +
+        `${row.measured_probe_frames_after_confirmation} frames follow confirmation`,
+      );
+    }
   }
   console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);
   for (const row of analysis.admission_margin_counterfactuals) {

@@ -1,7 +1,7 @@
 {
   "schema": "line.benchmark-v2.aim-impact-residual-guarded-second-candidate.v1",
   "recorded_at": "2026-08-14T09:45:00+02:00",
-  "status": "canonical_complete_pending_candidate_removal",
+  "status": "complete_inconclusive_not_promoted_candidate_removed",
   "motivation": {
     "closed_study": "benchmark/v2/studies/aim-impact-residual-initial-only-candidate.json",
     "fresh_confirmation": "benchmark/v2/studies/aim-impact-residual-initial-only-n96-confirmation.json",
@@ -277,6 +277,12 @@
     "action": "remove_candidate_runtime_and_retain_evidence",
     "reason": "The single predeclared candidate did not meet the governed N48 directional-probability threshold. The positive initial-phase association is a valuable follow-up lead, but does not license promotion or post-hoc gate tuning.",
     "accepted_headline_remains": 605.9793,
-    "natural_follow_up": "Study why changed initial incumbents lose value during later repair/resumed work, then predeclare a policy that preserves proven initial value across that boundary; do not rerun the multi-budget sweep or tune these gate constants on this canonical result."
+    "natural_follow_up": "Study why changed initial incumbents lose value during later repair/resumed work, then predeclare a policy that preserves proven initial value across that boundary; do not rerun the multi-budget sweep or tune these gate constants on this canonical result.",
+    "candidate_removal": {
+      "commit": "f12804e",
+      "scope": "residual model artifact, checkpoint inference, guarded pair selection, lane state, always-on candidate telemetry, and candidate-only tests removed",
+      "runtime_restoration": "byte-identical to the parent of the candidate implementation commit for every affected accepted-runtime file",
+      "focused_tests": "59/59 passed after removal"
+    }
   }
 }

@@ -1,0 +1,103 @@
+{
+  "schema": "line.benchmark-v2.selective-axis-regret-v1.v1",
+  "recorded_at": "2026-08-14T13:53:33Z",
+  "status": "inconclusive_not_promoted",
+  "scope": {
+    "question": "Can authored-axis regret trigger a voluntary DFS branch change before the active path dies?",
+    "policy": "After at least two contact advances and +0.20 prefix axis loss, promote the exact queued runner-up sibling when its conservative suffix deadline has no pressure; retain the current prefix behind that sibling subtree.",
+    "phase": "shared initial, snapshot, repair, and resumed frontier scheduler",
+    "benchmark": "full canonical V2",
+    "budget": 750000,
+    "seeds": 48,
+    "multi_budget_sweep": false,
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret"
+    },
+    "non_claim": "This run evaluates one trigger/target/disposition combination at 750k. It does not evaluate selective backtracking as a family or establish higher-budget behavior."
+  },
+  "implementation": {
+    "plan_commit": "05e3736",
+    "scheduler_commit": "3859e9b",
+    "attribution_commit": "25d7db5",
+    "target_deadline_commit": "24a57dc",
+    "worker_compatibility_commit": "a738ee8",
+    "snapshot_sha256": "a6d2b0de29c8310a3146950984112ece9cd2edd4c1d99ce79f3d9aa0a1d72433",
+    "default_contract": "Unset policy and explicit dfs produce byte-identical serialized checkpoints."
+  },
+  "canonical_result": {
+    "outcome": "inconclusive",
+    "promotable": false,
+    "stopping_depth": 48,
+    "candidate_compiles": 2112,
+    "headline": {
+      "baseline": 604.185,
+      "candidate": 604.1885,
+      "delta": 0.0035,
+      "standard_error": 0.034,
+      "central_95_lo": -0.0878,
+      "central_95_hi": 0.0948,
+      "directional_probability": 0.5408,
+      "required_directional_probability": 0.9723
+    },
+    "validity": {
+      "baseline": 2111,
+      "candidate": 2111,
+      "total": 2112,
+      "gained": 0,
+      "lost": 0
+    },
+    "sequential_looks": [
+      {"seeds": 8, "directional_probability": 0.0619, "action": "continue"},
+      {"seeds": 16, "directional_probability": 0.3786, "action": "continue"},
+      {"seeds": 32, "directional_probability": 0.1641, "action": "continue"},
+      {"seeds": 48, "directional_probability": 0.5408, "action": "inconclusive"}
+    ]
+  },
+  "mechanism_audit": {
+    "active_cells": 126,
+    "selective_backtracks": 756,
+    "backtracks_by_lane": {"initial": 755, "snapshot": 0, "repair": 1, "resumed": 0},
+    "suspended_continuations_resumed": 15,
+    "signal_crossings": 27369,
+    "deadline_suppressed_crossings": 26613,
+    "unavailable_alternatives": 0,
+    "median_contact_advance": 11,
+    "median_gap_rewind": 10,
+    "dominant_cases": {
+      "active_cells": 96,
+      "backtracks": 707,
+      "cases": ["believer_impact_56s", "believer_impact_56s_amplitude_plus_5"]
+    },
+    "paired_active_cell_deltas": {
+      "score": {"min": -17.5491, "median": -0.3037, "mean": -1.2952, "max": 36.1968},
+      "first_completion_frames": {"min": -10882, "median": 284159, "mean": 221718.22, "max": 316369},
+      "leaves_considered": {"min": -15, "median": 70, "mean": 55.60, "max": 82},
+      "repair_episodes": {"min": -5, "median": -1, "mean": -1.48, "max": 2}
+    },
+    "interpretation": "V1 causes real and heterogeneous path changes. Its whole-subtree disposition delays completion and displaces repair work in the dominant long cases, while a smaller set of sparse/local cases gains substantially. The near-zero headline is a balance of those effects, not evidence that voluntary backtracking is inert."
+  },
+  "decision": {
+    "action": "do_not_promote_v1; retain the general scheduler capability and use the evidence to design further schemes",
+    "focused_followup": "Bound the alternative excursion to a preferred path reaching the suspended prefix's depth, compare like-for-like authored-prefix loss, and continue the better prefix while retaining the other.",
+    "broader_followups": [
+      "local watch expiry or nearest-watch selection",
+      "repair-incumbent-relative signals",
+      "budget-dependent rewind or work quanta",
+      "top-k equal-depth tournaments",
+      "limited-discrepancy paths"
+    ]
+  },
+  "evidence": {
+    "comparison": {
+      "path": "generated/benchmark-v2/runs/selective-axis-regret-v1-max48.comparison.json",
+      "sha256": "b3ec2de02aa08560ab226eb64babf65746945110ed611d723bddd44c24ee1261"
+    },
+    "candidate_archive": {
+      "path": "generated/benchmark-v2/runs/selective-axis-regret-v1-max48.N48.json.gz",
+      "raw_archive_sha256": "c44f0f3d18fc8be35be1acc72768b4d70b0ead82a035d1c652149307f2d7a917",
+      "compressed_sha256": "3c37734c1cfbcb4ee5baa0951eef2e6e7be030cebb1a8512192494f8ca030801",
+      "decision_index_sha256": "306ebe81e941e1cf88743e21a848b83e3a75747264295efcdc8514aaab304787",
+      "summary_sha256": "14a37d1e1f1f17bd3521ad3eb102ccbec037412a73eb84dea1dce7c89190a297"
+    }
+  }
+}

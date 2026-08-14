@@ -135,7 +135,7 @@ crossing that deadline policy suppresses is not a backtrack.
 | 2026-08-14 | Controller and shared scheduler | complete | `3859e9b`, `25d7db5`; compile-local causal watch lineage, identity promotion, suspension/resumption, exact opt-in events |
 | 2026-08-14 | Deterministic verification | complete | 47 focused controller/deadline/handoff tests pass; unset default equals explicit DFS as a complete serialized checkpoint; enabled runs are deterministic |
 | 2026-08-14 | Repair-disabled mechanism probe | complete | One-budget panels below; zero unavailable alternatives and no validity loss after the target-aware deadline correction |
-| 2026-08-14 | Canonical V1 evaluation | running | N=16 complete: 704/704 valid, paired headline delta -0.01 +/- 0.03 SE, directional P+ 37.86%; governed attempt continued to N=32 |
+| 2026-08-14 | Canonical V1 evaluation | complete, inconclusive | N=48: delta +0.0035 +/- 0.0340 SE, 95% interval [-0.0878, +0.0948], directional P+ 54.08%; validity unchanged at 2,111/2,112 |
 
 ## Initial mechanism evidence
 
@@ -177,23 +177,32 @@ beats the repair work it displaces.
 
 ## Canonical V1 mechanism audit
 
-The first two governed canonical looks establish a sharper distinction between
-the scheduler capability and the V1 policy. At N=16:
+The governed canonical run establishes a sharper distinction between the
+scheduler capability and the V1 policy. At N=48:
 
-- 38 of 704 cells executed at least one selective backtrack;
-- 243 backtracks executed, all in the initial-search lane;
-- only one suspended continuation resumed;
-- 8,778 of 9,021 signal crossings were suppressed by the conservative deadline;
+- 126 of 2,112 cells executed at least one selective backtrack;
+- 756 backtracks executed: 755 initial and one repair;
+- only 15 suspended continuations resumed;
+- 26,613 of 27,369 signal crossings were suppressed by the conservative deadline;
 - no remembered alternative was missing;
-- 37 cells changed score, while the other 667 were exactly unchanged;
-- the paired headline estimate was -0.01 +/- 0.03 SE (directional P+ 37.86%).
+- baseline and candidate validity were identical at 2,111/2,112;
+- the paired headline estimate was +0.0035 +/- 0.0340 SE, with 95% interval
+  [-0.0878, +0.0948] and directional P+ 54.08%.
 
 The action was heavily concentrated: the two `believer_impact_56s` variants
-accounted for 32/38 active cells and 233/243 backtracks. In the N=8 event set,
-the median rewind was 10 gaps (median contact advance 11). Ordinary DFS then
-searched the promoted sibling's whole live subtree before the suspended node,
-so retaining that node in the frontier was technically non-pruning but almost
-never operationally reversible within 750k.
+accounted for 96/126 active cells and 707/756 backtracks. Across all events the
+median rewind was 10 gaps (median contact advance 11). Ordinary DFS then searched
+the promoted sibling's whole live subtree before the suspended node, so retaining
+that node in the frontier was technically non-pruning but rarely operationally
+reversible within 750k.
+
+Paired telemetry on the 126 active cells makes the trade clearer. Median first
+completion moved 284,159 frames later, median leaves considered increased by 70,
+and repair episodes fell by one (mean -1.48). The active-cell score delta ranged
+from -17.55 to +36.20. The two dominant long cases delayed first completion by
+about 277k-295k frames on average and regressed, while several sparse/local cases
+showed large mean gains. This is heterogeneous causal action, not an inert arm;
+the aggregate happens to balance almost exactly at this budget and weighting.
 
 This does not support promoting V1 at the measured canonical 750k setting. It
 does identify a concrete limitation of this first disposition rule: retaining

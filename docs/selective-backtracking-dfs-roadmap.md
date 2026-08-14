@@ -1043,3 +1043,13 @@ routes across four runs and both sources, has no observed strict target
 recovery, and precedes at least 75,000 measured frames. Exact output identity
 remains mandatory. If selected, the guard will receive fresh score evidence on
 seeds 128-135; these map scores never participate in that decision.
+
+The fresh map again passes exact identity across all 40 cells. Three-checkpoint
+persistence occurs on ten routes spanning nine runs and both sources, and
+181,143 measured frames follow confirmation. Nine routes have an observed
+equal-depth result; one nevertheless recovers to a strict win. Thus breadth and
+work replicate, but the fixed zero-recovery gate fails. The persistence guard
+closes without a live arm. Together the two maps show that prefix sign is a
+useful risk signal but not a stopping certificate. The next design should
+preserve recovery paths and alter when their work is scheduled, rather than fit
+another streak length or loss magnitude to these observations.

@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-local-route-persistent-sign-map-study.v1",
-  "status": "predeclared-behavior-neutral-map",
+  "status": "closed-map-guard-not-authorized",
   "generated_at": "2026-08-14",
   "question": "On fresh routes, does requiring three successive authored-gap checkpoints with non-positive exact prefix gain identify a broad, persistent losing state without suppressing an observed equal-depth winner?",
   "hypothesis_source": {
@@ -34,6 +34,35 @@
     "expected_cells": 40,
     "selection_rule": "Build exactly the fixed three-checkpoint persistence guard only if it occurs on at least five target-observed local routes spanning at least four runs and both requested sources, none recovers to a strict equal-depth win, and at least 75000 measured local-probe frames follow confirmation. Otherwise close without a live arm.",
     "next_step_if_selected": "Implement and mechanically validate one environment-selected persistence-guard arm, then run a fresh focused 750k screen on actual seeds 128-135 before any catalog or canonical evaluation.",
-    "non_claim": "This fresh behavior-neutral map can validate a categorical action set. It cannot estimate live score effects, authorize promotion or canonical evaluation, or establish multi-budget behavior."
+    "non_claim": "This fresh behavior-neutral map can validate a categorical action set. It cannot estimate live score effects, authorize promotion or canonical evaluation, or establish multi-budget behavior.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-local-route-persistent-sign-map-n8",
+      "identity": {
+        "cells": 40,
+        "both_valid": 40,
+        "changed_tracks": 0,
+        "score_sum_delta": 0
+      },
+      "three_checkpoint_persistence": {
+        "routes": 10,
+        "routes_with_target_observed": 9,
+        "affected_runs": 9,
+        "affected_sources": [
+          "believer_impact_56s",
+          "believer_impact_56s_amplitude_plus_5"
+        ],
+        "recovered_to_strict_target_win": 1,
+        "did_not_recover_to_strict_target_win": 8,
+        "measured_probe_frames_after_confirmation": 181143
+      },
+      "decision": "Close without a live persistence guard. Exact identity, breadth, run/source coverage, and measured-work gates pass, but one of nine target-observed routes recovers to a strict win; the predeclared rule required zero recoveries.",
+      "interpretation": "Persistence replicates as a broad sign of likely loss, but it is not a safe stopping certificate. The sign-only stopping family now closes. A successor should preserve recovery paths while changing work scheduling, rather than fitting a longer streak or scalar loss threshold.",
+      "sha256": {
+        "candidate": "0032a7fa46a2c91410551a3917ae397fc3b73de2bf8ae22177b3043b1a5a47c5",
+        "reference": "7bed0a448c3e0bc1399401fa86c3ecb935dcbd4c816b4c92b757ee50faf54ac6",
+        "report": "9099aaaa0b3fa9baa93d64eafe75e421efd2d4e1b06d34f8d8b7b53750d7dc09",
+        "selective_analysis": "6ed1a415f59d66b0315bea8d1b7c31327e15ee8036f79ef771e64cd7c318648e"
+      }
+    }
   }
 }

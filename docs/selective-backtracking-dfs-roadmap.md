@@ -691,3 +691,16 @@ automatic capability control (48 cells per arm). It advances only with complete
 validity, positive target sum, at least five of eight positive target seed
 blocks, non-isolated improvement, and no target-cell loss of 20 points or more.
 No multi-budget or canonical run is authorized by this screen.
+
+The screen is positive but fails its replication gate. Both arms complete all
+48 cells; 14 believer tracks change, split seven better and seven worse, for
++11.6170 total. The target seed-block mean is +0.2904 +/- 0.3373 (t = 0.86),
+with four positive and four negative seeds rather than the required five. The
+other 32 cells are bit-identical and no target cell loses more than 3.10.
+
+Mechanically the rule is sound: 28 already-winning first probes skip their
+second sibling, while 46 fallback probes still run and sibling two wins nine
+tournaments. All skip and aggregate invariants pass. This is useful positive
+direction, but not stable evidence: the exact arm closes without replication,
+canonical evaluation, or promotion. A successor should change the signal or
+work scheduling structure, not fit another threshold to these eight outcomes.

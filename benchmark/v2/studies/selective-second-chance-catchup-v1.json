@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-second-chance-catchup-study.v1",
-  "status": "fresh-focused-screen-predeclared",
+  "status": "closed-positive-inconclusive-screen",
   "generated_at": "2026-08-14",
   "question": "Can a conditional second-sibling fallback retain useful multi-sibling escapes without paying to improve a runner-up that already beats the interrupted prefix?",
   "intervention": {
@@ -64,6 +64,70 @@
     "automatic_controls": "Benchmark V2 back-fills the otherwise empty capability stratum, yielding six sources and 48 cells per arm.",
     "reference_commit": "b2d520a3",
     "decision": "Continue only if every paired cell remains valid, the five target-source score sum is positive, at least five of eight target seed blocks are positive, positive movement spans more than one cell, and no individual target cell loses 20 or more points. This focused screen cannot authorize canonical evaluation or promotion."
+  },
+  "screen_result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-second-chance-catchup-n8",
+    "actual_sources": 6,
+    "cells_per_arm": 48,
+    "outcome_attribution": {
+      "both_valid": 48,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 0
+    },
+    "changed_tracks": 14,
+    "both_valid_score_sum_delta": 11.617,
+    "better_worse_tied": [7, 7, 34],
+    "seed_blocked_all_cells": {
+      "mean_delta": 0.2420208333,
+      "standard_error": 0.2810708311,
+      "t": 0.8611,
+      "degrees_of_freedom": 7,
+      "positive_negative_blocks": [4, 4]
+    },
+    "seed_blocked_target_cells": {
+      "score_sum_delta": 11.617,
+      "mean_delta": 0.290425,
+      "standard_error": 0.3372849973,
+      "t": 0.8611,
+      "degrees_of_freedom": 7,
+      "positive_negative_blocks": [4, 4]
+    },
+    "by_source": {
+      "believer_impact_56s": {
+        "score_sum_delta": 7.3899,
+        "mean_delta": 0.9237375,
+        "better_worse_tied": [4, 3, 1]
+      },
+      "believer_impact_56s_amplitude_plus_5": {
+        "score_sum_delta": 4.2271,
+        "mean_delta": 0.5283875,
+        "better_worse_tied": [3, 4, 1]
+      },
+      "other_four_sources": "bit-identical on all 32 cells"
+    },
+    "mechanics": {
+      "selective_backtracks": "97 -> 74",
+      "candidate_probe_attempts": 120,
+      "candidate_probe_target_reaches": 114,
+      "candidate_additional_probe_attempts": 46,
+      "candidate_additional_probe_target_reaches": 43,
+      "candidate_additional_probes_skipped_after_first_winner": 28,
+      "candidate_additional_alternative_selected": 9,
+      "catchup_completed": "94 -> 73",
+      "catchup_alternative_selected": "35 -> 37",
+      "catchup_current_selected": "59 -> 36",
+      "catchup_probe_frames": "4076975 -> 4509496"
+    },
+    "telemetry_integrity": "The analyzer verifies every skip has a reached-target ordinal-1 strict winner, attempted plus skipped alternatives reconcile, and all event aggregates equal compile counters.",
+    "decision": "Do not advance this exact rule. It preserves validity, has positive target sum, non-isolated movement, and no large cell loss, but fails the predeclared five-of-eight positive target-seed-block gate with four positive and four negative blocks.",
+    "interpretation": "The conditional allocation behaves as designed and is materially safer than treating the broad negative result as a failure of the whole sibling-search family. Its positive direction is too heterogeneous for replication or canonical evaluation. The next strategy should change the information or scheduling structure rather than tune the strict-win boundary on adjacent constants.",
+    "sha256": {
+      "candidate": "0bee594a08a4efb69a0a46bc2eb5a1f32467154002d19bbb5512cbf73d0888e4",
+      "reference": "1b95a8ddff5a5f184437d822d89c6abb6de8628038c64c3e886dc7f10fc5cd08",
+      "report": "4a3331e7149dc5f74897d293fe352a9393f491954c89889a5e87d0558ddcf40a",
+      "selective_analysis": "13a968f160db6a023dd5dbaf553a9ce8edabc98b1037135885c681cf4807b917"
+    }
   },
   "non_claim": "This tests one categorical probe-allocation rule at 750k. It does not estimate multi-budget behavior and does not reject other stopping depths, sibling-selection rules, or voluntary-backtracking strategies if negative."
 }

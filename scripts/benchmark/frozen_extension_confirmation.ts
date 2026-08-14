@@ -239,6 +239,7 @@ async function analyze(value: Declaration, declarationFile: string): Promise<voi
     value.scope.fresh_seed_blocks,
     calibration.boundaryConstant,
   );
+  const freshMatchedValid = matchedValidSeedBlock(pair.baseRuns, pair.candidateRuns);
 
   const priorBase = value.prior_decision_indexes.baseline.flatMap((path) =>
     decisionRuns(loadDecisionIndex(path).archive)
@@ -260,10 +261,11 @@ async function analyze(value: Declaration, declarationFile: string): Promise<voi
     { profile: "canonical", mode: "improvement" },
   );
   const matchedValid = matchedValidSeedBlock(combinedBase, combinedCandidate);
+  const output = resolve(value.outputs.result);
 
   const result = {
     schema: RESULT_SCHEMA,
-    generatedAt: new Date().toISOString(),
+    generatedAt: retainedResultTimestamp(output),
     authority: {
       primary: "fresh-independent-confirmation",
       combinedN96: "descriptive-only",
@@ -280,6 +282,7 @@ async function analyze(value: Declaration, declarationFile: string): Promise<voi
       candidateArchive: archiveReference(candidate),
       decision: fresh,
       confirmation,
+      matchedValid: freshMatchedValid,
     },
     combinedN96: {
       authority: "descriptive-only-post-hoc-pooling",
@@ -288,7 +291,6 @@ async function analyze(value: Declaration, declarationFile: string): Promise<voi
       matchedValid,
     },
   };
-  const output = resolve(value.outputs.result);
   const bytes = `${JSON.stringify(result, null, 2)}\n`;
   writeFileAtomicDurable(output, bytes);
   writeFileAtomicDurable(`${output}.sha256`, `${sha256(Buffer.from(bytes))}  ${relativeToCwd(output)}\n`);
@@ -304,6 +306,17 @@ async function analyze(value: Declaration, declarationFile: string): Promise<voi
       `P+ ${(100 * referenceTDirectionalProbability(combined.confidence)).toFixed(2)}%`,
   );
   console.log(`  result: ${relativeToCwd(output)}`);
+}
+
+function retainedResultTimestamp(path: string): string {
+  if (!existsSync(path)) return new Date().toISOString();
+  const prior = JSON.parse(readFileSync(path, "utf8"));
+  if (
+    prior?.schema !== RESULT_SCHEMA ||
+    typeof prior.generatedAt !== "string" ||
+    !Number.isFinite(Date.parse(prior.generatedAt))
+  ) throw new Error(`${relativeToCwd(path)}: existing confirmation result is malformed`);
+  return prior.generatedAt;
 }
 
 function loadDecisionIndex(path: string): { archive: any; archiveSha256: string } {

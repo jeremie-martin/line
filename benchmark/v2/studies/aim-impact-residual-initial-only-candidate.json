@@ -135,6 +135,83 @@
     ],
     "interpretation": "The large official point estimate is dominated by one capability cell that was invalid in the baseline and valid in the candidate. It is real validity evidence, but it does not supply enough repeated-seed confidence for promotion."
   },
+  "independent_confirmation": {
+    "recorded_at": "2026-08-14T07:17:21.730Z",
+    "status": "complete_inconclusive_not_promoted",
+    "design": {
+      "authority": "A disjoint fresh N48 block decides confirmation. The adaptively requested pooled N96 reading is descriptive only.",
+      "benchmark": "full canonical V2",
+      "budget": 750000,
+      "fresh_actual_seeds": "648..695",
+      "fresh_compiles_per_arm": 2112,
+      "multi_budget_sweep": false,
+      "declaration": "benchmark/v2/studies/aim-impact-residual-initial-only-n96-confirmation.json",
+      "declaration_sha256": "413ad4ffdab63ae04ba4cceb7dbfeeba06cc356aa2e7f8ac1db5389dd32c7263"
+    },
+    "fresh_n48": {
+      "action": "inconclusive",
+      "baseline_headline": 602.1894,
+      "candidate_headline": 602.0741,
+      "delta": -0.1153,
+      "standard_error": 2.487,
+      "directional_probability": 0.48160945,
+      "required_directional_probability": 0.97226547,
+      "validity": {
+        "baseline": 2110,
+        "candidate": 2110,
+        "total": 2112,
+        "gained": 1,
+        "lost": 1
+      },
+      "matched_valid_sensitivity": {
+        "authority": "descriptive_not_promotion",
+        "matched": 2109,
+        "estimate": -0.18919460447498251,
+        "standard_error": 0.4147787081488232,
+        "directional_probability": 0.32519725642120284
+      }
+    },
+    "combined_n96": {
+      "authority": "descriptive_only_post_hoc_pooling",
+      "baseline_headline": 603.1789,
+      "candidate_headline": 604.2537,
+      "delta": 1.0748,
+      "standard_error": 1.5221,
+      "directional_probability": 0.7590821812370824,
+      "validity": {
+        "baseline": 4221,
+        "candidate": 4222,
+        "total": 4224,
+        "gained": 2,
+        "lost": 1
+      },
+      "matched_valid_sensitivity": {
+        "matched": 4220,
+        "estimate": 0.17985064415961902,
+        "standard_error": 0.25181557368902385,
+        "directional_probability": 0.7615774962079037
+      }
+    },
+    "interpretation": "The apparent original N48 advantage did not replicate in the independent seed block. The fresh official and matched-valid point estimates are both slightly negative, while the descriptive pooled N96 probabilities remain far below the retained confirmation threshold. The candidate stays removed and the accepted headline remains unchanged.",
+    "evidence": {
+      "result": {
+        "path": "benchmark/v2/runs/aim-impact-residual-initial-only-n96-confirmation.json",
+        "sha256": "fc03ec5dfb3edf55cac340e419e7fb7ebd02abcb48532c78cdfd9ad2bb28eae8"
+      },
+      "fresh_baseline_archive": {
+        "path": "benchmark/v2/runs/aim-impact-residual-initial-only-n96-fresh-baseline-N48.json.gz",
+        "sha256": "e386681cd06d1b1bcc61b60afd75f225e4b025883f3cd79403df3230c178f7c2",
+        "decision_index_sha256": "0827e163993f13cd6506ffc99d2b22be0539cf0a7ab4fbb56b7ce347e480bbf6",
+        "summary_sha256": "8168769f25dc69dc2bcfa6aa1e2f522cfd802fc224786882b0309f428360e23c"
+      },
+      "fresh_candidate_archive": {
+        "path": "benchmark/v2/runs/aim-impact-residual-initial-only-n96-fresh-candidate-N48.json.gz",
+        "sha256": "dddaea48c54c81197c8778050232cbf5cacd7b21b28feff9ca99601031b5091d",
+        "decision_index_sha256": "31636799eba24b5e62e1f67ad8159d80f1f0d248709580f8668c4c9ce0ff1e4a",
+        "summary_sha256": "2ec060caba7d535291033de05e7c646ced1845f4453380cdd498a4e9378a3930"
+      }
+    }
+  },
   "matched_valid_sensitivity": {
     "authority": "descriptive_not_promotion",
     "matched_valid_runs": 2111,

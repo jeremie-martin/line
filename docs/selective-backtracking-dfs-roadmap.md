@@ -135,6 +135,7 @@ crossing that deadline policy suppresses is not a backtrack.
 | 2026-08-14 | Controller and shared scheduler | complete | `3859e9b`, `25d7db5`; compile-local causal watch lineage, identity promotion, suspension/resumption, exact opt-in events |
 | 2026-08-14 | Deterministic verification | complete | 47 focused controller/deadline/handoff tests pass; unset default equals explicit DFS as a complete serialized checkpoint; enabled runs are deterministic |
 | 2026-08-14 | Repair-disabled mechanism probe | complete | One-budget panels below; zero unavailable alternatives and no validity loss after the target-aware deadline correction |
+| 2026-08-14 | Canonical V1 evaluation | running | N=16 complete: 704/704 valid, paired headline delta -0.01 +/- 0.03 SE, directional P+ 37.86%; governed attempt continued to N=32 |
 
 ## Initial mechanism evidence
 
@@ -173,3 +174,51 @@ must not be generalized. More importantly, the active row delayed first
 completion by 292,772 frames. Production repair begins at first completion, so
 the full compiler comparison must measure whether this traversal investment
 beats the repair work it displaces.
+
+## Canonical V1 mechanism audit
+
+The first two governed canonical looks establish a sharper distinction between
+the scheduler capability and the V1 policy. At N=16:
+
+- 38 of 704 cells executed at least one selective backtrack;
+- 243 backtracks executed, all in the initial-search lane;
+- only one suspended continuation resumed;
+- 8,778 of 9,021 signal crossings were suppressed by the conservative deadline;
+- no remembered alternative was missing;
+- 37 cells changed score, while the other 667 were exactly unchanged;
+- the paired headline estimate was -0.01 +/- 0.03 SE (directional P+ 37.86%).
+
+The action was heavily concentrated: the two `believer_impact_56s` variants
+accounted for 32/38 active cells and 233/243 backtracks. In the N=8 event set,
+the median rewind was 10 gaps (median contact advance 11). Ordinary DFS then
+searched the promoted sibling's whole live subtree before the suspended node,
+so retaining that node in the frontier was technically non-pruning but almost
+never operationally reversible within 750k.
+
+This falsifies the useful form of V1's disposition rule. The trigger and exact
+sibling identity are working and remain useful infrastructure; an unbounded
+DFS detour is not the next policy to tune.
+
+## Next policy: bounded equal-depth excursion
+
+The focused successor should separate *asking an alternative for evidence*
+from *committing the rest of the compile to its subtree*:
+
+1. A regret trigger suspends the current prefix and names the same exact queued
+   sibling as V1.
+2. The scheduler gives that alternative a bounded excursion, advancing one
+   preferred viable child at a time toward the suspended prefix's contact
+   depth. Nested voluntary backtracks are disabled inside the excursion.
+3. At equal contact depth, compare authored-prefix axis loss on like-for-like
+   prefixes. Continue the better prefix; retain the other in the ordinary
+   frontier.
+4. If the probe dies or reaches its explicit work allowance before catching
+   up, resume the suspended prefix immediately. Any already-created ordinary
+   siblings remain valid frontier work; no node is regenerated.
+5. Record excursion starts, catch-ups, deaths/timeouts, charged work, the
+   equal-depth loss contrast, selected side, and eventual loser resumption.
+
+This is a general frontier strategy, not repair. Its bound must be expressed in
+search work and remaining-budget evidence, not wall time or benchmark identity.
+The governed V1 attempt must finish before this successor is implemented or
+evaluated.

@@ -1218,3 +1218,9 @@ looks are N=8/16/32/48 and whose one-sided probability decision—not an added
 magnitude or source gate—controls acceptance. If accepted, the lean policy
 becomes the sole default and follows the normal rebaseline workflow. No
 multi-budget sweep is part of this decision.
+
+A clean seed-128 smoke after deleting depth-two scaffolding is exactly identical
+to the retained proper arm on all five tracks, scores, and validity outcomes;
+the analyzer passes. This verifies that simplification restored the intended
+lean mechanism rather than creating a fourth behavioral variant. The canonical
+campaign can now start from the committed source state.

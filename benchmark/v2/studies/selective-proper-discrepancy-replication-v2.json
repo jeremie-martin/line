@@ -57,6 +57,23 @@
       "conclusion": "The repeated positive effect belongs to lean depth one. Yielding is small and heterogeneous; depth two is negative."
     }
   },
+  "clean_implementation_smoke": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-proper-discrepancy-replication-smoke-seed128",
+    "scope": "Known attribution seed 128; believer pair plus three controls at 750k. Score is excluded from decision evidence.",
+    "result": {
+      "cells": 5,
+      "valid": 5,
+      "track_score_validity_identity_to_retained_proper_arm": 5,
+      "first_local_routes": 4,
+      "target_reaches": 3,
+      "selected": 0,
+      "analyzer_trust_checks": "pass"
+    },
+    "sha256": {
+      "candidate": "5696bb3ac4aec4a83cc5f2457b9fcc91b0e8befbed4a9b0e5a9330915ea2e503",
+      "selective_analysis": "cf68e7216b652b32150fe4c3d04e12cfb72e5c5e5914bb50f14145b348f16f10"
+    }
+  },
   "predeclared_canonical": {
     "baseline": "selective-axis-regret-catchup, headline 604.2665 at 750k",
     "promotion_headline_seeds": 48,

@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-shallow-trigger-study.v1",
-  "status": "full-catalog-screen-predeclared",
+  "status": "closed-no-action-set",
   "generated_at": "2026-08-14",
   "intervention": {
     "environment": {
@@ -34,5 +34,40 @@
     "cells_per_arm": 88,
     "reference_commit": "7bffd55203bbbf2dbf35bcd55ebbb229a9dcca77",
     "decision": "Advance only if all cells retain validity, the full-catalog score sum is positive, and the direction is not carried by one isolated cell. This is the last fixed rewind-cap dose in the family; failure closes the family rather than moving the cap again."
+  },
+  "screen_result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-shallow6-trigger-015-full-n2",
+    "completed_cells": "88/88 in each arm",
+    "outcome_attribution": {
+      "both_valid": 88,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 0
+    },
+    "changed_tracks": 0,
+    "both_valid_score_sum_delta": 0,
+    "better_worse_tied": [0, 0, 88],
+    "mechanics": {
+      "candidate_015_crossed_watches": 1500,
+      "reference_020_crossed_watches": 1104,
+      "candidate_015_generically_admissible_watches": 52,
+      "candidate_020_generically_admissible_watches": 22,
+      "additional_generically_admissible_lower_trigger_watches": 30,
+      "candidate_lower_trigger_gap_rewind_suppressions": 1349,
+      "selective_backtracks": "22 -> 22",
+      "suspended_continuations_resumed": "14 -> 14",
+      "catchup_completed": "22 -> 22",
+      "catchup_alternative_selected": "8 -> 8",
+      "catchup_current_selected": "14 -> 14",
+      "catchup_probe_dead_ends": "0 -> 0",
+      "catchup_probe_frames": "959939 -> 959939"
+    },
+    "interpretation": "The lower threshold was observed, but the cap-six conjunction admitted no additional live action on these fresh full-catalog seeds. All 30 extra generically admissible 0.15 opportunities required rewinding more than six gaps. The result is exact behavioral neutrality, not evidence about the score value of an exercised cap-six action set.",
+    "decision": "Close the fixed rewind-cap family without canonical evaluation. Cap seven exercised seven extra backtracks and was flat-negative; cap six exercised none. Do not tune another adjacent integer cap.",
+    "sha256": {
+      "candidate": "0784c0f261b64a99b95968d6aedf6392db31297bf0e03e6b30f7094fb84c4686",
+      "reference": "26df493bb3ccead5c56a1c3cc19120d1bb3c90184347a13908c103798b8c1d87",
+      "report": "f1b11b671ba0830ea931834cb1249e02498b708685fdae6b677f27b66772b1b9"
+    }
   }
 }

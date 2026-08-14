@@ -525,3 +525,19 @@ only five times and returned to the interrupted current prefix 13 times. Cap
 six therefore removes a mechanically distinct low-yield shell, not merely one
 unit from a tuned constant. It receives a separately named, fresh all-catalog
 screen; cap seven is closed and its environment value is removed.
+
+The cap-six screen was exactly behavior-neutral on fresh actual seeds 34 and
+35: all 88 paired cells were valid and all 88 tracks and scores tied. This was
+not caused by a missing signal. The candidate observed 1,500 watches crossing
+0.15 versus 1,104 crossing 0.20, and found 52 generically admissible 0.15
+watches versus 22 at 0.20. But all 30 additional opportunities required a
+rewind greater than six gaps. Consequently both arms executed the same 22
+backtracks, made the same 8 alternative and 14 current-prefix selections, and
+spent the same 959,939 catch-up frames.
+
+This closes the fixed rewind-cap family. Cap seven was active but flat-negative;
+cap six had no action set on its fresh full-catalog screen. Neither warrants a
+canonical evaluation, and another adjacent integer cap would be parameter
+tuning rather than a new hypothesis. The next strategy should predict the value
+of an individual tournament from its expected work and local evidence instead
+of treating rewind distance itself as the decision rule.

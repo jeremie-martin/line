@@ -495,19 +495,17 @@ export type CompileStats = {
   handoff_selective_backtracking?: {
     policy:
       | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_quota_20"
-      | "selective_axis_regret_catchup_quota_25"
-      | "selective_axis_regret_catchup_quota_30";
+      | "selective_axis_regret_catchup_min_gain_0025"
+      | "selective_axis_regret_catchup_min_gain_005"
+      | "selective_axis_regret_catchup_min_gain_01";
     min_contact_advance: number;
     min_axis_loss_delta: number;
-    catchup_probe_budget_share: number | null;
-    catchup_probe_budget_frames: number | null;
+    min_catchup_axis_loss_gain: number;
     contact_expansions_observed: number;
     branch_watches_armed: number;
     mature_watch_checks: number;
     loss_threshold_crossings: number;
     deadline_suppressed_crossings: number;
-    probe_budget_suppressed_crossings: number;
     execution_ceiling_suppressed_crossings: number;
     unavailable_alternatives: number;
     selective_backtracks: number;

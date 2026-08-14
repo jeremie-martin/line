@@ -213,6 +213,7 @@ import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts
 import { getSimFrames, refundSimFramesTo } from "./sim_frames.ts";
 import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
+  catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
   type FrontierTraversalLane,
@@ -2122,7 +2123,7 @@ function compileHandoffInternal(
     const selectiveBacktracking = frontierTraversalPolicy !== "depth_first"
       ? new SelectiveAxisRegretController<HandoffNode>(
         (node) => node.search.gapIndex,
-        { policy: frontierTraversalPolicy, targetBudgetFrames: targetBudget },
+        { policy: frontierTraversalPolicy },
       )
       : null;
     selectiveBacktracking?.observeRoot(root);
@@ -3102,7 +3103,11 @@ function compileHandoffInternal(
         }
 
         const catchupAxisLoss = authoredPrefixAxisLoss(probe.search);
-        if (catchupAxisLoss < decision.triggerAxisLoss) {
+        if (catchupAlternativeHasSufficientGain(
+          selectiveBacktracking!.policy,
+          decision.triggerAxisLoss,
+          catchupAxisLoss,
+        )) {
           finish("alternative_selected", catchupAxisLoss);
           enqueueChild(suspended, pass, fb);
           enqueueChild(probe, pass, fb);

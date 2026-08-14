@@ -1,8 +1,8 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_quota_20"
-  | "selective_axis_regret_catchup_quota_25"
-  | "selective_axis_regret_catchup_quota_30";
+  | "selective_axis_regret_catchup_min_gain_0025"
+  | "selective_axis_regret_catchup_min_gain_005"
+  | "selective_axis_regret_catchup_min_gain_01";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -15,27 +15,35 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
-  if (raw === "selective-axis-regret-catchup-quota-20") {
-    return "selective_axis_regret_catchup_quota_20";
+  if (raw === "selective-axis-regret-catchup-min-gain-0.0025") {
+    return "selective_axis_regret_catchup_min_gain_0025";
   }
-  if (raw === "selective-axis-regret-catchup-quota-25") {
-    return "selective_axis_regret_catchup_quota_25";
+  if (raw === "selective-axis-regret-catchup-min-gain-0.005") {
+    return "selective_axis_regret_catchup_min_gain_005";
   }
-  if (raw === "selective-axis-regret-catchup-quota-30") {
-    return "selective_axis_regret_catchup_quota_30";
+  if (raw === "selective-axis-regret-catchup-min-gain-0.01") {
+    return "selective_axis_regret_catchup_min_gain_01";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or a ` +
-      `selective-axis-regret-catchup-quota-{20,25,30} study arm; got ${raw}`,
+      `selective-axis-regret-catchup-min-gain-{0.0025,0.005,0.01} study arm; got ${raw}`,
   );
 }
 
-export function catchupProbeBudgetShare(policy: SelectiveCatchupPolicy): number | null {
-  if (policy === "selective_axis_regret_catchup_quota_20") return 0.20;
-  if (policy === "selective_axis_regret_catchup_quota_25") return 0.25;
-  if (policy === "selective_axis_regret_catchup_quota_30") return 0.30;
-  return null;
+export function catchupMinimumAxisLossGain(policy: SelectiveCatchupPolicy): number {
+  if (policy === "selective_axis_regret_catchup_min_gain_0025") return 0.0025;
+  if (policy === "selective_axis_regret_catchup_min_gain_005") return 0.005;
+  if (policy === "selective_axis_regret_catchup_min_gain_01") return 0.01;
+  return 0;
+}
+
+export function catchupAlternativeHasSufficientGain(
+  policy: SelectiveCatchupPolicy,
+  currentAxisLoss: number,
+  alternativeAxisLoss: number,
+): boolean {
+  return currentAxisLoss - alternativeAxisLoss > catchupMinimumAxisLossGain(policy);
 }
 
 type AxisRegretWatch<Node extends object> = {
@@ -46,7 +54,6 @@ type AxisRegretWatch<Node extends object> = {
   used: boolean;
   signalCrossed: boolean;
   deadlineSuppressionRecorded: boolean;
-  quotaSuppressionRecorded: boolean;
 };
 
 type WatchLink<Node extends object> = {
@@ -76,14 +83,12 @@ export type SelectiveBacktrackingStats = {
   policy: SelectiveCatchupPolicy;
   min_contact_advance: number;
   min_axis_loss_delta: number;
-  catchup_probe_budget_share: number | null;
-  catchup_probe_budget_frames: number | null;
+  min_catchup_axis_loss_gain: number;
   contact_expansions_observed: number;
   branch_watches_armed: number;
   mature_watch_checks: number;
   loss_threshold_crossings: number;
   deadline_suppressed_crossings: number;
-  probe_budget_suppressed_crossings: number;
   execution_ceiling_suppressed_crossings: number;
   unavailable_alternatives: number;
   selective_backtracks: number;
@@ -155,7 +160,6 @@ export class SelectiveAxisRegretController<Node extends object> {
   readonly policy: SelectiveCatchupPolicy;
 
   private readonly gapIndexOf: (node: Node) => number;
-  private readonly catchupProbeBudgetFrames: number | null;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
   private readonly stats: SelectiveBacktrackingStats;
@@ -164,34 +168,20 @@ export class SelectiveAxisRegretController<Node extends object> {
     gapIndexOf: (node: Node) => number,
     options: {
       policy?: SelectiveCatchupPolicy;
-      targetBudgetFrames?: number;
     } = {},
   ) {
     this.gapIndexOf = gapIndexOf;
     this.policy = options.policy ?? "selective_axis_regret_catchup";
-    const budgetShare = catchupProbeBudgetShare(this.policy);
-    if (budgetShare !== null && (
-      options.targetBudgetFrames === undefined ||
-      !Number.isSafeInteger(options.targetBudgetFrames) ||
-      options.targetBudgetFrames < 1
-    )) {
-      throw new Error("selective catch-up quota requires a positive target budget");
-    }
-    this.catchupProbeBudgetFrames = budgetShare === null
-      ? null
-      : options.targetBudgetFrames! * budgetShare;
     this.stats = {
       policy: this.policy,
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
       min_axis_loss_delta: SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA,
-      catchup_probe_budget_share: budgetShare,
-      catchup_probe_budget_frames: this.catchupProbeBudgetFrames,
+      min_catchup_axis_loss_gain: catchupMinimumAxisLossGain(this.policy),
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       mature_watch_checks: 0,
       loss_threshold_crossings: 0,
       deadline_suppressed_crossings: 0,
-      probe_budget_suppressed_crossings: 0,
       execution_ceiling_suppressed_crossings: 0,
       unavailable_alternatives: 0,
       selective_backtracks: 0,
@@ -251,7 +241,6 @@ export class SelectiveAxisRegretController<Node extends object> {
       used: false,
       signalCrossed: false,
       deadlineSuppressionRecorded: false,
-      quotaSuppressionRecorded: false,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -282,17 +271,6 @@ export class SelectiveAxisRegretController<Node extends object> {
       if (!watch.signalCrossed) {
         watch.signalCrossed = true;
         this.stats.loss_threshold_crossings++;
-      }
-      if (
-        this.catchupProbeBudgetFrames !== null &&
-        this.stats.catchup_probe_frames >= this.catchupProbeBudgetFrames
-      ) {
-        watch.used = true;
-        if (!watch.quotaSuppressionRecorded) {
-          watch.quotaSuppressionRecorded = true;
-          this.stats.probe_budget_suppressed_crossings++;
-        }
-        continue;
       }
       if (!input.alternativeAvailable(watch.alternative)) {
         watch.used = true;

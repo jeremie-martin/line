@@ -382,3 +382,18 @@ Some late tournaments remain valuable. The next efficient experiment should
 improve the value decision at equal depth (where the promoted policy currently
 switches on any positive authored-axis gain), or estimate tournament value
 before admission; it should not keep sweeping nearby quota percentages.
+
+### Equal-depth selection-margin arms
+
+The next live family keeps admission, probe work, and the causal alternative
+identical. It changes only the equal-depth disposition: the alternative must
+beat the current prefix by a predeclared minimum authored-axis loss gain before
+it takes traversal priority. The production policy retains its exact strict
+positive-gain rule. Study arms use 0.0025, 0.005, and 0.01.
+
+This bracket comes from the behavior-neutral checkpoint panel, not from output
+score fitting. Of 68 alternative selections, 15 had gain below 0.0025, 30 below
+0.005, and 46 below 0.01. The ladder therefore changes roughly one quarter,
+one half, and two thirds of observed alternative dispositions while charging
+the same tournament work. It tests whether tiny prefix wins are robust enough
+to justify changing paths; it is not expected to save catch-up frames directly.

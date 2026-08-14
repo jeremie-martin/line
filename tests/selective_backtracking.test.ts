@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
+  catchupAlternativeHasSufficientGain,
+  catchupMinimumAxisLossGain,
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
 } from "../scripts/v0/optimizer/selective_backtracking.ts";
@@ -15,94 +17,40 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-quota-20"))
-      .toBe("selective_axis_regret_catchup_quota_20");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-quota-25"))
-      .toBe("selective_axis_regret_catchup_quota_25");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-quota-30"))
-      .toBe("selective_axis_regret_catchup_quota_30");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-min-gain-0.0025"))
+      .toBe("selective_axis_regret_catchup_min_gain_0025");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-min-gain-0.005"))
+      .toBe("selective_axis_regret_catchup_min_gain_005");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-min-gain-0.01"))
+      .toBe("selective_axis_regret_catchup_min_gain_01");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("best-first")).toThrow(/LR_FRONTIER_POLICY/);
   });
 
-  test("a catch-up work quota suppresses later tournaments without changing the trigger", () => {
-    const controller = new SelectiveAxisRegretController<Node>(
-      (node) => node.gap,
-      { policy: "selective_axis_regret_catchup_quota_20", targetBudgetFrames: 100 },
-    );
-    const firstParent = { gap: 1, name: "first-parent" };
-    const firstLeader = { gap: 2, name: "first-leader" };
-    const firstAlternative = { gap: 2, name: "first-alternative" };
-    const firstDescendant = { gap: 3, name: "first-descendant" };
-    controller.observeExpansion({
-      parent: firstParent,
-      children: [firstLeader, firstAlternative],
-      contactExpansion: true,
-      contactOrdinal: 1,
-      axisLoss: 0,
-    });
-    controller.observeExpansion({
-      parent: firstLeader,
-      children: [firstDescendant],
-      contactExpansion: true,
-      contactOrdinal: 2,
-      axisLoss: 0.1,
-    });
-    const first = controller.consider({
-      node: firstDescendant,
-      contactOrdinal: 3,
-      axisLoss: 0.3,
-      executionCeilingReached: false,
-      totalSpentFrames: 1,
-      lane: "initial",
-      alternativeAvailable: () => true,
-      alternativeDeadline: () => ({ margin: 3, pressured: false }),
-    });
-    expect(first).not.toBeNull();
-    controller.finishCatchup(first!, {
-      outcome: "current_selected",
-      endGapIndex: 3,
-      probeNodesProcessed: 1,
-      probeFrames: 20,
-      catchupAxisLoss: 0.4,
-    });
-
-    const secondParent = { gap: 4, name: "second-parent" };
-    const secondLeader = { gap: 5, name: "second-leader" };
-    const secondAlternative = { gap: 5, name: "second-alternative" };
-    const secondDescendant = { gap: 6, name: "second-descendant" };
-    controller.observeExpansion({
-      parent: secondParent,
-      children: [secondLeader, secondAlternative],
-      contactExpansion: true,
-      contactOrdinal: 4,
-      axisLoss: 0,
-    });
-    controller.observeExpansion({
-      parent: secondLeader,
-      children: [secondDescendant],
-      contactExpansion: true,
-      contactOrdinal: 5,
-      axisLoss: 0.1,
-    });
-    expect(controller.consider({
-      node: secondDescendant,
-      contactOrdinal: 6,
-      axisLoss: 0.3,
-      executionCeilingReached: false,
-      totalSpentFrames: 30,
-      lane: "initial",
-      alternativeAvailable: () => true,
-      alternativeDeadline: () => ({ margin: 3, pressured: false }),
-    })).toBeNull();
-    expect(controller.snapshot()).toMatchObject({
-      policy: "selective_axis_regret_catchup_quota_20",
-      catchup_probe_budget_share: 0.2,
-      catchup_probe_budget_frames: 20,
-      selective_backtracks: 1,
-      probe_budget_suppressed_crossings: 1,
-    });
+  test("resolves predeclared equal-depth selection margins", () => {
+    expect(catchupMinimumAxisLossGain("selective_axis_regret_catchup")).toBe(0);
+    expect(catchupMinimumAxisLossGain("selective_axis_regret_catchup_min_gain_0025"))
+      .toBe(0.0025);
+    expect(catchupMinimumAxisLossGain("selective_axis_regret_catchup_min_gain_005"))
+      .toBe(0.005);
+    expect(catchupMinimumAxisLossGain("selective_axis_regret_catchup_min_gain_01"))
+      .toBe(0.01);
+    expect(catchupAlternativeHasSufficientGain(
+      "selective_axis_regret_catchup",
+      0.5,
+      0.4999,
+    )).toBe(true);
+    expect(catchupAlternativeHasSufficientGain(
+      "selective_axis_regret_catchup_min_gain_005",
+      0.5,
+      0.496,
+    )).toBe(false);
+    expect(catchupAlternativeHasSufficientGain(
+      "selective_axis_regret_catchup_min_gain_005",
+      0.5,
+      0.494,
+    )).toBe(true);
   });
 
   test("fires once on a mature causal watch and names its concrete sibling", () => {

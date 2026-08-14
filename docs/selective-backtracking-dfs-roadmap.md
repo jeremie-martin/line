@@ -595,3 +595,18 @@ backtrack. A predeclared 32-cell paired panel covers the four believer cases,
 the sparse-lowline pair, and the meter-exchange pair on fresh seeds 38-41. It
 must be byte-identical to its reference. A live arm follows only if at least ten
 production backtracks occur and at least half still have another sibling.
+
+The observation panel passes both gates. Its automatic stratum controls expand
+the run to 40 paired cells; all 40 tracks, scores, and validity outcomes are
+identical. It records 5,358 causal watches, of which 5,351 have two alternatives
+at creation. More importantly, all 47 executed production backtracks still have
+exactly one additional sibling in the live frontier. The opportunity is thus
+universal in the active believer cells, not an inference from branch width.
+
+The next categorical arm generalizes the bounded catch-up operation itself. At
+one admitted regret event it probes both causal alternatives independently to
+the interrupted depth, compares the current prefix and every completed probe
+using the same authored-prefix axis loss, and schedules the lowest-loss prefix
+first while retaining every other prefix as ordinary frontier work. Trigger,
+maturity, deadline admission, candidate generation, and ordinary DFS stay
+unchanged.

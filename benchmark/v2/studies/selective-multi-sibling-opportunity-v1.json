@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-multi-sibling-opportunity-study.v1",
-  "status": "observation-panel-predeclared",
+  "status": "opportunity-confirmed",
   "generated_at": "2026-08-14",
   "question": "When production selective backtracking fires, how often is another accepted sibling beyond the runner-up still present for a broader causal tournament?",
   "instrumentation": {
@@ -27,10 +27,44 @@
       "meter_exchange",
       "meter_exchange_speed_plus_4"
     ],
-    "cells_per_arm": 32,
+    "requested_cells_per_arm": 32,
     "reference_commit": "89d58b73",
     "trust_gate": "All paired tracks, scores, and validity outcomes must be identical because the intervention is observation-only.",
     "action_gate": "A live multi-sibling arm is justified only if the panel records at least ten production selective backtracks and at least half have an additional sibling available. Otherwise enlarge observation or abandon the mechanism; do not infer breadth from branchLimit=3."
+  },
+  "result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-multi-sibling-opportunity-n4",
+    "actual_sources": 10,
+    "automatic_controls": [
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ],
+    "actual_cells_per_arm": 40,
+    "outcome_attribution": {
+      "both_valid": 40,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 0
+    },
+    "changed_tracks": 0,
+    "score_sum_delta": 0,
+    "branch_watches": 5358,
+    "branch_watches_by_alternative_count": {
+      "1": 7,
+      "2": 5351
+    },
+    "selective_backtracks": 47,
+    "selective_backtracks_with_additional_sibling_available": 47,
+    "additional_siblings_available_sum": 47,
+    "additional_siblings_available_max": 1,
+    "runs_with_selective_backtrack": 8,
+    "runs_with_additional_sibling": 8,
+    "interpretation": "The observation-only trust gate passes exactly, and every executed backtrack has one additional accepted sibling still in the live frontier. The action gate passes by a wide margin. A categorical three-prefix catch-up tournament is justified.",
+    "sha256": {
+      "candidate": "d1c38ad0cb65d564ee9cd429f20acf35208710bf101995a63b9dd8581e4a0151",
+      "reference": "f3bd2477d89cc28414980140927dc138da818804ecad28d7babafc1a98b72932",
+      "report": "6735f45b3440c30639956ee7c6cf167ee1e2a18f37941f9bfc77850eb41e55bc"
+    }
   },
   "non_claim": "The counters measure opportunity breadth only. They do not claim that probing another sibling improves score or is affordable."
 }

@@ -338,3 +338,29 @@ the active 750k campaign baseline `selective-axis-regret-catchup`, with headline
 604.2665. The promotion does not change the conclusion's scope: this is a
 successful first scheme and a foundation for further selective-backtracking
 work, not a final strategy or a claim about unmeasured budgets.
+
+## Efficient successor funnel
+
+The first post-promotion panel added behavior-neutral, like-for-like loss
+checkpoints while each alternative catches up. On 160 exact canonical cells
+covering the active gains and regressions, the instrumented compiler and the
+promoted reference produced zero changed tracks and identical scores/validity.
+The 194 observed tournaments supplied 84 offline early-stopping rules without
+84 compiler runs.
+
+Intermediate loss sign agreed with the eventual full-depth winner only 60-69%
+of the time. The strongest zero-contradiction early rejection rule saved just
+123,704 measured frames across a 120,000,000-frame panel (0.10%). That is useful
+negative design evidence: a progressive sign guard is too weak and too noisy to
+justify a live arm yet.
+
+The same panel identified a stronger budget-allocation axis. Catch-up consumed
+150k-288k frames in the dominant long compiles. Once accumulated catch-up work
+reached 30% of the fixed 750k budget, ten later tournaments remained; every one
+eventually retained the current prefix. Study arms therefore bound cumulative
+catch-up work at 20%, 25%, or 30% of the compile's fixed budget. The bound is an
+admission quota: an admitted tournament finishes, then later triggers are
+suppressed once accumulated charged probe work has reached the quota. This
+keeps the operation deterministic, scales with budget, and never truncates an
+in-flight comparison. These categorical arms are evidence probes, not new
+defaults.

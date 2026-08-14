@@ -2119,8 +2119,11 @@ function compileHandoffInternal(
     );
     const passStack: HandoffNode[] = root.skippedContacts === 0 ? [root] : [];
     const fallbackStack: HandoffNode[] = root.skippedContacts === 0 ? [] : [root];
-    const selectiveBacktracking = frontierTraversalPolicy === "selective_axis_regret_catchup"
-      ? new SelectiveAxisRegretController<HandoffNode>((node) => node.search.gapIndex)
+    const selectiveBacktracking = frontierTraversalPolicy !== "depth_first"
+      ? new SelectiveAxisRegretController<HandoffNode>(
+        (node) => node.search.gapIndex,
+        { policy: frontierTraversalPolicy, targetBudgetFrames: targetBudget },
+      )
       : null;
     selectiveBacktracking?.observeRoot(root);
     const contactOrdinalByGapIndex: number[] = [0];

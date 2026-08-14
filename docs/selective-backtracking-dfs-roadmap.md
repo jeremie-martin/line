@@ -207,6 +207,26 @@ with local rather than old watch points, with different rewind targets, or with
 bounded/interleaved subtree scheduling. A sparse aggregate result from this one
 policy must not be read as evidence against those schemes.
 
+## Strategy space
+
+Future arms should be described as explicit choices on independent dimensions,
+so experiments accumulate knowledge instead of becoming a bag of constants:
+
+| Dimension | Example choices |
+|---|---|
+| signal | realized authored-axis regret; local-gap regret; prediction surprise; repair-incumbent deficit; search plateau |
+| branch point | causal runner-up; nearest eligible watch; highest estimated value per work; weakest affordable authored gap |
+| disposition | prune; suspend under a whole subtree (V1); bounded excursion; equal-depth tournament; interleaved work quanta |
+| alternative breadth | one exact sibling; top-k sibling tournament; limited-discrepancy paths containing one or two rank deviations |
+| phase | initial only; repair only with incumbent-relative evidence; both through one shared policy |
+| budget response | conservative completion admission; probe-work allowance; rewind depth or tournament breadth scaled from remaining-work evidence |
+
+The dimensions should remain separable in code. For example, a good trigger
+must not force an unbounded disposition, and a repair-relative comparator must
+not require a repair-only scheduler. Higher-budget behavior is an open question;
+the current canonical run measures only 750k and no multi-budget sweep is being
+started here.
+
 ## One focused next policy: bounded equal-depth excursion
 
 The focused successor should separate *asking an alternative for evidence*

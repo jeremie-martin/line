@@ -195,11 +195,19 @@ searched the promoted sibling's whole live subtree before the suspended node,
 so retaining that node in the frontier was technically non-pruning but almost
 never operationally reversible within 750k.
 
-This falsifies the useful form of V1's disposition rule. The trigger and exact
-sibling identity are working and remain useful infrastructure; an unbounded
-DFS detour is not the next policy to tune.
+This does not support promoting V1 at the measured canonical 750k setting. It
+does identify a concrete limitation of this first disposition rule: retaining
+a node below an unbounded sibling subtree rarely makes suspension reversible
+within the measured budget. The trigger, exact sibling identity, and general
+scheduler capability are working and remain promising infrastructure.
 
-## Next policy: bounded equal-depth excursion
+Nothing here tests the wider selective-backtracking family. In particular it
+does not establish behavior at higher budgets, with repair-relative signals,
+with local rather than old watch points, with different rewind targets, or with
+bounded/interleaved subtree scheduling. A sparse aggregate result from this one
+policy must not be read as evidence against those schemes.
+
+## One focused next policy: bounded equal-depth excursion
 
 The focused successor should separate *asking an alternative for evidence*
 from *committing the rest of the compile to its subtree*:
@@ -218,7 +226,10 @@ from *committing the rest of the compile to its subtree*:
 5. Record excursion starts, catch-ups, deaths/timeouts, charged work, the
    equal-depth loss contrast, selected side, and eventual loser resumption.
 
-This is a general frontier strategy, not repair. Its bound must be expressed in
-search work and remaining-budget evidence, not wall time or benchmark identity.
-The governed V1 attempt must finish before this successor is implemented or
-evaluated.
+This is one especially direct follow-up, not a claim that the scheme space has
+been exhausted or ranked conclusively. Other promising families include local
+watch expiry, score-relative repair traversal, budget-dependent rewind depth,
+interleaved subtree quanta, and alternative target selection. The excursion is
+a general frontier strategy, not repair. Its bound must be expressed in search
+work and remaining-budget evidence, not wall time or benchmark identity. The
+governed V1 attempt must finish before a successor is implemented or evaluated.

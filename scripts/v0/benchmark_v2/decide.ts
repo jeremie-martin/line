@@ -282,6 +282,36 @@ export async function loadValidatedDecisionPairForCalibration(
   return { suite, baseRuns, candidateRuns };
 }
 
+/**
+ * Read a canonical two-snapshot study against its explicitly declared seed
+ * schedule. This is intentionally separate from `runDecisionCommand`: active
+ * campaign verdicts still belong to `eval`, while a disjoint confirmation
+ * block needs the same archive, scorer, source, runtime, and identity checks
+ * without pretending its fresh seeds are the campaign's original ladder.
+ */
+export async function loadValidatedCanonicalStudyPair(
+  basePath: string,
+  candidatePath: string,
+  schedule: ResolvedSeedSchedule,
+): Promise<{
+  suite: ReturnType<typeof loadSuiteManifest>;
+  baseRuns: DecisionRun[];
+  candidateRuns: DecisionRun[];
+}> {
+  const base = loadVerifiedArchive(basePath);
+  const candidate = loadVerifiedArchive(candidatePath);
+  assertNotExplorationArchive(base.archive);
+  assertNotExplorationArchive(candidate.archive);
+  const { suite, baseRuns, candidateRuns } = await validateComparison(
+    base,
+    candidate,
+    "decision",
+    schedule.seedsPerBudget,
+    schedule,
+  );
+  return { suite, baseRuns, candidateRuns };
+}
+
 /** Clone the frozen suite with the canonical allocation set to an eval depth. */
 export function suiteAtDepth(
   suite: ReturnType<typeof loadSuiteManifest>,
@@ -500,6 +530,7 @@ async function validateComparison(
   candidate: VerifiedArchive,
   purpose: "decision" | "calibration" = "decision",
   depthOverride?: number,
+  explicitSchedule?: ResolvedSeedSchedule,
 ): Promise<{
   suite: ReturnType<typeof loadSuiteManifest>;
   baseRuns: DecisionRun[];
@@ -571,8 +602,30 @@ async function validateComparison(
     );
   }
   const requiredListeningReview = purpose === "decision" ? listeningReview.fingerprint : null;
-  validateArchiveScope(baseArchive, suite, sources, contracts, requiredListeningReview, depthOverride, base.indexed);
-  validateArchiveScope(candidateArchive, suite, sources, contracts, requiredListeningReview, depthOverride, candidate.indexed);
+  validateArchiveScope(
+    baseArchive,
+    suite,
+    sources,
+    contracts,
+    requiredListeningReview,
+    depthOverride,
+    base.indexed,
+    explicitSchedule,
+    undefined,
+    explicitSchedule?.byBudget.map((entry) => entry.budget),
+  );
+  validateArchiveScope(
+    candidateArchive,
+    suite,
+    sources,
+    contracts,
+    requiredListeningReview,
+    depthOverride,
+    candidate.indexed,
+    explicitSchedule,
+    undefined,
+    explicitSchedule?.byBudget.map((entry) => entry.budget),
+  );
   validateCandidateIdentity(baseArchive);
   validateCandidateIdentity(candidateArchive);
   let compatibilityApproval: RunnerCompatibilityApproval | null = null;

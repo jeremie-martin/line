@@ -1,0 +1,94 @@
+{
+  "schema": "line.benchmark-v2.frozen-extension-confirmation.v1",
+  "status": "predeclared_awaiting_fresh_runs",
+  "predeclared_at": "2026-08-14T05:08:45Z",
+  "candidate": {
+    "study": "benchmark/v2/studies/aim-impact-residual-initial-only-candidate.json",
+    "original_comparison": "benchmark/v2/runs/aim-impact-residual-initial-only-comparison.json",
+    "original_comparison_sha256": "21edb1c9ce7c7e1d9290f3a5da5113ebb836606eb754fd6fef27b6154852a2cc",
+    "original_outcome": "inconclusive",
+    "snapshot": {
+      "schema": "line.benchmark-v2.compiler-snapshot.v1",
+      "archive": "benchmark/v2/runs/aim-impact-residual-initial-only-development-750k-N48-compiler-snapshot.tar.gz",
+      "archiveSha256": "a689387b83b714b1bfbe47763315c2e4cf3d75a4b09c45e06ee93a29c5e61219",
+      "candidateFingerprint": "682fe8b380ab85f7986bd635ad9ff3fb7d28a7e54c60e6ca38c420f6e0e9f866",
+      "compilerSourceFingerprint": "42852d4dde551c43432fb4bb87a23afbb587a72adc1afc0cf09c7227f587617d",
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+    }
+  },
+  "baseline": {
+    "label": "last-chance-repair-breadth",
+    "reference": "benchmark/v2/campaign-baseline.json",
+    "reference_sha256_at_declaration": "e861e4948aa6282e041abb36520e02d19a9313d37de153e9dc529e72c9894570",
+    "snapshot": {
+      "schema": "line.benchmark-v2.compiler-snapshot.v1",
+      "archive": "benchmark/v2/runs/last-chance-repair-breadth-compiler-snapshot.tar.gz",
+      "archiveSha256": "caf7b7d88af671b4ab8a9a7d35804c8e7d3db8a6a4852b3166ccb0e65e0b9d61",
+      "candidateFingerprint": "406549bb45124919682fdeaf7bb8a3442d40f7dbd0bc93f08cf8d8d62d9359d2",
+      "compilerSourceFingerprint": "b4e190693e32162325d076a0c6ec4897ba123454e76c708e3c98935cf8826c31",
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+    }
+  },
+  "canonicalSeedSchedule": {
+    "kind": "profile_budget_disjoint_contiguous",
+    "profile": "canonical",
+    "seedBase": 0,
+    "seedsPerBudget": 48,
+    "byBudget": [
+      {
+        "budget": 750000,
+        "actualSeeds": [
+          648, 649, 650, 651, 652, 653, 654, 655,
+          656, 657, 658, 659, 660, 661, 662, 663,
+          664, 665, 666, 667, 668, 669, 670, 671,
+          672, 673, 674, 675, 676, 677, 678, 679,
+          680, 681, 682, 683, 684, 685, 686, 687,
+          688, 689, 690, 691, 692, 693, 694, 695
+        ]
+      }
+    ]
+  },
+  "scope": {
+    "benchmark": "full canonical V2 development catalog",
+    "sources": 44,
+    "budget": 750000,
+    "prior_seed_blocks": 48,
+    "fresh_seed_blocks": 48,
+    "combined_seed_blocks": 96,
+    "fresh_compiles_per_arm": 2112,
+    "multi_budget_sweep": false
+  },
+  "decision_rule": {
+    "authority": "fresh_independent_confirmation",
+    "primary_data": "Only the disjoint fresh 48-seed block decides confirmation; the post-hoc pooled N96 reading is descriptive.",
+    "statistic": "paired canonical headline delta with seed-block jackknife Student-t uncertainty",
+    "boundary": "Reuse the already calibrated N48 terminal boundary constant c=1.96392337. Confirm iff fresh-block T >= c; reject clear harm iff T <= -c; otherwise inconclusive.",
+    "boundary_constant": 1.96392337,
+    "reference_probability_at_df47": 0.97226547,
+    "calibration": "benchmark/v2/studies/sequential-eval-calibration.json",
+    "calibration_sha256": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
+    "adaptivity": "This follow-up was selected after observing the original N48 result. Independence is recovered by excluding all original seeds from the primary confirmation statistic."
+  },
+  "prior_observation": {
+    "official_delta": 2.3004,
+    "official_standard_error": 1.788,
+    "official_directional_probability": 0.89772849,
+    "matched_valid_delta": 0.5488958927942208,
+    "matched_valid_standard_error": 0.280188853537162,
+    "matched_valid_directional_probability": 0.9719711012160854
+  },
+  "prior_decision_indexes": {
+    "baseline": [
+      "benchmark/v2/runs/last-chance-repair-breadth-development-750k-N32.decision-index.json",
+      "benchmark/v2/runs/last-chance-repair-breadth-slots-32-48.json.decision-index.json"
+    ],
+    "candidate": "benchmark/v2/runs/aim-impact-residual-initial-only-development-750k-N48.N48.json.decision-index.json"
+  },
+  "outputs": {
+    "baseline": "benchmark/v2/runs/aim-impact-residual-initial-only-n96-fresh-baseline-N48.json",
+    "candidate": "benchmark/v2/runs/aim-impact-residual-initial-only-n96-fresh-candidate-N48.json",
+    "result": "benchmark/v2/runs/aim-impact-residual-initial-only-n96-confirmation.json"
+  }
+}

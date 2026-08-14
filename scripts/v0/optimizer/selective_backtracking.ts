@@ -1,4 +1,6 @@
-export type SelectiveCatchupPolicy = "selective_axis_regret_catchup";
+export type SelectiveCatchupPolicy =
+  | "selective_axis_regret_catchup"
+  | "selective_axis_regret_catchup_trigger_015";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -6,15 +8,20 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
+export const SELECTIVE_AXIS_REGRET_TRIGGER_015_MIN_LOSS_DELTA = 0.15;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
+  if (raw === "selective-axis-regret-catchup-trigger-015") {
+    return "selective_axis_regret_catchup_trigger_015";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
-    `LR_FRONTIER_POLICY must be dfs or selective-axis-regret-catchup; got ${raw}`,
+    `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
+      `selective-axis-regret-catchup-trigger-015; got ${raw}`,
   );
 }
 
@@ -155,6 +162,7 @@ export class SelectiveAxisRegretController<Node extends object> {
   readonly policy: SelectiveCatchupPolicy;
 
   private readonly gapIndexOf: (node: Node) => number;
+  private readonly minAxisLossDelta: number;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
   private readonly stats: SelectiveBacktrackingStats;
@@ -167,10 +175,13 @@ export class SelectiveAxisRegretController<Node extends object> {
   ) {
     this.gapIndexOf = gapIndexOf;
     this.policy = options.policy ?? "selective_axis_regret_catchup";
+    this.minAxisLossDelta = this.policy === "selective_axis_regret_catchup_trigger_015"
+      ? SELECTIVE_AXIS_REGRET_TRIGGER_015_MIN_LOSS_DELTA
+      : SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA;
     this.stats = {
       policy: this.policy,
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
-      min_axis_loss_delta: SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA,
+      min_axis_loss_delta: this.minAxisLossDelta,
       catchup_axis_loss_gain_threshold: 0,
       mature_axis_loss_delta_max: 0,
       regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
@@ -311,7 +322,7 @@ export class SelectiveAxisRegretController<Node extends object> {
           ]!.admissible_watches++;
         }
       }
-      if (axisLossDelta < SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA) continue;
+      if (axisLossDelta < this.minAxisLossDelta) continue;
 
       if (!watch.signalCrossed) {
         watch.signalCrossed = true;

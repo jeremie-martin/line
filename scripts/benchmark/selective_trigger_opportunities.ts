@@ -6,6 +6,7 @@ export const SELECTIVE_TRIGGER_OPPORTUNITY_THRESHOLDS = [
 ] as const;
 
 export type SelectiveTriggerOpportunityStats = {
+  min_axis_loss_delta: number;
   mature_axis_loss_delta_max: number;
   loss_threshold_crossings: number;
   selective_backtracks: number;
@@ -49,8 +50,8 @@ export type SelectiveTriggerOpportunitySummary = {
   }>;
   trust_checks: {
     nested_threshold_counts: true;
-    production_crossings_match: true;
-    production_admissions_match: true;
+    active_threshold_crossings_match: true;
+    active_threshold_admissions_match: true;
   };
   caveat: string;
 };
@@ -127,8 +128,8 @@ export function summarizeSelectiveTriggerOpportunities(
     by_source: bySource,
     trust_checks: {
       nested_threshold_counts: true,
-      production_crossings_match: true,
-      production_admissions_match: true,
+      active_threshold_crossings_match: true,
+      active_threshold_admissions_match: true,
     },
     caveat:
       "Each threshold is observed on production traversal. Counts are unique causal watches, " +
@@ -157,12 +158,13 @@ function validateRun(run: SelectiveTriggerOpportunityRun): void {
     }
     previous = current;
   }
-  const production = counts(run, PRODUCTION_THRESHOLD);
-  if (production.crossed_watches !== run.stats.loss_threshold_crossings) {
-    throw new Error(`${runKey(run)} production crossing counters disagree`);
+  const activeThreshold = run.stats.min_axis_loss_delta.toFixed(2);
+  const active = counts(run, activeThreshold);
+  if (active.crossed_watches !== run.stats.loss_threshold_crossings) {
+    throw new Error(`${runKey(run)} active-threshold crossing counters disagree`);
   }
-  if (production.admissible_watches !== run.stats.selective_backtracks) {
-    throw new Error(`${runKey(run)} production admission counters disagree`);
+  if (active.admissible_watches !== run.stats.selective_backtracks) {
+    throw new Error(`${runKey(run)} active-threshold admission counters disagree`);
   }
 }
 

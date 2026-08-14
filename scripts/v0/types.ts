@@ -493,7 +493,7 @@ export type CompileStats = {
   /** Present for the production selective-backtracking frontier policy. An
    *  explicit DFS diagnostic omits the object. */
   handoff_selective_backtracking?: {
-    policy: "selective_axis_regret_catchup";
+    policy: "selective_axis_regret_catchup" | "selective_axis_regret_catchup_trigger_015";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;

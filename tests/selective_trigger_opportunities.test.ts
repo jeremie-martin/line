@@ -13,6 +13,7 @@ function run(
     sourceId,
     seed,
     stats: {
+      min_axis_loss_delta: 0.20,
       mature_axis_loss_delta_max: 0.31,
       loss_threshold_crossings: values[3]![0],
       selective_backtracks: values[3]![1],
@@ -44,8 +45,8 @@ describe("selective trigger opportunity analysis", () => {
     expect(summary.by_source[0]).toMatchObject({ source_id: "a", runs: 2 });
     expect(summary.trust_checks).toEqual({
       nested_threshold_counts: true,
-      production_crossings_match: true,
-      production_admissions_match: true,
+      active_threshold_crossings_match: true,
+      active_threshold_admissions_match: true,
     });
   });
 
@@ -59,6 +60,15 @@ describe("selective trigger opportunity analysis", () => {
     const input = run("a", 16, [[2, 2], [2, 2], [2, 2], [2, 2]]);
     input.stats.selective_backtracks = 1;
     expect(() => summarizeSelectiveTriggerOpportunities([input]))
-      .toThrow(/production admission counters disagree/);
+      .toThrow(/active-threshold admission counters disagree/);
+  });
+
+  test("checks a live study arm against its declared active threshold", () => {
+    const input = run("a", 16, [[4, 4], [3, 3], [2, 2], [1, 1]]);
+    input.stats.min_axis_loss_delta = 0.15;
+    input.stats.loss_threshold_crossings = 2;
+    input.stats.selective_backtracks = 2;
+    expect(summarizeSelectiveTriggerOpportunities([input]).trust_checks)
+      .toMatchObject({ active_threshold_admissions_match: true });
   });
 });

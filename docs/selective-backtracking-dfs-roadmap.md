@@ -1103,3 +1103,19 @@ effect comes from reallocating immediate budget away from persistently losing
 catch-up work. The predeclared fresh two-seed all-catalog screen is now
 authorized; a canonical headline remains unauthorized until that breadth check
 shows positive, non-isolated movement without validity loss.
+
+The all-catalog screen keeps all 88 paired cells valid, but fails the score and
+breadth gate. Only two cells change; both are amplitude-variant regressions, for
+-2.8317 total. All 42 other sources and the base believer are exact. No route
+yields in these two seeds: four proper local routes reach target and one wins,
+so the regressions belong to the underlying discrepancy search rather than the
+yield action. The exact scheduler closes without a canonical run.
+
+A retrospective three-arm decomposition on the already-observed focused seeds
+clarifies the earlier +30.966 without changing the decision. Proper discrepancy
+alone contributes +27.6140 versus production; yielding adds +3.3520 versus
+proper, split six better and six worse cells. The important lead is therefore
+the discrepancy search itself, while the current yield rule is only a small,
+heterogeneous modifier. The next work should improve the quality of routes
+inside that search—through a new branch-aware disposition or richer local
+frontier—not tune the closed three-checkpoint guard or waive its catalog gate.

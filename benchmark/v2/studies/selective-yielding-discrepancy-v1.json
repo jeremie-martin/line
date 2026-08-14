@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-yielding-discrepancy-study.v1",
-  "status": "predeclared-implementation-and-focused-screen",
+  "status": "closed-after-negative-catalog-screen",
   "generated_at": "2026-08-14",
   "question": "Can the selective DFS preserve potentially recovering discrepancy paths while avoiding a long synchronous equal-depth commitment to routes whose exact prefix deficit has persisted across three authored gaps?",
   "relationship_to_maps": {
@@ -104,12 +104,59 @@
       },
       "decision": "Advance to exactly the predeclared fresh two-seed all-catalog breadth screen. All 40 cells remain valid; total and both source sums are positive; six seed blocks are positive; 11 cells improve; the worst loss is bounded; and yields span 12 target runs and both sources.",
       "interpretation": "The result is entirely completed-track quality rather than validity movement. Yielding converts the promising but heterogeneous proper-discrepancy family into a broader positive focused effect. Zero yielded routes resume, so the measured mechanism is budget reallocation away from persistent losing catch-up work, not guaranteed deferred recovery.",
+      "retrospective_mechanism_attribution": {
+        "proper_discrepancy_vs_production_target_sum_delta": 27.614,
+        "yielding_vs_proper_discrepancy_target_sum_delta": 3.352,
+        "yielding_vs_proper_better_worse_tied": [6, 6, 4],
+        "interpretation": "Most of the focused gain comes from adding proper discrepancy search; yielding contributes a small positive but heterogeneous increment. This decomposition was run after the screen and is diagnostic only."
+      },
       "sha256": {
         "candidate": "9258ca10f3144982858ab3c3b105c479e1b609babb3d0e48d040d8865e22791b",
         "reference": "1788b6c18614fc3339cda10929add3c6ae648c6e7889ea813f8833ca5f1e8f85",
         "report": "b807674ed251d9fd8aad86becb3ccb2217fb9fae932b442bedbcfe16e593dca6",
-        "selective_analysis": "221b9254deb2f80fc9096cccc5b436ab0c549f561073cdec1d7d82b0b8bf7bb8"
+        "selective_analysis": "221b9254deb2f80fc9096cccc5b436ab0c549f561073cdec1d7d82b0b8bf7bb8",
+        "proper_attribution": "adbae838106f832a864469cf1bfcec1e451714e559462000d231ebab163fef5b",
+        "yield_vs_proper_report": "fc8d91dba0cbb902f411318bc8ba1217975efc9c475b2c7be130cee84ddebc26",
+        "proper_vs_baseline_report": "feb189dd4300dc75ca7b6072e71bd22459db9781096d66c9fee34dbe7acc66cd"
       }
+    }
+  },
+  "catalog_screen": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-yielding-discrepancy-catalog-n2",
+    "actual_seeds": [136, 137],
+    "budget": 750000,
+    "sources": 44,
+    "validity": {
+      "both_valid": 88,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 0
+    },
+    "completed_track_quality": {
+      "score_sum_delta": -2.8317,
+      "improved_cells": 0,
+      "regressed_cells": 2,
+      "tied_cells": 86,
+      "changed_sources": [
+        "believer_impact_56s_amplitude_plus_5"
+      ],
+      "base_believer_delta": 0,
+      "amplitude_variant_sum_delta": -2.8317
+    },
+    "mechanics": {
+      "local_discrepancy_probes": 4,
+      "target_reaches": 4,
+      "local_routes_selected": 1,
+      "yielded_routes": 0,
+      "interpretation": "The two changed tracks come from the underlying proper-discrepancy search, not from a yield action."
+    },
+    "decision": "Close without canonical evaluation or promotion. Full validity passes, but movement is negative and isolated to two regressions on one source, violating both predeclared catalog requirements.",
+    "combined_context_not_a_decision": "Across the focused eight seeds plus these two catalog seeds, the target sum remains positive, but the prospectively fixed catalog gate failed. Combining after inspection cannot authorize a canonical run.",
+    "sha256": {
+      "candidate": "2fb1c94ba877ec2053b62d5b3d055474a984ff289682c5fd8c05a7c3a03a9023",
+      "reference": "2848d2036d6e5a77addbd61abec16916cd807326181f3efe98368cf928b35a79",
+      "report": "32f790cb9af115435b547ed878be09bdd83c69b5842b412d19fc774cc40d3f90",
+      "selective_analysis": "61aca06f180799798cd5fdfc0222a4a3bd5c584ddff46a32b636b52084163007"
     }
   }
 }

@@ -202,6 +202,7 @@ import { compileScopedEnv } from "../env_flags.ts";
 import {
   BUDGET_ESTIMATOR_MODEL,
   BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
+  budgetEstimateInterval,
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
   structuralRemainingWork,
@@ -500,24 +501,59 @@ export class CompileDeadline {
     gapIndex: number;
     costToEnd: readonly number[] | null;
   }): number {
-    const gap = clampGap(input.gapIndex, this.structuralByGap.length - 1);
+    const { work } = this.remainingWorkAt(input.gapIndex, input.costToEnd);
+    return this.marginForWork(input.spentFrames, work);
+  }
+
+  /**
+   * Conservative start-of-suffix margin for a policy that deliberately rewinds
+   * traversal. The ordinary deadline signal stays on the point estimate above;
+   * this admission face applies the estimator artifact's start-event upper
+   * interval to the concrete target gap, matching the uncertainty convention
+   * used to size repair attempts.
+   */
+  conservativeMarginAt(input: {
+    spentFrames: number;
+    gapIndex: number;
+    costToEnd: readonly number[] | null;
+  }): number {
+    const { work, pathAvailable } = this.remainingWorkAt(input.gapIndex, input.costToEnd);
+    const upper = budgetEstimateInterval(work, {
+      event: "start",
+      pathAvailable,
+    }, BUDGET_ESTIMATOR_MODEL).upper;
+    return this.marginForWork(input.spentFrames, upper);
+  }
+
+  private remainingWorkAt(
+    gapIndex: number,
+    costToEnd: readonly number[] | null,
+  ): { work: number; pathAvailable: boolean } {
+    const gap = clampGap(gapIndex, this.structuralByGap.length - 1);
     const structural = this.includeStartup && gap === this.anchorGapIndex
       ? this.anchorStructural
       : this.structuralByGap[gap];
-    const measured = input.costToEnd?.[gap];
+    const measured = costToEnd?.[gap];
+    const pathAvailable = measured !== undefined && measured > 0;
     // The model is named explicitly for the same reason
     // `BUDGET_ESTIMATOR_TRAVERSAL_MODEL` is above: this argument also has a
     // default, and this module already spent one era computing a signal it did
     // not document because it took one. `pace: null` leaves `progressFraction`
     // inert — the estimator reads it only to weight a pace that is not there.
-    const work = estimateRemainingBudgetWork({
-      structural,
-      path: measured !== undefined && measured > 0 ? measured : null,
-      pace: null,
-      progressFraction: 0,
-    }, BUDGET_ESTIMATOR_MODEL);
+    return {
+      work: estimateRemainingBudgetWork({
+        structural,
+        path: pathAvailable ? measured : null,
+        pace: null,
+        progressFraction: 0,
+      }, BUDGET_ESTIMATOR_MODEL),
+      pathAvailable,
+    };
+  }
+
+  private marginForWork(spentFrames: number, work: number): number {
     if (!(work > 0)) return Infinity;
-    return Math.max(0, this.policyBudgetFrames - input.spentFrames) / work;
+    return Math.max(0, this.policyBudgetFrames - spentFrames) / work;
   }
 }
 

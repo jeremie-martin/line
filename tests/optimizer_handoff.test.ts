@@ -27,6 +27,7 @@ import {
   type BudgetCompile,
 } from "./budget_contract_harness.ts";
 import type { CompileCheckpoint, CompileStats } from "../scripts/v0/optimizer/types.ts";
+import { DEADLINE_MARGIN_NO_PRESSURE } from "../scripts/v0/optimizer/deadline.ts";
 
 function hashTrack(track: unknown): string {
   return createHash("sha256").update(JSON.stringify(track)).digest("hex");
@@ -437,6 +438,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       expect(stats?.events.every((event) =>
         event.alternative_gap_index < event.from_gap_index &&
         event.axis_loss_delta >= (stats?.min_axis_loss_delta ?? Infinity) &&
+        event.alternative_conservative_deadline_margin >= DEADLINE_MARGIN_NO_PRESSURE &&
         event.trigger_total_spent_frames > 0
       )).toBe(true);
       expect(stats?.events.filter((event) => event.resumed_total_spent_frames !== null))

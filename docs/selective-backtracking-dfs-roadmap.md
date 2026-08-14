@@ -75,8 +75,10 @@ may fire once when all of these hold:
 2. combined authored-axis loss has worsened by at least 0.20 (equivalent to an
    RMS normalized-axis error increase of 0.05 under the canonical tolerance);
 3. the remembered sibling is still present in the same live frontier; and
-4. the existing deadline signal reports zero pressure and the traversal's
-   concrete local ceiling has not been reached.
+4. the existing deadline estimator's start-event upper interval, evaluated at
+   the concrete alternative's gap rather than at the current deeper prefix,
+   reports zero pressure; and
+5. the traversal's concrete local ceiling has not been reached.
 
 The current prefix is then suspended immediately behind the remembered sibling,
 which is promoted to the hot end. The sibling's subtree proceeds under ordinary
@@ -104,8 +106,8 @@ enabled it records:
 - sums/maxima for loss delta, contact advance, and gap rewind;
 - executed backtracks split by initial, snapshot, repair, and resumed lane.
 - one event per executed backtrack with its causal branch/current/alternative
-  gaps, baseline and trigger loss, charged-frame timestamp, and nullable
-  resumption timestamp.
+  gaps, baseline and trigger loss, alternative-specific conservative deadline
+  margin, charged-frame timestamp, and nullable resumption timestamp.
 
 The metric `selective_backtracks` means an actual frontier reorder. A signal
 crossing that deadline policy suppresses is not a backtrack.
@@ -130,6 +132,44 @@ crossing that deadline policy suppresses is not a backtrack.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-14 | Semantics and V1 policy frozen | complete | This document |
-| 2026-08-14 | Controller and shared scheduler | pending | |
-| 2026-08-14 | Deterministic verification | pending | |
-| 2026-08-14 | Repair-disabled mechanism probe | pending | |
+| 2026-08-14 | Controller and shared scheduler | complete | `3859e9b`, `25d7db5`; compile-local causal watch lineage, identity promotion, suspension/resumption, exact opt-in events |
+| 2026-08-14 | Deterministic verification | complete | 47 focused controller/deadline/handoff tests pass; unset default equals explicit DFS as a complete serialized checkpoint; enabled runs are deterministic |
+| 2026-08-14 | Repair-disabled mechanism probe | complete | One-budget panels below; zero unavailable alternatives and no validity loss after the target-aware deadline correction |
+
+## Initial mechanism evidence
+
+These are deterministic diagnostics, not statistical performance evidence.
+They use the production compiler path with repair disabled so the traversal
+effect is not confounded with the repair controller.
+
+The first 100k implementation priced deadline pressure at the current deep
+prefix. On `believer_impact_56s` seeds 0 and 1 it executed two backtracks per
+run and lost both completions. The action actually rewound to an earlier
+sibling, so that margin understated the work being admitted. This was an
+implementation/design error, not a parameter result.
+
+The corrected controller prices the concrete alternative gap with the budget
+estimator artifact's start-event upper interval. Repeating the frozen six-case
+x two-seed 100k panel produced:
+
+- 12 paired cells, all byte-identical between DFS and the selective arm;
+- 132 loss crossings suppressed by the conservative deadline;
+- zero executed backtracks and zero unavailable alternatives;
+- validity 6/12 in both arms (the other six baseline runs were also incomplete).
+
+At 750k, a four-case x one-seed active-mechanism panel produced:
+
+| Case | Backtracks | Resumed | First completion DFS -> selective | Score delta | Valid |
+|---|---:|---:|---:|---:|---:|
+| `river_reentry` | 0 | 0 | 415,584 -> 415,584 | +0.000 | yes/yes |
+| `dense_dialogue` | 0 | 0 | 497,212 -> 497,212 | +0.000 | yes/yes |
+| `frontier_pickup_progression` | 0 | 0 | 553,934 -> 553,934 | +0.000 | yes/yes |
+| `believer_impact_56s` | 7 | 0 | 264,682 -> 557,454 | +5.220 | yes/yes |
+
+All seven events promoted a concrete available sibling; no identity invariant
+failed. Their rewinds ranged from 1 to 12 gaps and every conservative target
+margin was at least 2.047. The score gain is one deterministic association and
+must not be generalized. More importantly, the active row delayed first
+completion by 292,772 frames. Production repair begins at first completion, so
+the full compiler comparison must measure whether this traversal investment
+beats the repair work it displaces.

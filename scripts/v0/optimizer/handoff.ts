@@ -2668,6 +2668,12 @@ function compileHandoffInternal(
           : telemetry.deepestSeenGap,
         costToEnd: incumbentCostToEnd,
       });
+    const conservativeDeadlineMarginAtGap = (gapIndex: number): number =>
+      deadline.conservativeMarginAt({
+        spentFrames: getSimFrames(),
+        gapIndex,
+        costToEnd: incumbentCostToEnd,
+      });
     const processNode = (
       node: HandoffNode,
       lane: FrontierTraversalLane,
@@ -2760,11 +2766,14 @@ function compileHandoffInternal(
           node,
           contactOrdinal: contactOrdinalAt(node.search.gapIndex),
           axisLoss: authoredPrefixAxisLoss(node.search),
-          deadlinePressured: deadlinePressure(deadlineMarginAt(node.search)) > 0,
           executionCeilingReached: !traversalCanContinue(),
           totalSpentFrames: getSimFrames(),
           lane,
           alternativeAvailable,
+          alternativeDeadline: (alternative) => {
+            const margin = conservativeDeadlineMarginAtGap(alternative.search.gapIndex);
+            return { margin, pressured: deadlinePressure(margin) > 0 };
+          },
         });
         if (decision !== null) {
           return finishAtomic({

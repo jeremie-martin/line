@@ -527,6 +527,7 @@ export type CompileStats = {
       baseline_axis_loss: number;
       trigger_axis_loss: number;
       axis_loss_delta: number;
+      alternative_conservative_deadline_margin: number;
       trigger_total_spent_frames: number;
       resumed_total_spent_frames: number | null;
     }>;

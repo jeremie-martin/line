@@ -16,6 +16,7 @@ import { setAimCompileBudgetFrames } from "../scripts/v0/optimizer/aim.ts";
 import {
   BUDGET_ESTIMATOR_MODEL,
   BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
+  budgetEstimateInterval,
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
   structuralRemainingWork,
@@ -133,6 +134,24 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
   test("at the first node the margin IS the static structural estimate", () => {
     const margin = deadline().marginAt({ spentFrames: 0, gapIndex: 0, costToEnd: null });
     expect(margin).toBeCloseTo(BUDGET / expectedWork(0, true, null), 9);
+  });
+
+  test("the conservative rewind margin uses the artifact's start upper interval", () => {
+    const input = { spentFrames: 100_000, gapIndex: 2, costToEnd: null };
+    const point = deadline().marginAt(input);
+    const conservative = deadline().conservativeMarginAt(input);
+    const upper = budgetEstimateInterval(expectedWork(2, false, null), {
+      event: "start",
+      pathAvailable: false,
+    }).upper;
+    expect(conservative).toBeGreaterThan(0);
+    expect(conservative).toBeLessThan(point);
+    expect(conservative).toBe((BUDGET - input.spentFrames) / upper);
+    expect(deadline().conservativeMarginAt({
+      spentFrames: 0,
+      gapIndex: GAPS.length,
+      costToEnd: null,
+    })).toBe(Infinity);
   });
 
   test("the startup intercept is charged once, at the anchor only", () => {

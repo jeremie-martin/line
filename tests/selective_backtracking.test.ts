@@ -41,11 +41,11 @@ describe("selective-backtracking controller", () => {
       node: descendant,
       contactOrdinal: 5,
       axisLoss: 0.61,
-      deadlinePressured: false,
       executionCeilingReached: false,
       totalSpentFrames: 100,
       lane: "initial",
       alternativeAvailable: (node) => node === alternative,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
     });
     expect(decision?.alternative).toBe(alternative);
     expect(decision?.contactAdvance).toBe(2);
@@ -57,11 +57,11 @@ describe("selective-backtracking controller", () => {
       node: descendant,
       contactOrdinal: 6,
       axisLoss: 1,
-      deadlinePressured: false,
       executionCeilingReached: false,
       totalSpentFrames: 101,
       lane: "initial",
       alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
     })).toBeNull();
     expect(controller.snapshot()).toMatchObject({
       branch_watches_armed: 1,
@@ -73,6 +73,7 @@ describe("selective-backtracking controller", () => {
         branch_gap_index: 3,
         from_gap_index: 5,
         alternative_gap_index: 4,
+        alternative_conservative_deadline_margin: 3,
         trigger_total_spent_frames: 100,
         resumed_total_spent_frames: 140,
       }],
@@ -96,11 +97,11 @@ describe("selective-backtracking controller", () => {
       node: leader,
       contactOrdinal: 2,
       axisLoss: 1,
-      deadlinePressured: false,
       executionCeilingReached: false,
       totalSpentFrames: 10,
       lane: "repair",
       alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
     })).toBeNull();
     controller.observeExpansion({
       parent: leader,
@@ -113,11 +114,11 @@ describe("selective-backtracking controller", () => {
       node: descendant,
       contactOrdinal: 3,
       axisLoss: 0.5,
-      deadlinePressured: true,
       executionCeilingReached: false,
       totalSpentFrames: 20,
       lane: "repair",
       alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 1, pressured: true }),
     })).toBeNull();
     expect(controller.snapshot()).toMatchObject({
       loss_threshold_crossings: 1,
@@ -150,11 +151,11 @@ describe("selective-backtracking controller", () => {
       node: descendant,
       contactOrdinal: 2,
       axisLoss: 0.3,
-      deadlinePressured: false,
       executionCeilingReached: false,
       totalSpentFrames: 30,
       lane: "resumed",
       alternativeAvailable: () => false,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
     })).toBeNull();
     expect(controller.snapshot()).toMatchObject({
       unavailable_alternatives: 1,

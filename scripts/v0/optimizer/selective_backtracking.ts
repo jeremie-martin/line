@@ -72,6 +72,7 @@ export type SelectiveBacktrackingEvent = {
   baseline_axis_loss: number;
   trigger_axis_loss: number;
   axis_loss_delta: number;
+  alternative_conservative_deadline_margin: number;
   trigger_total_spent_frames: number;
   resumed_total_spent_frames: number | null;
 };
@@ -163,11 +164,11 @@ export class SelectiveAxisRegretController<Node extends object> {
     node: Node;
     contactOrdinal: number;
     axisLoss: number;
-    deadlinePressured: boolean;
     executionCeilingReached: boolean;
     totalSpentFrames: number;
     lane: FrontierTraversalLane;
     alternativeAvailable: (node: Node) => boolean;
+    alternativeDeadline: (node: Node) => { margin: number; pressured: boolean };
   }): SelectiveBacktrackDecision<Node> | null {
     let link = this.lineage.get(input.node) ?? null;
     while (link !== null) {
@@ -185,20 +186,21 @@ export class SelectiveAxisRegretController<Node extends object> {
         watch.signalCrossed = true;
         this.stats.loss_threshold_crossings++;
       }
-      if (input.deadlinePressured) {
-        if (!watch.deadlineSuppressionRecorded) {
-          watch.deadlineSuppressionRecorded = true;
-          this.stats.deadline_suppressed_crossings++;
-        }
+      if (!input.alternativeAvailable(watch.alternative)) {
+        watch.used = true;
+        this.stats.unavailable_alternatives++;
         continue;
       }
       if (input.executionCeilingReached) {
         this.stats.execution_ceiling_suppressed_crossings++;
         continue;
       }
-      if (!input.alternativeAvailable(watch.alternative)) {
-        watch.used = true;
-        this.stats.unavailable_alternatives++;
+      const alternativeDeadline = input.alternativeDeadline(watch.alternative);
+      if (alternativeDeadline.pressured) {
+        if (!watch.deadlineSuppressionRecorded) {
+          watch.deadlineSuppressionRecorded = true;
+          this.stats.deadline_suppressed_crossings++;
+        }
         continue;
       }
 
@@ -225,6 +227,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         baseline_axis_loss: watch.baselineAxisLoss,
         trigger_axis_loss: input.axisLoss,
         axis_loss_delta: axisLossDelta,
+        alternative_conservative_deadline_margin: alternativeDeadline.margin,
         trigger_total_spent_frames: input.totalSpentFrames,
         resumed_total_spent_frames: null,
       });

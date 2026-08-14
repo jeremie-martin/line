@@ -1,7 +1,7 @@
 {
   "schema": "line.benchmark-v2.aim-impact-residual-initial-only-candidate.v1",
-  "recorded_at": "2026-08-14T03:01:37Z",
-  "status": "candidate_implemented_awaiting_canonical",
+  "recorded_at": "2026-08-14T04:41:40Z",
+  "status": "inconclusive_not_promoted",
   "prior_arm": {
     "study": "benchmark/v2/studies/aim-impact-residual-second.json",
     "status": "inconclusive_not_promoted",
@@ -104,5 +104,82 @@
     "multi_budget_sweep": false,
     "promotion": "Only a governed canonical acceptance can promote the candidate. Otherwise remove the residual artifact and runtime path while retaining this analysis and tooling.",
     "adaptivity_note": "The phase hypothesis was selected after inspecting the closed all-lane arm. The follow-up is mechanistic confirmation, not an untouched independent statistical family; report that limitation with the result."
+  },
+  "canonical_result": {
+    "outcome": "inconclusive",
+    "promotable": false,
+    "stopping_depth": 48,
+    "candidate_compiles": 2112,
+    "validity": {
+      "baseline": 2111,
+      "candidate": 2112,
+      "total": 2112,
+      "gained": 1,
+      "lost": 0
+    },
+    "official_headline": {
+      "baseline": 604.185,
+      "candidate": 606.4854,
+      "delta": 2.3004,
+      "standard_error": 1.788,
+      "central_95_lo": -2.4996,
+      "central_95_hi": 7.1004,
+      "directional_probability": 0.89772849,
+      "required_directional_probability": 0.97226547
+    },
+    "sequential_looks": [
+      {"seeds": 8, "delta": -0.148, "standard_error": 0.6166, "directional_probability": 0.40859375, "action": "continue"},
+      {"seeds": 16, "delta": 0.2961, "standard_error": 0.3664, "directional_probability": 0.78417783, "action": "continue"},
+      {"seeds": 32, "delta": 0.4587, "standard_error": 0.3236, "directional_probability": 0.91684356, "action": "continue"},
+      {"seeds": 48, "delta": 2.3004, "standard_error": 1.788, "directional_probability": 0.89772849, "action": "inconclusive"}
+    ],
+    "interpretation": "The large official point estimate is dominated by one capability cell that was invalid in the baseline and valid in the candidate. It is real validity evidence, but it does not supply enough repeated-seed confidence for promotion."
+  },
+  "matched_valid_sensitivity": {
+    "authority": "descriptive_not_promotion",
+    "matched_valid_runs": 2111,
+    "candidate_only_valid": 1,
+    "cell_mean_delta": 0.5481287067740402,
+    "seed_block_estimate": 0.5488958927942208,
+    "seed_block_standard_error": 0.280188853537162,
+    "central_95_lo": -0.01477137536190698,
+    "central_95_hi": 1.1125631609503486,
+    "reference_directional_probability": 0.9719711012160854,
+    "direction_counts": {"improved": 1061, "unchanged": 10, "regressed": 1040},
+    "interpretation": "The ordinary matched-valid interval still crosses zero. The unadjusted reference probability is descriptive and must not be compared to the governed sequential boundary as if it were a promotion result.",
+    "evidence": "generated/analysis/aim-impact-residual-initial-only-canonical-phase.json",
+    "evidence_sha256": "a9ae00cefce3bc5a4733ff316edbda2f8e4b9866007af977a47eca55ec56a5bb"
+  },
+  "phase_restriction_sensitivity": {
+    "authority": "descriptive_adaptively_selected",
+    "comparison": "initial-only residual policy minus prior all-lane residual policy",
+    "matched_valid_runs": 2112,
+    "initial_end_register_score_delta": 0,
+    "first_completion_frame_delta": 0,
+    "post_initial_final_score_delta": 0.03522892992424259,
+    "post_initial_standard_error": 0.10604446135316146,
+    "central_95_lo": -0.17810500923653375,
+    "central_95_hi": 0.24856286908501893,
+    "reference_directional_probability": 0.6293957552661343,
+    "repair_accepted_internal_gain_delta": -0.0034285530640257686,
+    "repair_accepted_alternatives_delta": -0.01278409090909091,
+    "interpretation": "The policies are exactly identical through first completion, confirming lane isolation. Bypassing residual ranking afterward changes later paths but shows no resolved final-score or accepted-repair advantage at N=48.",
+    "evidence": "generated/analysis/aim-impact-residual-initial-only-vs-all-lane-phase.json",
+    "evidence_sha256": "66f9936d51ba5be82a787521840e996fdcdec737292ddc998a31daf3ebc8a2ee"
+  },
+  "evidence_artifacts": {
+    "comparison": "benchmark/v2/runs/aim-impact-residual-initial-only-comparison.json",
+    "comparison_sha256": "21edb1c9ce7c7e1d9290f3a5da5113ebb836606eb754fd6fef27b6154852a2cc",
+    "candidate_archive": "benchmark/v2/runs/aim-impact-residual-initial-only-development-750k-N48.N48.json",
+    "candidate_archive_sha256": "85c1c0a090808a2321391399b5fe1a3383e1a7782e502e17c94d37641c926980",
+    "candidate_compressed_archive_sha256": "c283645b7e40de1ce5dd925c455811b882e68337887853bf4450187c70cd79fb",
+    "candidate_decision_index_sha256": "2119c0e8937cc217460e4962c7e979102d681eabdf9c14c347aea5c43f89eb23",
+    "candidate_summary_sha256": "92a7b344a95701f76acc493cfe8f7350335826e1f3146c415dfaa748a37c7d00",
+    "compiler_snapshot_sha256": "a689387b83b714b1bfbe47763315c2e4cf3d75a4b09c45e06ee93a29c5e61219"
+  },
+  "decision": {
+    "action": "remove_candidate_runtime_and_retain_evidence",
+    "reason": "The governed canonical result is inconclusive and the adaptively selected initial-only restriction did not produce a resolved advantage over the prior all-lane arm.",
+    "accepted_baseline_model_sha256": "ff8ea92bf9f8bf2df9555635f4f80eb37f99b7475d0fd5ee0e2f1bc5686a436a"
   }
 }

@@ -1177,3 +1177,44 @@ three reach the original target with exact depth/parent/choice/argmax
 attribution; none wins the final strict comparison. All five cells remain
 valid. This confirms mechanism and bounds only—the known seed's score is
 excluded, and route value awaits the fresh focused screen.
+
+The fresh combined arm is +30.4206 versus production with all 40 cells valid,
+both sources positive, and six of eight seed blocks positive. Nine nested routes
+execute across seven target runs and both sources, but none wins the final
+equal-depth comparison. A same-seed third arm resolves the attribution: proper
+discrepancy alone is +37.7105 versus production, while depth two is -7.2899
+versus proper (one better, two worse, 13 ties), driven by -8.9148 on the
+amplitude variant.
+
+The combined arm technically clears its original production-relative screen,
+but a catalog run would misattribute inherited depth-one gains to a negative
+depth-two mechanism. The nested policy therefore closes without catalog or
+canonical evaluation. This is not evidence against aggressive search in
+general; it is precise evidence that one more greedy discrepancy route consumes
+budget without improving the selected prefix here. Proper depth one now has a
+third independent positive focused block and becomes the candidate to evaluate
+directly.
+
+### Proper discrepancy replication and canonical qualification
+
+Lean proper discrepancy now has three independent positive eight-seed focused
+blocks: +19.5187 on seeds 112-119, +27.6140 on 128-135, and +37.7105 on
+138-145. The already-run two-seed catalog context is -2.8317, with full
+validity and only the amplitude target moving. Across all 26 paired target seed
+blocks, the diagnostic sum is +82.0115, or +3.1543 +/- 0.8233 SE per paired
+source block (t = 3.83); 17 blocks are positive and nine negative, and both
+source totals are positive.
+
+This pooling includes retrospective attribution arms, so it is not promotion
+evidence. It does establish that the repeated gain belongs to depth one rather
+than its modifiers: yielding adds only +3.3520 on its block, and depth two costs
+-7.2899 on its block. The compiler is therefore simplified back to exactly one
+proper local route. Nested depth, counters, and live traversal are deleted;
+historical interpretation remains offline.
+
+The candidate is now qualified for the actual canonical decision. The fixed
+command requests the full N=48 campaign at 750k, whose existing sequential
+looks are N=8/16/32/48 and whose one-sided probability decision—not an added
+magnitude or source gate—controls acceptance. If accepted, the lean policy
+becomes the sole default and follows the normal rebaseline workflow. No
+multi-budget sweep is part of this decision.

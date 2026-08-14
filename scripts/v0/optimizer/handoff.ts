@@ -3038,7 +3038,6 @@ function compileHandoffInternal(
           node: HandoffNode;
           alternativeOrdinal: number;
           parentRouteOrdinal: number;
-          parentDiscrepancyDepth: 0 | 1;
           choiceOrdinal: number;
           remainingGapAdvance: number;
           currentRelativeAxisLossGain: number;
@@ -3065,7 +3064,6 @@ function compileHandoffInternal(
           start: HandoffNode,
           routeOrdinal: number,
           routeKind: SelectiveCatchupProbeResult["route_kind"],
-          discrepancyDepth: 0 | 1 | 2,
           alternativeOrdinal: number,
           parentRouteOrdinal: number | null,
           parentLocalFallbackChoiceOrdinal: number | null,
@@ -3084,7 +3082,7 @@ function compileHandoffInternal(
           ): void => {
             const seen = new Set<SearchNode>();
             let choiceOrdinal = 0;
-            const recordsThisRoute = discrepancyDepth < 2;
+            const recordsThisRoute = routeKind === "causal_alternative";
             const localFallbackChoices =
               outcome === "execution_ceiling" || !recordsThisRoute
               ? []
@@ -3110,12 +3108,11 @@ function compileHandoffInternal(
                     authoredPrefixAxisLoss(candidate.search),
                   conservative_deadline_margin: margin,
                 };
-                if (discrepancyDepth < 2) {
+                if (routeKind === "causal_alternative") {
                   localFallbackOptions.push({
                     node: candidate,
                     alternativeOrdinal,
                     parentRouteOrdinal: routeOrdinal,
-                    parentDiscrepancyDepth: discrepancyDepth as 0 | 1,
                     choiceOrdinal: choice.choice_ordinal,
                     remainingGapAdvance: choice.remaining_gap_advance,
                     currentRelativeAxisLossGain: choice.current_relative_axis_loss_gain,
@@ -3127,7 +3124,6 @@ function compileHandoffInternal(
             probeResults.push({
               route_ordinal: routeOrdinal,
               route_kind: routeKind,
-              discrepancy_depth: discrepancyDepth,
               parent_route_ordinal: parentRouteOrdinal,
               parent_local_fallback_choice_ordinal: parentLocalFallbackChoiceOrdinal,
               alternative_ordinal: alternativeOrdinal,
@@ -3230,7 +3226,6 @@ function compileHandoffInternal(
             decision.alternatives[alternativeIndex]!,
             routeOrdinal,
             "causal_alternative",
-            0,
             alternativeIndex + 1,
             null,
             null,
@@ -3249,12 +3244,11 @@ function compileHandoffInternal(
         const primaryBestAxisLoss = Math.min(...completed.map((candidate) => candidate.axisLoss));
         if (
           selectiveBacktracking!.policy ===
-            "selective_axis_regret_catchup_nested_discrepancy" &&
+            "selective_axis_regret_catchup_proper_discrepancy" &&
           !catchupAlternativeHasSufficientGain(decision.triggerAxisLoss, primaryBestAxisLoss)
         ) {
           const eligible = localFallbackOptions.filter(
             (option) =>
-              option.parentDiscrepancyDepth === 0 &&
               option.currentRelativeAxisLossGain > 0 &&
               option.remainingGapAdvance > 0 &&
               frontierContains(option.node, pass, fb) &&
@@ -3272,59 +3266,14 @@ function compileHandoffInternal(
             null,
           );
           if (selected !== null) {
-            const firstLocalRouteOrdinal = nextRouteOrdinal++;
             if (runProbe(
               selected.node,
-              firstLocalRouteOrdinal,
+              nextRouteOrdinal++,
               "local_discrepancy",
-              1,
               selected.alternativeOrdinal,
               selected.parentRouteOrdinal,
               selected.choiceOrdinal,
             )) return true;
-            const firstLocalResult = probeResults.find(
-              (probeResult) => probeResult.route_ordinal === firstLocalRouteOrdinal,
-            );
-            if (
-              firstLocalResult?.outcome === "reached_target" &&
-              !catchupAlternativeHasSufficientGain(
-                decision.triggerAxisLoss,
-                firstLocalResult.axis_loss!,
-              )
-            ) {
-              const nestedEligible = localFallbackOptions.filter(
-                (option) =>
-                  option.parentDiscrepancyDepth === 1 &&
-                  option.parentRouteOrdinal === firstLocalRouteOrdinal &&
-                  option.currentRelativeAxisLossGain > 0 &&
-                  option.remainingGapAdvance > 0 &&
-                  frontierContains(option.node, pass, fb) &&
-                  deadlinePressure(
-                    conservativeDeadlineMarginAtGap(option.node.search.gapIndex),
-                  ) === 0,
-              );
-              const nestedSelected = nestedEligible.reduce<
-                (typeof nestedEligible)[number] | null
-              >(
-                (best, option) =>
-                  best === null ||
-                    option.currentRelativeAxisLossGain *
-                        option.conservativeDeadlineMargin >
-                      best.currentRelativeAxisLossGain * best.conservativeDeadlineMargin
-                    ? option
-                    : best,
-                null,
-              );
-              if (nestedSelected !== null && runProbe(
-                nestedSelected.node,
-                nextRouteOrdinal++,
-                "local_discrepancy",
-                2,
-                nestedSelected.alternativeOrdinal,
-                nestedSelected.parentRouteOrdinal,
-                nestedSelected.choiceOrdinal,
-              )) return true;
-            }
           }
         }
 

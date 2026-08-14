@@ -1,0 +1,71 @@
+{
+  "schema": "line.selective-proper-discrepancy-replication-study.v2",
+  "status": "predeclared-canonical-evaluation-authorized",
+  "generated_at": "2026-08-15",
+  "question": "After three independent positive focused blocks and explicit modifier attribution, does the lean one-route proper-discrepancy policy improve the canonical 750k Benchmark V2 headline under the benchmark's sequential probability decision?",
+  "candidate": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-proper-discrepancy"
+    },
+    "behavior": "After the ordinary causal catch-up reaches equal depth and loses, choose at most one already-generated inner runner-up with positive incumbent-relative prefix gain and at least one remaining authored gap. Use stable maximum gain times conservative deadline margin, extend it greedily to the same target, and perform one strict equal-depth ranking.",
+    "bounds": "One local route maximum, no recursion, no second discrepancy, and no yield scheduler.",
+    "cleanup": "The negative nested live implementation and its depth-two compiler scaffolding are removed. The offline analyzer alone retains backward-compatible interpretation of archived depth-two and yield telemetry."
+  },
+  "replicated_evidence": {
+    "budget": 750000,
+    "target_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "independent_eight_seed_blocks": [
+      {
+        "actual_seeds": [112, 113, 114, 115, 116, 117, 118, 119],
+        "target_sum_delta": 19.5187,
+        "origin": "prospective proper-discrepancy focused screen"
+      },
+      {
+        "actual_seeds": [128, 129, 130, 131, 132, 133, 134, 135],
+        "target_sum_delta": 27.614,
+        "origin": "same-seed attribution arm after yielding screen"
+      },
+      {
+        "actual_seeds": [138, 139, 140, 141, 142, 143, 144, 145],
+        "target_sum_delta": 37.7105,
+        "origin": "same-seed attribution arm after nested screen"
+      }
+    ],
+    "negative_catalog_context": {
+      "actual_seeds": [136, 137],
+      "target_sum_delta": -2.8317,
+      "validity": "88/88 paired cells valid; 42 other sources and base believer exact; two amplitude-variant regressions"
+    },
+    "pooled_diagnostic": {
+      "seed_blocks": 26,
+      "target_sum_delta": 82.0115,
+      "mean_paired_source_sum_delta_per_seed": 3.154288,
+      "seed_block_standard_error": 0.823305,
+      "t": 3.8312,
+      "positive_seed_blocks": 17,
+      "negative_seed_blocks": 9,
+      "base_source_sum_delta": 36.1049,
+      "amplitude_variant_sum_delta": 45.9066,
+      "caveat": "This pool combines prospective screens and retrospective same-seed attribution arms. It qualifies the mechanism for canonical measurement; it is not itself promotion evidence."
+    },
+    "modifier_attribution": {
+      "yielding_vs_proper_on_seeds_128_135": 3.352,
+      "nested_vs_proper_on_seeds_138_145": -7.2899,
+      "conclusion": "The repeated positive effect belongs to lean depth one. Yielding is small and heterogeneous; depth two is negative."
+    }
+  },
+  "predeclared_canonical": {
+    "baseline": "selective-axis-regret-catchup, headline 604.2665 at 750k",
+    "promotion_headline_seeds": 48,
+    "experiment_maximum_seeds": 48,
+    "sequential_looks": [8, 16, 32, 48],
+    "decision_authority": "Use the benchmark's existing one-sided sequential probability decision and validity contract without adding legacy magnitude or hand-written source gates.",
+    "command": "LR_FRONTIER_POLICY=selective-axis-regret-catchup-proper-discrepancy npm run benchmark -- eval --seeds=48 --jobs=48",
+    "if_accepted": "Make this lean policy the sole production default, remove its environment fork, run the required source-state/rebaseline workflow, and report the new N=48 headline.",
+    "if_not_accepted": "Close without promotion, retain the telemetry and focused evidence as a route-quality lead, and move to a categorically different search design.",
+    "scope": "Canonical 750k only. No multi-budget sweep is authorized."
+  }
+}

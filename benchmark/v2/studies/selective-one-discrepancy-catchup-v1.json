@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-one-discrepancy-catchup-study.v1",
-  "status": "predeclared-focused-screen",
+  "status": "closed-positive-inconclusive-focused-screen",
   "generated_at": "2026-08-14",
   "question": "Can one value-selected inner route recover a better equal-depth continuation after the causal sibling's preferred route loses, without the indiscriminate work and regressions of broad sibling search?",
   "selection_evidence": {
@@ -66,6 +66,50 @@
     "reference_commit": "ba498ac4",
     "decision": "Advance to a fresh all-catalog breadth screen only if every paired cell remains valid, the two target sources each have positive completed-track score sum, at least five of eight target seed blocks are positive, at least four target cells improve, no target cell loses 20 or more points, and local discrepancy routes execute in at least eight target runs. Otherwise close this exact policy without canonical evaluation.",
     "next_if_passed": "Run one fresh two-seed all-catalog 750k breadth screen. Canonical V2 remains unauthorized until that independent catalog screen preserves validity, has positive catalog sum, and shows non-isolated positive movement.",
-    "non_claim": "This focused screen cannot estimate or change the canonical headline, authorize promotion, or establish multi-budget behavior."
+    "non_claim": "This focused screen cannot estimate or change the canonical headline, authorize promotion, or establish multi-budget behavior.",
+    "result": {
+      "artifact_directory": "generated/benchmark-v2/mover-grid/selective-one-discrepancy-n8",
+      "validity": {
+        "both_valid": 40,
+        "reference_only_valid": 0,
+        "candidate_only_valid": 0,
+        "neither_valid": 0
+      },
+      "completed_track_quality": {
+        "target_score_sum_delta": 9.2908,
+        "target_mean_delta": 0.580675,
+        "seed_block_standard_error": 1.161105,
+        "seed_block_t": 0.5001,
+        "improved_cells": 7,
+        "regressed_cells": 7,
+        "tied_cells": 26,
+        "positive_seed_blocks": 6,
+        "negative_seed_blocks": 2
+      },
+      "source_attribution": {
+        "believer_impact_56s_score_sum_delta": -6.463,
+        "believer_impact_56s_amplitude_plus_5_score_sum_delta": 15.7538,
+        "three_controls": 0
+      },
+      "mechanics": {
+        "local_discrepancy_probes": 36,
+        "target_reaches": 35,
+        "local_routes_selected": 10,
+        "current_retained_after_local_route": 26,
+        "action_runs": 15,
+        "action_sources": 2,
+        "local_probe_frames": 532299,
+        "zero_remaining_gap_routes": 5,
+        "zero_remaining_gap_routes_selected": 5
+      },
+      "decision": "closed without catalog or canonical evaluation: full validity, positive total, six positive seed blocks, seven improved cells, bounded losses, and action breadth pass, but the base believer source is negative and violates the predeclared requirement that both target-source sums be positive.",
+      "interpretation": "The family remains promising but heterogeneous. Five selected routes required no extension because their runner-up was already at the tournament target; this is mechanically a broader equal-depth choice, not the intended search discrepancy. A clean successor may require at least one remaining authored-gap advance, but must be tested on fresh seeds rather than scored counterfactually here.",
+      "sha256": {
+        "candidate": "4a779a3e4bea5220242f4973956c123ff851a3a99dfaebf0f606a8cc9b591f26",
+        "reference": "53eaaeada38e1f58e94032855df43329bd9309a233147d544d3b2b6ed49d5211",
+        "report": "8781783fd66d7debab6bf7dab7806877e115d55aa96bfc3ac5f854491d8b4c8d",
+        "selective_analysis": "bcf4c48ddd4b39e4bb637c40f6981eecdd3677d54d92d2b5d50d68964ddea371"
+      }
+    }
   }
 }

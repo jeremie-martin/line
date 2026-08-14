@@ -933,3 +933,19 @@ The fresh focused screen is fixed on actual seeds 104-111, the believer pair,
 and three automatic controls at 750k (40 cells per arm). Both target-source sums,
 five of eight seed blocks, four improved cells, full validity, bounded loss, and
 eight action runs must pass before even a two-seed all-catalog breadth screen.
+
+The fresh arm is positive but does not clear that breadth boundary. All 40
+paired cells are valid. The 16 target cells sum to +9.2908; six of eight seed
+blocks are positive, with seven improvements and seven regressions (mean
++0.5807 +/- 1.1611 seed-block SE). The amplitude variant gains +15.7513, but
+the base believer loses 6.4630, violating the fixed requirement that both
+source sums be positive. The exact arm closes without a catalog or canonical
+run.
+
+Mechanically, 36 local routes run in 15 target cells, 35 reach equal depth, and
+ten win; they spend 532,299 frames. Five of the ten winners have zero remaining
+gap advance: the inner runner-up was already at the tournament target, so no
+search extension occurred. That is a free broader equal-depth choice rather
+than the intended one-discrepancy search. A clean categorical successor can
+require at least one remaining authored-gap advance. This is not a scored
+counterfactual claim; it separates the mechanism before testing fresh seeds.

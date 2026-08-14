@@ -434,3 +434,26 @@ outside conservative deadline pressure). Counts are unique per watch and each
 threshold, not repeated mature-node checks. One shallow full-catalog pass can
 therefore locate lower-threshold action sets before any live policy variants
 are built.
+
+### Lower-trigger opportunity map
+
+The behavior-neutral map is complete at the canonical 750k budget on the first
+two canonical actual seeds (16 and 17), all 44 sources, and 88/88 valid runs.
+Every scored drift-report hash, score, and validity result exactly matched the
+promoted baseline. The analyzer also verifies per run that threshold counts are
+nested, that 0.20 crossings equal the old production crossing counter, and that
+0.20 admissible watches equal actual selective backtracks.
+
+Production admitted 26 watches across five runs and three sources. A 0.15
+threshold observed 76 admissible watches: 50 additional opportunities, still
+limited to seven runs and five sources. At 0.10 the action set jumps to 247
+admissible watches (221 additional) over 18 runs and 12 sources. At 0.05 it
+reaches 753 (727 additional) over 50 runs and 29 sources. These are genuinely
+different intervention sizes, not four interchangeable nearby constants.
+
+The focused next arm is therefore 0.15. It changes only the realized
+authored-axis-loss trigger; maturity, causal sibling identity, conservative
+deadline admission, bounded catch-up, and equal-depth disposition stay fixed.
+The five-source action set is tested first. The offline counts are not treated
+as a replay: taking an earlier backtrack changes later traversal, so live
+behavior and output must be measured directly.

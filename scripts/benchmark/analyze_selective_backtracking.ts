@@ -17,6 +17,10 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { readVerifiedArtifact } from "./study_lib.ts";
+import {
+  summarizeSelectiveTriggerOpportunities,
+  type SelectiveTriggerOpportunityRun,
+} from "./selective_trigger_opportunities.ts";
 
 type Outcome =
   | "alternative_selected"
@@ -70,8 +74,16 @@ if (archivePath === undefined) {
 const verified = readVerifiedArtifact(resolve(archivePath));
 const archive = JSON.parse(verified.bytes.toString("utf8"));
 const events: Event[] = [];
+const triggerRuns: SelectiveTriggerOpportunityRun[] = [];
 for (const row of archive.runs ?? []) {
   const stats = row.stats?.handoff_selective_backtracking;
+  if (stats?.regret_opportunities_by_min_axis_loss_delta !== undefined) {
+    triggerRuns.push({
+      sourceId: row.task.sourceId,
+      seed: row.task.actualSeed,
+      stats,
+    });
+  }
   for (const event of stats?.events ?? []) {
     if (event.catchup_outcome === null) continue;
     events.push({
@@ -160,6 +172,13 @@ const result = {
     outcomes: byOutcome,
   },
   by_source: bySource,
+  trigger_opportunities: triggerRuns.length === 0 ? null : {
+    coverage: {
+      archive_runs: archive.runs?.length ?? 0,
+      telemetry_runs: triggerRuns.length,
+    },
+    ...summarizeSelectiveTriggerOpportunities(triggerRuns),
+  },
   checkpoint_sign_stability: stability,
   zero_contradiction_rules: zeroContradiction,
   exploratory_rules: exploratory,
@@ -247,6 +266,33 @@ function print(analysis: typeof result): void {
     `${analysis.scope.completed_tournaments} completed tournaments`,
   );
   console.log(`  outcomes ${JSON.stringify(analysis.scope.outcomes)}`);
+  if (analysis.trigger_opportunities !== null) {
+    console.log(`\nTRIGGER OPPORTUNITIES (PRODUCTION TRAVERSAL)`);
+    console.log(
+      `  telemetry coverage ${analysis.trigger_opportunities.coverage.telemetry_runs}/` +
+      `${analysis.trigger_opportunities.coverage.archive_runs} runs`,
+    );
+    for (const row of analysis.trigger_opportunities.thresholds) {
+      console.log(
+        `  delta ${row.min_axis_loss_delta.toFixed(2)}: crossed ${String(row.crossed_watches).padStart(4)}, ` +
+        `admissible ${String(row.admissible_watches).padStart(4)}, ` +
+        `additional vs 0.20 ${String(row.additional_admissible_vs_production).padStart(4)}; ` +
+        `${row.runs_with_admissible_watch} runs / ${row.sources_with_admissible_watch} sources`,
+      );
+    }
+    console.log(`  leading sources at 0.15:`);
+    for (const row of analysis.trigger_opportunities.by_source
+      .filter((entry) => entry.thresholds["0.15"]!.additional_admissible_vs_production > 0)
+      .slice(0, 12)) {
+      const threshold = row.thresholds["0.15"]!;
+      console.log(
+        `    ${row.source_id.padEnd(56)} ` +
+        `admissible ${String(threshold.admissible_watches).padStart(4)}, ` +
+        `additional ${String(threshold.additional_admissible_vs_production).padStart(4)}, ` +
+        `runs ${threshold.runs_with_admissible_watch}/${row.runs}`,
+      );
+    }
+  }
   console.log(`\nCHECKPOINT SIGN VS FULL-DEPTH WINNER`);
   for (const row of analysis.checkpoint_sign_stability) {
     console.log(

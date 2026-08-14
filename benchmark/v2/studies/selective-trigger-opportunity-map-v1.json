@@ -1,0 +1,84 @@
+{
+  "schema": "line.selective-trigger-opportunity-map.v1",
+  "status": "complete",
+  "generated_at": "2026-08-14",
+  "question": "How large and how broad is the behavior-neutral action set exposed by lowering the production selective-regret trigger from 0.20?",
+  "scope": {
+    "budget": 750000,
+    "actual_seeds": [16, 17],
+    "sources": 44,
+    "runs": 88,
+    "valid_runs": 88,
+    "telemetry": "summary",
+    "compiler_source_fingerprint": "6456992d558ff9089b18b97f048eeaa0d5e14f4f9ccbdfce8008f1323b75f268"
+  },
+  "evidence": {
+    "archive": "generated/benchmark-v2/studies/selective-trigger-opportunity-750k-seeds16-17.json",
+    "archive_sha256": "21f4343f4194cd95372ea6467f2d0265432e60821f381cb89d2ecfc7263b570e",
+    "analysis": "generated/benchmark-v2/studies/selective-trigger-opportunity-750k-seeds16-17.trigger-analysis.json",
+    "analysis_sha256": "f350916b533c2acb1779e7f40d3a59d0c2d394df3a20c37e8b6cca324028dff6",
+    "promoted_reference_index": "benchmark/v2/runs/selective-axis-regret-catchup-development-750k-N48.decision-index.json"
+  },
+  "trust_checks": {
+    "telemetry_coverage": "88/88",
+    "threshold_counts_nested_per_run": true,
+    "production_020_crossings_equal_loss_threshold_crossings_per_run": true,
+    "production_020_admissions_equal_selective_backtracks_per_run": true,
+    "paired_reference_cells": 88,
+    "scored_report_hash_changes": 0,
+    "score_changes": 0,
+    "validity_changes": 0
+  },
+  "thresholds": [
+    {
+      "min_axis_loss_delta": 0.05,
+      "crossed_watches": 3702,
+      "admissible_watches": 753,
+      "additional_admissible_vs_production": 727,
+      "runs_with_admissible_watch": 50,
+      "sources_with_admissible_watch": 29
+    },
+    {
+      "min_axis_loss_delta": 0.10,
+      "crossed_watches": 2457,
+      "admissible_watches": 247,
+      "additional_admissible_vs_production": 221,
+      "runs_with_admissible_watch": 18,
+      "sources_with_admissible_watch": 12
+    },
+    {
+      "min_axis_loss_delta": 0.15,
+      "crossed_watches": 1574,
+      "admissible_watches": 76,
+      "additional_admissible_vs_production": 50,
+      "runs_with_admissible_watch": 7,
+      "sources_with_admissible_watch": 5
+    },
+    {
+      "min_axis_loss_delta": 0.20,
+      "crossed_watches": 1130,
+      "admissible_watches": 26,
+      "additional_admissible_vs_production": 0,
+      "runs_with_admissible_watch": 5,
+      "sources_with_admissible_watch": 3
+    }
+  ],
+  "leading_015_sources": [
+    { "source_id": "split_signal_impact_relief_12", "admissible": 18, "additional": 18, "runs": 1 },
+    { "source_id": "believer_impact_56s", "admissible": 24, "additional": 11, "runs": 2 },
+    { "source_id": "sparse_lowline_air_minus_4", "admissible": 9, "additional": 8, "runs": 1 },
+    { "source_id": "believer_impact_56s_amplitude_plus_5", "admissible": 19, "additional": 7, "runs": 2 },
+    { "source_id": "sparse_lowline", "admissible": 6, "additional": 6, "runs": 1 }
+  ],
+  "interpretation": [
+    "The production trigger is sparse: only 26 admissions in 5 of 88 runs.",
+    "A 0.15 trigger is the smallest clean live expansion: 50 additional observed admissions, still confined to 7 runs and 5 sources.",
+    "A 0.10 trigger is a qualitatively larger intervention, not a nearby scalar tweak; 0.05 is broad enough to change the strategy's character.",
+    "Counts describe production traversal only. A live lower trigger changes future traversal, so observed opportunities cannot be treated as jointly replayable actions."
+  ],
+  "next_arm": {
+    "policy": "selective-axis-regret-catchup-trigger-015",
+    "single_change": "Lower only the minimum realized authored-axis-loss delta from 0.20 to 0.15; keep maturity, exact sibling, deadline admission, bounded catch-up, and equal-depth selection unchanged.",
+    "evaluation": "Run a paired focused grid on the five observed sources before any canonical V2 evaluation."
+  }
+}

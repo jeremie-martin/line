@@ -496,7 +496,7 @@ export type CompileStats = {
     policy:
       | "selective_axis_regret_catchup"
       | "selective_axis_regret_catchup_repair_incumbent_once"
-      | "selective_axis_regret_catchup_one_discrepancy";
+      | "selective_axis_regret_catchup_proper_discrepancy";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;

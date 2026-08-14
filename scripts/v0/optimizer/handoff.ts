@@ -3039,6 +3039,7 @@ function compileHandoffInternal(
           alternativeOrdinal: number;
           parentRouteOrdinal: number;
           choiceOrdinal: number;
+          remainingGapAdvance: number;
           currentRelativeAxisLossGain: number;
           conservativeDeadlineMargin: number;
         }> = [];
@@ -3112,6 +3113,7 @@ function compileHandoffInternal(
                     alternativeOrdinal,
                     parentRouteOrdinal: routeOrdinal,
                     choiceOrdinal: choice.choice_ordinal,
+                    remainingGapAdvance: choice.remaining_gap_advance,
                     currentRelativeAxisLossGain: choice.current_relative_axis_loss_gain,
                     conservativeDeadlineMargin: margin,
                   });
@@ -3235,12 +3237,13 @@ function compileHandoffInternal(
 
         const primaryBestAxisLoss = Math.min(...completed.map((candidate) => candidate.axisLoss));
         if (
-          selectiveBacktracking!.policy === "selective_axis_regret_catchup_one_discrepancy" &&
+          selectiveBacktracking!.policy === "selective_axis_regret_catchup_proper_discrepancy" &&
           !catchupAlternativeHasSufficientGain(decision.triggerAxisLoss, primaryBestAxisLoss)
         ) {
           const eligible = localFallbackOptions.filter(
             (option) =>
               option.currentRelativeAxisLossGain > 0 &&
+              option.remainingGapAdvance > 0 &&
               frontierContains(option.node, pass, fb) &&
               deadlinePressure(
                 conservativeDeadlineMarginAtGap(option.node.search.gapIndex),

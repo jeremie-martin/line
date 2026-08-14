@@ -842,8 +842,14 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         ) {
           throw new Error(`${label} has invalid local-discrepancy parent route`);
         }
-        const bestChoice = parent.local_fallback_choices
-          .filter((choice) => choice.current_relative_axis_loss_gain > 0)
+        const eligibleParentChoices = parent.local_fallback_choices.filter((choice) =>
+          choice.current_relative_axis_loss_gain > 0 &&
+          (
+            stats.policy !== "selective_axis_regret_catchup_proper_discrepancy" ||
+            choice.remaining_gap_advance > 0
+          )
+        );
+        const bestChoice = eligibleParentChoices
           .reduce<LocalFallbackChoice | null>(
             (best, choice) =>
               best === null ||
@@ -895,10 +901,25 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     if (localDiscrepancyResults.length > 0) {
       const causalReached = causalResults.filter((probe) => probe.outcome === "reached_target");
       if (
-        stats.policy !== "selective_axis_regret_catchup_one_discrepancy" ||
+        (
+          stats.policy !== "selective_axis_regret_catchup_one_discrepancy" &&
+          stats.policy !== "selective_axis_regret_catchup_proper_discrepancy"
+        ) ||
         localDiscrepancyResults.length !== 1 ||
         causalReached.length === 0 ||
-        causalReached.some((probe) => probe.axis_loss! < event.trigger_axis_loss)
+        causalReached.some((probe) => probe.axis_loss! < event.trigger_axis_loss) ||
+        (
+          stats.policy === "selective_axis_regret_catchup_proper_discrepancy" &&
+          localDiscrepancyResults.some((probe) => {
+            const parent = results.find(
+              (candidate) => candidate.route_ordinal === probe.parent_route_ordinal,
+            );
+            return parent?.local_fallback_choices.find(
+              (choice) =>
+                choice.choice_ordinal === probe.parent_local_fallback_choice_ordinal,
+            )?.remaining_gap_advance === 0;
+          })
+        )
       ) {
         throw new Error(`${label} violated the one-discrepancy admission boundary`);
       }

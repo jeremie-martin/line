@@ -1,0 +1,80 @@
+{
+  "schema": "line.selective-proper-discrepancy-catchup-study.v1",
+  "status": "predeclared-focused-screen",
+  "generated_at": "2026-08-14",
+  "question": "Does requiring genuine forward search preserve the useful one-discrepancy behavior while excluding equal-depth sibling selection that belongs to the closed broad-choice family?",
+  "relationship_to_prior_arm": {
+    "closed_study": "benchmark/v2/studies/selective-one-discrepancy-catchup-v1.json",
+    "evidence": "The first live arm was +9.2908 across its target cells with six of eight positive seed blocks, but the base source was -6.4630. Five of ten selected local routes had zero remaining gap advance and performed no search extension.",
+    "categorical_change": "A local runner-up is eligible only if at least one authored-gap advance remains before the suspended tournament target.",
+    "rationale": "A zero-advance node is already at equal depth. Selecting it is a wider same-depth sibling tournament, not the intended backtracking search; broad sibling choice has separate negative evidence.",
+    "unchanged": [
+      "production trigger, causal sibling, and primary preferred route",
+      "strict positive local prefix gain",
+      "maximum gain times conservative deadline margin among eligible choices",
+      "one local route maximum and no recursion",
+      "ordinary preferred-child extension and strict equal-depth final ranking",
+      "deadline, execution ceiling, frontier ownership, repair, terminal, and scoring behavior"
+    ]
+  },
+  "action_set_evidence": {
+    "source_archive": "generated/benchmark-v2/mover-grid/selective-one-discrepancy-n8/candidate.json.gz",
+    "nonzero_advance_routes_observed": 31,
+    "affected_runs": 14,
+    "affected_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "non_claim": "These counts establish breadth only. Removing zero-advance choices changes which remaining choice may be selected, so the old scores cannot replay the successor."
+  },
+  "implementation": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-proper-discrepancy"
+    },
+    "retirement": "The closed one-discrepancy environment is removed from the parser; retained artifacts remain analyzable.",
+    "trust": [
+      "the live analyzer rejects any selected local choice with zero remaining gap advance",
+      "the chosen local route must still be the stable maximum value-per-work option within the filtered positive, nonzero-advance set",
+      "all route-parent, one-action, primary-loss, target-reach, and aggregate identities from the first arm remain enforced"
+    ]
+  },
+  "mechanical_smoke": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-proper-discrepancy-smoke-seed100",
+    "scope": "Known opportunity-map actual seed 100; believer pair plus three controls at 750k. Score is excluded from decision evidence.",
+    "result": {
+      "both_valid": 5,
+      "proper_discrepancy_probes": 4,
+      "target_reaches": 4,
+      "local_routes_selected": 1,
+      "current_retained_after_local_route": 3,
+      "action_runs": 2,
+      "action_sources": 2,
+      "zero_remaining_gap_routes": 0,
+      "analyzer_trust_checks": "pass"
+    },
+    "sha256": {
+      "candidate": "a1bd05cdfce321354c4c415132a08076c461057a2d0d1f8a66d5b62a407f8426",
+      "reference": "a2c62058476c69b5cb91022474e38b2f4b0b0a9d41c30bc1ecc2928529a51c14",
+      "report": "46af2a42e61cf28ddbf00c64c492767681c4760cf4a1eaa6bd1a22e424b3a452",
+      "selective_analysis": "94ad3ad0c38765c6283cb3e65441b8ff916d6dd6b1ca82f7ebf33cb3d04ef856"
+    }
+  },
+  "predeclared_screen": {
+    "budget": 750000,
+    "actual_seeds": [112, 113, 114, 115, 116, 117, 118, 119],
+    "requested_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "expected_backfilled_controls": [
+      "river_reentry",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ],
+    "expected_cells_per_arm": 40,
+    "reference_commit": "0dcad809",
+    "decision": "Advance to a fresh two-seed all-catalog 750k breadth screen only if all cells retain validity, total target completed-track movement is positive, at least five of eight target seed blocks are positive, both target-source sums are positive, at least four target cells improve, no target cell loses 20 or more points, and proper discrepancy routes execute in at least eight target runs. Otherwise close without catalog or canonical evaluation.",
+    "next_if_passed": "Use actual seeds 120 and 121 over all 44 sources at 750k. Canonical V2 remains unauthorized until that catalog screen preserves validity, has positive total completed-track movement, and improvement is non-isolated.",
+    "non_claim": "This fresh focused screen is evidence for one categorical successor at 750k. It cannot estimate a headline, authorize promotion, or establish multi-budget behavior."
+  }
+}

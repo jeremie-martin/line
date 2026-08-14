@@ -949,3 +949,27 @@ search extension occurred. That is a free broader equal-depth choice rather
 than the intended one-discrepancy search. A clean categorical successor can
 require at least one remaining authored-gap advance. This is not a scored
 counterfactual claim; it separates the mechanism before testing fresh seeds.
+
+### Proper one-discrepancy successor
+
+The categorical successor requires at least one authored-gap advance from the
+inner runner-up to the tournament target. Everything else is unchanged. Among
+positive nonzero-advance choices it still selects maximum prefix gain times
+conservative deadline margin, runs at most one preferred-child extension, and
+uses the same strict equal-depth final ranking. The closed environment is
+retired rather than accumulated as another live mode.
+
+This boundary is mechanical, not a score-fit threshold. A zero-advance node is
+already at equal depth and therefore represents broader sibling selection, not
+backtracking search. The first arm observed 31 nonzero-advance routes across 14
+runs and both sources, so the successor remains broad enough to test. Its fresh
+focused screen is fixed on actual seeds 112-119 at 750k with the believer pair
+and three controls. Both source sums, five positive seed blocks, positive total,
+four improvements, full validity, bounded loss, and eight action runs are again
+required before a fresh two-seed all-catalog screen.
+
+A known seed-100 smoke confirms the categorical boundary. Four proper local
+routes run across both target sources, all reach equal depth, one wins, and no
+selected choice has zero remaining advance. The analyzer's parent-choice,
+argmax, primary-loss, one-action, and aggregate invariants all pass. As before,
+the deliberately reused seed contributes no score evidence.

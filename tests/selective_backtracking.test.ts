@@ -18,8 +18,10 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent-once"))
       .toBe("selective_axis_regret_catchup_repair_incumbent_once");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-one-discrepancy"))
-      .toBe("selective_axis_regret_catchup_one_discrepancy");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
+      .toBe("selective_axis_regret_catchup_proper_discrepancy");
+    expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-one-discrepancy"))
+      .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-second-chance"))

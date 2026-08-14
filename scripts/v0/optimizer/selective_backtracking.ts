@@ -1,7 +1,7 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
   | "selective_axis_regret_catchup_repair_incumbent_once"
-  | "selective_axis_regret_catchup_one_discrepancy";
+  | "selective_axis_regret_catchup_proper_discrepancy";
 
 export type SelectiveBacktrackSignal = "branch_regret" | "repair_incumbent_regret";
 
@@ -35,14 +35,14 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-repair-incumbent-once") {
     return "selective_axis_regret_catchup_repair_incumbent_once";
   }
-  if (raw === "selective-axis-regret-catchup-one-discrepancy") {
-    return "selective_axis_regret_catchup_one_discrepancy";
+  if (raw === "selective-axis-regret-catchup-proper-discrepancy") {
+    return "selective_axis_regret_catchup_proper_discrepancy";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
       `selective-axis-regret-catchup-repair-incumbent-once, or ` +
-      `selective-axis-regret-catchup-one-discrepancy; got ${raw}`,
+      `selective-axis-regret-catchup-proper-discrepancy; got ${raw}`,
   );
 }
 

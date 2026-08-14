@@ -135,7 +135,7 @@ import {
   candidateQualityObjective,
   setAimBaseFitReuseAllowed,
   setAimCompileBudgetFrames,
-  setAimRepairLaneActive,
+  setAimSearchLane,
   snapshotAimStats,
   snapshotObjectiveLayerSpread,
 } from "./aim.ts";
@@ -3150,7 +3150,7 @@ function compileHandoffInternal(
         activeRepairTargetGapIndex = kWorst;
         activeRepairTargetGapSse = pickedWeakGapSse;
         activeRepairBreadthRatio = repairBreadthRatio;
-        setAimRepairLaneActive(true, iterationIndex);
+        setAimSearchLane("repair", iterationIndex);
         setImpactCarrierRippleRepairActive(true);
         try {
           runFrontierFrom(prefixNode, ceiling, terminalsBefore + 1);
@@ -3161,7 +3161,7 @@ function compileHandoffInternal(
           activeRepairTargetGapIndex = null;
           activeRepairTargetGapSse = null;
           activeRepairBreadthRatio = 1;
-          setAimRepairLaneActive(false);
+          setAimSearchLane("initial");
           setImpactCarrierRippleRepairActive(false);
           activeRepairProfile = null;
         }
@@ -3432,6 +3432,7 @@ function compileHandoffInternal(
       });
       beginCandidateWork();
       if (resumePolicy === "remainder-aware") resumedSearchShapeBudget = resumeRemainder;
+      setAimSearchLane("resumed");
       try {
         runFrontier(
           passStack,
@@ -3440,6 +3441,7 @@ function compileHandoffInternal(
         );
       } finally {
         resumedSearchShapeBudget = null;
+        setAimSearchLane("initial");
       }
       const resumeEnd = getSimFrames();
       const resumeScoreAfter = bestCompleteNode === null

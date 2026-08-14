@@ -245,18 +245,35 @@ const AIR_KNOB_MIN_MISMATCH = 0.10;
 /** Don't bother editing for less than this many frames of release shift. */
 const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
 
-let aimRepairLaneActive = false;
+export type AimSearchLane = "initial" | "repair" | "resumed";
+
+let aimSearchLane: AimSearchLane = "initial";
 let aimRepairIterationIndex: number | null = null;
 
-export function setAimRepairLaneActive(
-  active: boolean,
+export function setAimSearchLane(
+  lane: AimSearchLane,
   iterationIndex: number | null = null,
 ): void {
-  if (active && (iterationIndex === null || !Number.isSafeInteger(iterationIndex) || iterationIndex < 0)) {
-    throw new Error(`active aim repair lane requires a non-negative iteration index`);
+  if (
+    lane === "repair" &&
+    (iterationIndex === null || !Number.isSafeInteger(iterationIndex) || iterationIndex < 0)
+  ) {
+    throw new Error(`aim repair lane requires a non-negative iteration index`);
   }
-  aimRepairLaneActive = active;
-  aimRepairIterationIndex = active ? iterationIndex : null;
+  if (lane !== "repair" && iterationIndex !== null) {
+    throw new Error(`only the aim repair lane accepts an iteration index`);
+  }
+  aimSearchLane = lane;
+  aimRepairIterationIndex = lane === "repair" ? iterationIndex : null;
+}
+
+/** The residual proposer is deliberately confined to the complete initial
+ * search episode. Repair and resumed work retain both the choices and the
+ * 32-tree inference cost of the accepted proposer. */
+export function aimResidualSecondSelectionActive(
+  lane: AimSearchLane = aimSearchLane,
+): boolean {
+  return lane === "initial";
 }
 
 export function aimControlPhase(
@@ -272,7 +289,7 @@ export function aimControlPhase(
 export function aimControlOverrideActive(
   phase: "all" | "repair" = aimControlPhase(),
 ): boolean {
-  return phase === "all" || aimRepairLaneActive;
+  return phase === "all" || aimSearchLane === "repair";
 }
 
 /**
@@ -422,7 +439,7 @@ function aimControl(): AimControl {
 }
 
 function aimRepairAuxControl(): { control: AimControl; admission: AimAuxAdmission | null } | null {
-  if (!aimRepairLaneActive) return null;
+  if (aimSearchLane !== "repair") return null;
   const environment =
     (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
   const requested = environment.LR_AIM_REPAIR_AUX_KNOB_SEQUENCE;
@@ -685,7 +702,7 @@ export function aimTopKBasesEffective(gap?: Gap, _gaps?: readonly Gap[], _ctx?: 
   // (canonical: K=6 at 250k/375k/500k = +0.5/+1.6/+0.8) but starves 125k (-18.9), so
   // gate the rise on the compile budget.
   const highBudget = aimCompileBudgetFrames >= AIM_TOPK_HIGH_BUDGET_FRAMES;
-  const exponent = aimTopKScaleScope() === "repair" && !aimRepairLaneActive
+  const exponent = aimTopKScaleScope() === "repair" && aimSearchLane !== "repair"
     ? 1
     : aimTopKScaleExponent();
   const policyBaseK = highBudget
@@ -699,7 +716,9 @@ export function aimTopKBasesEffective(gap?: Gap, _gaps?: readonly Gap[], _ctx?: 
     )
     : AIM_TOPK_BASES;
   const baseK = policyBaseK +
-    (aimRepairLaneActive && aimRepairIterationIndex === 0 ? aimTopKFirstRepairExtra() : 0);
+    (aimSearchLane === "repair" && aimRepairIterationIndex === 0
+      ? aimTopKFirstRepairExtra()
+      : 0);
   if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
     return Math.min(baseK, AIM_LOW_AIR_TOPK_MAX);
   }
@@ -767,13 +786,17 @@ export type AimStudyStats = {
   enum_model_impact_selected_within_16: number;
   enum_model_impact_selected_within_32: number;
   enum_model_impact_selected_within_64: number;
-  /** Fixed-pair residual policy. Eligible selections had two geometrically
-   * distinct incumbent choices. A substitution changes only choice two;
-   * first-choice preservation is asserted and counted independently. */
-  enum_model_impact_residual_second_eligible_selections: number;
-  enum_model_impact_residual_second_substituted: number;
-  enum_model_impact_residual_second_distinctness_rejections: number;
-  enum_model_impact_residual_first_choice_preserved: number;
+  /** Initial-only fixed-pair residual policy. Grid counts prove the phase
+   * boundary; eligible selections had two geometrically distinct incumbent
+   * choices. A substitution changes only choice two. */
+  model_impact_residual_second_policy: "initial_only";
+  enum_model_impact_residual_second_initial_grids: number;
+  enum_model_impact_residual_second_repair_bypassed_grids: number;
+  enum_model_impact_residual_second_resumed_bypassed_grids: number;
+  enum_model_impact_residual_second_initial_eligible_selections: number;
+  enum_model_impact_residual_second_initial_substituted: number;
+  enum_model_impact_residual_second_initial_distinctness_rejections: number;
+  enum_model_impact_residual_second_initial_first_choice_preserved: number;
   /** Deferred additive rotate-knob split: rotate recruit rate, rotate-probe failures
    *  (lane falls back to pitch-only), and how rotated (dr≠0) proposals
    *  fare at the production gates vs emitted. */
@@ -894,10 +917,13 @@ const aimTotals = {
   enum_model_impact_selected_within_16: 0,
   enum_model_impact_selected_within_32: 0,
   enum_model_impact_selected_within_64: 0,
-  enum_model_impact_residual_second_eligible_selections: 0,
-  enum_model_impact_residual_second_substituted: 0,
-  enum_model_impact_residual_second_distinctness_rejections: 0,
-  enum_model_impact_residual_first_choice_preserved: 0,
+  enum_model_impact_residual_second_initial_grids: 0,
+  enum_model_impact_residual_second_repair_bypassed_grids: 0,
+  enum_model_impact_residual_second_resumed_bypassed_grids: 0,
+  enum_model_impact_residual_second_initial_eligible_selections: 0,
+  enum_model_impact_residual_second_initial_substituted: 0,
+  enum_model_impact_residual_second_initial_distinctness_rejections: 0,
+  enum_model_impact_residual_second_initial_first_choice_preserved: 0,
   enum_rot_probe_crash: 0, enum_rot_recruited: 0, enum_rot_emitted: 0,
   enum_rot_gate_fail: 0,
   // Selection-rank telemetry (recordLanePoolRank).
@@ -1004,7 +1030,7 @@ function recordJointModelCoverage(
 }
 
 export function resetAimStats(): void {
-  aimRepairLaneActive = false;
+  aimSearchLane = "initial";
   aimRepairIterationIndex = null;
   for (const key of Object.keys(aimTotals) as (keyof typeof aimTotals)[]) {
     aimTotals[key] = 0;
@@ -1126,14 +1152,21 @@ export function snapshotAimStats(): AimStats | null {
       aimTotals.enum_model_impact_selected_within_32,
     enum_model_impact_selected_within_64:
       aimTotals.enum_model_impact_selected_within_64,
-    enum_model_impact_residual_second_eligible_selections:
-      aimTotals.enum_model_impact_residual_second_eligible_selections,
-    enum_model_impact_residual_second_substituted:
-      aimTotals.enum_model_impact_residual_second_substituted,
-    enum_model_impact_residual_second_distinctness_rejections:
-      aimTotals.enum_model_impact_residual_second_distinctness_rejections,
-    enum_model_impact_residual_first_choice_preserved:
-      aimTotals.enum_model_impact_residual_first_choice_preserved,
+    model_impact_residual_second_policy: "initial_only",
+    enum_model_impact_residual_second_initial_grids:
+      aimTotals.enum_model_impact_residual_second_initial_grids,
+    enum_model_impact_residual_second_repair_bypassed_grids:
+      aimTotals.enum_model_impact_residual_second_repair_bypassed_grids,
+    enum_model_impact_residual_second_resumed_bypassed_grids:
+      aimTotals.enum_model_impact_residual_second_resumed_bypassed_grids,
+    enum_model_impact_residual_second_initial_eligible_selections:
+      aimTotals.enum_model_impact_residual_second_initial_eligible_selections,
+    enum_model_impact_residual_second_initial_substituted:
+      aimTotals.enum_model_impact_residual_second_initial_substituted,
+    enum_model_impact_residual_second_initial_distinctness_rejections:
+      aimTotals.enum_model_impact_residual_second_initial_distinctness_rejections,
+    enum_model_impact_residual_second_initial_first_choice_preserved:
+      aimTotals.enum_model_impact_residual_second_initial_first_choice_preserved,
     enum_rot_probe_crash: aimTotals.enum_rot_probe_crash,
     enum_rot_recruited: aimTotals.enum_rot_recruited,
     enum_rot_emitted: aimTotals.enum_rot_emitted,
@@ -1326,7 +1359,9 @@ function modeledImpactFeasibilityPair(
     generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
   };
   const policy = aimModelImpactPolicy();
-  const scores = policy === "distilled"
+  const residualActive = policy === "distilled" &&
+    aimResidualSecondSelectionActive();
+  const scores = residualActive
     ? scoreDistilledAimImpactFeasibilityPair(input)
     : (() => {
       const score = policy === "full"
@@ -1445,6 +1480,15 @@ function scoreConfiguredKnobGrid(
     scoredGrid.length > 0
   ) {
     aimTotals.enum_model_impact_grids++;
+    if (aimModelImpactPolicy() === "distilled") {
+      if (aimSearchLane === "initial") {
+        aimTotals.enum_model_impact_residual_second_initial_grids++;
+      } else if (aimSearchLane === "repair") {
+        aimTotals.enum_model_impact_residual_second_repair_bypassed_grids++;
+      } else {
+        aimTotals.enum_model_impact_residual_second_resumed_bypassed_grids++;
+      }
+    }
     const factors = scoredGrid.map((candidate) => candidate.modelImpactFeasibility);
     aimTotals.enumModelImpactSpreadSum += Math.max(...factors) - Math.min(...factors);
     const ordinaryOrder = out.slice()
@@ -1544,12 +1588,12 @@ function chooseConfiguredKnobs(
     distinct,
   );
   if (result.eligible) {
-    aimTotals.enum_model_impact_residual_second_eligible_selections++;
-    aimTotals.enum_model_impact_residual_first_choice_preserved++;
-    aimTotals.enum_model_impact_residual_second_distinctness_rejections +=
+    aimTotals.enum_model_impact_residual_second_initial_eligible_selections++;
+    aimTotals.enum_model_impact_residual_second_initial_first_choice_preserved++;
+    aimTotals.enum_model_impact_residual_second_initial_distinctness_rejections +=
       result.challengerDistinctnessRejections;
     if (result.substitutedSecond) {
-      aimTotals.enum_model_impact_residual_second_substituted++;
+      aimTotals.enum_model_impact_residual_second_initial_substituted++;
     }
   }
   return result.selected;
@@ -1755,7 +1799,9 @@ function makeConfiguredAimedCandidates(
     sequence,
     offered,
     control.proposalCount,
-    aimModelImpactPolicy() === "distilled" && nextTargets.impact !== undefined,
+    aimModelImpactPolicy() === "distilled" &&
+      aimResidualSecondSelectionActive() &&
+      nextTargets.impact !== undefined,
   );
   if (chosen.length === 0 && !airKnobBase) {
     aimTotals.enum_on_target++;

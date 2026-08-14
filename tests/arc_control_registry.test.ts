@@ -16,6 +16,7 @@ import type { TrackLine } from "../scripts/v0/types.ts";
 import {
   aimControlOverrideActive,
   aimControlPhase,
+  aimResidualSecondSelectionActive,
   aimOutgoingAmplitudeEligible,
   aimTopKScaleExponent,
   aimTopKScaleScope,
@@ -25,7 +26,7 @@ import {
   aimModelImpactPower,
   impactSpeedAirOutgoingParetoImproves,
   impactSpeedParetoImproves,
-  setAimRepairLaneActive,
+  setAimSearchLane,
   setAimCompileBudgetFrames,
 } from "../scripts/v0/optimizer/aim.ts";
 
@@ -145,12 +146,24 @@ describe("arc-control probe layouts", () => {
     expect(aimControlPhase({})).toBe("all");
     expect(aimControlPhase({ LR_AIM_CONTROL_PHASE: "repair" })).toBe("repair");
     expect(() => aimControlPhase({ LR_AIM_CONTROL_PHASE: "tail" })).toThrow();
-    setAimRepairLaneActive(false);
+    setAimSearchLane("initial");
     expect(aimControlOverrideActive("all")).toBe(true);
     expect(aimControlOverrideActive("repair")).toBe(false);
-    setAimRepairLaneActive(true, 0);
+    setAimSearchLane("repair", 0);
     expect(aimControlOverrideActive("repair")).toBe(true);
-    setAimRepairLaneActive(false);
+    setAimSearchLane("initial");
+  });
+
+  test("residual second-slot ranking is confined to the initial episode", () => {
+    setAimSearchLane("initial");
+    expect(aimResidualSecondSelectionActive()).toBe(true);
+    setAimSearchLane("repair", 0);
+    expect(aimResidualSecondSelectionActive()).toBe(false);
+    setAimSearchLane("resumed");
+    expect(aimResidualSecondSelectionActive()).toBe(false);
+    expect(() => setAimSearchLane("initial", 0)).toThrow();
+    expect(() => setAimSearchLane("repair")).toThrow();
+    setAimSearchLane("initial");
   });
 
   test("mature aim breadth exponent is linear by default and validates study arms", () => {
@@ -170,12 +183,12 @@ describe("arc-control probe layouts", () => {
       process.env.LR_AIM_TOPK_SCALE_EXPONENT = "0.875";
       process.env.LR_AIM_TOPK_SCALE_SCOPE = "repair";
       setAimCompileBudgetFrames(4_000_000);
-      setAimRepairLaneActive(false);
+      setAimSearchLane("initial");
       expect(aimTopKBasesEffective()).toBe(96);
-      setAimRepairLaneActive(true, 0);
+      setAimSearchLane("repair", 0);
       expect(aimTopKBasesEffective()).toBe(68);
     } finally {
-      setAimRepairLaneActive(false);
+      setAimSearchLane("initial");
       setAimCompileBudgetFrames(0);
       if (previousExponent === undefined) delete process.env.LR_AIM_TOPK_SCALE_EXPONENT;
       else process.env.LR_AIM_TOPK_SCALE_EXPONENT = previousExponent;
@@ -195,16 +208,16 @@ describe("arc-control probe layouts", () => {
         .toThrow();
       process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA = "1";
       setAimCompileBudgetFrames(750_000);
-      setAimRepairLaneActive(false);
+      setAimSearchLane("initial");
       expect(aimTopKBasesEffective()).toBe(18);
-      setAimRepairLaneActive(true, 0);
+      setAimSearchLane("repair", 0);
       expect(aimTopKBasesEffective()).toBe(19);
-      setAimRepairLaneActive(true, 1);
+      setAimSearchLane("repair", 1);
       expect(aimTopKBasesEffective()).toBe(18);
-      setAimRepairLaneActive(true, 0);
+      setAimSearchLane("repair", 0);
       expect(aimTopKBasesEffective({ targets: { air: 0.3 } } as any)).toBe(3);
     } finally {
-      setAimRepairLaneActive(false);
+      setAimSearchLane("initial");
       setAimCompileBudgetFrames(0);
       if (previous === undefined) delete process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA;
       else process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA = previous;

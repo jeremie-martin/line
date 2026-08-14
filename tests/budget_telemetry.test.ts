@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   compileHandoff,
+  REPAIR_LAST_CHANCE_COST_RATIO,
   setHandoffExpansionProbeHook,
   type HandoffExpansionProbeRecord,
 } from "../scripts/v0/optimizer/handoff.ts";
@@ -1432,12 +1433,14 @@ describe("compile budget telemetry", () => {
     }
   }, 180_000);
 
-  test("sizes a measured repair ceiling at the estimator's own upper bound", async () => {
+  test("sizes a measured repair ceiling at its declared estimator upper bound", async () => {
     // The affordability test and the ceiling are the estimator's upper interval
     // bound for the attempt's own start observation — no hand-set feasibility
     // margin sits between them. Policy and recorder reach it independently
     // through the same pure functions and no shared state, which makes the
-    // sizing tautology exact and checkable from the archive alone.
+    // sizing tautology exact and checkable from the archive alone. The one
+    // declared exception is the last-chance narrow breadth, whose decision
+    // records the conservative cost ratio applied to both point and upper.
     //
     // The bound is the CALIBRATED one, `point x start/withPath upper ratio`.
     // The recorded `estimate_upper_frames` is not always the same number: out
@@ -1468,7 +1471,22 @@ describe("compile budget telemetry", () => {
       // there is no pace term yet, and the artifact's base mode takes the path.
       expect(repair.start.estimated_remaining_work_frames).toBeCloseTo(point, 9);
       const upper = budgetEstimateInterval(point, { event: "start", pathAvailable: true }).upper;
-      expect(repair.allocated_frames).toBe(Math.ceil(upper));
+      const decision = repair.repair_decision!;
+      const costRatio = decision.selection_policy ===
+          "worst_gap_three_quarter_last_chance"
+        ? REPAIR_LAST_CHANCE_COST_RATIO
+        : 1;
+      // The incumbent path observation remains the measured full-width cost.
+      // A last-chance repair declares and applies its conservative narrow-width
+      // cost ratio in the decision estimates; ordinary repairs use ratio one.
+      expect(decision.estimated_anchor_cost_frames).toBeCloseTo(path! * costRatio, 9);
+      expect(decision.estimated_anchor_cost_upper_frames).toBeCloseTo(
+        upper * costRatio,
+        9,
+      );
+      expect(repair.allocated_frames).toBe(
+        Math.ceil(decision.estimated_anchor_cost_upper_frames),
+      );
     }
   }, 180_000);
 

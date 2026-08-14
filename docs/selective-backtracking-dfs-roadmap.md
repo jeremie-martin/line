@@ -1224,3 +1224,26 @@ to the retained proper arm on all five tracks, scores, and validity outcomes;
 the analyzer passes. This verifies that simplification restored the intended
 lean mechanism rather than creating a fourth behavioral variant. The canonical
 campaign can now start from the committed source state.
+
+The canonical campaign ran through every predeclared look. Its final N=48
+headline is 604.2751 against 604.2665, a +0.0086 change with 0.0097 seed-block
+SE and 81.01% directional probability of improvement. The final boundary
+requires 97.23%, so the governed result is inconclusive and not promotable.
+Running hundreds more seeds to resolve an effect this small would not be a
+meaningful route toward the headline target.
+
+Validity does not explain the result. Both arms are valid in 2,111 of 2,112
+paired cells, with no candidate-only or reference-only validity outcome. The
+one invalid cell is shared: `frontier_pickup_progression_shifted` at actual seed
+635 stalls in both arms and therefore contributes zero comparative movement.
+The exact weight-preserving both-valid counterfactual remains +0.0086 and the
+validity-sensitive remainder is zero. Among jointly valid cells, 38 improve,
+38 regress, and 2,035 tie.
+
+The mechanism is safe but too narrow. The representative, capability, and
+legacy-regression strata are exact; all movement remains in development music,
+where `believer_impact_56s` is +0.25 and its amplitude variant +0.64 at N=48.
+The strong focused-seed lead therefore does not reproduce as broad canonical
+quality. Close this exact proper-discrepancy policy without promotion, remove
+its live environment fork, preserve the archived telemetry in the analyzer,
+and move to a categorically different selective-search design.

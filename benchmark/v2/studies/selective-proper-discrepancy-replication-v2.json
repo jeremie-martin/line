@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-proper-discrepancy-replication-study.v2",
-  "status": "predeclared-canonical-evaluation-authorized",
+  "status": "canonical-inconclusive-not-promoted",
   "generated_at": "2026-08-15",
   "question": "After three independent positive focused blocks and explicit modifier attribution, does the lean one-route proper-discrepancy policy improve the canonical 750k Benchmark V2 headline under the benchmark's sequential probability decision?",
   "candidate": {
@@ -84,5 +84,56 @@
     "if_accepted": "Make this lean policy the sole production default, remove its environment fork, run the required source-state/rebaseline workflow, and report the new N=48 headline.",
     "if_not_accepted": "Close without promotion, retain the telemetry and focused evidence as a route-quality lead, and move to a categorically different search design.",
     "scope": "Canonical 750k only. No multi-budget sweep is authorized."
+  },
+  "canonical_result": {
+    "completed_at": "2026-08-15",
+    "stopping_depth": 48,
+    "outcome": "inconclusive",
+    "promoted": false,
+    "headline": {
+      "baseline": 604.2665,
+      "candidate": 604.2751,
+      "delta": 0.0086,
+      "seed_block_standard_error": 0.0097,
+      "directional_probability_positive": 0.81009518,
+      "required_directional_probability": 0.9723,
+      "central_95_interval": [-0.0175, 0.0347]
+    },
+    "sequential_looks": [
+      { "depth": 8, "delta": -0.0042, "directional_probability_positive": 0.41568051, "action": "continue" },
+      { "depth": 16, "delta": -0.0101, "directional_probability_positive": 0.19071143, "action": "continue" },
+      { "depth": 32, "delta": -0.004, "directional_probability_positive": 0.31030298, "action": "continue" },
+      { "depth": 48, "delta": 0.0086, "directional_probability_positive": 0.81009518, "action": "inconclusive" }
+    ],
+    "outcome_attribution": {
+      "paired_cells": 2112,
+      "both_full_contract_valid": 2111,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 1,
+      "both_valid_counterfactual_headline_delta": 0.0086,
+      "validity_sensitive_headline_remainder": 0,
+      "both_valid_improved": 38,
+      "both_valid_regressed": 38,
+      "both_valid_tied": 2035,
+      "shared_failure": "frontier_pickup_progression_shifted at actual seed 635; both arms stalled and scored zero"
+    },
+    "breadth": {
+      "unchanged_strata": ["representative", "capability", "legacy_regression"],
+      "development_music_delta": 0.17,
+      "changed_cases": {
+        "believer_impact_56s": 0.25,
+        "believer_impact_56s_amplitude_plus_5": 0.64
+      },
+      "interpretation": "The policy was safe but extremely narrow. Its focused-seed gains did not reproduce as a promotable canonical improvement. The final positive point estimate is too small and uncertain to justify a deeper run."
+    },
+    "artifacts": {
+      "comparison": "generated/benchmark-v2/eval/cached-N48-2026-08-14T22-40-54Z.json.comparison.json",
+      "candidate_archive": "generated/benchmark-v2/eval/cached-N48-2026-08-14T22-40-54Z.N48.json",
+      "candidate_archive_sha256": "a3dab65a39b9ae6def4976d8a2ac482269d0b8609382bb350b7012e114ea76be",
+      "candidate_compressed_archive_sha256": "255a2b592a93d5713fdc8485a7b771e14be2cc90e26742986f377feb95e1d157",
+      "candidate_snapshot_sha256": "8cb602adf736730f212b100bb9aab38a27a6c90d8255ee8d892e5096797a36fe"
+    },
+    "decision": "Close this exact depth-one local-discrepancy policy without promotion. Retain its telemetry and evidence as a selective-search lead, remove the unaccepted live policy fork, and pursue a categorically different backtracking design rather than spending roughly 645 seeds to resolve a +0.0086-point effect."
   }
 }

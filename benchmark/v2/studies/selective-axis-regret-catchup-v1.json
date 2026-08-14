@@ -1,0 +1,120 @@
+{
+  "schema": "line.benchmark-v2.selective-axis-regret-catchup-v1.v1",
+  "recorded_at": "2026-08-14T17:40:00Z",
+  "status": "accepted_arm_pending_default_confirmation",
+  "scope": {
+    "question": "Can a regret-triggered alternative be tested at equal authored depth without surrendering the rest of the compile to its subtree?",
+    "policy": "After the proven axis-regret trigger, follow the exact queued sibling's preferred path to the suspended prefix's authored gap, compare authored-prefix axis loss, continue the lower-loss prefix, and retain the other in the ordinary frontier.",
+    "phase": "shared initial, snapshot, repair, and resumed frontier scheduler",
+    "benchmark": "full canonical V2",
+    "budget": 750000,
+    "seeds": 48,
+    "multi_budget_sweep": false,
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup"
+    },
+    "non_claim": "This is the first implementation of one selective-backtracking scheme at one budget. It does not rank the broader scheme space, establish higher-budget behavior, or bound the potential of voluntary backtracking."
+  },
+  "implementation": {
+    "strategy_map_commit": "3a76242",
+    "implementation_commit": "1e734ab",
+    "snapshot_sha256": "93bc72776ff23ad0dae55ba3a611d02e4743c9571ad07c20619ce43ec2be457c",
+    "tested_default_contract": "The measured compiler required LR_FRONTIER_POLICY=selective-axis-regret-catchup; the unset production behavior remained DFS at this evidence boundary."
+  },
+  "canonical_result": {
+    "governed_outcome": "accept",
+    "promotable": true,
+    "stopping_depth": 48,
+    "candidate_compiles": 2112,
+    "headline": {
+      "baseline": 604.185,
+      "candidate": 604.2665,
+      "delta": 0.0815,
+      "standard_error": 0.0358,
+      "central_95_lo": -0.0147,
+      "central_95_hi": 0.1777,
+      "directional_probability": 0.9862944,
+      "required_directional_probability": 0.97226547
+    },
+    "validity": {
+      "baseline": 2111,
+      "candidate": 2111,
+      "total": 2112,
+      "gained": 0,
+      "lost": 0
+    },
+    "sequential_looks": [
+      {"seeds": 8, "delta": 0.0436, "directional_probability": 0.93955796, "required_directional_probability": 0.99902882, "action": "continue"},
+      {"seeds": 16, "delta": 0.0781, "directional_probability": 0.99787978, "required_directional_probability": 0.99802766, "action": "continue"},
+      {"seeds": 32, "delta": 0.0399, "directional_probability": 0.94535198, "required_directional_probability": 0.98884194, "action": "continue"},
+      {"seeds": 48, "delta": 0.0815, "directional_probability": 0.9862944, "required_directional_probability": 0.97226547, "action": "accept"}
+    ],
+    "important_case_deltas": {
+      "sparse_lowline": 1.584,
+      "believer_impact_56s_amplitude_plus_5": 1.4491,
+      "regression_amplitude_mosaic": 0.5177,
+      "sparse_lowline_air_minus_4": 0.4297,
+      "believer_impact_56s": 0.3903,
+      "frontier_low_air_endurance_4s": -0.3186,
+      "meter_exchange": -0.1824,
+      "believer_56_6s": -0.1808,
+      "frontier_low_air_endurance": -0.09
+    }
+  },
+  "mechanism_audit": {
+    "active_cells": 126,
+    "selective_backtracks": 598,
+    "backtracks_by_lane": {"initial": 597, "snapshot": 0, "repair": 1, "resumed": 0},
+    "signal_crossings": 27074,
+    "deadline_suppressed_crossings": 26476,
+    "unavailable_alternatives": 0,
+    "catchup": {
+      "completed": 565,
+      "alternative_selected": 194,
+      "current_selected": 371,
+      "probe_dead_ends": 33,
+      "probe_deferred": 0,
+      "execution_ceiling_stops": 0,
+      "suspended_continuations_resumed": 404,
+      "probe_nodes_processed": 5148,
+      "probe_frames": 23070186
+    },
+    "event_distributions": {
+      "gap_rewind": {"min": 1, "median": 10, "p90": 12, "max": 26, "mean": 8.6906},
+      "contact_advance": {"min": 2, "median": 11, "p90": 13, "max": 27, "mean": 9.6906},
+      "probe_frames": {"min": 72, "median": 43226.5, "p90": 54994.7, "max": 170413, "mean": 38578.9064},
+      "equal_depth_axis_loss_gain": {"count": 565, "min": -0.221, "median": -0.0042, "p90": 0.016, "max": 0.2355, "mean": -0.0016}
+    },
+    "concentration": {
+      "cases": ["believer_impact_56s", "believer_impact_56s_amplitude_plus_5"],
+      "active_cells": 96,
+      "backtracks": 551,
+      "share_of_all_backtracks": 0.9214
+    },
+    "interpretation": "The bounded tournament fixes V1's whole-subtree starvation and sometimes chooses each side. Its accepted headline is heterogeneous and highly concentrated. Probe cost, trigger coverage, target choice, bound choice, comparison signal, and budget adaptation remain open design axes."
+  },
+  "decision": {
+    "action": "Adopt this exact accepted scheme as the production default only after an unset-policy confirmation with matching compiler provenance; retain explicit DFS as a diagnostic control.",
+    "broader_followups": [
+      "budget-dependent trigger, rewind, and excursion bounds",
+      "local watch expiry and alternative target selection",
+      "interleaved or capped subtree work quanta",
+      "top-k equal-depth tournaments and limited-discrepancy paths",
+      "repair-incumbent-relative signals",
+      "signals that combine authored-axis loss with survival and completion-cost evidence"
+    ]
+  },
+  "evidence": {
+    "comparison": {
+      "path": "generated/benchmark-v2/runs/selective-axis-regret-catchup-v1-max48.comparison.json",
+      "sha256": "1856f3df8ac86182713eebf9e91e8a3af5af3a1174493ccc4a410bd90106c7c4"
+    },
+    "candidate_archive": {
+      "path": "generated/benchmark-v2/runs/selective-axis-regret-catchup-v1-max48.N48.json.gz",
+      "raw_archive_sha256": "676f5736c4550d54250c6b639b5aab2f973475457a18009f6af55cd269957e75",
+      "compressed_sha256": "fa9bb0ac8c2dd221c32099a772d1956919dec838f806d84882bfe8af0c836af2",
+      "decision_index_sha256": "7d89ae5d11a0f25caecc1a8487f3b43507b6bd432f7e1122ba87f6c14fc351d4",
+      "summary_sha256": "04c59ab3916dd0d23fc80dd9652fa69fd4cfec2ac1350fbe726f14db65675fdd"
+    }
+  }
+}

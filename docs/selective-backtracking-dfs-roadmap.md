@@ -297,3 +297,28 @@ This is mechanism evidence, not a performance conclusion. It confirms that the
 new disposition prevents whole-subtree starvation and makes a measured
 like-for-like decision. It also exposes probe work as the next quantity whose
 value must be tested.
+
+### Canonical result and deliberately narrow conclusion
+
+The full canonical 750k campaign accepted this environment-gated arm at N=48:
+
+- headline 604.1850 -> 604.2665, delta +0.0815;
+- seed-block SE 0.0358 and directional probability 98.6294%;
+- calibrated N=48 acceptance requirement 97.2265%;
+- validity unchanged at 2111/2112;
+- sequential looks continued at N=8, N=16, and N=32, then accepted at N=48.
+
+Across all 2,112 cells, 126 activated the policy. They produced 598 bounded
+tournaments: 565 reached equal depth, 194 selected the alternative, 371 kept
+the current prefix, 33 probes died, and 404 suspended prefixes later resumed.
+The probes processed 5,148 nodes and charged 23,070,186 frames. The two
+`believer_impact_56s` cases account for 551 of the 598 tournaments, so this is
+not evidence of broad activation across the catalog.
+
+This result establishes only that this first bounded-catch-up scheme is useful
+at the canonical 750k budget. It does not rank selective-backtracking families,
+identify a best trigger or excursion rule, establish higher-budget behavior,
+or imply that the strategy space is close to exhausted. It is positive evidence
+for continuing the general direction. The environment-gated arm must still be
+made the unset production behavior and reconfirmed with matching compiler
+provenance before the campaign baseline is promoted.

@@ -666,3 +666,20 @@ adds capability and legacy controls, yielding 96 cells per arm. A canonical
 N48 evaluation follows only with preserved validity, positive fresh target sum,
 at least ten of sixteen positive target seed blocks, and non-isolated movement.
 The canonical evaluator—not this screen—remains the promotion authority.
+
+The fresh confirmation decisively rejects that exact allocation. All 96 cells
+in both arms remain valid, so there is no completion-failure explanation: the
+candidate's completed tracks lose 111.2914 points in total (11 better, 19
+worse, 66 tied). Seed-blocked movement is -1.1593 +/- 0.4289 per cell
+(t = -2.70); on the four target sources it is -1.2442 +/- 0.4222 (t = -2.95),
+with only five of sixteen seed blocks positive. The high-air pair never moves;
+both believer cases reverse, and one regression-control cell loses 31.6615.
+
+The mechanical result explains the next design boundary. Always probing the
+second sibling spends 1,226,368 more catch-up frames in this panel, while the
+second sibling is ultimately selected in only 28 of 129 tournaments. The
+always-probe-both arm is closed without a canonical run. This does not reject
+multi-sibling search: the next categorical design asks for the second sibling
+only as a fallback when the runner-up failed to catch up or did not strictly
+beat the interrupted prefix. It preserves an extra escape route while avoiding
+the measured cost of trying to improve an already winning runner-up.

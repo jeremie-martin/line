@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-multi-sibling-catchup-study.v1",
-  "status": "catalog-positive-confirmation-predeclared",
+  "status": "closed-negative-fresh-confirmation",
   "generated_at": "2026-08-14",
   "question": "Does comparing both accepted causal siblings at equal depth improve completed-track quality over the promoted runner-up-only tournament?",
   "intervention": {
@@ -201,6 +201,63 @@
     "expected_cells_per_arm": 96,
     "reference_commit": "b2d520a3",
     "decision": "A canonical N48 evaluation is justified only if every cell retains validity, the fresh target-source score sum is positive, at least ten of sixteen target seed blocks are positive, and positive target movement is not confined to one cell. The canonical evaluator remains the only promotion authority."
+  },
+  "fresh_confirmation_result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-multi-sibling-catchup-confirmation-n16",
+    "actual_sources": 6,
+    "cells_per_arm": 96,
+    "outcome_attribution": {
+      "both_valid": 96,
+      "reference_only_valid": 0,
+      "candidate_only_valid": 0,
+      "neither_valid": 0
+    },
+    "changed_tracks": 30,
+    "both_valid_score_sum_delta": -111.2914,
+    "better_worse_tied": [11, 19, 66],
+    "seed_blocked_all_cells": {
+      "mean_delta": -1.1592854167,
+      "standard_error": 0.4289123374,
+      "t": -2.7028,
+      "degrees_of_freedom": 15,
+      "positive_negative_blocks": [5, 11]
+    },
+    "seed_blocked_target_cells": {
+      "score_sum_delta": -79.6299,
+      "mean_delta": -1.2442171875,
+      "standard_error": 0.4222103189,
+      "t": -2.9469,
+      "degrees_of_freedom": 15,
+      "positive_negative_blocks": [5, 11]
+    },
+    "source_direction": {
+      "believer_impact_56s_mean_delta": -1.138,
+      "believer_impact_56s_amplitude_plus_5_mean_delta": -3.838,
+      "high_air_pair": "bit-identical on every seed",
+      "regression_transition_mosaic": "one changed seed regressed by 31.6615 points"
+    },
+    "mechanics": {
+      "selective_backtracks": "185 -> 129",
+      "candidate_probe_attempts": 258,
+      "candidate_probe_target_reaches": 254,
+      "candidate_additional_probe_attempts": 129,
+      "candidate_additional_probe_target_reaches": 128,
+      "candidate_additional_alternative_selected": 28,
+      "catchup_completed": "176 -> 129",
+      "catchup_alternative_selected": "67 -> 62",
+      "catchup_current_selected": "109 -> 67",
+      "catchup_probe_dead_ends": "9 -> 4",
+      "catchup_probe_frames": "7527059 -> 8753427"
+    },
+    "telemetry_integrity": "The tournament analyzer passes all event and compile-level consistency checks on the candidate archive.",
+    "decision": "Reject the always-probe-every-live-sibling policy. It fails the predeclared target-sum and positive-seed-block gates; no canonical N48 run is warranted.",
+    "interpretation": "The reversal is completed-track quality, not failure risk: every paired cell is valid and validity-discordant score movement is exactly zero. The focused N8 result was therefore not stable. This closes the full-depth all-sibling allocation, not the broader multi-sibling family.",
+    "sha256": {
+      "candidate": "d47bc86ed6da4592dae325f99e6a84d56751e1e1269541fc1596b8a5d85c174f",
+      "reference": "1dd7b101ba55bde141d069b8911877c25adbb8c75616de3c5cd2924bb3f02354",
+      "report": "b48e10e75ee74f6f00624e1361843a152d41f118bc32bd74b3f9c5a4e982b04d",
+      "selective_analysis": "af62e169a2bc0ca4f0aa17b9672df7cb28431424e50d286761d01148d2ea9578"
+    }
   },
   "non_claim": "This evaluates the first full-depth, all-live-sibling tournament at 750k. A negative result would not reject multi-sibling or voluntary-backtracking strategies with different probe allocation, stopping, or selection rules."
 }

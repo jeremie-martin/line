@@ -1,0 +1,107 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-residual-guarded-second-candidate.v1",
+  "recorded_at": "2026-08-14T09:45:00+02:00",
+  "status": "predeclared_before_implementation",
+  "motivation": {
+    "closed_study": "benchmark/v2/studies/aim-impact-residual-initial-only-candidate.json",
+    "fresh_confirmation": "benchmark/v2/studies/aim-impact-residual-initial-only-n96-confirmation.json",
+    "direct_observations": {
+      "fresh_initial_register_delta": 0.06353233958622649,
+      "fresh_post_initial_delta": -0.25129895883705655,
+      "fresh_matched_valid_final_delta": -0.18919460447498251,
+      "fresh_final_tracks_changed": 2105,
+      "fresh_total_tracks": 2112,
+      "fresh_final_track_changed_fraction": 0.9966856060606061,
+      "case_sign_reversals_between_blocks": 23,
+      "canonical_cases": 44,
+      "case_delta_correlation_between_blocks": -0.2384569895171161
+    },
+    "interpretation": "Preserving the first local proposal did not make the prior policy conservative: repeated second-slot substitutions compounded into nearly universal track churn, the earlier initial-search gain did not replicate, and source-level signs were unstable. A source allowlist or another broad phase boundary is therefore not licensed."
+  },
+  "candidate": {
+    "policy": "initial_low_regret_material_advantage_v1",
+    "scope": "initial search only; repair and resumed search use the accepted proposer and accepted inference artifact exactly",
+    "default": "retain the accepted geometrically distinct first and second proposals",
+    "challenger": "the residual-adjusted ordering's highest proposal geometrically distinct from the accepted first proposal",
+    "substitute_second_only_if": {
+      "challenger_differs_from_incumbent_second": true,
+      "maximum_incumbent_impact_regret": 0.01,
+      "maximum_incumbent_utility_regret": 0.01,
+      "minimum_residual_impact_advantage": 0.02
+    },
+    "otherwise": "return the complete accepted proposal list byte-for-byte",
+    "first_proposal": "always the exact accepted first proposal",
+    "proposal_count": "unchanged",
+    "exact_evaluation_count": "unchanged",
+    "admission_set": "unchanged",
+    "authored_targets": "unchanged",
+    "repair": "unchanged",
+    "resumed_search": "unchanged"
+  },
+  "offline_lead": {
+    "authority": "exploratory_proxy_only_not_a_compiler_decision",
+    "dataset": "generated/analysis/readiness-training.jsonl.gz validation partition",
+    "proxy_groups": 3743,
+    "unrestricted": {
+      "changed": 691,
+      "changed_fraction": 0.1846112743788405,
+      "better": 417,
+      "worse": 274,
+      "conditional_better_fraction": 0.6034732272069464,
+      "top2_truth_delta_per_group": 0.003507200596804733
+    },
+    "impact_regret_0p01_and_advantage_0p02": {
+      "changed": 70,
+      "changed_fraction": 0.018701576275714667,
+      "better": 49,
+      "worse": 21,
+      "conditional_better_fraction": 0.7,
+      "top2_truth_delta_per_group": 0.0008054847108006649
+    },
+    "adaptivity": "The constants were selected after an exploratory threshold scan on the same frozen proxy partition. They are a mechanistic operating point, not independent statistical evidence. The additional production-utility regret guard has no claim from this proxy."
+  },
+  "telemetry_contract": {
+    "availability": "always present in ordinary compile stats when the aim lane runs; not hidden behind study-only instrumentation",
+    "lane_counts": [
+      "initial grids",
+      "repair bypassed grids",
+      "resumed bypassed grids"
+    ],
+    "decision_counts": [
+      "eligible pairs",
+      "different residual challengers",
+      "impact-regret rejections",
+      "utility-regret rejections",
+      "advantage rejections",
+      "substitutions",
+      "first-choice preservations"
+    ],
+    "accepted_gate_magnitudes": [
+      "incumbent impact regret mean",
+      "incumbent utility regret mean",
+      "residual impact advantage mean"
+    ]
+  },
+  "precanonical_contract": {
+    "required": [
+      "the residual artifact retains the accepted 32-tree model as an exact prefix",
+      "the accepted first proposal is preserved for every eligible selection",
+      "repair and resumed lanes record bypassed grids and zero substitutions",
+      "proposal and exact-evaluation counts remain fixed",
+      "at least one guarded substitution occurs in the live mechanism check",
+      "the guarded substitution rate is materially below the unrestricted policy"
+    ],
+    "not_a_score_gate": "Smoke and mechanism checks validate implementation and intervention sparsity only. They do not select on authored score."
+  },
+  "decision_protocol": {
+    "benchmark": "full canonical V2",
+    "budget": 750000,
+    "looks": [8, 16, 32, 48],
+    "maximum_seeds": 48,
+    "promotion_rule": "the governed calibrated directional-probability action only",
+    "multi_budget_sweep": false,
+    "canonical_candidates": 1,
+    "on_accept": "promote and retain the guarded residual implementation",
+    "otherwise": "record the evidence and remove the residual runtime/artifact path cleanly"
+  }
+}

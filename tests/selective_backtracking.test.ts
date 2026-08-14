@@ -329,6 +329,77 @@ describe("selective-backtracking controller", () => {
     expect(controller.snapshot().events[0]?.catchup_axis_loss_gain).toBeCloseTo(-0.09);
   });
 
+  test("maps every simultaneously admissible causal rewind without changing nearest selection", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap);
+    const outerParent = { gap: 1, name: "outer-parent" };
+    const outerLeader = { gap: 2, name: "outer-leader" };
+    const outerAlternative = { gap: 2, name: "outer-alternative" };
+    const innerLeader = { gap: 3, name: "inner-leader" };
+    const innerAlternative = { gap: 3, name: "inner-alternative" };
+    const descendant = { gap: 4, name: "descendant" };
+    controller.observeExpansion({
+      parent: outerParent,
+      children: [outerLeader, outerAlternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0,
+    });
+    controller.observeExpansion({
+      parent: outerLeader,
+      children: [innerLeader, innerAlternative],
+      contactExpansion: true,
+      contactOrdinal: 2,
+      axisLoss: 0.1,
+    });
+    controller.observeExpansion({
+      parent: innerLeader,
+      children: [descendant],
+      contactExpansion: true,
+      contactOrdinal: 3,
+      axisLoss: 0.2,
+    });
+    const decision = controller.consider({
+      node: descendant,
+      contactOrdinal: 4,
+      axisLoss: 0.5,
+      executionCeilingReached: false,
+      totalSpentFrames: 100,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: (node) => ({
+        margin: node === innerAlternative ? 3 : 4,
+        pressured: false,
+      }),
+    });
+    expect(decision?.alternative).toBe(innerAlternative);
+    expect(controller.snapshot()).toMatchObject({
+      selective_backtracks: 1,
+      selective_backtracks_with_multiple_admissible_rewind_choices: 1,
+      admissible_rewind_choice_count_sum: 2,
+      admissible_rewind_choice_count_max: 2,
+      events: [{
+        admissible_rewind_choices: [
+          {
+            branch_gap_index: 2,
+            alternative_gap_index: 3,
+            contact_advance: 2,
+            gap_rewind: 1,
+            axis_loss_delta: 0.4,
+            conservative_deadline_margin: 3,
+          },
+          {
+            branch_gap_index: 1,
+            alternative_gap_index: 2,
+            contact_advance: 3,
+            gap_rewind: 2,
+            axis_loss_delta: 0.5,
+            conservative_deadline_margin: 4,
+          },
+        ],
+      }],
+    });
+  });
+
   test("repair-incumbent policy adds one repair-only causal catch-up", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
       policy: "selective_axis_regret_catchup_repair_incumbent_once",

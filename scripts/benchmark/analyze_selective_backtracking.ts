@@ -49,6 +49,7 @@ type Event = {
   incumbent_axis_loss: number | null;
   incumbent_axis_loss_delta: number | null;
   repair_attempt_index: number | null;
+  admissible_rewind_choices: RewindChoice[];
   from_gap_index: number;
   catchup_outcome: Outcome;
   catchup_probe_frames: number;
@@ -58,6 +59,15 @@ type Event = {
   catchup_additional_probes_skipped_after_first_winner: number;
   catchup_probe_results: ProbeResult[];
   catchup_checkpoints: Checkpoint[];
+};
+
+type RewindChoice = {
+  branch_gap_index: number;
+  alternative_gap_index: number;
+  contact_advance: number;
+  gap_rewind: number;
+  axis_loss_delta: number;
+  conservative_deadline_margin: number;
 };
 
 type ProbeResult = {
@@ -163,6 +173,7 @@ for (const row of archive.runs ?? []) {
       incumbent_axis_loss: event.incumbent_axis_loss ?? null,
       incumbent_axis_loss_delta: event.incumbent_axis_loss_delta ?? null,
       repair_attempt_index: event.repair_attempt_index ?? null,
+      admissible_rewind_choices: event.admissible_rewind_choices ?? [],
       from_gap_index: event.from_gap_index,
       catchup_outcome: event.catchup_outcome,
       catchup_probe_frames: event.catchup_probe_frames,
@@ -298,6 +309,58 @@ const multiSiblingSummary = {
   probe_frames: multiSiblingEvents.reduce((sum, event) => sum + event.catchup_probe_frames, 0),
 };
 
+const mappedBranchChoiceEvents = events.filter((event) =>
+  event.trigger_signal === "branch_regret" && event.admissible_rewind_choices.length > 0
+);
+const choiceWinnerIndex = (
+  event: Event,
+  value: (choice: RewindChoice) => number,
+): number => event.admissible_rewind_choices.reduce(
+  (best, choice, index, choices) =>
+    value(choice) > value(choices[best]!) ? index : best,
+  0,
+);
+const summarizeChoicePolicy = (
+  name: string,
+  value: (choice: RewindChoice) => number,
+) => {
+  const differing = mappedBranchChoiceEvents.filter((event) => choiceWinnerIndex(event, value) > 0);
+  return {
+    policy: name,
+    differing_events: differing.length,
+    affected_runs: new Set(differing.map((event) => `${event.sourceId}/${event.seed}`)).size,
+    affected_sources: [...new Set(differing.map((event) => event.sourceId))].sort(),
+  };
+};
+const branchPointChoiceMap = mappedBranchChoiceEvents.length === 0 ? null : {
+  events: mappedBranchChoiceEvents.length,
+  choices: mappedBranchChoiceEvents.reduce(
+    (sum, event) => sum + event.admissible_rewind_choices.length,
+    0,
+  ),
+  multiple_choice_events: mappedBranchChoiceEvents.filter(
+    (event) => event.admissible_rewind_choices.length > 1,
+  ).length,
+  maximum_choices: Math.max(...mappedBranchChoiceEvents.map(
+    (event) => event.admissible_rewind_choices.length,
+  )),
+  alternatives_to_nearest: [
+    summarizeChoicePolicy("maximum_regret", (choice) => choice.axis_loss_delta),
+    summarizeChoicePolicy(
+      "maximum_regret_per_estimated_work",
+      (choice) => choice.axis_loss_delta * choice.conservative_deadline_margin,
+    ),
+    summarizeChoicePolicy(
+      "minimum_estimated_work",
+      (choice) => choice.conservative_deadline_margin,
+    ),
+  ],
+  caveat:
+    "Deadline margin is remaining frames divided by the sibling's conservative suffix-cost " +
+    "estimate. Within one event, maximizing regret times margin therefore maximizes regret per " +
+    "estimated frame up to a common remaining-budget factor. This map changes no traversal.",
+};
+
 const result = {
   schema: "line.selective-backtracking-offline-guard-analysis.v1",
   source_archive: archivePath,
@@ -319,6 +382,7 @@ const result = {
   },
   by_source: bySource,
   multi_sibling: multiSiblingSummary,
+  branch_point_choice_map: branchPointChoiceMap,
   admission_margin_counterfactuals: admissionMarginCounterfactuals,
   trigger_opportunities: triggerRuns.length === 0 ? null : {
     coverage: {
@@ -534,6 +598,7 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
   );
   if (instrumented.length === 0) return;
   const probes: ProbeResult[] = [];
+  const mappedChoiceEvents: any[] = [];
   for (let eventIndex = 0; eventIndex < instrumented.length; eventIndex++) {
     const event = instrumented[eventIndex];
     const label = `${runKey}/event-${eventIndex}`;
@@ -541,6 +606,39 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     const triggerSignal = event.trigger_signal ?? "branch_regret";
     if (triggerSignal !== "branch_regret" && triggerSignal !== "repair_incumbent_regret") {
       throw new Error(`${label} has invalid trigger signal`);
+    }
+    if (event.admissible_rewind_choices !== undefined) {
+      if (!Array.isArray(event.admissible_rewind_choices) || event.admissible_rewind_choices.length < 1) {
+        throw new Error(`${label} has no admissible rewind choice`);
+      }
+      const choices = event.admissible_rewind_choices as RewindChoice[];
+      const selected = choices[0]!;
+      if (
+        selected.branch_gap_index !== event.branch_gap_index ||
+        selected.alternative_gap_index !== event.alternative_gap_index ||
+        selected.contact_advance !== event.contact_advance ||
+        selected.gap_rewind !== event.gap_rewind ||
+        Math.abs(selected.axis_loss_delta - event.axis_loss_delta) > 1e-12 ||
+        Math.abs(
+          selected.conservative_deadline_margin -
+            event.alternative_conservative_deadline_margin,
+        ) > 1e-12
+      ) {
+        throw new Error(`${label} first rewind choice does not match the selected sibling`);
+      }
+      for (const choice of choices) {
+        if (
+          !Number.isSafeInteger(choice.branch_gap_index) ||
+          !Number.isSafeInteger(choice.alternative_gap_index) ||
+          !Number.isSafeInteger(choice.contact_advance) || choice.contact_advance < 2 ||
+          !Number.isSafeInteger(choice.gap_rewind) || choice.gap_rewind < 0 ||
+          !Number.isFinite(choice.axis_loss_delta) ||
+          !Number.isFinite(choice.conservative_deadline_margin)
+        ) {
+          throw new Error(`${label} has an invalid admissible rewind choice`);
+        }
+      }
+      mappedChoiceEvents.push(event);
     }
     if (triggerSignal === "repair_incumbent_regret") {
       if (
@@ -712,6 +810,25 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       throw new Error(`${runKey} took more than one repair-incumbent action in one attempt`);
     }
   }
+  if (stats.admissible_rewind_choice_count_sum !== undefined) {
+    const choiceCount = mappedChoiceEvents.reduce(
+      (sum, event) => sum + event.admissible_rewind_choices.length,
+      0,
+    );
+    const multiple = mappedChoiceEvents.filter(
+      (event) => event.admissible_rewind_choices.length > 1,
+    ).length;
+    const maximum = mappedChoiceEvents.length === 0
+      ? 0
+      : Math.max(...mappedChoiceEvents.map((event) => event.admissible_rewind_choices.length));
+    if (
+      stats.admissible_rewind_choice_count_sum !== choiceCount ||
+      stats.selective_backtracks_with_multiple_admissible_rewind_choices !== multiple ||
+      stats.admissible_rewind_choice_count_max !== maximum
+    ) {
+      throw new Error(`${runKey} admissible rewind choice aggregates disagree with events`);
+    }
+  }
 }
 
 function sameNullableNumber(left: number | null, right: unknown): boolean {
@@ -804,6 +921,19 @@ function print(analysis: typeof result): void {
       `${analysis.multi_sibling.probes} probes; ` +
       `${analysis.multi_sibling.additional_alternative_selected} selected sibling #2+`,
     );
+  }
+  if (analysis.branch_point_choice_map !== null) {
+    const choices = analysis.branch_point_choice_map;
+    console.log(
+      `  branch-point map ${choices.choices} admissible choices across ${choices.events} events; ` +
+      `${choices.multiple_choice_events} events have alternatives; max ${choices.maximum_choices}`,
+    );
+    for (const policy of choices.alternatives_to_nearest) {
+      console.log(
+        `    ${policy.policy.padEnd(36)} differs ${String(policy.differing_events).padStart(4)} ` +
+        `events; ${policy.affected_runs} runs / ${policy.affected_sources.length} sources`,
+      );
+    }
   }
   console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);
   for (const row of analysis.admission_margin_counterfactuals) {

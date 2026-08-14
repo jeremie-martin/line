@@ -837,3 +837,28 @@ closes the present repair-incumbent signal family: unrestricted action,
 per-attempt bounding, and delayed maturity now have distinct evidence. The next
 policy should change the search signal or work disposition rather than tune the
 same deficit threshold or contact count.
+
+### Branch-point choice map
+
+The next study returns to the general selective DFS rather than extending the
+closed repair-incumbent signal. Production currently takes the nearest causal
+sibling whenever inherited axis-loss regret justifies a backtrack. That is a
+simple safe default, but it is a branch-order convention rather than an
+evidence-backed value choice: an older sibling can be simultaneously live,
+affordable, and associated with more removable regret.
+
+The first step remains behavior-neutral. At each actual production branch-
+regret action, telemetry records every watch on the active lineage that
+independently passes the same regret, maturity, liveness, ceiling, and deadline
+rules. The first entry must exactly equal the sibling production chose. Each
+choice records its regret and conservative deadline margin, allowing categorical
+counts for maximum regret, minimum estimated suffix work, and maximum regret
+per estimated suffix work without pretending that any counterfactual was run.
+
+Fresh actual seeds 96-99 cover the believer and sparse-lowline parent/variant
+pairs at 750k; capability and regression controls are back-filled. All outputs
+must exactly match commit `489d6e72`. One live policy follows only if maximum
+regret per estimated work differs from nearest-first on at least 20 events
+spanning four runs and two sources. This gate is score-blind. It asks whether a
+materially different policy exists before spending fresh cells on its outcome;
+the map cannot authorize canonical evaluation or a multi-budget sweep.

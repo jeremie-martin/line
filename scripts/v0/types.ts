@@ -531,6 +531,9 @@ export type CompileStats = {
       branch_regret: number;
       repair_incumbent_regret: number;
     };
+    selective_backtracks_with_multiple_admissible_rewind_choices: number;
+    admissible_rewind_choice_count_sum: number;
+    admissible_rewind_choice_count_max: number;
     selective_backtracks_with_additional_sibling_available: number;
     additional_siblings_available_at_selective_backtrack_sum: number;
     additional_siblings_available_at_selective_backtrack_max: number;
@@ -577,6 +580,14 @@ export type CompileStats = {
       incumbent_axis_loss: number | null;
       incumbent_axis_loss_delta: number | null;
       repair_attempt_index: number | null;
+      admissible_rewind_choices: Array<{
+        branch_gap_index: number;
+        alternative_gap_index: number;
+        contact_advance: number;
+        gap_rewind: number;
+        axis_loss_delta: number;
+        conservative_deadline_margin: number;
+      }>;
       alternative_conservative_deadline_margin: number;
       trigger_total_spent_frames: number;
       resumed_total_spent_frames: number | null;

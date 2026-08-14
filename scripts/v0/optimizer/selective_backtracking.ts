@@ -87,6 +87,15 @@ export type SelectiveBacktrackDecision<Node extends object> = {
   repairAttemptIndex: number | null;
 };
 
+export type SelectiveAdmissibleRewindChoice = {
+  branch_gap_index: number;
+  alternative_gap_index: number;
+  contact_advance: number;
+  gap_rewind: number;
+  axis_loss_delta: number;
+  conservative_deadline_margin: number;
+};
+
 export type SelectiveCatchupOutcome =
   | "alternative_selected"
   | "current_selected"
@@ -140,6 +149,9 @@ export type SelectiveBacktrackingStats = {
   unavailable_alternatives: number;
   selective_backtracks: number;
   selective_backtracks_by_signal: Record<SelectiveBacktrackSignal, number>;
+  selective_backtracks_with_multiple_admissible_rewind_choices: number;
+  admissible_rewind_choice_count_sum: number;
+  admissible_rewind_choice_count_max: number;
   selective_backtracks_with_additional_sibling_available: number;
   additional_siblings_available_at_selective_backtrack_sum: number;
   additional_siblings_available_at_selective_backtrack_max: number;
@@ -184,6 +196,7 @@ export type SelectiveBacktrackingEvent = {
   incumbent_axis_loss: number | null;
   incumbent_axis_loss_delta: number | null;
   repair_attempt_index: number | null;
+  admissible_rewind_choices: SelectiveAdmissibleRewindChoice[];
   alternative_conservative_deadline_margin: number;
   trigger_total_spent_frames: number;
   resumed_total_spent_frames: number | null;
@@ -294,6 +307,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       unavailable_alternatives: 0,
       selective_backtracks: 0,
       selective_backtracks_by_signal: emptySignalCounter(),
+      selective_backtracks_with_multiple_admissible_rewind_choices: 0,
+      admissible_rewind_choice_count_sum: 0,
+      admissible_rewind_choice_count_max: 0,
       selective_backtracks_with_additional_sibling_available: 0,
       additional_siblings_available_at_selective_backtrack_sum: 0,
       additional_siblings_available_at_selective_backtrack_max: 0,
@@ -575,6 +591,39 @@ export class SelectiveAxisRegretController<Node extends object> {
         }
         continue;
       }
+      const admissibleRewindChoices: SelectiveAdmissibleRewindChoice[] = [];
+      let choiceLink = this.lineage.get(input.node) ?? null;
+      while (choiceLink !== null) {
+        const choiceWatch = choiceLink.watch;
+        choiceLink = choiceLink.parent;
+        if (choiceWatch.used) continue;
+        const choiceContactAdvance = input.contactOrdinal - choiceWatch.branchContactOrdinal;
+        if (choiceContactAdvance < SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE) continue;
+        const choiceAxisLossDelta = input.axisLoss - choiceWatch.baselineAxisLoss;
+        const choiceTriggered = triggerSignal === "branch_regret"
+          ? choiceAxisLossDelta >= SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA
+          : repairIncumbentRegretTriggered;
+        if (!choiceTriggered || !input.alternativeAvailable(choiceWatch.alternative)) continue;
+        const choiceDeadline = input.alternativeDeadline(choiceWatch.alternative);
+        if (choiceDeadline.pressured) continue;
+        const choiceTargetGapIndex = this.gapIndexOf(choiceWatch.alternative);
+        admissibleRewindChoices.push({
+          branch_gap_index: choiceWatch.branchGapIndex,
+          alternative_gap_index: choiceTargetGapIndex,
+          contact_advance: choiceContactAdvance,
+          gap_rewind: Math.max(0, fromGapIndex - choiceTargetGapIndex),
+          axis_loss_delta: choiceAxisLossDelta,
+          conservative_deadline_margin: choiceDeadline.margin,
+        });
+      }
+      const selectedChoice = admissibleRewindChoices[0];
+      if (
+        selectedChoice === undefined ||
+        selectedChoice.branch_gap_index !== watch.branchGapIndex ||
+        selectedChoice.alternative_gap_index !== targetGapIndex
+      ) {
+        throw new Error("selective backtrack choice map lost the selected causal sibling");
+      }
       watch.used = true;
       const availableAdditionalAlternatives = watch.additionalAlternatives.filter(
         (alternative) => input.alternativeAvailable(alternative),
@@ -583,6 +632,14 @@ export class SelectiveAxisRegretController<Node extends object> {
       const alternatives = [watch.alternative];
       this.stats.selective_backtracks++;
       this.stats.selective_backtracks_by_signal[triggerSignal]++;
+      this.stats.admissible_rewind_choice_count_sum += admissibleRewindChoices.length;
+      this.stats.admissible_rewind_choice_count_max = Math.max(
+        this.stats.admissible_rewind_choice_count_max,
+        admissibleRewindChoices.length,
+      );
+      if (admissibleRewindChoices.length > 1) {
+        this.stats.selective_backtracks_with_multiple_admissible_rewind_choices++;
+      }
       if (triggerSignal === "repair_incumbent_regret") {
         this.repairAttemptsWithIncumbentBacktrack.add(repairAttemptIndex!);
       }
@@ -619,6 +676,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         incumbent_axis_loss: input.incumbentAxisLoss ?? null,
         incumbent_axis_loss_delta: incumbentAxisLossDelta,
         repair_attempt_index: repairAttemptIndex,
+        admissible_rewind_choices: admissibleRewindChoices,
         alternative_conservative_deadline_margin: admittedAlternativeDeadline.margin,
         trigger_total_spent_frames: input.totalSpentFrames,
         resumed_total_spent_frames: null,
@@ -783,6 +841,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       ),
       events: this.stats.events.map((event) => ({
         ...event,
+        admissible_rewind_choices: event.admissible_rewind_choices.map((choice) => ({
+          ...choice,
+        })),
         catchup_probe_results: event.catchup_probe_results.map((probe) => ({ ...probe })),
         catchup_checkpoints: event.catchup_checkpoints.map((checkpoint) => ({ ...checkpoint })),
       })),

@@ -1,0 +1,59 @@
+{
+  "schema": "line.selective-branch-point-choice-map.v1",
+  "status": "predeclared-map",
+  "generated_at": "2026-08-14",
+  "question": "When production selective DFS has already justified a score-directed backtrack, is the nearest admissible causal sibling also the most useful rewind point available at that instant?",
+  "relationship_to_production": {
+    "current_choice": "The first eligible watch encountered while walking from the active node toward the root: the nearest live, mature, non-pressured causal sibling whose inherited axis-loss regret reaches the production threshold.",
+    "unchanged": [
+      "the production branch-regret trigger threshold and maturity",
+      "causal-sibling identity and liveness",
+      "execution-ceiling and conservative-deadline admission",
+      "bounded equal-depth catch-up and strict winner selection",
+      "repair allocation, terminal registration, and acceptance"
+    ],
+    "scope": "This is a general selective-DFS branch-selection question. It is not a repair-incumbent signal and it does not require a completed incumbent."
+  },
+  "instrument": {
+    "behavior": "Production selective-axis-regret catch-up; traversal remains nearest-first.",
+    "event_population": "Actual production branch-regret actions only.",
+    "choice_set": "Every watch on the active lineage that independently satisfies the exact production trigger and admission rules at the same decision instant, ordered nearest first.",
+    "recorded_per_choice": [
+      "branch and alternative authored-gap indices",
+      "contact advance and gap rewind",
+      "inherited axis-loss delta",
+      "conservative deadline margin"
+    ],
+    "counterfactual_categorical_policies": {
+      "maximum_regret": "largest inherited axis-loss delta",
+      "minimum_estimated_work": "largest conservative deadline margin",
+      "maximum_regret_per_estimated_work": "largest axis-loss delta times deadline margin; within one event this is proportional to regret divided by conservative suffix-cost estimate"
+    },
+    "trust": [
+      "the first recorded choice must exactly equal the sibling production selected",
+      "event-derived choice totals, multiple-choice events, and maximum breadth must equal compile aggregates",
+      "candidate and reference tracks, scores, and validity must match exactly",
+      "counterfactual policies select labels only; they do not replay traversal or estimate score"
+    ]
+  },
+  "predeclared_map": {
+    "budget": 750000,
+    "actual_seeds": [96, 97, 98, 99],
+    "requested_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5",
+      "sparse_lowline",
+      "sparse_lowline_air_minus_4"
+    ],
+    "expected_backfilled_controls": [
+      "frontier_pickup_progression",
+      "regression_amplitude_mosaic"
+    ],
+    "expected_cells_per_arm": 24,
+    "reference_commit": "489d6e72",
+    "selection_rule": "Build one live maximum-regret-per-estimated-work arm only if it differs from nearest-first on at least 20 mapped events spanning at least four runs and two sources. The rule uses action-set breadth only, never output score. If it fails, close this branch-point policy without a live run.",
+    "policy_rationale": "Among already-triggered, equally admissible causal siblings, value-per-estimated-work directly balances the inherited score defect that could be changed against the conservative suffix work needed to test it. Stable ties retain nearest-first.",
+    "next_step_if_selected": "Implement a single environment-selected live arm that changes only the selected rewind watch, validate exact policy choice and accounting, then use fresh seeds in a focused 750k screen before considering canonical evaluation.",
+    "non_claim": "This behavior-neutral map establishes whether a meaningfully different action set exists. It cannot establish score direction, estimate a headline, or authorize promotion, canonical evaluation, or a multi-budget sweep."
+  }
+}

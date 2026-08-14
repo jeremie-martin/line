@@ -1171,3 +1171,9 @@ must preserve validity, have positive total and both source sums, win five seed
 blocks and four cells, avoid a 20-point loss, and execute nested routes across
 six target runs and both sources. Only then can fresh seeds 146-147 receive a
 two-seed all-catalog screen; no canonical or multi-budget run is yet authorized.
+
+The known seed-128 smoke executes three nested routes across both sources. All
+three reach the original target with exact depth/parent/choice/argmax
+attribution; none wins the final strict comparison. All five cells remain
+valid. This confirms mechanism and bounds only—the known seed's score is
+excluded, and route value awaits the fresh focused screen.

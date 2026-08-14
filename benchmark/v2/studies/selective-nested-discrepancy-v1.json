@@ -30,6 +30,26 @@
       "maximum discrepancy depth is two"
     ]
   },
+  "mechanical_smoke": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-nested-discrepancy-smoke-seed128",
+    "scope": "Known opportunity-map actual seed 128; believer pair plus three controls at 750k. Score is excluded from decision evidence.",
+    "result": {
+      "valid": 5,
+      "runs": 5,
+      "first_level_routes": 3,
+      "nested_routes": 3,
+      "nested_target_reaches": 3,
+      "nested_routes_selected": 0,
+      "nested_action_runs": 2,
+      "nested_action_sources": 2,
+      "analyzer_trust_checks": "pass"
+    },
+    "interpretation": "All three known opportunities execute as exactly attributed depth-two routes and reach target. None wins this known smoke; score is excluded and the fresh screen remains necessary.",
+    "sha256": {
+      "candidate": "2cc34645eb1aa4f0c1b5b0ec073603229aaac461524e2fa4327e72b008359c67",
+      "selective_analysis": "5d23ccf713fe14cc182ee52b443edb7476687445a1b24af3b58588e9c1f68ea7"
+    }
+  },
   "predeclared_screen": {
     "budget": 750000,
     "actual_seeds": [138, 139, 140, 141, 142, 143, 144, 145],

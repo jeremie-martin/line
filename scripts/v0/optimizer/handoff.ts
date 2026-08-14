@@ -215,7 +215,6 @@ import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
-  shouldSkipAdditionalCatchupProbes,
   SelectiveAxisRegretController,
   type FrontierTraversalLane,
   type SelectiveBacktrackDecision,
@@ -3033,7 +3032,6 @@ function compileHandoffInternal(
           alternativeOrdinal: number;
           axisLoss: number;
         }> = [];
-        let additionalProbesSkippedAfterFirstWinner = 0;
         const finishTournament = (
           outcome: "alternative_selected" | "current_selected" |
             "probe_dead_end" | "probe_deferred" | "execution_ceiling",
@@ -3047,7 +3045,6 @@ function compileHandoffInternal(
             selectedAlternativeOrdinal,
             probes: probeResults,
             catchupAxisLoss: bestAlternativeAxisLoss,
-            additionalProbesSkippedAfterFirstWinner,
           });
         };
 
@@ -3139,19 +3136,6 @@ function compileHandoffInternal(
             const axisLoss = authoredPrefixAxisLoss(probe.search);
             finishProbe("reached_target", axisLoss);
             completed.push({ node: probe, alternativeOrdinal, axisLoss });
-            const remainingAlternatives = decision.alternatives.length - alternativeOrdinal;
-            if (
-              alternativeOrdinal === 1 &&
-              shouldSkipAdditionalCatchupProbes(
-                selectiveBacktracking!.policy,
-                decision.triggerAxisLoss,
-                axisLoss,
-                remainingAlternatives,
-              )
-            ) {
-              additionalProbesSkippedAfterFirstWinner = remainingAlternatives;
-              break;
-            }
           }
         }
 

@@ -43,6 +43,11 @@ type Checkpoint = {
 type Event = {
   sourceId: string;
   seed: number;
+  trigger_signal: "branch_regret" | "repair_incumbent_regret";
+  lane: "initial" | "snapshot" | "repair" | "resumed";
+  trigger_axis_loss: number;
+  incumbent_axis_loss: number | null;
+  incumbent_axis_loss_delta: number | null;
   from_gap_index: number;
   catchup_outcome: Outcome;
   catchup_probe_frames: number;
@@ -122,6 +127,11 @@ for (const row of archive.runs ?? []) {
     events.push({
       sourceId: row.task.sourceId,
       seed: row.task.actualSeed,
+      trigger_signal: event.trigger_signal ?? "branch_regret",
+      lane: event.lane,
+      trigger_axis_loss: event.trigger_axis_loss,
+      incumbent_axis_loss: event.incumbent_axis_loss ?? null,
+      incumbent_axis_loss_delta: event.incumbent_axis_loss_delta ?? null,
       from_gap_index: event.from_gap_index,
       catchup_outcome: event.catchup_outcome,
       catchup_probe_frames: event.catchup_probe_frames,
@@ -269,6 +279,12 @@ const result = {
     completed_tournaments: completedTournaments.length,
     single_alternative_completed_tournaments_for_checkpoint_rules: guardCompleted.length,
     outcomes: byOutcome,
+    trigger_signals: Object.fromEntries(
+      (["branch_regret", "repair_incumbent_regret"] as const).map((signal) => [
+        signal,
+        events.filter((event) => event.trigger_signal === signal).length,
+      ]),
+    ),
   },
   by_source: bySource,
   multi_sibling: multiSiblingSummary,
@@ -382,6 +398,24 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     const event = instrumented[eventIndex];
     const label = `${runKey}/event-${eventIndex}`;
     const requested = event.catchup_alternatives_requested;
+    const triggerSignal = event.trigger_signal ?? "branch_regret";
+    if (triggerSignal !== "branch_regret" && triggerSignal !== "repair_incumbent_regret") {
+      throw new Error(`${label} has invalid trigger signal`);
+    }
+    if (triggerSignal === "repair_incumbent_regret") {
+      if (
+        event.lane !== "repair" ||
+        typeof event.incumbent_axis_loss !== "number" ||
+        typeof event.incumbent_axis_loss_delta !== "number" ||
+        Math.abs(
+          event.trigger_axis_loss - event.incumbent_axis_loss -
+            event.incumbent_axis_loss_delta,
+        ) > 1e-12 ||
+        !(event.incumbent_axis_loss_delta > 0.02)
+      ) {
+        throw new Error(`${label} has inconsistent repair-incumbent trigger evidence`);
+      }
+    }
     if (!Number.isSafeInteger(requested) || requested < 1) {
       throw new Error(`${label} has invalid catchup_alternatives_requested`);
     }
@@ -504,6 +538,16 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     probes.reduce((sum, probe) => sum + probe.probe_nodes_processed, 0),
   );
   assertStat("catchup_probe_frames", probes.reduce((sum, probe) => sum + probe.probe_frames, 0));
+  if (stats.selective_backtracks_by_signal !== undefined) {
+    for (const signal of ["branch_regret", "repair_incumbent_regret"] as const) {
+      const expected = instrumented.filter(
+        (event: any) => (event.trigger_signal ?? "branch_regret") === signal,
+      ).length;
+      if (stats.selective_backtracks_by_signal[signal] !== expected) {
+        throw new Error(`${runKey} ${signal} action count disagrees with events`);
+      }
+    }
+  }
 }
 
 function sameNullableNumber(left: number | null, right: unknown): boolean {
@@ -589,6 +633,7 @@ function print(analysis: typeof result): void {
     `${analysis.scope.completed_tournaments} completed tournaments`,
   );
   console.log(`  outcomes ${JSON.stringify(analysis.scope.outcomes)}`);
+  console.log(`  trigger signals ${JSON.stringify(analysis.scope.trigger_signals)}`);
   if (analysis.multi_sibling.tournaments > 0) {
     console.log(
       `  multi-sibling ${analysis.multi_sibling.tournaments} tournaments; ` +

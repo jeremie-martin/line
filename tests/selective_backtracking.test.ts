@@ -3,7 +3,6 @@ import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
-  shouldSkipAdditionalCatchupProbes,
 } from "../scripts/v0/optimizer/selective_backtracking.ts";
 
 type Node = { gap: number; name: string };
@@ -17,8 +16,10 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup"))
       .toBe("selective_axis_regret_catchup");
-    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-second-chance"))
-      .toBe("selective_axis_regret_catchup_second_chance");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent"))
+      .toBe("selective_axis_regret_catchup_repair_incumbent");
+    expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-second-chance"))
+      .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-multi-sibling"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-reserve-225"))
@@ -38,20 +39,6 @@ describe("selective-backtracking controller", () => {
     expect(catchupAlternativeHasSufficientGain(0.5, 0.4999)).toBe(true);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5)).toBe(false);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5001)).toBe(false);
-  });
-
-  test("spends the second chance only when the runner-up has not won", () => {
-    const policy = "selective_axis_regret_catchup_second_chance";
-    expect(shouldSkipAdditionalCatchupProbes(policy, 0.5, 0.49, 1)).toBe(true);
-    expect(shouldSkipAdditionalCatchupProbes(policy, 0.5, 0.5, 1)).toBe(false);
-    expect(shouldSkipAdditionalCatchupProbes(policy, 0.5, 0.51, 1)).toBe(false);
-    expect(shouldSkipAdditionalCatchupProbes(policy, 0.5, 0.49, 0)).toBe(false);
-    expect(shouldSkipAdditionalCatchupProbes(
-      "selective_axis_regret_catchup",
-      0.5,
-      0.49,
-      1,
-    )).toBe(false);
   });
 
   test("counts lower-threshold admissible watches without changing traversal", () => {
@@ -199,7 +186,6 @@ describe("selective-backtracking controller", () => {
         axis_loss: 0.7,
       }],
       catchupAxisLoss: 0.7,
-      additionalProbesSkippedAfterFirstWinner: 0,
     });
     expect(controller.observeSelected({ gap: 5, name: "different" }, 120)).toBe(false);
     expect(controller.observeSelected(descendant, 140)).toBe(true);
@@ -218,6 +204,10 @@ describe("selective-backtracking controller", () => {
       branch_watches_by_alternative_count: { "2": 1 },
       loss_threshold_crossings: 1,
       selective_backtracks: 1,
+      selective_backtracks_by_signal: {
+        branch_regret: 1,
+        repair_incumbent_regret: 0,
+      },
       selective_backtracks_with_additional_sibling_available: 1,
       additional_siblings_available_at_selective_backtrack_sum: 1,
       additional_siblings_available_at_selective_backtrack_max: 1,
@@ -279,9 +269,9 @@ describe("selective-backtracking controller", () => {
     expect(controller.snapshot().events[0]?.catchup_axis_loss_gain).toBeCloseTo(-0.09);
   });
 
-  test("second-chance policy requests every live causal alternative", () => {
+  test("repair-incumbent policy adds one repair-only causal catch-up", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
-      policy: "selective_axis_regret_catchup_second_chance",
+      policy: "selective_axis_regret_catchup_repair_incumbent",
     });
     const parent = { gap: 1, name: "parent" };
     const leader = { gap: 2, name: "leader" };
@@ -305,60 +295,61 @@ describe("selective-backtracking controller", () => {
     const decision = controller.consider({
       node: descendant,
       contactOrdinal: 3,
-      axisLoss: 0.21,
+      axisLoss: 0.11,
+      incumbentAxisLoss: 0.08,
       executionCeilingReached: false,
       totalSpentFrames: 10,
-      lane: "initial",
+      lane: "repair",
       alternativeAvailable: () => true,
       alternativeDeadline: () => ({ margin: 3, pressured: false }),
     });
-    expect(decision?.alternatives).toEqual([runnerUp, third]);
+    expect(decision).toMatchObject({
+      alternatives: [runnerUp],
+      triggerSignal: "repair_incumbent_regret",
+      incumbentAxisLoss: 0.08,
+      incumbentAxisLossDelta: 0.03,
+    });
     expect(controller.snapshot().events[0]).toMatchObject({
+      trigger_signal: "repair_incumbent_regret",
       additional_siblings_available: 1,
-      catchup_alternatives_requested: 2,
+      catchup_alternatives_requested: 1,
+      incumbent_axis_loss: 0.08,
+      incumbent_axis_loss_delta: 0.03,
     });
     controller.markSuspended(descendant);
     controller.finishCatchup(decision!, {
       outcome: "alternative_selected",
-      selectedAlternativeOrdinal: 2,
-      probes: [
-        {
-          alternative_ordinal: 1,
-          outcome: "reached_target",
-          end_gap_index: 3,
-          probe_nodes_processed: 1,
-          probe_frames: 20,
-          axis_loss: 0.22,
-        },
-        {
-          alternative_ordinal: 2,
-          outcome: "reached_target",
-          end_gap_index: 3,
-          probe_nodes_processed: 1,
-          probe_frames: 25,
-          axis_loss: 0.15,
-        },
-      ],
-      catchupAxisLoss: 0.15,
-      additionalProbesSkippedAfterFirstWinner: 0,
+      selectedAlternativeOrdinal: 1,
+      probes: [{
+        alternative_ordinal: 1,
+        outcome: "reached_target",
+        end_gap_index: 3,
+        probe_nodes_processed: 1,
+        probe_frames: 20,
+        axis_loss: 0.07,
+      }],
+      catchupAxisLoss: 0.07,
     });
     expect(controller.snapshot()).toMatchObject({
       catchup_completed: 1,
       catchup_alternative_selected: 1,
-      catchup_probe_attempts: 2,
-      catchup_probe_target_reaches: 2,
-      catchup_additional_probe_attempts: 1,
-      catchup_additional_probe_target_reaches: 1,
-      catchup_tournaments_with_additional_probe: 1,
-      catchup_additional_alternative_selected: 1,
-      catchup_additional_probes_skipped_after_first_winner: 0,
-      catchup_probe_nodes_processed: 2,
-      catchup_probe_frames: 45,
+      selective_backtracks_by_signal: {
+        branch_regret: 0,
+        repair_incumbent_regret: 1,
+      },
+      catchup_probe_attempts: 1,
+      catchup_probe_target_reaches: 1,
+      catchup_additional_probe_attempts: 0,
+      catchup_additional_probe_target_reaches: 0,
+      catchup_tournaments_with_additional_probe: 0,
+      catchup_additional_alternative_selected: 0,
+      catchup_probe_nodes_processed: 1,
+      catchup_probe_frames: 20,
       events: [{
-        catchup_selected_alternative_ordinal: 2,
-        catchup_axis_loss: 0.15,
-        catchup_probe_nodes_processed: 2,
-        catchup_probe_frames: 45,
+        catchup_selected_alternative_ordinal: 1,
+        catchup_axis_loss: 0.07,
+        catchup_probe_nodes_processed: 1,
+        catchup_probe_frames: 20,
       }],
     });
   });

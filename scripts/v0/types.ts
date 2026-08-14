@@ -495,7 +495,7 @@ export type CompileStats = {
   handoff_selective_backtracking?: {
     policy:
       | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_second_chance";
+      | "selective_axis_regret_catchup_repair_incumbent";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -521,6 +521,10 @@ export type CompileStats = {
     execution_ceiling_suppressed_crossings: number;
     unavailable_alternatives: number;
     selective_backtracks: number;
+    selective_backtracks_by_signal: {
+      branch_regret: number;
+      repair_incumbent_regret: number;
+    };
     selective_backtracks_with_additional_sibling_available: number;
     additional_siblings_available_at_selective_backtrack_sum: number;
     additional_siblings_available_at_selective_backtrack_max: number;
@@ -537,7 +541,6 @@ export type CompileStats = {
     catchup_additional_probe_target_reaches: number;
     catchup_tournaments_with_additional_probe: number;
     catchup_additional_alternative_selected: number;
-    catchup_additional_probes_skipped_after_first_winner: number;
     catchup_probe_nodes_processed: number;
     catchup_probe_frames: number;
     axis_loss_delta_sum: number;
@@ -554,6 +557,7 @@ export type CompileStats = {
     };
     events: Array<{
       lane: "initial" | "snapshot" | "repair" | "resumed";
+      trigger_signal: "branch_regret" | "repair_incumbent_regret";
       branch_gap_index: number;
       from_gap_index: number;
       alternative_gap_index: number;
@@ -564,6 +568,8 @@ export type CompileStats = {
       baseline_axis_loss: number;
       trigger_axis_loss: number;
       axis_loss_delta: number;
+      incumbent_axis_loss: number | null;
+      incumbent_axis_loss_delta: number | null;
       alternative_conservative_deadline_margin: number;
       trigger_total_spent_frames: number;
       resumed_total_spent_frames: number | null;
@@ -580,7 +586,6 @@ export type CompileStats = {
       catchup_axis_loss: number | null;
       catchup_axis_loss_gain: number | null;
       catchup_selected_alternative_ordinal: number | null;
-      catchup_additional_probes_skipped_after_first_winner: number;
       catchup_probe_results: Array<{
         alternative_ordinal: number;
         outcome: "reached_target" | "probe_dead_end" | "probe_deferred" | "execution_ceiling";

@@ -726,3 +726,16 @@ and validity is mandatory. A live arm follows only if the highest threshold
 with 20-200 admissible watches still spans at least four sources. That chooses
 action breadth without looking at output deltas and authorizes neither a sweep
 nor a canonical evaluation.
+
+The map passes exact identity: all 88 tracks, scores, and validity outcomes
+match the reused reference. At delta >0.02 it finds 74 admissible watches in
+six runs and six source families. Delta >0.05 retains 20 watches but only two
+families, so the predeclared score-blind breadth rule selects 0.02.
+
+One live arm is fixed before execution. It preserves the production branch-
+regret catch-up everywhere, and in repair only adds the same one-sibling bounded
+equal-depth tournament when mature prefix loss exceeds incumbent prefix loss
+through the same gap by more than 0.02. Fresh actual seeds 76-83 cover the six
+mapped sources at 750k. Complete validity, positive total movement, five of
+eight positive seed blocks, non-isolated improvement, and no 20-point loss are
+required merely to continue; this screen cannot promote or launch canonical.

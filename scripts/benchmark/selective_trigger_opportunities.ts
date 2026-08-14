@@ -6,6 +6,7 @@ export const SELECTIVE_TRIGGER_OPPORTUNITY_THRESHOLDS = [
 ] as const;
 
 export type SelectiveTriggerOpportunityStats = {
+  policy?: string;
   min_axis_loss_delta: number;
   min_conservative_deadline_margin?: number | null;
   lower_trigger_max_gap_rewind?: number | null;
@@ -170,7 +171,8 @@ function validateRun(run: SelectiveTriggerOpportunityRun): void {
   }
   const hasConditionalAdmission =
     run.stats.lower_trigger_max_gap_rewind != null ||
-    run.stats.min_conservative_deadline_margin != null;
+    run.stats.min_conservative_deadline_margin != null ||
+    run.stats.policy !== undefined && run.stats.policy !== "selective_axis_regret_catchup";
   if (!hasConditionalAdmission && active.admissible_watches !== run.stats.selective_backtracks) {
     throw new Error(`${runKey(run)} active-threshold admission counters disagree`);
   }

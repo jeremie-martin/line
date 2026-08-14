@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-repair-incumbent-regret-opportunity-study.v1",
-  "status": "behavior-neutral-map-predeclared",
+  "status": "map-complete-live-screen-predeclared",
   "generated_at": "2026-08-14",
   "question": "When a repair DFS continuation is already worse than the complete incumbent at the same authored depth, how often is a mature causal sibling still available and affordable?",
   "scope": {
@@ -31,6 +31,57 @@
     "reference_commit": "b2d520a3",
     "identity_gate": "All 88 tracks, scores, and validity outcomes must be exact matches before any opportunity count is interpreted.",
     "live_arm_gate": "A later live arm is justified only if at least one mapped threshold has 20 to 200 admissible watches across at least four sources. Select the highest threshold meeting that breadth rule; do not use output scores to select it."
+  },
+  "map_result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-repair-incumbent-regret-opportunity-n2",
+    "identity": {
+      "cells": 88,
+      "changed_tracks": 0,
+      "both_valid": 88,
+      "score_sum_delta": 0
+    },
+    "opportunities": {
+      "0.00": { "crossed": 2437, "admissible": 574, "runs": 50, "sources": 34 },
+      "0.01": { "crossed": 1055, "admissible": 164, "runs": 15, "sources": 12 },
+      "0.02": { "crossed": 533, "admissible": 74, "runs": 6, "sources": 6 },
+      "0.05": { "crossed": 250, "admissible": 20, "runs": 2, "sources": 2 },
+      "0.10": { "crossed": 64, "admissible": 5, "runs": 1, "sources": 1 }
+    },
+    "selected_threshold": 0.02,
+    "selection_reason": "0.02 is the highest threshold with 20-200 admissible watches across at least four sources. The 0.05 action set has enough events but spans only two sources.",
+    "leading_sources_at_selected_threshold": {
+      "wide_breaths": 30,
+      "frontier_pickup_progression": 20,
+      "high_air_drive_air_minus_5": 16,
+      "regression_amplitude_mosaic": 4,
+      "believer_impact_56s": 2,
+      "sparse_lowline_air_minus_4": 2
+    },
+    "trust": "All nested-count, nonnegative-integer, admissible<=crossed, and exact paired-output identity checks pass.",
+    "sha256": {
+      "candidate": "4cfab7fad9d72c9a8615dd012391fcb62952f9aec1dd5561ff4154d1c2d5d535",
+      "reused_reference": "a749cd4c496e471253a2f5a164e9ee05180ea69bd84a4eec9af78d608dc4f046",
+      "report": "d33745e4a3b730a1f1c8768b9248979bd0e38f2cf39e31c6c31516d94a410e65",
+      "analysis": "fcd671ea2a19eeac07702526d97b56365a7541f50c053d844de57eb041f148a3"
+    }
+  },
+  "predeclared_live_screen": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-repair-incumbent"
+    },
+    "rule": "Preserve production branch-regret catch-up everywhere. In repair only, additionally run the same one-sibling bounded equal-depth catch-up when a mature continuation's authored-prefix axis loss exceeds the complete incumbent through the same gap by more than 0.02.",
+    "budget": 750000,
+    "actual_seeds": [76, 77, 78, 79, 80, 81, 82, 83],
+    "target_sources": [
+      "wide_breaths",
+      "frontier_pickup_progression",
+      "high_air_drive_air_minus_5",
+      "regression_amplitude_mosaic",
+      "believer_impact_56s",
+      "sparse_lowline_air_minus_4"
+    ],
+    "reference_commit": "a7bce91c",
+    "decision": "Continue only if every paired cell remains valid, the target score sum is positive, at least five of eight target seed blocks are positive, positive movement spans more than one cell, and no target cell loses 20 or more points. This focused screen cannot authorize canonical evaluation or promotion."
   },
   "non_claim": "This map can establish an actionable incumbent-relative signal population. It cannot estimate the score effect of taking those backtracks, and it does not authorize a canonical or multi-budget run."
 }

@@ -672,14 +672,6 @@ export type CompileStats = {
       enum_model_impact_selected_within_16: number;
       enum_model_impact_selected_within_32: number;
       enum_model_impact_selected_within_64: number;
-      model_impact_residual_second_policy: "initial_only";
-      enum_model_impact_residual_second_initial_grids: number;
-      enum_model_impact_residual_second_repair_bypassed_grids: number;
-      enum_model_impact_residual_second_resumed_bypassed_grids: number;
-      enum_model_impact_residual_second_initial_eligible_selections: number;
-      enum_model_impact_residual_second_initial_substituted: number;
-      enum_model_impact_residual_second_initial_distinctness_rejections: number;
-      enum_model_impact_residual_second_initial_first_choice_preserved: number;
       /** R3 joint-model split: rotate recruit rate, rotate-probe failures
        *  and rotated-proposal gate outcomes. */
       enum_rot_probe_crash: number;

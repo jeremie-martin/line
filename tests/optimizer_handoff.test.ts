@@ -469,7 +469,15 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         event.trigger_total_spent_frames > 0 &&
         event.catchup_outcome !== null &&
         event.catchup_end_gap_index === event.from_gap_index &&
-        event.catchup_probe_nodes_processed > 0
+        event.catchup_probe_nodes_processed > 0 &&
+        event.catchup_checkpoints.length > 0 &&
+        event.catchup_checkpoints.at(-1)?.gap_index === event.from_gap_index &&
+        event.catchup_checkpoints.every((checkpoint, index, checkpoints) =>
+          checkpoint.gap_index <= event.from_gap_index &&
+          checkpoint.probe_nodes_processed <= event.catchup_probe_nodes_processed &&
+          checkpoint.probe_frames <= event.catchup_probe_frames &&
+          (index === 0 || checkpoints[index - 1]!.gap_index < checkpoint.gap_index)
+        )
       )).toBe(true);
       expect(stats?.events.filter((event) => event.resumed_total_spent_frames !== null))
         .toHaveLength(stats?.suspended_continuations_resumed ?? 0);

@@ -2132,9 +2132,13 @@ function compileHandoffInternal(
     }
     const contactOrdinalAt = (gapIndex: number): number =>
       contactOrdinalByGapIndex[Math.max(0, Math.min(gaps.length, gapIndex))] ?? 0;
-    const authoredPrefixAxisLoss = (search: SearchNode): number => {
+    const authoredPrefixAxisLoss = (
+      search: SearchNode,
+      throughGapIndex = search.gapIndex,
+    ): number => {
       const errors: number[] = [];
-      for (let i = 0; i < search.gapIndex; i++) {
+      const end = Math.max(0, Math.min(search.gapIndex, throughGapIndex));
+      for (let i = 0; i < end; i++) {
         if (!gaps[i]?.endsWithContact) continue;
         const fit = search.prefixFits[i];
         if (fit === null || fit === undefined) continue;
@@ -3076,6 +3080,22 @@ function compileHandoffInternal(
             return false;
           }
           probe = next;
+          const checkpointGapIndex = probe.search.gapIndex;
+          const currentAxisLoss = authoredPrefixAxisLoss(
+            suspended.search,
+            checkpointGapIndex,
+          );
+          const alternativeAxisLoss = authoredPrefixAxisLoss(probe.search);
+          selectiveBacktracking!.recordCatchupCheckpoint(decision, {
+            gap_index: checkpointGapIndex,
+            contact_advance:
+              contactOrdinalAt(checkpointGapIndex) - contactOrdinalAt(decision.branchGapIndex),
+            probe_nodes_processed: probeNodesProcessed,
+            probe_frames: getSimFrames() - startFrames,
+            current_axis_loss: currentAxisLoss,
+            alternative_axis_loss: alternativeAxisLoss,
+            alternative_axis_loss_gain: currentAxisLoss - alternativeAxisLoss,
+          });
         }
 
         const catchupAxisLoss = authoredPrefixAxisLoss(probe.search);

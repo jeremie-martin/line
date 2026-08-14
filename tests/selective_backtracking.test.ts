@@ -56,6 +56,15 @@ describe("selective-backtracking controller", () => {
     expect(decision?.contactAdvance).toBe(2);
     expect(decision?.gapRewind).toBe(1);
     controller.markSuspended(descendant);
+    controller.recordCatchupCheckpoint(decision!, {
+      gap_index: 5,
+      contact_advance: 2,
+      probe_nodes_processed: 1,
+      probe_frames: 35,
+      current_axis_loss: 0.61,
+      alternative_axis_loss: 0.7,
+      alternative_axis_loss_gain: -0.09,
+    });
     controller.finishCatchup(decision!, {
       outcome: "current_selected",
       endGapIndex: 5,
@@ -98,6 +107,15 @@ describe("selective-backtracking controller", () => {
         catchup_probe_nodes_processed: 1,
         catchup_probe_frames: 35,
         catchup_axis_loss: 0.7,
+        catchup_checkpoints: [{
+          gap_index: 5,
+          contact_advance: 2,
+          probe_nodes_processed: 1,
+          probe_frames: 35,
+          current_axis_loss: 0.61,
+          alternative_axis_loss: 0.7,
+          alternative_axis_loss_gain: -0.09,
+        }],
       }],
     });
     expect(controller.snapshot().events[0]?.catchup_axis_loss_gain).toBeCloseTo(-0.09);

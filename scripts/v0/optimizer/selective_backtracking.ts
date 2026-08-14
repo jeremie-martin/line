@@ -98,6 +98,17 @@ export type SelectiveBacktrackingEvent = {
   catchup_probe_frames: number;
   catchup_axis_loss: number | null;
   catchup_axis_loss_gain: number | null;
+  catchup_checkpoints: SelectiveCatchupCheckpoint[];
+};
+
+export type SelectiveCatchupCheckpoint = {
+  gap_index: number;
+  contact_advance: number;
+  probe_nodes_processed: number;
+  probe_frames: number;
+  current_axis_loss: number;
+  alternative_axis_loss: number;
+  alternative_axis_loss_gain: number;
 };
 
 function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
@@ -271,6 +282,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         catchup_probe_frames: 0,
         catchup_axis_loss: null,
         catchup_axis_loss_gain: null,
+        catchup_checkpoints: [],
       });
       this.suspended.set(input.node, eventIndex);
       return {
@@ -291,6 +303,30 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (!this.suspended.has(node)) {
       throw new Error("selective backtrack suspended a node without a causal event");
     }
+  }
+
+  /** Record a pure, like-for-like observation while the alternative catches
+   * up. This does not decide or mutate traversal. It lets offline studies ask
+   * which bounded stopping rules would have saved work before we put any such
+   * rule into the compiler. */
+  recordCatchupCheckpoint(
+    decision: SelectiveBacktrackDecision<Node>,
+    checkpoint: SelectiveCatchupCheckpoint,
+  ): void {
+    const event = this.stats.events[decision.eventIndex];
+    if (event === undefined || event.catchup_outcome !== null) {
+      throw new Error("selective catch-up checkpoint has no live causal event");
+    }
+    const previous = event.catchup_checkpoints.at(-1);
+    if (
+      checkpoint.gap_index <= (previous?.gap_index ?? decision.branchGapIndex) ||
+      checkpoint.gap_index > decision.fromGapIndex ||
+      checkpoint.probe_nodes_processed < (previous?.probe_nodes_processed ?? 0) ||
+      checkpoint.probe_frames < (previous?.probe_frames ?? 0)
+    ) {
+      throw new Error("selective catch-up checkpoints must advance monotonically to the target");
+    }
+    event.catchup_checkpoints.push({ ...checkpoint });
   }
 
   finishCatchup(
@@ -345,7 +381,10 @@ export class SelectiveAxisRegretController<Node extends object> {
     return {
       ...this.stats,
       selective_backtracks_by_lane: { ...this.stats.selective_backtracks_by_lane },
-      events: this.stats.events.map((event) => ({ ...event })),
+      events: this.stats.events.map((event) => ({
+        ...event,
+        catchup_checkpoints: event.catchup_checkpoints.map((checkpoint) => ({ ...checkpoint })),
+      })),
     };
   }
 }

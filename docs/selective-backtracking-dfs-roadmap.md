@@ -22,9 +22,9 @@ best-so-far register keep their existing responsibilities.
 
 ## Search semantics
 
-- **ordinary DFS**: the current production policy. The most recently enqueued
-  viable child is processed first; another branch is selected when the active
-  subtree exhausts.
+- **ordinary DFS**: the retained diagnostic control. The most recently
+  enqueued viable child is processed first; another branch is selected when
+  the active subtree exhausts.
 - **selective backtrack**: a policy-requested change of branch before subtree
   exhaustion.
 - **branch point**: an expansion that produced at least two ranked viable
@@ -43,7 +43,8 @@ frontier operations.
 ## Invariants
 
 1. With the policy unset, node order, charged simulation work, output track,
-   and serialized telemetry are byte-identical to ordinary DFS.
+   and serialized telemetry are byte-identical to the explicitly named
+   production catch-up policy. Explicit DFS remains a separate control.
 2. A selective backtrack never changes candidate admission, candidate order,
    authored targets, scoring, or register comparison.
 3. The first implementation suspends work; it does not prune it.
@@ -65,7 +66,8 @@ frontier operations.
 
 The retained V1 study snapshot used
 `LR_FRONTIER_POLICY=selective-axis-regret`. That closed value is no longer a
-live compiler mode; the default remains ordinary DFS.
+live compiler mode. Ordinary DFS was the default at this V1 evidence boundary;
+the accepted bounded-catch-up successor is the live default now.
 
 At every contact branch point, the controller remembers the leader, its next
 ranked sibling, the committed-contact ordinal, and the leader's prefix
@@ -95,8 +97,8 @@ frontier mechanism.
 
 ## Telemetry contract
 
-Telemetry is absent under ordinary DFS, preserving the default artifact. When
-enabled it records:
+Telemetry is absent under the explicit ordinary-DFS control. The production
+catch-up policy records:
 
 - exact policy name and frozen V1 constants;
 - observed and armed branch points;
@@ -122,7 +124,8 @@ crossing that deadline policy suppresses is not a backtrack.
    behavior.
 3. Integrate authored-axis loss and the existing deadline signal at the point
    immediately after node consideration and before tail/pool work.
-4. Prove default output/stat byte identity and deterministic enabled behavior.
+4. Prove deterministic enabled behavior and byte identity between the unset
+   production policy and its explicit name.
 5. Run a small repair-disabled mechanism probe to verify real backtracks,
    rewinds, alternatives, budget exhaustion, completion, and resumption.
 6. Only after mechanism validation, compare the arm on canonical V2 at 750k.
@@ -134,10 +137,12 @@ crossing that deadline policy suppresses is not a backtrack.
 |---|---|---|---|
 | 2026-08-14 | Semantics and V1 policy frozen | complete | This document |
 | 2026-08-14 | Controller and shared scheduler | complete | `3859e9b`, `25d7db5`; compile-local causal watch lineage, identity promotion, suspension/resumption, exact opt-in events |
-| 2026-08-14 | Deterministic verification | complete | 47 focused controller/deadline/handoff tests pass; unset default equals explicit DFS as a complete serialized checkpoint; enabled runs are deterministic |
+| 2026-08-14 | Deterministic V1 verification | complete | 47 focused controller/deadline/handoff tests passed; the then-unset DFS default equaled explicit DFS; enabled runs were deterministic |
 | 2026-08-14 | Repair-disabled mechanism probe | complete | One-budget panels below; zero unavailable alternatives and no validity loss after the target-aware deadline correction |
 | 2026-08-14 | Canonical V1 evaluation | complete, inconclusive | N=48: delta +0.0035 +/- 0.0340 SE, 95% interval [-0.0878, +0.0948], directional P+ 54.08%; validity unchanged at 2,111/2,112 |
 | 2026-08-14 | Bounded equal-depth catch-up | implemented, verifying | Clean-break `selective-axis-regret-catchup` arm; focused 47/47 tests pass; active 750k probe reaches five tournaments with no starvation |
+| 2026-08-14 | Bounded catch-up promotion | complete | Exact environment arm and unset-default confirmations both accept at N=48 with +0.0815; active campaign headline 604.2665 |
+| 2026-08-14 | Progressive stopping observations | in progress | Behavior-neutral like-for-like loss checkpoints plus an offline guard simulator; compact active-case panel replaces one compile per candidate rule |
 
 ## Initial mechanism evidence
 

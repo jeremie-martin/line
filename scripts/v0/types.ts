@@ -490,8 +490,8 @@ export type CompileStats = {
   /** Quality-phase scheduler pulses that selected a lagged pass-frontier branch
    *  instead of the normal LIFO branch. */
   handoff_far_back_pulses?: number;
-  /** Present only for an enabled selective-backtracking frontier policy. The
-   *  default DFS omits the object so historical/default artifacts are unchanged. */
+  /** Present for the production selective-backtracking frontier policy. An
+   *  explicit DFS diagnostic omits the object. */
   handoff_selective_backtracking?: {
     policy: "selective_axis_regret_catchup";
     min_contact_advance: number;
@@ -550,6 +550,15 @@ export type CompileStats = {
       catchup_probe_frames: number;
       catchup_axis_loss: number | null;
       catchup_axis_loss_gain: number | null;
+      catchup_checkpoints: Array<{
+        gap_index: number;
+        contact_advance: number;
+        probe_nodes_processed: number;
+        probe_frames: number;
+        current_axis_loss: number;
+        alternative_axis_loss: number;
+        alternative_axis_loss_gain: number;
+      }>;
     }>;
   };
   /** Search-lane seed used for candidate sampling/start lookahead. Normally

@@ -1088,3 +1088,18 @@ the run exhausts 750k. This sharpens the claim: ordinary-DFS placement preserves
 the path, not a promise that it receives later compute. The fresh screen tests
 the resulting budget reallocation. It must not credit the arm with guaranteed
 recovery or interpret the known seed's score.
+
+The fresh focused screen clears every advancement gate. All 40 paired cells are
+valid, so its +30.966 target sum is entirely completed-track quality. Eleven
+cells improve, four regress, and one ties; six of eight paired seed blocks are
+positive (block mean +3.8708 +/- 1.6344 SE, t = 2.37). Both source sums are
+positive: +22.7901 on the base believer and +8.1759 on the amplitude variant.
+The three controls are exact.
+
+Mechanically, 38 local routes execute, 24 reach target, seven win, and 12 yield
+across 12 target runs and both sources. None of the yielded routes resumes before
+run end. This makes the causal interpretation narrower but cleaner: the live
+effect comes from reallocating immediate budget away from persistently losing
+catch-up work. The predeclared fresh two-seed all-catalog screen is now
+authorized; a canonical headline remains unauthorized until that breadth check
+shows positive, non-isolated movement without validity loss.

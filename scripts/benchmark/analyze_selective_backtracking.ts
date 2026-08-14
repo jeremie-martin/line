@@ -56,6 +56,7 @@ type Event = {
   alternative_conservative_deadline_margin: number;
   catchup_alternatives_requested: number;
   catchup_selected_alternative_ordinal: number | null;
+  catchup_selected_route_ordinal: number | null;
   catchup_additional_probes_skipped_after_first_winner: number;
   catchup_probe_results: ProbeResult[];
   catchup_checkpoints: Checkpoint[];
@@ -72,6 +73,10 @@ type RewindChoice = {
 };
 
 type ProbeResult = {
+  route_ordinal: number;
+  route_kind: "causal_alternative" | "local_discrepancy";
+  parent_route_ordinal: number | null;
+  parent_local_fallback_choice_ordinal: number | null;
   alternative_ordinal: number;
   outcome: "reached_target" | "probe_dead_end" | "probe_deferred" | "execution_ceiling";
   end_gap_index: number;
@@ -82,6 +87,7 @@ type ProbeResult = {
 };
 
 type LocalFallbackChoice = {
+  choice_ordinal: number;
   gap_index: number;
   remaining_gap_advance: number;
   current_relative_axis_loss_gain: number;
@@ -173,10 +179,30 @@ for (const row of archive.runs ?? []) {
   }
   for (const event of stats?.events ?? []) {
     if (event.catchup_outcome === null) continue;
-    const probeResults = (event.catchup_probe_results ?? []).map((probe: any) => ({
+    const probeResults = (event.catchup_probe_results ?? []).map((probe: any, index: number) => ({
       ...probe,
-      local_fallback_choices: probe.local_fallback_choices ?? [],
+      route_ordinal: probe.route_ordinal ?? index + 1,
+      route_kind: probe.route_kind ?? "causal_alternative",
+      parent_route_ordinal: probe.parent_route_ordinal ?? null,
+      parent_local_fallback_choice_ordinal:
+        probe.parent_local_fallback_choice_ordinal ?? null,
+      local_fallback_choices: (probe.local_fallback_choices ?? []).map(
+        (choice: any, choiceIndex: number) => ({
+          ...choice,
+          choice_ordinal: choice.choice_ordinal ?? choiceIndex + 1,
+        }),
+      ),
     }));
+    const selectedAlternativeOrdinal = event.catchup_selected_alternative_ordinal ?? null;
+    const selectedRouteOrdinal = event.catchup_selected_route_ordinal ?? (
+      selectedAlternativeOrdinal === null
+        ? null
+        : probeResults.find(
+          (probe: ProbeResult) =>
+            probe.route_kind === "causal_alternative" &&
+            probe.alternative_ordinal === selectedAlternativeOrdinal,
+        )?.route_ordinal ?? null
+    );
     events.push({
       sourceId: row.task.sourceId,
       seed: row.task.actualSeed,
@@ -193,8 +219,8 @@ for (const row of archive.runs ?? []) {
       alternative_conservative_deadline_margin:
         event.alternative_conservative_deadline_margin,
       catchup_alternatives_requested: event.catchup_alternatives_requested ?? 1,
-      catchup_selected_alternative_ordinal:
-        event.catchup_selected_alternative_ordinal ?? null,
+      catchup_selected_alternative_ordinal: selectedAlternativeOrdinal,
+      catchup_selected_route_ordinal: selectedRouteOrdinal,
       catchup_additional_probes_skipped_after_first_winner:
         event.catchup_additional_probes_skipped_after_first_winner ?? 0,
       catchup_probe_results: probeResults,
@@ -211,9 +237,13 @@ for (const row of archive.runs ?? []) {
 const earliestAdvances = [2, 3, 4, 5, 6, 8];
 const advantages = [0, 0.0025, 0.005, 0.01, 0.02, 0.03, 0.05];
 // A checkpoint rule predicts one alternative's eventual binary disposition.
-// Multi-sibling tournaments contain several checkpoint streams and one final
-// winner, so feeding them through the old rule would silently change meaning.
-const guardEvents = events.filter((event) => event.catchup_alternatives_requested === 1);
+// Multi-sibling and local-discrepancy tournaments contain several routes and
+// one final winner, so feeding primary-route checkpoints through the old
+// binary rule would silently change meaning.
+const guardEvents = events.filter((event) =>
+  event.catchup_alternatives_requested === 1 &&
+  event.catchup_probe_results.every((probe) => probe.route_kind === "causal_alternative")
+);
 const rules = (["reject_alternative", "accept_alternative"] as const).flatMap((mode) =>
   earliestAdvances.flatMap((earliest) => advantages.map((advantage) =>
     evaluateRule(guardEvents, mode, earliest, advantage)
@@ -421,6 +451,31 @@ const oneDiscrepancyOpportunityMap = localFallbackTelemetryEvents.length === 0 ?
     "Positive local gain is an exact prefix comparison, not evidence that greedily extending that " +
     "runner-up to the tournament target will win or improve the final track.",
 };
+const localDiscrepancyEvents = events.filter((event) =>
+  event.catchup_probe_results.some((probe) => probe.route_kind === "local_discrepancy")
+);
+const oneDiscrepancyExecution = localDiscrepancyEvents.length === 0 ? null : {
+  tournaments: localDiscrepancyEvents.length,
+  probes: localDiscrepancyEvents.flatMap((event) => event.catchup_probe_results).filter(
+    (probe) => probe.route_kind === "local_discrepancy",
+  ).length,
+  target_reaches: localDiscrepancyEvents.flatMap((event) => event.catchup_probe_results).filter(
+    (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
+  ).length,
+  selected: localDiscrepancyEvents.filter((event) => {
+    const selected = event.catchup_probe_results.find(
+      (probe) => probe.route_ordinal === event.catchup_selected_route_ordinal,
+    );
+    return selected?.route_kind === "local_discrepancy";
+  }).length,
+  current_retained_after_discrepancy: localDiscrepancyEvents.filter(
+    (event) => event.catchup_outcome === "current_selected",
+  ).length,
+  affected_runs: new Set(
+    localDiscrepancyEvents.map((event) => `${event.sourceId}/${event.seed}`),
+  ).size,
+  affected_sources: [...new Set(localDiscrepancyEvents.map((event) => event.sourceId))].sort(),
+};
 
 const result = {
   schema: "line.selective-backtracking-offline-guard-analysis.v1",
@@ -445,6 +500,7 @@ const result = {
   multi_sibling: multiSiblingSummary,
   branch_point_choice_map: branchPointChoiceMap,
   one_discrepancy_opportunity_map: oneDiscrepancyOpportunityMap,
+  one_discrepancy_execution: oneDiscrepancyExecution,
   admission_margin_counterfactuals: admissionMarginCounterfactuals,
   trigger_opportunities: triggerRuns.length === 0 ? null : {
     coverage: {
@@ -469,7 +525,8 @@ const result = {
     "Offline rules classify the observed full-tournament winner and measured remaining probe work only. " +
     "They do not estimate the score or later frontier/repair effects of actually stopping early. " +
     "Admission-margin rows likewise describe observed tournaments; they are not causal replay. " +
-    "Checkpoint rules exclude multi-sibling tournaments because their winner label is not binary.",
+    "Checkpoint rules exclude every multi-route tournament (additional causal siblings or a " +
+    "local discrepancy) because one primary-route checkpoint cannot label the final route winner.",
 };
 
 function summarizeRepairIncumbentMaturityOpportunities(
@@ -725,7 +782,20 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     if (!Number.isSafeInteger(requested) || requested < 1) {
       throw new Error(`${label} has invalid catchup_alternatives_requested`);
     }
-    const results = event.catchup_probe_results as ProbeResult[];
+    const results = event.catchup_probe_results.map((probe: any, index: number) => ({
+      ...probe,
+      route_ordinal: probe.route_ordinal ?? index + 1,
+      route_kind: probe.route_kind ?? "causal_alternative",
+      parent_route_ordinal: probe.parent_route_ordinal ?? null,
+      parent_local_fallback_choice_ordinal:
+        probe.parent_local_fallback_choice_ordinal ?? null,
+      local_fallback_choices: (probe.local_fallback_choices ?? []).map(
+        (choice: any, choiceIndex: number) => ({
+          ...choice,
+          choice_ordinal: choice.choice_ordinal ?? choiceIndex + 1,
+        }),
+      ),
+    })) as ProbeResult[];
     const skipped = event.catchup_additional_probes_skipped_after_first_winner ?? 0;
     if (!Number.isSafeInteger(skipped) || skipped < 0 || skipped >= requested) {
       throw new Error(`${label} has invalid skipped-after-first-winner count`);
@@ -733,23 +803,71 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     if (event.catchup_outcome !== null && results.length === 0) {
       throw new Error(`${label} completed without a probe result`);
     }
-    const ordinals = new Set<number>();
+    const routeOrdinals = new Set<number>();
+    const causalAlternativeOrdinals = new Set<number>();
+    const routesByOrdinal = new Map<number, ProbeResult>();
     for (const probe of results) {
       if (
+        !Number.isSafeInteger(probe.route_ordinal) ||
+        probe.route_ordinal < 1 ||
+        routeOrdinals.has(probe.route_ordinal) ||
+        (probe.route_kind !== "causal_alternative" && probe.route_kind !== "local_discrepancy") ||
         !Number.isSafeInteger(probe.alternative_ordinal) ||
         probe.alternative_ordinal < 1 ||
-        probe.alternative_ordinal > requested ||
-        ordinals.has(probe.alternative_ordinal)
+        probe.alternative_ordinal > requested
       ) {
-        throw new Error(`${label} has invalid or duplicate probe ordinal`);
+        throw new Error(`${label} has invalid probe route identity`);
       }
-      ordinals.add(probe.alternative_ordinal);
+      if (probe.route_kind === "causal_alternative") {
+        if (
+          probe.parent_route_ordinal !== null ||
+          probe.parent_local_fallback_choice_ordinal !== null ||
+          causalAlternativeOrdinals.has(probe.alternative_ordinal)
+        ) {
+          throw new Error(`${label} has invalid causal-alternative route identity`);
+        }
+        causalAlternativeOrdinals.add(probe.alternative_ordinal);
+      } else {
+        const parent = routesByOrdinal.get(probe.parent_route_ordinal ?? -1);
+        const parentChoice = parent?.local_fallback_choices.find(
+          (choice) =>
+            choice.choice_ordinal === probe.parent_local_fallback_choice_ordinal,
+        );
+        if (
+          parent === undefined ||
+          parent.route_kind !== "causal_alternative" ||
+          parent.alternative_ordinal !== probe.alternative_ordinal ||
+          parentChoice === undefined ||
+          !(parentChoice.current_relative_axis_loss_gain > 0)
+        ) {
+          throw new Error(`${label} has invalid local-discrepancy parent route`);
+        }
+        const bestChoice = parent.local_fallback_choices
+          .filter((choice) => choice.current_relative_axis_loss_gain > 0)
+          .reduce<LocalFallbackChoice | null>(
+            (best, choice) =>
+              best === null ||
+                choice.current_relative_axis_loss_gain * choice.conservative_deadline_margin >
+                  best.current_relative_axis_loss_gain * best.conservative_deadline_margin
+                ? choice
+                : best,
+            null,
+          );
+        if (bestChoice?.choice_ordinal !== parentChoice.choice_ordinal) {
+          throw new Error(`${label} local discrepancy did not select maximum value per work`);
+        }
+      }
+      routeOrdinals.add(probe.route_ordinal);
+      routesByOrdinal.set(probe.route_ordinal, probe);
       if (probe.local_fallback_choices !== undefined) {
         if (!Array.isArray(probe.local_fallback_choices)) {
           throw new Error(`${label} has invalid local fallback choices`);
         }
+        const choiceOrdinals = new Set<number>();
         for (const choice of probe.local_fallback_choices as LocalFallbackChoice[]) {
           if (
+            !Number.isSafeInteger(choice.choice_ordinal) || choice.choice_ordinal < 1 ||
+            choiceOrdinals.has(choice.choice_ordinal) ||
             !Number.isSafeInteger(choice.gap_index) || choice.gap_index < 0 ||
             !Number.isSafeInteger(choice.remaining_gap_advance) ||
             choice.remaining_gap_advance < 0 ||
@@ -759,6 +877,7 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
           ) {
             throw new Error(`${label} has an invalid local fallback choice`);
           }
+          choiceOrdinals.add(choice.choice_ordinal);
         }
       }
       probes.push(probe);
@@ -769,10 +888,25 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       throw new Error(`${label} probe aggregates disagree with probe_results`);
     }
     const reached = results.filter((probe) => probe.outcome === "reached_target");
-    if (skipped > 0) {
-      const first = results.find((probe) => probe.alternative_ordinal === 1);
+    const causalResults = results.filter((probe) => probe.route_kind === "causal_alternative");
+    const localDiscrepancyResults = results.filter(
+      (probe) => probe.route_kind === "local_discrepancy",
+    );
+    if (localDiscrepancyResults.length > 0) {
+      const causalReached = causalResults.filter((probe) => probe.outcome === "reached_target");
       if (
-        results.length + skipped !== requested ||
+        stats.policy !== "selective_axis_regret_catchup_one_discrepancy" ||
+        localDiscrepancyResults.length !== 1 ||
+        causalReached.length === 0 ||
+        causalReached.some((probe) => probe.axis_loss! < event.trigger_axis_loss)
+      ) {
+        throw new Error(`${label} violated the one-discrepancy admission boundary`);
+      }
+    }
+    if (skipped > 0) {
+      const first = causalResults.find((probe) => probe.alternative_ordinal === 1);
+      if (
+        causalResults.length + skipped !== requested ||
         first?.outcome !== "reached_target" ||
         !(first.axis_loss! < event.trigger_axis_loss)
       ) {
@@ -786,16 +920,27 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       throw new Error(`${label} best alternative loss disagrees with probe_results`);
     }
     const selected = event.catchup_selected_alternative_ordinal ?? null;
+    const selectedRoute = event.catchup_selected_route_ordinal ?? (
+      selected === null
+        ? null
+        : reached.find((probe) =>
+          probe.route_kind === "causal_alternative" &&
+          probe.alternative_ordinal === selected
+        )?.route_ordinal ?? null
+    );
     if (event.catchup_outcome === "alternative_selected") {
-      const selectedProbe = reached.find((probe) => probe.alternative_ordinal === selected);
+      const selectedProbe = reached.find((probe) => probe.route_ordinal === selectedRoute);
       if (selectedProbe === undefined || !(selectedProbe.axis_loss! < event.trigger_axis_loss)) {
         throw new Error(`${label} selected alternative is not a strict completed winner`);
+      }
+      if (selectedProbe.alternative_ordinal !== selected) {
+        throw new Error(`${label} selected route and causal alternative disagree`);
       }
       if (selectedProbe.axis_loss !== bestAlternativeLoss) {
         throw new Error(`${label} did not select the lowest-loss alternative`);
       }
-    } else if (selected !== null) {
-      throw new Error(`${label} non-alternative outcome names a selected alternative`);
+    } else if (selected !== null || selectedRoute !== null) {
+      throw new Error(`${label} non-alternative outcome names a selected route`);
     } else if (
       event.catchup_outcome === "current_selected" &&
       bestAlternativeLoss !== null &&
@@ -825,12 +970,17 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
   assertStat("catchup_probe_target_reaches", count("reached_target"));
   assertStat(
     "catchup_additional_probe_attempts",
-    probes.filter((probe) => probe.alternative_ordinal > 1).length,
+    probes.filter(
+      (probe) => probe.route_kind === "causal_alternative" && probe.alternative_ordinal > 1,
+    ).length,
   );
   assertStat(
     "catchup_additional_probe_target_reaches",
     probes.filter(
-      (probe) => probe.alternative_ordinal > 1 && probe.outcome === "reached_target",
+      (probe) =>
+        probe.route_kind === "causal_alternative" &&
+        probe.alternative_ordinal > 1 &&
+        probe.outcome === "reached_target",
     ).length,
   );
   assertStat(
@@ -887,6 +1037,25 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     probes.length === 0
       ? 0
       : Math.max(...probes.map((probe) => probe.local_fallback_choices?.length ?? 0)),
+  );
+  assertOptionalStat(
+    "catchup_local_discrepancy_probe_attempts",
+    probes.filter((probe) => probe.route_kind === "local_discrepancy").length,
+  );
+  assertOptionalStat(
+    "catchup_local_discrepancy_probe_target_reaches",
+    probes.filter(
+      (probe) => probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
+    ).length,
+  );
+  assertOptionalStat(
+    "catchup_local_discrepancy_selected",
+    instrumented.filter((event: any) => {
+      const route = event.catchup_probe_results.find(
+        (probe: any) => probe.route_ordinal === event.catchup_selected_route_ordinal,
+      );
+      return route?.route_kind === "local_discrepancy";
+    }).length,
   );
   if (stats.selective_backtracks_by_signal !== undefined) {
     for (const signal of ["branch_regret", "repair_incumbent_regret"] as const) {
@@ -1055,6 +1224,14 @@ function print(analysis: typeof result): void {
       `    primary dead end: ${map.probe_dead_end.events} events; ` +
       `${map.probe_dead_end.admissible_local_fallback_choices} local choices, ` +
       `${map.probe_dead_end.events_with_positive_prefix_gain_choice} actionable`,
+    );
+  }
+  if (analysis.one_discrepancy_execution !== null) {
+    const live = analysis.one_discrepancy_execution;
+    console.log(
+      `  one-discrepancy execution ${live.probes} probes in ${live.tournaments} tournaments; ` +
+      `${live.target_reaches} reached target, ${live.selected} selected, ` +
+      `${live.current_retained_after_discrepancy} retained current`,
     );
   }
   console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);

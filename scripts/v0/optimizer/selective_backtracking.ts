@@ -1,6 +1,7 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_repair_incumbent_once";
+  | "selective_axis_regret_catchup_repair_incumbent_once"
+  | "selective_axis_regret_catchup_one_discrepancy";
 
 export type SelectiveBacktrackSignal = "branch_regret" | "repair_incumbent_regret";
 
@@ -34,10 +35,14 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-repair-incumbent-once") {
     return "selective_axis_regret_catchup_repair_incumbent_once";
   }
+  if (raw === "selective-axis-regret-catchup-one-discrepancy") {
+    return "selective_axis_regret_catchup_one_discrepancy";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
-    `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
-      `selective-axis-regret-catchup-repair-incumbent-once; got ${raw}`,
+    `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
+      `selective-axis-regret-catchup-repair-incumbent-once, or ` +
+      `selective-axis-regret-catchup-one-discrepancy; got ${raw}`,
   );
 }
 
@@ -110,6 +115,10 @@ export type SelectiveCatchupProbeOutcome =
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeResult = {
+  route_ordinal: number;
+  route_kind: "causal_alternative" | "local_discrepancy";
+  parent_route_ordinal: number | null;
+  parent_local_fallback_choice_ordinal: number | null;
   alternative_ordinal: number;
   outcome: SelectiveCatchupProbeOutcome;
   end_gap_index: number;
@@ -120,6 +129,7 @@ export type SelectiveCatchupProbeResult = {
 };
 
 export type SelectiveLocalFallbackChoice = {
+  choice_ordinal: number;
   gap_index: number;
   remaining_gap_advance: number;
   current_relative_axis_loss_gain: number;
@@ -177,6 +187,9 @@ export type SelectiveBacktrackingStats = {
   catchup_local_fallback_choice_count_sum: number;
   catchup_positive_local_fallback_choice_count_sum: number;
   catchup_local_fallback_choice_count_max: number;
+  catchup_local_discrepancy_probe_attempts: number;
+  catchup_local_discrepancy_probe_target_reaches: number;
+  catchup_local_discrepancy_selected: number;
   catchup_additional_probe_attempts: number;
   catchup_additional_probe_target_reaches: number;
   catchup_tournaments_with_additional_probe: number;
@@ -220,6 +233,7 @@ export type SelectiveBacktrackingEvent = {
   catchup_axis_loss: number | null;
   catchup_axis_loss_gain: number | null;
   catchup_selected_alternative_ordinal: number | null;
+  catchup_selected_route_ordinal: number | null;
   catchup_probe_results: SelectiveCatchupProbeResult[];
   catchup_checkpoints: SelectiveCatchupCheckpoint[];
 };
@@ -340,6 +354,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_local_fallback_choice_count_sum: 0,
       catchup_positive_local_fallback_choice_count_sum: 0,
       catchup_local_fallback_choice_count_max: 0,
+      catchup_local_discrepancy_probe_attempts: 0,
+      catchup_local_discrepancy_probe_target_reaches: 0,
+      catchup_local_discrepancy_selected: 0,
       catchup_additional_probe_attempts: 0,
       catchup_additional_probe_target_reaches: 0,
       catchup_tournaments_with_additional_probe: 0,
@@ -705,6 +722,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         catchup_axis_loss: null,
         catchup_axis_loss_gain: null,
         catchup_selected_alternative_ordinal: null,
+        catchup_selected_route_ordinal: null,
         catchup_probe_results: [],
         catchup_checkpoints: [],
       });
@@ -766,6 +784,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     input: {
       outcome: SelectiveCatchupOutcome;
       selectedAlternativeOrdinal: number | null;
+      selectedRouteOrdinal: number | null;
       probes: readonly SelectiveCatchupProbeResult[];
       catchupAxisLoss: number | null;
     },
@@ -791,6 +810,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       ? null
       : decision.triggerAxisLoss - input.catchupAxisLoss;
     event.catchup_selected_alternative_ordinal = input.selectedAlternativeOrdinal;
+    event.catchup_selected_route_ordinal = input.selectedRouteOrdinal;
     event.catchup_probe_results = input.probes.map((probe) => ({
       ...probe,
       local_fallback_choices: probe.local_fallback_choices.map((choice) => ({ ...choice })),
@@ -818,11 +838,28 @@ export class SelectiveAxisRegretController<Node extends object> {
       }
     }
     this.stats.catchup_additional_probe_attempts += input.probes.filter(
-      (probe) => probe.alternative_ordinal > 1,
+      (probe) => probe.route_kind === "causal_alternative" && probe.alternative_ordinal > 1,
     ).length;
     this.stats.catchup_additional_probe_target_reaches += input.probes.filter(
-      (probe) => probe.alternative_ordinal > 1 && probe.outcome === "reached_target",
+      (probe) =>
+        probe.route_kind === "causal_alternative" &&
+        probe.alternative_ordinal > 1 &&
+        probe.outcome === "reached_target",
     ).length;
+    this.stats.catchup_local_discrepancy_probe_attempts += input.probes.filter(
+      (probe) => probe.route_kind === "local_discrepancy",
+    ).length;
+    this.stats.catchup_local_discrepancy_probe_target_reaches += input.probes.filter(
+      (probe) =>
+        probe.route_kind === "local_discrepancy" && probe.outcome === "reached_target",
+    ).length;
+    if (
+      input.selectedRouteOrdinal !== null &&
+      input.probes.find((probe) => probe.route_ordinal === input.selectedRouteOrdinal)
+        ?.route_kind === "local_discrepancy"
+    ) {
+      this.stats.catchup_local_discrepancy_selected++;
+    }
     if (input.probes.length > 1) this.stats.catchup_tournaments_with_additional_probe++;
     if ((input.selectedAlternativeOrdinal ?? 0) > 1) {
       this.stats.catchup_additional_alternative_selected++;

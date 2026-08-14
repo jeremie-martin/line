@@ -1,0 +1,71 @@
+{
+  "schema": "line.selective-one-discrepancy-catchup-study.v1",
+  "status": "predeclared-focused-screen",
+  "generated_at": "2026-08-14",
+  "question": "Can one value-selected inner route recover a better equal-depth continuation after the causal sibling's preferred route loses, without the indiscriminate work and regressions of broad sibling search?",
+  "selection_evidence": {
+    "study": "benchmark/v2/studies/selective-one-discrepancy-opportunity-v1.json",
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-one-discrepancy-opportunity-n4",
+    "score_blind_gate": "23 primary-loss events with a positive local runner-up across all eight target runs and both believer sources; required 20 events, four runs, and two sources.",
+    "non_claim": "The opportunity map executed no discrepancy route and supplied no score evidence."
+  },
+  "implementation": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-one-discrepancy"
+    },
+    "single_change": "After the ordinary causal route reaches equal depth but does not strictly beat the suspended prefix, process at most one already-generated inner runner-up with positive exact prefix gain. Choose maximum gain times conservative deadline margin, extend by the ordinary preferred-child route to the same target, and apply the unchanged strict equal-depth ranking.",
+    "unchanged": [
+      "production 0.20 branch-regret trigger and two-contact maturity",
+      "nearest causal sibling and its primary preferred-child catch-up",
+      "execution ceiling and conservative deadline pressure",
+      "strict authored-axis equal-depth winner rule",
+      "ordinary frontier ownership of every unselected branch",
+      "repair allocation, terminal registration, acceptance, and scoring"
+    ],
+    "telemetry_contract": [
+      "causal-alternative routes and local-discrepancy routes have distinct route identities",
+      "a local route names its causal parent route and exact parent choice ordinal",
+      "the analyzer proves that the parent route reached target and lost, that no more than one local route ran, and that its choice is the predeclared maximum value-per-work positive option",
+      "local probe attempts, target reaches, and selections have separate exact aggregates",
+      "checkpoint winner analysis excludes multi-route tournaments rather than mislabeling the primary route"
+    ]
+  },
+  "mechanical_smoke": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-one-discrepancy-smoke-seed100",
+    "scope": "Known opportunity-map actual seed 100; believer pair plus three controls at 750k. Score is excluded because the seed was selected after observing opportunity activity.",
+    "result": {
+      "both_valid": 5,
+      "local_discrepancy_probes": 3,
+      "target_reaches": 3,
+      "local_routes_selected": 2,
+      "current_retained_after_local_route": 1,
+      "action_runs": 2,
+      "action_sources": 2,
+      "analyzer_trust_checks": "pass"
+    },
+    "sha256": {
+      "candidate": "cc0505bb1c62de8a6178d36875043f87d9cf77b58d2c38ec505d8622c23b3e20",
+      "reference": "be128705e8fe8e22dd48ae39ba37d2fb691b73c0a259d4e99089b491b093cf36",
+      "report": "b297768fdaf0cfb4b9447809e73e73c06ec57c0260d42910135c224baf215bb7",
+      "selective_analysis": "35b44e443507d8c1a82071fa6b6ca8342f52075e91b833287258ec1943b3fc7c"
+    }
+  },
+  "predeclared_screen": {
+    "budget": 750000,
+    "actual_seeds": [104, 105, 106, 107, 108, 109, 110, 111],
+    "requested_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "expected_backfilled_controls": [
+      "river_reentry",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ],
+    "expected_cells_per_arm": 40,
+    "reference_commit": "ba498ac4",
+    "decision": "Advance to a fresh all-catalog breadth screen only if every paired cell remains valid, the two target sources each have positive completed-track score sum, at least five of eight target seed blocks are positive, at least four target cells improve, no target cell loses 20 or more points, and local discrepancy routes execute in at least eight target runs. Otherwise close this exact policy without canonical evaluation.",
+    "next_if_passed": "Run one fresh two-seed all-catalog 750k breadth screen. Canonical V2 remains unauthorized until that independent catalog screen preserves validity, has positive catalog sum, and shows non-isolated positive movement.",
+    "non_claim": "This focused screen cannot estimate or change the canonical headline, authorize promotion, or establish multi-budget behavior."
+  }
+}

@@ -18,6 +18,8 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent-once"))
       .toBe("selective_axis_regret_catchup_repair_incumbent_once");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-one-discrepancy"))
+      .toBe("selective_axis_regret_catchup_one_discrepancy");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-second-chance"))
@@ -237,7 +239,12 @@ describe("selective-backtracking controller", () => {
     controller.finishCatchup(decision!, {
       outcome: "current_selected",
       selectedAlternativeOrdinal: null,
+      selectedRouteOrdinal: null,
       probes: [{
+        route_ordinal: 1,
+        route_kind: "causal_alternative",
+        parent_route_ordinal: null,
+        parent_local_fallback_choice_ordinal: null,
         alternative_ordinal: 1,
         outcome: "reached_target",
         end_gap_index: 5,
@@ -246,12 +253,14 @@ describe("selective-backtracking controller", () => {
         axis_loss: 0.7,
         local_fallback_choices: [
           {
+            choice_ordinal: 1,
             gap_index: 4,
             remaining_gap_advance: 1,
             current_relative_axis_loss_gain: 0.03,
             conservative_deadline_margin: 3.5,
           },
           {
+            choice_ordinal: 2,
             gap_index: 3,
             remaining_gap_advance: 2,
             current_relative_axis_loss_gain: -0.01,
@@ -333,12 +342,14 @@ describe("selective-backtracking controller", () => {
           axis_loss: 0.7,
           local_fallback_choices: [
             {
+              choice_ordinal: 1,
               gap_index: 4,
               remaining_gap_advance: 1,
               current_relative_axis_loss_gain: 0.03,
               conservative_deadline_margin: 3.5,
             },
             {
+              choice_ordinal: 2,
               gap_index: 3,
               remaining_gap_advance: 2,
               current_relative_axis_loss_gain: -0.01,
@@ -486,7 +497,12 @@ describe("selective-backtracking controller", () => {
     controller.finishCatchup(decision!, {
       outcome: "alternative_selected",
       selectedAlternativeOrdinal: 1,
+      selectedRouteOrdinal: 1,
       probes: [{
+        route_ordinal: 1,
+        route_kind: "causal_alternative",
+        parent_route_ordinal: null,
+        parent_local_fallback_choice_ordinal: null,
         alternative_ordinal: 1,
         outcome: "reached_target",
         end_gap_index: 3,

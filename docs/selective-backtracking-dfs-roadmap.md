@@ -906,3 +906,30 @@ target runs and both believer sources; together they contain 598 admissible and
 158 positive-gain choices. The fixed one-discrepancy arm is therefore authorized
 for implementation and a fresh focused screen. This is breadth evidence only:
 none of those unexecuted runner-ups has an observed equal-depth or final score.
+
+### One-discrepancy live arm
+
+The live arm adds one route only after the ordinary causal route reaches the
+tournament target and fails to strictly beat the suspended prefix. From the
+already-generated inner runner-ups it keeps only positive exact prefix gains,
+selects maximum gain times conservative deadline margin with a stable tie, and
+extends that one node by the ordinary preferred-child path to the same target.
+The suspended prefix, primary route, and local route then use the unchanged
+strict authored-axis ranking. No recursive discrepancy is allowed.
+
+Telemetry treats this as a route within the same causal alternative, not as a
+fictional second sibling. Every probe has a route kind and ordinal; the local
+route names its parent route and exact parent choice. The analyzer verifies the
+parent reached target and lost, the chosen option is the declared maximum, and
+there is at most one local route. Binary checkpoint rules exclude these multi-
+route tournaments because a primary checkpoint cannot label the local route's
+eventual win.
+
+A known-activity seed-100 smoke exercises three local routes across both target
+sources. All reach equal depth; two win and one retains the suspended prefix;
+all invariants pass. Its positive score movement is deliberately excluded from
+decision evidence because opportunity activity on this seed was already known.
+The fresh focused screen is fixed on actual seeds 104-111, the believer pair,
+and three automatic controls at 750k (40 cells per arm). Both target-source sums,
+five of eight seed blocks, four improved cells, full validity, bounded loss, and
+eight action runs must pass before even a two-seed all-catalog breadth screen.

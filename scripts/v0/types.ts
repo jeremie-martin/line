@@ -495,7 +495,8 @@ export type CompileStats = {
   handoff_selective_backtracking?: {
     policy:
       | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_repair_incumbent_once";
+      | "selective_axis_regret_catchup_repair_incumbent_once"
+      | "selective_axis_regret_catchup_one_discrepancy";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -551,6 +552,9 @@ export type CompileStats = {
     catchup_local_fallback_choice_count_sum: number;
     catchup_positive_local_fallback_choice_count_sum: number;
     catchup_local_fallback_choice_count_max: number;
+    catchup_local_discrepancy_probe_attempts: number;
+    catchup_local_discrepancy_probe_target_reaches: number;
+    catchup_local_discrepancy_selected: number;
     catchup_additional_probe_attempts: number;
     catchup_additional_probe_target_reaches: number;
     catchup_tournaments_with_additional_probe: number;
@@ -609,7 +613,12 @@ export type CompileStats = {
       catchup_axis_loss: number | null;
       catchup_axis_loss_gain: number | null;
       catchup_selected_alternative_ordinal: number | null;
+      catchup_selected_route_ordinal: number | null;
       catchup_probe_results: Array<{
+        route_ordinal: number;
+        route_kind: "causal_alternative" | "local_discrepancy";
+        parent_route_ordinal: number | null;
+        parent_local_fallback_choice_ordinal: number | null;
         alternative_ordinal: number;
         outcome: "reached_target" | "probe_dead_end" | "probe_deferred" | "execution_ceiling";
         end_gap_index: number;
@@ -617,6 +626,7 @@ export type CompileStats = {
         probe_frames: number;
         axis_loss: number | null;
         local_fallback_choices: Array<{
+          choice_ordinal: number;
           gap_index: number;
           remaining_gap_advance: number;
           current_relative_axis_loss_gain: number;

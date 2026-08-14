@@ -495,7 +495,7 @@ export type CompileStats = {
   handoff_selective_backtracking?: {
     policy:
       | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_shallow_trigger_015";
+      | "selective_axis_regret_catchup_shallow6_trigger_015";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;

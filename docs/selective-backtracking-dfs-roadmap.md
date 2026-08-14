@@ -512,3 +512,16 @@ Its first screen is fixed before execution: all 44 canonical sources at 750k
 on fresh actual seeds 32 and 33. That avoids selecting sources from the same
 outcomes used to judge the arm. Two seeds can only screen mechanism and
 direction; they cannot authorize a canonical evaluation.
+
+The cap-seven all-source screen stayed valid in all 88 cells and was genuinely
+cheap: seven additional backtracks and 99,330 additional probe frames. Its
+score was nevertheless flat-negative at -0.4361 total, with four improvements,
+three regressions, and 81 ties, so it fails the predeclared positive-sum gate.
+
+There is one non-arbitrary refinement left. In the two prior unbounded panels,
+cap six retained 15 lower-trigger events and 279,894 frames; cap seven retained
+33 events and 775,943 frames. The added rewind-seven shell chose the alternative
+only five times and returned to the interrupted current prefix 13 times. Cap
+six therefore removes a mechanically distinct low-yield shell, not merely one
+unit from a tuned constant. It receives a separately named, fresh all-catalog
+screen; cap seven is closed and its environment value is removed.

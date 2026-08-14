@@ -1,0 +1,38 @@
+{
+  "schema": "line.selective-shallow-trigger-study.v1",
+  "status": "full-catalog-screen-predeclared",
+  "generated_at": "2026-08-14",
+  "intervention": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-shallow6-trigger-015"
+    },
+    "rule": "Keep the production 0.20 regret trigger for every rewind. Also admit regret at least 0.15 only when the exact causal sibling is at most six gaps behind the current prefix.",
+    "difference_from_closed_cap_seven": "Remove the rewind-seven lower-trigger shell; all other policy behavior is identical."
+  },
+  "design_basis": {
+    "closed_cap_seven": "benchmark/v2/studies/selective-shallow-trigger-015-v1.json",
+    "unbounded_panels_cap_six": {
+      "events": 15,
+      "frames": 279894,
+      "alternative_selected": 10,
+      "current_selected": 3,
+      "dead_ends": 2
+    },
+    "unbounded_panels_rewind_seven_shell": {
+      "events": 18,
+      "frames": 496049,
+      "alternative_selected": 5,
+      "current_selected": 13,
+      "dead_ends": 0
+    },
+    "interpretation": "The removed shell costs more than the entire retained shallow set and usually restores the interrupted prefix. This is a categorical work/value boundary observed before the cap-six live outcomes."
+  },
+  "predeclared_screen": {
+    "budget": 750000,
+    "actual_seeds": [34, 35],
+    "sources": "all 44 canonical development sources",
+    "cells_per_arm": 88,
+    "reference_commit": "7bffd55203bbbf2dbf35bcd55ebbb229a9dcca77",
+    "decision": "Advance only if all cells retain validity, the full-catalog score sum is positive, and the direction is not carried by one isolated cell. This is the last fixed rewind-cap dose in the family; failure closes the family rather than moving the cap again."
+  }
+}

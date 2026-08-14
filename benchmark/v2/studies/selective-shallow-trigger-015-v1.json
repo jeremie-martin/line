@@ -1,6 +1,6 @@
 {
   "schema": "line.selective-shallow-trigger-study.v1",
-  "status": "full-catalog-screen-predeclared",
+  "status": "closed-after-full-catalog-screen",
   "generated_at": "2026-08-14",
   "intervention": {
     "environment": {
@@ -40,5 +40,27 @@
     "cells_per_arm": 88,
     "reference_commit": "7bffd55203bbbf2dbf35bcd55ebbb229a9dcca77",
     "decision": "Advance to a larger fresh-seed paired screen only if there are no lost completions, the full-catalog score sum is positive, and movement is not a single adverse/beneficial outlier. No canonical evaluation is authorized by this two-seed screen."
-  }
+  },
+  "screen_result": {
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-shallow-trigger-015-full-n2",
+    "candidate_sha256": "4ff5c5feb14b4f476469c8441e9c1d3d30abff1012ea96a9654ff664851087e3",
+    "reference_sha256": "9cf868abfc5caef2c7ed801192161893c762d8c540fd086cf756151108be30b0",
+    "report_sha256": "479617061bc9c36211757951a71b36b2a2e076aa9c61848679124fc41e9beed7",
+    "validity": "88/88 -> 88/88",
+    "changed_cells": 7,
+    "improved_cells": 4,
+    "regressed_cells": 3,
+    "score_sum_delta": -0.4361,
+    "mean_delta_per_cell": -0.0049556818,
+    "mechanics": {
+      "selective_backtracks": "25 -> 32",
+      "completed_tournaments": "22 -> 28",
+      "alternative_selected": "7 -> 9",
+      "current_selected": "15 -> 19",
+      "probe_dead_ends": "3 -> 4",
+      "catchup_probe_frames": "860249 -> 959579",
+      "lower_trigger_deep_rewind_suppressions": 1325
+    }
+  },
+  "conclusion": "The cap-seven hybrid is safe and cheap but fails its predeclared positive-sum screen by 0.4361 points, so it does not advance. The earlier unbounded-arm mechanics show a sharp independent boundary: cap six retains 15 events and 279894 frames across those panels, while cap seven retains 33 events and 775943 frames; the added rewind-seven shell selected the alternative only 5 times and returned to current 13 times. A separately named cap-six arm is the final focused test of this shallow family."
 }

@@ -1,6 +1,6 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_shallow_trigger_015";
+  | "selective_axis_regret_catchup_shallow6_trigger_015";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -9,20 +9,20 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
 export const SELECTIVE_AXIS_REGRET_TRIGGER_015_MIN_LOSS_DELTA = 0.15;
-export const SELECTIVE_AXIS_REGRET_LOWER_TRIGGER_MAX_GAP_REWIND = 7;
+export const SELECTIVE_AXIS_REGRET_LOWER_TRIGGER_MAX_GAP_REWIND = 6;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "" || raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
   }
-  if (raw === "selective-axis-regret-catchup-shallow-trigger-015") {
-    return "selective_axis_regret_catchup_shallow_trigger_015";
+  if (raw === "selective-axis-regret-catchup-shallow6-trigger-015") {
+    return "selective_axis_regret_catchup_shallow6_trigger_015";
   }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
-      `selective-axis-regret-catchup-shallow-trigger-015; got ${raw}`,
+      `selective-axis-regret-catchup-shallow6-trigger-015; got ${raw}`,
   );
 }
 
@@ -180,11 +180,11 @@ export class SelectiveAxisRegretController<Node extends object> {
   ) {
     this.gapIndexOf = gapIndexOf;
     this.policy = options.policy ?? "selective_axis_regret_catchup";
-    this.minAxisLossDelta = this.policy === "selective_axis_regret_catchup_shallow_trigger_015"
+    this.minAxisLossDelta = this.policy === "selective_axis_regret_catchup_shallow6_trigger_015"
       ? SELECTIVE_AXIS_REGRET_TRIGGER_015_MIN_LOSS_DELTA
       : SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA;
     this.lowerTriggerMaxGapRewind =
-      this.policy === "selective_axis_regret_catchup_shallow_trigger_015"
+      this.policy === "selective_axis_regret_catchup_shallow6_trigger_015"
         ? SELECTIVE_AXIS_REGRET_LOWER_TRIGGER_MAX_GAP_REWIND
         : null;
     this.stats = {

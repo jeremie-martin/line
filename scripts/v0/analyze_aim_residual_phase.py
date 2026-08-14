@@ -43,6 +43,20 @@ METRICS = (
     "speedQuality",
 )
 
+RESIDUAL_TELEMETRY_METRICS = (
+    "residualInitialGrids",
+    "residualRepairBypassedGrids",
+    "residualResumedBypassedGrids",
+    "residualEligiblePairs",
+    "residualDifferentChallengers",
+    "residualImpactRegretGateFailures",
+    "residualUtilityRegretGateFailures",
+    "residualAdvantageGateFailures",
+    "residualSubstitutions",
+    "residualDistinctnessRejections",
+    "residualFirstChoicePreservations",
+)
+
 
 def arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -142,6 +156,37 @@ def slim_run(run: dict[str, Any]) -> dict[str, Any]:
         "aimEmitted": int(aim.get("enum_emitted", 0)),
         "aimGateFailed": int(aim.get("enum_gate_fail", 0)),
         "aimPoolEntries": int(aim.get("aimed_pool_entries", 0)),
+        "residualInitialGrids": int(aim.get("residual_second_initial_grids", 0)),
+        "residualRepairBypassedGrids": int(
+            aim.get("residual_second_repair_bypassed_grids", 0)
+        ),
+        "residualResumedBypassedGrids": int(
+            aim.get("residual_second_resumed_bypassed_grids", 0)
+        ),
+        "residualEligiblePairs": int(
+            aim.get("residual_second_initial_eligible_pairs", 0)
+        ),
+        "residualDifferentChallengers": int(
+            aim.get("residual_second_initial_different_challengers", 0)
+        ),
+        "residualImpactRegretGateFailures": int(
+            aim.get("residual_second_initial_impact_regret_gate_failures", 0)
+        ),
+        "residualUtilityRegretGateFailures": int(
+            aim.get("residual_second_initial_utility_regret_gate_failures", 0)
+        ),
+        "residualAdvantageGateFailures": int(
+            aim.get("residual_second_initial_advantage_gate_failures", 0)
+        ),
+        "residualSubstitutions": int(
+            aim.get("residual_second_initial_substitutions", 0)
+        ),
+        "residualDistinctnessRejections": int(
+            aim.get("residual_second_initial_distinctness_rejections", 0)
+        ),
+        "residualFirstChoicePreservations": int(
+            aim.get("residual_second_initial_first_choice_preservations", 0)
+        ),
         "airQuality": quality("air"),
         "impactQuality": quality("impact"),
         "speedQuality": quality("speed"),
@@ -325,6 +370,10 @@ def correlation(left: list[float], right: list[float]) -> float | None:
     ) / math.sqrt(left_ss * right_ss)
 
 
+def ratio(numerator: int, denominator: int) -> float | None:
+    return numerator / denominator if denominator > 0 else None
+
+
 def main() -> None:
     args = arguments()
     candidate = load_slim(args.candidate)
@@ -352,6 +401,7 @@ def main() -> None:
     matched = 0
     candidate_only_valid = 0
     baseline_only_valid = 0
+    matched_residual_values: dict[str, list[float]] = defaultdict(list)
     for key, candidate_run in candidate.items():
         baseline_run = baseline[key]
         if candidate_run["valid"] and not baseline_run["valid"]:
@@ -373,8 +423,18 @@ def main() -> None:
             seed_deltas[metric][key[3]].append(delta)
             role_deltas[candidate_run["role"]][metric].append(delta)
             role_seed_deltas[candidate_run["role"]][metric][key[3]].append(delta)
+        for metric in RESIDUAL_TELEMETRY_METRICS:
+            matched_residual_values[metric].append(float(candidate_run[metric]))
 
     score_deltas = deltas["finalScore"]
+    valid_candidate_runs = [run for run in candidate.values() if run["valid"]]
+    residual_totals = {
+        metric: sum(int(run[metric]) for run in valid_candidate_runs)
+        for metric in RESIDUAL_TELEMETRY_METRICS
+    }
+    eligible = residual_totals["residualEligiblePairs"]
+    different = residual_totals["residualDifferentChallengers"]
+    substitutions = residual_totals["residualSubstitutions"]
     report = {
         "schema": "line.aim-residual-phase-analysis.v2",
         "contract": {
@@ -410,6 +470,39 @@ def main() -> None:
             metric: correlation(score_deltas, values)
             for metric, values in deltas.items()
             if len(values) == len(score_deltas)
+        },
+        "candidateResidualTelemetry": {
+            "availability": "always-on compile stats; candidate-valid runs only",
+            "validRuns": len(valid_candidate_runs),
+            "totals": residual_totals,
+            "rates": {
+                "differentChallengersPerEligiblePair": ratio(different, eligible),
+                "substitutionsPerEligiblePair": ratio(substitutions, eligible),
+                "substitutionsPerDifferentChallenger": ratio(
+                    substitutions, different
+                ),
+                "firstChoicePreservationsPerEligiblePair": ratio(
+                    residual_totals["residualFirstChoicePreservations"], eligible
+                ),
+                "impactRegretGateFailuresPerDifferentChallenger": ratio(
+                    residual_totals["residualImpactRegretGateFailures"], different
+                ),
+                "utilityRegretGateFailuresPerDifferentChallenger": ratio(
+                    residual_totals["residualUtilityRegretGateFailures"], different
+                ),
+                "advantageGateFailuresPerDifferentChallenger": ratio(
+                    residual_totals["residualAdvantageGateFailures"], different
+                ),
+            },
+            "matchedValidCountCorrelationWithFinalScoreDelta": {
+                metric: correlation(score_deltas, values)
+                for metric, values in matched_residual_values.items()
+                if len(values) == len(score_deltas)
+            },
+            "correlationWarning": (
+                "Counts scale with specification length and search activity. These "
+                "associations are descriptive and are not causal gate effects."
+            ),
         },
         "pairedDeltaByRole": {
             role: {

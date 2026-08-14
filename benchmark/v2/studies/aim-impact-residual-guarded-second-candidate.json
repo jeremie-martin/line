@@ -1,7 +1,7 @@
 {
   "schema": "line.benchmark-v2.aim-impact-residual-guarded-second-candidate.v1",
   "recorded_at": "2026-08-14T09:45:00+02:00",
-  "status": "implemented_precanonical_verified",
+  "status": "canonical_complete_pending_candidate_removal",
   "motivation": {
     "closed_study": "benchmark/v2/studies/aim-impact-residual-initial-only-candidate.json",
     "fresh_confirmation": "benchmark/v2/studies/aim-impact-residual-initial-only-n96-confirmation.json",
@@ -154,5 +154,129 @@
     "canonical_candidates": 1,
     "on_accept": "promote and retain the guarded residual implementation",
     "otherwise": "record the evidence and remove the residual runtime/artifact path cleanly"
+  },
+  "canonical_result": {
+    "recorded_at": "2026-08-14T13:04:55+02:00",
+    "outcome": "inconclusive",
+    "promotable": false,
+    "stopping_depth": 48,
+    "candidate_compiles": 2112,
+    "official_headline": {
+      "baseline": 604.185,
+      "candidate": 606.2004,
+      "delta": 2.0154,
+      "standard_error": 1.8379,
+      "directional_probability": 0.8608,
+      "required_directional_probability": 0.9723,
+      "central_95_lo": -2.9184,
+      "central_95_hi": 6.9492
+    },
+    "sequential_looks": [
+      {"seeds": 8, "delta": 0.36, "standard_error": 0.53, "directional_probability": 0.7402, "required": 0.9990, "action": "continue"},
+      {"seeds": 16, "delta": 0.07, "standard_error": 0.39, "directional_probability": 0.5687, "required": 0.9980, "action": "continue"},
+      {"seeds": 32, "delta": 0.44, "standard_error": 0.31, "directional_probability": 0.9177, "required": 0.9888, "action": "continue"},
+      {"seeds": 48, "delta": 2.0154, "standard_error": 1.8379, "directional_probability": 0.8608, "required": 0.9723, "action": "inconclusive"}
+    ],
+    "validity": {
+      "baseline": 2111,
+      "candidate": 2112,
+      "total": 2112,
+      "gained": 1,
+      "lost": 0
+    },
+    "rare_validity_event": {
+      "source": "frontier_pickup_progression_shifted",
+      "actual_seed": 635,
+      "baseline_valid": false,
+      "candidate_valid": true,
+      "candidate_score": 469.1346,
+      "source_level_delta": 54.8201,
+      "interpretation": "This real capability gain dominates the official point estimate and seed-block uncertainty; it does not by itself resolve repeatable headline improvement."
+    },
+    "strata_delta": {
+      "representative": 0.4292,
+      "capability": 11.9711,
+      "legacy_regression": -0.7584,
+      "development_music": -0.0978
+    }
+  },
+  "matched_valid_phase_decomposition": {
+    "authority": "descriptive_not_promotion",
+    "matched_valid_runs": 2111,
+    "candidate_only_valid": 1,
+    "final_score": {
+      "delta": 0.2896608119714586,
+      "standard_error": 0.24651961287631852,
+      "reference_directional_probability": 0.87704356769818,
+      "central_95_lo": -0.206272680680742,
+      "central_95_hi": 0.7855943046236592
+    },
+    "initial_end_register_score": {
+      "delta": 0.8209606453360929,
+      "standard_error": 0.3601690749763483,
+      "reference_directional_probability": 0.9863856529551068,
+      "central_95_lo": 0.09639392541369796,
+      "central_95_hi": 1.5455273652584878
+    },
+    "post_initial_uplift": {
+      "delta": -0.5312998333646344,
+      "standard_error": 0.3500746330497654,
+      "reference_directional_probability": 0.0678971838856886,
+      "central_95_lo": -1.2355591554998329,
+      "central_95_hi": 0.1729594887705641
+    },
+    "repair_accepted_internal_gain": {
+      "delta": -0.6232702431250873,
+      "standard_error": 0.35378573379404143,
+      "reference_directional_probability": 0.042310403602969934,
+      "central_95_lo": -1.3349953369780776,
+      "central_95_hi": 0.08845485072790304
+    },
+    "interpretation": "The guarded policy produced a reproducible-looking gain at the end of initial search, but later work gave back most of it. This is a phase association, not an isolated repair effect: the changed initial path also changes the repair incumbent. The final matched-valid effect remains unresolved."
+  },
+  "canonical_gate_telemetry": {
+    "candidate_valid_runs": 2112,
+    "initial_grids": 3090257,
+    "repair_bypassed_grids": 2604551,
+    "resumed_bypassed_grids": 90537,
+    "eligible_pairs": 3074969,
+    "different_challengers": 856366,
+    "substitutions": 243513,
+    "different_challenger_fraction": 0.27849581573017484,
+    "substitution_fraction_of_eligible_pairs": 0.07919201787074927,
+    "substitution_fraction_of_different_challengers": 0.2843562215221062,
+    "first_choice_preservation_fraction": 1,
+    "impact_regret_gate_failures": 46928,
+    "utility_regret_gate_failures": 23129,
+    "advantage_gate_failures": 592149,
+    "failure_counter_semantics": "independent; one challenger may fail multiple gates",
+    "interpretation": "The guard reduced substitutions from the prior smoke's 34.4% to 7.9% of eligible pairs canonically while preserving every first choice. The residual-advantage threshold was the dominant rejection mechanism. Raw intervention counts have near-zero descriptive correlation with matched final-score deltas and are confounded by specification length/search activity."
+  },
+  "evidence": {
+    "comparison": {
+      "path": "benchmark/v2/runs/aim-impact-residual-guarded-second-comparison.json",
+      "sha256": "9c4b968eb339db421e306e4739dbff77c01f15507b8faac46273071d58d9fdf0"
+    },
+    "candidate_archive": {
+      "path": "benchmark/v2/runs/aim-impact-residual-guarded-second-development-750k-N48.N48.json.gz",
+      "raw_sha256": "87b7ec149e5154eecfb3ef1197a221ae4bff4477162ea52157bc937038822bff",
+      "compressed_sha256": "60812689bf964b186b6ce5610937495837252853553a4de857e24574f9d0f65c",
+      "decision_index_sha256": "f85b9d1753c68c6d295477f207d3971ed85070f7db6e5fc59942710c49a0bf9b",
+      "summary_sha256": "1271be656b33b28fda7c9fe3d93d80c20c35ed2331d42c53cee7c3637e6ffdfa"
+    },
+    "compiler_snapshot": {
+      "path": "benchmark/v2/runs/aim-impact-residual-guarded-second-development-750k-N48-compiler-snapshot.tar.gz",
+      "sha256": "c92dd32b80a8ac82c95e35286fa25a10f64171570db4d80bb103c5805a147d30"
+    },
+    "phase_analysis": {
+      "path": "generated/analysis/aim-impact-residual-guarded-second-phase.json",
+      "sha256": "58f51ad24b708d4e749fca05e549d5d78ab049262eb21e3dd1011a3d3169ed6b"
+    }
+  },
+  "decision": {
+    "action": "remove_candidate_runtime_and_retain_evidence",
+    "reason": "The single predeclared candidate did not meet the governed N48 directional-probability threshold. The positive initial-phase association is a valuable follow-up lead, but does not license promotion or post-hoc gate tuning.",
+    "accepted_headline_remains": 605.9793,
+    "natural_follow_up": "Study why changed initial incumbents lose value during later repair/resumed work, then predeclare a policy that preserves proven initial value across that boundary; do not rerun the multi-budget sweep or tune these gate constants on this canonical result."
   }
 }

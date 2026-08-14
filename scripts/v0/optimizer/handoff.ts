@@ -3190,8 +3190,12 @@ function compileHandoffInternal(
               checkpointGapIndex,
             );
             const alternativeAxisLoss = authoredPrefixAxisLoss(probe.search);
-            if (routeKind === "causal_alternative") {
-              selectiveBacktracking!.recordCatchupCheckpoint(decision, alternativeOrdinal, {
+            selectiveBacktracking!.recordCatchupCheckpoint(
+              decision,
+              routeOrdinal,
+              routeKind,
+              alternativeOrdinal,
+              {
                 gap_index: checkpointGapIndex,
                 contact_advance:
                   contactOrdinalAt(checkpointGapIndex) - contactOrdinalAt(decision.branchGapIndex),
@@ -3200,8 +3204,8 @@ function compileHandoffInternal(
                 current_axis_loss: currentAxisLoss,
                 alternative_axis_loss: alternativeAxisLoss,
                 alternative_axis_loss_gain: currentAxisLoss - alternativeAxisLoss,
-              });
-            }
+              },
+            );
           }
 
           if (probe.search.gapIndex >= decision.fromGapIndex) {

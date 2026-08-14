@@ -239,6 +239,8 @@ export type SelectiveBacktrackingEvent = {
 };
 
 export type SelectiveCatchupCheckpoint = {
+  route_ordinal: number;
+  route_kind: SelectiveCatchupProbeResult["route_kind"];
   alternative_ordinal: number;
   gap_index: number;
   contact_advance: number;
@@ -758,15 +760,20 @@ export class SelectiveAxisRegretController<Node extends object> {
    * rule into the compiler. */
   recordCatchupCheckpoint(
     decision: SelectiveBacktrackDecision<Node>,
+    routeOrdinal: number,
+    routeKind: SelectiveCatchupProbeResult["route_kind"],
     alternativeOrdinal: number,
-    checkpoint: Omit<SelectiveCatchupCheckpoint, "alternative_ordinal">,
+    checkpoint: Omit<
+      SelectiveCatchupCheckpoint,
+      "route_ordinal" | "route_kind" | "alternative_ordinal"
+    >,
   ): void {
     const event = this.stats.events[decision.eventIndex];
     if (event === undefined || event.catchup_outcome !== null) {
       throw new Error("selective catch-up checkpoint has no live causal event");
     }
     const previous = event.catchup_checkpoints.filter(
-      (candidate) => candidate.alternative_ordinal === alternativeOrdinal,
+      (candidate) => candidate.route_ordinal === routeOrdinal,
     ).at(-1);
     if (
       checkpoint.gap_index <= (previous?.gap_index ?? decision.branchGapIndex) ||
@@ -776,7 +783,12 @@ export class SelectiveAxisRegretController<Node extends object> {
     ) {
       throw new Error("selective catch-up checkpoints must advance monotonically to the target");
     }
-    event.catchup_checkpoints.push({ ...checkpoint, alternative_ordinal: alternativeOrdinal });
+    event.catchup_checkpoints.push({
+      ...checkpoint,
+      route_ordinal: routeOrdinal,
+      route_kind: routeKind,
+      alternative_ordinal: alternativeOrdinal,
+    });
   }
 
   finishCatchup(

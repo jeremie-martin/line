@@ -986,3 +986,30 @@ and seven win, consuming 502,121 frames. The mechanism is broad and capable of
 large gains, but its direction is not yet stable. A successor should use exact
 route-progress evidence to improve or bound this work, rather than weakening
 the replication rule or fitting a score threshold to these outcomes.
+
+### Local-route sign-reversal map
+
+The next step instruments that route progress without changing traversal. A
+proper local route is admitted because it is strictly better than the suspended
+prefix at its starting gap, but 24 of the 31 completed local routes in the fresh
+screen lose by equal depth. The useful diagnostic is therefore not another
+score-fit threshold: it is whether the route's exact cumulative axis-loss gain
+turns non-positive at an intermediate authored gap, whether such routes later
+recover, and how much measured search follows the first reversal.
+
+Every checkpoint now carries an explicit route ordinal, route kind, causal
+alternative ordinal, authored gap, route-local nodes and frames, and the two
+like-for-like prefix losses. Validation binds it to exactly one probe result and
+requires monotone, result-bounded counters. The analyzer deliberately excludes
+the equal-depth target from intermediate progress: otherwise every eventual
+loss would be mislabeled as an early stopping opportunity.
+
+This map reuses actual seeds 112-119 and the retained proper-discrepancy archive
+only for mechanism characterization. The new one-arm output must be exactly
+identical in track, score, and validity; no reused score can select a policy. A
+single fixed live successor is authorized only if first non-positive gains
+occur on at least 12 routes across six runs and both believer sources, at most
+10% recover to a strict target win, and at least 100,000 measured probe frames
+follow those reversals. That successor would stop the local route at the first
+such checkpoint. The observation remains non-causal: only a fresh live screen
+can measure the changed frontier timing and final score.

@@ -229,7 +229,7 @@ describe("selective-backtracking controller", () => {
     expect(decision?.contactAdvance).toBe(2);
     expect(decision?.gapRewind).toBe(1);
     controller.markSuspended(descendant);
-    controller.recordCatchupCheckpoint(decision!, 1, {
+    controller.recordCatchupCheckpoint(decision!, 1, "causal_alternative", 1, {
       gap_index: 5,
       contact_advance: 2,
       probe_nodes_processed: 1,
@@ -360,6 +360,8 @@ describe("selective-backtracking controller", () => {
           ],
         }],
         catchup_checkpoints: [{
+          route_ordinal: 1,
+          route_kind: "causal_alternative",
           alternative_ordinal: 1,
           gap_index: 5,
           contact_advance: 2,

@@ -634,6 +634,8 @@ export type CompileStats = {
         }>;
       }>;
       catchup_checkpoints: Array<{
+        route_ordinal: number;
+        route_kind: "causal_alternative" | "local_discrepancy";
         alternative_ordinal: number;
         gap_index: number;
         contact_advance: number;

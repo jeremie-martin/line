@@ -30,7 +30,9 @@ type Outcome =
   | "execution_ceiling";
 
 type Checkpoint = {
-  alternative_ordinal?: number;
+  route_ordinal: number;
+  route_kind: "causal_alternative" | "local_discrepancy";
+  alternative_ordinal: number;
   gap_index: number;
   contact_advance: number;
   probe_nodes_processed: number;
@@ -224,7 +226,12 @@ for (const row of archive.runs ?? []) {
       catchup_additional_probes_skipped_after_first_winner:
         event.catchup_additional_probes_skipped_after_first_winner ?? 0,
       catchup_probe_results: probeResults,
-      catchup_checkpoints: event.catchup_checkpoints ?? [],
+      catchup_checkpoints: (event.catchup_checkpoints ?? []).map((checkpoint: any) => ({
+        ...checkpoint,
+        route_ordinal: checkpoint.route_ordinal ?? checkpoint.alternative_ordinal ?? 1,
+        route_kind: checkpoint.route_kind ?? "causal_alternative",
+        alternative_ordinal: checkpoint.alternative_ordinal ?? 1,
+      })),
       local_fallback_telemetry:
         probeResults.length > 0 &&
         (event.catchup_probe_results ?? []).every(
@@ -476,6 +483,61 @@ const oneDiscrepancyExecution = localDiscrepancyEvents.length === 0 ? null : {
   ).size,
   affected_sources: [...new Set(localDiscrepancyEvents.map((event) => event.sourceId))].sort(),
 };
+const localRouteProgress = localDiscrepancyEvents.flatMap((event) =>
+  event.catchup_probe_results
+    .filter((probe) => probe.route_kind === "local_discrepancy")
+    .map((probe) => {
+      const checkpoints = event.catchup_checkpoints.filter(
+        (checkpoint) =>
+          checkpoint.route_ordinal === probe.route_ordinal &&
+          checkpoint.gap_index < event.from_gap_index,
+      );
+      const firstSignReversal = checkpoints.find(
+        (checkpoint) => checkpoint.alternative_axis_loss_gain <= 0,
+      );
+      const targetGain = probe.axis_loss === null
+        ? null
+        : event.trigger_axis_loss - probe.axis_loss;
+      return { event, probe, checkpoints, firstSignReversal, targetGain };
+    })
+);
+const signReversals = localRouteProgress.filter(
+  (observation) => observation.firstSignReversal !== undefined,
+);
+const localRouteProgressMap = localRouteProgress.length === 0 ? null : {
+  routes: localRouteProgress.length,
+  routes_with_intermediate_checkpoint: localRouteProgress.filter(
+    (observation) => observation.checkpoints.length > 0,
+  ).length,
+  first_nonpositive_sign: {
+    routes: signReversals.length,
+    recovered_to_strict_target_win: signReversals.filter(
+      (observation) => (observation.targetGain ?? -Infinity) > 0,
+    ).length,
+    did_not_recover_to_strict_target_win: signReversals.filter(
+      (observation) => !((observation.targetGain ?? -Infinity) > 0),
+    ).length,
+    measured_probe_frames_after_sign: signReversals.reduce(
+      (sum, observation) =>
+        sum + Math.max(
+          0,
+          observation.probe.probe_frames - observation.firstSignReversal!.probe_frames,
+        ),
+      0,
+    ),
+    affected_runs: new Set(signReversals.map(
+      (observation) => `${observation.event.sourceId}/${observation.event.seed}`,
+    )).size,
+    affected_sources: [...new Set(signReversals.map(
+      (observation) => observation.event.sourceId,
+    ))].sort(),
+  },
+  caveat:
+    "A local route starts from an exactly positive same-depth prefix gain. A sign reversal is " +
+    "the first later authored-gap checkpoint at which its cumulative axis loss is no better " +
+    "than the suspended prefix through that same gap. Remaining measured work and target " +
+    "recovery are observations of the completed route, not a causal replay of stopping it.",
+};
 
 const result = {
   schema: "line.selective-backtracking-offline-guard-analysis.v1",
@@ -501,6 +563,7 @@ const result = {
   branch_point_choice_map: branchPointChoiceMap,
   one_discrepancy_opportunity_map: oneDiscrepancyOpportunityMap,
   one_discrepancy_execution: oneDiscrepancyExecution,
+  local_route_progress_map: localRouteProgressMap,
   admission_margin_counterfactuals: admissionMarginCounterfactuals,
   trigger_opportunities: triggerRuns.length === 0 ? null : {
     coverage: {
@@ -969,11 +1032,32 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     ) {
       throw new Error(`${label} retained current despite a lower-loss completed alternative`);
     }
-    for (const checkpoint of event.catchup_checkpoints ?? []) {
-      const ordinal = checkpoint.alternative_ordinal ?? 1;
-      if (!Number.isSafeInteger(ordinal) || ordinal < 1 || ordinal > requested) {
-        throw new Error(`${label} checkpoint has invalid alternative ordinal`);
+    const lastCheckpointByRoute = new Map<number, Checkpoint>();
+    for (const rawCheckpoint of event.catchup_checkpoints ?? []) {
+      const checkpoint: Checkpoint = {
+        ...rawCheckpoint,
+        route_ordinal:
+          rawCheckpoint.route_ordinal ?? rawCheckpoint.alternative_ordinal ?? 1,
+        route_kind: rawCheckpoint.route_kind ?? "causal_alternative",
+        alternative_ordinal: rawCheckpoint.alternative_ordinal ?? 1,
+      };
+      const route = routesByOrdinal.get(checkpoint.route_ordinal);
+      const previous = lastCheckpointByRoute.get(checkpoint.route_ordinal);
+      if (
+        route === undefined ||
+        checkpoint.route_kind !== route.route_kind ||
+        checkpoint.alternative_ordinal !== route.alternative_ordinal ||
+        checkpoint.gap_index <= (previous?.gap_index ?? event.branch_gap_index) ||
+        checkpoint.gap_index > event.from_gap_index ||
+        checkpoint.probe_nodes_processed < (previous?.probe_nodes_processed ?? 0) ||
+        checkpoint.probe_nodes_processed > route.probe_nodes_processed ||
+        checkpoint.probe_frames < (previous?.probe_frames ?? 0) ||
+        checkpoint.probe_frames > route.probe_frames ||
+        !Number.isFinite(checkpoint.alternative_axis_loss_gain)
+      ) {
+        throw new Error(`${label} checkpoint has invalid route attribution`);
       }
+      lastCheckpointByRoute.set(checkpoint.route_ordinal, checkpoint);
     }
   }
 
@@ -1253,6 +1337,16 @@ function print(analysis: typeof result): void {
       `  one-discrepancy execution ${live.probes} probes in ${live.tournaments} tournaments; ` +
       `${live.target_reaches} reached target, ${live.selected} selected, ` +
       `${live.current_retained_after_discrepancy} retained current`,
+    );
+  }
+  if (analysis.local_route_progress_map !== null) {
+    const progress = analysis.local_route_progress_map;
+    const reversal = progress.first_nonpositive_sign;
+    console.log(
+      `  local-route progress ${progress.routes_with_intermediate_checkpoint}/` +
+      `${progress.routes} routes have an intermediate checkpoint; first sign reversal in ` +
+      `${reversal.routes}, ${reversal.recovered_to_strict_target_win} recover; ` +
+      `${reversal.measured_probe_frames_after_sign} measured frames follow`,
     );
   }
   console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);

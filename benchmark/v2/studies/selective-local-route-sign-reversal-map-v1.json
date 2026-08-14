@@ -1,0 +1,47 @@
+{
+  "schema": "line.selective-local-route-sign-reversal-map-study.v1",
+  "status": "predeclared-behavior-neutral-map",
+  "generated_at": "2026-08-14",
+  "question": "When a proper discrepancy route starts with a positive exact prefix gain but later loses at the tournament target, does its exact current-relative prefix gain usually turn non-positive early enough to stop material losing work, and does it rarely recover afterward?",
+  "relationship_to_prior_arm": {
+    "closed_study": "benchmark/v2/studies/selective-proper-discrepancy-catchup-v1.json",
+    "evidence": "The fresh proper-discrepancy screen was +19.5187 in aggregate but had only four positive seed blocks out of eight. Thirty-one local routes reached their equal-depth target; seven won and 24 retained the current path after 502121 total local-probe frames.",
+    "fixed_successor_if_supported": "Stop a local discrepancy route at the first later authored-gap checkpoint whose exact cumulative axis loss is no better than the suspended incumbent through that same gap.",
+    "scope": "This map changes telemetry only. It cannot establish the score effect of actually stopping, because stopping changes frontier timing and all later search."
+  },
+  "instrument": {
+    "behavior": "Run the unchanged selective-axis-regret-catchup-proper-discrepancy policy and record exact authored-gap checkpoints on causal and local routes.",
+    "checkpoint_identity": [
+      "route ordinal and route kind",
+      "causal alternative ordinal",
+      "authored gap and contact advance",
+      "route-local nodes and simulation frames consumed",
+      "suspended-prefix axis loss, route-prefix axis loss, and their exact gain"
+    ],
+    "trust": [
+      "checkpoint route identity must match exactly one completed probe result",
+      "gap, node, and frame counters must be monotone within each route and bounded by its result",
+      "local-route progress excludes the equal-depth target itself so a sign reversal is genuinely intermediate",
+      "candidate and retained-reference tracks, scores, and validity must be exactly identical"
+    ]
+  },
+  "predeclared_map": {
+    "budget": 750000,
+    "actual_seeds": [112, 113, 114, 115, 116, 117, 118, 119],
+    "requested_sources": [
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "expected_backfilled_controls": [
+      "river_reentry",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ],
+    "expected_cells": 40,
+    "reference_archive": "generated/benchmark-v2/mover-grid/selective-proper-discrepancy-n8/candidate.json.gz",
+    "seed_reuse_reason": "These seeds and the prior live arm are deliberately reused only to characterize already-observed route mechanics. Score and validity movement are excluded from selection evidence.",
+    "selection_rule": "Build exactly the fixed sign-guard successor only if a first non-positive intermediate gain occurs on at least 12 local routes spanning at least six runs and both requested sources, no more than 10% of those routes recover to a strict target win, and at least 100000 measured local-probe frames occur after the first sign reversal. Otherwise close this guard without a live arm.",
+    "next_step_if_selected": "Implement one environment-selected proper-discrepancy sign-guard arm, prove its stop identity and one-action bounds in telemetry, and run a fresh focused 750k screen on actual seeds 120-127 before any catalog or canonical evaluation.",
+    "non_claim": "Observed work after a sign reversal is an upper-bound opportunity in the completed route, not a causal replay or a score estimate. The map cannot authorize promotion, canonical evaluation, or a multi-budget sweep."
+  }
+}

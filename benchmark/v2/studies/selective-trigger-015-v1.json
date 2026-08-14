@@ -1,0 +1,76 @@
+{
+  "schema": "line.selective-trigger-live-study.v1",
+  "status": "fresh-confirmation-predeclared",
+  "generated_at": "2026-08-14",
+  "intervention": {
+    "environment": {
+      "LR_FRONTIER_POLICY": "selective-axis-regret-catchup-trigger-015"
+    },
+    "single_change": "Lower the realized authored-axis-loss trigger from 0.20 to 0.15.",
+    "unchanged": [
+      "minimum contact advance",
+      "causal sibling identity",
+      "execution-ceiling and conservative-deadline admission",
+      "bounded preferred-child catch-up",
+      "equal-depth authored-axis-loss selection"
+    ]
+  },
+  "selection_scope": {
+    "source": "benchmark/v2/studies/selective-trigger-opportunity-map-v1.json",
+    "selected_on_actual_seeds": [16, 17],
+    "sources": [
+      "split_signal_impact_relief_12",
+      "believer_impact_56s",
+      "sparse_lowline_air_minus_4",
+      "believer_impact_56s_amplitude_plus_5",
+      "sparse_lowline"
+    ],
+    "automatic_controls": [
+      "frontier_pickup_progression",
+      "regression_transition_mosaic"
+    ]
+  },
+  "initial_grid": {
+    "actual_seeds": [16, 17, 18, 19, 20, 21, 22, 23],
+    "cells_per_arm": 56,
+    "artifact_directory": "generated/benchmark-v2/mover-grid/selective-trigger-015-n8",
+    "candidate_sha256": "8a24b878f82b91e22365cb6b85c0c48ceede93601752084c18c8fbdb2f6bbc54",
+    "reference_sha256": "83cde54db4684b3fcbbc06bc3a77eb7c59a990ee40898ef74da456357351aef0",
+    "report_sha256": "fa381bae6df1ebdc98b0ee3068c56bf9f47330f6f938fdb7ec9e6b0a121d33ff",
+    "validity": "56/56 -> 56/56",
+    "changed_cells": 16,
+    "improved_cells": 10,
+    "regressed_cells": 6,
+    "score_sum_delta": 35.3555,
+    "mean_delta_per_grid_cell": 0.6313482143,
+    "seed_block_standard_error": 0.2783485747,
+    "seed_block_t": 2.2681927328,
+    "targeted_mean_delta": 0.8838875,
+    "targeted_seed_block_standard_error": 0.3896880046,
+    "mechanics": {
+      "selective_backtracks": "100 -> 124",
+      "completed_tournaments": "99 -> 121",
+      "alternative_selected": "38 -> 39",
+      "current_selected": "61 -> 82",
+      "probe_dead_ends": "1 -> 3",
+      "catchup_probe_frames": "3983740 -> 4479645"
+    }
+  },
+  "selection_leakage_control": {
+    "reason": "The five-source action set was located on seeds 16 and 17, so the full eight-seed aggregate is not a fresh confirmation.",
+    "fresh_observed_seeds": [18, 19, 20, 21, 22, 23],
+    "fresh_targeted_cells": 30,
+    "fresh_targeted_score_sum_delta": 18.2419,
+    "fresh_targeted_mean_delta": 0.6080633333,
+    "fresh_targeted_seed_block_standard_error": 0.4454471968,
+    "fresh_targeted_seed_block_t": 1.3650626556,
+    "fresh_validity_losses": 0
+  },
+  "predeclared_confirmation": {
+    "actual_seeds": [24, 25, 26, 27, 28, 29, 30, 31],
+    "same_sources_and_controls": true,
+    "same_budget": 750000,
+    "same_intervention": true,
+    "decision": "Proceed to canonical V2 only if the new block has no lost completion, its targeted score sum is positive, and the pooled fresh seeds 18 through 31 remain positive. Otherwise close this dose and use the measured failure shape to choose a different trigger scheme."
+  }
+}

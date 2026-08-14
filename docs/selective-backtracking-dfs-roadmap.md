@@ -457,3 +457,19 @@ deadline admission, bounded catch-up, and equal-depth disposition stay fixed.
 The five-source action set is tested first. The offline counts are not treated
 as a replay: taking an earlier backtrack changes later traversal, so live
 behavior and output must be measured directly.
+
+The first live 0.15 grid used those five sources, eight canonical seeds, and two
+automatic cross-stratum controls. All 56 paired cells stayed valid; 16 changed,
+with ten improvements, six regressions, and +35.3555 total score. Seed-blocked
+movement was +0.6313 per grid cell with 0.2783 SE (t = 2.27). The controls were
+exactly unchanged, and four of five target sources were positive in aggregate.
+
+That attractive aggregate is not yet independent: seeds 16 and 17 helped
+select the five-source action set. On the six fresh seeds 18-23, the targeted
+mean remains positive at +0.6081 but has 0.4454 SE (t = 1.37). A second block
+on predeclared fresh seeds 24-31, with the exact same sources and policy, is
+therefore required before spending a canonical evaluation. Mechanically the
+lower threshold raised tournaments from 100 to 124 and probe frames by 495,905;
+the extra completed decisions overwhelmingly retained the current path (21
+more) rather than selecting the alternative (one more), an important behavior
+to carry into the confirmation analysis.

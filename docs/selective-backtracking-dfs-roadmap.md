@@ -2095,3 +2095,12 @@ not evidence that narrow probes create more repair; it is evidence that the
 different catch-up search shape can improve local choices despite consuming
 nearly the same probe work. Preserve these adverse mechanics in the canonical
 test rather than relabeling the arm as an efficiency win.
+
+The panel's actual seeds 16-19 overlap canonical seed slots 0-3. It is valid
+mechanism evidence but not independent of the first sequential looks: 16 of
+the N=8 look's 352 cells were observed while choosing the arm. Therefore the
+candidate cannot promote at N=8 or N=16 even if the ordinary tool crosses
+early. Require at least N=32, where the overlap is 1.14% of cells, and retain
+the standing calibrated directional-probability boundary as the only score
+criterion. This is a minimum evidence depth correcting reuse, not a new tail,
+source, or effect-size veto.

@@ -1937,7 +1937,7 @@ mechanism rather than ending the campaign.
 | 2026-08-15 | Checksum-bound canonical attribution | complete | `benchmark:v2:canonical-value-attribution` |
 | 2026-08-15 | Stable-priority rule frozen | complete | This section |
 | 2026-08-15 | Implementation and mechanical proof | complete | Focused 89-test suite; `stable-priority-mechanism-smoke-seed16` |
-| 2026-08-15 | Canonical sequential decision | pending | — |
+| 2026-08-15 | Canonical sequential decision | complete: inconclusive | N=48, -2.24 +/- 1.74, P(positive)=10.15% |
 
 The trace smoke is mechanical, not score evidence. It ran one actual seed over
 one source plus the three mandatory stratum controls. All eight candidate and
@@ -1950,11 +1950,19 @@ this tiny panel; that is an honest warning, but the frozen canonical ladder is
 the scorer and will decide the rule without changing it.
 
 At N=32 the stable-priority challenger is -0.18 +/- 0.36 seed-block SE with
-P(positive)=30.60%. All 1,408 candidate cells are valid. The standing rule says
-`continue`, so the frozen N=48 extension is in progress. This intermediate
+P(positive)=30.60%. All 1,408 candidate cells are valid. The standing rule said
+`continue`, so the frozen evaluation extended to N=48. This intermediate
 result rejects the working assumption that a route which flips sign before
 equal depth is obviously a worse immediate continuation; it does not reject
 value-ranked exploration itself.
+
+The N=48 extension closes the rule as `inconclusive`. The matched headline is
+607.25 -> 605.01, delta -2.24 +/- 1.74 SE, P(positive)=10.15%. One
+`frontier_pickup_progression_shifted` cell loses validity; that validity-
+sensitive remainder is -1.73. This is not merely a failure artifact: across
+the 2,111 both-valid pairs the counterfactual headline is still -0.51 +/- 0.29,
+with 747 better, 849 worse, and 515 tied. Stable priority is retained only as
+an explicit closed experiment and is not the default.
 
 ## Phase G: challenge synchronous catch-up work, not route existence
 
@@ -2062,7 +2070,8 @@ global breadth scaling, repair breadth, or a multi-budget sweep.
 | 2026-08-15 | Exact accepted-run probe economics | complete | Attribution schema v3; 2.08M normal proposals at weighted nCand 80.86 |
 | 2026-08-15 | Probe-only three-quarter policy and telemetry | complete | Pure 81 -> 61/floor unit proof; focused 28-test suite; scoped TypeScript check |
 | 2026-08-15 | Reused-reference four-seed directional panel | complete: positive | `probe-breadth-3q-n4-seeds16-19` |
-| 2026-08-15 | Source-native canonical challenger | pending | Wait for Phase-F N=48 closure, then change only the unset default |
+| 2026-08-15 | Source-native canonical challenger | complete | Unset default changed only after Phase-F closure; focused 55-test suite passes |
+| 2026-08-15 | Canonical sequential decision | pending | Standing 750k N=8/16/32/48 ladder |
 
 The directional panel authorizes canonical evaluation, but it overturns a
 third simplistic model. All 32 candidate/reference runs are valid and the

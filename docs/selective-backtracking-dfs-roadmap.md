@@ -2381,7 +2381,8 @@ threshold is authorized.
 | 2026-08-15 | Source-native canonical challenger | complete | Unset default changed only after Phase-K closure and the frozen three-arm panel |
 | 2026-08-15 | Canonical N=8 look | continue | 607.23 -> 607.38; +0.1430 +/- 0.6917 SE; P(positive)=57.89%; 352/352 valid |
 | 2026-08-15 | Canonical N=16 look | continue | 607.08 -> 607.24; +0.1580 +/- 0.4517 SE; P(positive)=63.43%; 704/704 valid |
-| 2026-08-15 | Canonical sequential decision | running | Standing 750k N=32/48 continuation; Phase D remains the governed baseline |
+| 2026-08-15 | Canonical N=32 look | continue | 607.26 -> 606.31; -0.9463 +/- 1.1806 SE; P(positive)=21.45%; 1,407/1,408 valid |
+| 2026-08-15 | Canonical sequential decision | running | Standing 750k N=48 maximum; Phase D remains the governed baseline |
 
 The three-arm panel validates the intervention and overturns the rescue model.
 Every width trace is exact: the inverse arm uses 81 for all 387 first/unobserved
@@ -2416,3 +2417,73 @@ authority. Make nonpositive-prefix source-native as a frozen challenger, retain
 Phase D in the campaign baseline, and run the ordinary 750k canonical ladder.
 Do not extend positive-prefix toward its estimated 223 seeds, fit a gain
 threshold, add a tail exception, or run a multi-budget sweep.
+
+The N=32 continuation exposes a real completion regression rather than a
+worker or scoring failure. `frontier_low_air_endurance_7s`, actual seed 619,
+is fully valid under Phase D: it reaches its first terminal at 445,540 frames,
+then completes and accepts a repair. The inverse arm admits 13 value
+tournaments and spends 101,498 probe frames, never reaches a terminal, exhausts
+750,031 frames in the initial lane, and returns a stalled partial with 56 of 76
+reported contacts hit (90 contacts are authored). Phase D admits ten
+tournaments and spends 77,351 probe
+frames in the same cell. This one validity loss owns the N=32 headline reversal;
+it does not make the other 1,407 paired cells disappear. Preserve both the
+formal validity-sensitive result and the completed-run counterfactual at the
+maximum look.
+
+## Phase M: couple speculative breadth to its optional-work fund
+
+### Challenged assumption
+
+Every breadth arm so far retains Phase D's 15% compile-level exploration fund.
+That does not send a narrower pool's nominal saving to completion or repair.
+It lets actual cheaper or shorter tournaments refill the same ledger and admit
+later tournaments. In the original uniform three-quarter panel, calls rose
+382 -> 421 and value actions 184 -> 209 while total probe frames fell only
+1.1%; first terminal moved later and repair lost 303,900 frames. The test was
+therefore *more cheap tournaments*, not the user's proposed breadth-to-repair
+allocation.
+
+Predeclare one coupled arm:
+`selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-no-refill`.
+It inherits Phase D and uses uniform three-quarter candidate breadth in every
+admitted value-probe contact expansion, after the existing production floor.
+Its value-exploration allowance is coupled by the same exact categorical
+factor: `0.15 * 3/4 = 0.1125` of the search-policy budget. Actual probe frames
+continue to debit the ledger exactly; there is no invented full-width cost,
+shadow-frame estimate, refund, source condition, or score-dependent stop.
+The 1.25 terminal reserve, conservative admission work, density and maturity,
+startup expiration, comparator, branch limit, production traversal, repair,
+and authored objective remain Phase D.
+
+The smaller fund is not claimed to model full-width work. It is a simple
+allocation contract: reducing the speculative breadth and its maximum
+optional-work share together prevents the entire saving from being reinvested
+inside the same subsystem. A behavior-only replay of the old 16-cell uniform
+trace sizes the intervention but cannot score it: truncating the observed
+event stream at 84,375 actual probe frames would retain 178 of 209 actions and
+1.219M of 1.451M probe frames. Traversal will diverge live, so those numbers are
+not a counterfactual output.
+
+Do not implement or run this arm until Phase L's frozen maximum closes. Then
+restore Phase D as the unset governed baseline if Phase L does not accept.
+Mechanically prove the 61-width/11.25%-allowance coupling, the production
+floor, and exact identity outside value exploration. Use a fresh same-cell
+750k-only three-arm panel on actual seeds 198-201 and the same eight-source
+representative/capability/legacy/music set used in Phase L: Phase D, the
+existing uniform-three-quarter arm with its 15% refill, and the coupled arm.
+The refill-versus-coupled contrast is the allocation test; Phase D is the score
+and validity reference. Report validity, action and suppression counts, probe
+frames, first terminal, terminal reach, repair frames/attempts/acceptance, and
+score. Advance at most the coupled arm, only if the work displacement is real,
+it is not adverse against Phase D, and it improves on the refill arm on the
+shared cells. Any formal promotion still belongs solely to the standing 750k
+canonical evaluator. Do not fit another breadth, fund fraction, source rule, or
+run a budget sweep.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Coupled allocation rule and fresh three-arm panel frozen | complete | This section; 11.25% is exactly 15% times the declared 3/4 breadth |
+| 2026-08-15 | Implementation and mechanical proof | pending | Explicit policy, allowance telemetry, focused tests |
+| 2026-08-15 | Shared fresh allocation panel | pending | Phase D, refill, and coupled on seeds 198-201 |
+| 2026-08-15 | Canonical decision | not authorized | Requires coherent shared-cell allocation evidence first |

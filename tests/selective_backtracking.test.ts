@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  catchupAlternativeHasStablePriority,
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
@@ -10,9 +11,9 @@ type Node = { gap: number; name: string };
 describe("selective-backtracking controller", () => {
   test("parses a strict categorical frontier policy", () => {
     expect(parseFrontierTraversalPolicy(undefined))
-      .toBe("selective_axis_regret_catchup_value_initial_expire_10");
+      .toBe("selective_axis_regret_catchup_value_initial_expire_10_stable_priority");
     expect(parseFrontierTraversalPolicy(""))
-      .toBe("selective_axis_regret_catchup_value_initial_expire_10");
+      .toBe("selective_axis_regret_catchup_value_initial_expire_10_stable_priority");
     expect(parseFrontierTraversalPolicy("dfs")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("off")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
@@ -44,6 +45,9 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-initial-expire-10",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10");
+    expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-expire-10-stable-priority",
+    )).toBe("selective_axis_regret_catchup_value_initial_expire_10_stable_priority");
     expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-initial-expire-10-run-proof",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10_run_proof");
@@ -80,6 +84,13 @@ describe("selective-backtracking controller", () => {
     expect(catchupAlternativeHasSufficientGain(0.5, 0.4999)).toBe(true);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5)).toBe(false);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5001)).toBe(false);
+  });
+
+  test("gives stable priority only to endpoint winners positive at every checkpoint", () => {
+    expect(catchupAlternativeHasStablePriority(0.5, 0.49, true)).toBe(true);
+    expect(catchupAlternativeHasStablePriority(0.5, 0.49, false)).toBe(false);
+    expect(catchupAlternativeHasStablePriority(0.5, 0.5, true)).toBe(false);
+    expect(catchupAlternativeHasStablePriority(0.5, 0.51, true)).toBe(false);
   });
 
   test("admits one exact-rewind periodic tournament only in its configured lane", () => {
@@ -831,6 +842,113 @@ describe("selective-backtracking controller", () => {
       gapProgress: 0.10,
     })).toBeNull();
     expect(controller.snapshot().value_live_crossings).toBe(1);
+  });
+
+  test("attributes an unstable endpoint winner whose immediate priority is suppressed", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_initial_expire_10_stable_priority",
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const current = { gap: 4, name: "current" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.10,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [current],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.10,
+    });
+    const decision = controller.consider({
+      node: current,
+      contactOrdinal: 4,
+      contactBoundary: true,
+      axisLoss: 0.14,
+      gapProgress: 0.20,
+      executionCeilingReached: false,
+      totalSpentFrames: 100_000,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      explorationBudgetAssessment: () => ({
+        execution_remaining_frames: 500_000,
+        conservative_terminal_work_frames: 100_000,
+        estimated_probe_work_frames: 10_000,
+        terminal_reserve_frames: 125_000,
+        exploration_allowance_frames: 112_500,
+        exploration_spent_frames: 0,
+        exploration_remaining_frames: 112_500,
+        local_probe_allowance_frames: 112_500,
+        admitted: true,
+        reason: "admitted",
+      }),
+    });
+    expect(decision).toMatchObject({ triggerSignal: "value_exploration" });
+    controller.recordCatchupCheckpoint(decision!, 1, "causal_alternative", 1, {
+      gap_index: 3,
+      contact_advance: 2,
+      probe_nodes_processed: 1,
+      probe_frames: 40,
+      current_axis_loss: 0.13,
+      alternative_axis_loss: 0.14,
+      alternative_axis_loss_gain: -0.01,
+    });
+    controller.recordCatchupCheckpoint(decision!, 1, "causal_alternative", 1, {
+      gap_index: 4,
+      contact_advance: 3,
+      probe_nodes_processed: 2,
+      probe_frames: 90,
+      current_axis_loss: 0.14,
+      alternative_axis_loss: 0.13,
+      alternative_axis_loss_gain: 0.01,
+    });
+    controller.finishCatchup(decision!, {
+      outcome: "current_selected",
+      selectedAlternativeOrdinal: null,
+      selectedRouteOrdinal: null,
+      probes: [{
+        route_ordinal: 1,
+        route_kind: "causal_alternative",
+        alternative_ordinal: 1,
+        outcome: "reached_target",
+        end_gap_index: 4,
+        probe_nodes_processed: 2,
+        probe_frames: 90,
+        ranked_option_calls: 2,
+        requested_normal_proposals: 160,
+        candidate_geometry_evaluations: 150,
+        atomic_node_frames: [40, 50],
+        tail_completion_attempts: 0,
+        budget_allowance_frames: 112_500,
+        budget_remaining_before_yield: null,
+        estimated_next_node_frames: null,
+        axis_loss: 0.13,
+        local_fallback_choices: [],
+      }],
+      catchupAxisLoss: 0.13,
+      bestAlternativeAllCheckpointsPositive: false,
+      endpointWinnerPrioritySuppressed: true,
+    });
+    const stableSnapshot = controller.snapshot();
+    expect(stableSnapshot).toMatchObject({
+      catchup_priority_rule: "all_checkpoints_positive",
+      catchup_endpoint_winners_suppressed_unstable: 1,
+      catchup_current_selected: 1,
+      catchup_alternative_selected: 0,
+      events: [{
+        catchup_outcome: "current_selected",
+        catchup_best_alternative_all_checkpoints_positive: false,
+        catchup_endpoint_winner_priority_suppressed: true,
+      }],
+    });
+    expect(stableSnapshot.events[0]?.catchup_axis_loss_gain).toBeCloseTo(0.01);
   });
 
   test("seals later value opportunities when the first run-proof probe cannot reach", () => {

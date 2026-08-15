@@ -1929,5 +1929,15 @@ mechanism rather than ending the campaign.
 | 2026-08-15 | Full promoted-baseline cache | complete | 704/704 valid suffix cells; cache `[0,32), [32,48)` |
 | 2026-08-15 | Checksum-bound canonical attribution | complete | `benchmark:v2:canonical-value-attribution` |
 | 2026-08-15 | Stable-priority rule frozen | complete | This section |
-| 2026-08-15 | Implementation and mechanical proof | pending | — |
+| 2026-08-15 | Implementation and mechanical proof | complete | Focused 89-test suite; `stable-priority-mechanism-smoke-seed16` |
 | 2026-08-15 | Canonical sequential decision | pending | — |
+
+The trace smoke is mechanical, not score evidence. It ran one actual seed over
+one source plus the three mandatory stratum controls. All eight candidate and
+reference cells were valid. The candidate recorded eight suppressed unstable
+endpoint winners, every counter matched its event ledger, every suppression
+had a positive endpoint gain plus a nonpositive earlier checkpoint, and no
+alternative was removed. The sole cell with zero suppressions remained
+track-identical to the promoted reference. Three affected cells regressed in
+this tiny panel; that is an honest warning, but the frozen canonical ladder is
+the scorer and will decide the rule without changing it.

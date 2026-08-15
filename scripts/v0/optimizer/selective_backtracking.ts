@@ -11,6 +11,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_value_initial"
   | "selective_axis_regret_catchup_value_initial_progress_10"
   | "selective_axis_regret_catchup_value_initial_expire_10"
+  | "selective_axis_regret_catchup_value_initial_expire_10_stable_priority"
   | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
 
 export type SelectiveBacktrackSignal =
@@ -63,7 +64,7 @@ export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_CONTACT_ADVANCES = [
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "") {
-    return "selective_axis_regret_catchup_value_initial_expire_10";
+    return "selective_axis_regret_catchup_value_initial_expire_10_stable_priority";
   }
   if (raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";
@@ -101,6 +102,9 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-initial-expire-10") {
     return "selective_axis_regret_catchup_value_initial_expire_10";
   }
+  if (raw === "selective-axis-regret-catchup-value-initial-expire-10-stable-priority") {
+    return "selective_axis_regret_catchup_value_initial_expire_10_stable_priority";
+  }
   if (raw === "selective-axis-regret-catchup-value-initial-expire-10-run-proof") {
     return "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
   }
@@ -118,6 +122,7 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-value-initial, or ` +
       `selective-axis-regret-catchup-value-initial-progress-10, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10, or ` +
+      `selective-axis-regret-catchup-value-initial-expire-10-stable-priority, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-run-proof; got ${raw}`,
   );
 }
@@ -340,6 +345,15 @@ export function catchupAlternativeHasSufficientGain(
   return currentAxisLoss > alternativeAxisLoss;
 }
 
+export function catchupAlternativeHasStablePriority(
+  currentAxisLoss: number,
+  alternativeAxisLoss: number,
+  allCheckpointGainsPositive: boolean,
+): boolean {
+  return allCheckpointGainsPositive &&
+    catchupAlternativeHasSufficientGain(currentAxisLoss, alternativeAxisLoss);
+}
+
 type AxisRegretWatch<Node extends object> = {
   watchId: number;
   alternative: Node;
@@ -451,6 +465,8 @@ export type SelectiveBacktrackingStats = {
   min_contact_advance: number;
   min_axis_loss_delta: number;
   catchup_axis_loss_gain_threshold: number;
+  catchup_priority_rule: "endpoint_gain" | "all_checkpoints_positive";
+  catchup_endpoint_winners_suppressed_unstable: number;
   mature_axis_loss_delta_max: number;
   regret_opportunities_by_min_axis_loss_delta: Record<
     string,
@@ -607,6 +623,8 @@ export type SelectiveBacktrackingEvent = {
   catchup_probe_frames: number;
   catchup_axis_loss: number | null;
   catchup_axis_loss_gain: number | null;
+  catchup_best_alternative_all_checkpoints_positive: boolean | null;
+  catchup_endpoint_winner_priority_suppressed: boolean;
   catchup_selected_alternative_ordinal: number | null;
   catchup_selected_route_ordinal: number | null;
   catchup_probe_results: SelectiveCatchupProbeResult[];
@@ -708,6 +726,12 @@ export class SelectiveAxisRegretController<Node extends object> {
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
       min_axis_loss_delta: SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA,
       catchup_axis_loss_gain_threshold: 0,
+      catchup_priority_rule:
+        this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_stable_priority"
+          ? "all_checkpoints_positive"
+          : "endpoint_gain",
+      catchup_endpoint_winners_suppressed_unstable: 0,
       mature_axis_loss_delta_max: 0,
       regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
       repair_incumbent_regret_opportunities_by_min_axis_loss_delta:
@@ -742,6 +766,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       value_live_min_gap_progress:
         this.policy === "selective_axis_regret_catchup_value_initial_progress_10" ||
           this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+          this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
           this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
           ? SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS
           : 0,
@@ -1172,6 +1198,8 @@ export class SelectiveAxisRegretController<Node extends object> {
         catchup_probe_frames: 0,
         catchup_axis_loss: null,
         catchup_axis_loss_gain: null,
+        catchup_best_alternative_all_checkpoints_positive: null,
+        catchup_endpoint_winner_priority_suppressed: false,
         catchup_selected_alternative_ordinal: null,
         catchup_selected_route_ordinal: null,
         catchup_probe_results: [],
@@ -1425,6 +1453,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.policy === "selective_axis_regret_catchup_value_initial_progress_10" ||
           this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
           this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
+          this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
@@ -1468,6 +1498,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           if (gapProgress < minimumProgress) {
             if (
               this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+              this.policy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
             ) {
@@ -1730,6 +1762,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       (this.policy === "selective_axis_regret_catchup_value_initial" ||
         this.policy === "selective_axis_regret_catchup_value_initial_progress_10" ||
         this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+        this.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
         this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
       valueLiveCandidates.length > 0
     ) {
@@ -1904,6 +1938,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       selectedRouteOrdinal: number | null;
       probes: readonly SelectiveCatchupProbeResult[];
       catchupAxisLoss: number | null;
+      bestAlternativeAllCheckpointsPositive?: boolean | null;
+      endpointWinnerPrioritySuppressed?: boolean;
     },
   ): void {
     const event = this.stats.events[decision.eventIndex];
@@ -1926,6 +1962,21 @@ export class SelectiveAxisRegretController<Node extends object> {
     event.catchup_axis_loss_gain = input.catchupAxisLoss === null
       ? null
       : decision.triggerAxisLoss - input.catchupAxisLoss;
+    event.catchup_best_alternative_all_checkpoints_positive =
+      input.bestAlternativeAllCheckpointsPositive ?? null;
+    event.catchup_endpoint_winner_priority_suppressed =
+      input.endpointWinnerPrioritySuppressed ?? false;
+    if (event.catchup_endpoint_winner_priority_suppressed) {
+      if (
+        this.stats.catchup_priority_rule !== "all_checkpoints_positive" ||
+        decision.triggerSignal !== "value_exploration" ||
+        input.outcome !== "current_selected" ||
+        input.catchupAxisLoss === null ||
+        !(decision.triggerAxisLoss > input.catchupAxisLoss) ||
+        input.bestAlternativeAllCheckpointsPositive !== false
+      ) throw new Error("invalid unstable endpoint-winner priority suppression");
+      this.stats.catchup_endpoint_winners_suppressed_unstable++;
+    }
     event.catchup_selected_alternative_ordinal = input.selectedAlternativeOrdinal;
     event.catchup_selected_route_ordinal = input.selectedRouteOrdinal;
     event.catchup_probe_results = input.probes.map((probe) => ({

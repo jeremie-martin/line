@@ -213,6 +213,7 @@ import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts
 import { getSimFrames, refundSimFramesTo } from "./sim_frames.ts";
 import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
+  catchupAlternativeHasStablePriority,
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
   SELECTIVE_DEFERRED_PREFIX_GATE_CONTACT_HORIZON,
@@ -3240,6 +3241,7 @@ function compileHandoffInternal(
           alternativeOrdinal: number;
           routeOrdinal: number;
           axisLoss: number;
+          allCheckpointGainsPositive: boolean;
         }> = [];
         let tournamentBudgetYielded = false;
         const finishTournament = (
@@ -3252,12 +3254,29 @@ function compileHandoffInternal(
           const bestAlternativeAxisLoss = completed.length === 0
             ? null
             : Math.min(...completed.map((candidate) => candidate.axisLoss));
+          const bestAlternative = bestAlternativeAxisLoss === null
+            ? null
+            : completed.find((candidate) => candidate.axisLoss === bestAlternativeAxisLoss)!;
+          const endpointWinnerPrioritySuppressed =
+            frontierTraversalPolicy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" &&
+            decision.triggerSignal === "value_exploration" &&
+            outcome === "current_selected" &&
+            bestAlternative !== null &&
+            catchupAlternativeHasSufficientGain(
+              decision.triggerAxisLoss,
+              bestAlternative.axisLoss,
+            ) &&
+            !bestAlternative.allCheckpointGainsPositive;
           selectiveBacktracking!.finishCatchup(decision, {
             outcome,
             selectedAlternativeOrdinal,
             selectedRouteOrdinal,
             probes: probeResults,
             catchupAxisLoss: bestAlternativeAxisLoss,
+            bestAlternativeAllCheckpointsPositive:
+              bestAlternative?.allCheckpointGainsPositive ?? null,
+            endpointWinnerPrioritySuppressed,
           });
         };
         const runProbe = (
@@ -3280,6 +3299,8 @@ function compileHandoffInternal(
           let budgetRemainingBeforeYield: number | null = null;
           let estimatedNextNodeFrames: number | null = null;
           const localFallbackCandidates: HandoffNode[] = [];
+          let allCheckpointGainsPositive = true;
+          let checkpointGainsObserved = 0;
           let resumeProbe = selectiveBacktracking!.observeSelected(probe, probeStartFrames);
           const finishProbe = (
             outcome: SelectiveCatchupProbeResult["outcome"],
@@ -3448,6 +3469,8 @@ function compileHandoffInternal(
             );
             const alternativeAxisLoss = authoredPrefixAxisLoss(probe.search);
             const alternativeAxisLossGain = currentAxisLoss - alternativeAxisLoss;
+            checkpointGainsObserved++;
+            if (!(alternativeAxisLossGain > 0)) allCheckpointGainsPositive = false;
             selectiveBacktracking!.recordCatchupCheckpoint(
               decision,
               routeOrdinal,
@@ -3469,7 +3492,14 @@ function compileHandoffInternal(
           if (probe.search.gapIndex >= decision.fromGapIndex) {
             const axisLoss = authoredPrefixAxisLoss(probe.search);
             finishProbe("reached_target", axisLoss);
-            completed.push({ node: probe, alternativeOrdinal, routeOrdinal, axisLoss });
+            completed.push({
+              node: probe,
+              alternativeOrdinal,
+              routeOrdinal,
+              axisLoss,
+              allCheckpointGainsPositive:
+                checkpointGainsObserved > 0 && allCheckpointGainsPositive,
+            });
           }
           return false;
         };
@@ -3496,12 +3526,13 @@ function compileHandoffInternal(
           return false;
         }
 
-        const ranked = [
+        const endpointRanked = [
           {
             node: suspended,
             alternativeOrdinal: null,
             routeOrdinal: null,
             axisLoss: decision.triggerAxisLoss,
+            allCheckpointGainsPositive: true,
           },
           ...completed,
         ].sort((left, right) => {
@@ -3509,6 +3540,30 @@ function compileHandoffInternal(
           if (catchupAlternativeHasSufficientGain(right.axisLoss, left.axisLoss)) return -1;
           return (left.routeOrdinal ?? 0) - (right.routeOrdinal ?? 0);
         });
+        const ranked =
+            frontierTraversalPolicy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" &&
+            decision.triggerSignal === "value_exploration"
+          ? [...endpointRanked].sort((left, right) => {
+            const leftWins = left.alternativeOrdinal !== null &&
+              catchupAlternativeHasStablePriority(
+                decision.triggerAxisLoss,
+                left.axisLoss,
+                left.allCheckpointGainsPositive,
+              );
+            const rightWins = right.alternativeOrdinal !== null &&
+              catchupAlternativeHasStablePriority(
+                decision.triggerAxisLoss,
+                right.axisLoss,
+                right.allCheckpointGainsPositive,
+              );
+            if (leftWins !== rightWins) return leftWins ? -1 : 1;
+            if (left.alternativeOrdinal === null) return -1;
+            if (right.alternativeOrdinal === null) return 1;
+            return left.axisLoss - right.axisLoss ||
+              (left.routeOrdinal ?? 0) - (right.routeOrdinal ?? 0);
+          })
+          : endpointRanked;
         for (let i = ranked.length - 1; i >= 0; i--) {
           enqueueChild(ranked[i]!.node, pass, fb);
         }

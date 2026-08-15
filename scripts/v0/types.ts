@@ -510,6 +510,7 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_value_initial"
       | "selective_axis_regret_catchup_value_initial_progress_10"
       | "selective_axis_regret_catchup_value_initial_expire_10"
+      | "selective_axis_regret_catchup_value_initial_expire_10_stable_priority"
       | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
     deferred_value_density_threshold: number;
     deferred_value_min_gap_progress: number;
@@ -535,6 +536,8 @@ export type CompileStats = {
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
+    catchup_priority_rule: "endpoint_gain" | "all_checkpoints_positive";
+    catchup_endpoint_winners_suppressed_unstable: number;
     mature_axis_loss_delta_max: number;
     /** Observation-only unique causal-watch counts. `crossed_watches` reached
      * the threshold; `admissible_watches` also had its exact sibling available,
@@ -653,6 +656,8 @@ export type CompileStats = {
       catchup_probe_frames: number;
       catchup_axis_loss: number | null;
       catchup_axis_loss_gain: number | null;
+      catchup_best_alternative_all_checkpoints_positive: boolean | null;
+      catchup_endpoint_winner_priority_suppressed: boolean;
       catchup_selected_alternative_ordinal: number | null;
       catchup_selected_route_ordinal: number | null;
       catchup_probe_results: Array<{

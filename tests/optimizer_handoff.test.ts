@@ -417,11 +417,16 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const previousAudit = process.env.LR_ROUTE_LEASE_AUDIT;
     const previousRollback = process.env.LR_ROUTE_LEASE_ROLLBACK;
     const previousRevalidation = process.env.LR_ROUTE_LEASE_REVALIDATION;
+    const previousRenewalAudit = process.env.LR_ROUTE_LEASE_RENEWAL_AUDIT;
+    const previousResetLineage =
+      process.env.LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE;
     try {
       delete process.env.LR_FRONTIER_POLICY;
       delete process.env.LR_ROUTE_LEASE_AUDIT;
       delete process.env.LR_ROUTE_LEASE_ROLLBACK;
       delete process.env.LR_ROUTE_LEASE_REVALIDATION;
+      delete process.env.LR_ROUTE_LEASE_RENEWAL_AUDIT;
+      delete process.env.LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE;
       const reference = compileHandoff(spec, 2, {
         budget: 20_000,
         maxNodes: 12,
@@ -477,6 +482,32 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         maxNodes: 12,
         polish: false,
       })).toThrow(/rollback and revalidation are mutually exclusive/);
+      process.env.LR_ROUTE_LEASE_ROLLBACK = "0";
+      process.env.LR_ROUTE_LEASE_RENEWAL_AUDIT = "yes";
+      expect(() => compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      })).toThrow(/LR_ROUTE_LEASE_RENEWAL_AUDIT must be 0 or 1/);
+      process.env.LR_ROUTE_LEASE_RENEWAL_AUDIT = "0";
+      process.env.LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE = "yes";
+      expect(() => compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      })).toThrow(/LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE must be 0 or 1/);
+      process.env.LR_ROUTE_LEASE_REVALIDATION = "0";
+      process.env.LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE = "1";
+      const lineageReset = compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      });
+      expect(lineageReset.stats.handoff_selective_backtracking).toMatchObject({
+        route_lease_audit_enabled: true,
+        route_lease_revalidation_enabled: true,
+        route_lease_revalidation_lineage_reset_enabled: true,
+      });
     } finally {
       if (previousPolicy === undefined) delete process.env.LR_FRONTIER_POLICY;
       else process.env.LR_FRONTIER_POLICY = previousPolicy;
@@ -486,6 +517,13 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       else process.env.LR_ROUTE_LEASE_ROLLBACK = previousRollback;
       if (previousRevalidation === undefined) delete process.env.LR_ROUTE_LEASE_REVALIDATION;
       else process.env.LR_ROUTE_LEASE_REVALIDATION = previousRevalidation;
+      if (previousRenewalAudit === undefined) delete process.env.LR_ROUTE_LEASE_RENEWAL_AUDIT;
+      else process.env.LR_ROUTE_LEASE_RENEWAL_AUDIT = previousRenewalAudit;
+      if (previousResetLineage === undefined) {
+        delete process.env.LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE;
+      } else {
+        process.env.LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE = previousResetLineage;
+      }
     }
   }, 60_000);
 

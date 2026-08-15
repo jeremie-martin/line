@@ -43,7 +43,9 @@ for (const [key, candidateRow] of candidateRows) {
     stats?.policy !== "selective_axis_regret_catchup_value_initial_expire_10" ||
     stats.route_lease_audit_enabled !== true ||
     stats.route_lease_rollback_enabled !== true ||
-    stats.route_lease_revalidation_enabled === true
+    stats.route_lease_revalidation_enabled === true ||
+    stats.route_lease_renewal_audit_enabled === true ||
+    stats.route_lease_revalidation_lineage_reset_enabled === true
   ) throw new Error(`${label}: candidate is not the bounded route-lease rollback arm`);
   const rows = stats.route_lease_audits ?? [];
   const events = stats.events ?? [];

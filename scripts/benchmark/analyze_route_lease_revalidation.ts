@@ -42,6 +42,11 @@ let budgetYields = 0;
 let ceilingStops = 0;
 let probeNodes = 0;
 let probeFrames = 0;
+let lineageResetMode: boolean | null = null;
+let lineageResets = 0;
+let selectedWatchLinksCleared = 0;
+let displacedWatchLinksCleared = 0;
+let uniqueWatchIdsCleared = 0;
 const actionRuns = new Set<string>();
 const actionSources = new Set<string>();
 const noActionPairs: Array<{ candidate: any; reference: any }> = [];
@@ -51,16 +56,25 @@ for (const [key, candidateRow] of candidateRows) {
   if (referenceRow === undefined) throw new Error(`reference is missing ${printableKey(key)}`);
   const label = printableKey(key);
   const stats = candidateRow.stats?.handoff_selective_backtracking;
+  const rowLineageResetMode = stats?.route_lease_revalidation_lineage_reset_enabled === true;
+  if (lineageResetMode === null) lineageResetMode = rowLineageResetMode;
+  if (lineageResetMode !== rowLineageResetMode) {
+    throw new Error("candidate mixes one-shot and lineage-reset revalidation modes");
+  }
   if (
     stats?.policy !== "selective_axis_regret_catchup_value_initial_expire_10" ||
     stats.route_lease_audit_enabled !== true ||
     stats.route_lease_rollback_enabled !== false ||
-    stats.route_lease_revalidation_enabled !== true
+    stats.route_lease_revalidation_enabled !== true ||
+    stats.route_lease_renewal_audit_enabled === true
   ) throw new Error(`${label}: candidate is not the same-horizon revalidation arm`);
   const rows = stats.route_lease_audits ?? [];
   const actions = rows.filter((audit: any) => audit.revalidation !== null);
   const events = stats.events ?? [];
-  for (const audit of actions) validateAction(label, audit, events[audit.event_index]);
+  for (const audit of actions) {
+    validateAction(label, audit, events[audit.event_index]);
+    validateLineageReset(label, audit, rowLineageResetMode);
+  }
   const count = (disposition: string): number =>
     rows.filter((audit: any) => audit.revalidation_disposition === disposition).length;
   const outcomesInRows = (outcome: string): number =>
@@ -99,6 +113,25 @@ for (const [key, candidateRow] of candidateRows) {
     stats.route_lease_revalidation_probe_nodes_processed !== rowProbeNodes ||
     stats.route_lease_revalidation_probe_frames !== rowProbeFrames
   ) throw new Error(`${label}: route-revalidation counters do not match their ledger`);
+  const rowLineageResets = actions.filter((audit: any) => audit.lineage_reset != null).length;
+  const rowSelectedLinks = sum(actions.map((audit: any) =>
+    audit.lineage_reset?.selected_watch_links_cleared ?? 0
+  ));
+  const rowDisplacedLinks = sum(actions.map((audit: any) =>
+    audit.lineage_reset?.displaced_watch_links_cleared ?? 0
+  ));
+  const rowUniqueWatchIds = sum(actions.map((audit: any) =>
+    audit.lineage_reset?.unique_watch_ids_cleared ?? 0
+  ));
+  if (
+    (stats.route_lease_revalidation_lineage_resets ?? 0) !== rowLineageResets ||
+    (stats.route_lease_revalidation_selected_watch_links_cleared ?? 0) !==
+      rowSelectedLinks ||
+    (stats.route_lease_revalidation_displaced_watch_links_cleared ?? 0) !==
+      rowDisplacedLinks ||
+    (stats.route_lease_revalidation_unique_watch_ids_cleared ?? 0) !==
+      rowUniqueWatchIds
+  ) throw new Error(`${label}: lineage-reset counters do not match their ledger`);
 
   audits += rows.length;
   crossings += stats.route_lease_audits_with_loss_crossing;
@@ -117,6 +150,10 @@ for (const [key, candidateRow] of candidateRows) {
   ceilingStops += stats.route_lease_revalidations_execution_ceiling_stops;
   probeNodes += stats.route_lease_revalidation_probe_nodes_processed;
   probeFrames += stats.route_lease_revalidation_probe_frames;
+  lineageResets += rowLineageResets;
+  selectedWatchLinksCleared += rowSelectedLinks;
+  displacedWatchLinksCleared += rowDisplacedLinks;
+  uniqueWatchIdsCleared += rowUniqueWatchIds;
   if (actions.length > 0) {
     actionRuns.add(key);
     actionSources.add(candidateRow.task.sourceId);
@@ -147,6 +184,8 @@ const gate = {
     started > 0 && targetReached * 10 >= started * 9,
   both_measured_winners_exercised: currentSelected > 0 && incumbentSelected > 0,
   actions_span_all_sources: actionSources.size === score.source_blocks.length,
+  every_target_reach_resets_lineage:
+    lineageResetMode !== true || lineageResets === targetReached,
 };
 const passed = gate.declared_four_seed_panel && gate.all_candidate_cells_valid &&
   gate.no_reference_completion_lost && gate.positive_total_run_score_movement &&
@@ -154,10 +193,11 @@ const passed = gate.declared_four_seed_panel && gate.all_candidate_cells_valid &
   gate.no_cell_loses_20 && gate.at_least_40_same_horizon_comparisons &&
   gate.every_eligible_action_resolved && gate.every_admitted_action_started &&
   gate.at_least_90_percent_started_reach_target &&
-  gate.both_measured_winners_exercised && gate.actions_span_all_sources;
+  gate.both_measured_winners_exercised && gate.actions_span_all_sources &&
+  gate.every_target_reach_resets_lineage;
 
 const result = {
-  schema: "line.route-lease-revalidation-analysis.v1",
+  schema: "line.route-lease-revalidation-analysis.v2",
   generated_at: new Date().toISOString(),
   scope: {
     cells: candidate.cells.size,
@@ -165,7 +205,10 @@ const result = {
     budgets: candidate.archive.budgets,
     seeds: candidate.archive.seeds,
     interpretation:
-      "Fresh compact 750k characterization of one frozen revalidation rule; never promotion evidence.",
+      `Fresh compact 750k characterization of the frozen ${
+        lineageResetMode ? "lineage-reset" : "one-shot"
+      } revalidation rule; never promotion evidence.`,
+    variant: lineageResetMode ? "reset_measured_endpoint_lineage" : "one_shot",
   },
   pairing_notes: pairingNotes,
   contract: {
@@ -174,6 +217,10 @@ const result = {
       "queued incumbent, shipped 1.25 terminal reserve, observed atomic preflight",
     action:
       "isolated incumbent preferred path to current gap; retain siblings and both endpoints; same-horizon winner first",
+    post_comparison:
+      lineageResetMode
+        ? "clear inherited causal-watch links only on both measured endpoints; later expansions arm fresh watches"
+        : "preserve inherited causal-watch links",
   },
   score,
   paired_outcomes: outcomes,
@@ -199,6 +246,10 @@ const result = {
     action_sources: actionSources.size,
     no_action_cells: noActionPairs.length,
     no_action_track_score_report_work_identity: true,
+    lineage_resets: lineageResets,
+    selected_watch_links_cleared: selectedWatchLinksCleared,
+    displaced_watch_links_cleared: displacedWatchLinksCleared,
+    unique_watch_ids_cleared: uniqueWatchIdsCleared,
   },
   work,
   work_delta: workDelta,
@@ -219,7 +270,10 @@ const result = {
   ],
 };
 
-console.log(`ROUTE-LEASE REVALIDATION  ${candidate.cells.size} paired cells`);
+console.log(
+  `ROUTE-LEASE REVALIDATION${lineageResetMode ? " + LINEAGE RESET" : ""}  ` +
+    `${candidate.cells.size} paired cells`,
+);
 console.log(
   `score ${signed(score.mean_delta_per_cell, 3)} +/- ` +
     `${format(score.seed_block_standard_error, 3)} SE; ` +
@@ -268,6 +322,30 @@ function validateAction(label: string, audit: any, event: any): void {
     (action.outcome === "incumbent_selected" &&
       !(action.incumbent_axis_loss < action.current_axis_loss))
   ) throw new Error(`${label}: invalid same-horizon revalidation ledger`);
+}
+
+function validateLineageReset(label: string, audit: any, enabled: boolean): void {
+  const reached = audit.revalidation.outcome === "current_selected" ||
+    audit.revalidation.outcome === "incumbent_selected";
+  const reset = audit.lineage_reset ?? null;
+  if (!enabled) {
+    if (reset !== null) throw new Error(`${label}: one-shot action unexpectedly reset lineage`);
+    return;
+  }
+  if (reached !== (reset !== null)) {
+    throw new Error(`${label}: lineage reset does not match same-horizon target reach`);
+  }
+  if (reset !== null && (
+    reset.total_spent_frames !== audit.revalidation.end_total_spent_frames ||
+    !Number.isSafeInteger(reset.selected_watch_links_cleared) ||
+    !Number.isSafeInteger(reset.displaced_watch_links_cleared) ||
+    !Number.isSafeInteger(reset.unique_watch_ids_cleared) ||
+    reset.selected_watch_links_cleared < 0 ||
+    reset.displaced_watch_links_cleared < 0 ||
+    reset.unique_watch_ids_cleared < 0 ||
+    reset.unique_watch_ids_cleared >
+      reset.selected_watch_links_cleared + reset.displaced_watch_links_cleared
+  )) throw new Error(`${label}: invalid measured-endpoint lineage reset`);
 }
 
 function assertNoActionIdentity(label: string, candidateRow: any, referenceRow: any): void {

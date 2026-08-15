@@ -32,7 +32,9 @@ for (const [key, candidateRow] of candidateRows) {
     stats?.policy !== "selective_axis_regret_catchup_value_initial_expire_10" ||
     stats.route_lease_audit_enabled !== true ||
     stats.route_lease_rollback_enabled === true ||
-    stats.route_lease_revalidation_enabled === true
+    stats.route_lease_revalidation_enabled === true ||
+    stats.route_lease_renewal_audit_enabled === true ||
+    stats.route_lease_revalidation_lineage_reset_enabled === true
   ) throw new Error(`${label}: candidate is not the accepted Phase-D audit mode`);
   const rows = stats.route_lease_audits ?? [];
   if (
@@ -221,6 +223,8 @@ function stripAudit(stats: any): any {
     delete selective.route_lease_audit_enabled;
     delete selective.route_lease_rollback_enabled;
     delete selective.route_lease_revalidation_enabled;
+    delete selective.route_lease_renewal_audit_enabled;
+    delete selective.route_lease_revalidation_lineage_reset_enabled;
     delete selective.route_lease_audits_started;
     delete selective.route_lease_audits_selected;
     delete selective.route_lease_audits_with_loss_crossing;
@@ -243,6 +247,12 @@ function stripAudit(stats: any): any {
     delete selective.route_lease_revalidations_execution_ceiling_stops;
     delete selective.route_lease_revalidation_probe_nodes_processed;
     delete selective.route_lease_revalidation_probe_frames;
+    delete selective.route_lease_renewal_audits_started;
+    delete selective.route_lease_renewal_audits_with_loss_crossing;
+    delete selective.route_lease_revalidation_lineage_resets;
+    delete selective.route_lease_revalidation_selected_watch_links_cleared;
+    delete selective.route_lease_revalidation_displaced_watch_links_cleared;
+    delete selective.route_lease_revalidation_unique_watch_ids_cleared;
     delete selective.route_lease_audits;
   }
   return clone;

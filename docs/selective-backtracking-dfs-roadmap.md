@@ -2992,3 +2992,62 @@ loser's measured loss while the loser remains affordable, and attribute the
 opportunity to the parent revalidation. First prove exact identity on a compact
 panel and inspect the catastrophic cell. Only if renewed crossings are broad
 should a repeated, budget-bounded live revalidation be designed.
+
+## Phase R: commit a measured horizon by clearing stale watch lineage
+
+### Renewal audit result
+
+The post-revalidation renewal audit is behavior-neutral in 32/32 paired cells:
+track, report, score, complete budget telemetry, and every non-lease statistic
+are exact against the saved one-shot Phase-Q arm. It binds 91 measured winners
+to their measured losers. Only 16 renewed winners cross the loser's takeover
+loss before the lease ends, in 12 runs, although those crossings span all eight
+sources and remain available and affordable. By contrast, 85/91 renewed leases
+are superseded by another selective tournament; 84 of those tournaments come
+from a watch whose branch gap predates the newly measured horizon (median lag
+three gaps). The catastrophic `regression_transition_mosaic` seed 212 has two
+renewed leases, zero renewal crossings, and two immediate superseding watches
+from three gaps before the measured horizon. Repeated loss-crossing renewal is
+therefore not the focused correction. Stale causal lineage is.
+
+### Frozen lineage-reset challenger
+
+Enable only with `LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE=1`; it implies the
+same one-shot revalidation action and leaves unset Phase D unchanged. After a
+probe reaches the target, rank and enqueue both actual equal-horizon endpoints
+exactly as Phase Q does. Then clear the inherited selective-watch link only on
+those two measured endpoint objects. Do not remove or reorder another frontier
+node, regenerate a candidate, consume RNG, change the loss comparator, add a
+threshold, or clear a global controller. When either endpoint is later
+expanded, ordinary observation arms fresh watches from that new horizon.
+Record the reset frame plus selected, displaced, and unique inherited watch
+links cleared. A probe that does not reach target performs no reset.
+
+The known-activity seed-202 smoke is encouraging but not a decision. Against
+one-shot Phase Q it is +23.93 raw points (+2.991/cell), reaches first terminal
+16,618 paired frames earlier, removes five revalidation cascades, and returns
+128,776 frames to repair work. All 17 target reaches reset lineage and all
+eight cells remain valid; the worst cell is -8.68. On the already-known
+catastrophic seed 212, the reset changes `regression_transition_mosaic` from
+-27.19 versus Phase D to +14.32, while reaching first terminal 22,514 frames
+earlier than one-shot Phase Q. These reused cells establish mechanism and a
+plausible causal correction only.
+
+Freeze the decision panel before running it: the same eight sources at 750k,
+actual seeds 214-217, with accepted Phase D as the paired reference. Continue
+only if every candidate cell is valid, no reference completion is lost, total
+raw score movement is positive, at least three seed blocks and four source
+means are positive, no cell loses 20 points, at least 40 probes reach exact
+same-horizon comparison, at least 90% of started probes reach target, both
+measured winners occur, actions span all eight sources, every eligible action
+is resolved, every admitted action starts, and every target reach performs one
+lineage reset. Passing permits only the standing canonical 750k probability
+ladder; it is not promotion. Do not run a multi-budget sweep or select a
+source, loss, watch-age, or reset-depth exception from compact results.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Behavior-neutral renewal audit | complete | 32/32 exact; 16/91 crossings but 85 supersessions, 84 from pre-horizon watches |
+| 2026-08-16 | Endpoint-lineage reset implementation | complete: unit | Endpoint-only reset; concrete frontier untouched; focused suite and targeted type check clean |
+| 2026-08-16 | Known-activity and catastrophic-cell smokes | complete: positive | +2.991/cell vs Phase Q on seed 202; catastrophic seed 212 becomes +14.32 vs Phase D |
+| 2026-08-16 | Fresh four-seed continuation panel | pending | Actual seeds 214-217; eight sources; 750k only; paired Phase-D reference |

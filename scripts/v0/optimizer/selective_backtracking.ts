@@ -794,6 +794,8 @@ export type SelectiveBacktrackingStats = {
   route_lease_audit_enabled: boolean;
   route_lease_rollback_enabled: boolean;
   route_lease_revalidation_enabled: boolean;
+  route_lease_renewal_audit_enabled: boolean;
+  route_lease_revalidation_lineage_reset_enabled: boolean;
   route_lease_audits_started: number;
   route_lease_audits_selected: number;
   route_lease_audits_with_loss_crossing: number;
@@ -816,6 +818,12 @@ export type SelectiveBacktrackingStats = {
   route_lease_revalidations_execution_ceiling_stops: number;
   route_lease_revalidation_probe_nodes_processed: number;
   route_lease_revalidation_probe_frames: number;
+  route_lease_renewal_audits_started: number;
+  route_lease_renewal_audits_with_loss_crossing: number;
+  route_lease_revalidation_lineage_resets: number;
+  route_lease_revalidation_selected_watch_links_cleared: number;
+  route_lease_revalidation_displaced_watch_links_cleared: number;
+  route_lease_revalidation_unique_watch_ids_cleared: number;
   route_lease_audits: SelectiveRouteLeaseAudit[];
   axis_loss_delta_sum: number;
   axis_loss_delta_max: number;
@@ -903,10 +911,12 @@ export type SelectiveRouteLeaseCheckpoint = {
 };
 
 export type SelectiveRouteLeaseAudit = {
+  origin: "initial_tournament" | "revalidation_renewal";
+  parent_audit_index: number | null;
   event_index: number;
   takeover_gap_index: number;
-  selected_route_ordinal: number;
-  selected_alternative_ordinal: number;
+  selected_route_ordinal: number | null;
+  selected_alternative_ordinal: number | null;
   selected_takeover: SelectiveRouteLeaseAxisWindow;
   displaced_incumbent_takeover: SelectiveRouteLeaseAxisWindow;
   takeover_axis_loss_gain: number;
@@ -954,6 +964,12 @@ export type SelectiveRouteLeaseAudit = {
     current_axis_sse: number | null;
     incumbent_axis_sse: number | null;
   } | null;
+  lineage_reset: {
+    total_spent_frames: number;
+    selected_watch_links_cleared: number;
+    displaced_watch_links_cleared: number;
+    unique_watch_ids_cleared: number;
+  } | null;
   checkpoints: SelectiveRouteLeaseCheckpoint[];
   end_reason:
     | "terminal"
@@ -961,6 +977,7 @@ export type SelectiveRouteLeaseAudit = {
     | "revalidation_current_selected"
     | "revalidation_incumbent_selected"
     | "revalidation_probe_stopped"
+    | "displaced_route_selected"
     | "superseded_by_selective_tournament"
     | null;
   end_total_spent_frames: number | null;
@@ -1048,7 +1065,10 @@ export class SelectiveAxisRegretController<Node extends object> {
   private readonly routeLeaseAuditEnabled: boolean;
   private readonly routeLeaseRollbackEnabled: boolean;
   private readonly routeLeaseRevalidationEnabled: boolean;
+  private readonly routeLeaseRenewalAuditEnabled: boolean;
+  private readonly routeLeaseResetLineageEnabled: boolean;
   private readonly routeLeaseNodes = new WeakMap<Node, number>();
+  private readonly routeLeaseDisplacedNodes = new WeakMap<Node, number>();
   private readonly pendingRouteLeaseRollbacks = new WeakMap<Node, number>();
   private readonly pendingRouteLeaseRevalidations = new WeakMap<Node, number>();
   private readonly routeLeaseIncumbents = new Map<number, Node>();
@@ -1065,12 +1085,22 @@ export class SelectiveAxisRegretController<Node extends object> {
       routeLeaseAudit?: boolean;
       routeLeaseRollback?: boolean;
       routeLeaseRevalidation?: boolean;
+      routeLeaseRenewalAudit?: boolean;
+      routeLeaseResetLineage?: boolean;
     } = {},
   ) {
     this.gapIndexOf = gapIndexOf;
     this.policy = options.policy ?? "selective_axis_regret_catchup";
     this.routeLeaseRollbackEnabled = options.routeLeaseRollback === true;
     this.routeLeaseRevalidationEnabled = options.routeLeaseRevalidation === true;
+    this.routeLeaseRenewalAuditEnabled = options.routeLeaseRenewalAudit === true;
+    this.routeLeaseResetLineageEnabled = options.routeLeaseResetLineage === true;
+    if (this.routeLeaseRenewalAuditEnabled && !this.routeLeaseRevalidationEnabled) {
+      throw new Error("route-lease renewal audit requires revalidation");
+    }
+    if (this.routeLeaseResetLineageEnabled && !this.routeLeaseRevalidationEnabled) {
+      throw new Error("route-lease lineage reset requires revalidation");
+    }
     if (this.routeLeaseRollbackEnabled && this.routeLeaseRevalidationEnabled) {
       throw new Error("route-lease rollback and revalidation are mutually exclusive");
     }
@@ -1288,6 +1318,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       route_lease_audit_enabled: this.routeLeaseAuditEnabled,
       route_lease_rollback_enabled: this.routeLeaseRollbackEnabled,
       route_lease_revalidation_enabled: this.routeLeaseRevalidationEnabled,
+      route_lease_renewal_audit_enabled: this.routeLeaseRenewalAuditEnabled,
+      route_lease_revalidation_lineage_reset_enabled: this.routeLeaseResetLineageEnabled,
       route_lease_audits_started: 0,
       route_lease_audits_selected: 0,
       route_lease_audits_with_loss_crossing: 0,
@@ -1310,6 +1342,12 @@ export class SelectiveAxisRegretController<Node extends object> {
       route_lease_revalidations_execution_ceiling_stops: 0,
       route_lease_revalidation_probe_nodes_processed: 0,
       route_lease_revalidation_probe_frames: 0,
+      route_lease_renewal_audits_started: 0,
+      route_lease_renewal_audits_with_loss_crossing: 0,
+      route_lease_revalidation_lineage_resets: 0,
+      route_lease_revalidation_selected_watch_links_cleared: 0,
+      route_lease_revalidation_displaced_watch_links_cleared: 0,
+      route_lease_revalidation_unique_watch_ids_cleared: 0,
       route_lease_audits: [],
       axis_loss_delta_sum: 0,
       axis_loss_delta_max: 0,
@@ -2538,6 +2576,8 @@ export class SelectiveAxisRegretController<Node extends object> {
     ) throw new Error("selected-route lease audit takeover is not a like-for-like winner");
     const auditIndex = this.stats.route_lease_audits.length;
     this.stats.route_lease_audits.push({
+      origin: "initial_tournament",
+      parent_audit_index: null,
       event_index: decision.eventIndex,
       takeover_gap_index: decision.fromGapIndex,
       selected_route_ordinal: input.selectedRouteOrdinal,
@@ -2554,13 +2594,75 @@ export class SelectiveAxisRegretController<Node extends object> {
       rollback_total_spent_frames: null,
       revalidation_disposition: null,
       revalidation: null,
+      lineage_reset: null,
       checkpoints: [],
       end_reason: null,
       end_total_spent_frames: null,
     });
     this.routeLeaseNodes.set(selected, auditIndex);
     this.routeLeaseIncumbents.set(auditIndex, displacedIncumbent);
+    this.routeLeaseDisplacedNodes.set(displacedIncumbent, auditIndex);
     this.stats.route_lease_audits_started++;
+  }
+
+  /** Start a behavior-neutral lease after a completed same-horizon
+   * revalidation. Both endpoints are unprocessed at this horizon; the
+   * scheduler owns their order and this method only follows object identity. */
+  markRenewedRouteLease(
+    selected: Node,
+    displaced: Node,
+    parentAuditIndex: number,
+    totalSpentFrames: number,
+    selectedTakeover: SelectiveRouteLeaseAxisWindow,
+    displacedTakeover: SelectiveRouteLeaseAxisWindow,
+  ): void {
+    if (!this.routeLeaseRenewalAuditEnabled) return;
+    const parent = this.stats.route_lease_audits[parentAuditIndex];
+    if (
+      parent === undefined || parent.revalidation === null ||
+      parent.end_total_spent_frames !== totalSpentFrames ||
+      (parent.revalidation.outcome !== "current_selected" &&
+        parent.revalidation.outcome !== "incumbent_selected") ||
+      this.gapIndexOf(selected) !== parent.revalidation.target_gap_index ||
+      this.gapIndexOf(displaced) !== parent.revalidation.target_gap_index ||
+      (this.routeLeaseNodes.get(selected) !== undefined &&
+        this.routeLeaseNodes.get(selected) !== parentAuditIndex)
+    ) throw new Error("renewed route lease has no completed parent revalidation");
+    validateRouteLeaseAxisWindow(selectedTakeover, "renewed selected takeover");
+    validateRouteLeaseAxisWindow(displacedTakeover, "renewed displaced takeover");
+    if (
+      selectedTakeover.axis_count !== displacedTakeover.axis_count ||
+      selectedTakeover.axis_loss > displacedTakeover.axis_loss
+    ) throw new Error("renewed route lease did not bind its measured winner");
+    const auditIndex = this.stats.route_lease_audits.length;
+    this.stats.route_lease_audits.push({
+      origin: "revalidation_renewal",
+      parent_audit_index: parentAuditIndex,
+      event_index: parent.event_index,
+      takeover_gap_index: this.gapIndexOf(selected),
+      selected_route_ordinal: null,
+      selected_alternative_ordinal: null,
+      selected_takeover: { ...selectedTakeover },
+      displaced_incumbent_takeover: { ...displacedTakeover },
+      takeover_axis_loss_gain: displacedTakeover.axis_loss - selectedTakeover.axis_loss,
+      selected_total_spent_frames: null,
+      selections_observed: 0,
+      deepest_gap_index: this.gapIndexOf(selected),
+      first_loss_crossing: null,
+      rollback_disposition: null,
+      rollback_total_spent_frames: null,
+      revalidation_disposition: null,
+      revalidation: null,
+      lineage_reset: null,
+      checkpoints: [],
+      end_reason: null,
+      end_total_spent_frames: null,
+    });
+    this.routeLeaseNodes.set(selected, auditIndex);
+    this.routeLeaseIncumbents.set(auditIndex, displaced);
+    this.routeLeaseDisplacedNodes.set(displaced, auditIndex);
+    this.stats.route_lease_audits_started++;
+    this.stats.route_lease_renewal_audits_started++;
   }
 
   /** Return the private node context required to observe, but never drive, a
@@ -2739,6 +2841,58 @@ export class SelectiveAxisRegretController<Node extends object> {
           : "revalidation_probe_stopped",
       input.end_total_spent_frames,
     );
+  }
+
+  /** A same-horizon measurement supersedes every causal watch inherited from
+   * before that endpoint. Clearing only the two measured endpoint links keeps
+   * concrete frontier alternatives and lets later expansions arm fresh
+   * watches normally. */
+  resetLineageAfterRouteLeaseRevalidation(
+    selected: Node,
+    displaced: Node,
+    parentAuditIndex: number,
+    totalSpentFrames: number,
+  ): void {
+    if (!this.routeLeaseResetLineageEnabled) return;
+    const parent = this.stats.route_lease_audits[parentAuditIndex];
+    if (
+      parent === undefined || parent.revalidation === null ||
+      parent.end_total_spent_frames !== totalSpentFrames ||
+      parent.lineage_reset !== null ||
+      this.gapIndexOf(selected) !== parent.revalidation.target_gap_index ||
+      this.gapIndexOf(displaced) !== parent.revalidation.target_gap_index
+    ) throw new Error("route-lease lineage reset has no completed revalidation");
+    const inheritedWatchIds = (node: Node): number[] => {
+      const result: number[] = [];
+      const seen = new Set<number>();
+      let link = this.lineage.get(node) ?? null;
+      while (link !== null) {
+        if (seen.has(link.watch.watchId)) {
+          throw new Error("route-lease lineage reset found a causal-watch cycle");
+        }
+        seen.add(link.watch.watchId);
+        result.push(link.watch.watchId);
+        link = link.parent;
+      }
+      return result;
+    };
+    const selectedWatchIds = inheritedWatchIds(selected);
+    const displacedWatchIds = inheritedWatchIds(displaced);
+    const uniqueWatchIds = new Set([...selectedWatchIds, ...displacedWatchIds]);
+    this.lineage.set(selected, null);
+    this.lineage.set(displaced, null);
+    parent.lineage_reset = {
+      total_spent_frames: totalSpentFrames,
+      selected_watch_links_cleared: selectedWatchIds.length,
+      displaced_watch_links_cleared: displacedWatchIds.length,
+      unique_watch_ids_cleared: uniqueWatchIds.size,
+    };
+    this.stats.route_lease_revalidation_lineage_resets++;
+    this.stats.route_lease_revalidation_selected_watch_links_cleared +=
+      selectedWatchIds.length;
+    this.stats.route_lease_revalidation_displaced_watch_links_cleared +=
+      displacedWatchIds.length;
+    this.stats.route_lease_revalidation_unique_watch_ids_cleared += uniqueWatchIds.size;
   }
 
   observeRouteLeaseTerminal(node: Node, totalSpentFrames: number): void {
@@ -3045,7 +3199,9 @@ export class SelectiveAxisRegretController<Node extends object> {
           ) {
             audit.first_loss_crossing = { ...checkpoint };
             this.stats.route_lease_audits_with_loss_crossing++;
-            if (this.routeLeaseRevalidationEnabled) {
+            if (audit.origin === "revalidation_renewal") {
+              this.stats.route_lease_renewal_audits_with_loss_crossing++;
+            } else if (this.routeLeaseRevalidationEnabled) {
               if (!checkpoint.displaced_incumbent_available) {
                 audit.revalidation_disposition = "displaced_incumbent_unavailable";
                 this.stats.route_lease_revalidations_incumbent_unavailable++;
@@ -3075,6 +3231,19 @@ export class SelectiveAxisRegretController<Node extends object> {
       }
     } else if (routeLease !== undefined) {
       throw new Error("selected-route axis evidence has no active lease");
+    }
+    const displacedAuditIndex = this.routeLeaseDisplacedNodes.get(node);
+    if (displacedAuditIndex !== undefined) {
+      const displacedAudit = this.stats.route_lease_audits[displacedAuditIndex];
+      if (displacedAudit !== undefined && displacedAudit.end_reason === null) {
+        this.endRouteLease(
+          displacedAuditIndex,
+          displacedAudit.origin === "revalidation_renewal"
+            ? "displaced_route_selected"
+            : "displaced_incumbent_resumed",
+          totalSpentFrames,
+        );
+      }
     }
     const handoffEventIndex = this.firstAdvantageHandoffs.get(node);
     if (handoffEventIndex !== undefined) {
@@ -3125,6 +3294,8 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (audit === undefined || audit.end_reason !== null) return;
     audit.end_reason = reason;
     audit.end_total_spent_frames = totalSpentFrames;
+    const displaced = this.routeLeaseIncumbents.get(auditIndex);
+    if (displaced !== undefined) this.routeLeaseDisplacedNodes.delete(displaced);
     this.routeLeaseIncumbents.delete(auditIndex);
   }
 
@@ -3244,6 +3415,9 @@ export class SelectiveAxisRegretController<Node extends object> {
         revalidation: audit.revalidation === null
           ? null
           : { ...audit.revalidation },
+        lineage_reset: audit.lineage_reset === null
+          ? null
+          : { ...audit.lineage_reset },
         checkpoints: audit.checkpoints.map((checkpoint) => ({
           ...checkpoint,
           whole_prefix: { ...checkpoint.whole_prefix },

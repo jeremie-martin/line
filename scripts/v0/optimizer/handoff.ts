@@ -2002,8 +2002,22 @@ function compileHandoffInternal(
     routeLeaseRevalidationRaw !== undefined && routeLeaseRevalidationRaw !== "" &&
     routeLeaseRevalidationRaw !== "0" && routeLeaseRevalidationRaw !== "1"
   ) throw new Error("LR_ROUTE_LEASE_REVALIDATION must be 0 or 1");
+  const routeLeaseRenewalAuditRaw = process.env.LR_ROUTE_LEASE_RENEWAL_AUDIT;
+  if (
+    routeLeaseRenewalAuditRaw !== undefined && routeLeaseRenewalAuditRaw !== "" &&
+    routeLeaseRenewalAuditRaw !== "0" && routeLeaseRenewalAuditRaw !== "1"
+  ) throw new Error("LR_ROUTE_LEASE_RENEWAL_AUDIT must be 0 or 1");
+  const routeLeaseResetLineageRaw =
+    process.env.LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE;
+  if (
+    routeLeaseResetLineageRaw !== undefined && routeLeaseResetLineageRaw !== "" &&
+    routeLeaseResetLineageRaw !== "0" && routeLeaseResetLineageRaw !== "1"
+  ) throw new Error("LR_ROUTE_LEASE_REVALIDATION_RESET_LINEAGE must be 0 or 1");
   const routeLeaseRollback = routeLeaseRollbackRaw === "1";
-  const routeLeaseRevalidation = routeLeaseRevalidationRaw === "1";
+  const routeLeaseRenewalAudit = routeLeaseRenewalAuditRaw === "1";
+  const routeLeaseResetLineage = routeLeaseResetLineageRaw === "1";
+  const routeLeaseRevalidation = routeLeaseRevalidationRaw === "1" ||
+    routeLeaseRenewalAudit || routeLeaseResetLineage;
   if (routeLeaseRollback && routeLeaseRevalidation) {
     throw new Error("route-lease rollback and revalidation are mutually exclusive");
   }
@@ -2173,6 +2187,8 @@ function compileHandoffInternal(
           routeLeaseAudit,
           routeLeaseRollback,
           routeLeaseRevalidation,
+          routeLeaseRenewalAudit,
+          routeLeaseResetLineage,
         },
       )
       : null;
@@ -3958,6 +3974,35 @@ function compileHandoffInternal(
           0,
           claim.targetGapIndex,
         );
+        const renewLease = (
+          selected: HandoffNode,
+          displaced: HandoffNode,
+          selectedWindow: AuthoredAxisWindow,
+          displacedWindow: AuthoredAxisWindow,
+        ): void => {
+          selectiveBacktracking!.resetLineageAfterRouteLeaseRevalidation(
+            selected,
+            displaced,
+            claim.auditIndex,
+            getSimFrames(),
+          );
+          selectiveBacktracking!.markRenewedRouteLease(
+            selected,
+            displaced,
+            claim.auditIndex,
+            getSimFrames(),
+            {
+              axis_count: selectedWindow.axisCount,
+              axis_sse: selectedWindow.axisSse,
+              axis_loss: selectedWindow.axisLoss,
+            },
+            {
+              axis_count: displacedWindow.axisCount,
+              axis_sse: displacedWindow.axisSse,
+              axis_loss: displacedWindow.axisLoss,
+            },
+          );
+        };
         if (incumbentWindow.axisLoss < currentWindow.axisLoss) {
           enqueueChild(current, pass, fb);
           enqueueChild(probe, pass, fb);
@@ -3970,6 +4015,7 @@ function compileHandoffInternal(
             currentWindow.axisSse,
             incumbentWindow.axisSse,
           );
+          renewLease(probe, current, incumbentWindow, currentWindow);
         } else {
           enqueueChild(probe, pass, fb);
           enqueueChild(current, pass, fb);
@@ -3982,6 +4028,7 @@ function compileHandoffInternal(
             currentWindow.axisSse,
             incumbentWindow.axisSse,
           );
+          renewLease(current, probe, currentWindow, incumbentWindow);
         }
         telemetry.frontierMaxSize = Math.max(
           telemetry.frontierMaxSize,

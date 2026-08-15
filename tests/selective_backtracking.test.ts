@@ -1511,6 +1511,8 @@ describe("selective-backtracking controller", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
       policy: "selective_axis_regret_catchup_value_initial_expire_10",
       routeLeaseRevalidation: true,
+      routeLeaseRenewalAudit: true,
+      routeLeaseResetLineage: true,
     });
     const parent = { gap: 1, name: "parent" };
     const leader = { gap: 2, name: "leader" };
@@ -1679,6 +1681,79 @@ describe("selective-backtracking controller", () => {
         end_total_spent_frames: 104_000,
       }],
       events: [{ resumed_total_spent_frames: 102_000 }],
+    });
+    const renewedWinner = { gap: 5, name: "revalidated incumbent endpoint" };
+    const renewedWinnerSibling = { gap: 5, name: "endpoint sibling" };
+    controller.observeExpansion({
+      parent: current,
+      children: [renewedWinner, renewedWinnerSibling],
+      contactExpansion: true,
+      contactOrdinal: 4,
+      axisLoss: 0.14,
+      childAxisLosses: [0.13, 0.14],
+    });
+    controller.resetLineageAfterRouteLeaseRevalidation(
+      renewedWinner,
+      child,
+      0,
+      104_000,
+    );
+    controller.markRenewedRouteLease(
+      renewedWinner,
+      child,
+      0,
+      104_000,
+      { axis_count: 15, axis_sse: 0.20, axis_loss: 0.13 },
+      { axis_count: 15, axis_sse: 0.25, axis_loss: 0.15 },
+    );
+    controller.observeSelected(renewedWinner, 104_000, {
+      wholePrefix: { axis_count: 15, axis_sse: 0.20, axis_loss: 0.13 },
+      divergentSuffix: { axis_count: 0, axis_sse: 0, axis_loss: 0 },
+      displacedIncumbentAvailable: true,
+      displacedIncumbentConservativeDeadlineMargin: 2,
+      displacedIncumbentAffordableWithReserve: true,
+    });
+    const renewedChild = { gap: 6, name: "renewed winner continuation" };
+    controller.observeExpansion({
+      parent: renewedWinner,
+      children: [renewedChild],
+      contactExpansion: true,
+      contactOrdinal: 5,
+      axisLoss: 0.13,
+    });
+    controller.observeSelected(renewedChild, 106_000, {
+      wholePrefix: { axis_count: 18, axis_sse: 0.31, axis_loss: 0.16 },
+      divergentSuffix: { axis_count: 3, axis_sse: 0.11, axis_loss: 0.19 },
+      displacedIncumbentAvailable: true,
+      displacedIncumbentConservativeDeadlineMargin: 1.8,
+      displacedIncumbentAffordableWithReserve: true,
+    });
+    expect(controller.snapshot()).toMatchObject({
+      route_lease_renewal_audit_enabled: true,
+      route_lease_revalidation_lineage_reset_enabled: true,
+      route_lease_revalidation_lineage_resets: 1,
+      route_lease_audits_started: 2,
+      route_lease_renewal_audits_started: 1,
+      route_lease_renewal_audits_with_loss_crossing: 1,
+      route_lease_audits: [
+        {
+          origin: "initial_tournament",
+          parent_audit_index: null,
+          lineage_reset: {
+            total_spent_frames: 104_000,
+            selected_watch_links_cleared: 2,
+            displaced_watch_links_cleared: 0,
+            unique_watch_ids_cleared: 2,
+          },
+        },
+        {
+          origin: "revalidation_renewal",
+          parent_audit_index: 0,
+          takeover_gap_index: 5,
+          first_loss_crossing: { gap_index: 6 },
+          revalidation_disposition: null,
+        },
+      ],
     });
   });
 

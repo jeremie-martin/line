@@ -177,6 +177,17 @@ function summarizeAndValidateMechanics(rows: any[]): any {
     bounded_overshoots_with_prefix_beyond_allowance: 0,
   };
   const activeSources = new Set<string>();
+  const bySource = new Map<string, {
+    runs: number;
+    active_runs: number;
+    crossings: number;
+    progress_expired_watches: number;
+    admitted: number;
+    probe_frames: number;
+    alternative_selected: number;
+    current_selected: number;
+    probe_dead_ends: number;
+  }>();
   for (const row of rows) {
     const label = `${row.task.sourceId}/${row.task.budget}/${row.task.actualSeed}`;
     const stats = row.stats?.handoff_selective_backtracking;
@@ -318,6 +329,33 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       totals.active_runs++;
       activeSources.add(row.task.sourceId);
     }
+    const source = bySource.get(row.task.sourceId) ?? {
+      runs: 0,
+      active_runs: 0,
+      crossings: 0,
+      progress_expired_watches: 0,
+      admitted: 0,
+      probe_frames: 0,
+      alternative_selected: 0,
+      current_selected: 0,
+      probe_dead_ends: 0,
+    };
+    source.runs++;
+    if (events.length > 0) source.active_runs++;
+    source.crossings += stats.value_live_crossings;
+    source.progress_expired_watches += stats.value_live_progress_expired_watches ?? 0;
+    source.admitted += stats.value_live_admitted;
+    source.probe_frames += probeFrames;
+    source.alternative_selected += events.filter(
+      (event: any) => event.catchup_outcome === "alternative_selected",
+    ).length;
+    source.current_selected += events.filter(
+      (event: any) => event.catchup_outcome === "current_selected",
+    ).length;
+    source.probe_dead_ends += probes.filter(
+      (probe: any) => probe.outcome === "probe_dead_end",
+    ).length;
+    bySource.set(row.task.sourceId, source);
     totals.crossings += stats.value_live_crossings;
     totals.admitted += stats.value_live_admitted;
     totals.ranked_out += stats.value_live_ranked_out;
@@ -370,16 +408,30 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       totals.ranked_option_calls === 0
         ? null
         : totals.requested_normal_proposals / totals.ranked_option_calls,
+    aggregate_policy_budget_fraction:
+      totals.probe_frames / sum(rows.map((row) => row.task.budget)),
+    by_source: Object.fromEntries([...bySource.entries()].sort(([a], [b]) =>
+      a.localeCompare(b)
+    )),
   };
 }
 
 function summarizeScore(pairs: Array<{ candidate: GridCell; ref: GridCell }>): any {
-  const deltas = pairs.map((pair) => pair.candidate.score - pair.ref.score);
+  const cells = pairs.map((pair) => ({
+    source_id: pair.candidate.sourceId,
+    seed: pair.candidate.seed,
+    delta: pair.candidate.score - pair.ref.score,
+  }));
+  const deltas = cells.map((cell) => cell.delta);
   const bySeed = new Map<number, number[]>();
+  const bySource = new Map<string, number[]>();
   for (const pair of pairs) {
     const values = bySeed.get(pair.candidate.seed) ?? [];
     values.push(pair.candidate.score - pair.ref.score);
     bySeed.set(pair.candidate.seed, values);
+    const sourceValues = bySource.get(pair.candidate.sourceId) ?? [];
+    sourceValues.push(pair.candidate.score - pair.ref.score);
+    bySource.set(pair.candidate.sourceId, sourceValues);
   }
   const seedBlocks = [...bySeed.entries()].sort((a, b) => a[0] - b[0])
     .map(([seed, values]) => ({ seed, mean_delta: mean(values) }));
@@ -388,7 +440,16 @@ function summarizeScore(pairs: Array<{ candidate: GridCell; ref: GridCell }>): a
     mean_delta_per_cell: mean(deltas),
     seed_block_standard_error: standardError(seedBlocks.map((block) => block.mean_delta)),
     seed_blocks: seedBlocks,
+    source_blocks: [...bySource.entries()].sort(([a], [b]) => a.localeCompare(b))
+      .map(([source_id, values]) => ({
+        source_id,
+        mean_delta: mean(values),
+        improved: values.filter((value) => value > 0).length,
+        regressed: values.filter((value) => value < 0).length,
+        tied: values.filter((value) => value === 0).length,
+      })),
     minimum_cell_delta: deltas.length === 0 ? null : Math.min(...deltas),
+    worst_cells: cells.sort((a, b) => a.delta - b.delta).slice(0, 5),
     improved: deltas.filter((delta) => delta > 0).length,
     regressed: deltas.filter((delta) => delta < 0).length,
     tied: deltas.filter((delta) => delta === 0).length,
@@ -501,6 +562,13 @@ function printResult(value: any): void {
         `first terminal ${signedNullable(row.first_terminal.mean_delta_frames, 0)} frames; ` +
         `active mean ${signed(row.action_set.active.mean_delta_per_cell, 4)}`,
     );
+    if (!row.gate.no_cell_loses_20) {
+      const worst = row.score.worst_cells[0];
+      console.log(
+        `     tail gate: ${worst.source_id} seed ${worst.seed} ` +
+          `${signed(worst.delta, 4)}`,
+      );
+    }
   }
   console.log(
     `gate ${value.continuation_gate.passed ? "PASS" : "CLOSE"}: ` +

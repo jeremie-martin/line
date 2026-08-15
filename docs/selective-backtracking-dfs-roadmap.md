@@ -1593,3 +1593,52 @@ same ten sources and two budgets. The unchanged continuation gate applies. A
 pass earns one confirmation on seeds 170-173; a failure closes this exact
 startup-expiration rule. No alternate horizon, density threshold, reserve,
 breadth, or canonical run is authorized by Phase D.
+
+### Phase D result and campaign boundary
+
+Startup expiration is the strongest arm in this compact campaign, but it does
+not clear its predeclared gate. All 80 candidate cells remain valid and all 80
+tracks change. At 750k the paired mean is +6.5534 +/- 1.3799 seed-block SE;
+all four seed blocks are positive, 28/40 cells improve, and the worst cell is
+-8.3812. At 1.25M the paired mean is +1.6031 +/- 0.7345; three of four seed
+blocks are positive and 22/40 cells improve. The high-budget tail condition
+fails on exactly one named cell: `regression_transition_mosaic`, seed 168,
+loses 24.4130 points. The declared limit was -20, so there is no confirmation
+and no canonical run.
+
+The mechanism behaves as intended. The policy expires 62/55 pre-horizon
+watches and admits 380/260 actions at 750k/1.25M. Probe work falls to
+2,938,201/3,020,189 frames, or 9.79%/6.04% of aggregate policy budget. Unlike
+Phase C, expiration does not turn a cheap early watch into a later expensive
+rewind: mean work per action is about 7.7k/11.6k, close to or below Phase B.
+There is one correctly bounded yield, no tail-completion work inside probes,
+no local-allowance prefix overrun, and aggregate actual work is about 71% of
+the conservative estimate at both budgets.
+
+The added initial work continues to substitute for later search. First
+terminal moves later by 54,489/41,557 frames per run, while repair work falls
+by 2.19M/1.66M aggregate frames. At 1.25M the candidate reaches 80 accepted
+repairs versus 91 in reference even though it attempts two more repairs. In
+the sole tail-gate failure, first terminal moves 96,119 frames later, eight
+value actions spend 93,207 frames, and only three repair episodes remain versus
+six in reference. Its final impact quality falls from 0.5214 to 0.4810. These
+facts establish allocation and outcome, not that any one action caused the
+final loss.
+
+The phase sequence separates three conclusions. A density-ranked voluntary
+action has genuine positive score signal on this panel; merely delaying early
+crossings is harmful because their rewind cost grows; expiring them fixes that
+mechanical defect and greatly improves the observed mean, but still does not
+control run-level tail risk. Counts of actions, local alternative selections,
+and probe frames have only weak descriptive relationships with final paired
+score inside either budget. The current local comparator therefore should not
+be treated as a calibrated predictor of final-track value.
+
+This closes the predeclared 10% horizon family. Do not tune a neighboring
+horizon, density threshold, reserve, or exploration fraction on these scores.
+A subsequent campaign should change a categorical mechanism: retain
+score-blind opportunity selection, but test a run-level allocation or
+progressive stopping rule that explicitly limits the amount of initial work
+that may displace completion and repair. Such a campaign needs its own fresh
+seeds and gate. The full canonical benchmark remains unwarranted until that
+mechanism demonstrates both positive mean return and controlled cell tails.

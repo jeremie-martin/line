@@ -1,0 +1,225 @@
+{
+  "schema": "line.value-ranked-selective-dfs-study.v1",
+  "status": "promising-mechanism-no-promotion",
+  "generated_at": "2026-08-15",
+  "question": "Can score-blind value density select bounded voluntary DFS excursions that improve authored score at fixed 750k and 1.25M budgets, and can startup handling make their work robust?",
+  "scope": {
+    "interpretation": "Four-stage compact-panel mechanism campaign, not a canonical Benchmark V2 headline or promotion decision.",
+    "budgets": [750000, 1250000],
+    "sources": [
+      "wide_breaths",
+      "wide_breaths_air_plus_5",
+      "high_air_drive",
+      "high_air_drive_air_minus_5",
+      "sparse_lowline",
+      "sparse_lowline_air_minus_4",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic",
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "cells_per_arm": 80,
+    "independence": "Each live phase uses four fresh actual seeds. Budgets are reported separately with uncertainty blocked by actual seed. Phases use different seed blocks, so changes between phases are mechanism leads rather than paired phase contrasts.",
+    "authored_target": "The ordinary authored-axis Benchmark V2 score remains the optimization target. No feasibility diagnostic caps or rewrites it."
+  },
+  "predeclared_campaign": {
+    "phase_a": {
+      "actual_seeds": [154, 155, 156, 157],
+      "operation": "Behavior-neutral telemetry maps the first per-watch density crossing at 0.005, 0.010, 0.020, and 0.040 in initial and repair traversal.",
+      "selection": "Separately by lane, select the highest threshold with at least 20 single-action admissions across at least eight runs and four sources at each budget, retaining at least half as many admissions at 1.25M as at 750k. Final score is not read."
+    },
+    "phase_b": {
+      "actual_seeds": [158, 159, 160, 161],
+      "policy": "selective_axis_regret_catchup_value_initial",
+      "operation": "At maturity three, rank simultaneous newly crossing initial-search watches by axis-regret gain per conservative estimated probe work; launch at most one bounded equal-depth tournament.",
+      "budget": "Use a 15% exploration fund, reserve 1.25 times conservative target-to-terminal work, share one actual optional-work ledger between admission and execution, refuse a next atomic node that will not fit, and disable speculative tail completion inside the probe."
+    },
+    "phase_c": {
+      "actual_seeds": [162, 163, 164, 165],
+      "policy": "selective_axis_regret_catchup_value_initial_progress_10",
+      "single_change": "Defer value eligibility until 10% normalized authored-gap progress while keeping early watch lineage alive."
+    },
+    "phase_d": {
+      "actual_seeds": [166, 167, 168, 169],
+      "policy": "selective_axis_regret_catchup_value_initial_expire_10",
+      "single_change": "At the same 10% boundary, expire a value opportunity that first crosses early; preserve its watch for ordinary DFS and production branch-regret behavior."
+    },
+    "live_gate": "All candidate cells valid; positive total and active-cell mean at both budgets; at least three of four positive seed blocks at one budget and at least two at the other; no cell below -20 points; actions in at least eight runs and four sources at each budget. A failure closes the exact rule without confirmation or canonical Benchmark V2."
+  },
+  "implementation": {
+    "design_commit": "7e4b8e06",
+    "opportunity_map_commit": "6508747f",
+    "map_gate_commit": "c8dcbcc7",
+    "bounded_live_commit": "a6dd67fa",
+    "phase_b_result_commit": "39dea56c",
+    "delayed_policy_commit": "5e141064",
+    "phase_c_result_commit": "9cd9eedb",
+    "expiration_policy_commit": "d4fc5f3a",
+    "default_behavior": "Unchanged. Every live arm requires an explicit LR_FRONTIER_POLICY value.",
+    "telemetry": "Per-watch opportunity outcomes, exact lane and branch identity, normalized progress, density components, reserve and allowance arithmetic, requested proposals, candidate geometry evaluations, atomic probe frames, yields, equal-depth selection, first terminal, and repair ledgers are validated from raw run records.",
+    "analysis_schema": "line.value-ranked-selective-dfs-live-analysis.v1"
+  },
+  "direct_observations": {
+    "phase_a": {
+      "identity": "All 80 map/reference pairs are exact in track, score, validity, first-terminal frame, and repair episodes.",
+      "initial_selection": "Density 0.020: 823/831 admitted crossings at 750k and 561/561 at 1.25M across all 40 runs and ten sources. Density 0.040 misses the declared high-budget retention rule by three admissions.",
+      "repair_selection": "Closed. Even density 0.005 reaches only six admission runs at 750k, below the declared eight-run minimum."
+    },
+    "phase_b": {
+      "750000": {
+        "score_mean_delta_per_cell": 0.6438075,
+        "seed_block_standard_error": 0.8549,
+        "positive_seed_blocks": 3,
+        "minimum_cell_delta": -29.7908,
+        "actions": 446,
+        "probe_frames": 3462229,
+        "alternative_current_selections": "164/247",
+        "mean_first_terminal_delta_frames": 51193,
+        "repair_frame_displacement": -2063149
+      },
+      "1250000": {
+        "score_mean_delta_per_cell": 4.13764,
+        "seed_block_standard_error": 1.8153,
+        "positive_seed_blocks": 4,
+        "actions": 311,
+        "probe_frames": 3874420,
+        "alternative_current_selections": "108/177",
+        "mean_first_terminal_delta_frames": 41790,
+        "repair_frame_displacement": -1681858
+      },
+      "gate": "Closed solely by the low-budget -29.7908 tail cell in regression_transition_mosaic seed 161."
+    },
+    "phase_c": {
+      "750000": {
+        "score_mean_delta_per_cell": -0.2919,
+        "seed_block_standard_error": 1.8911,
+        "actions": 356,
+        "probe_frames": 3577819,
+        "mean_first_terminal_delta_frames": 61501
+      },
+      "1250000": {
+        "score_mean_delta_per_cell": -0.2049,
+        "seed_block_standard_error": 1.8953,
+        "actions": 290,
+        "probe_frames": 4850427,
+        "mean_first_terminal_delta_frames": 98530
+      },
+      "gate": "Closed. Deferral reduces action count but increases total and per-action work because early-crossing watches survive into deeper, longer rewinds."
+    },
+    "phase_d": {
+      "validity": "All 80 candidate and 80 reference cells pass the full contract. All 80 paired tracks differ.",
+      "750000": {
+        "score_mean_delta_per_cell": 6.5534375,
+        "seed_block_standard_error": 1.3799077,
+        "seed_blocks": [3.66665, 5.60355, 6.70346, 10.24009],
+        "cell_directions": "28 improved, 12 regressed",
+        "minimum_cell_delta": -8.3812,
+        "expired_watches": 62,
+        "actions": 380,
+        "probe_frames": 2938201,
+        "aggregate_policy_budget_fraction": 0.09794,
+        "alternative_current_selections": "153/195; 31 probe dead ends and one correctly bounded yield",
+        "actual_to_estimated_probe_frames_ratio": 0.716114,
+        "mean_first_terminal_delta_frames": 54488.55,
+        "repair": "192 candidate attempts/189 terminal/82 accepted/11,709,232 frames versus 186/185/79/13,897,299 reference"
+      },
+      "1250000": {
+        "score_mean_delta_per_cell": 1.6030825,
+        "seed_block_standard_error": 0.7344866,
+        "seed_blocks": [2.19679, 2.62219, -0.57846, 2.17181],
+        "cell_directions": "22 improved, 18 regressed",
+        "minimum_cell": "regression_transition_mosaic seed 168: -24.4130",
+        "expired_watches": 55,
+        "actions": 260,
+        "probe_frames": 3020189,
+        "aggregate_policy_budget_fraction": 0.060404,
+        "alternative_current_selections": "96/134; 30 probe dead ends and zero yields",
+        "actual_to_estimated_probe_frames_ratio": 0.708257,
+        "mean_first_terminal_delta_frames": 41557.125,
+        "repair": "222 candidate attempts/222 terminal/80 accepted/23,759,061 frames versus 220/220/91/25,415,600 reference"
+      },
+      "tail_cell_attribution": "At 1.25M, regression_transition_mosaic seed 168 delays first terminal 666,303 -> 762,422, spends 93,207 frames in eight value actions, and has three repair episodes versus six. Final score is 638.074 versus 662.487; impact quality is 0.4810 versus 0.5214. This is direct allocation/outcome evidence, not single-action causality.",
+      "gate": "Closed by the declared -20 cell-tail condition. Every other gate clause passes. No confirmation or canonical run follows."
+    }
+  },
+  "statistical_associations": [
+    "The Phase B action has positive paired means at both budgets, but one low-budget tail cell prevents continuation. This is promising marginal evidence, not promotion evidence.",
+    "Early actions select the local alternative less often than middle-progress actions in Phase B. Phase C shows that postponing those same opportunities is not equivalent to removing them: mean action work rises from about 7.8k/12.5k to 10.1k/16.7k at 750k/1.25M.",
+    "Phase D expiration restores mean action work to about 7.7k/11.6k and lowers total probe work to 2.94M/3.02M. The intended mechanism therefore works on fresh seeds.",
+    "Across every live arm, initial probe work substantially displaces repair work. Phase D adds about 2.94M/3.02M probe frames while repair loses 2.19M/1.66M frames, so the policy changes allocation rather than adding independent search.",
+    "Within Phase D, simple per-budget correlations between final paired score and action count, probe frames, alternative selections, or first-terminal movement are weak. Local equal-depth wins and work volume are not calibrated final-score predictors.",
+    "The positive Phase D mean is broad at 750k but less broad at 1.25M: 28/40 versus 22/40 cells improve. A larger budget does not monotonically strengthen this policy."
+  ],
+  "hypotheses": [
+    "The density trigger identifies useful route-choice opportunities, but executing them before any terminal exposes the compile to allocation tails because the production-like completion and later repair portfolio are not protected.",
+    "Collecting value signals during initial traversal and executing a selected exact alternative only after a valid incumbent exists may retain the signal while removing first-terminal risk and making comparison incumbent-relative.",
+    "A progressive tournament stopping rule can improve efficiency on long probes, but the retained Phase D offline rules affect only the two believer sources and cannot explain or repair the transition-mosaic tail. It should not be presented as the primary tail fix.",
+    "Adjacent tuning of the 10% boundary, density threshold, 15% allowance, or 1.25 reserve would fit this small panel more than it would test a new search hypothesis."
+  ],
+  "decision": {
+    "promoted": false,
+    "confirmation_run": false,
+    "canonical_run_authorized": false,
+    "headline_score_changed": false,
+    "exact_policy_status": "All three live rules are study-only. The 10% expiration arm is the strongest lead but fails its predeclared tail gate.",
+    "reason": "The campaign demonstrates real score signal and correct bounded mechanics, but no exact rule combines positive return with the declared run-level tail control. Honoring that gate avoids promoting a favorable mean selected after observing a named regression.",
+    "implementation_disposition": "Keep the generic value-opportunity and bounded-tournament telemetry behind explicit experiment policies for reproducibility. Production behavior and the 604.2665 headline remain unchanged."
+  },
+  "recommended_next_work": [
+    "Predeclare a behavior-neutral deferred-value opportunity map: retain exact high-density initial branch identities through first completion, then measure which remain live and affordable from the post-terminal budget without changing traversal.",
+    "If that map has broad two-budget coverage, test one categorical deferred-value arm with fresh seeds: preserve normal first completion, select the best affordable recorded opportunity after an incumbent exists, and make its comparison incumbent-relative. Do not tune the Phase D horizon or density on these scores.",
+    "Report first-terminal identity, exact opportunity survival, post-terminal admission, charged work, ordinary repair displacement, accepted improvements, final score, and cell tails. Keep 750k and 1.25M separate.",
+    "Use checkpoint early-rejection only as a secondary efficiency factorial after the deferred action itself has positive evidence; the current offline rule is source-concentrated and cannot address the observed tail.",
+    "Do not run full canonical Benchmark V2 until a fresh compact arm clears both mean-return and tail-risk gates."
+  ],
+  "trust_checks": {
+    "phase_a_behavior_identity": "pass: 80/80 exact paired cells",
+    "full_contract": "pass for all 480 live candidate/reference cells across Phases B-D",
+    "policy_and_lane_attribution": "pass",
+    "watch_and_action_ledger_reconciliation": "pass",
+    "reserve_and_local_allowance_arithmetic": "pass",
+    "atomic_probe_frame_reconciliation": "pass",
+    "speculative_probe_tail_completion": "zero",
+    "local_allowance_prefix_overruns": "zero",
+    "generic_selective_event_validator": "pass for all live archives",
+    "dedicated_analyzer": "reports seed blocks, source blocks, named worst cells, action/work, first terminal, repair displacement, and the exact gate"
+  },
+  "artifacts": {
+    "shared_manifest_sha256": {
+      "mini_source_manifest": "e46c386087b49e46e73499b86d2125e87a3bef06aeb446fe52d859f280a9285d",
+      "mini_suite_manifest": "e9c916ebd3bad6e44938ad912b1b8e96b0f8198eaf13de56fd4bf8419910b5ba"
+    },
+    "phase_a": {
+      "directory": "generated/benchmark-v2/mover-grid/value-opportunity-map-two-budget-n4",
+      "candidate_archive": "13286f6fd74d486707375b2f44dfed5ede194bd7d62edcfdcde72995f30bf1bc",
+      "reference_archive": "94d39f78bc009a3de0d50c271979cb384ab0ce59be97b554bd97f5fa8512ba7c",
+      "dedicated_analysis": "7d0cc31114e8f9c952ea168dd182d23b8236ed13a9af5aba3ff2e7b9e2b23c56",
+      "generic_analysis": "2455d8ff66136fb0bc6e4cee5fb94fb9c156cdb1dfa1759b2aeafb86a4022ad0",
+      "mover_report": "21d65941c5faa2d7f6c08b917f9d6e434cb16aa608740e2622ecc3dbac868840"
+    },
+    "phase_b": {
+      "directory": "generated/benchmark-v2/mover-grid/value-ranked-live-two-budget-n4",
+      "candidate_archive": "ad1705d59f361d3140cb82041a6550e20ee71ae94767e09f69dd018039466d95",
+      "reference_archive": "231323ddfad95cf3bf8a617ea0c2bbee013406883765d49756eeb14a9f2a8152",
+      "dedicated_analysis": "e90e2024b756ab831b331229b4039dc6bf512f27bf9caa876a951179d656038d",
+      "generic_analysis": "ce4690ef5ac2a4b600b4fe6f9333337a32dde90b5519e763f6eb17fdb869fa8d",
+      "mover_report": "a40b78e8a550b428004ae9e92a9424179df19400bc90826f78689f8324d4301c"
+    },
+    "phase_c": {
+      "directory": "generated/benchmark-v2/mover-grid/value-ranked-progress10-two-budget-n4",
+      "candidate_archive": "843f12c511e6db02798c832e4b40c008b6e9e0b1c51a0090a9959df526716628",
+      "reference_archive": "ef0f011b153f7b85ea25a0cf32fb03d7d3b9c69ce9602920871deb9fbadab71f",
+      "dedicated_analysis": "32380c267cdd25291cd127efde15ef7219ea82b1a17a45ea973c1416a5f30f59",
+      "generic_analysis": "e740ded578756411fb42fed70b73f02a512f5e1f0e03757599ea6b823415156f",
+      "mover_report": "6ba9f92eadedad715d230b0985adc83ff96089ad8c263f181ac745a556a39030"
+    },
+    "phase_d": {
+      "directory": "generated/benchmark-v2/mover-grid/value-ranked-expire10-two-budget-n4",
+      "candidate_archive": "2079a2165690d08dc0fd77dcdfd19191956076863afc2c2ac3c6e47b09ce6894",
+      "reference_archive": "cacd47ec55838c52639b302c0a87dc69751b09c618667d7cb84e5a9b58dd9fbf",
+      "dedicated_analysis": "57ed106ba24624303e50fd85bf6d2315618622f5c82badceabf65697b61f8f55",
+      "generic_analysis": "de6532b87ed4b56844dde828a23a5a700f81ab62bcfdc0194af0cf47b42ab646",
+      "mover_report": "74e4ed3c97715f6cf4146adfa4bb812c4771f40b495d343a19988f3d9805dddd"
+    }
+  }
+}

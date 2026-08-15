@@ -1397,3 +1397,102 @@ and its telemetry behind explicit experiment policies as a scaffold for one
 categorically different, state-triggered opportunity rule; production remains
 unchanged. The complete evidence and checksums are recorded in
 `benchmark/v2/studies/proactive-periodic-tournaments-v1.json`.
+
+## Value-ranked selective DFS campaign
+
+The periodic proof rejects a cadence, not voluntary backtracking. Its deeper
+lesson is that an excursion has two independent prices: whether this branch is
+worth interrupting for, and how much search power the excursion itself may use.
+The first policy ignored the former by acting every eight contacts and inherited
+the compile-wide candidate breadth for the latter. Consequently the same 323
+initial actions cost 2.70M frames at 750k and 3.89M at 1.25M. A larger compile
+did not buy more decisions; it made each identical local decision more
+expensive.
+
+One deterministic repair outlier makes the missing local work boundary
+concrete. `regression_transition_mosaic`, actual seed 151, starts a three-contact
+repair tournament with estimated probe work 11,566/16,562 frames at 750k/1.25M,
+then spends 59,061/89,638 frames and reaches the repair execution ceiling at
+both budgets. The first probe node reaches the penultimate gap in 4,000 frames
+at 750k with the alternative already worse, while the second atomic expansion
+consumes another 55,061. This one event is 34.8%/29.3% of all repair-only
+tournament work. A new trigger must not be evaluated while an optional probe
+can silently inherit the rest of its episode.
+
+### Phase A: behavior-neutral value map
+
+The map is production traversal plus telemetry. It performs every accepted
+production branch-regret action exactly as today and performs no new action.
+At each authored contact boundary in initial or repair traversal, it considers
+each live causal watch at maturity three or greater and records the first
+crossing and first single-action admission for these value densities:
+
+    max(0, current prefix axis loss - branch baseline axis loss)
+    ---------------------------------------------------------------- × 10,000
+                 conservative incremental probe frames
+
+Thresholds are 0.005, 0.01, 0.02, and 0.04 axis-loss units per 10k estimated
+frames. They are a coarse mechanism grid derived without final-score fitting:
+in the retained periodic events, local alternative selection rises from roughly
+34% below 0.01 raw regret to 42% at 0.01-0.03 and 48% at 0.03-0.10; density 0.04
+is locally strong but sparse at 1.25M. The map also records lane, watch identity,
+contact and gap rewind, raw regret, estimated probe work, terminal reserve,
+execution remainder, and admission reason. Crossed/admitted identities are
+unique per watch and threshold.
+
+The fixed identity panel uses the same ten-source mini-suite as the periodic
+proof, budgets 750,000 and 1,250,000, and fresh actual seeds 154-157. The map
+arm and production reference therefore contain 80 cells each. Every track,
+score, validity outcome, first-terminal frame, and repair episode must be exact;
+otherwise no live policy follows.
+
+Threshold selection is score-blind and separate by lane. Choose the highest
+threshold that, at each budget, has at least 20 single-action admissions across
+at least eight runs and four sources. The rule must also retain at least half as
+many admissions at 1.25M as at 750k, preventing a threshold selected only on one
+budget surface. Failure closes that lane for this campaign. Counts select only
+an action set; they say nothing about output quality.
+
+### Phase B: bounded live policy
+
+Only a lane clearing Phase A receives a live arm. It removes periodic cadence.
+At a contact boundary it ranks all newly threshold-crossing, live, mature,
+single-action-affordable watches by value density, then raw regret, then nearest
+rewind, with stable lineage order as the final tie. At most the winner launches
+the unchanged one-sibling equal-depth tournament. Production branch regret has
+priority and remains unchanged.
+
+The exploration fund stays at the predeclared 15% and terminal reserve stays at
+1.25 times conservative target-to-terminal work; they are not tuned on the
+periodic scores. Unlike the periodic proof, admission and execution share one
+actual optional-work ledger. Each action receives a local frame allowance equal
+to the smaller of remaining exploration funds and execution remainder after
+terminal reserve. Before another atomic probe node, the policy must either show
+that the next node fits its remaining local allowance or yield the alternative
+back to the ordinary frontier and restore the suspended route. A completed
+atomic node may overshoot its estimate, but that overshoot is charged and no
+further probe node may start. Speculative terminal tail completion is disabled
+inside this bounded equal-depth excursion: it cannot help reach the comparison
+target and is the likely source of the repeated 55k/73k penultimate-gap atomic
+overrun. The first live arm deliberately retains ordinary budget-specific
+candidate breadth and reports it, so the value trigger is not confounded with a
+second breadth intervention. Its estimated-work denominator prices that width.
+Probe-local breadth becomes a separate factorial only after the action itself
+has positive evidence; production and ordinary repair breadth remain untouched.
+
+Initial and repair remain distinct policies and evidence arms. The first live
+screen uses fresh actual seeds 158-161, the same ten sources, and both budgets.
+Each authorized lane receives 80 candidate cells against one shared production
+reference. Analysis reports budgets separately, blocks uncertainty by actual
+seed, and distinguishes local wins, yielded probes, actual/estimated work,
+first-terminal movement, displaced repair, accepted repairs, final authored
+score, and inactive identity. This screen cannot promote or launch canonical.
+
+A lane merits one fresh confirmation only if all cells remain valid, its total
+score is positive at both budgets, at least three of four seed blocks are
+positive at one budget and no fewer than two at the other, its active-cell mean
+is positive at both budgets, no cell loses 20 points, and the action set spans
+at least eight runs and four sources at each budget. Otherwise close the exact
+rule. Candidate-breadth interaction, longer race horizons, and canonical
+Benchmark V2 remain out of scope until a value-ranked action has positive
+marginal evidence.

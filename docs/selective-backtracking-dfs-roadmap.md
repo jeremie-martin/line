@@ -2379,7 +2379,9 @@ threshold is authorized.
 | 2026-08-15 | Explicit implementation and mechanical proof | complete: unit | Exact inverse sign/floor tests; 55 focused tests; scoped typecheck clean; one-budget analyzer is explicitly characterization-only |
 | 2026-08-15 | Same-cell three-arm panel | complete: inverse favored | Nonpositive vs positive +82.3; nonpositive vs Phase D +25.4; 96/96 valid |
 | 2026-08-15 | Source-native canonical challenger | complete | Unset default changed only after Phase-K closure and the frozen three-arm panel |
-| 2026-08-15 | Canonical sequential decision | pending | Standing 750k N=8/16/32/48 evaluator; Phase D remains the governed baseline |
+| 2026-08-15 | Canonical N=8 look | continue | 607.23 -> 607.38; +0.1430 +/- 0.6917 SE; P(positive)=57.89%; 352/352 valid |
+| 2026-08-15 | Canonical N=16 look | continue | 607.08 -> 607.24; +0.1580 +/- 0.4517 SE; P(positive)=63.43%; 704/704 valid |
+| 2026-08-15 | Canonical sequential decision | running | Standing 750k N=32/48 continuation; Phase D remains the governed baseline |
 
 The three-arm panel validates the intervention and overturns the rescue model.
 Every width trace is exact: the inverse arm uses 81 for all 387 first/unobserved

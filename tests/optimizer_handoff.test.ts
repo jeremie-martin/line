@@ -385,7 +385,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     })).toThrow(/policyBudget .* exceeds hard budget/);
   }, 60_000);
 
-  test("accepted Phase D is byte-identical to the unset default", async () => {
+  test("first-advantage challenger is byte-identical to the unset default", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previous = process.env.LR_FRONTIER_POLICY;
     try {
@@ -396,7 +396,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         polish: false,
       }), 20_000);
       process.env.LR_FRONTIER_POLICY =
-        "selective-axis-regret-catchup-value-initial-expire-10";
+        "selective-axis-regret-catchup-value-initial-expire-10-first-advantage-handoff";
       const explicit = checkpoint(compileHandoff(spec, 2, {
         budget: 20_000,
         maxNodes: 12,
@@ -405,7 +405,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       expect(JSON.stringify(explicit)).toBe(JSON.stringify(implicit));
       expect(explicit.stats.handoff_selective_backtracking?.policy)
         .toBe(
-          "selective_axis_regret_catchup_value_initial_expire_10",
+          "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff",
         );
     } finally {
       if (previous === undefined) delete process.env.LR_FRONTIER_POLICY;

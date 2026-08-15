@@ -77,7 +77,7 @@ export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_CONTACT_ADVANCES = [
 
 export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierTraversalPolicy {
   if (raw === undefined || raw === "") {
-    return "selective_axis_regret_catchup_value_initial_expire_10";
+    return "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff";
   }
   if (raw === "selective-axis-regret-catchup") {
     return "selective_axis_regret_catchup";

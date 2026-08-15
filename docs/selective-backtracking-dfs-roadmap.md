@@ -2706,3 +2706,31 @@ multi-budget sweep.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | First-advantage opportunity and live rule frozen | complete | 109 strict-positive first checkpoints; zero numeric threshold |
+| 2026-08-15 | Implementation and mechanical proof | complete | 57 focused tests; known-activity smoke records 35/35 exact next-turn handoffs across eight sources |
+| 2026-08-15 | Fresh 750k characterization | complete: pass | `first-advantage-handoff-n4-seeds202-205`; +111.71 across 32 valid pairs |
+| 2026-08-15 | Canonical 750k decision | pending | Frozen arm; standing calibrated sequential evaluator only |
+
+The fresh screen clears the entire predeclared boundary. All 64 arm-cells are
+valid. Candidate minus Phase D is +111.7062 points (+3.4908/cell), with 14
+better, 14 worse, four tied, and seed-block SE 1.8762. Three of four seed means
+and five of eight source means are positive; the worst cell is -15.7781. The
+largest source gain is transition mosaic (+25.3387/cell), so the full canonical
+population—not this renormalized subset—must decide whether the direction is
+broad enough.
+
+The intervention is mechanically exact in every cell. It performs 145 partial
+handoffs across all 32 runs and all eight sources; all 145 receive the next
+ordinary-frontier turn at exactly trigger frames plus charged probe frames.
+Sixteen suspended incumbents later resume, proving fallback ownership is real
+rather than nominal. The arm uses 144,959 fewer synchronous value-probe frames,
+but initial search grows by 553,920 frames and repair falls by 560,625 frames
+across eleven fewer terminal-reaching attempts and four fewer accepted repairs.
+Excluding value probes, ordinary-initial-plus-repair work grows by 138,254
+frames. This is an earlier transfer of search control, not free work or a
+promise of more repairs.
+
+Make this exact explicit policy source-native solely as the frozen canonical
+challenger. Retain accepted Phase D in campaign governance, use the ordinary
+750k sequential probability rule, and restore Phase D if the challenger does
+not formally accept. Do not fit the positive gain, add a transition-mosaic
+condition, combine breadth changes, or run another budget.

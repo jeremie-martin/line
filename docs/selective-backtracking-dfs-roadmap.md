@@ -1964,6 +1964,13 @@ the 2,111 both-valid pairs the counterfactual headline is still -0.51 +/- 0.29,
 with 747 better, 849 worse, and 515 tied. Stable priority is retained only as
 an explicit closed experiment and is not the default.
 
+The lost-validity cell is actual seed 644. It reaches only 90/110 authored
+contacts and terminates `rideStalled`; the stable arm suppressed two endpoint
+winners in that run, with gains 0.001875 and 0.000076. This is direct event
+attribution, not proof that either suppression alone caused the later stall.
+It does show why even tiny endpoint wins cannot be dismissed as harmless noise,
+consistent with the negative both-valid result.
+
 ## Phase G: challenge synchronous catch-up work, not route existence
 
 The checksum-bound attribution was extended before implementing a stop rule.

@@ -2183,5 +2183,25 @@ a threshold salvage of the closed uniform arm.
 |---|---|---|---|
 | 2026-08-15 | Narrow-then-full retry predeclaration | complete | This section; one categorical policy |
 | 2026-08-15 | Implementation and exact retry telemetry | complete | Focused 55-test suite; scoped TypeScript check has only the pre-existing readiness error |
-| 2026-08-15 | Fresh 750k mechanism panel | pending | Must span all four canonical strata |
-| 2026-08-15 | Canonical decision | pending | Authorized only by a non-adverse mechanism panel |
+| 2026-08-15 | Fresh 750k mechanism panel | complete: mechanism falsified | 32/32 pairs valid; 56 retries, zero normal-pool refutations |
+| 2026-08-15 | Canonical decision | not authorized | Positive subset score cannot be attributed to the fallback |
+
+The eight-source/four-seed panel is directionally positive against Phase D:
++39.2 score points (+1.23/cell), with 17 better, 15 worse, no ties, and all 32
+pairs valid. Dense recovery is +7.10 and low-air capability +2.42. That score is
+not evidence for the proposed recovery mechanism. The candidate performs 56
+empty-pool retries, requests 4,536 full-width proposals (a 1,120-proposal
+deterministic-prefix increment), evaluates exactly 1,120 additional candidate
+geometries, and spends 18,096 charged frames. Not one full-width rebuild
+returns an option; all 56 routes still dead-end. The reference correctly
+records zero cross-policy retries, and the analyzer's field and aggregate
+checks pass for both archives.
+
+This directly falsifies the assumption behind Phase I. The earlier structural
+join between a narrow dead end and a full-width reference completion did not
+identify the same causal prefix; upstream traversal had already diverged. Once
+the exact narrowed route is at an empty pool, attempts 61 through 80 are not
+where its missing continuation lives. The panel's positive score is another
+observation of the broader uniform-narrowing search shape, plus 18k frames of
+unsuccessful retries. It cannot rescue the N=48-inconclusive arm and does not
+authorize a canonical run.

@@ -284,7 +284,7 @@ describe("paired scale mechanics", () => {
       .toThrow(/reference contains duplicate cell/);
     const old = structuredClone(base);
     old.budgetTelemetry.schema = "line.compile-budget-telemetry.v2";
-    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v10/);
+    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v12/);
 
     const corrupt = structuredClone(base);
     corrupt.budgetTelemetry.compile.work.actual_candidate_samples++;

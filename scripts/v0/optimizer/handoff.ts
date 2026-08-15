@@ -2560,6 +2560,8 @@ function compileHandoffInternal(
               (frontierTraversalPolicy ===
                     "selective_axis_regret_catchup_value_deferred_initial" ||
                   frontierTraversalPolicy ===
+                    "selective_axis_regret_catchup_value_deferred_pass_only" ||
+                  frontierTraversalPolicy ===
                     "selective_axis_regret_catchup_value_deferred_prefix_gate"
                 ? SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION
                 : SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION) *
@@ -3556,6 +3558,8 @@ function compileHandoffInternal(
         (frontierTraversalPolicy !==
             "selective_axis_regret_catchup_value_deferred_initial" &&
           frontierTraversalPolicy !==
+            "selective_axis_regret_catchup_value_deferred_pass_only" &&
+          frontierTraversalPolicy !==
             "selective_axis_regret_catchup_value_deferred_prefix_gate") ||
         pendingDeferredValueDecision === null ||
         captured !== null
@@ -3615,6 +3619,20 @@ function compileHandoffInternal(
       }> = [];
       const prefixGateEnabled = frontierTraversalPolicy ===
         "selective_axis_regret_catchup_value_deferred_prefix_gate";
+      const passFrontierGateEnabled = frontierTraversalPolicy ===
+        "selective_axis_regret_catchup_value_deferred_pass_only";
+      let passFrontierGateCheckpoint: {
+        selection_ordinal: number;
+        selection_total_spent_frames: number;
+        spent_frames_since_attempt_start: number;
+        remaining_local_allowance_frames: number;
+        gap_index: number;
+        contact_ordinal: number;
+        skipped_contacts: number;
+        local_pass_frontier_size: number;
+        local_fallback_frontier_size: number;
+      } | null = null;
+      let passFrontierGateStopped = false;
       let prefixGateDecision: "not_reached" | "continue" | "stop" = "not_reached";
       let prefixGateCheckpoint: {
         selection_ordinal: number;
@@ -3668,6 +3686,27 @@ function compileHandoffInternal(
             allowSpeculativeTailCompletion: false,
             beforeSelect: (node) => {
               const remaining = Math.max(0, ceiling - getSimFrames());
+              if (passFrontierGateEnabled && localPass.length === 0) {
+                if (node.skippedContacts <= 0 || localFallback.length === 0) {
+                  throw new Error(
+                    "deferred pass-frontier gate selected an invalid fallback frontier",
+                  );
+                }
+                const selectionFrames = getSimFrames();
+                passFrontierGateCheckpoint = {
+                  selection_ordinal: progressCheckpointNodes.length + 1,
+                  selection_total_spent_frames: selectionFrames,
+                  spent_frames_since_attempt_start: selectionFrames - startFrames,
+                  remaining_local_allowance_frames: remaining,
+                  gap_index: node.search.gapIndex,
+                  contact_ordinal: contactOrdinalAt(node.search.gapIndex),
+                  skipped_contacts: node.skippedContacts,
+                  local_pass_frontier_size: localPass.length,
+                  local_fallback_frontier_size: localFallback.length,
+                };
+                passFrontierGateStopped = true;
+                return false;
+              }
               const suffixWork = Math.max(
                 1,
                 Math.ceil(conservativeDeadlineWorkAtGap(node.search.gapIndex)),
@@ -3845,13 +3884,15 @@ function compileHandoffInternal(
       }));
       const outcome = terminalReached
         ? "terminal_reached" as const
-        : prefixGateStopped
-          ? "prefix_gate_stop" as const
-          : budgetRemainingBeforeYield !== null
-          ? "atomic_budget_yield" as const
-          : getSimFrames() >= ceiling
-            ? "execution_ceiling" as const
-            : "frontier_exhausted" as const;
+        : passFrontierGateStopped
+          ? "fallback_frontier_return" as const
+          : prefixGateStopped
+            ? "prefix_gate_stop" as const
+            : budgetRemainingBeforeYield !== null
+              ? "atomic_budget_yield" as const
+              : getSimFrames() >= ceiling
+                ? "execution_ceiling" as const
+                : "frontier_exhausted" as const;
       const returnedPass = localPass.length;
       const returnedFallback = localFallback.length;
       passStack.push(...localPass);
@@ -3861,11 +3902,13 @@ function compileHandoffInternal(
         getSimFrames(),
         terminalReached
           ? "first_terminal_return"
-          : prefixGateStopped
-            ? "prefix_gate_stop"
-          : getSimFrames() >= ceiling || budgetRemainingBeforeYield !== null
-            ? "local_ceiling"
-            : "frontier_exhausted",
+          : passFrontierGateStopped
+            ? "fallback_frontier_return"
+            : prefixGateStopped
+              ? "prefix_gate_stop"
+              : getSimFrames() >= ceiling || budgetRemainingBeforeYield !== null
+                ? "local_ceiling"
+                : "frontier_exhausted",
         { registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()) },
       );
       budgetRecorder.recordSegment(
@@ -3903,6 +3946,12 @@ function compileHandoffInternal(
         budget_remaining_before_yield: budgetRemainingBeforeYield,
         estimated_next_node_frames: estimatedNextNodeFrames,
         progress_checkpoints: progressCheckpoints,
+        pass_frontier_gate: passFrontierGateEnabled
+          ? {
+            decision: passFrontierGateStopped ? "fallback_return" : "not_reached",
+            checkpoint: passFrontierGateCheckpoint,
+          }
+          : null,
         prefix_gate: prefixGateEnabled
           ? {
             contact_horizon: SELECTIVE_DEFERRED_PREFIX_GATE_CONTACT_HORIZON,

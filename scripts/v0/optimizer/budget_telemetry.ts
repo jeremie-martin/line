@@ -28,8 +28,11 @@ import {
 /**
  * Clean-break search-accounting schema.
  *
- * V11 keeps the V10 causal repair and deferred-value model, and adds an
- * explicit `prefix_gate_stop` reason for an optional suffix stopped by its
+ * V12 keeps the V11 causal repair and deferred-value model, and adds an
+ * explicit `fallback_frontier_return` reason for an optional suffix returning
+ * completion-rescue work without processing it.
+ *
+ * V11 added an explicit `prefix_gate_stop` reason for an optional suffix stopped by its
  * one-time authored-prefix continuation gate. A policy decision must not be
  * mislabeled as budget exhaustion or frontier exhaustion.
  *
@@ -40,10 +43,10 @@ import {
  * replayable optimistic axis-quality bound used by selective bridge policy.
  * It also gives post-terminal deferred-value suffix work its own causal lane,
  * rather than mislabeling it as initial, resumed, or repair work. Historical
- * V4–V9 archives remain immutable evidence; current readers fail
+ * V4–V11 archives remain immutable evidence; current readers fail
  * closed.
  */
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v11" as const;
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v12" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
 export type BudgetEpisodeLane =
@@ -98,6 +101,7 @@ export type BudgetEpisodeStopReason =
   | "frontier_exhausted"
   | "first_completion_stop"
   | "first_terminal_return"
+  | "fallback_frontier_return"
   | "prefix_gate_stop"
   | "compile_finished";
 

@@ -200,7 +200,7 @@ describe("golden archive form of budget telemetry", () => {
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    } as unknown as CompileBudgetTelemetry)).toThrow(/expected line\.compile-budget-telemetry\.v10/);
+    } as unknown as CompileBudgetTelemetry)).toThrow(/expected line\.compile-budget-telemetry\.v12/);
     expect(() => compactBudgetTelemetry({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],

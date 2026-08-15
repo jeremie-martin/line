@@ -6,6 +6,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_value_map"
   | "selective_axis_regret_catchup_value_deferred_map"
   | "selective_axis_regret_catchup_value_deferred_initial"
+  | "selective_axis_regret_catchup_value_deferred_pass_only"
   | "selective_axis_regret_catchup_value_deferred_prefix_gate"
   | "selective_axis_regret_catchup_value_initial"
   | "selective_axis_regret_catchup_value_initial_progress_10"
@@ -81,6 +82,9 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-deferred-initial") {
     return "selective_axis_regret_catchup_value_deferred_initial";
   }
+  if (raw === "selective-axis-regret-catchup-value-deferred-pass-only") {
+    return "selective_axis_regret_catchup_value_deferred_pass_only";
+  }
   if (raw === "selective-axis-regret-catchup-value-deferred-prefix-gate") {
     return "selective_axis_regret_catchup_value_deferred_prefix_gate";
   }
@@ -102,6 +106,7 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-value-map, or ` +
       `selective-axis-regret-catchup-value-deferred-map, or ` +
       `selective-axis-regret-catchup-value-deferred-initial, or ` +
+      `selective-axis-regret-catchup-value-deferred-pass-only, or ` +
       `selective-axis-regret-catchup-value-deferred-prefix-gate, or ` +
       `selective-axis-regret-catchup-value-initial, or ` +
       `selective-axis-regret-catchup-value-initial-progress-10, or ` +
@@ -260,6 +265,7 @@ export type SelectiveDeferredValueAttempt = {
   execution_ceiling_frames: number;
   outcome:
     | "terminal_reached"
+    | "fallback_frontier_return"
     | "prefix_gate_stop"
     | "atomic_budget_yield"
     | "frontier_exhausted"
@@ -278,6 +284,20 @@ export type SelectiveDeferredValueAttempt = {
   budget_remaining_before_yield: number | null;
   estimated_next_node_frames: number | null;
   progress_checkpoints: SelectiveDeferredValueCheckpoint[];
+  pass_frontier_gate: {
+    decision: "not_reached" | "fallback_return";
+    checkpoint: null | {
+      selection_ordinal: number;
+      selection_total_spent_frames: number;
+      spent_frames_since_attempt_start: number;
+      remaining_local_allowance_frames: number;
+      gap_index: number;
+      contact_ordinal: number;
+      skipped_contacts: number;
+      local_pass_frontier_size: number;
+      local_fallback_frontier_size: number;
+    };
+  } | null;
   prefix_gate: {
     contact_horizon: number;
     axis_loss_delta_threshold: number;
@@ -819,6 +839,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (
       this.policy !== "selective_axis_regret_catchup_value_deferred_map" &&
       this.policy !== "selective_axis_regret_catchup_value_deferred_initial" &&
+      this.policy !== "selective_axis_regret_catchup_value_deferred_pass_only" &&
       this.policy !== "selective_axis_regret_catchup_value_deferred_prefix_gate"
     ) return null;
     if (this.deferredValueSealed) {
@@ -932,6 +953,7 @@ export class SelectiveAxisRegretController<Node extends object> {
   recordDeferredValueAttempt(attempt: SelectiveDeferredValueAttempt): void {
     if (
       this.policy !== "selective_axis_regret_catchup_value_deferred_initial" &&
+      this.policy !== "selective_axis_regret_catchup_value_deferred_pass_only" &&
       this.policy !== "selective_axis_regret_catchup_value_deferred_prefix_gate"
     ) {
       throw new Error("deferred value execution was recorded outside the live policy");
@@ -1296,6 +1318,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       if (
         (this.policy === "selective_axis_regret_catchup_value_deferred_map" ||
           this.policy === "selective_axis_regret_catchup_value_deferred_initial" ||
+          this.policy === "selective_axis_regret_catchup_value_deferred_pass_only" ||
           this.policy === "selective_axis_regret_catchup_value_deferred_prefix_gate") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
@@ -2022,6 +2045,14 @@ export class SelectiveAxisRegretController<Node extends object> {
             ),
           ),
         })),
+        pass_frontier_gate: attempt.pass_frontier_gate === null
+          ? null
+          : {
+            ...attempt.pass_frontier_gate,
+            checkpoint: attempt.pass_frontier_gate.checkpoint === null
+              ? null
+              : { ...attempt.pass_frontier_gate.checkpoint },
+          },
         prefix_gate: attempt.prefix_gate === null
           ? null
           : {

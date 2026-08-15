@@ -31,6 +31,9 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-deferred-prefix-gate",
     )).toBe("selective_axis_regret_catchup_value_deferred_prefix_gate");
+    expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-deferred-pass-only",
+    )).toBe("selective_axis_regret_catchup_value_deferred_pass_only");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-initial"))
       .toBe("selective_axis_regret_catchup_value_initial");
     expect(parseFrontierTraversalPolicy(
@@ -455,12 +458,63 @@ describe("selective-backtracking controller", () => {
       budget_remaining_before_yield: null,
       estimated_next_node_frames: null,
       progress_checkpoints: [],
+      pass_frontier_gate: null,
       prefix_gate: null,
     };
     controller.recordDeferredValueAttempt(attempt);
     expect(controller.snapshot().deferred_value_attempts).toEqual([attempt]);
     expect(() => controller.recordDeferredValueAttempt(attempt))
       .toThrow(/more than one suffix attempt/);
+  });
+
+  test("records a pass-frontier return without conflating it with atomic work", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_deferred_pass_only",
+    });
+    controller.recordDeferredValueAttempt({
+      watch_id: 11,
+      affordable_rank: 1,
+      start_gap_index: 4,
+      start_total_spent_frames: 300_000,
+      end_total_spent_frames: 340_000,
+      estimated_suffix_work_frames: 75_000,
+      local_allowance_frames: 300_000,
+      execution_ceiling_frames: 600_000,
+      outcome: "fallback_frontier_return",
+      nodes_processed: 2,
+      atomic_node_frames: [20_000, 20_000],
+      ranked_option_calls: 2,
+      requested_normal_proposals: 160,
+      candidate_geometry_evaluations: 152,
+      tail_completion_attempts: 0,
+      terminal_node_evaluations: 0,
+      register_improvements: 0,
+      terminal_register_improvements: 0,
+      remaining_pass_nodes_returned: 0,
+      remaining_fallback_nodes_returned: 3,
+      budget_remaining_before_yield: null,
+      estimated_next_node_frames: null,
+      progress_checkpoints: [],
+      pass_frontier_gate: {
+        decision: "fallback_return",
+        checkpoint: {
+          selection_ordinal: 3,
+          selection_total_spent_frames: 340_000,
+          spent_frames_since_attempt_start: 40_000,
+          remaining_local_allowance_frames: 260_000,
+          gap_index: 8,
+          contact_ordinal: 5,
+          skipped_contacts: 1,
+          local_pass_frontier_size: 0,
+          local_fallback_frontier_size: 3,
+        },
+      },
+      prefix_gate: null,
+    });
+    const [attempt] = controller.snapshot().deferred_value_attempts;
+    expect(attempt?.outcome).toBe("fallback_frontier_return");
+    expect(attempt?.pass_frontier_gate?.checkpoint?.selection_ordinal).toBe(3);
+    expect(attempt?.atomic_node_frames).toHaveLength(2);
   });
 
   test("ranks simultaneous initial opportunities by density before lineage order", () => {

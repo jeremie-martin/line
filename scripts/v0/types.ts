@@ -505,6 +505,7 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_value_map"
       | "selective_axis_regret_catchup_value_deferred_map"
       | "selective_axis_regret_catchup_value_deferred_initial"
+      | "selective_axis_regret_catchup_value_deferred_pass_only"
       | "selective_axis_regret_catchup_value_deferred_prefix_gate"
       | "selective_axis_regret_catchup_value_initial"
       | "selective_axis_regret_catchup_value_initial_progress_10"

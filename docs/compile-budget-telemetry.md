@@ -1,4 +1,4 @@
-# Compile budget telemetry V11
+# Compile budget telemetry V12
 
 ## Contract
 
@@ -10,8 +10,8 @@ compiler search work:
 - `trace`: the summary payload plus estimator observations and atomic node
   events.
 
-The schema is `line.compile-budget-telemetry.v11`. Readers accept that exact
-schema only. V1–V10 archives are historical evidence with different attempt,
+The schema is `line.compile-budget-telemetry.v12`. Readers accept that exact
+schema only. V1–V11 archives are historical evidence with different attempt,
 identity, repair-selection, target-attribution, or working-track semantics; a
 reader must not rename their fields or fall back to `compile_stats`.
 
@@ -128,7 +128,14 @@ stops after one terminal offer or a local yield, and returns every unconsumed
 frontier node before ordinary repair begins. A path-free estimator observation
 is reported honestly as `unvalidated_attempt_kind` until that lane is calibrated;
 an available incumbent path retains its separately declared path applicability.
-V11 distinguishes `prefix_gate_stop`, a score-blind one-time authored-prefix
+V12 distinguishes `fallback_frontier_return`: the optional score-improvement
+suffix exhausted its zero-skipped pass lane and returned its still-unprocessed
+completion-rescue fallback frontier to ordinary search. This is neither
+pruning, budget exhaustion, nor frontier exhaustion. The selective attempt's
+`pass_frontier_gate` records the unprocessed node and exact returned-frontier
+sizes; the return checkpoint is not charged atomic work.
+
+V11 distinguished `prefix_gate_stop`, a score-blind one-time authored-prefix
 continuation decision, from `local_ceiling`, `frontier_exhausted`, and
 `first_terminal_return`. The decision checkpoint is selective-policy telemetry;
 only charged atomic work remains in the budget episode's work funnel.
@@ -168,7 +175,7 @@ The following identity is enforced:
 actual candidate samples = sum(candidate samples by stream)
 ```
 
-No V11 field counts normal-prefix cache hits or misses. Consequently,
+No V12 field counts normal-prefix cache hits or misses. Consequently,
 `ranked_option_calls` must not be used to infer fresh sampler builds. Actual samples per
 ranked-option call can change because of prefix reuse, internal rollout calls,
 extra streams, retry behavior, and optional sibling evaluations. A future
@@ -184,7 +191,7 @@ than infer one from these populations.
 Candidate breadth does not determine node count arithmetically. Breadth affects
 pool work and ranking; child limits, viability, frontier order, failures,
 tail-completion behavior, and local ceilings determine how many nodes the
-remaining budget can process. V11 records both sides so this relationship is an
+remaining budget can process. V12 records both sides so this relationship is an
 empirical result rather than an assumption.
 
 ### Register and terminal work
@@ -217,7 +224,7 @@ register offers = partial evaluations + terminal evaluations
 Geometry identity is exact within the scope that owns the work record. The
 compile record detects repeats across the entire compile. An episode record
 detects repeats only inside that episode; summing episode-level distinct counts
-does not detect the same geometry appearing in two different episodes. V11 does
+does not detect the same geometry appearing in two different episodes. V12 does
 not separately attribute compile-global geometry repeats by lane, so reports
 must not call a sum of repair episodes “cross-repair duplicate tracks.”
 

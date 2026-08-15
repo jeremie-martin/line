@@ -2247,5 +2247,55 @@ and remains the sole score authority.
 |---|---|---|---|
 | 2026-08-15 | Positional breadth contrast predeclared | complete | This section; dominant two-node route distribution |
 | 2026-08-15 | Full-first/full-last implementation and width telemetry | complete: unit | Focused 55-test suite; pure positional law and aligned trace schema |
-| 2026-08-15 | Shared fresh mechanism panel | pending | Eight sources, seeds 104-107, 750k only |
-| 2026-08-15 | Canonical decision | pending | At most one coherent positional arm may advance |
+| 2026-08-15 | Shared fresh mechanism panel | complete: location identified | Full-first beats full-last by +130.0 across the 32 shared cells |
+| 2026-08-15 | Canonical decision | not authorized | Neither fixed positional arm is independently broad and coherent |
+
+The exact width traces close: the dominant full-first sequence is 81,61 (349
+routes), while full-last is 61,81 (364 routes). Full-last is broadly adverse
+against Phase D: -111.5 points (-3.48/cell), 12 better versus 18 worse, and six
+of eight sources regress. Full-first is much better in the direct paired
+location contrast: +130.0 points (+4.06/cell), 21 better versus 10 worse, and
+seven of eight sources improve relative to full-last. This is strong evidence
+that breadth has more value at the early suffix commitment than at the endpoint.
+
+Full-first itself is not promotion-ready against Phase D. Its aggregate is
++18.5 (+0.58/cell), but one valid Believer cell contributes +50.9; without it
+the sum is negative, and six of eight source means regress. All cells remain
+valid in both positional arms. The correct conclusion is location, not score:
+keep early breadth, but do not narrow every final decision categorically.
+
+## Phase K: retain late breadth for a weak alternative prefix
+
+The next arm combines the positional result with an exact online signal already
+measured by every catch-up. The first contact expansion remains at full
+production width. At each later contact expansion, use 3/4 width only when the
+alternative's cumulative authored-axis loss is strictly lower than the
+suspended incumbent through the same gap (prefix gain > 0). If the alternative
+is tied, worse, or has no checkpoint yet, retain full width. Re-evaluate this
+condition independently after every checkpoint; do not add hysteresis,
+threshold fitting, source conditions, stopping, pruning, or an empty-pool
+fallback.
+
+This rule spends diversity where the route has demonstrated weakness instead
+of assuming every endpoint is equally cheap. It differs materially from the
+failed first-deficit stop: a weak route is neither abandoned nor demoted; it
+receives the accepted production breadth. A promising route pays the narrower
+continuation cost that lets the fixed exploration fund consider more actions.
+The exact zero boundary is semantic and predeclared, not chosen from a score
+grid.
+
+Per-route telemetry must align three arrays: atomic frames, actual primary
+normal widths, and the starting same-depth prefix gain used by the breadth
+decision (null before the first checkpoint or when no contact pool expands).
+Pure tests prove full first, narrow on strictly positive gain, full on zero or
+negative gain, production floor, and no effect outside the policy. Use a fresh
+eight-source/four-seed 750k panel (actual seeds 108-111) against Phase D. A
+canonical run is authorized only if the adaptive arm removes the fixed
+full-first panel's isolated-tail dependence and is not broadly adverse.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Positive-prefix breadth policy predeclared | complete | This section; no fitted threshold |
+| 2026-08-15 | Implementation and aligned decision telemetry | complete: unit | Focused 55-test suite; width/gain arrays validated and analyzer-attributed |
+| 2026-08-15 | Fresh mechanism panel | pending | Eight sources, seeds 108-111, 750k only |
+| 2026-08-15 | Canonical decision | pending | Only a coherent adaptive arm may advance |

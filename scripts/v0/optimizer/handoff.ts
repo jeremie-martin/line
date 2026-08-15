@@ -3290,10 +3290,13 @@ function compileHandoffInternal(
             frontierTraversalPolicy ===
               "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first" ||
             frontierTraversalPolicy ===
-              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last");
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" ||
+            frontierTraversalPolicy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix");
         const probePolicyTransformAt = (
           processedContactNodes: number,
           remainingContactExpansions: number,
+          latestPrefixAxisLossGain: number | null,
         ): ((policy: HandoffSearchPolicy) => HandoffSearchPolicy) | undefined =>
           narrowProbeBreadth
             ? (policy) => {
@@ -3309,6 +3312,7 @@ function compileHandoffInternal(
                   HANDOFF_QUALITY_N_CAND_FLOOR,
                   processedContactNodes,
                   remainingContactExpansions,
+                  latestPrefixAxisLossGain,
                 ),
                 ...(fullWidth === null ? {} : { normalEmptyFallbackNCand: fullWidth }),
               };
@@ -3376,8 +3380,10 @@ function compileHandoffInternal(
           let probe = start;
           let probeNodesProcessed = 0;
           let probeContactNodesProcessed = 0;
+          let latestPrefixAxisLossGain: number | null = null;
           const atomicNodeFrames: number[] = [];
           const atomicNodePrimaryNormalRequestedProposals: Array<number | null> = [];
+          const atomicNodeStartingPrefixAxisLossGain: Array<number | null> = [];
           let budgetRemainingBeforeYield: number | null = null;
           let estimatedNextNodeFrames: number | null = null;
           const localFallbackCandidates: HandoffNode[] = [];
@@ -3449,6 +3455,8 @@ function compileHandoffInternal(
                 telemetry.valueProbeEmptyFullWidthRetryFrames - emptyRetryFramesBefore,
               atomic_node_primary_normal_requested_proposals:
                 atomicNodePrimaryNormalRequestedProposals,
+              atomic_node_starting_prefix_axis_loss_gain:
+                atomicNodeStartingPrefixAxisLossGain,
               atomic_node_frames: atomicNodeFrames,
               tail_completion_attempts:
                 telemetry.tailCompletionAttempts - tailCompletionAttemptsBefore,
@@ -3530,11 +3538,17 @@ function compileHandoffInternal(
               probePolicyTransformAt(
                 probeContactNodesProcessed,
                 remainingContactExpansions,
+                latestPrefixAxisLossGain,
               ),
             );
             atomicNodeFrames.push(getSimFrames() - atomicStartFrames);
             atomicNodePrimaryNormalRequestedProposals.push(
               result.primaryNormalRequestedProposals,
+            );
+            atomicNodeStartingPrefixAxisLossGain.push(
+              result.primaryNormalRequestedProposals === null
+                ? null
+                : latestPrefixAxisLossGain,
             );
             if (result.primaryNormalRequestedProposals !== null) {
               probeContactNodesProcessed++;
@@ -3583,6 +3597,7 @@ function compileHandoffInternal(
             );
             const alternativeAxisLoss = authoredPrefixAxisLoss(probe.search);
             const alternativeAxisLossGain = currentAxisLoss - alternativeAxisLoss;
+            latestPrefixAxisLossGain = alternativeAxisLossGain;
             checkpointGainsObserved++;
             if (!(alternativeAxisLossGain > 0)) allCheckpointGainsPositive = false;
             selectiveBacktracking!.recordCatchupCheckpoint(

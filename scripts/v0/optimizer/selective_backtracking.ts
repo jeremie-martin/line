@@ -17,6 +17,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry"
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first"
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last"
+  | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix"
   | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
 
 export type SelectiveBacktrackSignal =
@@ -132,6 +133,10 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
     "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-before-last") {
     return "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last";
   }
+  if (raw ===
+    "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-positive-prefix") {
+    return "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix";
+  }
   if (raw === "selective-axis-regret-catchup-value-initial-expire-10-run-proof") {
     return "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
   }
@@ -155,6 +160,7 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-empty-retry, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-after-first, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-before-last, or ` +
+      `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-positive-prefix, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-run-proof; got ${raw}`,
   );
 }
@@ -186,7 +192,9 @@ export function valueProbeCandidateCount(
     policy !==
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first" &&
     policy !==
-      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last"
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" &&
+    policy !==
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix"
   ) {
     return resolvedNCand;
   }
@@ -205,12 +213,16 @@ export function valueProbeCandidateCountAtRoutePosition(
   productionFloor: number,
   processedContactNodes: number,
   remainingContactExpansions: number,
+  latestPrefixAxisLossGain: number | null = null,
 ): number {
   if (
     !Number.isSafeInteger(processedContactNodes) || processedContactNodes < 0 ||
     !Number.isSafeInteger(remainingContactExpansions) || remainingContactExpansions < 1
   ) {
     throw new Error("value-probe route position must use non-negative processed and positive remaining contacts");
+  }
+  if (latestPrefixAxisLossGain !== null && !Number.isFinite(latestPrefixAxisLossGain)) {
+    throw new Error("value-probe prefix gain must be finite or null");
   }
   if (
     policy ===
@@ -221,6 +233,12 @@ export function valueProbeCandidateCountAtRoutePosition(
     policy ===
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" &&
     remainingContactExpansions === 1
+  ) return resolvedNCand;
+  if (
+    policy ===
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" &&
+    (processedContactNodes === 0 || latestPrefixAxisLossGain === null ||
+      latestPrefixAxisLossGain <= 0)
   ) return resolvedNCand;
   return valueProbeCandidateCount(policy, resolvedNCand, productionFloor);
 }
@@ -554,6 +572,7 @@ export type SelectiveCatchupProbeResult = {
   /** Actual primary normal nCand for each processed atomic node; null means the
    * node did not perform a contact-pool expansion. Aligned with atomic_node_frames. */
   atomic_node_primary_normal_requested_proposals: Array<number | null>;
+  atomic_node_starting_prefix_axis_loss_gain: Array<number | null>;
   atomic_node_frames: number[];
   tail_completion_attempts: number;
   budget_allowance_frames: number | null;
@@ -584,7 +603,8 @@ export type SelectiveBacktrackingStats = {
     | "three_quarter_after_floor"
     | "three_quarter_after_floor_empty_full_retry"
     | "full_first_then_three_quarter_after_floor"
-    | "three_quarter_after_floor_then_full_last";
+    | "three_quarter_after_floor_then_full_last"
+    | "full_first_then_three_quarter_while_prefix_positive";
   value_probe_candidate_breadth_scale: number;
   catchup_endpoint_winners_suppressed_unstable: number;
   mature_axis_loss_delta_max: number;
@@ -873,9 +893,12 @@ export class SelectiveAxisRegretController<Node extends object> {
                 "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last"
               ? "three_quarter_after_floor_then_full_last"
               : this.policy ===
-                  "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q"
-                ? "three_quarter_after_floor"
-                : "production",
+                "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix"
+              ? "full_first_then_three_quarter_while_prefix_positive"
+                : this.policy ===
+                    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q"
+                  ? "three_quarter_after_floor"
+                  : "production",
       value_probe_candidate_breadth_scale:
         this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
@@ -884,7 +907,9 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first" ||
           this.policy ===
-            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last"
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" ||
+          this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix"
           ? SELECTIVE_VALUE_PROBE_BREADTH_SCALE
           : 1,
       catchup_endpoint_winners_suppressed_unstable: 0,
@@ -934,6 +959,8 @@ export class SelectiveAxisRegretController<Node extends object> {
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first" ||
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" ||
+          this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
           this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
           ? SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS
           : 0,
@@ -1632,6 +1659,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" ||
           this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
+          this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
@@ -1687,6 +1716,8 @@ export class SelectiveAxisRegretController<Node extends object> {
                 "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" ||
+              this.policy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
             ) {
@@ -1961,6 +1992,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first" ||
         this.policy ===
           "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" ||
+        this.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
         this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
       valueLiveCandidates.length > 0
     ) {

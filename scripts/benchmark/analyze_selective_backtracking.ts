@@ -112,6 +112,7 @@ type ProbeResult = {
   normal_empty_full_width_retry_candidate_geometry_evaluations?: number;
   normal_empty_full_width_retry_frames?: number;
   atomic_node_primary_normal_requested_proposals?: Array<number | null>;
+  atomic_node_starting_prefix_axis_loss_gain?: Array<number | null>;
   atomic_node_frames?: number[];
   axis_loss: number | null;
   local_fallback_choices: LocalFallbackChoice[];
@@ -763,7 +764,9 @@ const emptyNormalPoolFullWidthRetry = retryTelemetryRows.length === 0 ? null : {
     "Only a paired compiler arm identifies their causal score and search effects.",
 };
 
-const positionalWidthRows = events.flatMap((event) =>
+const positionalWidthRows = events.filter(
+  (event) => event.trigger_signal === "value_exploration",
+).flatMap((event) =>
   event.catchup_probe_results.flatMap((probe) =>
     probe.atomic_node_primary_normal_requested_proposals === undefined
       ? []
@@ -791,6 +794,31 @@ const positionalProbeBreadth = positionalWidthRows.length === 0 ? null : (() => 
       .map(([sequence, probes]) => ({ sequence, probes }))
       .sort((left, right) => right.probes - left.probes ||
         left.sequence.localeCompare(right.sequence)),
+    breadth_by_starting_prefix_gain: [
+      { id: "unobserved", match: (gain: number | null) => gain === null },
+      { id: "positive", match: (gain: number | null) => gain !== null && gain > 0 },
+      { id: "nonpositive", match: (gain: number | null) => gain !== null && gain <= 0 },
+    ].map((bucket) => {
+      const widths = positionalWidthRows.flatMap(({ probe }) =>
+        probe.atomic_node_primary_normal_requested_proposals!.flatMap((width, index) =>
+          width !== null && bucket.match(
+              probe.atomic_node_starting_prefix_axis_loss_gain?.[index] ?? null,
+            )
+            ? [width]
+            : []
+        )
+      );
+      return {
+        starting_prefix_gain: bucket.id,
+        contact_pool_expansions: widths.length,
+        widths: Object.fromEntries(
+          [...new Set(widths)].sort((a, b) => a - b).map((width) => [
+            String(width),
+            widths.filter((value) => value === width).length,
+          ]),
+        ),
+      };
+    }),
     definitions: {
       sequence:
         "Comma-separated primary normal nCand aligned to processed atomic nodes; '-' is a node " +
@@ -1228,6 +1256,23 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         )
       ) {
         throw new Error(`${label}/route-${probe.route_ordinal} has invalid positional width telemetry`);
+      }
+      const gains = probe.atomic_node_starting_prefix_axis_loss_gain;
+      const gainPolicy = stats.policy ===
+        "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix";
+      if (gains === undefined) {
+        if (gainPolicy) {
+          throw new Error(`${label}/route-${probe.route_ordinal} lacks prefix-gain breadth telemetry`);
+        }
+      } else if (
+        !Array.isArray(gains) ||
+        gains.length !== widths.length ||
+        gains.some((gain, index) =>
+          (gain !== null && !Number.isFinite(gain)) ||
+          (widths[index] === null && gain !== null)
+        )
+      ) {
+        throw new Error(`${label}/route-${probe.route_ordinal} has invalid prefix-gain breadth telemetry`);
       }
     }
     const skipped = event.catchup_additional_probes_skipped_after_first_winner ?? 0;
@@ -1918,6 +1963,12 @@ function print(analysis: typeof result): void {
     );
     for (const row of position.width_sequences.slice(0, 12)) {
       console.log(`  ${row.sequence.padEnd(24)} ${row.probes} probes`);
+    }
+    for (const row of position.breadth_by_starting_prefix_gain) {
+      console.log(
+        `  starting gain ${row.starting_prefix_gain.padEnd(11)} ` +
+        `${row.contact_pool_expansions} expansions; widths ${JSON.stringify(row.widths)}`,
+      );
     }
   }
   console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);

@@ -1738,5 +1738,14 @@ failure count, source exception, or canonical V2 run may be substituted.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Rule, state machine, telemetry, and score gates frozen | complete | This section |
-| 2026-08-15 | Live implementation and mechanical proof | pending | — |
+| 2026-08-15 | Live implementation and mechanical proof | complete | `4fac0a4f`; 24 controller tests, focused telemetry/archive suites, targeted typecheck, and `generated/benchmark-v2/mover-grid/value-run-proof-mechanism-smoke/analysis.json` |
 | 2026-08-15 | Fresh paired two-budget screen | pending | — |
+
+The trace smoke used reused seed 168 only, so its scores are not decision
+evidence. All 10 candidate and reference cells completed. The proof state was
+reconstructed from raw events without mismatch: at 750k, four runs proved
+equal-depth reachability and one failed proof sealed 14 later opportunities; at
+1.25M, three proved and two failed proofs sealed 18 later opportunities. All
+32 suppressions occurred after the attributed first action, no sealed run
+admitted a second voluntary value tournament, and ordinary production
+traversal remained available. This clears the mechanical gate for fresh seeds.

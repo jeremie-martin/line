@@ -2298,7 +2298,8 @@ full-first panel's isolated-tail dependence and is not broadly adverse.
 | 2026-08-15 | Positive-prefix breadth policy predeclared | complete | This section; no fitted threshold |
 | 2026-08-15 | Implementation and aligned decision telemetry | complete: unit | Focused 55-test suite; width/gain arrays validated and analyzer-attributed |
 | 2026-08-15 | Fresh mechanism panel | complete: positive | +15.5 over 32 valid pairs; 11 better, 9 worse, 12 unchanged |
-| 2026-08-15 | Canonical decision | authorized | Source-native challenger; standing sequential 750k evaluator |
+| 2026-08-15 | Canonical N=8 look | continue | 607.57; +0.33 +/- 0.36 SE; P(positive)=80.84%; 352/352 valid |
+| 2026-08-15 | Canonical decision | running | Source-native challenger; standing sequential 750k evaluator |
 
 The trace closes the policy exactly. Across 371 value-ranked routes, all 371
 first contact-pool expansions have null starting gain and use 81 proposals.

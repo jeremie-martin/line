@@ -29,7 +29,7 @@ const paired = pairGridCells(candidate, reference);
 const candidateRows = rowsByKey(candidate);
 const referenceRows = rowsByKey(reference);
 
-let mode: "audit" | "prune" | null = null;
+let mode: "audit" | "prune" | "abort" | null = null;
 let attempts = 0;
 let terminalAttempts = 0;
 let acceptedAttempts = 0;
@@ -37,6 +37,7 @@ let selectedNodes = 0;
 let eligibleCheckpoints = 0;
 let dominatedSelections = 0;
 let prunedSubtrees = 0;
+let abortedAttempts = 0;
 let opportunities = 0;
 let actionableOpportunities = 0;
 let terminalObservations = 0;
@@ -67,11 +68,11 @@ for (const [key, row] of candidateRows) {
   if (stats?.schema !== REPAIR_AXIS_BRANCH_BOUND_SCHEMA) {
     throw new Error(`${label}: missing current repair axis-bound telemetry`);
   }
-  if (stats.mode !== "audit" && stats.mode !== "prune") {
+  if (stats.mode !== "audit" && stats.mode !== "prune" && stats.mode !== "abort") {
     throw new Error(`${label}: invalid repair axis-bound mode`);
   }
   if (mode === null) mode = stats.mode;
-  if (mode !== stats.mode) throw new Error("candidate mixes audit and prune modes");
+  if (mode !== stats.mode) throw new Error("candidate mixes repair axis-bound modes");
   if (stats.comparison_epsilon !== 1e-9) {
     throw new Error(`${label}: repair axis-bound epsilon drifted`);
   }
@@ -88,8 +89,11 @@ for (const [key, row] of candidateRows) {
       attempt.iteration_index !== attemptOrdinal ||
       attempt.end_total_spent_frames < attempt.start_total_spent_frames ||
       attempt.accepted_alternative && !attempt.terminal_reached ||
+      attempt.aborted_by_bound && attempt.terminal_reached ||
       attempt.dominated_selected_nodes < attempt.opportunities.length ||
-      mode === "audit" && attempt.pruned_subtrees !== 0
+      mode === "audit" && (attempt.pruned_subtrees !== 0 || attempt.aborted_by_bound) ||
+      mode === "prune" && attempt.aborted_by_bound ||
+      mode === "abort" && attempt.pruned_subtrees !== 0
     ) throw new Error(`${label}: malformed repair axis-bound attempt ${attemptOrdinal}`);
     attempts++;
     terminalAttempts += Number(attempt.terminal_reached);
@@ -98,6 +102,7 @@ for (const [key, row] of candidateRows) {
     eligibleCheckpoints += attempt.eligible_checkpoint_nodes;
     dominatedSelections += attempt.dominated_selected_nodes;
     prunedSubtrees += attempt.pruned_subtrees;
+    abortedAttempts += Number(attempt.aborted_by_bound);
     attempt.opportunities.forEach((opportunity: any, opportunityOrdinal: number) => {
       if (
         opportunity.opportunity_index !== opportunityOrdinal ||
@@ -190,6 +195,7 @@ const result = {
     actionable_nonterminal_dominated_subtrees: actionableOpportunities,
     dominated_terminal_observations: terminalObservations,
     pruned_subtrees: prunedSubtrees,
+    attempts_aborted_by_bound: abortedAttempts,
     dominated_subtrees_with_queued_alternative: opportunitiesWithAlternative,
     frontier_return_subtrees: frontierReturns,
     terminal_descendant_subtrees: terminalDescendants,

@@ -531,9 +531,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previousAudit = process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT;
     const previousLive = process.env.LR_REPAIR_AXIS_BRANCH_BOUND;
+    const previousAbort = process.env.LR_REPAIR_AXIS_ATTEMPT_BOUND;
     try {
       delete process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT;
       delete process.env.LR_REPAIR_AXIS_BRANCH_BOUND;
+      delete process.env.LR_REPAIR_AXIS_ATTEMPT_BOUND;
       const reference = compileHandoff(spec, 3, {
         budget: 200_000,
         polish: false,
@@ -569,6 +571,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       else process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT = previousAudit;
       if (previousLive === undefined) delete process.env.LR_REPAIR_AXIS_BRANCH_BOUND;
       else process.env.LR_REPAIR_AXIS_BRANCH_BOUND = previousLive;
+      if (previousAbort === undefined) delete process.env.LR_REPAIR_AXIS_ATTEMPT_BOUND;
+      else process.env.LR_REPAIR_AXIS_ATTEMPT_BOUND = previousAbort;
     }
   }, 120_000);
 

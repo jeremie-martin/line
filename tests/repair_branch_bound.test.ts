@@ -19,6 +19,8 @@ describe("repair authored-axis branch bound", () => {
       .toBe("audit");
     expect(parseRepairAxisBranchBoundMode({ LR_REPAIR_AXIS_BRANCH_BOUND: "1" }))
       .toBe("prune");
+    expect(parseRepairAxisBranchBoundMode({ LR_REPAIR_AXIS_ATTEMPT_BOUND: "1" }))
+      .toBe("abort");
     expect(parseRepairAxisBranchBoundMode({
       LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT: "1",
       LR_REPAIR_AXIS_BRANCH_BOUND: "1",
@@ -26,6 +28,10 @@ describe("repair authored-axis branch bound", () => {
     expect(() => parseRepairAxisBranchBoundMode({
       LR_REPAIR_AXIS_BRANCH_BOUND: "yes",
     })).toThrow(/must be 0 or 1/);
+    expect(() => parseRepairAxisBranchBoundMode({
+      LR_REPAIR_AXIS_BRANCH_BOUND: "1",
+      LR_REPAIR_AXIS_ATTEMPT_BOUND: "1",
+    })).toThrow(/mutually exclusive/);
   });
 
   test("pads the scorer RMS with zero-error remaining axes", () => {
@@ -72,7 +78,7 @@ describe("repair authored-axis branch bound", () => {
       prefixAxisSse: 100,
       prefixAxisLoss: 1,
     });
-    expect(root).toMatchObject({ dominated: true, prune: false });
+    expect(root).toMatchObject({ dominated: true, prune: false, abort: false });
     controller.observeSelection({
       node: { path: "a/b" },
       totalSpentFrames: 150,
@@ -138,7 +144,7 @@ describe("repair authored-axis branch bound", () => {
       prefixAxisCount: 12,
       prefixAxisSse: 100,
       prefixAxisLoss: 1,
-    })).toMatchObject({ dominated: true, prune: true });
+    })).toMatchObject({ dominated: true, prune: true, abort: false });
     controller.finishAttempt({
       totalSpentFrames: 1_100,
       terminalNode: null,
@@ -152,6 +158,41 @@ describe("repair authored-axis branch bound", () => {
         spent_frames_in_subtree: 0,
         outcome: "episode_end",
       }],
+    });
+  });
+
+  test("attempt-bound mode requests one clean abort instead of subtree churn", () => {
+    const controller = new RepairAxisBranchBoundController<Node>("abort", isPrefix);
+    controller.beginAttempt({
+      iterationIndex: 0,
+      anchorGapIndex: 2,
+      totalSpentFrames: 10,
+      incumbentAxisQuality: 0.95,
+      totalAuthoredAxisCount: 10,
+    });
+    expect(controller.observeSelection({
+      node: { path: "a" },
+      totalSpentFrames: 20,
+      gapIndex: 3,
+      contactOrdinal: 3,
+      frontierNodes: 7,
+      eligibleCheckpoint: true,
+      prunable: true,
+      prefixAxisCount: 3,
+      prefixAxisSse: 100,
+      prefixAxisLoss: 1,
+    })).toMatchObject({ dominated: true, prune: false, abort: true });
+    controller.finishAttempt({
+      totalSpentFrames: 20,
+      terminalNode: null,
+      terminalGapIndex: null,
+      terminalReached: false,
+      acceptedAlternative: false,
+    });
+    expect(controller.snapshot().attempts[0]).toMatchObject({
+      aborted_by_bound: true,
+      pruned_subtrees: 0,
+      terminal_reached: false,
     });
   });
 

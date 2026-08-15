@@ -3137,6 +3137,8 @@ empirical threshold.
 | 2026-08-16 | Focused proof and integration tests | complete | Pure bound, epsilon, subtree closure, proof violation, active-budget snapshot, and behavior identity covered |
 | 2026-08-16 | Compact behavior-neutral opportunity map | complete | 32/32 exact; 141 attempts; four actionable roots in two sources contain 193,669 charged frames; zero accepted descendants |
 | 2026-08-16 | Live branch-and-bound screen | complete: close exact disposition | +0.0435 +/- 0.0433 seed-block SE; only three cells move; 102 cascade prunes, five fewer attempts, two fewer acceptances |
+| 2026-08-16 | Strict attempt-bound mechanics smoke | complete | One exact abort and independent recomputation; one known cell -0.3825 |
+| 2026-08-16 | Fresh strict attempt-bound screen | complete: close | +0.00287 +/- 0.00188; two tiny changed cells; no canonical |
 
 The fresh audit validates the proof and exposes its narrow timing. All 32
 instrumented cells are byte-identical to the unset reference after removing
@@ -3165,3 +3167,36 @@ actionable dominated root, then let the independent repair controller
 recompute target, anchor, cost profile, and fresh repair seed from the global
 incumbent. This directly tests whether a clean restart converts the proof into
 useful breadth more efficiently than exhausting the current suffix frontier.
+
+### Attempt-bound result and next signal
+
+`LR_REPAIR_AXIS_ATTEMPT_BOUND=1` implements the declared categorical
+alternative. It observes the same strict proof, skips all work below its first
+actionable root, ends that repair episode without inventing a terminal, and
+returns to the independent controller. The next iteration recomputes from the
+unchanged global incumbent with current remaining budget and a fresh repair
+seed. It neither consumes nor carries the abandoned frontier.
+
+The known seed confirms the mechanism but loses 0.3825 in its sole changed
+cell: one abort replaces a 128k-frame first attempt, and the later fresh-seed
+sequence misses a small improvement the reference eventually found. The fresh
+panel is safer but negligible. All 32 cells remain valid; four attempts abort,
+repair episodes rise 141 to 147, terminal-reaching episodes rise 140 to 142,
+acceptances remain 60, aggregate repair work falls 9,363 frames, and internal
+gain rises 124.746 to 124.837. Only two scores move, both tiny gains in
+`rising_switch`; the paired mean is +0.00287 +/- 0.00188 seed-block SE and the
+minimum cell delta is zero. Close this exact strict-trigger disposition without
+canonical evaluation.
+
+The proof-safe family reveals why its score reach is intrinsically small: 12
+of 16 fresh dominance observations occur only after terminal selection, and
+the four earlier roots affect two sources. A broader successor must change the
+signal, not weaken the proof while still calling it proof. Instrument a
+behavior-neutral **suffix recovery pressure** instead. At the same horizon,
+measure the current prefix's excess SSE over the incumbent prefix and divide
+it by the incumbent's SSE still remaining after that horizon. A value of 0.5
+means the current route must remove half of the incumbent's remaining error to
+catch up; 1.0 is the strict dominance boundary. Map fixed round levels without
+acting, attach crossings to actual terminal lineage and acceptance, and use
+the data to choose whether an early attempt abort or a retained-route priority
+handoff has an honest chance. Do not infer a threshold from final score.

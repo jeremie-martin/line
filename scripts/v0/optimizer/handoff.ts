@@ -2907,6 +2907,7 @@ function compileHandoffInternal(
       primaryNormalRequestedProposals: number | null;
     };
     let activeTerminalConsiderLimit: number | null = null;
+    let repairAttemptBoundAbortRequested = false;
     let observedAtomicCostPerCandidateUpper = 0;
     const deadlineMarginAt = (search: SearchNode): number =>
       deadline.marginAt({
@@ -3353,7 +3354,8 @@ function compileHandoffInternal(
         }
         telemetry.frontierSelections++;
         const repairBoundAssessment =
-          lane === "repair" && repairAxisBranchBound !== null && bestCompleteNode !== null
+          lane === "repair" && allowSelectiveBacktracking &&
+              repairAxisBranchBound !== null && bestCompleteNode !== null
             ? (() => {
               const prefix = authoredAxisWindow(node.search);
               const gapIndex = node.search.gapIndex;
@@ -3373,6 +3375,9 @@ function compileHandoffInternal(
               });
             })()
             : null;
+        if (repairBoundAssessment?.abort === true) {
+          repairAttemptBoundAbortRequested = true;
+        }
         const result = processNode(
           node,
           lane,
@@ -3383,7 +3388,8 @@ function compileHandoffInternal(
           allowSelectiveBacktracking,
           allowSpeculativeTailCompletion,
           policyTransform,
-          repairBoundAssessment?.prune ?? false,
+          (repairBoundAssessment?.prune ?? false) ||
+            (repairBoundAssessment?.abort ?? false),
         );
         onProcessed?.();
         return result;
@@ -4231,6 +4237,7 @@ function compileHandoffInternal(
           options.allowSelectiveBacktracking ?? true,
           options.allowSpeculativeTailCompletion ?? true,
         );
+        if (lane === "repair" && repairAttemptBoundAbortRequested) return;
         if (result.kind === "captured" || result.kind === "terminal_limit") return;
         if (result.kind === "deferred") {
           const replacement = { ...node, deferExpansion: false };
@@ -4914,6 +4921,7 @@ function compileHandoffInternal(
           incumbentAxisQuality: incumbentEvaluation.key.axis_quality,
           totalAuthoredAxisCount,
         });
+        repairAttemptBoundAbortRequested = false;
         try {
           runFrontierFrom(prefixNode, ceiling, terminalsBefore + 1);
         } finally {

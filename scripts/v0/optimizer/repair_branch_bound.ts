@@ -19,7 +19,7 @@ import { LEAF_KEY_FLOAT_EPSILON } from "./register.ts";
 export const REPAIR_AXIS_BRANCH_BOUND_SCHEMA =
   "line.repair-axis-branch-bound.v1" as const;
 
-export type RepairAxisBranchBoundMode = "off" | "audit" | "prune";
+export type RepairAxisBranchBoundMode = "off" | "audit" | "prune" | "abort";
 
 export type RepairAxisBranchBoundOpportunity = {
   opportunity_index: number;
@@ -53,6 +53,7 @@ export type RepairAxisBranchBoundAttempt = {
   eligible_checkpoint_nodes: number;
   dominated_selected_nodes: number;
   pruned_subtrees: number;
+  aborted_by_bound: boolean;
   terminal_reached: boolean;
   accepted_alternative: boolean;
   terminal_gap_index: number | null;
@@ -79,6 +80,7 @@ type InternalAttempt<Node> = {
 export type RepairAxisBranchBoundAssessment = {
   dominated: boolean;
   prune: boolean;
+  abort: boolean;
   optimisticAxisQualityUpper: number;
   incumbentQualityMargin: number;
 };
@@ -88,14 +90,22 @@ export function parseRepairAxisBranchBoundMode(
 ): RepairAxisBranchBoundMode {
   const audit = env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT;
   const prune = env.LR_REPAIR_AXIS_BRANCH_BOUND;
+  const abort = env.LR_REPAIR_AXIS_ATTEMPT_BOUND;
   for (const [name, value] of [
     ["LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT", audit],
     ["LR_REPAIR_AXIS_BRANCH_BOUND", prune],
+    ["LR_REPAIR_AXIS_ATTEMPT_BOUND", abort],
   ] as const) {
     if (value !== undefined && value !== "" && value !== "0" && value !== "1") {
       throw new Error(`${name} must be 0 or 1; got ${JSON.stringify(value)}`);
     }
   }
+  if (prune === "1" && abort === "1") {
+    throw new Error(
+      "LR_REPAIR_AXIS_BRANCH_BOUND and LR_REPAIR_AXIS_ATTEMPT_BOUND are mutually exclusive",
+    );
+  }
+  if (abort === "1") return "abort";
   if (prune === "1") return "prune";
   if (audit === "1") return "audit";
   return "off";
@@ -181,6 +191,7 @@ export class RepairAxisBranchBoundController<Node> {
       eligible_checkpoint_nodes: 0,
       dominated_selected_nodes: 0,
       pruned_subtrees: 0,
+      aborted_by_bound: false,
       terminal_reached: false,
       accepted_alternative: false,
       terminal_gap_index: null,
@@ -252,8 +263,10 @@ export class RepairAxisBranchBoundController<Node> {
       }
     }
     const prune = this.mode === "prune" && assessment.dominated && input.prunable;
+    const abort = this.mode === "abort" && assessment.dominated && input.prunable;
     if (prune) record.pruned_subtrees++;
-    return { ...assessment, prune };
+    if (abort) record.aborted_by_bound = true;
+    return { ...assessment, prune, abort };
   }
 
   finishAttempt(input: {

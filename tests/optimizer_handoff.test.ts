@@ -547,7 +547,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       });
       const audit = audited.stats.handoff_repair_axis_branch_bound;
       expect(audit).toMatchObject({
-        schema: "line.repair-axis-branch-bound.v1",
+        schema: "line.repair-axis-branch-bound.v2",
         mode: "audit",
       });
       expect(audit?.attempts.length ?? 0).toBeGreaterThan(0);

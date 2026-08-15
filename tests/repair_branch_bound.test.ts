@@ -64,6 +64,7 @@ describe("repair authored-axis branch bound", () => {
       anchorGapIndex: 2,
       totalSpentFrames: 100,
       incumbentAxisQuality: 0.9,
+      incumbentAxisSse: 10,
       totalAuthoredAxisCount: 10,
     });
     const root = controller.observeSelection({
@@ -77,6 +78,8 @@ describe("repair authored-axis branch bound", () => {
       prefixAxisCount: 3,
       prefixAxisSse: 100,
       prefixAxisLoss: 1,
+      incumbentPrefixAxisCount: 3,
+      incumbentPrefixAxisSse: 1,
     });
     expect(root).toMatchObject({ dominated: true, prune: false, abort: false });
     controller.observeSelection({
@@ -90,6 +93,8 @@ describe("repair authored-axis branch bound", () => {
       prefixAxisCount: 4,
       prefixAxisSse: 110,
       prefixAxisLoss: 1.1,
+      incumbentPrefixAxisCount: 4,
+      incumbentPrefixAxisSse: 2,
     });
     controller.observeSelection({
       node: { path: "c" },
@@ -102,6 +107,8 @@ describe("repair authored-axis branch bound", () => {
       prefixAxisCount: 3,
       prefixAxisSse: 0,
       prefixAxisLoss: 0,
+      incumbentPrefixAxisCount: 3,
+      incumbentPrefixAxisSse: 1,
     });
     controller.finishAttempt({
       totalSpentFrames: 200,
@@ -109,6 +116,7 @@ describe("repair authored-axis branch bound", () => {
       terminalGapIndex: null,
       terminalReached: false,
       acceptedAlternative: false,
+      terminalAxisSse: null,
     });
     expect(controller.snapshot().attempts[0]).toMatchObject({
       selected_nodes: 3,
@@ -131,6 +139,7 @@ describe("repair authored-axis branch bound", () => {
       anchorGapIndex: 8,
       totalSpentFrames: 1_000,
       incumbentAxisQuality: 0.95,
+      incumbentAxisSse: 10,
       totalAuthoredAxisCount: 20,
     });
     expect(controller.observeSelection({
@@ -144,6 +153,8 @@ describe("repair authored-axis branch bound", () => {
       prefixAxisCount: 12,
       prefixAxisSse: 100,
       prefixAxisLoss: 1,
+      incumbentPrefixAxisCount: 12,
+      incumbentPrefixAxisSse: 1,
     })).toMatchObject({ dominated: true, prune: true, abort: false });
     controller.finishAttempt({
       totalSpentFrames: 1_100,
@@ -151,6 +162,7 @@ describe("repair authored-axis branch bound", () => {
       terminalGapIndex: null,
       terminalReached: false,
       acceptedAlternative: false,
+      terminalAxisSse: null,
     });
     expect(controller.snapshot().attempts[0]).toMatchObject({
       pruned_subtrees: 1,
@@ -168,6 +180,7 @@ describe("repair authored-axis branch bound", () => {
       anchorGapIndex: 2,
       totalSpentFrames: 10,
       incumbentAxisQuality: 0.95,
+      incumbentAxisSse: 10,
       totalAuthoredAxisCount: 10,
     });
     expect(controller.observeSelection({
@@ -181,6 +194,8 @@ describe("repair authored-axis branch bound", () => {
       prefixAxisCount: 3,
       prefixAxisSse: 100,
       prefixAxisLoss: 1,
+      incumbentPrefixAxisCount: 3,
+      incumbentPrefixAxisSse: 1,
     })).toMatchObject({ dominated: true, prune: false, abort: true });
     controller.finishAttempt({
       totalSpentFrames: 20,
@@ -188,12 +203,78 @@ describe("repair authored-axis branch bound", () => {
       terminalGapIndex: null,
       terminalReached: false,
       acceptedAlternative: false,
+      terminalAxisSse: null,
     });
     expect(controller.snapshot().attempts[0]).toMatchObject({
       aborted_by_bound: true,
       pruned_subtrees: 0,
       terminal_reached: false,
     });
+  });
+
+  test("keeps recovery pressure observational and attributes later acceptance", () => {
+    const controller = new RepairAxisBranchBoundController<Node>("audit", isPrefix);
+    controller.beginAttempt({
+      iterationIndex: 0,
+      anchorGapIndex: 2,
+      totalSpentFrames: 100,
+      incumbentAxisQuality: 0,
+      incumbentAxisSse: 10,
+      totalAuthoredAxisCount: 100,
+    });
+    controller.observeSelection({
+      node: { path: "a" },
+      totalSpentFrames: 120,
+      gapIndex: 3,
+      contactOrdinal: 3,
+      frontierNodes: 4,
+      eligibleCheckpoint: true,
+      prunable: true,
+      prefixAxisCount: 3,
+      prefixAxisSse: 6,
+      prefixAxisLoss: 1,
+      incumbentPrefixAxisCount: 3,
+      incumbentPrefixAxisSse: 2,
+    });
+    controller.observeSelection({
+      node: { path: "a/recovered" },
+      totalSpentFrames: 150,
+      gapIndex: 4,
+      contactOrdinal: 4,
+      frontierNodes: 3,
+      eligibleCheckpoint: true,
+      prunable: true,
+      prefixAxisCount: 4,
+      prefixAxisSse: 3,
+      prefixAxisLoss: 0.5,
+      incumbentPrefixAxisCount: 4,
+      incumbentPrefixAxisSse: 2.5,
+    });
+    controller.finishAttempt({
+      totalSpentFrames: 180,
+      terminalNode: { path: "a/recovered/terminal" },
+      terminalGapIndex: 5,
+      terminalReached: true,
+      acceptedAlternative: true,
+      terminalAxisSse: 8,
+    });
+    expect(controller.snapshot().attempts[0]?.recovery_pressure_opportunities)
+      .toEqual([
+        expect.objectContaining({
+          threshold: 0.25,
+          recovery_pressure: 0.5,
+          selected_nodes_in_subtree: 2,
+          spent_frames_in_subtree: 60,
+          outcome: "terminal_descendant",
+          accepted_terminal_descended: true,
+          terminal_axis_sse_delta_from_incumbent: -2,
+        }),
+        expect.objectContaining({
+          threshold: 0.5,
+          recovery_pressure: 0.5,
+          accepted_terminal_descended: true,
+        }),
+      ]);
   });
 
   test("fails loudly if an accepted terminal violates the dominance proof", () => {
@@ -203,6 +284,7 @@ describe("repair authored-axis branch bound", () => {
       anchorGapIndex: 0,
       totalSpentFrames: 0,
       incumbentAxisQuality: 0.99,
+      incumbentAxisSse: 10,
       totalAuthoredAxisCount: 2,
     });
     controller.observeSelection({
@@ -216,6 +298,8 @@ describe("repair authored-axis branch bound", () => {
       prefixAxisCount: 1,
       prefixAxisSse: 100,
       prefixAxisLoss: 1,
+      incumbentPrefixAxisCount: 1,
+      incumbentPrefixAxisSse: 1,
     });
     expect(() => controller.finishAttempt({
       totalSpentFrames: 2,
@@ -223,6 +307,7 @@ describe("repair authored-axis branch bound", () => {
       terminalGapIndex: 2,
       terminalReached: true,
       acceptedAlternative: true,
+      terminalAxisSse: 9,
     })).toThrow(/mathematically dominated prefix/);
   });
 });

@@ -17,7 +17,14 @@ import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 import { LEAF_KEY_FLOAT_EPSILON } from "./register.ts";
 
 export const REPAIR_AXIS_BRANCH_BOUND_SCHEMA =
-  "line.repair-axis-branch-bound.v1" as const;
+  "line.repair-axis-branch-bound.v2" as const;
+
+export const REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS = [
+  0.25,
+  0.5,
+  0.75,
+  1,
+] as const;
 
 export type RepairAxisBranchBoundMode = "off" | "audit" | "prune" | "abort";
 
@@ -42,12 +49,39 @@ export type RepairAxisBranchBoundOpportunity = {
   accepted_terminal_descended: boolean;
 };
 
+export type RepairSuffixRecoveryOpportunity = {
+  threshold: number;
+  opportunity_index: number;
+  root_gap_index: number;
+  root_contact_ordinal: number;
+  root_terminal: boolean;
+  root_total_spent_frames: number;
+  frontier_nodes_at_entry: number;
+  current_prefix_axis_count: number;
+  incumbent_prefix_axis_count: number;
+  current_prefix_axis_sse: number;
+  incumbent_prefix_axis_sse: number;
+  incumbent_remaining_axis_sse: number;
+  prefix_excess_axis_sse: number;
+  /** Null means positive excess with zero incumbent suffix SSE: unbounded. */
+  recovery_pressure: number | null;
+  selected_nodes_in_subtree: number;
+  end_total_spent_frames: number;
+  spent_frames_in_subtree: number;
+  outcome: "frontier_return" | "terminal_descendant" | "episode_end";
+  terminal_descended: boolean;
+  accepted_terminal_descended: boolean;
+  terminal_axis_sse: number | null;
+  terminal_axis_sse_delta_from_incumbent: number | null;
+};
+
 export type RepairAxisBranchBoundAttempt = {
   iteration_index: number;
   anchor_gap_index: number;
   start_total_spent_frames: number;
   end_total_spent_frames: number;
   incumbent_axis_quality: number;
+  incumbent_axis_sse: number;
   total_authored_axis_count: number;
   selected_nodes: number;
   eligible_checkpoint_nodes: number;
@@ -58,12 +92,14 @@ export type RepairAxisBranchBoundAttempt = {
   accepted_alternative: boolean;
   terminal_gap_index: number | null;
   opportunities: RepairAxisBranchBoundOpportunity[];
+  recovery_pressure_opportunities: RepairSuffixRecoveryOpportunity[];
 };
 
 export type RepairAxisBranchBoundStats = {
   schema: typeof REPAIR_AXIS_BRANCH_BOUND_SCHEMA;
   mode: Exclude<RepairAxisBranchBoundMode, "off">;
   comparison_epsilon: number;
+  recovery_pressure_thresholds: number[];
   attempts: RepairAxisBranchBoundAttempt[];
 };
 
@@ -75,6 +111,10 @@ type InternalOpportunity<Node> = {
 type InternalAttempt<Node> = {
   record: RepairAxisBranchBoundAttempt;
   openOpportunity: InternalOpportunity<Node> | null;
+  openRecoveryOpportunities: Map<number, {
+    root: Node;
+    record: RepairSuffixRecoveryOpportunity;
+  }>;
 };
 
 export type RepairAxisBranchBoundAssessment = {
@@ -134,7 +174,7 @@ export function assessRepairAxisDominance(input: {
   prefixAxisCount: number;
   totalAuthoredAxisCount: number;
   incumbentAxisQuality: number;
-}): Omit<RepairAxisBranchBoundAssessment, "prune"> {
+}): Omit<RepairAxisBranchBoundAssessment, "prune" | "abort"> {
   if (
     !Number.isSafeInteger(input.prefixAxisCount) || input.prefixAxisCount < 0 ||
     input.prefixAxisCount > input.totalAuthoredAxisCount
@@ -177,15 +217,22 @@ export class RepairAxisBranchBoundController<Node> {
     anchorGapIndex: number;
     totalSpentFrames: number;
     incumbentAxisQuality: number;
+    incumbentAxisSse: number;
     totalAuthoredAxisCount: number;
   }): void {
     if (this.active !== null) throw new Error("repair axis-bound attempt already active");
+    if (!Number.isFinite(input.incumbentAxisSse) || input.incumbentAxisSse < 0) {
+      throw new Error(
+        `incumbent axis SSE must be finite and non-negative; got ${input.incumbentAxisSse}`,
+      );
+    }
     const record: RepairAxisBranchBoundAttempt = {
       iteration_index: input.iterationIndex,
       anchor_gap_index: input.anchorGapIndex,
       start_total_spent_frames: input.totalSpentFrames,
       end_total_spent_frames: input.totalSpentFrames,
       incumbent_axis_quality: input.incumbentAxisQuality,
+      incumbent_axis_sse: input.incumbentAxisSse,
       total_authored_axis_count: input.totalAuthoredAxisCount,
       selected_nodes: 0,
       eligible_checkpoint_nodes: 0,
@@ -196,9 +243,14 @@ export class RepairAxisBranchBoundController<Node> {
       accepted_alternative: false,
       terminal_gap_index: null,
       opportunities: [],
+      recovery_pressure_opportunities: [],
     };
     this.attempts.push(record);
-    this.active = { record, openOpportunity: null };
+    this.active = {
+      record,
+      openOpportunity: null,
+      openRecoveryOpportunities: new Map(),
+    };
   }
 
   observeSelection(input: {
@@ -212,6 +264,8 @@ export class RepairAxisBranchBoundController<Node> {
     prefixAxisCount: number;
     prefixAxisSse: number;
     prefixAxisLoss: number;
+    incumbentPrefixAxisCount: number;
+    incumbentPrefixAxisSse: number;
   }): RepairAxisBranchBoundAssessment | null {
     const active = this.active;
     if (active === null) return null;
@@ -227,8 +281,81 @@ export class RepairAxisBranchBoundController<Node> {
     if (active.openOpportunity !== null) {
       active.openOpportunity.record.selected_nodes_in_subtree++;
     }
+    for (const [threshold, open] of active.openRecoveryOpportunities) {
+      if (!this.isPrefix(open.root, input.node)) {
+        this.closeRecoveryOpportunity(
+          threshold,
+          input.totalSpentFrames,
+          "frontier_return",
+          null,
+          false,
+        );
+      } else {
+        open.record.selected_nodes_in_subtree++;
+      }
+    }
     if (!input.eligibleCheckpoint) return null;
     record.eligible_checkpoint_nodes++;
+    if (input.prefixAxisCount !== input.incumbentPrefixAxisCount) {
+      throw new Error(
+        `repair recovery-pressure prefix population differs: ` +
+        `${input.prefixAxisCount} current versus ${input.incumbentPrefixAxisCount} incumbent`,
+      );
+    }
+    if (
+      !Number.isFinite(input.incumbentPrefixAxisSse) ||
+      input.incumbentPrefixAxisSse < 0 ||
+      input.incumbentPrefixAxisSse > record.incumbent_axis_sse + 1e-12
+    ) {
+      throw new Error(
+        `repair incumbent prefix SSE ${input.incumbentPrefixAxisSse} is outside ` +
+        `0..${record.incumbent_axis_sse}`,
+      );
+    }
+    const incumbentRemainingAxisSse = Math.max(
+      0,
+      record.incumbent_axis_sse - input.incumbentPrefixAxisSse,
+    );
+    const prefixExcessAxisSse = Math.max(
+      0,
+      input.prefixAxisSse - input.incumbentPrefixAxisSse,
+    );
+    const recoveryPressure = incumbentRemainingAxisSse > 1e-15
+      ? prefixExcessAxisSse / incumbentRemainingAxisSse
+      : prefixExcessAxisSse > 1e-15 ? null : 0;
+    for (const threshold of REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS) {
+      const crossesThreshold = recoveryPressure === null || recoveryPressure >= threshold;
+      if (!crossesThreshold || active.openRecoveryOpportunities.has(threshold)) continue;
+      const thresholdOpportunityCount = record.recovery_pressure_opportunities.filter(
+        (opportunity) => opportunity.threshold === threshold,
+      ).length;
+      const opportunity: RepairSuffixRecoveryOpportunity = {
+        threshold,
+        opportunity_index: thresholdOpportunityCount,
+        root_gap_index: input.gapIndex,
+        root_contact_ordinal: input.contactOrdinal,
+        root_terminal: !input.prunable,
+        root_total_spent_frames: input.totalSpentFrames,
+        frontier_nodes_at_entry: input.frontierNodes,
+        current_prefix_axis_count: input.prefixAxisCount,
+        incumbent_prefix_axis_count: input.incumbentPrefixAxisCount,
+        current_prefix_axis_sse: input.prefixAxisSse,
+        incumbent_prefix_axis_sse: input.incumbentPrefixAxisSse,
+        incumbent_remaining_axis_sse: incumbentRemainingAxisSse,
+        prefix_excess_axis_sse: prefixExcessAxisSse,
+        recovery_pressure: recoveryPressure,
+        selected_nodes_in_subtree: 1,
+        end_total_spent_frames: input.totalSpentFrames,
+        spent_frames_in_subtree: 0,
+        outcome: "episode_end",
+        terminal_descended: false,
+        accepted_terminal_descended: false,
+        terminal_axis_sse: null,
+        terminal_axis_sse_delta_from_incumbent: null,
+      };
+      record.recovery_pressure_opportunities.push(opportunity);
+      active.openRecoveryOpportunities.set(threshold, { root: input.node, record: opportunity });
+    }
     const assessment = assessRepairAxisDominance({
       prefixAxisSse: input.prefixAxisSse,
       prefixAxisCount: input.prefixAxisCount,
@@ -275,9 +402,17 @@ export class RepairAxisBranchBoundController<Node> {
     terminalGapIndex: number | null;
     terminalReached: boolean;
     acceptedAlternative: boolean;
+    terminalAxisSse: number | null;
   }): void {
     const active = this.active;
     if (active === null) throw new Error("repair axis-bound attempt is not active");
+    if (
+      (input.terminalNode === null) !== (input.terminalAxisSse === null) ||
+      input.terminalAxisSse !== null &&
+        (!Number.isFinite(input.terminalAxisSse) || input.terminalAxisSse < 0)
+    ) {
+      throw new Error("repair terminal node and finite non-negative axis SSE must agree");
+    }
     const record = active.record;
     record.end_total_spent_frames = input.totalSpentFrames;
     record.terminal_reached = input.terminalReached;
@@ -291,6 +426,19 @@ export class RepairAxisBranchBoundController<Node> {
         descended ? "terminal_descendant" : "episode_end",
         input.terminalNode,
         input.acceptedAlternative,
+      );
+    }
+    for (const threshold of [...active.openRecoveryOpportunities.keys()]) {
+      const open = active.openRecoveryOpportunities.get(threshold)!;
+      const descended = input.terminalNode !== null &&
+        this.isPrefix(open.root, input.terminalNode);
+      this.closeRecoveryOpportunity(
+        threshold,
+        input.totalSpentFrames,
+        descended ? "terminal_descendant" : "episode_end",
+        input.terminalNode,
+        input.acceptedAlternative,
+        input.terminalAxisSse,
       );
     }
     this.active = null;
@@ -315,11 +463,31 @@ export class RepairAxisBranchBoundController<Node> {
         );
         open.outcome = "episode_end";
       }
+      for (const [threshold, liveOpen] of this.active.openRecoveryOpportunities) {
+        const snapshotOpen = [...activeRecord.recovery_pressure_opportunities]
+          .reverse()
+          .find((opportunity) =>
+            opportunity.threshold === threshold &&
+            opportunity.opportunity_index === liveOpen.record.opportunity_index
+          );
+        if (snapshotOpen === undefined) {
+          throw new Error(
+            `active repair recovery-pressure opportunity ${threshold} is missing`,
+          );
+        }
+        snapshotOpen.end_total_spent_frames = activeTotalSpentFrames;
+        snapshotOpen.spent_frames_in_subtree = Math.max(
+          0,
+          activeTotalSpentFrames - snapshotOpen.root_total_spent_frames,
+        );
+        snapshotOpen.outcome = "episode_end";
+      }
     }
     return {
       schema: REPAIR_AXIS_BRANCH_BOUND_SCHEMA,
       mode: this.mode,
       comparison_epsilon: LEAF_KEY_FLOAT_EPSILON,
+      recovery_pressure_thresholds: [...REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS],
       attempts,
     };
   }
@@ -350,5 +518,35 @@ export class RepairAxisBranchBoundController<Node> {
       );
     }
     active.openOpportunity = null;
+  }
+
+  private closeRecoveryOpportunity(
+    threshold: number,
+    totalSpentFrames: number,
+    outcome: RepairSuffixRecoveryOpportunity["outcome"],
+    terminalNode: Node | null,
+    acceptedAlternative: boolean,
+    terminalAxisSse: number | null = null,
+  ): void {
+    const active = this.active;
+    const open = active?.openRecoveryOpportunities.get(threshold) ?? null;
+    if (active === null || open === null) {
+      throw new Error(`repair recovery-pressure opportunity ${threshold} is not active`);
+    }
+    const terminalDescended = terminalNode !== null && this.isPrefix(open.root, terminalNode);
+    open.record.end_total_spent_frames = totalSpentFrames;
+    open.record.spent_frames_in_subtree = Math.max(
+      0,
+      totalSpentFrames - open.record.root_total_spent_frames,
+    );
+    open.record.outcome = outcome;
+    open.record.terminal_descended = terminalDescended;
+    open.record.accepted_terminal_descended = terminalDescended && acceptedAlternative;
+    open.record.terminal_axis_sse = terminalDescended ? terminalAxisSse : null;
+    open.record.terminal_axis_sse_delta_from_incumbent = terminalDescended &&
+        terminalAxisSse !== null
+      ? terminalAxisSse - active.record.incumbent_axis_sse
+      : null;
+    active.openRecoveryOpportunities.delete(threshold);
   }
 }

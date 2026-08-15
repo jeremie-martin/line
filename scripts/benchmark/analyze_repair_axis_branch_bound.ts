@@ -11,7 +11,10 @@ import {
   seedBlockPairedDelta,
   type GridArm,
 } from "./paired_grid.ts";
-import { REPAIR_AXIS_BRANCH_BOUND_SCHEMA } from "../v0/optimizer/repair_branch_bound.ts";
+import {
+  REPAIR_AXIS_BRANCH_BOUND_SCHEMA,
+  REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS,
+} from "../v0/optimizer/repair_branch_bound.ts";
 
 const args = process.argv.slice(2);
 const argument = (name: string): string | undefined =>
@@ -59,6 +62,51 @@ const perSource = new Map<string, {
   actionableFrames: number;
   terminalDescendants: number;
 }>();
+type RecoverySummary = {
+  threshold: number;
+  opportunities: number;
+  actionable: number;
+  terminalObservations: number;
+  opportunitiesWithAlternative: number;
+  frontierReturns: number;
+  terminalDescendants: number;
+  acceptedTerminalDescendants: number;
+  actionableTerminalDescendants: number;
+  actionableAcceptedTerminalDescendants: number;
+  frames: number;
+  actionableFrames: number;
+  terminalDescendantFrames: number;
+  acceptedTerminalDescendantFrames: number;
+  terminalDescendantAxisSseDelta: number;
+  acceptedTerminalDescendantAxisSseDelta: number;
+  activeActionableRuns: Set<string>;
+  activeActionableSources: Set<string>;
+};
+const recoveryByThreshold = new Map<number, RecoverySummary>(
+  REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS.map((threshold) => [
+    threshold,
+    {
+      threshold,
+      opportunities: 0,
+      actionable: 0,
+      terminalObservations: 0,
+      opportunitiesWithAlternative: 0,
+      frontierReturns: 0,
+      terminalDescendants: 0,
+      acceptedTerminalDescendants: 0,
+      actionableTerminalDescendants: 0,
+      actionableAcceptedTerminalDescendants: 0,
+      frames: 0,
+      actionableFrames: 0,
+      terminalDescendantFrames: 0,
+      acceptedTerminalDescendantFrames: 0,
+      terminalDescendantAxisSseDelta: 0,
+      acceptedTerminalDescendantAxisSseDelta: 0,
+      activeActionableRuns: new Set(),
+      activeActionableSources: new Set(),
+    },
+  ]),
+);
 
 for (const [key, row] of candidateRows) {
   const label = printableKey(key);
@@ -76,6 +124,10 @@ for (const [key, row] of candidateRows) {
   if (stats.comparison_epsilon !== 1e-9) {
     throw new Error(`${label}: repair axis-bound epsilon drifted`);
   }
+  if (
+    JSON.stringify(stats.recovery_pressure_thresholds) !==
+      JSON.stringify(REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS)
+  ) throw new Error(`${label}: recovery-pressure thresholds drifted`);
   if (mode === "audit") assertAuditIdentity(label, row, referenceRow);
 
   let rowOpportunities = 0;
@@ -138,6 +190,87 @@ for (const [key, row] of candidateRows) {
         opportunity.spent_frames_in_subtree,
       );
     });
+    const recoveryOrdinals = new Map<number, number>();
+    attempt.recovery_pressure_opportunities.forEach((opportunity: any) => {
+      const summary = recoveryByThreshold.get(opportunity.threshold);
+      const expectedOrdinal = recoveryOrdinals.get(opportunity.threshold) ?? 0;
+      const remaining = Math.max(
+        0,
+        attempt.incumbent_axis_sse - opportunity.incumbent_prefix_axis_sse,
+      );
+      const excess = Math.max(
+        0,
+        opportunity.current_prefix_axis_sse - opportunity.incumbent_prefix_axis_sse,
+      );
+      const expectedPressure = remaining > 1e-15
+        ? excess / remaining
+        : excess > 1e-15 ? null : 0;
+      const expectedTerminalDelta = opportunity.terminal_axis_sse === null
+        ? null
+        : opportunity.terminal_axis_sse - attempt.incumbent_axis_sse;
+      if (
+        summary === undefined ||
+        opportunity.opportunity_index !== expectedOrdinal ||
+        opportunity.current_prefix_axis_count !== opportunity.incumbent_prefix_axis_count ||
+        opportunity.end_total_spent_frames < opportunity.root_total_spent_frames ||
+        opportunity.spent_frames_in_subtree !==
+          opportunity.end_total_spent_frames - opportunity.root_total_spent_frames ||
+        Math.abs(opportunity.incumbent_remaining_axis_sse - remaining) > 1e-9 ||
+        Math.abs(opportunity.prefix_excess_axis_sse - excess) > 1e-9 ||
+        !sameNullableNumber(opportunity.recovery_pressure, expectedPressure) ||
+        opportunity.recovery_pressure !== null &&
+          opportunity.recovery_pressure < opportunity.threshold ||
+        opportunity.terminal_descended !==
+          (opportunity.outcome === "terminal_descendant") ||
+        opportunity.terminal_descended !== (opportunity.terminal_axis_sse !== null) ||
+        !sameNullableNumber(
+          opportunity.terminal_axis_sse_delta_from_incumbent,
+          expectedTerminalDelta,
+        ) ||
+        opportunity.accepted_terminal_descended &&
+          (!opportunity.terminal_descended || !attempt.accepted_alternative)
+      ) throw new Error(
+        `${label}: malformed recovery-pressure opportunity ` +
+        `${opportunity.threshold}/${expectedOrdinal}`,
+      );
+      recoveryOrdinals.set(opportunity.threshold, expectedOrdinal + 1);
+      summary.opportunities++;
+      summary.actionable += Number(!opportunity.root_terminal);
+      summary.terminalObservations += Number(opportunity.root_terminal);
+      summary.opportunitiesWithAlternative += Number(opportunity.frontier_nodes_at_entry > 0);
+      summary.frontierReturns += Number(opportunity.outcome === "frontier_return");
+      summary.terminalDescendants += Number(opportunity.terminal_descended);
+      summary.acceptedTerminalDescendants += Number(
+        opportunity.accepted_terminal_descended,
+      );
+      summary.actionableTerminalDescendants += Number(
+        !opportunity.root_terminal && opportunity.terminal_descended,
+      );
+      summary.actionableAcceptedTerminalDescendants += Number(
+        !opportunity.root_terminal && opportunity.accepted_terminal_descended,
+      );
+      summary.frames += opportunity.spent_frames_in_subtree;
+      summary.actionableFrames += !opportunity.root_terminal
+        ? opportunity.spent_frames_in_subtree
+        : 0;
+      summary.terminalDescendantFrames += opportunity.terminal_descended
+        ? opportunity.spent_frames_in_subtree
+        : 0;
+      summary.acceptedTerminalDescendantFrames += opportunity.accepted_terminal_descended
+        ? opportunity.spent_frames_in_subtree
+        : 0;
+      summary.terminalDescendantAxisSseDelta += opportunity.terminal_descended
+        ? opportunity.terminal_axis_sse_delta_from_incumbent
+        : 0;
+      summary.acceptedTerminalDescendantAxisSseDelta +=
+        opportunity.accepted_terminal_descended
+          ? opportunity.terminal_axis_sse_delta_from_incumbent
+          : 0;
+      if (!opportunity.root_terminal) {
+        summary.activeActionableRuns.add(key);
+        summary.activeActionableSources.add(row.task.sourceId);
+      }
+    });
   });
   if (rowOpportunities > 0) {
     activeRuns.add(key);
@@ -168,7 +301,7 @@ if (acceptedTerminalDescendants !== 0) {
 }
 
 const result = {
-  schema: "line.repair-axis-branch-bound-analysis.v1",
+  schema: "line.repair-axis-branch-bound-analysis.v2",
   generated_at: new Date().toISOString(),
   scope: {
     mode,
@@ -177,7 +310,7 @@ const result = {
     seeds: candidate.archive.seeds,
     sources: perSource.size,
     interpretation: mode === "audit"
-      ? "Behavior-neutral map of whole repair subtrees that cannot beat the completed incumbent even with zero remaining authored-axis error."
+      ? "Behavior-neutral map of strict dominance and graded suffix recovery pressure. Recovery pressure is a burden, not a proof of failure."
       : "Live repair-only pruning of mathematically dominated subtrees; paired score evidence is compact screening, not promotion.",
   },
   pairing_notes: pairingNotes,
@@ -209,9 +342,43 @@ const result = {
       ([source_id, value]) => ({ source_id, ...value }),
     ),
   },
+  recovery_pressure: [...recoveryByThreshold.values()].map((summary) => ({
+    threshold: summary.threshold,
+    opportunities: summary.opportunities,
+    actionable_nonterminal_opportunities: summary.actionable,
+    terminal_observations: summary.terminalObservations,
+    opportunities_with_queued_alternative: summary.opportunitiesWithAlternative,
+    frontier_return_opportunities: summary.frontierReturns,
+    terminal_descendant_opportunities: summary.terminalDescendants,
+    accepted_terminal_descendant_opportunities: summary.acceptedTerminalDescendants,
+    actionable_terminal_descendant_opportunities: summary.actionableTerminalDescendants,
+    actionable_accepted_terminal_descendant_opportunities:
+      summary.actionableAcceptedTerminalDescendants,
+    actionable_acceptance_rate_given_terminal_descendant:
+      summary.actionableTerminalDescendants === 0
+        ? null
+        : summary.actionableAcceptedTerminalDescendants /
+          summary.actionableTerminalDescendants,
+    charged_frames: summary.frames,
+    actionable_charged_frames: summary.actionableFrames,
+    terminal_descendant_charged_frames: summary.terminalDescendantFrames,
+    accepted_terminal_descendant_charged_frames: summary.acceptedTerminalDescendantFrames,
+    mean_terminal_descendant_axis_sse_delta: summary.terminalDescendants === 0
+      ? null
+      : summary.terminalDescendantAxisSseDelta / summary.terminalDescendants,
+    mean_accepted_terminal_descendant_axis_sse_delta:
+      summary.acceptedTerminalDescendants === 0
+        ? null
+        : summary.acceptedTerminalDescendantAxisSseDelta /
+          summary.acceptedTerminalDescendants,
+    active_actionable_runs: summary.activeActionableRuns.size,
+    active_actionable_sources: summary.activeActionableSources.size,
+  })),
   interpretation_limits: [
     "The upper bound is exact for the compiler register's authored-axis objective; it does not rewrite or cap the authored specification.",
     "Audit subtree frames are the charged work until ordinary traversal exits that lineage. They are a counterfactual work opportunity, not a prediction of which alternative a live prune will reach.",
+    "Recovery pressure is prefix excess SSE divided by the incumbent's remaining suffix SSE. A value of 0.5 means the route must eliminate half of that remaining incumbent error merely to catch up.",
+    "Unlike strict dominance, recovery-pressure crossings may recover and be accepted. Accepted descendants are direct false-abort evidence for that threshold, not invariant violations.",
     "Compact paired cells characterize mechanics and screen a live rule. Only the canonical 750k probability ladder can authorize promotion.",
   ],
 };
@@ -269,4 +436,10 @@ function assertAuditIdentity(label: string, candidateRow: any, referenceRow: any
   if (JSON.stringify(candidate) !== JSON.stringify(reference)) {
     throw new Error(`${label}: audit changed behavior outside its telemetry field`);
   }
+}
+
+function sameNullableNumber(actual: unknown, expected: number | null): boolean {
+  if (actual === null || expected === null) return actual === expected;
+  return typeof actual === "number" && Number.isFinite(actual) &&
+    Math.abs(actual - expected) <= 1e-12 * Math.max(1, Math.abs(expected));
 }

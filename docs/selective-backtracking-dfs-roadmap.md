@@ -3196,7 +3196,66 @@ behavior-neutral **suffix recovery pressure** instead. At the same horizon,
 measure the current prefix's excess SSE over the incumbent prefix and divide
 it by the incumbent's SSE still remaining after that horizon. A value of 0.5
 means the current route must remove half of the incumbent's remaining error to
-catch up; 1.0 is the strict dominance boundary. Map fixed round levels without
+catch up; 1.0 is the raw SSE catch-up boundary, not the register proof (an
+axis-quality epsilon tie can still win on drift quality). Map fixed round levels without
 acting, attach crossings to actual terminal lineage and acceptance, and use
 the data to choose whether an early attempt abort or a retained-route priority
 handoff has an honest chance. Do not infer a threshold from final score.
+
+## Phase T: suffix recovery-pressure map
+
+### Signal and non-claims
+
+For the current repair prefix `C` and the completed incumbent `I`, measured at
+the same authored-axis horizon, define
+
+```text
+prefix excess = max(0, SSE(C prefix) - SSE(I prefix))
+incumbent remainder = max(0, SSE(I whole) - SSE(I prefix))
+recovery pressure = prefix excess / incumbent remainder.
+```
+
+The fixed audit levels are 0.25, 0.50, 0.75, and 1.00. A crossing starts one
+lineage record and ordinary DFS remains untouched until it returns from that
+lineage or reaches its first terminal. Record the root horizon, queued frontier
+breadth, charged work, terminal descent, and accepted descent. Require equal
+current/incumbent authored-axis populations at every comparison and fail
+loudly on malformed accounting. A zero incumbent remainder with positive
+excess is recorded as unbounded, not coerced to an arbitrary finite value.
+
+This is a normalized burden, not a calibrated probability, feasibility bound,
+or reason by itself to prune. It deliberately challenges two assumptions at
+once: that a worse prefix usually remains worse, and that the incumbent's
+remaining error is the right scale for recoverability. An accepted descendant
+is valuable counterevidence, not an invariant violation.
+
+### Frozen compact audit and selector
+
+Run the same eight-source panel at 750k with fresh actual seeds 222-225. The
+candidate differs from its reference only by
+`LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT=1`; after deleting the one telemetry field,
+all 32 cells must be exactly identical. This is an opportunity map, so final
+score is forbidden as a threshold selector.
+
+Among the four fixed levels, select the highest level having at least 12
+actionable nonterminal crossings, terminal-descendant outcomes for at least
+eight of them, activity in at least four runs, and activity across at least
+three sources. Then choose the first live disposition from direct false-abort
+evidence:
+
+- no accepted actionable descendant: an attempt-abort screen is admissible;
+- accepted descendants, but at most 10% of actionable terminal descendants:
+  retain the route and test a priority handoff to an already-queued alternative;
+- a higher accepted-descendant rate: do not interrupt on this scalar signal;
+  next add horizon/remaining-cost conditioning while preserving this audit.
+
+The count gate prevents choosing a clean-looking threshold from a handful of
+events. The highest qualifying level keeps the first intervention conservative.
+The acceptance rule is frozen before results and uses no score delta. Any live
+screen remains compact 750k evidence only; canonical promotion still requires
+the standing full 750k probability ladder. Do not run the multi-budget sweep.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Recovery-pressure schema and behavior-neutral lineage ledger | in progress | Fixed levels; equal-horizon SSE accounting; accepted descendants retained as counterevidence |
+| 2026-08-16 | Fresh 32-cell opportunity map | pending | Seeds 222-225, eight sources, 750k only |

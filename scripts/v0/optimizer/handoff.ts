@@ -3359,6 +3359,11 @@ function compileHandoffInternal(
             ? (() => {
               const prefix = authoredAxisWindow(node.search);
               const gapIndex = node.search.gapIndex;
+              const incumbentPrefix = authoredAxisWindow(
+                bestCompleteNode.search,
+                0,
+                gapIndex,
+              );
               return repairAxisBranchBound.observeSelection({
                 node,
                 totalSpentFrames: getSimFrames(),
@@ -3372,6 +3377,8 @@ function compileHandoffInternal(
                 prefixAxisCount: prefix.axisCount,
                 prefixAxisSse: prefix.axisSse,
                 prefixAxisLoss: prefix.axisLoss,
+                incumbentPrefixAxisCount: incumbentPrefix.axisCount,
+                incumbentPrefixAxisSse: incumbentPrefix.axisSse,
               });
             })()
             : null;
@@ -4919,6 +4926,7 @@ function compileHandoffInternal(
           anchorGapIndex: k,
           totalSpentFrames: framesBefore,
           incumbentAxisQuality: incumbentEvaluation.key.axis_quality,
+          incumbentAxisSse: authoredAxisWindow(incumbent.search).axisSse,
           totalAuthoredAxisCount,
         });
         repairAttemptBoundAbortRequested = false;
@@ -4967,22 +4975,28 @@ function compileHandoffInternal(
             ),
           );
         const acceptedAlternative = incumbentRevision > incumbentRevisionBefore;
-        if (repairAxisBranchBound !== null && completed && lastTerminalNode !== null) {
-          const terminalWindow = authoredAxisWindow(lastTerminalNode.search);
+        const repairTerminalWindow = repairAxisBranchBound !== null &&
+            completed && lastTerminalNode !== null
+          ? authoredAxisWindow(lastTerminalNode.search)
+          : null;
+        if (repairTerminalWindow !== null && lastTerminalNode !== null) {
           const terminalEvaluation = evaluateCached(lastTerminalNode);
           if (
             terminalEvaluation.key.contract_passed &&
-            terminalWindow.axisCount !== totalAuthoredAxisCount
+            repairTerminalWindow.axisCount !== totalAuthoredAxisCount
           ) {
             throw new Error(
-              `repair axis-bound terminal population ${terminalWindow.axisCount} ` +
+              `repair axis-bound terminal population ${repairTerminalWindow.axisCount} ` +
               `does not match authored population ${totalAuthoredAxisCount}`,
             );
           }
           if (
-            terminalWindow.axisCount === totalAuthoredAxisCount &&
+            repairTerminalWindow.axisCount === totalAuthoredAxisCount &&
             Math.abs(
-              optimisticAxisQualityUpper(terminalWindow.axisSse, totalAuthoredAxisCount) -
+              optimisticAxisQualityUpper(
+                repairTerminalWindow.axisSse,
+                totalAuthoredAxisCount,
+              ) -
                 terminalEvaluation.key.axis_quality,
             ) > 1e-12
           ) {
@@ -4997,6 +5011,7 @@ function compileHandoffInternal(
             : null,
           terminalReached: completed,
           acceptedAlternative,
+          terminalAxisSse: repairTerminalWindow?.axisSse ?? null,
         });
         let rejectedLocalImprovementFollowup:
           BudgetEpisodeTelemetry["outcome"]["rejected_local_improvement_followup"] =

@@ -1515,3 +1515,51 @@ The repair lane is closed. At the broadest 0.005 threshold it admits only 46
 watches across six runs at 750k, below the required eight; stricter thresholds
 are narrower. Phase B is therefore initial-only at density 0.020. No repair
 live arm, threshold exception, or score-based substitution is permitted.
+
+### Phase B result and closure
+
+The live screen completed all 160 compiles (80 candidate and 80 reference)
+with every cell valid. Both the policy-specific and generic telemetry auditors
+reconcile all actions, probe frames, candidate requests, local allowances,
+atomic overshoots, disabled tail completion, outcomes, and lane attribution.
+The policy acts in every run and source.
+
+The direction is promising. At 750k the mean paired score is +0.6438 +/-
+0.8549 seed-block SE, with three of four positive seed blocks. At 1.25M it is
++4.1376 +/- 1.8153, with all four seed blocks positive. The policy spends
+3,462,229 and 3,874,420 probe frames in 446 and 311 actions respectively. Its
+first terminal moves later by 51,193/41,790 frames on average, while ordinary
+repair work falls by 2,063,149/1,681,858 aggregate frames. All 80 tracks change;
+this is a broad search-order intervention, not a sparse repair.
+
+The exact rule nevertheless closes. `regression_transition_mosaic`, seed 161,
+loses 29.7908 points at 750k, violating the declared no-20-point-loss gate.
+The other continuation clauses pass at both budgets. There is no exception,
+confirmation, or canonical run for density-0.020 as implemented.
+
+The mechanism evidence supports a distinct follow-up rather than a threshold
+tweak. Actions in the first 10% of normalized gap progress select the local
+alternative in only 26.8% of completed tournaments at 750k and 23.1% at
+1.25M, versus 43.6%/47.1% in the 25-50% band. The early band contains 56/52
+actions and spends 492,178/680,380 frames. The two low-budget transition-mosaic
+tail losses both begin with voluntary actions in this early region. This is an
+association with local outcomes, not proof that deleting those actions repairs
+the final scores.
+
+### Phase C: delayed value-ranked exploration
+
+The next arm changes one categorical condition: value-ranked actions require
+the current authored gap index to reach 10% of the specification's gap count.
+Before that boundary production traversal, production branch regret, watch
+lineage, and telemetry remain active, but value exploration cannot consume a
+watch; it can become eligible after the boundary. Density 0.020, maturity
+three, ranking, ordinary budget-specific breadth, the 15% exploration fund,
+the 1.25 terminal reserve, local atomic-work boundary, and initial-only lane
+remain exact. Ten percent is a round normalized horizon selected from the
+predeclared progress bin, not from a final-score sweep.
+
+The screen uses the same ten sources and budgets 750,000/1,250,000 with fresh
+actual seeds 162-165. Its continuation gate is unchanged from Phase B. If it
+passes, one confirmation uses seeds 166-169 under the same fixed contract. If
+it fails, close the exact delayed rule. No canonical run, breadth interaction,
+reserve tuning, or additional progress threshold is authorized by this arm.

@@ -1739,7 +1739,7 @@ failure count, source exception, or canonical V2 run may be substituted.
 |---|---|---|---|
 | 2026-08-15 | Rule, state machine, telemetry, and score gates frozen | complete | This section |
 | 2026-08-15 | Live implementation and mechanical proof | complete | `4fac0a4f`; 24 controller tests, focused telemetry/archive suites, targeted typecheck, and `generated/benchmark-v2/mover-grid/value-run-proof-mechanism-smoke/analysis.json` |
-| 2026-08-15 | Fresh paired two-budget screen | pending | — |
+| 2026-08-15 | Fresh paired two-budget screen | closed | `generated/benchmark-v2/mover-grid/value-run-proof-two-budget-n4/analysis.json` |
 
 The trace smoke used reused seed 168 only, so its scores are not decision
 evidence. All 10 candidate and reference cells completed. The proof state was
@@ -1749,3 +1749,23 @@ equal-depth reachability and one failed proof sealed 14 later opportunities; at
 32 suppressions occurred after the attributed first action, no sealed run
 admitted a second voluntary value tournament, and ordinary production
 traversal remained available. This clears the mechanical gate for fresh seeds.
+
+The fresh seeds close this exact rule without confirmation or canonical V2.
+All 80 candidate and 80 reference cells completed and remained valid. The
+paired mean was +0.9615 +/- 1.6271 seed-block SE at 750k and +1.1966 +/-
+2.1938 at 1.25M; positive seed blocks were 3/4 and 2/4. These positive totals
+do not establish a run-proof gain: the new proof state sealed only one 750k run
+and four 1.25M runs, all on `frontier_pickup_progression`, whose source mean was
+-0.2739 and -1.5782 respectively. Coverage therefore missed the frozen
+two-source gate at both budgets. The tail gate also failed on
+`regression_transition_mosaic`: -41.0883 at 750k and -30.8189/-22.8378 at
+1.25M. Optional probe work delayed the first terminal by 45,967 and 36,553
+frames on average and displaced 1,829,962 and 1,454,030 repair frames. No
+source exception or post-hoc threshold is permitted.
+
+Because the screen compares the full inherited Phase-D rule with production,
+its positive total cannot isolate the new gate's five-run causal effect. A
+small same-cell ablation against the ungated
+`selective-axis-regret-catchup-value-initial-expire-10` parent is diagnostic
+only. It may characterize the failed hypothesis, but it cannot reopen the
+closed rule or substitute for its frozen gates.

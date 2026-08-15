@@ -2913,7 +2913,11 @@ same broad, score-blind first crossing used by Phase P, and only while the
 incumbent remains queued and fits the shipped 1.25 terminal reserve, retain the
 current route and run the displaced incumbent as one isolated preferred-path
 probe to the current route's exact gap. Disable nested selective backtracking
-inside the probe. Retain every generated sibling in the ordinary frontier. If
+inside the probe. Its local allowance is all execution work remaining above
+the existing 1.25 conservative terminal reserve at the target gap; before
+moving either route, require the observed atomic-cost upper bound to fit that
+allowance. A failed preflight leaves the frontier byte-for-byte unchanged.
+Retain every generated sibling in the ordinary frontier. If
 the probe reaches the target, compare authored-axis loss over the same prefix
 horizon and put the measured winner on top of the LIFO frontier; retain the
 loser immediately below it. If the probe dies, defers, exhausts its allowance,
@@ -2930,3 +2934,32 @@ Use only a known-activity smoke and a fresh compact 750k panel before deciding
 whether the arm warrants the standing canonical probability ladder. Do not use
 the multi-budget sweep and do not select source-specific eligibility from
 compact outcomes.
+
+The fresh decision panel is the same eight sources at 750k with actual seeds
+210-213. Evaluate the continuation gate only when all four seed blocks are
+complete. Continue only if every candidate cell is valid, no reference
+completion is lost, total raw score movement is positive, at least three seed
+blocks and four source means are positive, no cell loses 20 points, at least
+40 probes reach an exact same-horizon comparison, at least 90% of started
+probes reach that horizon, both current and incumbent routes win at least once,
+and exercised actions span all eight sources. Every eligible action must
+either be admitted or explicitly rejected by the atomic preflight, and every
+admitted action must start. Passing this
+gate permits the ordinary canonical 750k probability ladder; it is not
+promotion. Failure closes the frozen rule without threshold, source, reserve,
+or budget tuning.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Same-horizon controller and scheduler | complete: unit | Separate `LR_ROUTE_LEASE_REVALIDATION=1`; focused suite and targeted type check clean |
+| 2026-08-16 | Known-activity production smoke | complete: mechanically exact | 8/8 valid; 22/22 probes reach equal horizon; current wins 14, incumbent wins 8; no yield/death/ceiling |
+| 2026-08-16 | Fresh four-seed continuation panel | pending | Actual seeds 210-213; eight sources; 750k only |
+
+The first smoke also caught and removed a false experiment before evidence was
+used. An initial allowance equal only to the estimator's mean gap-to-gap work
+caused 20/22 probes to yield before processing any node. The frozen contract
+now uses the work remaining above the shipped target-horizon terminal reserve,
+plus an atomic preflight. With that correction, all 22 admitted probes reach
+the exact target, compare equal axis counts, and exercise both priority
+outcomes. Raw score movement is +14.90 (+1.862/cell; 3/3/2), but this reused
+known-activity seed is mechanics evidence only and does not evaluate the gate.

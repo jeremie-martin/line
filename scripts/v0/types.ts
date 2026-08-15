@@ -496,7 +496,8 @@ export type CompileStats = {
   handoff_far_back_pulses?: number;
   /** Present for the production selective-backtracking frontier policy. An
    *  explicit DFS diagnostic omits the object. */
-  handoff_selective_backtracking?: {
+  handoff_selective_backtracking?:
+    import("./optimizer/selective_backtracking.ts").SelectiveBacktrackingStats | {
     policy:
       | "selective_axis_regret_catchup"
       | "selective_axis_regret_catchup_repair_incumbent_once"

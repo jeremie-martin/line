@@ -30,7 +30,9 @@ for (const [key, candidateRow] of candidateRows) {
   const stats = candidateRow.stats?.handoff_selective_backtracking;
   if (
     stats?.policy !== "selective_axis_regret_catchup_value_initial_expire_10" ||
-    stats.route_lease_audit_enabled !== true
+    stats.route_lease_audit_enabled !== true ||
+    stats.route_lease_rollback_enabled === true ||
+    stats.route_lease_revalidation_enabled === true
   ) throw new Error(`${label}: candidate is not the accepted Phase-D audit mode`);
   const rows = stats.route_lease_audits ?? [];
   if (
@@ -218,6 +220,7 @@ function stripAudit(stats: any): any {
   if (selective !== undefined) {
     delete selective.route_lease_audit_enabled;
     delete selective.route_lease_rollback_enabled;
+    delete selective.route_lease_revalidation_enabled;
     delete selective.route_lease_audits_started;
     delete selective.route_lease_audits_selected;
     delete selective.route_lease_audits_with_loss_crossing;
@@ -225,6 +228,21 @@ function stripAudit(stats: any): any {
     delete selective.route_lease_rollbacks_executed;
     delete selective.route_lease_rollbacks_incumbent_unavailable;
     delete selective.route_lease_rollbacks_terminal_reserve_suppressed;
+    delete selective.route_lease_revalidations_eligible;
+    delete selective.route_lease_revalidations_admitted;
+    delete selective.route_lease_revalidations_started;
+    delete selective.route_lease_revalidations_incumbent_unavailable;
+    delete selective.route_lease_revalidations_terminal_reserve_suppressed;
+    delete selective.route_lease_revalidations_probe_allowance_suppressed;
+    delete selective.route_lease_revalidations_target_reached;
+    delete selective.route_lease_revalidations_current_selected;
+    delete selective.route_lease_revalidations_incumbent_selected;
+    delete selective.route_lease_revalidations_probe_dead_ends;
+    delete selective.route_lease_revalidations_probe_deferred;
+    delete selective.route_lease_revalidations_probe_budget_yields;
+    delete selective.route_lease_revalidations_execution_ceiling_stops;
+    delete selective.route_lease_revalidation_probe_nodes_processed;
+    delete selective.route_lease_revalidation_probe_frames;
     delete selective.route_lease_audits;
   }
   return clone;

@@ -1507,6 +1507,181 @@ describe("selective-backtracking controller", () => {
       .toBeCloseTo(0.01);
   });
 
+  test("revalidates a displaced incumbent at the selected route's exact horizon", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_initial_expire_10",
+      routeLeaseRevalidation: true,
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const current = { gap: 4, name: "current" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.10,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [current],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.10,
+    });
+    const decision = controller.consider({
+      node: current,
+      contactOrdinal: 4,
+      contactBoundary: true,
+      axisLoss: 0.14,
+      gapProgress: 0.20,
+      executionCeilingReached: false,
+      totalSpentFrames: 100_000,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      explorationBudgetAssessment: () => ({
+        execution_remaining_frames: 500_000,
+        conservative_terminal_work_frames: 100_000,
+        estimated_probe_work_frames: 10_000,
+        terminal_reserve_frames: 125_000,
+        exploration_allowance_frames: 112_500,
+        exploration_spent_frames: 0,
+        exploration_remaining_frames: 112_500,
+        local_probe_allowance_frames: 112_500,
+        admitted: true,
+        reason: "admitted",
+      }),
+    });
+    controller.recordCatchupCheckpoint(decision!, 1, "causal_alternative", 1, {
+      gap_index: 4,
+      contact_advance: 3,
+      probe_nodes_processed: 2,
+      probe_frames: 80,
+      current_axis_loss: 0.14,
+      alternative_axis_loss: 0.10,
+      alternative_axis_loss_gain: 0.04,
+    });
+    controller.finishCatchup(decision!, {
+      outcome: "alternative_selected",
+      selectedAlternativeOrdinal: 1,
+      selectedRouteOrdinal: 1,
+      probes: [{
+        route_ordinal: 1,
+        route_kind: "causal_alternative",
+        alternative_ordinal: 1,
+        outcome: "reached_target",
+        end_gap_index: 4,
+        probe_nodes_processed: 2,
+        probe_frames: 80,
+        ranked_option_calls: 2,
+        requested_normal_proposals: 160,
+        candidate_geometry_evaluations: 150,
+        ...NO_EMPTY_POOL_RETRY,
+        atomic_node_primary_normal_requested_proposals: [80, 80],
+        atomic_node_starting_prefix_axis_loss_gain: [null, 0.01],
+        atomic_node_frames: [40, 40],
+        tail_completion_attempts: 0,
+        budget_allowance_frames: 112_500,
+        budget_remaining_before_yield: null,
+        estimated_next_node_frames: null,
+        axis_loss: 0.10,
+        local_fallback_choices: [],
+      }],
+      catchupAxisLoss: 0.10,
+    });
+    const selected = { gap: 4, name: "selected alternative" };
+    controller.markSelectedRouteLease(selected, current, decision!, {
+      selectedRouteOrdinal: 1,
+      selectedAlternativeOrdinal: 1,
+      selectedTakeover: { axis_count: 12, axis_sse: 0.12, axis_loss: 0.10 },
+      displacedIncumbentTakeover: { axis_count: 12, axis_sse: 0.18, axis_loss: 0.14 },
+    });
+    controller.observeSelected(selected, 100_080, {
+      wholePrefix: { axis_count: 12, axis_sse: 0.12, axis_loss: 0.10 },
+      divergentSuffix: { axis_count: 0, axis_sse: 0, axis_loss: 0 },
+      displacedIncumbentAvailable: true,
+      displacedIncumbentConservativeDeadlineMargin: 4,
+      displacedIncumbentAffordableWithReserve: true,
+    });
+    const child = { gap: 5, name: "selected continuation" };
+    controller.observeExpansion({
+      parent: selected,
+      children: [child],
+      contactExpansion: true,
+      contactOrdinal: 4,
+      axisLoss: 0.10,
+    });
+    controller.observeSelected(child, 102_000, {
+      wholePrefix: { axis_count: 15, axis_sse: 0.25, axis_loss: 0.15 },
+      divergentSuffix: { axis_count: 3, axis_sse: 0.13, axis_loss: 0.21 },
+      displacedIncumbentAvailable: true,
+      displacedIncumbentConservativeDeadlineMargin: 2,
+      displacedIncumbentAffordableWithReserve: true,
+    });
+    expect(controller.claimRouteLeaseRevalidation(child, 102_000, () => ({
+      probeAllowanceFrames: 20_000,
+      estimatedProbeWorkFrames: 10_000,
+      terminalReserveFrames: 125_000,
+      executionRemainingFrames: 500_000,
+      estimatedNextNodeFrames: 8_000,
+    }))).toEqual({
+      auditIndex: 0,
+      displacedIncumbent: current,
+      targetGapIndex: 5,
+      probeAllowanceFrames: 20_000,
+      estimatedProbeWorkFrames: 10_000,
+      terminalReserveFrames: 125_000,
+      executionRemainingFrames: 500_000,
+      estimatedNextNodeFrames: 8_000,
+    });
+    expect(controller.consumeRouteLeaseRevalidationIncumbent(current, 0, 102_000)).toBe(true);
+    controller.finishRouteLeaseRevalidation(0, {
+      target_gap_index: 5,
+      start_total_spent_frames: 102_000,
+      probe_allowance_frames: 20_000,
+      estimated_probe_work_frames: 10_000,
+      terminal_reserve_frames: 125_000,
+      execution_remaining_frames: 500_000,
+      preflight_estimated_next_node_frames: 8_000,
+      end_total_spent_frames: 104_000,
+      probe_nodes_processed: 1,
+      probe_frames: 2_000,
+      outcome: "incumbent_selected",
+      current_axis_loss: 0.15,
+      incumbent_axis_loss: 0.13,
+      current_axis_count: 15,
+      incumbent_axis_count: 15,
+      current_axis_sse: 0.25,
+      incumbent_axis_sse: 0.20,
+    });
+    expect(controller.snapshot()).toMatchObject({
+      route_lease_audit_enabled: true,
+      route_lease_rollback_enabled: false,
+      route_lease_revalidation_enabled: true,
+      route_lease_revalidations_eligible: 1,
+      route_lease_revalidations_admitted: 1,
+      route_lease_revalidations_started: 1,
+      route_lease_revalidations_target_reached: 1,
+      route_lease_revalidations_incumbent_selected: 1,
+      route_lease_revalidation_probe_nodes_processed: 1,
+      route_lease_revalidation_probe_frames: 2_000,
+      route_lease_audits: [{
+        revalidation_disposition: "started",
+        revalidation: {
+          target_gap_index: 5,
+          outcome: "incumbent_selected",
+          current_axis_loss: 0.15,
+          incumbent_axis_loss: 0.13,
+        },
+        end_reason: "revalidation_incumbent_selected",
+        end_total_spent_frames: 104_000,
+      }],
+      events: [{ resumed_total_spent_frames: 102_000 }],
+    });
+  });
+
   test("seals later value opportunities when the first run-proof probe cannot reach", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
       policy: "selective_axis_regret_catchup_value_initial_expire_10_run_proof",

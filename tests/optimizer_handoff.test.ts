@@ -416,10 +416,12 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const previousPolicy = process.env.LR_FRONTIER_POLICY;
     const previousAudit = process.env.LR_ROUTE_LEASE_AUDIT;
     const previousRollback = process.env.LR_ROUTE_LEASE_ROLLBACK;
+    const previousRevalidation = process.env.LR_ROUTE_LEASE_REVALIDATION;
     try {
       delete process.env.LR_FRONTIER_POLICY;
       delete process.env.LR_ROUTE_LEASE_AUDIT;
       delete process.env.LR_ROUTE_LEASE_ROLLBACK;
+      delete process.env.LR_ROUTE_LEASE_REVALIDATION;
       const reference = compileHandoff(spec, 2, {
         budget: 20_000,
         maxNodes: 12,
@@ -451,6 +453,30 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         maxNodes: 12,
         polish: false,
       })).toThrow(/LR_ROUTE_LEASE_ROLLBACK must be 0 or 1/);
+      process.env.LR_ROUTE_LEASE_ROLLBACK = "0";
+      process.env.LR_ROUTE_LEASE_REVALIDATION = "yes";
+      expect(() => compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      })).toThrow(/LR_ROUTE_LEASE_REVALIDATION must be 0 or 1/);
+      process.env.LR_ROUTE_LEASE_REVALIDATION = "1";
+      const revalidation = compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      });
+      expect(revalidation.stats.handoff_selective_backtracking).toMatchObject({
+        route_lease_audit_enabled: true,
+        route_lease_rollback_enabled: false,
+        route_lease_revalidation_enabled: true,
+      });
+      process.env.LR_ROUTE_LEASE_ROLLBACK = "1";
+      expect(() => compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      })).toThrow(/rollback and revalidation are mutually exclusive/);
     } finally {
       if (previousPolicy === undefined) delete process.env.LR_FRONTIER_POLICY;
       else process.env.LR_FRONTIER_POLICY = previousPolicy;
@@ -458,6 +484,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       else process.env.LR_ROUTE_LEASE_AUDIT = previousAudit;
       if (previousRollback === undefined) delete process.env.LR_ROUTE_LEASE_ROLLBACK;
       else process.env.LR_ROUTE_LEASE_ROLLBACK = previousRollback;
+      if (previousRevalidation === undefined) delete process.env.LR_ROUTE_LEASE_REVALIDATION;
+      else process.env.LR_ROUTE_LEASE_REVALIDATION = previousRevalidation;
     }
   }, 60_000);
 

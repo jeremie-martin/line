@@ -1997,8 +1997,18 @@ function compileHandoffInternal(
     routeLeaseRollbackRaw !== undefined && routeLeaseRollbackRaw !== "" &&
     routeLeaseRollbackRaw !== "0" && routeLeaseRollbackRaw !== "1"
   ) throw new Error("LR_ROUTE_LEASE_ROLLBACK must be 0 or 1");
+  const routeLeaseRevalidationRaw = process.env.LR_ROUTE_LEASE_REVALIDATION;
+  if (
+    routeLeaseRevalidationRaw !== undefined && routeLeaseRevalidationRaw !== "" &&
+    routeLeaseRevalidationRaw !== "0" && routeLeaseRevalidationRaw !== "1"
+  ) throw new Error("LR_ROUTE_LEASE_REVALIDATION must be 0 or 1");
   const routeLeaseRollback = routeLeaseRollbackRaw === "1";
-  const routeLeaseAudit = routeLeaseAuditRaw === "1" || routeLeaseRollback;
+  const routeLeaseRevalidation = routeLeaseRevalidationRaw === "1";
+  if (routeLeaseRollback && routeLeaseRevalidation) {
+    throw new Error("route-lease rollback and revalidation are mutually exclusive");
+  }
+  const routeLeaseAudit = routeLeaseAuditRaw === "1" || routeLeaseRollback ||
+    routeLeaseRevalidation;
   setProposalUtilityPowers();
   setAimCompileBudgetFrames(searchPolicyBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
@@ -2158,7 +2168,12 @@ function compileHandoffInternal(
     const selectiveBacktracking = frontierTraversalPolicy !== "depth_first"
       ? new SelectiveAxisRegretController<HandoffNode>(
         (node) => node.search.gapIndex,
-        { policy: frontierTraversalPolicy, routeLeaseAudit, routeLeaseRollback },
+        {
+          policy: frontierTraversalPolicy,
+          routeLeaseAudit,
+          routeLeaseRollback,
+          routeLeaseRevalidation,
+        },
       )
       : null;
     selectiveBacktracking?.observeRoot(root);
@@ -3804,6 +3819,177 @@ function compileHandoffInternal(
         return false;
       };
 
+      /** Revalidate a selected route without giving either side an open-ended
+       * lease. The displaced incumbent gets one isolated preferred-path probe
+       * to the selected route's current gap; every sibling remains ordinary
+       * frontier work and both equal-depth endpoints are retained. */
+      const runRouteLeaseRevalidation = (
+        current: HandoffNode,
+        claim: {
+          auditIndex: number;
+          displacedIncumbent: HandoffNode;
+          targetGapIndex: number;
+          probeAllowanceFrames: number;
+          estimatedProbeWorkFrames: number;
+          terminalReserveFrames: number;
+          executionRemainingFrames: number;
+          estimatedNextNodeFrames: number;
+        },
+      ): boolean => {
+        if (!takeFrontierNode(claim.displacedIncumbent, pass, fb)) {
+          throw new Error("route-lease revalidation incumbent left the ordinary frontier");
+        }
+        const startFrames = getSimFrames();
+        const probeAllowance = claim.probeAllowanceFrames;
+        let probe = claim.displacedIncumbent;
+        let resumeProbe = selectiveBacktracking!.consumeRouteLeaseRevalidationIncumbent(
+          probe,
+          claim.auditIndex,
+          startFrames,
+        );
+        let probeNodesProcessed = 0;
+        const finish = (
+          outcome:
+            | "current_selected"
+            | "incumbent_selected"
+            | "probe_dead_end"
+            | "probe_deferred"
+            | "probe_budget_yield"
+            | "execution_ceiling",
+          currentAxisLoss: number | null = null,
+          incumbentAxisLoss: number | null = null,
+          currentAxisCount: number | null = null,
+          incumbentAxisCount: number | null = null,
+          currentAxisSse: number | null = null,
+          incumbentAxisSse: number | null = null,
+        ): void => {
+          selectiveBacktracking!.finishRouteLeaseRevalidation(claim.auditIndex, {
+            target_gap_index: claim.targetGapIndex,
+            start_total_spent_frames: startFrames,
+            probe_allowance_frames: probeAllowance,
+            estimated_probe_work_frames: claim.estimatedProbeWorkFrames,
+            terminal_reserve_frames: claim.terminalReserveFrames,
+            execution_remaining_frames: claim.executionRemainingFrames,
+            preflight_estimated_next_node_frames: claim.estimatedNextNodeFrames,
+            end_total_spent_frames: getSimFrames(),
+            probe_nodes_processed: probeNodesProcessed,
+            probe_frames: getSimFrames() - startFrames,
+            outcome,
+            current_axis_loss: currentAxisLoss,
+            incumbent_axis_loss: incumbentAxisLoss,
+            current_axis_count: currentAxisCount,
+            incumbent_axis_count: incumbentAxisCount,
+            current_axis_sse: currentAxisSse,
+            incumbent_axis_sse: incumbentAxisSse,
+          });
+        };
+
+        while (probe.search.gapIndex < claim.targetGapIndex) {
+          if (!keepGoing() || telemetry.nodesExpanded >= maxNodes) {
+            enqueueChild(probe, pass, fb);
+            enqueueChild(current, pass, fb);
+            finish("execution_ceiling");
+            return false;
+          }
+          const probeSpent = getSimFrames() - startFrames;
+          const localRemaining = Math.max(0, probeAllowance - probeSpent);
+          const remainingProbeWork = Math.max(
+            0,
+            Math.ceil(
+              conservativeDeadlineWorkAtGap(probe.search.gapIndex) -
+                conservativeDeadlineWorkAtGap(claim.targetGapIndex),
+            ),
+          );
+          const remainingGapAdvance = Math.max(
+            1,
+            claim.targetGapIndex - probe.search.gapIndex,
+          );
+          const policy = resolvePolicy(probe.search);
+          const observedCostEstimate = Math.ceil(
+            policy.nCand * Math.max(1, observedAtomicCostPerCandidateUpper),
+          );
+          const suffixAverageEstimate = Math.ceil(
+            remainingProbeWork / remainingGapAdvance,
+          );
+          if (Math.max(1, observedCostEstimate, suffixAverageEstimate) > localRemaining) {
+            enqueueChild(probe, pass, fb);
+            enqueueChild(current, pass, fb);
+            finish("probe_budget_yield");
+            return false;
+          }
+          const result = processSelected(probe, resumeProbe, false, false);
+          resumeProbe = false;
+          probeNodesProcessed++;
+          if (result.kind === "captured" || result.kind === "terminal_limit") {
+            finish("execution_ceiling");
+            return true;
+          }
+          if (result.kind === "selective_backtrack") {
+            throw new Error("nested selective backtrack escaped route revalidation");
+          }
+          if (result.kind === "deferred") {
+            const replacement = { ...probe, deferExpansion: false };
+            selectiveBacktracking!.replaceNode(probe, replacement);
+            enqueueDeferred(replacement, pass, fb);
+            enqueueChild(current, pass, fb);
+            finish("probe_deferred");
+            return false;
+          }
+          const next = result.children.find((child) => child.skippedContacts === 0);
+          for (let i = result.children.length - 1; i >= 0; i--) {
+            const child = result.children[i]!;
+            if (child !== next) enqueueChild(child, pass, fb);
+          }
+          if (next === undefined) {
+            enqueueChild(current, pass, fb);
+            finish("probe_dead_end");
+            return false;
+          }
+          probe = next;
+        }
+
+        const currentWindow = authoredAxisWindow(
+          current.search,
+          0,
+          claim.targetGapIndex,
+        );
+        const incumbentWindow = authoredAxisWindow(
+          probe.search,
+          0,
+          claim.targetGapIndex,
+        );
+        if (incumbentWindow.axisLoss < currentWindow.axisLoss) {
+          enqueueChild(current, pass, fb);
+          enqueueChild(probe, pass, fb);
+          finish(
+            "incumbent_selected",
+            currentWindow.axisLoss,
+            incumbentWindow.axisLoss,
+            currentWindow.axisCount,
+            incumbentWindow.axisCount,
+            currentWindow.axisSse,
+            incumbentWindow.axisSse,
+          );
+        } else {
+          enqueueChild(probe, pass, fb);
+          enqueueChild(current, pass, fb);
+          finish(
+            "current_selected",
+            currentWindow.axisLoss,
+            incumbentWindow.axisLoss,
+            currentWindow.axisCount,
+            incumbentWindow.axisCount,
+            currentWindow.axisSse,
+            incumbentWindow.axisSse,
+          );
+        }
+        telemetry.frontierMaxSize = Math.max(
+          telemetry.frontierMaxSize,
+          frontierSize(pass, fb),
+        );
+        return false;
+      };
+
       while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
         if (!keepGoing()) break;
         const nextNode = peekNextFrontierNode(pass, fb);
@@ -3869,6 +4055,63 @@ function compileHandoffInternal(
             telemetry.frontierMaxSize,
             frontierSize(pass, fb),
           );
+          continue;
+        }
+        const routeLeaseRevalidationDecision =
+          selectiveBacktracking?.claimRouteLeaseRevalidation(
+            node,
+            getSimFrames(),
+            (incumbent, targetGapIndex) => {
+              const executionRemainingFrames = Math.max(
+                0,
+                executionCeilingFrames - getSimFrames(),
+              );
+              const incumbentWork = conservativeDeadlineWorkAtGap(
+                incumbent.search.gapIndex,
+              );
+              const targetWork = conservativeDeadlineWorkAtGap(targetGapIndex);
+              const estimatedProbeWorkFrames = Math.max(
+                0,
+                Math.ceil(incumbentWork - targetWork),
+              );
+              const terminalReserveFrames = Math.ceil(
+                SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR * targetWork,
+              );
+              const probeAllowanceFrames = Math.max(
+                0,
+                executionRemainingFrames - terminalReserveFrames,
+              );
+              const remainingGapAdvance = Math.max(
+                1,
+                targetGapIndex - incumbent.search.gapIndex,
+              );
+              const policy = resolvePolicy(incumbent.search);
+              const observedCostEstimate = Math.ceil(
+                policy.nCand * Math.max(1, observedAtomicCostPerCandidateUpper),
+              );
+              const suffixAverageEstimate = Math.ceil(
+                estimatedProbeWorkFrames / remainingGapAdvance,
+              );
+              return {
+                probeAllowanceFrames,
+                estimatedProbeWorkFrames,
+                terminalReserveFrames,
+                executionRemainingFrames,
+                estimatedNextNodeFrames: Math.max(
+                  1,
+                  observedCostEstimate,
+                  suffixAverageEstimate,
+                ),
+              };
+            },
+          ) ?? null;
+        if (routeLeaseRevalidationDecision !== null) {
+          if (resumeSuspendedContinuation) {
+            throw new Error(
+              "route-lease revalidation selected an already suspended continuation",
+            );
+          }
+          if (runRouteLeaseRevalidation(node, routeLeaseRevalidationDecision)) return;
           continue;
         }
         const result = processSelected(

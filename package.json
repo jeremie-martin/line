@@ -57,6 +57,7 @@
     "benchmark:v2:first-advantage-canonical-analysis": "node --import tsx scripts/benchmark/analyze_first_advantage_canonical.ts",
     "benchmark:v2:route-lease-audit-analysis": "node --import tsx scripts/benchmark/analyze_route_lease_audit.ts",
     "benchmark:v2:route-lease-rollback-analysis": "node --import tsx scripts/benchmark/analyze_route_lease_rollback.ts",
+    "benchmark:v2:route-lease-revalidation-analysis": "node --import tsx scripts/benchmark/analyze_route_lease_revalidation.ts",
     "benchmark:v2:value-run-proof-analysis": "node --import tsx scripts/benchmark/analyze_value_ranked_live.ts --policy=selective_axis_regret_catchup_value_initial_expire_10_run_proof",
     "benchmark:v2:value-run-proof-ablation": "node --import tsx scripts/benchmark/analyze_value_run_proof_ablation.ts",
     "benchmark:v2:canonical-value-attribution": "node --import tsx scripts/benchmark/analyze_canonical_value_attribution.ts",

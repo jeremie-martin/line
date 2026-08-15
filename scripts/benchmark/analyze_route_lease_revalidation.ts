@@ -1,4 +1,4 @@
-/** Paired mechanics and continuation gate for bounded selected-route rollback. */
+/** Paired mechanics and continuation gate for same-horizon route revalidation. */
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -17,7 +17,7 @@ const argument = (name: string): string | undefined =>
 const candidatePath = required("candidate");
 const referencePath = required("reference");
 const outPath = argument("out");
-const candidate = readGridArm("route-lease-rollback", candidatePath);
+const candidate = readGridArm("route-lease-revalidation", candidatePath);
 const reference = readGridArm("phase-d", referencePath);
 const pairingNotes = assertPairedArms(candidate, reference);
 const candidateRows = rowsByKey(candidate);
@@ -27,13 +27,25 @@ const outcomes = pairedGridOutcomeSummary(paired.pairs);
 
 let audits = 0;
 let crossings = 0;
+let eligible = 0;
 let admitted = 0;
-let executed = 0;
+let started = 0;
 let unavailable = 0;
 let reserveSuppressed = 0;
-const rollbackRuns = new Set<string>();
-const rollbackSources = new Set<string>();
-const noRollbackPairs: Array<{ candidate: any; reference: any }> = [];
+let allowanceSuppressed = 0;
+let targetReached = 0;
+let currentSelected = 0;
+let incumbentSelected = 0;
+let deadEnds = 0;
+let deferred = 0;
+let budgetYields = 0;
+let ceilingStops = 0;
+let probeNodes = 0;
+let probeFrames = 0;
+const actionRuns = new Set<string>();
+const actionSources = new Set<string>();
+const noActionPairs: Array<{ candidate: any; reference: any }> = [];
+
 for (const [key, candidateRow] of candidateRows) {
   const referenceRow = referenceRows.get(key);
   if (referenceRow === undefined) throw new Error(`reference is missing ${printableKey(key)}`);
@@ -42,42 +54,75 @@ for (const [key, candidateRow] of candidateRows) {
   if (
     stats?.policy !== "selective_axis_regret_catchup_value_initial_expire_10" ||
     stats.route_lease_audit_enabled !== true ||
-    stats.route_lease_rollback_enabled !== true ||
-    stats.route_lease_revalidation_enabled === true
-  ) throw new Error(`${label}: candidate is not the bounded route-lease rollback arm`);
+    stats.route_lease_rollback_enabled !== false ||
+    stats.route_lease_revalidation_enabled !== true
+  ) throw new Error(`${label}: candidate is not the same-horizon revalidation arm`);
   const rows = stats.route_lease_audits ?? [];
+  const actions = rows.filter((audit: any) => audit.revalidation !== null);
   const events = stats.events ?? [];
-  const executedRows = rows.filter((audit: any) => audit.rollback_disposition === "executed");
+  for (const audit of actions) validateAction(label, audit, events[audit.event_index]);
+  const count = (disposition: string): number =>
+    rows.filter((audit: any) => audit.revalidation_disposition === disposition).length;
+  const outcomesInRows = (outcome: string): number =>
+    actions.filter((audit: any) => audit.revalidation.outcome === outcome).length;
+  const rowTargetReached = outcomesInRows("current_selected") +
+    outcomesInRows("incumbent_selected");
+  const rowProbeNodes = sum(actions.map((audit: any) =>
+    audit.revalidation.probe_nodes_processed
+  ));
+  const rowProbeFrames = sum(actions.map((audit: any) => audit.revalidation.probe_frames));
   if (
     stats.route_lease_audits_started !== rows.length ||
     stats.route_lease_audits_with_loss_crossing !== rows.filter(
       (audit: any) => audit.first_loss_crossing !== null,
     ).length ||
-    stats.route_lease_rollbacks_admitted !== rows.filter(
-      (audit: any) => audit.rollback_disposition === "executed" ||
-        audit.rollback_disposition === "admitted",
-    ).length ||
-    stats.route_lease_rollbacks_executed !== executedRows.length ||
-    stats.route_lease_rollbacks_incumbent_unavailable !== rows.filter(
-      (audit: any) => audit.rollback_disposition === "displaced_incumbent_unavailable",
-    ).length ||
-    stats.route_lease_rollbacks_terminal_reserve_suppressed !== rows.filter(
-      (audit: any) => audit.rollback_disposition === "terminal_reserve",
-    ).length
-  ) throw new Error(`${label}: route-lease rollback counters do not match their ledger`);
-  for (const audit of executedRows) validateExecutedRollback(label, audit, events[audit.event_index]);
+    stats.route_lease_revalidations_eligible !==
+      count("started") + count("probe_allowance") ||
+    stats.route_lease_revalidations_admitted !== actions.length ||
+    stats.route_lease_revalidations_started !== actions.length ||
+    stats.route_lease_revalidations_incumbent_unavailable !==
+      count("displaced_incumbent_unavailable") ||
+    stats.route_lease_revalidations_terminal_reserve_suppressed !==
+      count("terminal_reserve") ||
+    stats.route_lease_revalidations_probe_allowance_suppressed !==
+      count("probe_allowance") ||
+    stats.route_lease_revalidations_target_reached !== rowTargetReached ||
+    stats.route_lease_revalidations_current_selected !== outcomesInRows("current_selected") ||
+    stats.route_lease_revalidations_incumbent_selected !==
+      outcomesInRows("incumbent_selected") ||
+    stats.route_lease_revalidations_probe_dead_ends !== outcomesInRows("probe_dead_end") ||
+    stats.route_lease_revalidations_probe_deferred !== outcomesInRows("probe_deferred") ||
+    stats.route_lease_revalidations_probe_budget_yields !==
+      outcomesInRows("probe_budget_yield") ||
+    stats.route_lease_revalidations_execution_ceiling_stops !==
+      outcomesInRows("execution_ceiling") ||
+    stats.route_lease_revalidation_probe_nodes_processed !== rowProbeNodes ||
+    stats.route_lease_revalidation_probe_frames !== rowProbeFrames
+  ) throw new Error(`${label}: route-revalidation counters do not match their ledger`);
+
   audits += rows.length;
   crossings += stats.route_lease_audits_with_loss_crossing;
-  admitted += stats.route_lease_rollbacks_admitted;
-  executed += stats.route_lease_rollbacks_executed;
-  unavailable += stats.route_lease_rollbacks_incumbent_unavailable;
-  reserveSuppressed += stats.route_lease_rollbacks_terminal_reserve_suppressed;
-  if (executedRows.length > 0) {
-    rollbackRuns.add(key);
-    rollbackSources.add(candidateRow.task.sourceId);
+  eligible += stats.route_lease_revalidations_eligible;
+  admitted += stats.route_lease_revalidations_admitted;
+  started += stats.route_lease_revalidations_started;
+  unavailable += stats.route_lease_revalidations_incumbent_unavailable;
+  reserveSuppressed += stats.route_lease_revalidations_terminal_reserve_suppressed;
+  allowanceSuppressed += stats.route_lease_revalidations_probe_allowance_suppressed;
+  targetReached += stats.route_lease_revalidations_target_reached;
+  currentSelected += stats.route_lease_revalidations_current_selected;
+  incumbentSelected += stats.route_lease_revalidations_incumbent_selected;
+  deadEnds += stats.route_lease_revalidations_probe_dead_ends;
+  deferred += stats.route_lease_revalidations_probe_deferred;
+  budgetYields += stats.route_lease_revalidations_probe_budget_yields;
+  ceilingStops += stats.route_lease_revalidations_execution_ceiling_stops;
+  probeNodes += stats.route_lease_revalidation_probe_nodes_processed;
+  probeFrames += stats.route_lease_revalidation_probe_frames;
+  if (actions.length > 0) {
+    actionRuns.add(key);
+    actionSources.add(candidateRow.task.sourceId);
   } else {
-    assertNoRollbackIdentity(label, candidateRow, referenceRow);
-    noRollbackPairs.push({ candidate: candidateRow, reference: referenceRow });
+    assertNoActionIdentity(label, candidateRow, referenceRow);
+    noActionPairs.push({ candidate: candidateRow, reference: referenceRow });
   }
 }
 
@@ -86,7 +131,7 @@ const work = {
   candidate: summarizeWork(candidate.archive.runs),
   reference: summarizeWork(reference.archive.runs),
 };
-const workDelta = subtract(work.candidate, work.reference);
+const workDelta = subtractWork(work.candidate, work.reference);
 const gate = {
   declared_four_seed_panel: score.seed_blocks.length >= 4,
   all_candidate_cells_valid: [...candidate.cells.values()].every((cell) => cell.valid),
@@ -95,19 +140,24 @@ const gate = {
   positive_seed_blocks: score.seed_blocks.filter((row: any) => row.mean_delta > 0).length,
   positive_source_means: score.source_blocks.filter((row: any) => row.mean_delta > 0).length,
   no_cell_loses_20: score.minimum_cell_delta > -20,
-  at_least_40_exact_rollbacks: executed >= 40,
-  every_admitted_rollback_executed: admitted === executed,
-  rollback_spans_all_sources: rollbackSources.size === score.source_blocks.length,
+  at_least_40_same_horizon_comparisons: targetReached >= 40,
+  every_eligible_action_resolved: eligible === started + allowanceSuppressed,
+  every_admitted_action_started: admitted === started,
+  at_least_90_percent_started_reach_target:
+    started > 0 && targetReached * 10 >= started * 9,
+  both_measured_winners_exercised: currentSelected > 0 && incumbentSelected > 0,
+  actions_span_all_sources: actionSources.size === score.source_blocks.length,
 };
 const passed = gate.declared_four_seed_panel && gate.all_candidate_cells_valid &&
-  gate.no_reference_completion_lost &&
-  gate.positive_total_run_score_movement && gate.positive_seed_blocks >= 3 &&
-  gate.positive_source_means >= 4 && gate.no_cell_loses_20 &&
-  gate.at_least_40_exact_rollbacks && gate.every_admitted_rollback_executed &&
-  gate.rollback_spans_all_sources;
+  gate.no_reference_completion_lost && gate.positive_total_run_score_movement &&
+  gate.positive_seed_blocks >= 3 && gate.positive_source_means >= 4 &&
+  gate.no_cell_loses_20 && gate.at_least_40_same_horizon_comparisons &&
+  gate.every_eligible_action_resolved && gate.every_admitted_action_started &&
+  gate.at_least_90_percent_started_reach_target &&
+  gate.both_measured_winners_exercised && gate.actions_span_all_sources;
 
 const result = {
-  schema: "line.route-lease-rollback-analysis.v2",
+  schema: "line.route-lease-revalidation-analysis.v1",
   generated_at: new Date().toISOString(),
   scope: {
     cells: candidate.cells.size,
@@ -115,30 +165,40 @@ const result = {
     budgets: candidate.archive.budgets,
     seeds: candidate.archive.seeds,
     interpretation:
-      "Fresh compact 750k characterization of one frozen rollback rule; never promotion evidence.",
+      "Fresh compact 750k characterization of one frozen revalidation rule; never promotion evidence.",
   },
   pairing_notes: pairingNotes,
   contract: {
-    trigger:
-      "first selected-route whole-prefix loss strictly above the displaced incumbent's last equal-depth loss",
+    trigger: "first selected-route whole-prefix loss crossing",
     eligibility:
-      "displaced incumbent remains in frontier and conservative work fits with 1.25 reserve",
-    disposition:
-      "retain crossing route, move displaced incumbent to exact next LIFO turn, one rollback per lease",
+      "queued incumbent, shipped 1.25 terminal reserve, observed atomic preflight",
+    action:
+      "isolated incumbent preferred path to current gap; retain siblings and both endpoints; same-horizon winner first",
   },
   score,
   paired_outcomes: outcomes,
   mechanics: {
     audits,
     crossings,
+    eligible,
     admitted,
-    executed,
+    started,
     incumbent_unavailable: unavailable,
     terminal_reserve_suppressed: reserveSuppressed,
-    rollback_runs: rollbackRuns.size,
-    rollback_sources: rollbackSources.size,
-    no_rollback_cells: noRollbackPairs.length,
-    no_rollback_track_score_report_work_identity: true,
+    probe_allowance_suppressed: allowanceSuppressed,
+    target_reached: targetReached,
+    current_selected: currentSelected,
+    incumbent_selected: incumbentSelected,
+    probe_dead_ends: deadEnds,
+    probe_deferred: deferred,
+    probe_budget_yields: budgetYields,
+    execution_ceiling_stops: ceilingStops,
+    probe_nodes: probeNodes,
+    probe_frames: probeFrames,
+    action_runs: actionRuns.size,
+    action_sources: actionSources.size,
+    no_action_cells: noActionPairs.length,
+    no_action_track_score_report_work_identity: true,
   },
   work,
   work_delta: workDelta,
@@ -153,24 +213,22 @@ const result = {
         : "Close the frozen arm without canonical or multi-budget evaluation.",
   },
   interpretation_limits: [
-    "The rollback signal uses no terminal score, but compact-panel score remains characterization only.",
-    "Source blocks describe breadth and must not become source eligibility rules.",
-    "Do not tune a loss threshold, reserve factor, or timing rule from this panel.",
+    "The trigger is intentionally broad; the actual priority decision is same-horizon and score-blind.",
+    "Compact source and seed blocks are continuation evidence, not promotion authority.",
+    "Do not tune source eligibility, loss crossing, reserve, or winner threshold from this panel.",
   ],
 };
 
-console.log(`ROUTE-LEASE ROLLBACK  ${candidate.cells.size} paired cells`);
+console.log(`ROUTE-LEASE REVALIDATION  ${candidate.cells.size} paired cells`);
 console.log(
   `score ${signed(score.mean_delta_per_cell, 3)} +/- ` +
     `${format(score.seed_block_standard_error, 3)} SE; ` +
     `${score.better}/${score.worse}/${score.tied} better/worse/tied`,
 );
 console.log(
-  `rollbacks ${executed}/${admitted} executed/admitted; runs ${rollbackRuns.size}; ` +
-    `sources ${rollbackSources.size}; first terminal ${signedNullable(
-      workDelta.mean_paired_first_terminal_delta,
-      0,
-    )}`,
+  `same-horizon ${targetReached}/${started}; winners current/incumbent ` +
+    `${currentSelected}/${incumbentSelected}; first terminal ` +
+    `${signedNullable(workDelta.mean_paired_first_terminal_delta, 0)}`,
 );
 console.log(
   `gate ${!gate.declared_four_seed_panel ? "NOT EVALUATED" : passed ? "PASS" : "CLOSE"}: ` +
@@ -183,21 +241,36 @@ if (outPath !== undefined) {
   console.log(`analysis ${absolute}`);
 }
 
-function validateExecutedRollback(label: string, audit: any, event: any): void {
+function validateAction(label: string, audit: any, event: any): void {
   const crossing = audit.first_loss_crossing;
+  const action = audit.revalidation;
+  const reached = action.outcome === "current_selected" ||
+    action.outcome === "incumbent_selected";
   if (
-    event?.catchup_outcome !== "alternative_selected" ||
-    crossing === null || !(crossing.loss_excess_over_displaced_incumbent > 0) ||
-    crossing.displaced_incumbent_available !== true ||
-    crossing.displaced_incumbent_affordable_with_reserve !== true ||
-    audit.rollback_total_spent_frames !== crossing.total_spent_frames ||
-    audit.end_reason !== "displaced_incumbent_resumed" ||
-    audit.end_total_spent_frames !== audit.rollback_total_spent_frames ||
-    event.resumed_total_spent_frames !== audit.rollback_total_spent_frames
-  ) throw new Error(`${label}: rollback did not hand exact next control to its incumbent`);
+    event?.catchup_outcome !== "alternative_selected" || crossing === null ||
+    audit.revalidation_disposition !== "started" ||
+    action.target_gap_index !== crossing.gap_index ||
+    action.start_total_spent_frames !== crossing.total_spent_frames ||
+    event.resumed_total_spent_frames !== action.start_total_spent_frames ||
+    action.end_total_spent_frames - action.start_total_spent_frames !== action.probe_frames ||
+    action.probe_allowance_frames !== Math.max(
+      0,
+      action.execution_remaining_frames - action.terminal_reserve_frames,
+    ) ||
+    action.preflight_estimated_next_node_frames > action.probe_allowance_frames ||
+    audit.end_total_spent_frames !== action.end_total_spent_frames ||
+    reached !== (action.current_axis_loss !== null && action.incumbent_axis_loss !== null) ||
+    reached !== (action.current_axis_count !== null && action.incumbent_axis_count !== null) ||
+    reached !== (action.current_axis_sse !== null && action.incumbent_axis_sse !== null) ||
+    (reached && action.current_axis_count !== action.incumbent_axis_count) ||
+    (action.outcome === "current_selected" &&
+      !(action.current_axis_loss <= action.incumbent_axis_loss)) ||
+    (action.outcome === "incumbent_selected" &&
+      !(action.incumbent_axis_loss < action.current_axis_loss))
+  ) throw new Error(`${label}: invalid same-horizon revalidation ledger`);
 }
 
-function assertNoRollbackIdentity(label: string, candidateRow: any, referenceRow: any): void {
+function assertNoActionIdentity(label: string, candidateRow: any, referenceRow: any): void {
   for (const [name, left, right] of [
     ["track", candidateRow.trackHash, referenceRow.trackHash],
     ["report", candidateRow.report, referenceRow.report],
@@ -205,7 +278,7 @@ function assertNoRollbackIdentity(label: string, candidateRow: any, referenceRow
     ["budget telemetry", candidateRow.budgetTelemetry, referenceRow.budgetTelemetry],
   ] as const) {
     if (JSON.stringify(left) !== JSON.stringify(right)) {
-      throw new Error(`${label}: no-rollback cell changed ${name}`);
+      throw new Error(`${label}: no-action cell changed ${name}`);
     }
   }
 }
@@ -219,10 +292,7 @@ function summarizeScore(candidateArm: GridArm, referenceArm: GridArm): any {
   });
   const seedBlocks = [...grouped(cells, (cell) => String(cell.seed))]
     .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([seed, rows]) => ({
-      seed: Number(seed),
-      mean_delta: mean(rows.map((row) => row.delta)),
-    }));
+    .map(([seed, rows]) => ({ seed: Number(seed), mean_delta: mean(rows.map((row) => row.delta)) }));
   const sourceBlocks = [...grouped(cells, (cell) => cell.source_id)]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([source_id, rows]) => ({
@@ -273,7 +343,7 @@ function summarizeWork(rows: any[]): any {
   };
 }
 
-function subtract(candidateWork: any, referenceWork: any): any {
+function subtractWork(candidateWork: any, referenceWork: any): any {
   const referenceFirst = new Map<string, number | null>(
     referenceWork.first_terminal_by_cell.map((row: any) => [
       gridCellKey(row.source_id, row.budget, row.seed),

@@ -106,7 +106,7 @@ const passed = gate.declared_four_seed_panel && gate.all_candidate_cells_valid &
   gate.rollback_spans_all_sources;
 
 const result = {
-  schema: "line.route-lease-rollback-analysis.v1",
+  schema: "line.route-lease-rollback-analysis.v2",
   generated_at: new Date().toISOString(),
   scope: {
     cells: candidate.cells.size,
@@ -243,8 +243,16 @@ function summarizeScore(candidateArm: GridArm, referenceArm: GridArm): any {
 }
 
 function summarizeWork(rows: any[]): any {
-  const first = rows.map((row) =>
-    row.budgetTelemetry?.compile?.first_terminal_total_spent_frames ?? null
+  const first = rows.map((row) => ({
+    source_id: row.task.sourceId,
+    budget: row.task.budget,
+    seed: row.task.actualSeed,
+    total_spent_frames:
+      row.budgetTelemetry?.compile?.first_terminal_total_spent_frames ?? null,
+  })).sort((left, right) =>
+    gridCellKey(left.source_id, left.budget, left.seed).localeCompare(
+      gridCellKey(right.source_id, right.budget, right.seed),
+    )
   );
   const repair = rows.flatMap((row) => row.budgetTelemetry?.episodes ?? [])
     .filter((episode: any) => episode.lane === "repair");
@@ -265,12 +273,17 @@ function summarizeWork(rows: any[]): any {
 }
 
 function subtract(candidateWork: any, referenceWork: any): any {
-  const pairedFirst = candidateWork.first_terminal_by_cell.flatMap(
-    (value: number | null, index: number) =>
-      value === null || referenceWork.first_terminal_by_cell[index] === null
-        ? []
-        : [value - referenceWork.first_terminal_by_cell[index]],
-  );
+  const referenceFirst = new Map(referenceWork.first_terminal_by_cell.map((row: any) => [
+    gridCellKey(row.source_id, row.budget, row.seed),
+    row.total_spent_frames,
+  ]));
+  const pairedFirst = candidateWork.first_terminal_by_cell.flatMap((row: any) => {
+    const referenceValue = referenceFirst.get(gridCellKey(row.source_id, row.budget, row.seed));
+    return row.total_spent_frames === null || referenceValue === null ||
+        referenceValue === undefined
+      ? []
+      : [row.total_spent_frames - referenceValue];
+  });
   return {
     mean_paired_first_terminal_delta: pairedFirst.length === 0 ? null : mean(pairedFirst),
     comparable_first_terminal_cells: pairedFirst.length,

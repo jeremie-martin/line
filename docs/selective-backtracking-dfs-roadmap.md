@@ -2823,7 +2823,7 @@ not a threshold-tuned repair, source rule, breadth arm, or multi-budget sweep.
 | 2026-08-16 | Four-seed behavior-neutral audit | complete: opportunity broad | 32/32 exact cells; 131 takeovers, 79 crossings, 78 affordable, 29 runs and all eight sources |
 | 2026-08-16 | Bounded route-lease rollback implementation | complete: unit | First crossing, available incumbent, existing 1.25 reserve; retain both routes; 59 focused tests |
 | 2026-08-16 | Known-activity rollback smoke | complete: positive | 8/8 valid; 19/19 exact rollbacks; +26.7 raw score, 5/2/1 better/worse/tied |
-| 2026-08-16 | Fresh four-seed rollback characterization | pending | Actual seeds 206-209; same eight sources and 750k only |
+| 2026-08-16 | Fresh four-seed rollback characterization | complete: close | +1.067 +/- 1.356 seed-block SE; 13/15/4 better/worse/tied; only 2/4 positive seeds; 85/85 exact actions |
 
 The audit is an explicit compiler mode, not a permanent cost in accepted Phase
 D. It records the actual selected alternative subtree, same-horizon takeover
@@ -2881,3 +2881,52 @@ every admitted rollback executes, and all eight sources exercise the action.
 This gate is evaluated only on the declared four-seed panel. If it passes, the
 standing canonical 750k probability ladder is the sole promotion authority.
 Do not tune the crossing, reserve, source set, or run a multi-budget sweep.
+
+The frozen panel closes the categorical rollback arm before canonical work.
+All 32 candidate cells complete, all 85 admitted actions execute exactly, all
+eight sources exercise rollback, total raw score movement is +34.16, and no
+cell loses 20 points. The result is nevertheless diffuse: 13 cells improve,
+15 regress, four tie, only seeds 206 and 207 are positive, and the mean is
++1.067 +/- 1.356 seed-block SE. The arm therefore fails its declared
+three-positive-seed condition. It also reaches first terminal 18,638 paired
+frames later, removes seven terminal-reaching repair attempts, and adds only
+five accepted repairs. Preserve it as an explicit negative/diagnostic mode;
+do not make it the unset default or send it to the canonical evaluator.
+
+The closure challenges two assumptions in the categorical rule. Its trigger
+compares the selected route after it advances with an incumbent still frozen
+at the takeover horizon; it is evidence that the selected route's original
+advantage has been diluted, not a same-horizon observation that the incumbent
+is now better. The action then grants that unobserved incumbent the next
+ordinary DFS turn, recreating the unbounded-lease problem in the opposite
+direction. A stronger structural challenger must measure both routes at the
+same current horizon before choosing priority.
+
+## Phase Q: bounded same-horizon route revalidation
+
+### Frozen question
+
+Can proactive backtracking improve authored impact when it is used to obtain a
+real same-horizon comparison, rather than to reverse control on a
+different-horizon loss crossing? Keep Phase D as the unset baseline. On the
+same broad, score-blind first crossing used by Phase P, and only while the
+incumbent remains queued and fits the shipped 1.25 terminal reserve, retain the
+current route and run the displaced incumbent as one isolated preferred-path
+probe to the current route's exact gap. Disable nested selective backtracking
+inside the probe. Retain every generated sibling in the ordinary frontier. If
+the probe reaches the target, compare authored-axis loss over the same prefix
+horizon and put the measured winner on top of the LIFO frontier; retain the
+loser immediately below it. If the probe dies, defers, exhausts its allowance,
+or reaches the compile ceiling, retain all surviving work and resume the
+current route. Neither route receives a new open-ended lease from the action.
+
+Implement this as a separate explicit mode and telemetry contract, not as a
+threshold tweak or a relabeling of Phase-P rollback. Record admission, exact
+probe work, target reach, both endpoint losses, selected route, retained route,
+and terminal-reserve/ceiling dispositions. Unit tests must prove exact
+same-horizon comparison, LIFO ownership, sibling retention, no duplicate
+suspended-node processing, and behavior identity when no action is admitted.
+Use only a known-activity smoke and a fresh compact 750k panel before deciding
+whether the arm warrants the standing canonical probability ladder. Do not use
+the multi-budget sweep and do not select source-specific eligibility from
+compact outcomes.

@@ -248,4 +248,49 @@ panel, or repair on these cells, and do not launch canonical V2 here.
 |---|---|---|---|
 | 2026-08-15 | Rule, causal telemetry, and evidence gates frozen | complete | This section |
 | 2026-08-15 | V12 implementation and mechanical proof | complete | Five-cell seed-179 trace smoke: all valid and first-terminal-identical; one action processes one pass node for 807 frames, then returns one unprocessed fallback node with exact episode/segment/attempt attribution and no output change |
-| 2026-08-15 | Fresh paired two-budget screen | pending | — |
+| 2026-08-15 | Fresh paired two-budget screen | complete, rule closed | 160/160 valid compiles and exact first-terminal identity in all 80 pairs; 750k -3.5954 +/- 1.1924 SE and 1.25M -0.1134 +/- 0.8079; three fallback returns tie production exactly, while terminal-reaching actions displace repair and fail score/tail gates |
+
+### Result and closure
+
+Candidate and production reference were compiled from commit `73ddec53` with
+the same engine, ten sources, transforms, budgets, and actual seeds 182-185.
+All 160 compiles are valid. No completion or contract survival is lost, and the
+first-terminal frame and track hash match in all 80 pairs.
+
+At 750k, the optional action runs in 31/40 cells. It returns fallback work in
+one, reaches a terminal in 28, and ends another way in two. Mean paired score is
+-3.5954 per cell (seed-block SE 1.1924), active mean is -4.6392, no seed block
+is positive, and the worst losses are -42.7977, -26.9623, and -21.8484. The
+action spends 4,528,605 frames and ordinary repair falls by 4,526,318 frames,
+18 attempts, and 18 accepted alternatives.
+
+At 1.25M, the action runs in 27/40 cells. It returns fallback work in two,
+reaches a terminal in 24, and ends another way in one. Mean paired score is
+-0.1134 (SE 0.8079), active mean is -0.1680, and one seed block is positive.
+The action spends 6,155,329 frames while repair falls by 6,141,381 frames, 36
+attempts, and eight accepted alternatives.
+
+The three actual `fallback_frontier_return` cells tie production exactly. The
+new ownership rule is mechanically correct but too rarely active to explain
+the score. Harm comes from the optional pass search itself. At 750k, ten
+terminal-reaching actions that improve the action's internal terminal register
+still average -8.3471 against production (minimum -42.7977); 18 terminal offers
+that do not improve it average -2.8200. At 1.25M the corresponding means are
+-0.3785 and -1.3703. Internal acceptance therefore does not repay the mature
+repair work displaced by this separate allocation.
+
+The exact pass-frontier-only rule is closed without confirmation or canonical
+V2. The result also closes fallback traversal as the primary explanation for
+the deferred suffix's poor return. The larger challenged assumption is whether
+a pre-terminal sibling deserves an independent post-terminal budget owner at
+all. Its predicted value density has almost no descriptive association with
+final paired score in this panel, while its work substitutes almost one for
+one for ordinary repair. A future use of this signal should compete inside the
+repair portfolio or progressively earn continued run-level allocation; another
+fallback rule or prefix threshold is not warranted.
+
+Supporting evidence:
+
+- `generated/benchmark-v2/mover-grid/deferred-pass-only-mechanism-smoke/analysis.json`
+- `generated/benchmark-v2/mover-grid/deferred-pass-only-two-budget-n4/mover-grid-report.json`
+- `generated/benchmark-v2/mover-grid/deferred-pass-only-two-budget-n4/analysis.json`

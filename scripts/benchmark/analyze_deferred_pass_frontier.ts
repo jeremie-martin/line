@@ -59,6 +59,12 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
   const terminalReached = active.filter((pair) =>
     pair.mechanism.attempt.outcome === "terminal_reached"
   );
+  const terminalAccepted = terminalReached.filter((pair) =>
+    pair.mechanism.attempt.terminal_register_improvements > 0
+  );
+  const terminalRejected = terminalReached.filter((pair) =>
+    pair.mechanism.attempt.terminal_register_improvements === 0
+  );
   const otherOutcomes = active.filter((pair) =>
     pair.mechanism.attempt.outcome !== "fallback_frontier_return" &&
     pair.mechanism.attempt.outcome !== "terminal_reached"
@@ -70,6 +76,9 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
   const inactiveScore = summarizeScore(inactive);
   const fallbackScore = summarizeScore(fallbackReturns);
   const terminalScore = summarizeScore(terminalReached);
+  const actionFrames = sum(active.map((pair) =>
+    pair.mechanism.episode.outcome.spent_frames
+  ));
   if (inactiveScore.changed_tracks !== 0 || inactiveScore.sum_delta !== 0) {
     throw new Error(`${budget}: action-free cells changed production output`);
   }
@@ -78,6 +87,27 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
   const positiveSeedBlocks = score.seed_blocks.filter((block: any) =>
     block.mean_delta > 0
   ).length;
+  const repair = summarizeRepair(pairs);
+  const sourceBreakdown = Object.fromEntries(
+    [...new Set(pairs.map((pair) => pair.cell.sourceId))].sort().map((sourceId) => {
+      const sourcePairs = pairs.filter((pair) => pair.cell.sourceId === sourceId);
+      const sourceActive = sourcePairs.filter((pair) => pair.mechanism.attempt !== null);
+      return [sourceId, {
+        score: summarizeScore(sourcePairs),
+        active_cells: sourceActive.length,
+        fallback_returns: sourceActive.filter((pair) =>
+          pair.mechanism.attempt.outcome === "fallback_frontier_return"
+        ).length,
+        terminal_register_improvements: sum(sourceActive.map((pair) =>
+          pair.mechanism.attempt.terminal_register_improvements
+        )),
+        action_frames: sum(sourceActive.map((pair) =>
+          pair.mechanism.episode.outcome.spent_frames
+        )),
+        repair: summarizeRepair(sourcePairs),
+      }];
+    }),
+  );
   return [String(budget), {
     cells: pairs.length,
     score,
@@ -94,6 +124,22 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
       fallback_return_score: fallbackScore,
       terminal_reached: terminalReached.length,
       terminal_reached_score: terminalScore,
+      terminal_register_accepted: {
+        cells: terminalAccepted.length,
+        score: summarizeScore(terminalAccepted),
+        action_frames: summarizeNumbers(terminalAccepted.map((pair) =>
+          pair.mechanism.episode.outcome.spent_frames
+        )),
+        repair: summarizeRepair(terminalAccepted),
+      },
+      terminal_register_rejected: {
+        cells: terminalRejected.length,
+        score: summarizeScore(terminalRejected),
+        action_frames: summarizeNumbers(terminalRejected.map((pair) =>
+          pair.mechanism.episode.outcome.spent_frames
+        )),
+        repair: summarizeRepair(terminalRejected),
+      },
       other_outcomes: otherOutcomes.length,
       nodes_processed: summarizeNumbers(active.map((pair) =>
         pair.mechanism.attempt.nodes_processed
@@ -110,8 +156,12 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
       terminal_register_improvements: sum(active.map((pair) =>
         pair.mechanism.attempt.terminal_register_improvements
       )),
+      action_frames_total: actionFrames,
+      action_frames_minus_displaced_repair_frames:
+        actionFrames + repair.displaced_frames,
     },
-    repair: summarizeRepair(pairs),
+    repair,
+    by_source: sourceBreakdown,
     gate: {
       all_candidate_cells_valid: pairs.every((pair) => pair.cell.valid),
       no_reference_validity_lost: pairs.every((pair) => !pair.ref.valid || pair.cell.valid),

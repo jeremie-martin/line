@@ -147,6 +147,7 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     expect(conservative).toBeGreaterThan(0);
     expect(conservative).toBeLessThan(point);
     expect(conservative).toBe((BUDGET - input.spentFrames) / upper);
+    expect(deadline().conservativeWorkAt(input)).toBe(upper);
     expect(deadline().conservativeMarginAt({
       spentFrames: 0,
       gapIndex: GAPS.length,

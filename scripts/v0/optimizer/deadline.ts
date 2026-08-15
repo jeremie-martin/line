@@ -517,12 +517,23 @@ export class CompileDeadline {
     gapIndex: number;
     costToEnd: readonly number[] | null;
   }): number {
+    const upper = this.conservativeWorkAt(input);
+    return this.marginForWork(input.spentFrames, upper);
+  }
+
+  /** Conservative frames still required from one concrete gap. This is the
+   * dimensional face of `conservativeMarginAt`: schedulers that divide a local
+   * episode between terminal reserve and optional work need frames, not only a
+   * ratio against the compile-wide policy budget. */
+  conservativeWorkAt(input: {
+    gapIndex: number;
+    costToEnd: readonly number[] | null;
+  }): number {
     const { work, pathAvailable } = this.remainingWorkAt(input.gapIndex, input.costToEnd);
-    const upper = budgetEstimateInterval(work, {
+    return budgetEstimateInterval(work, {
       event: "start",
       pathAvailable,
     }, BUDGET_ESTIMATOR_MODEL).upper;
-    return this.marginForWork(input.spentFrames, upper);
   }
 
   private remainingWorkAt(

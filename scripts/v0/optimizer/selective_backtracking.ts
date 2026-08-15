@@ -1,8 +1,13 @@
 export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
-  | "selective_axis_regret_catchup_repair_incumbent_once";
+  | "selective_axis_regret_catchup_repair_incumbent_once"
+  | "selective_axis_regret_catchup_periodic_initial"
+  | "selective_axis_regret_catchup_periodic_repair";
 
-export type SelectiveBacktrackSignal = "branch_regret" | "repair_incumbent_regret";
+export type SelectiveBacktrackSignal =
+  | "branch_regret"
+  | "repair_incumbent_regret"
+  | "periodic_exploration";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -11,6 +16,10 @@ export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
 export const SELECTIVE_REPAIR_INCUMBENT_MIN_LOSS_DELTA = 0.02;
+export const SELECTIVE_PERIODIC_CONTACT_INTERVAL = 8;
+export const SELECTIVE_PERIODIC_CONTACT_REWIND = 3;
+export const SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR = 1.25;
+export const SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION = 0.15;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
   0,
@@ -34,12 +43,48 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-repair-incumbent-once") {
     return "selective_axis_regret_catchup_repair_incumbent_once";
   }
+  if (raw === "selective-axis-regret-catchup-periodic-initial") {
+    return "selective_axis_regret_catchup_periodic_initial";
+  }
+  if (raw === "selective-axis-regret-catchup-periodic-repair") {
+    return "selective_axis_regret_catchup_periodic_repair";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
-    `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, or ` +
-      `selective-axis-regret-catchup-repair-incumbent-once; got ${raw}`,
+    `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
+      `selective-axis-regret-catchup-repair-incumbent-once, ` +
+      `selective-axis-regret-catchup-periodic-initial, or ` +
+      `selective-axis-regret-catchup-periodic-repair; got ${raw}`,
   );
 }
+
+export type SelectivePeriodicBudgetAssessment = {
+  execution_remaining_frames: number;
+  conservative_terminal_work_frames: number;
+  estimated_probe_work_frames: number;
+  terminal_reserve_frames: number;
+  exploration_allowance_frames: number;
+  exploration_spent_frames: number;
+  exploration_remaining_frames: number;
+  admitted: boolean;
+  reason: "admitted" | "terminal_reserve" | "exploration_allowance";
+};
+
+export type SelectivePeriodicOpportunity = {
+  lane: FrontierTraversalLane;
+  contact_ordinal: number;
+  from_gap_index: number;
+  branch_gap_index: number;
+  alternative_gap_index: number;
+  outcome:
+    | "admitted"
+    | "alternative_unavailable"
+    | "execution_ceiling"
+    | "terminal_reserve"
+    | "exploration_allowance";
+  conservative_deadline_margin: number | null;
+  budget: SelectivePeriodicBudgetAssessment | null;
+};
 
 export function catchupAlternativeHasSufficientGain(
   currentAxisLoss: number,
@@ -150,6 +195,20 @@ export type SelectiveBacktrackingStats = {
   repair_incumbent_axis_loss_delta_max: number;
   repair_incumbent_max_backtracks_per_attempt: number;
   repair_incumbent_attempt_limit_suppressed_watches: number;
+  periodic_contact_interval: number;
+  periodic_contact_rewind: number;
+  periodic_terminal_reserve_factor: number;
+  periodic_exploration_budget_fraction: number;
+  periodic_schedule_checks: number;
+  periodic_exact_rewind_opportunities: number;
+  periodic_admitted: number;
+  periodic_alternative_unavailable: number;
+  periodic_execution_ceiling_suppressed: number;
+  periodic_terminal_reserve_suppressed: number;
+  periodic_exploration_allowance_suppressed: number;
+  periodic_probe_frames: number;
+  periodic_probe_nodes_processed: number;
+  periodic_opportunities: SelectivePeriodicOpportunity[];
   contact_expansions_observed: number;
   branch_watches_armed: number;
   branch_watches_by_alternative_count: Record<string, number>;
@@ -212,6 +271,7 @@ export type SelectiveBacktrackingEvent = {
   incumbent_axis_loss: number | null;
   incumbent_axis_loss_delta: number | null;
   repair_attempt_index: number | null;
+  periodic_budget: SelectivePeriodicBudgetAssessment | null;
   admissible_rewind_choices: SelectiveAdmissibleRewindChoice[];
   alternative_conservative_deadline_margin: number;
   trigger_total_spent_frames: number;
@@ -246,7 +306,7 @@ function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
 }
 
 function emptySignalCounter(): Record<SelectiveBacktrackSignal, number> {
-  return { branch_regret: 0, repair_incumbent_regret: 0 };
+  return { branch_regret: 0, repair_incumbent_regret: 0, periodic_exploration: 0 };
 }
 
 function emptyRegretOpportunityCounter(): SelectiveBacktrackingStats[
@@ -316,6 +376,21 @@ export class SelectiveAxisRegretController<Node extends object> {
       repair_incumbent_max_backtracks_per_attempt:
         this.policy === "selective_axis_regret_catchup_repair_incumbent_once" ? 1 : 0,
       repair_incumbent_attempt_limit_suppressed_watches: 0,
+      periodic_contact_interval: SELECTIVE_PERIODIC_CONTACT_INTERVAL,
+      periodic_contact_rewind: SELECTIVE_PERIODIC_CONTACT_REWIND,
+      periodic_terminal_reserve_factor: SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR,
+      periodic_exploration_budget_fraction:
+        SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION,
+      periodic_schedule_checks: 0,
+      periodic_exact_rewind_opportunities: 0,
+      periodic_admitted: 0,
+      periodic_alternative_unavailable: 0,
+      periodic_execution_ceiling_suppressed: 0,
+      periodic_terminal_reserve_suppressed: 0,
+      periodic_exploration_allowance_suppressed: 0,
+      periodic_probe_frames: 0,
+      periodic_probe_nodes_processed: 0,
+      periodic_opportunities: [],
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       branch_watches_by_alternative_count: {},
@@ -420,6 +495,7 @@ export class SelectiveAxisRegretController<Node extends object> {
   consider(input: {
     node: Node;
     contactOrdinal: number;
+    contactBoundary?: boolean;
     axisLoss: number;
     incumbentAxisLoss?: number | null;
     repairAttemptIndex?: number | null;
@@ -428,7 +504,128 @@ export class SelectiveAxisRegretController<Node extends object> {
     lane: FrontierTraversalLane;
     alternativeAvailable: (node: Node) => boolean;
     alternativeDeadline: (node: Node) => { margin: number; pressured: boolean };
+    periodicBudgetAssessment?: (
+      alternative: Node,
+      fromGapIndex: number,
+      periodicProbeFrames: number,
+    ) => SelectivePeriodicBudgetAssessment;
   }): SelectiveBacktrackDecision<Node> | null {
+    const periodicLaneEnabled =
+      (this.policy === "selective_axis_regret_catchup_periodic_initial" &&
+        input.lane === "initial") ||
+      (this.policy === "selective_axis_regret_catchup_periodic_repair" &&
+        input.lane === "repair");
+    const periodicScheduled = periodicLaneEnabled &&
+      input.contactBoundary === true &&
+      input.contactOrdinal > 0 &&
+      input.contactOrdinal % SELECTIVE_PERIODIC_CONTACT_INTERVAL === 0;
+    if (periodicScheduled) this.stats.periodic_schedule_checks++;
+    let periodicCandidate: {
+      watch: AxisRegretWatch<Node>;
+      contactAdvance: number;
+      axisLossDelta: number;
+    } | null = null;
+
+    const recordDecision = (
+      watch: AxisRegretWatch<Node>,
+      contactAdvance: number,
+      axisLossDelta: number,
+      triggerSignal: SelectiveBacktrackSignal,
+      incumbentAxisLossDelta: number | null,
+      repairAttemptIndex: number | null,
+      admittedAlternativeDeadline: { margin: number; pressured: boolean },
+      admissibleRewindChoices: SelectiveAdmissibleRewindChoice[],
+      periodicBudget: SelectivePeriodicBudgetAssessment | null,
+    ): SelectiveBacktrackDecision<Node> => {
+      const fromGapIndex = this.gapIndexOf(input.node);
+      const targetGapIndex = this.gapIndexOf(watch.alternative);
+      const gapRewind = Math.max(0, fromGapIndex - targetGapIndex);
+      watch.used = true;
+      const availableAdditionalAlternatives = watch.additionalAlternatives.filter(
+        (alternative) => input.alternativeAvailable(alternative),
+      );
+      const additionalSiblingsAvailable = availableAdditionalAlternatives.length;
+      const alternatives = [watch.alternative];
+      this.stats.selective_backtracks++;
+      this.stats.selective_backtracks_by_signal[triggerSignal]++;
+      this.stats.admissible_rewind_choice_count_sum += admissibleRewindChoices.length;
+      this.stats.admissible_rewind_choice_count_max = Math.max(
+        this.stats.admissible_rewind_choice_count_max,
+        admissibleRewindChoices.length,
+      );
+      if (admissibleRewindChoices.length > 1) {
+        this.stats.selective_backtracks_with_multiple_admissible_rewind_choices++;
+      }
+      if (triggerSignal === "repair_incumbent_regret") {
+        this.repairAttemptsWithIncumbentBacktrack.add(repairAttemptIndex!);
+      }
+      if (additionalSiblingsAvailable > 0) {
+        this.stats.selective_backtracks_with_additional_sibling_available++;
+      }
+      this.stats.additional_siblings_available_at_selective_backtrack_sum +=
+        additionalSiblingsAvailable;
+      this.stats.additional_siblings_available_at_selective_backtrack_max = Math.max(
+        this.stats.additional_siblings_available_at_selective_backtrack_max,
+        additionalSiblingsAvailable,
+      );
+      this.stats.selective_backtracks_by_lane[input.lane]++;
+      this.stats.axis_loss_delta_sum += axisLossDelta;
+      this.stats.axis_loss_delta_max = Math.max(this.stats.axis_loss_delta_max, axisLossDelta);
+      this.stats.contact_advance_sum += contactAdvance;
+      this.stats.contact_advance_max = Math.max(this.stats.contact_advance_max, contactAdvance);
+      this.stats.gap_rewind_sum += gapRewind;
+      this.stats.gap_rewind_max = Math.max(this.stats.gap_rewind_max, gapRewind);
+      const eventIndex = this.stats.events.length;
+      this.stats.events.push({
+        lane: input.lane,
+        trigger_signal: triggerSignal,
+        branch_gap_index: watch.branchGapIndex,
+        from_gap_index: fromGapIndex,
+        alternative_gap_index: targetGapIndex,
+        additional_siblings_available: additionalSiblingsAvailable,
+        catchup_alternatives_requested: alternatives.length,
+        contact_advance: contactAdvance,
+        gap_rewind: gapRewind,
+        baseline_axis_loss: watch.baselineAxisLoss,
+        trigger_axis_loss: input.axisLoss,
+        axis_loss_delta: axisLossDelta,
+        incumbent_axis_loss: input.incumbentAxisLoss ?? null,
+        incumbent_axis_loss_delta: incumbentAxisLossDelta,
+        repair_attempt_index: repairAttemptIndex,
+        periodic_budget: periodicBudget,
+        admissible_rewind_choices: admissibleRewindChoices,
+        alternative_conservative_deadline_margin: admittedAlternativeDeadline.margin,
+        trigger_total_spent_frames: input.totalSpentFrames,
+        resumed_total_spent_frames: null,
+        catchup_outcome: null,
+        catchup_end_gap_index: null,
+        catchup_probe_nodes_processed: 0,
+        catchup_probe_frames: 0,
+        catchup_axis_loss: null,
+        catchup_axis_loss_gain: null,
+        catchup_selected_alternative_ordinal: null,
+        catchup_selected_route_ordinal: null,
+        catchup_probe_results: [],
+        catchup_checkpoints: [],
+      });
+      this.suspended.set(input.node, eventIndex);
+      return {
+        alternative: watch.alternative,
+        alternatives,
+        eventIndex,
+        branchGapIndex: watch.branchGapIndex,
+        fromGapIndex,
+        contactAdvance,
+        gapRewind,
+        axisLossDelta,
+        triggerAxisLoss: input.axisLoss,
+        triggerSignal,
+        incumbentAxisLoss: input.incumbentAxisLoss ?? null,
+        incumbentAxisLossDelta,
+        repairAttemptIndex,
+      };
+    };
+
     let link = this.lineage.get(input.node) ?? null;
     while (link !== null) {
       const watch = link.watch;
@@ -439,6 +636,13 @@ export class SelectiveAxisRegretController<Node extends object> {
       if (contactAdvance < SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE) continue;
       this.stats.mature_watch_checks++;
       const axisLossDelta = input.axisLoss - watch.baselineAxisLoss;
+      if (
+        periodicScheduled &&
+        periodicCandidate === null &&
+        contactAdvance === SELECTIVE_PERIODIC_CONTACT_REWIND
+      ) {
+        periodicCandidate = { watch, contactAdvance, axisLossDelta };
+      }
       this.stats.mature_axis_loss_delta_max = Math.max(
         this.stats.mature_axis_loss_delta_max,
         axisLossDelta,
@@ -649,91 +853,99 @@ export class SelectiveAxisRegretController<Node extends object> {
       ) {
         throw new Error("selective backtrack choice map lost the selected causal sibling");
       }
-      watch.used = true;
-      const availableAdditionalAlternatives = watch.additionalAlternatives.filter(
-        (alternative) => input.alternativeAvailable(alternative),
-      );
-      const additionalSiblingsAvailable = availableAdditionalAlternatives.length;
-      const alternatives = [watch.alternative];
-      this.stats.selective_backtracks++;
-      this.stats.selective_backtracks_by_signal[triggerSignal]++;
-      this.stats.admissible_rewind_choice_count_sum += admissibleRewindChoices.length;
-      this.stats.admissible_rewind_choice_count_max = Math.max(
-        this.stats.admissible_rewind_choice_count_max,
-        admissibleRewindChoices.length,
-      );
-      if (admissibleRewindChoices.length > 1) {
-        this.stats.selective_backtracks_with_multiple_admissible_rewind_choices++;
-      }
-      if (triggerSignal === "repair_incumbent_regret") {
-        this.repairAttemptsWithIncumbentBacktrack.add(repairAttemptIndex!);
-      }
-      if (additionalSiblingsAvailable > 0) {
-        this.stats.selective_backtracks_with_additional_sibling_available++;
-      }
-      this.stats.additional_siblings_available_at_selective_backtrack_sum +=
-        additionalSiblingsAvailable;
-      this.stats.additional_siblings_available_at_selective_backtrack_max = Math.max(
-        this.stats.additional_siblings_available_at_selective_backtrack_max,
-        additionalSiblingsAvailable,
-      );
-      this.stats.selective_backtracks_by_lane[input.lane]++;
-      this.stats.axis_loss_delta_sum += axisLossDelta;
-      this.stats.axis_loss_delta_max = Math.max(this.stats.axis_loss_delta_max, axisLossDelta);
-      this.stats.contact_advance_sum += contactAdvance;
-      this.stats.contact_advance_max = Math.max(this.stats.contact_advance_max, contactAdvance);
-      this.stats.gap_rewind_sum += gapRewind;
-      this.stats.gap_rewind_max = Math.max(this.stats.gap_rewind_max, gapRewind);
-      const eventIndex = this.stats.events.length;
-      this.stats.events.push({
-        lane: input.lane,
-        trigger_signal: triggerSignal,
-        branch_gap_index: watch.branchGapIndex,
-        from_gap_index: fromGapIndex,
-        alternative_gap_index: targetGapIndex,
-        additional_siblings_available: additionalSiblingsAvailable,
-        catchup_alternatives_requested: alternatives.length,
-        contact_advance: contactAdvance,
-        gap_rewind: gapRewind,
-        baseline_axis_loss: watch.baselineAxisLoss,
-        trigger_axis_loss: input.axisLoss,
-        axis_loss_delta: axisLossDelta,
-        incumbent_axis_loss: input.incumbentAxisLoss ?? null,
-        incumbent_axis_loss_delta: incumbentAxisLossDelta,
-        repair_attempt_index: repairAttemptIndex,
-        admissible_rewind_choices: admissibleRewindChoices,
-        alternative_conservative_deadline_margin: admittedAlternativeDeadline.margin,
-        trigger_total_spent_frames: input.totalSpentFrames,
-        resumed_total_spent_frames: null,
-        catchup_outcome: null,
-        catchup_end_gap_index: null,
-        catchup_probe_nodes_processed: 0,
-        catchup_probe_frames: 0,
-        catchup_axis_loss: null,
-        catchup_axis_loss_gain: null,
-        catchup_selected_alternative_ordinal: null,
-        catchup_selected_route_ordinal: null,
-        catchup_probe_results: [],
-        catchup_checkpoints: [],
-      });
-      this.suspended.set(input.node, eventIndex);
-      return {
-        alternative: watch.alternative,
-        alternatives,
-        eventIndex,
-        branchGapIndex: watch.branchGapIndex,
-        fromGapIndex,
+      return recordDecision(
+        watch,
         contactAdvance,
-        gapRewind,
         axisLossDelta,
-        triggerAxisLoss: input.axisLoss,
         triggerSignal,
-        incumbentAxisLoss: input.incumbentAxisLoss ?? null,
         incumbentAxisLossDelta,
         repairAttemptIndex,
-      };
+        admittedAlternativeDeadline,
+        admissibleRewindChoices,
+        null,
+      );
     }
-    return null;
+
+    if (periodicCandidate === null) return null;
+    this.stats.periodic_exact_rewind_opportunities++;
+    const { watch, contactAdvance, axisLossDelta } = periodicCandidate;
+    const fromGapIndex = this.gapIndexOf(input.node);
+    const targetGapIndex = this.gapIndexOf(watch.alternative);
+    const recordPeriodicOpportunity = (
+      outcome: SelectivePeriodicOpportunity["outcome"],
+      deadlineMargin: number | null,
+      budget: SelectivePeriodicBudgetAssessment | null,
+    ): void => {
+      this.stats.periodic_opportunities.push({
+        lane: input.lane,
+        contact_ordinal: input.contactOrdinal,
+        from_gap_index: fromGapIndex,
+        branch_gap_index: watch.branchGapIndex,
+        alternative_gap_index: targetGapIndex,
+        outcome,
+        conservative_deadline_margin: deadlineMargin,
+        budget,
+      });
+    };
+    if (!input.alternativeAvailable(watch.alternative)) {
+      watch.used = true;
+      this.stats.periodic_alternative_unavailable++;
+      recordPeriodicOpportunity("alternative_unavailable", null, null);
+      return null;
+    }
+    if (input.executionCeilingReached) {
+      this.stats.periodic_execution_ceiling_suppressed++;
+      recordPeriodicOpportunity("execution_ceiling", null, null);
+      return null;
+    }
+    const admittedAlternativeDeadline = input.alternativeDeadline(watch.alternative);
+    if (input.periodicBudgetAssessment === undefined) {
+      throw new Error("periodic selective backtracking requires a budget assessment");
+    }
+    const periodicBudget = input.periodicBudgetAssessment(
+      watch.alternative,
+      fromGapIndex,
+      this.stats.periodic_probe_frames,
+    );
+    if (!periodicBudget.admitted) {
+      if (periodicBudget.reason === "terminal_reserve") {
+        this.stats.periodic_terminal_reserve_suppressed++;
+      } else {
+        this.stats.periodic_exploration_allowance_suppressed++;
+      }
+      recordPeriodicOpportunity(
+        periodicBudget.reason,
+        admittedAlternativeDeadline.margin,
+        periodicBudget,
+      );
+      return null;
+    }
+    this.stats.periodic_admitted++;
+    recordPeriodicOpportunity("admitted", admittedAlternativeDeadline.margin, periodicBudget);
+    const repairAttemptIndex = input.lane === "repair"
+      ? input.repairAttemptIndex ?? null
+      : null;
+    return recordDecision(
+      watch,
+      contactAdvance,
+      axisLossDelta,
+      "periodic_exploration",
+      input.lane === "repair" && input.incumbentAxisLoss !== null &&
+          input.incumbentAxisLoss !== undefined && Number.isFinite(input.incumbentAxisLoss)
+        ? input.axisLoss - input.incumbentAxisLoss
+        : null,
+      repairAttemptIndex,
+      admittedAlternativeDeadline,
+      [{
+        branch_gap_index: watch.branchGapIndex,
+        alternative_gap_index: targetGapIndex,
+        contact_advance: contactAdvance,
+        gap_rewind: Math.max(0, fromGapIndex - targetGapIndex),
+        axis_loss_delta: axisLossDelta,
+        conservative_deadline_margin: admittedAlternativeDeadline.margin,
+      }],
+      periodicBudget,
+    );
   }
 
   markSuspended(node: Node): void {
@@ -817,6 +1029,10 @@ export class SelectiveAxisRegretController<Node extends object> {
     }));
     this.stats.catchup_probe_nodes_processed += probeNodesProcessed;
     this.stats.catchup_probe_frames += probeFrames;
+    if (decision.triggerSignal === "periodic_exploration") {
+      this.stats.periodic_probe_nodes_processed += probeNodesProcessed;
+      this.stats.periodic_probe_frames += probeFrames;
+    }
     this.stats.catchup_probe_attempts += input.probes.length;
     this.stats.catchup_probe_target_reaches += input.probes.filter(
       (probe) => probe.outcome === "reached_target",
@@ -899,8 +1115,15 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.stats.repair_incumbent_regret_opportunities_by_min_contact_advance,
         ).map(([advance, counts]) => [advance, { ...counts }]),
       ),
+      periodic_opportunities: this.stats.periodic_opportunities.map((opportunity) => ({
+        ...opportunity,
+        budget: opportunity.budget === null ? null : { ...opportunity.budget },
+      })),
       events: this.stats.events.map((event) => ({
         ...event,
+        periodic_budget: event.periodic_budget === null
+          ? null
+          : { ...event.periodic_budget },
         admissible_rewind_choices: event.admissible_rewind_choices.map((choice) => ({
           ...choice,
         })),

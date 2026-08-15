@@ -1344,3 +1344,17 @@ and final score movement. The useful comparison is marginal value per charged
 frame, not merely whether a more expensive policy sometimes finds a better
 track. Four seeds can establish activity, mechanics, obvious failure, and a
 direction worth investigating; they cannot establish a production improvement.
+
+The pre-panel seed-150 integration smoke found and removed one accidental
+restriction. The first repair build applied the production catch-up's binary
+deadline-pressure gate before the new explicit episode reserve. It observed 30
+exact periodic opportunities over five runs but admitted none. That was not the
+policy above: it stacked a legacy boolean on the replacement budget controller.
+After deleting only that redundant periodic gate, the same compile inputs admit
+three repair tournaments in two runs while production branch-regret admission
+remains untouched. The initial arm admits 22 tournaments in all five smoke runs.
+All five cells remain valid in both contexts, the generic selective-telemetry
+validator passes, and the dedicated analyzer reconciles opportunity, action,
+probe-work, lane, reserve, first-terminal, and repair-episode ledgers. The smoke
+uses one already-fixed panel seed and is integration evidence only; no constant,
+source, or final decision is selected from its score.

@@ -18,6 +18,10 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-repair-incumbent-once"))
       .toBe("selective_axis_regret_catchup_repair_incumbent_once");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-periodic-initial"))
+      .toBe("selective_axis_regret_catchup_periodic_initial");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-periodic-repair"))
+      .toBe("selective_axis_regret_catchup_periodic_repair");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy(
@@ -51,6 +55,155 @@ describe("selective-backtracking controller", () => {
     expect(catchupAlternativeHasSufficientGain(0.5, 0.4999)).toBe(true);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5)).toBe(false);
     expect(catchupAlternativeHasSufficientGain(0.5, 0.5001)).toBe(false);
+  });
+
+  test("admits one exact-rewind periodic tournament only in its configured lane", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_periodic_initial",
+    });
+    const parent = { gap: 5, name: "parent" };
+    const leader = { gap: 6, name: "leader" };
+    const alternative = { gap: 6, name: "alternative" };
+    const atEight = { gap: 9, name: "at-eight" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 5,
+      axisLoss: 0.1,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [atEight],
+      contactExpansion: false,
+      contactOrdinal: 6,
+      axisLoss: 0.11,
+    });
+    const assessment = {
+      execution_remaining_frames: 300_000,
+      conservative_terminal_work_frames: 100_000,
+      estimated_probe_work_frames: 40_000,
+      terminal_reserve_frames: 125_000,
+      exploration_allowance_frames: 112_500,
+      exploration_spent_frames: 0,
+      exploration_remaining_frames: 112_500,
+      admitted: true,
+      reason: "admitted" as const,
+    };
+    const decision = controller.consider({
+      node: atEight,
+      contactOrdinal: 8,
+      contactBoundary: true,
+      axisLoss: 0.12,
+      executionCeilingReached: false,
+      totalSpentFrames: 450_000,
+      lane: "initial",
+      alternativeAvailable: (node) => node === alternative,
+      // Periodic admission uses the explicit episode reserve below; the old
+      // compile-wide binary pressure gate remains production-regret-only.
+      alternativeDeadline: () => ({ margin: 1, pressured: true }),
+      periodicBudgetAssessment: (_alternative, fromGapIndex, spent) => {
+        expect(fromGapIndex).toBe(9);
+        expect(spent).toBe(0);
+        return assessment;
+      },
+    });
+    expect(decision).toMatchObject({
+      alternative,
+      contactAdvance: 3,
+      triggerSignal: "periodic_exploration",
+    });
+    controller.markSuspended(atEight);
+    controller.finishCatchup(decision!, {
+      outcome: "alternative_selected",
+      selectedAlternativeOrdinal: 1,
+      selectedRouteOrdinal: 1,
+      probes: [{
+        route_ordinal: 1,
+        route_kind: "causal_alternative",
+        alternative_ordinal: 1,
+        outcome: "reached_target",
+        end_gap_index: 9,
+        probe_nodes_processed: 2,
+        probe_frames: 35_000,
+        axis_loss: 0.11,
+        local_fallback_choices: [],
+      }],
+      catchupAxisLoss: 0.11,
+    });
+    expect(controller.snapshot()).toMatchObject({
+      periodic_schedule_checks: 1,
+      periodic_exact_rewind_opportunities: 1,
+      periodic_admitted: 1,
+      periodic_probe_frames: 35_000,
+      periodic_probe_nodes_processed: 2,
+      selective_backtracks_by_signal: {
+        branch_regret: 0,
+        repair_incumbent_regret: 0,
+        periodic_exploration: 1,
+      },
+      periodic_opportunities: [{ outcome: "admitted", budget: assessment }],
+      events: [{
+        trigger_signal: "periodic_exploration",
+        periodic_budget: assessment,
+      }],
+    });
+  });
+
+  test("records periodic reserve suppression without changing traversal", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_periodic_repair",
+    });
+    const parent = { gap: 5, name: "parent" };
+    const leader = { gap: 6, name: "leader" };
+    const alternative = { gap: 6, name: "alternative" };
+    const atEight = { gap: 9, name: "at-eight" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 5,
+      axisLoss: 0,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [atEight],
+      contactExpansion: false,
+      contactOrdinal: 6,
+      axisLoss: 0,
+    });
+    expect(controller.consider({
+      node: atEight,
+      contactOrdinal: 8,
+      contactBoundary: true,
+      axisLoss: 0.01,
+      incumbentAxisLoss: 0.01,
+      repairAttemptIndex: 2,
+      executionCeilingReached: false,
+      totalSpentFrames: 700_000,
+      lane: "repair",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      periodicBudgetAssessment: () => ({
+        execution_remaining_frames: 50_000,
+        conservative_terminal_work_frames: 60_000,
+        estimated_probe_work_frames: 20_000,
+        terminal_reserve_frames: 75_000,
+        exploration_allowance_frames: 112_500,
+        exploration_spent_frames: 0,
+        exploration_remaining_frames: 112_500,
+        admitted: false,
+        reason: "terminal_reserve",
+      }),
+    })).toBeNull();
+    expect(controller.snapshot()).toMatchObject({
+      periodic_schedule_checks: 1,
+      periodic_exact_rewind_opportunities: 1,
+      periodic_admitted: 0,
+      periodic_terminal_reserve_suppressed: 1,
+      selective_backtracks: 0,
+      periodic_opportunities: [{ outcome: "terminal_reserve" }],
+    });
   });
 
   test("counts lower-threshold admissible watches without changing traversal", () => {

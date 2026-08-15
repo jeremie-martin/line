@@ -215,6 +215,8 @@ import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
+  SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION,
+  SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR,
   SelectiveAxisRegretController,
   type FrontierTraversalLane,
   type SelectiveBacktrackDecision,
@@ -2684,12 +2686,15 @@ function compileHandoffInternal(
         gapIndex,
         costToEnd: incumbentCostToEnd,
       });
+    const conservativeDeadlineWorkAtGap = (gapIndex: number): number =>
+      deadline.conservativeWorkAt({ gapIndex, costToEnd: incumbentCostToEnd });
     const processNode = (
       node: HandoffNode,
       lane: FrontierTraversalLane,
       alternativeAvailable: (candidate: HandoffNode) => boolean,
       resumeSuspendedContinuation: boolean,
       traversalCanContinue: () => boolean,
+      executionCeilingFrames: number,
       allowSelectiveBacktracking = true,
     ): ProcessResult => {
       const atomicStart = getSimFrames();
@@ -2777,6 +2782,8 @@ function compileHandoffInternal(
         const decision = selectiveBacktracking.consider({
           node,
           contactOrdinal: contactOrdinalAt(node.search.gapIndex),
+          contactBoundary:
+            gaps[node.search.gapIndex - 1]?.endsWithContact === true,
           axisLoss: authoredPrefixAxisLoss(node.search),
           incumbentAxisLoss: lane === "repair" && bestCompleteNode !== null
             ? authoredPrefixAxisLoss(bestCompleteNode.search, node.search.gapIndex)
@@ -2789,6 +2796,48 @@ function compileHandoffInternal(
           alternativeDeadline: (alternative) => {
             const margin = conservativeDeadlineMarginAtGap(alternative.search.gapIndex);
             return { margin, pressured: deadlinePressure(margin) > 0 };
+          },
+          periodicBudgetAssessment: (
+            alternative,
+            fromGapIndex,
+            periodicProbeFrames,
+          ) => {
+            const executionRemaining = Math.max(
+              0,
+              executionCeilingFrames - getSimFrames(),
+            );
+            const alternativeWork = conservativeDeadlineWorkAtGap(
+              alternative.search.gapIndex,
+            );
+            const terminalWork = conservativeDeadlineWorkAtGap(fromGapIndex);
+            const estimatedProbeWork = Math.max(0, Math.ceil(alternativeWork - terminalWork));
+            const terminalReserve = Math.ceil(
+              SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR * terminalWork,
+            );
+            const explorationAllowance = Math.floor(
+              SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION * searchPolicyBudget,
+            );
+            const explorationRemaining = Math.max(
+              0,
+              explorationAllowance - periodicProbeFrames,
+            );
+            const terminalFits = estimatedProbeWork + terminalReserve <= executionRemaining;
+            const explorationFits = estimatedProbeWork <= explorationRemaining;
+            return {
+              execution_remaining_frames: executionRemaining,
+              conservative_terminal_work_frames: terminalWork,
+              estimated_probe_work_frames: estimatedProbeWork,
+              terminal_reserve_frames: terminalReserve,
+              exploration_allowance_frames: explorationAllowance,
+              exploration_spent_frames: periodicProbeFrames,
+              exploration_remaining_frames: explorationRemaining,
+              admitted: terminalFits && explorationFits,
+              reason: !terminalFits
+                ? "terminal_reserve"
+                : !explorationFits
+                  ? "exploration_allowance"
+                  : "admitted",
+            };
           },
         });
         if (decision !== null) {
@@ -2977,6 +3026,7 @@ function compileHandoffInternal(
     const runFrontier = (
       pass: HandoffNode[], fb: HandoffNode[], keepGoing: () => boolean,
       lane: FrontierTraversalLane,
+      executionCeilingFrames: number,
       onProcessed?: () => void,
     ): void => {
       const processSelected = (
@@ -3012,6 +3062,7 @@ function compileHandoffInternal(
           (candidate) => frontierContains(candidate, pass, fb),
           resumeSuspendedContinuation,
           keepGoing,
+          executionCeilingFrames,
           allowSelectiveBacktracking,
         );
         onProcessed?.();
@@ -3278,7 +3329,7 @@ function compileHandoffInternal(
       activeTerminalConsiderLimit = stopAfterTerminalConsider ?? null;
       try {
         selectiveBacktracking?.observeRoot(initial);
-        runFrontier(pass, fb, keepGoing, "repair");
+        runFrontier(pass, fb, keepGoing, "repair", ceiling);
       } finally {
         activeTerminalConsiderLimit = previousTerminalLimit;
       }
@@ -3703,6 +3754,7 @@ function compileHandoffInternal(
       !(repairEnabled && firstCompletionFrame >= 0 &&
         getSimFrames() >= firstCompletionFrame * repair!.mainMargin),
       initialSnapshot === null ? "initial" : "snapshot",
+      targetBudget,
     );
     const initialSearchEnd = getSimFrames();
     const initialStopReason = captured !== null
@@ -3796,6 +3848,7 @@ function compileHandoffInternal(
           fallbackStack,
           () => getSimFrames() < targetBudget,
           "resumed",
+          targetBudget,
         );
       } finally {
         resumedSearchShapeBudget = null;

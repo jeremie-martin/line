@@ -495,7 +495,9 @@ export type CompileStats = {
   handoff_selective_backtracking?: {
     policy:
       | "selective_axis_regret_catchup"
-      | "selective_axis_regret_catchup_repair_incumbent_once";
+      | "selective_axis_regret_catchup_repair_incumbent_once"
+      | "selective_axis_regret_catchup_periodic_initial"
+      | "selective_axis_regret_catchup_periodic_repair";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -530,6 +532,7 @@ export type CompileStats = {
     selective_backtracks_by_signal: {
       branch_regret: number;
       repair_incumbent_regret: number;
+      periodic_exploration: number;
     };
     selective_backtracks_with_multiple_admissible_rewind_choices: number;
     admissible_rewind_choice_count_sum: number;
@@ -571,7 +574,7 @@ export type CompileStats = {
     };
     events: Array<{
       lane: "initial" | "snapshot" | "repair" | "resumed";
-      trigger_signal: "branch_regret" | "repair_incumbent_regret";
+      trigger_signal: "branch_regret" | "repair_incumbent_regret" | "periodic_exploration";
       branch_gap_index: number;
       from_gap_index: number;
       alternative_gap_index: number;

@@ -47,6 +47,7 @@
  *   --seeds=<n|list>       seed count from --seed-base, or an explicit list (default 48)
  *   --budgets=<list>       default 750000
  *   --jobs=<n>             worker pool size
+ *   --budget-telemetry=<level>  off (default), summary, or trace
  *   --ref=<git ref>        paired arm, compiled in a throwaway worktree (default HEAD)
  *   --env=K=V,K=V          extra compiler env for the CANDIDATE arm only
  *   --out=<dir>            artifact directory
@@ -155,6 +156,10 @@ async function main(): Promise<void> {
   }
 
   const budgets = argument("budgets") ?? "750000";
+  const budgetTelemetry = argument("budget-telemetry") ?? "off";
+  if (!(["off", "summary", "trace"] as const).includes(budgetTelemetry as any)) {
+    throw new Error(`--budget-telemetry must be off, summary, or trace`);
+  }
   const seeds = seedList(argument("seeds") ?? "48", Number(argument("seed-base") ?? "0"));
   const jobs = Number(argument("jobs") ?? String(Math.min(24, Math.max(1, availableParallelism() - 1))));
   const ref = argument("ref") ?? "HEAD";
@@ -171,6 +176,7 @@ async function main(): Promise<void> {
   const cells = mini.keptIds.length * seeds.length * budgets.split(",").length;
   console.log(
     `\n${cells} cells per arm; budgets ${budgets}; ${seeds.length} seeds from ${seeds[0]}; ${jobs} jobs\n` +
+    `  budget telemetry ${budgetTelemetry}\n` +
     `  candidate  working tree${describeEnv(parseEnv(argument("env")))}\n` +
     `  ref        ${ref}\n`,
   );
@@ -186,6 +192,7 @@ async function main(): Promise<void> {
     budgets,
     seeds,
     jobs,
+    budgetTelemetry,
     env: parseEnv(argument("env")),
   });
   const refPath = join(out, "ref.json");
@@ -200,6 +207,7 @@ async function main(): Promise<void> {
       budgets,
       seeds,
       jobs,
+      budgetTelemetry,
       env: {},
     });
   } finally {
@@ -223,7 +231,8 @@ function printUsage(): void {
     `  --seeds=<n|list>       seed count from --seed-base, or an explicit comma list (default 48)\n` +
     `  --seed-base=<n>        first seed when --seeds is a count (default 0)\n` +
     `  --budgets=<list>       comma-separated budgets (default 750000)\n` +
-    `  --jobs=<n>             worker pool size per arm\n` +
+      `  --jobs=<n>             worker pool size per arm\n` +
+      `  --budget-telemetry=<level> off (default), summary, or trace\n` +
     `  --ref=<git ref>        paired arm, compiled in a throwaway worktree (default HEAD)\n` +
     `  --env=K=V,K=V          extra compiler env for the CANDIDATE arm only\n` +
     `  --out=<dir>            artifact directory (manifests, both archives, JSON report)\n` +
@@ -322,6 +331,7 @@ function runArm(input: {
   budgets: string;
   seeds: number[];
   jobs: number;
+  budgetTelemetry: string;
   env: Record<string, string>;
 }): void {
   // Shelling out keeps this tool out of the runner's import graph AND is the
@@ -336,7 +346,7 @@ function runArm(input: {
       `--budgets=${input.budgets}`,
       `--seeds=${input.seeds.join(",")}`,
       `--jobs=${input.jobs}`,
-      "--budget-telemetry=off",
+      `--budget-telemetry=${input.budgetTelemetry}`,
       `--out=${input.out}`,
     ],
     {

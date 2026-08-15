@@ -45,7 +45,7 @@ type Checkpoint = {
 type Event = {
   sourceId: string;
   seed: number;
-  trigger_signal: "branch_regret" | "repair_incumbent_regret";
+  trigger_signal: "branch_regret" | "repair_incumbent_regret" | "periodic_exploration";
   lane: "initial" | "snapshot" | "repair" | "resumed";
   trigger_axis_loss: number;
   incumbent_axis_loss: number | null;
@@ -680,7 +680,8 @@ const result = {
     single_alternative_completed_tournaments_for_checkpoint_rules: guardCompleted.length,
     outcomes: byOutcome,
     trigger_signals: Object.fromEntries(
-      (["branch_regret", "repair_incumbent_regret"] as const).map((signal) => [
+      (["branch_regret", "repair_incumbent_regret", "periodic_exploration"] as const)
+        .map((signal) => [
         signal,
         events.filter((event) => event.trigger_signal === signal).length,
       ]),
@@ -915,7 +916,11 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     const label = `${runKey}/event-${eventIndex}`;
     const requested = event.catchup_alternatives_requested;
     const triggerSignal = event.trigger_signal ?? "branch_regret";
-    if (triggerSignal !== "branch_regret" && triggerSignal !== "repair_incumbent_regret") {
+    if (
+      triggerSignal !== "branch_regret" &&
+      triggerSignal !== "repair_incumbent_regret" &&
+      triggerSignal !== "periodic_exploration"
+    ) {
       throw new Error(`${label} has invalid trigger signal`);
     }
     if (event.admissible_rewind_choices !== undefined) {
@@ -969,6 +974,19 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         (!Number.isSafeInteger(event.repair_attempt_index) || event.repair_attempt_index < 0)
       ) {
         throw new Error(`${label} has no valid repair attempt attribution`);
+      }
+    }
+    if (triggerSignal === "periodic_exploration") {
+      const budget = event.periodic_budget;
+      if (
+        (stats.policy === "selective_axis_regret_catchup_periodic_initial" &&
+          event.lane !== "initial") ||
+        (stats.policy === "selective_axis_regret_catchup_periodic_repair" &&
+          event.lane !== "repair") ||
+        event.contact_advance !== stats.periodic_contact_rewind ||
+        budget?.admitted !== true || budget?.reason !== "admitted"
+      ) {
+        throw new Error(`${label} has inconsistent periodic trigger evidence`);
       }
     }
     if (!Number.isSafeInteger(requested) || requested < 1) {
@@ -1423,7 +1441,15 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     }).length,
   );
   if (stats.selective_backtracks_by_signal !== undefined) {
-    for (const signal of ["branch_regret", "repair_incumbent_regret"] as const) {
+    for (const signal of [
+      "branch_regret",
+      "repair_incumbent_regret",
+      "periodic_exploration",
+    ] as const) {
+      if (
+        signal === "periodic_exploration" &&
+        stats.selective_backtracks_by_signal[signal] === undefined
+      ) continue;
       const expected = instrumented.filter(
         (event: any) => (event.trigger_signal ?? "branch_regret") === signal,
       ).length;

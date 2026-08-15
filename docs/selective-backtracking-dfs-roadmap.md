@@ -1642,3 +1642,101 @@ progressive stopping rule that explicitly limits the amount of initial work
 that may displace completion and repair. Such a campaign needs its own fresh
 seeds and gate. The full canonical benchmark remains unwarranted until that
 mechanism demonstrates both positive mean return and controlled cell tails.
+
+## Run-proof progressive-allocation campaign
+
+### Challenged assumption
+
+The startup-expiring policy treats every admitted value opportunity as an
+independent local purchase. Its strongest screen was positive at both budgets,
+but repeated purchases can continue after an early probe establishes that its
+causal sibling cannot even reach the equal-depth comparison target. The local
+failure may be evidence about persistent run state, not merely one sibling.
+
+The existing seeds 166-169 are motivation only. At 1.25M, the six runs whose
+first voluntary tournament ended in `probe_dead_end` averaged -2.3677 against
+production and include the -24.4130 and -17.7254 tails; later voluntary work in
+those six runs consumed 266,451 frames. At 750k the corresponding three-run
+cohort averaged +3.4763, so the relationship is not a conclusion and cannot be
+used as an offline score splice. Fresh paired evidence decides the live rule.
+
+### Frozen rule
+
+Add the explicit experimental policy
+`selective-axis-regret-catchup-value-initial-expire-10-run-proof`. It inherits
+the closed startup-expiring policy exactly: density 0.020, maturity three, 10%
+startup expiration, initial lane only, 15% compile-level optional-work fund,
+1.25 terminal reserve, atomic local admission, no speculative tail completion,
+and the existing equal-depth tournament and comparator.
+
+It adds one compile-local state machine:
+
+1. Begin `awaiting_first_tournament`.
+2. The first actually admitted value tournament is the proof action. Production
+   branch-regret actions and value opportunities lost to production priority do
+   not count.
+3. If any causal probe in that tournament reaches the equal-depth target, set
+   `first_tournament_reached_target`. This includes both `current_selected` and
+   `alternative_selected`: the proof concerns structural reachability, not
+   whether the alternative wins one local comparison.
+4. If no probe reaches the target (`probe_dead_end`, `probe_deferred`,
+   `probe_budget_yield`, or `execution_ceiling`), set
+   `sealed_after_failed_first_tournament`.
+5. Once sealed, every later otherwise-eligible value opportunity is recorded
+   as `run_proof_sealed` and cannot launch a voluntary tournament. Its watch and
+   sibling remain available to ordinary DFS and production branch regret. No
+   frontier node is deleted and no authored target is changed.
+6. A successful first proof never seals the run after a later failure. This
+   campaign tests a first-action latent-state hypothesis, not a failure-count or
+   streak threshold.
+
+### Telemetry and mechanical gate
+
+Selective telemetry records the exact run-proof state, the first value event
+index and outcome, whether that tournament reached its target, and the number
+and identities of subsequent `run_proof_sealed` opportunities. Existing event,
+atomic probe, budget, resume, and frontier telemetry remains authoritative.
+Budget Telemetry stays V12 because the new state changes admission only and
+introduces no new budget lane or episode stop reason.
+
+Focused tests and a trace smoke must prove:
+
+- unset production and all prior policy names remain exact;
+- the proof state can change only once, after an admitted value tournament;
+- a reached target proves the run regardless of local winner;
+- a first tournament with no reached target seals all later value admissions;
+- suppressed watches are recorded once and remain live for ordinary traversal;
+- action, event, frame, candidate, resume, first-terminal, and Budget Telemetry
+  identities reconcile; and
+- disabling the new explicit policy leaves no run-proof effect.
+
+### Fresh screen
+
+Use the same ten-source compact panel, budgets 750k and 1.25M, actual seeds
+186-189, four workers per arm, and summary Budget Telemetry. Candidate and
+production reference come from one committed source; only the candidate gets
+the new categorical policy. This is mover-grid evidence, not a headline.
+
+The rule earns one confirmation only if:
+
+- all candidate cells are valid and no reference-valid completion or contract
+  is lost;
+- total and active-cell paired means are positive at both budgets;
+- at least three of four seed blocks are positive at one budget and at least
+  two at the other;
+- no cell loses 20 points;
+- value actions span at least eight cells/four sources per budget; and
+- sealing occurs in at least two cells/two sources per budget, so the score is
+  not credited to an inert progressive gate.
+
+A pass earns exactly one confirmation on seeds 190-193. A failure closes this
+exact first-tournament proof rule. No density, horizon, allowance, breadth,
+failure count, source exception, or canonical V2 run may be substituted.
+
+### Progress ledger
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Rule, state machine, telemetry, and score gates frozen | complete | This section |
+| 2026-08-15 | Live implementation and mechanical proof | pending | — |
+| 2026-08-15 | Fresh paired two-budget screen | pending | — |

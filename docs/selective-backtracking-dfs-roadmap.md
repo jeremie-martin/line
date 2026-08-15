@@ -3050,4 +3050,24 @@ source, loss, watch-age, or reset-depth exception from compact results.
 | 2026-08-16 | Behavior-neutral renewal audit | complete | 32/32 exact; 16/91 crossings but 85 supersessions, 84 from pre-horizon watches |
 | 2026-08-16 | Endpoint-lineage reset implementation | complete: unit | Endpoint-only reset; concrete frontier untouched; focused suite and targeted type check clean |
 | 2026-08-16 | Known-activity and catastrophic-cell smokes | complete: positive | +2.991/cell vs Phase Q on seed 202; catastrophic seed 212 becomes +14.32 vs Phase D |
-| 2026-08-16 | Fresh four-seed continuation panel | pending | Actual seeds 214-217; eight sources; 750k only; paired Phase-D reference |
+| 2026-08-16 | Fresh four-seed continuation panel | complete: close | -1.777 +/- 1.624 seed-block SE; only 2/4 positive seeds and 3/8 positive sources; one -38.18 cell |
+
+The fresh panel decisively closes endpoint-lineage reset. All 32 candidate
+cells remain valid and the mechanism executes exactly: 71 probes reach their
+target, every target reach resets its two endpoint links, both route winners
+occur, and actions span all eight sources. Those resets clear 1,314 unique
+inherited watch identifiers when summed per action. The score result is
+nevertheless -56.85 raw points (-1.777 +/- 1.624 seed-block SE), with 12 cells
+better, 13 worse, seven tied, only seeds 216/217 positive, and only three
+positive source means. `regression_transition_mosaic` seed 215 loses 38.18
+points, independently violating the frozen gate.
+
+Reset does return work from initial traversal to repair: first terminal is
+4,665 paired frames earlier, initial work falls 149,295 frames, repair work
+rises 156,399 frames, and repair produces 13 more terminal-reaching attempts.
+Only one additional repair is accepted. The evidence rejects the causal
+shortcut behind Phase R: a watch whose branch predates one measured route pair
+is not necessarily stale or harmful. Its queued alternative can still encode
+valuable search diversity. Preserve the explicit mode as a diagnostic, but do
+not promote it, narrow it around the observed losses, or clear inherited
+lineage in production.

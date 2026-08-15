@@ -10,7 +10,8 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_value_deferred_prefix_gate"
   | "selective_axis_regret_catchup_value_initial"
   | "selective_axis_regret_catchup_value_initial_progress_10"
-  | "selective_axis_regret_catchup_value_initial_expire_10";
+  | "selective_axis_regret_catchup_value_initial_expire_10"
+  | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
 
 export type SelectiveBacktrackSignal =
   | "branch_regret"
@@ -97,6 +98,9 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-initial-expire-10") {
     return "selective_axis_regret_catchup_value_initial_expire_10";
   }
+  if (raw === "selective-axis-regret-catchup-value-initial-expire-10-run-proof") {
+    return "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
@@ -110,7 +114,8 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-value-deferred-prefix-gate, or ` +
       `selective-axis-regret-catchup-value-initial, or ` +
       `selective-axis-regret-catchup-value-initial-progress-10, or ` +
-      `selective-axis-regret-catchup-value-initial-expire-10; got ${raw}`,
+      `selective-axis-regret-catchup-value-initial-expire-10, or ` +
+      `selective-axis-regret-catchup-value-initial-expire-10-run-proof; got ${raw}`,
   );
 }
 
@@ -169,6 +174,7 @@ export type SelectiveValueLiveOpportunity = {
     | "ranked_out"
     | "production_priority"
     | "progress_expired"
+    | "run_proof_sealed"
     | "alternative_unavailable"
     | "execution_ceiling"
     | "terminal_reserve"
@@ -484,6 +490,15 @@ export type SelectiveBacktrackingStats = {
   value_live_min_gap_progress: number;
   value_live_progress_suppressed_watches: number;
   value_live_progress_expired_watches: number;
+  value_live_run_proof_state:
+    | "disabled"
+    | "awaiting_first_tournament"
+    | "first_tournament_reached_target"
+    | "sealed_after_failed_first_tournament";
+  value_live_run_proof_first_event_index: number | null;
+  value_live_run_proof_first_outcome: SelectiveCatchupOutcome | null;
+  value_live_run_proof_first_reached_target: boolean | null;
+  value_live_run_proof_sealed_opportunities: number;
   value_live_crossings: number;
   value_live_admitted: number;
   value_live_ranked_out: number;
@@ -723,11 +738,20 @@ export class SelectiveAxisRegretController<Node extends object> {
       value_live_density_threshold: SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD,
       value_live_min_gap_progress:
         this.policy === "selective_axis_regret_catchup_value_initial_progress_10" ||
-          this.policy === "selective_axis_regret_catchup_value_initial_expire_10"
+          this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+          this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
           ? SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS
           : 0,
       value_live_progress_suppressed_watches: 0,
       value_live_progress_expired_watches: 0,
+      value_live_run_proof_state:
+        this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
+          ? "awaiting_first_tournament"
+          : "disabled",
+      value_live_run_proof_first_event_index: null,
+      value_live_run_proof_first_outcome: null,
+      value_live_run_proof_first_reached_target: null,
+      value_live_run_proof_sealed_opportunities: 0,
       value_live_crossings: 0,
       value_live_admitted: 0,
       value_live_ranked_out: 0,
@@ -1187,6 +1211,8 @@ export class SelectiveAxisRegretController<Node extends object> {
         this.stats.value_live_production_priority++;
       } else if (outcome === "progress_expired") {
         this.stats.value_live_progress_expired_watches++;
+      } else if (outcome === "run_proof_sealed") {
+        this.stats.value_live_run_proof_sealed_opportunities++;
       } else if (outcome === "alternative_unavailable") {
         this.stats.value_live_alternative_unavailable++;
       } else if (outcome === "execution_ceiling") {
@@ -1394,7 +1420,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       if (
         (this.policy === "selective_axis_regret_catchup_value_initial" ||
           this.policy === "selective_axis_regret_catchup_value_initial_progress_10" ||
-          this.policy === "selective_axis_regret_catchup_value_initial_expire_10") &&
+          this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+          this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
         contactAdvance >= SELECTIVE_VALUE_MIN_CONTACT_ADVANCE &&
@@ -1435,7 +1463,11 @@ export class SelectiveAxisRegretController<Node extends object> {
           const minimumProgress = this.stats.value_live_min_gap_progress;
           const gapProgress = input.gapProgress ?? 0;
           if (gapProgress < minimumProgress) {
-            if (this.policy === "selective_axis_regret_catchup_value_initial_expire_10") {
+            if (
+              this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+              this.policy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
+            ) {
               watch.valueLiveCrossed = true;
               this.stats.value_live_crossings++;
               recordValueLiveOpportunity(watch, makePoint(), "progress_expired", null);
@@ -1459,6 +1491,13 @@ export class SelectiveAxisRegretController<Node extends object> {
               recordValueLiveOpportunity(watch, point, "execution_ceiling", null);
             } else if (!budget.admitted) {
               recordValueLiveOpportunity(watch, point, budget.reason, null);
+            } else if (
+              this.policy ===
+                  "selective_axis_regret_catchup_value_initial_expire_10_run_proof" &&
+              this.stats.value_live_run_proof_state ===
+                "sealed_after_failed_first_tournament"
+            ) {
+              recordValueLiveOpportunity(watch, point, "run_proof_sealed", null);
             } else {
               valueLiveCandidates.push({
                 watch,
@@ -1687,7 +1726,8 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (
       (this.policy === "selective_axis_regret_catchup_value_initial" ||
         this.policy === "selective_axis_regret_catchup_value_initial_progress_10" ||
-        this.policy === "selective_axis_regret_catchup_value_initial_expire_10") &&
+        this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+        this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
       valueLiveCandidates.length > 0
     ) {
       valueLiveCandidates.sort((left, right) =>
@@ -1897,6 +1937,19 @@ export class SelectiveAxisRegretController<Node extends object> {
     } else if (decision.triggerSignal === "value_exploration") {
       this.stats.value_live_probe_nodes_processed += probeNodesProcessed;
       this.stats.value_live_probe_frames += probeFrames;
+      if (
+        this.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_run_proof" &&
+        this.stats.value_live_run_proof_state === "awaiting_first_tournament"
+      ) {
+        const reachedTarget = input.probes.some((probe) => probe.outcome === "reached_target");
+        this.stats.value_live_run_proof_first_event_index = decision.eventIndex;
+        this.stats.value_live_run_proof_first_outcome = input.outcome;
+        this.stats.value_live_run_proof_first_reached_target = reachedTarget;
+        this.stats.value_live_run_proof_state = reachedTarget
+          ? "first_tournament_reached_target"
+          : "sealed_after_failed_first_tournament";
+      }
     }
     this.stats.catchup_probe_attempts += input.probes.length;
     this.stats.catchup_probe_target_reaches += input.probes.filter(

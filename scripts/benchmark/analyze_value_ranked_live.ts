@@ -25,10 +25,16 @@ const expectedPolicy = argument("policy") ??
 if (
   expectedPolicy !== "selective_axis_regret_catchup_value_initial" &&
   expectedPolicy !== "selective_axis_regret_catchup_value_initial_progress_10" &&
-  expectedPolicy !== "selective_axis_regret_catchup_value_initial_expire_10"
+  expectedPolicy !== "selective_axis_regret_catchup_value_initial_expire_10" &&
+  expectedPolicy !== "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
 ) throw new Error(`unsupported value-ranked live policy ${expectedPolicy}`);
 const expectedMinimumGapProgress =
   expectedPolicy === "selective_axis_regret_catchup_value_initial" ? 0 : 0.10;
+const runProofEnabled =
+  expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
+const expirationEnabled =
+  expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+  runProofEnabled;
 
 const candidate = readGridArm("value-initial", candidatePath);
 const reference = readGridArm("reference", referencePath);
@@ -69,6 +75,8 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
       no_cell_loses_20: score.minimum_cell_delta > -20,
       action_spans_eight_runs: mechanics.active_runs >= 8,
       action_spans_four_sources: mechanics.active_sources >= 4,
+      run_proof_seals_two_runs: !runProofEnabled || mechanics.run_proof_sealed_runs >= 2,
+      run_proof_seals_two_sources: !runProofEnabled || mechanics.run_proof_sealed_sources >= 2,
     },
   }];
 }));
@@ -81,7 +89,9 @@ const screenPassed = budgetRows.every((row) =>
   row.gate.positive_active_mean &&
   row.gate.no_cell_loses_20 &&
   row.gate.action_spans_eight_runs &&
-  row.gate.action_spans_four_sources
+  row.gate.action_spans_four_sources &&
+  row.gate.run_proof_seals_two_runs &&
+  row.gate.run_proof_seals_two_sources
 ) && Math.max(...positiveSeedBlocks) >= 3 && Math.min(...positiveSeedBlocks) >= 2;
 
 const result = {
@@ -103,9 +113,13 @@ const result = {
     terminal_reserve_factor: 1.25,
     exploration_budget_fraction: 0.15,
     pre_horizon_opportunity_behavior:
-      expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10"
+      expirationEnabled
         ? "expire"
         : expectedMinimumGapProgress > 0 ? "defer" : "eligible",
+    run_proof:
+      runProofEnabled
+        ? "seal future value admissions when the first tournament reaches no equal-depth target"
+        : "disabled",
     speculative_tail_completion_inside_value_probe: false,
   },
   by_budget: byBudget,
@@ -155,6 +169,11 @@ function summarizeAndValidateMechanics(rows: any[]): any {
     production_priority: 0,
     progress_suppressed_watches: 0,
     progress_expired_watches: 0,
+    run_proof_sealed_opportunities: 0,
+    run_proof_sealed_runs: 0,
+    run_proof_proved_runs: 0,
+    run_proof_awaiting_runs: 0,
+    run_proof_sealed_sources: 0,
     alternative_unavailable: 0,
     execution_ceiling_suppressed: 0,
     terminal_reserve_suppressed: 0,
@@ -182,6 +201,10 @@ function summarizeAndValidateMechanics(rows: any[]): any {
     active_runs: number;
     crossings: number;
     progress_expired_watches: number;
+    run_proof_sealed_opportunities: number;
+    run_proof_sealed_runs: number;
+    run_proof_proved_runs: number;
+    run_proof_awaiting_runs: number;
     admitted: number;
     probe_frames: number;
     alternative_selected: number;
@@ -210,6 +233,7 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       ranked_out: "value_live_ranked_out",
       production_priority: "value_live_production_priority",
       progress_expired: "value_live_progress_expired_watches",
+      run_proof_sealed: "value_live_run_proof_sealed_opportunities",
       alternative_unavailable: "value_live_alternative_unavailable",
       execution_ceiling: "value_live_execution_ceiling_suppressed",
       terminal_reserve: "value_live_terminal_reserve_suppressed",
@@ -230,7 +254,7 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       expired.some((opportunity: any) =>
         !(opportunity.point.gap_progress < expectedMinimumGapProgress)
       ) ||
-      (expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10"
+      (expirationEnabled
         ? expired.length !== (stats.value_live_progress_expired_watches ?? 0)
         : expired.length !== 0)
     ) {
@@ -241,6 +265,85 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       events.length !== stats.selective_backtracks_by_signal?.value_exploration
     ) {
       throw new Error(`${label}: live action ledger mismatch`);
+    }
+    const proofState = stats.value_live_run_proof_state;
+    const proofFirstEventIndex = stats.value_live_run_proof_first_event_index;
+    const proofFirstOutcome = stats.value_live_run_proof_first_outcome;
+    const proofFirstReachedTarget = stats.value_live_run_proof_first_reached_target;
+    const sealedOpportunities = counts.run_proof_sealed ?? 0;
+    if (runProofEnabled) {
+      const firstValueEvent = events[0];
+      if (firstValueEvent === undefined) {
+        if (
+          proofState !== "awaiting_first_tournament" ||
+          proofFirstEventIndex !== null ||
+          proofFirstOutcome !== null ||
+          proofFirstReachedTarget !== null ||
+          sealedOpportunities !== 0
+        ) {
+          throw new Error(`${label}: invalid awaiting run-proof state`);
+        }
+        totals.run_proof_awaiting_runs++;
+      } else {
+        const firstEventIndex = (stats.events ?? []).indexOf(firstValueEvent);
+        const reachedTarget = (firstValueEvent.catchup_probe_results ?? []).some(
+          (probe: any) => probe.outcome === "reached_target",
+        );
+        if (
+          proofFirstEventIndex !== firstEventIndex ||
+          proofFirstOutcome !== firstValueEvent.catchup_outcome ||
+          proofFirstReachedTarget !== reachedTarget
+        ) {
+          throw new Error(`${label}: first run-proof event attribution mismatch`);
+        }
+        if (reachedTarget) {
+          if (
+            proofState !== "first_tournament_reached_target" ||
+            sealedOpportunities !== 0
+          ) {
+            throw new Error(`${label}: reached run proof was not preserved`);
+          }
+          totals.run_proof_proved_runs++;
+        } else {
+          if (
+            proofState !== "sealed_after_failed_first_tournament" ||
+            events.length !== 1
+          ) {
+            throw new Error(`${label}: failed run proof did not seal later admissions`);
+          }
+          const firstAdmittedOpportunity = opportunities.findIndex(
+            (opportunity: any) => opportunity.outcome === "admitted",
+          );
+          if (
+            opportunities.some((opportunity: any, index: number) =>
+              opportunity.outcome === "run_proof_sealed" &&
+              index <= firstAdmittedOpportunity
+            )
+          ) {
+            throw new Error(`${label}: run proof sealed an opportunity before its proof action`);
+          }
+          totals.run_proof_sealed_runs++;
+        }
+      }
+    } else {
+      const legacyTelemetryAbsent =
+        proofState === undefined &&
+        proofFirstEventIndex === undefined &&
+        proofFirstOutcome === undefined &&
+        proofFirstReachedTarget === undefined &&
+        stats.value_live_run_proof_sealed_opportunities === undefined;
+      if (
+        !legacyTelemetryAbsent &&
+        (
+          proofState !== "disabled" ||
+          proofFirstEventIndex !== null ||
+          proofFirstOutcome !== null ||
+          proofFirstReachedTarget !== null ||
+          sealedOpportunities !== 0
+        )
+      ) {
+        throw new Error(`${label}: run-proof telemetry changed a prior policy`);
+      }
     }
     const admittedByWatch = new Map(opportunities
       .filter((opportunity: any) => opportunity.outcome === "admitted")
@@ -334,6 +437,10 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       active_runs: 0,
       crossings: 0,
       progress_expired_watches: 0,
+      run_proof_sealed_opportunities: 0,
+      run_proof_sealed_runs: 0,
+      run_proof_proved_runs: 0,
+      run_proof_awaiting_runs: 0,
       admitted: 0,
       probe_frames: 0,
       alternative_selected: 0,
@@ -344,6 +451,14 @@ function summarizeAndValidateMechanics(rows: any[]): any {
     if (events.length > 0) source.active_runs++;
     source.crossings += stats.value_live_crossings;
     source.progress_expired_watches += stats.value_live_progress_expired_watches ?? 0;
+    source.run_proof_sealed_opportunities += sealedOpportunities;
+    if (proofState === "sealed_after_failed_first_tournament") {
+      source.run_proof_sealed_runs++;
+    } else if (proofState === "first_tournament_reached_target") {
+      source.run_proof_proved_runs++;
+    } else if (proofState === "awaiting_first_tournament") {
+      source.run_proof_awaiting_runs++;
+    }
     source.admitted += stats.value_live_admitted;
     source.probe_frames += probeFrames;
     source.alternative_selected += events.filter(
@@ -364,6 +479,7 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       stats.value_live_progress_suppressed_watches ?? 0;
     totals.progress_expired_watches +=
       stats.value_live_progress_expired_watches ?? 0;
+    totals.run_proof_sealed_opportunities += sealedOpportunities;
     totals.alternative_unavailable += stats.value_live_alternative_unavailable;
     totals.execution_ceiling_suppressed += stats.value_live_execution_ceiling_suppressed;
     totals.terminal_reserve_suppressed += stats.value_live_terminal_reserve_suppressed;
@@ -393,6 +509,9 @@ function summarizeAndValidateMechanics(rows: any[]): any {
     );
   }
   totals.active_sources = activeSources.size;
+  totals.run_proof_sealed_sources = [...bySource.values()].filter(
+    (source) => source.run_proof_sealed_runs > 0,
+  ).length;
   if (totals.bounded_overshoots_with_prefix_beyond_allowance !== 0) {
     throw new Error("value probe began atomic work after exhausting its local allowance");
   }
@@ -562,6 +681,15 @@ function printResult(value: any): void {
         `first terminal ${signedNullable(row.first_terminal.mean_delta_frames, 0)} frames; ` +
         `active mean ${signed(row.action_set.active.mean_delta_per_cell, 4)}`,
     );
+    if (runProofEnabled) {
+      console.log(
+        `     proof reached/sealed/awaiting ${row.mechanics.run_proof_proved_runs}/` +
+          `${row.mechanics.run_proof_sealed_runs}/` +
+          `${row.mechanics.run_proof_awaiting_runs}; sealed opportunities ` +
+          `${row.mechanics.run_proof_sealed_opportunities} across ` +
+          `${row.mechanics.run_proof_sealed_sources} sources`,
+      );
+    }
     if (!row.gate.no_cell_loses_20) {
       const worst = row.score.worst_cells[0];
       console.log(

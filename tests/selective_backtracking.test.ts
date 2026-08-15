@@ -42,6 +42,9 @@ describe("selective-backtracking controller", () => {
     expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-initial-expire-10",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10");
+    expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-expire-10-run-proof",
+    )).toBe("selective_axis_regret_catchup_value_initial_expire_10_run_proof");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy(
@@ -826,6 +829,191 @@ describe("selective-backtracking controller", () => {
       gapProgress: 0.10,
     })).toBeNull();
     expect(controller.snapshot().value_live_crossings).toBe(1);
+  });
+
+  test("seals later value opportunities when the first run-proof probe cannot reach", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_initial_expire_10_run_proof",
+    });
+    const assessment = () => ({
+      execution_remaining_frames: 500_000,
+      conservative_terminal_work_frames: 100_000,
+      estimated_probe_work_frames: 10_000,
+      terminal_reserve_frames: 125_000,
+      exploration_allowance_frames: 112_500,
+      exploration_spent_frames: 0,
+      exploration_remaining_frames: 112_500,
+      local_probe_allowance_frames: 112_500,
+      admitted: true,
+      reason: "admitted" as const,
+    });
+    const arm = (prefix: string, gap: number, contact: number) => {
+      const parent = { gap, name: `${prefix}-parent` };
+      const leader = { gap: gap + 1, name: `${prefix}-leader` };
+      const alternative = { gap: gap + 1, name: `${prefix}-alternative` };
+      const current = { gap: gap + 3, name: `${prefix}-current` };
+      controller.observeExpansion({
+        parent,
+        children: [leader, alternative],
+        contactExpansion: true,
+        contactOrdinal: contact,
+        axisLoss: 0.10,
+      });
+      controller.observeExpansion({
+        parent: leader,
+        children: [current],
+        contactExpansion: false,
+        contactOrdinal: contact + 1,
+        axisLoss: 0.10,
+      });
+      return { current, alternative, contact };
+    };
+    const consider = (branch: ReturnType<typeof arm>, axisLoss = 0.14) =>
+      controller.consider({
+        node: branch.current,
+        contactOrdinal: branch.contact + 3,
+        contactBoundary: true,
+        axisLoss,
+        gapProgress: 0.20,
+        executionCeilingReached: false,
+        totalSpentFrames: 100_000,
+        lane: "initial",
+        alternativeAvailable: (node) => node === branch.alternative,
+        alternativeDeadline: () => ({ margin: 3, pressured: false }),
+        explorationBudgetAssessment: assessment,
+      });
+
+    const first = consider(arm("first", 1, 1));
+    expect(first).toMatchObject({ triggerSignal: "value_exploration" });
+    controller.finishCatchup(first!, {
+      outcome: "probe_dead_end",
+      selectedAlternativeOrdinal: null,
+      selectedRouteOrdinal: null,
+      probes: [{
+        route_ordinal: 1,
+        route_kind: "causal_alternative",
+        alternative_ordinal: 1,
+        outcome: "probe_dead_end",
+        end_gap_index: 2,
+        probe_nodes_processed: 1,
+        probe_frames: 1_000,
+        ranked_option_calls: 1,
+        requested_normal_proposals: 80,
+        candidate_geometry_evaluations: 75,
+        atomic_node_frames: [1_000],
+        tail_completion_attempts: 0,
+        budget_allowance_frames: 112_500,
+        budget_remaining_before_yield: null,
+        estimated_next_node_frames: null,
+        axis_loss: null,
+        local_fallback_choices: [],
+      }],
+      catchupAxisLoss: null,
+    });
+    expect(controller.snapshot()).toMatchObject({
+      value_live_run_proof_state: "sealed_after_failed_first_tournament",
+      value_live_run_proof_first_event_index: 0,
+      value_live_run_proof_first_outcome: "probe_dead_end",
+      value_live_run_proof_first_reached_target: false,
+    });
+
+    const second = arm("second", 10, 5);
+    expect(consider(second)).toBeNull();
+    expect(controller.snapshot()).toMatchObject({
+      value_live_crossings: 2,
+      value_live_admitted: 1,
+      value_live_run_proof_sealed_opportunities: 1,
+      value_live_opportunities: [
+        { outcome: "admitted" },
+        { outcome: "run_proof_sealed", affordable_rank: null },
+      ],
+    });
+
+    // Sealing consumes only the experimental value opportunity. The same
+    // causal sibling remains eligible for production branch-regret traversal.
+    expect(consider(second, 0.31)).toMatchObject({
+      alternative: second.alternative,
+      triggerSignal: "branch_regret",
+    });
+  });
+
+  test("a reached first target proves the run even when the incumbent wins", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_initial_expire_10_run_proof",
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const current = { gap: 4, name: "current" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.10,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [current],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.10,
+    });
+    const decision = controller.consider({
+      node: current,
+      contactOrdinal: 4,
+      contactBoundary: true,
+      axisLoss: 0.14,
+      gapProgress: 0.20,
+      executionCeilingReached: false,
+      totalSpentFrames: 100_000,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      explorationBudgetAssessment: () => ({
+        execution_remaining_frames: 500_000,
+        conservative_terminal_work_frames: 100_000,
+        estimated_probe_work_frames: 10_000,
+        terminal_reserve_frames: 125_000,
+        exploration_allowance_frames: 112_500,
+        exploration_spent_frames: 0,
+        exploration_remaining_frames: 112_500,
+        local_probe_allowance_frames: 112_500,
+        admitted: true,
+        reason: "admitted" as const,
+      }),
+    });
+    controller.finishCatchup(decision!, {
+      outcome: "current_selected",
+      selectedAlternativeOrdinal: null,
+      selectedRouteOrdinal: null,
+      probes: [{
+        route_ordinal: 1,
+        route_kind: "causal_alternative",
+        alternative_ordinal: 1,
+        outcome: "reached_target",
+        end_gap_index: 4,
+        probe_nodes_processed: 1,
+        probe_frames: 1_000,
+        ranked_option_calls: 1,
+        requested_normal_proposals: 80,
+        candidate_geometry_evaluations: 75,
+        atomic_node_frames: [1_000],
+        tail_completion_attempts: 0,
+        budget_allowance_frames: 112_500,
+        budget_remaining_before_yield: null,
+        estimated_next_node_frames: null,
+        axis_loss: 0.15,
+        local_fallback_choices: [],
+      }],
+      catchupAxisLoss: 0.15,
+    });
+    expect(controller.snapshot()).toMatchObject({
+      value_live_run_proof_state: "first_tournament_reached_target",
+      value_live_run_proof_first_outcome: "current_selected",
+      value_live_run_proof_first_reached_target: true,
+      value_live_run_proof_sealed_opportunities: 0,
+    });
   });
 
   test("counts lower-threshold admissible watches without changing traversal", () => {

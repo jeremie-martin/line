@@ -509,7 +509,8 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_value_deferred_prefix_gate"
       | "selective_axis_regret_catchup_value_initial"
       | "selective_axis_regret_catchup_value_initial_progress_10"
-      | "selective_axis_regret_catchup_value_initial_expire_10";
+      | "selective_axis_regret_catchup_value_initial_expire_10"
+      | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
     deferred_value_density_threshold: number;
     deferred_value_min_gap_progress: number;
     deferred_value_allowance_fractions: number[];

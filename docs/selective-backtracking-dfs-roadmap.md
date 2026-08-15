@@ -2080,7 +2080,8 @@ global breadth scaling, repair breadth, or a multi-budget sweep.
 | 2026-08-15 | Source-native canonical challenger | complete | Unset default changed only after Phase-F closure; focused 55-test suite passes |
 | 2026-08-15 | Canonical N=8 look | continue | 607.08; delta -0.15 +/- 0.65 SE; P(positive)=40.93%; 352/352 valid |
 | 2026-08-15 | Canonical N=16 look | continue | 607.02; delta -0.06 +/- 0.42 SE; P(positive)=44.60%; 704/704 valid |
-| 2026-08-15 | Canonical minimum independent-evidence look | running | Continue to at least N=32 under the predeclared reuse correction |
+| 2026-08-15 | Canonical N=32 look | continue | 607.65; delta +0.40 +/- 0.36 SE; P(positive)=85.86%; 1,408/1,408 valid |
+| 2026-08-15 | Canonical maximum look | running | Standing N=48 maximum; no promotion below the calibrated boundary |
 
 The directional panel authorizes canonical evaluation, but it overturns a
 third simplistic model. All 32 candidate/reference runs are valid and the

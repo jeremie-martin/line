@@ -2382,7 +2382,7 @@ threshold is authorized.
 | 2026-08-15 | Canonical N=8 look | continue | 607.23 -> 607.38; +0.1430 +/- 0.6917 SE; P(positive)=57.89%; 352/352 valid |
 | 2026-08-15 | Canonical N=16 look | continue | 607.08 -> 607.24; +0.1580 +/- 0.4517 SE; P(positive)=63.43%; 704/704 valid |
 | 2026-08-15 | Canonical N=32 look | continue | 607.26 -> 606.31; -0.9463 +/- 1.1806 SE; P(positive)=21.45%; 1,407/1,408 valid |
-| 2026-08-15 | Canonical sequential decision | running | Standing 750k N=48 maximum; Phase D remains the governed baseline |
+| 2026-08-15 | Canonical maximum | complete: inconclusive | 607.25 -> 606.68; -0.58 +/- 0.80 SE; P(positive)=23.79%; 2,111/2,112 valid |
 
 The three-arm panel validates the intervention and overturns the rescue model.
 Every width trace is exact: the inverse arm uses 81 for all 387 first/unobserved
@@ -2417,6 +2417,17 @@ authority. Make nonpositive-prefix source-native as a frozen challenger, retain
 Phase D in the campaign baseline, and run the ordinary 750k canonical ladder.
 Do not extend positive-prefix toward its estimated 223 seeds, fit a gain
 threshold, add a tail exception, or run a multi-budget sweep.
+
+The N=48 maximum closes the inverse arm without promotion. The governed
+headline is -0.58 +/- 0.80 seed-block SE with 23.79% directional probability,
+far below the 97.23% boundary. The sole lost completion contributes a -0.76
+validity-sensitive remainder. Across the other 2,111 paired cells, the exact
+both-valid counterfactual is mildly positive at +0.18 +/- 0.25, with 734
+better, 712 worse, and 665 tied. Legacy regression gains +3.22, while
+capability loses 5.65 almost entirely through the named stalled endurance
+cell. Restore accepted Phase D as the unset default. Keep the explicit inverse
+policy and checksum-bound archive as mechanism evidence; do not extend or
+salvage it.
 
 The N=32 continuation exposes a real completion regression rather than a
 worker or scoring failure. `frontier_low_air_endurance_7s`, actual seed 619,

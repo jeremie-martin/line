@@ -1,0 +1,190 @@
+{
+  "schema": "line.proactive-periodic-tournament-study.v1",
+  "status": "mechanism-confirmed-no-promotion",
+  "generated_at": "2026-08-15",
+  "question": "Can a deliberately scheduled, bounded branch tournament improve either the first complete track or post-terminal repair, and does its value change between the canonical 750k budget and a materially larger 1.25M budget?",
+  "scope": {
+    "interpretation": "Fixed compact-panel mechanism evidence, not a canonical Benchmark V2 headline or promotion decision.",
+    "budgets": [750000, 1250000],
+    "actual_seeds": [150, 151, 152, 153],
+    "sources": [
+      "wide_breaths",
+      "wide_breaths_air_plus_5",
+      "high_air_drive",
+      "high_air_drive_air_minus_5",
+      "sparse_lowline",
+      "sparse_lowline_air_minus_4",
+      "frontier_pickup_progression",
+      "regression_transition_mosaic",
+      "believer_impact_56s",
+      "believer_impact_56s_amplitude_plus_5"
+    ],
+    "cells_per_arm": 80,
+    "arms": ["production reference", "periodic initial-only", "periodic repair-only"],
+    "total_completed_cells": 240,
+    "independence": "Each budget is reported separately and uncertainty is blocked by actual seed. The high-minus-low contrast is paired over the same source/seed cells; the two deterministic budget variants are not treated as independent experiments."
+  },
+  "predeclared_mechanism": {
+    "schedule": "At every eighth authored contact boundary, if production regret did not already act, request the live causal runner-up exactly three contact advances behind the active prefix.",
+    "tournament": "Advance the already-generated runner-up to the suspended prefix's exact authored gap, rank the equal-depth routes by the existing strict authored-prefix axis-loss comparator, schedule the winner first, and prune neither route.",
+    "budget_admission": "Admit only when conservative estimated probe work fits a 15% policy-budget exploration allowance and the current execution episode after reserving 1.25 times conservative target-to-terminal work. An admitted comparison may finish; actual charged work is recorded.",
+    "causal_arms": {
+      "periodic_initial": "The periodic operation may act only during initial search before the first terminal.",
+      "periodic_repair": "The periodic operation may act only inside self-contained repair attempts."
+    },
+    "unchanged_components": [
+      "candidate generation and ranking",
+      "production branch-regret catch-up",
+      "repair anchor selection",
+      "repair acceptance",
+      "authored scoring target"
+    ]
+  },
+  "implementation": {
+    "design_commit": "e1ef7c5a",
+    "implementation_commit": "bede5817",
+    "default_behavior": "Unchanged. Both tournament arms require an explicit LR_FRONTIER_POLICY environment selection.",
+    "policies": {
+      "periodic_initial": "selective-axis-regret-catchup-periodic-initial",
+      "periodic_repair": "selective-axis-regret-catchup-periodic-repair"
+    },
+    "telemetry": "Every exact opportunity records lane, contact ordinal, rewind, conservative work, execution remainder, terminal reserve, exploration allowance, admission or suppression, actual probe nodes/frames, equal-depth outcome, and later resumption. Aggregate identities are validated against events.",
+    "analysis_schema": "line.proactive-tournament-proof-analysis.v2"
+  },
+  "direct_observations": {
+    "validity": "All 240 cells passed the full contract. There were no reference-only or candidate-only completions at either budget.",
+    "periodic_initial": {
+      "750000": {
+        "score_mean_delta_per_cell": -0.6201475,
+        "seed_block_standard_error": 2.3250824,
+        "seed_block_signs": "2 positive, 2 negative",
+        "changed_tracks": "39/40",
+        "periodic_actions": "323/323 exact opportunities; active in 40/40 cells",
+        "periodic_probe_frames": 2699281,
+        "aggregate_policy_budget_fraction": 0.089976,
+        "alternative_current_wins": "114/209",
+        "mean_first_terminal_delta_frames": 59485.625,
+        "repair_frame_displacement": -2362666,
+        "repair_attempt_displacement": 15,
+        "actual_to_estimated_probe_frames_ratio": 0.799577
+      },
+      "1250000": {
+        "score_mean_delta_per_cell": 0.1948825,
+        "seed_block_standard_error": 1.1057322,
+        "seed_block_signs": "3 positive, 1 negative",
+        "changed_tracks": "39/40",
+        "periodic_actions": "323/323 exact opportunities; active in 40/40 cells",
+        "periodic_probe_frames": 3890737,
+        "aggregate_policy_budget_fraction": 0.077815,
+        "alternative_current_wins": "122/199; two probes did not reach an equal-depth decision",
+        "mean_first_terminal_delta_frames": 83409.85,
+        "repair_frame_displacement": -3332107,
+        "repair_attempt_displacement": -11,
+        "actual_to_estimated_probe_frames_ratio": 0.756139
+      },
+      "paired_budget_contrast": {
+        "mean_high_minus_low_candidate_effect_per_cell": 0.81503,
+        "seed_block_standard_error": 2.756337,
+        "cell_directions": "20 higher, 20 lower, 0 tied",
+        "interpretation": "The apparent improvement with budget is much smaller than its paired uncertainty and is heterogeneous across seeds and sources."
+      }
+    },
+    "periodic_repair": {
+      "750000": {
+        "score_mean_delta_per_cell": -0.14786,
+        "seed_block_standard_error": 0.1575341,
+        "seed_block_signs": "1 positive, 3 negative",
+        "changed_tracks": "9/40",
+        "periodic_actions": "15/244 exact opportunities; active in 11/40 cells",
+        "terminal_reserve_suppressions": 229,
+        "periodic_probe_frames": 169640,
+        "aggregate_policy_budget_fraction": 0.005655,
+        "alternative_current_wins": "6/8; one probe did not reach an equal-depth decision",
+        "mean_first_terminal_delta_frames": 0,
+        "repair_frame_displacement": 1374,
+        "repair_attempt_displacement": 0,
+        "actual_to_estimated_probe_frames_ratio": 1.16811,
+        "active_cell_mean_delta": -0.5376727,
+        "inactive_identity": "29/29 inactive cells have identical tracks and scores"
+      },
+      "1250000": {
+        "score_mean_delta_per_cell": 0.0277375,
+        "seed_block_standard_error": 0.1012696,
+        "seed_block_signs": "2 positive, 2 negative",
+        "changed_tracks": "11/40",
+        "periodic_actions": "19/295 exact opportunities; active in 14/40 cells",
+        "terminal_reserve_suppressions": 276,
+        "periodic_probe_frames": 306311,
+        "aggregate_policy_budget_fraction": 0.006126,
+        "alternative_current_wins": "7/11; one probe did not reach an equal-depth decision",
+        "mean_first_terminal_delta_frames": 0,
+        "repair_frame_displacement": -16838,
+        "repair_attempt_displacement": -2,
+        "actual_to_estimated_probe_frames_ratio": 1.111611,
+        "active_cell_mean_delta": 0.07925,
+        "inactive_identity": "26/26 inactive cells have identical tracks and scores"
+      },
+      "paired_budget_contrast": {
+        "mean_high_minus_low_candidate_effect_per_cell": 0.1755975,
+        "seed_block_standard_error": 0.2053574,
+        "cell_directions": "10 higher, 5 lower, 25 tied",
+        "interpretation": "The repair action set broadens slightly at 1.25M, but the change in effect remains smaller than its uncertainty."
+      }
+    },
+    "source_heterogeneity": {
+      "initial_750000": "3 source means positive and 7 negative; large opposing movements include regression_transition_mosaic +23.45/cell and high_air_drive_air_minus_5 -14.92/cell.",
+      "initial_1250000": "4 source means positive and 6 negative; no across-budget source direction is stable enough at four seeds to define a source gate.",
+      "repair_750000": "2 source means positive, 4 negative, and 4 exact; actions are sparse.",
+      "repair_1250000": "3 source means positive, 2 negative, and 5 exact; the largest positive mean is frontier_pickup_progression +0.77/cell and the largest negative is high_air_drive -0.62/cell."
+    }
+  },
+  "statistical_associations": [
+    "Initial-search periodic work mostly substitutes for repair rather than adding an independent phase: 2.70M probe frames coincide with 2.36M fewer repair frames at 750k, and 3.89M probe frames with 3.33M fewer repair frames at 1.25M.",
+    "Repair-only actions are causally isolated to their active cells: every inactive cell is track-identical to reference. Within active cells the descriptive score direction changes from -0.54/cell at 750k to +0.08/cell at 1.25M, but selection into activity and N=4 prevent a performance claim.",
+    "The same estimator is conservative during initial search (actual work is 76-80% of estimate in aggregate) and mildly optimistic during repair (actual work is 111-117% of estimate). This is an observed lane association, not evidence that a lane-specific estimator change improves score.",
+    "A fixed periodic trigger creates an almost universal initial-search action set but a roughly 6% repair admission rate because terminal reserve, not exploration allowance, is the binding repair constraint."
+  ],
+  "hypotheses": [
+    "Unconditional cadence spends substantial initial budget on many comparisons whose local winner is the current route; a state-dependent value signal is more promising than tuning interval 8 to a neighboring integer.",
+    "Repair-only proactive search may need an opportunity definition tied to expected decision value or incumbent weakness, not merely a looser reserve. Starting earlier simply because it is affordable risks substituting low-value tournaments for ordinary repair.",
+    "Lane-specific estimator error may distort which repair opportunities are admitted. Calibration should be studied before increasing the repair action rate.",
+    "The positive point estimates at 1.25M are leads only. Their budget contrasts are uncertain and do not establish that periodic tournaments become valuable at higher budget."
+  ],
+  "decision": {
+    "promoted": false,
+    "canonical_run_authorized": false,
+    "exact_policy_status": "Study-only. Neither fixed periodic arm earns production promotion or a larger score campaign.",
+    "reason": "The mechanism is safe, active, and correctly attributed, but neither arm shows a reliable improvement. Initial-only spends 8-9% of budget and broadly rearranges outputs without a stable return; repair-only is cleanly isolated but too sparse and near zero. More seeds would estimate these exact weak effects rather than test the more promising search-design question.",
+    "implementation_disposition": "Keep the bounded tournament and telemetry behind explicit experimental policies as the reusable scaffold for the next categorically different trigger study; production default remains byte-identical. Do not tune the interval, rewind, reserve, or allowance against this panel."
+  },
+  "recommended_next_work": [
+    "Use the retained event/checkpoint data to predeclare a state-triggered tournament opportunity map based on estimated decision value, current-route weakness, and expected work, while keeping the same bounded equal-depth tournament for attribution.",
+    "Calibrate probe-work error by lane and source shape, especially the repair tail, before any policy admits materially more repair actions.",
+    "Evaluate one categorical trigger against the same two budgets with fresh seeds. Keep initial-only and repair-only causal separation until one context shows a meaningful return per charged frame.",
+    "Do not rerun the full canonical benchmark or a broad budget sweep for this exact periodic policy."
+  ],
+  "trust_checks": {
+    "focused_unit_tests": "pass",
+    "default_unset_vs_explicit_production_identity": "pass",
+    "integration_smoke": "pass after removing a redundant legacy deadline-pressure gate from periodic admission only",
+    "paired_grid_identity": "pass; same manifests, sources, scorer, engine artifact, budgets, and seeds",
+    "generic_selective_event_validator": "pass for both candidate archives",
+    "dedicated_periodic_validator": "pass for lane, policy, opportunity/action, exact rewind, reserve, exploration, probe-work, first-terminal, and repair ledgers",
+    "memory_control": "The fixed panel ran with four workers because an unrelated process held about 28 GB. Checkpointed execution completed all cells without changing the study."
+  },
+  "artifacts": {
+    "directory": "generated/benchmark-v2/mover-grid/proactive-periodic-two-budget-n4",
+    "sha256": {
+      "mini_source_manifest": "e46c386087b49e46e73499b86d2125e87a3bef06aeb446fe52d859f280a9285d",
+      "mini_suite_manifest": "e9c916ebd3bad6e44938ad912b1b8e96b0f8198eaf13de56fd4bf8419910b5ba",
+      "reference_archive": "04e0dedcf5953e15ab76ef1c5e71c47ac7931c5cc1a7db1aa3081ff67f52d2a6",
+      "periodic_initial_archive": "ddada2e4ac6380c1038db12298d174c1c59ddbad3588766e10128a90cf25e83f",
+      "periodic_repair_archive": "0294a497388a109c4dca6ee1de033f3f7c667e943f5e9eed030f7502b1b61d24",
+      "dedicated_analysis": "00c61dbb7a2d6f6ecc8e839531adebef181ae2f397b93db79c8946d913fc81b4",
+      "periodic_initial_selective_analysis": "ecd2fcc65501b9196a0d351b7b0d9ba5d331ad17c9dd6b1c4a011a8df97fbfb1",
+      "periodic_repair_selective_analysis": "8fbf2f515e6df7e6f327f16c1b35b03cb0378db7f67de3cb059787e2b198484a",
+      "periodic_initial_mover_report": "b22f17c04a86ba541c77b518219d6a4193c70634302bc012a196c625928aaa3e",
+      "periodic_repair_mover_report": "892fd578913544a692a902a0818bd24a87cda4968e1c1250fb1599de0592437c"
+    }
+  }
+}

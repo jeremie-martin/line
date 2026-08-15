@@ -1358,3 +1358,42 @@ validator passes, and the dedicated analyzer reconciles opportunity, action,
 probe-work, lane, reserve, first-terminal, and repair-episode ledgers. The smoke
 uses one already-fixed panel seed and is integration evidence only; no constant,
 source, or final decision is selected from its score.
+
+### Two-budget result
+
+The fixed panel completed all 240 cells: one shared production reference and
+the two 80-cell candidate arms. Every run passed the full contract. The
+dedicated `line.proactive-tournament-proof-analysis.v2` report validates policy,
+lane, exact rewind, opportunity/action, budget arithmetic, actual probe work,
+first-terminal, and repair-episode identities; the generic selective analyzer
+also accepts both archives.
+
+Initial-only is active everywhere. At 750k it admits all 323 exact
+opportunities, spends 2,699,281 probe frames (9.00% of aggregate policy budget),
+delays first terminal by 59,486 frames on average, and moves score by -0.6201
++/- 2.3251 SE per cell. At 1.25M it again admits 323, spends 3,890,737 frames
+(7.78%), delays first terminal by 83,410 frames, and moves score by +0.1949 +/-
+1.1057 SE. Those probe frames mostly replace later repair: repair work falls by
+2.36M and 3.33M frames respectively. The paired high-minus-low change is only
++0.8150 +/- 2.7563 SE. Thirty-nine of 40 tracks move at each budget, so the
+fixed cadence broadly rearranges search without a stable return.
+
+Repair-only preserves the first terminal exactly and is isolated to cells that
+actually act: every inactive cell is track-identical to production. The terminal
+reserve is the binding gate. At 750k it admits 15 of 244 exact opportunities in
+11 cells, spends 169,640 frames (0.57%), and moves score by -0.1479 +/- 0.1575
+SE per cell. At 1.25M it admits 19 of 295 in 14 cells, spends 306,311 frames
+(0.61%), and moves score by +0.0277 +/- 0.1013 SE. Its paired budget contrast is
++0.1756 +/- 0.2054 SE. Active-cell means change from -0.5377 to +0.0793, but
+four seeds and activity-conditioned selection make this a lead, not a claim.
+
+The work estimator is conservative in initial search (actual aggregate probe
+work is 76-80% of estimate) and mildly optimistic in repair (111-117%). That
+lane difference should be calibrated before materially broadening repair
+admission. More importantly, neither exact periodic policy earns promotion or
+a larger score campaign. Do not tune eight contacts, three-contact rewind,
+1.25 reserve, or 15% allowance against this panel. Retain the bounded tournament
+and its telemetry behind explicit experiment policies as a scaffold for one
+categorically different, state-triggered opportunity rule; production remains
+unchanged. The complete evidence and checksums are recorded in
+`benchmark/v2/studies/proactive-periodic-tournaments-v1.json`.

@@ -2324,3 +2324,46 @@ canonical challenger, keep Phase D as the benchmark baseline, and run the
 standing sequential 750k ladder. The ordinary calibrated probability boundary
 is the only promotion criterion; do not add a dense-recovery veto or a
 multi-budget sweep.
+
+## Phase L: treat breadth as investment, not rescue
+
+Phase K encodes an untested allocation assumption: after the mandatory full-
+width first suffix decision, a route already beating the suspended incumbent
+gets cheaper 3/4-width continuation, while a tied or losing route keeps full
+production breadth. That treats candidate breadth primarily as rescue capacity
+for a lagging alternative. The opposite model is at least as plausible:
+breadth has higher return on a route that has already demonstrated authored-
+axis value, while a lagging route should receive a cheaper but still complete
+chance to recover.
+
+Predeclare the exact inverse policy
+`selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-nonpositive-prefix`.
+Its first contact-pool expansion is always full production width. On each later
+contact expansion, a strictly positive same-depth prefix gain keeps full width;
+a zero or negative gain uses 3/4 width after the production floor. Missing gain
+stays full. The sign is recomputed after every checkpoint. Nothing is stopped,
+pruned, refunded, widened after an empty pool, or scored against terminal
+outcomes. Admission, the 15% exploration fund, terminal reserve, route target,
+endpoint comparator, ordinary traversal, repair, and authored objective remain
+unchanged. This is deliberately a soft allocation contrast with the adverse
+first-deficit stop, not a threshold salvage.
+
+Do not change the source-native default or begin this arm's performance screen
+until Phase K reaches its governed maximum or accepts. First prove the inverse
+sign law and the existing aligned width/gain telemetry. Then use one same-cell
+750k-only eight-source panel on fresh actual seeds 194-197 containing the
+accepted baseline, the explicit positive-prefix arm, and this nonpositive-
+prefix arm. The direct positive-versus-nonpositive contrast answers the sign
+question; the accepted-baseline contrast answers whether either allocation is
+worth advancing. All three share the same compile inputs. Report validity,
+score, width-by-gain traces, actions, target reaches, probe frames, first
+terminal, and repair displacement. This is characterization, not headline
+evidence. At most one new arm may advance to canonical, and only through the
+standing calibrated 750k evaluator. No multi-budget sweep or adjacent gain
+threshold is authorized.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Inverse allocation rule and fresh panel frozen | complete | This section; categorical sign inversion, no fitted threshold |
+| 2026-08-15 | Explicit implementation and mechanical proof | in progress | Source-native default remains the frozen Phase-K challenger |
+| 2026-08-15 | Same-cell three-arm panel | pending Phase-K decision | 750k only; eight sources x seeds 194-197 |

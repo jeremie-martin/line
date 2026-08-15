@@ -91,6 +91,11 @@ describe("selective-backtracking controller", () => {
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix",
     );
     expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-nonpositive-prefix",
+    )).toBe(
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix",
+    );
+    expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-initial-expire-10-run-proof",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10_run_proof");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
@@ -138,6 +143,8 @@ describe("selective-backtracking controller", () => {
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last";
     const positivePrefix =
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix";
+    const nonpositivePrefix =
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix";
     expect(valueProbeCandidateCountAtRoutePosition(afterFirst, 81, 8, 0, 2)).toBe(81);
     expect(valueProbeCandidateCountAtRoutePosition(afterFirst, 81, 8, 1, 1)).toBe(61);
     expect(valueProbeCandidateCountAtRoutePosition(beforeLast, 81, 8, 0, 2)).toBe(61);
@@ -152,6 +159,14 @@ describe("selective-backtracking controller", () => {
       .toBe(81);
     expect(valueProbeCandidateCountAtRoutePosition(positivePrefix, 81, 8, 1, 1, -0.001))
       .toBe(81);
+    expect(valueProbeCandidateCountAtRoutePosition(nonpositivePrefix, 81, 8, 0, 2, null))
+      .toBe(81);
+    expect(valueProbeCandidateCountAtRoutePosition(nonpositivePrefix, 81, 8, 1, 1, 0.001))
+      .toBe(81);
+    expect(valueProbeCandidateCountAtRoutePosition(nonpositivePrefix, 81, 8, 1, 1, 0))
+      .toBe(61);
+    expect(valueProbeCandidateCountAtRoutePosition(nonpositivePrefix, 81, 8, 1, 1, -0.001))
+      .toBe(61);
     expect(valueProbeCandidateCountAtRoutePosition(afterFirst, 8, 8, 1, 2)).toBe(8);
     expect(() => valueProbeCandidateCountAtRoutePosition(afterFirst, 81, 8, -1, 2))
       .toThrow(/route position/);
@@ -193,6 +208,13 @@ describe("selective-backtracking controller", () => {
     }).snapshot()).toMatchObject({
       value_probe_candidate_breadth_rule:
         "full_first_then_three_quarter_while_prefix_positive",
+      value_probe_candidate_breadth_scale: 0.75,
+    });
+    expect(new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: nonpositivePrefix,
+    }).snapshot()).toMatchObject({
+      value_probe_candidate_breadth_rule:
+        "full_first_then_three_quarter_while_prefix_nonpositive",
       value_probe_candidate_breadth_scale: 0.75,
     });
   });

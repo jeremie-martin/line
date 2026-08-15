@@ -3292,7 +3292,9 @@ function compileHandoffInternal(
             frontierTraversalPolicy ===
               "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last" ||
             frontierTraversalPolicy ===
-              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix");
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
+            frontierTraversalPolicy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix");
         const probePolicyTransformAt = (
           processedContactNodes: number,
           remainingContactExpansions: number,

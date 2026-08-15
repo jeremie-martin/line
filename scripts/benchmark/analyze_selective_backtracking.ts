@@ -1259,7 +1259,9 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       }
       const gains = probe.atomic_node_starting_prefix_axis_loss_gain;
       const gainPolicy = stats.policy ===
-        "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix";
+          "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
+        stats.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix";
       if (gains === undefined) {
         if (gainPolicy) {
           throw new Error(`${label}/route-${probe.route_ordinal} lacks prefix-gain breadth telemetry`);

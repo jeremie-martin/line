@@ -517,6 +517,7 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first"
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last"
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix"
+      | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix"
       | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
     deferred_value_density_threshold: number;
     deferred_value_min_gap_progress: number;
@@ -551,7 +552,8 @@ export type CompileStats = {
       | "three_quarter_after_floor_empty_full_retry"
       | "full_first_then_three_quarter_after_floor"
       | "three_quarter_after_floor_then_full_last"
-      | "full_first_then_three_quarter_while_prefix_positive";
+      | "full_first_then_three_quarter_while_prefix_positive"
+      | "full_first_then_three_quarter_while_prefix_nonpositive";
     value_probe_candidate_breadth_scale: number;
     catchup_endpoint_winners_suppressed_unstable: number;
     mature_axis_loss_delta_max: number;

@@ -1987,6 +1987,12 @@ function compileHandoffInternal(
   const frontierTraversalPolicy = parseFrontierTraversalPolicy(
     readFrontierTraversalPolicy(),
   );
+  const routeLeaseAuditRaw = process.env.LR_ROUTE_LEASE_AUDIT;
+  if (
+    routeLeaseAuditRaw !== undefined && routeLeaseAuditRaw !== "" &&
+    routeLeaseAuditRaw !== "0" && routeLeaseAuditRaw !== "1"
+  ) throw new Error("LR_ROUTE_LEASE_AUDIT must be 0 or 1");
+  const routeLeaseAudit = routeLeaseAuditRaw === "1";
   setProposalUtilityPowers();
   setAimCompileBudgetFrames(searchPolicyBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
@@ -2146,7 +2152,7 @@ function compileHandoffInternal(
     const selectiveBacktracking = frontierTraversalPolicy !== "depth_first"
       ? new SelectiveAxisRegretController<HandoffNode>(
         (node) => node.search.gapIndex,
-        { policy: frontierTraversalPolicy },
+        { policy: frontierTraversalPolicy, routeLeaseAudit },
       )
       : null;
     selectiveBacktracking?.observeRoot(root);
@@ -2965,6 +2971,9 @@ function compileHandoffInternal(
       const mainResult = resumeSuspendedContinuation ? null : consider(node, "frontier");
       afterMain = getSimFrames();
       afterTail = afterMain;
+      if (nodeTerminal) {
+        selectiveBacktracking?.observeRouteLeaseTerminal(node, getSimFrames());
+      }
       if (!resumeSuspendedContinuation && captureFirstCompletion(nodeTerminal, mainResult)) {
         return finishAtomic({ kind: "captured" });
       }
@@ -3760,6 +3769,32 @@ function compileHandoffInternal(
           selectedAlternativeOrdinal,
           selectedRouteOrdinal,
         );
+        if (
+          routeLeaseAudit && decision.triggerSignal === "value_exploration" &&
+          selectedAlternativeOrdinal !== null && selectedRouteOrdinal !== null
+        ) {
+          const selectedWindow = authoredAxisWindow(ranked[0]!.node.search);
+          const incumbentWindow = authoredAxisWindow(suspended.search);
+          selectiveBacktracking!.markSelectedRouteLease(
+            ranked[0]!.node,
+            suspended,
+            decision,
+            {
+              selectedRouteOrdinal,
+              selectedAlternativeOrdinal,
+              selectedTakeover: {
+                axis_count: selectedWindow.axisCount,
+                axis_sse: selectedWindow.axisSse,
+                axis_loss: selectedWindow.axisLoss,
+              },
+              displacedIncumbentTakeover: {
+                axis_count: incumbentWindow.axisCount,
+                axis_sse: incumbentWindow.axisSse,
+                axis_loss: incumbentWindow.axisLoss,
+              },
+            },
+          );
+        }
         return false;
       };
 
@@ -3768,8 +3803,47 @@ function compileHandoffInternal(
         const nextNode = peekNextFrontierNode(pass, fb);
         if (options.beforeSelect !== undefined && !options.beforeSelect(nextNode)) break;
         const node = popNextFrontierNode(pass, fb);
+        const routeLeaseContext = selectiveBacktracking?.routeLeaseAuditContext(node) ?? null;
+        const routeLeaseEvidence = routeLeaseContext === null
+          ? undefined
+          : (() => {
+            const wholePrefix = authoredAxisWindow(node.search);
+            const divergentSuffix = authoredAxisWindow(
+              node.search,
+              routeLeaseContext.takeoverGapIndex,
+            );
+            const incumbentAvailable = frontierContains(
+              routeLeaseContext.displacedIncumbent,
+              pass,
+              fb,
+            );
+            const incumbentMargin = conservativeDeadlineMarginAtGap(
+              routeLeaseContext.displacedIncumbent.search.gapIndex,
+            );
+            return {
+              wholePrefix: {
+                axis_count: wholePrefix.axisCount,
+                axis_sse: wholePrefix.axisSse,
+                axis_loss: wholePrefix.axisLoss,
+              },
+              divergentSuffix: {
+                axis_count: divergentSuffix.axisCount,
+                axis_sse: divergentSuffix.axisSse,
+                axis_loss: divergentSuffix.axisLoss,
+              },
+              displacedIncumbentAvailable: incumbentAvailable,
+              displacedIncumbentConservativeDeadlineMargin: incumbentMargin,
+              displacedIncumbentAffordableWithReserve:
+                incumbentAvailable &&
+                incumbentMargin >= SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR,
+            };
+          })();
         const resumeSuspendedContinuation =
-          selectiveBacktracking?.observeSelected(node, getSimFrames()) ?? false;
+          selectiveBacktracking?.observeSelected(
+            node,
+            getSimFrames(),
+            routeLeaseEvidence,
+          ) ?? false;
         const result = processSelected(
           node,
           resumeSuspendedContinuation,

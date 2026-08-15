@@ -411,6 +411,45 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     }
   }, 60_000);
 
+  test("route-lease audit is behavior-neutral and strictly configured", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const previousPolicy = process.env.LR_FRONTIER_POLICY;
+    const previousAudit = process.env.LR_ROUTE_LEASE_AUDIT;
+    try {
+      delete process.env.LR_FRONTIER_POLICY;
+      delete process.env.LR_ROUTE_LEASE_AUDIT;
+      const reference = compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      });
+      process.env.LR_ROUTE_LEASE_AUDIT = "1";
+      const audited = compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      });
+      expect(hashTrack(audited.track)).toBe(hashTrack(reference.track));
+      expect(audited.report).toEqual(reference.report);
+      expect(audited.stats.sim_frames).toBe(reference.stats.sim_frames);
+      expect(audited.stats.handoff_selective_backtracking).toMatchObject({
+        policy: "selective_axis_regret_catchup_value_initial_expire_10",
+        route_lease_audit_enabled: true,
+      });
+      process.env.LR_ROUTE_LEASE_AUDIT = "yes";
+      expect(() => compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      })).toThrow(/LR_ROUTE_LEASE_AUDIT must be 0 or 1/);
+    } finally {
+      if (previousPolicy === undefined) delete process.env.LR_FRONTIER_POLICY;
+      else process.env.LR_FRONTIER_POLICY = previousPolicy;
+      if (previousAudit === undefined) delete process.env.LR_ROUTE_LEASE_AUDIT;
+      else process.env.LR_ROUTE_LEASE_AUDIT = previousAudit;
+    }
+  }, 60_000);
+
   test("couples narrowed value-probe breadth to an 11.25% live allowance", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previous = process.env.LR_FRONTIER_POLICY;

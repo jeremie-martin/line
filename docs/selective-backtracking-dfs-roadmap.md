@@ -2817,4 +2817,25 @@ not a threshold-tuned repair, source rule, breadth arm, or multi-budget sweep.
 
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
-| 2026-08-15 | Unbounded-lease assumption and behavior-neutral audit frozen | planned | Phase O shows 652/6,813 incumbent resumptions and 6,462/6,813 one-gap handoffs |
+| 2026-08-15 | Unbounded-lease assumption and behavior-neutral audit frozen | complete | Phase O shows 652/6,813 incumbent resumptions and 6,462/6,813 one-gap handoffs |
+| 2026-08-15 | Audit implementation and controller proof | complete | Explicit `LR_ROUTE_LEASE_AUDIT=1`; 59 focused tests; default Phase D hot path unchanged |
+| 2026-08-15 | Known-activity identity smoke | complete: opportunity broad | 8/8 exact paired cells; 37 takeovers, 22 crossings, all 22 incumbent-available and affordable with 1.25 reserve, seven sources |
+| 2026-08-15 | Four-seed behavior-neutral audit | pending | Same eight-source, actual-seed 202-205 Phase-D panel; no score decision |
+
+The audit is an explicit compiler mode, not a permanent cost in accepted Phase
+D. It records the actual selected alternative subtree, same-horizon takeover
+counts/SSE/loss, additive divergent-suffix evidence, exact first loss crossing,
+frontier availability, conservative deadline margin, and whether the incumbent
+work fits with the existing 1.25 terminal-reserve factor. It neither reads a
+score nor changes a frontier operation. The analyzer removes only these audit
+fields and requires exact status, authored contacts, track, report, score,
+every other stat, and complete budget telemetry against the retained reference.
+
+The first corrected known-activity panel passes that contract in all eight
+cells. It observes 37 selected equal-depth alternatives and 22 first crossings
+across seven sources. Every crossing occurs while the displaced incumbent is
+still in the frontier and its conservative work fits inside remaining budget
+with the existing 1.25 reserve. This establishes a broad observable action set
+without claiming that rollback is beneficial. Proceed to the already declared
+four-seed behavior-neutral audit; do not select a source, gain, gap, or timing
+threshold from the smoke.

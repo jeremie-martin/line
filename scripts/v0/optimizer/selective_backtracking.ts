@@ -791,6 +791,11 @@ export type SelectiveBacktrackingStats = {
   catchup_additional_alternative_selected: number;
   catchup_probe_nodes_processed: number;
   catchup_probe_frames: number;
+  route_lease_audit_enabled: boolean;
+  route_lease_audits_started: number;
+  route_lease_audits_selected: number;
+  route_lease_audits_with_loss_crossing: number;
+  route_lease_audits: SelectiveRouteLeaseAudit[];
   axis_loss_delta_sum: number;
   axis_loss_delta_max: number;
   contact_advance_sum: number;
@@ -858,6 +863,45 @@ export type SelectiveCatchupCheckpoint = {
   alternative_axis_loss_gain: number;
 };
 
+export type SelectiveRouteLeaseAxisWindow = {
+  axis_count: number;
+  axis_sse: number;
+  axis_loss: number;
+};
+
+export type SelectiveRouteLeaseCheckpoint = {
+  selection_ordinal: number;
+  gap_index: number;
+  total_spent_frames: number;
+  whole_prefix: SelectiveRouteLeaseAxisWindow;
+  divergent_suffix: SelectiveRouteLeaseAxisWindow;
+  loss_excess_over_displaced_incumbent: number;
+  displaced_incumbent_available: boolean;
+  displaced_incumbent_conservative_deadline_margin: number;
+  displaced_incumbent_affordable_with_reserve: boolean;
+};
+
+export type SelectiveRouteLeaseAudit = {
+  event_index: number;
+  takeover_gap_index: number;
+  selected_route_ordinal: number;
+  selected_alternative_ordinal: number;
+  selected_takeover: SelectiveRouteLeaseAxisWindow;
+  displaced_incumbent_takeover: SelectiveRouteLeaseAxisWindow;
+  takeover_axis_loss_gain: number;
+  selected_total_spent_frames: number | null;
+  selections_observed: number;
+  deepest_gap_index: number;
+  first_loss_crossing: SelectiveRouteLeaseCheckpoint | null;
+  checkpoints: SelectiveRouteLeaseCheckpoint[];
+  end_reason:
+    | "terminal"
+    | "displaced_incumbent_resumed"
+    | "superseded_by_selective_tournament"
+    | null;
+  end_total_spent_frames: number | null;
+};
+
 function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
   return { initial: 0, snapshot: 0, deferred_value: 0, repair: 0, resumed: 0 };
 }
@@ -906,6 +950,21 @@ function emptyValueOpportunityCounter(): SelectiveBacktrackingStats[
   ]));
 }
 
+function validateRouteLeaseAxisWindow(
+  window: SelectiveRouteLeaseAxisWindow,
+  label: string,
+): void {
+  if (
+    !Number.isSafeInteger(window.axis_count) || window.axis_count < 0 ||
+    !Number.isFinite(window.axis_sse) || window.axis_sse < 0 ||
+    !Number.isFinite(window.axis_loss) || window.axis_loss < 0
+  ) throw new Error(`${label} has invalid authored-axis evidence`);
+}
+
+function approximatelyEqual(left: number, right: number): boolean {
+  return Math.abs(left - right) <= 1e-10 * Math.max(1, Math.abs(left), Math.abs(right));
+}
+
 /**
  * Compile-local signal and attribution state for the bounded-catch-up strategy.
  *
@@ -922,6 +981,9 @@ export class SelectiveAxisRegretController<Node extends object> {
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
   private readonly firstAdvantageHandoffs = new WeakMap<Node, number>();
+  private readonly routeLeaseAuditEnabled: boolean;
+  private readonly routeLeaseNodes = new WeakMap<Node, number>();
+  private readonly routeLeaseIncumbents = new Map<number, Node>();
   private readonly repairAttemptsWithIncumbentBacktrack = new Set<number>();
   private readonly deferredValueCandidates: Array<DeferredValueCandidate<Node>> = [];
   private readonly stats: SelectiveBacktrackingStats;
@@ -932,10 +994,12 @@ export class SelectiveAxisRegretController<Node extends object> {
     gapIndexOf: (node: Node) => number,
     options: {
       policy?: SelectiveCatchupPolicy;
+      routeLeaseAudit?: boolean;
     } = {},
   ) {
     this.gapIndexOf = gapIndexOf;
     this.policy = options.policy ?? "selective_axis_regret_catchup";
+    this.routeLeaseAuditEnabled = options.routeLeaseAudit === true;
     this.stats = {
       policy: this.policy,
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
@@ -1145,6 +1209,11 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_additional_alternative_selected: 0,
       catchup_probe_nodes_processed: 0,
       catchup_probe_frames: 0,
+      route_lease_audit_enabled: this.routeLeaseAuditEnabled,
+      route_lease_audits_started: 0,
+      route_lease_audits_selected: 0,
+      route_lease_audits_with_loss_crossing: 0,
+      route_lease_audits: [],
       axis_loss_delta_sum: 0,
       axis_loss_delta_max: 0,
       contact_advance_sum: 0,
@@ -1162,6 +1231,10 @@ export class SelectiveAxisRegretController<Node extends object> {
 
   replaceNode(previous: Node, replacement: Node): void {
     this.lineage.set(replacement, this.lineage.get(previous) ?? null);
+    const routeLeaseAuditIndex = this.routeLeaseNodes.get(previous);
+    if (routeLeaseAuditIndex !== undefined) {
+      this.routeLeaseNodes.set(replacement, routeLeaseAuditIndex);
+    }
     const eventIndex = this.suspended.get(previous);
     if (eventIndex !== undefined) {
       this.suspended.delete(previous);
@@ -1331,6 +1404,13 @@ export class SelectiveAxisRegretController<Node extends object> {
   }): void {
     const inherited = this.lineage.get(input.parent) ?? null;
     for (const child of input.children) this.lineage.set(child, inherited);
+    const routeLeaseAuditIndex = this.routeLeaseNodes.get(input.parent);
+    if (routeLeaseAuditIndex !== undefined &&
+      this.stats.route_lease_audits[routeLeaseAuditIndex]?.end_reason === null) {
+      for (const child of input.children) {
+        this.routeLeaseNodes.set(child, routeLeaseAuditIndex);
+      }
+    }
     if (!input.contactExpansion) return;
     this.stats.contact_expansions_observed++;
     if (input.children.length < 2) return;
@@ -1454,6 +1534,11 @@ export class SelectiveAxisRegretController<Node extends object> {
       valuePoint: SelectiveValueOpportunityPoint | null,
     ): SelectiveBacktrackDecision<Node> => {
       const fromGapIndex = this.gapIndexOf(input.node);
+      this.endRouteLeaseForNode(
+        input.node,
+        "superseded_by_selective_tournament",
+        input.totalSpentFrames,
+      );
       const targetGapIndex = this.gapIndexOf(watch.alternative);
       const gapRewind = Math.max(0, fromGapIndex - targetGapIndex);
       watch.used = true;
@@ -2320,6 +2405,84 @@ export class SelectiveAxisRegretController<Node extends object> {
     }
   }
 
+  /** Start a behavior-neutral audit after a completed equal-depth tournament
+   * selects an alternative. The scheduler remains the sole owner of both
+   * nodes; this method only binds their object identities to telemetry. */
+  markSelectedRouteLease(
+    selected: Node,
+    displacedIncumbent: Node,
+    decision: SelectiveBacktrackDecision<Node>,
+    input: {
+      selectedRouteOrdinal: number;
+      selectedAlternativeOrdinal: number;
+      selectedTakeover: SelectiveRouteLeaseAxisWindow;
+      displacedIncumbentTakeover: SelectiveRouteLeaseAxisWindow;
+    },
+  ): void {
+    if (!this.routeLeaseAuditEnabled) return;
+    const event = this.stats.events[decision.eventIndex];
+    if (
+      event?.catchup_outcome !== "alternative_selected" ||
+      decision.triggerSignal !== "value_exploration" ||
+      event.catchup_selected_route_ordinal !== input.selectedRouteOrdinal ||
+      event.catchup_selected_alternative_ordinal !== input.selectedAlternativeOrdinal ||
+      this.gapIndexOf(selected) !== decision.fromGapIndex ||
+      this.gapIndexOf(displacedIncumbent) !== decision.fromGapIndex ||
+      this.routeLeaseNodes.has(selected)
+    ) throw new Error("selected-route lease audit has no unique equal-depth tournament");
+    validateRouteLeaseAxisWindow(input.selectedTakeover, "selected takeover");
+    validateRouteLeaseAxisWindow(
+      input.displacedIncumbentTakeover,
+      "displaced-incumbent takeover",
+    );
+    if (
+      input.selectedTakeover.axis_count !== input.displacedIncumbentTakeover.axis_count ||
+      !(input.displacedIncumbentTakeover.axis_loss > input.selectedTakeover.axis_loss)
+    ) throw new Error("selected-route lease audit takeover is not a like-for-like winner");
+    const auditIndex = this.stats.route_lease_audits.length;
+    this.stats.route_lease_audits.push({
+      event_index: decision.eventIndex,
+      takeover_gap_index: decision.fromGapIndex,
+      selected_route_ordinal: input.selectedRouteOrdinal,
+      selected_alternative_ordinal: input.selectedAlternativeOrdinal,
+      selected_takeover: { ...input.selectedTakeover },
+      displaced_incumbent_takeover: { ...input.displacedIncumbentTakeover },
+      takeover_axis_loss_gain:
+        input.displacedIncumbentTakeover.axis_loss - input.selectedTakeover.axis_loss,
+      selected_total_spent_frames: null,
+      selections_observed: 0,
+      deepest_gap_index: decision.fromGapIndex,
+      first_loss_crossing: null,
+      checkpoints: [],
+      end_reason: null,
+      end_total_spent_frames: null,
+    });
+    this.routeLeaseNodes.set(selected, auditIndex);
+    this.routeLeaseIncumbents.set(auditIndex, displacedIncumbent);
+    this.stats.route_lease_audits_started++;
+  }
+
+  /** Return the private node context required to observe, but never drive, a
+   * selected-route lease. Null keeps the production hot path unchanged. */
+  routeLeaseAuditContext(node: Node): {
+    takeoverGapIndex: number;
+    displacedIncumbent: Node;
+  } | null {
+    if (!this.routeLeaseAuditEnabled) return null;
+    const auditIndex = this.routeLeaseNodes.get(node);
+    if (auditIndex === undefined) return null;
+    const audit = this.stats.route_lease_audits[auditIndex];
+    const displacedIncumbent = this.routeLeaseIncumbents.get(auditIndex);
+    if (audit === undefined || audit.end_reason !== null || displacedIncumbent === undefined) {
+      return null;
+    }
+    return { takeoverGapIndex: audit.takeover_gap_index, displacedIncumbent };
+  }
+
+  observeRouteLeaseTerminal(node: Node, totalSpentFrames: number): void {
+    this.endRouteLeaseForNode(node, "terminal", totalSpentFrames);
+  }
+
   /** Bind a partial alternative handed back to ordinary DFS to its causal
    * event. Its next selection is recorded separately from incumbent resume. */
   markFirstAdvantageHandoff(
@@ -2559,7 +2722,73 @@ export class SelectiveAxisRegretController<Node extends object> {
     }
   }
 
-  observeSelected(node: Node, totalSpentFrames: number): boolean {
+  observeSelected(
+    node: Node,
+    totalSpentFrames: number,
+    routeLease?: {
+      wholePrefix: SelectiveRouteLeaseAxisWindow;
+      divergentSuffix: SelectiveRouteLeaseAxisWindow;
+      displacedIncumbentAvailable: boolean;
+      displacedIncumbentConservativeDeadlineMargin: number;
+      displacedIncumbentAffordableWithReserve: boolean;
+    },
+  ): boolean {
+    const routeLeaseAuditIndex = this.routeLeaseNodes.get(node);
+    if (routeLeaseAuditIndex !== undefined) {
+      const audit = this.stats.route_lease_audits[routeLeaseAuditIndex];
+      if (audit !== undefined && audit.end_reason === null) {
+        if (routeLease === undefined) {
+          throw new Error("active selected-route lease lost its axis evidence");
+        }
+        validateRouteLeaseAxisWindow(routeLease.wholePrefix, "route checkpoint prefix");
+        validateRouteLeaseAxisWindow(routeLease.divergentSuffix, "route checkpoint suffix");
+        if (!Number.isFinite(routeLease.displacedIncumbentConservativeDeadlineMargin)) {
+          throw new Error("route checkpoint has a non-finite incumbent deadline margin");
+        }
+        if (audit.selected_total_spent_frames === null) {
+          audit.selected_total_spent_frames = totalSpentFrames;
+          this.stats.route_lease_audits_selected++;
+        }
+        audit.selections_observed++;
+        const gapIndex = this.gapIndexOf(node);
+        audit.deepest_gap_index = Math.max(audit.deepest_gap_index, gapIndex);
+        if (gapIndex > audit.takeover_gap_index) {
+          if (
+            routeLease.wholePrefix.axis_count !==
+              audit.selected_takeover.axis_count + routeLease.divergentSuffix.axis_count ||
+            !approximatelyEqual(
+              routeLease.wholePrefix.axis_sse,
+              audit.selected_takeover.axis_sse + routeLease.divergentSuffix.axis_sse,
+            )
+          ) throw new Error("route checkpoint prefix/suffix evidence is not additive");
+          const checkpoint: SelectiveRouteLeaseCheckpoint = {
+            selection_ordinal: audit.selections_observed,
+            gap_index: gapIndex,
+            total_spent_frames: totalSpentFrames,
+            whole_prefix: { ...routeLease.wholePrefix },
+            divergent_suffix: { ...routeLease.divergentSuffix },
+            loss_excess_over_displaced_incumbent:
+              routeLease.wholePrefix.axis_loss -
+              audit.displaced_incumbent_takeover.axis_loss,
+            displaced_incumbent_available: routeLease.displacedIncumbentAvailable,
+            displaced_incumbent_conservative_deadline_margin:
+              routeLease.displacedIncumbentConservativeDeadlineMargin,
+            displaced_incumbent_affordable_with_reserve:
+              routeLease.displacedIncumbentAffordableWithReserve,
+          };
+          audit.checkpoints.push(checkpoint);
+          if (
+            audit.first_loss_crossing === null &&
+            checkpoint.loss_excess_over_displaced_incumbent > 0
+          ) {
+            audit.first_loss_crossing = { ...checkpoint };
+            this.stats.route_lease_audits_with_loss_crossing++;
+          }
+        }
+      }
+    } else if (routeLease !== undefined) {
+      throw new Error("selected-route axis evidence has no active lease");
+    }
     const handoffEventIndex = this.firstAdvantageHandoffs.get(node);
     if (handoffEventIndex !== undefined) {
       this.firstAdvantageHandoffs.delete(node);
@@ -2576,8 +2805,40 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (eventIndex === undefined) return false;
     this.suspended.delete(node);
     this.stats.events[eventIndex]!.resumed_total_spent_frames = totalSpentFrames;
+    const resumedAuditIndex = this.stats.route_lease_audits.findIndex(
+      (audit) => audit.event_index === eventIndex && audit.end_reason === null,
+    );
+    if (resumedAuditIndex >= 0) {
+      this.endRouteLease(
+        resumedAuditIndex,
+        "displaced_incumbent_resumed",
+        totalSpentFrames,
+      );
+    }
     this.stats.suspended_continuations_resumed++;
     return true;
+  }
+
+  private endRouteLeaseForNode(
+    node: Node,
+    reason: Exclude<SelectiveRouteLeaseAudit["end_reason"], null>,
+    totalSpentFrames: number,
+  ): void {
+    const auditIndex = this.routeLeaseNodes.get(node);
+    if (auditIndex === undefined) return;
+    this.endRouteLease(auditIndex, reason, totalSpentFrames);
+  }
+
+  private endRouteLease(
+    auditIndex: number,
+    reason: Exclude<SelectiveRouteLeaseAudit["end_reason"], null>,
+    totalSpentFrames: number,
+  ): void {
+    const audit = this.stats.route_lease_audits[auditIndex];
+    if (audit === undefined || audit.end_reason !== null) return;
+    audit.end_reason = reason;
+    audit.end_total_spent_frames = totalSpentFrames;
+    this.routeLeaseIncumbents.delete(auditIndex);
   }
 
   snapshot(): SelectiveBacktrackingStats {
@@ -2681,6 +2942,23 @@ export class SelectiveAxisRegretController<Node extends object> {
                 },
               },
           },
+      })),
+      route_lease_audits: this.stats.route_lease_audits.map((audit) => ({
+        ...audit,
+        selected_takeover: { ...audit.selected_takeover },
+        displaced_incumbent_takeover: { ...audit.displaced_incumbent_takeover },
+        first_loss_crossing: audit.first_loss_crossing === null
+          ? null
+          : {
+            ...audit.first_loss_crossing,
+            whole_prefix: { ...audit.first_loss_crossing.whole_prefix },
+            divergent_suffix: { ...audit.first_loss_crossing.divergent_suffix },
+          },
+        checkpoints: audit.checkpoints.map((checkpoint) => ({
+          ...checkpoint,
+          whole_prefix: { ...checkpoint.whole_prefix },
+          divergent_suffix: { ...checkpoint.divergent_suffix },
+        })),
       })),
       events: this.stats.events.map((event) => ({
         ...event,

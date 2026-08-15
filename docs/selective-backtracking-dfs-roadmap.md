@@ -2300,6 +2300,7 @@ full-first panel's isolated-tail dependence and is not broadly adverse.
 | 2026-08-15 | Fresh mechanism panel | complete: positive | +15.5 over 32 valid pairs; 11 better, 9 worse, 12 unchanged |
 | 2026-08-15 | Canonical N=8 look | continue | 607.57; +0.33 +/- 0.36 SE; P(positive)=80.84%; 352/352 valid |
 | 2026-08-15 | Canonical N=16 look | continue | 607.15; +0.07 +/- 0.26 SE; P(positive)=60.51%; 704/704 valid |
+| 2026-08-15 | Canonical N=32 look | continue | 607.55; +0.29 +/- 0.26 SE; P(positive)=86.02%; 1,408/1,408 valid |
 | 2026-08-15 | Canonical decision | running | Source-native challenger; standing sequential 750k evaluator |
 
 The trace closes the policy exactly. Across 371 value-ranked routes, all 371

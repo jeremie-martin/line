@@ -77,6 +77,7 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
     block.mean_delta > 0
   ).length;
   const repair = summarizeRepair(pairs);
+  const cohort = (selected: typeof pairs) => summarizeCohort(selected);
   return [String(budget), {
     cells: pairs.length,
     score,
@@ -120,6 +121,47 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
       )),
     },
     repair,
+    diagnostics: {
+      interpretation:
+        "Post-screen descriptive cohorts; they do not alter the frozen gate or authorize retuning on these cells.",
+      by_prefix_gate_decision: {
+        stop: cohort(stopped),
+        continue: cohort(continued),
+        not_reached: cohort(notReached),
+        inactive: cohort(inactive),
+      },
+      continued_by_terminal_register_outcome: {
+        improved: cohort(continued.filter((pair) =>
+          pair.mechanism.attempt.terminal_register_improvements > 0
+        )),
+        not_improved: cohort(continued.filter((pair) =>
+          pair.mechanism.attempt.terminal_register_improvements === 0
+        )),
+      },
+      not_reached_cells: notReached.map((pair) => {
+        const checkpoints = pair.mechanism.attempt.progress_checkpoints;
+        const firstFallback = checkpoints.find((checkpoint: any) =>
+          checkpoint.skipped_contacts > 0
+        );
+        return {
+          source_id: pair.cell.sourceId,
+          seed: pair.cell.seed,
+          score_delta: pair.cell.score - pair.ref.score,
+          action_outcome: pair.mechanism.attempt.outcome,
+          nodes_processed: pair.mechanism.attempt.nodes_processed,
+          spent_frames:
+            pair.mechanism.attempt.end_total_spent_frames -
+            pair.mechanism.attempt.start_total_spent_frames,
+          maximum_zero_skipped_comparable_contacts: Math.max(0, ...checkpoints
+            .filter((checkpoint: any) => checkpoint.skipped_contacts === 0)
+            .map((checkpoint: any) =>
+              checkpoint.comparable_contacts_since_divergence
+            )),
+          first_fallback_selection_ordinal: firstFallback?.selection_ordinal ?? null,
+          first_fallback_gap_index: firstFallback?.gap_index ?? null,
+        };
+      }),
+    },
     gate: {
       all_candidate_cells_valid: pairs.every((pair) => pair.cell.valid),
       no_reference_validity_lost: pairs.every((pair) => !pair.ref.valid || pair.cell.valid),
@@ -347,6 +389,31 @@ function summarizeRepair(pairs: Array<{ row: any; refRow: any }>): any {
     displaced_frames: candidateSummary.frames - referenceSummary.frames,
     displaced_attempts: candidateSummary.attempts - referenceSummary.attempts,
     displaced_accepted: candidateSummary.accepted - referenceSummary.accepted,
+  };
+}
+
+function summarizeCohort(
+  pairs: Array<{
+    cell: GridCell;
+    ref: GridCell;
+    mechanism: { attempt: any | null; episode: any | null };
+  }>,
+): any {
+  const deltas = pairs.map((pair) => pair.cell.score - pair.ref.score);
+  return {
+    cells: pairs.length,
+    mean_score_delta: mean(deltas),
+    sum_score_delta: sum(deltas),
+    improved: deltas.filter((value) => value > 0).length,
+    regressed: deltas.filter((value) => value < 0).length,
+    tied: deltas.filter((value) => value === 0).length,
+    minimum_cell_delta: deltas.length === 0 ? null : Math.min(...deltas),
+    mean_action_spent_frames: mean(pairs.flatMap((pair) => {
+      const attempt = pair.mechanism.attempt;
+      return attempt === null
+        ? []
+        : [attempt.end_total_spent_frames - attempt.start_total_spent_frames];
+    })),
   };
 }
 

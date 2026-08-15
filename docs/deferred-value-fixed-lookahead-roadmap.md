@@ -101,3 +101,58 @@ not launch canonical V2 inside this campaign.
 |---|---|---|---|
 | 2026-08-15 | Semantics, constants, telemetry, and fresh-screen gates frozen | complete | This document |
 | 2026-08-15 | Live mechanism, V11 attribution, and trace smoke | complete | Four 750k cells: three `continue`, one `stop`; the stop returns before atomic node six with five processed/checkpointed/trace nodes, explicit `prefix_gate_stop` episode and segment, and all cells valid |
+| 2026-08-15 | Fresh paired two-budget screen | complete, rule closed | 160/160 valid compiles; exact first-terminal identity in all 80 pairs; the rule fails its frozen score, seed-block, and maximum-loss gates |
+
+## Fresh-screen result
+
+Candidate and production reference were compiled from commit `36b68c62` with
+the same engine, sources, transforms, budgets, and actual seeds 178-181. The
+candidate alone received the explicit fixed-lookahead policy. All 160 compiles
+were valid, no completion or contract survival was lost, and first-terminal
+frame and track hash match in every pair.
+
+At 750k, the action runs in 35/40 cells and all ten sources. The continuation
+gate stops three, continues 30, and is not reached in two. Mean paired score is
+-1.5467 per cell (SE 1.2597 over four seed blocks), active mean is -1.7677, one
+seed block is positive, and the worst cell is -26.2320. The action displaces
+4,667,506 ordinary-repair frames, 23 repair attempts, and 26 accepted repairs.
+
+At 1.25M, the action runs in 29/40 cells and eight sources. It stops four,
+continues 23, and is not reached in two. Mean paired score is +0.3314 (SE
+0.7113), active mean is +0.4572, and three seed blocks are positive. However,
+the worst cell is -20.5564, so even the favorable mean fails the frozen safety
+gate. The action displaces 6,361,992 repair frames and 34 attempts, although
+only three accepted repairs, which helps explain the more favorable aggregate.
+
+The exact six-contact/0.05 rule is closed. It receives no confirmation and no
+canonical V2 run, and it is not promoted.
+
+## Post-screen diagnosis
+
+The one-time axis decision behaves much better than the full optional action,
+but does not cover every traversal shape. Stops are nearly neutral: their mean
+paired deltas are -0.2965 at 750k and -0.0625 at 1.25M, and they consume only
+18,680 and 21,626 frames on average. Continued actions average -0.5919 and
++0.8614 respectively.
+
+The sharp low-budget failure is a separate structural case. Both actions where
+the gate is not reached leave the zero-skipped pass path on their second
+selection, then spend 222,038 and 198,489 frames following fallback/skip
+prefixes. Their paired deltas are -26.2320 and -16.9883, a mean of -21.6102.
+At 1.25M the two not-reached cells average -3.1520. This is direct evidence
+about these four actions, not a population estimate.
+
+The natural next hypothesis is therefore not another axis threshold. An
+optional score-improvement suffix starts after a valid complete incumbent
+already exists; completion-rescue fallback work has a different purpose. A
+clean next campaign should test a pass-frontier-only optional suffix: when its
+zero-skipped pass frontier is exhausted, return all fallback nodes immediately
+to ordinary search and repair. It should retain the one-time lookahead decision,
+use a new explicit stop reason, and be frozen on fresh seeds. This screen only
+identifies that opportunity; its four fallback cases cannot promote the new
+rule by themselves.
+
+Supporting evidence:
+
+- `generated/benchmark-v2/mover-grid/deferred-fixed-lookahead-two-budget-n4/mover-grid-report.json`
+- `generated/benchmark-v2/mover-grid/deferred-fixed-lookahead-two-budget-n4/analysis.json`

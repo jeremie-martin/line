@@ -1563,3 +1563,33 @@ actual seeds 162-165. Its continuation gate is unchanged from Phase B. If it
 passes, one confirmation uses seeds 166-169 under the same fixed contract. If
 it fails, close the exact delayed rule. No canonical run, breadth interaction,
 reserve tuning, or additional progress threshold is authorized by this arm.
+
+### Phase C result and Phase D declaration
+
+Delayed eligibility closes. All 80 candidate cells remain valid, but paired
+means are -0.2919 +/- 1.8911 SE at 750k and -0.2049 +/- 1.8953 at 1.25M.
+`regression_transition_mosaic` falls 30.34 points on average and contains the
+largest losses. The exact rule therefore receives neither its reserved
+confirmation nor a canonical run.
+
+The failed mechanism is informative: delay reduces actions from 446/311 in
+Phase B to 356/290, yet probe work rises from 3.46M/3.87M to 3.58M/4.85M.
+Mean work per action increases from about 7.8k/12.5k to 10.1k/16.7k, and the
+first-terminal delay grows to 61.5k/98.5k frames. A watch first valuable during
+startup survives, accumulates more rewind, and can launch a more expensive
+excursion after the boundary. Phase C postponed early work; it did not reject
+the early opportunity.
+
+Phase D keeps the same 10% normalized boundary but expires a value opportunity
+when it first crosses density 0.020 before that boundary. Expiration affects
+only the experimental value signal: the causal watch remains live for ordinary
+frontier DFS and the production branch-regret rule. It cannot later return as a
+deeper value-ranked rewind. Telemetry records every unique expiration and
+reconciles it separately from admission, ranking, budget suppression, and
+production priority.
+
+Everything else remains fixed. The screen uses fresh seeds 166-169 over the
+same ten sources and two budgets. The unchanged continuation gate applies. A
+pass earns one confirmation on seeds 170-173; a failure closes this exact
+startup-expiration rule. No alternate horizon, density threshold, reserve,
+breadth, or canonical run is authorized by Phase D.

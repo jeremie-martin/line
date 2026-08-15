@@ -288,6 +288,15 @@ function validateCheckpoints(row: any, label: string): { attempt: any | null } {
       throw new Error(`${label}: exact deferred alternative has no divergent suffix`);
     }
     validateAxisComparison(checkpoint.divergent_suffix, `${label}/${index + 1}/suffix`);
+    if (
+      checkpoint.skipped_contacts === 0 &&
+      (
+        checkpoint.whole_prefix.selected_axis_count !==
+          checkpoint.whole_prefix.incumbent_axis_count ||
+        checkpoint.divergent_suffix.selected_axis_count !==
+          checkpoint.divergent_suffix.incumbent_axis_count
+      )
+    ) throw new Error(`${label}: pass checkpoint does not compare the same authored axes`);
     if (checkpoint.latest_comparable_contact !== null) {
       validateAxisComparison(
         checkpoint.latest_comparable_contact,
@@ -336,14 +345,13 @@ function validateAxisComparison(comparison: any, label: string): void {
     : Math.sqrt(comparison.incumbent_axis_sse / comparison.incumbent_axis_count) /
       axisTolerance;
   if (
-    comparison.selected_axis_count !== comparison.incumbent_axis_count ||
     !close(expectedSelected, comparison.selected_axis_loss) ||
     !close(expectedIncumbent, comparison.incumbent_axis_loss) ||
     !close(
       comparison.selected_axis_loss - comparison.incumbent_axis_loss,
       comparison.axis_loss_delta,
     )
-  ) throw new Error(`${label}: authored-axis counts or loss do not reconcile with SSE`);
+  ) throw new Error(`${label}: authored-axis loss does not reconcile with SSE`);
 }
 
 function eligibleSeries(attempt: any): any[] {

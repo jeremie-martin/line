@@ -47,6 +47,11 @@ evaluated or expanded:
 These calculations must not call the engine, evaluate an output, offer a
 register candidate, or increment charged simulation work.
 
+A fallback node may carry skipped authored contacts, so its selected and
+incumbent axis counts can differ. The counts make that non-like-for-like case
+explicit; it is retained for structural diagnosis but is ineligible for every
+offline rule. A zero-skipped-contact pass checkpoint must have equal counts.
+
 ## Trust gate
 
 Re-run the same 80 cells used by the closed live screen: ten compact-panel
@@ -120,3 +125,40 @@ exact rule without threshold adjustment.
 |---|---|---|---|
 | 2026-08-15 | Question, observation semantics, frozen rule family, and gates | complete | This document |
 | 2026-08-15 | Checkpoint implementation and mechanism smoke | complete | Four 750k cells: checkpoints reconcile with processed nodes; three cells shared with the fixed live panel are exact in score, track, report, first terminal, prior attempt counters, and Budget Telemetry; the fourth is exact against the earlier mechanism archive except for the subsequently added atomic-frame ledger |
+| 2026-08-15 | Fixed observation map and offline rule gate | complete, family closed | 80 new compiles compared with the archived live arm; 80/80 exact behavior; no frozen rule passes both budgets |
+
+## Observation result
+
+The one-arm map completed all 80 cells. Against the exact pre-instrumentation
+live archive, all 80 preserve validity, final score, final track, report,
+first-terminal frame/hash, every prior selective counter, the full Budget
+Telemetry ledger, ordinary repair, and final-output attribution. The map
+records 1,430 checkpoints over 33 actions at 750k and 1,348 over 29 actions at
+1.25M. Thirty-two and 28 actions respectively contain at least two eligible
+zero-skipped high-water checkpoints. Every action's first concrete divergence
+is exactly one gap before its action start.
+
+No frozen persistence rule clears both budgets. The zero-delta rules have ample
+coverage and predicted saved work but trigger eight of 16 improving actions at
+750k and nine of 14 at 1.25M. A 0.05 loss delta persisted for three contacts is
+the low-budget near miss: it triggers four non-improving actions in four sources,
+no improving action, and represents 12.2% of all action work, but at 1.25M it
+also triggers one action whose eventual terminal improves the register. A 0.10
+delta persisted for three contacts is safe and useful at 1.25M (five
+non-improving actions, four sources, 18.9% work) but fires only once at 750k.
+The exact repeated-threshold family is therefore closed without a live arm.
+
+This is a useful negative result rather than evidence against prefix comparison
+in general. The failed improving action is temporarily worse for the first
+three eligible observations and recovers at the next contact. Repeated early
+testing therefore confounds temporary trajectory investment with persistent
+uncompetitiveness. A distinct future scheme may buy one fixed lookahead horizon
+and make one continuation decision, analogous to a small tournament, rather
+than repeatedly asking whether to abort. That scheme requires a separate
+roadmap and fresh score evidence; it cannot be smuggled into this closed family
+by adding a fourth persistence threshold.
+
+Supporting archive and report:
+
+- `generated/benchmark-v2/mover-grid/deferred-prefix-map-two-budget-n4/candidate.json`
+- `generated/benchmark-v2/mover-grid/deferred-prefix-map-two-budget-n4/analysis.json`

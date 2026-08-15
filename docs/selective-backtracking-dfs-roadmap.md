@@ -2297,5 +2297,28 @@ full-first panel's isolated-tail dependence and is not broadly adverse.
 |---|---|---|---|
 | 2026-08-15 | Positive-prefix breadth policy predeclared | complete | This section; no fitted threshold |
 | 2026-08-15 | Implementation and aligned decision telemetry | complete: unit | Focused 55-test suite; width/gain arrays validated and analyzer-attributed |
-| 2026-08-15 | Fresh mechanism panel | pending | Eight sources, seeds 108-111, 750k only |
-| 2026-08-15 | Canonical decision | pending | Only a coherent adaptive arm may advance |
+| 2026-08-15 | Fresh mechanism panel | complete: positive | +15.5 over 32 valid pairs; 11 better, 9 worse, 12 unchanged |
+| 2026-08-15 | Canonical decision | authorized | Source-native challenger; standing sequential 750k evaluator |
+
+The trace closes the policy exactly. Across 371 value-ranked routes, all 371
+first contact-pool expansions have null starting gain and use 81 proposals.
+All 117 expansions starting from a strictly positive checkpoint gain use 61.
+All 270 expansions starting from a tied or negative checkpoint gain use 81.
+No empty-pool retry fires. The aligned width/gain/frame arrays pass the analyzer
+for every route.
+
+The fresh paired panel is modestly positive and much less fragile than fixed
+full-first: +15.5 points (+0.48/cell), 11 better, 9 worse, 12 unchanged, with
+all 32 pairs valid. Four source means improve and four regress; three
+regressions are between -0.18 and -0.43, while dense recovery is the material
+-3.32 warning. The largest cell gain/loss are +17.0/-15.5, so no single
+50-point tail owns the result. Candidate and reference record essentially the
+same action population (371 versus 370 value events); the candidate reaches
+333 completed tournaments versus 331 and has two budget yields versus four.
+
+This panel is not headline evidence, but it is mechanically exact and not
+broadly adverse. Make the categorical policy source-native only as the frozen
+canonical challenger, keep Phase D as the benchmark baseline, and run the
+standing sequential 750k ladder. The ordinary calibrated probability boundary
+is the only promotion criterion; do not add a dense-recovery veto or a
+multi-budget sweep.

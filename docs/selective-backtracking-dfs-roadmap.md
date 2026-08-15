@@ -2556,3 +2556,73 @@ accepted Phase D as the unset default. Keep the explicit coupled policy,
 11.25% telemetry contract, checksum-bound archives, and panel analyses as
 mechanism evidence. Do not extend this exact arm, tune the 11.25% fraction, or
 fit source exclusions.
+
+## Phase N: audit what the value numerator actually measures
+
+### Challenged assumption
+
+Phase D calls
+
+    current whole-prefix axis loss - branch whole-prefix axis loss
+
+"regret" and divides it by estimated catch-up work. Both losses are RMS-derived
+quantities over different numbers of observations. Their difference is not an
+additive loss belonging to the divergent suffix: old prefix observations are
+renormalized at the later horizon, and a new imperfect suffix can even reduce
+the cumulative RMS by dilution. The accepted policy has causal score value,
+but that does not make this numerator a semantically faithful estimate of the
+work a rewind can recover.
+
+The causal runner-up also already owns one exact committed contact at the
+branch point. Phase D retains its object but does not report whether that
+measured contact was better or worse than the preferred child's contact. The
+trigger therefore prices deterioration of the current route without directly
+pricing the only concrete alternative it may buy.
+
+### Behavior-neutral evidence contract
+
+Do not change admission, ranking, breadth, allowance, traversal, comparator,
+repair, or the authored objective. Extend each watch and value-opportunity
+record with quantities computable from already committed fits:
+
+- preferred and runner-up whole-prefix axis loss at the branch's first child;
+- runner-up advantage (preferred loss minus runner-up loss) at that equal
+  first-child horizon; and
+- current divergent-suffix axis count, SSE, and RMS-derived loss from the
+  branch gap through the opportunity horizon.
+
+Every admitted event must copy the exact watch values from its opportunity.
+The analyzer must reject non-finite values, unequal child horizons, invalid
+SSE/count/loss combinations, or an event/opportunity mismatch. No physics
+frame, candidate, RNG draw, frontier node, or policy decision may depend on
+these fields.
+
+Re-run the accepted Phase D on the existing eight-source, actual-seed 198-201,
+750k panel and compare it with the checksum-bound Phase-D arm already stored in
+`probe-breadth-no-refill-n4-seeds198-201`. Tracks, score, validity,
+first-terminal work, and repair identities must be exact. Reusing these cells
+is legal because this phase reads only mechanism labels and does not select a
+score rule from their output.
+
+### Score-blind signal assay and live boundary
+
+For every admitted tournament, report target reach, endpoint winner, charged
+frames, and conservative estimate by:
+
+- sign of the runner-up's first-child advantage;
+- current divergent-suffix loss above/below the inherited prefix loss; and
+- quartiles of the existing cumulative-RMS density and the suffix-only
+  alternatives.
+
+Compare signals with rank AUC and top-quartile precision for target reach and
+strict alternative selection. These are local mechanism labels, not final-score
+surrogates. A live successor is licensed only if one semantic, zero-threshold
+signal is broad and strictly improves both target-reach and winner enrichment
+over the current numerator without increasing the selected action count in
+offline replay. Otherwise close the trigger rewrite and pivot to another
+search representation. Any live arm uses fresh 750k cells only; no multi-budget
+sweep and no canonical run is authorized by the audit itself.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Numerator audit and behavior-neutral gate frozen | complete | This section; no score-selected threshold |

@@ -866,6 +866,7 @@ describe("selective-backtracking controller", () => {
       contactExpansion: true,
       contactOrdinal: 1,
       axisLoss: 0.1,
+      childAxisLosses: [0.12, 0.10],
     });
     controller.observeExpansion({
       parent: leader,
@@ -895,6 +896,11 @@ describe("selective-backtracking controller", () => {
       alternativeAvailable: () => true,
       alternativeDeadline: () => ({ margin: 3, pressured: false }),
       explorationBudgetAssessment: assessment,
+      axisWindow: (fromGapIndex, throughGapIndex) => {
+        expect(fromGapIndex).toBe(1);
+        expect(throughGapIndex).toBe(5);
+        return { axisCount: 4, axisSse: 0.04, axisLoss: 0.1 };
+      },
     };
     expect(controller.consider({
       ...common,
@@ -927,7 +933,25 @@ describe("selective-backtracking controller", () => {
       value_live_progress_suppressed_watches: 1,
       value_live_crossings: 1,
       value_live_admitted: 1,
-      value_live_opportunities: [{ point: { gap_progress: 0.1 } }],
+      value_live_opportunities: [{
+        point: {
+          gap_progress: 0.1,
+          branch_preferred_axis_loss: 0.12,
+          branch_alternative_axis_loss: 0.10,
+          branch_alternative_axis_loss_gain: 0.12 - 0.10,
+          current_divergent_suffix_axis_count: 4,
+          current_divergent_suffix_axis_sse: 0.04,
+          current_divergent_suffix_axis_loss: 0.1,
+        },
+      }],
+      events: [{
+        branch_preferred_axis_loss: 0.12,
+        branch_alternative_axis_loss: 0.10,
+        branch_alternative_axis_loss_gain: 0.12 - 0.10,
+        current_divergent_suffix_axis_count: 4,
+        current_divergent_suffix_axis_sse: 0.04,
+        current_divergent_suffix_axis_loss: 0.1,
+      }],
     });
   });
 

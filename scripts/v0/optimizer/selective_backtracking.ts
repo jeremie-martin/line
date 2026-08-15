@@ -319,6 +319,17 @@ export type SelectiveValueOpportunityPoint = {
   baseline_axis_loss: number;
   current_axis_loss: number;
   axis_loss_delta: number;
+  /** Exact first-child comparison already present when the causal watch was
+   * armed. Positive gain means the runner-up's first committed contact had
+   * lower whole-prefix authored-axis loss than the preferred child. */
+  branch_preferred_axis_loss: number | null;
+  branch_alternative_axis_loss: number | null;
+  branch_alternative_axis_loss_gain: number | null;
+  /** Exact authored-axis window belonging only to the current route after the
+   * watched branch point. This is evidence, not the production density. */
+  current_divergent_suffix_axis_count: number | null;
+  current_divergent_suffix_axis_sse: number | null;
+  current_divergent_suffix_axis_loss: number | null;
   value_density_per_10k_estimated_frames: number;
   gap_progress: number | null;
   total_spent_frames: number;
@@ -513,6 +524,9 @@ type AxisRegretWatch<Node extends object> = {
   branchContactOrdinal: number;
   branchGapIndex: number;
   baselineAxisLoss: number;
+  branchPreferredAxisLoss: number | null;
+  branchAlternativeAxisLoss: number | null;
+  branchAlternativeAxisLossGain: number | null;
   used: boolean;
   signalCrossed: boolean;
   deadlineSuppressionRecorded: boolean;
@@ -787,6 +801,12 @@ export type SelectiveBacktrackingEvent = {
   baseline_axis_loss: number;
   trigger_axis_loss: number;
   axis_loss_delta: number;
+  branch_preferred_axis_loss: number | null;
+  branch_alternative_axis_loss: number | null;
+  branch_alternative_axis_loss_gain: number | null;
+  current_divergent_suffix_axis_count: number | null;
+  current_divergent_suffix_axis_sse: number | null;
+  current_divergent_suffix_axis_loss: number | null;
   incumbent_axis_loss: number | null;
   incumbent_axis_loss_delta: number | null;
   repair_attempt_index: number | null;
@@ -1276,12 +1296,31 @@ export class SelectiveAxisRegretController<Node extends object> {
     contactExpansion: boolean;
     contactOrdinal: number;
     axisLoss: number;
+    /** Whole-prefix axis loss for each child, aligned with `children`. The
+     * production compiler supplies this for contact expansions; generic unit
+     * harnesses may omit it when branch-value evidence is irrelevant. */
+    childAxisLosses?: readonly number[];
   }): void {
     const inherited = this.lineage.get(input.parent) ?? null;
     for (const child of input.children) this.lineage.set(child, inherited);
     if (!input.contactExpansion) return;
     this.stats.contact_expansions_observed++;
     if (input.children.length < 2) return;
+    if (
+      input.childAxisLosses !== undefined &&
+      (input.childAxisLosses.length !== input.children.length ||
+        input.childAxisLosses.some((loss) => !Number.isFinite(loss)))
+    ) {
+      throw new Error("selective branch child-axis evidence must align and be finite");
+    }
+    const preferredAxisLoss = input.childAxisLosses?.[0] ?? null;
+    const alternativeAxisLoss = input.childAxisLosses?.[1] ?? null;
+    if (
+      preferredAxisLoss !== null && alternativeAxisLoss !== null &&
+      this.gapIndexOf(input.children[0]!) !== this.gapIndexOf(input.children[1]!)
+    ) {
+      throw new Error("selective branch child-axis evidence must compare equal horizons");
+    }
 
     const watch: AxisRegretWatch<Node> = {
       watchId: this.nextWatchId++,
@@ -1290,6 +1329,12 @@ export class SelectiveAxisRegretController<Node extends object> {
       branchContactOrdinal: input.contactOrdinal,
       branchGapIndex: this.gapIndexOf(input.parent),
       baselineAxisLoss: input.axisLoss,
+      branchPreferredAxisLoss: preferredAxisLoss,
+      branchAlternativeAxisLoss: alternativeAxisLoss,
+      branchAlternativeAxisLossGain:
+        preferredAxisLoss === null || alternativeAxisLoss === null
+          ? null
+          : preferredAxisLoss - alternativeAxisLoss,
       used: false,
       signalCrossed: false,
       deadlineSuppressionRecorded: false,
@@ -1333,6 +1378,12 @@ export class SelectiveAxisRegretController<Node extends object> {
       fromGapIndex: number,
       explorationProbeFrames: number,
     ) => SelectiveExplorationBudgetAssessment;
+    /** Exact authored-axis observation window. Called only when a value
+     * opportunity is first materialized; never participates in selection. */
+    axisWindow?: (
+      fromGapIndex: number,
+      throughGapIndex: number,
+    ) => { axisCount: number; axisSse: number; axisLoss: number };
   }): SelectiveBacktrackDecision<Node> | null {
     const periodicLaneEnabled =
       (this.policy === "selective_axis_regret_catchup_periodic_initial" &&
@@ -1372,6 +1423,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       admittedAlternativeDeadline: { margin: number; pressured: boolean },
       admissibleRewindChoices: SelectiveAdmissibleRewindChoice[],
       explorationBudget: SelectiveExplorationBudgetAssessment | null,
+      valuePoint: SelectiveValueOpportunityPoint | null,
     ): SelectiveBacktrackDecision<Node> => {
       const fromGapIndex = this.gapIndexOf(input.node);
       const targetGapIndex = this.gapIndexOf(watch.alternative);
@@ -1426,6 +1478,15 @@ export class SelectiveAxisRegretController<Node extends object> {
         baseline_axis_loss: watch.baselineAxisLoss,
         trigger_axis_loss: input.axisLoss,
         axis_loss_delta: axisLossDelta,
+        branch_preferred_axis_loss: watch.branchPreferredAxisLoss,
+        branch_alternative_axis_loss: watch.branchAlternativeAxisLoss,
+        branch_alternative_axis_loss_gain: watch.branchAlternativeAxisLossGain,
+        current_divergent_suffix_axis_count:
+          valuePoint?.current_divergent_suffix_axis_count ?? null,
+        current_divergent_suffix_axis_sse:
+          valuePoint?.current_divergent_suffix_axis_sse ?? null,
+        current_divergent_suffix_axis_loss:
+          valuePoint?.current_divergent_suffix_axis_loss ?? null,
         incumbent_axis_loss: input.incumbentAxisLoss ?? null,
         incumbent_axis_loss_delta: incumbentAxisLossDelta,
         repair_attempt_index: repairAttemptIndex,
@@ -1547,6 +1608,36 @@ export class SelectiveAxisRegretController<Node extends object> {
         alternativeDeadline ??= input.alternativeDeadline(watch.alternative);
         return alternativeDeadline;
       };
+      const pointAxisEvidence = (): Pick<
+        SelectiveValueOpportunityPoint,
+        | "branch_preferred_axis_loss"
+        | "branch_alternative_axis_loss"
+        | "branch_alternative_axis_loss_gain"
+        | "current_divergent_suffix_axis_count"
+        | "current_divergent_suffix_axis_sse"
+        | "current_divergent_suffix_axis_loss"
+      > => {
+        const suffix = input.axisWindow?.(
+          watch.branchGapIndex,
+          this.gapIndexOf(input.node),
+        ) ?? null;
+        if (
+          suffix !== null &&
+          (!Number.isSafeInteger(suffix.axisCount) || suffix.axisCount < 0 ||
+            !Number.isFinite(suffix.axisSse) || suffix.axisSse < 0 ||
+            !Number.isFinite(suffix.axisLoss) || suffix.axisLoss < 0)
+        ) {
+          throw new Error("selective divergent-suffix axis evidence is invalid");
+        }
+        return {
+          branch_preferred_axis_loss: watch.branchPreferredAxisLoss,
+          branch_alternative_axis_loss: watch.branchAlternativeAxisLoss,
+          branch_alternative_axis_loss_gain: watch.branchAlternativeAxisLossGain,
+          current_divergent_suffix_axis_count: suffix?.axisCount ?? null,
+          current_divergent_suffix_axis_sse: suffix?.axisSse ?? null,
+          current_divergent_suffix_axis_loss: suffix?.axisLoss ?? null,
+        };
+      };
 
       if (
         this.policy === "selective_axis_regret_catchup_value_map" &&
@@ -1579,6 +1670,7 @@ export class SelectiveAxisRegretController<Node extends object> {
           baseline_axis_loss: watch.baselineAxisLoss,
           current_axis_loss: input.axisLoss,
           axis_loss_delta: axisLossDelta,
+          ...pointAxisEvidence(),
           value_density_per_10k_estimated_frames: density,
           gap_progress: input.gapProgress ?? null,
           total_spent_frames: input.totalSpentFrames,
@@ -1658,6 +1750,7 @@ export class SelectiveAxisRegretController<Node extends object> {
             baseline_axis_loss: watch.baselineAxisLoss,
             current_axis_loss: input.axisLoss,
             axis_loss_delta: axisLossDelta,
+            ...pointAxisEvidence(),
             value_density_per_10k_estimated_frames: density,
             gap_progress: input.gapProgress ?? null,
             total_spent_frames: input.totalSpentFrames,
@@ -1748,6 +1841,7 @@ export class SelectiveAxisRegretController<Node extends object> {
           baseline_axis_loss: watch.baselineAxisLoss,
           current_axis_loss: input.axisLoss,
           axis_loss_delta: axisLossDelta,
+          ...pointAxisEvidence(),
           value_density_per_10k_estimated_frames: density,
           gap_progress: input.gapProgress ?? null,
           total_spent_frames: input.totalSpentFrames,
@@ -2034,6 +2128,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         admittedAlternativeDeadline,
         admissibleRewindChoices,
         null,
+        null,
       );
     }
 
@@ -2097,6 +2192,7 @@ export class SelectiveAxisRegretController<Node extends object> {
           conservative_deadline_margin: winner.deadline.margin,
         }],
         winner.budget,
+        winner.point,
       );
     }
 
@@ -2179,6 +2275,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         conservative_deadline_margin: admittedAlternativeDeadline.margin,
       }],
       periodicBudget,
+      null,
     );
   }
 

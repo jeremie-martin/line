@@ -3049,6 +3049,18 @@ function compileHandoffInternal(
                   : "admitted",
             };
           },
+          axisWindow: (fromGapIndex, throughGapIndex) => {
+            const window = authoredAxisWindow(
+              node.search,
+              fromGapIndex,
+              throughGapIndex,
+            );
+            return {
+              axisCount: window.axisCount,
+              axisSse: window.axisSse,
+              axisLoss: window.axisLoss,
+            };
+          },
         });
         if (decision !== null) {
           return finishAtomic({
@@ -3189,16 +3201,20 @@ function compileHandoffInternal(
         policy,
         resumedSearchShapeBudget ?? searchPolicyBudget,
       );
+      const contactExpansion =
+        node.startExpanded &&
+        node.skippedContacts === 0 &&
+        gaps[node.search.gapIndex]?.endsWithContact === true &&
+        children.every((child) => child.skippedContacts === 0);
       selectiveBacktracking?.observeExpansion({
         parent: node,
         children,
-        contactExpansion:
-          node.startExpanded &&
-          node.skippedContacts === 0 &&
-          gaps[node.search.gapIndex]?.endsWithContact === true &&
-          children.every((child) => child.skippedContacts === 0),
+        contactExpansion,
         contactOrdinal: contactOrdinalAt(node.search.gapIndex),
         axisLoss: authoredPrefixAxisLoss(node.search),
+        childAxisLosses: contactExpansion
+          ? children.map((child) => authoredPrefixAxisLoss(child.search))
+          : undefined,
       });
       telemetry.nodesExpanded++;
       return finishAtomic({ kind: "expanded", children });

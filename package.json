@@ -54,6 +54,7 @@
     "benchmark:v2:value-ranked-live-analysis": "node --import tsx scripts/benchmark/analyze_value_ranked_live.ts",
     "benchmark:v2:value-signal-audit": "node --import tsx scripts/benchmark/analyze_value_signal_audit.ts",
     "benchmark:v2:first-advantage-handoff-analysis": "node --import tsx scripts/benchmark/analyze_first_advantage_handoff.ts",
+    "benchmark:v2:first-advantage-canonical-analysis": "node --import tsx scripts/benchmark/analyze_first_advantage_canonical.ts",
     "benchmark:v2:value-run-proof-analysis": "node --import tsx scripts/benchmark/analyze_value_ranked_live.ts --policy=selective_axis_regret_catchup_value_initial_expire_10_run_proof",
     "benchmark:v2:value-run-proof-ablation": "node --import tsx scripts/benchmark/analyze_value_run_proof_ablation.ts",
     "benchmark:v2:canonical-value-attribution": "node --import tsx scripts/benchmark/analyze_canonical_value_attribution.ts",

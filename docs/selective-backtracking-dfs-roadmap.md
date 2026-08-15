@@ -2708,7 +2708,10 @@ multi-budget sweep.
 | 2026-08-15 | First-advantage opportunity and live rule frozen | complete | 109 strict-positive first checkpoints; zero numeric threshold |
 | 2026-08-15 | Implementation and mechanical proof | complete | 57 focused tests; known-activity smoke records 35/35 exact next-turn handoffs across eight sources |
 | 2026-08-15 | Fresh 750k characterization | complete: pass | `first-advantage-handoff-n4-seeds202-205`; +111.71 across 32 valid pairs |
-| 2026-08-15 | Canonical 750k decision | pending | Frozen arm; standing calibrated sequential evaluator only |
+| 2026-08-15 | Canonical N=8 look | continue | 607.07; -0.16 +/- 0.52 SE; P(positive)=38.10%; 352/352 valid |
+| 2026-08-15 | Canonical N=16 look | continue | 606.22; -0.86 +/- 0.45 SE; P(positive)=3.75%; 704/704 valid |
+| 2026-08-15 | Canonical N=32 look | continue | 604.49; -2.77 +/- 2.58 SE; P(positive)=14.59%; 1,407/1,408 valid |
+| 2026-08-15 | Canonical maximum | complete: inconclusive | 607.25 -> 605.39; -1.86 +/- 1.75 SE; P(positive)=14.69%; 2,111/2,112 valid |
 
 The fresh screen clears the entire predeclared boundary. All 64 arm-cells are
 valid. Candidate minus Phase D is +111.7062 points (+3.4908/cell), with 14
@@ -2734,3 +2737,84 @@ challenger. Retain accepted Phase D in campaign governance, use the ordinary
 750k sequential probability rule, and restore Phase D if the challenger does
 not formally accept. Do not fit the positive gain, add a transition-mosaic
 condition, combine breadth changes, or run another budget.
+
+The N=48 maximum closes the exact arm without promotion. The governed
+headline is -1.8633 +/- 1.7547 seed-block SE, with a 95% interval of
+[-6.5739, +2.8473] and 14.69% directional probability against the 97.23%
+boundary. One candidate cell loses completion: actual seed 626 on
+`frontier_pickup_progression_shifted` reaches gap 98/110, exhausts the budget,
+and terminates `rideStalled`; its matched Phase-D cell completes with score
+442.8767. This is a real search failure, not a scoring or report artifact.
+
+Validity does not hide a broad score gain. Neutralizing that one discordant
+cell while keeping every canonical weight fixed gives a both-valid headline
+delta of -0.1490 +/- 0.2584 SE. Across the 2,111 completed pairs, raw run score
+movement is 639 better, 673 worse, and 799 tied. The validity-sensitive
+headline remainder is -1.7143. Representative is -0.17, capability -12.16,
+legacy regression +0.96, and development music -0.27. These are descriptive
+attributions of the governed result, not a second decision.
+
+The checksum-bound mechanism reader validates all 6,813 handoffs and the
+complete N=48 reference assembled from the two retained Phase-D cache shards.
+Every handoff receives the exact next frontier turn. Every one of the 237 cells
+without a handoff has identical track and score, binding movement to this
+mechanism. Yet only 652 suspended incumbents are ever resumed: retaining a
+node is not the same as granting a bounded alternative trial. Fully 6,462
+handoffs occur only one gap before the existing equal-depth comparison, and
+4,390 gains are at most 0.005. The failed cell's final, never-resumed handoff
+occurs one gap before equal depth on a gain of 0.00013975.
+
+The work premise also fails. Relative to Phase D, the arm saves 11,874,880
+synchronous probe frames but moves 18,175,844 additional frames into initial
+search, reaches the first terminal 8,566 paired frames later on average, and
+removes 18,412,763 repair frames, 179 terminal-reaching repairs, and 58
+accepted repairs. Immediate control transfer did not buy more downstream
+optimization; it displaced it. Restore Phase D as the unset default. Preserve
+the explicit arm, its telemetry, the canonical archives, comparison, and
+`N48.first-advantage-analysis.json` as reproducible negative evidence. Do not
+tune a positive-gain threshold or a source exception.
+
+## Phase P: audit whether a selected route receives an unbounded lease
+
+### Challenged assumption
+
+Phase O mostly weakened an equal-depth comparator: 95% of its interventions
+handed off one gap before the comparison Phase D would already perform. It did
+not test the broader proactive-backtracking idea cleanly. After Phase D does
+select an equal-depth alternative, ordinary LIFO traversal can still follow
+that route until death or completion. The displaced incumbent remains in the
+frontier, but there is no continuing contract that revisits it when the chosen
+route spends its local advantage. Calling that node a fallback overstates what
+the algorithm actually guarantees.
+
+Start with behavior-neutral evidence on the accepted Phase-D policy. For each
+equal-depth alternative selection, bind the selected node, displaced incumbent,
+their same-horizon authored-axis counts/SSE/losses, and the exact selection
+frame. Follow only the selected preferred lineage and record subsequent contact
+checkpoints until terminal, death, another selective tournament, or incumbent
+resumption. At each checkpoint report the added suffix axis count/SSE/loss,
+the selected route's cumulative loss, whether it has risen above the displaced
+incumbent's last comparable loss, charged work, and termination reason. Do not
+change frontier order, candidate generation, RNG, budget, repair, or scoring.
+Instrumented Phase D must be byte-identical to retained Phase D on a
+checksum-bound compact panel.
+
+This audit asks whether an equal-depth winner commonly becomes observably weak
+before death while an affordable displaced route remains available. It does
+not infer the displaced route's unobserved future and must not label a local
+crossing as terminal-score truth. If the opportunity is broad, implement one
+explicit **bounded route lease**: on the first zero-threshold loss crossing,
+and only when the existing conservative estimator says the displaced route can
+still complete with reserve, put the current route back in the frontier and
+resume the displaced route next. Retain both; prohibit nested or repeated
+rollback for the same lease; record exact selection, crossing, affordability,
+rollback, later resumption, terminal, and work outcomes.
+
+Use unit proof and fresh compact 750k cells before any canonical request.
+Require full validity, exact no-crossing identity, broad exercised rollback,
+and visible work attribution. This is a new proactive-backtracking mechanism,
+not a threshold-tuned repair, source rule, breadth arm, or multi-budget sweep.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Unbounded-lease assumption and behavior-neutral audit frozen | planned | Phase O shows 652/6,813 incumbent resumptions and 6,462/6,813 one-gap handoffs |

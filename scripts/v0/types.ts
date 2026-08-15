@@ -497,7 +497,8 @@ export type CompileStats = {
       | "selective_axis_regret_catchup"
       | "selective_axis_regret_catchup_repair_incumbent_once"
       | "selective_axis_regret_catchup_periodic_initial"
-      | "selective_axis_regret_catchup_periodic_repair";
+      | "selective_axis_regret_catchup_periodic_repair"
+      | "selective_axis_regret_catchup_value_map";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;

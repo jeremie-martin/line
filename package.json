@@ -50,6 +50,7 @@
     "benchmark:v2:mover-grid": "LR_ENGINE=wasm node --import tsx scripts/benchmark/mover_grid.ts",
     "benchmark:v2:selective-backtracking-analysis": "node --import tsx scripts/benchmark/analyze_selective_backtracking.ts",
     "benchmark:v2:proactive-tournament-analysis": "node --import tsx scripts/benchmark/analyze_proactive_tournaments.ts",
+    "benchmark:v2:value-opportunity-analysis": "node --import tsx scripts/benchmark/analyze_value_opportunity_map.ts",
     "benchmark:v2:action-set-power": "node --import tsx scripts/benchmark/action_set_power.ts",
     "benchmark:v2:low-budget-reading": "LR_ENGINE=wasm node --import tsx scripts/benchmark/low_budget_reading.ts",
     "benchmark:v2:fwd-metrics": "node --max-old-space-size=8192 --import tsx scripts/benchmark/fwd_metrics.ts",

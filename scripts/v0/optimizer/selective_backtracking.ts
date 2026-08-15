@@ -2,7 +2,8 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup"
   | "selective_axis_regret_catchup_repair_incumbent_once"
   | "selective_axis_regret_catchup_periodic_initial"
-  | "selective_axis_regret_catchup_periodic_repair";
+  | "selective_axis_regret_catchup_periodic_repair"
+  | "selective_axis_regret_catchup_value_map";
 
 export type SelectiveBacktrackSignal =
   | "branch_regret"
@@ -20,6 +21,9 @@ export const SELECTIVE_PERIODIC_CONTACT_INTERVAL = 8;
 export const SELECTIVE_PERIODIC_CONTACT_REWIND = 3;
 export const SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR = 1.25;
 export const SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION = 0.15;
+export const SELECTIVE_VALUE_MIN_CONTACT_ADVANCE = 3;
+export const SELECTIVE_VALUE_DENSITY_FRAME_SCALE = 10_000;
+export const SELECTIVE_VALUE_DENSITY_THRESHOLDS = [0.005, 0.01, 0.02, 0.04] as const;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
   0,
@@ -49,12 +53,16 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-periodic-repair") {
     return "selective_axis_regret_catchup_periodic_repair";
   }
+  if (raw === "selective-axis-regret-catchup-value-map") {
+    return "selective_axis_regret_catchup_value_map";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
       `selective-axis-regret-catchup-repair-incumbent-once, ` +
       `selective-axis-regret-catchup-periodic-initial, or ` +
-      `selective-axis-regret-catchup-periodic-repair; got ${raw}`,
+      `selective-axis-regret-catchup-periodic-repair, or ` +
+      `selective-axis-regret-catchup-value-map; got ${raw}`,
   );
 }
 
@@ -86,6 +94,31 @@ export type SelectivePeriodicOpportunity = {
   budget: SelectivePeriodicBudgetAssessment | null;
 };
 
+export type SelectiveValueOpportunityPoint = {
+  lane: FrontierTraversalLane;
+  contact_ordinal: number;
+  from_gap_index: number;
+  branch_gap_index: number;
+  alternative_gap_index: number;
+  contact_advance: number;
+  gap_rewind: number;
+  baseline_axis_loss: number;
+  current_axis_loss: number;
+  axis_loss_delta: number;
+  value_density_per_10k_estimated_frames: number;
+  total_spent_frames: number;
+  alternative_available: boolean;
+  execution_ceiling_reached: boolean;
+  budget: SelectivePeriodicBudgetAssessment;
+};
+
+export type SelectiveValueOpportunity = {
+  watch_id: number;
+  threshold: number;
+  crossing: SelectiveValueOpportunityPoint;
+  first_admission: SelectiveValueOpportunityPoint | null;
+};
+
 export function catchupAlternativeHasSufficientGain(
   currentAxisLoss: number,
   alternativeAxisLoss: number,
@@ -94,6 +127,7 @@ export function catchupAlternativeHasSufficientGain(
 }
 
 type AxisRegretWatch<Node extends object> = {
+  watchId: number;
   alternative: Node;
   additionalAlternatives: readonly Node[];
   branchContactOrdinal: number;
@@ -109,6 +143,9 @@ type AxisRegretWatch<Node extends object> = {
   repairIncumbentMaturityOpportunityCrossedMask: number;
   repairIncumbentMaturityOpportunityAdmissibleMask: number;
   repairIncumbentAttemptLimitSuppressionRecorded: boolean;
+  valueOpportunityCrossedMask: number;
+  valueOpportunityAdmissibleMask: number;
+  valueOpportunityRecordIndices: Array<number | null>;
 };
 
 type WatchLink<Node extends object> = {
@@ -209,6 +246,14 @@ export type SelectiveBacktrackingStats = {
   periodic_probe_frames: number;
   periodic_probe_nodes_processed: number;
   periodic_opportunities: SelectivePeriodicOpportunity[];
+  value_min_contact_advance: number;
+  value_density_frame_scale: number;
+  value_density_thresholds: number[];
+  value_opportunities_by_density: Record<
+    string,
+    { crossed_watches: number; admissible_watches: number }
+  >;
+  value_opportunities: SelectiveValueOpportunity[];
   contact_expansions_observed: number;
   branch_watches_armed: number;
   branch_watches_by_alternative_count: Record<string, number>;
@@ -335,6 +380,15 @@ function emptyRepairIncumbentMaturityOpportunityCounter(): SelectiveBacktracking
   ));
 }
 
+function emptyValueOpportunityCounter(): SelectiveBacktrackingStats[
+  "value_opportunities_by_density"
+] {
+  return Object.fromEntries(SELECTIVE_VALUE_DENSITY_THRESHOLDS.map((threshold) => [
+    threshold.toFixed(3),
+    { crossed_watches: 0, admissible_watches: 0 },
+  ]));
+}
+
 /**
  * Compile-local signal and attribution state for the bounded-catch-up strategy.
  *
@@ -352,6 +406,7 @@ export class SelectiveAxisRegretController<Node extends object> {
   private readonly suspended = new WeakMap<Node, number>();
   private readonly repairAttemptsWithIncumbentBacktrack = new Set<number>();
   private readonly stats: SelectiveBacktrackingStats;
+  private nextWatchId = 1;
 
   constructor(
     gapIndexOf: (node: Node) => number,
@@ -391,6 +446,11 @@ export class SelectiveAxisRegretController<Node extends object> {
       periodic_probe_frames: 0,
       periodic_probe_nodes_processed: 0,
       periodic_opportunities: [],
+      value_min_contact_advance: SELECTIVE_VALUE_MIN_CONTACT_ADVANCE,
+      value_density_frame_scale: SELECTIVE_VALUE_DENSITY_FRAME_SCALE,
+      value_density_thresholds: [...SELECTIVE_VALUE_DENSITY_THRESHOLDS],
+      value_opportunities_by_density: emptyValueOpportunityCounter(),
+      value_opportunities: [],
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       branch_watches_by_alternative_count: {},
@@ -468,6 +528,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (input.children.length < 2) return;
 
     const watch: AxisRegretWatch<Node> = {
+      watchId: this.nextWatchId++,
       alternative: input.children[1]!,
       additionalAlternatives: input.children.slice(2),
       branchContactOrdinal: input.contactOrdinal,
@@ -483,6 +544,9 @@ export class SelectiveAxisRegretController<Node extends object> {
       repairIncumbentMaturityOpportunityCrossedMask: 0,
       repairIncumbentMaturityOpportunityAdmissibleMask: 0,
       repairIncumbentAttemptLimitSuppressionRecorded: false,
+      valueOpportunityCrossedMask: 0,
+      valueOpportunityAdmissibleMask: 0,
+      valueOpportunityRecordIndices: SELECTIVE_VALUE_DENSITY_THRESHOLDS.map(() => null),
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -658,6 +722,76 @@ export class SelectiveAxisRegretController<Node extends object> {
         alternativeDeadline ??= input.alternativeDeadline(watch.alternative);
         return alternativeDeadline;
       };
+
+      if (
+        this.policy === "selective_axis_regret_catchup_value_map" &&
+        (input.lane === "initial" || input.lane === "repair") &&
+        input.contactBoundary === true &&
+        contactAdvance >= SELECTIVE_VALUE_MIN_CONTACT_ADVANCE &&
+        axisLossDelta > 0
+      ) {
+        if (input.periodicBudgetAssessment === undefined) {
+          throw new Error("value opportunity map requires a budget assessment");
+        }
+        const fromGapIndex = this.gapIndexOf(input.node);
+        const alternativeGapIndex = this.gapIndexOf(watch.alternative);
+        const budget = input.periodicBudgetAssessment(
+          watch.alternative,
+          fromGapIndex,
+          0,
+        );
+        const available = readAlternativeAvailable();
+        const density = axisLossDelta * SELECTIVE_VALUE_DENSITY_FRAME_SCALE /
+          Math.max(1, budget.estimated_probe_work_frames);
+        const point = (): SelectiveValueOpportunityPoint => ({
+          lane: input.lane,
+          contact_ordinal: input.contactOrdinal,
+          from_gap_index: fromGapIndex,
+          branch_gap_index: watch.branchGapIndex,
+          alternative_gap_index: alternativeGapIndex,
+          contact_advance: contactAdvance,
+          gap_rewind: Math.max(0, fromGapIndex - alternativeGapIndex),
+          baseline_axis_loss: watch.baselineAxisLoss,
+          current_axis_loss: input.axisLoss,
+          axis_loss_delta: axisLossDelta,
+          value_density_per_10k_estimated_frames: density,
+          total_spent_frames: input.totalSpentFrames,
+          alternative_available: available,
+          execution_ceiling_reached: input.executionCeilingReached,
+          budget: { ...budget },
+        });
+        for (let i = 0; i < SELECTIVE_VALUE_DENSITY_THRESHOLDS.length; i++) {
+          const threshold = SELECTIVE_VALUE_DENSITY_THRESHOLDS[i]!;
+          if (density < threshold) continue;
+          const bit = 1 << i;
+          const counter = this.stats.value_opportunities_by_density[threshold.toFixed(3)]!;
+          if ((watch.valueOpportunityCrossedMask & bit) === 0) {
+            watch.valueOpportunityCrossedMask |= bit;
+            counter.crossed_watches++;
+            watch.valueOpportunityRecordIndices[i] = this.stats.value_opportunities.length;
+            this.stats.value_opportunities.push({
+              watch_id: watch.watchId,
+              threshold,
+              crossing: point(),
+              first_admission: null,
+            });
+          }
+          if (
+            (watch.valueOpportunityAdmissibleMask & bit) === 0 &&
+            available &&
+            !input.executionCeilingReached &&
+            budget.admitted
+          ) {
+            watch.valueOpportunityAdmissibleMask |= bit;
+            counter.admissible_watches++;
+            const recordIndex = watch.valueOpportunityRecordIndices[i];
+            if (recordIndex === null || recordIndex === undefined) {
+              throw new Error("value opportunity admission lost its crossing record");
+            }
+            this.stats.value_opportunities[recordIndex]!.first_admission = point();
+          }
+        }
+      }
 
       const incumbentAxisLossDelta =
         input.lane === "repair" &&
@@ -1118,6 +1252,25 @@ export class SelectiveAxisRegretController<Node extends object> {
       periodic_opportunities: this.stats.periodic_opportunities.map((opportunity) => ({
         ...opportunity,
         budget: opportunity.budget === null ? null : { ...opportunity.budget },
+      })),
+      value_density_thresholds: [...this.stats.value_density_thresholds],
+      value_opportunities_by_density: Object.fromEntries(
+        Object.entries(this.stats.value_opportunities_by_density).map(
+          ([threshold, counts]) => [threshold, { ...counts }],
+        ),
+      ),
+      value_opportunities: this.stats.value_opportunities.map((opportunity) => ({
+        ...opportunity,
+        crossing: {
+          ...opportunity.crossing,
+          budget: { ...opportunity.crossing.budget },
+        },
+        first_admission: opportunity.first_admission === null
+          ? null
+          : {
+            ...opportunity.first_admission,
+            budget: { ...opportunity.first_admission.budget },
+          },
       })),
       events: this.stats.events.map((event) => ({
         ...event,

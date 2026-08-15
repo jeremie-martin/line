@@ -22,6 +22,8 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup_periodic_initial");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-periodic-repair"))
       .toBe("selective_axis_regret_catchup_periodic_repair");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-map"))
+      .toBe("selective_axis_regret_catchup_value_map");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy(
@@ -203,6 +205,100 @@ describe("selective-backtracking controller", () => {
       periodic_terminal_reserve_suppressed: 1,
       selective_backtracks: 0,
       periodic_opportunities: [{ outcome: "terminal_reserve" }],
+    });
+  });
+
+  test("maps first value-density crossing and later admission without changing traversal", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_map",
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const first = { gap: 4, name: "first" };
+    const second = { gap: 5, name: "second" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.1,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [first],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.1,
+    });
+    const assessment = (admitted: boolean) => ({
+      execution_remaining_frames: admitted ? 300_000 : 100_000,
+      conservative_terminal_work_frames: 100_000,
+      estimated_probe_work_frames: 10_000,
+      terminal_reserve_frames: 125_000,
+      exploration_allowance_frames: 112_500,
+      exploration_spent_frames: 0,
+      exploration_remaining_frames: 112_500,
+      admitted,
+      reason: admitted ? "admitted" as const : "terminal_reserve" as const,
+    });
+    expect(controller.consider({
+      node: first,
+      contactOrdinal: 4,
+      contactBoundary: true,
+      axisLoss: 0.13,
+      executionCeilingReached: false,
+      totalSpentFrames: 200_000,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 1, pressured: false }),
+      periodicBudgetAssessment: () => assessment(false),
+    })).toBeNull();
+    controller.observeExpansion({
+      parent: first,
+      children: [second],
+      contactExpansion: false,
+      contactOrdinal: 4,
+      axisLoss: 0.13,
+    });
+    expect(controller.consider({
+      node: second,
+      contactOrdinal: 5,
+      contactBoundary: true,
+      axisLoss: 0.13,
+      executionCeilingReached: false,
+      totalSpentFrames: 220_000,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 1, pressured: false }),
+      periodicBudgetAssessment: () => assessment(true),
+    })).toBeNull();
+
+    const snapshot = controller.snapshot();
+    expect(snapshot.selective_backtracks).toBe(0);
+    expect(snapshot.value_opportunities_by_density).toEqual({
+      "0.005": { crossed_watches: 1, admissible_watches: 1 },
+      "0.010": { crossed_watches: 1, admissible_watches: 1 },
+      "0.020": { crossed_watches: 1, admissible_watches: 1 },
+      "0.040": { crossed_watches: 0, admissible_watches: 0 },
+    });
+    expect(snapshot.value_opportunities).toHaveLength(3);
+    expect(snapshot.value_opportunities[0]).toMatchObject({
+      watch_id: 1,
+      threshold: 0.005,
+      crossing: {
+        lane: "initial",
+        contact_ordinal: 4,
+        contact_advance: 3,
+        axis_loss_delta: 0.03,
+        value_density_per_10k_estimated_frames: 0.03,
+        budget: { admitted: false, reason: "terminal_reserve" },
+      },
+      first_admission: {
+        contact_ordinal: 5,
+        contact_advance: 4,
+        budget: { admitted: true, reason: "admitted" },
+      },
     });
   });
 

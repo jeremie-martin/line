@@ -1769,3 +1769,17 @@ small same-cell ablation against the ungated
 `selective-axis-regret-catchup-value-initial-expire-10` parent is diagnostic
 only. It may characterize the failed hypothesis, but it cannot reopen the
 closed rule or substitute for its frozen gates.
+
+That direct ablation is complete and reproducible through
+`benchmark:v2:value-run-proof-ablation`; its artifact is
+`generated/benchmark-v2/mover-grid/value-run-proof-parent-ablation/analysis.json`.
+The five affected cells share an identical first tournament with the parent,
+and all 11 overlapping unsealed cells are output-identical. Sealing improves
+the sole 750k cell by +1.2635, but loses 18.1148 points over the four 1.25M
+cells (-4.5287/cell), for -3.3703/cell overall. It saves 247,266 optional probe
+frames and redirects 738,223 frames into repair, so the loss cannot be
+explained as insufficient later search. The parent instead shows why the
+state model was wrong: after the failed first tournament, 28 of 38 later
+tournaments reach equal depth and 17 select the alternative. A failed probe is
+route-local evidence, not a persistent run condition; more repair is not an
+automatic substitute for this initial exploration.

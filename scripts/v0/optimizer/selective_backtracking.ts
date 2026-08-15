@@ -204,6 +204,44 @@ export type SelectiveDeferredValueOpportunity = {
   terminal: SelectiveDeferredValueTerminalAssessment | null;
 };
 
+export type SelectiveDeferredValueAxisComparison = {
+  selected_axis_count: number;
+  incumbent_axis_count: number;
+  selected_axis_sse: number;
+  incumbent_axis_sse: number;
+  selected_axis_loss: number;
+  incumbent_axis_loss: number;
+  axis_loss_delta: number;
+};
+
+export type SelectiveDeferredValueCheckpoint = {
+  selection_ordinal: number;
+  selection_total_spent_frames: number;
+  spent_frames_since_attempt_start: number;
+  estimated_work_fraction_spent: number;
+  gap_index: number;
+  contact_ordinal: number;
+  first_divergent_gap_index: number | null;
+  comparable_contacts_since_divergence: number;
+  skipped_contacts: number;
+  frontier_lane: "pass" | "fallback";
+  new_selected_gap_high_water: boolean;
+  local_pass_frontier_size: number;
+  local_fallback_frontier_size: number;
+  whole_prefix: SelectiveDeferredValueAxisComparison;
+  divergent_suffix: SelectiveDeferredValueAxisComparison | null;
+  latest_comparable_contact_gap_index: number | null;
+  latest_comparable_contact: SelectiveDeferredValueAxisComparison | null;
+  divergent_suffix_axis_sse_by_axis: Record<string, {
+    selected_observations: number;
+    incumbent_observations: number;
+    selected_sse: number;
+    incumbent_sse: number;
+    sse_delta: number;
+  }>;
+  on_offered_terminal_path: boolean | null;
+};
+
 export type SelectiveDeferredValueAttempt = {
   watch_id: number;
   affordable_rank: number;
@@ -231,6 +269,7 @@ export type SelectiveDeferredValueAttempt = {
   remaining_fallback_nodes_returned: number;
   budget_remaining_before_yield: number | null;
   estimated_next_node_frames: number | null;
+  progress_checkpoints: SelectiveDeferredValueCheckpoint[];
 };
 
 export type SelectiveDeferredValueDecision<Node extends object> = {
@@ -1939,6 +1978,21 @@ export class SelectiveAxisRegretController<Node extends object> {
       deferred_value_attempts: this.stats.deferred_value_attempts.map((attempt) => ({
         ...attempt,
         atomic_node_frames: [...attempt.atomic_node_frames],
+        progress_checkpoints: attempt.progress_checkpoints.map((checkpoint) => ({
+          ...checkpoint,
+          whole_prefix: { ...checkpoint.whole_prefix },
+          divergent_suffix: checkpoint.divergent_suffix === null
+            ? null
+            : { ...checkpoint.divergent_suffix },
+          latest_comparable_contact: checkpoint.latest_comparable_contact === null
+            ? null
+            : { ...checkpoint.latest_comparable_contact },
+          divergent_suffix_axis_sse_by_axis: Object.fromEntries(
+            Object.entries(checkpoint.divergent_suffix_axis_sse_by_axis).map(
+              ([axis, comparison]) => [axis, { ...comparison }],
+            ),
+          ),
+        })),
       })),
       events: this.stats.events.map((event) => ({
         ...event,

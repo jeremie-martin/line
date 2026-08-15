@@ -223,6 +223,8 @@ import {
   type FrontierTraversalLane,
   type SelectiveBacktrackDecision,
   type SelectiveCatchupProbeResult,
+  type SelectiveDeferredValueAxisComparison,
+  type SelectiveDeferredValueCheckpoint,
   type SelectiveDeferredValueDecision,
 } from "./selective_backtracking.ts";
 import {
@@ -2142,6 +2144,91 @@ function compileHandoffInternal(
     }
     const contactOrdinalAt = (gapIndex: number): number =>
       contactOrdinalByGapIndex[Math.max(0, Math.min(gaps.length, gapIndex))] ?? 0;
+    type AuthoredAxisWindow = {
+      axisCount: number;
+      axisSse: number;
+      axisLoss: number;
+      comparableContacts: number;
+      byAxis: Record<string, { observations: number; sse: number }>;
+    };
+    const authoredAxisWindow = (
+      search: SearchNode,
+      fromGapIndex = 0,
+      throughGapIndex = search.gapIndex,
+    ): AuthoredAxisWindow => {
+      const errors: number[] = [];
+      const byAxis: Record<string, { observations: number; sse: number }> = {};
+      let comparableContacts = 0;
+      const start = Math.max(0, Math.min(search.gapIndex, fromGapIndex));
+      const end = Math.max(0, Math.min(search.gapIndex, throughGapIndex));
+      for (let i = start; i < end; i++) {
+        if (!gaps[i]?.endsWithContact) continue;
+        const fit = search.prefixFits[i];
+        if (fit === null || fit === undefined) continue;
+        const targets = gapAxisTargets[i] ?? {};
+        const achieved = settledIncomingAxes(fit);
+        let contactComparable = false;
+        for (const axis of AXES) {
+          if (REPORT_ONLY_AXIS_SET.has(axis)) continue;
+          const target = targets[axis];
+          const value = achieved[axis];
+          if (
+            target === undefined || value === undefined ||
+            !Number.isFinite(target) || !Number.isFinite(value)
+          ) continue;
+          const error = value - target;
+          errors.push(error);
+          const summary = byAxis[axis] ?? { observations: 0, sse: 0 };
+          summary.observations++;
+          summary.sse += error * error;
+          byAxis[axis] = summary;
+          contactComparable = true;
+        }
+        if (contactComparable) comparableContacts++;
+      }
+      const quality = axisQualityFromErrors(errors);
+      return {
+        axisCount: quality.axis_count,
+        axisSse: errors.reduce((total, error) => total + error * error, 0),
+        axisLoss: quality.axis_loss,
+        comparableContacts,
+        byAxis,
+      };
+    };
+    const authoredAxisComparison = (
+      selected: SearchNode,
+      incumbent: SearchNode,
+      fromGapIndex = 0,
+      throughGapIndex = selected.gapIndex,
+    ): {
+      comparison: SelectiveDeferredValueAxisComparison;
+      selected: AuthoredAxisWindow;
+      incumbent: AuthoredAxisWindow;
+    } => {
+      const selectedWindow = authoredAxisWindow(
+        selected,
+        fromGapIndex,
+        throughGapIndex,
+      );
+      const incumbentWindow = authoredAxisWindow(
+        incumbent,
+        fromGapIndex,
+        throughGapIndex,
+      );
+      return {
+        comparison: {
+          selected_axis_count: selectedWindow.axisCount,
+          incumbent_axis_count: incumbentWindow.axisCount,
+          selected_axis_sse: selectedWindow.axisSse,
+          incumbent_axis_sse: incumbentWindow.axisSse,
+          selected_axis_loss: selectedWindow.axisLoss,
+          incumbent_axis_loss: incumbentWindow.axisLoss,
+          axis_loss_delta: selectedWindow.axisLoss - incumbentWindow.axisLoss,
+        },
+        selected: selectedWindow,
+        incumbent: incumbentWindow,
+      };
+    };
     const authoredPrefixAxisLoss = (
       search: SearchNode,
       throughGapIndex = search.gapIndex,
@@ -2152,7 +2239,7 @@ function compileHandoffInternal(
         if (!gaps[i]?.endsWithContact) continue;
         const fit = search.prefixFits[i];
         if (fit === null || fit === undefined) continue;
-        errors.push(...axisErrorsForTargets(ctx.gapAxisTargets[i], settledIncomingAxes(fit)));
+        errors.push(...axisErrorsForTargets(ctx.gapAxisTargets![i], settledIncomingAxes(fit)));
       }
       return axisQualityFromErrors(errors).axis_loss;
     };
@@ -3469,6 +3556,10 @@ function compileHandoffInternal(
       ) return;
       const decision = pendingDeferredValueDecision;
       pendingDeferredValueDecision = null;
+      const comparisonIncumbent = bestCompleteNode;
+      if (comparisonIncumbent === null) {
+        throw new Error("deferred value action has no first-terminal incumbent");
+      }
       if (decision.terminal.affordable_rank !== 1) {
         throw new Error("deferred value decision lost its rank-one assessment");
       }
@@ -3494,10 +3585,29 @@ function compileHandoffInternal(
       const candidateGeometryEvaluationsBefore = getCandidateSamples();
       const tailCompletionAttemptsBefore = telemetry.tailCompletionAttempts;
       const terminalConsidersBefore = terminalConsiders;
+      const lastTerminalNodeBefore = lastTerminalNode;
       const registerImprovementsBefore = register.improvementCount;
       const incumbentRevisionBefore = incumbentRevision;
       let nodesProcessed = 0;
       const atomicNodeFrames: number[] = [];
+      const firstDivergentGapIndex = (() => {
+        const end = Math.min(
+          decision.alternative.search.gapIndex,
+          comparisonIncumbent.search.gapIndex,
+        );
+        for (let gapIndex = 0; gapIndex < end; gapIndex++) {
+          if (
+            decision.alternative.search.prefixFits[gapIndex] !==
+              comparisonIncumbent.search.prefixFits[gapIndex]
+          ) return gapIndex;
+        }
+        return null;
+      })();
+      const progressCheckpointNodes: Array<{
+        node: HandoffNode;
+        checkpoint: SelectiveDeferredValueCheckpoint;
+      }> = [];
+      let selectedGapHighWater = -1;
       let nextAtomicStartFrames = startFrames;
       let budgetRemainingBeforeYield: number | null = null;
       let estimatedNextNodeFrames: number | null = null;
@@ -3553,6 +3663,99 @@ function compileHandoffInternal(
                 observedCostEstimate,
               );
               if (nextEstimate <= remaining) {
+                const selectionFrames = getSimFrames();
+                const throughGapIndex = node.search.gapIndex;
+                const wholePrefix = authoredAxisComparison(
+                  node.search,
+                  comparisonIncumbent.search,
+                  0,
+                  throughGapIndex,
+                );
+                const divergentSuffix = firstDivergentGapIndex === null
+                  ? null
+                  : authoredAxisComparison(
+                    node.search,
+                    comparisonIncumbent.search,
+                    firstDivergentGapIndex,
+                    throughGapIndex,
+                  );
+                let latestComparableContactGapIndex: number | null = null;
+                let latestComparableContact:
+                  SelectiveDeferredValueAxisComparison | null = null;
+                const comparisonStart = firstDivergentGapIndex ?? 0;
+                let comparableContactsSinceDivergence = 0;
+                for (
+                  let gapIndex = comparisonStart;
+                  gapIndex < throughGapIndex;
+                  gapIndex++
+                ) {
+                  if (!gaps[gapIndex]?.endsWithContact) continue;
+                  const comparison = authoredAxisComparison(
+                    node.search,
+                    comparisonIncumbent.search,
+                    gapIndex,
+                    gapIndex + 1,
+                  ).comparison;
+                  if (
+                    comparison.selected_axis_count === 0 ||
+                    comparison.incumbent_axis_count === 0
+                  ) continue;
+                  comparableContactsSinceDivergence++;
+                  latestComparableContactGapIndex = gapIndex;
+                  latestComparableContact = comparison;
+                }
+                const perAxis = divergentSuffix === null
+                  ? {}
+                  : Object.fromEntries([...new Set([
+                    ...Object.keys(divergentSuffix.selected.byAxis),
+                    ...Object.keys(divergentSuffix.incumbent.byAxis),
+                  ])].sort().map((axis) => {
+                    const selected = divergentSuffix.selected.byAxis[axis] ?? {
+                      observations: 0,
+                      sse: 0,
+                    };
+                    const incumbent = divergentSuffix.incumbent.byAxis[axis] ?? {
+                      observations: 0,
+                      sse: 0,
+                    };
+                    return [axis, {
+                      selected_observations: selected.observations,
+                      incumbent_observations: incumbent.observations,
+                      selected_sse: selected.sse,
+                      incumbent_sse: incumbent.sse,
+                      sse_delta: selected.sse - incumbent.sse,
+                    }];
+                  }));
+                const newHighWater = throughGapIndex > selectedGapHighWater;
+                selectedGapHighWater = Math.max(selectedGapHighWater, throughGapIndex);
+                progressCheckpointNodes.push({
+                  node,
+                  checkpoint: {
+                    selection_ordinal: progressCheckpointNodes.length + 1,
+                    selection_total_spent_frames: selectionFrames,
+                    spent_frames_since_attempt_start: selectionFrames - startFrames,
+                    estimated_work_fraction_spent:
+                      (selectionFrames - startFrames) /
+                      Math.max(1, decision.terminal.estimated_suffix_work_frames),
+                    gap_index: throughGapIndex,
+                    contact_ordinal: contactOrdinalAt(throughGapIndex),
+                    first_divergent_gap_index: firstDivergentGapIndex,
+                    comparable_contacts_since_divergence:
+                      comparableContactsSinceDivergence,
+                    skipped_contacts: node.skippedContacts,
+                    frontier_lane: node.skippedContacts === 0 ? "pass" : "fallback",
+                    new_selected_gap_high_water: newHighWater,
+                    local_pass_frontier_size: localPass.length,
+                    local_fallback_frontier_size: localFallback.length,
+                    whole_prefix: wholePrefix.comparison,
+                    divergent_suffix: divergentSuffix?.comparison ?? null,
+                    latest_comparable_contact_gap_index:
+                      latestComparableContactGapIndex,
+                    latest_comparable_contact: latestComparableContact,
+                    divergent_suffix_axis_sse_by_axis: perAxis,
+                    on_offered_terminal_path: null,
+                  },
+                });
                 nextAtomicStartFrames = getSimFrames();
                 return true;
               }
@@ -3567,6 +3770,20 @@ function compileHandoffInternal(
       }
 
       const terminalReached = terminalConsiders > terminalConsidersBefore;
+      const offeredTerminal = terminalReached ? lastTerminalNode : null;
+      if (terminalReached && (offeredTerminal === null || offeredTerminal === lastTerminalNodeBefore)) {
+        throw new Error("deferred value terminal counter advanced without a new terminal node");
+      }
+      const progressCheckpoints = progressCheckpointNodes.map(({ node, checkpoint }) => ({
+        ...checkpoint,
+        on_offered_terminal_path: offeredTerminal === null
+          ? null
+          : node.startRank === offeredTerminal.startRank &&
+            node.search.gapIndex <= offeredTerminal.search.gapIndex &&
+            node.search.prefixFits.every((fit, gapIndex) =>
+              fit === offeredTerminal.search.prefixFits[gapIndex]
+            ),
+      }));
       const outcome = terminalReached
         ? "terminal_reached" as const
         : budgetRemainingBeforeYield !== null
@@ -3622,6 +3839,7 @@ function compileHandoffInternal(
         remaining_fallback_nodes_returned: returnedFallback,
         budget_remaining_before_yield: budgetRemainingBeforeYield,
         estimated_next_node_frames: estimatedNextNodeFrames,
+        progress_checkpoints: progressCheckpoints,
       });
     };
 

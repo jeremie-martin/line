@@ -451,6 +451,7 @@ describe("selective-backtracking controller", () => {
       remaining_fallback_nodes_returned: 2,
       budget_remaining_before_yield: null,
       estimated_next_node_frames: null,
+      progress_checkpoints: [],
     };
     controller.recordDeferredValueAttempt(attempt);
     expect(controller.snapshot().deferred_value_attempts).toEqual([attempt]);

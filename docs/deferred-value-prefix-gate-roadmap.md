@@ -119,3 +119,4 @@ exact rule without threshold adjustment.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Question, observation semantics, frozen rule family, and gates | complete | This document |
+| 2026-08-15 | Checkpoint implementation and mechanism smoke | complete | Four 750k cells: checkpoints reconcile with processed nodes; three cells shared with the fixed live panel are exact in score, track, report, first terminal, prior attempt counters, and Budget Telemetry; the fourth is exact against the earlier mechanism archive except for the subsequently added atomic-frame ledger |

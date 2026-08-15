@@ -215,6 +215,8 @@ import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
+  SELECTIVE_DEFERRED_PREFIX_GATE_CONTACT_HORIZON,
+  SELECTIVE_DEFERRED_PREFIX_GATE_LOSS_DELTA,
   SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION,
   SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION,
   SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION,
@@ -2556,7 +2558,9 @@ function compileHandoffInternal(
             searchPolicyBudgetFrames: searchPolicyBudget,
             explorationAllowanceFrames: Math.floor(
               (frontierTraversalPolicy ===
-                  "selective_axis_regret_catchup_value_deferred_initial"
+                    "selective_axis_regret_catchup_value_deferred_initial" ||
+                  frontierTraversalPolicy ===
+                    "selective_axis_regret_catchup_value_deferred_prefix_gate"
                 ? SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION
                 : SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION) *
                 searchPolicyBudget,
@@ -2894,7 +2898,7 @@ function compileHandoffInternal(
           tail_completion_frames: afterTail - afterMain,
           post_tail_work_frames: end - afterTail,
           spent_frames: end - atomicStart,
-          // Budget Telemetry V10's atomic result is a disposition, not the
+          // Budget Telemetry V11's atomic result is a disposition, not the
           // policy cause. Selective suspension is therefore `deferred`; its
           // exact causal event lives in the opt-in frontier-policy telemetry.
           result: result.kind === "selective_backtrack" ? "deferred" : result.kind,
@@ -3549,8 +3553,10 @@ function compileHandoffInternal(
      * is returned to the original frontier before ordinary repair begins. */
     const runDeferredValueSuffix = (): void => {
       if (
-        frontierTraversalPolicy !==
-          "selective_axis_regret_catchup_value_deferred_initial" ||
+        (frontierTraversalPolicy !==
+            "selective_axis_regret_catchup_value_deferred_initial" &&
+          frontierTraversalPolicy !==
+            "selective_axis_regret_catchup_value_deferred_prefix_gate") ||
         pendingDeferredValueDecision === null ||
         captured !== null
       ) return;
@@ -3607,6 +3613,21 @@ function compileHandoffInternal(
         node: HandoffNode;
         checkpoint: SelectiveDeferredValueCheckpoint;
       }> = [];
+      const prefixGateEnabled = frontierTraversalPolicy ===
+        "selective_axis_regret_catchup_value_deferred_prefix_gate";
+      let prefixGateDecision: "not_reached" | "continue" | "stop" = "not_reached";
+      let prefixGateCheckpoint: {
+        selection_ordinal: number;
+        selection_total_spent_frames: number;
+        spent_frames_since_attempt_start: number;
+        estimated_work_fraction_spent: number;
+        remaining_local_allowance_frames: number;
+        gap_index: number;
+        contact_ordinal: number;
+        comparable_contacts_since_divergence: number;
+        divergent_suffix: SelectiveDeferredValueAxisComparison;
+      } | null = null;
+      let prefixGateStopped = false;
       let selectedGapHighWater = -1;
       let nextAtomicStartFrames = startFrames;
       let budgetRemainingBeforeYield: number | null = null;
@@ -3725,37 +3746,75 @@ function compileHandoffInternal(
                       incumbent_sse: incumbent.sse,
                       sse_delta: selected.sse - incumbent.sse,
                     }];
-                  }));
+                }));
                 const newHighWater = throughGapIndex > selectedGapHighWater;
                 selectedGapHighWater = Math.max(selectedGapHighWater, throughGapIndex);
-                progressCheckpointNodes.push({
-                  node,
-                  checkpoint: {
-                    selection_ordinal: progressCheckpointNodes.length + 1,
+                const progressCheckpoint: SelectiveDeferredValueCheckpoint = {
+                  selection_ordinal: progressCheckpointNodes.length + 1,
+                  selection_total_spent_frames: selectionFrames,
+                  spent_frames_since_attempt_start: selectionFrames - startFrames,
+                  estimated_work_fraction_spent:
+                    (selectionFrames - startFrames) /
+                    Math.max(1, decision.terminal.estimated_suffix_work_frames),
+                  gap_index: throughGapIndex,
+                  contact_ordinal: contactOrdinalAt(throughGapIndex),
+                  first_divergent_gap_index: firstDivergentGapIndex,
+                  comparable_contacts_since_divergence:
+                    comparableContactsSinceDivergence,
+                  skipped_contacts: node.skippedContacts,
+                  frontier_lane: node.skippedContacts === 0 ? "pass" : "fallback",
+                  new_selected_gap_high_water: newHighWater,
+                  local_pass_frontier_size: localPass.length,
+                  local_fallback_frontier_size: localFallback.length,
+                  whole_prefix: wholePrefix.comparison,
+                  divergent_suffix: divergentSuffix?.comparison ?? null,
+                  latest_comparable_contact_gap_index:
+                    latestComparableContactGapIndex,
+                  latest_comparable_contact: latestComparableContact,
+                  divergent_suffix_axis_sse_by_axis: perAxis,
+                  on_offered_terminal_path: null,
+                };
+                if (
+                  prefixGateEnabled &&
+                  prefixGateDecision === "not_reached" &&
+                  newHighWater &&
+                  node.skippedContacts === 0 &&
+                  comparableContactsSinceDivergence >=
+                    SELECTIVE_DEFERRED_PREFIX_GATE_CONTACT_HORIZON
+                ) {
+                  if (
+                    divergentSuffix === null ||
+                    divergentSuffix.comparison.selected_axis_count !==
+                      divergentSuffix.comparison.incumbent_axis_count
+                  ) {
+                    throw new Error(
+                      "deferred prefix gate reached a non-comparable pass checkpoint",
+                    );
+                  }
+                  prefixGateDecision =
+                    divergentSuffix.comparison.axis_loss_delta >
+                        SELECTIVE_DEFERRED_PREFIX_GATE_LOSS_DELTA
+                      ? "stop"
+                      : "continue";
+                  prefixGateCheckpoint = {
+                    selection_ordinal: progressCheckpoint.selection_ordinal,
                     selection_total_spent_frames: selectionFrames,
                     spent_frames_since_attempt_start: selectionFrames - startFrames,
                     estimated_work_fraction_spent:
-                      (selectionFrames - startFrames) /
-                      Math.max(1, decision.terminal.estimated_suffix_work_frames),
+                      progressCheckpoint.estimated_work_fraction_spent,
+                    remaining_local_allowance_frames: remaining,
                     gap_index: throughGapIndex,
                     contact_ordinal: contactOrdinalAt(throughGapIndex),
-                    first_divergent_gap_index: firstDivergentGapIndex,
                     comparable_contacts_since_divergence:
                       comparableContactsSinceDivergence,
-                    skipped_contacts: node.skippedContacts,
-                    frontier_lane: node.skippedContacts === 0 ? "pass" : "fallback",
-                    new_selected_gap_high_water: newHighWater,
-                    local_pass_frontier_size: localPass.length,
-                    local_fallback_frontier_size: localFallback.length,
-                    whole_prefix: wholePrefix.comparison,
-                    divergent_suffix: divergentSuffix?.comparison ?? null,
-                    latest_comparable_contact_gap_index:
-                      latestComparableContactGapIndex,
-                    latest_comparable_contact: latestComparableContact,
-                    divergent_suffix_axis_sse_by_axis: perAxis,
-                    on_offered_terminal_path: null,
-                  },
-                });
+                    divergent_suffix: { ...divergentSuffix.comparison },
+                  };
+                  if (prefixGateDecision === "stop") {
+                    prefixGateStopped = true;
+                    return false;
+                  }
+                }
+                progressCheckpointNodes.push({ node, checkpoint: progressCheckpoint });
                 nextAtomicStartFrames = getSimFrames();
                 return true;
               }
@@ -3786,7 +3845,9 @@ function compileHandoffInternal(
       }));
       const outcome = terminalReached
         ? "terminal_reached" as const
-        : budgetRemainingBeforeYield !== null
+        : prefixGateStopped
+          ? "prefix_gate_stop" as const
+          : budgetRemainingBeforeYield !== null
           ? "atomic_budget_yield" as const
           : getSimFrames() >= ceiling
             ? "execution_ceiling" as const
@@ -3800,6 +3861,8 @@ function compileHandoffInternal(
         getSimFrames(),
         terminalReached
           ? "first_terminal_return"
+          : prefixGateStopped
+            ? "prefix_gate_stop"
           : getSimFrames() >= ceiling || budgetRemainingBeforeYield !== null
             ? "local_ceiling"
             : "frontier_exhausted",
@@ -3840,6 +3903,14 @@ function compileHandoffInternal(
         budget_remaining_before_yield: budgetRemainingBeforeYield,
         estimated_next_node_frames: estimatedNextNodeFrames,
         progress_checkpoints: progressCheckpoints,
+        prefix_gate: prefixGateEnabled
+          ? {
+            contact_horizon: SELECTIVE_DEFERRED_PREFIX_GATE_CONTACT_HORIZON,
+            axis_loss_delta_threshold: SELECTIVE_DEFERRED_PREFIX_GATE_LOSS_DELTA,
+            decision: prefixGateDecision,
+            checkpoint: prefixGateCheckpoint,
+          }
+          : null,
       });
     };
 

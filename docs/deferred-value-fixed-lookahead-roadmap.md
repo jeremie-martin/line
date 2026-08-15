@@ -100,3 +100,4 @@ not launch canonical V2 inside this campaign.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Semantics, constants, telemetry, and fresh-screen gates frozen | complete | This document |
+| 2026-08-15 | Live mechanism, V11 attribution, and trace smoke | complete | Four 750k cells: three `continue`, one `stop`; the stop returns before atomic node six with five processed/checkpointed/trace nodes, explicit `prefix_gate_stop` episode and segment, and all cells valid |

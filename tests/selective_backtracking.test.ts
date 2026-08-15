@@ -28,6 +28,9 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup_value_deferred_map");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-deferred-initial"))
       .toBe("selective_axis_regret_catchup_value_deferred_initial");
+    expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-deferred-prefix-gate",
+    )).toBe("selective_axis_regret_catchup_value_deferred_prefix_gate");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-initial"))
       .toBe("selective_axis_regret_catchup_value_initial");
     expect(parseFrontierTraversalPolicy(
@@ -452,6 +455,7 @@ describe("selective-backtracking controller", () => {
       budget_remaining_before_yield: null,
       estimated_next_node_frames: null,
       progress_checkpoints: [],
+      prefix_gate: null,
     };
     controller.recordDeferredValueAttempt(attempt);
     expect(controller.snapshot().deferred_value_attempts).toEqual([attempt]);

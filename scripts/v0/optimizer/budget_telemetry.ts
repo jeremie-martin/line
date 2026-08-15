@@ -28,7 +28,12 @@ import {
 /**
  * Clean-break search-accounting schema.
  *
- * V10 keeps the global incumbent, temporary working track, and terminal offer
+ * V11 keeps the V10 causal repair and deferred-value model, and adds an
+ * explicit `prefix_gate_stop` reason for an optional suffix stopped by its
+ * one-time authored-prefix continuation gate. A policy decision must not be
+ * mislabeled as budget exhaustion or frontier exhaustion.
+ *
+ * V10 introduced the global incumbent, temporary working track, and terminal offer
  * as separate causal states. A rejected local improvement can therefore seed
  * one follow-up without being mislabeled as accepted or as the output
  * incumbent. It also records the exact follow-up disposition and the
@@ -38,7 +43,7 @@ import {
  * V4–V9 archives remain immutable evidence; current readers fail
  * closed.
  */
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v10" as const;
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v11" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
 export type BudgetEpisodeLane =
@@ -93,6 +98,7 @@ export type BudgetEpisodeStopReason =
   | "frontier_exhausted"
   | "first_completion_stop"
   | "first_terminal_return"
+  | "prefix_gate_stop"
   | "compile_finished";
 
 // `RemainingStructure` and its two producers moved to `budget_estimator.ts`:

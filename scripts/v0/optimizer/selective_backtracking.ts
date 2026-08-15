@@ -6,6 +6,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_value_map"
   | "selective_axis_regret_catchup_value_deferred_map"
   | "selective_axis_regret_catchup_value_deferred_initial"
+  | "selective_axis_regret_catchup_value_deferred_prefix_gate"
   | "selective_axis_regret_catchup_value_initial"
   | "selective_axis_regret_catchup_value_initial_progress_10"
   | "selective_axis_regret_catchup_value_initial_expire_10";
@@ -40,6 +41,8 @@ export const SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS = 0.10;
 export const SELECTIVE_DEFERRED_VALUE_ALLOWANCE_FRACTIONS = [0.15, 0.25, 0.40] as const;
 export const SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION = 0.40;
 export const SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION = 0.40;
+export const SELECTIVE_DEFERRED_PREFIX_GATE_CONTACT_HORIZON = 6;
+export const SELECTIVE_DEFERRED_PREFIX_GATE_LOSS_DELTA = 0.05;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
   0,
@@ -78,6 +81,9 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-deferred-initial") {
     return "selective_axis_regret_catchup_value_deferred_initial";
   }
+  if (raw === "selective-axis-regret-catchup-value-deferred-prefix-gate") {
+    return "selective_axis_regret_catchup_value_deferred_prefix_gate";
+  }
   if (raw === "selective-axis-regret-catchup-value-initial") {
     return "selective_axis_regret_catchup_value_initial";
   }
@@ -96,6 +102,7 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-value-map, or ` +
       `selective-axis-regret-catchup-value-deferred-map, or ` +
       `selective-axis-regret-catchup-value-deferred-initial, or ` +
+      `selective-axis-regret-catchup-value-deferred-prefix-gate, or ` +
       `selective-axis-regret-catchup-value-initial, or ` +
       `selective-axis-regret-catchup-value-initial-progress-10, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10; got ${raw}`,
@@ -253,6 +260,7 @@ export type SelectiveDeferredValueAttempt = {
   execution_ceiling_frames: number;
   outcome:
     | "terminal_reached"
+    | "prefix_gate_stop"
     | "atomic_budget_yield"
     | "frontier_exhausted"
     | "execution_ceiling";
@@ -270,6 +278,22 @@ export type SelectiveDeferredValueAttempt = {
   budget_remaining_before_yield: number | null;
   estimated_next_node_frames: number | null;
   progress_checkpoints: SelectiveDeferredValueCheckpoint[];
+  prefix_gate: {
+    contact_horizon: number;
+    axis_loss_delta_threshold: number;
+    decision: "not_reached" | "continue" | "stop";
+    checkpoint: null | {
+      selection_ordinal: number;
+      selection_total_spent_frames: number;
+      spent_frames_since_attempt_start: number;
+      estimated_work_fraction_spent: number;
+      remaining_local_allowance_frames: number;
+      gap_index: number;
+      contact_ordinal: number;
+      comparable_contacts_since_divergence: number;
+      divergent_suffix: SelectiveDeferredValueAxisComparison;
+    };
+  } | null;
 };
 
 export type SelectiveDeferredValueDecision<Node extends object> = {
@@ -794,7 +818,8 @@ export class SelectiveAxisRegretController<Node extends object> {
   }): SelectiveDeferredValueDecision<Node> | null {
     if (
       this.policy !== "selective_axis_regret_catchup_value_deferred_map" &&
-      this.policy !== "selective_axis_regret_catchup_value_deferred_initial"
+      this.policy !== "selective_axis_regret_catchup_value_deferred_initial" &&
+      this.policy !== "selective_axis_regret_catchup_value_deferred_prefix_gate"
     ) return null;
     if (this.deferredValueSealed) {
       throw new Error("deferred value portfolio was sealed more than once");
@@ -905,7 +930,10 @@ export class SelectiveAxisRegretController<Node extends object> {
   }
 
   recordDeferredValueAttempt(attempt: SelectiveDeferredValueAttempt): void {
-    if (this.policy !== "selective_axis_regret_catchup_value_deferred_initial") {
+    if (
+      this.policy !== "selective_axis_regret_catchup_value_deferred_initial" &&
+      this.policy !== "selective_axis_regret_catchup_value_deferred_prefix_gate"
+    ) {
       throw new Error("deferred value execution was recorded outside the live policy");
     }
     if (this.stats.deferred_value_attempts.length !== 0) {
@@ -1267,7 +1295,8 @@ export class SelectiveAxisRegretController<Node extends object> {
 
       if (
         (this.policy === "selective_axis_regret_catchup_value_deferred_map" ||
-          this.policy === "selective_axis_regret_catchup_value_deferred_initial") &&
+          this.policy === "selective_axis_regret_catchup_value_deferred_initial" ||
+          this.policy === "selective_axis_regret_catchup_value_deferred_prefix_gate") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
         contactAdvance >= SELECTIVE_VALUE_MIN_CONTACT_ADVANCE &&
@@ -1993,6 +2022,19 @@ export class SelectiveAxisRegretController<Node extends object> {
             ),
           ),
         })),
+        prefix_gate: attempt.prefix_gate === null
+          ? null
+          : {
+            ...attempt.prefix_gate,
+            checkpoint: attempt.prefix_gate.checkpoint === null
+              ? null
+              : {
+                ...attempt.prefix_gate.checkpoint,
+                divergent_suffix: {
+                  ...attempt.prefix_gate.checkpoint.divergent_suffix,
+                },
+              },
+          },
       })),
       events: this.stats.events.map((event) => ({
         ...event,

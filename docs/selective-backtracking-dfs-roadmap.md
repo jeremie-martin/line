@@ -3261,4 +3261,43 @@ the standing full 750k probability ladder. Do not run the multi-budget sweep.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-16 | Recovery-pressure schema and behavior-neutral lineage ledger | in progress | Fixed levels; equal-horizon/equal-population SSE accounting; missing observations explicitly incomparable; accepted descendants retained as counterevidence |
-| 2026-08-16 | Fresh 32-cell opportunity map | pending | Seeds 222-225, eight sources, 750k only |
+| 2026-08-16 | Fresh 32-cell opportunity map | complete: scalar trigger closed | 32/32 exact; only four actionable 0.25 crossings; one accepted descendant (25%); higher levels terminal-only |
+
+The fresh map closes recovery pressure as a stand-alone interruption signal.
+All 32 candidate cells are byte-identical to the unset reference after removing
+the new telemetry field. Of 900 eligible repair checkpoints, 806 have matched
+authored-axis populations. The 0.25 level starts only four actionable lineages
+across four runs and four sources; all reach terminal, consume 322,006 charged
+frames, and one becomes the accepted repair after reducing final SSE below the
+incumbent by 0.0771. That direct 25% false-abort rate violates the frozen rule.
+The 0.50, 0.75, and 1.00 levels each occur seven times only at an already
+selected terminal, so none is actionable and no level meets the count gate.
+Do not implement an abort or priority handoff from this scalar.
+
+The failed first instrumentation run also exposed a separate, stronger state:
+94 checkpoints in one `frontier_dense_recovery` repair have 369 authored-axis
+observations missing relative to the completed incumbent at the same horizon.
+They all occur in a 105,840-frame attempt that never reaches terminal; the next
+independently recomputed attempt is accepted. Counts alone do not establish
+whether these are one dead lineage, repeated alternatives, or whether any such
+lineage can later produce an accepted full evaluator result.
+
+## Phase U: committed-observation completeness
+
+Instrument missing-population checkpoints as whole prefix lineages. At the first
+selected repair checkpoint whose current authored-axis population is below the
+completed incumbent at the same horizon, record the missing count, root gap,
+frontier breadth, charged work until DFS leaves the lineage, terminal descent,
+terminal SSE, and acceptance. Keep ordinary traversal byte-identical. A prefix
+fit is inherited by descendants, which suggests missing committed observations
+may be categorical rather than merely predictive, but do not call it a proof
+until the audit shows that the full evaluator and segmented prefix accounting
+agree at terminal.
+
+If an accepted terminal descends from such a root, the categorical hypothesis
+is false and the state remains telemetry only. If no accepted descendant is
+observed and material nonterminal lineage work recurs, first test a clean
+attempt abort: end the self-contained repair episode and let the existing
+controller recompute target, anchor, cost profile, and seed from the unchanged
+completed incumbent. Do not mix this with recovery pressure, candidate breadth,
+or a multi-budget sweep.

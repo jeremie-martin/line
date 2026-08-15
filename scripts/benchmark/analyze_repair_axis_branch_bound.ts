@@ -110,6 +110,25 @@ const recoveryByThreshold = new Map<number, RecoverySummary>(
     },
   ]),
 );
+let incompletePrefixOpportunities = 0;
+let actionableIncompletePrefixOpportunities = 0;
+let incompletePrefixTerminalObservations = 0;
+let incompletePrefixFrontierReturns = 0;
+let incompletePrefixTerminalDescendants = 0;
+let incompletePrefixAcceptedTerminalDescendants = 0;
+let incompletePrefixFrames = 0;
+let actionableIncompletePrefixFrames = 0;
+let maximumIncompletePrefixFrames = 0;
+const incompletePrefixActiveRuns = new Set<string>();
+const incompletePrefixActiveSources = new Set<string>();
+const incompletePrefixPerSource = new Map<string, {
+  opportunities: number;
+  actionable: number;
+  terminalDescendants: number;
+  acceptedTerminalDescendants: number;
+  frames: number;
+  actionableFrames: number;
+}>();
 
 for (const [key, row] of candidateRows) {
   const label = printableKey(key);
@@ -283,6 +302,72 @@ for (const [key, row] of candidateRows) {
         summary.activeActionableSources.add(row.task.sourceId);
       }
     });
+    attempt.incomplete_prefix_opportunities.forEach(
+      (opportunity: any, opportunityOrdinal: number) => {
+        const expectedTerminalDelta = opportunity.terminal_axis_sse === null
+          ? null
+          : opportunity.terminal_axis_sse - attempt.incumbent_axis_sse;
+        if (
+          opportunity.opportunity_index !== opportunityOrdinal ||
+          opportunity.current_prefix_axis_count >= opportunity.incumbent_prefix_axis_count ||
+          opportunity.missing_current_axis_observations !==
+            opportunity.incumbent_prefix_axis_count - opportunity.current_prefix_axis_count ||
+          opportunity.end_total_spent_frames < opportunity.root_total_spent_frames ||
+          opportunity.spent_frames_in_subtree !==
+            opportunity.end_total_spent_frames - opportunity.root_total_spent_frames ||
+          opportunity.terminal_descended !==
+            (opportunity.outcome === "terminal_descendant") ||
+          opportunity.terminal_descended !== (opportunity.terminal_axis_sse !== null) ||
+          !sameNullableNumber(
+            opportunity.terminal_axis_sse_delta_from_incumbent,
+            expectedTerminalDelta,
+          ) ||
+          opportunity.accepted_terminal_descended &&
+            (!opportunity.terminal_descended || !attempt.accepted_alternative)
+        ) throw new Error(
+          `${label}: malformed incomplete-prefix opportunity ${opportunityOrdinal}`,
+        );
+        incompletePrefixOpportunities++;
+        actionableIncompletePrefixOpportunities += Number(!opportunity.root_terminal);
+        incompletePrefixTerminalObservations += Number(opportunity.root_terminal);
+        incompletePrefixFrontierReturns += Number(opportunity.outcome === "frontier_return");
+        incompletePrefixTerminalDescendants += Number(opportunity.terminal_descended);
+        incompletePrefixAcceptedTerminalDescendants += Number(
+          opportunity.accepted_terminal_descended,
+        );
+        incompletePrefixFrames += opportunity.spent_frames_in_subtree;
+        actionableIncompletePrefixFrames += !opportunity.root_terminal
+          ? opportunity.spent_frames_in_subtree
+          : 0;
+        maximumIncompletePrefixFrames = Math.max(
+          maximumIncompletePrefixFrames,
+          opportunity.spent_frames_in_subtree,
+        );
+        if (!opportunity.root_terminal) {
+          incompletePrefixActiveRuns.add(key);
+          incompletePrefixActiveSources.add(row.task.sourceId);
+        }
+        const source = incompletePrefixPerSource.get(row.task.sourceId) ?? {
+          opportunities: 0,
+          actionable: 0,
+          terminalDescendants: 0,
+          acceptedTerminalDescendants: 0,
+          frames: 0,
+          actionableFrames: 0,
+        };
+        source.opportunities++;
+        source.actionable += Number(!opportunity.root_terminal);
+        source.terminalDescendants += Number(opportunity.terminal_descended);
+        source.acceptedTerminalDescendants += Number(
+          opportunity.accepted_terminal_descended,
+        );
+        source.frames += opportunity.spent_frames_in_subtree;
+        source.actionableFrames += !opportunity.root_terminal
+          ? opportunity.spent_frames_in_subtree
+          : 0;
+        incompletePrefixPerSource.set(row.task.sourceId, source);
+      },
+    );
   });
   if (rowOpportunities > 0) {
     activeRuns.add(key);
@@ -313,7 +398,7 @@ if (acceptedTerminalDescendants !== 0) {
 }
 
 const result = {
-  schema: "line.repair-axis-branch-bound-analysis.v3",
+  schema: "line.repair-axis-branch-bound-analysis.v4",
   generated_at: new Date().toISOString(),
   scope: {
     mode,
@@ -389,11 +474,31 @@ const result = {
     active_actionable_runs: summary.activeActionableRuns.size,
     active_actionable_sources: summary.activeActionableSources.size,
   })),
+  incomplete_prefix: {
+    opportunities: incompletePrefixOpportunities,
+    actionable_nonterminal_opportunities: actionableIncompletePrefixOpportunities,
+    terminal_observations: incompletePrefixTerminalObservations,
+    frontier_return_opportunities: incompletePrefixFrontierReturns,
+    terminal_descendant_opportunities: incompletePrefixTerminalDescendants,
+    accepted_terminal_descendant_opportunities:
+      incompletePrefixAcceptedTerminalDescendants,
+    categorical_hypothesis_falsified:
+      incompletePrefixAcceptedTerminalDescendants > 0,
+    charged_frames: incompletePrefixFrames,
+    actionable_charged_frames: actionableIncompletePrefixFrames,
+    maximum_charged_frames_in_one_opportunity: maximumIncompletePrefixFrames,
+    active_actionable_runs: incompletePrefixActiveRuns.size,
+    active_actionable_sources: incompletePrefixActiveSources.size,
+    per_source: [...incompletePrefixPerSource]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([source_id, value]) => ({ source_id, ...value })),
+  },
   interpretation_limits: [
     "The upper bound is exact for the compiler register's authored-axis objective; it does not rewrite or cap the authored specification.",
     "Audit subtree frames are the charged work until ordinary traversal exits that lineage. They are a counterfactual work opportunity, not a prediction of which alternative a live prune will reach.",
     "Recovery pressure is prefix excess SSE divided by the incumbent's remaining suffix SSE. A value of 0.5 means the route must eliminate half of that remaining incumbent error merely to catch up.",
     "A prefix missing authored-axis observations present in the completed incumbent is not assigned an optimistic pressure. It is counted as incomparable rather than silently treating missing error as zero.",
+    "Incomplete-prefix lineage is a categorical hypothesis under audit. An accepted descendant would falsify it because final evaluation, not segmented prefix telemetry, is authoritative.",
     "Unlike strict dominance, recovery-pressure crossings may recover and be accepted. Accepted descendants are direct false-abort evidence for that threshold, not invariant violations.",
     "Compact paired cells characterize mechanics and screen a live rule. Only the canonical 750k probability ladder can authorize promotion.",
   ],

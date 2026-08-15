@@ -17,7 +17,7 @@ import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 import { LEAF_KEY_FLOAT_EPSILON } from "./register.ts";
 
 export const REPAIR_AXIS_BRANCH_BOUND_SCHEMA =
-  "line.repair-axis-branch-bound.v3" as const;
+  "line.repair-axis-branch-bound.v4" as const;
 
 export const REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS = [
   0.25,
@@ -75,6 +75,26 @@ export type RepairSuffixRecoveryOpportunity = {
   terminal_axis_sse_delta_from_incumbent: number | null;
 };
 
+export type RepairIncompletePrefixOpportunity = {
+  opportunity_index: number;
+  root_gap_index: number;
+  root_contact_ordinal: number;
+  root_terminal: boolean;
+  root_total_spent_frames: number;
+  frontier_nodes_at_entry: number;
+  current_prefix_axis_count: number;
+  incumbent_prefix_axis_count: number;
+  missing_current_axis_observations: number;
+  selected_nodes_in_subtree: number;
+  end_total_spent_frames: number;
+  spent_frames_in_subtree: number;
+  outcome: "frontier_return" | "terminal_descendant" | "episode_end";
+  terminal_descended: boolean;
+  accepted_terminal_descended: boolean;
+  terminal_axis_sse: number | null;
+  terminal_axis_sse_delta_from_incumbent: number | null;
+};
+
 export type RepairAxisBranchBoundAttempt = {
   iteration_index: number;
   anchor_gap_index: number;
@@ -96,6 +116,7 @@ export type RepairAxisBranchBoundAttempt = {
   terminal_gap_index: number | null;
   opportunities: RepairAxisBranchBoundOpportunity[];
   recovery_pressure_opportunities: RepairSuffixRecoveryOpportunity[];
+  incomplete_prefix_opportunities: RepairIncompletePrefixOpportunity[];
 };
 
 export type RepairAxisBranchBoundStats = {
@@ -118,6 +139,10 @@ type InternalAttempt<Node> = {
     root: Node;
     record: RepairSuffixRecoveryOpportunity;
   }>;
+  openIncompleteOpportunity: {
+    root: Node;
+    record: RepairIncompletePrefixOpportunity;
+  } | null;
 };
 
 export type RepairAxisBranchBoundAssessment = {
@@ -250,12 +275,14 @@ export class RepairAxisBranchBoundController<Node> {
       terminal_gap_index: null,
       opportunities: [],
       recovery_pressure_opportunities: [],
+      incomplete_prefix_opportunities: [],
     };
     this.attempts.push(record);
     this.active = {
       record,
       openOpportunity: null,
       openRecoveryOpportunities: new Map(),
+      openIncompleteOpportunity: null,
     };
   }
 
@@ -300,6 +327,20 @@ export class RepairAxisBranchBoundController<Node> {
         open.record.selected_nodes_in_subtree++;
       }
     }
+    if (
+      active.openIncompleteOpportunity !== null &&
+      !this.isPrefix(active.openIncompleteOpportunity.root, input.node)
+    ) {
+      this.closeIncompleteOpportunity(
+        input.totalSpentFrames,
+        "frontier_return",
+        null,
+        false,
+      );
+    }
+    if (active.openIncompleteOpportunity !== null) {
+      active.openIncompleteOpportunity.record.selected_nodes_in_subtree++;
+    }
     if (!input.eligibleCheckpoint) return null;
     record.eligible_checkpoint_nodes++;
     if (input.prefixAxisCount > input.incumbentPrefixAxisCount) {
@@ -322,6 +363,30 @@ export class RepairAxisBranchBoundController<Node> {
       record.recovery_pressure_incomparable_checkpoint_nodes++;
       record.recovery_pressure_missing_current_axis_observations +=
         input.incumbentPrefixAxisCount - input.prefixAxisCount;
+      if (active.openIncompleteOpportunity === null) {
+        const opportunity: RepairIncompletePrefixOpportunity = {
+          opportunity_index: record.incomplete_prefix_opportunities.length,
+          root_gap_index: input.gapIndex,
+          root_contact_ordinal: input.contactOrdinal,
+          root_terminal: !input.prunable,
+          root_total_spent_frames: input.totalSpentFrames,
+          frontier_nodes_at_entry: input.frontierNodes,
+          current_prefix_axis_count: input.prefixAxisCount,
+          incumbent_prefix_axis_count: input.incumbentPrefixAxisCount,
+          missing_current_axis_observations:
+            input.incumbentPrefixAxisCount - input.prefixAxisCount,
+          selected_nodes_in_subtree: 1,
+          end_total_spent_frames: input.totalSpentFrames,
+          spent_frames_in_subtree: 0,
+          outcome: "episode_end",
+          terminal_descended: false,
+          accepted_terminal_descended: false,
+          terminal_axis_sse: null,
+          terminal_axis_sse_delta_from_incumbent: null,
+        };
+        record.incomplete_prefix_opportunities.push(opportunity);
+        active.openIncompleteOpportunity = { root: input.node, record: opportunity };
+      }
     } else {
       record.recovery_pressure_comparable_checkpoint_nodes++;
       const incumbentRemainingAxisSse = Math.max(
@@ -457,6 +522,17 @@ export class RepairAxisBranchBoundController<Node> {
         input.terminalAxisSse,
       );
     }
+    if (active.openIncompleteOpportunity !== null) {
+      const descended = input.terminalNode !== null &&
+        this.isPrefix(active.openIncompleteOpportunity.root, input.terminalNode);
+      this.closeIncompleteOpportunity(
+        input.totalSpentFrames,
+        descended ? "terminal_descendant" : "episode_end",
+        input.terminalNode,
+        input.acceptedAlternative,
+        input.terminalAxisSse,
+      );
+    }
     this.active = null;
   }
 
@@ -491,6 +567,20 @@ export class RepairAxisBranchBoundController<Node> {
             `active repair recovery-pressure opportunity ${threshold} is missing`,
           );
         }
+        snapshotOpen.end_total_spent_frames = activeTotalSpentFrames;
+        snapshotOpen.spent_frames_in_subtree = Math.max(
+          0,
+          activeTotalSpentFrames - snapshotOpen.root_total_spent_frames,
+        );
+        snapshotOpen.outcome = "episode_end";
+      }
+      if (this.active.openIncompleteOpportunity !== null) {
+        const snapshotOpen = activeRecord.incomplete_prefix_opportunities.at(-1);
+        if (
+          snapshotOpen === undefined ||
+          snapshotOpen.opportunity_index !==
+            this.active.openIncompleteOpportunity.record.opportunity_index
+        ) throw new Error("active repair incomplete-prefix opportunity is missing");
         snapshotOpen.end_total_spent_frames = activeTotalSpentFrames;
         snapshotOpen.spent_frames_in_subtree = Math.max(
           0,
@@ -564,5 +654,34 @@ export class RepairAxisBranchBoundController<Node> {
       ? terminalAxisSse - active.record.incumbent_axis_sse
       : null;
     active.openRecoveryOpportunities.delete(threshold);
+  }
+
+  private closeIncompleteOpportunity(
+    totalSpentFrames: number,
+    outcome: RepairIncompletePrefixOpportunity["outcome"],
+    terminalNode: Node | null,
+    acceptedAlternative: boolean,
+    terminalAxisSse: number | null = null,
+  ): void {
+    const active = this.active;
+    const open = active?.openIncompleteOpportunity ?? null;
+    if (active === null || open === null) {
+      throw new Error("repair incomplete-prefix opportunity is not active");
+    }
+    const terminalDescended = terminalNode !== null && this.isPrefix(open.root, terminalNode);
+    open.record.end_total_spent_frames = totalSpentFrames;
+    open.record.spent_frames_in_subtree = Math.max(
+      0,
+      totalSpentFrames - open.record.root_total_spent_frames,
+    );
+    open.record.outcome = outcome;
+    open.record.terminal_descended = terminalDescended;
+    open.record.accepted_terminal_descended = terminalDescended && acceptedAlternative;
+    open.record.terminal_axis_sse = terminalDescended ? terminalAxisSse : null;
+    open.record.terminal_axis_sse_delta_from_incumbent = terminalDescended &&
+        terminalAxisSse !== null
+      ? terminalAxisSse - active.record.incumbent_axis_sse
+      : null;
+    active.openIncompleteOpportunity = null;
   }
 }

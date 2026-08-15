@@ -315,6 +315,14 @@ describe("repair authored-axis branch bound", () => {
       recovery_pressure_incomparable_checkpoint_nodes: 1,
       recovery_pressure_missing_current_axis_observations: 1,
       recovery_pressure_opportunities: [],
+      incomplete_prefix_opportunities: [{
+        root_gap_index: 3,
+        missing_current_axis_observations: 1,
+        selected_nodes_in_subtree: 1,
+        spent_frames_in_subtree: 10,
+        outcome: "episode_end",
+        terminal_descended: false,
+      }],
     });
   });
 

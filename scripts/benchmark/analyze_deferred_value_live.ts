@@ -71,6 +71,7 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
     pairs.map((pair) => pair.row),
     pairs.map((pair) => pair.refRow),
   );
+  const diagnostics = summarizeDiagnostics(pairs);
   const positiveSeedBlocks = score.seed_blocks.filter((block) => block.mean_delta > 0).length;
   return [String(budget), {
     cells: pairs.length,
@@ -127,6 +128,7 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
       )),
     },
     repair,
+    diagnostics,
     gate: {
       all_candidate_cells_valid: pairs.every((pair) => pair.candidate.valid),
       positive_total_mean: score.mean_delta_per_cell > 0,
@@ -356,6 +358,148 @@ function summarizeRepair(candidateRows: any[], referenceRows: any[]): any {
   };
 }
 
+function summarizeDiagnostics(pairs: Array<{
+  candidate: GridCell;
+  ref: GridCell;
+  row: any;
+  refRow: any;
+  mechanism: { attempt: any | null; episode: any | null };
+}>): any {
+  const active = pairs.flatMap((pair) => {
+    const attempt = pair.mechanism.attempt;
+    const episode = pair.mechanism.episode;
+    if (attempt === null || episode === null) return [];
+    const stats = pair.row.stats.handoff_selective_backtracking;
+    const opportunity = (stats.deferred_value_opportunities ?? []).find((value: any) =>
+      value.watch_id === attempt.watch_id && value.terminal?.affordable_rank === 1
+    );
+    if (opportunity === undefined) {
+      throw new Error("selected deferred-value opportunity disappeared during diagnostics");
+    }
+    const candidateRepairs = repairEpisodes(pair.row);
+    const referenceRepairs = repairEpisodes(pair.refRow);
+    const candidateRepairFrames = sum(candidateRepairs.map((value) =>
+      value.outcome.spent_frames ?? 0
+    ));
+    const referenceRepairFrames = sum(referenceRepairs.map((value) =>
+      value.outcome.spent_frames ?? 0
+    ));
+    const componentNames = new Set([
+      ...Object.keys(pair.row.score?.components ?? {}),
+      ...Object.keys(pair.refRow.score?.components ?? {}),
+    ]);
+    return [{
+      source_id: pair.candidate.sourceId,
+      seed: pair.candidate.seed,
+      score_delta: pair.candidate.score - pair.ref.score,
+      terminal_register_improved: attempt.terminal_register_improvements > 0,
+      final_output_lane: pair.row.budgetTelemetry?.compile?.final_output_lane ?? null,
+      spent_frames: attempt.end_total_spent_frames - attempt.start_total_spent_frames,
+      estimated_suffix_work_frames: attempt.estimated_suffix_work_frames,
+      terminal_value_density:
+        opportunity.terminal.terminal_value_density_per_10k_estimated_frames,
+      crossing_value_density: opportunity.crossing.value_density_per_10k_estimated_frames,
+      crossing_axis_loss_delta: opportunity.crossing.axis_loss_delta,
+      start_gap_index: attempt.start_gap_index,
+      internal_full_score_delta: episode.outcome.internal_full_score_delta,
+      repair_frame_delta: candidateRepairFrames - referenceRepairFrames,
+      repair_attempt_delta: candidateRepairs.length - referenceRepairs.length,
+      repair_accept_delta:
+        candidateRepairs.filter((value) => value.outcome.accepted_alternative).length -
+        referenceRepairs.filter((value) => value.outcome.accepted_alternative).length,
+      component_quality_delta: Object.fromEntries([...componentNames].sort().map((name) => [
+        name,
+        (pair.row.score?.components?.[name]?.quality ?? 0) -
+          (pair.refRow.score?.components?.[name]?.quality ?? 0),
+      ])),
+    }];
+  });
+  const accepted = active.filter((row) => row.terminal_register_improved);
+  const rejected = active.filter((row) => !row.terminal_register_improved);
+  const sourceIds = [...new Set(active.map((row) => row.source_id))].sort();
+  const finalLanes = [...new Set(active.map((row) => String(row.final_output_lane)))].sort();
+  const componentNames = [...new Set(active.flatMap((row) =>
+    Object.keys(row.component_quality_delta)
+  ))].sort();
+  return {
+    interpretation:
+      "Descriptive associations over deterministic paired cells; seed-adjacent source rows are not independent samples.",
+    by_terminal_register_outcome: {
+      improved: summarizeDiagnosticCohort(accepted),
+      not_improved: summarizeDiagnosticCohort(rejected),
+    },
+    by_final_output_lane: Object.fromEntries(finalLanes.map((lane) => [
+      lane,
+      summarizeDiagnosticCohort(active.filter((row) => String(row.final_output_lane) === lane)),
+    ])),
+    by_source: Object.fromEntries(sourceIds.map((sourceId) => [
+      sourceId,
+      summarizeDiagnosticCohort(active.filter((row) => row.source_id === sourceId)),
+    ])),
+    component_quality_mean_delta: Object.fromEntries(componentNames.map((name) => [
+      name,
+      mean(active.map((row) => row.component_quality_delta[name] ?? 0)),
+    ])),
+    correlations: {
+      score_vs_spent_frames: pearson(
+        active.map((row) => row.score_delta),
+        active.map((row) => row.spent_frames),
+      ),
+      score_vs_terminal_value_density: pearson(
+        active.map((row) => row.score_delta),
+        active.map((row) => row.terminal_value_density),
+      ),
+      score_vs_repair_frame_delta: pearson(
+        active.map((row) => row.score_delta),
+        active.map((row) => row.repair_frame_delta),
+      ),
+      score_vs_repair_accept_delta: pearson(
+        active.map((row) => row.score_delta),
+        active.map((row) => row.repair_accept_delta),
+      ),
+    },
+    post_hoc_internal_outcome_cohort_splice: {
+      description:
+        "Non-causal diagnostic: retain observed paired deltas only where the deferred terminal improved the internal register, and substitute zero for non-improving actions. It uses a terminal outcome unavailable to an early-stop policy, ignores changed downstream search, and is neither an upper bound nor a performance claim.",
+      retained_actions: accepted.length,
+      rejected_actions_replaced_with_reference: rejected.length,
+      sum_delta: sum(accepted.map((row) => row.score_delta)),
+      mean_delta_over_all_cells:
+        sum(accepted.map((row) => row.score_delta)) / Math.max(1, pairs.length),
+      mean_delta_per_retained_action: mean(accepted.map((row) => row.score_delta)),
+    },
+  };
+}
+
+function summarizeDiagnosticCohort(rows: Array<{
+  score_delta: number;
+  spent_frames: number;
+  repair_frame_delta: number;
+  repair_attempt_delta: number;
+  repair_accept_delta: number;
+}>): any {
+  const score = rows.map((row) => row.score_delta);
+  return {
+    cells: rows.length,
+    mean_score_delta: mean(score),
+    sum_score_delta: sum(score),
+    improved: score.filter((value) => value > 0).length,
+    regressed: score.filter((value) => value < 0).length,
+    tied: score.filter((value) => value === 0).length,
+    minimum_cell_delta: score.length === 0 ? null : Math.min(...score),
+    mean_deferred_spent_frames: mean(rows.map((row) => row.spent_frames)),
+    mean_repair_frame_delta: mean(rows.map((row) => row.repair_frame_delta)),
+    mean_repair_attempt_delta: mean(rows.map((row) => row.repair_attempt_delta)),
+    mean_repair_accept_delta: mean(rows.map((row) => row.repair_accept_delta)),
+  };
+}
+
+function repairEpisodes(row: any): any[] {
+  return (row.budgetTelemetry?.episodes ?? []).filter((episode: any) =>
+    episode.lane === "repair"
+  );
+}
+
 function summarizeNumbers(values: number[]): any {
   return {
     count: values.length,
@@ -379,6 +523,22 @@ function standardError(values: number[]): number | null {
   const variance = sum(values.map((value) => (value - center) ** 2)) /
     (values.length - 1);
   return Math.sqrt(variance / values.length);
+}
+
+function pearson(left: number[], right: number[]): number | null {
+  if (left.length !== right.length || left.length < 2) return null;
+  const leftMean = mean(left);
+  const rightMean = mean(right);
+  const centered = left.map((value, index) => ({
+    left: value - leftMean,
+    right: right[index]! - rightMean,
+  }));
+  const numerator = sum(centered.map((value) => value.left * value.right));
+  const leftScale = Math.sqrt(sum(centered.map((value) => value.left ** 2)));
+  const rightScale = Math.sqrt(sum(centered.map((value) => value.right ** 2)));
+  return leftScale === 0 || rightScale === 0
+    ? null
+    : numerator / (leftScale * rightScale);
 }
 
 function signed(value: number, digits: number): string {

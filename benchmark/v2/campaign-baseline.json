@@ -1,15 +1,15 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "selective-axis-regret-catchup",
-  "generated_at": "2026-08-14T16:44:51.094Z",
+  "label": "value-ranked-startup-expiration",
+  "generated_at": "2026-08-15T12:52:33.067Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
       750000
     ],
     "max_seeds": 48,
-    "promotion_seeds": 48,
+    "promotion_seeds": 32,
     "sequential_looks": [
       8,
       16,
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "2cee574d74c4cac05ff8c2489e4fa2bb486ad213860f33babd0164e0ba30af32",
+  "compiler_source_fingerprint": "89eb2b3dd4b89448fc83d7107e9b65543c07f87ac9dbe35514aa90a6eb3da66a",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -132,34 +132,34 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "e28c8e9bf4f5f58952329bdac76b3a43237b6de4a08415d5a2813a34a00e7b0d",
+  "candidate_fingerprint": "23b4abc01031f81d7dafed400a998f6514230356de78e9ae0a87ef92e151873e",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
-  "decision_protocol_fingerprint": "26d6c9d40ab1d867001f171b203d267edc36b969738b2d7ca7aa951732914930",
+  "decision_protocol_fingerprint": "14c40a4fc7ab32638e61e16a6d4e89350e720d871144eb8767ed102329bd696e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
   "sequential_eval_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
   "sequential_eval_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/selective-axis-regret-catchup-compiler-snapshot.tar.gz",
-    "archiveSha256": "8c04fe867138729ffa6c397645a1e05abf1410998a4de3f92e8c49e66c8d644f",
-    "candidateFingerprint": "e28c8e9bf4f5f58952329bdac76b3a43237b6de4a08415d5a2813a34a00e7b0d",
-    "compilerSourceFingerprint": "2cee574d74c4cac05ff8c2489e4fa2bb486ad213860f33babd0164e0ba30af32",
+    "archive": "benchmark/v2/runs/value-ranked-startup-expiration-compiler-snapshot.tar.gz",
+    "archiveSha256": "cf13ddbeca760f54c60a25e1eb9a8dc235b4c63d5c39bb2f597c82f2fda67a5a",
+    "candidateFingerprint": "23b4abc01031f81d7dafed400a998f6514230356de78e9ae0a87ef92e151873e",
+    "compilerSourceFingerprint": "89eb2b3dd4b89448fc83d7107e9b65543c07f87ac9dbe35514aa90a6eb3da66a",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
-    "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
+    "execution_policy_fingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
     "implementation_fingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4",
-    "archive_sha256": "406f61d16bceeb99aa3d69ff14bf5c6b01b0baf1ed49cb3ae920a12c85e04bcf",
-    "compressed_archive": "benchmark/v2/runs/selective-axis-regret-catchup-development-750k-N48.json.gz",
-    "compressed_archive_sha256": "e98eb016c1ed9287af4581f71a69501e95c93947562ab6ce14b7a893e940b188",
-    "canonical_headline": 604.2665,
+    "archive_sha256": "d5f642643ed4e587d24c806065d0992399ee8a612d0f954e2cc22e2e324583c6",
+    "compressed_archive": "benchmark/v2/runs/value-ranked-startup-expiration-development-750k-N32.json.gz",
+    "compressed_archive_sha256": "9a6961c744719861dee07dd8205afab603050e6bb41c90ef0a593e24ff640c87",
+    "canonical_headline": 607.2582,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
       "seedBase": 0,
-      "seedsPerBudget": 48,
+      "seedsPerBudget": 32,
       "byBudget": [
         {
           "budget": 750000,
@@ -195,23 +195,7 @@
             628,
             629,
             630,
-            631,
-            632,
-            633,
-            634,
-            635,
-            636,
-            637,
-            638,
-            639,
-            640,
-            641,
-            642,
-            643,
-            644,
-            645,
-            646,
-            647
+            631
           ]
         }
       ]
@@ -219,16 +203,16 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 604.2665,
-        "valid_runs": 2111,
-        "total_runs": 2112
+        "score": 607.2582,
+        "valid_runs": 1408,
+        "total_runs": 1408
       }
     ]
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "selective-axis-regret-catchup",
-    "candidateFingerprint": "e28c8e9bf4f5f58952329bdac76b3a43237b6de4a08415d5a2813a34a00e7b0d",
+    "baselineLabel": "value-ranked-startup-expiration",
+    "candidateFingerprint": "23b4abc01031f81d7dafed400a998f6514230356de78e9ae0a87ef92e151873e",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -295,11 +279,11 @@
       {
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
-        "endSeedSlotExclusive": 48,
-        "archiveSha256": "406f61d16bceeb99aa3d69ff14bf5c6b01b0baf1ed49cb3ae920a12c85e04bcf",
-        "compressedArchive": "benchmark/v2/runs/selective-axis-regret-catchup-development-750k-N48.json.gz",
-        "compressedArchiveSha256": "e98eb016c1ed9287af4581f71a69501e95c93947562ab6ce14b7a893e940b188",
-        "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
+        "endSeedSlotExclusive": 32,
+        "archiveSha256": "d5f642643ed4e587d24c806065d0992399ee8a612d0f954e2cc22e2e324583c6",
+        "compressedArchive": "benchmark/v2/runs/value-ranked-startup-expiration-development-750k-N32.json.gz",
+        "compressedArchiveSha256": "9a6961c744719861dee07dd8205afab603050e6bb41c90ef0a593e24ff640c87",
+        "executionPolicyFingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
         "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
       }
     ]
@@ -319,21 +303,21 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/selective-axis-regret-catchup-comparison.json",
-    "artifact_sha256": "824b2eb4331172e95fcd042d458b68685cf5b658f5208c500bf548574678da69",
-    "seeds": 48,
+    "artifact": "benchmark/v2/runs/value-ranked-startup-expiration-comparison.json",
+    "artifact_sha256": "9eb8c582c4b0425179baff0feda847c4ad24a3257c3dc220d10be395daec541d",
+    "seeds": 32,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
     "stopping_action": "accept",
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/selective-axis-regret-catchup-comparison-request.json",
-    "request_sha256": "ca7ef505552037f78f588a4c514fa0a7390be7511e80f9b9ab248c546dc76379",
+    "request": "benchmark/v2/runs/value-ranked-startup-expiration-comparison-request.json",
+    "request_sha256": "f7e582233dc54f705a9cf05f931afe7c4b053616540005cf12f88cfbf32d7760",
     "budgets": [
       750000
     ],
     "outcome": "accept",
-    "delta": 0.0815
+    "delta": 1.239
   }
 }

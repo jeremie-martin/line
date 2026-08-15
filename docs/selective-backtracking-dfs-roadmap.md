@@ -1826,4 +1826,27 @@ salvage follows.
 |---|---|---|---|
 | 2026-08-15 | Exact Phase-D N8 combined premise | complete | Two disjoint targeted panels; +3.7417 +/- 1.4523, 80/80 valid |
 | 2026-08-15 | Candidate default and regression tests | complete | Unset/explicit Phase-D identity; 27 handoff integration tests and focused telemetry/controller suites pass |
-| 2026-08-15 | Canonical N48 adjudication | pending | — |
+| 2026-08-15 | Canonical sequential adjudication | accepted at N=32 | `generated/benchmark-v2/comparisons/phase-d-canonical-n48.json` |
+| 2026-08-15 | Promotion to active 750k baseline | complete | `benchmark/v2/campaign-baseline.json`; label `value-ranked-startup-expiration` |
+
+The canonical challenge succeeds. The strict N=8 look was +0.8055 +/- 0.6301
+seed-block SE with P(positive)=87.91%, below its 99.90% early boundary. N=16
+was +1.1267 +/- 0.3873 with P(positive)=99.46%, just below 99.80%. N=32 was
++1.2390 +/- 0.3366 with P(positive)=99.96%, clearing the 98.88% boundary and
+stopping with `accept`; N=48 was correctly not run. All 1,408 candidate and
+1,408 matched reference cells were valid. The matched N=32 headline moved
+606.0192 to 607.2582, with a 95% interval of [+0.32, +2.16].
+
+The effect is broad but not uniform. Representative gains +1.64 and capability
+gains +4.86; legacy regression loses 5.21 and development music loses 2.30.
+Largest source gains are `frontier_dense_recovery_240ms_figures` +11.86,
+`sparse_lowline` +7.51, and `frontier_dense_recovery` +6.86. Largest losses are
+`regression_transition_mosaic_tempo_fast_5` -11.78,
+`regression_transition_mosaic` -6.89, and `believer_56_6s` -6.49. These rows
+remain fully counted in the accepted headline. They define the next natural
+improvement surface; they are not grounds to undo or condition the promotion.
+
+`npm run benchmark -- rebaseline` promoted the exact source under label
+`value-ranked-startup-expiration`. The active campaign baseline now matches the
+current compiler at 607.26 and records promotion depth N=32. Frozen 250k/500k
+evidence was neither run nor changed.

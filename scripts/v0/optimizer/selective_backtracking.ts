@@ -2095,8 +2095,12 @@ export class SelectiveAxisRegretController<Node extends object> {
         firstDeficitStops !== 1 ||
         input.selectedAlternativeOrdinal !== null ||
         input.selectedRouteOrdinal !== null ||
+        input.catchupAxisLoss !== null ||
+        input.probes.length !== 1 ||
         finalCheckpoint === undefined ||
         event.catchup_checkpoints.length !== 1 ||
+        finalCheckpoint.gap_index >= decision.fromGapIndex ||
+        input.probes[0]!.end_gap_index !== finalCheckpoint.gap_index ||
         !(finalCheckpoint.alternative_axis_loss_gain <=
           -SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP)
       ) throw new Error("invalid first-checkpoint material-deficit probe stop");

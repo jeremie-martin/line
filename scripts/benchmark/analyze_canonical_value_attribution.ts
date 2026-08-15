@@ -54,6 +54,11 @@ type ValueSummary = {
   selectedMinimumCheckpointGains: number[];
   checkpointStopRules: Record<CheckpointStopRule, CheckpointStopRuleSummary>;
   firstPreTargetCheckpoints: FirstPreTargetCheckpoint[];
+  probeRankedOptionCalls: number;
+  probeRequestedNormalProposals: number;
+  probeCandidateGeometryEvaluations: number;
+  probeNodesProcessed: number;
+  meanRequestedProposalsPerProbeCall: number[];
 };
 
 type FirstPreTargetCheckpoint = {
@@ -218,7 +223,7 @@ async function main(): Promise<void> {
   };
 
   const result = {
-    schema: "line.canonical-value-attribution.v2",
+    schema: "line.canonical-value-attribution.v3",
     generated_at: new Date().toISOString(),
     evidence: {
       candidate: candidate.path,
@@ -258,6 +263,7 @@ async function main(): Promise<void> {
     first_nonpositive_checkpoint_diagnostics: summarizeCheckpointStops(active),
     checkpoint_stop_rule_diagnostics: summarizeCheckpointStopRules(active),
     first_pre_target_checkpoint_diagnostics: summarizeFirstPreTargetCheckpoints(active),
+    value_probe_economics: summarizeProbeEconomics(active),
     by_stratum: byStratum,
     by_source: bySource,
     associations: {
@@ -394,6 +400,7 @@ function summarizeValue(raw: any, stats: any): ValueSummary {
   const firstOpportunity = events.length === 0
     ? undefined
     : opportunities.find((row: any) => row.watch_id === events[0].watch_id);
+  const probes = events.flatMap((event: any) => event.catchup_probe_results ?? []);
   return {
     crossings: finite(stats.value_live_crossings),
     admitted: finite(stats.value_live_admitted),
@@ -460,6 +467,18 @@ function summarizeValue(raw: any, stats: any): ValueSummary {
         ),
         alternativeSelectedInObservedRun: event.catchup_outcome === "alternative_selected",
       }];
+    }),
+    probeRankedOptionCalls: sum(probes.map((probe: any) => finite(probe.ranked_option_calls))),
+    probeRequestedNormalProposals: sum(
+      probes.map((probe: any) => finite(probe.requested_normal_proposals)),
+    ),
+    probeCandidateGeometryEvaluations: sum(
+      probes.map((probe: any) => finite(probe.candidate_geometry_evaluations)),
+    ),
+    probeNodesProcessed: sum(probes.map((probe: any) => finite(probe.probe_nodes_processed))),
+    meanRequestedProposalsPerProbeCall: probes.flatMap((probe: any) => {
+      const calls = finite(probe.ranked_option_calls);
+      return calls === 0 ? [] : [finite(probe.requested_normal_proposals) / calls];
     }),
   };
 }
@@ -534,6 +553,8 @@ function sumValue(rows: ValueSummary[]): any {
     "otherOutcomes", "eventsWithNonpositiveCheckpoint", "probeFramesAfterFirstNonpositive",
     "endpointReachedAfterNonpositive", "alternativeSelectedAfterNonpositive",
     "positiveLocalGain", "summedLocalGain",
+    "probeRankedOptionCalls", "probeRequestedNormalProposals",
+    "probeCandidateGeometryEvaluations", "probeNodesProcessed",
   ] as const;
   return Object.fromEntries(numeric.map((key) => [key, sum(rows.map((row) => row[key]))]));
 }
@@ -652,6 +673,35 @@ function summarizeFirstPreTargetCheckpoints(rows: Pair[]): any {
     })),
     interpretation:
       "Threshold rows diagnose the first pre-target comparison only. They show how often an initially losing route later won in the unchanged run; they do not predict the stopped frontier counterfactual.",
+  };
+}
+
+function summarizeProbeEconomics(rows: Pair[]): any {
+  const value = sumValue(rows.map((row) => row.value));
+  const perProbeMeans = rows.flatMap(
+    (row) => row.value.meanRequestedProposalsPerProbeCall,
+  );
+  return {
+    probe_frames: value.probeFrames,
+    probe_nodes_processed: value.probeNodesProcessed,
+    ranked_option_calls: value.probeRankedOptionCalls,
+    requested_normal_proposals: value.probeRequestedNormalProposals,
+    candidate_geometry_evaluations: value.probeCandidateGeometryEvaluations,
+    weighted_requested_proposals_per_ranked_option_call:
+      value.probeRankedOptionCalls === 0
+        ? null
+        : value.probeRequestedNormalProposals / value.probeRankedOptionCalls,
+    weighted_candidate_geometry_evaluations_per_requested_proposal:
+      value.probeRequestedNormalProposals === 0
+        ? null
+        : value.probeCandidateGeometryEvaluations / value.probeRequestedNormalProposals,
+    observed_frames_per_requested_proposal:
+      value.probeRequestedNormalProposals === 0
+        ? null
+        : value.probeFrames / value.probeRequestedNormalProposals,
+    per_probe_mean_requested_proposals_per_call: distribution(perProbeMeans),
+    interpretation:
+      "These are exact charged probe counters from the accepted run. Scaling proposal breadth changes candidate identity and later traversal, so the ratios describe the exposed cost surface rather than predict a score or a linear refund.",
   };
 }
 
@@ -986,6 +1036,11 @@ function emptyValue(): ValueSummary {
       two_consecutive_pre_target_nonpositive: emptyCheckpointStopRule(),
     },
     firstPreTargetCheckpoints: [],
+    probeRankedOptionCalls: 0,
+    probeRequestedNormalProposals: 0,
+    probeCandidateGeometryEvaluations: 0,
+    probeNodesProcessed: 0,
+    meanRequestedProposalsPerProbeCall: [],
   };
 }
 

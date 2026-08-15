@@ -20,6 +20,14 @@ const argument = (name: string): string | undefined =>
 const candidatePath = required("candidate");
 const referencePath = required("reference");
 const outPath = argument("out");
+const expectedPolicy = argument("policy") ??
+  "selective_axis_regret_catchup_value_initial";
+if (
+  expectedPolicy !== "selective_axis_regret_catchup_value_initial" &&
+  expectedPolicy !== "selective_axis_regret_catchup_value_initial_progress_10"
+) throw new Error(`unsupported value-ranked live policy ${expectedPolicy}`);
+const expectedMinimumGapProgress =
+  expectedPolicy === "selective_axis_regret_catchup_value_initial_progress_10" ? 0.10 : 0;
 
 const candidate = readGridArm("value-initial", candidatePath);
 const reference = readGridArm("reference", referencePath);
@@ -87,9 +95,10 @@ const result = {
       "Matched compact-panel screen of the predeclared initial-only density-0.020 rule; not canonical evidence.",
   },
   contract: {
-    expected_policy: "selective_axis_regret_catchup_value_initial",
+    expected_policy: expectedPolicy,
     expected_lane: "initial",
     density_threshold: 0.02,
+    minimum_gap_progress: expectedMinimumGapProgress,
     terminal_reserve_factor: 1.25,
     exploration_budget_fraction: 0.15,
     speculative_tail_completion_inside_value_probe: false,
@@ -117,7 +126,9 @@ if (outPath !== undefined) {
 function required(name: string): string {
   const value = argument(name);
   if (value === undefined || value === "") {
-    throw new Error("usage: --candidate=<archive> --reference=<archive> [--out=<json>]");
+    throw new Error(
+      "usage: --candidate=<archive> --reference=<archive> [--policy=<policy>] [--out=<json>]",
+    );
   }
   return value;
 }
@@ -162,11 +173,14 @@ function summarizeAndValidateMechanics(rows: any[]): any {
   for (const row of rows) {
     const label = `${row.task.sourceId}/${row.task.budget}/${row.task.actualSeed}`;
     const stats = row.stats?.handoff_selective_backtracking;
-    if (stats?.policy !== "selective_axis_regret_catchup_value_initial") {
+    if (stats?.policy !== expectedPolicy) {
       throw new Error(`${label}: unexpected policy ${String(stats?.policy)}`);
     }
     if (stats.value_live_density_threshold !== 0.02) {
       throw new Error(`${label}: unexpected live density threshold`);
+    }
+    if ((stats.value_live_min_gap_progress ?? 0) !== expectedMinimumGapProgress) {
+      throw new Error(`${label}: unexpected minimum gap progress`);
     }
     const opportunities = stats.value_live_opportunities ?? [];
     const events = (stats.events ?? []).filter(
@@ -208,6 +222,12 @@ function summarizeAndValidateMechanics(rows: any[]): any {
         budget.reason !== "admitted" || event.repair_attempt_index !== null
       ) {
         throw new Error(`${label}: value action violates lane or admission contract`);
+      }
+      if (
+        expectedMinimumGapProgress > 0 &&
+        !(opportunity.point.gap_progress >= expectedMinimumGapProgress)
+      ) {
+        throw new Error(`${label}: value action precedes its gap-progress boundary`);
       }
       const expectedAllowance = Math.min(
         budget.exploration_remaining_frames,

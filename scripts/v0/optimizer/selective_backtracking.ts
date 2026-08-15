@@ -4,7 +4,8 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_periodic_initial"
   | "selective_axis_regret_catchup_periodic_repair"
   | "selective_axis_regret_catchup_value_map"
-  | "selective_axis_regret_catchup_value_initial";
+  | "selective_axis_regret_catchup_value_initial"
+  | "selective_axis_regret_catchup_value_initial_progress_10";
 
 export type SelectiveBacktrackSignal =
   | "branch_regret"
@@ -27,6 +28,7 @@ export const SELECTIVE_VALUE_MIN_CONTACT_ADVANCE = 3;
 export const SELECTIVE_VALUE_DENSITY_FRAME_SCALE = 10_000;
 export const SELECTIVE_VALUE_DENSITY_THRESHOLDS = [0.005, 0.01, 0.02, 0.04] as const;
 export const SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD = 0.02;
+export const SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS = 0.10;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
   0,
@@ -62,6 +64,9 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-initial") {
     return "selective_axis_regret_catchup_value_initial";
   }
+  if (raw === "selective-axis-regret-catchup-value-initial-progress-10") {
+    return "selective_axis_regret_catchup_value_initial_progress_10";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
@@ -69,7 +74,8 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-periodic-initial, or ` +
       `selective-axis-regret-catchup-periodic-repair, or ` +
       `selective-axis-regret-catchup-value-map, or ` +
-      `selective-axis-regret-catchup-value-initial; got ${raw}`,
+      `selective-axis-regret-catchup-value-initial, or ` +
+      `selective-axis-regret-catchup-value-initial-progress-10; got ${raw}`,
   );
 }
 
@@ -114,6 +120,7 @@ export type SelectiveValueOpportunityPoint = {
   current_axis_loss: number;
   axis_loss_delta: number;
   value_density_per_10k_estimated_frames: number;
+  gap_progress: number | null;
   total_spent_frames: number;
   alternative_available: boolean;
   execution_ceiling_reached: boolean;
@@ -169,6 +176,7 @@ type AxisRegretWatch<Node extends object> = {
   valueOpportunityAdmissibleMask: number;
   valueOpportunityRecordIndices: Array<number | null>;
   valueLiveCrossed: boolean;
+  valueLiveProgressSuppressionRecorded: boolean;
 };
 
 type WatchLink<Node extends object> = {
@@ -289,6 +297,8 @@ export type SelectiveBacktrackingStats = {
   >;
   value_opportunities: SelectiveValueOpportunity[];
   value_live_density_threshold: number;
+  value_live_min_gap_progress: number;
+  value_live_progress_suppressed_watches: number;
   value_live_crossings: number;
   value_live_admitted: number;
   value_live_ranked_out: number;
@@ -507,6 +517,11 @@ export class SelectiveAxisRegretController<Node extends object> {
       value_opportunities_by_density: emptyValueOpportunityCounter(),
       value_opportunities: [],
       value_live_density_threshold: SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD,
+      value_live_min_gap_progress:
+        this.policy === "selective_axis_regret_catchup_value_initial_progress_10"
+          ? SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS
+          : 0,
+      value_live_progress_suppressed_watches: 0,
       value_live_crossings: 0,
       value_live_admitted: 0,
       value_live_ranked_out: 0,
@@ -617,6 +632,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       valueOpportunityAdmissibleMask: 0,
       valueOpportunityRecordIndices: SELECTIVE_VALUE_DENSITY_THRESHOLDS.map(() => null),
       valueLiveCrossed: false,
+      valueLiveProgressSuppressionRecorded: false,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -630,6 +646,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     node: Node;
     contactOrdinal: number;
     contactBoundary?: boolean;
+    gapProgress?: number;
     axisLoss: number;
     incumbentAxisLoss?: number | null;
     repairAttemptIndex?: number | null;
@@ -884,6 +901,7 @@ export class SelectiveAxisRegretController<Node extends object> {
           current_axis_loss: input.axisLoss,
           axis_loss_delta: axisLossDelta,
           value_density_per_10k_estimated_frames: density,
+          gap_progress: input.gapProgress ?? null,
           total_spent_frames: input.totalSpentFrames,
           alternative_available: available,
           execution_ceiling_reached: input.executionCeilingReached,
@@ -923,7 +941,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       }
 
       if (
-        this.policy === "selective_axis_regret_catchup_value_initial" &&
+        (this.policy === "selective_axis_regret_catchup_value_initial" ||
+          this.policy === "selective_axis_regret_catchup_value_initial_progress_10") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
         contactAdvance >= SELECTIVE_VALUE_MIN_CONTACT_ADVANCE &&
@@ -943,49 +962,59 @@ export class SelectiveAxisRegretController<Node extends object> {
         const density = axisLossDelta * SELECTIVE_VALUE_DENSITY_FRAME_SCALE /
           Math.max(1, budget.estimated_probe_work_frames);
         if (density >= SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD) {
-          watch.valueLiveCrossed = true;
-          this.stats.value_live_crossings++;
-          const available = readAlternativeAvailable();
-          const point: SelectiveValueOpportunityPoint = {
-            lane: input.lane,
-            contact_ordinal: input.contactOrdinal,
-            from_gap_index: fromGapIndex,
-            branch_gap_index: watch.branchGapIndex,
-            alternative_gap_index: alternativeGapIndex,
-            contact_advance: contactAdvance,
-            gap_rewind: Math.max(0, fromGapIndex - alternativeGapIndex),
-            baseline_axis_loss: watch.baselineAxisLoss,
-            current_axis_loss: input.axisLoss,
-            axis_loss_delta: axisLossDelta,
-            value_density_per_10k_estimated_frames: density,
-            total_spent_frames: input.totalSpentFrames,
-            alternative_available: available,
-            execution_ceiling_reached: input.executionCeilingReached,
-            budget: { ...budget },
-          };
-          if (!available) {
-            recordValueLiveOpportunity(
-              watch,
-              point,
-              "alternative_unavailable",
-              null,
-            );
-          } else if (input.executionCeilingReached) {
-            recordValueLiveOpportunity(watch, point, "execution_ceiling", null);
-          } else if (!budget.admitted) {
-            recordValueLiveOpportunity(watch, point, budget.reason, null);
+          const minimumProgress = this.stats.value_live_min_gap_progress;
+          const gapProgress = input.gapProgress ?? 0;
+          if (gapProgress < minimumProgress) {
+            if (!watch.valueLiveProgressSuppressionRecorded) {
+              watch.valueLiveProgressSuppressionRecorded = true;
+              this.stats.value_live_progress_suppressed_watches++;
+            }
           } else {
-            valueLiveCandidates.push({
-              watch,
-              contactAdvance,
-              axisLossDelta,
-              density,
-              gapRewind: point.gap_rewind,
-              lineageOrder: currentLineageOrder,
-              deadline: readAlternativeDeadline(),
-              budget,
-              point,
-            });
+            watch.valueLiveCrossed = true;
+            this.stats.value_live_crossings++;
+            const available = readAlternativeAvailable();
+            const point: SelectiveValueOpportunityPoint = {
+              lane: input.lane,
+              contact_ordinal: input.contactOrdinal,
+              from_gap_index: fromGapIndex,
+              branch_gap_index: watch.branchGapIndex,
+              alternative_gap_index: alternativeGapIndex,
+              contact_advance: contactAdvance,
+              gap_rewind: Math.max(0, fromGapIndex - alternativeGapIndex),
+              baseline_axis_loss: watch.baselineAxisLoss,
+              current_axis_loss: input.axisLoss,
+              axis_loss_delta: axisLossDelta,
+              value_density_per_10k_estimated_frames: density,
+              gap_progress: input.gapProgress ?? null,
+              total_spent_frames: input.totalSpentFrames,
+              alternative_available: available,
+              execution_ceiling_reached: input.executionCeilingReached,
+              budget: { ...budget },
+            };
+            if (!available) {
+              recordValueLiveOpportunity(
+                watch,
+                point,
+                "alternative_unavailable",
+                null,
+              );
+            } else if (input.executionCeilingReached) {
+              recordValueLiveOpportunity(watch, point, "execution_ceiling", null);
+            } else if (!budget.admitted) {
+              recordValueLiveOpportunity(watch, point, budget.reason, null);
+            } else {
+              valueLiveCandidates.push({
+                watch,
+                contactAdvance,
+                axisLossDelta,
+                density,
+                gapRewind: point.gap_rewind,
+                lineageOrder: currentLineageOrder,
+                deadline: readAlternativeDeadline(),
+                budget,
+                point,
+              });
+            }
           }
         }
       }
@@ -1199,7 +1228,8 @@ export class SelectiveAxisRegretController<Node extends object> {
     }
 
     if (
-      this.policy === "selective_axis_regret_catchup_value_initial" &&
+      (this.policy === "selective_axis_regret_catchup_value_initial" ||
+        this.policy === "selective_axis_regret_catchup_value_initial_progress_10") &&
       valueLiveCandidates.length > 0
     ) {
       valueLiveCandidates.sort((left, right) =>

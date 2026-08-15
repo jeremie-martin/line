@@ -2813,6 +2813,10 @@ function compileHandoffInternal(
           contactOrdinal: contactOrdinalAt(node.search.gapIndex),
           contactBoundary:
             gaps[node.search.gapIndex - 1]?.endsWithContact === true,
+          gapProgress: Math.max(
+            0,
+            Math.min(1, node.search.gapIndex / Math.max(1, gaps.length)),
+          ),
           axisLoss: authoredPrefixAxisLoss(node.search),
           incumbentAxisLoss: lane === "repair" && bestCompleteNode !== null
             ? authoredPrefixAxisLoss(bestCompleteNode.search, node.search.gapIndex)

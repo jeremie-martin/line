@@ -26,6 +26,9 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup_value_map");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-initial"))
       .toBe("selective_axis_regret_catchup_value_initial");
+    expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-progress-10",
+    )).toBe("selective_axis_regret_catchup_value_initial_progress_10");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy(
@@ -469,6 +472,86 @@ describe("selective-backtracking controller", () => {
       lane: "repair",
     })).toBeNull();
     expect(repairController.snapshot().value_live_crossings).toBe(0);
+  });
+
+  test("defers value exploration until normalized gap progress reaches ten percent", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_initial_progress_10",
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const early = { gap: 4, name: "early" };
+    const mature = { gap: 5, name: "mature" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.1,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [early],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.1,
+    });
+    const assessment = () => ({
+      execution_remaining_frames: 500_000,
+      conservative_terminal_work_frames: 100_000,
+      estimated_probe_work_frames: 10_000,
+      terminal_reserve_frames: 125_000,
+      exploration_allowance_frames: 112_500,
+      exploration_spent_frames: 0,
+      exploration_remaining_frames: 112_500,
+      local_probe_allowance_frames: 112_500,
+      admitted: true,
+      reason: "admitted" as const,
+    });
+    const common = {
+      contactBoundary: true,
+      axisLoss: 0.14,
+      executionCeilingReached: false,
+      totalSpentFrames: 100_000,
+      lane: "initial" as const,
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      explorationBudgetAssessment: assessment,
+    };
+    expect(controller.consider({
+      ...common,
+      node: early,
+      contactOrdinal: 4,
+      gapProgress: 0.09,
+    })).toBeNull();
+    expect(controller.snapshot()).toMatchObject({
+      value_live_min_gap_progress: 0.1,
+      value_live_progress_suppressed_watches: 1,
+      value_live_crossings: 0,
+    });
+    controller.observeExpansion({
+      parent: early,
+      children: [mature],
+      contactExpansion: false,
+      contactOrdinal: 4,
+      axisLoss: 0.14,
+    });
+    expect(controller.consider({
+      ...common,
+      node: mature,
+      contactOrdinal: 5,
+      gapProgress: 0.10,
+    })).toMatchObject({
+      alternative,
+      triggerSignal: "value_exploration",
+    });
+    expect(controller.snapshot()).toMatchObject({
+      value_live_progress_suppressed_watches: 1,
+      value_live_crossings: 1,
+      value_live_admitted: 1,
+      value_live_opportunities: [{ point: { gap_progress: 0.1 } }],
+    });
   });
 
   test("counts lower-threshold admissible watches without changing traversal", () => {

@@ -134,3 +134,28 @@ inside this campaign.
 |---|---|---|---|
 | 2026-08-15 | Semantics, map gate, live gate, and stopping rules frozen | complete | This document |
 | 2026-08-15 | Mechanism-smoke allowance correction | complete | The old equal-depth 15% share afforded a full suffix in only 2/10 smoke cells. Before fixed evidence, replace the single share with the score-blind 15/25/40 coverage bracket above. No smoke score is used. |
+| 2026-08-15 | Fixed survival map | complete, gate passed | 80/80 exact paired cells; the score-blind rule selects 40% |
+
+## Phase A result
+
+The fixed map completed all 160 compiles with every cell valid. All 80 pairs
+are exact in final track, score, first-terminal frame, first-terminal track
+hash, and repair episode ledger. The collector therefore has no measured
+effect on initial traversal or any post-terminal work.
+
+At 750k, 799 watches cross, 54 expire before the horizon, 745 are collected,
+563 lie on the exact first-incumbent path, and 261 are affordable at the map's
+40% envelope. Those records provide rank-one actions in 36/40 runs and all ten
+sources. At 1.25M, the corresponding counts are 522, 50, 472, 291, and 152;
+rank-one actions span 27/40 runs and eight sources.
+
+The score-blind allowance bracket selects 40%. At 15%, coverage is 15 records
+in 11 runs/five sources at 750k and 11 records in nine runs/three sources at
+1.25M. At 25%, it is 98 records in 20 runs/eight sources and 44 records in 14
+runs/six sources; its high-budget count is five records short of the declared
+half-retention requirement (44 < 49). At 40%, both budgets clear every clause and
+high-budget affordability retains more than half of low-budget affordability.
+
+Phase B is therefore authorized with exactly one attempt, allowance fraction
+0.40, and fresh seeds 174-177. No other share, density, horizon, source gate,
+or score-derived substitution is permitted.

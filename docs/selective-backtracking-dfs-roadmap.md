@@ -2301,7 +2301,7 @@ full-first panel's isolated-tail dependence and is not broadly adverse.
 | 2026-08-15 | Canonical N=8 look | continue | 607.57; +0.33 +/- 0.36 SE; P(positive)=80.84%; 352/352 valid |
 | 2026-08-15 | Canonical N=16 look | continue | 607.15; +0.07 +/- 0.26 SE; P(positive)=60.51%; 704/704 valid |
 | 2026-08-15 | Canonical N=32 look | continue | 607.55; +0.29 +/- 0.26 SE; P(positive)=86.02%; 1,408/1,408 valid |
-| 2026-08-15 | Canonical decision | running | Source-native challenger; standing sequential 750k evaluator |
+| 2026-08-15 | Canonical maximum look | complete: inconclusive | 607.25 -> 607.55; +0.2926 +/- 0.1937 SE; P(positive)=93.12%; 2,112/2,112 valid |
 
 The trace closes the policy exactly. Across 371 value-ranked routes, all 371
 first contact-pool expansions have null starting gain and use 81 proposals.
@@ -2325,6 +2325,16 @@ canonical challenger, keep Phase D as the benchmark baseline, and run the
 standing sequential 750k ladder. The ordinary calibrated probability boundary
 is the only promotion criterion; do not add a dense-recovery veto or a
 multi-budget sweep.
+
+The N=48 maximum closes the exact positive-prefix arm. Its +0.2926 headline
+estimate is fully both-valid, with 607 better, 576 worse, and 929 tied cells,
+but 93.12% directional probability remains below the calibrated 97.23%
+boundary. The effect is heterogeneous: legacy regression gains +3.37 while
+development music loses -0.65; representative is +0.02 and capability -0.16.
+The tool estimates roughly 223 seeds would resolve an effect of this size. That
+is not an efficient route to the headline, so do not extend this arm. Restore
+accepted Phase D as the unset default and retain positive-prefix only as an
+explicit, checksum-bound comparison arm for Phase L.
 
 ## Phase L: treat breadth as investment, not rescue
 

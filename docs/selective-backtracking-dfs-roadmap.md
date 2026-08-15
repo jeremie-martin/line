@@ -2120,3 +2120,36 @@ The per-node candidate stream is nevertheless causally clean: the cache's
 sample-attempt contract makes the 61-wide pool an exact prefix of the 81-wide
 pool at the same node. Divergence begins only when an omitted attempt changes a
 selected child; it is not caused by advancing a shared global RNG.
+
+## Phase I: adaptive full-width retry for an empty narrow probe pool
+
+Uniform probe narrowing challenges a useful assumption but need not make an
+empty 61-attempt pool final. In the four-source/four-seed mechanism panel, the
+three-quarter arm records 38 probe dead ends versus 25 at production width.
+Twenty narrow dead ends have a reference event with the same source, seed, and
+branch/from/alternative gap tuple. The reference reaches equal depth in five of
+those events and selects the alternative in three. This is a structural
+association rather than an identical-prefix counterfactual, but it identifies
+one concrete failure mode without fitting a score threshold.
+
+Predeclare one categorical successor to the three-quarter arm. Every admitted
+value probe first requests the existing 3/4 normal pool. If and only if that
+normal ranked-option result is empty, extend the same node's deterministic
+sample prefix to the full already-resolved production width and rank it before
+entering the existing rescue cascade. The node cache guarantees that this adds
+only the missing attempts (61 through 80 at 750k); it does not redraw the first
+61 or advance a compile-global RNG. A nonempty narrow result never widens.
+Production traversal, the exploration fund, action admission/ranking, branch
+limit, endpoint comparator, rescue widths/order, repair traversal, and authored
+targets remain exact.
+
+Telemetry must name the adaptive rule and record retry attempts, retry
+successes, added requested proposals, and resulting probe outcome per route.
+Mechanically prove prefix extension, no retry on a nonempty narrow pool, exact
+fallback width, and unchanged work outside value probes. First use a fresh
+750k-only mechanism panel spanning representative, capability, legacy, and
+music behavior; this is characterization, not a promotion decision and not a
+multi-budget sweep. If it is not grossly adverse, the ordinary canonical
+sequential evaluator remains the sole score authority. Do not combine the arm
+with a fund-size change, final-step width rule, repair breadth change, or stop
+threshold.

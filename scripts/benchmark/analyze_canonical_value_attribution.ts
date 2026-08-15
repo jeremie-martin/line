@@ -42,6 +42,10 @@ type ValueSummary = {
   budgetYields: number;
   deferred: number;
   otherOutcomes: number;
+  eventsWithNonpositiveCheckpoint: number;
+  probeFramesAfterFirstNonpositive: number;
+  endpointReachedAfterNonpositive: number;
+  alternativeSelectedAfterNonpositive: number;
   positiveLocalGain: number;
   summedLocalGain: number;
   firstActionProgress: number | null;
@@ -230,6 +234,7 @@ async function main(): Promise<void> {
     by_action_outcome: byActionOutcome,
     by_action_count: byActionCount,
     alternative_selection_diagnostics: summarizeAlternativeSelections(active),
+    first_nonpositive_checkpoint_diagnostics: summarizeCheckpointStops(active),
     by_stratum: byStratum,
     by_source: bySource,
     associations: {
@@ -355,6 +360,12 @@ function summarizeValue(raw: any, stats: any): ValueSummary {
       ? finite(event.catchup_axis_loss_gain)
       : Math.min(...checkpointGains);
   });
+  const afterNonpositive: Array<{ event: any; first: any }> = events.flatMap((event: any) => {
+    const first = (event.catchup_checkpoints ?? []).find(
+      (checkpoint: any) => !(checkpoint.alternative_axis_loss_gain > 0),
+    );
+    return first === undefined ? [] : [{ event, first }];
+  });
   const firstOpportunity = events.length === 0
     ? undefined
     : opportunities.find((row: any) => row.watch_id === events[0].watch_id);
@@ -390,6 +401,18 @@ function summarizeValue(raw: any, stats: any): ValueSummary {
       "probe_budget_yield",
       "probe_deferred",
     ].includes(event.catchup_outcome)).length,
+    eventsWithNonpositiveCheckpoint: afterNonpositive.length,
+    probeFramesAfterFirstNonpositive: sum(afterNonpositive.map(({ event, first }) =>
+      Math.max(0, finite(event.catchup_probe_frames) - finite(first.probe_frames))
+    )),
+    endpointReachedAfterNonpositive: afterNonpositive.filter(({ event }) =>
+      (event.catchup_probe_results ?? []).some(
+        (probe: any) => probe.outcome === "reached_target",
+      )
+    ).length,
+    alternativeSelectedAfterNonpositive: afterNonpositive.filter(
+      ({ event }) => event.catchup_outcome === "alternative_selected",
+    ).length,
     positiveLocalGain: sum(gains.filter((gain) => gain > 0)),
     summedLocalGain: sum(gains),
     firstActionProgress: firstOpportunity?.point?.gap_progress ?? null,
@@ -466,7 +489,9 @@ function sumValue(rows: ValueSummary[]): any {
     "terminalReserveSuppressed", "explorationAllowanceSuppressed", "probeFrames",
     "actions", "reachedTarget", "alternativeSelected", "stableAlternativeSelected",
     "lateFlipAlternativeSelected", "currentSelected", "deadEnds", "budgetYields", "deferred",
-    "otherOutcomes", "positiveLocalGain", "summedLocalGain",
+    "otherOutcomes", "eventsWithNonpositiveCheckpoint", "probeFramesAfterFirstNonpositive",
+    "endpointReachedAfterNonpositive", "alternativeSelectedAfterNonpositive",
+    "positiveLocalGain", "summedLocalGain",
   ] as const;
   return Object.fromEntries(numeric.map((key) => [key, sum(rows.map((row) => row[key]))]));
 }
@@ -489,6 +514,22 @@ function summarizeAlternativeSelections(rows: Pair[]): any {
     cells_with_late_flip_selection: summarizePairs(withLateFlip),
     interpretation:
       "A late flip wins at the equal-depth endpoint after being nonpositive at an earlier checkpoint. Cohorts can overlap when a run has multiple selections.",
+  };
+}
+
+function summarizeCheckpointStops(rows: Pair[]): any {
+  const value = sumValue(rows.map((row) => row.value));
+  return {
+    actions: value.actions,
+    events_with_nonpositive_checkpoint: value.eventsWithNonpositiveCheckpoint,
+    endpoint_reached_after_nonpositive: value.endpointReachedAfterNonpositive,
+    alternative_selected_after_nonpositive: value.alternativeSelectedAfterNonpositive,
+    observed_probe_frames_after_first_nonpositive:
+      value.probeFramesAfterFirstNonpositive,
+    fraction_of_probe_frames_after_first_nonpositive:
+      value.probeFrames === 0 ? 0 : value.probeFramesAfterFirstNonpositive / value.probeFrames,
+    interpretation:
+      "Observed work after the first nonpositive checkpoint is an upper bound on frames a live early-stop rule could redirect. It is not a terminal-score counterfactual because the partial alternative would re-enter the ordinary frontier.",
   };
 }
 
@@ -520,6 +561,8 @@ function associationTable(rows: Pair[]): any {
     alternative_selected: (row) => row.value.alternativeSelected,
     probe_frames: (row) => row.value.probeFrames,
     positive_local_gain: (row) => row.value.positiveLocalGain,
+    probe_frames_after_first_nonpositive: (row) =>
+      row.value.probeFramesAfterFirstNonpositive,
     first_terminal_frames_delta: (row) => row.workDelta.firstTerminalFrames ?? 0,
     post_first_terminal_frames_delta: (row) => row.workDelta.postFirstTerminalFrames ?? 0,
     repair_frames_delta: (row) => row.workDelta.repairFrames,
@@ -585,8 +628,14 @@ function buildDirectObservations(
       kind: "direct",
       statement: "The strongest source gains and losses are explicit rather than hidden by the headline.",
       support: {
-        strongest_gains: sources.slice(0, 5).map(([source, summary]) => ({ source, ...summary })),
-        strongest_losses: sources.slice(-5).reverse().map(([source, summary]) => ({ source, ...summary })),
+        strongest_gains: sources.slice(0, 5).map(([source, summary]) => ({
+          source,
+          ...(summary as Record<string, unknown>),
+        })),
+        strongest_losses: sources.slice(-5).reverse().map(([source, summary]) => ({
+          source,
+          ...(summary as Record<string, unknown>),
+        })),
       },
     },
   ];
@@ -762,6 +811,10 @@ function emptyValue(): ValueSummary {
     budgetYields: 0,
     deferred: 0,
     otherOutcomes: 0,
+    eventsWithNonpositiveCheckpoint: 0,
+    probeFramesAfterFirstNonpositive: 0,
+    endpointReachedAfterNonpositive: 0,
+    alternativeSelectedAfterNonpositive: 0,
     positiveLocalGain: 0,
     summedLocalGain: 0,
     firstActionProgress: null,

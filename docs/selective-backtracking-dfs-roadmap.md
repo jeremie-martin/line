@@ -1890,6 +1890,13 @@ Several direct observations narrow the next question:
   The archive cannot reveal the counterfactual terminal after changing their
   priority. It does justify a live categorical test in which the already-built
   alternative remains available as fallback.
+- 9,396/12,724 probes encounter a nonpositive checkpoint. They subsequently
+  spend 34,594,914 frames, 33.7% of all value-probe work; 9,032 still reach the
+  endpoint and 2,489 eventually win there. Under an all-checkpoints-positive
+  priority rule, that later work can no longer change immediate eligibility.
+  It is therefore a large, explicitly measured surface for a later early-stop
+  mechanism, but not “free” work: stopping would return a shallower fallback to
+  the ordinary frontier, so only a live compile can determine terminal value.
 
 The supporting artifact is
 `generated/benchmark-v2/analysis/value-ranked-startup-expiration-canonical-attribution.json`.

@@ -1257,3 +1257,90 @@ one of those alternatives. The offline analyzer still validates the archived
 proper-discrepancy evidence. A five-cell seed-128 smoke against the committed
 pre-retirement default is exact: five valid pairs, zero changed tracks, and zero
 score delta.
+
+## Budgeted proactive branch tournaments
+
+The proper-discrepancy closeout does not close proactive backtracking. It closes
+one second-order route that could act only after production branch regret had
+already launched a causal catch-up and that route had lost. The more general
+question is whether deliberately sampling an alternative branch before death or
+terminal completion can buy better decisions than spending the same frames on
+ordinary DFS and post-terminal repair. Production's accepted bounded catch-up
+is already positive evidence for that family; the next proof of concept must be
+broader than another nested discrepancy and must expose its budget trade.
+
+### Fixed proof-of-concept mechanism
+
+Call the study operation a **budgeted periodic branch tournament**. It layers on
+the production regret policy without changing candidate generation, ranking,
+repair anchors, or the equal-depth comparator:
+
+1. At every eighth authored contact ordinal, if production regret did not
+   already act, look for the live causal runner-up exactly three contact
+   advances behind the active prefix. If that exact rewind is unavailable, do
+   nothing; do not silently choose a longer rewind.
+2. Suspend the active prefix, remove that already-generated runner-up from the
+   ordinary frontier, and advance its preferred viable route to the suspended
+   prefix's exact authored gap. Nested voluntary backtracking remains disabled
+   inside the excursion. All generated side branches remain ordinary frontier
+   work.
+3. Rank the two equal-depth prefixes by the existing strict authored-prefix
+   axis-loss comparator and schedule the winner first. Neither side is pruned.
+4. Admit the operation only when its conservative estimated rewind-to-target
+   work fits both an explicit exploration allowance and the current execution
+   episode after reserving 1.25 times the conservative target-to-terminal work.
+   Periodic probe work may consume at most 15% of the policy budget by admission;
+   an admitted comparison is allowed to finish and its actual charged work is
+   recorded.
+
+The constants are one categorical proof, not a parameter sweep. Eight contacts
+makes the intervention regular but not continuous; three contacts creates a
+real alternative path while bounding its comparison horizon; the 25% terminal
+headroom and 15% exploration allowance make the cost visible without allowing
+the proof to starve completion. A failed or inactive proof should change the
+mechanism, not tune adjacent integers or percentages on the same outcomes.
+
+### Causal separation and fixed panel
+
+Two policies use the identical operation and differ only in where it may act:
+
+- `periodic-initial`: initial search only, before the first terminal;
+- `periodic-repair`: self-contained repair attempts only.
+
+Production branch-regret catch-up remains active in every lane in both arms.
+Snapshot and resumed lanes receive no new periodic action. Keeping the contexts
+separate answers whether proactive work improves the first complete track or
+the marginal return of repair; combining both before that attribution would be
+uninformative.
+
+The first live panel is fixed before outputs are observed:
+
+- budgets: 750,000 and 1,250,000 frames;
+- actual seeds: 150-153, shared across budgets and arms;
+- requested sources: the believer-impact, sparse-lowline, high-air, and
+  wide-breaths parent/variant pairs;
+- Benchmark V2 mini-manifest controls: `frontier_pickup_progression` and
+  `regression_transition_mosaic`, yielding ten sources and 80 cells per arm.
+
+This is matched multi-budget evidence, not a canonical headline and not ten
+independent copies of each seed. Analysis blocks by actual seed and reports each
+budget separately before any pooled direction. No full canonical run or wider
+budget sweep is authorized by this proof.
+
+### Required attribution
+
+Telemetry must distinguish production regret from periodic exploration and
+record, per periodic opportunity and action: lane, contact ordinal, exact
+rewind, conservative target and alternative work, estimated probe work,
+episode frames remaining, terminal reserve, exploration allowance remaining,
+admission or suppression reason, actual probe frames, equal-depth outcome, and
+later resumption. Aggregate identities must reconcile those events with probe
+work and lane/signal counters.
+
+The paired report must separate validity from completed-track quality and, at
+each budget, report first-terminal movement, periodic frames/actions/wins,
+repair attempts/completions/accepted improvements, repair frames displaced,
+and final score movement. The useful comparison is marginal value per charged
+frame, not merely whether a more expensive policy sometimes finds a better
+track. Four seeds can establish activity, mechanics, obvious failure, and a
+direction worth investigating; they cannot establish a production improvement.

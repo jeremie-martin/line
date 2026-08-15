@@ -2953,7 +2953,7 @@ or budget tuning.
 |---|---|---|---|
 | 2026-08-16 | Same-horizon controller and scheduler | complete: unit | Separate `LR_ROUTE_LEASE_REVALIDATION=1`; focused suite and targeted type check clean |
 | 2026-08-16 | Known-activity production smoke | complete: mechanically exact | 8/8 valid; 22/22 probes reach equal horizon; current wins 14, incumbent wins 8; no yield/death/ceiling |
-| 2026-08-16 | Fresh four-seed continuation panel | pending | Actual seeds 210-213; eight sources; 750k only |
+| 2026-08-16 | Fresh four-seed continuation panel | complete: close | +0.981 +/- 1.172 seed-block SE; 3/4 positive seeds, 6/8 positive sources, but one -27.19 cell violates the frozen gate |
 
 The first smoke also caught and removed a false experiment before evidence was
 used. An initial allowance equal only to the estimator's mean gap-to-gap work
@@ -2963,3 +2963,32 @@ plus an atomic preflight. With that correction, all 22 admitted probes reach
 the exact target, compare equal axis counts, and exercise both priority
 outcomes. Raw score movement is +14.90 (+1.862/cell; 3/3/2), but this reused
 known-activity seed is mechanics evidence only and does not evaluate the gate.
+
+The fresh panel closes this one-shot revalidation rule before canonical work.
+All 32 cells remain valid, 91/94 started probes reach an exact equal-horizon
+comparison, both winners are exercised (current 62, incumbent 29), and actions
+span all eight sources. Raw movement is +31.40 (+0.981/cell), with seeds
+210/211/213 and six source means positive. The result nevertheless has 14
+wins, 15 losses, three ties, and `regression_transition_mosaic` seed 212 loses
+27.19 points, violating the frozen no-20-point-loss condition. Do not waive the
+gate, select a source exception, or send this arm to the canonical evaluator.
+
+All 94 actions occur in the initial lane before first terminal. They add
+526,234 initial-search frames, reach first terminal 16,445 paired frames later,
+and displace 510,461 repair frames, three terminal-reaching repair attempts,
+and one accepted repair. The catastrophic cell still has four repair attempts
+in each arm; its two revalidations spend 28,456 frames, first retain the
+current route, then select the incumbent, and lead to a different terminal
+basin. This is an association, not proof that the second switch caused the
+loss.
+
+The structural assumption left untested is important: after measuring an
+equal-horizon winner once, Phase Q ends the audit and gives that winner ordinary
+DFS priority again. In other words, it can recreate an unbounded lease one
+level later. Before making another live policy, instrument behavior-neutral
+**lease renewal** after a completed revalidation. Bind its measured winner and
+loser as a new equal-horizon pair, observe whether the winner later crosses the
+loser's measured loss while the loser remains affordable, and attribute the
+opportunity to the parent revalidation. First prove exact identity on a compact
+panel and inspect the catastrophic cell. Only if renewed crossings are broad
+should a repeated, budget-bounded live revalidation be designed.

@@ -2498,7 +2498,10 @@ run a budget sweep.
 | 2026-08-15 | Implementation and mechanical proof | complete: unit | Exact 61-width/11.25%-allowance/floor contracts; 56 focused tests; touched-file typecheck clean |
 | 2026-08-15 | Shared fresh allocation panel | complete: coupled favored | Coupled +90.3 vs Phase D and +27.7 vs refill; all 96 arm-cells valid |
 | 2026-08-15 | Source-native canonical challenger | complete | Unset default changed only after the frozen allocation panel |
-| 2026-08-15 | Canonical decision | running | Standing 750k sequential evaluator; Phase D remains governed baseline |
+| 2026-08-15 | Canonical N=8 look | continue | 607.26; +0.02 +/- 0.74 SE; P(positive)=51.22%; 352/352 valid |
+| 2026-08-15 | Canonical N=16 look | continue | 606.79; -0.29 +/- 0.45 SE; P(positive)=26.25%; 704/704 valid |
+| 2026-08-15 | Canonical N=32 look | continue | 607.06; -0.19 +/- 0.35 SE; P(positive)=29.09%; 1,408/1,408 valid |
+| 2026-08-15 | Canonical maximum | complete: inconclusive | 607.25 -> 606.84; -0.41 +/- 0.35 SE; P(positive)=12.39%; 2,112/2,112 valid |
 
 The explicit policy is now source-native without changing the unset Phase D
 baseline. Its live opportunity ledger reports
@@ -2534,3 +2537,22 @@ positive shared-cell contrast against refill. Make it the sole source-native
 challenger, retain Phase D in the benchmark baseline, and ask only the ordinary
 750k calibrated probability ladder. Do not fit the fund fraction, add a source
 exception, or run a multi-budget sweep.
+
+The N=48 maximum closes the exact coupled arm without promotion. Its governed
+headline is -0.41 +/- 0.35 seed-block SE, 95% interval [-1.36, +0.53], with
+12.39% directional probability against a 97.23% boundary. All 2,112 paired
+cells remain valid; this is entirely completed-run quality, with 913 better,
+985 worse, and 214 tied cells. Representative is -0.15, capability -1.65,
+legacy regression -0.54, and development music -0.13. The largest source
+regressions are amplitude-mosaic contrast (-11.93), dense recovery (-6.56),
+and split signal (-4.70); endurance 7s improves +5.34 and remains 48/48 valid.
+
+The result rejects two tempting but incorrect generalizations. First, the
+compact panel's +90.3 does not generalize to the full canonical population.
+Second, eliminating speculative reinvestment fixes the inverse arm's observed
+completion failure but does not turn saved probe frames into headline value.
+The allocation mechanism is real and robust; its score return is not. Restore
+accepted Phase D as the unset default. Keep the explicit coupled policy,
+11.25% telemetry contract, checksum-bound archives, and panel analyses as
+mechanism evidence. Do not extend this exact arm, tune the 11.25% fraction, or
+fit source exclusions.

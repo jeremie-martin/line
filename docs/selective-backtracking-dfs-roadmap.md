@@ -1783,3 +1783,47 @@ state model was wrong: after the failed first tournament, 28 of 38 later
 tournaments reach equal depth and 17 select the alternative. A failed probe is
 route-local evidence, not a persistent run condition; more repair is not an
 automatic substitute for this initial exploration.
+
+## Phase E: challenge the compact tail veto at the real headline
+
+The run-proof failure leaves the ungated Phase-D policy as the strongest broad
+candidate. Two disjoint 750k ten-source panels now cover actual seeds 166-169
+and 186-189. Reconstructing the one proof-affected cell from its direct parent
+ablation gives the exact Phase-D aggregate: 80 cells, mean +3.7417 +/- 1.4523
+seed-block SE, six of eight positive seed blocks, and complete validity. The
+worst cell is -41.0883. This is both stronger evidence of positive average
+return and honest evidence of a heavy tail.
+
+The earlier campaign correctly closed under its predeclared no-cell-below--20
+screening rule. This new campaign challenges the higher-level assumption that
+such a cellwise veto is the right promotion instrument for a broad stochastic
+search-order change. Benchmark V2 already has the authoritative instrument: a
+48-seed, all-44-source 750k headline with strict N=8/16/32/48 sequential looks
+and a one-sided probability decision. It retains every bad cell in the nested
+headline and estimates whether the aggregate improvement is real. A compact
+tail threshold must not silently replace it forever.
+
+### Frozen canonical challenger
+
+Make `selective_axis_regret_catchup_value_initial_expire_10` the candidate's
+unset default while keeping the previous production policy available under its
+explicit `selective-axis-regret-catchup` name. No mechanism changes: density
+0.020, maturity three, startup expiration below 10% gap progress, initial lane
+only, 15% optional-work fund, 1.25 terminal reserve, atomic local allowance,
+ordinary budget-shaped breadth, strict positive equal-depth gain, and no
+speculative tail completion inside value probes.
+
+Run only `npm run benchmark -- eval --seeds=48 --jobs=48` at the canonical 750k
+budget. Use the standing cached reference and decision rule. Do not run another
+multi-budget sweep, compact score screen, source exception, threshold variant,
+reserve variant, breadth composition, or proof gate. If the standing decision
+accepts, rebaseline through the ordinary promotion workflow and clean up the
+now-default policy naming. If it rejects, restore the previous unset default;
+the explicit experimental policy and its evidence may remain, but no score
+salvage follows.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Exact Phase-D N8 combined premise | complete | Two disjoint targeted panels; +3.7417 +/- 1.4523, 80/80 valid |
+| 2026-08-15 | Candidate default and regression tests | pending | — |
+| 2026-08-15 | Canonical N48 adjudication | pending | — |

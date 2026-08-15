@@ -56,6 +56,7 @@
     "benchmark:v2:deferred-value-live-analysis": "node --import tsx scripts/benchmark/analyze_deferred_value_live.ts",
     "benchmark:v2:deferred-prefix-map-analysis": "node --import tsx scripts/benchmark/analyze_deferred_prefix_map.ts",
     "benchmark:v2:deferred-fixed-lookahead-analysis": "node --import tsx scripts/benchmark/analyze_deferred_fixed_lookahead.ts",
+    "benchmark:v2:deferred-pass-frontier-analysis": "node --import tsx scripts/benchmark/analyze_deferred_pass_frontier.ts",
     "benchmark:v2:action-set-power": "node --import tsx scripts/benchmark/action_set_power.ts",
     "benchmark:v2:low-budget-reading": "LR_ENGINE=wasm node --import tsx scripts/benchmark/low_budget_reading.ts",
     "benchmark:v2:fwd-metrics": "node --max-old-space-size=8192 --import tsx scripts/benchmark/fwd_metrics.ts",

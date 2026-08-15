@@ -247,5 +247,5 @@ panel, or repair on these cells, and do not launch canonical V2 here.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Rule, causal telemetry, and evidence gates frozen | complete | This section |
-| 2026-08-15 | V12 implementation and mechanical proof | pending | — |
+| 2026-08-15 | V12 implementation and mechanical proof | complete | Five-cell seed-179 trace smoke: all valid and first-terminal-identical; one action processes one pass node for 807 frames, then returns one unprocessed fallback node with exact episode/segment/attempt attribution and no output change |
 | 2026-08-15 | Fresh paired two-budget screen | pending | — |

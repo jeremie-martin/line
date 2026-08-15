@@ -1496,3 +1496,22 @@ at least eight runs and four sources at each budget. Otherwise close the exact
 rule. Candidate-breadth interaction, longer race horizons, and canonical
 Benchmark V2 remain out of scope until a value-ranked action has positive
 marginal evidence.
+
+### Phase A result
+
+The fixed map completed all 160 compiles (80 map cells and 80 references) with
+every cell valid. Track hashes, scores, validity, first-terminal frames, and
+repair-episode ledgers are exact in all 80 pairs, so the instrumentation is
+behavior-neutral on the declared panel.
+
+The score-blind rule selects 0.020 for the initial lane. It admits 823 of 831
+crossed watches at 750k and 561 of 561 at 1.25M, spanning all 40 runs and ten
+sources at each budget. The stricter 0.040 threshold admits 394 and 194; it
+misses the declared high-budget retention requirement by three admissions
+(194 is less than half of 394), so it is not selected despite otherwise broad
+coverage.
+
+The repair lane is closed. At the broadest 0.005 threshold it admits only 46
+watches across six runs at 750k, below the required eight; stricter thresholds
+are narrower. Phase B is therefore initial-only at density 0.020. No repair
+live arm, threshold exception, or score-based substitution is permitted.

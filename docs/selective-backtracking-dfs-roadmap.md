@@ -2496,8 +2496,9 @@ run a budget sweep.
 |---|---|---|---|
 | 2026-08-15 | Coupled allocation rule and fresh three-arm panel frozen | complete | This section; 11.25% is exactly 15% times the declared 3/4 breadth |
 | 2026-08-15 | Implementation and mechanical proof | complete: unit | Exact 61-width/11.25%-allowance/floor contracts; 56 focused tests; touched-file typecheck clean |
-| 2026-08-15 | Shared fresh allocation panel | pending | Phase D, refill, and coupled on seeds 198-201 |
-| 2026-08-15 | Canonical decision | not authorized | Requires coherent shared-cell allocation evidence first |
+| 2026-08-15 | Shared fresh allocation panel | complete: coupled favored | Coupled +90.3 vs Phase D and +27.7 vs refill; all 96 arm-cells valid |
+| 2026-08-15 | Source-native canonical challenger | complete | Unset default changed only after the frozen allocation panel |
+| 2026-08-15 | Canonical decision | running | Standing 750k sequential evaluator; Phase D remains governed baseline |
 
 The explicit policy is now source-native without changing the unset Phase D
 baseline. Its live opportunity ledger reports
@@ -2508,3 +2509,28 @@ checks policy identity, breadth rule and scale, the declared fraction, and the
 per-opportunity allowance arithmetic before summarizing any score. No
 production traversal, comparator, reserve, or repair behavior changes outside
 the explicit arm.
+
+The fresh panel confirms the allocation mechanism. Coupled versus Phase D is
++90.3 score points (+2.82/cell), with 16 better, 15 worse, one tied, all 32
+pairs valid, and three of four seed-block means positive. Coupled versus the
+15%-refill control is +27.7 (+0.86/cell), with 11 better, 11 worse, and ten
+tied. Transition mosaic supplies most of the Phase-D gain; dense recovery is
+the material negative source. These are canonical cautions, not fitted vetoes.
+
+The work movement is real but is not a linear breadth-to-repair-count law.
+Against refill, coupling admits 299 rather than 385 value actions, processes
+603 rather than 778 value-probe contact nodes, and spends 2,201,181 rather than
+2,778,521 probe frames. Mean first terminal is another 16,061 frames earlier.
+Repair then spends 8,179,071 rather than 7,652,180 frames, but across 128
+rather than 136 terminal-reaching attempts, with 51 rather than 52 accepted.
+The freed work therefore funds longer or earlier-anchored repairs, not more
+repair completions. Relative to Phase D, coupled remains 16,538 frames earlier
+to first terminal but spends 554,917 more repair frames across eleven fewer
+attempts. Preserve this attribution in the canonical interpretation.
+
+The arm passes every predeclared advancement condition: exact work
+displacement, no completion loss and positive score against Phase D, and a
+positive shared-cell contrast against refill. Make it the sole source-native
+challenger, retain Phase D in the benchmark baseline, and ask only the ordinary
+750k calibrated probability ladder. Do not fit the fund fraction, add a source
+exception, or run a multi-budget sweep.

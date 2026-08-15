@@ -2377,4 +2377,40 @@ threshold is authorized.
 |---|---|---|---|
 | 2026-08-15 | Inverse allocation rule and fresh panel frozen | complete | This section; categorical sign inversion, no fitted threshold |
 | 2026-08-15 | Explicit implementation and mechanical proof | complete: unit | Exact inverse sign/floor tests; 55 focused tests; scoped typecheck clean; one-budget analyzer is explicitly characterization-only |
-| 2026-08-15 | Same-cell three-arm panel | pending Phase-K decision | 750k only; eight sources x seeds 194-197 |
+| 2026-08-15 | Same-cell three-arm panel | complete: inverse favored | Nonpositive vs positive +82.3; nonpositive vs Phase D +25.4; 96/96 valid |
+| 2026-08-15 | Source-native canonical challenger | complete | Unset default changed only after Phase-K closure and the frozen three-arm panel |
+| 2026-08-15 | Canonical sequential decision | pending | Standing 750k N=8/16/32/48 evaluator; Phase D remains the governed baseline |
+
+The three-arm panel validates the intervention and overturns the rescue model.
+Every width trace is exact: the inverse arm uses 81 for all 387 first/unobserved
+expansions and all 113 positive-gain expansions, and 61 for all 278
+nonpositive-gain expansions. The positive-prefix control applies the exact
+opposite later rule (61 for 120 positive and 81 for 259 nonpositive). All 96
+runs remain valid.
+
+On the 32 shared cells, inverse beats positive-prefix by +82.3 score points
+(+2.57/cell): 17 improve, eight regress, seven tie; three of four seed-block
+means and six of eight source means favor the inverse. It wins every transition-
+mosaic seed and improves that source by +16.42/cell. Relative to accepted
+Phase D, the inverse is +25.4 (+0.79/cell), with 17 better, nine worse, and six
+tied. That baseline contrast is noisier (two positive seed blocks, one
+effectively tied, one negative; four positive and four negative source means),
+and retains a -23.09 dense-recovery tail. These cautions belong in canonical
+evidence; they are not new promotion vetoes.
+
+The work attribution is coherent rather than merely a score reshuffle. The
+inverse admits 387 value actions versus 374 positive-prefix and 373 Phase D,
+while spending 2.880M probe frames versus 2.876M and 2.915M. It reaches 321
+value-probe targets versus 315 in both controls. Against Phase D it completes
+142 repair attempts versus 136 and accepts 62 versus 53, although total repair
+frames fall 123,393; against positive-prefix it adds seven completed attempts
+and nine accepted repairs while using 162,565 fewer repair frames. Narrowing a
+lagging prefix therefore buys both more voluntary actions and more completed,
+accepted repairs on this panel. It does not establish a linear breadth-to-
+repair conversion, because route and anchor identity also change.
+
+This is broad enough and mechanically exact enough to ask the only promotion
+authority. Make nonpositive-prefix source-native as a frozen challenger, retain
+Phase D in the campaign baseline, and run the ordinary 750k canonical ladder.
+Do not extend positive-prefix toward its estimated 223 seeds, fit a gain
+threshold, add a tail exception, or run a multi-budget sweep.

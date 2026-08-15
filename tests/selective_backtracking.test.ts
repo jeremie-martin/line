@@ -23,9 +23,9 @@ const NO_EMPTY_POOL_RETRY = {
 describe("selective-backtracking controller", () => {
   test("parses a strict categorical frontier policy", () => {
     expect(parseFrontierTraversalPolicy(undefined))
-      .toBe("selective_axis_regret_catchup_value_initial_expire_10");
+      .toBe("selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix");
     expect(parseFrontierTraversalPolicy(""))
-      .toBe("selective_axis_regret_catchup_value_initial_expire_10");
+      .toBe("selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix");
     expect(parseFrontierTraversalPolicy("dfs")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("off")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");

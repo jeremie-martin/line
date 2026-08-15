@@ -2078,7 +2078,9 @@ global breadth scaling, repair breadth, or a multi-budget sweep.
 | 2026-08-15 | Probe-only three-quarter policy and telemetry | complete | Pure 81 -> 61/floor unit proof; focused 28-test suite; scoped TypeScript check |
 | 2026-08-15 | Reused-reference four-seed directional panel | complete: positive | `probe-breadth-3q-n4-seeds16-19` |
 | 2026-08-15 | Source-native canonical challenger | complete | Unset default changed only after Phase-F closure; focused 55-test suite passes |
-| 2026-08-15 | Canonical sequential decision | pending | Standing 750k N=8/16/32/48 ladder |
+| 2026-08-15 | Canonical N=8 look | continue | 607.08; delta -0.15 +/- 0.65 SE; P(positive)=40.93%; 352/352 valid |
+| 2026-08-15 | Canonical N=16 look | continue | 607.02; delta -0.06 +/- 0.42 SE; P(positive)=44.60%; 704/704 valid |
+| 2026-08-15 | Canonical minimum independent-evidence look | running | Continue to at least N=32 under the predeclared reuse correction |
 
 The directional panel authorizes canonical evaluation, but it overturns a
 third simplistic model. All 32 candidate/reference runs are valid and the
@@ -2104,3 +2106,16 @@ early. Require at least N=32, where the overlap is 1.14% of cells, and retain
 the standing calibrated directional-probability boundary as the only score
 criterion. This is a minimum evidence depth correcting reuse, not a new tail,
 source, or effect-size veto.
+
+The first two canonical looks are neutral, not adverse, and expose what the
+three-quarter arm actually controls. At the directional panel's exact probe
+boundary, atomic probe nodes become 9.6% cheaper on average (3,870 -> 3,497
+frames), but the fixed exploration fund reinvests that saving: actions rise
+184 -> 209 and processed probe nodes rise 379 -> 415. Consequently total probe
+frames are almost fixed (1,466,838 -> 1,451,235), while first completion moves
+later and repair loses work. This is a test of *more, cheaper tournaments*, not
+a test that releases three quarters of the nominal candidate saving to repair.
+The per-node candidate stream is nevertheless causally clean: the cache's
+sample-attempt contract makes the 61-wide pool an exact prefix of the 81-wide
+pool at the same node. Divergence begins only when an omitted attempt changes a
+selected child; it is not caused by advancing a shared global RNG.

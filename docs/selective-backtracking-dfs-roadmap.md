@@ -2007,5 +2007,75 @@ different high-value mechanism.
 | 2026-08-15 | Correct pre-target and threshold attribution | complete | `value-ranked-startup-expiration-canonical-attribution.json` schema v2 |
 | 2026-08-15 | First-deficit-stop implementation and unit telemetry | complete | Focused 27-test controller suite; scoped TypeScript check |
 | 2026-08-15 | One-seed trace ownership proof | complete | 19 exact stops; zero-stop control track-identical; all 8 runs valid |
-| 2026-08-15 | Four-seed directional panel | in progress | `first-deficit-stop-005-n4-seeds16-19` |
-| 2026-08-15 | Canonical sequential decision | pending | gated on directional panel |
+| 2026-08-15 | Four-seed directional panel | complete: adverse | `first-deficit-stop-005-n4-seeds16-19` |
+| 2026-08-15 | Canonical sequential decision | not authorized | Directional screen closed the exact rule |
+
+The directional panel closes first-deficit stopping. All 32 candidate/reference
+runs are valid, but 14/16 tracks change and the candidate loses 87.6 points in
+total (-5.48/cell): five improve, nine regress, and two tie. Three of four
+source controls lose; `regression_transition_mosaic` is -22.19 in its pooled
+four-seed source score. The mechanism does redirect work: 69 stops reduce value
+probe frames by 82,101, move aggregate first terminal 99,093 frames earlier,
+and add 116,090 repair frames. They also increase admitted actions from 184 to
+211. More nominal exploration does not compensate for interrupting these
+catch-ups; no threshold salvage or canonical run follows.
+
+## Phase H: separate speculative probe breadth from production breadth
+
+Phase B deliberately inherited full production breadth until value-ranked
+actions had positive evidence. Phase D is now accepted, so that deferred
+factorial is authorized. The checksum-bound N=32 archive contains 25,721
+ranked-option calls inside value probes, 2,079,911 requested normal proposals,
+2,713,346 candidate-geometry evaluations, and 102,522,844 charged probe frames.
+The weighted request is 80.86 candidates/call; the per-probe median and both
+quartiles are exactly 81. Full production sampling is therefore a concrete
+speculative cost, not a vague global-breadth hypothesis.
+
+Predeclare one categorical arm:
+`selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q`.
+Keep Phase-D admission, value ranking, 15% fund, 1.25 reserve, branch limit,
+endpoint comparator, production traversal, ordinary resumed traversal, and all
+repair traversal exact. Only after a value tournament is admitted, scale the
+already-resolved normal `nCand` by 3/4 after target-profile floors, rounded to
+the nearest integer and never below the production scarce-budget floor. At the
+750k surface this is 81 -> 61. Rescue lanes keep their explicit breadths.
+
+Keep admission's conservative work estimate at production breadth for this
+first arm. This prevents a second intervention in which cheaper assumed work
+admits a different initial action set; actual lower spend may still leave more
+of the existing exploration fund for later opportunities. The atomic budget
+guard observes actual reduced-width cost after execution. Telemetry must name
+the probe-only breadth rule and scale, while each probe continues to report its
+actual ranked-option calls, requested proposals, geometry evaluations, nodes,
+and frames.
+
+Mechanically prove 81 -> 61, floor preservation, unchanged no-action cells,
+and exact production/reference identity outside value probes. Reuse the Phase-G
+four-source/four-seed reference rather than recompiling it. The directional
+screen must report proposal and frame displacement in addition to score and
+validity. Only a non-adverse broad result authorizes the ordinary 750k canonical
+ladder. Do not combine this arm with first-deficit stopping, stable priority,
+global breadth scaling, repair breadth, or a multi-budget sweep.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Exact accepted-run probe economics | complete | Attribution schema v3; 2.08M normal proposals at weighted nCand 80.86 |
+| 2026-08-15 | Probe-only three-quarter policy and telemetry | complete | Pure 81 -> 61/floor unit proof; focused 28-test suite; scoped TypeScript check |
+| 2026-08-15 | Reused-reference four-seed directional panel | complete: positive | `probe-breadth-3q-n4-seeds16-19` |
+| 2026-08-15 | Source-native canonical challenger | pending | Wait for Phase-F N=48 closure, then change only the unset default |
+
+The directional panel authorizes canonical evaluation, but it overturns a
+third simplistic model. All 32 candidate/reference runs are valid and the
+candidate gains 28.9 run-score points (+1.81/cell), with capability +3.69 and
+legacy +10.57 but representative -1.35 and music -5.30. Seven cells improve
+and nine regress; every track changes, so only the canonical suite can decide.
+
+Every candidate probe call requests exactly 61 normal proposals. Nevertheless,
+calls rise 382 -> 421 and actions rise 184 -> 209, so total proposals fall only
+30,939 -> 25,795 (-16.6%) and probe frames only 1,466,838 -> 1,451,235 (-1.1%).
+Aggregate first terminal is 315,441 frames later, repair loses 303,900 frames,
+and distinct terminal tracks fall 101 -> 89. The positive score is therefore
+not evidence that narrow probes create more repair; it is evidence that the
+different catch-up search shape can improve local choices despite consuming
+nearly the same probe work. Preserve these adverse mechanics in the canonical
+test rather than relabeling the arm as an efficiency win.

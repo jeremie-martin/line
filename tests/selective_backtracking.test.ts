@@ -4,6 +4,7 @@ import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
+  valueProbeCandidateCount,
 } from "../scripts/v0/optimizer/selective_backtracking.ts";
 
 type Node = { gap: number; name: string };
@@ -54,6 +55,11 @@ describe("selective-backtracking controller", () => {
       "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005",
     );
     expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q",
+    )).toBe(
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q",
+    );
+    expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-initial-expire-10-run-proof",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10_run_proof");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
@@ -83,6 +89,26 @@ describe("selective-backtracking controller", () => {
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy("best-first")).toThrow(/LR_FRONTIER_POLICY/);
+  });
+
+  test("scales only value-probe breadth and preserves the production floor", () => {
+    const probePolicy =
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q";
+    expect(valueProbeCandidateCount(probePolicy, 81, 8)).toBe(61);
+    expect(valueProbeCandidateCount(probePolicy, 8, 8)).toBe(8);
+    expect(valueProbeCandidateCount(
+      "selective_axis_regret_catchup_value_initial_expire_10",
+      81,
+      8,
+    )).toBe(81);
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: probePolicy,
+    });
+    expect(controller.snapshot()).toMatchObject({
+      catchup_priority_rule: "endpoint_gain",
+      value_probe_candidate_breadth_rule: "three_quarter_after_floor",
+      value_probe_candidate_breadth_scale: 0.75,
+    });
   });
 
   test("uses the exact sign of equal-depth axis gain", () => {

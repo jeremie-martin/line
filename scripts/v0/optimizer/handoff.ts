@@ -230,6 +230,7 @@ import {
   type SelectiveDeferredValueAxisComparison,
   type SelectiveDeferredValueCheckpoint,
   type SelectiveDeferredValueDecision,
+  valueProbeCandidateCount,
 } from "./selective_backtracking.ts";
 import {
   applyImpactWindowAccelerationAfterReference,
@@ -2864,6 +2865,7 @@ function compileHandoffInternal(
       executionCeilingFrames: number,
       allowSelectiveBacktracking = true,
       allowSpeculativeTailCompletion = true,
+      policyTransform?: (policy: HandoffSearchPolicy) => HandoffSearchPolicy,
     ): ProcessResult => {
       const atomicStart = getSimFrames();
       const registerImprovementsBefore = register.improvementCount;
@@ -3024,7 +3026,8 @@ function compileHandoffInternal(
           });
         }
       }
-      const policy = resolvePolicy(node.search);
+      const resolvedPolicy = resolvePolicy(node.search);
+      const policy = policyTransform?.(resolvedPolicy) ?? resolvedPolicy;
       atomicPolicy = policy;
 
       const tailNode = allowSpeculativeTailCompletion
@@ -3190,6 +3193,7 @@ function compileHandoffInternal(
         resumeSuspendedContinuation: boolean,
         allowSelectiveBacktracking: boolean,
         allowSpeculativeTailCompletion = true,
+        policyTransform?: (policy: HandoffSearchPolicy) => HandoffSearchPolicy,
       ): ProcessResult => {
         selectiveBacktracking?.observeRoot(node);
         if (handoffFrontierProbeHook !== null) {
@@ -3222,6 +3226,7 @@ function compileHandoffInternal(
           executionCeilingFrames,
           allowSelectiveBacktracking,
           allowSpeculativeTailCompletion,
+          policyTransform,
         );
         onProcessed?.();
         return result;
@@ -3246,6 +3251,20 @@ function compileHandoffInternal(
         }> = [];
         let tournamentBudgetYielded = false;
         let tournamentFirstDeficitStopped = false;
+        const probePolicyTransform:
+          ((policy: HandoffSearchPolicy) => HandoffSearchPolicy) | undefined =
+            decision.triggerSignal === "value_exploration" &&
+              frontierTraversalPolicy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q"
+              ? (policy) => ({
+                ...policy,
+                nCand: valueProbeCandidateCount(
+                  frontierTraversalPolicy,
+                  policy.nCand,
+                  HANDOFF_QUALITY_N_CAND_FLOOR,
+                ),
+              })
+              : undefined;
         const finishTournament = (
           outcome: "alternative_selected" | "current_selected" |
             "probe_dead_end" | "probe_deferred" | "probe_budget_yield" |
@@ -3426,6 +3445,7 @@ function compileHandoffInternal(
               resumeProbe,
               false,
               decision.triggerSignal !== "value_exploration",
+              probePolicyTransform,
             );
             atomicNodeFrames.push(getSimFrames() - atomicStartFrames);
             resumeProbe = false;

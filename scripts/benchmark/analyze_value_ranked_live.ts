@@ -24,10 +24,11 @@ const expectedPolicy = argument("policy") ??
   "selective_axis_regret_catchup_value_initial";
 if (
   expectedPolicy !== "selective_axis_regret_catchup_value_initial" &&
-  expectedPolicy !== "selective_axis_regret_catchup_value_initial_progress_10"
+  expectedPolicy !== "selective_axis_regret_catchup_value_initial_progress_10" &&
+  expectedPolicy !== "selective_axis_regret_catchup_value_initial_expire_10"
 ) throw new Error(`unsupported value-ranked live policy ${expectedPolicy}`);
 const expectedMinimumGapProgress =
-  expectedPolicy === "selective_axis_regret_catchup_value_initial_progress_10" ? 0.10 : 0;
+  expectedPolicy === "selective_axis_regret_catchup_value_initial" ? 0 : 0.10;
 
 const candidate = readGridArm("value-initial", candidatePath);
 const reference = readGridArm("reference", referencePath);
@@ -101,6 +102,10 @@ const result = {
     minimum_gap_progress: expectedMinimumGapProgress,
     terminal_reserve_factor: 1.25,
     exploration_budget_fraction: 0.15,
+    pre_horizon_opportunity_behavior:
+      expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10"
+        ? "expire"
+        : expectedMinimumGapProgress > 0 ? "defer" : "eligible",
     speculative_tail_completion_inside_value_probe: false,
   },
   by_budget: byBudget,
@@ -148,6 +153,8 @@ function summarizeAndValidateMechanics(rows: any[]): any {
     admitted: 0,
     ranked_out: 0,
     production_priority: 0,
+    progress_suppressed_watches: 0,
+    progress_expired_watches: 0,
     alternative_unavailable: 0,
     execution_ceiling_suppressed: 0,
     terminal_reserve_suppressed: 0,
@@ -191,6 +198,7 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       admitted: "value_live_admitted",
       ranked_out: "value_live_ranked_out",
       production_priority: "value_live_production_priority",
+      progress_expired: "value_live_progress_expired_watches",
       alternative_unavailable: "value_live_alternative_unavailable",
       execution_ceiling: "value_live_execution_ceiling_suppressed",
       terminal_reserve: "value_live_terminal_reserve_suppressed",
@@ -203,6 +211,19 @@ function summarizeAndValidateMechanics(rows: any[]): any {
       if ((counts[outcome] ?? 0) !== (stats[counter] ?? 0)) {
         throw new Error(`${label}: live ${outcome} ledger mismatch`);
       }
+    }
+    const expired = opportunities.filter(
+      (opportunity: any) => opportunity.outcome === "progress_expired",
+    );
+    if (
+      expired.some((opportunity: any) =>
+        !(opportunity.point.gap_progress < expectedMinimumGapProgress)
+      ) ||
+      (expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10"
+        ? expired.length !== (stats.value_live_progress_expired_watches ?? 0)
+        : expired.length !== 0)
+    ) {
+      throw new Error(`${label}: invalid pre-horizon expiration attribution`);
     }
     if (
       events.length !== stats.value_live_admitted ||
@@ -301,6 +322,10 @@ function summarizeAndValidateMechanics(rows: any[]): any {
     totals.admitted += stats.value_live_admitted;
     totals.ranked_out += stats.value_live_ranked_out;
     totals.production_priority += stats.value_live_production_priority;
+    totals.progress_suppressed_watches +=
+      stats.value_live_progress_suppressed_watches ?? 0;
+    totals.progress_expired_watches +=
+      stats.value_live_progress_expired_watches ?? 0;
     totals.alternative_unavailable += stats.value_live_alternative_unavailable;
     totals.execution_ceiling_suppressed += stats.value_live_execution_ceiling_suppressed;
     totals.terminal_reserve_suppressed += stats.value_live_terminal_reserve_suppressed;

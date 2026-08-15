@@ -1005,7 +1005,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       const budget = event.value_budget;
       if (
         (stats.policy !== "selective_axis_regret_catchup_value_initial" &&
-          stats.policy !== "selective_axis_regret_catchup_value_initial_progress_10") ||
+          stats.policy !== "selective_axis_regret_catchup_value_initial_progress_10" &&
+          stats.policy !== "selective_axis_regret_catchup_value_initial_expire_10") ||
         event.lane !== "initial" ||
         budget?.admitted !== true || budget?.reason !== "admitted" ||
         event.periodic_budget !== null

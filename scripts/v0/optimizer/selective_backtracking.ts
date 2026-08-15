@@ -19,6 +19,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last"
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix"
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix"
+  | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill"
   | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
 
 export type SelectiveBacktrackSignal =
@@ -50,6 +51,8 @@ export const SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD = 0.02;
 export const SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS = 0.10;
 export const SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP = 0.005;
 export const SELECTIVE_VALUE_PROBE_BREADTH_SCALE = 3 / 4;
+/** Exact decimal representation of 15% * 3/4. */
+export const SELECTIVE_VALUE_COUPLED_EXPLORATION_BUDGET_FRACTION = 0.1125;
 export const SELECTIVE_DEFERRED_VALUE_ALLOWANCE_FRACTIONS = [0.15, 0.25, 0.40] as const;
 export const SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION = 0.40;
 export const SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION = 0.40;
@@ -142,6 +145,10 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
     "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-nonpositive-prefix") {
     return "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix";
   }
+  if (raw ===
+    "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-no-refill") {
+    return "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill";
+  }
   if (raw === "selective-axis-regret-catchup-value-initial-expire-10-run-proof") {
     return "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
   }
@@ -167,8 +174,21 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-before-last, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-positive-prefix, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-nonpositive-prefix, or ` +
+      `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-no-refill, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-run-proof; got ${raw}`,
   );
+}
+
+/** The live value lane ordinarily owns 15% of the search-policy budget. The
+ * coupled arm scales that fund by the same exact factor as candidate breadth,
+ * so cheaper nodes cannot silently buy additional speculative nodes. */
+export function valueExplorationBudgetFraction(
+  policy: FrontierTraversalPolicy,
+): number {
+  return policy ===
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill"
+    ? SELECTIVE_VALUE_COUPLED_EXPLORATION_BUDGET_FRACTION
+    : SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION;
 }
 
 export type SelectiveExplorationBudgetAssessment = {
@@ -202,7 +222,9 @@ export function valueProbeCandidateCount(
     policy !==
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" &&
     policy !==
-      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix"
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" &&
+    policy !==
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill"
   ) {
     return resolvedNCand;
   }
@@ -662,6 +684,7 @@ export type SelectiveBacktrackingStats = {
   value_opportunities: SelectiveValueOpportunity[];
   value_live_density_threshold: number;
   value_live_min_gap_progress: number;
+  value_live_exploration_budget_fraction: number;
   value_live_progress_suppressed_watches: number;
   value_live_progress_expired_watches: number;
   value_live_run_proof_state:
@@ -914,7 +937,9 @@ export class SelectiveAxisRegretController<Node extends object> {
                 "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix"
               ? "full_first_then_three_quarter_while_prefix_nonpositive"
                 : this.policy ===
-                    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q"
+                    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
+                    this.policy ===
+                      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill"
                   ? "three_quarter_after_floor"
                   : "production",
       value_probe_candidate_breadth_scale:
@@ -929,7 +954,9 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
           this.policy ===
-            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix"
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" ||
+          this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill"
           ? SELECTIVE_VALUE_PROBE_BREADTH_SCALE
           : 1,
       catchup_endpoint_winners_suppressed_unstable: 0,
@@ -964,6 +991,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       value_opportunities_by_density: emptyValueOpportunityCounter(),
       value_opportunities: [],
       value_live_density_threshold: SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD,
+      value_live_exploration_budget_fraction:
+        valueExplorationBudgetFraction(this.policy),
       value_live_min_gap_progress:
         this.policy === "selective_axis_regret_catchup_value_initial_progress_10" ||
           this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
@@ -983,6 +1012,8 @@ export class SelectiveAxisRegretController<Node extends object> {
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" ||
+          this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill" ||
           this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
           ? SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS
           : 0,
@@ -1685,6 +1716,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" ||
           this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill" ||
+          this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
@@ -1744,6 +1777,8 @@ export class SelectiveAxisRegretController<Node extends object> {
                 "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" ||
+              this.policy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
             ) {
@@ -2022,6 +2057,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
         this.policy ===
           "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" ||
+        this.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill" ||
         this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
       valueLiveCandidates.length > 0
     ) {

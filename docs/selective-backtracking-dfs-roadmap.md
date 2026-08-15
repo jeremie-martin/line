@@ -2495,6 +2495,16 @@ run a budget sweep.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Coupled allocation rule and fresh three-arm panel frozen | complete | This section; 11.25% is exactly 15% times the declared 3/4 breadth |
-| 2026-08-15 | Implementation and mechanical proof | pending | Explicit policy, allowance telemetry, focused tests |
+| 2026-08-15 | Implementation and mechanical proof | complete: unit | Exact 61-width/11.25%-allowance/floor contracts; 56 focused tests; touched-file typecheck clean |
 | 2026-08-15 | Shared fresh allocation panel | pending | Phase D, refill, and coupled on seeds 198-201 |
 | 2026-08-15 | Canonical decision | not authorized | Requires coherent shared-cell allocation evidence first |
+
+The explicit policy is now source-native without changing the unset Phase D
+baseline. Its live opportunity ledger reports
+`value_live_exploration_budget_fraction = 0.1125`; compiler-level tests verify
+that every observed 20k opportunity receives exactly 2,250 frames while the
+uniform refill policy remains at 15%. The value-ranked analyzer independently
+checks policy identity, breadth rule and scale, the declared fraction, and the
+per-opportunity allowance arithmetic before summarizing any score. No
+production traversal, comparator, reserve, or repair behavior changes outside
+the explicit arm.

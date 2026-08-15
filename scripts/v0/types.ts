@@ -518,6 +518,7 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last"
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix"
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix"
+      | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill"
       | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
     deferred_value_density_threshold: number;
     deferred_value_min_gap_progress: number;
@@ -555,6 +556,10 @@ export type CompileStats = {
       | "full_first_then_three_quarter_while_prefix_positive"
       | "full_first_then_three_quarter_while_prefix_nonpositive";
     value_probe_candidate_breadth_scale: number;
+    value_live_exploration_budget_fraction: number;
+    value_live_opportunities: Array<
+      import("./optimizer/selective_backtracking.ts").SelectiveValueLiveOpportunity
+    >;
     catchup_endpoint_winners_suppressed_unstable: number;
     mature_axis_loss_delta_max: number;
     /** Observation-only unique causal-watch counts. `crossed_watches` reached

@@ -413,6 +413,35 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     }
   }, 60_000);
 
+  test("couples narrowed value-probe breadth to an 11.25% live allowance", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const previous = process.env.LR_FRONTIER_POLICY;
+    try {
+      process.env.LR_FRONTIER_POLICY =
+        "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-no-refill";
+      const result = compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+        budgetTelemetry: "summary",
+      });
+      const stats = result.stats.handoff_selective_backtracking!;
+      expect(stats.policy).toBe(
+        "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill",
+      );
+      expect(stats.value_probe_candidate_breadth_rule)
+        .toBe("three_quarter_after_floor");
+      expect(stats.value_live_exploration_budget_fraction).toBe(0.1125);
+      expect(stats.value_live_opportunities.length).toBeGreaterThan(0);
+      expect(stats.value_live_opportunities.every((opportunity) =>
+        opportunity.point.budget.exploration_allowance_frames === 2_250
+      )).toBe(true);
+    } finally {
+      if (previous === undefined) delete process.env.LR_FRONTIER_POLICY;
+      else process.env.LR_FRONTIER_POLICY = previous;
+    }
+  }, 60_000);
+
   test("deferred value map preserves production traversal and first-terminal identity", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previous = process.env.LR_FRONTIER_POLICY;

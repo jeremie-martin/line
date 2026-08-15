@@ -220,7 +220,6 @@ import {
   SELECTIVE_DEFERRED_PREFIX_GATE_LOSS_DELTA,
   SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION,
   SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION,
-  SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION,
   SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR,
   SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP,
   SelectiveAxisRegretController,
@@ -230,6 +229,7 @@ import {
   type SelectiveDeferredValueAxisComparison,
   type SelectiveDeferredValueCheckpoint,
   type SelectiveDeferredValueDecision,
+  valueExplorationBudgetFraction,
   valueProbeCandidateCountAtRoutePosition,
   valueProbeEmptyFallbackCandidateCount,
 } from "./selective_backtracking.ts";
@@ -3020,7 +3020,7 @@ function compileHandoffInternal(
               SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR * terminalWork,
             );
             const explorationAllowance = Math.floor(
-              SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION * searchPolicyBudget,
+              valueExplorationBudgetFraction(frontierTraversalPolicy) * searchPolicyBudget,
             );
             const explorationRemaining = Math.max(
               0,
@@ -3294,7 +3294,9 @@ function compileHandoffInternal(
             frontierTraversalPolicy ===
               "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
             frontierTraversalPolicy ===
-              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix");
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" ||
+            frontierTraversalPolicy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill");
         const probePolicyTransformAt = (
           processedContactNodes: number,
           remainingContactExpansions: number,

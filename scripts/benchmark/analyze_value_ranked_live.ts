@@ -27,9 +27,13 @@ if (
   expectedPolicy !== "selective_axis_regret_catchup_value_initial_progress_10" &&
   expectedPolicy !== "selective_axis_regret_catchup_value_initial_expire_10" &&
   expectedPolicy !==
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" &&
+  expectedPolicy !==
     "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" &&
   expectedPolicy !==
     "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" &&
+  expectedPolicy !==
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill" &&
   expectedPolicy !== "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
 ) throw new Error(`unsupported value-ranked live policy ${expectedPolicy}`);
 const expectedMinimumGapProgress =
@@ -39,10 +43,22 @@ const runProofEnabled =
 const expirationEnabled =
   expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10" ||
   expectedPolicy ===
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
+  expectedPolicy ===
     "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
   expectedPolicy ===
     "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" ||
+  expectedPolicy ===
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill" ||
   runProofEnabled;
+const expectedExplorationBudgetFraction = expectedPolicy ===
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill"
+  ? 0.1125
+  : 0.15;
+const expectedUniformNarrowBreadth = expectedPolicy ===
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
+  expectedPolicy ===
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_no_refill";
 
 const candidate = readGridArm("value-initial", candidatePath);
 const reference = readGridArm("reference", referencePath);
@@ -122,7 +138,7 @@ const result = {
     density_threshold: 0.02,
     minimum_gap_progress: expectedMinimumGapProgress,
     terminal_reserve_factor: 1.25,
-    exploration_budget_fraction: 0.15,
+    exploration_budget_fraction: expectedExplorationBudgetFraction,
     pre_horizon_opportunity_behavior:
       expirationEnabled
         ? "expire"
@@ -237,7 +253,29 @@ function summarizeAndValidateMechanics(rows: any[]): any {
     if ((stats.value_live_min_gap_progress ?? 0) !== expectedMinimumGapProgress) {
       throw new Error(`${label}: unexpected minimum gap progress`);
     }
+    if (
+      stats.value_live_exploration_budget_fraction !==
+        expectedExplorationBudgetFraction
+    ) {
+      throw new Error(`${label}: unexpected live exploration budget fraction`);
+    }
+    if (
+      expectedUniformNarrowBreadth &&
+      (stats.value_probe_candidate_breadth_rule !== "three_quarter_after_floor" ||
+        stats.value_probe_candidate_breadth_scale !== 0.75)
+    ) {
+      throw new Error(`${label}: unexpected coupled probe-breadth contract`);
+    }
     const opportunities = stats.value_live_opportunities ?? [];
+    const expectedExplorationAllowance = Math.floor(
+      expectedExplorationBudgetFraction * row.task.budget,
+    );
+    if (opportunities.some((opportunity: any) =>
+      opportunity.point.budget.exploration_allowance_frames !==
+        expectedExplorationAllowance
+    )) {
+      throw new Error(`${label}: live exploration allowance does not match its fraction`);
+    }
     const events = (stats.events ?? []).filter(
       (event: any) => event.trigger_signal === "value_exploration",
     );

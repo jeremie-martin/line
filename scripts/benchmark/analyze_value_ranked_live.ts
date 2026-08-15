@@ -26,6 +26,10 @@ if (
   expectedPolicy !== "selective_axis_regret_catchup_value_initial" &&
   expectedPolicy !== "selective_axis_regret_catchup_value_initial_progress_10" &&
   expectedPolicy !== "selective_axis_regret_catchup_value_initial_expire_10" &&
+  expectedPolicy !==
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" &&
+  expectedPolicy !==
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" &&
   expectedPolicy !== "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
 ) throw new Error(`unsupported value-ranked live policy ${expectedPolicy}`);
 const expectedMinimumGapProgress =
@@ -34,6 +38,10 @@ const runProofEnabled =
   expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
 const expirationEnabled =
   expectedPolicy === "selective_axis_regret_catchup_value_initial_expire_10" ||
+  expectedPolicy ===
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_positive_prefix" ||
+  expectedPolicy ===
+    "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_nonpositive_prefix" ||
   runProofEnabled;
 
 const candidate = readGridArm("value-initial", candidatePath);
@@ -43,7 +51,7 @@ const candidateRows = rowsByKey(candidate);
 const referenceRows = rowsByKey(reference);
 const budgets = [...new Set([...candidate.cells.values()].map((cell) => cell.budget))]
   .sort((a, b) => a - b);
-if (budgets.length !== 2) throw new Error("value-ranked live screen requires two budgets");
+if (budgets.length === 0) throw new Error("value-ranked analysis has no budgets");
 
 const byBudget = Object.fromEntries(budgets.map((budget) => {
   const pairs = [...candidate.cells.values()]
@@ -83,7 +91,8 @@ const byBudget = Object.fromEntries(budgets.map((budget) => {
 
 const budgetRows = budgets.map((budget) => byBudget[String(budget)] as any);
 const positiveSeedBlocks = budgetRows.map((row) => row.gate.positive_seed_blocks);
-const screenPassed = budgetRows.every((row) =>
+const twoBudgetScreen = budgets.length === 2;
+const screenPassed = !twoBudgetScreen ? null : budgetRows.every((row) =>
   row.gate.all_candidate_cells_valid &&
   row.gate.positive_total_score &&
   row.gate.positive_active_mean &&
@@ -95,7 +104,7 @@ const screenPassed = budgetRows.every((row) =>
 ) && Math.max(...positiveSeedBlocks) >= 3 && Math.min(...positiveSeedBlocks) >= 2;
 
 const result = {
-  schema: "line.value-ranked-selective-dfs-live-analysis.v1",
+  schema: "line.value-ranked-selective-dfs-live-analysis.v2",
   generated_at: new Date().toISOString(),
   scope: {
     budgets,
@@ -103,7 +112,9 @@ const result = {
     sources: [...new Set([...candidate.cells.values()].map((cell) => cell.sourceId))].sort(),
     cells: candidate.cells.size,
     interpretation:
-      "Matched compact-panel screen of the predeclared initial-only density-0.020 rule; not canonical evidence.",
+      twoBudgetScreen
+        ? "Matched compact-panel screen of the predeclared initial-only density-0.020 rule; not canonical evidence."
+        : "Matched one-budget characterization of the initial-only density-0.020 rule; no continuation decision and not canonical evidence.",
   },
   contract: {
     expected_policy: expectedPolicy,
@@ -124,13 +135,16 @@ const result = {
   },
   by_budget: byBudget,
   continuation_gate: {
+    applicable: twoBudgetScreen,
     positive_seed_blocks_by_budget: Object.fromEntries(
       budgets.map((budget, index) => [String(budget), positiveSeedBlocks[index]]),
     ),
     passed: screenPassed,
-    consequence: screenPassed
-      ? "The exact rule merits one fresh confirmation panel; it is not promoted."
-      : "Close the exact rule without confirmation or canonical Benchmark V2.",
+    consequence: screenPassed === null
+      ? "Not applicable: one-budget mode is characterization only."
+      : screenPassed
+        ? "The exact rule merits one fresh confirmation panel; it is not promoted."
+        : "Close the exact rule without confirmation or canonical Benchmark V2.",
   },
 };
 
@@ -698,10 +712,10 @@ function printResult(value: any): void {
       );
     }
   }
-  console.log(
-    `gate ${value.continuation_gate.passed ? "PASS" : "CLOSE"}: ` +
-      value.continuation_gate.consequence,
-  );
+  console.log(value.continuation_gate.passed === null
+    ? `gate N/A: ${value.continuation_gate.consequence}`
+    : `gate ${value.continuation_gate.passed ? "PASS" : "CLOSE"}: ` +
+      value.continuation_gate.consequence);
 }
 
 function signed(value: number, digits: number): string {

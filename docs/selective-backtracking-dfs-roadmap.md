@@ -2366,5 +2366,5 @@ threshold is authorized.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Inverse allocation rule and fresh panel frozen | complete | This section; categorical sign inversion, no fitted threshold |
-| 2026-08-15 | Explicit implementation and mechanical proof | in progress | Source-native default remains the frozen Phase-K challenger |
+| 2026-08-15 | Explicit implementation and mechanical proof | complete: unit | Exact inverse sign/floor tests; 55 focused tests; scoped typecheck clean; one-budget analyzer is explicitly characterization-only |
 | 2026-08-15 | Same-cell three-arm panel | pending Phase-K decision | 750k only; eight sources x seeds 194-197 |

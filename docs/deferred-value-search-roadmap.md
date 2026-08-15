@@ -135,6 +135,8 @@ inside this campaign.
 | 2026-08-15 | Semantics, map gate, live gate, and stopping rules frozen | complete | This document |
 | 2026-08-15 | Mechanism-smoke allowance correction | complete | The old equal-depth 15% share afforded a full suffix in only 2/10 smoke cells. Before fixed evidence, replace the single share with the score-blind 15/25/40 coverage bracket above. No smoke score is used. |
 | 2026-08-15 | Fixed survival map | complete, gate passed | 80/80 exact paired cells; the score-blind rule selects 40% |
+| 2026-08-15 | Isolated live implementation | complete | Dedicated Budget Telemetry V10 `deferred_value` lane; one rank-one exact sibling; atomic admission; no speculative tail; all surviving local nodes returned before repair |
+| 2026-08-15 | Live mechanism smoke | complete | Eight cells across both budgets and four sources: 8/8 selected, 7/8 reached a terminal, 3/8 improved the internal terminal register, one yielded before another atomic node, zero speculative-tail attempts, and exact first-terminal frame/hash in every pair. This one-seed smoke validates mechanics only; its scores do not alter the frozen rule or gate. |
 
 ## Phase A result
 

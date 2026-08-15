@@ -64,7 +64,12 @@ export type BudgetEstimatorApplicability =
   | "calibrated"
   | "extrapolated_policy_budget"
   | "unvalidated_attempt_kind";
-export type BudgetEstimatorAttemptKind = "initial" | "snapshot" | "repair" | "resumed";
+export type BudgetEstimatorAttemptKind =
+  | "initial"
+  | "snapshot"
+  | "deferred_value"
+  | "repair"
+  | "resumed";
 
 /**
  * The artifact's structural block: V1's three coefficients plus the optional

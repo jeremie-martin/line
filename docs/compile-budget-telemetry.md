@@ -1,4 +1,4 @@
-# Compile budget telemetry V9
+# Compile budget telemetry V10
 
 ## Contract
 
@@ -10,8 +10,8 @@ compiler search work:
 - `trace`: the summary payload plus estimator observations and atomic node
   events.
 
-The schema is `line.compile-budget-telemetry.v9`. Readers accept that exact
-schema only. V1–V8 archives are historical evidence with different attempt,
+The schema is `line.compile-budget-telemetry.v10`. Readers accept that exact
+schema only. V1–V9 archives are historical evidence with different attempt,
 identity, repair-selection, target-attribution, or working-track semantics; a
 reader must not rename their fields or fall back to `compile_stats`.
 
@@ -46,6 +46,7 @@ A lane says which control-flow owner received the work:
 
 - `initial`: normal first search;
 - `snapshot`: search resumed from an externally supplied prefix snapshot;
+- `deferred_value`: one explicitly selected post-first-terminal suffix search;
 - `repair`: post-first-completion improvement work;
 - `resumed`: the original initial frontier after repair releases unused budget.
 
@@ -121,8 +122,14 @@ law while two repairs fit. When they do not, it spends the final iteration from
 the production deepest affordable anchor. The two categorical names remain
 distinct because their completed archives have different semantics.
 
+The `deferred_value` lane is neither repair nor resumed search. Its episode is
+bounded by the score-blind exploration allowance, owns no repair decision,
+stops after one terminal offer or a local yield, and returns every unconsumed
+frontier node before ordinary repair begins. Its estimator applicability is
+reported honestly as `unvalidated_attempt_kind` until that lane is calibrated.
+
 An execution interval accounts for wall-to-wall charged compiler work such as
-startup, initial search, frontier repair, resumed search, or
+startup, initial search, deferred-value suffix search, frontier repair, resumed search, or
 finalization. Intervals form a contiguous partition of total charged work in a
 closed payload. They answer where frames went; episodes answer which search or
 repair allocation caused outcomes.
@@ -156,7 +163,7 @@ The following identity is enforced:
 actual candidate samples = sum(candidate samples by stream)
 ```
 
-No V8 field counts normal-prefix cache hits or misses. Consequently,
+No V10 field counts normal-prefix cache hits or misses. Consequently,
 `ranked_option_calls` must not be used to infer fresh sampler builds. Actual samples per
 ranked-option call can change because of prefix reuse, internal rollout calls,
 extra streams, retry behavior, and optional sibling evaluations. A future
@@ -172,7 +179,7 @@ than infer one from these populations.
 Candidate breadth does not determine node count arithmetically. Breadth affects
 pool work and ranking; child limits, viability, frontier order, failures,
 tail-completion behavior, and local ceilings determine how many nodes the
-remaining budget can process. V8 records both sides so this relationship is an
+remaining budget can process. V10 records both sides so this relationship is an
 empirical result rather than an assumption.
 
 ### Register and terminal work
@@ -205,7 +212,7 @@ register offers = partial evaluations + terminal evaluations
 Geometry identity is exact within the scope that owns the work record. The
 compile record detects repeats across the entire compile. An episode record
 detects repeats only inside that episode; summing episode-level distinct counts
-does not detect the same geometry appearing in two different episodes. V8 does
+does not detect the same geometry appearing in two different episodes. V10 does
 not separately attribute compile-global geometry repeats by lane, so reports
 must not call a sum of repair episodes “cross-repair duplicate tracks.”
 
@@ -328,7 +335,7 @@ overwrite duplicate cells.
 - `scripts/v0/analyze_budget_telemetry.ts`: strict multi-payload validation and
   descriptive aggregate analysis.
 - `scripts/benchmark/analyze_scale_mechanics.ts`: paired multi-budget mechanics
-  comparison using V8 only.
+  comparison using the current clean-break schema only.
 
 For naming and architecture rationale, see
 [`compiler-telemetry-foundation.md`](compiler-telemetry-foundation.md).

@@ -51,7 +51,7 @@ type Event = {
     | "repair_incumbent_regret"
     | "periodic_exploration"
     | "value_exploration";
-  lane: "initial" | "snapshot" | "repair" | "resumed";
+  lane: "initial" | "snapshot" | "deferred_value" | "repair" | "resumed";
   trigger_axis_loss: number;
   incumbent_axis_loss: number | null;
   incumbent_axis_loss_delta: number | null;

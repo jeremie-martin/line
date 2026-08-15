@@ -325,12 +325,12 @@ describe("describe_budget_telemetry", () => {
   });
 
   test("rejects historical and structurally incomplete payloads", () => {
-    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v9/);
+    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v10/);
     expect(() => render({
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    })).toThrow(/expected line\.compile-budget-telemetry\.v9/);
+    })).toThrow(/expected line\.compile-budget-telemetry\.v10/);
     expect(() => render({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],

@@ -26,6 +26,8 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup_value_map");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-deferred-map"))
       .toBe("selective_axis_regret_catchup_value_deferred_map");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-deferred-initial"))
+      .toBe("selective_axis_regret_catchup_value_deferred_initial");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-initial"))
       .toBe("selective_axis_regret_catchup_value_initial");
     expect(parseFrontierTraversalPolicy(
@@ -420,6 +422,40 @@ describe("selective-backtracking controller", () => {
       alternativeAvailable: () => true,
       estimatedSuffixWorkFrames: () => 50_000,
     })).toThrow(/sealed more than once/);
+  });
+
+  test("records exactly one rank-one deferred suffix attempt", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_deferred_initial",
+    });
+    const attempt = {
+      watch_id: 7,
+      affordable_rank: 1,
+      start_gap_index: 4,
+      start_total_spent_frames: 300_000,
+      end_total_spent_frames: 380_000,
+      estimated_suffix_work_frames: 75_000,
+      local_allowance_frames: 300_000,
+      execution_ceiling_frames: 600_000,
+      outcome: "terminal_reached" as const,
+      nodes_processed: 5,
+      atomic_node_frames: [10_000, 20_000, 15_000, 20_000, 15_000],
+      ranked_option_calls: 5,
+      requested_normal_proposals: 400,
+      candidate_geometry_evaluations: 380,
+      tail_completion_attempts: 0,
+      terminal_node_evaluations: 1,
+      register_improvements: 1,
+      terminal_register_improvements: 1,
+      remaining_pass_nodes_returned: 12,
+      remaining_fallback_nodes_returned: 2,
+      budget_remaining_before_yield: null,
+      estimated_next_node_frames: null,
+    };
+    controller.recordDeferredValueAttempt(attempt);
+    expect(controller.snapshot().deferred_value_attempts).toEqual([attempt]);
+    expect(() => controller.recordDeferredValueAttempt(attempt))
+      .toThrow(/more than one suffix attempt/);
   });
 
   test("ranks simultaneous initial opportunities by density before lineage order", () => {

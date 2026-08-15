@@ -5,6 +5,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_periodic_repair"
   | "selective_axis_regret_catchup_value_map"
   | "selective_axis_regret_catchup_value_deferred_map"
+  | "selective_axis_regret_catchup_value_deferred_initial"
   | "selective_axis_regret_catchup_value_initial"
   | "selective_axis_regret_catchup_value_initial_progress_10"
   | "selective_axis_regret_catchup_value_initial_expire_10";
@@ -17,7 +18,12 @@ export type SelectiveBacktrackSignal =
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
-export type FrontierTraversalLane = "initial" | "snapshot" | "repair" | "resumed";
+export type FrontierTraversalLane =
+  | "initial"
+  | "snapshot"
+  | "deferred_value"
+  | "repair"
+  | "resumed";
 
 export const SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE = 2;
 export const SELECTIVE_AXIS_REGRET_MIN_LOSS_DELTA = 0.20;
@@ -33,6 +39,7 @@ export const SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD = 0.02;
 export const SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS = 0.10;
 export const SELECTIVE_DEFERRED_VALUE_ALLOWANCE_FRACTIONS = [0.15, 0.25, 0.40] as const;
 export const SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION = 0.40;
+export const SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION = 0.40;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
   0,
@@ -68,6 +75,9 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-deferred-map") {
     return "selective_axis_regret_catchup_value_deferred_map";
   }
+  if (raw === "selective-axis-regret-catchup-value-deferred-initial") {
+    return "selective_axis_regret_catchup_value_deferred_initial";
+  }
   if (raw === "selective-axis-regret-catchup-value-initial") {
     return "selective_axis_regret_catchup_value_initial";
   }
@@ -85,6 +95,7 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-periodic-repair, or ` +
       `selective-axis-regret-catchup-value-map, or ` +
       `selective-axis-regret-catchup-value-deferred-map, or ` +
+      `selective-axis-regret-catchup-value-deferred-initial, or ` +
       `selective-axis-regret-catchup-value-initial, or ` +
       `selective-axis-regret-catchup-value-initial-progress-10, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10; got ${raw}`,
@@ -191,6 +202,35 @@ export type SelectiveDeferredValueOpportunity = {
   outcome: "progress_expired" | "alternative_unavailable_at_collection" | "collected";
   crossing: SelectiveValueOpportunityPoint;
   terminal: SelectiveDeferredValueTerminalAssessment | null;
+};
+
+export type SelectiveDeferredValueAttempt = {
+  watch_id: number;
+  affordable_rank: number;
+  start_gap_index: number;
+  start_total_spent_frames: number;
+  end_total_spent_frames: number;
+  estimated_suffix_work_frames: number;
+  local_allowance_frames: number;
+  execution_ceiling_frames: number;
+  outcome:
+    | "terminal_reached"
+    | "atomic_budget_yield"
+    | "frontier_exhausted"
+    | "execution_ceiling";
+  nodes_processed: number;
+  atomic_node_frames: number[];
+  ranked_option_calls: number;
+  requested_normal_proposals: number;
+  candidate_geometry_evaluations: number;
+  tail_completion_attempts: number;
+  terminal_node_evaluations: number;
+  register_improvements: number;
+  terminal_register_improvements: number;
+  remaining_pass_nodes_returned: number;
+  remaining_fallback_nodes_returned: number;
+  budget_remaining_before_yield: number | null;
+  estimated_next_node_frames: number | null;
 };
 
 export type SelectiveDeferredValueDecision<Node extends object> = {
@@ -389,6 +429,7 @@ export type SelectiveBacktrackingStats = {
   deferred_value_first_terminal_total_spent_frames: number | null;
   deferred_value_first_terminal_track_hash: string | null;
   deferred_value_opportunities: SelectiveDeferredValueOpportunity[];
+  deferred_value_attempts: SelectiveDeferredValueAttempt[];
   contact_expansions_observed: number;
   branch_watches_armed: number;
   branch_watches_by_alternative_count: Record<string, number>;
@@ -485,7 +526,7 @@ export type SelectiveCatchupCheckpoint = {
 };
 
 function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
-  return { initial: 0, snapshot: 0, repair: 0, resumed: 0 };
+  return { initial: 0, snapshot: 0, deferred_value: 0, repair: 0, resumed: 0 };
 }
 
 function emptySignalCounter(): Record<SelectiveBacktrackSignal, number> {
@@ -635,6 +676,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       deferred_value_first_terminal_total_spent_frames: null,
       deferred_value_first_terminal_track_hash: null,
       deferred_value_opportunities: [],
+      deferred_value_attempts: [],
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       branch_watches_by_alternative_count: {},
@@ -711,7 +753,10 @@ export class SelectiveAxisRegretController<Node extends object> {
     alternativeAvailable: (alternative: Node) => boolean;
     estimatedSuffixWorkFrames: (alternative: Node) => number;
   }): SelectiveDeferredValueDecision<Node> | null {
-    if (this.policy !== "selective_axis_regret_catchup_value_deferred_map") return null;
+    if (
+      this.policy !== "selective_axis_regret_catchup_value_deferred_map" &&
+      this.policy !== "selective_axis_regret_catchup_value_deferred_initial"
+    ) return null;
     if (this.deferredValueSealed) {
       throw new Error("deferred value portfolio was sealed more than once");
     }
@@ -818,6 +863,19 @@ export class SelectiveAxisRegretController<Node extends object> {
         crossing: { ...winner.crossing, budget: { ...winner.crossing.budget } },
         terminal: { ...winner.terminal },
       };
+  }
+
+  recordDeferredValueAttempt(attempt: SelectiveDeferredValueAttempt): void {
+    if (this.policy !== "selective_axis_regret_catchup_value_deferred_initial") {
+      throw new Error("deferred value execution was recorded outside the live policy");
+    }
+    if (this.stats.deferred_value_attempts.length !== 0) {
+      throw new Error("deferred value policy executed more than one suffix attempt");
+    }
+    if (attempt.affordable_rank !== 1) {
+      throw new Error("deferred value execution did not use the rank-one opportunity");
+    }
+    this.stats.deferred_value_attempts.push({ ...attempt });
   }
 
   /** Propagate all ancestor watches to every child and arm one new watch only
@@ -1169,7 +1227,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       }
 
       if (
-        this.policy === "selective_axis_regret_catchup_value_deferred_map" &&
+        (this.policy === "selective_axis_regret_catchup_value_deferred_map" ||
+          this.policy === "selective_axis_regret_catchup_value_deferred_initial") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
         contactAdvance >= SELECTIVE_VALUE_MIN_CONTACT_ADVANCE &&
@@ -1877,6 +1936,10 @@ export class SelectiveAxisRegretController<Node extends object> {
           terminal: opportunity.terminal === null ? null : { ...opportunity.terminal },
         }),
       ),
+      deferred_value_attempts: this.stats.deferred_value_attempts.map((attempt) => ({
+        ...attempt,
+        atomic_node_frames: [...attempt.atomic_node_frames],
+      })),
       events: this.stats.events.map((event) => ({
         ...event,
         periodic_budget: event.periodic_budget === null

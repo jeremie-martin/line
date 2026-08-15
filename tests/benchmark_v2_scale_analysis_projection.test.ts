@@ -31,7 +31,7 @@ describe("Benchmark V2 scale analysis projection", () => {
         unrelated_large_stats: { samples: [1, 2, 3] },
       },
       budgetTelemetry: {
-        schema: "line.compile-budget-telemetry.v9",
+        schema: "line.compile-budget-telemetry.v10",
         node_events: [{
           episode_id: 4,
           lane: "repair",

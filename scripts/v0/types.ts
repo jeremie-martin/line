@@ -504,9 +504,31 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_periodic_repair"
       | "selective_axis_regret_catchup_value_map"
       | "selective_axis_regret_catchup_value_deferred_map"
+      | "selective_axis_regret_catchup_value_deferred_initial"
       | "selective_axis_regret_catchup_value_initial"
       | "selective_axis_regret_catchup_value_initial_progress_10"
       | "selective_axis_regret_catchup_value_initial_expire_10";
+    deferred_value_density_threshold: number;
+    deferred_value_min_gap_progress: number;
+    deferred_value_allowance_fractions: number[];
+    deferred_value_map_max_allowance_fraction: number;
+    deferred_value_crossings: number;
+    deferred_value_progress_expired: number;
+    deferred_value_alternative_unavailable_at_collection: number;
+    deferred_value_collected: number;
+    deferred_value_assessed: number;
+    deferred_value_incumbent_path: number;
+    deferred_value_production_consumed: number;
+    deferred_value_alternative_unavailable_at_terminal: number;
+    deferred_value_affordable: number;
+    deferred_value_first_terminal_total_spent_frames: number | null;
+    deferred_value_first_terminal_track_hash: string | null;
+    deferred_value_opportunities: Array<
+      import("./optimizer/selective_backtracking.ts").SelectiveDeferredValueOpportunity
+    >;
+    deferred_value_attempts: Array<
+      import("./optimizer/selective_backtracking.ts").SelectiveDeferredValueAttempt
+    >;
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -579,12 +601,13 @@ export type CompileStats = {
     selective_backtracks_by_lane: {
       initial: number;
       snapshot: number;
+      deferred_value: number;
       repair: number;
       resumed: number;
     };
     events: Array<{
       watch_id: number;
-      lane: "initial" | "snapshot" | "repair" | "resumed";
+      lane: "initial" | "snapshot" | "deferred_value" | "repair" | "resumed";
       trigger_signal:
         | "branch_regret"
         | "repair_incumbent_regret"

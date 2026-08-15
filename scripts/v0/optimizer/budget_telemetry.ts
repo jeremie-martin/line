@@ -28,18 +28,25 @@ import {
 /**
  * Clean-break search-accounting schema.
  *
- * V9 keeps the global incumbent, temporary working track, and terminal offer
+ * V10 keeps the global incumbent, temporary working track, and terminal offer
  * as separate causal states. A rejected local improvement can therefore seed
  * one follow-up without being mislabeled as accepted or as the output
  * incumbent. It also records the exact follow-up disposition and the
  * replayable optimistic axis-quality bound used by selective bridge policy.
- * Historical V4–V8 archives remain immutable evidence; current readers fail
+ * It also gives post-terminal deferred-value suffix work its own causal lane,
+ * rather than mislabeling it as initial, resumed, or repair work. Historical
+ * V4–V9 archives remain immutable evidence; current readers fail
  * closed.
  */
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v9" as const;
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v10" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
-export type BudgetEpisodeLane = "initial" | "snapshot" | "repair" | "resumed";
+export type BudgetEpisodeLane =
+  | "initial"
+  | "snapshot"
+  | "deferred_value"
+  | "repair"
+  | "resumed";
 export const BUDGET_EVALUATION_ORIGINS = [
   "frontier",
   "tail_completion",
@@ -67,11 +74,14 @@ export type BudgetCeilingSource =
   | "measured_cost_to_end"
   /** No positive measured cost at the anchor; the coarse per-gap average was used instead. */
   | "per_gap_fallback"
+  /** Fixed score-blind share of policy budget reserved for one deferred-value suffix. */
+  | "deferred_value_allowance"
   /** The sized ceiling reached or exceeded the repair budget and was clipped to it. */
   | "repair_budget_remaining";
 export type BudgetSegmentKind =
   | "startup"
   | "initial_search"
+  | "deferred_value_suffix"
   | "repair_frontier"
   | "resumed_search"
   | "finalization"

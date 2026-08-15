@@ -215,6 +215,7 @@ import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
+  SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION,
   SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION,
   SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION,
   SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR,
@@ -222,6 +223,7 @@ import {
   type FrontierTraversalLane,
   type SelectiveBacktrackDecision,
   type SelectiveCatchupProbeResult,
+  type SelectiveDeferredValueDecision,
 } from "./selective_backtracking.ts";
 import {
   applyImpactWindowAccelerationAfterReference,
@@ -2248,6 +2250,7 @@ function compileHandoffInternal(
     let firstTerminalFrame = -1;
     let firstCompletionFrame = -1;
     let firstTerminalTrackHash: string | null = null;
+    let pendingDeferredValueDecision: SelectiveDeferredValueDecision<HandoffNode> | null = null;
     // Observation-only reach timestamps used by the incumbent cost-to-end
     // estimator and detailed repair diagnostics. Authoritative execution and
     // outcome accounting lives in budgetTelemetry V5 episodes; compile_stats
@@ -2453,7 +2456,8 @@ function compileHandoffInternal(
           if (firstTerminalTrackHash === null) {
             throw new Error("first improving terminal has no terminal track identity");
           }
-          selectiveBacktracking?.assessDeferredValueAtFirstTerminal({
+          pendingDeferredValueDecision =
+            selectiveBacktracking?.assessDeferredValueAtFirstTerminal({
             incumbent: node,
             firstTerminalTotalSpentFrames: getSimFrames(),
             firstTerminalTrackHash,
@@ -2464,7 +2468,11 @@ function compileHandoffInternal(
             ),
             searchPolicyBudgetFrames: searchPolicyBudget,
             explorationAllowanceFrames: Math.floor(
-              SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION * searchPolicyBudget,
+              (frontierTraversalPolicy ===
+                  "selective_axis_regret_catchup_value_deferred_initial"
+                ? SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION
+                : SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION) *
+                searchPolicyBudget,
             ),
             currentOnIncumbentPath: (current, incumbent) =>
               current.startRank === incumbent.startRank &&
@@ -2476,7 +2484,7 @@ function compileHandoffInternal(
               frontierContains(alternative, passStack, fallbackStack),
             estimatedSuffixWorkFrames: (alternative) =>
               conservativeDeadlineWorkAtGap(alternative.search.gapIndex),
-          });
+          }) ?? null;
         }
       }
       const event: HandoffNodeEvent = {
@@ -2799,7 +2807,7 @@ function compileHandoffInternal(
           tail_completion_frames: afterTail - afterMain,
           post_tail_work_frames: end - afterTail,
           spent_frames: end - atomicStart,
-          // Budget Telemetry V9's atomic result is a disposition, not the
+          // Budget Telemetry V10's atomic result is a disposition, not the
           // policy cause. Selective suspension is therefore `deferred`; its
           // exact causal event lives in the opt-in frontier-policy telemetry.
           result: result.kind === "selective_backtrack" ? "deferred" : result.kind,
@@ -3076,6 +3084,11 @@ function compileHandoffInternal(
       lane: FrontierTraversalLane,
       executionCeilingFrames: number,
       onProcessed?: () => void,
+      options: {
+        allowSelectiveBacktracking?: boolean;
+        allowSpeculativeTailCompletion?: boolean;
+        beforeSelect?: (node: HandoffNode) => boolean;
+      } = {},
     ): void => {
       const processSelected = (
         node: HandoffNode,
@@ -3418,10 +3431,17 @@ function compileHandoffInternal(
 
       while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
         if (!keepGoing()) break;
+        const nextNode = peekNextFrontierNode(pass, fb);
+        if (options.beforeSelect !== undefined && !options.beforeSelect(nextNode)) break;
         const node = popNextFrontierNode(pass, fb);
         const resumeSuspendedContinuation =
           selectiveBacktracking?.observeSelected(node, getSimFrames()) ?? false;
-        const result = processSelected(node, resumeSuspendedContinuation, true);
+        const result = processSelected(
+          node,
+          resumeSuspendedContinuation,
+          options.allowSelectiveBacktracking ?? true,
+          options.allowSpeculativeTailCompletion ?? true,
+        );
         if (result.kind === "captured" || result.kind === "terminal_limit") return;
         if (result.kind === "deferred") {
           const replacement = { ...node, deferExpansion: false };
@@ -3434,6 +3454,175 @@ function compileHandoffInternal(
         }
         telemetry.frontierMaxSize = Math.max(telemetry.frontierMaxSize, frontierSize(pass, fb));
       }
+    };
+
+    /** Execute the score-blind rank-one opportunity selected at the first
+     * terminal as one isolated suffix search. No node is discarded: the exact
+     * queued sibling is transferred into a local frontier, and every survivor
+     * is returned to the original frontier before ordinary repair begins. */
+    const runDeferredValueSuffix = (): void => {
+      if (
+        frontierTraversalPolicy !==
+          "selective_axis_regret_catchup_value_deferred_initial" ||
+        pendingDeferredValueDecision === null ||
+        captured !== null
+      ) return;
+      const decision = pendingDeferredValueDecision;
+      pendingDeferredValueDecision = null;
+      if (decision.terminal.affordable_rank !== 1) {
+        throw new Error("deferred value decision lost its rank-one assessment");
+      }
+      if (!takeFrontierNode(decision.alternative, passStack, fallbackStack)) {
+        throw new Error("deferred value alternative left the initial frontier");
+      }
+
+      const localPass: HandoffNode[] = decision.alternative.skippedContacts === 0
+        ? [decision.alternative]
+        : [];
+      const localFallback: HandoffNode[] = decision.alternative.skippedContacts === 0
+        ? []
+        : [decision.alternative];
+      const startFrames = getSimFrames();
+      const allowance = Math.min(
+        decision.terminal.local_allowance_frames,
+        Math.max(0, repairBudgetLimit - startFrames),
+        Math.max(0, targetBudget - startFrames),
+      );
+      const ceiling = startFrames + allowance;
+      const rankedOptionCallsBefore = telemetry.candidatePoolRequests.count;
+      const requestedNormalProposalsBefore = telemetry.candidatePoolRequests.sum;
+      const candidateGeometryEvaluationsBefore = getCandidateSamples();
+      const tailCompletionAttemptsBefore = telemetry.tailCompletionAttempts;
+      const terminalConsidersBefore = terminalConsiders;
+      const registerImprovementsBefore = register.improvementCount;
+      const incumbentRevisionBefore = incumbentRevision;
+      let nodesProcessed = 0;
+      const atomicNodeFrames: number[] = [];
+      let nextAtomicStartFrames = startFrames;
+      let budgetRemainingBeforeYield: number | null = null;
+      let estimatedNextNodeFrames: number | null = null;
+
+      const episodeId = budgetRecorder.startEpisode({
+        lane: "deferred_value",
+        parentEpisodeId: initialBudgetEpisodeId,
+        searchSeed,
+        frontierHasFallbackLane: true,
+        anchorGapIndex: decision.alternative.search.gapIndex,
+        startTotalSpentFrames: startFrames,
+        ceilingTotalSpentFrames: ceiling,
+        ceilingSource: "deferred_value_allowance",
+        includeStartup: false,
+        pathEstimateByGap: incumbentCostToEnd,
+        registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
+      });
+      beginCandidateWork();
+      const previousTerminalLimit = activeTerminalConsiderLimit;
+      activeTerminalConsiderLimit = terminalConsidersBefore + 1;
+      try {
+        runFrontier(
+          localPass,
+          localFallback,
+          () => getSimFrames() < ceiling && terminalConsiders === terminalConsidersBefore,
+          "deferred_value",
+          ceiling,
+          () => {
+            nodesProcessed++;
+            atomicNodeFrames.push(getSimFrames() - nextAtomicStartFrames);
+          },
+          {
+            // The action itself is the sole intervention. Its suffix uses the
+            // ordinary node expansion/ranking path but cannot recursively open
+            // another selective action or a speculative tail completion.
+            allowSelectiveBacktracking: false,
+            allowSpeculativeTailCompletion: false,
+            beforeSelect: (node) => {
+              const remaining = Math.max(0, ceiling - getSimFrames());
+              const suffixWork = Math.max(
+                1,
+                Math.ceil(conservativeDeadlineWorkAtGap(node.search.gapIndex)),
+              );
+              const remainingGapAdvance = Math.max(1, gaps.length - node.search.gapIndex);
+              const suffixAverageEstimate = Math.ceil(suffixWork / remainingGapAdvance);
+              const policy = resolvePolicy(node.search);
+              const observedCostEstimate = Math.ceil(
+                policy.nCand * Math.max(1, observedAtomicCostPerCandidateUpper),
+              );
+              const nextEstimate = Math.max(
+                1,
+                suffixAverageEstimate,
+                observedCostEstimate,
+              );
+              if (nextEstimate <= remaining) {
+                nextAtomicStartFrames = getSimFrames();
+                return true;
+              }
+              budgetRemainingBeforeYield = remaining;
+              estimatedNextNodeFrames = nextEstimate;
+              return false;
+            },
+          },
+        );
+      } finally {
+        activeTerminalConsiderLimit = previousTerminalLimit;
+      }
+
+      const terminalReached = terminalConsiders > terminalConsidersBefore;
+      const outcome = terminalReached
+        ? "terminal_reached" as const
+        : budgetRemainingBeforeYield !== null
+          ? "atomic_budget_yield" as const
+          : getSimFrames() >= ceiling
+            ? "execution_ceiling" as const
+            : "frontier_exhausted" as const;
+      const returnedPass = localPass.length;
+      const returnedFallback = localFallback.length;
+      passStack.push(...localPass);
+      fallbackStack.push(...localFallback);
+      finishActiveCandidateWork();
+      budgetRecorder.endEpisode(
+        getSimFrames(),
+        terminalReached
+          ? "first_terminal_return"
+          : getSimFrames() >= ceiling || budgetRemainingBeforeYield !== null
+            ? "local_ceiling"
+            : "frontier_exhausted",
+        { registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()) },
+      );
+      budgetRecorder.recordSegment(
+        "deferred_value_suffix",
+        startFrames,
+        getSimFrames(),
+        outcome,
+        episodeId,
+      );
+      selectiveBacktracking!.recordDeferredValueAttempt({
+        watch_id: decision.watchId,
+        affordable_rank: decision.terminal.affordable_rank,
+        start_gap_index: decision.alternative.search.gapIndex,
+        start_total_spent_frames: startFrames,
+        end_total_spent_frames: getSimFrames(),
+        estimated_suffix_work_frames: decision.terminal.estimated_suffix_work_frames,
+        local_allowance_frames: allowance,
+        execution_ceiling_frames: ceiling,
+        outcome,
+        nodes_processed: nodesProcessed,
+        atomic_node_frames: atomicNodeFrames,
+        ranked_option_calls:
+          telemetry.candidatePoolRequests.count - rankedOptionCallsBefore,
+        requested_normal_proposals:
+          telemetry.candidatePoolRequests.sum - requestedNormalProposalsBefore,
+        candidate_geometry_evaluations:
+          getCandidateSamples() - candidateGeometryEvaluationsBefore,
+        tail_completion_attempts:
+          telemetry.tailCompletionAttempts - tailCompletionAttemptsBefore,
+        terminal_node_evaluations: terminalConsiders - terminalConsidersBefore,
+        register_improvements: register.improvementCount - registerImprovementsBefore,
+        terminal_register_improvements: incumbentRevision - incumbentRevisionBefore,
+        remaining_pass_nodes_returned: returnedPass,
+        remaining_fallback_nodes_returned: returnedFallback,
+        budget_remaining_before_yield: budgetRemainingBeforeYield,
+        estimated_next_node_frames: estimatedNextNodeFrames,
+      });
     };
 
     // Repair restart: re-run the REAL frontier-DFS (rescue, far-back pulse, tail completion,
@@ -3899,6 +4088,10 @@ function compileHandoffInternal(
       initialStopReason,
       initialBudgetEpisodeId,
     );
+
+    // The deferred suffix receives first claim on post-terminal work only in
+    // its opt-in arm. Production and the behavior-neutral map skip this block.
+    runDeferredValueSuffix();
 
     // Contained worst-gap suffix-rebuild post-pass on the reserved budget tail.
     if (repairEnabled && captured === null) {
@@ -4468,6 +4661,13 @@ function popNextFrontierNode(
   fallbackStack: HandoffNode[],
 ): HandoffNode {
   return activeFrontier(passStack, fallbackStack).pop()!;
+}
+
+function peekNextFrontierNode(
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+): HandoffNode {
+  return activeFrontier(passStack, fallbackStack).at(-1)!;
 }
 
 function frontierProbeNode(node: HandoffNode): HandoffFrontierProbeNode {

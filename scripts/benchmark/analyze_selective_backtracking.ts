@@ -101,6 +101,15 @@ type ProbeResult = {
   end_gap_index: number;
   probe_nodes_processed: number;
   probe_frames: number;
+  ranked_option_calls?: number;
+  requested_normal_proposals?: number;
+  candidate_geometry_evaluations?: number;
+  normal_empty_full_width_retry_attempts?: number;
+  normal_empty_full_width_retry_successes?: number;
+  normal_empty_full_width_retry_requested_proposals?: number;
+  normal_empty_full_width_retry_incremental_requested_proposals?: number;
+  normal_empty_full_width_retry_candidate_geometry_evaluations?: number;
+  normal_empty_full_width_retry_frames?: number;
   axis_loss: number | null;
   local_fallback_choices: LocalFallbackChoice[];
 };
@@ -675,8 +684,83 @@ const localRouteProgressMap = localRouteProgress.length === 0 ? null : {
     "recovery are observations of the completed route, not a causal replay of stopping it.",
 };
 
+const retryTelemetryRows = events.flatMap((event) =>
+  event.catchup_probe_results.flatMap((probe) =>
+    probe.normal_empty_full_width_retry_attempts === undefined
+      ? []
+      : [{ event, probe }]
+  )
+);
+const summarizeEmptyPoolRetries = (
+  rows: typeof retryTelemetryRows,
+) => {
+  const sum = (read: (probe: ProbeResult) => number | undefined): number =>
+    rows.reduce((total, row) => total + (read(row.probe) ?? 0), 0);
+  const attempts = sum((probe) => probe.normal_empty_full_width_retry_attempts);
+  const successes = sum((probe) => probe.normal_empty_full_width_retry_successes);
+  return {
+    probes_with_telemetry: rows.length,
+    probes_with_retry: rows.filter(
+      ({ probe }) => (probe.normal_empty_full_width_retry_attempts ?? 0) > 0,
+    ).length,
+    retry_attempts: attempts,
+    retry_successes: successes,
+    retry_success_rate: attempts === 0 ? null : successes / attempts,
+    full_width_ranked_pool_requested_proposals: sum(
+      (probe) => probe.normal_empty_full_width_retry_requested_proposals,
+    ),
+    deterministic_prefix_increment_requested_proposals: sum(
+      (probe) => probe.normal_empty_full_width_retry_incremental_requested_proposals,
+    ),
+    actual_candidate_geometry_evaluations: sum(
+      (probe) => probe.normal_empty_full_width_retry_candidate_geometry_evaluations,
+    ),
+    retry_frames: sum((probe) => probe.normal_empty_full_width_retry_frames),
+    target_reaches_after_any_retry: rows.filter(
+      ({ probe }) =>
+        (probe.normal_empty_full_width_retry_attempts ?? 0) > 0 &&
+        probe.outcome === "reached_target",
+    ).length,
+    dead_ends_after_any_retry: rows.filter(
+      ({ probe }) =>
+        (probe.normal_empty_full_width_retry_attempts ?? 0) > 0 &&
+        probe.outcome === "probe_dead_end",
+    ).length,
+  };
+};
+const emptyNormalPoolFullWidthRetry = retryTelemetryRows.length === 0 ? null : {
+  ...summarizeEmptyPoolRetries(retryTelemetryRows),
+  by_source: [...new Set(retryTelemetryRows.map(({ event }) => event.sourceId))]
+    .sort()
+    .map((sourceId) => ({
+      source_id: sourceId,
+      ...summarizeEmptyPoolRetries(
+        retryTelemetryRows.filter(({ event }) => event.sourceId === sourceId),
+      ),
+    })),
+  definitions: {
+    retry_attempt:
+      "A narrowed normal ranked-options call returned no option, so the same node was rebuilt " +
+      "at full production width before any rescue lane.",
+    retry_success:
+      "The full-width normal rebuild returned at least one ranked option. This is not an " +
+      "equal-depth probe completion or an accepted trajectory improvement.",
+    full_width_ranked_pool_requested_proposals:
+      "The full nCand requested by retry calls, including the already-requested narrow prefix.",
+    deterministic_prefix_increment_requested_proposals:
+      "Sum of full nCand minus narrow nCand. This is requested policy breadth, not proof that " +
+      "the candidates were newly sampled; the node cache may already be wider.",
+    actual_candidate_geometry_evaluations:
+      "The exact global candidate-sample counter delta inside retry calls, across every stream.",
+    retry_frames: "The exact charged simulation-frame delta inside retry calls.",
+  },
+  caveat:
+    "Target reach and dead-end counts are downstream associations within attempted probe routes. " +
+    "Only a paired compiler arm identifies their causal score and search effects.",
+};
+
 const result = {
-  schema: "line.selective-backtracking-offline-guard-analysis.v1",
+  schema: "line.selective-backtracking-offline-guard-analysis.v2",
   source_archive: archivePath,
   source_archive_sha256: verified.artifactSha256,
   scope: {
@@ -707,6 +791,7 @@ const result = {
   nested_discrepancy_opportunity_map: nestedDiscrepancyOpportunityMap,
   one_discrepancy_execution: oneDiscrepancyExecution,
   local_route_progress_map: localRouteProgressMap,
+  empty_normal_pool_full_width_retry: emptyNormalPoolFullWidthRetry,
   admission_margin_counterfactuals: admissionMarginCounterfactuals,
   trigger_opportunities: triggerRuns.length === 0 ? null : {
     coverage: {
@@ -1006,9 +1091,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     if (triggerSignal === "value_exploration") {
       const budget = event.value_budget;
       if (
-        (stats.policy !== "selective_axis_regret_catchup_value_initial" &&
-          stats.policy !== "selective_axis_regret_catchup_value_initial_progress_10" &&
-          stats.policy !== "selective_axis_regret_catchup_value_initial_expire_10") ||
+        (typeof stats.policy !== "string" ||
+          !stats.policy.startsWith("selective_axis_regret_catchup_value_initial")) ||
         event.lane !== "initial" ||
         budget?.admitted !== true || budget?.reason !== "admitted" ||
         event.periodic_budget !== null
@@ -1035,6 +1119,53 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         }),
       ),
     })) as ProbeResult[];
+    const retryKeys = [
+      "normal_empty_full_width_retry_attempts",
+      "normal_empty_full_width_retry_successes",
+      "normal_empty_full_width_retry_requested_proposals",
+      "normal_empty_full_width_retry_incremental_requested_proposals",
+      "normal_empty_full_width_retry_candidate_geometry_evaluations",
+      "normal_empty_full_width_retry_frames",
+    ] as const;
+    for (const probe of results) {
+      const present = retryKeys.filter((key) => probe[key] !== undefined);
+      if (present.length !== 0 && present.length !== retryKeys.length) {
+        throw new Error(`${label}/route-${probe.route_ordinal} has partial empty-pool retry telemetry`);
+      }
+      if (present.length === 0) {
+        if (
+          stats.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry"
+        ) {
+          throw new Error(`${label}/route-${probe.route_ordinal} lacks empty-pool retry telemetry`);
+        }
+        continue;
+      }
+      if (retryKeys.some((key) => !Number.isSafeInteger(probe[key]) || probe[key]! < 0)) {
+        throw new Error(`${label}/route-${probe.route_ordinal} has invalid empty-pool retry telemetry`);
+      }
+      const attempts = probe.normal_empty_full_width_retry_attempts!;
+      const successes = probe.normal_empty_full_width_retry_successes!;
+      const requested = probe.normal_empty_full_width_retry_requested_proposals!;
+      const increment = probe.normal_empty_full_width_retry_incremental_requested_proposals!;
+      const geometry = probe.normal_empty_full_width_retry_candidate_geometry_evaluations!;
+      const frames = probe.normal_empty_full_width_retry_frames!;
+      if (
+        successes > attempts ||
+        (attempts === 0 && (successes !== 0 || requested !== 0 || increment !== 0 ||
+          geometry !== 0 || frames !== 0)) ||
+        (attempts > 0 && (requested <= 0 || increment <= 0))
+      ) {
+        throw new Error(`${label}/route-${probe.route_ordinal} has inconsistent empty-pool retry telemetry`);
+      }
+      if (
+        stats.policy !==
+          "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry" &&
+        attempts !== 0
+      ) {
+        throw new Error(`${label}/route-${probe.route_ordinal} attributes a retry to another policy`);
+      }
+    }
     const skipped = event.catchup_additional_probes_skipped_after_first_winner ?? 0;
     if (!Number.isSafeInteger(skipped) || skipped < 0 || skipped >= requested) {
       throw new Error(`${label} has invalid skipped-after-first-winner count`);
@@ -1693,6 +1824,26 @@ function print(analysis: typeof result): void {
         `${row.measured_probe_frames_after_confirmation} frames follow confirmation`,
       );
     }
+  }
+  if (analysis.empty_normal_pool_full_width_retry !== null) {
+    const retry = analysis.empty_normal_pool_full_width_retry;
+    console.log(`\nEMPTY NARROW NORMAL POOL -> FULL-WIDTH RETRY`);
+    console.log(
+      `  ${retry.retry_attempts} attempts in ${retry.probes_with_retry}/` +
+      `${retry.probes_with_telemetry} probes; ${retry.retry_successes} returned an option ` +
+      `(${retry.retry_success_rate === null ? "-" :
+        `${(100 * retry.retry_success_rate).toFixed(1)}%`})`,
+    );
+    console.log(
+      `  full requests ${retry.full_width_ranked_pool_requested_proposals}; ` +
+      `prefix increment ${retry.deterministic_prefix_increment_requested_proposals}; ` +
+      `actual geometry ${retry.actual_candidate_geometry_evaluations}; ` +
+      `charged frames ${retry.retry_frames}`,
+    );
+    console.log(
+      `  attempted routes later reached target ${retry.target_reaches_after_any_retry}; ` +
+      `later dead-ended ${retry.dead_ends_after_any_retry}`,
+    );
   }
   console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);
   for (const row of analysis.admission_margin_counterfactuals) {

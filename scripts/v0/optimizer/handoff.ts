@@ -231,6 +231,7 @@ import {
   type SelectiveDeferredValueCheckpoint,
   type SelectiveDeferredValueDecision,
   valueProbeCandidateCount,
+  valueProbeEmptyFallbackCandidateCount,
 } from "./selective_backtracking.ts";
 import {
   applyImpactWindowAccelerationAfterReference,
@@ -1197,6 +1198,9 @@ export function setHandoffDeadlineProbeHook(hook: HandoffDeadlineProbeHook | nul
 
 type HandoffSearchPolicy = {
   nCand: number;
+  /** Value-probe-only extension of an empty narrowed normal pool. The cached
+   * sample prefix makes this incremental; ordinary traversal leaves it unset. */
+  normalEmptyFallbackNCand?: number;
   preview: boolean;
   axisQualitySearch: boolean;
   releaseSetup: boolean;
@@ -1271,6 +1275,12 @@ type HandoffTelemetry = {
   tailCompletionImprovementsByRemainingContacts: Record<number, number>;
   /** Every actual rankedOptions build, including rescue and tail completion. */
   candidatePoolRequests: NumericAccumulator;
+  valueProbeEmptyFullWidthRetryAttempts: number;
+  valueProbeEmptyFullWidthRetrySuccesses: number;
+  valueProbeEmptyFullWidthRetryRequestedProposals: number;
+  valueProbeEmptyFullWidthRetryIncrementalRequestedProposals: number;
+  valueProbeEmptyFullWidthRetryCandidateGeometryEvaluations: number;
+  valueProbeEmptyFullWidthRetryFrames: number;
   /** Primary frontier policy only; retained for the legacy compile_stats summary. */
   policyNCand: NumericAccumulator;
   policyBranchLimit: NumericAccumulator;
@@ -2273,6 +2283,12 @@ function compileHandoffInternal(
       tailCompletionSuccessesByRemainingContacts: {},
       tailCompletionImprovementsByRemainingContacts: {},
       candidatePoolRequests: emptyNumericAccumulator(),
+      valueProbeEmptyFullWidthRetryAttempts: 0,
+      valueProbeEmptyFullWidthRetrySuccesses: 0,
+      valueProbeEmptyFullWidthRetryRequestedProposals: 0,
+      valueProbeEmptyFullWidthRetryIncrementalRequestedProposals: 0,
+      valueProbeEmptyFullWidthRetryCandidateGeometryEvaluations: 0,
+      valueProbeEmptyFullWidthRetryFrames: 0,
       policyNCand: emptyNumericAccumulator(),
       policyBranchLimit: emptyNumericAccumulator(),
       previews: 0,
@@ -3251,19 +3267,29 @@ function compileHandoffInternal(
         }> = [];
         let tournamentBudgetYielded = false;
         let tournamentFirstDeficitStopped = false;
+        const narrowProbeBreadth = decision.triggerSignal === "value_exploration" &&
+          (frontierTraversalPolicy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
+            frontierTraversalPolicy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry");
         const probePolicyTransform:
           ((policy: HandoffSearchPolicy) => HandoffSearchPolicy) | undefined =
-            decision.triggerSignal === "value_exploration" &&
-              frontierTraversalPolicy ===
-                "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q"
-              ? (policy) => ({
-                ...policy,
-                nCand: valueProbeCandidateCount(
+            narrowProbeBreadth
+              ? (policy) => {
+                const fullWidth = valueProbeEmptyFallbackCandidateCount(
                   frontierTraversalPolicy,
                   policy.nCand,
-                  HANDOFF_QUALITY_N_CAND_FLOOR,
-                ),
-              })
+                );
+                return {
+                  ...policy,
+                  nCand: valueProbeCandidateCount(
+                    frontierTraversalPolicy,
+                    policy.nCand,
+                    HANDOFF_QUALITY_N_CAND_FLOOR,
+                  ),
+                  ...(fullWidth === null ? {} : { normalEmptyFallbackNCand: fullWidth }),
+                };
+              }
               : undefined;
         const finishTournament = (
           outcome: "alternative_selected" | "current_selected" |
@@ -3314,6 +3340,15 @@ function compileHandoffInternal(
           const rankedOptionCallsBefore = telemetry.candidatePoolRequests.count;
           const requestedNormalProposalsBefore = telemetry.candidatePoolRequests.sum;
           const candidateGeometryEvaluationsBefore = getCandidateSamples();
+          const emptyRetryAttemptsBefore = telemetry.valueProbeEmptyFullWidthRetryAttempts;
+          const emptyRetrySuccessesBefore = telemetry.valueProbeEmptyFullWidthRetrySuccesses;
+          const emptyRetryRequestsBefore =
+            telemetry.valueProbeEmptyFullWidthRetryRequestedProposals;
+          const emptyRetryIncrementalRequestsBefore =
+            telemetry.valueProbeEmptyFullWidthRetryIncrementalRequestedProposals;
+          const emptyRetryGeometryBefore =
+            telemetry.valueProbeEmptyFullWidthRetryCandidateGeometryEvaluations;
+          const emptyRetryFramesBefore = telemetry.valueProbeEmptyFullWidthRetryFrames;
           const tailCompletionAttemptsBefore = telemetry.tailCompletionAttempts;
           let probe = start;
           let probeNodesProcessed = 0;
@@ -3372,6 +3407,21 @@ function compileHandoffInternal(
                 telemetry.candidatePoolRequests.sum - requestedNormalProposalsBefore,
               candidate_geometry_evaluations:
                 getCandidateSamples() - candidateGeometryEvaluationsBefore,
+              normal_empty_full_width_retry_attempts:
+                telemetry.valueProbeEmptyFullWidthRetryAttempts - emptyRetryAttemptsBefore,
+              normal_empty_full_width_retry_successes:
+                telemetry.valueProbeEmptyFullWidthRetrySuccesses - emptyRetrySuccessesBefore,
+              normal_empty_full_width_retry_requested_proposals:
+                telemetry.valueProbeEmptyFullWidthRetryRequestedProposals -
+                emptyRetryRequestsBefore,
+              normal_empty_full_width_retry_incremental_requested_proposals:
+                telemetry.valueProbeEmptyFullWidthRetryIncrementalRequestedProposals -
+                emptyRetryIncrementalRequestsBefore,
+              normal_empty_full_width_retry_candidate_geometry_evaluations:
+                telemetry.valueProbeEmptyFullWidthRetryCandidateGeometryEvaluations -
+                emptyRetryGeometryBefore,
+              normal_empty_full_width_retry_frames:
+                telemetry.valueProbeEmptyFullWidthRetryFrames - emptyRetryFramesBefore,
               atomic_node_frames: atomicNodeFrames,
               tail_completion_attempts:
                 telemetry.tailCompletionAttempts - tailCompletionAttemptsBefore,
@@ -5540,19 +5590,41 @@ function expandNode(
   }
 
   recordHandoffPolicyTelemetry(telemetry, policy);
-  let options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
-    nCand: policy.nCand,
-    preview: policy.preview,
-    axisQualitySearch: policy.axisQualitySearch,
-    releaseSetup: policy.releaseSetup,
-    forwardStageTop: policy.forwardStageTop,
-    deadlineMargin: policy.deadlineMargin,
-    forwardEval: policy.forwardEval,
-    reuseLimit: policy.reuseLimit,
-    previewCostWeight: PREVIEW_COST_WEIGHT,
-    budgetSlack: policy.budgetSlack,
-    targetBudget,
-  });
+  const normalOptionsAt = (nCand: number): RankedOption[] =>
+    rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
+      nCand,
+      preview: policy.preview,
+      axisQualitySearch: policy.axisQualitySearch,
+      releaseSetup: policy.releaseSetup,
+      forwardStageTop: policy.forwardStageTop,
+      deadlineMargin: policy.deadlineMargin,
+      forwardEval: policy.forwardEval,
+      reuseLimit: policy.reuseLimit,
+      previewCostWeight: PREVIEW_COST_WEIGHT,
+      budgetSlack: policy.budgetSlack,
+      targetBudget,
+    });
+  let options = normalOptionsAt(policy.nCand);
+  const fullWidthRetry = policy.normalEmptyFallbackNCand;
+  if (
+    options.length === 0 &&
+    fullWidthRetry !== undefined &&
+    fullWidthRetry > policy.nCand
+  ) {
+    telemetry.valueProbeEmptyFullWidthRetryAttempts++;
+    const requestedBefore = telemetry.candidatePoolRequests.sum;
+    const geometryBefore = getCandidateSamples();
+    const framesBefore = getSimFrames();
+    options = normalOptionsAt(fullWidthRetry);
+    telemetry.valueProbeEmptyFullWidthRetryRequestedProposals +=
+      telemetry.candidatePoolRequests.sum - requestedBefore;
+    telemetry.valueProbeEmptyFullWidthRetryIncrementalRequestedProposals +=
+      fullWidthRetry - policy.nCand;
+    telemetry.valueProbeEmptyFullWidthRetryCandidateGeometryEvaluations +=
+      getCandidateSamples() - geometryBefore;
+    telemetry.valueProbeEmptyFullWidthRetryFrames += getSimFrames() - framesBefore;
+    if (options.length > 0) telemetry.valueProbeEmptyFullWidthRetrySuccesses++;
+  }
   // Dead-end cascade: when the normal batch finds no viable catch for a required
   // contact, try the rescue lanes in order until one yields options. Lanes are
   // data — each names its admission predicate and produces its option list. Lanes

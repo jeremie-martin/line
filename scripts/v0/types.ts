@@ -513,6 +513,7 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_value_initial_expire_10_stable_priority"
       | "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q"
+      | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry"
       | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
     deferred_value_density_threshold: number;
     deferred_value_min_gap_progress: number;
@@ -541,7 +542,10 @@ export type CompileStats = {
     catchup_priority_rule: "endpoint_gain" | "all_checkpoints_positive";
     value_probe_stop_rule: "equal_depth_or_budget" | "first_pre_target_deficit_005";
     value_probe_first_checkpoint_deficit_threshold: number | null;
-    value_probe_candidate_breadth_rule: "production" | "three_quarter_after_floor";
+    value_probe_candidate_breadth_rule:
+      | "production"
+      | "three_quarter_after_floor"
+      | "three_quarter_after_floor_empty_full_retry";
     value_probe_candidate_breadth_scale: number;
     catchup_endpoint_winners_suppressed_unstable: number;
     mature_axis_loss_delta_max: number;
@@ -683,6 +687,20 @@ export type CompileStats = {
         end_gap_index: number;
         probe_nodes_processed: number;
         probe_frames: number;
+        ranked_option_calls: number;
+        requested_normal_proposals: number;
+        candidate_geometry_evaluations: number;
+        normal_empty_full_width_retry_attempts: number;
+        normal_empty_full_width_retry_successes: number;
+        normal_empty_full_width_retry_requested_proposals: number;
+        normal_empty_full_width_retry_incremental_requested_proposals: number;
+        normal_empty_full_width_retry_candidate_geometry_evaluations: number;
+        normal_empty_full_width_retry_frames: number;
+        atomic_node_frames: number[];
+        tail_completion_attempts: number;
+        budget_allowance_frames: number | null;
+        budget_remaining_before_yield: number | null;
+        estimated_next_node_frames: number | null;
         axis_loss: number | null;
         local_fallback_choices: Array<{
           choice_ordinal: number;

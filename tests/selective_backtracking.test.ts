@@ -5,16 +5,26 @@ import {
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
   valueProbeCandidateCount,
+  valueProbeEmptyFallbackCandidateCount,
 } from "../scripts/v0/optimizer/selective_backtracking.ts";
 
 type Node = { gap: number; name: string };
 
+const NO_EMPTY_POOL_RETRY = {
+  normal_empty_full_width_retry_attempts: 0,
+  normal_empty_full_width_retry_successes: 0,
+  normal_empty_full_width_retry_requested_proposals: 0,
+  normal_empty_full_width_retry_incremental_requested_proposals: 0,
+  normal_empty_full_width_retry_candidate_geometry_evaluations: 0,
+  normal_empty_full_width_retry_frames: 0,
+} as const;
+
 describe("selective-backtracking controller", () => {
   test("parses a strict categorical frontier policy", () => {
     expect(parseFrontierTraversalPolicy(undefined))
-      .toBe("selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q");
+      .toBe("selective_axis_regret_catchup_value_initial_expire_10");
     expect(parseFrontierTraversalPolicy(""))
-      .toBe("selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q");
+      .toBe("selective_axis_regret_catchup_value_initial_expire_10");
     expect(parseFrontierTraversalPolicy("dfs")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("off")).toBe("depth_first");
     expect(parseFrontierTraversalPolicy("0")).toBe("depth_first");
@@ -60,6 +70,11 @@ describe("selective-backtracking controller", () => {
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q",
     );
     expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-empty-retry",
+    )).toBe(
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry",
+    );
+    expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-initial-expire-10-run-proof",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10_run_proof");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
@@ -96,6 +111,11 @@ describe("selective-backtracking controller", () => {
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q";
     expect(valueProbeCandidateCount(probePolicy, 81, 8)).toBe(61);
     expect(valueProbeCandidateCount(probePolicy, 8, 8)).toBe(8);
+    const retryPolicy =
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry";
+    expect(valueProbeCandidateCount(retryPolicy, 81, 8)).toBe(61);
+    expect(valueProbeEmptyFallbackCandidateCount(retryPolicy, 81)).toBe(81);
+    expect(valueProbeEmptyFallbackCandidateCount(probePolicy, 81)).toBeNull();
     expect(valueProbeCandidateCount(
       "selective_axis_regret_catchup_value_initial_expire_10",
       81,
@@ -107,6 +127,14 @@ describe("selective-backtracking controller", () => {
     expect(controller.snapshot()).toMatchObject({
       catchup_priority_rule: "endpoint_gain",
       value_probe_candidate_breadth_rule: "three_quarter_after_floor",
+      value_probe_candidate_breadth_scale: 0.75,
+    });
+    const retryController = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: retryPolicy,
+    });
+    expect(retryController.snapshot()).toMatchObject({
+      catchup_priority_rule: "endpoint_gain",
+      value_probe_candidate_breadth_rule: "three_quarter_after_floor_empty_full_retry",
       value_probe_candidate_breadth_scale: 0.75,
     });
   });
@@ -197,6 +225,7 @@ describe("selective-backtracking controller", () => {
         ranked_option_calls: 2,
         requested_normal_proposals: 200,
         candidate_geometry_evaluations: 180,
+        ...NO_EMPTY_POOL_RETRY,
         atomic_node_frames: [15_000, 20_000],
         tail_completion_attempts: 0,
         budget_allowance_frames: null,
@@ -955,6 +984,7 @@ describe("selective-backtracking controller", () => {
         ranked_option_calls: 2,
         requested_normal_proposals: 160,
         candidate_geometry_evaluations: 150,
+        ...NO_EMPTY_POOL_RETRY,
         atomic_node_frames: [40, 50],
         tail_completion_attempts: 0,
         budget_allowance_frames: 112_500,
@@ -1053,6 +1083,7 @@ describe("selective-backtracking controller", () => {
         ranked_option_calls: 1,
         requested_normal_proposals: 80,
         candidate_geometry_evaluations: 75,
+        ...NO_EMPTY_POOL_RETRY,
         atomic_node_frames: [40],
         tail_completion_attempts: 0,
         budget_allowance_frames: 112_500,
@@ -1149,6 +1180,7 @@ describe("selective-backtracking controller", () => {
         ranked_option_calls: 1,
         requested_normal_proposals: 80,
         candidate_geometry_evaluations: 75,
+        ...NO_EMPTY_POOL_RETRY,
         atomic_node_frames: [1_000],
         tail_completion_attempts: 0,
         budget_allowance_frames: 112_500,
@@ -1247,6 +1279,7 @@ describe("selective-backtracking controller", () => {
         ranked_option_calls: 1,
         requested_normal_proposals: 80,
         candidate_geometry_evaluations: 75,
+        ...NO_EMPTY_POOL_RETRY,
         atomic_node_frames: [1_000],
         tail_completion_attempts: 0,
         budget_allowance_frames: 112_500,
@@ -1471,6 +1504,7 @@ describe("selective-backtracking controller", () => {
         ranked_option_calls: 1,
         requested_normal_proposals: 100,
         candidate_geometry_evaluations: 90,
+        ...NO_EMPTY_POOL_RETRY,
         atomic_node_frames: [35],
         tail_completion_attempts: 0,
         budget_allowance_frames: null,
@@ -1737,6 +1771,7 @@ describe("selective-backtracking controller", () => {
         ranked_option_calls: 1,
         requested_normal_proposals: 100,
         candidate_geometry_evaluations: 90,
+        ...NO_EMPTY_POOL_RETRY,
         atomic_node_frames: [20],
         tail_completion_attempts: 0,
         budget_allowance_frames: null,

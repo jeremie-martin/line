@@ -2081,7 +2081,7 @@ global breadth scaling, repair breadth, or a multi-budget sweep.
 | 2026-08-15 | Canonical N=8 look | continue | 607.08; delta -0.15 +/- 0.65 SE; P(positive)=40.93%; 352/352 valid |
 | 2026-08-15 | Canonical N=16 look | continue | 607.02; delta -0.06 +/- 0.42 SE; P(positive)=44.60%; 704/704 valid |
 | 2026-08-15 | Canonical N=32 look | continue | 607.65; delta +0.40 +/- 0.36 SE; P(positive)=85.86%; 1,408/1,408 valid |
-| 2026-08-15 | Canonical maximum look | running | Standing N=48 maximum; no promotion below the calibrated boundary |
+| 2026-08-15 | Canonical maximum look | complete: inconclusive | N=48, +0.38 +/- 0.26 SE, P(positive)=92.24%; 2,112/2,112 valid |
 
 The directional panel authorizes canonical evaluation, but it overturns a
 third simplistic model. All 32 candidate/reference runs are valid and the
@@ -2121,6 +2121,16 @@ sample-attempt contract makes the 61-wide pool an exact prefix of the 81-wide
 pool at the same node. Divergence begins only when an omitted attempt changes a
 selected child; it is not caused by advancing a shared global RNG.
 
+The N=48 maximum closes the exact uniform arm as `inconclusive`. Its positive
+607.25 -> 607.63 headline is +0.38 +/- 0.26 seed-block SE with 92.24%
+directional probability, below the calibrated 97.23% boundary. All 2,112 pairs
+are valid, so there is no failure artifact: 940 cells improve, 952 regress, and
+220 tie. The shape is highly nonuniform: representative is +0.27, capability
+-1.70 (both dense-recovery cases are the largest regressions), legacy is
++4.62, and music is -0.33. The accepted Phase-D policy remains the unset
+default. The explicit three-quarter policy and its frozen archive remain
+available as evidence, not as a promoted baseline.
+
 ## Phase I: adaptive full-width retry for an empty narrow probe pool
 
 Uniform probe narrowing challenges a useful assumption but need not make an
@@ -2132,19 +2142,27 @@ those events and selects the alternative in three. This is a structural
 association rather than an identical-prefix counterfactual, but it identifies
 one concrete failure mode without fitting a score threshold.
 
-Predeclare one categorical successor to the three-quarter arm. Every admitted
+Predeclare one categorical successor informed by the three-quarter arm. Every admitted
 value probe first requests the existing 3/4 normal pool. If and only if that
 normal ranked-option result is empty, extend the same node's deterministic
 sample prefix to the full already-resolved production width and rank it before
 entering the existing rescue cascade. The node cache guarantees that this adds
-only the missing attempts (61 through 80 at 750k); it does not redraw the first
-61 or advance a compile-global RNG. A nonempty narrow result never widens.
+no candidate attempts outside the missing deterministic prefix (61 through 80
+at 750k), and adds none when a wider prefix is already cached; it does not
+redraw the first 61 or advance a compile-global RNG. Ranking/scoring is rebuilt
+at full width, so this is not assumed to cost only the fresh geometry. A
+nonempty narrow result never widens.
 Production traversal, the exploration fund, action admission/ranking, branch
 limit, endpoint comparator, rescue widths/order, repair traversal, and authored
 targets remain exact.
 
 Telemetry must name the adaptive rule and record retry attempts, retry
-successes, added requested proposals, and resulting probe outcome per route.
+successes, the full requested width, the requested prefix increment, actual
+candidate-geometry evaluations, exact charged retry frames, and resulting
+probe outcome per route. The analyzer must reject partial, negative,
+cross-policy, or internally inconsistent records and report the distinct
+quantities without calling a successful pool rebuild a completed probe or an
+accepted improvement.
 Mechanically prove prefix extension, no retry on a nonempty narrow pool, exact
 fallback width, and unchanged work outside value probes. First use a fresh
 750k-only mechanism panel spanning representative, capability, legacy, and
@@ -2153,3 +2171,17 @@ multi-budget sweep. If it is not grossly adverse, the ordinary canonical
 sequential evaluator remains the sole score authority. Do not combine the arm
 with a fund-size change, final-step width rule, repair breadth change, or stop
 threshold.
+
+Because uniform three-quarter breadth did not promote, the accepted Phase-D
+policy remains the reference for this combined narrow-then-recover challenger.
+The mechanism panel must therefore distinguish (a) how often narrowing creates
+an empty normal result, (b) how often full width refutes it, (c) its exact
+incremental cost, and (d) downstream equal-depth and score outcomes. It is not
+a threshold salvage of the closed uniform arm.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Narrow-then-full retry predeclaration | complete | This section; one categorical policy |
+| 2026-08-15 | Implementation and exact retry telemetry | complete | Focused 55-test suite; scoped TypeScript check has only the pre-existing readiness error |
+| 2026-08-15 | Fresh 750k mechanism panel | pending | Must span all four canonical strata |
+| 2026-08-15 | Canonical decision | pending | Authorized only by a non-adverse mechanism panel |

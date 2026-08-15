@@ -13,6 +13,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_value_initial_expire_10"
   | "selective_axis_regret_catchup_value_initial_expire_10_stable_priority"
   | "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
+  | "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff"
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q"
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry"
   | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first"
@@ -122,6 +123,10 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
     return "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005";
   }
   if (raw ===
+    "selective-axis-regret-catchup-value-initial-expire-10-first-advantage-handoff") {
+    return "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff";
+  }
+  if (raw ===
     "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q") {
     return "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q";
   }
@@ -168,6 +173,7 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-value-initial-expire-10, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-stable-priority, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-first-deficit-stop-005, or ` +
+      `selective-axis-regret-catchup-value-initial-expire-10-first-advantage-handoff, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-empty-retry, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-after-first, or ` +
@@ -590,6 +596,7 @@ export type SelectiveCatchupOutcome =
   | "probe_deferred"
   | "probe_budget_yield"
   | "probe_first_deficit_stop"
+  | "probe_first_advantage_handoff"
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeOutcome =
@@ -598,6 +605,7 @@ export type SelectiveCatchupProbeOutcome =
   | "probe_deferred"
   | "probe_budget_yield"
   | "probe_first_deficit_stop"
+  | "probe_first_advantage_handoff"
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeResult = {
@@ -646,8 +654,12 @@ export type SelectiveBacktrackingStats = {
   min_axis_loss_delta: number;
   catchup_axis_loss_gain_threshold: number;
   catchup_priority_rule: "endpoint_gain" | "all_checkpoints_positive";
-  value_probe_stop_rule: "equal_depth_or_budget" | "first_pre_target_deficit_005";
+  value_probe_stop_rule:
+    | "equal_depth_or_budget"
+    | "first_pre_target_deficit_005"
+    | "first_pre_target_advantage";
   value_probe_first_checkpoint_deficit_threshold: number | null;
+  value_probe_first_checkpoint_advantage_threshold: number | null;
   value_probe_candidate_breadth_rule:
     | "production"
     | "three_quarter_after_floor"
@@ -763,6 +775,8 @@ export type SelectiveBacktrackingStats = {
   catchup_probe_deferred: number;
   catchup_probe_budget_yields: number;
   catchup_probe_first_deficit_stops: number;
+  catchup_probe_first_advantage_handoffs: number;
+  catchup_first_advantage_handoffs_selected: number;
   catchup_execution_ceiling_stops: number;
   catchup_probe_attempts: number;
   catchup_probe_target_reaches: number;
@@ -816,6 +830,7 @@ export type SelectiveBacktrackingEvent = {
   alternative_conservative_deadline_margin: number;
   trigger_total_spent_frames: number;
   resumed_total_spent_frames: number | null;
+  first_advantage_handoff_total_spent_frames: number | null;
   catchup_outcome: SelectiveCatchupOutcome | null;
   catchup_end_gap_index: number | null;
   catchup_probe_nodes_processed: number;
@@ -906,6 +921,7 @@ export class SelectiveAxisRegretController<Node extends object> {
   private readonly gapIndexOf: (node: Node) => number;
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
+  private readonly firstAdvantageHandoffs = new WeakMap<Node, number>();
   private readonly repairAttemptsWithIncumbentBacktrack = new Set<number>();
   private readonly deferredValueCandidates: Array<DeferredValueCandidate<Node>> = [];
   private readonly stats: SelectiveBacktrackingStats;
@@ -934,11 +950,19 @@ export class SelectiveAxisRegretController<Node extends object> {
         this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
           ? "first_pre_target_deficit_005"
+          : this.policy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff"
+            ? "first_pre_target_advantage"
           : "equal_depth_or_budget",
       value_probe_first_checkpoint_deficit_threshold:
         this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
           ? SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP
+          : null,
+      value_probe_first_checkpoint_advantage_threshold:
+        this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff"
+          ? 0
           : null,
       value_probe_candidate_breadth_rule:
         this.policy ===
@@ -1020,6 +1044,8 @@ export class SelectiveAxisRegretController<Node extends object> {
             "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
+          this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff" ||
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
           this.policy ===
@@ -1103,6 +1129,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_probe_deferred: 0,
       catchup_probe_budget_yields: 0,
       catchup_probe_first_deficit_stops: 0,
+      catchup_probe_first_advantage_handoffs: 0,
+      catchup_first_advantage_handoffs_selected: 0,
       catchup_execution_ceiling_stops: 0,
       catchup_probe_attempts: 0,
       catchup_probe_target_reaches: 0,
@@ -1500,6 +1528,7 @@ export class SelectiveAxisRegretController<Node extends object> {
         alternative_conservative_deadline_margin: admittedAlternativeDeadline.margin,
         trigger_total_spent_frames: input.totalSpentFrames,
         resumed_total_spent_frames: null,
+        first_advantage_handoff_total_spent_frames: null,
         catchup_outcome: null,
         catchup_end_gap_index: null,
         catchup_probe_nodes_processed: 0,
@@ -1797,6 +1826,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
           this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff" ||
+          this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry" ||
@@ -1859,6 +1890,8 @@ export class SelectiveAxisRegretController<Node extends object> {
                 "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
+              this.policy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
               this.policy ===
@@ -2141,6 +2174,8 @@ export class SelectiveAxisRegretController<Node extends object> {
         this.policy ===
           "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
         this.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff" ||
+        this.policy ===
           "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
         this.policy ===
           "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry" ||
@@ -2283,6 +2318,21 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (!this.suspended.has(node)) {
       throw new Error("selective backtrack suspended a node without a causal event");
     }
+  }
+
+  /** Bind a partial alternative handed back to ordinary DFS to its causal
+   * event. Its next selection is recorded separately from incumbent resume. */
+  markFirstAdvantageHandoff(
+    node: Node,
+    decision: SelectiveBacktrackDecision<Node>,
+  ): void {
+    const event = this.stats.events[decision.eventIndex];
+    if (
+      event?.catchup_outcome !== "probe_first_advantage_handoff" ||
+      event.first_advantage_handoff_total_spent_frames !== null ||
+      this.firstAdvantageHandoffs.has(node)
+    ) throw new Error("first-checkpoint advantage handoff has no unique causal event");
+    this.firstAdvantageHandoffs.set(node, decision.eventIndex);
   }
 
   /** Record a pure, like-for-like observation while the alternative catches
@@ -2469,6 +2519,34 @@ export class SelectiveAxisRegretController<Node extends object> {
     } else if (input.outcome === "probe_first_deficit_stop") {
       throw new Error("first-checkpoint deficit outcome has no stopped probe");
     }
+    const firstAdvantageHandoffs = input.probes.filter(
+      (probe) => probe.outcome === "probe_first_advantage_handoff",
+    ).length;
+    if (firstAdvantageHandoffs > 0) {
+      const finalCheckpoint = event.catchup_checkpoints.at(-1);
+      const probe = input.probes[0];
+      if (
+        this.policy !==
+          "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff" ||
+        decision.triggerSignal !== "value_exploration" ||
+        input.outcome !== "probe_first_advantage_handoff" ||
+        firstAdvantageHandoffs !== 1 ||
+        input.selectedAlternativeOrdinal !== 1 ||
+        input.selectedRouteOrdinal !== 1 ||
+        input.catchupAxisLoss !== null ||
+        input.probes.length !== 1 ||
+        probe === undefined ||
+        finalCheckpoint === undefined ||
+        event.catchup_checkpoints.length !== 1 ||
+        finalCheckpoint.gap_index >= decision.fromGapIndex ||
+        probe.end_gap_index !== finalCheckpoint.gap_index ||
+        probe.axis_loss !== finalCheckpoint.alternative_axis_loss ||
+        !(finalCheckpoint.alternative_axis_loss_gain > 0)
+      ) throw new Error("invalid first-checkpoint advantage handoff");
+      this.stats.catchup_probe_first_advantage_handoffs++;
+    } else if (input.outcome === "probe_first_advantage_handoff") {
+      throw new Error("first-checkpoint advantage outcome has no handed-off probe");
+    }
     this.stats.catchup_execution_ceiling_stops += input.probes.filter(
       (probe) => probe.outcome === "execution_ceiling",
     ).length;
@@ -2482,6 +2560,18 @@ export class SelectiveAxisRegretController<Node extends object> {
   }
 
   observeSelected(node: Node, totalSpentFrames: number): boolean {
+    const handoffEventIndex = this.firstAdvantageHandoffs.get(node);
+    if (handoffEventIndex !== undefined) {
+      this.firstAdvantageHandoffs.delete(node);
+      const handoffEvent = this.stats.events[handoffEventIndex];
+      if (
+        handoffEvent === undefined ||
+        handoffEvent.catchup_outcome !== "probe_first_advantage_handoff" ||
+        handoffEvent.first_advantage_handoff_total_spent_frames !== null
+      ) throw new Error("first-checkpoint advantage handoff selection lost attribution");
+      handoffEvent.first_advantage_handoff_total_spent_frames = totalSpentFrames;
+      this.stats.catchup_first_advantage_handoffs_selected++;
+    }
     const eventIndex = this.suspended.get(node);
     if (eventIndex === undefined) return false;
     this.suspended.delete(node);

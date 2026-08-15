@@ -3298,6 +3298,7 @@ function compileHandoffInternal(
         }> = [];
         let tournamentBudgetYielded = false;
         let tournamentFirstDeficitStopped = false;
+        let tournamentFirstAdvantageHandedOff = false;
         const narrowProbeBreadth = decision.triggerSignal === "value_exploration" &&
           (frontierTraversalPolicy ===
               "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
@@ -3342,6 +3343,7 @@ function compileHandoffInternal(
           outcome: "alternative_selected" | "current_selected" |
             "probe_dead_end" | "probe_deferred" | "probe_budget_yield" |
             "probe_first_deficit_stop" |
+            "probe_first_advantage_handoff" |
             "execution_ceiling",
           selectedAlternativeOrdinal: number | null,
           selectedRouteOrdinal: number | null,
@@ -3638,6 +3640,24 @@ function compileHandoffInternal(
             );
             if (
               frontierTraversalPolicy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_first_advantage_handoff" &&
+              decision.triggerSignal === "value_exploration" &&
+              checkpointGapIndex < decision.fromGapIndex &&
+              checkpointGainsObserved === 1 &&
+              alternativeAxisLossGain > 0
+            ) {
+              finishProbe("probe_first_advantage_handoff", alternativeAxisLoss);
+              finishTournament("probe_first_advantage_handoff", 1, 1);
+              selectiveBacktracking!.markFirstAdvantageHandoff(probe, decision);
+              // Frontier is LIFO: retain the suspended current route, then put
+              // the already-better partial alternative on top for ordinary DFS.
+              enqueueChild(suspended, pass, fb);
+              enqueueChild(probe, pass, fb);
+              tournamentFirstAdvantageHandedOff = true;
+              return false;
+            }
+            if (
+              frontierTraversalPolicy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" &&
               decision.triggerSignal === "value_exploration" &&
               checkpointGapIndex < decision.fromGapIndex &&
@@ -3678,6 +3698,7 @@ function compileHandoffInternal(
             "causal_alternative",
             alternativeIndex + 1,
           )) return true;
+          if (tournamentFirstAdvantageHandedOff) return false;
           if (tournamentFirstDeficitStopped) return false;
           if (tournamentBudgetYielded) return false;
         }

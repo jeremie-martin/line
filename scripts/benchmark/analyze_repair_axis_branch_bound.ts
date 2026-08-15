@@ -38,6 +38,9 @@ let terminalAttempts = 0;
 let acceptedAttempts = 0;
 let selectedNodes = 0;
 let eligibleCheckpoints = 0;
+let comparableRecoveryCheckpoints = 0;
+let incomparableRecoveryCheckpoints = 0;
+let missingCurrentAxisObservations = 0;
 let dominatedSelections = 0;
 let prunedSubtrees = 0;
 let abortedAttempts = 0;
@@ -141,6 +144,9 @@ for (const [key, row] of candidateRows) {
       attempt.iteration_index !== attemptOrdinal ||
       attempt.end_total_spent_frames < attempt.start_total_spent_frames ||
       attempt.accepted_alternative && !attempt.terminal_reached ||
+      attempt.recovery_pressure_comparable_checkpoint_nodes +
+          attempt.recovery_pressure_incomparable_checkpoint_nodes !==
+        attempt.eligible_checkpoint_nodes ||
       attempt.aborted_by_bound && attempt.terminal_reached ||
       attempt.dominated_selected_nodes < attempt.opportunities.length ||
       mode === "audit" && (attempt.pruned_subtrees !== 0 || attempt.aborted_by_bound) ||
@@ -152,6 +158,12 @@ for (const [key, row] of candidateRows) {
     acceptedAttempts += Number(attempt.accepted_alternative);
     selectedNodes += attempt.selected_nodes;
     eligibleCheckpoints += attempt.eligible_checkpoint_nodes;
+    comparableRecoveryCheckpoints +=
+      attempt.recovery_pressure_comparable_checkpoint_nodes;
+    incomparableRecoveryCheckpoints +=
+      attempt.recovery_pressure_incomparable_checkpoint_nodes;
+    missingCurrentAxisObservations +=
+      attempt.recovery_pressure_missing_current_axis_observations;
     dominatedSelections += attempt.dominated_selected_nodes;
     prunedSubtrees += attempt.pruned_subtrees;
     abortedAttempts += Number(attempt.aborted_by_bound);
@@ -301,7 +313,7 @@ if (acceptedTerminalDescendants !== 0) {
 }
 
 const result = {
-  schema: "line.repair-axis-branch-bound-analysis.v2",
+  schema: "line.repair-axis-branch-bound-analysis.v3",
   generated_at: new Date().toISOString(),
   scope: {
     mode,
@@ -323,6 +335,9 @@ const result = {
     accepted_attempts: acceptedAttempts,
     selected_nodes: selectedNodes,
     eligible_checkpoint_nodes: eligibleCheckpoints,
+    recovery_pressure_comparable_checkpoint_nodes: comparableRecoveryCheckpoints,
+    recovery_pressure_incomparable_checkpoint_nodes: incomparableRecoveryCheckpoints,
+    recovery_pressure_missing_current_axis_observations: missingCurrentAxisObservations,
     dominated_selected_nodes: dominatedSelections,
     dominated_subtrees: opportunities,
     actionable_nonterminal_dominated_subtrees: actionableOpportunities,
@@ -378,6 +393,7 @@ const result = {
     "The upper bound is exact for the compiler register's authored-axis objective; it does not rewrite or cap the authored specification.",
     "Audit subtree frames are the charged work until ordinary traversal exits that lineage. They are a counterfactual work opportunity, not a prediction of which alternative a live prune will reach.",
     "Recovery pressure is prefix excess SSE divided by the incumbent's remaining suffix SSE. A value of 0.5 means the route must eliminate half of that remaining incumbent error merely to catch up.",
+    "A prefix missing authored-axis observations present in the completed incumbent is not assigned an optimistic pressure. It is counted as incomparable rather than silently treating missing error as zero.",
     "Unlike strict dominance, recovery-pressure crossings may recover and be accepted. Accepted descendants are direct false-abort evidence for that threshold, not invariant violations.",
     "Compact paired cells characterize mechanics and screen a live rule. Only the canonical 750k probability ladder can authorize promotion.",
   ],

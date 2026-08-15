@@ -3218,9 +3218,12 @@ recovery pressure = prefix excess / incumbent remainder.
 The fixed audit levels are 0.25, 0.50, 0.75, and 1.00. A crossing starts one
 lineage record and ordinary DFS remains untouched until it returns from that
 lineage or reaches its first terminal. Record the root horizon, queued frontier
-breadth, charged work, terminal descent, and accepted descent. Require equal
-current/incumbent authored-axis populations at every comparison and fail
-loudly on malformed accounting. A zero incumbent remainder with positive
+breadth, charged work, terminal descent, and accepted descent. Compute pressure
+only for equal current/incumbent authored-axis populations. A current prefix
+can legitimately lack a committed contact observation; count that checkpoint
+and its missing observations as incomparable instead of treating missing error
+as zero. Fail loudly only if current coverage exceeds the completed incumbent
+or the accounting is malformed. A zero incumbent remainder with positive
 excess is recorded as unbounded, not coerced to an arbitrary finite value.
 
 This is a normalized burden, not a calibrated probability, feasibility bound,
@@ -3257,5 +3260,5 @@ the standing full 750k probability ladder. Do not run the multi-budget sweep.
 
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
-| 2026-08-16 | Recovery-pressure schema and behavior-neutral lineage ledger | in progress | Fixed levels; equal-horizon SSE accounting; accepted descendants retained as counterevidence |
+| 2026-08-16 | Recovery-pressure schema and behavior-neutral lineage ledger | in progress | Fixed levels; equal-horizon/equal-population SSE accounting; missing observations explicitly incomparable; accepted descendants retained as counterevidence |
 | 2026-08-16 | Fresh 32-cell opportunity map | pending | Seeds 222-225, eight sources, 750k only |

@@ -277,6 +277,47 @@ describe("repair authored-axis branch bound", () => {
       ]);
   });
 
+  test("counts a missing-observation prefix without assigning it a pressure", () => {
+    const controller = new RepairAxisBranchBoundController<Node>("audit", isPrefix);
+    controller.beginAttempt({
+      iterationIndex: 0,
+      anchorGapIndex: 2,
+      totalSpentFrames: 100,
+      incumbentAxisQuality: 0,
+      incumbentAxisSse: 10,
+      totalAuthoredAxisCount: 10,
+    });
+    controller.observeSelection({
+      node: { path: "missing" },
+      totalSpentFrames: 120,
+      gapIndex: 3,
+      contactOrdinal: 3,
+      frontierNodes: 4,
+      eligibleCheckpoint: true,
+      prunable: true,
+      prefixAxisCount: 2,
+      prefixAxisSse: 2,
+      prefixAxisLoss: 1,
+      incumbentPrefixAxisCount: 3,
+      incumbentPrefixAxisSse: 3,
+    });
+    controller.finishAttempt({
+      totalSpentFrames: 130,
+      terminalNode: null,
+      terminalGapIndex: null,
+      terminalReached: false,
+      acceptedAlternative: false,
+      terminalAxisSse: null,
+    });
+    expect(controller.snapshot().attempts[0]).toMatchObject({
+      eligible_checkpoint_nodes: 1,
+      recovery_pressure_comparable_checkpoint_nodes: 0,
+      recovery_pressure_incomparable_checkpoint_nodes: 1,
+      recovery_pressure_missing_current_axis_observations: 1,
+      recovery_pressure_opportunities: [],
+    });
+  });
+
   test("fails loudly if an accepted terminal violates the dominance proof", () => {
     const controller = new RepairAxisBranchBoundController<Node>("audit", isPrefix);
     controller.beginAttempt({

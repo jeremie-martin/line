@@ -1992,7 +1992,13 @@ function compileHandoffInternal(
     routeLeaseAuditRaw !== undefined && routeLeaseAuditRaw !== "" &&
     routeLeaseAuditRaw !== "0" && routeLeaseAuditRaw !== "1"
   ) throw new Error("LR_ROUTE_LEASE_AUDIT must be 0 or 1");
-  const routeLeaseAudit = routeLeaseAuditRaw === "1";
+  const routeLeaseRollbackRaw = process.env.LR_ROUTE_LEASE_ROLLBACK;
+  if (
+    routeLeaseRollbackRaw !== undefined && routeLeaseRollbackRaw !== "" &&
+    routeLeaseRollbackRaw !== "0" && routeLeaseRollbackRaw !== "1"
+  ) throw new Error("LR_ROUTE_LEASE_ROLLBACK must be 0 or 1");
+  const routeLeaseRollback = routeLeaseRollbackRaw === "1";
+  const routeLeaseAudit = routeLeaseAuditRaw === "1" || routeLeaseRollback;
   setProposalUtilityPowers();
   setAimCompileBudgetFrames(searchPolicyBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
@@ -2152,7 +2158,7 @@ function compileHandoffInternal(
     const selectiveBacktracking = frontierTraversalPolicy !== "depth_first"
       ? new SelectiveAxisRegretController<HandoffNode>(
         (node) => node.search.gapIndex,
-        { policy: frontierTraversalPolicy, routeLeaseAudit },
+        { policy: frontierTraversalPolicy, routeLeaseAudit, routeLeaseRollback },
       )
       : null;
     selectiveBacktracking?.observeRoot(root);
@@ -3844,6 +3850,27 @@ function compileHandoffInternal(
             getSimFrames(),
             routeLeaseEvidence,
           ) ?? false;
+        const routeLeaseRollbackDecision =
+          selectiveBacktracking?.claimRouteLeaseRollback(node, getSimFrames()) ?? null;
+        if (routeLeaseRollbackDecision !== null) {
+          if (resumeSuspendedContinuation) {
+            throw new Error("route-lease rollback selected an already suspended continuation");
+          }
+          if (!takeFrontierNode(
+            routeLeaseRollbackDecision.displacedIncumbent,
+            pass,
+            fb,
+          )) throw new Error("route-lease rollback incumbent left the ordinary frontier");
+          // Frontier is LIFO. Retain the route that crossed first, then place
+          // its displaced incumbent on top for the next ordinary turn.
+          enqueueChild(node, pass, fb);
+          enqueueChild(routeLeaseRollbackDecision.displacedIncumbent, pass, fb);
+          telemetry.frontierMaxSize = Math.max(
+            telemetry.frontierMaxSize,
+            frontierSize(pass, fb),
+          );
+          continue;
+        }
         const result = processSelected(
           node,
           resumeSuspendedContinuation,

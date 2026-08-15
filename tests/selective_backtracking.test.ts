@@ -1358,6 +1358,7 @@ describe("selective-backtracking controller", () => {
     const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
       policy: "selective_axis_regret_catchup_value_initial_expire_10",
       routeLeaseAudit: true,
+      routeLeaseRollback: true,
     });
     const parent = { gap: 1, name: "parent" };
     const leader = { gap: 2, name: "leader" };
@@ -1469,18 +1470,27 @@ describe("selective-backtracking controller", () => {
       displacedIncumbentConservativeDeadlineMargin: 2,
       displacedIncumbentAffordableWithReserve: true,
     })).toBe(false);
+    expect(controller.claimRouteLeaseRollback(child, 102_000)).toEqual({
+      auditIndex: 0,
+      displacedIncumbent: current,
+    });
     expect(controller.observeSelected(current, 103_000)).toBe(true);
     expect(controller.snapshot()).toMatchObject({
       route_lease_audit_enabled: true,
+      route_lease_rollback_enabled: true,
       route_lease_audits_started: 1,
       route_lease_audits_selected: 1,
       route_lease_audits_with_loss_crossing: 1,
+      route_lease_rollbacks_admitted: 1,
+      route_lease_rollbacks_executed: 1,
       route_lease_audits: [{
         event_index: decision!.eventIndex,
         takeover_gap_index: 4,
         selected_total_spent_frames: 100_080,
         selections_observed: 2,
         deepest_gap_index: 5,
+        rollback_disposition: "executed",
+        rollback_total_spent_frames: 102_000,
         first_loss_crossing: {
           gap_index: 5,
           total_spent_frames: 102_000,

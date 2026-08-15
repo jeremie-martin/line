@@ -2820,7 +2820,10 @@ not a threshold-tuned repair, source rule, breadth arm, or multi-budget sweep.
 | 2026-08-15 | Unbounded-lease assumption and behavior-neutral audit frozen | complete | Phase O shows 652/6,813 incumbent resumptions and 6,462/6,813 one-gap handoffs |
 | 2026-08-15 | Audit implementation and controller proof | complete | Explicit `LR_ROUTE_LEASE_AUDIT=1`; 59 focused tests; default Phase D hot path unchanged |
 | 2026-08-15 | Known-activity identity smoke | complete: opportunity broad | 8/8 exact paired cells; 37 takeovers, 22 crossings, all 22 incumbent-available and affordable with 1.25 reserve, seven sources |
-| 2026-08-15 | Four-seed behavior-neutral audit | pending | Same eight-source, actual-seed 202-205 Phase-D panel; no score decision |
+| 2026-08-16 | Four-seed behavior-neutral audit | complete: opportunity broad | 32/32 exact cells; 131 takeovers, 79 crossings, 78 affordable, 29 runs and all eight sources |
+| 2026-08-16 | Bounded route-lease rollback implementation | complete: unit | First crossing, available incumbent, existing 1.25 reserve; retain both routes; 59 focused tests |
+| 2026-08-16 | Known-activity rollback smoke | complete: positive | 8/8 valid; 19/19 exact rollbacks; +26.7 raw score, 5/2/1 better/worse/tied |
+| 2026-08-16 | Fresh four-seed rollback characterization | pending | Actual seeds 206-209; same eight sources and 750k only |
 
 The audit is an explicit compiler mode, not a permanent cost in accepted Phase
 D. It records the actual selected alternative subtree, same-horizon takeover
@@ -2839,3 +2842,42 @@ with the existing 1.25 reserve. This establishes a broad observable action set
 without claiming that rollback is beneficial. Proceed to the already declared
 four-seed behavior-neutral audit; do not select a source, gain, gap, or timing
 threshold from the smoke.
+
+The four-seed audit strengthens the opportunity claim without score reuse. All
+32 instrumented cells are exact against retained Phase D. It records 131
+equal-depth takeovers and 79 first loss crossings in 29/32 runs and all eight
+sources; 78 crossings retain an available incumbent whose conservative suffix
+fits with the existing 1.25 reserve. Median crossing is the second selected
+node, one gap and 4,293 charged frames after takeover. The one reserve
+suppression has margin 1.1435. This is broad enough for one categorical live
+rule; no source, gain, gap, time, or new reserve value was selected.
+
+### Frozen bounded route lease
+
+Enable the live arm only with `LR_ROUTE_LEASE_ROLLBACK=1`; it implies the audit
+but leaves unset Phase D unchanged. On the first strict whole-prefix loss
+crossing, require the displaced incumbent to remain in the ordinary frontier
+and require its conservative remaining work times the already shipped 1.25
+terminal-reserve factor to fit the budget remaining. Retain the crossing route,
+remove the exact incumbent object from its old frontier position, enqueue the
+crossing route first and the incumbent second, so LIFO gives the incumbent the
+exact next ordinary turn. Its suspended-continuation marker prevents duplicate
+detector, register, and evaluation work. Permit one rollback per lease; a new
+selective tournament closes the previous lease, so rollback cannot nest or
+repeat inside it.
+
+The first known-activity panel is encouraging but not a decision: all eight
+cells complete, 19/19 admitted rollbacks execute and resume their causal
+incumbent at the same charged frame, seven tracks change, and raw run-score
+movement is +26.7 (+3.34/cell), with five better, two worse, and one tied.
+First completion is 15,503 paired frames later, so any larger panel must report
+repair displacement rather than treating rollback as free.
+
+Use fresh actual seeds 206-209 on the same eight sources at 750k. Continue only
+if all candidate cells complete, no reference completion is lost, total raw
+score movement is positive, at least three seed blocks and four source means
+are positive, no cell loses 20 points, at least 40 exact rollbacks execute,
+every admitted rollback executes, and all eight sources exercise the action.
+This gate is evaluated only on the declared four-seed panel. If it passes, the
+standing canonical 750k probability ladder is the sole promotion authority.
+Do not tune the crossing, reserve, source set, or run a multi-budget sweep.

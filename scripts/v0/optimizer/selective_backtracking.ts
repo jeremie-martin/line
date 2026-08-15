@@ -792,9 +792,14 @@ export type SelectiveBacktrackingStats = {
   catchup_probe_nodes_processed: number;
   catchup_probe_frames: number;
   route_lease_audit_enabled: boolean;
+  route_lease_rollback_enabled: boolean;
   route_lease_audits_started: number;
   route_lease_audits_selected: number;
   route_lease_audits_with_loss_crossing: number;
+  route_lease_rollbacks_admitted: number;
+  route_lease_rollbacks_executed: number;
+  route_lease_rollbacks_incumbent_unavailable: number;
+  route_lease_rollbacks_terminal_reserve_suppressed: number;
   route_lease_audits: SelectiveRouteLeaseAudit[];
   axis_loss_delta_sum: number;
   axis_loss_delta_max: number;
@@ -893,6 +898,14 @@ export type SelectiveRouteLeaseAudit = {
   selections_observed: number;
   deepest_gap_index: number;
   first_loss_crossing: SelectiveRouteLeaseCheckpoint | null;
+  rollback_disposition:
+    | "audit_only"
+    | "displaced_incumbent_unavailable"
+    | "terminal_reserve"
+    | "admitted"
+    | "executed"
+    | null;
+  rollback_total_spent_frames: number | null;
   checkpoints: SelectiveRouteLeaseCheckpoint[];
   end_reason:
     | "terminal"
@@ -982,7 +995,9 @@ export class SelectiveAxisRegretController<Node extends object> {
   private readonly suspended = new WeakMap<Node, number>();
   private readonly firstAdvantageHandoffs = new WeakMap<Node, number>();
   private readonly routeLeaseAuditEnabled: boolean;
+  private readonly routeLeaseRollbackEnabled: boolean;
   private readonly routeLeaseNodes = new WeakMap<Node, number>();
+  private readonly pendingRouteLeaseRollbacks = new WeakMap<Node, number>();
   private readonly routeLeaseIncumbents = new Map<number, Node>();
   private readonly repairAttemptsWithIncumbentBacktrack = new Set<number>();
   private readonly deferredValueCandidates: Array<DeferredValueCandidate<Node>> = [];
@@ -995,11 +1010,14 @@ export class SelectiveAxisRegretController<Node extends object> {
     options: {
       policy?: SelectiveCatchupPolicy;
       routeLeaseAudit?: boolean;
+      routeLeaseRollback?: boolean;
     } = {},
   ) {
     this.gapIndexOf = gapIndexOf;
     this.policy = options.policy ?? "selective_axis_regret_catchup";
-    this.routeLeaseAuditEnabled = options.routeLeaseAudit === true;
+    this.routeLeaseRollbackEnabled = options.routeLeaseRollback === true;
+    this.routeLeaseAuditEnabled = options.routeLeaseAudit === true ||
+      this.routeLeaseRollbackEnabled;
     this.stats = {
       policy: this.policy,
       min_contact_advance: SELECTIVE_AXIS_REGRET_MIN_CONTACT_ADVANCE,
@@ -1210,9 +1228,14 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_probe_nodes_processed: 0,
       catchup_probe_frames: 0,
       route_lease_audit_enabled: this.routeLeaseAuditEnabled,
+      route_lease_rollback_enabled: this.routeLeaseRollbackEnabled,
       route_lease_audits_started: 0,
       route_lease_audits_selected: 0,
       route_lease_audits_with_loss_crossing: 0,
+      route_lease_rollbacks_admitted: 0,
+      route_lease_rollbacks_executed: 0,
+      route_lease_rollbacks_incumbent_unavailable: 0,
+      route_lease_rollbacks_terminal_reserve_suppressed: 0,
       route_lease_audits: [],
       axis_loss_delta_sum: 0,
       axis_loss_delta_max: 0,
@@ -2453,6 +2476,8 @@ export class SelectiveAxisRegretController<Node extends object> {
       selections_observed: 0,
       deepest_gap_index: decision.fromGapIndex,
       first_loss_crossing: null,
+      rollback_disposition: null,
+      rollback_total_spent_frames: null,
       checkpoints: [],
       end_reason: null,
       end_total_spent_frames: null,
@@ -2477,6 +2502,27 @@ export class SelectiveAxisRegretController<Node extends object> {
       return null;
     }
     return { takeoverGapIndex: audit.takeover_gap_index, displacedIncumbent };
+  }
+
+  claimRouteLeaseRollback(node: Node, totalSpentFrames: number): {
+    auditIndex: number;
+    displacedIncumbent: Node;
+  } | null {
+    const auditIndex = this.pendingRouteLeaseRollbacks.get(node);
+    if (auditIndex === undefined) return null;
+    this.pendingRouteLeaseRollbacks.delete(node);
+    const audit = this.stats.route_lease_audits[auditIndex];
+    const displacedIncumbent = this.routeLeaseIncumbents.get(auditIndex);
+    if (
+      !this.routeLeaseRollbackEnabled || audit === undefined ||
+      displacedIncumbent === undefined || audit.end_reason !== null ||
+      audit.rollback_disposition !== "admitted" ||
+      audit.rollback_total_spent_frames !== null
+    ) throw new Error("selected-route rollback lost its admitted lease");
+    audit.rollback_disposition = "executed";
+    audit.rollback_total_spent_frames = totalSpentFrames;
+    this.stats.route_lease_rollbacks_executed++;
+    return { auditIndex, displacedIncumbent };
   }
 
   observeRouteLeaseTerminal(node: Node, totalSpentFrames: number): void {
@@ -2783,6 +2829,19 @@ export class SelectiveAxisRegretController<Node extends object> {
           ) {
             audit.first_loss_crossing = { ...checkpoint };
             this.stats.route_lease_audits_with_loss_crossing++;
+            if (!this.routeLeaseRollbackEnabled) {
+              audit.rollback_disposition = "audit_only";
+            } else if (!checkpoint.displaced_incumbent_available) {
+              audit.rollback_disposition = "displaced_incumbent_unavailable";
+              this.stats.route_lease_rollbacks_incumbent_unavailable++;
+            } else if (!checkpoint.displaced_incumbent_affordable_with_reserve) {
+              audit.rollback_disposition = "terminal_reserve";
+              this.stats.route_lease_rollbacks_terminal_reserve_suppressed++;
+            } else {
+              audit.rollback_disposition = "admitted";
+              this.pendingRouteLeaseRollbacks.set(node, routeLeaseAuditIndex);
+              this.stats.route_lease_rollbacks_admitted++;
+            }
           }
         }
       }

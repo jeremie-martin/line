@@ -217,9 +217,14 @@ function stripAudit(stats: any): any {
   const selective = clone?.handoff_selective_backtracking;
   if (selective !== undefined) {
     delete selective.route_lease_audit_enabled;
+    delete selective.route_lease_rollback_enabled;
     delete selective.route_lease_audits_started;
     delete selective.route_lease_audits_selected;
     delete selective.route_lease_audits_with_loss_crossing;
+    delete selective.route_lease_rollbacks_admitted;
+    delete selective.route_lease_rollbacks_executed;
+    delete selective.route_lease_rollbacks_incumbent_unavailable;
+    delete selective.route_lease_rollbacks_terminal_reserve_suppressed;
     delete selective.route_lease_audits;
   }
   return clone;

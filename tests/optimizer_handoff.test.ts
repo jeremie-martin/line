@@ -415,9 +415,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previousPolicy = process.env.LR_FRONTIER_POLICY;
     const previousAudit = process.env.LR_ROUTE_LEASE_AUDIT;
+    const previousRollback = process.env.LR_ROUTE_LEASE_ROLLBACK;
     try {
       delete process.env.LR_FRONTIER_POLICY;
       delete process.env.LR_ROUTE_LEASE_AUDIT;
+      delete process.env.LR_ROUTE_LEASE_ROLLBACK;
       const reference = compileHandoff(spec, 2, {
         budget: 20_000,
         maxNodes: 12,
@@ -442,11 +444,20 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         maxNodes: 12,
         polish: false,
       })).toThrow(/LR_ROUTE_LEASE_AUDIT must be 0 or 1/);
+      process.env.LR_ROUTE_LEASE_AUDIT = "0";
+      process.env.LR_ROUTE_LEASE_ROLLBACK = "yes";
+      expect(() => compileHandoff(spec, 2, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      })).toThrow(/LR_ROUTE_LEASE_ROLLBACK must be 0 or 1/);
     } finally {
       if (previousPolicy === undefined) delete process.env.LR_FRONTIER_POLICY;
       else process.env.LR_FRONTIER_POLICY = previousPolicy;
       if (previousAudit === undefined) delete process.env.LR_ROUTE_LEASE_AUDIT;
       else process.env.LR_ROUTE_LEASE_AUDIT = previousAudit;
+      if (previousRollback === undefined) delete process.env.LR_ROUTE_LEASE_ROLLBACK;
+      else process.env.LR_ROUTE_LEASE_ROLLBACK = previousRollback;
     }
   }, 60_000);
 

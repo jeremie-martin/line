@@ -2626,3 +2626,83 @@ sweep and no canonical run is authorized by the audit itself.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Numerator audit and behavior-neutral gate frozen | complete | This section; no score-selected threshold |
+| 2026-08-15 | Exact identity and local-signal assay | complete: close rewrite | `value-numerator-audit-seeds198-201/signal-audit.json`; 32/32 exact tracks, scores, first-terminal work, and budget/repair ledgers |
+
+The audit closes the semantic numerator replacement cleanly. All 358 admitted
+tournaments carry valid branch and divergent-suffix evidence, while all 32
+instrumented cells exactly reproduce the old track, score, validity,
+first-terminal frame, and complete budget/repair telemetry. The evidence pass
+therefore changed no search behavior.
+
+The less faithful production density remains the better local ranker. Its AUC
+is 0.576 for target reach and 0.570 for strict alternative selection; the
+divergent-suffix excess density reaches only 0.382 and 0.533. Its top quartile
+reaches 91.1% of targets and selects 43.3% alternatives, versus 82.2% and 41.1%
+for suffix excess. The runner-up's exact first-child advantage is also weaker
+(AUC 0.400/0.518). These event-level associations are descriptive and
+clustered; within-run and within-source summaries are retained in the artifact.
+
+Both zero-threshold rewrites fail for direct reasons. A divergent suffix worse
+than its inherited prefix occurs in 358/358 admitted actions: once the
+cumulative loss has crossed positively, that sign is an algebraic consequence,
+not a new gate. The 131 actions whose runner-up first child is better reach
+targets and select alternatives at 84.0%/34.4%; the top 131 actions under the
+production density achieve 92.4%/41.2%. No live or canonical arm follows. The
+important inference is not that the current numerator is a literal suffix-loss
+estimate; it is that its horizon normalization is a useful compact surrogate.
+
+## Phase O: hand control back before equal depth
+
+### Challenged assumption
+
+Every Phase-D tournament treats equal depth as indivisible: after a runner-up
+has already caught up to the first comparable checkpoint and is strictly
+better there, privileged probing still continues until the original current
+prefix's depth. Equal depth is necessary for the final comparator, but it is
+not necessary for safe frontier ownership. The partially caught-up alternative
+and the suspended current prefix are both concrete nodes. Ordinary DFS can
+continue the better partial alternative first while retaining the current
+prefix as fallback.
+
+This is not the closed first-deficit stop. That arm interrupted a losing
+alternative, resumed the incumbent, and increased later action churn. The new
+categorical rule interrupts only at the first genuinely pre-target checkpoint
+whose exact like-for-like authored-axis gain is strictly positive. It enqueues
+the suspended current prefix first and the partial alternative second, so LIFO
+ordinary traversal gives the alternative control immediately. Neither is
+pruned. A zero gain does not hand off; a one-step route with no pre-target
+checkpoint still performs the ordinary equal-depth comparison.
+
+### Score-blind opportunity and frozen screen
+
+The behavior-neutral Phase-N panel contains 344 tournaments with a first
+pre-target checkpoint. Exactly 109 are strictly positive, spanning 30 runs and
+all eight sources. In the unchanged execution, 93 later reach equal depth and
+62 ultimately select the alternative, while 419,279 synchronous probe frames
+follow those positive checkpoints. The corresponding 229 negative checkpoints
+produce only 60 endpoint alternative winners. These are local mechanism labels,
+not a stopped score counterfactual; they authorize one live categorical test.
+
+Add explicit policy
+`selective-axis-regret-catchup-value-initial-expire-10-first-advantage-handoff`.
+It inherits Phase D's trigger, density, maturity, startup expiration, 15% fund,
+1.25 reserve, full production probe breadth, candidate generation, repair,
+authored target, and every non-value traversal rule. Telemetry must distinguish
+a partial advantage handoff from target reach, completed tournament, accepted
+alternative, and later suspended-prefix resumption. It must bind the handoff to
+one first pre-target checkpoint with strict positive gain, exact partial axis
+loss, correct frontier ownership, and aligned probe work.
+
+After unit and one-run mechanical proof, use the same eight-source 750k-only
+panel on fresh actual seeds 202-205 against Phase D. Continue only with full
+validity, positive total movement, at least three positive seed blocks and four
+positive source means, no cell loss of 20 points, at least 50 exact handoffs,
+and coherent displacement from synchronous probe work into ordinary search or
+repair. This is characterization, never promotion. If it passes, the unchanged
+standing canonical 750k evaluator is the sole score authority. Do not tune a
+gain threshold, combine it with breadth arms, add a source condition, or run a
+multi-budget sweep.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | First-advantage opportunity and live rule frozen | complete | 109 strict-positive first checkpoints; zero numeric threshold |

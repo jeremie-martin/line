@@ -47,6 +47,7 @@ type Checkpoint = {
 type Event = {
   sourceId: string;
   seed: number;
+  policy: string;
   trigger_signal:
     | "branch_regret"
     | "repair_incumbent_regret"
@@ -110,6 +111,8 @@ type ProbeResult = {
   normal_empty_full_width_retry_incremental_requested_proposals?: number;
   normal_empty_full_width_retry_candidate_geometry_evaluations?: number;
   normal_empty_full_width_retry_frames?: number;
+  atomic_node_primary_normal_requested_proposals?: Array<number | null>;
+  atomic_node_frames?: number[];
   axis_loss: number | null;
   local_fallback_choices: LocalFallbackChoice[];
 };
@@ -236,6 +239,7 @@ for (const row of archive.runs ?? []) {
     events.push({
       sourceId: row.task.sourceId,
       seed: row.task.actualSeed,
+      policy: stats.policy,
       trigger_signal: event.trigger_signal ?? "branch_regret",
       lane: event.lane,
       trigger_axis_loss: event.trigger_axis_loss,
@@ -759,6 +763,42 @@ const emptyNormalPoolFullWidthRetry = retryTelemetryRows.length === 0 ? null : {
     "Only a paired compiler arm identifies their causal score and search effects.",
 };
 
+const positionalWidthRows = events.flatMap((event) =>
+  event.catchup_probe_results.flatMap((probe) =>
+    probe.atomic_node_primary_normal_requested_proposals === undefined
+      ? []
+      : [{ event, probe }]
+  )
+);
+const positionalProbeBreadth = positionalWidthRows.length === 0 ? null : (() => {
+  const sequences = new Map<string, number>();
+  for (const { probe } of positionalWidthRows) {
+    const key = probe.atomic_node_primary_normal_requested_proposals!
+      .map((value) => value === null ? "-" : String(value))
+      .join(",");
+    sequences.set(key, (sequences.get(key) ?? 0) + 1);
+  }
+  return {
+    probes_with_width_trace: positionalWidthRows.length,
+    contact_pool_expansions: positionalWidthRows.reduce(
+      (total, { probe }) => total +
+        probe.atomic_node_primary_normal_requested_proposals!.filter(
+          (value) => value !== null,
+        ).length,
+      0,
+    ),
+    width_sequences: [...sequences.entries()]
+      .map(([sequence, probes]) => ({ sequence, probes }))
+      .sort((left, right) => right.probes - left.probes ||
+        left.sequence.localeCompare(right.sequence)),
+    definitions: {
+      sequence:
+        "Comma-separated primary normal nCand aligned to processed atomic nodes; '-' is a node " +
+        "that performed no contact-pool expansion.",
+    },
+  };
+})();
+
 const result = {
   schema: "line.selective-backtracking-offline-guard-analysis.v2",
   source_archive: archivePath,
@@ -792,6 +832,7 @@ const result = {
   one_discrepancy_execution: oneDiscrepancyExecution,
   local_route_progress_map: localRouteProgressMap,
   empty_normal_pool_full_width_retry: emptyNormalPoolFullWidthRetry,
+  positional_probe_breadth: positionalProbeBreadth,
   admission_margin_counterfactuals: admissionMarginCounterfactuals,
   trigger_opportunities: triggerRuns.length === 0 ? null : {
     coverage: {
@@ -1164,6 +1205,29 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         attempts !== 0
       ) {
         throw new Error(`${label}/route-${probe.route_ordinal} attributes a retry to another policy`);
+      }
+    }
+    for (const probe of results) {
+      const widths = probe.atomic_node_primary_normal_requested_proposals;
+      const positionalPolicy = stats.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first" ||
+        stats.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last";
+      if (widths === undefined) {
+        if (positionalPolicy) {
+          throw new Error(`${label}/route-${probe.route_ordinal} lacks positional width telemetry`);
+        }
+        continue;
+      }
+      if (
+        !Array.isArray(widths) ||
+        !Array.isArray(probe.atomic_node_frames) ||
+        widths.length !== probe.atomic_node_frames.length ||
+        widths.some((value) =>
+          value !== null && (!Number.isSafeInteger(value) || value <= 0)
+        )
+      ) {
+        throw new Error(`${label}/route-${probe.route_ordinal} has invalid positional width telemetry`);
       }
     }
     const skipped = event.catchup_additional_probes_skipped_after_first_winner ?? 0;
@@ -1844,6 +1908,17 @@ function print(analysis: typeof result): void {
       `  attempted routes later reached target ${retry.target_reaches_after_any_retry}; ` +
       `later dead-ended ${retry.dead_ends_after_any_retry}`,
     );
+  }
+  if (analysis.positional_probe_breadth !== null) {
+    const position = analysis.positional_probe_breadth;
+    console.log(`\nPOSITIONAL PROBE BREADTH`);
+    console.log(
+      `  ${position.probes_with_width_trace} probes; ` +
+      `${position.contact_pool_expansions} contact-pool expansions`,
+    );
+    for (const row of position.width_sequences.slice(0, 12)) {
+      console.log(`  ${row.sequence.padEnd(24)} ${row.probes} probes`);
+    }
   }
   console.log(`\nCONSERVATIVE-MARGIN ADMISSION COUNTERFACTUALS`);
   for (const row of analysis.admission_margin_counterfactuals) {

@@ -5,6 +5,7 @@ import {
   parseFrontierTraversalPolicy,
   SelectiveAxisRegretController,
   valueProbeCandidateCount,
+  valueProbeCandidateCountAtRoutePosition,
   valueProbeEmptyFallbackCandidateCount,
 } from "../scripts/v0/optimizer/selective_backtracking.ts";
 
@@ -75,6 +76,16 @@ describe("selective-backtracking controller", () => {
       "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry",
     );
     expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-after-first",
+    )).toBe(
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first",
+    );
+    expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-expire-10-probe-breadth-3q-before-last",
+    )).toBe(
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last",
+    );
+    expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-initial-expire-10-run-proof",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10_run_proof");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
@@ -116,6 +127,19 @@ describe("selective-backtracking controller", () => {
     expect(valueProbeCandidateCount(retryPolicy, 81, 8)).toBe(61);
     expect(valueProbeEmptyFallbackCandidateCount(retryPolicy, 81)).toBe(81);
     expect(valueProbeEmptyFallbackCandidateCount(probePolicy, 81)).toBeNull();
+    const afterFirst =
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first";
+    const beforeLast =
+      "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last";
+    expect(valueProbeCandidateCountAtRoutePosition(afterFirst, 81, 8, 0, 2)).toBe(81);
+    expect(valueProbeCandidateCountAtRoutePosition(afterFirst, 81, 8, 1, 1)).toBe(61);
+    expect(valueProbeCandidateCountAtRoutePosition(beforeLast, 81, 8, 0, 2)).toBe(61);
+    expect(valueProbeCandidateCountAtRoutePosition(beforeLast, 81, 8, 1, 1)).toBe(81);
+    expect(valueProbeCandidateCountAtRoutePosition(afterFirst, 81, 8, 0, 1)).toBe(81);
+    expect(valueProbeCandidateCountAtRoutePosition(beforeLast, 81, 8, 0, 1)).toBe(81);
+    expect(valueProbeCandidateCountAtRoutePosition(afterFirst, 8, 8, 1, 2)).toBe(8);
+    expect(() => valueProbeCandidateCountAtRoutePosition(afterFirst, 81, 8, -1, 2))
+      .toThrow(/route position/);
     expect(valueProbeCandidateCount(
       "selective_axis_regret_catchup_value_initial_expire_10",
       81,
@@ -135,6 +159,18 @@ describe("selective-backtracking controller", () => {
     expect(retryController.snapshot()).toMatchObject({
       catchup_priority_rule: "endpoint_gain",
       value_probe_candidate_breadth_rule: "three_quarter_after_floor_empty_full_retry",
+      value_probe_candidate_breadth_scale: 0.75,
+    });
+    expect(new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: afterFirst,
+    }).snapshot()).toMatchObject({
+      value_probe_candidate_breadth_rule: "full_first_then_three_quarter_after_floor",
+      value_probe_candidate_breadth_scale: 0.75,
+    });
+    expect(new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: beforeLast,
+    }).snapshot()).toMatchObject({
+      value_probe_candidate_breadth_rule: "three_quarter_after_floor_then_full_last",
       value_probe_candidate_breadth_scale: 0.75,
     });
   });
@@ -226,6 +262,7 @@ describe("selective-backtracking controller", () => {
         requested_normal_proposals: 200,
         candidate_geometry_evaluations: 180,
         ...NO_EMPTY_POOL_RETRY,
+        atomic_node_primary_normal_requested_proposals: [100, 100],
         atomic_node_frames: [15_000, 20_000],
         tail_completion_attempts: 0,
         budget_allowance_frames: null,
@@ -985,6 +1022,7 @@ describe("selective-backtracking controller", () => {
         requested_normal_proposals: 160,
         candidate_geometry_evaluations: 150,
         ...NO_EMPTY_POOL_RETRY,
+        atomic_node_primary_normal_requested_proposals: [80, 80],
         atomic_node_frames: [40, 50],
         tail_completion_attempts: 0,
         budget_allowance_frames: 112_500,
@@ -1084,6 +1122,7 @@ describe("selective-backtracking controller", () => {
         requested_normal_proposals: 80,
         candidate_geometry_evaluations: 75,
         ...NO_EMPTY_POOL_RETRY,
+        atomic_node_primary_normal_requested_proposals: [80],
         atomic_node_frames: [40],
         tail_completion_attempts: 0,
         budget_allowance_frames: 112_500,
@@ -1181,6 +1220,7 @@ describe("selective-backtracking controller", () => {
         requested_normal_proposals: 80,
         candidate_geometry_evaluations: 75,
         ...NO_EMPTY_POOL_RETRY,
+        atomic_node_primary_normal_requested_proposals: [80],
         atomic_node_frames: [1_000],
         tail_completion_attempts: 0,
         budget_allowance_frames: 112_500,
@@ -1280,6 +1320,7 @@ describe("selective-backtracking controller", () => {
         requested_normal_proposals: 80,
         candidate_geometry_evaluations: 75,
         ...NO_EMPTY_POOL_RETRY,
+        atomic_node_primary_normal_requested_proposals: [80],
         atomic_node_frames: [1_000],
         tail_completion_attempts: 0,
         budget_allowance_frames: 112_500,
@@ -1505,6 +1546,7 @@ describe("selective-backtracking controller", () => {
         requested_normal_proposals: 100,
         candidate_geometry_evaluations: 90,
         ...NO_EMPTY_POOL_RETRY,
+        atomic_node_primary_normal_requested_proposals: [100],
         atomic_node_frames: [35],
         tail_completion_attempts: 0,
         budget_allowance_frames: null,
@@ -1772,6 +1814,7 @@ describe("selective-backtracking controller", () => {
         requested_normal_proposals: 100,
         candidate_geometry_evaluations: 90,
         ...NO_EMPTY_POOL_RETRY,
+        atomic_node_primary_normal_requested_proposals: [100],
         atomic_node_frames: [20],
         tail_completion_attempts: 0,
         budget_allowance_frames: null,

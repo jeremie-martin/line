@@ -2205,3 +2205,47 @@ where its missing continuation lives. The panel's positive score is another
 observation of the broader uniform-narrowing search shape, plus 18k frames of
 unsuccessful retries. It cannot rescue the N=48-inconclusive arm and does not
 authorize a canonical run.
+
+## Phase J: locate breadth within the catch-up route
+
+Phase I shows that widening only after the exact route is already dead is too
+late. It also provides a simpler experimental surface. In its fresh panel, 396
+of 438 routes process exactly two nodes; 29 process one, and only 13 process
+more than two. Likewise, 418 of 430 value-ranked actions target a three-contact
+catch-up. Uniform 3/4 breadth therefore usually changes two consecutive suffix
+decisions, while the empty fallback acts after both opportunities have failed.
+
+Predeclare two positional breadth arms. `full-first` uses production width for
+the first processed node of each independently executed probe route and 3/4
+width after it. `full-last` uses 3/4 width until the final contact expansion
+before the tournament target and production width there. A one-node route is
+full width in both arms. A two-node route—the dominant population—requests the
+same nominal 81 + 61 proposals in opposite order. Longer routes receive exactly
+one full-width contact decision, at the named end. Non-contact bookkeeping
+nodes do not consume the positional slot.
+
+This is a location contrast, not a breadth grid. It tests whether early suffix
+diversity is more valuable because its child owns a longer downstream path, or
+late diversity is more valuable because it directly shapes the equal-depth
+endpoint comparison. Both retain Phase-D admission/ranking/fund/reserve,
+production and repair traversal, branch limits, rescue behavior, endpoint
+comparison, authored targets, and conservative full-width work estimates.
+Neither inherits the failed empty-pool retry.
+
+Each probe route must record the primary normal width used at every processed
+atomic node alongside its existing per-node frames. A focused pure test proves
+the first/last positional laws, one-node coincidence, production floor, and
+no effect on non-positional policies. Run both arms on the same fresh 750k-only
+eight-source/four-seed panel (actual seeds 104-107) against Phase D. The shared
+cells make the two mechanisms directly comparable; the panel remains
+characterization, never promotion. Advance at most one arm, only when score,
+validity, width traces, work allocation, and route outcomes are jointly
+coherent. The canonical evaluator then uses its disjoint standing seed schedule
+and remains the sole score authority.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Positional breadth contrast predeclared | complete | This section; dominant two-node route distribution |
+| 2026-08-15 | Full-first/full-last implementation and width telemetry | complete: unit | Focused 55-test suite; pure positional law and aligned trace schema |
+| 2026-08-15 | Shared fresh mechanism panel | pending | Eight sources, seeds 104-107, 750k only |
+| 2026-08-15 | Canonical decision | pending | At most one coherent positional arm may advance |

@@ -230,7 +230,7 @@ import {
   type SelectiveDeferredValueAxisComparison,
   type SelectiveDeferredValueCheckpoint,
   type SelectiveDeferredValueDecision,
-  valueProbeCandidateCount,
+  valueProbeCandidateCountAtRoutePosition,
   valueProbeEmptyFallbackCandidateCount,
 } from "./selective_backtracking.ts";
 import {
@@ -2820,12 +2820,17 @@ function compileHandoffInternal(
     // expand into ranked children. It mutates the register/telemetry/budget exactly as the
     // old inline loop did. It does NOT touch the frontier container — the caller enqueues
     // the returned children.
-    type ProcessResult =
+    type ProcessOutcome =
       | { kind: "captured" }
       | { kind: "terminal_limit" }
       | { kind: "deferred" }
       | { kind: "selective_backtrack"; decision: SelectiveBacktrackDecision<HandoffNode> }
       | { kind: "expanded"; children: HandoffNode[] };
+    type ProcessResult = ProcessOutcome & {
+      /** Actual primary normal-pool nCand for this atomic contact expansion.
+       * Null when this disposition did not expand a contact pool. */
+      primaryNormalRequestedProposals: number | null;
+    };
     let activeTerminalConsiderLimit: number | null = null;
     let observedAtomicCostPerCandidateUpper = 0;
     const deadlineMarginAt = (search: SearchNode): number =>
@@ -2896,7 +2901,9 @@ function compileHandoffInternal(
       let afterMain = atomicStart;
       let afterTail = atomicStart;
       let atomicPolicy: HandoffSearchPolicy | null = null;
-      const finishAtomic = <T extends ProcessResult>(result: T): T => {
+      const finishAtomic = <T extends ProcessOutcome>(
+        result: T,
+      ): T & Pick<ProcessResult, "primaryNormalRequestedProposals"> => {
         const end = getSimFrames();
         if (atomicPolicy !== null && atomicPolicy.nCand > 0 && end > atomicStart) {
           observedAtomicCostPerCandidateUpper = Math.max(
@@ -2934,7 +2941,15 @@ function compileHandoffInternal(
           tail_improvements:
             telemetry.improvementsByPhase.tail_completion - tailImprovementsBefore,
         });
-        return result;
+        return {
+          ...result,
+          primaryNormalRequestedProposals:
+            result.kind === "expanded" &&
+              node.startExpanded &&
+              gaps[node.search.gapIndex]?.endsWithContact === true
+              ? atomicPolicy?.nCand ?? null
+              : null,
+        };
       };
       budgetRecorder.observeActiveEpisode(node.search.gapIndex, getSimFrames());
       // Only tracked when repair can consume it (>=150k); a no-op on the low-budget hot path.
@@ -3271,26 +3286,34 @@ function compileHandoffInternal(
           (frontierTraversalPolicy ===
               "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q" ||
             frontierTraversalPolicy ===
-              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry");
-        const probePolicyTransform:
-          ((policy: HandoffSearchPolicy) => HandoffSearchPolicy) | undefined =
-            narrowProbeBreadth
-              ? (policy) => {
-                const fullWidth = valueProbeEmptyFallbackCandidateCount(
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry" ||
+            frontierTraversalPolicy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first" ||
+            frontierTraversalPolicy ===
+              "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last");
+        const probePolicyTransformAt = (
+          processedContactNodes: number,
+          remainingContactExpansions: number,
+        ): ((policy: HandoffSearchPolicy) => HandoffSearchPolicy) | undefined =>
+          narrowProbeBreadth
+            ? (policy) => {
+              const fullWidth = valueProbeEmptyFallbackCandidateCount(
+                frontierTraversalPolicy,
+                policy.nCand,
+              );
+              return {
+                ...policy,
+                nCand: valueProbeCandidateCountAtRoutePosition(
                   frontierTraversalPolicy,
                   policy.nCand,
-                );
-                return {
-                  ...policy,
-                  nCand: valueProbeCandidateCount(
-                    frontierTraversalPolicy,
-                    policy.nCand,
-                    HANDOFF_QUALITY_N_CAND_FLOOR,
-                  ),
-                  ...(fullWidth === null ? {} : { normalEmptyFallbackNCand: fullWidth }),
-                };
-              }
-              : undefined;
+                  HANDOFF_QUALITY_N_CAND_FLOOR,
+                  processedContactNodes,
+                  remainingContactExpansions,
+                ),
+                ...(fullWidth === null ? {} : { normalEmptyFallbackNCand: fullWidth }),
+              };
+            }
+            : undefined;
         const finishTournament = (
           outcome: "alternative_selected" | "current_selected" |
             "probe_dead_end" | "probe_deferred" | "probe_budget_yield" |
@@ -3352,7 +3375,9 @@ function compileHandoffInternal(
           const tailCompletionAttemptsBefore = telemetry.tailCompletionAttempts;
           let probe = start;
           let probeNodesProcessed = 0;
+          let probeContactNodesProcessed = 0;
           const atomicNodeFrames: number[] = [];
+          const atomicNodePrimaryNormalRequestedProposals: Array<number | null> = [];
           let budgetRemainingBeforeYield: number | null = null;
           let estimatedNextNodeFrames: number | null = null;
           const localFallbackCandidates: HandoffNode[] = [];
@@ -3422,6 +3447,8 @@ function compileHandoffInternal(
                 emptyRetryGeometryBefore,
               normal_empty_full_width_retry_frames:
                 telemetry.valueProbeEmptyFullWidthRetryFrames - emptyRetryFramesBefore,
+              atomic_node_primary_normal_requested_proposals:
+                atomicNodePrimaryNormalRequestedProposals,
               atomic_node_frames: atomicNodeFrames,
               tail_completion_attempts:
                 telemetry.tailCompletionAttempts - tailCompletionAttemptsBefore,
@@ -3490,14 +3517,28 @@ function compileHandoffInternal(
               }
             }
             const atomicStartFrames = getSimFrames();
+            const remainingContactExpansions = Math.max(
+              1,
+              contactOrdinalAt(decision.fromGapIndex) -
+                contactOrdinalAt(probe.search.gapIndex),
+            );
             const result = processSelected(
               probe,
               resumeProbe,
               false,
               decision.triggerSignal !== "value_exploration",
-              probePolicyTransform,
+              probePolicyTransformAt(
+                probeContactNodesProcessed,
+                remainingContactExpansions,
+              ),
             );
             atomicNodeFrames.push(getSimFrames() - atomicStartFrames);
+            atomicNodePrimaryNormalRequestedProposals.push(
+              result.primaryNormalRequestedProposals,
+            );
+            if (result.primaryNormalRequestedProposals !== null) {
+              probeContactNodesProcessed++;
+            }
             resumeProbe = false;
             probeNodesProcessed++;
             if (result.kind === "captured" || result.kind === "terminal_limit") {

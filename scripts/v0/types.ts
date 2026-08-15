@@ -514,6 +514,8 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q"
       | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_empty_retry"
+      | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_after_first"
+      | "selective_axis_regret_catchup_value_initial_expire_10_probe_breadth_3q_before_last"
       | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
     deferred_value_density_threshold: number;
     deferred_value_min_gap_progress: number;
@@ -545,7 +547,9 @@ export type CompileStats = {
     value_probe_candidate_breadth_rule:
       | "production"
       | "three_quarter_after_floor"
-      | "three_quarter_after_floor_empty_full_retry";
+      | "three_quarter_after_floor_empty_full_retry"
+      | "full_first_then_three_quarter_after_floor"
+      | "three_quarter_after_floor_then_full_last";
     value_probe_candidate_breadth_scale: number;
     catchup_endpoint_winners_suppressed_unstable: number;
     mature_axis_loss_delta_max: number;
@@ -696,6 +700,7 @@ export type CompileStats = {
         normal_empty_full_width_retry_incremental_requested_proposals: number;
         normal_empty_full_width_retry_candidate_geometry_evaluations: number;
         normal_empty_full_width_retry_frames: number;
+        atomic_node_primary_normal_requested_proposals: Array<number | null>;
         atomic_node_frames: number[];
         tail_completion_attempts: number;
         budget_allowance_frames: number | null;

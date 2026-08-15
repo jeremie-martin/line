@@ -156,3 +156,96 @@ Supporting evidence:
 
 - `generated/benchmark-v2/mover-grid/deferred-fixed-lookahead-two-budget-n4/mover-grid-report.json`
 - `generated/benchmark-v2/mover-grid/deferred-fixed-lookahead-two-budget-n4/analysis.json`
+
+## Pass-frontier ownership campaign
+
+### Challenged assumption
+
+The closed fixed-lookahead rule and the deferred suffix both inherited the
+ordinary compiler's two-lane traversal: exhaust every zero-skipped pass branch,
+then use completion-rescue fallback branches. That inheritance has never earned
+score evidence. It is especially questionable after the first valid terminal,
+where the optional action exists to improve authored impact rather than to find
+any completion.
+
+This campaign isolates frontier ownership. It deliberately does **not** retain
+the closed six-contact/0.05 gate: combining a score gate with a lane gate would
+make either result causally ambiguous.
+
+### Frozen rule
+
+Add the explicit experimental policy
+`selective-axis-regret-catchup-value-deferred-pass-only`. It keeps the same
+rank-one opportunity, 40% allowance, atomic admission, ordinary expansion and
+ranking, and no nested selective action or speculative tail completion as the
+existing deferred suffix. It changes exactly one rule:
+
+1. The local action may process every zero-skipped node on its pass frontier.
+2. When the pass frontier is empty and the next selected node belongs to the
+   fallback lane, stop the optional action before processing that node.
+3. Return that node and every other local survivor, by object identity and in
+   the same stack order, to the original frontier. Do not delete or globally
+   prune fallback work. Ordinary repair and resumed search retain ownership.
+4. If a pass route reaches a terminal, preserve the existing first-terminal
+   return. If the pass frontier exhausts with no fallback survivor, report true
+   frontier exhaustion. Atomic budget admission remains unchanged for pass
+   nodes.
+
+This is a lane-ownership rule, not a feasibility claim and not a new scoring
+target. Authored impact remains the only optimization/score target.
+
+### Telemetry and mechanical contract
+
+Budget Telemetry V12 adds the explicit episode stop reason
+`fallback_frontier_return`. Selective attempt telemetry adds a
+`pass_frontier_gate`: `not_reached` when the action ends another way, or
+`fallback_return` with the unprocessed selection ordinal, frame, gap/contact,
+skipped-contact count, zero local pass size, positive local fallback size, and
+remaining allowance. The attempt and segment outcome use the same causal name.
+
+The return checkpoint is not an atomic node or progress checkpoint. Tests and a
+trace smoke must prove:
+
+- unset/production and prior experimental policies are behaviorally unchanged;
+- first-terminal frame and track hash remain exact;
+- `fallback_return` performs no candidate work and charges no frames after its
+  checkpoint;
+- `progress_checkpoints.length === nodes_processed === atomic_node_frames.length`;
+- a return has zero pass survivors, at least one fallback survivor, and the
+  reported fallback count equals the nodes returned to the ordinary frontier;
+- episode, segment, attempt, register, and origin work reconcile; and
+- V12 is a clean break: current readers reject historical schemas rather than
+  inventing fallback attribution.
+
+### Fresh two-budget screen
+
+Use the same ten-source compact panel, budgets 750k and 1.25M, actual seeds
+182-185, and four workers per arm. Candidate and reference come from one
+committed source; only the candidate receives the new policy. This is
+mover-grid evidence, not a canonical or headline run.
+
+The exact rule earns one confirmation only if:
+
+- all candidate cells are valid, with no completion or contract loss relative
+  to a valid reference;
+- first-terminal frame and hash are exact in every pair;
+- total and active-cell paired means are positive at both budgets;
+- at least three of four seed blocks are positive at one budget and at least
+  two at the other;
+- no cell loses 20 points;
+- the optional action runs in at least eight cells/four sources per budget; and
+- `fallback_return` occurs at least once at each budget and in at least three
+  cells/two sources overall. Otherwise score evidence is mechanistically
+  inconclusive even if favorable.
+
+A pass earns exactly one confirmation on seeds 186-189. A failure closes only
+this exact pass-only ownership rule. Do not tune breadth, allowance, source
+panel, or repair on these cells, and do not launch canonical V2 here.
+
+### Progress ledger
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Rule, causal telemetry, and evidence gates frozen | complete | This section |
+| 2026-08-15 | V12 implementation and mechanical proof | pending | — |
+| 2026-08-15 | Fresh paired two-budget screen | pending | — |

@@ -49,6 +49,11 @@ describe("selective-backtracking controller", () => {
       "selective-axis-regret-catchup-value-initial-expire-10-stable-priority",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10_stable_priority");
     expect(parseFrontierTraversalPolicy(
+      "selective-axis-regret-catchup-value-initial-expire-10-first-deficit-stop-005",
+    )).toBe(
+      "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005",
+    );
+    expect(parseFrontierTraversalPolicy(
       "selective-axis-regret-catchup-value-initial-expire-10-run-proof",
     )).toBe("selective_axis_regret_catchup_value_initial_expire_10_run_proof");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
@@ -949,6 +954,104 @@ describe("selective-backtracking controller", () => {
       }],
     });
     expect(stableSnapshot.events[0]?.catchup_axis_loss_gain).toBeCloseTo(0.01);
+  });
+
+  test("attributes a value probe stopped at a material first-checkpoint deficit", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy:
+        "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005",
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const current = { gap: 4, name: "current" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.10,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [current],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.10,
+    });
+    const decision = controller.consider({
+      node: current,
+      contactOrdinal: 4,
+      contactBoundary: true,
+      axisLoss: 0.14,
+      gapProgress: 0.20,
+      executionCeilingReached: false,
+      totalSpentFrames: 100_000,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      explorationBudgetAssessment: () => ({
+        execution_remaining_frames: 500_000,
+        conservative_terminal_work_frames: 100_000,
+        estimated_probe_work_frames: 10_000,
+        terminal_reserve_frames: 125_000,
+        exploration_allowance_frames: 112_500,
+        exploration_spent_frames: 0,
+        exploration_remaining_frames: 112_500,
+        local_probe_allowance_frames: 112_500,
+        admitted: true,
+        reason: "admitted",
+      }),
+    });
+    controller.recordCatchupCheckpoint(decision!, 1, "causal_alternative", 1, {
+      gap_index: 3,
+      contact_advance: 2,
+      probe_nodes_processed: 1,
+      probe_frames: 40,
+      current_axis_loss: 0.13,
+      alternative_axis_loss: 0.14,
+      alternative_axis_loss_gain: -0.01,
+    });
+    controller.finishCatchup(decision!, {
+      outcome: "probe_first_deficit_stop",
+      selectedAlternativeOrdinal: null,
+      selectedRouteOrdinal: null,
+      probes: [{
+        route_ordinal: 1,
+        route_kind: "causal_alternative",
+        alternative_ordinal: 1,
+        outcome: "probe_first_deficit_stop",
+        end_gap_index: 3,
+        probe_nodes_processed: 1,
+        probe_frames: 40,
+        ranked_option_calls: 1,
+        requested_normal_proposals: 80,
+        candidate_geometry_evaluations: 75,
+        atomic_node_frames: [40],
+        tail_completion_attempts: 0,
+        budget_allowance_frames: 112_500,
+        budget_remaining_before_yield: null,
+        estimated_next_node_frames: null,
+        axis_loss: null,
+        local_fallback_choices: [],
+      }],
+      catchupAxisLoss: null,
+    });
+    expect(controller.snapshot()).toMatchObject({
+      catchup_priority_rule: "endpoint_gain",
+      value_probe_stop_rule: "first_pre_target_deficit_005",
+      value_probe_first_checkpoint_deficit_threshold: 0.005,
+      catchup_probe_first_deficit_stops: 1,
+      catchup_completed: 0,
+      catchup_current_selected: 0,
+      catchup_alternative_selected: 0,
+      events: [{
+        catchup_outcome: "probe_first_deficit_stop",
+        catchup_end_gap_index: 3,
+        catchup_selected_alternative_ordinal: null,
+        catchup_selected_route_ordinal: null,
+      }],
+    });
   });
 
   test("seals later value opportunities when the first run-proof probe cannot reach", () => {

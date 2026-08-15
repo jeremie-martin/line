@@ -222,6 +222,7 @@ import {
   SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION,
   SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION,
   SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR,
+  SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP,
   SelectiveAxisRegretController,
   type FrontierTraversalLane,
   type SelectiveBacktrackDecision,
@@ -3244,9 +3245,11 @@ function compileHandoffInternal(
           allCheckpointGainsPositive: boolean;
         }> = [];
         let tournamentBudgetYielded = false;
+        let tournamentFirstDeficitStopped = false;
         const finishTournament = (
           outcome: "alternative_selected" | "current_selected" |
             "probe_dead_end" | "probe_deferred" | "probe_budget_yield" |
+            "probe_first_deficit_stop" |
             "execution_ceiling",
           selectedAlternativeOrdinal: number | null,
           selectedRouteOrdinal: number | null,
@@ -3487,6 +3490,21 @@ function compileHandoffInternal(
                 alternative_axis_loss_gain: alternativeAxisLossGain,
               },
             );
+            if (
+              frontierTraversalPolicy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" &&
+              decision.triggerSignal === "value_exploration" &&
+              checkpointGapIndex < decision.fromGapIndex &&
+              checkpointGainsObserved === 1 &&
+              alternativeAxisLossGain <= -SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP
+            ) {
+              finishProbe("probe_first_deficit_stop", null);
+              enqueueChild(probe, pass, fb);
+              enqueueChild(suspended, pass, fb);
+              finishTournament("probe_first_deficit_stop", null, null);
+              tournamentFirstDeficitStopped = true;
+              return false;
+            }
           }
 
           if (probe.search.gapIndex >= decision.fromGapIndex) {
@@ -3514,6 +3532,7 @@ function compileHandoffInternal(
             "causal_alternative",
             alternativeIndex + 1,
           )) return true;
+          if (tournamentFirstDeficitStopped) return false;
           if (tournamentBudgetYielded) return false;
         }
 

@@ -12,6 +12,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_value_initial_progress_10"
   | "selective_axis_regret_catchup_value_initial_expire_10"
   | "selective_axis_regret_catchup_value_initial_expire_10_stable_priority"
+  | "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
   | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
 
 export type SelectiveBacktrackSignal =
@@ -41,6 +42,7 @@ export const SELECTIVE_VALUE_DENSITY_FRAME_SCALE = 10_000;
 export const SELECTIVE_VALUE_DENSITY_THRESHOLDS = [0.005, 0.01, 0.02, 0.04] as const;
 export const SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD = 0.02;
 export const SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS = 0.10;
+export const SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP = 0.005;
 export const SELECTIVE_DEFERRED_VALUE_ALLOWANCE_FRACTIONS = [0.15, 0.25, 0.40] as const;
 export const SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION = 0.40;
 export const SELECTIVE_DEFERRED_VALUE_LIVE_ALLOWANCE_FRACTION = 0.40;
@@ -105,6 +107,10 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-initial-expire-10-stable-priority") {
     return "selective_axis_regret_catchup_value_initial_expire_10_stable_priority";
   }
+  if (raw ===
+    "selective-axis-regret-catchup-value-initial-expire-10-first-deficit-stop-005") {
+    return "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005";
+  }
   if (raw === "selective-axis-regret-catchup-value-initial-expire-10-run-proof") {
     return "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
   }
@@ -123,6 +129,7 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-value-initial-progress-10, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-stable-priority, or ` +
+      `selective-axis-regret-catchup-value-initial-expire-10-first-deficit-stop-005, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10-run-proof; got ${raw}`,
   );
 }
@@ -423,6 +430,7 @@ export type SelectiveCatchupOutcome =
   | "probe_dead_end"
   | "probe_deferred"
   | "probe_budget_yield"
+  | "probe_first_deficit_stop"
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeOutcome =
@@ -430,6 +438,7 @@ export type SelectiveCatchupProbeOutcome =
   | "probe_dead_end"
   | "probe_deferred"
   | "probe_budget_yield"
+  | "probe_first_deficit_stop"
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeResult = {
@@ -466,6 +475,8 @@ export type SelectiveBacktrackingStats = {
   min_axis_loss_delta: number;
   catchup_axis_loss_gain_threshold: number;
   catchup_priority_rule: "endpoint_gain" | "all_checkpoints_positive";
+  value_probe_stop_rule: "equal_depth_or_budget" | "first_pre_target_deficit_005";
+  value_probe_first_checkpoint_deficit_threshold: number | null;
   catchup_endpoint_winners_suppressed_unstable: number;
   mature_axis_loss_delta_max: number;
   regret_opportunities_by_min_axis_loss_delta: Record<
@@ -570,6 +581,7 @@ export type SelectiveBacktrackingStats = {
   catchup_probe_dead_ends: number;
   catchup_probe_deferred: number;
   catchup_probe_budget_yields: number;
+  catchup_probe_first_deficit_stops: number;
   catchup_execution_ceiling_stops: number;
   catchup_probe_attempts: number;
   catchup_probe_target_reaches: number;
@@ -731,6 +743,16 @@ export class SelectiveAxisRegretController<Node extends object> {
             "selective_axis_regret_catchup_value_initial_expire_10_stable_priority"
           ? "all_checkpoints_positive"
           : "endpoint_gain",
+      value_probe_stop_rule:
+        this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
+          ? "first_pre_target_deficit_005"
+          : "equal_depth_or_budget",
+      value_probe_first_checkpoint_deficit_threshold:
+        this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
+          ? SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP
+          : null,
       catchup_endpoint_winners_suppressed_unstable: 0,
       mature_axis_loss_delta_max: 0,
       regret_opportunities_by_min_axis_loss_delta: emptyRegretOpportunityCounter(),
@@ -768,6 +790,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
+          this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
           this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
           ? SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS
           : 0,
@@ -836,6 +860,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_probe_dead_ends: 0,
       catchup_probe_deferred: 0,
       catchup_probe_budget_yields: 0,
+      catchup_probe_first_deficit_stops: 0,
       catchup_execution_ceiling_stops: 0,
       catchup_probe_attempts: 0,
       catchup_probe_target_reaches: 0,
@@ -1455,6 +1480,8 @@ export class SelectiveAxisRegretController<Node extends object> {
           this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
           this.policy ===
+            "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
+          this.policy ===
             "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
         input.lane === "initial" &&
         input.contactBoundary === true &&
@@ -1500,6 +1527,8 @@ export class SelectiveAxisRegretController<Node extends object> {
               this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
+              this.policy ===
+                "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
               this.policy ===
                 "selective_axis_regret_catchup_value_initial_expire_10_run_proof"
             ) {
@@ -1764,6 +1793,8 @@ export class SelectiveAxisRegretController<Node extends object> {
         this.policy === "selective_axis_regret_catchup_value_initial_expire_10" ||
         this.policy ===
           "selective_axis_regret_catchup_value_initial_expire_10_stable_priority" ||
+        this.policy ===
+          "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
         this.policy === "selective_axis_regret_catchup_value_initial_expire_10_run_proof") &&
       valueLiveCandidates.length > 0
     ) {
@@ -2050,6 +2081,28 @@ export class SelectiveAxisRegretController<Node extends object> {
     this.stats.catchup_probe_budget_yields += budgetYields;
     if (decision.triggerSignal === "value_exploration") {
       this.stats.value_live_probe_budget_yields += budgetYields;
+    }
+    const firstDeficitStops = input.probes.filter(
+      (probe) => probe.outcome === "probe_first_deficit_stop",
+    ).length;
+    if (firstDeficitStops > 0) {
+      const finalCheckpoint = event.catchup_checkpoints.at(-1);
+      if (
+        this.policy !==
+          "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005" ||
+        decision.triggerSignal !== "value_exploration" ||
+        input.outcome !== "probe_first_deficit_stop" ||
+        firstDeficitStops !== 1 ||
+        input.selectedAlternativeOrdinal !== null ||
+        input.selectedRouteOrdinal !== null ||
+        finalCheckpoint === undefined ||
+        event.catchup_checkpoints.length !== 1 ||
+        !(finalCheckpoint.alternative_axis_loss_gain <=
+          -SELECTIVE_VALUE_FIRST_CHECKPOINT_DEFICIT_STOP)
+      ) throw new Error("invalid first-checkpoint material-deficit probe stop");
+      this.stats.catchup_probe_first_deficit_stops++;
+    } else if (input.outcome === "probe_first_deficit_stop") {
+      throw new Error("first-checkpoint deficit outcome has no stopped probe");
     }
     this.stats.catchup_execution_ceiling_stops += input.probes.filter(
       (probe) => probe.outcome === "execution_ceiling",

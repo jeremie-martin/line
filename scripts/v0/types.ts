@@ -511,6 +511,7 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_value_initial_progress_10"
       | "selective_axis_regret_catchup_value_initial_expire_10"
       | "selective_axis_regret_catchup_value_initial_expire_10_stable_priority"
+      | "selective_axis_regret_catchup_value_initial_expire_10_first_deficit_stop_005"
       | "selective_axis_regret_catchup_value_initial_expire_10_run_proof";
     deferred_value_density_threshold: number;
     deferred_value_min_gap_progress: number;
@@ -537,6 +538,8 @@ export type CompileStats = {
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
     catchup_priority_rule: "endpoint_gain" | "all_checkpoints_positive";
+    value_probe_stop_rule: "equal_depth_or_budget" | "first_pre_target_deficit_005";
+    value_probe_first_checkpoint_deficit_threshold: number | null;
     catchup_endpoint_winners_suppressed_unstable: number;
     mature_axis_loss_delta_max: number;
     /** Observation-only unique causal-watch counts. `crossed_watches` reached
@@ -584,6 +587,8 @@ export type CompileStats = {
     catchup_current_selected: number;
     catchup_probe_dead_ends: number;
     catchup_probe_deferred: number;
+    catchup_probe_budget_yields: number;
+    catchup_probe_first_deficit_stops: number;
     catchup_execution_ceiling_stops: number;
     catchup_probe_attempts: number;
     catchup_probe_target_reaches: number;
@@ -649,6 +654,7 @@ export type CompileStats = {
         | "probe_dead_end"
         | "probe_deferred"
         | "probe_budget_yield"
+        | "probe_first_deficit_stop"
         | "execution_ceiling"
         | null;
       catchup_end_gap_index: number | null;
@@ -669,6 +675,7 @@ export type CompileStats = {
           | "probe_dead_end"
           | "probe_deferred"
           | "probe_budget_yield"
+          | "probe_first_deficit_stop"
           | "execution_ceiling";
         end_gap_index: number;
         probe_nodes_processed: number;

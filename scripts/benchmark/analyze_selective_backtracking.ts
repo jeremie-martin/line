@@ -28,6 +28,7 @@ type Outcome =
   | "probe_dead_end"
   | "probe_deferred"
   | "probe_budget_yield"
+  | "probe_first_deficit_stop"
   | "execution_ceiling";
 
 type Checkpoint = {
@@ -94,6 +95,7 @@ type ProbeResult = {
     | "probe_dead_end"
     | "probe_deferred"
     | "probe_budget_yield"
+    | "probe_first_deficit_stop"
     | "probe_yielded"
     | "execution_ceiling";
   end_gap_index: number;
@@ -1383,6 +1385,7 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
   assertStat("catchup_probe_dead_ends", count("probe_dead_end"));
   assertStat("catchup_probe_deferred", count("probe_deferred"));
   assertOptionalStat("catchup_probe_budget_yields", count("probe_budget_yield"));
+  assertOptionalStat("catchup_probe_first_deficit_stops", count("probe_first_deficit_stop"));
   assertOptionalStat(
     "catchup_local_discrepancy_probe_yields",
     probes.filter(

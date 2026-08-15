@@ -52,6 +52,27 @@ type ValueSummary = {
   firstActionDensity: number | null;
   selectedGainMargins: number[];
   selectedMinimumCheckpointGains: number[];
+  checkpointStopRules: Record<CheckpointStopRule, CheckpointStopRuleSummary>;
+  firstPreTargetCheckpoints: FirstPreTargetCheckpoint[];
+};
+
+type FirstPreTargetCheckpoint = {
+  gain: number;
+  observedProbeFramesAfter: number;
+  endpointReachedInObservedRun: boolean;
+  alternativeSelectedInObservedRun: boolean;
+};
+
+type CheckpointStopRule =
+  | "first_pre_target_nonpositive"
+  | "pre_target_nonpositive_after_two_observations"
+  | "two_consecutive_pre_target_nonpositive";
+
+type CheckpointStopRuleSummary = {
+  triggered: number;
+  endpointReachedInObservedRun: number;
+  alternativeSelectedInObservedRun: number;
+  observedProbeFramesAfterTrigger: number;
 };
 
 type WorkSummary = {
@@ -197,7 +218,7 @@ async function main(): Promise<void> {
   };
 
   const result = {
-    schema: "line.canonical-value-attribution.v1",
+    schema: "line.canonical-value-attribution.v2",
     generated_at: new Date().toISOString(),
     evidence: {
       candidate: candidate.path,
@@ -235,6 +256,8 @@ async function main(): Promise<void> {
     by_action_count: byActionCount,
     alternative_selection_diagnostics: summarizeAlternativeSelections(active),
     first_nonpositive_checkpoint_diagnostics: summarizeCheckpointStops(active),
+    checkpoint_stop_rule_diagnostics: summarizeCheckpointStopRules(active),
+    first_pre_target_checkpoint_diagnostics: summarizeFirstPreTargetCheckpoints(active),
     by_stratum: byStratum,
     by_source: bySource,
     associations: {
@@ -362,7 +385,9 @@ function summarizeValue(raw: any, stats: any): ValueSummary {
   });
   const afterNonpositive: Array<{ event: any; first: any }> = events.flatMap((event: any) => {
     const first = (event.catchup_checkpoints ?? []).find(
-      (checkpoint: any) => !(checkpoint.alternative_axis_loss_gain > 0),
+      (checkpoint: any) =>
+        checkpoint.gap_index < event.from_gap_index &&
+        !(checkpoint.alternative_axis_loss_gain > 0),
     );
     return first === undefined ? [] : [{ event, first }];
   });
@@ -419,6 +444,23 @@ function summarizeValue(raw: any, stats: any): ValueSummary {
     firstActionDensity: firstOpportunity?.point?.value_density_per_10k_estimated_frames ?? null,
     selectedGainMargins: selected.map((event: any) => finite(event.catchup_axis_loss_gain)),
     selectedMinimumCheckpointGains,
+    checkpointStopRules: checkpointStopRules(events),
+    firstPreTargetCheckpoints: events.flatMap((event: any) => {
+      const checkpoint = (event.catchup_checkpoints ?? []).find(
+        (candidate: any) => candidate.gap_index < event.from_gap_index,
+      );
+      return checkpoint === undefined ? [] : [{
+        gain: finite(checkpoint.alternative_axis_loss_gain),
+        observedProbeFramesAfter: Math.max(
+          0,
+          finite(event.catchup_probe_frames) - finite(checkpoint.probe_frames),
+        ),
+        endpointReachedInObservedRun: (event.catchup_probe_results ?? []).some(
+          (probe: any) => probe.outcome === "reached_target",
+        ),
+        alternativeSelectedInObservedRun: event.catchup_outcome === "alternative_selected",
+      }];
+    }),
   };
 }
 
@@ -496,6 +538,123 @@ function sumValue(rows: ValueSummary[]): any {
   return Object.fromEntries(numeric.map((key) => [key, sum(rows.map((row) => row[key]))]));
 }
 
+function checkpointStopRules(
+  events: any[],
+): Record<CheckpointStopRule, CheckpointStopRuleSummary> {
+  const names: CheckpointStopRule[] = [
+    "first_pre_target_nonpositive",
+    "pre_target_nonpositive_after_two_observations",
+    "two_consecutive_pre_target_nonpositive",
+  ];
+  const result = Object.fromEntries(names.map((name) => [name, emptyCheckpointStopRule()])) as
+    Record<CheckpointStopRule, CheckpointStopRuleSummary>;
+  for (const event of events) {
+    const checkpoints: any[] = (event.catchup_checkpoints ?? []).filter(
+      (checkpoint: any) => checkpoint.gap_index < event.from_gap_index,
+    );
+    const triggers: Record<CheckpointStopRule, any | undefined> = {
+      first_pre_target_nonpositive: checkpoints.find(
+        (checkpoint: any) => !(checkpoint.alternative_axis_loss_gain > 0),
+      ),
+      pre_target_nonpositive_after_two_observations: checkpoints.find(
+        (checkpoint: any, index: number) =>
+          index >= 1 && !(checkpoint.alternative_axis_loss_gain > 0),
+      ),
+      two_consecutive_pre_target_nonpositive: checkpoints.find(
+        (checkpoint: any, index: number) =>
+          index >= 1 &&
+          !(checkpoint.alternative_axis_loss_gain > 0) &&
+          !(checkpoints[index - 1]!.alternative_axis_loss_gain > 0),
+      ),
+    };
+    for (const name of names) {
+      const trigger = triggers[name];
+      if (trigger === undefined) continue;
+      const row = result[name];
+      row.triggered++;
+      if ((event.catchup_probe_results ?? []).some(
+        (probe: any) => probe.outcome === "reached_target"
+      )) row.endpointReachedInObservedRun++;
+      if (event.catchup_outcome === "alternative_selected") {
+        row.alternativeSelectedInObservedRun++;
+      }
+      row.observedProbeFramesAfterTrigger += Math.max(
+        0,
+        finite(event.catchup_probe_frames) - finite(trigger.probe_frames),
+      );
+    }
+  }
+  return result;
+}
+
+function emptyCheckpointStopRule(): CheckpointStopRuleSummary {
+  return {
+    triggered: 0,
+    endpointReachedInObservedRun: 0,
+    alternativeSelectedInObservedRun: 0,
+    observedProbeFramesAfterTrigger: 0,
+  };
+}
+
+function summarizeCheckpointStopRules(rows: Pair[]): any {
+  const names = Object.keys(emptyValue().checkpointStopRules) as CheckpointStopRule[];
+  const probeFrames = sum(rows.map((row) => row.value.probeFrames));
+  return {
+    rules: Object.fromEntries(names.map((name) => {
+      const summary = rows.reduce((total, row) => {
+        const value = row.value.checkpointStopRules[name];
+        total.triggered += value.triggered;
+        total.endpointReachedInObservedRun += value.endpointReachedInObservedRun;
+        total.alternativeSelectedInObservedRun += value.alternativeSelectedInObservedRun;
+        total.observedProbeFramesAfterTrigger += value.observedProbeFramesAfterTrigger;
+        return total;
+      }, emptyCheckpointStopRule());
+      return [name, {
+        ...summary,
+        fraction_of_all_probe_frames_after_trigger: probeFrames === 0
+          ? 0
+          : summary.observedProbeFramesAfterTrigger / probeFrames,
+        observed_alternative_selection_rate_after_trigger: summary.triggered === 0
+          ? null
+          : summary.alternativeSelectedInObservedRun / summary.triggered,
+      }];
+    })),
+    interpretation:
+      "Each rule is evaluated only at checkpoints before equal depth. Frames are observed continuation work, not guaranteed savings; endpoint and selection counts describe the original run, not the stopped counterfactual.",
+  };
+}
+
+function summarizeFirstPreTargetCheckpoints(rows: Pair[]): any {
+  const observations = rows.flatMap((row) => row.value.firstPreTargetCheckpoints);
+  const probeFrames = sum(rows.map((row) => row.value.probeFrames));
+  const minimumDeficits = [0, 0.0025, 0.005, 0.01, 0.02];
+  return {
+    observed: observations.length,
+    gain: distribution(observations.map((observation) => observation.gain)),
+    nonpositive_deficit_thresholds: Object.fromEntries(minimumDeficits.map((threshold) => {
+      const matching = observations.filter((observation) => observation.gain <= -threshold);
+      const frames = sum(matching.map((observation) => observation.observedProbeFramesAfter));
+      const selected = matching.filter(
+        (observation) => observation.alternativeSelectedInObservedRun,
+      ).length;
+      return [String(threshold), {
+        triggered: matching.length,
+        endpoint_reached_in_observed_run: matching.filter(
+          (observation) => observation.endpointReachedInObservedRun,
+        ).length,
+        alternative_selected_in_observed_run: selected,
+        observed_alternative_selection_rate: matching.length === 0
+          ? null
+          : selected / matching.length,
+        observed_probe_frames_after: frames,
+        fraction_of_all_probe_frames_after: probeFrames === 0 ? 0 : frames / probeFrames,
+      }];
+    })),
+    interpretation:
+      "Threshold rows diagnose the first pre-target comparison only. They show how often an initially losing route later won in the unchanged run; they do not predict the stopped frontier counterfactual.",
+  };
+}
+
 function summarizeAlternativeSelections(rows: Pair[]): any {
   const margins = rows.flatMap((row) => row.value.selectedGainMargins);
   const minimumCheckpointGains = rows.flatMap(
@@ -529,7 +688,7 @@ function summarizeCheckpointStops(rows: Pair[]): any {
     fraction_of_probe_frames_after_first_nonpositive:
       value.probeFrames === 0 ? 0 : value.probeFramesAfterFirstNonpositive / value.probeFrames,
     interpretation:
-      "Observed work after the first nonpositive checkpoint is an upper bound on frames a live early-stop rule could redirect. It is not a terminal-score counterfactual because the partial alternative would re-enter the ordinary frontier.",
+      "Only checkpoints before equal depth are eligible. Observed work after the first pre-target nonpositive checkpoint is an upper bound on frames a live early-stop rule could redirect. It is not a terminal-score counterfactual because the partial alternative would re-enter the ordinary frontier.",
   };
 }
 
@@ -821,6 +980,12 @@ function emptyValue(): ValueSummary {
     firstActionDensity: null,
     selectedGainMargins: [],
     selectedMinimumCheckpointGains: [],
+    checkpointStopRules: {
+      first_pre_target_nonpositive: emptyCheckpointStopRule(),
+      pre_target_nonpositive_after_two_observations: emptyCheckpointStopRule(),
+      two_consecutive_pre_target_nonpositive: emptyCheckpointStopRule(),
+    },
+    firstPreTargetCheckpoints: [],
   };
 }
 

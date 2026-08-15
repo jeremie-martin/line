@@ -1948,3 +1948,64 @@ alternative was removed. The sole cell with zero suppressions remained
 track-identical to the promoted reference. Three affected cells regressed in
 this tiny panel; that is an honest warning, but the frozen canonical ladder is
 the scorer and will decide the rule without changing it.
+
+At N=32 the stable-priority challenger is -0.18 +/- 0.36 seed-block SE with
+P(positive)=30.60%. All 1,408 candidate cells are valid. The standing rule says
+`continue`, so the frozen N=48 extension is in progress. This intermediate
+result rejects the working assumption that a route which flips sign before
+equal depth is obviously a worse immediate continuation; it does not reject
+value-ranked exploration itself.
+
+## Phase G: challenge synchronous catch-up work, not route existence
+
+The checksum-bound attribution was extended before implementing a stop rule.
+The earlier 9,396 count included nonpositive observations at equal depth, where
+there is no continuation work to stop. The corrected pre-target count is 8,193
+events and the measured continuation remains 34,594,914 frames (33.7% of value
+probe work). More importantly, the first checkpoint is structurally unusual:
+8,146 routes are nonpositive there, while only 193 have a nonpositive
+observation after at least two checkpoints and only 155 have two consecutive
+nonpositive observations. A zero threshold would therefore treat near-zero
+noise as categorical evidence and alter most tournaments.
+
+The first-checkpoint deficit grid gives a less indiscriminate live arm. A
+deficit of at least 0.005 occurs in 3,416 accepted-baseline probes and precedes
+14,685,191 measured continuation frames (14.3% of all value-probe work). In the
+unchanged run, 846 of those routes eventually receive immediate endpoint
+priority. This is descriptive evidence, not a stopped counterfactual; every
+partial route must remain owned by the ordinary frontier.
+
+### Frozen first-deficit-stop challenger
+
+Add
+`selective-axis-regret-catchup-value-initial-expire-10-first-deficit-stop-005`
+as an explicit experimental policy. It retains the promoted Phase-D admission,
+budgeting, and endpoint-gain priority rule. Only the first checkpoint before
+equal depth can stop privileged probing, and only when its relative authored-
+axis gain is at most -0.005. On that event, enqueue the partial alternative,
+then enqueue the suspended incumbent so LIFO traversal resumes the incumbent
+first. Do not prune, refund work, change the authored objective, introduce a
+source condition, or inherit the stable-priority comparator.
+
+Telemetry reports the stop rule and threshold, an explicit
+`probe_first_deficit_stop` outcome, exact stop counts, the single triggering
+checkpoint, and later incumbent resumption. A trace smoke must prove frontier
+ownership and exact trigger semantics. Because saved synchronous work may be
+re-spent when the partial route later reaches the ordinary frontier, compare
+first-terminal, resumed, repair, terminal-track, and total probe behavior; do
+not equate the 14.7M-frame offline surface with guaranteed savings.
+
+Use a four-source, four-seed 750k paired panel only as a mechanical/directional
+screen, with the promoted commit as reference. If the mechanism is not broadly
+adverse, make it the source-native default and run the standing 750k canonical
+ladder. Do not run a multi-budget sweep. A formal accept promotes; any other
+formal outcome closes this exact 0.005 rule and redirects the campaign to a
+different high-value mechanism.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Correct pre-target and threshold attribution | complete | `value-ranked-startup-expiration-canonical-attribution.json` schema v2 |
+| 2026-08-15 | First-deficit-stop implementation and unit telemetry | complete | Focused 27-test controller suite; scoped TypeScript check |
+| 2026-08-15 | One-seed trace ownership proof | complete | 19 exact stops; zero-stop control track-identical; all 8 runs valid |
+| 2026-08-15 | Four-seed directional panel | in progress | `first-deficit-stop-005-n4-seeds16-19` |
+| 2026-08-15 | Canonical sequential decision | pending | gated on directional panel |

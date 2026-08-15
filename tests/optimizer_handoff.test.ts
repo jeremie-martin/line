@@ -385,7 +385,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     })).toThrow(/policyBudget .* exceeds hard budget/);
   }, 60_000);
 
-  test("accepted catch-up policy is byte-identical to the unset production default", async () => {
+  test("startup-expiring value policy is byte-identical to the unset candidate default", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previous = process.env.LR_FRONTIER_POLICY;
     try {
@@ -395,7 +395,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         maxNodes: 12,
         polish: false,
       }), 20_000);
-      process.env.LR_FRONTIER_POLICY = "selective-axis-regret-catchup";
+      process.env.LR_FRONTIER_POLICY =
+        "selective-axis-regret-catchup-value-initial-expire-10";
       const explicit = checkpoint(compileHandoff(spec, 2, {
         budget: 20_000,
         maxNodes: 12,
@@ -403,7 +404,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       }), 20_000);
       expect(JSON.stringify(explicit)).toBe(JSON.stringify(implicit));
       expect(explicit.stats.handoff_selective_backtracking?.policy)
-        .toBe("selective_axis_regret_catchup");
+        .toBe("selective_axis_regret_catchup_value_initial_expire_10");
     } finally {
       if (previous === undefined) delete process.env.LR_FRONTIER_POLICY;
       else process.env.LR_FRONTIER_POLICY = previous;

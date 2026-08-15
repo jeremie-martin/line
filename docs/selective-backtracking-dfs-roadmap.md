@@ -1825,5 +1825,5 @@ salvage follows.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Exact Phase-D N8 combined premise | complete | Two disjoint targeted panels; +3.7417 +/- 1.4523, 80/80 valid |
-| 2026-08-15 | Candidate default and regression tests | pending | — |
+| 2026-08-15 | Candidate default and regression tests | complete | Unset/explicit Phase-D identity; 27 handoff integration tests and focused telemetry/controller suites pass |
 | 2026-08-15 | Canonical N48 adjudication | pending | — |

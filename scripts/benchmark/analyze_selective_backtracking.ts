@@ -27,6 +27,7 @@ type Outcome =
   | "current_selected"
   | "probe_dead_end"
   | "probe_deferred"
+  | "probe_budget_yield"
   | "execution_ceiling";
 
 type Checkpoint = {
@@ -45,7 +46,11 @@ type Checkpoint = {
 type Event = {
   sourceId: string;
   seed: number;
-  trigger_signal: "branch_regret" | "repair_incumbent_regret" | "periodic_exploration";
+  trigger_signal:
+    | "branch_regret"
+    | "repair_incumbent_regret"
+    | "periodic_exploration"
+    | "value_exploration";
   lane: "initial" | "snapshot" | "repair" | "resumed";
   trigger_axis_loss: number;
   incumbent_axis_loss: number | null;
@@ -88,6 +93,7 @@ type ProbeResult = {
     | "reached_target"
     | "probe_dead_end"
     | "probe_deferred"
+    | "probe_budget_yield"
     | "probe_yielded"
     | "execution_ceiling";
   end_gap_index: number;
@@ -680,7 +686,12 @@ const result = {
     single_alternative_completed_tournaments_for_checkpoint_rules: guardCompleted.length,
     outcomes: byOutcome,
     trigger_signals: Object.fromEntries(
-      (["branch_regret", "repair_incumbent_regret", "periodic_exploration"] as const)
+      ([
+        "branch_regret",
+        "repair_incumbent_regret",
+        "periodic_exploration",
+        "value_exploration",
+      ] as const)
         .map((signal) => [
         signal,
         events.filter((event) => event.trigger_signal === signal).length,
@@ -919,7 +930,8 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
     if (
       triggerSignal !== "branch_regret" &&
       triggerSignal !== "repair_incumbent_regret" &&
-      triggerSignal !== "periodic_exploration"
+      triggerSignal !== "periodic_exploration" &&
+      triggerSignal !== "value_exploration"
     ) {
       throw new Error(`${label} has invalid trigger signal`);
     }
@@ -987,6 +999,17 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
         budget?.admitted !== true || budget?.reason !== "admitted"
       ) {
         throw new Error(`${label} has inconsistent periodic trigger evidence`);
+      }
+    }
+    if (triggerSignal === "value_exploration") {
+      const budget = event.value_budget;
+      if (
+        stats.policy !== "selective_axis_regret_catchup_value_initial" ||
+        event.lane !== "initial" ||
+        budget?.admitted !== true || budget?.reason !== "admitted" ||
+        event.periodic_budget !== null
+      ) {
+        throw new Error(`${label} has inconsistent value-ranked trigger evidence`);
       }
     }
     if (!Number.isSafeInteger(requested) || requested < 1) {
@@ -1357,6 +1380,7 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
   );
   assertStat("catchup_probe_dead_ends", count("probe_dead_end"));
   assertStat("catchup_probe_deferred", count("probe_deferred"));
+  assertOptionalStat("catchup_probe_budget_yields", count("probe_budget_yield"));
   assertOptionalStat(
     "catchup_local_discrepancy_probe_yields",
     probes.filter(
@@ -1445,9 +1469,10 @@ function validateTournamentTelemetry(stats: any, runKey: string): void {
       "branch_regret",
       "repair_incumbent_regret",
       "periodic_exploration",
+      "value_exploration",
     ] as const) {
       if (
-        signal === "periodic_exploration" &&
+        (signal === "periodic_exploration" || signal === "value_exploration") &&
         stats.selective_backtracks_by_signal[signal] === undefined
       ) continue;
       const expected = instrumented.filter(

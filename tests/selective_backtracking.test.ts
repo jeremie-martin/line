@@ -24,6 +24,8 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup_periodic_repair");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-map"))
       .toBe("selective_axis_regret_catchup_value_map");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-initial"))
+      .toBe("selective_axis_regret_catchup_value_initial");
     expect(() => parseFrontierTraversalPolicy("selective-axis-regret-catchup-proper-discrepancy"))
       .toThrow(/LR_FRONTIER_POLICY/);
     expect(() => parseFrontierTraversalPolicy(
@@ -89,6 +91,7 @@ describe("selective-backtracking controller", () => {
       exploration_allowance_frames: 112_500,
       exploration_spent_frames: 0,
       exploration_remaining_frames: 112_500,
+      local_probe_allowance_frames: 112_500,
       admitted: true,
       reason: "admitted" as const,
     };
@@ -104,7 +107,7 @@ describe("selective-backtracking controller", () => {
       // Periodic admission uses the explicit episode reserve below; the old
       // compile-wide binary pressure gate remains production-regret-only.
       alternativeDeadline: () => ({ margin: 1, pressured: true }),
-      periodicBudgetAssessment: (_alternative, fromGapIndex, spent) => {
+      explorationBudgetAssessment: (_alternative, fromGapIndex, spent) => {
         expect(fromGapIndex).toBe(9);
         expect(spent).toBe(0);
         return assessment;
@@ -128,6 +131,14 @@ describe("selective-backtracking controller", () => {
         end_gap_index: 9,
         probe_nodes_processed: 2,
         probe_frames: 35_000,
+        ranked_option_calls: 2,
+        requested_normal_proposals: 200,
+        candidate_geometry_evaluations: 180,
+        atomic_node_frames: [15_000, 20_000],
+        tail_completion_attempts: 0,
+        budget_allowance_frames: null,
+        budget_remaining_before_yield: null,
+        estimated_next_node_frames: null,
         axis_loss: 0.11,
         local_fallback_choices: [],
       }],
@@ -186,7 +197,7 @@ describe("selective-backtracking controller", () => {
       lane: "repair",
       alternativeAvailable: () => true,
       alternativeDeadline: () => ({ margin: 3, pressured: false }),
-      periodicBudgetAssessment: () => ({
+      explorationBudgetAssessment: () => ({
         execution_remaining_frames: 50_000,
         conservative_terminal_work_frames: 60_000,
         estimated_probe_work_frames: 20_000,
@@ -194,6 +205,7 @@ describe("selective-backtracking controller", () => {
         exploration_allowance_frames: 112_500,
         exploration_spent_frames: 0,
         exploration_remaining_frames: 112_500,
+        local_probe_allowance_frames: 0,
         admitted: false,
         reason: "terminal_reserve",
       }),
@@ -239,6 +251,7 @@ describe("selective-backtracking controller", () => {
       exploration_allowance_frames: 112_500,
       exploration_spent_frames: 0,
       exploration_remaining_frames: 112_500,
+      local_probe_allowance_frames: admitted ? 112_500 : 0,
       admitted,
       reason: admitted ? "admitted" as const : "terminal_reserve" as const,
     });
@@ -252,7 +265,7 @@ describe("selective-backtracking controller", () => {
       lane: "initial",
       alternativeAvailable: () => true,
       alternativeDeadline: () => ({ margin: 1, pressured: false }),
-      periodicBudgetAssessment: () => assessment(false),
+      explorationBudgetAssessment: () => assessment(false),
     })).toBeNull();
     controller.observeExpansion({
       parent: first,
@@ -271,7 +284,7 @@ describe("selective-backtracking controller", () => {
       lane: "initial",
       alternativeAvailable: () => true,
       alternativeDeadline: () => ({ margin: 1, pressured: false }),
-      periodicBudgetAssessment: () => assessment(true),
+      explorationBudgetAssessment: () => assessment(true),
     })).toBeNull();
 
     const snapshot = controller.snapshot();
@@ -300,6 +313,162 @@ describe("selective-backtracking controller", () => {
         budget: { admitted: true, reason: "admitted" },
       },
     });
+  });
+
+  test("ranks simultaneous initial opportunities by density before lineage order", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_initial",
+    });
+    const root = { gap: 1, name: "root" };
+    const firstLeader = { gap: 2, name: "first-leader" };
+    const highDensityAlternative = { gap: 2, name: "high-density" };
+    const secondLeader = { gap: 3, name: "second-leader" };
+    const lowDensityAlternative = { gap: 3, name: "low-density" };
+    const current = { gap: 5, name: "current" };
+    controller.observeExpansion({
+      parent: root,
+      children: [firstLeader, highDensityAlternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.10,
+    });
+    controller.observeExpansion({
+      parent: firstLeader,
+      children: [secondLeader, lowDensityAlternative],
+      contactExpansion: true,
+      contactOrdinal: 2,
+      axisLoss: 0.13,
+    });
+    controller.observeExpansion({
+      parent: secondLeader,
+      children: [current],
+      contactExpansion: false,
+      contactOrdinal: 3,
+      axisLoss: 0.13,
+    });
+    const decision = controller.consider({
+      node: current,
+      contactOrdinal: 5,
+      contactBoundary: true,
+      axisLoss: 0.15,
+      executionCeilingReached: false,
+      totalSpentFrames: 200_000,
+      lane: "initial",
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      explorationBudgetAssessment: (alternative) => {
+        const estimated = alternative === highDensityAlternative ? 10_000 : 5_000;
+        return {
+          execution_remaining_frames: 500_000,
+          conservative_terminal_work_frames: 100_000,
+          estimated_probe_work_frames: estimated,
+          terminal_reserve_frames: 125_000,
+          exploration_allowance_frames: 112_500,
+          exploration_spent_frames: 0,
+          exploration_remaining_frames: 112_500,
+          local_probe_allowance_frames: 112_500,
+          admitted: true,
+          reason: "admitted",
+        };
+      },
+    });
+    expect(decision).toMatchObject({
+      alternative: highDensityAlternative,
+      triggerSignal: "value_exploration",
+      explorationBudget: { local_probe_allowance_frames: 112_500 },
+    });
+    expect(decision?.axisLossDelta).toBeCloseTo(0.05);
+    expect(controller.snapshot()).toMatchObject({
+      value_live_crossings: 2,
+      value_live_admitted: 1,
+      value_live_ranked_out: 1,
+      selective_backtracks_by_signal: { value_exploration: 1 },
+      value_live_opportunities: [
+        { watch_id: 1, outcome: "admitted", affordable_rank: 1 },
+        { watch_id: 2, outcome: "ranked_out", affordable_rank: 2 },
+      ],
+    });
+  });
+
+  test("keeps production regret ahead of value exploration and value out of repair", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_initial",
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const current = { gap: 5, name: "current" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.1,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [current],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.1,
+    });
+    const input = {
+      node: current,
+      contactOrdinal: 4,
+      contactBoundary: true,
+      axisLoss: 0.31,
+      executionCeilingReached: false,
+      totalSpentFrames: 100_000,
+      alternativeAvailable: () => true,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      explorationBudgetAssessment: () => ({
+        execution_remaining_frames: 500_000,
+        conservative_terminal_work_frames: 100_000,
+        estimated_probe_work_frames: 10_000,
+        terminal_reserve_frames: 125_000,
+        exploration_allowance_frames: 112_500,
+        exploration_spent_frames: 0,
+        exploration_remaining_frames: 112_500,
+        local_probe_allowance_frames: 112_500,
+        admitted: true,
+        reason: "admitted" as const,
+      }),
+    };
+    expect(controller.consider({ ...input, lane: "initial" })).toMatchObject({
+      triggerSignal: "branch_regret",
+    });
+    expect(controller.snapshot()).toMatchObject({
+      value_live_admitted: 0,
+      value_live_production_priority: 1,
+      selective_backtracks_by_signal: {
+        branch_regret: 1,
+        value_exploration: 0,
+      },
+    });
+
+    const repairController = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_initial",
+    });
+    repairController.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.1,
+    });
+    repairController.observeExpansion({
+      parent: leader,
+      children: [current],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.1,
+    });
+    expect(repairController.consider({
+      ...input,
+      axisLoss: 0.15,
+      lane: "repair",
+    })).toBeNull();
+    expect(repairController.snapshot().value_live_crossings).toBe(0);
   });
 
   test("counts lower-threshold admissible watches without changing traversal", () => {
@@ -505,6 +674,14 @@ describe("selective-backtracking controller", () => {
         end_gap_index: 5,
         probe_nodes_processed: 1,
         probe_frames: 35,
+        ranked_option_calls: 1,
+        requested_normal_proposals: 100,
+        candidate_geometry_evaluations: 90,
+        atomic_node_frames: [35],
+        tail_completion_attempts: 0,
+        budget_allowance_frames: null,
+        budget_remaining_before_yield: null,
+        estimated_next_node_frames: null,
         axis_loss: 0.7,
         local_fallback_choices: [
           {
@@ -763,6 +940,14 @@ describe("selective-backtracking controller", () => {
         end_gap_index: 3,
         probe_nodes_processed: 1,
         probe_frames: 20,
+        ranked_option_calls: 1,
+        requested_normal_proposals: 100,
+        candidate_geometry_evaluations: 90,
+        atomic_node_frames: [20],
+        tail_completion_attempts: 0,
+        budget_allowance_frames: null,
+        budget_remaining_before_yield: null,
+        estimated_next_node_frames: null,
         axis_loss: 0.07,
         local_fallback_choices: [],
       }],

@@ -3,12 +3,14 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_repair_incumbent_once"
   | "selective_axis_regret_catchup_periodic_initial"
   | "selective_axis_regret_catchup_periodic_repair"
-  | "selective_axis_regret_catchup_value_map";
+  | "selective_axis_regret_catchup_value_map"
+  | "selective_axis_regret_catchup_value_initial";
 
 export type SelectiveBacktrackSignal =
   | "branch_regret"
   | "repair_incumbent_regret"
-  | "periodic_exploration";
+  | "periodic_exploration"
+  | "value_exploration";
 
 export type FrontierTraversalPolicy = "depth_first" | SelectiveCatchupPolicy;
 
@@ -24,6 +26,7 @@ export const SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION = 0.15;
 export const SELECTIVE_VALUE_MIN_CONTACT_ADVANCE = 3;
 export const SELECTIVE_VALUE_DENSITY_FRAME_SCALE = 10_000;
 export const SELECTIVE_VALUE_DENSITY_THRESHOLDS = [0.005, 0.01, 0.02, 0.04] as const;
+export const SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD = 0.02;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
   0,
@@ -56,17 +59,21 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-map") {
     return "selective_axis_regret_catchup_value_map";
   }
+  if (raw === "selective-axis-regret-catchup-value-initial") {
+    return "selective_axis_regret_catchup_value_initial";
+  }
   if (raw === "0" || raw === "off" || raw === "dfs") return "depth_first";
   throw new Error(
     `LR_FRONTIER_POLICY must be dfs, selective-axis-regret-catchup, ` +
       `selective-axis-regret-catchup-repair-incumbent-once, ` +
       `selective-axis-regret-catchup-periodic-initial, or ` +
       `selective-axis-regret-catchup-periodic-repair, or ` +
-      `selective-axis-regret-catchup-value-map; got ${raw}`,
+      `selective-axis-regret-catchup-value-map, or ` +
+      `selective-axis-regret-catchup-value-initial; got ${raw}`,
   );
 }
 
-export type SelectivePeriodicBudgetAssessment = {
+export type SelectiveExplorationBudgetAssessment = {
   execution_remaining_frames: number;
   conservative_terminal_work_frames: number;
   estimated_probe_work_frames: number;
@@ -74,6 +81,7 @@ export type SelectivePeriodicBudgetAssessment = {
   exploration_allowance_frames: number;
   exploration_spent_frames: number;
   exploration_remaining_frames: number;
+  local_probe_allowance_frames: number;
   admitted: boolean;
   reason: "admitted" | "terminal_reserve" | "exploration_allowance";
 };
@@ -91,7 +99,7 @@ export type SelectivePeriodicOpportunity = {
     | "terminal_reserve"
     | "exploration_allowance";
   conservative_deadline_margin: number | null;
-  budget: SelectivePeriodicBudgetAssessment | null;
+  budget: SelectiveExplorationBudgetAssessment | null;
 };
 
 export type SelectiveValueOpportunityPoint = {
@@ -109,7 +117,21 @@ export type SelectiveValueOpportunityPoint = {
   total_spent_frames: number;
   alternative_available: boolean;
   execution_ceiling_reached: boolean;
-  budget: SelectivePeriodicBudgetAssessment;
+  budget: SelectiveExplorationBudgetAssessment;
+};
+
+export type SelectiveValueLiveOpportunity = {
+  watch_id: number;
+  outcome:
+    | "admitted"
+    | "ranked_out"
+    | "production_priority"
+    | "alternative_unavailable"
+    | "execution_ceiling"
+    | "terminal_reserve"
+    | "exploration_allowance";
+  affordable_rank: number | null;
+  point: SelectiveValueOpportunityPoint;
 };
 
 export type SelectiveValueOpportunity = {
@@ -146,6 +168,7 @@ type AxisRegretWatch<Node extends object> = {
   valueOpportunityCrossedMask: number;
   valueOpportunityAdmissibleMask: number;
   valueOpportunityRecordIndices: Array<number | null>;
+  valueLiveCrossed: boolean;
 };
 
 type WatchLink<Node extends object> = {
@@ -167,6 +190,7 @@ export type SelectiveBacktrackDecision<Node extends object> = {
   incumbentAxisLoss: number | null;
   incumbentAxisLossDelta: number | null;
   repairAttemptIndex: number | null;
+  explorationBudget: SelectiveExplorationBudgetAssessment | null;
 };
 
 export type SelectiveAdmissibleRewindChoice = {
@@ -183,12 +207,14 @@ export type SelectiveCatchupOutcome =
   | "current_selected"
   | "probe_dead_end"
   | "probe_deferred"
+  | "probe_budget_yield"
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeOutcome =
   | "reached_target"
   | "probe_dead_end"
   | "probe_deferred"
+  | "probe_budget_yield"
   | "execution_ceiling";
 
 export type SelectiveCatchupProbeResult = {
@@ -199,6 +225,14 @@ export type SelectiveCatchupProbeResult = {
   end_gap_index: number;
   probe_nodes_processed: number;
   probe_frames: number;
+  ranked_option_calls: number;
+  requested_normal_proposals: number;
+  candidate_geometry_evaluations: number;
+  atomic_node_frames: number[];
+  tail_completion_attempts: number;
+  budget_allowance_frames: number | null;
+  budget_remaining_before_yield: number | null;
+  estimated_next_node_frames: number | null;
   axis_loss: number | null;
   local_fallback_choices: SelectiveLocalFallbackChoice[];
 };
@@ -254,6 +288,19 @@ export type SelectiveBacktrackingStats = {
     { crossed_watches: number; admissible_watches: number }
   >;
   value_opportunities: SelectiveValueOpportunity[];
+  value_live_density_threshold: number;
+  value_live_crossings: number;
+  value_live_admitted: number;
+  value_live_ranked_out: number;
+  value_live_production_priority: number;
+  value_live_alternative_unavailable: number;
+  value_live_execution_ceiling_suppressed: number;
+  value_live_terminal_reserve_suppressed: number;
+  value_live_exploration_allowance_suppressed: number;
+  value_live_probe_frames: number;
+  value_live_probe_nodes_processed: number;
+  value_live_probe_budget_yields: number;
+  value_live_opportunities: SelectiveValueLiveOpportunity[];
   contact_expansions_observed: number;
   branch_watches_armed: number;
   branch_watches_by_alternative_count: Record<string, number>;
@@ -276,6 +323,7 @@ export type SelectiveBacktrackingStats = {
   catchup_current_selected: number;
   catchup_probe_dead_ends: number;
   catchup_probe_deferred: number;
+  catchup_probe_budget_yields: number;
   catchup_execution_ceiling_stops: number;
   catchup_probe_attempts: number;
   catchup_probe_target_reaches: number;
@@ -301,6 +349,7 @@ export type SelectiveBacktrackingStats = {
 };
 
 export type SelectiveBacktrackingEvent = {
+  watch_id: number;
   lane: FrontierTraversalLane;
   trigger_signal: SelectiveBacktrackSignal;
   branch_gap_index: number;
@@ -316,7 +365,8 @@ export type SelectiveBacktrackingEvent = {
   incumbent_axis_loss: number | null;
   incumbent_axis_loss_delta: number | null;
   repair_attempt_index: number | null;
-  periodic_budget: SelectivePeriodicBudgetAssessment | null;
+  periodic_budget: SelectiveExplorationBudgetAssessment | null;
+  value_budget: SelectiveExplorationBudgetAssessment | null;
   admissible_rewind_choices: SelectiveAdmissibleRewindChoice[];
   alternative_conservative_deadline_margin: number;
   trigger_total_spent_frames: number;
@@ -351,7 +401,12 @@ function emptyLaneCounter(): Record<FrontierTraversalLane, number> {
 }
 
 function emptySignalCounter(): Record<SelectiveBacktrackSignal, number> {
-  return { branch_regret: 0, repair_incumbent_regret: 0, periodic_exploration: 0 };
+  return {
+    branch_regret: 0,
+    repair_incumbent_regret: 0,
+    periodic_exploration: 0,
+    value_exploration: 0,
+  };
 }
 
 function emptyRegretOpportunityCounter(): SelectiveBacktrackingStats[
@@ -451,6 +506,19 @@ export class SelectiveAxisRegretController<Node extends object> {
       value_density_thresholds: [...SELECTIVE_VALUE_DENSITY_THRESHOLDS],
       value_opportunities_by_density: emptyValueOpportunityCounter(),
       value_opportunities: [],
+      value_live_density_threshold: SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD,
+      value_live_crossings: 0,
+      value_live_admitted: 0,
+      value_live_ranked_out: 0,
+      value_live_production_priority: 0,
+      value_live_alternative_unavailable: 0,
+      value_live_execution_ceiling_suppressed: 0,
+      value_live_terminal_reserve_suppressed: 0,
+      value_live_exploration_allowance_suppressed: 0,
+      value_live_probe_frames: 0,
+      value_live_probe_nodes_processed: 0,
+      value_live_probe_budget_yields: 0,
+      value_live_opportunities: [],
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       branch_watches_by_alternative_count: {},
@@ -473,6 +541,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       catchup_current_selected: 0,
       catchup_probe_dead_ends: 0,
       catchup_probe_deferred: 0,
+      catchup_probe_budget_yields: 0,
       catchup_execution_ceiling_stops: 0,
       catchup_probe_attempts: 0,
       catchup_probe_target_reaches: 0,
@@ -547,6 +616,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       valueOpportunityCrossedMask: 0,
       valueOpportunityAdmissibleMask: 0,
       valueOpportunityRecordIndices: SELECTIVE_VALUE_DENSITY_THRESHOLDS.map(() => null),
+      valueLiveCrossed: false,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -568,11 +638,11 @@ export class SelectiveAxisRegretController<Node extends object> {
     lane: FrontierTraversalLane;
     alternativeAvailable: (node: Node) => boolean;
     alternativeDeadline: (node: Node) => { margin: number; pressured: boolean };
-    periodicBudgetAssessment?: (
+    explorationBudgetAssessment?: (
       alternative: Node,
       fromGapIndex: number,
-      periodicProbeFrames: number,
-    ) => SelectivePeriodicBudgetAssessment;
+      explorationProbeFrames: number,
+    ) => SelectiveExplorationBudgetAssessment;
   }): SelectiveBacktrackDecision<Node> | null {
     const periodicLaneEnabled =
       (this.policy === "selective_axis_regret_catchup_periodic_initial" &&
@@ -589,6 +659,18 @@ export class SelectiveAxisRegretController<Node extends object> {
       contactAdvance: number;
       axisLossDelta: number;
     } | null = null;
+    const valueLiveCandidates: Array<{
+      watch: AxisRegretWatch<Node>;
+      contactAdvance: number;
+      axisLossDelta: number;
+      density: number;
+      gapRewind: number;
+      lineageOrder: number;
+      deadline: { margin: number; pressured: boolean };
+      budget: SelectiveExplorationBudgetAssessment;
+      point: SelectiveValueOpportunityPoint;
+    }> = [];
+    let lineageOrder = 0;
 
     const recordDecision = (
       watch: AxisRegretWatch<Node>,
@@ -599,7 +681,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       repairAttemptIndex: number | null,
       admittedAlternativeDeadline: { margin: number; pressured: boolean },
       admissibleRewindChoices: SelectiveAdmissibleRewindChoice[],
-      periodicBudget: SelectivePeriodicBudgetAssessment | null,
+      explorationBudget: SelectiveExplorationBudgetAssessment | null,
     ): SelectiveBacktrackDecision<Node> => {
       const fromGapIndex = this.gapIndexOf(input.node);
       const targetGapIndex = this.gapIndexOf(watch.alternative);
@@ -641,6 +723,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       this.stats.gap_rewind_max = Math.max(this.stats.gap_rewind_max, gapRewind);
       const eventIndex = this.stats.events.length;
       this.stats.events.push({
+        watch_id: watch.watchId,
         lane: input.lane,
         trigger_signal: triggerSignal,
         branch_gap_index: watch.branchGapIndex,
@@ -656,7 +739,12 @@ export class SelectiveAxisRegretController<Node extends object> {
         incumbent_axis_loss: input.incumbentAxisLoss ?? null,
         incumbent_axis_loss_delta: incumbentAxisLossDelta,
         repair_attempt_index: repairAttemptIndex,
-        periodic_budget: periodicBudget,
+        periodic_budget: triggerSignal === "periodic_exploration"
+          ? explorationBudget
+          : null,
+        value_budget: triggerSignal === "value_exploration"
+          ? explorationBudget
+          : null,
         admissible_rewind_choices: admissibleRewindChoices,
         alternative_conservative_deadline_margin: admittedAlternativeDeadline.margin,
         trigger_total_spent_frames: input.totalSpentFrames,
@@ -687,13 +775,54 @@ export class SelectiveAxisRegretController<Node extends object> {
         incumbentAxisLoss: input.incumbentAxisLoss ?? null,
         incumbentAxisLossDelta,
         repairAttemptIndex,
+        explorationBudget,
       };
+    };
+
+    const recordValueLiveOpportunity = (
+      watch: AxisRegretWatch<Node>,
+      point: SelectiveValueOpportunityPoint,
+      outcome: SelectiveValueLiveOpportunity["outcome"],
+      affordableRank: number | null,
+    ): void => {
+      this.stats.value_live_opportunities.push({
+        watch_id: watch.watchId,
+        outcome,
+        affordable_rank: affordableRank,
+        point,
+      });
+      if (outcome === "admitted") this.stats.value_live_admitted++;
+      else if (outcome === "ranked_out") this.stats.value_live_ranked_out++;
+      else if (outcome === "production_priority") {
+        this.stats.value_live_production_priority++;
+      } else if (outcome === "alternative_unavailable") {
+        this.stats.value_live_alternative_unavailable++;
+      } else if (outcome === "execution_ceiling") {
+        this.stats.value_live_execution_ceiling_suppressed++;
+      } else if (outcome === "terminal_reserve") {
+        this.stats.value_live_terminal_reserve_suppressed++;
+      } else if (outcome === "exploration_allowance") {
+        this.stats.value_live_exploration_allowance_suppressed++;
+      }
+    };
+
+    const flushValueCandidatesForProductionPriority = (): void => {
+      for (const candidate of valueLiveCandidates) {
+        recordValueLiveOpportunity(
+          candidate.watch,
+          candidate.point,
+          "production_priority",
+          null,
+        );
+      }
+      valueLiveCandidates.length = 0;
     };
 
     let link = this.lineage.get(input.node) ?? null;
     while (link !== null) {
       const watch = link.watch;
       link = link.parent;
+      const currentLineageOrder = lineageOrder++;
       if (watch.used) continue;
 
       const contactAdvance = input.contactOrdinal - watch.branchContactOrdinal;
@@ -730,12 +859,12 @@ export class SelectiveAxisRegretController<Node extends object> {
         contactAdvance >= SELECTIVE_VALUE_MIN_CONTACT_ADVANCE &&
         axisLossDelta > 0
       ) {
-        if (input.periodicBudgetAssessment === undefined) {
+        if (input.explorationBudgetAssessment === undefined) {
           throw new Error("value opportunity map requires a budget assessment");
         }
         const fromGapIndex = this.gapIndexOf(input.node);
         const alternativeGapIndex = this.gapIndexOf(watch.alternative);
-        const budget = input.periodicBudgetAssessment(
+        const budget = input.explorationBudgetAssessment(
           watch.alternative,
           fromGapIndex,
           0,
@@ -789,6 +918,74 @@ export class SelectiveAxisRegretController<Node extends object> {
               throw new Error("value opportunity admission lost its crossing record");
             }
             this.stats.value_opportunities[recordIndex]!.first_admission = point();
+          }
+        }
+      }
+
+      if (
+        this.policy === "selective_axis_regret_catchup_value_initial" &&
+        input.lane === "initial" &&
+        input.contactBoundary === true &&
+        contactAdvance >= SELECTIVE_VALUE_MIN_CONTACT_ADVANCE &&
+        axisLossDelta > 0 &&
+        !watch.valueLiveCrossed
+      ) {
+        if (input.explorationBudgetAssessment === undefined) {
+          throw new Error("value-ranked selective backtracking requires a budget assessment");
+        }
+        const fromGapIndex = this.gapIndexOf(input.node);
+        const alternativeGapIndex = this.gapIndexOf(watch.alternative);
+        const budget = input.explorationBudgetAssessment(
+          watch.alternative,
+          fromGapIndex,
+          this.stats.value_live_probe_frames,
+        );
+        const density = axisLossDelta * SELECTIVE_VALUE_DENSITY_FRAME_SCALE /
+          Math.max(1, budget.estimated_probe_work_frames);
+        if (density >= SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD) {
+          watch.valueLiveCrossed = true;
+          this.stats.value_live_crossings++;
+          const available = readAlternativeAvailable();
+          const point: SelectiveValueOpportunityPoint = {
+            lane: input.lane,
+            contact_ordinal: input.contactOrdinal,
+            from_gap_index: fromGapIndex,
+            branch_gap_index: watch.branchGapIndex,
+            alternative_gap_index: alternativeGapIndex,
+            contact_advance: contactAdvance,
+            gap_rewind: Math.max(0, fromGapIndex - alternativeGapIndex),
+            baseline_axis_loss: watch.baselineAxisLoss,
+            current_axis_loss: input.axisLoss,
+            axis_loss_delta: axisLossDelta,
+            value_density_per_10k_estimated_frames: density,
+            total_spent_frames: input.totalSpentFrames,
+            alternative_available: available,
+            execution_ceiling_reached: input.executionCeilingReached,
+            budget: { ...budget },
+          };
+          if (!available) {
+            recordValueLiveOpportunity(
+              watch,
+              point,
+              "alternative_unavailable",
+              null,
+            );
+          } else if (input.executionCeilingReached) {
+            recordValueLiveOpportunity(watch, point, "execution_ceiling", null);
+          } else if (!budget.admitted) {
+            recordValueLiveOpportunity(watch, point, budget.reason, null);
+          } else {
+            valueLiveCandidates.push({
+              watch,
+              contactAdvance,
+              axisLossDelta,
+              density,
+              gapRewind: point.gap_rewind,
+              lineageOrder: currentLineageOrder,
+              deadline: readAlternativeDeadline(),
+              budget,
+              point,
+            });
           }
         }
       }
@@ -987,6 +1184,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       ) {
         throw new Error("selective backtrack choice map lost the selected causal sibling");
       }
+      flushValueCandidatesForProductionPriority();
       return recordDecision(
         watch,
         contactAdvance,
@@ -1000,6 +1198,48 @@ export class SelectiveAxisRegretController<Node extends object> {
       );
     }
 
+    if (
+      this.policy === "selective_axis_regret_catchup_value_initial" &&
+      valueLiveCandidates.length > 0
+    ) {
+      valueLiveCandidates.sort((left, right) =>
+        right.density - left.density ||
+        right.axisLossDelta - left.axisLossDelta ||
+        left.gapRewind - right.gapRewind ||
+        left.lineageOrder - right.lineageOrder
+      );
+      for (let i = 0; i < valueLiveCandidates.length; i++) {
+        const candidate = valueLiveCandidates[i]!;
+        recordValueLiveOpportunity(
+          candidate.watch,
+          candidate.point,
+          i === 0 ? "admitted" : "ranked_out",
+          i + 1,
+        );
+      }
+      const winner = valueLiveCandidates[0]!;
+      const fromGapIndex = this.gapIndexOf(input.node);
+      const targetGapIndex = this.gapIndexOf(winner.watch.alternative);
+      return recordDecision(
+        winner.watch,
+        winner.contactAdvance,
+        winner.axisLossDelta,
+        "value_exploration",
+        null,
+        null,
+        winner.deadline,
+        [{
+          branch_gap_index: winner.watch.branchGapIndex,
+          alternative_gap_index: targetGapIndex,
+          contact_advance: winner.contactAdvance,
+          gap_rewind: Math.max(0, fromGapIndex - targetGapIndex),
+          axis_loss_delta: winner.axisLossDelta,
+          conservative_deadline_margin: winner.deadline.margin,
+        }],
+        winner.budget,
+      );
+    }
+
     if (periodicCandidate === null) return null;
     this.stats.periodic_exact_rewind_opportunities++;
     const { watch, contactAdvance, axisLossDelta } = periodicCandidate;
@@ -1008,7 +1248,7 @@ export class SelectiveAxisRegretController<Node extends object> {
     const recordPeriodicOpportunity = (
       outcome: SelectivePeriodicOpportunity["outcome"],
       deadlineMargin: number | null,
-      budget: SelectivePeriodicBudgetAssessment | null,
+      budget: SelectiveExplorationBudgetAssessment | null,
     ): void => {
       this.stats.periodic_opportunities.push({
         lane: input.lane,
@@ -1033,10 +1273,10 @@ export class SelectiveAxisRegretController<Node extends object> {
       return null;
     }
     const admittedAlternativeDeadline = input.alternativeDeadline(watch.alternative);
-    if (input.periodicBudgetAssessment === undefined) {
+    if (input.explorationBudgetAssessment === undefined) {
       throw new Error("periodic selective backtracking requires a budget assessment");
     }
-    const periodicBudget = input.periodicBudgetAssessment(
+    const periodicBudget = input.explorationBudgetAssessment(
       watch.alternative,
       fromGapIndex,
       this.stats.periodic_probe_frames,
@@ -1166,6 +1406,9 @@ export class SelectiveAxisRegretController<Node extends object> {
     if (decision.triggerSignal === "periodic_exploration") {
       this.stats.periodic_probe_nodes_processed += probeNodesProcessed;
       this.stats.periodic_probe_frames += probeFrames;
+    } else if (decision.triggerSignal === "value_exploration") {
+      this.stats.value_live_probe_nodes_processed += probeNodesProcessed;
+      this.stats.value_live_probe_frames += probeFrames;
     }
     this.stats.catchup_probe_attempts += input.probes.length;
     this.stats.catchup_probe_target_reaches += input.probes.filter(
@@ -1206,6 +1449,13 @@ export class SelectiveAxisRegretController<Node extends object> {
     this.stats.catchup_probe_deferred += input.probes.filter(
       (probe) => probe.outcome === "probe_deferred",
     ).length;
+    const budgetYields = input.probes.filter(
+      (probe) => probe.outcome === "probe_budget_yield",
+    ).length;
+    this.stats.catchup_probe_budget_yields += budgetYields;
+    if (decision.triggerSignal === "value_exploration") {
+      this.stats.value_live_probe_budget_yields += budgetYields;
+    }
     this.stats.catchup_execution_ceiling_stops += input.probes.filter(
       (probe) => probe.outcome === "execution_ceiling",
     ).length;
@@ -1272,16 +1522,27 @@ export class SelectiveAxisRegretController<Node extends object> {
             budget: { ...opportunity.first_admission.budget },
           },
       })),
+      value_live_opportunities: this.stats.value_live_opportunities.map((opportunity) => ({
+        ...opportunity,
+        point: {
+          ...opportunity.point,
+          budget: { ...opportunity.point.budget },
+        },
+      })),
       events: this.stats.events.map((event) => ({
         ...event,
         periodic_budget: event.periodic_budget === null
           ? null
           : { ...event.periodic_budget },
+        value_budget: event.value_budget === null
+          ? null
+          : { ...event.value_budget },
         admissible_rewind_choices: event.admissible_rewind_choices.map((choice) => ({
           ...choice,
         })),
         catchup_probe_results: event.catchup_probe_results.map((probe) => ({
           ...probe,
+          atomic_node_frames: [...probe.atomic_node_frames],
           local_fallback_choices: probe.local_fallback_choices.map((choice) => ({ ...choice })),
         })),
         catchup_checkpoints: event.catchup_checkpoints.map((checkpoint) => ({ ...checkpoint })),

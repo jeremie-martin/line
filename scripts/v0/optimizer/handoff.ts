@@ -2688,6 +2688,34 @@ function compileHandoffInternal(
       });
     const conservativeDeadlineWorkAtGap = (gapIndex: number): number =>
       deadline.conservativeWorkAt({ gapIndex, costToEnd: incumbentCostToEnd });
+    const resolvePolicy = (search: SearchNode): HandoffSearchPolicy =>
+      resolveHandoffSearchPolicy({
+        node: search,
+        gaps,
+        ctx,
+        targetProfile,
+        telemetry,
+        sparseContactCadence,
+        targetBudget: resumedSearchShapeBudget ?? searchPolicyBudget,
+        budgetSlack: resumedSearchShapeBudget === null
+          ? budgetSlack
+          : traversalBudgetSlack(resumedSearchShapeBudget, spec),
+        // Before first completion the compile is racing to the end and its
+        // own high water is what is left to cover; after it, this pass is a
+        // restart from an anchor and only THIS node's depth says how far it
+        // still has to go. The margin survives that switch, where the paced
+        // slack it replaced became Infinity — so the 46.3% of a 750k budget
+        // that runs post-completion now has a signal. Phase 1a keeps the two
+        // pool-affecting CONSUMERS pre-completion (see the boundary in
+        // `rankedOptions`); the signal is live throughout and observable.
+        //
+        // `incumbentCostToEnd` is non-null exactly when a completion has been
+        // adopted (both are written in the same branch of `consider`), so the
+        // profile IS the phase flag the margin reads — it never sees the
+        // post-completion gap index with a pre-completion (null) profile.
+        deadlineMargin: deadlineMarginAt(search),
+        hasCompletion: firstCompletionFrame >= 0,
+      });
     const processNode = (
       node: HandoffNode,
       lane: FrontierTraversalLane,
@@ -2696,6 +2724,7 @@ function compileHandoffInternal(
       traversalCanContinue: () => boolean,
       executionCeilingFrames: number,
       allowSelectiveBacktracking = true,
+      allowSpeculativeTailCompletion = true,
     ): ProcessResult => {
       const atomicStart = getSimFrames();
       const registerImprovementsBefore = register.improvementCount;
@@ -2797,10 +2826,10 @@ function compileHandoffInternal(
             const margin = conservativeDeadlineMarginAtGap(alternative.search.gapIndex);
             return { margin, pressured: deadlinePressure(margin) > 0 };
           },
-          periodicBudgetAssessment: (
+          explorationBudgetAssessment: (
             alternative,
             fromGapIndex,
-            periodicProbeFrames,
+            explorationProbeFrames,
           ) => {
             const executionRemaining = Math.max(
               0,
@@ -2819,7 +2848,11 @@ function compileHandoffInternal(
             );
             const explorationRemaining = Math.max(
               0,
-              explorationAllowance - periodicProbeFrames,
+              explorationAllowance - explorationProbeFrames,
+            );
+            const localProbeAllowance = Math.min(
+              explorationRemaining,
+              Math.max(0, executionRemaining - terminalReserve),
             );
             const terminalFits = estimatedProbeWork + terminalReserve <= executionRemaining;
             const explorationFits = estimatedProbeWork <= explorationRemaining;
@@ -2829,8 +2862,9 @@ function compileHandoffInternal(
               estimated_probe_work_frames: estimatedProbeWork,
               terminal_reserve_frames: terminalReserve,
               exploration_allowance_frames: explorationAllowance,
-              exploration_spent_frames: periodicProbeFrames,
+              exploration_spent_frames: explorationProbeFrames,
               exploration_remaining_frames: explorationRemaining,
+              local_probe_allowance_frames: localProbeAllowance,
               admitted: terminalFits && explorationFits,
               reason: !terminalFits
                 ? "terminal_reserve"
@@ -2847,47 +2881,21 @@ function compileHandoffInternal(
           });
         }
       }
-      const resolvePolicy = (search: SearchNode): HandoffSearchPolicy =>
-        resolveHandoffSearchPolicy({
-          node: search,
-          gaps,
-          ctx,
-          targetProfile,
-          telemetry,
-          sparseContactCadence,
-          targetBudget: resumedSearchShapeBudget ?? searchPolicyBudget,
-          budgetSlack: resumedSearchShapeBudget === null
-            ? budgetSlack
-            : traversalBudgetSlack(resumedSearchShapeBudget, spec),
-          // Before first completion the compile is racing to the end and its
-          // own high water is what is left to cover; after it, this pass is a
-          // restart from an anchor and only THIS node's depth says how far it
-          // still has to go. The margin survives that switch, where the paced
-          // slack it replaced became Infinity — so the 46.3% of a 750k budget
-          // that runs post-completion now has a signal. Phase 1a keeps the two
-          // pool-affecting CONSUMERS pre-completion (see the boundary in
-          // `rankedOptions`); the signal is live throughout and observable.
-          //
-          // `incumbentCostToEnd` is non-null exactly when a completion has been
-          // adopted (both are written in the same branch of `consider`), so the
-          // profile IS the phase flag the margin reads — it never sees the
-          // post-completion gap index with a pre-completion (null) profile.
-          deadlineMargin: deadlineMarginAt(search),
-          hasCompletion: firstCompletionFrame >= 0,
-        });
       const policy = resolvePolicy(node.search);
       atomicPolicy = policy;
 
-      const tailNode = completeNearTail(
-        node,
-        gaps,
-        ctx,
-        telemetry,
-        policy,
-        resolvePolicy,
-        resumedSearchShapeBudget ?? searchPolicyBudget,
-        stampTailReach,
-      );
+      const tailNode = allowSpeculativeTailCompletion
+        ? completeNearTail(
+          node,
+          gaps,
+          ctx,
+          telemetry,
+          policy,
+          resolvePolicy,
+          resumedSearchShapeBudget ?? searchPolicyBudget,
+          stampTailReach,
+        )
+        : null;
       afterTail = getSimFrames();
       if (tailNode !== null) {
         const result = consider(tailNode, "tail_completion");
@@ -3033,6 +3041,7 @@ function compileHandoffInternal(
         node: HandoffNode,
         resumeSuspendedContinuation: boolean,
         allowSelectiveBacktracking: boolean,
+        allowSpeculativeTailCompletion = true,
       ): ProcessResult => {
         selectiveBacktracking?.observeRoot(node);
         if (handoffFrontierProbeHook !== null) {
@@ -3064,6 +3073,7 @@ function compileHandoffInternal(
           keepGoing,
           executionCeilingFrames,
           allowSelectiveBacktracking,
+          allowSpeculativeTailCompletion,
         );
         onProcessed?.();
         return result;
@@ -3085,9 +3095,11 @@ function compileHandoffInternal(
           routeOrdinal: number;
           axisLoss: number;
         }> = [];
+        let tournamentBudgetYielded = false;
         const finishTournament = (
           outcome: "alternative_selected" | "current_selected" |
-            "probe_dead_end" | "probe_deferred" | "execution_ceiling",
+            "probe_dead_end" | "probe_deferred" | "probe_budget_yield" |
+            "execution_ceiling",
           selectedAlternativeOrdinal: number | null,
           selectedRouteOrdinal: number | null,
         ): void => {
@@ -3112,8 +3124,15 @@ function compileHandoffInternal(
             throw new Error("selective catch-up alternative left the synchronous frontier");
           }
           const probeStartFrames = getSimFrames();
+          const rankedOptionCallsBefore = telemetry.candidatePoolRequests.count;
+          const requestedNormalProposalsBefore = telemetry.candidatePoolRequests.sum;
+          const candidateGeometryEvaluationsBefore = getCandidateSamples();
+          const tailCompletionAttemptsBefore = telemetry.tailCompletionAttempts;
           let probe = start;
           let probeNodesProcessed = 0;
+          const atomicNodeFrames: number[] = [];
+          let budgetRemainingBeforeYield: number | null = null;
+          let estimatedNextNodeFrames: number | null = null;
           const localFallbackCandidates: HandoffNode[] = [];
           let resumeProbe = selectiveBacktracking!.observeSelected(probe, probeStartFrames);
           const finishProbe = (
@@ -3158,6 +3177,19 @@ function compileHandoffInternal(
               end_gap_index: probe.search.gapIndex,
               probe_nodes_processed: probeNodesProcessed,
               probe_frames: getSimFrames() - probeStartFrames,
+              ranked_option_calls:
+                telemetry.candidatePoolRequests.count - rankedOptionCallsBefore,
+              requested_normal_proposals:
+                telemetry.candidatePoolRequests.sum - requestedNormalProposalsBefore,
+              candidate_geometry_evaluations:
+                getCandidateSamples() - candidateGeometryEvaluationsBefore,
+              atomic_node_frames: atomicNodeFrames,
+              tail_completion_attempts:
+                telemetry.tailCompletionAttempts - tailCompletionAttemptsBefore,
+              budget_allowance_frames:
+                decision.explorationBudget?.local_probe_allowance_frames ?? null,
+              budget_remaining_before_yield: budgetRemainingBeforeYield,
+              estimated_next_node_frames: estimatedNextNodeFrames,
               axis_loss: axisLoss,
               local_fallback_choices: localFallbackChoices,
             });
@@ -3174,7 +3206,58 @@ function compileHandoffInternal(
               finishTournament("execution_ceiling", null, null);
               return true;
             }
-            const result = processSelected(probe, resumeProbe, false);
+            if (decision.triggerSignal === "value_exploration") {
+              const allowance = decision.explorationBudget?.local_probe_allowance_frames;
+              if (allowance === null || allowance === undefined) {
+                throw new Error("value-ranked catch-up lost its local probe allowance");
+              }
+              const probeSpent = getSimFrames() - probeStartFrames;
+              const localRemaining = Math.max(0, allowance - probeSpent);
+              const remainingProbeWork = Math.max(
+                0,
+                Math.ceil(
+                  conservativeDeadlineWorkAtGap(probe.search.gapIndex) -
+                    conservativeDeadlineWorkAtGap(decision.fromGapIndex),
+                ),
+              );
+              const remainingGapAdvance = Math.max(
+                1,
+                decision.fromGapIndex - probe.search.gapIndex,
+              );
+              const policy = resolvePolicy(probe.search);
+              const observedCostEstimate = Math.ceil(
+                policy.nCand * Math.max(1, observedAtomicCostPerCandidateUpper),
+              );
+              const suffixAverageEstimate = Math.ceil(
+                remainingProbeWork / remainingGapAdvance,
+              );
+              const nextNodeEstimate = Math.max(
+                1,
+                observedCostEstimate,
+                suffixAverageEstimate,
+              );
+              if (nextNodeEstimate > localRemaining) {
+                budgetRemainingBeforeYield = localRemaining;
+                estimatedNextNodeFrames = nextNodeEstimate;
+                finishProbe("probe_budget_yield", null);
+                enqueueChild(probe, pass, fb);
+                for (let i = completed.length - 1; i >= 0; i--) {
+                  enqueueChild(completed[i]!.node, pass, fb);
+                }
+                enqueueChild(suspended, pass, fb);
+                finishTournament("probe_budget_yield", null, null);
+                tournamentBudgetYielded = true;
+                return false;
+              }
+            }
+            const atomicStartFrames = getSimFrames();
+            const result = processSelected(
+              probe,
+              resumeProbe,
+              false,
+              decision.triggerSignal !== "value_exploration",
+            );
+            atomicNodeFrames.push(getSimFrames() - atomicStartFrames);
             resumeProbe = false;
             probeNodesProcessed++;
             if (result.kind === "captured" || result.kind === "terminal_limit") {
@@ -3255,6 +3338,7 @@ function compileHandoffInternal(
             "causal_alternative",
             alternativeIndex + 1,
           )) return true;
+          if (tournamentBudgetYielded) return false;
         }
 
         if (completed.length === 0) {

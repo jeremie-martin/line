@@ -498,7 +498,8 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_repair_incumbent_once"
       | "selective_axis_regret_catchup_periodic_initial"
       | "selective_axis_regret_catchup_periodic_repair"
-      | "selective_axis_regret_catchup_value_map";
+      | "selective_axis_regret_catchup_value_map"
+      | "selective_axis_regret_catchup_value_initial";
     min_contact_advance: number;
     min_axis_loss_delta: number;
     catchup_axis_loss_gain_threshold: number;
@@ -534,6 +535,7 @@ export type CompileStats = {
       branch_regret: number;
       repair_incumbent_regret: number;
       periodic_exploration: number;
+      value_exploration: number;
     };
     selective_backtracks_with_multiple_admissible_rewind_choices: number;
     admissible_rewind_choice_count_sum: number;
@@ -574,8 +576,13 @@ export type CompileStats = {
       resumed: number;
     };
     events: Array<{
+      watch_id: number;
       lane: "initial" | "snapshot" | "repair" | "resumed";
-      trigger_signal: "branch_regret" | "repair_incumbent_regret" | "periodic_exploration";
+      trigger_signal:
+        | "branch_regret"
+        | "repair_incumbent_regret"
+        | "periodic_exploration"
+        | "value_exploration";
       branch_gap_index: number;
       from_gap_index: number;
       alternative_gap_index: number;
@@ -605,6 +612,7 @@ export type CompileStats = {
         | "current_selected"
         | "probe_dead_end"
         | "probe_deferred"
+        | "probe_budget_yield"
         | "execution_ceiling"
         | null;
       catchup_end_gap_index: number | null;
@@ -622,6 +630,7 @@ export type CompileStats = {
           | "reached_target"
           | "probe_dead_end"
           | "probe_deferred"
+          | "probe_budget_yield"
           | "execution_ceiling";
         end_gap_index: number;
         probe_nodes_processed: number;

@@ -125,8 +125,9 @@ distinct because their completed archives have different semantics.
 The `deferred_value` lane is neither repair nor resumed search. Its episode is
 bounded by the score-blind exploration allowance, owns no repair decision,
 stops after one terminal offer or a local yield, and returns every unconsumed
-frontier node before ordinary repair begins. Its estimator applicability is
-reported honestly as `unvalidated_attempt_kind` until that lane is calibrated.
+frontier node before ordinary repair begins. A path-free estimator observation
+is reported honestly as `unvalidated_attempt_kind` until that lane is calibrated;
+an available incumbent path retains its separately declared path applicability.
 
 An execution interval accounts for wall-to-wall charged compiler work such as
 startup, initial search, deferred-value suffix search, frontier repair, resumed search, or

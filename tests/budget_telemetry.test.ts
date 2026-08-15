@@ -658,6 +658,11 @@ describe("compile budget telemetry", () => {
       policyBudgetFrames: model.applicability.structuralPolicyBudgetFrames.min,
       attemptKind: "snapshot",
     }, model)).toBe("unvalidated_attempt_kind");
+    expect(budgetEstimatorApplicability({
+      pathAvailable: false,
+      policyBudgetFrames: model.applicability.structuralPolicyBudgetFrames.min,
+      attemptKind: "deferred_value",
+    }, model)).toBe("unvalidated_attempt_kind");
     expect(parseBudgetEstimatorModel(model)).toEqual(model);
     expect(() => parseBudgetEstimatorModel({ ...model, schema: "wrong" })).toThrow(/schema/);
   });
@@ -762,6 +767,80 @@ describe("compile budget telemetry", () => {
       "terminal",
       "end",
     ]);
+  });
+
+  test("attributes a deferred-value suffix without repair semantics", () => {
+    const recorder = new CompileBudgetTelemetryRecorder({
+      level: "summary",
+      gaps: GAPS,
+      durationFrames: 100,
+      hardBudgetFrames: 1_000,
+      policyBudgetFrames: 800,
+      repairBudgetFrames: 900,
+      model: TEST_MODEL,
+    });
+    const initialEpisodeId = recorder.startEpisode({
+      lane: "initial",
+      searchSeed: 42,
+      frontierHasFallbackLane: false,
+      anchorGapIndex: 0,
+      startTotalSpentFrames: 0,
+      ceilingTotalSpentFrames: 1_000,
+      ceilingSource: "hard_budget",
+      includeStartup: true,
+    });
+    recorder.endEpisode(200, "handoff_to_repair");
+    recorder.recordSegment("initial_search", 0, 200, "handoff_to_repair", initialEpisodeId);
+    const episodeId = recorder.startEpisode({
+      lane: "deferred_value",
+      parentEpisodeId: initialEpisodeId,
+      searchSeed: 42,
+      frontierHasFallbackLane: true,
+      anchorGapIndex: 2,
+      startTotalSpentFrames: 200,
+      ceilingTotalSpentFrames: 500,
+      ceilingSource: "deferred_value_allowance",
+      includeStartup: false,
+      pathEstimateByGap: null,
+    });
+    recorder.recordEvaluation({
+      totalSpentFrames: 350,
+      gapIndex: GAPS.length,
+      terminal: true,
+      origin: "frontier",
+      firstTimeSearchNode: true,
+      terminalTrackKey: "deferred-track",
+      registerImproved: true,
+    });
+    recorder.endEpisode(350, "first_terminal_return", {
+      registerKeyAtEnd: {
+        contract_passed: true,
+        axis_quality: 0.9,
+        internal_full_score: 900,
+        drift_quality: 0.8,
+      },
+    });
+    recorder.recordSegment(
+      "deferred_value_suffix",
+      200,
+      350,
+      "terminal_reached",
+      episodeId,
+    );
+    const telemetry = recorder.snapshot(350, false, 350, 350)!;
+    const episode = telemetry.episodes[1]!;
+    expect(episode).toMatchObject({
+      lane: "deferred_value",
+      ceiling_source: "deferred_value_allowance",
+      repair_decision: null,
+      outcome: {
+        terminal_reached: true,
+        accepted_alternative: false,
+        stop_reason: "first_terminal_return",
+      },
+    });
+    expect(episode.start.estimator_applicability).toBe("unvalidated_attempt_kind");
+    expect(telemetry.compile.final_output_lane).toBe("deferred_value");
   });
 
   test("treats a zero incumbent path as absent rather than as a path-backed estimate", () => {

@@ -48,8 +48,7 @@ collects and seals the portfolio but executes no deferred attempt. It records:
 - early expiration and production-consumed disposition;
 - exact first-terminal membership and sibling availability;
 - terminal-time hard and repair remainder, conservative full-suffix estimate,
-  15% exploration allowance, affordability reason, terminal-time density, and
-  stable rank;
+  policy budget, affordability reason, terminal-time density, and stable rank;
 - first-terminal frame and track hash.
 
 The fixed map uses the same ten-source compact suite as the preceding campaign,
@@ -57,15 +56,18 @@ budgets 750,000 and 1,250,000, and fresh actual seeds 170-173. It contains 80
 map cells and 80 production references. Tracks, scores, validity, first-terminal
 frame/hash, and repair episode ledgers must be exact in every pair.
 
-The map authorizes a live arm only if, at each budget:
+The map evaluates exploration shares 15%, 25%, and 40% from the same retained
+records and charged-work estimate. This is an offline coverage bracket, not
+three compiler arms. Select the smallest share that, at each budget:
 
 - at least 20 exact incumbent-path alternatives are affordable;
 - affordable alternatives span at least eight runs and four sources;
 - at least eight runs and four sources have a rank-one action; and
 - the 1.25M affordable count is at least half the 750k count.
 
-This is a coverage gate only. No threshold, allowance, source, or final score is
-selected from the map.
+The 1.25M affordable count must also retain at least half the 750k count. If no
+share clears, close the action. This is a score-blind coverage gate: final score
+does not select the share, and no adjacent share may be substituted later.
 
 ## Phase B: one bounded deferred suffix attempt
 
@@ -75,8 +77,8 @@ It preserves the exact initial traversal and first terminal, then takes the
 rank-one sibling from the original frontier and gives it one self-contained
 ordinary preferred-frontier suffix search.
 
-- The local allowance is the smaller of 15% of search policy budget, remaining
-  repair budget, and remaining hard budget.
+- The local allowance is the smaller of the Phase-A-selected share of search
+  policy budget, remaining repair budget, and remaining hard budget.
 - Admission requires the conservative terminal-time full-suffix estimate to
   fit that allowance.
 - Speculative tail completion is disabled inside the optional attempt so one
@@ -131,3 +133,4 @@ inside this campaign.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-15 | Semantics, map gate, live gate, and stopping rules frozen | complete | This document |
+| 2026-08-15 | Mechanism-smoke allowance correction | complete | The old equal-depth 15% share afforded a full suffix in only 2/10 smoke cells. Before fixed evidence, replace the single share with the score-blind 15/25/40 coverage bracket above. No smoke score is used. |

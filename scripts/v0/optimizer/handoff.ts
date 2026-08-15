@@ -215,6 +215,7 @@ import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
   catchupAlternativeHasSufficientGain,
   parseFrontierTraversalPolicy,
+  SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION,
   SELECTIVE_PERIODIC_EXPLORATION_BUDGET_FRACTION,
   SELECTIVE_PERIODIC_TERMINAL_RESERVE_FACTOR,
   SelectiveAxisRegretController,
@@ -2246,6 +2247,7 @@ function compileHandoffInternal(
     let bestRegisteredNode: HandoffNode | null = null;
     let firstTerminalFrame = -1;
     let firstCompletionFrame = -1;
+    let firstTerminalTrackHash: string | null = null;
     // Observation-only reach timestamps used by the incumbent cost-to-end
     // estimator and detailed repair diagnostics. Authoritative execution and
     // outcome accounting lives in budgetTelemetry V5 episodes; compile_stats
@@ -2415,7 +2417,10 @@ function compileHandoffInternal(
         lastTerminalNode = node;
         terminalConsiders++;
         if (!improved) terminalConsidersWithoutImprovement++;
-        if (firstTerminalFrame < 0) firstTerminalFrame = getSimFrames();
+        if (firstTerminalFrame < 0) {
+          firstTerminalFrame = getSimFrames();
+          firstTerminalTrackHash = sha256Json(output.track);
+        }
         // Terminal search nodes may stop before the unscored tail gap. For
         // completion telemetry the remaining traversal work is nevertheless
         // zero once the terminal has been considered.
@@ -2430,9 +2435,10 @@ function compileHandoffInternal(
         registerImproved: improved,
       });
       if (improved && terminal) {
+        const firstImprovingTerminal = firstCompletionFrame < 0;
         bestCompleteNode = node;
         incumbentRevision++;
-        if (firstCompletionFrame < 0) {
+        if (firstImprovingTerminal) {
           firstCompletionFrame = getSimFrames();
         }
         const adoptedCostToEnd = buildObservedCostToEnd(
@@ -2443,6 +2449,35 @@ function compileHandoffInternal(
         incumbentCostProfiles.set(node.search, adoptedCostToEnd);
         incumbentCostToEnd = adoptedCostToEnd;
         telemetry.hasCompletion = true;
+        if (firstImprovingTerminal) {
+          if (firstTerminalTrackHash === null) {
+            throw new Error("first improving terminal has no terminal track identity");
+          }
+          selectiveBacktracking?.assessDeferredValueAtFirstTerminal({
+            incumbent: node,
+            firstTerminalTotalSpentFrames: getSimFrames(),
+            firstTerminalTrackHash,
+            remainingHardBudgetFrames: Math.max(0, targetBudget - getSimFrames()),
+            remainingRepairBudgetFrames: Math.max(
+              0,
+              repairBudgetLimit - getSimFrames(),
+            ),
+            searchPolicyBudgetFrames: searchPolicyBudget,
+            explorationAllowanceFrames: Math.floor(
+              SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION * searchPolicyBudget,
+            ),
+            currentOnIncumbentPath: (current, incumbent) =>
+              current.startRank === incumbent.startRank &&
+              current.search.gapIndex <= incumbent.search.gapIndex &&
+              current.search.prefixFits.every((fit, gapIndex) =>
+                fit === incumbent.search.prefixFits[gapIndex]
+              ),
+            alternativeAvailable: (alternative) =>
+              frontierContains(alternative, passStack, fallbackStack),
+            estimatedSuffixWorkFrames: (alternative) =>
+              conservativeDeadlineWorkAtGap(alternative.search.gapIndex),
+          });
+        }
       }
       const event: HandoffNodeEvent = {
         phase,
@@ -2542,6 +2577,7 @@ function compileHandoffInternal(
           ...snapshotNumericPolicyStats("handoff_requested_normal_proposals_per_ranked_option_call", telemetry.policyNCand),
           ...snapshotNumericPolicyStats("handoff_policy_branch_limit", telemetry.policyBranchLimit),
           first_completion_frame: firstTerminalFrame >= 0 ? firstTerminalFrame : null,
+          handoff_first_terminal_track_hash: firstTerminalTrackHash,
           leaves_considered: register.consideredCount,
           improvements: register.improvementCount,
           polish_variants_tried: polishTried,

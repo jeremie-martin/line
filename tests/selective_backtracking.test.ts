@@ -24,6 +24,8 @@ describe("selective-backtracking controller", () => {
       .toBe("selective_axis_regret_catchup_periodic_repair");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-map"))
       .toBe("selective_axis_regret_catchup_value_map");
+    expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-deferred-map"))
+      .toBe("selective_axis_regret_catchup_value_deferred_map");
     expect(parseFrontierTraversalPolicy("selective-axis-regret-catchup-value-initial"))
       .toBe("selective_axis_regret_catchup_value_initial");
     expect(parseFrontierTraversalPolicy(
@@ -319,6 +321,105 @@ describe("selective-backtracking controller", () => {
         budget: { admitted: true, reason: "admitted" },
       },
     });
+  });
+
+  test("retains and terminal-ranks an exact deferred value opportunity without acting", () => {
+    const controller = new SelectiveAxisRegretController<Node>((node) => node.gap, {
+      policy: "selective_axis_regret_catchup_value_deferred_map",
+    });
+    const parent = { gap: 1, name: "parent" };
+    const leader = { gap: 2, name: "leader" };
+    const alternative = { gap: 2, name: "alternative" };
+    const current = { gap: 5, name: "current" };
+    const terminal = { gap: 10, name: "terminal" };
+    controller.observeExpansion({
+      parent,
+      children: [leader, alternative],
+      contactExpansion: true,
+      contactOrdinal: 1,
+      axisLoss: 0.10,
+    });
+    controller.observeExpansion({
+      parent: leader,
+      children: [current],
+      contactExpansion: false,
+      contactOrdinal: 2,
+      axisLoss: 0.10,
+    });
+    expect(controller.consider({
+      node: current,
+      contactOrdinal: 5,
+      contactBoundary: true,
+      gapProgress: 0.50,
+      axisLoss: 0.15,
+      executionCeilingReached: false,
+      totalSpentFrames: 200_000,
+      lane: "initial",
+      alternativeAvailable: (node) => node === alternative,
+      alternativeDeadline: () => ({ margin: 3, pressured: false }),
+      explorationBudgetAssessment: () => ({
+        execution_remaining_frames: 550_000,
+        conservative_terminal_work_frames: 100_000,
+        estimated_probe_work_frames: 10_000,
+        terminal_reserve_frames: 125_000,
+        exploration_allowance_frames: 112_500,
+        exploration_spent_frames: 0,
+        exploration_remaining_frames: 112_500,
+        local_probe_allowance_frames: 112_500,
+        admitted: true,
+        reason: "admitted",
+      }),
+    })).toBeNull();
+    const decision = controller.assessDeferredValueAtFirstTerminal({
+      incumbent: terminal,
+      firstTerminalTotalSpentFrames: 300_000,
+      firstTerminalTrackHash: "a".repeat(64),
+      remainingHardBudgetFrames: 450_000,
+      remainingRepairBudgetFrames: 400_000,
+      searchPolicyBudgetFrames: 750_000,
+      explorationAllowanceFrames: 300_000,
+      currentOnIncumbentPath: (node) => node === current,
+      alternativeAvailable: (node) => node === alternative,
+      estimatedSuffixWorkFrames: () => 50_000,
+    });
+    expect(decision).toMatchObject({
+      watchId: 1,
+      current,
+      alternative,
+      terminal: {
+        estimated_suffix_work_frames: 50_000,
+        affordable: true,
+        reason: "admitted",
+        affordable_rank: 1,
+      },
+    });
+    expect(decision?.terminal.terminal_value_density_per_10k_estimated_frames)
+      .toBeCloseTo(0.01);
+    expect(controller.snapshot()).toMatchObject({
+      selective_backtracks: 0,
+      deferred_value_crossings: 1,
+      deferred_value_collected: 1,
+      deferred_value_assessed: 1,
+      deferred_value_incumbent_path: 1,
+      deferred_value_affordable: 1,
+      deferred_value_first_terminal_track_hash: "a".repeat(64),
+      deferred_value_opportunities: [{
+        outcome: "collected",
+        terminal: { affordable: true, affordable_rank: 1 },
+      }],
+    });
+    expect(() => controller.assessDeferredValueAtFirstTerminal({
+      incumbent: terminal,
+      firstTerminalTotalSpentFrames: 300_000,
+      firstTerminalTrackHash: "a".repeat(64),
+      remainingHardBudgetFrames: 450_000,
+      remainingRepairBudgetFrames: 400_000,
+      searchPolicyBudgetFrames: 750_000,
+      explorationAllowanceFrames: 300_000,
+      currentOnIncumbentPath: () => true,
+      alternativeAvailable: () => true,
+      estimatedSuffixWorkFrames: () => 50_000,
+    })).toThrow(/sealed more than once/);
   });
 
   test("ranks simultaneous initial opportunities by density before lineage order", () => {

@@ -4,6 +4,7 @@ export type SelectiveCatchupPolicy =
   | "selective_axis_regret_catchup_periodic_initial"
   | "selective_axis_regret_catchup_periodic_repair"
   | "selective_axis_regret_catchup_value_map"
+  | "selective_axis_regret_catchup_value_deferred_map"
   | "selective_axis_regret_catchup_value_initial"
   | "selective_axis_regret_catchup_value_initial_progress_10"
   | "selective_axis_regret_catchup_value_initial_expire_10";
@@ -30,6 +31,8 @@ export const SELECTIVE_VALUE_DENSITY_FRAME_SCALE = 10_000;
 export const SELECTIVE_VALUE_DENSITY_THRESHOLDS = [0.005, 0.01, 0.02, 0.04] as const;
 export const SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD = 0.02;
 export const SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS = 0.10;
+export const SELECTIVE_DEFERRED_VALUE_ALLOWANCE_FRACTIONS = [0.15, 0.25, 0.40] as const;
+export const SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION = 0.40;
 export const SELECTIVE_AXIS_REGRET_OPPORTUNITY_THRESHOLDS = [0.05, 0.10, 0.15, 0.20] as const;
 export const REPAIR_INCUMBENT_REGRET_OPPORTUNITY_THRESHOLDS = [
   0,
@@ -62,6 +65,9 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
   if (raw === "selective-axis-regret-catchup-value-map") {
     return "selective_axis_regret_catchup_value_map";
   }
+  if (raw === "selective-axis-regret-catchup-value-deferred-map") {
+    return "selective_axis_regret_catchup_value_deferred_map";
+  }
   if (raw === "selective-axis-regret-catchup-value-initial") {
     return "selective_axis_regret_catchup_value_initial";
   }
@@ -78,6 +84,7 @@ export function parseFrontierTraversalPolicy(raw: string | undefined): FrontierT
       `selective-axis-regret-catchup-periodic-initial, or ` +
       `selective-axis-regret-catchup-periodic-repair, or ` +
       `selective-axis-regret-catchup-value-map, or ` +
+      `selective-axis-regret-catchup-value-deferred-map, or ` +
       `selective-axis-regret-catchup-value-initial, or ` +
       `selective-axis-regret-catchup-value-initial-progress-10, or ` +
       `selective-axis-regret-catchup-value-initial-expire-10; got ${raw}`,
@@ -154,6 +161,46 @@ export type SelectiveValueOpportunity = {
   first_admission: SelectiveValueOpportunityPoint | null;
 };
 
+export type SelectiveDeferredValueTerminalAssessment = {
+  first_terminal_total_spent_frames: number;
+  first_terminal_track_hash: string;
+  on_incumbent_path: boolean;
+  production_consumed: boolean;
+  alternative_available: boolean;
+  remaining_hard_budget_frames: number;
+  remaining_repair_budget_frames: number;
+  search_policy_budget_frames: number;
+  exploration_allowance_frames: number;
+  local_allowance_frames: number;
+  estimated_suffix_work_frames: number;
+  terminal_value_density_per_10k_estimated_frames: number;
+  affordable: boolean;
+  reason:
+    | "admitted"
+    | "not_incumbent_path"
+    | "production_consumed"
+    | "alternative_unavailable"
+    | "hard_budget"
+    | "repair_budget"
+    | "exploration_allowance";
+  affordable_rank: number | null;
+};
+
+export type SelectiveDeferredValueOpportunity = {
+  watch_id: number;
+  outcome: "progress_expired" | "alternative_unavailable_at_collection" | "collected";
+  crossing: SelectiveValueOpportunityPoint;
+  terminal: SelectiveDeferredValueTerminalAssessment | null;
+};
+
+export type SelectiveDeferredValueDecision<Node extends object> = {
+  watchId: number;
+  current: Node;
+  alternative: Node;
+  crossing: SelectiveValueOpportunityPoint;
+  terminal: SelectiveDeferredValueTerminalAssessment;
+};
+
 export function catchupAlternativeHasSufficientGain(
   currentAxisLoss: number,
   alternativeAxisLoss: number,
@@ -183,11 +230,19 @@ type AxisRegretWatch<Node extends object> = {
   valueOpportunityRecordIndices: Array<number | null>;
   valueLiveCrossed: boolean;
   valueLiveProgressSuppressionRecorded: boolean;
+  deferredValueCrossed: boolean;
 };
 
 type WatchLink<Node extends object> = {
   watch: AxisRegretWatch<Node>;
   parent: WatchLink<Node> | null;
+};
+
+type DeferredValueCandidate<Node extends object> = {
+  watch: AxisRegretWatch<Node>;
+  current: Node;
+  recordIndex: number;
+  axisLossDelta: number;
 };
 
 export type SelectiveBacktrackDecision<Node extends object> = {
@@ -318,6 +373,22 @@ export type SelectiveBacktrackingStats = {
   value_live_probe_nodes_processed: number;
   value_live_probe_budget_yields: number;
   value_live_opportunities: SelectiveValueLiveOpportunity[];
+  deferred_value_density_threshold: number;
+  deferred_value_min_gap_progress: number;
+  deferred_value_allowance_fractions: number[];
+  deferred_value_map_max_allowance_fraction: number;
+  deferred_value_crossings: number;
+  deferred_value_progress_expired: number;
+  deferred_value_alternative_unavailable_at_collection: number;
+  deferred_value_collected: number;
+  deferred_value_assessed: number;
+  deferred_value_incumbent_path: number;
+  deferred_value_production_consumed: number;
+  deferred_value_alternative_unavailable_at_terminal: number;
+  deferred_value_affordable: number;
+  deferred_value_first_terminal_total_spent_frames: number | null;
+  deferred_value_first_terminal_track_hash: string | null;
+  deferred_value_opportunities: SelectiveDeferredValueOpportunity[];
   contact_expansions_observed: number;
   branch_watches_armed: number;
   branch_watches_by_alternative_count: Record<string, number>;
@@ -477,8 +548,10 @@ export class SelectiveAxisRegretController<Node extends object> {
   private readonly lineage = new WeakMap<Node, WatchLink<Node> | null>();
   private readonly suspended = new WeakMap<Node, number>();
   private readonly repairAttemptsWithIncumbentBacktrack = new Set<number>();
+  private readonly deferredValueCandidates: Array<DeferredValueCandidate<Node>> = [];
   private readonly stats: SelectiveBacktrackingStats;
   private nextWatchId = 1;
+  private deferredValueSealed = false;
 
   constructor(
     gapIndexOf: (node: Node) => number,
@@ -543,6 +616,25 @@ export class SelectiveAxisRegretController<Node extends object> {
       value_live_probe_nodes_processed: 0,
       value_live_probe_budget_yields: 0,
       value_live_opportunities: [],
+      deferred_value_density_threshold: SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD,
+      deferred_value_min_gap_progress: SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS,
+      deferred_value_allowance_fractions: [
+        ...SELECTIVE_DEFERRED_VALUE_ALLOWANCE_FRACTIONS,
+      ],
+      deferred_value_map_max_allowance_fraction:
+        SELECTIVE_DEFERRED_VALUE_MAP_MAX_ALLOWANCE_FRACTION,
+      deferred_value_crossings: 0,
+      deferred_value_progress_expired: 0,
+      deferred_value_alternative_unavailable_at_collection: 0,
+      deferred_value_collected: 0,
+      deferred_value_assessed: 0,
+      deferred_value_incumbent_path: 0,
+      deferred_value_production_consumed: 0,
+      deferred_value_alternative_unavailable_at_terminal: 0,
+      deferred_value_affordable: 0,
+      deferred_value_first_terminal_total_spent_frames: null,
+      deferred_value_first_terminal_track_hash: null,
+      deferred_value_opportunities: [],
       contact_expansions_observed: 0,
       branch_watches_armed: 0,
       branch_watches_by_alternative_count: {},
@@ -604,6 +696,130 @@ export class SelectiveAxisRegretController<Node extends object> {
     }
   }
 
+  /** Freeze the behavior-neutral initial portfolio at the first improving
+   * terminal. The callbacks keep generic watch state separate from the
+   * compiler's frontier and prefix representations. */
+  assessDeferredValueAtFirstTerminal(input: {
+    incumbent: Node;
+    firstTerminalTotalSpentFrames: number;
+    firstTerminalTrackHash: string;
+    remainingHardBudgetFrames: number;
+    remainingRepairBudgetFrames: number;
+    searchPolicyBudgetFrames: number;
+    explorationAllowanceFrames: number;
+    currentOnIncumbentPath: (current: Node, incumbent: Node) => boolean;
+    alternativeAvailable: (alternative: Node) => boolean;
+    estimatedSuffixWorkFrames: (alternative: Node) => number;
+  }): SelectiveDeferredValueDecision<Node> | null {
+    if (this.policy !== "selective_axis_regret_catchup_value_deferred_map") return null;
+    if (this.deferredValueSealed) {
+      throw new Error("deferred value portfolio was sealed more than once");
+    }
+    this.deferredValueSealed = true;
+    this.stats.deferred_value_first_terminal_total_spent_frames =
+      input.firstTerminalTotalSpentFrames;
+    this.stats.deferred_value_first_terminal_track_hash = input.firstTerminalTrackHash;
+    const ranked: Array<{
+      candidate: DeferredValueCandidate<Node>;
+      crossing: SelectiveValueOpportunityPoint;
+      terminal: SelectiveDeferredValueTerminalAssessment;
+    }> = [];
+    for (const candidate of this.deferredValueCandidates) {
+      const record = this.stats.deferred_value_opportunities[candidate.recordIndex];
+      if (record === undefined || record.outcome !== "collected" || record.terminal !== null) {
+        throw new Error("deferred value portfolio lost its collection record");
+      }
+      const onIncumbentPath = input.currentOnIncumbentPath(
+        candidate.current,
+        input.incumbent,
+      );
+      const productionConsumed = candidate.watch.used;
+      const alternativeAvailable = input.alternativeAvailable(candidate.watch.alternative);
+      const estimatedSuffixWork = Math.max(
+        1,
+        Math.ceil(input.estimatedSuffixWorkFrames(candidate.watch.alternative)),
+      );
+      const hardRemaining = Math.max(0, Math.floor(input.remainingHardBudgetFrames));
+      const repairRemaining = Math.max(0, Math.floor(input.remainingRepairBudgetFrames));
+      const explorationAllowance = Math.max(
+        0,
+        Math.floor(input.explorationAllowanceFrames),
+      );
+      const localAllowance = Math.min(
+        hardRemaining,
+        repairRemaining,
+        explorationAllowance,
+      );
+      const reason: SelectiveDeferredValueTerminalAssessment["reason"] =
+        !onIncumbentPath
+          ? "not_incumbent_path"
+          : productionConsumed
+            ? "production_consumed"
+            : !alternativeAvailable
+              ? "alternative_unavailable"
+              : estimatedSuffixWork > hardRemaining
+                ? "hard_budget"
+                : estimatedSuffixWork > repairRemaining
+                  ? "repair_budget"
+                  : estimatedSuffixWork > explorationAllowance
+                    ? "exploration_allowance"
+                    : "admitted";
+      const terminal: SelectiveDeferredValueTerminalAssessment = {
+        first_terminal_total_spent_frames: input.firstTerminalTotalSpentFrames,
+        first_terminal_track_hash: input.firstTerminalTrackHash,
+        on_incumbent_path: onIncumbentPath,
+        production_consumed: productionConsumed,
+        alternative_available: alternativeAvailable,
+        remaining_hard_budget_frames: hardRemaining,
+        remaining_repair_budget_frames: repairRemaining,
+        search_policy_budget_frames: Math.max(
+          0,
+          Math.floor(input.searchPolicyBudgetFrames),
+        ),
+        exploration_allowance_frames: explorationAllowance,
+        local_allowance_frames: localAllowance,
+        estimated_suffix_work_frames: estimatedSuffixWork,
+        terminal_value_density_per_10k_estimated_frames:
+          candidate.axisLossDelta * SELECTIVE_VALUE_DENSITY_FRAME_SCALE /
+          estimatedSuffixWork,
+        affordable: reason === "admitted",
+        reason,
+        affordable_rank: null,
+      };
+      record.terminal = terminal;
+      this.stats.deferred_value_assessed++;
+      if (onIncumbentPath) this.stats.deferred_value_incumbent_path++;
+      if (productionConsumed) this.stats.deferred_value_production_consumed++;
+      if (!alternativeAvailable) {
+        this.stats.deferred_value_alternative_unavailable_at_terminal++;
+      }
+      if (terminal.affordable) {
+        this.stats.deferred_value_affordable++;
+        ranked.push({ candidate, crossing: record.crossing, terminal });
+      }
+    }
+    ranked.sort((left, right) =>
+      right.terminal.terminal_value_density_per_10k_estimated_frames -
+        left.terminal.terminal_value_density_per_10k_estimated_frames ||
+      right.crossing.axis_loss_delta - left.crossing.axis_loss_delta ||
+      right.crossing.alternative_gap_index - left.crossing.alternative_gap_index ||
+      left.candidate.watch.watchId - right.candidate.watch.watchId
+    );
+    for (let index = 0; index < ranked.length; index++) {
+      ranked[index]!.terminal.affordable_rank = index + 1;
+    }
+    const winner = ranked[0];
+    return winner === undefined
+      ? null
+      : {
+        watchId: winner.candidate.watch.watchId,
+        current: winner.candidate.current,
+        alternative: winner.candidate.watch.alternative,
+        crossing: { ...winner.crossing, budget: { ...winner.crossing.budget } },
+        terminal: { ...winner.terminal },
+      };
+  }
+
   /** Propagate all ancestor watches to every child and arm one new watch only
    * on the ranker's preferred child. The concrete runner-up object is the
    * rewind target; no candidate is regenerated later. */
@@ -642,6 +858,7 @@ export class SelectiveAxisRegretController<Node extends object> {
       valueOpportunityRecordIndices: SELECTIVE_VALUE_DENSITY_THRESHOLDS.map(() => null),
       valueLiveCrossed: false,
       valueLiveProgressSuppressionRecorded: false,
+      deferredValueCrossed: false,
     };
     this.lineage.set(input.children[0]!, { watch, parent: inherited });
     this.stats.branch_watches_armed++;
@@ -947,6 +1164,79 @@ export class SelectiveAxisRegretController<Node extends object> {
               throw new Error("value opportunity admission lost its crossing record");
             }
             this.stats.value_opportunities[recordIndex]!.first_admission = point();
+          }
+        }
+      }
+
+      if (
+        this.policy === "selective_axis_regret_catchup_value_deferred_map" &&
+        input.lane === "initial" &&
+        input.contactBoundary === true &&
+        contactAdvance >= SELECTIVE_VALUE_MIN_CONTACT_ADVANCE &&
+        axisLossDelta > 0 &&
+        !watch.deferredValueCrossed &&
+        !this.deferredValueSealed
+      ) {
+        if (input.explorationBudgetAssessment === undefined) {
+          throw new Error("deferred value map requires a budget assessment");
+        }
+        const fromGapIndex = this.gapIndexOf(input.node);
+        const alternativeGapIndex = this.gapIndexOf(watch.alternative);
+        const budget = input.explorationBudgetAssessment(
+          watch.alternative,
+          fromGapIndex,
+          0,
+        );
+        const density = axisLossDelta * SELECTIVE_VALUE_DENSITY_FRAME_SCALE /
+          Math.max(1, budget.estimated_probe_work_frames);
+        if (density >= SELECTIVE_VALUE_LIVE_DENSITY_THRESHOLD) {
+          watch.deferredValueCrossed = true;
+          this.stats.deferred_value_crossings++;
+          const available = readAlternativeAvailable();
+          const crossing: SelectiveValueOpportunityPoint = {
+            lane: input.lane,
+            contact_ordinal: input.contactOrdinal,
+            from_gap_index: fromGapIndex,
+            branch_gap_index: watch.branchGapIndex,
+            alternative_gap_index: alternativeGapIndex,
+            contact_advance: contactAdvance,
+            gap_rewind: Math.max(0, fromGapIndex - alternativeGapIndex),
+            baseline_axis_loss: watch.baselineAxisLoss,
+            current_axis_loss: input.axisLoss,
+            axis_loss_delta: axisLossDelta,
+            value_density_per_10k_estimated_frames: density,
+            gap_progress: input.gapProgress ?? null,
+            total_spent_frames: input.totalSpentFrames,
+            alternative_available: available,
+            execution_ceiling_reached: input.executionCeilingReached,
+            budget: { ...budget },
+          };
+          const gapProgress = input.gapProgress ?? 0;
+          const outcome: SelectiveDeferredValueOpportunity["outcome"] =
+            gapProgress < SELECTIVE_VALUE_LIVE_MIN_GAP_PROGRESS
+              ? "progress_expired"
+              : !available
+                ? "alternative_unavailable_at_collection"
+                : "collected";
+          const recordIndex = this.stats.deferred_value_opportunities.length;
+          this.stats.deferred_value_opportunities.push({
+            watch_id: watch.watchId,
+            outcome,
+            crossing,
+            terminal: null,
+          });
+          if (outcome === "progress_expired") {
+            this.stats.deferred_value_progress_expired++;
+          } else if (outcome === "alternative_unavailable_at_collection") {
+            this.stats.deferred_value_alternative_unavailable_at_collection++;
+          } else {
+            this.stats.deferred_value_collected++;
+            this.deferredValueCandidates.push({
+              watch,
+              current: input.node,
+              recordIndex,
+              axisLossDelta,
+            });
           }
         }
       }
@@ -1577,6 +1867,16 @@ export class SelectiveAxisRegretController<Node extends object> {
           budget: { ...opportunity.point.budget },
         },
       })),
+      deferred_value_opportunities: this.stats.deferred_value_opportunities.map(
+        (opportunity) => ({
+          ...opportunity,
+          crossing: {
+            ...opportunity.crossing,
+            budget: { ...opportunity.crossing.budget },
+          },
+          terminal: opportunity.terminal === null ? null : { ...opportunity.terminal },
+        }),
+      ),
       events: this.stats.events.map((event) => ({
         ...event,
         periodic_budget: event.periodic_budget === null

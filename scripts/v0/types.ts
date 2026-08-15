@@ -456,6 +456,10 @@ export type CompileStats = {
    *  it improved the best-so-far register. Null when the run never reached a
    *  complete traversal before stopping. */
   first_completion_frame?: number | null;
+  /** SHA-256 of JSON.stringify(track) for the first terminal traversal. This
+   * proves that post-terminal policies preserve the actual incumbent, not only
+   * the charged frame at which one appeared. */
+  handoff_first_terminal_track_hash?: string | null;
 
   // ─── Search diagnostics ───
   /** Outputs offered to the best-so-far register. */
@@ -499,6 +503,7 @@ export type CompileStats = {
       | "selective_axis_regret_catchup_periodic_initial"
       | "selective_axis_regret_catchup_periodic_repair"
       | "selective_axis_regret_catchup_value_map"
+      | "selective_axis_regret_catchup_value_deferred_map"
       | "selective_axis_regret_catchup_value_initial"
       | "selective_axis_regret_catchup_value_initial_progress_10"
       | "selective_axis_regret_catchup_value_initial_expire_10";

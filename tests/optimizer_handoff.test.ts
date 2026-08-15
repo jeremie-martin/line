@@ -108,6 +108,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_requested_normal_proposals_per_ranked_option_call_mean ?? 0).toBeGreaterThan(0);
     expect(a.stats.handoff_policy_branch_limit_mean ?? 0).toBeGreaterThan(0);
     expect(a.stats.first_completion_frame).toBe(b.stats.first_completion_frame);
+    expect(a.stats.handoff_first_terminal_track_hash)
+      .toBe(b.stats.handoff_first_terminal_track_hash);
     expect(a.stats.first_completion_frame === null || (a.stats.first_completion_frame ?? 0) > 0).toBe(true);
     expect(a.stats.actual_candidate_samples).toBeGreaterThan(0);
     expect(a.stats.actual_candidate_samples).toBe(b.stats.actual_candidate_samples);
@@ -407,6 +409,40 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       else process.env.LR_FRONTIER_POLICY = previous;
     }
   }, 60_000);
+
+  test("deferred value map preserves production traversal and first-terminal identity", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const previous = process.env.LR_FRONTIER_POLICY;
+    try {
+      process.env.LR_FRONTIER_POLICY = "selective-axis-regret-catchup";
+      const production = checkpoint(compileHandoff(spec, 2, {
+        budget: 100_000,
+        maxNodes: 64,
+        polish: false,
+        budgetTelemetry: "summary",
+      }), 100_000);
+      process.env.LR_FRONTIER_POLICY =
+        "selective-axis-regret-catchup-value-deferred-map";
+      const mapped = checkpoint(compileHandoff(spec, 2, {
+        budget: 100_000,
+        maxNodes: 64,
+        polish: false,
+        budgetTelemetry: "summary",
+      }), 100_000);
+      expect(hashTrack(mapped.track)).toBe(hashTrack(production.track));
+      expect(mapped.report).toEqual(production.report);
+      expect(mapped.stats.sim_frames).toBe(production.stats.sim_frames);
+      expect(mapped.stats.first_completion_frame).toBe(production.stats.first_completion_frame);
+      expect(mapped.stats.handoff_first_terminal_track_hash)
+        .toBe(production.stats.handoff_first_terminal_track_hash);
+      expect(mapped.budgetTelemetry?.episodes).toEqual(production.budgetTelemetry?.episodes);
+      expect(mapped.stats.handoff_selective_backtracking?.policy)
+        .toBe("selective_axis_regret_catchup_value_deferred_map");
+    } finally {
+      if (previous === undefined) delete process.env.LR_FRONTIER_POLICY;
+      else process.env.LR_FRONTIER_POLICY = previous;
+    }
+  }, 120_000);
 
   test("explicit DFS remains an available diagnostic control", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");

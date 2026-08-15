@@ -285,6 +285,17 @@
         "compressedArchiveSha256": "9a6961c744719861dee07dd8205afab603050e6bb41c90ef0a593e24ff640c87",
         "executionPolicyFingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
         "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
+      },
+      {
+        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
+        "firstSeedSlot": 32,
+        "endSeedSlotExclusive": 48,
+        "archiveSha256": "de0108cfe75622eed30e7ec960cdc054f84f0ac95f62a935c3697893d4de8cfe",
+        "archive": "benchmark/v2/runs/value-ranked-startup-expiration-slots-32-48.json",
+        "compressedArchive": "benchmark/v2/runs/value-ranked-startup-expiration-slots-32-48.json.gz",
+        "compressedArchiveSha256": "1cbde72b73e925da06dd7d3806e40287eaa2cd301f3c7a167bed48f669d8445f",
+        "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
+        "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
       }
     ]
   },
@@ -319,5 +330,16 @@
     ],
     "outcome": "accept",
     "delta": 1.239
+  },
+  "cache_monitoring": {
+    "schema": "line.benchmark-v2.campaign-cache-monitoring.v1",
+    "authority": "descriptive-only",
+    "generated_at": "2026-08-15T13:16:42.157Z",
+    "coverage_seeds": 48,
+    "canonical_headline": 607.2546,
+    "valid_runs": 2112,
+    "total_runs": 2112,
+    "cache_manifest_fingerprint": "e5aa90f49cfda40cc2f3e70aba7522ac63a156e4b37b6d6afb6d78def133f96c",
+    "note": "This completed-cache headline does not replace the promotion headline or stopping depth."
   }
 }

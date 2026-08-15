@@ -1850,3 +1850,84 @@ improvement surface; they are not grounds to undo or condition the promotion.
 `value-ranked-startup-expiration`. The active campaign baseline now matches the
 current compiler at 607.26 and records promotion depth N=32. Frozen 250k/500k
 evidence was neither run nor changed.
+
+The post-promotion cache extension completed all 704 missing N=32--48 cells
+with 704/704 valid. That independent suffix scores 607.25, essentially the
+same as the promoted N=32 headline, and the canonical cache now covers
+`[0,32), [32,48)`. This is a descriptive stability monitor and does not revise
+the N=32 stopping decision.
+
+## Phase F: challenge endpoint-only route priority
+
+### Canonical attribution
+
+The accepted N=32 archive has now been mined directly against its checksum-
+verified canonical reference through
+`benchmark:v2:canonical-value-attribution`. The analysis keeps authoritative
+pooled Benchmark V2 scores separate from descriptive matched per-run scores:
+the scorer pools axis observations before its nonlinear quality transform, so
+an average of run scores is not the headline.
+
+Several direct observations narrow the next question:
+
+- 1,328/1,408 cells execute at least one value tournament. The remaining 80
+  no-action cells have identical track hash, score, first-terminal work,
+  repair work, candidates, terminal evaluations, and improvements. The gain is
+  therefore intervention-bound, but not rare-admission-bound.
+- The policy spends 102,522,844 probe frames across 12,724 tournaments. It
+  delays first terminal by 68,136 frames/cell on average and displaces 68,075
+  repair frames/cell. Within-source associations between final run-score delta
+  and probe frames, first-terminal delay, or repair-frame displacement are all
+  near zero (absolute Pearson below 0.04). Raw opportunity cost is not the
+  leading explanation of the score split.
+- 4,859 tournaments prioritize an alternative. The final axis-loss advantage
+  is often tiny (median 0.00503; 10th percentile 0.00052), and 2,489/4,859
+  selected routes were nonpositive at an earlier catch-up checkpoint before
+  becoming positive at the equal-depth endpoint. The current comparator gives
+  any strictly positive endpoint gain immediate priority.
+- A global stability veto is not justified offline: strong sources also contain
+  many late flips, and cells can contain both stable and late-flip selections.
+  The archive cannot reveal the counterfactual terminal after changing their
+  priority. It does justify a live categorical test in which the already-built
+  alternative remains available as fallback.
+
+The supporting artifact is
+`generated/benchmark-v2/analysis/value-ranked-startup-expiration-canonical-attribution.json`.
+Its raw-run projections are checked against every decision-index report hash
+and the complete compressed/decompressed archive hashes; all important cohort
+claims remain labeled direct or descriptive rather than causal.
+
+### Frozen stable-priority challenger
+
+Add an explicit policy
+`selective-axis-regret-catchup-value-initial-expire-10-stable-priority`.
+Admission, density 0.020, three-contact maturity, 10% startup expiration,
+initial-only lane, 15% optional-work allowance, 1.25 terminal reserve, probe
+execution, and ordinary frontier ownership stay identical to the promoted
+baseline.
+
+Only equal-depth priority changes. A completed alternative receives immediate
+priority over the suspended current route when its authored-axis loss is
+strictly lower at the endpoint **and** its relative gain was strictly positive
+at every recorded catch-up checkpoint. Otherwise the current route remains
+first, while the completed alternative and every local fallback remain in the
+ordinary frontier. No node is pruned, no probe work is refunded, and no source,
+score, authored target, or numeric gain threshold enters the rule.
+
+Telemetry must report the priority rule, stable/late-flip assessment, and the
+number of endpoint winners whose immediate priority was suppressed. Focused
+tests must prove that the baseline comparator is unchanged, the new rule only
+changes ordering after a completed probe, and all alternatives remain owned by
+the frontier. After a trace mechanical proof, run only the standing 750k
+canonical `npm run benchmark -- eval --seeds=48 --jobs=48` ladder. No budget
+sweep or post-hoc source condition is authorized. An accept promotes; any
+other formal outcome closes this exact rule and informs the next categorical
+mechanism rather than ending the campaign.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-15 | Full promoted-baseline cache | complete | 704/704 valid suffix cells; cache `[0,32), [32,48)` |
+| 2026-08-15 | Checksum-bound canonical attribution | complete | `benchmark:v2:canonical-value-attribution` |
+| 2026-08-15 | Stable-priority rule frozen | complete | This section |
+| 2026-08-15 | Implementation and mechanical proof | pending | — |
+| 2026-08-15 | Canonical sequential decision | pending | — |

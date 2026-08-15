@@ -34,6 +34,8 @@ describe("streamed analysis archive loading", () => {
         source: { id: "fixture" },
         authoredContacts: 1,
         score: { score: 600 + seedSlot, valid: true, components: {} },
+        trackHash: `track-${seedSlot}`,
+        stats: { retainedCounter: seedSlot + 3, largeUnusedField: "y".repeat(10_000) },
         report: {
           contacts: [{ status: "hit" }],
           gaps: [{ axes: { impact: { target: 0.5, achieved: 0.4, error: 0.1 } } }],
@@ -58,6 +60,30 @@ describe("streamed analysis archive loading", () => {
     expect(loaded.archive.runs[0].report).toEqual({ gaps: archive.runs[0].report.gaps });
     expect(loaded.archive.runs[0].report.contacts).toBeUndefined();
     expect(loaded.archive.runs[0].report.largeUnusedField).toBeUndefined();
+
+    const projected = await loadVerifiedAnalysisArchive(
+      compressedPath,
+      {
+        archive_sha256: rawSha256,
+        compressed_archive_sha256: compressedSha256,
+      },
+      (raw, indexed, runIndex) => ({
+        ...indexed,
+        runIndex,
+        trackHash: raw.trackHash,
+        retainedCounter: raw.stats.retainedCounter,
+      }),
+    );
+    expect(projected.archive.runs).toEqual(archive.runs.map((run, runIndex) => ({
+      status: run.status,
+      task: run.task,
+      source: run.source,
+      authoredContacts: run.authoredContacts,
+      score: run.score,
+      runIndex,
+      trackHash: run.trackHash,
+      retainedCounter: run.stats.retainedCounter,
+    })));
     await expect(loadVerifiedAnalysisArchive(compressedPath, {
       archive_sha256: "0".repeat(64),
       compressed_archive_sha256: compressedSha256,

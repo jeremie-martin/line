@@ -54,6 +54,7 @@
     "benchmark:v2:value-ranked-live-analysis": "node --import tsx scripts/benchmark/analyze_value_ranked_live.ts",
     "benchmark:v2:value-run-proof-analysis": "node --import tsx scripts/benchmark/analyze_value_ranked_live.ts --policy=selective_axis_regret_catchup_value_initial_expire_10_run_proof",
     "benchmark:v2:value-run-proof-ablation": "node --import tsx scripts/benchmark/analyze_value_run_proof_ablation.ts",
+    "benchmark:v2:canonical-value-attribution": "node --import tsx scripts/benchmark/analyze_canonical_value_attribution.ts",
     "benchmark:v2:deferred-value-map-analysis": "node --import tsx scripts/benchmark/analyze_deferred_value_map.ts",
     "benchmark:v2:deferred-value-live-analysis": "node --import tsx scripts/benchmark/analyze_deferred_value_live.ts",
     "benchmark:v2:deferred-prefix-map-analysis": "node --import tsx scripts/benchmark/analyze_deferred_prefix_map.ts",

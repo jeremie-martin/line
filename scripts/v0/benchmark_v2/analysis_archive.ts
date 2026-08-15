@@ -26,6 +26,12 @@ export type VerifiedAnalysisArchive = {
   indexed: boolean;
 };
 
+export type AnalysisRunProjector = (
+  rawRun: any,
+  indexedRun: any,
+  runIndex: number,
+) => any;
+
 /**
  * Load raw-report fields needed by descriptive analysis without materializing
  * a deep canonical archive as one Buffer/string. Decision fields come from the
@@ -36,6 +42,7 @@ export type VerifiedAnalysisArchive = {
 export async function loadVerifiedAnalysisArchive(
   path: string,
   expected?: RetainedReference,
+  projectRun?: AnalysisRunProjector,
 ): Promise<VerifiedAnalysisArchive> {
   const absolute = resolve(path);
   const compressed = absolute.endsWith(".gz");
@@ -126,10 +133,12 @@ export async function loadVerifiedAnalysisArchive(
     if (JSON.stringify(rawDecisionFields) !== JSON.stringify(indexedDecisionFields)) {
       throw new Error(`${basename(absolute)}: run ${reports.length} decision fields differ from index`);
     }
-    reports.push({
-      ...indexedDecisionFields,
-      report: { gaps: raw.report?.gaps ?? [] },
-    });
+    reports.push(projectRun === undefined
+      ? {
+          ...indexedDecisionFields,
+          report: { gaps: raw.report?.gaps ?? [] },
+        }
+      : projectRun(raw, indexedDecisionFields, reports.length));
   };
 
   for await (const chunk of source) {

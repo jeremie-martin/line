@@ -740,6 +740,10 @@ export type CompileStats = {
       }>;
     }>;
   };
+  /** Repair-only authored-axis upper-bound telemetry. Absent unless the
+   * explicit audit or live branch-and-bound environment is enabled. */
+  handoff_repair_axis_branch_bound?:
+    import("./optimizer/repair_branch_bound.ts").RepairAxisBranchBoundStats;
   /** Search-lane seed used for candidate sampling/start lookahead. Normally
    *  equals the public compile seed; diagnostics may vary it while keeping the
    *  public seed's target jitter fixed. */

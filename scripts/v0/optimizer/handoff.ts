@@ -210,6 +210,11 @@ import { getEngineRebuildCount } from "../core/polish.ts";
 import { registerCompileReset, resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { supportExtensionPressure } from "../core/support_geometry.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
+import {
+  optimisticAxisQualityUpper,
+  parseRepairAxisBranchBoundMode,
+  RepairAxisBranchBoundController,
+} from "./repair_branch_bound.ts";
 import { getSimFrames, refundSimFramesTo } from "./sim_frames.ts";
 import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
@@ -2301,6 +2306,27 @@ function compileHandoffInternal(
       }
       return axisQualityFromErrors(errors).axis_loss;
     };
+    const totalAuthoredAxisCount = gapAxisTargets.reduce(
+      (count, targets, gapIndex) => count +
+        (gaps[gapIndex]?.endsWithContact
+          ? axisErrorsForTargets(targets, targets).length
+          : 0),
+      0,
+    );
+    const isSearchPrefix = (prefix: HandoffNode, descendant: HandoffNode): boolean => {
+      if (prefix.search.gapIndex > descendant.search.gapIndex) return false;
+      for (let i = 0; i < prefix.search.gapIndex; i++) {
+        if (prefix.search.prefixFits[i] !== descendant.search.prefixFits[i]) return false;
+      }
+      return true;
+    };
+    const repairAxisBranchBoundMode = parseRepairAxisBranchBoundMode();
+    const repairAxisBranchBound = repairAxisBranchBoundMode === "off"
+      ? null
+      : new RepairAxisBranchBoundController<HandoffNode>(
+        repairAxisBranchBoundMode,
+        isSearchPrefix,
+      );
     const register = new BestSoFarRegister();
     const telemetry: HandoffTelemetry = {
       frontierSelections: 0,
@@ -2798,6 +2824,12 @@ function compileHandoffInternal(
           ...(selectiveBacktracking === null
             ? {}
             : { handoff_selective_backtracking: selectiveBacktracking.snapshot() }),
+          ...(repairAxisBranchBound === null
+            ? {}
+            : {
+              handoff_repair_axis_branch_bound:
+                repairAxisBranchBound.snapshot(getSimFrames()),
+            }),
           ...snapshotCandidateReleaseCoverage(telemetry),
           ...snapshotCandidatePreviewCoverage(telemetry),
           ...(arcStats ? { arc_placement: arcStats } : {}),
@@ -2930,6 +2962,7 @@ function compileHandoffInternal(
       allowSelectiveBacktracking = true,
       allowSpeculativeTailCompletion = true,
       policyTransform?: (policy: HandoffSearchPolicy) => HandoffSearchPolicy,
+      pruneRepairDominatedSubtree = false,
     ): ProcessResult => {
       const atomicStart = getSimFrames();
       const registerImprovementsBefore = register.improvementCount;
@@ -3019,6 +3052,15 @@ function compileHandoffInternal(
         terminalConsiders >= activeTerminalConsiderLimit
       ) {
         return finishAtomic({ kind: "terminal_limit" });
+      }
+      // A repair-only branch-and-bound decision occurs after the already-built
+      // prefix is offered to the register, but before any speculative tail,
+      // candidate pool, child, or selective excursion is charged beneath it.
+      // The caller proved that even zero error on every remaining authored axis
+      // cannot match the complete incumbent, so an empty child set discards
+      // exactly this incapable subtree and leaves ordinary frontier order intact.
+      if (pruneRepairDominatedSubtree && !nodeTerminal) {
+        return finishAtomic({ kind: "expanded", children: [] });
       }
       if (
         allowSelectiveBacktracking &&
@@ -3310,6 +3352,27 @@ function compileHandoffInternal(
           });
         }
         telemetry.frontierSelections++;
+        const repairBoundAssessment =
+          lane === "repair" && repairAxisBranchBound !== null && bestCompleteNode !== null
+            ? (() => {
+              const prefix = authoredAxisWindow(node.search);
+              const gapIndex = node.search.gapIndex;
+              return repairAxisBranchBound.observeSelection({
+                node,
+                totalSpentFrames: getSimFrames(),
+                gapIndex,
+                contactOrdinal: contactOrdinalAt(gapIndex),
+                frontierNodes: frontierSize(pass, fb),
+                eligibleCheckpoint:
+                  isTerminalNode(node.search, gaps) ||
+                  gaps[gapIndex - 1]?.endsWithContact === true,
+                prunable: !isTerminalNode(node.search, gaps),
+                prefixAxisCount: prefix.axisCount,
+                prefixAxisSse: prefix.axisSse,
+                prefixAxisLoss: prefix.axisLoss,
+              });
+            })()
+            : null;
         const result = processNode(
           node,
           lane,
@@ -3320,6 +3383,7 @@ function compileHandoffInternal(
           allowSelectiveBacktracking,
           allowSpeculativeTailCompletion,
           policyTransform,
+          repairBoundAssessment?.prune ?? false,
         );
         onProcessed?.();
         return result;
@@ -4843,6 +4907,13 @@ function compileHandoffInternal(
         activeRepairBreadthRatio = repairBreadthRatio;
         setAimRepairLaneActive(true, iterationIndex);
         setImpactCarrierRippleRepairActive(true);
+        repairAxisBranchBound?.beginAttempt({
+          iterationIndex,
+          anchorGapIndex: k,
+          totalSpentFrames: framesBefore,
+          incumbentAxisQuality: incumbentEvaluation.key.axis_quality,
+          totalAuthoredAxisCount,
+        });
         try {
           runFrontierFrom(prefixNode, ceiling, terminalsBefore + 1);
         } finally {
@@ -4888,6 +4959,37 @@ function compileHandoffInternal(
             ),
           );
         const acceptedAlternative = incumbentRevision > incumbentRevisionBefore;
+        if (repairAxisBranchBound !== null && completed && lastTerminalNode !== null) {
+          const terminalWindow = authoredAxisWindow(lastTerminalNode.search);
+          const terminalEvaluation = evaluateCached(lastTerminalNode);
+          if (
+            terminalEvaluation.key.contract_passed &&
+            terminalWindow.axisCount !== totalAuthoredAxisCount
+          ) {
+            throw new Error(
+              `repair axis-bound terminal population ${terminalWindow.axisCount} ` +
+              `does not match authored population ${totalAuthoredAxisCount}`,
+            );
+          }
+          if (
+            terminalWindow.axisCount === totalAuthoredAxisCount &&
+            Math.abs(
+              optimisticAxisQualityUpper(terminalWindow.axisSse, totalAuthoredAxisCount) -
+                terminalEvaluation.key.axis_quality,
+            ) > 1e-12
+          ) {
+            throw new Error("repair axis-bound terminal quality does not match the scorer");
+          }
+        }
+        repairAxisBranchBound?.finishAttempt({
+          totalSpentFrames: getSimFrames(),
+          terminalNode: completed ? lastTerminalNode : null,
+          terminalGapIndex: completed && lastTerminalNode !== null
+            ? lastTerminalNode.search.gapIndex
+            : null,
+          terminalReached: completed,
+          acceptedAlternative,
+        });
         let rejectedLocalImprovementFollowup:
           BudgetEpisodeTelemetry["outcome"]["rejected_local_improvement_followup"] =
             "not_rejected_local_improvement";

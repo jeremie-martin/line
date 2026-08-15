@@ -65,8 +65,9 @@ export function leafKeyForReport(report: DriftReport, totalFrames: number): Leaf
 /** Float-comparison epsilon: treat differences below this as ties so IEEE-754
  *  noise can't flip the comparator across platforms (determinism) or churn the
  *  best-so-far on effectively-equal leaves (budget stability). */
-const FLOAT_EPS = 1e-9;
-const strictlyGreater = (x: number, y: number): boolean => x > y + FLOAT_EPS;
+export const LEAF_KEY_FLOAT_EPSILON = 1e-9;
+const strictlyGreater = (x: number, y: number): boolean =>
+  x > y + LEAF_KEY_FLOAT_EPSILON;
 
 /** Strict-only comparison: returns true iff `a` is strictly better
  *  than `b` under the lexicographic comparator. Returns false on tie

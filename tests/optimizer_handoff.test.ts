@@ -527,6 +527,51 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     }
   }, 60_000);
 
+  test("repair axis-bound audit is behavior-neutral and attributed by iteration", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const previousAudit = process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT;
+    const previousLive = process.env.LR_REPAIR_AXIS_BRANCH_BOUND;
+    try {
+      delete process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT;
+      delete process.env.LR_REPAIR_AXIS_BRANCH_BOUND;
+      const reference = compileHandoff(spec, 3, {
+        budget: 200_000,
+        polish: false,
+      });
+      process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT = "1";
+      const audited = compileHandoff(spec, 3, {
+        budget: 200_000,
+        polish: false,
+      });
+      const audit = audited.stats.handoff_repair_axis_branch_bound;
+      expect(audit).toMatchObject({
+        schema: "line.repair-axis-branch-bound.v1",
+        mode: "audit",
+      });
+      expect(audit?.attempts.length ?? 0).toBeGreaterThan(0);
+      expect(audit?.attempts.every((attempt, index) =>
+        attempt.iteration_index === index &&
+        attempt.end_total_spent_frames >= attempt.start_total_spent_frames &&
+        attempt.pruned_subtrees === 0
+      )).toBe(true);
+      const auditedWithoutInstrument = structuredClone(audited);
+      delete auditedWithoutInstrument.stats.handoff_repair_axis_branch_bound;
+      expect(JSON.stringify(auditedWithoutInstrument)).toBe(JSON.stringify(reference));
+
+      process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT = "yes";
+      expect(() => compileHandoff(spec, 3, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+      })).toThrow(/LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT must be 0 or 1/);
+    } finally {
+      if (previousAudit === undefined) delete process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT;
+      else process.env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT = previousAudit;
+      if (previousLive === undefined) delete process.env.LR_REPAIR_AXIS_BRANCH_BOUND;
+      else process.env.LR_REPAIR_AXIS_BRANCH_BOUND = previousLive;
+    }
+  }, 120_000);
+
   test("couples narrowed value-probe breadth to an 11.25% live allowance", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const previous = process.env.LR_FRONTIER_POLICY;

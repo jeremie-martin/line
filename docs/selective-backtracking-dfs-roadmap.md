@@ -3071,3 +3071,97 @@ is not necessarily stale or harmful. Its queued alternative can still encode
 valuable search diversity. Preserve the explicit mode as a diagnostic, but do
 not promote it, narrow it around the observed losses, or clear inherited
 lineage in production.
+
+## Phase S: repair authored-axis branch-and-bound
+
+### Challenged assumption
+
+The closed repair-incumbent family used a heuristic prefix-loss delta to launch
+one small equal-depth sibling tournament. That couples a noisy signal to the
+nearest causal watch and asks whether a local detour catches up. Repair has a
+stronger fact available: its incumbent is already a complete contract-passing
+track, the authored-axis register objective is known exactly, and committed
+prefix SSE cannot be removed by later gaps.
+
+For a repair prefix with committed SSE `S` and `N` authored scored axes in the
+whole specification, padding every remaining axis with zero error gives the
+exact optimistic upper bound
+
+```text
+exp(-sqrt(S / N) / AXIS_QUALITY_TOLERANCE).
+```
+
+If the incumbent's axis quality exceeds that bound by more than the register's
+comparison epsilon, no descendant can replace it. This is not a feasibility
+cap, estimator prediction, local-gap heuristic, or rewritten specification.
+It is branch-and-bound under the existing authored scoring contract.
+
+### Frozen opportunity audit
+
+`LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT=1` is behavior-neutral. At each selected
+repair node immediately after a committed contact, compare the optimistic
+upper bound with the attempt's starting incumbent. Group consecutive selected
+descendants beneath the first dominated root into one exact subtree. Record
+its root horizon, frontier alternatives, selected-node count, charged work
+until ordinary traversal leaves that lineage, and whether the repair's first
+terminal descends from it. Attach every record to the independent repair
+iteration and its terminal/acceptance outcome.
+
+The audit must be byte-identical to an unset reference after removing only its
+new stats field. It must fail loudly if an accepted terminal descends from a
+dominated root. First use a known compact 750k panel to prove identity and
+measure whether opportunities are broad and material. Do not infer the output
+of an unexecuted alternative from saved work.
+
+### Frozen live challenger
+
+Only if the audit finds material work in dominated subtrees, enable
+`LR_REPAIR_AXIS_BRANCH_BOUND=1`. It implies the same ledger. At a dominated
+nonterminal root, offer the already-built prefix normally, then skip its
+speculative tail, candidate pool, children, and selective excursion. Do not
+remove or reprioritize any existing frontier alternative. Ordinary LIFO DFS
+continues with exactly the frontier it already had. Target/anchor selection,
+repair seed, candidate breadth, estimator, attempt ceiling, one-terminal rule,
+register, scorer, and authored specification remain unchanged.
+
+The compact live screen is 750k only. Require complete validity, no accepted
+descendant proof violation, exercised pruning across multiple sources, and
+positive work conversion rather than merely a larger attempt count. A passing
+screen permits only the standing canonical 750k probability ladder. Do not
+rerun the multi-budget sweep or tune an axis-loss threshold: this rule has no
+empirical threshold.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Mathematical bound and lineage-audit contract | complete: implementation | Exact zero-remaining-error upper bound; shared register epsilon; whole-subtree attribution |
+| 2026-08-16 | Focused proof and integration tests | complete | Pure bound, epsilon, subtree closure, proof violation, active-budget snapshot, and behavior identity covered |
+| 2026-08-16 | Compact behavior-neutral opportunity map | complete | 32/32 exact; 141 attempts; four actionable roots in two sources contain 193,669 charged frames; zero accepted descendants |
+| 2026-08-16 | Live branch-and-bound screen | complete: close exact disposition | +0.0435 +/- 0.0433 seed-block SE; only three cells move; 102 cascade prunes, five fewer attempts, two fewer acceptances |
+
+The fresh audit validates the proof and exposes its narrow timing. All 32
+instrumented cells are byte-identical to the unset reference after removing
+only the new audit field. Across 141 repair attempts and 897 eligible selected
+nodes, 16 dominated regions appear. Twelve begin at an already-selected
+terminal and are observations rather than actions. The four actionable roots
+occur only in first repair attempts, in `rising_switch` seeds 220/221 and
+`frontier_dense_recovery` seed 220. They retain ordinary frontier alternatives,
+contain 193,669 charged frames, and produce no accepted descendant.
+
+The exact subtree-prune disposition is mechanically safe but too narrow to
+advance. All 32 cells remain valid and the proof has no accepted-descendant
+violation. It moves only three scores: two improve, one regresses, the minimum
+delta is -0.0004, and the paired mean is +0.0435 +/- 0.0433 seed-block SE. The
+important causal result is scheduling, not score. Four audited roots become
+102 live prunes as alternative routes repeatedly hit the same bound. Total
+repair work changes by only -5,574 frames, terminal-reaching attempts fall
+140 to 133, accepted alternatives fall 60 to 58, and internal repair gain
+rises 124.75 to 126.13. Pruning a subtree does not free its apparent audit
+work when ordinary DFS reconverges through many incapable alternatives.
+
+Do not send this exact disposition to canonical evaluation. The next
+categorical challenger should keep the same proof but change what owns the
+remaining episode: abort the self-contained repair attempt at its first
+actionable dominated root, then let the independent repair controller
+recompute target, anchor, cost profile, and fresh repair seed from the global
+incumbent. This directly tests whether a clean restart converts the proof into
+useful breadth more efficiently than exhausting the current suffix frontier.

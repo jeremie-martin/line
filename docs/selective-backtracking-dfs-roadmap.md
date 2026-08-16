@@ -3427,7 +3427,7 @@ before the standing canonical ladder, and do not run a multi-budget sweep.
 |---|---|---|---|
 | 2026-08-16 | Pool-value hypothesis and offline gate frozen | complete | Best-quartile label; >=27 attempts; incumbent-prefix + 16 residual trees; no compiler behavior |
 | 2026-08-16 | Streaming offline assay | complete: live arm licensed | 4,413 validation contexts, all 44 sources improve tail MSE; every frozen gate passes |
-| 2026-08-16 | Explicit fixed-count live arm | in progress | Default remains distilled; artifact prefix and environment selection are mechanically tested |
+| 2026-08-16 | Explicit fixed-count live arm | complete: exact arm closed | +175.24 over 32 valid pairs, but one -37.18 cell exceeds the frozen -20 tail guard |
 
 The streaming assay reconciles all 121,741 impact-authored training rows to
 their raw contexts and finds 13,124 contexts with at least 27 attempts (8,711
@@ -3461,3 +3461,48 @@ least eight score-changing pairs. Close the exact arm if any gate fails. If all
 pass, make the arm the proposed default and use only the standing canonical
 750k probability ladder for promotion. Do not tune the residual, sources,
 seeds, or gate from this result, and do not run the multi-budget sweep.
+
+The live arm is broad and directionally strong but fails its frozen tail gate.
+All 32 tracks change, all 32 pairs remain valid, the score sum rises 175.24
+(+5.48 per cell), three of four seed means and six of eight source means are
+positive, and there are no lost or gained completions. Mean air, impact, and
+speed quality all improve. Seed 231 nevertheless loses in all eight sources,
+including a -37.18 regression-transition cell, while seeds 230, 232, and 233
+average +12.99, +10.19, and +8.02. The outlier remains fully valid and does
+slightly more search work; it loses both impact and speed quality. This is path
+selection variance, not a failure or exhausted-search explanation. Respect the
+predeclared guard: keep `pool-value` explicit and do not take this exact model
+to canonical evaluation.
+
+## Phase VI: value requested pools, not only their successful tail
+
+### Challenged assumption
+
+The Phase V label drops every nonviable proposal before computing its useful
+head. It can therefore value a state with one excellent success out of many
+failures like a reliably productive state. Production does not receive a free
+pool of viable proposals: every failed request consumes work and cannot supply
+an authored-impact result. A searched-pool value must include availability.
+
+Freeze one semantic successor before examining it. Retain the corpus, >=27
+attempt threshold, best-quartile fraction, feature set, development/validation
+partition, incumbent 32-tree prefix, and 16-tree residual exactly. For every
+requested attempt, assign its scorer-compatible authored-impact fit when it is
+viable and measured, and zero otherwise; take the mean of the best quartile of
+all requested attempts. Include >=27-attempt contexts with zero viable results.
+Do not change authored impact, candidate breadth, probes, proposal count,
+traversal, repair, register, scorer, or budget.
+
+License a live arm only if, on untouched validation data, it improves requested-
+pool MSE and source-macro MSE over both the deployed incumbent and Phase V's
+conditional-pool model; improves requested-pool proxy pairwise accuracy and
+selected top-one/top-two value over the incumbent; limits selected viable-tail
+and ordinary-mean top-one/top-two debt to 0.002; preserves 80% incumbent top-one
+agreement; and improves requested-pool MSE in at least 75% of sources. Use no
+model or label variant. If licensed, test it on one fresh 750k paired panel and
+retain the same validity, breadth, action-set, and -20 tail requirements before
+canonical evaluation. Do not reuse seeds 230--233 or the Phase V source panel.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Requested-pool semantic and offline gate frozen | in progress | Failed or unmeasured requests are zero-valued before the unchanged best-quartile statistic |

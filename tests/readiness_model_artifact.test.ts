@@ -19,6 +19,10 @@ import aimImpactPoolValueModel from
   "../scripts/v0/optimizer/aim_impact_pool_value_model.json" with {
     type: "json",
   };
+import aimImpactRequestedPoolValueModel from
+  "../scripts/v0/optimizer/aim_impact_requested_pool_value_model.json" with {
+    type: "json",
+  };
 import parityFixture from "./fixtures/readiness_model_parity.json" with {
   type: "json",
 };
@@ -78,6 +82,32 @@ describe("readiness model artifact inference", () => {
     });
     const incumbent = aimImpactModel.components.impactFeasibility;
     const candidate = aimImpactPoolValueModel.components.impactFeasibility;
+    expect(candidate.initialPrediction).toBe(incumbent.initialPrediction);
+    expect(candidate.trees).toHaveLength(48);
+    expect(candidate.trees.slice(0, 32)).toEqual(incumbent.trees);
+  });
+
+  test("licenses requested-pool value only for the exploration slot", () => {
+    const parsed = parseReadinessModelArtifact(aimImpactRequestedPoolValueModel);
+    expect(() =>
+      assertCompatibleReadinessArtifact(parsed, {
+        requiredComponents: ["impactFeasibility"],
+      })
+    ).not.toThrow();
+    expect(
+      aimImpactRequestedPoolValueModel.aimImpactRequestedPoolValueTraining,
+    ).toMatchObject({
+      schema: "line.aim-impact-requested-pool-value-training.v1",
+      minimumAttempts: 27,
+      topFraction: 0.25,
+      failedAttemptValue: 0,
+      correctionTrees: 16,
+      licensedForLiveArm: false,
+      licensedForHybridLiveArm: true,
+    });
+    const incumbent = aimImpactModel.components.impactFeasibility;
+    const candidate =
+      aimImpactRequestedPoolValueModel.components.impactFeasibility;
     expect(candidate.initialPrediction).toBe(incumbent.initialPrediction);
     expect(candidate.trees).toHaveLength(48);
     expect(candidate.trees.slice(0, 32)).toEqual(incumbent.trees);

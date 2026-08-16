@@ -3550,6 +3550,7 @@ standing canonical 750k probability ladder. Do not run the multi-budget sweep.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-16 | Exploit/explore slot semantics and gate frozen | complete: live arm licensed | Incumbent first; requested-pool second; all six offline hybrid gates pass |
+| 2026-08-16 | Explicit exploit/explore live arm | complete: ready for fresh panel | 121 focused tests pass; pure ordering test proves incumbent first-object identity |
 
 The factorized offline arm changes 9.77% of second slots while preserving every
 incumbent first slot by construction. Requested-pool top-two truth improves by

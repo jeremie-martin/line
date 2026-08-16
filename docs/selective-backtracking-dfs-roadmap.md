@@ -3326,10 +3326,10 @@ categorical state; never add a score-selected source exception.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-16 | Whole-lineage incomplete-prefix audit | complete | 32/32 exact; 14 nonterminal lineages, 13 frontier returns, zero terminal descendants, 96,175 charged frames in one failed attempt |
-| 2026-08-16 | Explicit attempt-abort mode and mechanical tests | in progress | Separate environment; independent repair controller remains owner after abort |
+| 2026-08-16 | Explicit attempt-abort mode and mechanical tests | complete: naive disposition closed | Separate environment; independent repair controller remains owner after abort |
 | 2026-08-16 | Known-activity mechanics smoke | complete: naive abort closed | Five repeated aborts from anchor 96, then one failed anchor-99 attempt; -0.0044 in the sole changed cell |
-| 2026-08-16 | Monotone anchor-progress challenger | in progress | On incomplete root `g`, next independent selection excludes anchors before `g`; floor resets on acceptance |
-| 2026-08-16 | Fresh continuation panel | pending | Seeds 226-229 only if progress mechanics close |
+| 2026-08-16 | Monotone anchor-progress challenger | complete: mechanics confirmed | Known seed advances 96 -> 98 -> 110, reaches two later terminals, and accepts the second; floor resets on acceptance |
+| 2026-08-16 | Fresh continuation panel | complete: challenger closed | 32/32 valid; zero incomplete-prefix roots or floor advances; all 131 repair attempts reach terminal |
 
 The naive smoke invalidates the assumption that returning saved work to the
 budget-aware allocator is enough. It aborts the known failed attempt at frame
@@ -3355,3 +3355,27 @@ anchor to respect its recorded floor, every floor advance to equal an observed
 incomplete root, no repeated abort from an anchor below the prior root, all
 eight cells valid, and at least one terminal-reaching repair after the first
 abort. Only then use the already-declared fresh seeds 226-229 gate.
+
+The progress smoke confirms the intended state transition. In the known
+`frontier_dense_recovery` cell, attempt 0 starts at anchor 96 and raises the
+floor to incomplete root 98. Attempt 1 starts at 98 and reaches a rejected
+terminal; attempt 2 starts at 110, reaches a terminal, and is accepted, which
+resets the floor. Attempt 3 independently starts at 120 and reaches another
+rejected terminal. There is one abort rather than the naive mode's five, all
+eight cells remain valid, and the sole changed score rises by 0.048.
+
+The frozen fresh panel nevertheless closes this challenger before canonical
+evaluation. All 32 cells at seeds 226-229 are valid, but none of 131 repair
+attempts encounters an incomplete prefix: there are zero aborts, zero floor
+advances, and zero score movement. The required activity gate was four aborts
+across two sources. Keep the mechanism diagnostic-only and production behavior
+unchanged.
+
+This is also evidence against treating failed repair episodes as a broad
+scheduler defect. Across the existing production references for actual seeds
+218-229 (96 source/seed runs), 412 repair episodes contain only three episodes
+without a terminal, totalling 112,659 frames. Only one is followed by another
+repair, and that next repair already chooses a different target and anchor.
+The repeated same-anchor churn was created by the naive early-abort experiment;
+it was not the ordinary controller's prevailing behavior. Further work should
+not weaken or elaborate this rare-state rule merely to make it activate.

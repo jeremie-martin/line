@@ -127,8 +127,6 @@ import {
 } from "./readiness_features.ts";
 import {
   distilledAimImpactValidationMae,
-  scoreAimImpactPoolValue,
-  scoreAimImpactRequestedPoolValue,
   scoreDistilledAimImpactFeasibility,
   scoreImpactFeasibility,
 } from "./readiness.ts";
@@ -141,11 +139,6 @@ import {
   airDeliverabilityAsk,
 } from "./air_policy.ts";
 import type { Gap } from "../types.ts";
-import {
-  type AimModelImpactPolicy,
-  orderExploitThenExplore,
-  primaryAimImpactArtifact,
-} from "./aim_slot_policy.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
 // Keep one top-level ablation switch; production aim policy constants are frozen.
@@ -177,6 +170,8 @@ const aimModelImpactFeasibilityEnv = compileScopedEnv(
  * knob vectors are proposed, but neither the probe grid nor proposal count.
  * `off` and the much heavier full readiness forest remain explicit diagnostic
  * ablations. */
+type AimModelImpactPolicy = "off" | "full" | "distilled";
+
 function aimModelImpactPolicy(): AimModelImpactPolicy {
   const value = aimModelImpactFeasibilityEnv();
   if (value === undefined || value === "" || value === "distilled") {
@@ -184,12 +179,8 @@ function aimModelImpactPolicy(): AimModelImpactPolicy {
   }
   if (value === "0" || value === "off") return "off";
   if (value === "1" || value === "full") return "full";
-  if (
-    value === "pool-value" || value === "pool-value-repair" ||
-    value === "requested-pool-second"
-  ) return value;
   throw new Error(
-    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, distilled, pool-value, pool-value-repair, or requested-pool-second; got ${value}`,
+    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, or distilled; got ${value}`,
   );
 }
 
@@ -1249,10 +1240,8 @@ export function makeEnumAimedCandidates(
 type ConfiguredScoredKnobs = Readonly<{
   values: number[];
   val: number;
-  explorationVal: number;
   ordinaryVal: number;
   modelImpactFeasibility: number;
-  explorationImpactFeasibility: number;
   projectedOutgoingQuality: number;
   currentQuality: number;
 }>;
@@ -1267,24 +1256,19 @@ function zeroKnobValues(dimensions: number): number[] {
  * position or articulated point state. Readiness marks articulation missing;
  * the zero positions below are therefore deliberately non-semantic and cannot
  * enter its feature vector. */
-type ModeledImpactFeasibilities = Readonly<{
-  primary: number;
-  exploration: number;
-}>;
-
-function modeledImpactFeasibilities(
+function modeledImpactFeasibility(
   state: IncomingKinematics | null,
   incomingGap: Gap,
   outgoingGap: Gap | null,
   gapAxisTargets?: readonly AxisValues[],
-): ModeledImpactFeasibilities {
+): number {
   if (
     !aimModelImpactFeasibilityEnabled() ||
     (gapAxisTargets?.[incomingGap.index] ?? incomingGap.targets).impact === undefined
-  ) return { primary: 1, exploration: 1 };
+  ) return 1;
   if (state === null) {
     aimTotals.enum_model_impact_state_missing++;
-    return { primary: 1, exploration: 1 };
+    return 1;
   }
   const projectedContact: BallisticState = {
     x: 0,
@@ -1316,22 +1300,12 @@ function modeledImpactFeasibilities(
       : readinessScorerGapContext(outgoingGap, outgoingTargets),
     generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
   };
-  const impactPolicy = aimModelImpactPolicy();
-  const primaryArtifact = primaryAimImpactArtifact(
-    impactPolicy,
-    aimRepairLaneActive,
-  );
-  const primary = primaryArtifact === "distilled"
+  const impactFeasibility = aimModelImpactPolicy() === "distilled"
     ? scoreDistilledAimImpactFeasibility(input)
-    : primaryArtifact === "pool-value"
-    ? scoreAimImpactPoolValue(input)
     : scoreImpactFeasibility(input);
-  const exploration = impactPolicy === "requested-pool-second"
-    ? scoreAimImpactRequestedPoolValue(input)
-    : primary;
   aimTotals.enum_model_impact_scores++;
-  aimTotals.enumModelImpactSum += primary;
-  return { primary, exploration };
+  aimTotals.enumModelImpactSum += impactFeasibility;
+  return impactFeasibility;
 }
 
 function scoreConfiguredKnobs(
@@ -1362,32 +1336,25 @@ function scoreConfiguredKnobs(
     projectedOutgoingQuality,
     { readiness: 1 },
   );
-  const modelImpactFeasibilities = modeledImpactFeasibilities(
+  const modelImpactFeasibility = modeledImpactFeasibility(
     readout.state,
     nextGap,
     readinessOutgoingGap,
     gapAxisTargets,
   );
   const impactPower = aimModelImpactPower();
-  const weightedImpactFeasibility = (value: number): number =>
-    impactPower === 1
-      ? value
-      : Math.max(0, Math.min(1, value)) ** impactPower;
+  const weightedImpactFeasibility = impactPower === 1
+    ? modelImpactFeasibility
+    : Math.max(0, Math.min(1, modelImpactFeasibility)) ** impactPower;
   return {
     values: [...values],
     val: proposalUtility(
       readout.currentQuality,
       projectedOutgoingQuality,
-      { readiness: weightedImpactFeasibility(modelImpactFeasibilities.primary) },
-    ),
-    explorationVal: proposalUtility(
-      readout.currentQuality,
-      projectedOutgoingQuality,
-      { readiness: weightedImpactFeasibility(modelImpactFeasibilities.exploration) },
+      { readiness: weightedImpactFeasibility },
     ),
     ordinaryVal,
-    modelImpactFeasibility: modelImpactFeasibilities.primary,
-    explorationImpactFeasibility: modelImpactFeasibilities.exploration,
+    modelImpactFeasibility,
     projectedOutgoingQuality,
     currentQuality: readout.currentQuality,
   };
@@ -1464,7 +1431,7 @@ function scoreConfiguredKnobGrid(
         aimTotals.enum_model_impact_top1_resolution_suppressed++;
       }
     }
-    const effectiveOrder = orderConfiguredKnobs(out, orderKey);
+    const effectiveOrder = orderKey === "val" ? activeOrder : ordinaryOrder;
     const selected = effectiveOrder.slice(0, Math.min(2, effectiveOrder.length));
     if (selected.length > 0) {
       const maxOrdinaryRank = Math.max(
@@ -1479,29 +1446,13 @@ function scoreConfiguredKnobGrid(
       }
     }
   }
-  return orderConfiguredKnobs(out, orderKey);
-}
-
-/** Keep the deployed impact model (or ordinary resolution fallback) in full
- * control of exploitation. The requested-pool model may reorder only the
- * remaining exploration choices; distinctness is still enforced by
- * chooseConfiguredKnobs. */
-function orderConfiguredKnobs(
-  candidates: readonly ConfiguredScoredKnobs[],
-  primaryKey: "val" | "ordinaryVal",
-): ConfiguredScoredKnobs[] {
-  return orderExploitThenExplore(
-    candidates,
-    (a, b) => compareConfiguredKnobs(a, b, primaryKey),
-    (a, b) => compareConfiguredKnobs(a, b, "explorationVal"),
-    aimModelImpactPolicy() === "requested-pool-second",
-  );
+  return out.sort((a, b) => compareConfiguredKnobs(a, b, orderKey));
 }
 
 function compareConfiguredKnobs(
   a: ConfiguredScoredKnobs,
   b: ConfiguredScoredKnobs,
-  key: "val" | "explorationVal" | "ordinaryVal",
+  key: "val" | "ordinaryVal",
 ): number {
   return (
     b[key] - a[key] ||

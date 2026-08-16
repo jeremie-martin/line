@@ -3617,3 +3617,10 @@ streaming offline analyses and result semantics, but remove every rejected
 runtime artifact, environment mode, ordering helper, and mode-specific test.
 Production remains the accepted distilled controller with no dormant pool-
 value compiler path.
+
+Cleanup is complete: the production aim/readiness sources and their artifact
+test are byte-identical to the pre-arm commit `29118ded`; both runtime model
+artifacts, all three environment modes, the slot-ordering helper, and its tests
+are removed. The requested-pool assay now consumes the generated conditional
+artifact rather than a production file. The retained production surface passes
+116 focused tests.

@@ -76,7 +76,7 @@ def arguments() -> argparse.Namespace:
     parser.add_argument(
         "--conditional-pool",
         type=Path,
-        default=Path("scripts/v0/optimizer/aim_impact_pool_value_model.json"),
+        default=Path("generated/analysis/aim-impact-pool-value-model.json"),
     )
     parser.add_argument(
         "--out",

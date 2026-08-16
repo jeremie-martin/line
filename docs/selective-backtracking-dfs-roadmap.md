@@ -3327,5 +3327,31 @@ categorical state; never add a score-selected source exception.
 |---|---|---|---|
 | 2026-08-16 | Whole-lineage incomplete-prefix audit | complete | 32/32 exact; 14 nonterminal lineages, 13 frontier returns, zero terminal descendants, 96,175 charged frames in one failed attempt |
 | 2026-08-16 | Explicit attempt-abort mode and mechanical tests | in progress | Separate environment; independent repair controller remains owner after abort |
-| 2026-08-16 | Known-activity mechanics smoke | pending | Seed 222, eight sources, 750k |
-| 2026-08-16 | Fresh continuation panel | pending | Seeds 226-229 only if mechanics close |
+| 2026-08-16 | Known-activity mechanics smoke | complete: naive abort closed | Five repeated aborts from anchor 96, then one failed anchor-99 attempt; -0.0044 in the sole changed cell |
+| 2026-08-16 | Monotone anchor-progress challenger | in progress | On incomplete root `g`, next independent selection excludes anchors before `g`; floor resets on acceptance |
+| 2026-08-16 | Fresh continuation panel | pending | Seeds 226-229 only if progress mechanics close |
+
+The naive smoke invalidates the assumption that returning saved work to the
+budget-aware allocator is enough. It aborts the known failed attempt at frame
+600,386 rather than 696,561, but the larger remaining budget keeps target 102
+and anchor 96 affordable. The controller retries anchor 96 five times with new
+seeds; each route hits another incomplete prefix. It eventually moves only to
+anchor 99, reaches no repair terminal, misses the reference's later accepted
+repair, and changes the final score by -0.0044. Do not run the fresh panel for
+this disposition.
+
+Challenge the removed-failed-state assumption narrowly. Under the separate
+`LR_REPAIR_INCOMPLETE_PREFIX_PROGRESS=1` diagnostic, an incomplete root at gap
+`g` still ends the current self-contained attempt, but raises a monotone minimum
+anchor to `g`. The next iteration fully recomputes target and affordability
+while excluding anchors before that proven problematic horizon. Starting from
+the incumbent at `g` restores its complete authored prefix; a later incomplete
+root may advance the floor again. Any accepted repair resets the floor because
+the global incumbent changed. Record the floor in both repair-decision and
+attempt telemetry, and keep all ordinary production decisions at floor zero.
+
+Repeat only the known seed-222 mechanics smoke first. Require every selected
+anchor to respect its recorded floor, every floor advance to equal an observed
+incomplete root, no repeated abort from an anchor below the prior root, all
+eight cells valid, and at least one terminal-reaching repair after the first
+abort. Only then use the already-declared fresh seeds 226-229 gate.

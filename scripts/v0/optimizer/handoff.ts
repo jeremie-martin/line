@@ -2327,6 +2327,7 @@ function compileHandoffInternal(
         repairAxisBranchBoundMode,
         isSearchPrefix,
       );
+    let repairMinimumAnchorGapIndex = 0;
     const register = new BestSoFarRegister();
     const telemetry: HandoffTelemetry = {
       frontierSelections: 0,
@@ -3384,6 +3385,12 @@ function compileHandoffInternal(
             : null;
         if (repairBoundAssessment?.abort === true) {
           repairAttemptBoundAbortRequested = true;
+        }
+        if (repairBoundAssessment?.advanceAnchorFloor === true) {
+          repairMinimumAnchorGapIndex = Math.max(
+            repairMinimumAnchorGapIndex,
+            node.search.gapIndex,
+          );
         }
         const result = processNode(
           node,
@@ -4775,6 +4782,9 @@ function compileHandoffInternal(
             sse: gapAxisSse(gapReport) ?? 0,
           }));
         const iterationIndex = attempts;
+        const minimumAnchorGapIndex = repairAxisBranchBoundMode === "incomplete-progress"
+          ? repairMinimumAnchorGapIndex
+          : 0;
         const selectionPolicy = repairSelectionPolicyForIteration(
           repair.selectionPolicy,
           repair.lateSelectionPolicy,
@@ -4788,6 +4798,7 @@ function compileHandoffInternal(
           repair.headroomFraction,
           repair.maxParentDepth,
           selectionPolicy,
+          minimumAnchorGapIndex,
         );
         let repairBreadthRatio = 1;
         if (target === null && repair.lastChanceThreeQuarter) {
@@ -4798,6 +4809,7 @@ function compileHandoffInternal(
             remaining,
             repair.headroomFraction,
             repair.maxParentDepth,
+            minimumAnchorGapIndex,
           );
           if (target !== null) repairBreadthRatio = REPAIR_LAST_CHANCE_BREADTH_RATIO;
         }
@@ -4872,6 +4884,7 @@ function compileHandoffInternal(
           parent_depth: target.parentDepth,
           affordable_target_gap_indices: target.affordableTargetGapIndices,
           affordable_anchor_gap_indices: target.affordableAnchorGapIndices,
+          minimum_anchor_gap_index: minimumAnchorGapIndex,
           target_gap_index: kWorst,
           target_gap_sse: pickedWeakGapSse,
           anchor_gap_index: k,
@@ -4886,6 +4899,7 @@ function compileHandoffInternal(
             decisionEstCostOf,
             decisionEstCostUpperOf,
             estCostSourceOf,
+            minimumAnchorGapIndex,
           ),
         };
         const repairEpisodeId = budgetRecorder.startEpisode({
@@ -4924,6 +4938,7 @@ function compileHandoffInternal(
         repairAxisBranchBound?.beginAttempt({
           iterationIndex,
           anchorGapIndex: k,
+          minimumAnchorGapIndex,
           totalSpentFrames: framesBefore,
           incumbentAxisQuality: incumbentEvaluation.key.axis_quality,
           incumbentAxisSse: authoredAxisWindow(incumbent.search).axisSse,
@@ -4975,6 +4990,10 @@ function compileHandoffInternal(
             ),
           );
         const acceptedAlternative = incumbentRevision > incumbentRevisionBefore;
+        if (
+          acceptedAlternative &&
+          repairAxisBranchBoundMode === "incomplete-progress"
+        ) repairMinimumAnchorGapIndex = 0;
         const repairTerminalWindow = repairAxisBranchBound !== null &&
             completed && lastTerminalNode !== null
           ? authoredAxisWindow(lastTerminalNode.search)
@@ -5075,6 +5094,7 @@ function compileHandoffInternal(
                 repair.lateSelectionPolicy,
                 attempts,
               ),
+              repairMinimumAnchorGapIndex,
             );
             if (followupSelection === null) {
               rejectedLocalImprovementFollowup = "no_affordable_repair";
@@ -8619,6 +8639,7 @@ export function selectLastChanceRepairRestart(
   remainingBudgetFrames: number,
   headroomFraction: number,
   maxParentDepth: number,
+  minimumAnchorGapIndex = 0,
 ): RepairSelection | null {
   const scale = (value: number): number => value * REPAIR_LAST_CHANCE_COST_RATIO;
   const selected = selectRepairRestart(
@@ -8629,6 +8650,7 @@ export function selectLastChanceRepairRestart(
     headroomFraction,
     maxParentDepth,
     "worst_gap_deepest_affordable",
+    minimumAnchorGapIndex,
   );
   return selected === null
     ? null
@@ -8648,34 +8670,39 @@ function repairTargetObservations(
   sourceOf: (
     anchorGapIndex: number,
   ) => "measured_cost_to_end" | "per_gap_fallback",
+  minimumAnchorGapIndex = 0,
 ): BudgetRepairTargetObservation[] {
   const maximum = Math.max(0, Math.floor(maxParentDepth));
-  return candidates.map((candidate) => ({
-    target_gap_index: candidate.gapIndex,
-    target_gap_sse: candidate.sse,
-    anchor_options: Array.from(
-      { length: Math.min(maximum, candidate.gapIndex) + 1 },
-      (_, index) => Math.min(maximum, candidate.gapIndex) - index,
-    ).map((parentDepth) => {
-      const anchorGapIndex = candidate.gapIndex - parentDepth;
-      const point = pointCostOf(anchorGapIndex);
-      const upper = upperCostOf(anchorGapIndex);
-      const source = sourceOf(anchorGapIndex);
-      const hasCost = Number.isFinite(point) && point > 0 && Number.isFinite(upper) && upper > 0;
-      return {
-        parent_depth: parentDepth,
-        anchor_gap_index: anchorGapIndex,
-        estimated_anchor_cost_frames: hasCost ? point : null,
-        estimated_anchor_cost_upper_frames: hasCost ? upper : null,
-        anchor_cost_source: hasCost ? source : null,
-        affordability: !hasCost
-          ? "no_positive_cost_estimate" as const
-          : upper <= usableBudgetFrames
-            ? "affordable" as const
-            : "exceeds_usable_budget" as const,
-      };
-    }),
-  }));
+  const minimumAnchor = Math.max(0, Math.floor(minimumAnchorGapIndex));
+  return candidates
+    .filter((candidate) => candidate.gapIndex >= minimumAnchor)
+    .map((candidate) => ({
+      target_gap_index: candidate.gapIndex,
+      target_gap_sse: candidate.sse,
+      anchor_options: Array.from(
+        { length: Math.min(maximum, candidate.gapIndex) + 1 },
+        (_, index) => Math.min(maximum, candidate.gapIndex) - index,
+      ).map((parentDepth) => {
+        const anchorGapIndex = candidate.gapIndex - parentDepth;
+        const point = pointCostOf(anchorGapIndex);
+        const upper = upperCostOf(anchorGapIndex);
+        const source = sourceOf(anchorGapIndex);
+        const hasCost = Number.isFinite(point) && point > 0 &&
+          Number.isFinite(upper) && upper > 0;
+        return {
+          parent_depth: parentDepth,
+          anchor_gap_index: anchorGapIndex,
+          estimated_anchor_cost_frames: hasCost ? point : null,
+          estimated_anchor_cost_upper_frames: hasCost ? upper : null,
+          anchor_cost_source: hasCost ? source : null,
+          affordability: !hasCost
+            ? "no_positive_cost_estimate" as const
+            : upper <= usableBudgetFrames
+              ? "affordable" as const
+              : "exceeds_usable_budget" as const,
+        };
+      }).filter(({ anchor_gap_index }) => anchor_gap_index >= minimumAnchor),
+    }));
 }
 
 /** Combine a newly observed repair suffix with the incumbent's measured prefix.
@@ -8701,18 +8728,21 @@ export function spliceRepairCostToEnd(
 
 /** One independent repair decision. Rank target weakness among targets with at
  * least one affordable anchor, then choose that target's deepest affordable
- * parent up to the declared maximum. No failed-anchor state or execution
- * fallback participates in the decision. */
+ * parent up to the declared maximum. Production has no failed-anchor state;
+ * an explicit diagnostic may supply a minimum anchor after observing a
+ * committed-prefix failure. */
 export function selectAffordableRepairTarget(
   candidates: readonly RepairTargetCandidate[],
   upperCostByAnchor: readonly number[],
   remainingBudgetFrames: number,
   headroomFraction: number,
   maxParentDepth: number,
+  minimumAnchorGapIndex = 0,
 ): AffordableRepairTarget | null {
   const remaining = Math.max(0, Math.floor(remainingBudgetFrames));
   const headroom = Math.max(0, Math.min(0.95, headroomFraction));
   const maximum = Math.max(0, Math.floor(maxParentDepth));
+  const minimumAnchor = Math.max(0, Math.floor(minimumAnchorGapIndex));
   const usableBudgetFrames = Math.floor(remaining * (1 - headroom));
   const affordable = candidates
     .flatMap((candidate) => {
@@ -8723,6 +8753,7 @@ export function selectAffordableRepairTarget(
         parentDepth,
         anchorGapIndex: candidate.gapIndex - parentDepth,
       })).find(({ anchorGapIndex }) => {
+        if (anchorGapIndex < minimumAnchor) return false;
         const upper = upperCostByAnchor[anchorGapIndex];
         return Number.isFinite(upper) && upper! > 0 && upper! <= usableBudgetFrames;
       });
@@ -8756,16 +8787,19 @@ export function selectRepairRestart(
   headroomFraction: number,
   maxParentDepth: number,
   selectionPolicy: RepairSelectionPolicy,
+  minimumAnchorGapIndex = 0,
 ): RepairSelection | null {
   const remaining = Math.max(0, Math.floor(remainingBudgetFrames));
   const headroom = Math.max(0, Math.min(0.95, headroomFraction));
   const usableBudgetFrames = Math.floor(remaining * (1 - headroom));
   const maximum = Math.max(0, Math.floor(maxParentDepth));
+  const minimumAnchor = Math.max(0, Math.floor(minimumAnchorGapIndex));
   const affordableTargetGapIndices = candidates.filter((candidate) =>
     Array.from(
       { length: Math.min(maximum, candidate.gapIndex) + 1 },
       (_, parentDepth) => candidate.gapIndex - parentDepth,
     ).some((anchorGapIndex) => {
+      if (anchorGapIndex < minimumAnchor) return false;
       const upper = upperCostByAnchor[anchorGapIndex];
       return Number.isFinite(upper) && upper! > 0 && upper! <= usableBudgetFrames;
     })
@@ -8775,6 +8809,7 @@ export function selectRepairRestart(
       { length: Math.min(maximum, candidate.gapIndex) + 1 },
       (_, parentDepth) => candidate.gapIndex - parentDepth,
     ).filter((anchorGapIndex) => {
+      if (anchorGapIndex < minimumAnchor) return false;
       const point = pointCostByAnchor[anchorGapIndex];
       const upper = upperCostByAnchor[anchorGapIndex];
       return Number.isFinite(point) && point! > 0 &&
@@ -8795,6 +8830,7 @@ export function selectRepairRestart(
       remainingBudgetFrames,
       headroomFraction,
       maxParentDepth,
+      minimumAnchor,
     );
     if (selected === null) return null;
     let anchorGapIndex = selected.anchorGapIndex;

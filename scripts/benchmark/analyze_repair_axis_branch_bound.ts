@@ -32,7 +32,13 @@ const paired = pairGridCells(candidate, reference);
 const candidateRows = rowsByKey(candidate);
 const referenceRows = rowsByKey(reference);
 
-let mode: "audit" | "prune" | "abort" | "incomplete-abort" | null = null;
+let mode:
+  | "audit"
+  | "prune"
+  | "abort"
+  | "incomplete-abort"
+  | "incomplete-progress"
+  | null = null;
 let attempts = 0;
 let terminalAttempts = 0;
 let acceptedAttempts = 0;
@@ -45,6 +51,8 @@ let dominatedSelections = 0;
 let prunedSubtrees = 0;
 let abortedAttempts = 0;
 let incompletePrefixAbortedAttempts = 0;
+let floorConstrainedAttempts = 0;
+let maximumAnchorFloorGapIndex = 0;
 let opportunities = 0;
 let actionableOpportunities = 0;
 let terminalObservations = 0;
@@ -141,7 +149,7 @@ for (const [key, row] of candidateRows) {
   }
   if (
     stats.mode !== "audit" && stats.mode !== "prune" && stats.mode !== "abort" &&
-    stats.mode !== "incomplete-abort"
+    stats.mode !== "incomplete-abort" && stats.mode !== "incomplete-progress"
   ) {
     throw new Error(`${label}: invalid repair axis-bound mode`);
   }
@@ -162,9 +170,13 @@ for (const [key, row] of candidateRows) {
   let rowFrames = 0;
   let rowActionableFrames = 0;
   let rowTerminalDescendants = 0;
+  let expectedMinimumAnchorGapIndex = 0;
   stats.attempts.forEach((attempt: any, attemptOrdinal: number) => {
     if (
       attempt.iteration_index !== attemptOrdinal ||
+      !Number.isSafeInteger(attempt.minimum_anchor_gap_index) ||
+      attempt.minimum_anchor_gap_index !== expectedMinimumAnchorGapIndex ||
+      attempt.anchor_gap_index < attempt.minimum_anchor_gap_index ||
       attempt.end_total_spent_frames < attempt.start_total_spent_frames ||
       attempt.accepted_alternative && !attempt.terminal_reached ||
       attempt.recovery_pressure_comparable_checkpoint_nodes +
@@ -185,6 +197,9 @@ for (const [key, row] of candidateRows) {
       ) ||
       mode === "incomplete-abort" && (
         attempt.pruned_subtrees !== 0 || attempt.aborted_by_bound
+      ) ||
+      mode === "incomplete-progress" && (
+        attempt.pruned_subtrees !== 0 || attempt.aborted_by_bound
       )
     ) throw new Error(`${label}: malformed repair axis-bound attempt ${attemptOrdinal}`);
     attempts++;
@@ -202,6 +217,11 @@ for (const [key, row] of candidateRows) {
     prunedSubtrees += attempt.pruned_subtrees;
     abortedAttempts += Number(attempt.aborted_by_bound);
     incompletePrefixAbortedAttempts += Number(attempt.aborted_by_incomplete_prefix);
+    floorConstrainedAttempts += Number(attempt.minimum_anchor_gap_index > 0);
+    maximumAnchorFloorGapIndex = Math.max(
+      maximumAnchorFloorGapIndex,
+      attempt.minimum_anchor_gap_index,
+    );
     attempt.opportunities.forEach((opportunity: any, opportunityOrdinal: number) => {
       if (
         opportunity.opportunity_index !== opportunityOrdinal ||
@@ -384,6 +404,20 @@ for (const [key, row] of candidateRows) {
         incompletePrefixPerSource.set(row.task.sourceId, source);
       },
     );
+    if (mode === "incomplete-progress") {
+      if (attempt.accepted_alternative) {
+        expectedMinimumAnchorGapIndex = 0;
+      } else if (attempt.aborted_by_incomplete_prefix) {
+        const abortRoot = attempt.incomplete_prefix_opportunities.at(-1);
+        if (abortRoot === undefined) {
+          throw new Error(`${label}: incomplete-prefix abort has no root`);
+        }
+        expectedMinimumAnchorGapIndex = Math.max(
+          expectedMinimumAnchorGapIndex,
+          abortRoot.root_gap_index,
+        );
+      }
+    }
   });
   if (rowOpportunities > 0) {
     activeRuns.add(key);
@@ -414,7 +448,7 @@ if (acceptedTerminalDescendants !== 0) {
 }
 
 const result = {
-  schema: "line.repair-axis-branch-bound-analysis.v5",
+  schema: "line.repair-axis-branch-bound-analysis.v6",
   generated_at: new Date().toISOString(),
   scope: {
     mode,
@@ -424,8 +458,8 @@ const result = {
     sources: perSource.size,
     interpretation: mode === "audit"
       ? "Behavior-neutral map of strict dominance and graded suffix recovery pressure. Recovery pressure is a burden, not a proof of failure."
-      : mode === "incomplete-abort"
-      ? "Live repair-attempt abort on a committed authored-observation deficit; paired score evidence is compact screening, not promotion."
+      : mode === "incomplete-abort" || mode === "incomplete-progress"
+      ? "Live repair-attempt abort on a committed authored-observation deficit; the progress mode also advances a monotone anchor floor. Paired score evidence is compact screening, not promotion."
       : "Live repair-only strict-bound disposition; paired score evidence is compact screening, not promotion.",
   },
   pairing_notes: pairingNotes,
@@ -448,6 +482,8 @@ const result = {
     pruned_subtrees: prunedSubtrees,
     attempts_aborted_by_bound: abortedAttempts,
     attempts_aborted_by_incomplete_prefix: incompletePrefixAbortedAttempts,
+    floor_constrained_attempts: floorConstrainedAttempts,
+    maximum_anchor_floor_gap_index: maximumAnchorFloorGapIndex,
     dominated_subtrees_with_queued_alternative: opportunitiesWithAlternative,
     frontier_return_subtrees: frontierReturns,
     terminal_descendant_subtrees: terminalDescendants,

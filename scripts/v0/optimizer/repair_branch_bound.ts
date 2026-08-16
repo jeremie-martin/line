@@ -17,7 +17,7 @@ import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 import { LEAF_KEY_FLOAT_EPSILON } from "./register.ts";
 
 export const REPAIR_AXIS_BRANCH_BOUND_SCHEMA =
-  "line.repair-axis-branch-bound.v5" as const;
+  "line.repair-axis-branch-bound.v6" as const;
 
 export const REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS = [
   0.25,
@@ -31,7 +31,8 @@ export type RepairAxisBranchBoundMode =
   | "audit"
   | "prune"
   | "abort"
-  | "incomplete-abort";
+  | "incomplete-abort"
+  | "incomplete-progress";
 
 export type RepairAxisBranchBoundOpportunity = {
   opportunity_index: number;
@@ -103,6 +104,7 @@ export type RepairIncompletePrefixOpportunity = {
 export type RepairAxisBranchBoundAttempt = {
   iteration_index: number;
   anchor_gap_index: number;
+  minimum_anchor_gap_index: number;
   start_total_spent_frames: number;
   end_total_spent_frames: number;
   incumbent_axis_quality: number;
@@ -154,6 +156,7 @@ type InternalAttempt<Node> = {
 export type RepairAxisBranchBoundAssessment = {
   dominated: boolean;
   incompletePrefix: boolean;
+  advanceAnchorFloor: boolean;
   prune: boolean;
   abort: boolean;
   optimisticAxisQualityUpper: number;
@@ -167,21 +170,27 @@ export function parseRepairAxisBranchBoundMode(
   const prune = env.LR_REPAIR_AXIS_BRANCH_BOUND;
   const abort = env.LR_REPAIR_AXIS_ATTEMPT_BOUND;
   const incompleteAbort = env.LR_REPAIR_INCOMPLETE_PREFIX_ATTEMPT_BOUND;
+  const incompleteProgress = env.LR_REPAIR_INCOMPLETE_PREFIX_PROGRESS;
   for (const [name, value] of [
     ["LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT", audit],
     ["LR_REPAIR_AXIS_BRANCH_BOUND", prune],
     ["LR_REPAIR_AXIS_ATTEMPT_BOUND", abort],
     ["LR_REPAIR_INCOMPLETE_PREFIX_ATTEMPT_BOUND", incompleteAbort],
+    ["LR_REPAIR_INCOMPLETE_PREFIX_PROGRESS", incompleteProgress],
   ] as const) {
     if (value !== undefined && value !== "" && value !== "0" && value !== "1") {
       throw new Error(`${name} must be 0 or 1; got ${JSON.stringify(value)}`);
     }
   }
-  if ([prune, abort, incompleteAbort].filter((value) => value === "1").length > 1) {
+  if (
+    [prune, abort, incompleteAbort, incompleteProgress]
+      .filter((value) => value === "1").length > 1
+  ) {
     throw new Error(
       "repair branch, strict-attempt, and incomplete-prefix bounds are mutually exclusive",
     );
   }
+  if (incompleteProgress === "1") return "incomplete-progress";
   if (incompleteAbort === "1") return "incomplete-abort";
   if (abort === "1") return "abort";
   if (prune === "1") return "prune";
@@ -214,7 +223,7 @@ export function assessRepairAxisDominance(input: {
   incumbentAxisQuality: number;
 }): Omit<
   RepairAxisBranchBoundAssessment,
-  "incompletePrefix" | "prune" | "abort"
+  "incompletePrefix" | "advanceAnchorFloor" | "prune" | "abort"
 > {
   if (
     !Number.isSafeInteger(input.prefixAxisCount) || input.prefixAxisCount < 0 ||
@@ -256,6 +265,7 @@ export class RepairAxisBranchBoundController<Node> {
   beginAttempt(input: {
     iterationIndex: number;
     anchorGapIndex: number;
+    minimumAnchorGapIndex?: number;
     totalSpentFrames: number;
     incumbentAxisQuality: number;
     incumbentAxisSse: number;
@@ -267,9 +277,20 @@ export class RepairAxisBranchBoundController<Node> {
         `incumbent axis SSE must be finite and non-negative; got ${input.incumbentAxisSse}`,
       );
     }
+    const minimumAnchorGapIndex = input.minimumAnchorGapIndex ?? 0;
+    if (
+      !Number.isSafeInteger(minimumAnchorGapIndex) || minimumAnchorGapIndex < 0 ||
+      minimumAnchorGapIndex > input.anchorGapIndex
+    ) {
+      throw new Error(
+        `repair minimum anchor ${minimumAnchorGapIndex} is outside ` +
+        `0..${input.anchorGapIndex}`,
+      );
+    }
     const record: RepairAxisBranchBoundAttempt = {
       iteration_index: input.iterationIndex,
       anchor_gap_index: input.anchorGapIndex,
+      minimum_anchor_gap_index: minimumAnchorGapIndex,
       start_total_spent_frames: input.totalSpentFrames,
       end_total_spent_frames: input.totalSpentFrames,
       incumbent_axis_quality: input.incumbentAxisQuality,
@@ -488,14 +509,24 @@ export class RepairAxisBranchBoundController<Node> {
     const prune = this.mode === "prune" && assessment.dominated && input.prunable;
     const abort = input.prunable && (
       (this.mode === "abort" && assessment.dominated) ||
-      (this.mode === "incomplete-abort" && incompletePrefix)
+      ((this.mode === "incomplete-abort" || this.mode === "incomplete-progress") &&
+        incompletePrefix)
     );
     if (prune) record.pruned_subtrees++;
     if (abort && this.mode === "abort") record.aborted_by_bound = true;
-    if (abort && this.mode === "incomplete-abort") {
+    if (
+      abort &&
+      (this.mode === "incomplete-abort" || this.mode === "incomplete-progress")
+    ) {
       record.aborted_by_incomplete_prefix = true;
     }
-    return { ...assessment, incompletePrefix, prune, abort };
+    return {
+      ...assessment,
+      incompletePrefix,
+      advanceAnchorFloor: abort && this.mode === "incomplete-progress",
+      prune,
+      abort,
+    };
   }
 
   finishAttempt(input: {

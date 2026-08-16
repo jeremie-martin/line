@@ -1026,6 +1026,32 @@ describe("repair target selection", () => {
     });
   });
 
+  test("honors an explicit minimum repair anchor without changing target ranking", () => {
+    expect(selectRepairRestart(
+      [
+        { gapIndex: 2, sse: 5 },
+        { gapIndex: 4, sse: 20 },
+      ],
+      [10, 10, 10, 10, 10],
+      [10, 10, 10, 10, 10],
+      100,
+      0,
+      4,
+      "worst_gap_deepest_affordable",
+      3,
+    )).toEqual({
+      selectionPolicy: "worst_gap_deepest_affordable",
+      targetGapIndex: 4,
+      anchorGapIndex: 3,
+      parentDepth: 1,
+      targetGapSse: 20,
+      mutableSuffixSse: 20,
+      usableBudgetFrames: 100,
+      affordableTargetGapIndices: [4],
+      affordableAnchorGapIndices: [3, 4],
+    });
+  });
+
   test("reserves the cheapest current repair before choosing an earlier parent", () => {
     expect(selectRepairRestart(
       [

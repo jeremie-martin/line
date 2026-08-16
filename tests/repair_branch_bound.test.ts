@@ -25,6 +25,9 @@ describe("repair authored-axis branch bound", () => {
       LR_REPAIR_INCOMPLETE_PREFIX_ATTEMPT_BOUND: "1",
     })).toBe("incomplete-abort");
     expect(parseRepairAxisBranchBoundMode({
+      LR_REPAIR_INCOMPLETE_PREFIX_PROGRESS: "1",
+    })).toBe("incomplete-progress");
+    expect(parseRepairAxisBranchBoundMode({
       LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT: "1",
       LR_REPAIR_AXIS_BRANCH_BOUND: "1",
     })).toBe("prune");
@@ -329,9 +332,9 @@ describe("repair authored-axis branch bound", () => {
     });
   });
 
-  test("can abort an incomplete-prefix attempt without invoking the score bound", () => {
+  test("can abort an incomplete prefix and request monotone anchor progress", () => {
     const controller = new RepairAxisBranchBoundController<Node>(
-      "incomplete-abort",
+      "incomplete-progress",
       isPrefix,
     );
     controller.beginAttempt({
@@ -357,6 +360,7 @@ describe("repair authored-axis branch bound", () => {
       incumbentPrefixAxisSse: 3,
     })).toMatchObject({
       incompletePrefix: true,
+      advanceAnchorFloor: true,
       dominated: false,
       prune: false,
       abort: true,

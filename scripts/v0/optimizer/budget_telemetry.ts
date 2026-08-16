@@ -232,6 +232,8 @@ export type BudgetRepairDecision = {
   parent_depth: number;
   affordable_target_gap_indices: number[];
   affordable_anchor_gap_indices: number[];
+  /** Diagnostic lower bound after a committed-observation repair abort. */
+  minimum_anchor_gap_index?: number;
   target_gap_index: number;
   target_gap_sse: number;
   anchor_gap_index: number;
@@ -1668,6 +1670,12 @@ function validateTelemetryPayload(
         !decision.affordable_target_gap_indices.includes(decision.target_gap_index) ||
         decision.affordable_target_gap_indices.some((gap) => !Number.isInteger(gap) || gap < 0) ||
         !decision.affordable_anchor_gap_indices.includes(decision.anchor_gap_index) ||
+        !Number.isInteger(decision.minimum_anchor_gap_index ?? 0) ||
+        (decision.minimum_anchor_gap_index ?? 0) < 0 ||
+        decision.anchor_gap_index < (decision.minimum_anchor_gap_index ?? 0) ||
+        decision.affordable_anchor_gap_indices.some(
+          (gap) => gap < (decision.minimum_anchor_gap_index ?? 0),
+        ) ||
         decision.affordable_anchor_gap_indices.some((gap) => !Number.isInteger(gap) || gap < 0) ||
         !(decision.target_gap_sse >= 0) ||
         !(decision.mutable_suffix_sse >= decision.target_gap_sse) ||

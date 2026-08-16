@@ -3550,7 +3550,7 @@ standing canonical 750k probability ladder. Do not run the multi-budget sweep.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-16 | Exploit/explore slot semantics and gate frozen | complete: live arm licensed | Incumbent first; requested-pool second; all six offline hybrid gates pass |
-| 2026-08-16 | Explicit exploit/explore live arm | complete: ready for fresh panel | 121 focused tests pass; pure ordering test proves incumbent first-object identity |
+| 2026-08-16 | Explicit exploit/explore live arm | complete: exact arm closed | 121 focused tests pass, but fresh panel is -30.8 over 32 valid pairs and fails breadth/tail gates |
 
 The factorized offline arm changes 9.77% of second slots while preserving every
 incumbent first slot by construction. Requested-pool top-two truth improves by
@@ -3560,3 +3560,43 @@ sources improved, seven worsened, and 28 unchanged. All six frozen hybrid gates
 pass. Implement exactly this slot ownership behind an explicit environment
 arm and mechanically prove that the primary choice is unchanged before the
 fresh live panel.
+
+The fresh hybrid panel closes the exact arm without canonical evaluation. All
+32 pairs remain valid and all tracks change, but the score sum is -30.8 (-0.96
+per cell), with 15 better and 17 worse. Only three of eight source means are
+positive, and four cells lose more than 20 points. A stable exploit slot is not
+enough: changing the second proposal still redirects the complete DFS broadly.
+Keep the explicit mode as negative mechanism evidence; do not blend it or tune
+slot activity from this result.
+
+## Phase VIII: scope searched-pool value to independent repairs
+
+### Challenged assumption
+
+Phase V applied its strong conditional pool-value signal to every aim decision,
+including the initial route whose perturbation can redirect the whole search.
+The signal's semantics are more naturally aligned with repair: given a complete
+incumbent and a chosen restart anchor, prefer suffix states whose following
+candidate pools have a strong useful impact head. Repair is independently
+budgeted, and final registration already compares a completed alternative with
+the incumbent.
+
+Freeze one scope-only arm. Initial traversal and ordinary resumed work use the
+deployed distilled model exactly. During an independently identified repair
+attempt only, use the unchanged Phase V conditional pool-value artifact for
+both fixed proposal slots. Do not retrain, blend, gate by source/gap/score,
+change proposal count, probe grid, candidate breadth, anchor selection,
+affordability, repair seed, traversal, acceptance, register, scorer, authored
+targets, or budget.
+
+Mechanically require exact first-terminal track hash, frame, score, and initial
+work ledger for every paired cell. Then run one fresh 750k-only paired panel on
+seeds 238--241 and the Phase V eight-source set. Require 32/32 valid pairs,
+positive score sum, positive mean in at least three seed blocks and four source
+blocks, no cell below -20, at least eight changed final tracks, and every final
+change to occur in a run with repair activity. Only a pass may reach the
+standing canonical 750k probability ladder. Do not run a multi-budget sweep.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Repair-only pool-value scope and gate frozen | in progress | Distilled initial/resumed; unchanged conditional pool value only inside repair |

@@ -3624,3 +3624,39 @@ artifacts, all three environment modes, the slot-ordering helper, and its tests
 are removed. The requested-pool assay now consumes the generated conditional
 artifact rather than a production file. The retained production surface passes
 116 focused tests.
+
+## Phase IX: adjudicate the original pool-value arm at the real headline
+
+### Corrected decision authority
+
+Phase V's `-20` cell rule was a predeclared compact-screen continuation guard,
+not a canonical promotion criterion. It was followed honestly, but it was too
+restrictive: a selected eight-source panel cannot replace Benchmark V2's
+calibrated estimate of the aggregate 750k effect. The standing sequential
+evaluator already retains every adverse cell in the headline and controls its
+four planned looks through one calibrated directional-probability boundary.
+No cellwise tail, source, validity, effect-size, or multi-budget score veto may
+be added. Evidence-integrity checks remain mandatory; compiler failures remain
+inside the headline rather than becoming a second decision rule.
+
+Restore the exact Phase V conditional-pool artifact and ranking path. Preserve
+the 32-tree incumbent prefix, 16-tree residual, best viable quartile label,
+minimum 27 requested attempts, feature transform, two proposal slots, ordinary
+admission set, exact candidate evaluator, candidate breadth, traversal, repair,
+register, scorer, authored targets, and 750k budget. Activating the already
+tested `pool-value` policy as the unset default is the only source-native
+challenger change; explicit `distilled` remains the exact current-baseline
+control. Do not retrain, blend, scope, tune, rescreen, or run a multi-budget
+sweep from the compact result.
+
+Run only `npm run benchmark -- eval --seeds=48 --jobs=48`. The cached Phase-D
+baseline and standing N=8/16/32/48 sequential probability rule are the sole
+promotion authority. On `accept`, rebaseline through the ordinary workflow and
+clean up the now-default naming. On `reject` or `inconclusive`, restore the
+distilled unset default and retain the canonical evidence without score
+salvage.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Exact Phase V mechanism restored as source-native challenger | complete | Artifact SHA-256 `1bf23a9660655b5eec2be5dd9c912c8bd1441c435997a57ff82dcfb1914bf37f`, identical to commit `5c930b67`; 166 focused mechanism/protocol tests pass; no model or policy retuning |
+| 2026-08-16 | Canonical 750k sequential adjudication | pending | Standing cached-reference evaluator only |

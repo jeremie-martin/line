@@ -15,6 +15,9 @@
 
 import modelJson from "./readiness_model.json" with { type: "json" };
 import aimImpactModelJson from "./aim_impact_model.json" with { type: "json" };
+import aimImpactPoolValueModelJson from "./aim_impact_pool_value_model.json" with {
+  type: "json",
+};
 import type { NextArcReadinessInput } from "./readiness_features.ts";
 import {
   parseReadinessModelArtifact,
@@ -58,6 +61,9 @@ const READINESS_CONTEXT_BOOTSTRAP = (() => {
 
 let READINESS_MODEL = parseReadinessModelArtifact(modelJson);
 const AIM_IMPACT_MODEL = parseReadinessModelArtifact(aimImpactModelJson);
+const AIM_IMPACT_POOL_VALUE_MODEL = parseReadinessModelArtifact(
+  aimImpactPoolValueModelJson,
+);
 const AIM_IMPACT_DISTILLED_VALIDATION_MAE = (() => {
   const value = (aimImpactModelJson as {
     distillation?: { validation?: { mae?: unknown } };
@@ -108,6 +114,18 @@ export function scoreDistilledAimImpactFeasibility(
   input: NextArcReadinessInput,
 ): number {
   return scoreImpactFeasibilityWithArtifact(input, AIM_IMPACT_MODEL);
+}
+
+/** Value an incoming state by the robust useful head of the repeatedly
+ * sampled next-candidate pool. The artifact preserves the preceding deployed
+ * distilled model as an exact 32-tree prefix and appends one frozen residual. */
+export function scoreAimImpactPoolValue(
+  input: NextArcReadinessInput,
+): number {
+  return scoreImpactFeasibilityWithArtifact(
+    input,
+    AIM_IMPACT_POOL_VALUE_MODEL,
+  );
 }
 
 /** Held-out absolute-error resolution of the shipped distilled impact model.

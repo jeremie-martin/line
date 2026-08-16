@@ -15,6 +15,10 @@ import runtimeModel from "../scripts/v0/optimizer/readiness_model.json" with {
 import aimImpactModel from "../scripts/v0/optimizer/aim_impact_model.json" with {
   type: "json",
 };
+import aimImpactPoolValueModel from
+  "../scripts/v0/optimizer/aim_impact_pool_value_model.json" with {
+    type: "json",
+  };
 import parityFixture from "./fixtures/readiness_model_parity.json" with {
   type: "json",
 };
@@ -56,6 +60,27 @@ describe("readiness model artifact inference", () => {
       aimImpactModel.distillation.validation.mae,
     );
     expect(aimImpactModel.components.impactFeasibility.trees).toHaveLength(32);
+  });
+
+  test("keeps the searched-pool candidate anchored to the deployed aim model", () => {
+    const parsed = parseReadinessModelArtifact(aimImpactPoolValueModel);
+    expect(() =>
+      assertCompatibleReadinessArtifact(parsed, {
+        requiredComponents: ["impactFeasibility"],
+      })
+    ).not.toThrow();
+    expect(aimImpactPoolValueModel.aimImpactPoolValueTraining).toMatchObject({
+      schema: "line.aim-impact-pool-value-training.v1",
+      minimumAttempts: 27,
+      topFraction: 0.25,
+      correctionTrees: 16,
+      licensedForLiveArm: true,
+    });
+    const incumbent = aimImpactModel.components.impactFeasibility;
+    const candidate = aimImpactPoolValueModel.components.impactFeasibility;
+    expect(candidate.initialPrediction).toBe(incumbent.initialPrediction);
+    expect(candidate.trees).toHaveLength(48);
+    expect(candidate.trees.slice(0, 32)).toEqual(incumbent.trees);
   });
 
   test("previous scorer semantics are legal only for context collection", () => {

@@ -909,7 +909,7 @@ export type CompileStats = {
       enum_projection_pairs: number;
       enum_projection_err_mean: number;
       enum_objective_gain_mean: number;
-      model_impact_policy: "off" | "full" | "distilled";
+      model_impact_policy: "off" | "full" | "distilled" | "pool-value";
       enum_model_impact_scores: number;
       enum_model_impact_grids: number;
       enum_model_impact_top1_changed: number;

@@ -3505,4 +3505,57 @@ canonical evaluation. Do not reuse seeds 230--233 or the Phase V source panel.
 
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
-| 2026-08-16 | Requested-pool semantic and offline gate frozen | in progress | Failed or unmeasured requests are zero-valued before the unchanged best-quartile statistic |
+| 2026-08-16 | Requested-pool semantic and offline gate frozen | complete: monolithic arm closed | 12/13 gates pass; top-one agreement is 78.18%, below the frozen 80% floor |
+
+The requested-pool label includes 14,335 eligible contexts, including 1,211
+with no viable attempt. Mean request success is 66.72%; the requested-pool
+label averages 0.59885 versus 0.69798 for the success-conditioned tail. On
+4,832 untouched validation contexts, the residual reduces MSE from 0.06880
+(deployed) and 0.05733 (conditional pool) to 0.02736, improves source-macro MSE
+over both, and improves requested-pool MSE in all 44 sources. Proxy pairwise
+accuracy rises 52.67% to 64.26%, selected top-one value rises 0.58759 to
+0.61440, and top-two value rises 0.55676 to 0.56475. Viable-tail and ordinary-
+mean choices also improve slightly. But top-one agreement is 78.18%, not the
+frozen 80%; do not expose this model as a monolithic live ranking.
+
+## Phase VII: separate the exploit and exploration proposal slots
+
+### Challenged assumption
+
+The configured aim lane emits two distinct proposals but ranks both with the
+same scalar. They need not serve the same role. Preserve the deployed
+distilled-impact top choice exactly as the exploit slot. From the remaining
+ordinary-admissible, geometrically distinct vectors, choose the exploration
+slot with the frozen requested-pool model from Phase VI. This resolves the
+monolithic model's stability defect structurally rather than blending or
+shrinking it after a result. It also preserves proposal count, exact evaluation
+count, probe grid, candidate breadth, traversal, repair, register, scorer,
+authored targets, and budget.
+
+Before implementing live behavior, extend the existing offline report without
+refitting either model. Require the hybrid second slot to improve aggregate
+requested-pool top-two truth, incur no viable-tail or ordinary-mean top-two
+debt, have positive requested-pool source-macro movement with at least as many
+sources improved as worsened, and actually change at least 5% of second slots.
+The exploit slot must be byte-for-byte the incumbent top choice in mechanical
+tests. If those gates pass, run one fresh paired screen at 750k on seeds
+234--237 and eight sources not used in Phase V: `river_reentry`,
+`pickup_lattice`, `offgrid_conversation`, `dense_dialogue`, `high_air_drive`,
+`frontier_pickup_progression`, `regression_transition_mosaic_tempo_fast_5`,
+and `believer_56_6s_impact_relief`. Require 32/32 valid pairs, positive score
+sum, positive mean in at least three seed blocks and four source blocks, no
+cell below -20, and at least eight changed pairs. Only a pass may reach the
+standing canonical 750k probability ladder. Do not run the multi-budget sweep.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Exploit/explore slot semantics and gate frozen | complete: live arm licensed | Incumbent first; requested-pool second; all six offline hybrid gates pass |
+
+The factorized offline arm changes 9.77% of second slots while preserving every
+incumbent first slot by construction. Requested-pool top-two truth improves by
+0.00420; viable-tail and ordinary-mean top-two truth also improve by 0.00102
+and 0.00048. Requested-pool source-macro movement is +0.00439, with nine
+sources improved, seven worsened, and 28 unchanged. All six frozen hybrid gates
+pass. Implement exactly this slot ownership behind an explicit environment
+arm and mechanically prove that the primary choice is unchanged before the
+fresh live panel.

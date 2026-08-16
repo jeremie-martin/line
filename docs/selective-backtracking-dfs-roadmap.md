@@ -3379,3 +3379,70 @@ repair, and that next repair already chooses a different target and anchor.
 The repeated same-anchor churn was created by the naive early-abort experiment;
 it was not the ordinary controller's prevailing behavior. Further work should
 not weaken or elaborate this rare-state rule merely to make it activate.
+
+## Phase V: model the value of a searched next-contact pool
+
+### Challenged assumption
+
+The promoted distilled next-impact controller predicts the mean
+scorer-compatible impact fit of one viable next-arc proposal. That controller
+was worth +3.3207 headline points at canonical 750k, so this information layer
+has demonstrated leverage. But production does not take one random next arc:
+it builds a broad candidate pool and retains its useful head. Treating the mean
+one-proposal outcome as the value of a searched pool is an untested objective
+mismatch.
+
+Use the frozen readiness corpus before changing the compiler. Its normal
+contexts with at least 27 generated attempts provide repeated outcomes from the
+same incoming state and authored target. Define one robust order-statistic
+label, fixed before reading its result: the mean scorer-compatible impact fit
+of the best quartile of viable attempts. This is deliberately less optimistic
+than the sample maximum and keeps authored impact unchanged. Contexts with
+fewer than 27 attempts do not train or validate the label; they remain outside
+the claim rather than being imputed as searched pools.
+
+Fit one incumbent-anchored 16-tree residual to this label. The deployed
+32-tree model stays an exact serialized prefix, matching the safer architecture
+from the earlier realized-fit residual study. Stream raw compressed shards;
+never materialize the corpus in memory. On the untouched validation seed,
+report absolute error, source-macro error, proxy-group pairwise ordering,
+selected top-one/top-two tail value, corresponding ordinary mean-fit movement,
+and incumbent ranking agreement. These proxy groups are only an offline
+licensing instrument because the corpus does not retain production knob-grid
+identity.
+
+A live fixed-count arm is licensed only if the residual improves tail-label
+MSE and source-macro MSE, improves proxy pairwise tail ordering and both
+selected top-one and top-two tail value, worsens neither selected top-one nor
+top-two ordinary mean fit by more than 0.002, preserves at least 80% of
+incumbent top-one choices, and improves tail MSE in at least three quarters of
+represented sources. No tree-count, quantile, blend, source, target, or budget
+variant may be selected from this result. If licensed, the arm changes only
+the fitted-grid impact factor: probe rows, two proposal slots, exact candidate
+evaluations, candidate breadth, traversal, repair, register, scorer, and
+authored targets remain fixed. Use compact 750k mechanics/direction evidence
+before the standing canonical ladder, and do not run a multi-budget sweep.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Pool-value hypothesis and offline gate frozen | complete | Best-quartile label; >=27 attempts; incumbent-prefix + 16 residual trees; no compiler behavior |
+| 2026-08-16 | Streaming offline assay | complete: live arm licensed | 4,413 validation contexts, all 44 sources improve tail MSE; every frozen gate passes |
+
+The streaming assay reconciles all 121,741 impact-authored training rows to
+their raw contexts and finds 13,124 contexts with at least 27 attempts (8,711
+development, 4,413 validation). The best-quartile label is materially distinct:
+it averages 0.1843 above ordinary mean fit, while remaining 0.0965 below the
+sample maximum. This is a searched-pool value rather than a relabelled mean or
+an optimistic oracle.
+
+On the untouched validation seed, the incumbent-anchored residual reduces tail
+MSE from 0.06147 to 0.01414 and source-macro MSE from 0.06169 to 0.01386; all
+44 sources improve. Across 347 explicit proxy choice sets, pairwise tail-order
+accuracy rises 59.07% to 65.18%, selected top-one tail value rises 0.75223 to
+0.75733, and selected top-two tail value rises 0.73179 to 0.73506. The same
+choices also improve ordinary mean-fit top one and top two, so the pool target
+does not buy its head signal by sacrificing the old one-proposal label.
+Incumbent top-one agreement is 82.13%, top-two overlap is 94.96%, the serialized
+incumbent prefix is bit-exact, and candidate export error is 3.4e-16. All frozen
+offline gates pass. Proceed to one explicit fixed-count live arm; do not alter
+the label, tree count, or scope from these outcomes.

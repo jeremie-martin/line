@@ -167,20 +167,20 @@ const aimModelImpactFeasibilityEnv = compileScopedEnv(
   "LR_AIM_MODEL_IMPACT_FEASIBILITY",
 );
 
-/** Production fixed-count controller. The searched-pool model changes which
- * fitted knob vectors are proposed, but neither the probe grid nor proposal
- * count. The preceding distilled one-proposal model, `off`, and the much
- * heavier full readiness forest remain explicit governed controls. */
+/** Production fixed-count controller. The distilled one-proposal model changes
+ * which fitted knob vectors are proposed, but neither the probe grid nor
+ * proposal count. The searched-pool challenger, `off`, and the much heavier
+ * full readiness forest remain explicit governed controls. */
 type AimModelImpactPolicy = "off" | "full" | "distilled" | "pool-value";
 
 function aimModelImpactPolicy(): AimModelImpactPolicy {
   const value = aimModelImpactFeasibilityEnv();
-  if (value === undefined || value === "" || value === "pool-value") {
-    return "pool-value";
+  if (value === undefined || value === "" || value === "distilled") {
+    return "distilled";
   }
   if (value === "0" || value === "off") return "off";
   if (value === "1" || value === "full") return "full";
-  if (value === "distilled") return value;
+  if (value === "pool-value") return value;
   throw new Error(
     `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, distilled, or pool-value; got ${value}`,
   );

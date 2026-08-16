@@ -3659,4 +3659,29 @@ salvage.
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
 | 2026-08-16 | Exact Phase V mechanism restored as source-native challenger | complete | Artifact SHA-256 `1bf23a9660655b5eec2be5dd9c912c8bd1441c435997a57ff82dcfb1914bf37f`, identical to commit `5c930b67`; 166 focused mechanism/protocol tests pass; no model or policy retuning |
-| 2026-08-16 | Canonical 750k sequential adjudication | pending | Standing cached-reference evaluator only |
+| 2026-08-16 | Canonical 750k sequential adjudication | complete: inconclusive, no promotion | N=48 `-2.3839 +/- 1.7471`, P(positive) `8.95%`; 2,111/2,112 valid; standing rule followed through every look |
+| 2026-08-16 | Production disposition | complete | Restored distilled unset default; retained exact pool-value arm and checksummed canonical evidence |
+
+The honest canonical trial does not reproduce the compact panel's aggregate
+gain. N=8 is `+0.5719 +/- 1.1123` with 68.85% directional probability; N=16
+is `-4.7760 +/- 4.9034` with 17.27%; N=32 is `-3.0256 +/- 2.5688` with
+12.39%; and N=48 is `-2.3839 +/- 1.7471` with 8.95%, against the final 97.23%
+boundary. The final 95% interval is `[-7.0742, +2.3064]`. The standing code
+returns `inconclusive`, so the arm is not promotable and the Phase-D baseline
+remains unchanged.
+
+One candidate run loses completion: `frontier_pickup_progression_shifted` at
+actual seed 615 reaches 98/110 contacts and terminates `rideStalled`. That
+failure contributes `-1.7240` headline points, but it does not explain away
+the result. Across the 2,111 both-valid pairs, 959 improve and 1,152 regress;
+their fixed-validity counterfactual is `-0.6599 +/- 0.3339` seed-block SE.
+Eighteen source means improve and 26 regress. Legacy regression gains `+3.46`,
+led by transition mosaic, while representative loses `0.71`, capability loses
+`13.68`, and development music loses `3.61`.
+
+Restore the distilled model as the unset production default without deleting
+the exact `pool-value` control, artifact, tests, snapshot, archives, or
+comparison. Do not rebaseline, extend the same attempt, remove the failed cell,
+fit a source exception, or retune this conditional-pool residual from the
+canonical outcome. The result rejects this exact broad integration, not the
+general idea of valuing downstream search opportunities.

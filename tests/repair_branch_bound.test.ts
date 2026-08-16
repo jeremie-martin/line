@@ -22,6 +22,9 @@ describe("repair authored-axis branch bound", () => {
     expect(parseRepairAxisBranchBoundMode({ LR_REPAIR_AXIS_ATTEMPT_BOUND: "1" }))
       .toBe("abort");
     expect(parseRepairAxisBranchBoundMode({
+      LR_REPAIR_INCOMPLETE_PREFIX_ATTEMPT_BOUND: "1",
+    })).toBe("incomplete-abort");
+    expect(parseRepairAxisBranchBoundMode({
       LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT: "1",
       LR_REPAIR_AXIS_BRANCH_BOUND: "1",
     })).toBe("prune");
@@ -323,6 +326,52 @@ describe("repair authored-axis branch bound", () => {
         outcome: "episode_end",
         terminal_descended: false,
       }],
+    });
+  });
+
+  test("can abort an incomplete-prefix attempt without invoking the score bound", () => {
+    const controller = new RepairAxisBranchBoundController<Node>(
+      "incomplete-abort",
+      isPrefix,
+    );
+    controller.beginAttempt({
+      iterationIndex: 0,
+      anchorGapIndex: 2,
+      totalSpentFrames: 100,
+      incumbentAxisQuality: 0,
+      incumbentAxisSse: 10,
+      totalAuthoredAxisCount: 10,
+    });
+    expect(controller.observeSelection({
+      node: { path: "missing" },
+      totalSpentFrames: 120,
+      gapIndex: 3,
+      contactOrdinal: 3,
+      frontierNodes: 4,
+      eligibleCheckpoint: true,
+      prunable: true,
+      prefixAxisCount: 2,
+      prefixAxisSse: 2,
+      prefixAxisLoss: 1,
+      incumbentPrefixAxisCount: 3,
+      incumbentPrefixAxisSse: 3,
+    })).toMatchObject({
+      incompletePrefix: true,
+      dominated: false,
+      prune: false,
+      abort: true,
+    });
+    controller.finishAttempt({
+      totalSpentFrames: 120,
+      terminalNode: null,
+      terminalGapIndex: null,
+      terminalReached: false,
+      acceptedAlternative: false,
+      terminalAxisSse: null,
+    });
+    expect(controller.snapshot().attempts[0]).toMatchObject({
+      aborted_by_bound: false,
+      aborted_by_incomplete_prefix: true,
     });
   });
 

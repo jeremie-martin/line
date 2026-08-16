@@ -32,7 +32,7 @@ const paired = pairGridCells(candidate, reference);
 const candidateRows = rowsByKey(candidate);
 const referenceRows = rowsByKey(reference);
 
-let mode: "audit" | "prune" | "abort" | null = null;
+let mode: "audit" | "prune" | "abort" | "incomplete-abort" | null = null;
 let attempts = 0;
 let terminalAttempts = 0;
 let acceptedAttempts = 0;
@@ -44,6 +44,7 @@ let missingCurrentAxisObservations = 0;
 let dominatedSelections = 0;
 let prunedSubtrees = 0;
 let abortedAttempts = 0;
+let incompletePrefixAbortedAttempts = 0;
 let opportunities = 0;
 let actionableOpportunities = 0;
 let terminalObservations = 0;
@@ -138,7 +139,10 @@ for (const [key, row] of candidateRows) {
   if (stats?.schema !== REPAIR_AXIS_BRANCH_BOUND_SCHEMA) {
     throw new Error(`${label}: missing current repair axis-bound telemetry`);
   }
-  if (stats.mode !== "audit" && stats.mode !== "prune" && stats.mode !== "abort") {
+  if (
+    stats.mode !== "audit" && stats.mode !== "prune" && stats.mode !== "abort" &&
+    stats.mode !== "incomplete-abort"
+  ) {
     throw new Error(`${label}: invalid repair axis-bound mode`);
   }
   if (mode === null) mode = stats.mode;
@@ -167,10 +171,21 @@ for (const [key, row] of candidateRows) {
           attempt.recovery_pressure_incomparable_checkpoint_nodes !==
         attempt.eligible_checkpoint_nodes ||
       attempt.aborted_by_bound && attempt.terminal_reached ||
+      attempt.aborted_by_incomplete_prefix && attempt.terminal_reached ||
       attempt.dominated_selected_nodes < attempt.opportunities.length ||
-      mode === "audit" && (attempt.pruned_subtrees !== 0 || attempt.aborted_by_bound) ||
-      mode === "prune" && attempt.aborted_by_bound ||
-      mode === "abort" && attempt.pruned_subtrees !== 0
+      mode === "audit" && (
+        attempt.pruned_subtrees !== 0 || attempt.aborted_by_bound ||
+        attempt.aborted_by_incomplete_prefix
+      ) ||
+      mode === "prune" && (
+        attempt.aborted_by_bound || attempt.aborted_by_incomplete_prefix
+      ) ||
+      mode === "abort" && (
+        attempt.pruned_subtrees !== 0 || attempt.aborted_by_incomplete_prefix
+      ) ||
+      mode === "incomplete-abort" && (
+        attempt.pruned_subtrees !== 0 || attempt.aborted_by_bound
+      )
     ) throw new Error(`${label}: malformed repair axis-bound attempt ${attemptOrdinal}`);
     attempts++;
     terminalAttempts += Number(attempt.terminal_reached);
@@ -186,6 +201,7 @@ for (const [key, row] of candidateRows) {
     dominatedSelections += attempt.dominated_selected_nodes;
     prunedSubtrees += attempt.pruned_subtrees;
     abortedAttempts += Number(attempt.aborted_by_bound);
+    incompletePrefixAbortedAttempts += Number(attempt.aborted_by_incomplete_prefix);
     attempt.opportunities.forEach((opportunity: any, opportunityOrdinal: number) => {
       if (
         opportunity.opportunity_index !== opportunityOrdinal ||
@@ -398,7 +414,7 @@ if (acceptedTerminalDescendants !== 0) {
 }
 
 const result = {
-  schema: "line.repair-axis-branch-bound-analysis.v4",
+  schema: "line.repair-axis-branch-bound-analysis.v5",
   generated_at: new Date().toISOString(),
   scope: {
     mode,
@@ -408,7 +424,9 @@ const result = {
     sources: perSource.size,
     interpretation: mode === "audit"
       ? "Behavior-neutral map of strict dominance and graded suffix recovery pressure. Recovery pressure is a burden, not a proof of failure."
-      : "Live repair-only pruning of mathematically dominated subtrees; paired score evidence is compact screening, not promotion.",
+      : mode === "incomplete-abort"
+      ? "Live repair-attempt abort on a committed authored-observation deficit; paired score evidence is compact screening, not promotion."
+      : "Live repair-only strict-bound disposition; paired score evidence is compact screening, not promotion.",
   },
   pairing_notes: pairingNotes,
   exact_behavior_identity: mode === "audit",
@@ -429,6 +447,7 @@ const result = {
     dominated_terminal_observations: terminalObservations,
     pruned_subtrees: prunedSubtrees,
     attempts_aborted_by_bound: abortedAttempts,
+    attempts_aborted_by_incomplete_prefix: incompletePrefixAbortedAttempts,
     dominated_subtrees_with_queued_alternative: opportunitiesWithAlternative,
     frontier_return_subtrees: frontierReturns,
     terminal_descendant_subtrees: terminalDescendants,

@@ -17,7 +17,7 @@ import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 import { LEAF_KEY_FLOAT_EPSILON } from "./register.ts";
 
 export const REPAIR_AXIS_BRANCH_BOUND_SCHEMA =
-  "line.repair-axis-branch-bound.v4" as const;
+  "line.repair-axis-branch-bound.v5" as const;
 
 export const REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS = [
   0.25,
@@ -26,7 +26,12 @@ export const REPAIR_SUFFIX_RECOVERY_PRESSURE_THRESHOLDS = [
   1,
 ] as const;
 
-export type RepairAxisBranchBoundMode = "off" | "audit" | "prune" | "abort";
+export type RepairAxisBranchBoundMode =
+  | "off"
+  | "audit"
+  | "prune"
+  | "abort"
+  | "incomplete-abort";
 
 export type RepairAxisBranchBoundOpportunity = {
   opportunity_index: number;
@@ -111,6 +116,7 @@ export type RepairAxisBranchBoundAttempt = {
   dominated_selected_nodes: number;
   pruned_subtrees: number;
   aborted_by_bound: boolean;
+  aborted_by_incomplete_prefix: boolean;
   terminal_reached: boolean;
   accepted_alternative: boolean;
   terminal_gap_index: number | null;
@@ -147,6 +153,7 @@ type InternalAttempt<Node> = {
 
 export type RepairAxisBranchBoundAssessment = {
   dominated: boolean;
+  incompletePrefix: boolean;
   prune: boolean;
   abort: boolean;
   optimisticAxisQualityUpper: number;
@@ -159,20 +166,23 @@ export function parseRepairAxisBranchBoundMode(
   const audit = env.LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT;
   const prune = env.LR_REPAIR_AXIS_BRANCH_BOUND;
   const abort = env.LR_REPAIR_AXIS_ATTEMPT_BOUND;
+  const incompleteAbort = env.LR_REPAIR_INCOMPLETE_PREFIX_ATTEMPT_BOUND;
   for (const [name, value] of [
     ["LR_REPAIR_AXIS_BRANCH_BOUND_AUDIT", audit],
     ["LR_REPAIR_AXIS_BRANCH_BOUND", prune],
     ["LR_REPAIR_AXIS_ATTEMPT_BOUND", abort],
+    ["LR_REPAIR_INCOMPLETE_PREFIX_ATTEMPT_BOUND", incompleteAbort],
   ] as const) {
     if (value !== undefined && value !== "" && value !== "0" && value !== "1") {
       throw new Error(`${name} must be 0 or 1; got ${JSON.stringify(value)}`);
     }
   }
-  if (prune === "1" && abort === "1") {
+  if ([prune, abort, incompleteAbort].filter((value) => value === "1").length > 1) {
     throw new Error(
-      "LR_REPAIR_AXIS_BRANCH_BOUND and LR_REPAIR_AXIS_ATTEMPT_BOUND are mutually exclusive",
+      "repair branch, strict-attempt, and incomplete-prefix bounds are mutually exclusive",
     );
   }
+  if (incompleteAbort === "1") return "incomplete-abort";
   if (abort === "1") return "abort";
   if (prune === "1") return "prune";
   if (audit === "1") return "audit";
@@ -202,7 +212,10 @@ export function assessRepairAxisDominance(input: {
   prefixAxisCount: number;
   totalAuthoredAxisCount: number;
   incumbentAxisQuality: number;
-}): Omit<RepairAxisBranchBoundAssessment, "prune" | "abort"> {
+}): Omit<
+  RepairAxisBranchBoundAssessment,
+  "incompletePrefix" | "prune" | "abort"
+> {
   if (
     !Number.isSafeInteger(input.prefixAxisCount) || input.prefixAxisCount < 0 ||
     input.prefixAxisCount > input.totalAuthoredAxisCount
@@ -270,6 +283,7 @@ export class RepairAxisBranchBoundController<Node> {
       dominated_selected_nodes: 0,
       pruned_subtrees: 0,
       aborted_by_bound: false,
+      aborted_by_incomplete_prefix: false,
       terminal_reached: false,
       accepted_alternative: false,
       terminal_gap_index: null,
@@ -437,6 +451,7 @@ export class RepairAxisBranchBoundController<Node> {
         });
       }
     }
+    const incompletePrefix = input.prefixAxisCount < input.incumbentPrefixAxisCount;
     const assessment = assessRepairAxisDominance({
       prefixAxisSse: input.prefixAxisSse,
       prefixAxisCount: input.prefixAxisCount,
@@ -471,10 +486,16 @@ export class RepairAxisBranchBoundController<Node> {
       }
     }
     const prune = this.mode === "prune" && assessment.dominated && input.prunable;
-    const abort = this.mode === "abort" && assessment.dominated && input.prunable;
+    const abort = input.prunable && (
+      (this.mode === "abort" && assessment.dominated) ||
+      (this.mode === "incomplete-abort" && incompletePrefix)
+    );
     if (prune) record.pruned_subtrees++;
-    if (abort) record.aborted_by_bound = true;
-    return { ...assessment, prune, abort };
+    if (abort && this.mode === "abort") record.aborted_by_bound = true;
+    if (abort && this.mode === "incomplete-abort") {
+      record.aborted_by_incomplete_prefix = true;
+    }
+    return { ...assessment, incompletePrefix, prune, abort };
   }
 
   finishAttempt(input: {

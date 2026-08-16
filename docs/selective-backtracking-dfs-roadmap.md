@@ -3301,3 +3301,31 @@ attempt abort: end the self-contained repair episode and let the existing
 controller recompute target, anchor, cost profile, and seed from the unchanged
 completed incumbent. Do not mix this with recovery pressure, candidate breadth,
 or a multi-budget sweep.
+
+### Frozen incomplete-prefix attempt challenger
+
+`LR_REPAIR_INCOMPLETE_PREFIX_ATTEMPT_BOUND=1` is a separate live mode. On the
+first nonterminal repair checkpoint with fewer committed authored-axis
+observations than the complete incumbent at the same horizon, process the
+already-selected prefix normally but suppress all descendant construction,
+end that repair episode without inventing a terminal, and return to the
+independent repair controller. Existing target, anchor, estimator, breadth,
+register, score, and specification logic are unchanged. The scalar recovery
+pressure and strict axis bound do not trigger this mode.
+
+First rerun the known seed-222 eight-source row as a mechanics smoke. Require
+all cells valid, exactly one incomplete-prefix abort in the known
+`frontier_dense_recovery` cell, no terminal attributed to the aborted episode,
+and a later independently recomputed repair episode. If mechanics close, use a
+fresh 32-cell panel at 750k with seeds 226-229. Canonical evaluation is allowed
+only if that fresh panel remains fully valid, has positive total score movement,
+has at least three positive seed blocks, no cell loses 20 points, and exercises
+at least four aborts across two sources. Otherwise close or redesign the
+categorical state; never add a score-selected source exception.
+
+| Date | Milestone | Status | Evidence |
+|---|---|---|---|
+| 2026-08-16 | Whole-lineage incomplete-prefix audit | complete | 32/32 exact; 14 nonterminal lineages, 13 frontier returns, zero terminal descendants, 96,175 charged frames in one failed attempt |
+| 2026-08-16 | Explicit attempt-abort mode and mechanical tests | in progress | Separate environment; independent repair controller remains owner after abort |
+| 2026-08-16 | Known-activity mechanics smoke | pending | Seed 222, eight sources, 750k |
+| 2026-08-16 | Fresh continuation panel | pending | Seeds 226-229 only if mechanics close |

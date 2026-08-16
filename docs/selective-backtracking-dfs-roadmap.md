@@ -3599,4 +3599,4 @@ standing canonical 750k probability ladder. Do not run a multi-budget sweep.
 
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
-| 2026-08-16 | Repair-only pool-value scope and gate frozen | in progress | Distilled initial/resumed; unchanged conditional pool value only inside repair |
+| 2026-08-16 | Repair-only pool-value scope and gate frozen | complete: ready for fresh panel | Pure lane-role proof plus 67 focused tests; distilled initial/resumed, unchanged conditional pool value only inside repair |

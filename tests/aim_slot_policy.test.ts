@@ -1,5 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { orderExploitThenExplore } from
+import {
+  orderExploitThenExplore,
+  primaryAimImpactArtifact,
+} from
   "../scripts/v0/optimizer/aim_slot_policy.ts";
 
 type Choice = Readonly<{ id: string; exploit: number; explore: number }>;
@@ -32,5 +35,18 @@ describe("aim exploit/explore slot ordering", () => {
     expect(orderExploitThenExplore([], exploit, explore, true)).toEqual([]);
     expect(orderExploitThenExplore([choices[2]], exploit, explore, true))
       .toEqual([choices[2]]);
+  });
+});
+
+describe("repair-only aim impact scope", () => {
+  test("uses the deployed scorer outside repair and pool value inside it", () => {
+    expect(primaryAimImpactArtifact("pool-value-repair", false)).toBe("distilled");
+    expect(primaryAimImpactArtifact("pool-value-repair", true)).toBe("pool-value");
+  });
+
+  test("does not change the primary role of the other policies", () => {
+    expect(primaryAimImpactArtifact("distilled", true)).toBe("distilled");
+    expect(primaryAimImpactArtifact("pool-value", false)).toBe("pool-value");
+    expect(primaryAimImpactArtifact("requested-pool-second", true)).toBe("distilled");
   });
 });

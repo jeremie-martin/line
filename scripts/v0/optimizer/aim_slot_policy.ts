@@ -17,3 +17,27 @@ export function orderExploitThenExplore<T>(
   remaining.sort(compareExplore);
   return [exploit, ...remaining];
 }
+
+export type AimModelImpactPolicy =
+  | "off"
+  | "full"
+  | "distilled"
+  | "pool-value"
+  | "pool-value-repair"
+  | "requested-pool-second";
+
+export type AimPrimaryImpactArtifact = "off" | "full" | "distilled" | "pool-value";
+
+/** Resolve the primary scorer without inspecting any search state beyond the
+ * explicit lane bit. In particular, repair-only pool value is byte-identical
+ * to the deployed scorer everywhere outside an independent repair attempt. */
+export function primaryAimImpactArtifact(
+  policy: AimModelImpactPolicy,
+  repairLaneActive: boolean,
+): AimPrimaryImpactArtifact {
+  if (policy === "pool-value-repair") {
+    return repairLaneActive ? "pool-value" : "distilled";
+  }
+  if (policy === "requested-pool-second") return "distilled";
+  return policy;
+}

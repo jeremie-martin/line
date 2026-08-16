@@ -141,7 +141,11 @@ import {
   airDeliverabilityAsk,
 } from "./air_policy.ts";
 import type { Gap } from "../types.ts";
-import { orderExploitThenExplore } from "./aim_slot_policy.ts";
+import {
+  type AimModelImpactPolicy,
+  orderExploitThenExplore,
+  primaryAimImpactArtifact,
+} from "./aim_slot_policy.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
 // Keep one top-level ablation switch; production aim policy constants are frozen.
@@ -173,13 +177,6 @@ const aimModelImpactFeasibilityEnv = compileScopedEnv(
  * knob vectors are proposed, but neither the probe grid nor proposal count.
  * `off` and the much heavier full readiness forest remain explicit diagnostic
  * ablations. */
-type AimModelImpactPolicy =
-  | "off"
-  | "full"
-  | "distilled"
-  | "pool-value"
-  | "requested-pool-second";
-
 function aimModelImpactPolicy(): AimModelImpactPolicy {
   const value = aimModelImpactFeasibilityEnv();
   if (value === undefined || value === "" || value === "distilled") {
@@ -187,9 +184,12 @@ function aimModelImpactPolicy(): AimModelImpactPolicy {
   }
   if (value === "0" || value === "off") return "off";
   if (value === "1" || value === "full") return "full";
-  if (value === "pool-value" || value === "requested-pool-second") return value;
+  if (
+    value === "pool-value" || value === "pool-value-repair" ||
+    value === "requested-pool-second"
+  ) return value;
   throw new Error(
-    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, distilled, pool-value, or requested-pool-second; got ${value}`,
+    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, distilled, pool-value, pool-value-repair, or requested-pool-second; got ${value}`,
   );
 }
 
@@ -1317,10 +1317,13 @@ function modeledImpactFeasibilities(
     generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
   };
   const impactPolicy = aimModelImpactPolicy();
-  const primary = impactPolicy === "distilled" ||
-      impactPolicy === "requested-pool-second"
+  const primaryArtifact = primaryAimImpactArtifact(
+    impactPolicy,
+    aimRepairLaneActive,
+  );
+  const primary = primaryArtifact === "distilled"
     ? scoreDistilledAimImpactFeasibility(input)
-    : impactPolicy === "pool-value"
+    : primaryArtifact === "pool-value"
     ? scoreAimImpactPoolValue(input)
     : scoreImpactFeasibility(input);
   const exploration = impactPolicy === "requested-pool-second"

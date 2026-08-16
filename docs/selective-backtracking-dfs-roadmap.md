@@ -3599,4 +3599,21 @@ standing canonical 750k probability ladder. Do not run a multi-budget sweep.
 
 | Date | Milestone | Status | Evidence |
 |---|---|---|---|
-| 2026-08-16 | Repair-only pool-value scope and gate frozen | complete: ready for fresh panel | Pure lane-role proof plus 67 focused tests; distilled initial/resumed, unchanged conditional pool value only inside repair |
+| 2026-08-16 | Repair-only pool-value scope and gate frozen | complete: exact arm closed | First-terminal identity is exact in 32/32; final score is -31.7 and seven improve versus 20 worsen |
+
+The repair-only panel proves the scope and rejects the value rule. Every first-
+terminal frame, first-terminal track hash, and initial-work total is exact, and
+all 32 pairs remain valid. Repair changes 27 final tracks, but the score sum is
+-31.7 (-0.99 per cell), with seven better, 20 worse, and five tied. Only
+amplitude mosaic has a positive source mean, by +0.02; all other source means
+are negative. The largest cell loss is a bounded -8.8, so the arm is safe but
+coherently unhelpful. Do not take it to canonical evaluation.
+
+Together, the three live scopes close this searched-pool model family. The
+conditional model was broad-positive but failed its frozen tail guard; the
+stability-preserving requested-pool second slot was negative on fresh data;
+and conditional pool value inside repair was safely negative. Retain the
+streaming offline analyses and result semantics, but remove every rejected
+runtime artifact, environment mode, ordering helper, and mode-specific test.
+Production remains the accepted distilled controller with no dormant pool-
+value compiler path.

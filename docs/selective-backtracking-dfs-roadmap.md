@@ -3427,6 +3427,7 @@ before the standing canonical ladder, and do not run a multi-budget sweep.
 |---|---|---|---|
 | 2026-08-16 | Pool-value hypothesis and offline gate frozen | complete | Best-quartile label; >=27 attempts; incumbent-prefix + 16 residual trees; no compiler behavior |
 | 2026-08-16 | Streaming offline assay | complete: live arm licensed | 4,413 validation contexts, all 44 sources improve tail MSE; every frozen gate passes |
+| 2026-08-16 | Explicit fixed-count live arm | in progress | Default remains distilled; artifact prefix and environment selection are mechanically tested |
 
 The streaming assay reconciles all 121,741 impact-authored training rows to
 their raw contexts and finds 13,124 contexts with at least 27 attempts (8,711
@@ -3446,3 +3447,17 @@ Incumbent top-one agreement is 82.13%, top-two overlap is 94.96%, the serialized
 incumbent prefix is bit-exact, and candidate export error is 3.4e-16. All frozen
 offline gates pass. Proceed to one explicit fixed-count live arm; do not alter
 the label, tree count, or scope from these outcomes.
+
+Freeze the live directional screen before running it. Compare the explicit
+pool-value arm with commit `29118ded` on seeds 230--233, budget 750,000, and
+these eight sources: `believer_56_6s`, `believer_impact_56s`,
+`frontier_dense_recovery`, `frontier_low_air_endurance`,
+`regression_amplitude_mosaic`, `regression_transition_mosaic`,
+`rising_switch`, and `split_signal`. This is 32 paired cells, not a substitute
+for the canonical benchmark. Require 32/32 valid pairs, positive aggregate
+movement, positive mean movement in at least three of four seed blocks and at
+least four of eight source blocks, no cell loss worse than 20 points, and at
+least eight score-changing pairs. Close the exact arm if any gate fails. If all
+pass, make the arm the proposed default and use only the standing canonical
+750k probability ladder for promotion. Do not tune the residual, sources,
+seeds, or gate from this result, and do not run the multi-budget sweep.

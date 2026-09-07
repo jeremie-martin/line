@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { compileNativeMotion as compileHandoff } from "../scripts/v0/optimizer/native_motion.ts";
+import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import type { Spec } from "../scripts/v0/types.ts";
 import { scheduleNativeContacts } from "../scripts/v0/optimizer/native_motion_schedule.ts";
 const spec: Spec = { duration: 2, preroll: 5, jitter: 0,
@@ -8,15 +8,18 @@ const spec: Spec = { duration: 2, preroll: 5, jitter: 0,
 
 it("physically completes a final-frame contact and preserves deterministic compile state", () => {
   const first = compileHandoff(spec, 17, { budget: 25000 });
+  expect(first.track.lines.length).toBeGreaterThan(0);
+  expect(first.track.lines.every(l => l.type === 0)).toBe(true);
   expect(first.report.contacts.every(c => c.status === "hit")).toBe(true);
   expect(first.report.off_beat_landings).toHaveLength(0);
   expect(first.report.terminus.reason).toBe("endOfSpec");
   expect(first.stats.sim_frames).toBeLessThanOrEqual(25000);
   expect(first.budgetTelemetry?.compile.total_spent_frames).toBe(first.stats.sim_frames);
   const manual = compileHandoff({ ...spec, start: { vx: 4.5, vy: 0, y: -160 } }, 18, { budget: 25000 });
+  expect(manual.track.lines.every(l => l.type === 0)).toBe(true);
   expect(manual.track.startPosition).toEqual({ x: 0, y: -160 });
   expect(manual.track.riders[0].startVelocity).toEqual({ x: 4.5, y: 0 });
-  const repeated = compileHandoff(spec, 17, { budget: 25000, budgetTelemetry: "off" });
+  const repeated = compileHandoff(spec, 17, { budget: 25000, budgetTelemetry: "off", searchPolicyBudget: undefined, repairBudget: undefined, resumePolicy: undefined });
   expect(repeated.track).toEqual(first.track);
   expect(repeated.report).toEqual(first.report);
   expect(repeated.stats.sim_frames).toBe(first.stats.sim_frames);

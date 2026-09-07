@@ -1,0 +1,22 @@
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
+import { developmentCases } from "../../benchmark/v2/catalog.ts";
+import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
+import { applyJolt } from "../produce/seed.ts";
+import { compileHandoff } from "../v0/optimizer/handoff.ts";
+const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
+const sourceId = arg("source")!, reference = arg("reference")!, out = arg("out")!;
+const bytes = readFileSync(reference), hash = (b: string | Buffer) => createHash("sha256").update(b).digest("hex");
+if (hash(bytes) !== readFileSync(reference + ".sha256", "utf8").split(/\s/)[0]) throw new Error("reference checksum mismatch");
+const expected = JSON.parse(bytes.toString());
+const spec = applyJolt(developmentCases.find(e => e.case.metadata.id === sourceId)!.case.spec, benchmarkPolicy.transform.joltMs);
+const actual = compileHandoff(spec, expected.seed, { budget: 750000, budgetTelemetry: "summary" });
+if (JSON.stringify(actual.report) !== JSON.stringify(expected.report)) throw new Error("report changed");
+if (JSON.stringify(actual.track.lines) !== JSON.stringify(expected.track.lines)) throw new Error("geometry changed");
+if (actual.stats.sim_frames !== expected.stats.sim_frames) throw new Error(`metering changed: ${actual.stats.sim_frames} vs ${expected.stats.sim_frames}`);
+if (actual.budgetTelemetry?.compile.total_spent_frames !== actual.stats.sim_frames || actual.budgetTelemetry.compile.hard_overrun_frames !== 0) throw new Error("telemetry metering mismatch");
+if (actual.track.lines.some(l => l.type !== 0)) throw new Error("non-normal line output");
+const report = { sourceId, referenceSha256: hash(bytes), frames: actual.stats.sim_frames, reportExact: true, geometryExact: true,
+  telemetryValid: true, trackSha256: hash(JSON.stringify(actual.track)), budgetTelemetry: actual.budgetTelemetry };
+const body = JSON.stringify(report) + "\n"; writeFileSync(out, body); writeFileSync(out + ".sha256", hash(body) + "\n");
+console.log(JSON.stringify({ ...report, budgetTelemetry: undefined }));

@@ -15,15 +15,17 @@ const budget = Number(arg("budget") ?? 750000), seed = Number(arg("seed") ?? 260
 const spec = applyJolt(entry.case.spec, benchmarkPolicy.transform.joltMs);
 const identity = compilerCandidateIdentity("wasm");
 const started = performance.now();
-const result = compileNormalMotion(spec, seed, { budget, budgetTelemetry: "summary" });
+const diagnostics: unknown[] = [];
+const result = compileNormalMotion(spec, seed, { budget, budgetTelemetry: "summary",
+  onDiagnostic: value => { if (diagnostics.length < 4) diagnostics.push(value); } });
 if (result.track.lines.some(l => l.type !== 0)) throw new Error("acceleration or scenery geometry in normal-only study");
 if (result.stats.sim_frames > budget) throw new Error("hard budget overrun");
 const suite = JSON.parse(readFileSync("benchmark/v2/compat/suite-manifest.json", "utf8"));
 const contract = buildAxisContract(spec, Object.keys(benchmarkPolicy.componentWeights) as any);
 const score = scoreV2Report(result.report, spec.contacts.length, contract, suite);
-const record = { schema: "line.direct-normal-study.v1", researchOnly: true, sourceId, seed, budget,
+const record = { schema: "line.direct-normal-study.v1", researchOnly: true, sourceId, seed,
   candidateFingerprint: identity.candidateFingerprint, compilerSourceFingerprint: identity.compilerSourceFingerprint,
-  elapsedMs: performance.now() - started, score, ...result };
+  elapsedMs: performance.now() - started, score, diagnostics, ...result };
 const body = JSON.stringify(record) + "\n";
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, body); writeFileSync(out + ".sha256", createHash("sha256").update(body).digest("hex") + "\n");

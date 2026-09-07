@@ -30,3 +30,46 @@ The ordinary public entry point currently uses the previous normal compiler.
 The packaged exact cache/observation backend remains available for research;
 none of its physics differs from the frozen judge. No normal-line candidate
 has yet been evaluated or promoted.
+
+## First physical results
+
+A type-0 projection controller sustains 96 contacts across 2,400 fixture frames
+in 181,729 charged frames, all intact and exactly reproduced by the frozen judge.
+The first flat fixture fails after four frames; projecting inadmissible requested
+forces into the actual one-sided normal-collision domain extends it to 300.
+These are feasibility checks, not benchmark scores.
+
+The initial full development pass has 41 valid sources, two startup failures,
+and one telemetry exception. Counting the exception as a failed source gives a
+567.2234 discovery aggregate. The startup failures are aligned rider points:
+a horizontal normal plane can project another point up to ten units behind it,
+so making a line narrow does not alone isolate it. Small physical tilts separate
+the tangent coordinates of nearby points; no masks or engine changes are used.
+The two repaired sources score 690.1249 and 684.8488 with all contacts valid.
+
+The telemetry exception occurs when the final full replay completes the authored
+track even though the construction loop stopped early. Recording that measured
+completion consistently fixes the attribution; the recorder and benchmark
+accounting are unchanged. The repaired source scores 722.7296, valid, within
+749,774 frames. The new full pass measures all sources under the same correction.
+
+The first four normal-line exploratory scores were 655.8880 (amplitude tides),
+586.5796 (dense recovery), 676.8371 (transition mosaic), and 458.0052 (impact
+Believer), all valid. Believer's large speed residual makes it a useful case for
+studying the motion plan's physical feasibility. These are discovery runs on
+seed 260907011, not a canonical comparison. Raw artifacts, checksums, and plans
+are under `generated/benchmark-v2/normal-line-650/`.
+
+The corrected full 44-source discovery pass reaches **662.5888**, **44/44 valid**
+at actual 750k budgets. All exported lines are type 0. Plan SHA:
+`5c0f78771c4b79654d2292c601ffc57734e4ad00a90d4fb882d9b99826f89ffa`.
+This remains an exploratory reading until the public implementation passes the
+canonical comparison. Public manual-start replay reproduces geometry, reports,
+and charged frames exactly. Twelve focused integration/identity/CLI tests and
+61 broader optimizer/budget tests pass. Two full tracks also exactly match the
+published JavaScript engine, including every raw trajectory frame and event.
+
+The long-tail open-hook case spends most of its budget attempting support after
+the last authored impact window even though its retained physical track already
+completes the spec. This is a compiler efficiency defect to address before the
+canonical comparison. The verified 662.5888 implementation is retained in git.

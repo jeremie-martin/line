@@ -28,10 +28,36 @@ export function pointwiseNormalProjection(points: readonly Point[],
       const correction = (dot + 0.0001) / Math.max(1e-9, vx * vx + vy * vy);
       dx -= correction * vx; dy -= correction * vy;
     }
-    const magnitude = Math.hypot(dx, dy);
-    if (!(magnitude > 0.00001)) continue;
-    const nx = -dx / magnitude, ny = -dy / magnitude, tx = ny, ty = -nx;
+    let magnitude = Math.hypot(dx, dy);
+    // A scheduled contact still needs a physical plane when ballistic motion
+    // already matches the target. Use a tiny admissible projection, then let
+    // the real collision/contact and prefix checks decide whether it works.
+    if (!(magnitude > 0.00001)) {
+      const pace = Math.hypot(vx, vy);
+      if (!(pace > 0)) continue;
+      dx = -vx / pace * 0.0001; dy = -vy / pace * 0.0001;
+      magnitude = 0.0001;
+    }
     const penetration = Math.min(9.5, magnitude);
+    let direction: { nx: number; ny: number; tx: number; ty: number } | null = null;
+    // A normal plane can project every point up to ten units behind it. Narrow
+    // width alone cannot separate vertically aligned sled points. Small physical
+    // tilts separate their tangent coordinates without collision masks.
+    for (const turn of [0, 0.0001, -0.0001, 0.0003, -0.0003, 0.001, -0.001, 0.003, -0.003, 0.01, -0.01, 0.03, -0.03]) {
+      const nx = (-dx * Math.cos(turn) + dy * Math.sin(turn)) / magnitude;
+      const ny = (-dx * Math.sin(turn) - dy * Math.cos(turn)) / magnitude;
+      const tx = ny, ty = -nx;
+      if (nx * vx + ny * vy <= 0.000001) continue;
+      const overlaps = points.some((p, i) => {
+        if (cluster.includes(i)) return false;
+        const perp = (p.x - x) * nx + (p.y - y) * ny + penetration;
+        const along = (p.x - x) * tx + (p.y - y) * ty;
+        return perp > 0 && perp < 10 && Math.abs(along) <= width / 2 + 0.000001;
+      });
+      if (!overlaps) { direction = { nx, ny, tx, ty }; break; }
+    }
+    if (!direction) continue;
+    const { nx, ny, tx, ty } = direction;
     const cx = x - nx * penetration, cy = y - ny * penetration;
     lines.push({ id: idStart + lines.length, type: 0,
       x1: cx - tx * width / 2, y1: cy - ty * width / 2,

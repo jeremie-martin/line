@@ -15,7 +15,8 @@ import type { CompileCheckpoint } from "./types.ts";
 const Engine: any = NativeEngine;
 const hash = (b: string) => createHash("sha256").update(b).digest("hex");
 export function compileNormalMotion(spec: Spec, seed: number,
-  options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel; onProgress?: (frame: number, frames: number) => void }): CompileCheckpoint {
+  options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel; onProgress?: (frame: number, frames: number) => void;
+    onDiagnostic?: (value: unknown) => void }): CompileCheckpoint {
   const budget = options.budget, poseGain = 0.15, feedbackImpact = true;
   if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(budget) || budget <= 0) throw new Error("invalid native compiler input");
   validateSpec(spec);
@@ -131,7 +132,7 @@ try {
         const error = Object.values(result.points).reduce((sum: number, p: any, i) => sum + (p.vx - pointTargets[i].x) ** 2 + (p.vy - pointTargets[i].y) ** 2, 0) as number;
         if (!best || error < best.error) best = { engine: child, lines: added, error, iteration, width, forceScale, choice };
       }
-      if (!best) { failure = { frame, failures }; const retry = rollback(); if (retry !== null) { frame = retry; continue; } break; }
+      if (!best) { failure = { frame, failures }; options.onDiagnostic?.({ failure, desired, trace, future }); const retry = rollback(); if (retry !== null) { frame = retry; continue; } break; }
       const lineStart = lines.length, oldLineage = lineage;
       engine = best.engine; lines.push(...best.lines); lineage = hash(lineage + JSON.stringify(best.lines));
       rows.push({ frame, lines: best.lines.length, error: best.error, lineStart, prefixKey, lineage: oldLineage, choice: best.choice });
@@ -160,14 +161,15 @@ const track = buildTrackJson(lines, duration + 20, { position: startPosition, ve
 const total = getPhysicsFrameCount() - started, exhausted = failure?.reason === "budget";
 const valid = report.contacts.every(c => c.status === "hit") && !report.off_beat_landings.length && report.terminus.reason === "endOfSpec";
 recorder.setActiveCandidateWork({ actualCandidateSamples: candidateSamples, viableCandidates, candidateSamplesByStream: { normal: candidateSamples } });
-recorder.recordEvaluation({ totalSpentFrames: total, gapIndex: rows.length === motionDuration ? gaps.length : gaps.findIndex(g => g.endFrame >= rows.length),
-  terminal: rows.length === motionDuration, origin: "frontier", firstTimeSearchNode: true, terminalTrackKey: hash(JSON.stringify(track)), registerImproved: valid });
+const terminal = valid || rows.length === motionDuration;
+recorder.recordEvaluation({ totalSpentFrames: total, gapIndex: terminal ? gaps.length : gaps.findIndex(g => g.endFrame >= rows.length),
+  terminal, origin: "frontier", firstTimeSearchNode: true, terminalTrackKey: hash(JSON.stringify(track)), registerImproved: valid });
 recorder.endEpisode(total, exhausted ? "budget_capture" : "compile_finished");
 recorder.recordSegment("initial_search", 0, constructionFrames, "construction_complete", episode);
 recorder.recordSegment("finalization", constructionFrames, total, "cold_replay_complete", episode);
 const costs = gaps.map(g => report.gaps.find(r => r.gap_index === g.index)?.axes)
   .map(axes => axes ? Object.values(axes).reduce((sum, axis) => sum + (axis?.error ?? 0) ** 2, 0) : null);
-return { budget, track, report, budgetTelemetry: recorder.snapshot(total, exhausted, valid ? total : null, valid ? total : null),
+return { budget, track, report, budgetTelemetry: recorder.snapshot(total, exhausted, terminal ? total : null, valid ? total : null),
   stats: { actual_candidate_samples: candidateSamples, viable_candidate_samples: viableCandidates,
     engine_rebuilds: backtracks + 2, gap_commits: report.contacts.filter(c => c.status === "hit").length,
     gap_backtracks: backtracks, validation_retries: 0, polish_iterations: 0,

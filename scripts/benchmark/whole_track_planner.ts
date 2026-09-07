@@ -215,10 +215,37 @@ function worker(source: any, plan: any, planSha256: string): void {
               if (a && achieved !== undefined) projected[axis] += (a.target - achieved) ** 2 - a.error ** 2;
             }
           }
+          let future: any = null;
+          if (plan.lookahead === 2 && next && originals[next.index]) {
+            const nextFit = originals[next.index];
+            const nextActual = frameAt(child, next.endFrame);
+            const nextPacket = packetAt(child, next.endFrame - 2);
+            for (const mode of ["translate", "similarity"] as const) {
+              const nextLines = transportCatch(nextFit.lines, references[next.index]!, nextActual, mode);
+              const nextEngine = child.addLine(nextLines.map(createLineFromJson));
+              if (packetAt(nextEngine, next.endFrame - 2) !== nextPacket) continue;
+              const look = local(nextEngine, next.index, nextLines);
+              if (!look.valid) continue;
+              const fullNext = { ...sse };
+              const nextReport = savedReport.gaps.find((g: any) => g.gap_index === next.index);
+              for (const axis of Object.keys(counts)) {
+                const a = nextReport?.axes[axis], achieved = look.achieved[axis as keyof typeof look.achieved];
+                if (a && achieved !== undefined) fullNext[axis] += (a.target - achieved) ** 2 - a.error ** 2;
+              }
+              const v = value(fullNext);
+              if (future === null || v < future.value) future = { value: v, sse: fullNext, mode };
+            }
+            if (future) Object.assign(projected, future.sse);
+            else {
+              const axis = counts.impact ? "impact" : Object.keys(counts)[0];
+              projected[axis] += 0.25;
+            }
+          }
           const node: Node = { engine: child, fits: [...parent.fits, { ...fit, lines }], sse, value: value(projected),
             original: !!candidate.original, id: serial++, parent: parent.id, action: candidate.action, preview: measured.preview };
           pool.push(node);
-          stepTrials.push({ id: node.id, parent: node.parent, action: node.action, value: node.value, original: node.original });
+          stepTrials.push({ id: node.id, parent: node.parent, action: node.action, value: node.value,
+            future: plan.lookahead === 2 ? future : undefined, original: node.original });
         }
       }
       const original = pool.find(n => n.original);
@@ -281,6 +308,7 @@ if (process.argv.includes("--plan")) {
     materials: arg("materials") !== "off", programs: arg("programs") !== "off", preview: arg("preview") !== "off",
     selection: arg("selection") ?? "parent",
     targetPrograms: arg("target-programs") === "on",
+    lookahead: Number(arg("lookahead") ?? 1),
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

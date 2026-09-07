@@ -154,6 +154,78 @@ intervention result; no new source-default compiler arm is licensed yet.
 
 ## Independent evidence schedule
 
+### Stage 2 declaration — release-state-conditioned contact response
+
+Frozen before intervention results on 2026-09-07. Reuse the 44 checksum-bound
+saved baseline tracks; this experiment runs **zero compiler searches**. Select
+two eligible contacts per source nearest one-third and two-thirds of track
+time, without replacement. Eligibility requires at least 0.05 impact
+undershoot, at least three connected solid internal joints, and enough time
+before the next authored contact to observe the full impact episode. The
+resulting plan contains **88 exact contact states**. No source is replaced
+after reading intervention results.
+
+The geometric basis displaces existing internal joints along their local
+normals, moving both incident endpoints together. Original chain endpoints,
+line count/order/material/side/extension flags, and all other geometry stay
+fixed. Use all joints up to twelve, then twelve equally spaced joint indices.
+Controls are in entering-speed frame-displacement units. Central probes at
+±0.001 and ±0.0005 estimate impulse and the complete ten-point release packet:
+current position, previous position, and velocity, 60 continuous components.
+Read release at min(H+12, next authored contact−2). Reject a derivative column
+if a probe changes the exact H−1 packet, authored contact frame or integrity,
+or if the two central derivatives disagree by more than 25% in vector norm.
+Inactive columns remain recorded and unused.
+
+Compare two fixed linear responses to the same request, 25% of the retained
+raw impulse deficit: (1) minimum control norm with no release penalty, and
+(2) minimum release-state norm plus a 1e−6 control ridge. Both obey the same
+maximum per-joint displacement of 0.1 entering-speed frames. Apply one step;
+report a trust-region-limited request honestly. Report singular values,
+conditioning, predicted versus achieved impulse, actual release residual,
+exact-prefix preservation, current/next axes, and the entire unchanged suffix's
+validity and score. Every failed suffix remains in the report. Only a
+prefix-preserving, valid, positive-impulse, positive-complete-score track is a
+physical success; no stitched local score or fallback counts as a success.
+
+Three solver invariants passed before execution: exploitation of a known
+release-null direction, the unavoidable cost of a fully coupled direction, and
+honest bounded control when the linear request exceeds the trust region.
+First require the unmodified saved-track replay to reproduce every targeted
+axis and its complete score. A failed integrity check stops the source rather
+than being called physical evidence. This is one fixed geometry-response
+mechanism with its unconstrained control, not a new controller knob sweep.
+
+**Stage 2 result.** All 44 unmodified saved tracks reproduce their complete
+scores and every targeted axis exactly. Of 736 geometric coordinates, 531 have
+stable nonzero derivatives, 117 are inactive, 86 fail step-halving agreement,
+and two alter contact or prefix. Both arms produce commands in 84/88 states.
+Neither arm retains a valid complete suffix in any state. This closes the
+one-step implementation, not the existence of a constrained physical response.
+
+The release-conditioned model predicts mean normalized release L2 0.0906 but
+delivers 0.9208; its median is 0.0115 predicted versus 0.5986 measured. Mean raw
+impulse movement is −0.3613, despite the requested positive direction. The
+unconstrained control delivers −0.0217 mean raw movement and release L2 0.7244.
+The primary failure is extrapolation beyond the measured local response, before
+a claim about useful continuation can be established. The solve must not be
+called continuation-preserving on these results.
+
+Cost: zero compiler executions; 4,326,539 replayed physics frames and 30.37
+summed worker seconds. Plan SHA-256
+`2ec039466bce1ec312b2766a72ac9b097536cb638c2951ce7b64ca238b764e61`;
+checksummed outputs are in
+`generated/benchmark-v2/impact-delivery-650-new/release-response/`.
+No generated archive is committed. Three mathematical invariant checks and all
+44 exact baseline replay checks pass; the existing repository type errors do
+not include either new study file.
+
+```bash
+python scripts/benchmark/impact_release_solve.py --self-test
+LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan
+LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --jobs=8
+```
+
 These new literal seeds are declared before the first new compile. Source
 membership is the entire frozen 44-case development catalog; bounded component
 state subsets must be selected by continuous physical/authored inputs before

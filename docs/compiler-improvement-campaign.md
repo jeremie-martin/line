@@ -51,6 +51,16 @@ tracks and frame decompositions are retained for a release-state-constrained
 physical response study. The baseline remains 607.2582; no governed candidate
 experiment or promotion has occurred in this restart.
 
+The first release-state-conditioned response assay reuses 88 contacts from
+those saved tracks and spends no compiler searches. Both the impulse-only
+control and the release-conditioned one-step proposal produce zero valid full
+suffixes. The conditioned release prediction is poor (mean normalized L2
+0.0906 predicted versus 0.9208 actual), so this closes the large one-step
+implementation without proving physical impossibility. Cost: 4,326,539 exact
+replay frames, 30.37 summed worker seconds. Next: check the same directions at
+the measured derivative scale before considering a numerical continuation
+method. The 607.2582 baseline remains unchanged.
+
 ## Prior evidence
 
 The full pre-restart campaign log is preserved byte-for-byte in

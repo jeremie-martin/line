@@ -893,6 +893,45 @@ is derived by `scripts/benchmark/impact_gap_loss_accounting.py`, with zero new
 physics or search. Close the unchanged-return interruption as an integration
 candidate; neither a gap-width/phase sweep nor a suffix-budget walk follows.
 
+**Second mechanism in tranche 2 — state-matched recapture (declaration).** The
+interruption proves a contact-topology change and occasional useful impulse,
+but the unchanged return surface leaves immediate support debt. Reconstruct
+that surface for the changed rider state. Keep all 88 selected contacts and
+all 22 exact-admitted gaps, including weak and negative outcomes. Conditional
+availability is the physical gate, never complete-track score. This is shared
+discovery within the current tranche, not independent validation.
+
+For each admitted gap, identify its first return-side contact following an
+actual support-free frame. At the preceding frame, read the four sled-point
+positions and velocities in both the original and interrupted tracks. Find
+the least-squares orientation-preserving rigid map from the original phase
+to the interrupted phase: translate the position centroids and choose the
+single rotation minimizing the sum of centered-position residuals and
+one-frame velocity residuals. Both terms have pixel units in the engine's
+discrete update. Transform only the retained return-side lines, preserving
+their lengths, material, relative order, and extension flags. Equal input
+states must return byte-identical geometry. No scale, blend, width, phase,
+angle, or iteration menu is exposed.
+
+This differs from prior one-state affine/co-rotating raw-curve fields by
+compensating for an already observed, deliberately interrupted transition at
+its separate return surface. It does not assume global translation invariance
+or force a return to the old absolute trajectory. Require the entire physical
+prefix through the chosen pre-return frame to remain exactly equal to the
+interrupted parent; a relocated surface that changes its own input history is
+rejected. Ordinary exact admission, actual interruption/recapture, and the
+final impact-window checks remain mandatory.
+
+Restore ordinary reference metadata. A zero-map readmission must reproduce
+the corrected interrupted control's ordinary continuation track, report, and
+charged frames. For the single transformed proposal use the same existing
+first-completion seed and remaining-gap ceiling. Compare against the corrected
+gap alone, the original ordinary continuation, and the full incumbent. The
+useful-gain gate is unchanged: retained interruption, at least 25% original
+impact-deficit gain, and valid complete improvement against all references.
+Record all unavailable and invalid rows; no failed direction gets another
+map or a larger suffix budget. This is the tranche's second and final mechanism.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

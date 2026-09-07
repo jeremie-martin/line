@@ -648,3 +648,48 @@ extends a larger-turn fixture to 2,400 frames / 114 timed landings, costing
 159,405 frames. Other settings fail, sometimes on a delayed collision or binding
 break. These are physical feasibility fixtures, not benchmark scores. Short
 physical backtracking and authored-target construction are being developed next.
+
+
+### Direct construction reaches the full development set
+
+The first four direct compiles are valid but expose impact as the dominant
+residual. An unintended default amplitude pressure on specs without amplitude
+is removed. The controller then reads the actual contact-gated accumulated
+angular redirection and allocates the remaining requested impulse over the
+remaining physically contacted frames of the unchanged six-frame window.
+The four-source scores become **762.2895, 625.8854, 791.4812, 759.7752**, using
+150,927–229,154 frames, all valid and exactly cold-replayed.
+
+The unchanged full 44-source discovery policy reads **720.6804**, including
+two invalid pickup cases: 42/44 valid, 6,551,793 total frames, maximum 238,907.
+Plan: `93861a34aa17c7e7f5b499ac43d26e8099f92486ca35eaf5c09608fbe1d0fa0f`.
+The two failures are eight-frame intervals: three contact frames leave only
+five airborne frames, so the unchanged detector classifies a bounce where a
+landing is required. A dynamic program chooses actual contacts inside the
+existing ±1-frame tolerance to provide the required room. The repaired tracks
+score **680.9425 and 678.1224**, both valid in 210,130 and 212,738 frames.
+This timing rule depends on contact spacing, never source identity.
+
+Integration review also finds that the standalone prototype did not honor two
+explicit manual starts. Those preliminary rows are superseded: rerunning both
+pickup-lattice specs with their authored (0,−160), (4.5,0) initial states scores
+**814.3613 and 811.7911**, both valid in 143,949 and 140,618 frames. All other
+sources permit compiler-selected starts. The corrected construction therefore
+has valid physical outputs for all 44 sources; a public-entry-point evaluation
+will establish the governed headline. The 720.6804 preliminary aggregate is not
+promoted or described as a contract-complete compiler result.
+
+The mechanism is packaged under compiler-fingerprinted paths. Its cache/trace
+backend again passes the 360-prefix audit, charging 23,932 frames. Packaged
+manifest: `87a19d4a2a46048647e98b9830c3ac5879ea49e44fc6a18ecdcae86f09fbb62c`.
+Public-library parity on amplitude, short pickups, and manual starts reproduces
+geometry, full reports, and physics counts exactly. The amplitude track also
+matches the untouched published JavaScript engine's entire raw trajectory:
+5,000 audit frames; trajectory SHA
+`098f153836b892b969b6359ce5ceb07bc368197944ded1d5a60450e2cb0985ca`.
+Seventeen focused tests pass, including final-frame contact persistence,
+manual starts, repeated/interleaved compilation, telemetry neutrality, smaller
+hard budgets, timing tolerance, and compiler identity. The new public route
+handles ordinary air/speed/amplitude requests. Existing diagnostic options and
+other axes retain their existing compiler path. No benchmark or judge bytes
+have been changed.

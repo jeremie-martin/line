@@ -1,0 +1,19 @@
+[package]
+name = "lr_engine"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# (none) — the engine uses only std BTreeMap/Vec. Forking is a cheap version-tree
+# node over ONE shared mutable cache per lineage (see engine.rs), not per-fork
+# structural sharing, so no persistent-collection crate is needed.
+
+[profile.release]
+opt-level = 3
+panic = "abort"
+lto = true
+strip = true
+codegen-units = 1

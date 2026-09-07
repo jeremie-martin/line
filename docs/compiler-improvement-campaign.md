@@ -137,6 +137,15 @@ replay. This bypasses saved catch templates in a physical fixture. Other control
 settings fail, so authored-target construction and short backtracking are the
 next tests; the fixture is not a scored benchmark improvement.
 
+Direct authored-target construction now gives a **720.6804 preliminary full-set
+reading**, with 42/44 valid and at most 238,907 frames per compile. The two short
+pickup failures are corrected using the existing timing tolerance; two manual
+starts found during integration are also preserved and rerun. All 44 corrected
+outputs are valid. The mechanism is integrated into the public compiler and is
+ready for governed evaluation. This discovery reading does not replace the
+accepted 607.2582 headline. Packaged-engine, public-library, and published-JS
+replay checks pass; the benchmark and its physics remain unchanged.
+
 ## Prior evidence
 
 The pre-restart log is preserved in

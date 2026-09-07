@@ -1,51 +1,64 @@
-/** Research compiler from authored targets to ordinary native geometry. */
+/** Physical native motion construction. Authored targets and the evaluation
+ * engine remain unchanged. No benchmark source identity enters this compiler. */
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { pathToFileURL, fileURLToPath } from "node:url";
-import { developmentCases } from "../../benchmark/v2/catalog.ts";
-import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
-import { applyJolt } from "../produce/seed.ts";
-import { LineRiderEngine as Judge, disposeAllWasmEnginesForStudy } from "../lib/_lr_engine_wasm.ts";
-import { getRiderMetered, getPhysicsFrameCount, extractRawTrajectory, detect, setPhysicsFrameLimit, PhysicsFrameLimitExceeded } from "../lib/detector.ts";
-import { sliceTimeline, effectiveAxes, buildDriftReport, resolveStartState } from "../v0/core/substrate.ts";
-import { buildAxisContract, scoreV2Report } from "../v0/benchmark_v2/evaluator.ts";
-import { pointwiseEnergyPulse } from "./pointwise_energy_pulse.ts";
+import { LineRiderEngine as NativeEngine, disposeAllWasmEnginesForStudy as disposeSearch } from "../../lib/native_motion/engine.ts";
+import { LineRiderEngine as Judge, disposeAllWasmEnginesForStudy } from "../../lib/_lr_engine_wasm.ts";
+import { getRiderMetered, getPhysicsFrameCount, extractRawTrajectory, detect, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, resetFrameCount } from "../../lib/detector.ts";
+import { sliceTimeline, effectiveAxes, buildDriftReport, buildTrackJson, resolveStartState, validateSpec, sampleGapTargets } from "../core/substrate.ts";
+import { resetPerCompileState } from "../core/compile_lifecycle.ts";
+import { makeRng } from "../../lib/rng.ts";
+import { CompileBudgetTelemetryRecorder, type BudgetTelemetryLevel } from "./budget_telemetry.ts";
+import { pointwiseEnergyPulse } from "./native_pointwise_energy.ts";
 import { nativeMotionSchedule, scheduleNativeContacts } from "./native_motion_schedule.ts";
-import { impactToRawPx, wrapPi, type TrackLine } from "../v0/types.ts";
-
-const arg = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
-const backendPath = resolve(arg("backend") ?? "generated/benchmark-v2/unrestricted-650/planner-trace-backend");
-const sourceId = arg("source")!, out = resolve(arg("out")!);
-const budget = Number(arg("budget") ?? 750000), poseGain = Number(arg("pose-gain") ?? 0.15);
-const feedbackImpact = arg("feedback-impact") === "on";
-const contactSlack = arg("contact-slack") === "on";
-const hash = (b: string | Buffer) => createHash("sha256").update(b).digest("hex");
-const implementation = [fileURLToPath(import.meta.url), "scripts/benchmark/native_motion_schedule.ts", "scripts/benchmark/pointwise_energy_pulse.ts"]
-  .map(p => hash(readFileSync(p)));
-const read = (p: string) => {
-  const b = readFileSync(p);
-  if (hash(b) !== readFileSync(p + ".sha256", "utf8").split(/\s/)[0]) throw new Error("checksum mismatch");
-  return JSON.parse(b.toString());
-};
-const manifest = read(resolve(backendPath, "manifest.json"));
-for (const [p, h] of Object.entries(manifest.generated)) if (hash(readFileSync(resolve(backendPath, p))) !== h) throw new Error("backend changed");
-const { LineRiderEngine: Engine, disposeAllWasmEnginesForStudy: disposeSearch } = await import(pathToFileURL(resolve(backendPath, "engine.ts")).href);
-const spec = applyJolt(developmentCases.find(e => e.case.metadata.id === sourceId)!.case.spec, benchmarkPolicy.transform.joltMs);
+import { impactToRawPx, wrapPi, CALIB, type TrackLine, type Spec } from "../types.ts";
+import type { CompileCheckpoint } from "./types.ts";
+const Engine: any = NativeEngine;
+const hash = (b: string) => createHash("sha256").update(b).digest("hex");
+export function compileNativeMotion(spec: Spec, seed: number,
+  options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel; onProgress?: (frame: number, frames: number) => void }): CompileCheckpoint {
+  const budget = options.budget, poseGain = 0.15, feedbackImpact = true;
+  if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(budget) || budget <= 0) throw new Error("invalid native compiler input");
+  validateSpec(spec);
+  resetPerCompileState();
+  resetFrameCount();
+  try {
 const contactFrames = spec.contacts.map(c => Math.round(c.t * 40)), duration = Math.round(spec.duration * 40);
+const motionDuration = Math.max(duration, (contactFrames.at(-1) ?? 0) + 7);
 const gaps = sliceTimeline(contactFrames, duration);
 for (const gap of gaps) {
   gap.targets = effectiveAxes(gap, spec);
   if (gap.endsWithContact && spec.contacts[gap.index].impact !== undefined) gap.targets.impact = spec.contacts[gap.index].impact;
 }
-const scheduleOptions = { drift: Number(arg("drift") ?? 0.15), amplitudeScale: Number(arg("amplitude-scale") ?? 1), impact: arg("impact") === "on" };
-const motionGaps = contactSlack ? scheduleNativeContacts(gaps) : gaps;
-const schedule = nativeMotionSchedule(motionGaps, duration, scheduleOptions);
+const scheduleOptions = { drift: 0.15, amplitudeScale: 1, impact: false };
+const rng = makeRng(seed);
+const motionGapInputs = gaps.map(g => ({ ...g }));
+if (motionDuration > duration) {
+  const last = motionGapInputs.at(-1);
+  if (last && !last.endsWithContact) last.endFrame = motionDuration;
+  else motionGapInputs.push({ index: gaps.length, startFrame: duration, endFrame: motionDuration, endsWithContact: false, targets: {} });
+}
+const motionGaps = scheduleNativeContacts(motionGapInputs.map(g => ({ ...g,
+  targets: { ...g.targets, ...sampleGapTargets(g.targets, spec.jitter ?? CALIB.SIGMA, rng) } })));
+
+const schedule = nativeMotionSchedule(motionGaps, motionDuration, scheduleOptions);
 const fixedStart = spec.start || !(spec.preroll && spec.preroll > 0) ? resolveStartState(spec) : null;
 const startPosition = fixedStart?.position ?? { x: 0, y: 0 }, startVelocity = fixedStart?.velocity ?? schedule.desired[0];
 const rows: any[] = [], lines: TrackLine[] = [], banned = new Map<string, Set<string>>();
 let lineage = hash("[]"), failure: any = null, backtracks = 0, trajectory: any = null;
-const started = getPhysicsFrameCount(), wallStart = performance.now();
+const started = getPhysicsFrameCount();
+let candidateSamples = 0, viableCandidates = 0, constructionFrames = 0;
+const recorder = new CompileBudgetTelemetryRecorder({ level: options.budgetTelemetry ?? "summary", gaps, durationFrames: duration,
+  hardBudgetFrames: budget, policyBudgetFrames: budget,
+  model: { name: "native-motion-structural/v1", source: "native_motion.ts nominal two-frame proposal evaluation", interceptFrames: 0,
+    contactFrames: 0, durationFrameScale: 120 } });
+const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
+  anchorGapIndex: 0, startTotalSpentFrames: 0, ceilingTotalSpentFrames: budget, includeStartup: false });
+const controls = [0, 1, 3, 5].flatMap(iteration => [0.005, 0.0005, 0.00005].flatMap(width =>
+  [1, 0.5, 0.75, 1.25, 1.5].map(forceScale => ({ iteration, width, forceScale }))));
+const proposalLimit = Math.max(4, Math.min(controls.length, Math.floor((budget - 2 * (duration + 20)) /
+  Math.max(1, 2.5 * schedule.grounded.filter(Boolean).length))));
+const proposals = proposalLimit === controls.length ? controls : Array.from({ length: proposalLimit }, (_, i) =>
+  controls[Math.floor(i * controls.length / proposalLimit)]);
 setPhysicsFrameLimit(started + budget - 2 * (duration + 20));
 const contacted = (engine: any, frame: number) => engine.getUpdatesAtFrame(frame).some((u: any) => u.type === "CollisionUpdate" &&
   u.updated.some((p: any) => ["PEG", "TAIL", "NOSE", "STRING"].includes(p.id)));
@@ -66,7 +79,7 @@ try {
     return row.frame - 1;
   };
   try {
-    for (let frame = 1; frame <= duration; frame++) {
+    for (let frame = 1; frame <= motionDuration; frame++) {
       if (!schedule.grounded[frame]) {
         const state = getRiderMetered(engine, frame).ballisticState();
         if (!state.riderMounted || !state.sledIntact || contacted(engine, frame)) {
@@ -100,9 +113,10 @@ try {
       }
       let best: any = null;
       const failures: Record<string, number> = {};
-      for (const iteration of [0, 1, 3, 5]) for (const width of [0.005, 0.0005, 0.00005]) for (const forceScale of [1, 0.5, 0.75, 1.25, 1.5]) {
+      for (const { iteration, width, forceScale } of proposals) {
         const choice = `${iteration}:${width}:${forceScale}`;
         if (banned.get(prefixKey)?.has(choice)) continue;
+        candidateSamples++;
         const points = Object.keys(trace[iteration]).map(id => ({ ...trace[iteration][id], nextVx: future.points[id].vx, nextVy: future.points[id].vy }));
         const center = { x: points.reduce((s, p) => s + p.x, 0) / 10, y: points.reduce((s, p) => s + p.y, 0) / 10 };
         const pointTargets = points.map((p, i) => ({ x: desired.x + poseGain * (shape[i].x - p.x + center.x), y: desired.y + poseGain * (shape[i].y - p.y + center.y) }));
@@ -114,6 +128,7 @@ try {
         const result = getRiderMetered(child, frame + 1).ballisticState();
         if (!result.riderMounted || !result.sledIntact) { failures.binding = (failures.binding ?? 0) + 1; continue; }
         if (!contacted(child, frame)) { failures.airborne = (failures.airborne ?? 0) + 1; continue; }
+        viableCandidates++;
         const error = Object.values(result.points).reduce((sum: number, p: any, i) => sum + (p.vx - pointTargets[i].x) ** 2 + (p.vy - pointTargets[i].y) ** 2, 0) as number;
         if (!best || error < best.error) best = { engine: child, lines: added, error, iteration, width, forceScale, choice };
       }
@@ -122,12 +137,14 @@ try {
       engine = best.engine; lines.push(...best.lines); lineage = hash(lineage + JSON.stringify(best.lines));
       rows.push({ frame, lines: best.lines.length, error: best.error, lineStart, prefixKey, lineage: oldLineage, choice: best.choice });
       if (frame % 8 === 0) { engine = engine.detach(); Engine.retainOnly([engine]); }
-      if (contactFrames.includes(frame)) process.stderr.write(`${sourceId}: ${frame}/${duration}, ${getPhysicsFrameCount() - started} frames, ${backtracks} backtracks\n`);
+      if (contactFrames.includes(frame)) recorder.observeActiveEpisode(contactFrames.indexOf(frame) + 1, getPhysicsFrameCount() - started);
+      options.onProgress?.(frame, getPhysicsFrameCount() - started);
     }
   } catch (error) {
     if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
     failure = { frame: rows.length + 1, reason: "budget", previous: failure };
   }
+  constructionFrames = getPhysicsFrameCount() - started;
   setPhysicsFrameLimit(started + budget);
   trajectory = extractRawTrajectory(engine, duration + 20);
 } finally { disposeSearch(); }
@@ -138,14 +155,24 @@ try {
 const det = detect(trajectory);
 const fits = gaps.map(gap => ({ lines: lines.filter(l => Math.floor((l.id - 1000) / 10000) > gap.startFrame && Math.floor((l.id - 1000) / 10000) <= gap.endFrame) }));
 const report = buildDriftReport(det, spec, gaps, contactFrames, duration, [], fits as any, gaps.map(g => g.targets));
-const suite = JSON.parse(readFileSync("benchmark/v2/compat/suite-manifest.json", "utf8"));
-const contract = buildAxisContract(spec, Object.keys(benchmarkPolicy.componentWeights) as any);
-const score = scoreV2Report(report, spec.contacts.length, contract, suite);
-const track = { startPosition, riders: [{ startVelocity }], lines, duration: duration + 20 };
-const record = { schema: "line.direct-native-compiler.v1", researchOnly: true, sourceId, implementation,
-  backendManifestSha256: hash(readFileSync(resolve(backendPath, "manifest.json"))), scheduleOptions, feedbackImpact, contactSlack, poseGain, budget,
-  frames: getPhysicsFrameCount() - started, elapsedMs: performance.now() - wallStart, completedFrames: rows.length,
-  failure, backtracks, score, schedule: schedule.rows, rows, track, report };
-const body = JSON.stringify(record) + "\n";
-writeFileSync(out, body); writeFileSync(out + ".sha256", hash(body) + "\n");
-console.log(JSON.stringify({ ...record, schedule: undefined, rows: undefined, track: { lines: lines.length }, report: undefined }));
+
+const track = buildTrackJson(lines, duration + 20, { position: startPosition, velocity: startVelocity });
+const total = getPhysicsFrameCount() - started, exhausted = failure?.reason === "budget";
+const valid = report.contacts.every(c => c.status === "hit") && !report.off_beat_landings.length && report.terminus.reason === "endOfSpec";
+recorder.setActiveCandidateWork({ actualCandidateSamples: candidateSamples, viableCandidates, candidateSamplesByStream: { normal: candidateSamples } });
+recorder.recordEvaluation({ totalSpentFrames: total, gapIndex: rows.length === motionDuration ? gaps.length : gaps.findIndex(g => g.endFrame >= rows.length),
+  terminal: rows.length === motionDuration, origin: "frontier", firstTimeSearchNode: true, terminalTrackKey: hash(JSON.stringify(track)), registerImproved: valid });
+recorder.endEpisode(total, exhausted ? "budget_capture" : "compile_finished");
+recorder.recordSegment("initial_search", 0, constructionFrames, "construction_complete", episode);
+recorder.recordSegment("finalization", constructionFrames, total, "cold_replay_complete", episode);
+const costs = gaps.map(g => report.gaps.find(r => r.gap_index === g.index)?.axes)
+  .map(axes => axes ? Object.values(axes).reduce((sum, axis) => sum + (axis?.error ?? 0) ** 2, 0) : null);
+return { budget, track, report, budgetTelemetry: recorder.snapshot(total, exhausted, valid ? total : null, valid ? total : null),
+  stats: { actual_candidate_samples: candidateSamples, viable_candidate_samples: viableCandidates,
+    engine_rebuilds: backtracks + 2, gap_commits: report.contacts.filter(c => c.status === "hit").length,
+    gap_backtracks: backtracks, validation_retries: 0, polish_iterations: 0,
+    total_committed_cost: costs.reduce<number>((sum, cost) => sum + (cost ?? 0), 0), committed_costs_per_gap: costs,
+    sim_frames: total, ballistic_micro_sim_frames: 0, budget_exhausted: exhausted,
+    first_completion_frame: valid ? total : null } };
+  } finally { disposeSearch(); disposeAllWasmEnginesForStudy(); setPhysicsFrameLimit(null); }
+}

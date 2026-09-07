@@ -1,4 +1,4 @@
-import { authoredSpeedToPx, impactToRawPx, type Gap } from "../v0/types.ts";
+import { authoredSpeedToPx, impactToRawPx, type Gap } from "../types.ts";
 
 /** Choose actual contact times inside the existing one-frame tolerance, leaving
  * enough room for a persistent catch and the detector's required airborne run. */

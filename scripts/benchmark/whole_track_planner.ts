@@ -15,7 +15,9 @@ import { detect, extractRawTrajectory, getRiderMetered, getPhysicsFrameCount } f
 import { buildDriftReport, findAuthoredContactNearFrame } from "../v0/core/substrate.ts";
 import { detectWindow } from "../v0/core/candidate.ts";
 import { measureGapAxes } from "../v0/core/measure.ts";
-import { readTargetStateFromRider } from "../v0/arc_placement.ts";
+import { readTargetStateFromRider, sampleArcPlacementGeometry } from "../v0/arc_placement.ts";
+import { arcProposalTargetsForGap } from "../v0/optimizer/arc_proposal.ts";
+import { makeRng } from "../lib/rng.ts";
 import { buildAxisContract, scoreV2Report, summarizeDevelopmentBudget } from "../v0/benchmark_v2/evaluator.ts";
 import { shapeCatch, transportCatch, setCatchEnergy, type ArrivalFrame } from "./whole_track_controls.ts";
 import { releaseProgram } from "./contact_program.ts";
@@ -57,7 +59,7 @@ const packetAt = (engine: any, frame: number) => JSON.stringify(getRiderMetered(
 const weights = benchmarkPolicy.componentWeights as Record<string, number>;
 
 type Node = { engine: any; fits: any[]; sse: Record<string, number>; value: number;
-  original: boolean; id: number; parent: number; action: any; preview?: any };
+  original: boolean; id: number; parent: number; action: any; preview?: any; embedding?: number[] };
 
 function worker(source: any, plan: any, planSha256: string): void {
   const started = performance.now(), framesStart = getPhysicsFrameCount(), sourceId = source.sourceId;
@@ -232,6 +234,15 @@ function worker(source: any, plan: any, planSha256: string): void {
               action: { family: "self_reuse", template: j, mode } });
           }
         }
+        if (plan.nativeDraws > 0) {
+          const rng = makeRng((capture.seed ^ Math.imul(i + 1, 65537) ^ parent.id) | 0);
+          const targets = arcProposalTargetsForGap(gap, ctx.gaps);
+          for (let attempt = 0; attempt < plan.nativeDraws; attempt++) {
+            const geometry = sampleArcPlacementGeometry(rng, actual.sledX, actual.sledY, targets,
+              actual, attempt, gap, idStart, "normal", ctx.allContactFrames);
+            candidates.push({ lines: geometry.lines, action: { family: "native_sample", attempt } });
+          }
+        }
         const seen = new Set<string>();
         for (const candidate of candidates) {
           // Equal segment count can preserve the original IDs and ordering.
@@ -295,6 +306,13 @@ function worker(source: any, plan: any, planSha256: string): void {
           }
           const node: Node = { engine: child, fits: [...parent.fits, { ...fit, lines }], sse, value: value(projected),
             original: !!candidate.original, id: serial++, parent: parent.id, action: candidate.action, preview: measured.preview };
+          if (plan.selection === "state") {
+            const rider = getRiderMetered(child, endFor(i)), packet = rider.ballisticState();
+            node.embedding = Object.keys(packet.points).sort().flatMap(key => {
+              const p = packet.points[key];
+              return [(p.x - rider.position.x) / 10, (p.y - rider.position.y) / 10, p.vx / 10, p.vy / 10];
+            });
+          }
           pool.push(node);
           stepTrials.push({ id: node.id, parent: node.parent, action: node.action, value: node.value,
             future: plan.lookahead === 2 ? future : undefined, original: node.original });
@@ -307,6 +325,12 @@ function worker(source: any, plan: any, planSha256: string): void {
       const selected: Node[] = [], selectedParents = new Set<number>();
       for (const n of ranked) if (plan.selection === "parent" && !selectedParents.has(n.parent) && selected.length < plan.width - 1) {
         selected.push(n); selectedParents.add(n.parent);
+      }
+      if (plan.selection === "state") for (const n of ranked) {
+        if (selected.length >= plan.width - 1) break;
+        const distinct = selected.every(other => Math.sqrt(n.embedding!.reduce((sum, x, j) =>
+          sum + (x - other.embedding![j]) ** 2, 0) / n.embedding!.length) >= plan.stateDistance);
+        if (distinct) selected.push(n);
       }
       for (const n of ranked) if (selected.length < plan.width - 1 && !selected.includes(n)) selected.push(n);
       beam = [original, ...selected];
@@ -367,6 +391,7 @@ if (process.argv.includes("--plan")) {
     lookahead: Number(arg("lookahead") ?? 1),
     railLayers: arg("rail-layers") === "on",
     reuse: Number(arg("reuse") ?? 0),
+    nativeDraws: Number(arg("native-draws") ?? 0), stateDistance: Number(arg("state-distance") ?? 0.01),
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

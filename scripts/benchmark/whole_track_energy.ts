@@ -15,7 +15,7 @@ import { detect, extractRawTrajectory, getRiderMetered, getPhysicsFrameCount } f
 import { buildDriftReport } from "../v0/core/substrate.ts";
 import { readTargetStateFromRider } from "../v0/arc_placement.ts";
 import { buildAxisContract, scoreV2Report, summarizeDevelopmentBudget } from "../v0/benchmark_v2/evaluator.ts";
-import { setCatchEnergy, transportCatch, type ArrivalFrame, type TransportMode } from "./whole_track_controls.ts";
+import { setCatchEnergy, shapeCatch, transportCatch, type ArrivalFrame, type TransportMode, type CatchControl } from "./whole_track_controls.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
 const input = resolve(arg("input") ?? "generated/benchmark-v2/impact-delivery-650-new/interrupted-support-capture");
@@ -69,7 +69,7 @@ function worker(source: any, plan: any, planSha256: string): void {
   } finally { disposeAllWasmEnginesForStudy(); }
   const calibrationFrames = getPhysicsFrameCount() - calibrationStart;
 
-  function evaluate(controls: Array<-1 | 0 | 1>, mode: TransportMode): any {
+  function evaluate(controls: CatchControl[], mode: TransportMode): any {
     const frameStart = getPhysicsFrameCount();
     try {
       let engine = freshEngine(track).addLine(startLines.map(createLineFromJson));
@@ -78,7 +78,7 @@ function worker(source: any, plan: any, planSha256: string): void {
       for (let i = 0; i < originals.length; i++) {
         const original = originals[i];
         if (original === null) { fits.push(null); continue; }
-        changed ||= controls[i] !== 0;
+        changed ||= controls[i].energy !== 0 || controls[i].turn !== 0 || controls[i].logScale !== 0;
         const actual = changed && mode !== "fixed" ? frameAt(engine, ctx.gaps[i].endFrame) : references[i]!;
         if (![actual.sledX, actual.sledY, actual.speed].every(Number.isFinite) ||
           Math.abs(actual.sledX) > 1e6 || Math.abs(actual.sledY) > 1e6) {
@@ -86,7 +86,8 @@ function worker(source: any, plan: any, planSha256: string): void {
         }
         const transported = transportCatch(original.lines, references[i]!, actual, mode);
         if (lineKey(transported) !== lineKey(original.lines)) movedCatches++;
-        const lines = setCatchEnergy(transported, actual.velocity, controls[i]);
+        const shaped = shapeCatch(transported, actual, controls[i]);
+        const lines = setCatchEnergy(shaped, actual.velocity, controls[i].energy);
         fits.push({ ...original, lines }); allLines.push(...lines);
         engine = engine.addLine(lines.map(createLineFromJson));
       }
@@ -100,7 +101,7 @@ function worker(source: any, plan: any, planSha256: string): void {
     } finally { disposeAllWasmEnginesForStudy(); }
   }
 
-  const zero: Array<-1 | 0 | 1> = originals.map(() => 0);
+  const zero: CatchControl[] = originals.map(() => ({ energy: 0, turn: 0, logScale: 0 }));
   const neutral = evaluate(zero, "similarity");
   if (!neutral.score?.valid || neutral.score.score !== originalScore.score || lineKey(neutral.track.lines) !== lineKey(track.lines) ||
       JSON.stringify(neutral.report.contacts) !== JSON.stringify(savedReport.contacts) ||
@@ -114,13 +115,21 @@ function worker(source: any, plan: any, planSha256: string): void {
     let best = neutral, controls = zero.slice(), frames = 0;
     const trials: any[] = [];
     for (let round = 0; round < plan.rounds; round++) for (const index of anchors) {
-      for (const values of [[1], [-1], [1, -1], [-1, 1]] as Array<Array<-1 | 1>>) {
+      const actions: Array<{ axis: keyof CatchControl; values: number[] }> = plan.family === "geometry"
+        ? [{ axis: "turn", values: [0.002] }, { axis: "turn", values: [-0.002] },
+          { axis: "logScale", values: [0.005] }, { axis: "logScale", values: [-0.005] }]
+        : [[1], [-1], [1, -1], [-1, 1]].map(values => ({ axis: "energy" as const, values }));
+      for (const { axis, values } of actions) {
         if (index + values.length > originals.length || values.some((_, k) => originals[index + k] === null)) continue;
-        const proposal = controls.slice(); values.forEach((v, k) => proposal[index + k] = v);
-        if (proposal.every((v, i) => v === controls[i])) continue;
+        const proposal = controls.map(c => ({ ...c }));
+        values.forEach((v, k) => {
+          if (axis === "energy") proposal[index + k].energy = v as -1 | 1;
+          else proposal[index + k][axis] += v;
+        });
+        if (JSON.stringify(proposal) === JSON.stringify(controls)) continue;
         const measured = evaluate(proposal, mode); frames += measured.frames;
         const accepted = measured.score?.valid && measured.score.score > best.score.score;
-        trials.push({ round, index, values, score: measured.score?.score ?? 0,
+        trials.push({ round, index, axis, values, score: measured.score?.score ?? 0,
           valid: measured.score?.valid ?? false, failures: measured.score?.hardFailures ?? [measured.reason],
           movedCatches: measured.movedCatches ?? null, frames: measured.frames, accepted: !!accepted });
         if (accepted) { best = measured; controls = proposal; }
@@ -153,7 +162,7 @@ if (process.argv.includes("--plan")) {
     }) }));
   write(planPath, { schema: "line.whole-track-energy-plan.v1", implementation, engineHash,
     candidateFingerprint: baseline.candidate_fingerprint, suiteSha256: hash(readFileSync("benchmark/v2/compat/suite-manifest.json")),
-    researchOnly: true, input, modes: ["fixed", "translate", "similarity"],
+    researchOnly: true, input, modes: ["fixed", "translate", "similarity"], family: arg("family") ?? "energy",
     anchors: Number(arg("anchors") ?? 16), rounds: Number(arg("rounds") ?? 1),
     law: "greedy full-valid-track improvement; native forward/braking material on one catch or opposing adjacent pair; exact causal downstream translation/similarity; saved incumbent retained",
     sources });

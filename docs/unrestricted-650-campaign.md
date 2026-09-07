@@ -78,3 +78,19 @@ sweep of four energy actions, all three transports. Three physical-control
 invariants pass. After fidelity and implementation checks, apply the same
 assay to all 44 sources with 16 anchors; this is exploratory evidence, not
 independent validation or a 750k promotion result.
+
+The energy pilot completed with exact neutral controls on all four sources.
+Only 20/378 changed trials were valid (fixed 2, translated 10, similarity 8),
+and none improved the incumbent. Cost: 1,135,726 trial/replay frames plus
+9,476 reference-calibration and 9,440 neutral frames; 11.37 summed worker
+seconds. Its artifacts are under `unrestricted-650/energy-pilot-typed` with
+plan SHA-256 `54e32a71480ff3741a32d4e2764f2c1ca3fa6060e944620acf2c2513ac9c97c7`.
+The earlier `energy-pilot` contains only an unexecuted plan superseded by a
+TypeScript annotation fix. Whole-catch actuation is too coarse for this initial
+representation; do not scale that version merely to collect more failures.
+
+The next pilot uses the same four sources and eight anchors, now with continuous
+catch rotation ±0.002 radians and log-scale ±0.005 about the measured arrival
+point. The three transport arms and exact full-track objective remain the same.
+This tests local geometry authority after removing the old fixed-suffix and
+local no-axis-debt assumptions. Four physical-control invariants pass.

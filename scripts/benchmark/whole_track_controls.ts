@@ -5,6 +5,17 @@ export type ArrivalFrame = {
   velocity: { x: number; y: number };
 };
 export type TransportMode = "fixed" | "translate" | "similarity";
+export type CatchControl = { energy: -1 | 0 | 1; turn: number; logScale: number };
+
+/** Continuous catch controls about the measured arrival reference. */
+export function shapeCatch(lines: readonly TrackLine[], frame: ArrivalFrame, control: CatchControl): TrackLine[] {
+  if (control.turn === 0 && control.logScale === 0) return lines.map(line => ({ ...line }));
+  const scale = Math.exp(control.logScale), c = Math.cos(control.turn) * scale, s = Math.sin(control.turn) * scale;
+  const point = (x: number, y: number) => ({ x: frame.sledX + c * (x - frame.sledX) - s * (y - frame.sledY),
+    y: frame.sledY + s * (x - frame.sledX) + c * (y - frame.sledY) });
+  return lines.map(line => { const a = point(line.x1, line.y1), b = point(line.x2, line.y2);
+    return { ...line, x1: a.x, y1: a.y, x2: b.x, y2: b.y }; });
+}
 
 /** Transport geometry, never the rider. An identical input preserves every bit. */
 export function transportCatch(

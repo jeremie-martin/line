@@ -6,7 +6,7 @@ import { spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { basename, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { developmentCases } from "../../benchmark/v2/catalog.ts";
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
@@ -34,6 +34,7 @@ const input = resolve(arg("input") ?? "generated/benchmark-v2/impact-delivery-65
 const out = resolve(arg("out") ?? "generated/benchmark-v2/unrestricted-650/physical-prefix-beam");
 const warmStart = arg("warm-start") ? resolve(arg("warm-start")!) : null;
 const modelPath = arg("model") ? resolve(arg("model")!) : null;
+const backendPath = arg("backend") ? resolve(arg("backend")!) : null;
 const script = fileURLToPath(import.meta.url);
 const hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex");
 const implementation = [script, resolve("scripts/benchmark/whole_track_controls.ts"), resolve("scripts/benchmark/contact_program.ts"),
@@ -61,9 +62,16 @@ const write = (p: string, v: any) => {
 const student = modelPath ? read(modelPath) : null;
 if (student && (student.schema !== "line.physical-planner-model.v1" ||
     student.featureVersion !== PLANNER_FEATURE_VERSION || student.inputDtype !== "float32")) throw new Error("unsupported planner model");
+const backendManifest = backendPath ? read(resolve(backendPath, "manifest.json")) : null;
+if (backendManifest) for (const [p, expected] of Object.entries(backendManifest.generated)) {
+  if (hash(readFileSync(resolve(backendPath!, p))) !== expected) throw new Error("backend changed");
+}
+const backend = backendPath ? await import(pathToFileURL(resolve(backendPath, "engine.ts")).href) : null;
+const SearchEngine = backend?.LineRiderEngine ?? LineRiderEngine;
+const disposeEngines = () => { backend?.disposeAllWasmEnginesForStudy(); disposeAllWasmEnginesForStudy(); };
 const lineKey = (lines: readonly TrackLine[]) => JSON.stringify(lines.map(l => [l.id, l.type, l.x1, l.y1, l.x2, l.y2,
   !!l.flipped, !!l.leftExtended, !!l.rightExtended]));
-const freshEngine = (track: any) => new LineRiderEngine().setStart(track.startPosition, track.riders[0].startVelocity);
+const freshEngine = (track: any, judge = false) => new (judge ? LineRiderEngine : SearchEngine)().setStart(track.startPosition, track.riders[0].startVelocity);
 const frameAt = (engine: any, frame: number): ArrivalFrame => {
   const rider = getRiderMetered(engine, frame);
   return readTargetStateFromRider(rider, rider.position.x, rider.position.y);
@@ -159,23 +167,33 @@ function worker(source: any, plan: any, planSha256: string): void {
       throw new Error("neutral exact replay mismatch");
     }
     winner = { ...neutral, fits: originals, actions: [] };
-  } finally { disposeAllWasmEnginesForStudy(); }
+  } finally { disposeEngines(); }
   calibrationFrames = getPhysicsFrameCount() - framesStart;
   const steps: any[] = [], nodes = new Map<number, any>();
   const failures: Record<string, number> = {};
-  let trials = 0, validTrials = 0, filteredProposals = 0, generationFrames = 0, rebaseFrames = 0;
+  let trials = 0, validTrials = 0, filteredProposals = 0, generationFrames = 0, rebaseFrames = 0, detachFrames = 0;
   try {
     const engine = freshEngine(track).addLine(startLines.map(createLineFromJson));
     let beam: Node[] = [{ engine, fits: [], sse: { ...totalSse }, value: value(totalSse), original: true, id: serial++, parent: -1, action: null }];
     for (let i = 0; i < originals.length; i++) {
       const fit = originals[i], gap = ctx.gaps[i];
+      if (backend && i > 0) {
+        const started = getPhysicsFrameCount(), frame = Math.max(0, gap.endFrame - 2);
+        beam = beam.map(n => {
+          const packet = packetAt(n.engine, frame), engine = n.engine.detach();
+          if (packetAt(engine, frame) !== packet) throw new Error("detached physical prefix mismatch");
+          return { ...n, engine };
+        });
+        SearchEngine.retainOnly(beam.map(n => n.engine));
+        detachFrames += getPhysicsFrameCount() - started;
+      }
       if (plan.rebaseEvery > 0 && i > 0 && i % plan.rebaseEvery === 0) {
         // The native lineage retains all historical patch nodes until every
         // handle is released. Cold reconstruction bounds that research memory;
         // it is ordinary, charged simulation, never an injected rider state.
         const started = getPhysicsFrameCount(), frame = Math.max(0, gap.endFrame - 2);
         const packets = beam.map(n => packetAt(n.engine, frame));
-        disposeAllWasmEnginesForStudy();
+        disposeEngines();
         beam = beam.map((n, j) => {
           const engine = freshEngine(track).addLine([...startLines, ...n.fits.flatMap(f => f?.lines ?? [])].map(createLineFromJson));
           if (packetAt(engine, frame) !== packets[j]) throw new Error("rebased physical prefix mismatch");
@@ -351,11 +369,18 @@ function worker(source: any, plan: any, planSha256: string): void {
             if (unique.has(key)) return null;
             unique.add(key);
             const prediction = predictPlannerCandidate(student, [...contextFeatures!, ...plannerCandidateFeatures(canonical, actual, candidate.action)]);
-            return { candidate, order, priority: prediction.priority,
+            return { candidate, order, priority: prediction.loss + (plan.penalty ?? student.penalty) * (1 - prediction.validity),
               reserved: candidate.original || candidate.action.family === "transport" };
           }).filter((x): x is NonNullable<typeof x> => x !== null);
-          const selected = [...ranked.filter(r => r.reserved), ...ranked.filter(r => !r.reserved)
-            .sort((a, b) => a.priority - b.priority || a.order - b.order).slice(0, plan.keep)].map(r => r.candidate);
+          const ordered = ranked.filter(r => !r.reserved).sort((a, b) => a.priority - b.priority || a.order - b.order);
+          const familyCounts = new Map<string, number>();
+          const exploration = ordered.filter(r => {
+            const a = r.candidate.action, family = `${a.family}:${a.phase ?? 0}`;
+            const count = familyCounts.get(family) ?? 0;
+            familyCounts.set(family, count + 1);
+            return count < plan.familyKeep;
+          });
+          const selected = [...new Set([...ranked.filter(r => r.reserved), ...ordered.slice(0, plan.keep), ...exploration])].map(r => r.candidate);
           filteredProposals += ranked.length - selected.length;
           candidates.splice(0, candidates.length, ...selected);
         }
@@ -511,19 +536,19 @@ function worker(source: any, plan: any, planSha256: string): void {
       }
     }
     write(resolve(out, `${sourceId}.search.json`), { steps, completions, baselineLocal });
-  } finally { disposeAllWasmEnginesForStudy(); }
+  } finally { disposeEngines(); }
   const bestTrack = { ...track, lines: [...startLines, ...winner.fits.flatMap((f: any) => f?.lines ?? [])] };
   try {
-    const replay = scoreFits(freshEngine(track).addLine(bestTrack.lines.map(createLineFromJson)), winner.fits);
+    const replay = scoreFits(freshEngine(track, true).addLine(bestTrack.lines.map(createLineFromJson)), winner.fits);
     if (JSON.stringify(replay) !== JSON.stringify({ report: winner.report, score: winner.score })) throw new Error("winner exact replay mismatch");
-  } finally { disposeAllWasmEnginesForStudy(); }
+  } finally { disposeEngines(); }
   write(resolve(out, `${sourceId}.track.json`), bestTrack);
   write(resolve(out, `${sourceId}.report.json`), winner.report);
   if (plan.collect) writeFileSync(`${corpusPath}.sha256`, `${hash(readFileSync(corpusPath))}  ${basename(corpusPath)}\n`);
   const result = { schema: "line.whole-track-planner-source.v1", implementation, planSha256, sourceId, seed: capture.seed,
     originalScore, capturedScore, score: winner.score, delta: winner.score.score - originalScore.score,
     cumulativeDelta: winner.score.score - capturedScore.score, actions: winner.actions,
-    trials, validTrials, failures, filteredProposals, generationFrames, rebaseFrames, calibrationFrames,
+    trials, validTrials, failures, filteredProposals, generationFrames, rebaseFrames, detachFrames, calibrationFrames,
     frames: getPhysicsFrameCount() - framesStart, elapsedMs: performance.now() - started };
   write(resolve(out, `${sourceId}.json`), result);
   process.stderr.write(`${sourceId}: ${result.delta >= 0 ? "+" : ""}${result.delta.toFixed(4)}, ${validTrials}/${trials} local fits, ${result.frames} frames\n`);
@@ -562,6 +587,8 @@ if (process.argv.includes("--plan")) {
     rebaseEvery: Number(arg("rebase-every") ?? 0),
     collect: arg("collect") === "on",
     modelPath, modelHash: modelPath ? hash(readFileSync(modelPath)) : null, keep: Number(arg("keep") ?? 16),
+    backendPath, backendHash: backendPath ? hash(readFileSync(resolve(backendPath, "manifest.json"))) : null,
+    penalty: arg("penalty") === undefined ? null : Number(arg("penalty")), familyKeep: Number(arg("family-keep") ?? 0),
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {
@@ -569,6 +596,7 @@ if (process.argv.includes("--plan")) {
   if (plan.implementation !== implementation || plan.engineHash !== engineHash || plan.input !== input ||
       plan.warmStart !== warmStart || plan.suiteHash !== suiteHash || plan.modelPath !== modelPath ||
       plan.modelHash !== (modelPath ? hash(readFileSync(modelPath)) : null)) throw new Error("frozen experiment changed");
+  if (plan.backendPath !== backendPath || plan.backendHash !== (backendPath ? hash(readFileSync(resolve(backendPath, "manifest.json"))) : null)) throw new Error("backend identity changed");
   if (arg("worker")) {
     try { worker(plan.sources.find((s: any) => s.sourceId === arg("worker")), plan, planSha256); }
     catch (error) {
@@ -591,7 +619,8 @@ if (process.argv.includes("--plan")) {
         const s = queue.shift()!;
         const code = await new Promise<number | null>((done, reject) => {
           const child = spawn(process.execPath, ["--import", "tsx", script, `--worker=${s.sourceId}`, `--input=${input}`, `--out=${out}`,
-            ...(warmStart ? [`--warm-start=${warmStart}`] : []), ...(modelPath ? [`--model=${modelPath}`] : [])],
+            ...(warmStart ? [`--warm-start=${warmStart}`] : []), ...(modelPath ? [`--model=${modelPath}`] : []),
+            ...(backendPath ? [`--backend=${backendPath}`] : [])],
             { env: process.env, stdio: ["ignore", "ignore", "inherit"] });
           child.on("error", reject); child.on("exit", done);
         });

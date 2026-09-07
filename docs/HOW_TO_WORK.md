@@ -1,5 +1,10 @@
 # How To Work On The Compiler
 
+Compiler research scope is unrestricted under the owner's 2026-09-07
+authorization in `goal.md`. The benchmark and score stay fixed. Historical
+mechanism closures, deferrals, and study caps are evidence to reconsider, not
+permission barriers. The active program is `unrestricted-650-campaign.md`.
+
 The active compiler campaign compares the current compiler with a retained
 750k-only baseline at strict N=8/16/32/48 looks, then explicitly promotes an
 accepted result. The
@@ -214,9 +219,8 @@ interrupted-support study verifies this distinction on 22 exact prefixes.
 - Do not tune case by case or against qualification monitors.
 - Keep compute-dependent mechanisms continuous across at least 150k and
   1M-3M; never key compiler behavior to 750k or benchmark budget identity.
-- Keep broad acceleration and kinematic planning deferred. The only active-line
-  exception is a mechanism explicitly opened and bounded by the current campaign
-  contract after its passive evidence is exhausted.
+- Broad acceleration, kinematic planning, and other compiler mechanisms are
+  authorized by `goal.md`; select them on evidence and expected value.
 - Preserve resumable outputs for long runs.
 - Keep raw/generated archives out of commits.
 - Treat old declarations, certification studies, and accounting files as

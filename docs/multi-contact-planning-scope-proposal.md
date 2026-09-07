@@ -1,6 +1,10 @@
 # Bounded multi-contact planning proposal
 
-Status: proposed, awaiting owner authorization. This is not an active study.
+Status: historical proposal, superseded by the owner's unrestricted compiler
+research authorization on 2026-09-07. Planning and broader compiler mechanisms
+are authorized; the limits and approval language below no longer govern current
+work. The benchmark and score remain fixed. See `unrestricted-650-campaign.md`
+and `../goal.md`.
 
 The goal remains an accepted 750k Benchmark V2 headline above 650, with all
 existing validity, capability, legacy, scale, qualification, and production

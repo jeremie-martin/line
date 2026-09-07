@@ -1,6 +1,11 @@
 # Impact Delivery 650 — September restart
 
-Status: active. The owner requested a new campaign on 2026-09-07 because the
+Status: historical evidence, superseded as compiler policy by the owner's
+unrestricted authorization in `../goal.md` and `unrestricted-650-campaign.md`.
+The benchmark and score remain fixed; the compiler closures, deferrals, and
+study limits below no longer restrict new work.
+
+The owner requested a new campaign on 2026-09-07 because the
 previous approach was insufficiently productive. This document supersedes the
 old campaign's next-step instructions and experiment schedules. Its results
 remain evidence; renaming a failed mechanism does not reopen it.

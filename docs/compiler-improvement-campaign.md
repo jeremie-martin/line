@@ -10,12 +10,12 @@ The completed N=48 cache reads 607.2546 descriptively; all canonical baseline
 rows are covered. No compiler candidate has been promoted in the September
 restart. The historical 250k/500k evidence remains unchanged and deferred.
 
-The active contract is [the September campaign](impact-delivery-650-campaign-new.md).
-Canonical acceptance remains 750k with maximum N=48 and strict N=8/16/32/48
-looks. There is no predictive-futility stop or forced score promotion. Targets,
-evaluator, weights, and validity stay frozen. Keep ordinary candidates and
-ranking; charge all work and test compute-dependent laws at 150k and 1M–3M.
-Broad acceleration and kinematic planning remain deferred.
+The active program is [unrestricted compiler research](unrestricted-650-campaign.md),
+authorized by the owner on 2026-09-07. The benchmark and score stay fixed.
+Previous compiler restrictions, deferrals, study caps, and planning approval
+requirements are superseded. The existing 750k scorer and N=8/16/32/48
+comparison measure real gains. Prior closures below are evidence about tested
+implementations, not bans on better formulations.
 
 ## September restart: completed evidence
 
@@ -84,15 +84,14 @@ and restoring the reference changes one intervention score; it does not explain
 the four useful local paths' losses. Future continuation studies must pass the
 full neutral track/report/frame check in [HOW_TO_WORK.md](HOW_TO_WORK.md).
 
-## Next decision
+## Current work
 
-Both local physical tranches are closed. The proposed next mechanism is
-[joint planning across three contacts](multi-contact-planning-scope-proposal.md),
-starting with one bounded, matched-cost discovery study. It is **not active**:
-`goal.md` explicitly defers kinematic planning, so opening that mechanism needs
-owner authorization. The proposal preserves >650 and every acceptance gate;
-broad acceleration remains deferred. Validation and final confirmation seeds
-are untouched. The user's uncommitted `goal.md` remains preserved.
+The owner has authorized ambitious compiler research without inherited limits.
+Start by optimizing complete feasible tracks directly, with joint geometry and
+material controls, then use the evidence to develop coupled trajectory and
+energy planning. Reuse the verified discovery captures before paying for new
+baseline searches. Planning needs no further approval. The previous `goal.md`,
+including its uncommitted contents, is preserved in the historical archive.
 
 ## Prior evidence
 

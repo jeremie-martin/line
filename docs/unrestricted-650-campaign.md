@@ -577,3 +577,22 @@ ranked per parent, and the standard physics-frame hard guard reserves a final
 replay. An unfinished improvement search returns its fully verified incumbent.
 This checks a concrete budget allocation before production integration; it is
 not a canonical promotion or independent validation reading.
+
+
+The first explicit 750k study completes 44/44 valid tracks: **604.0352 →
+606.1655** versus its fresh first-completion input, with 23 improvements. It
+uses 10,357,794 new frames in addition to the 21,702,749 first-completion frames;
+maximum per-source total is 747,741. This does not establish improvement over
+the accepted full-budget compiler. Twenty-two searches hit the guard, mostly
+within one to six contacts of the end (one during finalist judging), and keep
+their verified input. The initial width heuristic alone is inadequate for an
+anytime compiler. Completion reserves and fewer full finalist replays are the
+next correction. A full physical teacher is also being collected from these
+fresh first-completion states to reduce the training-state mismatch.
+
+A paired native-energy probe controls the second force from the actual state
+after the first, using the same absolute surface normal and opposite energy.
+In 427 charged frames it finds, for example, a causal intact 1.823 px/frame
+initial velocity response with only 0.318 final residual. This measures physical
+response in free flight, not the benchmark's contact-gated angular impact.
+Complete-track scoring must determine whether it helps the authored target.

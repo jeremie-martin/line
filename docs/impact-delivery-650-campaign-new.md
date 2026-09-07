@@ -629,6 +629,49 @@ states. This is an interface/fidelity test for a future authored-axis physical
 objective; it introduces no new geometry or source-default candidate. A future
 objective must be declared separately and tested with actual continuation.
 
+**Admission result.** All 4,056 winning contact fits are accepted with exactly
+unchanged line geometry and every targeted achieved axis. The 44 ordinary
+snapshot warmups remain exact. Admission costs 175,903 physics frames, plus
+104,256 warmup frames, and 5.73 summed worker seconds. The exact candidate
+interface is therefore ready for a physical proposal; no target or evaluator
+change was needed. Checksummed artifacts are in
+`generated/benchmark-v2/impact-delivery-650-new/continuation-admission/`.
+
+**Second physical objective — authored-output relaxation (declaration).** The
+fixed absolute-state objective is closed. Its numerical operator is accurate
+locally but spends authority matching a brittle old trajectory. Test a distinct
+objective using the now-verified ordinary admission interface: reduce weighted
+authored current/next axis error directly, retaining exact prefix and contact
+gates, then realize the ordinary remaining suffix from the resulting state.
+This is not a new radius or source walk on the old objective.
+
+Keep all 88 originally selected pairs and the original normal-joint basis.
+Use the frozen scorer's axis weights to form a current/next least-squares
+proposal objective; it is a local objective, never a headline or full-track
+score. Estimate one initial Jacobian at ±1e−5 and ±5e−6 with the existing
+1% agreement check and Richardson extrapolation. Solve ridge least squares
+with 1e−6 regularization. Apply at most twelve bounded updates, beginning at
+radius 0.001 and doubling it up to 0.1 only when actual/predicted improvement
+exceeds 0.75. Total coordinate magnitude stays ≤0.1. Update the Jacobian by
+the accepted secant (Broyden); do not refit it, retry a failed step, or try
+another dose. Accept only exact-admitted geometry whose local objective
+decreases, whose first-impact absolute error does not increase, and whose
+actual/predicted improvement is at least 0.25.
+
+For every pair, run ordinary first-completion continuation from both the original
+prefix and the resulting prefix using the public snapshot API, the same live
+authored spec and search seed, and the same frame ceiling proportional to
+remaining gap count. Reuse the control result when the physical prefix is
+unchanged and report that reuse. Include all invalid outcomes as zero scores,
+verify retained intervention geometry, and report both paired-control and
+original-incumbent score deltas. No intermediate full score selects an update.
+Record initial derivative cost, accepted-step cost, and actual suffix cost
+separately. A useful physical success retains at least 25% of the first-impact
+deficit gain and improves a valid complete track against both references.
+Only actual retained complete-track gains can justify later integration-cost
+work; local improvements or unchanged fallback are insufficient. No validation
+or canonical seed is opened by this component study.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

@@ -19,6 +19,7 @@ import { readTargetStateFromRider } from "../v0/arc_placement.ts";
 import { buildAxisContract, scoreV2Report, summarizeDevelopmentBudget } from "../v0/benchmark_v2/evaluator.ts";
 import { shapeCatch, transportCatch, setCatchEnergy, type ArrivalFrame } from "./whole_track_controls.ts";
 import { releaseProgram } from "./contact_program.ts";
+import { nativeRailLayers } from "./native_rail_layers.ts";
 import { authoredSpeedToPx, type TrackLine } from "../v0/types.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
@@ -27,7 +28,8 @@ const out = resolve(arg("out") ?? "generated/benchmark-v2/unrestricted-650/physi
 const warmStart = arg("warm-start") ? resolve(arg("warm-start")!) : null;
 const script = fileURLToPath(import.meta.url);
 const hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex");
-const implementation = [script, resolve("scripts/benchmark/whole_track_controls.ts"), resolve("scripts/benchmark/contact_program.ts")]
+const implementation = [script, resolve("scripts/benchmark/whole_track_controls.ts"), resolve("scripts/benchmark/contact_program.ts"),
+  resolve("scripts/benchmark/native_rail_layers.ts")]
   .map(p => hash(readFileSync(p))).join(":");
 const baseline = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
 const suite = JSON.parse(readFileSync("benchmark/v2/compat/suite-manifest.json", "utf8"));
@@ -167,6 +169,10 @@ function worker(source: any, plan: any, planSha256: string): void {
             lines: shapeCatch(base, actual, { turn: 0, logScale, energy: 0 }), action: { family: "scale", mode, logScale } });
           if (plan.materials) for (const energy of [-1, 1] as const) candidates.push({
             lines: setCatchEnergy(base, actual.velocity, energy), action: { family: "material", mode, energy } });
+          if (plan.railLayers && mode === "translate") for (const layers of [2, 4]) for (const spacing of [0.005, 0.05]) for (const energy of [-1, 1] as const) {
+            const lines = nativeRailLayers(base, actual.velocity, layers, spacing, energy);
+            if (lines.length < 1000) candidates.push({ lines, action: { family: "rail_layers", mode, layers, spacing, energy } });
+          }
           if (plan.programs && mode === "translate") {
             const next = nextFor(i), frames = next ? next.endFrame - gap.endFrame : 20;
             const targetLength = Math.max(actual.speed * 2, actual.speed * frames * (1 - (next?.targets.air ?? 0.6)));
@@ -335,6 +341,7 @@ if (process.argv.includes("--plan")) {
     selection: arg("selection") ?? "parent",
     targetPrograms: arg("target-programs") === "on",
     lookahead: Number(arg("lookahead") ?? 1),
+    railLayers: arg("rail-layers") === "on",
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

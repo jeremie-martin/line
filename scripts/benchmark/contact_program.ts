@@ -6,6 +6,8 @@ export type ReleaseProgram = {
   exitTurn: number;
   bend: number;
   energy: -1 | 0 | 1;
+  exitAngle?: number;
+  bendLength?: number;
 };
 
 /** Seed the approach from an existing catch, then synthesize its release.
@@ -29,14 +31,16 @@ export function releaseProgram(
   const initialAngle = Math.atan2(last.y2 - last.y1, last.x2 - last.x1);
   const stepCount = Math.max(4, Math.min(128, Math.ceil(program.length / Math.max(2, arrival.speed * 0.65))));
   const ds = program.length / stepCount;
-  const bendLength = Math.min(program.length, Math.max(10, arrival.speed * 6));
+  const bendLength = Math.min(program.length, program.bendLength ?? Math.max(10, arrival.speed * 6));
+  const exitTurn = program.exitAngle === undefined ? program.exitTurn : program.exitAngle - initialAngle;
+  if (!(bendLength > 0) || !Number.isFinite(exitTurn)) return null;
   let x = last.x2, y = last.y2;
   const tail: TrackLine[] = [];
   for (let i = 0; i < stepCount; i++) {
     const distance = (i + 0.5) * ds;
     const u = distance / program.length;
     const b = Math.min(1, distance / bendLength);
-    const angle = initialAngle + program.exitTurn * (u * u * (3 - 2 * u)) + program.bend * Math.sin(2 * Math.PI * b);
+    const angle = initialAngle + exitTurn * (u * u * (3 - 2 * u)) + program.bend * Math.sin(2 * Math.PI * b);
     const nx = x + ds * Math.cos(angle), ny = y + ds * Math.sin(angle);
     tail.push({ ...last, id: last.id + i + 1, x1: x, y1: y, x2: nx, y2: ny,
       leftExtended: false, rightExtended: i + 1 < stepCount });

@@ -19,7 +19,7 @@ import { readTargetStateFromRider } from "../v0/arc_placement.ts";
 import { buildAxisContract, scoreV2Report, summarizeDevelopmentBudget } from "../v0/benchmark_v2/evaluator.ts";
 import { shapeCatch, transportCatch, setCatchEnergy, type ArrivalFrame } from "./whole_track_controls.ts";
 import { releaseProgram } from "./contact_program.ts";
-import type { TrackLine } from "../v0/types.ts";
+import { authoredSpeedToPx, type TrackLine } from "../v0/types.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
 const input = resolve(arg("input") ?? "generated/benchmark-v2/impact-delivery-650-new/interrupted-support-capture");
@@ -158,6 +158,26 @@ function worker(source: any, plan: any, planSha256: string): void {
               const lines = releaseProgram(base, actual, program);
               if (lines) candidates.push({ lines, action: { family: "program", ...program } });
             }
+            if (plan.targetPrograms) {
+              const speed = next?.targets.speed === undefined ? (fit.releaseSpeed ?? actual.speed) : authoredSpeedToPx(next.targets.speed);
+              const targetSupport = Math.max(speed * 1.5, speed * frames * (1 - (next?.targets.air ?? 0.6)));
+              for (const scale of [0.7, 1, 1.3]) for (const exitAngle of [-0.35, -0.15, 0, 0.15]) {
+                const program = { length: targetSupport * scale, exitAngle, exitTurn: 0, bend: 0, energy: 0 as const };
+                const lines = releaseProgram(base, actual, program);
+                if (lines) candidates.push({ lines, action: { family: "target_program", ...program } });
+              }
+              for (const bend of [-0.5, -0.25, 0.25, 0.5]) for (const bendFrames of [1.5, 3, 6]) {
+                const program = { length: targetSupport, exitAngle: 0, exitTurn: 0, bend,
+                  bendLength: speed * bendFrames, energy: 0 as const };
+                const lines = releaseProgram(base, actual, program);
+                if (lines) candidates.push({ lines, action: { family: "target_program", ...program } });
+              }
+              if (plan.materials) for (const energy of [-1, 1] as const) for (const exitAngle of [-0.15, 0, 0.15]) {
+                const program = { length: targetSupport, exitAngle, exitTurn: 0, bend: 0, energy };
+                const lines = releaseProgram(base, actual, program);
+                if (lines) candidates.push({ lines, action: { family: "target_program", ...program } });
+              }
+            }
           }
         }
         const seen = new Set<string>();
@@ -260,6 +280,7 @@ if (process.argv.includes("--plan")) {
     candidateFingerprint: baseline.candidate_fingerprint, researchOnly: true, input, width,
     materials: arg("materials") !== "off", programs: arg("programs") !== "off", preview: arg("preview") !== "off",
     selection: arg("selection") ?? "parent",
+    targetPrograms: arg("target-programs") === "on",
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

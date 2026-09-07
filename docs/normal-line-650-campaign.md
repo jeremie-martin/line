@@ -1,7 +1,8 @@
 # Normal-line compiler campaign
 
 Opened 2026-09-07 under the owner's new constraint: only normal type-0 lines.
-The above-650 goal is active. Benchmark V2 and its score remain fixed. The
+**Completed:** `normal-motion-feedback` is accepted and promoted at **662.5889**,
+352/352 valid at 750k/N=8. The chronological research record follows. Benchmark V2 and its score remain fixed. The
 607.2582 normal-line baseline and its full canonical cache are restored.
 
 The acceleration campaign is preserved on `archive/native-motion-feedback-761`
@@ -89,3 +90,105 @@ All three acceleration production videos are now complete, verified, and
 preserved with source, original music, benchmark evidence, and checksums in
 `archives/native-motion-feedback-2026-09-07/`. The main workspace has switched
 to `codex/normal-line-650`; the video branch and archive remain intact.
+
+## Final governed result and completed goal
+
+The final compiler is frozen at `06680c3c`. The governed command is:
+
+```bash
+npm run benchmark -- eval --seeds=48 --jobs=40 \
+  --out=generated/benchmark-v2/eval/normal-motion-2026-09-07.json
+```
+
+It accepts at N=8 with **662.5889**, **352/352 valid**, and **+55.3569 paired
+points** (SE 0.9294) over the matching old normal-line prefix, 607.2320.
+Observed t=59.56197547 exceeds the unchanged 4.81061015 boundary. All 44
+sources are evaluated at the actual 750k budget on seeds 16–23. Later looks
+are not queued. The new compiler is deterministic on these zero-jitter specs;
+paired variation comes from the old compiler. The run completes in 1m32s;
+its 48,458,976 physical frames range from 60,775 to 238,882 per compile,
+median 122,733.5. No old canonical baseline rows are recompiled.
+
+Candidate fingerprint:
+`3ce6b356f9bcd18041e8e0818fd727683019f14859ca6144922c570f24eab1e1`.
+Source fingerprint:
+`2149de41ba31b88500eabc8cfd5ccf8d83123339722b0ffa3e9f1dad7ec9944f`.
+Snapshot SHA:
+`53e30857d3fb440b31584b1ee5f7e4cd37b7bd1dc20ced39936c7e3d51c8ca30`.
+The suite, scorer, evaluator, judge, listening review, and decision identities
+all match the pre-campaign baseline. The physical regression test and public
+compiler enforce only type-0 geometry. Two full tracks audited against the
+published JavaScript engine have hashes identical to all eight corresponding
+canonical outputs, so those audits also cover the final candidate's geometry.
+
+| Stratum | Old paired prefix | Final normal compiler |
+|---|---:|---:|
+| Representative | 640.8936 | 681.4566 |
+| Capability | 484.4946 | 630.9487 |
+| Legacy regression | 609.6639 | 629.2496 |
+| Development music | 499.3183 | 560.0406 |
+
+Fourteen source averages regress, despite all four stratum gains. The largest
+are impact Believer (−183.5657), its amplitude variant (−162.1426), and the
+original/shifted off-grid conversation (−85.3468 / −84.9558). They remain valid.
+The validation index retains every regressed source. This is an aggregate
+improvement, not a claim that every specification improves or that the new
+fine-grained normal geometry is visually preferable.
+
+After this evaluation, the standing 250k arm completes **528/528 valid**.
+The exact old-baseline arm from the earlier acceleration comparison is reused:
+its compiler fingerprint, seed grid, scorer, and archive hashes match. The
+initial orchestrator is deliberately stopped after the complete new arm is
+written and verified, before it can duplicate the old baseline's 528 compiles.
+The unmodified report command then derives the comparison:
+
+```bash
+npm run benchmark:v2:low-budget-reading -- \
+  --report=generated/benchmark-v2/low-budget/arms/2026-09-07T21-32-44-423Z-after-normal-motion-eval/tree.json.gz,generated/benchmark-v2/low-budget/arms/2026-09-07T19-17-25-334Z-after-native-motion-initial-eval/baseline.json.gz \
+  --label=after-normal-motion-eval-reused-baseline
+```
+
+The verdict is `RESCUE-POSITIVE`: **63 rescued, zero lost**, versus 465/528
+baseline validity. Its renormalized subset score is **670.9793 versus 552.3198**;
+its arithmetic per-cell seed-blocked gain is **191.6936**, SE **4.9870**.
+Neither is the suite headline. The old arm's 135,019,423 physical frames are
+retained evidence, not newly executed work in this normal-line reading.
+
+Frozen-candidate qualification uses:
+
+```bash
+LR_ENGINE=wasm node --import tsx scripts/v0/benchmark_v2/run_benchmark.ts \
+  --runner-mode=qualification --profile=canonical \
+  --development-archive=generated/benchmark-v2/eval/normal-motion-2026-09-07.N8.json \
+  --jobs=24 --out=generated/benchmark-v2/eval/normal-motion-qualification.json
+```
+
+All **120/120** qualification runs are valid. Per-budget monitor scores are
+645.8415, 646.4513, and 641.4508 at 250k/500k/750k, respectively; the weighted
+monitor is **644.8292**, not a headline. This sidecar costs 10,403,960 physical
+frames, maximum 147,272 per compile. No compiler changes or tuning follow this
+monitor. Its results do not alter the deferred lower-budget governance fields.
+
+Final budget-range audits cover three sources at 150k, 750k, 1M, and 3M:
+all twelve tracks are valid and within budget. River reentry scores 680.2066
+in 122,273 frames at all four budgets. Long low-air endurance scores 676.7553
+in 125,031 frames at 150k, and 701.2336 in 238,882 frames at larger budgets.
+Open-hook amplitude scores 722.6170 in 103,448 frames at all four budgets,
+confirming the completion fix removes the earlier wasted tail search.
+The 1M/3M outputs and counts match 750k exactly on all three audits.
+
+Promotion uses the ordinary accepted-comparison path:
+
+```bash
+npm run benchmark -- rebaseline \
+  --from=generated/benchmark-v2/eval/normal-motion-2026-09-07.json.comparison.json \
+  --label=normal-motion-feedback
+node --import tsx scripts/benchmark/analyze_campaign_baseline.ts
+```
+
+The active baseline now retains the **662.5889 / N=8** prefix and its measured
+compiler snapshot. The normal-line above-650 objective, acceleration-branch
+preservation, and requested production videos are all complete. The concise
+campaign, `goal.md`, and current-baseline analysis record the outcome.
+`benchmark/v2/studies/normal-motion-feedback-validation.json` indexes the evidence,
+checksums, line-type enforcement, regressions, and preserved video gallery.

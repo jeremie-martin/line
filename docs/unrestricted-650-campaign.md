@@ -1,5 +1,9 @@
 # Unrestricted compiler improvement campaign
 
+This acceleration-material campaign is preserved on
+`archive/native-motion-feedback-761`. The owner subsequently restricted the
+active compiler to normal type-0 lines; see `normal-line-650-campaign.md`.
+
 Opened by the owner's 2026-09-07 instruction to remove compiler limitations,
 challenge previous assumptions, and execute ambitious ideas efficiently.
 The owner clarified that the benchmark and score cannot change. `goal.md` is

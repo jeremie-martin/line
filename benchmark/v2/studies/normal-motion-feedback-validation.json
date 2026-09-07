@@ -1,0 +1,480 @@
+{
+  "schema": "line.normal-motion-feedback.validation.v1",
+  "completedDate": "2026-09-07",
+  "status": "promoted-goal-achieved",
+  "candidateFingerprint": "3ce6b356f9bcd18041e8e0818fd727683019f14859ca6144922c570f24eab1e1",
+  "compilerSourceFingerprint": "2149de41ba31b88500eabc8cfd5ccf8d83123339722b0ffa3e9f1dad7ec9944f",
+  "compilerCommit": "06680c3c",
+  "fixedMeasurement": {
+    "catalog_fingerprint": "ac7be4217b20841b34a12613ab57631176d14453139287f808becd6314430498",
+    "suite_fingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
+    "scoring_protocol_fingerprint": "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6",
+    "golden_evaluator_fingerprint": "07cf88383150",
+    "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
+    "listening_review_fingerprint": "973af98ec3de6eba662298115e07792e35d859063bbbb3839cdf5e07409a314f",
+    "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+    "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
+    "decision_protocol_fingerprint": "14c40a4fc7ab32638e61e16a6d4e89350e720d871144eb8767ed102329bd696e",
+    "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
+    "sequential_eval_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
+    "sequential_eval_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
+    "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d"
+  },
+  "normalGeometry": {
+    "allowedLineTypes": [
+      0
+    ],
+    "enforcement": "compileNormalMotion asserts that every generated line is type 0 before returning; the public compiler routes ordinary requests here. All 352 canonical workers completed successfully. Public integration and physical collision tests also assert type-0 output."
+  },
+  "promotion": {
+    "label": "normal-motion-feedback",
+    "budget": 750000,
+    "headline": 662.5889,
+    "pairedBaselineHeadline": 607.232,
+    "previousPromotedHeadline": 607.2582,
+    "previousPromotionSeeds": 32,
+    "validity": {
+      "baseValid": 352,
+      "candidateValid": 352,
+      "total": 352,
+      "gained": 0,
+      "lost": 0
+    },
+    "sequential": {
+      "policyFingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
+      "inferenceFingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
+      "calibrationFingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
+      "maximumSeeds": 48,
+      "stoppingDepth": 8,
+      "stoppingAction": "accept",
+      "looks": [
+        {
+          "schema": "line.benchmark-v2.sequential-look-decision.v2",
+          "depth": 8,
+          "maximumDepth": 48,
+          "informationFraction": 0.16666666666666666,
+          "estimate": 55.3569,
+          "standardError": 0.9294,
+          "degreesOfFreedom": 7,
+          "tStatistic": 59.56197547,
+          "directionalProbability": 1,
+          "requiredT": 4.81061015,
+          "requiredDirectionalProbability": 0.99902882,
+          "action": "accept"
+        }
+      ],
+      "candidateCompiles": 352
+    },
+    "strata": [
+      {
+        "stratum": "representative",
+        "base": 640.8936,
+        "candidate": 681.4566,
+        "delta": 40.563,
+        "baseValid": 224,
+        "candidateValid": 224,
+        "total": 224,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "stratum": "capability",
+        "base": 484.4946,
+        "candidate": 630.9487,
+        "delta": 146.4541,
+        "baseValid": 64,
+        "candidateValid": 64,
+        "total": 64,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "stratum": "legacy_regression",
+        "base": 609.6639,
+        "candidate": 629.2496,
+        "delta": 19.5857,
+        "baseValid": 32,
+        "candidateValid": 32,
+        "total": 32,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "stratum": "development_music",
+        "base": 499.3183,
+        "candidate": 560.0406,
+        "delta": 60.7223,
+        "baseValid": 32,
+        "candidateValid": 32,
+        "total": 32,
+        "gained": 0,
+        "lost": 0
+      }
+    ],
+    "regressedSourceAggregates": [
+      {
+        "sourceId": "believer_impact_56s",
+        "base": 651.707,
+        "candidate": 468.1413,
+        "delta": -183.5657,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "believer_impact_56s_amplitude_plus_5",
+        "base": 654.004,
+        "candidate": 491.8614,
+        "delta": -162.1426,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "offgrid_conversation",
+        "base": 771.4658,
+        "candidate": 686.119,
+        "delta": -85.3468,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "offgrid_conversation_answer_early_25ms",
+        "base": 775.6811,
+        "candidate": 690.7253,
+        "delta": -84.9558,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "wide_breaths",
+        "base": 781.0027,
+        "candidate": 697.8006,
+        "delta": -83.2021,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "wide_breaths_air_plus_5",
+        "base": 777.9821,
+        "candidate": 704.9764,
+        "delta": -73.0057,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "countercurrent",
+        "base": 732.1782,
+        "candidate": 666.7834,
+        "delta": -65.3948,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "high_air_drive",
+        "base": 687.3896,
+        "candidate": 637.826,
+        "delta": -49.5636,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "countercurrent_impact_contrast_12",
+        "base": 721.0788,
+        "candidate": 672.3659,
+        "delta": -48.7129,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "high_air_drive_air_minus_5",
+        "base": 706.1779,
+        "candidate": 657.6487,
+        "delta": -48.5292,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "amplitude_tides",
+        "base": 672.3488,
+        "candidate": 656.1791,
+        "delta": -16.1697,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "regression_amplitude_mosaic",
+        "base": 586.5869,
+        "candidate": 579.2378,
+        "delta": -7.3491,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "amplitude_tides_restrained_10",
+        "base": 668.8031,
+        "candidate": 662.9142,
+        "delta": -5.8889,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      },
+      {
+        "sourceId": "regression_amplitude_mosaic_contrast_10",
+        "base": 585.7539,
+        "candidate": 582.0463,
+        "delta": -3.7076,
+        "baseValid": 8,
+        "candidateValid": 8,
+        "total": 8,
+        "gained": 0,
+        "lost": 0
+      }
+    ],
+    "physicsFrames": {
+      "total": 48458976,
+      "minimumPerCompile": 60775,
+      "medianPerCompile": 122733.5,
+      "maximumPerCompile": 238882
+    },
+    "baselineManifest": {
+      "path": "benchmark/v2/campaign-baseline.json",
+      "sha256": "666b759c8ef330f02fbfe6e54d2c28c5ff9743196b54e9fb8ee0daedd0cb4401",
+      "bytes": 12374
+    },
+    "comparison": {
+      "path": "benchmark/v2/runs/normal-motion-feedback-comparison.json",
+      "sha256": "a2b65c95ef161c52c9f83c31aa2f03ec54d54a56e4099a840baf82cc1dcd0a34",
+      "bytes": 31706
+    },
+    "request": {
+      "path": "benchmark/v2/runs/normal-motion-feedback-comparison-request.json",
+      "sha256": "7e3ea9898e463415d3647b2b7a21540851efdb3407fe1efb4ba24f7676261984",
+      "bytes": 4197
+    },
+    "developmentArchive": {
+      "path": "benchmark/v2/runs/normal-motion-feedback-development-750k-N8.json.gz",
+      "sha256": "96f5c4db3f591595e58d9dff39c3a1f7aa40bcb4a9b9d4a1d9f17bd3d2f2d4a0",
+      "bytes": 5866559
+    },
+    "developmentRawSha256": "53e105eb844bf146fc50f6318c9befdbc3b374a060d04652d30ebc482248f945",
+    "compilerSnapshot": {
+      "path": "benchmark/v2/runs/normal-motion-feedback-compiler-snapshot.tar.gz",
+      "sha256": "53e30857d3fb440b31584b1ee5f7e4cd37b7bd1dc20ced39936c7e3d51c8ca30",
+      "bytes": 1103930
+    },
+    "note": "Canonical seeds 16\u201323, 44 sources, N=8 accepted under the unchanged N=8/16/32/48 rule. New compiler outputs are deterministic on these zero-jitter specs; paired SE reflects old-compiler variation. No later look was executed."
+  },
+  "lowBudgetReading": {
+    "promoting": false,
+    "record": {
+      "path": "generated/benchmark-v2/low-budget/2026-09-07T21-37-06-067Z-after-normal-motion-eval-reused-baseline.json",
+      "sha256": "593629a833b138e87ffe5a2790940e90b1f25576d83164bbe1aac4e6428367e6",
+      "bytes": 378754
+    },
+    "budget": 250000,
+    "sources": 11,
+    "seedsPerSource": 48,
+    "aggregate": {
+      "note": "Renormalized subset score over the mini manifest. NOT the suite headline.",
+      "baseline": 552.3198,
+      "tree": 670.9793,
+      "delta": 118.65949999999998
+    },
+    "paired": {
+      "unit": "score points per cell",
+      "blocks": 48,
+      "cellsPerBlock": 11,
+      "meanDelta": 191.69362045454545,
+      "standardDeviation": 34.55064910019342,
+      "standardError": 4.986956639668243,
+      "t": 38.43899883342436,
+      "degreesOfFreedom": 47,
+      "sumDelta": 101214.23160000006
+    },
+    "verdict": "RESCUE-POSITIVE",
+    "completions": {
+      "rescued": 63,
+      "lost": 0,
+      "net": 63,
+      "baselineValidCells": 465,
+      "treeValidCells": 528
+    },
+    "arms": {
+      "tree": {
+        "archive": {
+          "path": "generated/benchmark-v2/low-budget/arms/2026-09-07T21-32-44-423Z-after-normal-motion-eval/tree.json.gz",
+          "sha256": "5bd482358cbc1ad1547544aee0a89273864e9aced668c366a36737f44ee7b8c3",
+          "bytes": 7863693
+        },
+        "candidateFingerprint": "3ce6b356f9bcd18041e8e0818fd727683019f14859ca6144922c570f24eab1e1",
+        "physicsFrames": {
+          "total": 94540416,
+          "minimumPerCompile": 104400,
+          "medianPerCompile": 203430.0,
+          "maximumPerCompile": 206400
+        },
+        "reused": false
+      },
+      "baseline": {
+        "archive": {
+          "path": "generated/benchmark-v2/low-budget/arms/2026-09-07T19-17-25-334Z-after-native-motion-initial-eval/baseline.json.gz",
+          "sha256": "b59090fb79eaa7f65184cc5a2205132c18c99ece2d0e5d291d8aa2b4bf036d1d",
+          "bytes": 14005139
+        },
+        "candidateFingerprint": "23b4abc01031f81d7dafed400a998f6514230356de78e9ae0a87ef92e151873e",
+        "physicsFrames": {
+          "total": 135019423,
+          "minimumPerCompile": 250007,
+          "medianPerCompile": 252369.5,
+          "maximumPerCompile": 328406
+        },
+        "reused": true
+      }
+    },
+    "note": "The complete new 528-run arm was verified and paired with the exact retained old-baseline arm from the acceleration campaign. The initial orchestrator was intentionally stopped after its new arm completed, before it could duplicate 528 baseline compiles. The unmodified report command verified and derived this reading from both archives. The mini-manifest aggregate is not the headline."
+  },
+  "qualification": {
+    "promoting": false,
+    "compilerFrozenBeforeMonitor": true,
+    "qualificationTuning": false,
+    "monitorScore": 644.8292,
+    "budgets": [
+      {
+        "budget": 250000,
+        "monitorScore": 645.8415,
+        "validRuns": 40,
+        "totalRuns": 40
+      },
+      {
+        "budget": 500000,
+        "monitorScore": 646.4513,
+        "validRuns": 40,
+        "totalRuns": 40
+      },
+      {
+        "budget": 750000,
+        "monitorScore": 641.4508,
+        "validRuns": 40,
+        "totalRuns": 40
+      }
+    ],
+    "archive": {
+      "path": "generated/benchmark-v2/eval/normal-motion-qualification.json.gz",
+      "sha256": "ce79ab84347595134c76a8026936b0901c6693e65480d268f0c06f9a093542a9",
+      "bytes": 1972612
+    },
+    "rawArchiveSha256": "fee43e876521d3a6abccfc7b18a4a019642a06158075e96bbf0f00f6bfd60e18",
+    "physicsFrames": {
+      "total": 10403960,
+      "minimumPerCompile": 56489,
+      "medianPerCompile": 76177.0,
+      "maximumPerCompile": 147272
+    }
+  },
+  "tests": {
+    "focusedIntegrationIdentityCli": 12,
+    "broaderOptimizerBudget": 61,
+    "postCompletionFixCompilerCli": 7,
+    "normalProjectionPhysicalRegression": 1,
+    "note": "Suites overlap; counts are not additive unique tests. Repository-wide TypeScript checking retains unrelated pre-existing failures; no errors point to the final normal-motion production files or audit scripts."
+  },
+  "audits": {
+    "published-reference-amplitude": {
+      "path": "generated/benchmark-v2/normal-line-650/published-reference-amplitude.json",
+      "sha256": "c3079f953a838329d33a511656ba6223ddbf8cc8822f9d700c1071dfd2fe5656",
+      "bytes": 455
+    },
+    "published-reference-pickup": {
+      "path": "generated/benchmark-v2/normal-line-650/published-reference-pickup.json",
+      "sha256": "43eb5f0d28ec9a5133dbb59c5f52b26cfe40d8b517cc1891c865f4187e7edeb3",
+      "bytes": 455
+    },
+    "public-parity-pickup": {
+      "path": "generated/benchmark-v2/normal-line-650/public-parity-pickup.json",
+      "sha256": "a6bb17fad44e8521e58f87309cd74ed614c470be981bb4331c73c9ef29a09fc6",
+      "bytes": 6373
+    },
+    "final-budget-range-river_reentry": {
+      "path": "generated/benchmark-v2/normal-line-650/final-budget-range-river_reentry.json",
+      "sha256": "caa6104f785ecee884b7b6f291a7050007ab4c8fd0ebfe441a51e9e9b7e4c1e2",
+      "bytes": 3678
+    },
+    "final-budget-range-frontier_low_air_endurance_7s": {
+      "path": "generated/benchmark-v2/normal-line-650/final-budget-range-frontier_low_air_endurance_7s.json",
+      "sha256": "c7c2be9ada5e515b41325d26f2edbd44c729677225cd440c8bd57377efeb330c",
+      "bytes": 3709
+    },
+    "final-budget-range-open_hook_amplitude_plus_8": {
+      "path": "generated/benchmark-v2/normal-line-650/final-budget-range-open_hook_amplitude_plus_8.json",
+      "sha256": "629df5e7b1b18b93a55997512f4c6518936e6345311d07a1c36c077ffc67326c",
+      "bytes": 4031
+    }
+  },
+  "accelerationArchive": {
+    "compilerBranch": "archive/native-motion-feedback-761",
+    "compilerCommit": "7cb77df1",
+    "videoBranch": "codex/native-motion-video-review",
+    "videoCommit": "f8996b76",
+    "gallery": "archives/native-motion-feedback-2026-09-07/index.html",
+    "checksums": {
+      "path": "archives/native-motion-feedback-2026-09-07/checksums.json",
+      "sha256": "b5b4b82172b6e7181135522e61873b16febede5a790c4212af6c0b0c98ddc4c7",
+      "bytes": 14296
+    },
+    "index": {
+      "path": "benchmark/v2/studies/native-motion-production-review.json",
+      "sha256": "4167c33c3cc125646c011d8b01be59039d60150c7f767ca49dc1816c2e7cb9cf",
+      "bytes": 2737
+    },
+    "videos": 3,
+    "format": "1080x1920, 60 fps, AAC music, production camera/overlays/post-FX",
+    "uploaded": false
+  },
+  "auditedTracksMatchCanonical": {
+    "amplitude_tides": {
+      "trackSha256": "8fe2292f091f441c9c8658ec3f734bd573a92c6a1b346216e2276acf2f7ea648",
+      "matchingCanonicalRuns": 8
+    },
+    "frontier_pickup_progression": {
+      "trackSha256": "0cbceb05bb32b8c8330eb69a2320a6d64ae2d2e7c2892d3dd7918a653ba8966c",
+      "matchingCanonicalRuns": 8
+    }
+  }
+}

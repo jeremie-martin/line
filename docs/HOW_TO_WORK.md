@@ -4,15 +4,15 @@ The active compiler campaign uses normal type-0 lines only. Acceleration output
 is preserved on a separate branch for video review. `goal.md` and
 `normal-line-650-campaign.md` supersede the earlier unrestricted-material
 campaign status below; other compiler research restrictions remain removed.
-The active baseline is restored to `value-ranked-startup-expiration`, 607.2582,
-with its full N=48 cache. The scorer and benchmark remain unchanged.
+The active baseline is `normal-motion-feedback`, **662.5889**, accepted and
+promoted at N=8. The above-650 normal-line goal is achieved. The scorer and benchmark remain unchanged.
 
 # How To Work On The Compiler
 
 Compiler research scope is unrestricted under the owner's 2026-09-07
 authorization in `goal.md`. The benchmark and score stay fixed. Historical
 mechanism closures, deferrals, and study caps are evidence to reconsider, not
-permission barriers. The active program is `unrestricted-650-campaign.md`.
+permission barriers. The active program is `normal-line-650-campaign.md`.
 
 The active compiler campaign compares the current compiler with a retained
 750k-only baseline at strict N=8/16/32/48 looks, then explicitly promotes an
@@ -188,8 +188,8 @@ source defaults before a normal cached comparison.
 
 `benchmark/v2/campaign-baseline.json` names the active 750k compiler snapshot,
 promotion depth, four-look policy, and cache maximum. The current cache is the
-`native-motion-feedback` archive under the accumulated contacted-frame impulse
-scorer, accepted at N=8 with a 761.9107
+`normal-motion-feedback` archive under the accumulated contacted-frame impulse
+scorer, accepted at N=8 with a 662.5889
 headline. It retains the canonical seed schedule and makes no cross-ruler
 score comparison.
 
@@ -230,8 +230,9 @@ interrupted-support study verifies this distinction on 22 exact prefixes.
 - Do not tune case by case or against qualification monitors.
 - Keep compute-dependent mechanisms continuous across at least 150k and
   1M-3M; never key compiler behavior to 750k or benchmark budget identity.
-- Broad acceleration, kinematic planning, and other compiler mechanisms are
-  authorized by `goal.md`; select them on evidence and expected value.
+- Kinematic planning, new normal-line geometry, and other compiler mechanisms
+  are authorized by `goal.md`; acceleration materials are excluded from the
+  active normal-line campaign.
 - Preserve resumable outputs for long runs.
 - Keep raw/generated archives out of commits.
 - Treat old declarations, certification studies, and accounting files as

@@ -1,15 +1,15 @@
 # Benchmark V2 Current Baseline Analysis
 
-Baseline: `independent-repair-depth-six`. Scorer: accumulated contacted-frame redirection impulse. Suite: `7bd878d8aaea08a9`.
+Baseline: `value-ranked-startup-expiration`. Scorer: accumulated contacted-frame redirection impulse. Suite: `7bd878d8aaea08a9`.
 
 **Boundary:** Within-baseline analysis under accumulated contacted-frame redirection impulse. No old-ruler score, delta, or ranking is used.
 
 ## Executive read
 
-- Official 750k/N=32 headline: **602.9306**; target gap: **47.0694**.
+- Official 750k/N=32 headline: **607.2582**; target gap: **42.7418**.
 - Validity: **1408/1408** (100.00%).
-- Run-score median 613.51, IQR 570.31–652.78, 5th–95th percentile 396.79–772.64.
-- Seed-block headline SD: 1.67; case identity explains 99.2% of arithmetic run-score variation, seed identity 0.0%.
+- Run-score median 617.80, IQR 572.28–657.49, 5th–95th percentile 402.68–776.30.
+- Seed-block headline SD: 1.95; case identity explains 99.1% of arithmetic run-score variation, seed identity 0.0%.
 
 The headline is a weighted hierarchical geometric aggregate. Arithmetic means, correlations, and variance fractions below are descriptive diagnostics; none replaces the official headline.
 
@@ -17,120 +17,120 @@ The headline is a weighted hierarchical geometric aggregate. Arithmetic means, c
 
 | Score range | Runs | Share |
 |---|---:|---:|
-| [300,350) | 1 | 0.1% |
-| [350,400) | 74 | 5.3% |
-| [400,450) | 55 | 3.9% |
-| [450,500) | 78 | 5.5% |
-| [500,550) | 99 | 7.0% |
-| [550,600) | 217 | 15.4% |
-| [600,650) | 513 | 36.4% |
-| [650,700) | 160 | 11.4% |
-| [700,750) | 83 | 5.9% |
-| [750,800) | 128 | 9.1% |
+| [300,350) | 3 | 0.2% |
+| [350,400) | 60 | 4.3% |
+| [400,450) | 68 | 4.8% |
+| [450,500) | 67 | 4.8% |
+| [500,550) | 103 | 7.3% |
+| [550,600) | 203 | 14.4% |
+| [600,650) | 494 | 35.1% |
+| [650,700) | 187 | 13.3% |
+| [700,750) | 96 | 6.8% |
+| [750,800) | 127 | 9.0% |
 
 ## Suite hierarchy
 
-| Stratum | Weight | Score | Contribution to 47.07-point target gap |
+| Stratum | Weight | Score | Contribution to 42.74-point target gap |
 |---|---:|---:|---:|
-| representative | 70% | 635.73 | 9.99 (21.2%) |
-| capability | 15% | 481.46 | 25.28 (53.7%) |
-| legacy_regression | 10% | 609.71 | 4.03 (8.6%) |
-| development_music | 5% | 494.67 | 7.77 (16.5%) |
+| representative | 70% | 641.09 | 6.24 (14.6%) |
+| capability | 15% | 485.76 | 24.64 (57.6%) |
+| legacy_regression | 10% | 607.57 | 4.24 (9.9%) |
+| development_music | 5% | 497.51 | 7.62 (17.8%) |
 
 | Largest weighted group gaps | Stratum | Campaign weight | Score | Target-gap contribution |
 |---|---|---:|---:|---:|
-| dense_recovery_frontier | capability | 5.3% | 413.97 | 12.39 |
-| rapid_pickup_frontier | capability | 6.0% | 462.75 | 11.24 |
-| dense_musical | representative | 7.0% | 511.03 | 9.73 |
-| believer_56s | development_music | 5.0% | 494.67 | 7.77 |
-| subdivision_pickup | representative | 10.5% | 589.35 | 6.37 |
-| cadence_transition | representative | 8.4% | 608.30 | 3.50 |
-| legacy_amplitude_regression | legacy_regression | 4.5% | 586.21 | 2.87 |
-| low_air_frontier | capability | 3.8% | 605.87 | 1.65 |
+| dense_recovery_frontier | capability | 5.3% | 420.90 | 12.03 |
+| rapid_pickup_frontier | capability | 6.0% | 464.41 | 11.14 |
+| dense_musical | representative | 7.0% | 516.75 | 9.33 |
+| believer_56s | development_music | 5.0% | 497.51 | 7.62 |
+| subdivision_pickup | representative | 10.5% | 592.62 | 6.02 |
+| cadence_transition | representative | 8.4% | 613.08 | 3.10 |
+| legacy_amplitude_regression | legacy_regression | 4.5% | 586.74 | 2.85 |
+| low_air_frontier | capability | 3.8% | 610.72 | 1.47 |
 
 ## Case behavior
 
 | Lowest cases | Official score | Valid | Run SD | Impact quality |
 |---|---:|---:|---:|---:|
-| believer_56_6s | 362.71 | 32/32 | 4.39 | 0.190 |
-| believer_56_6s_impact_relief | 390.35 | 32/32 | 6.31 | 0.214 |
-| frontier_dense_recovery | 412.36 | 32/32 | 18.75 | 0.360 |
-| frontier_dense_recovery_240ms_figures | 415.59 | 32/32 | 17.40 | 0.364 |
-| frontier_pickup_progression_shifted | 461.41 | 32/32 | 8.10 | 0.347 |
-| frontier_pickup_progression | 464.09 | 32/32 | 6.66 | 0.351 |
-| dense_dialogue_impact_contrast_10 | 505.65 | 32/32 | 9.69 | 0.332 |
-| dense_dialogue | 516.47 | 32/32 | 10.32 | 0.342 |
+| believer_56_6s | 363.63 | 32/32 | 12.06 | 0.190 |
+| believer_56_6s_impact_relief | 393.44 | 32/32 | 6.15 | 0.215 |
+| frontier_dense_recovery_240ms_figures | 420.81 | 32/32 | 14.89 | 0.360 |
+| frontier_dense_recovery | 421.00 | 32/32 | 11.48 | 0.363 |
+| frontier_pickup_progression_shifted | 460.80 | 32/32 | 9.29 | 0.346 |
+| frontier_pickup_progression | 468.04 | 32/32 | 4.92 | 0.356 |
+| dense_dialogue_impact_contrast_10 | 514.58 | 32/32 | 11.00 | 0.339 |
+| dense_dialogue | 518.93 | 32/32 | 11.82 | 0.345 |
 
 | Highest cases | Official score | Valid | Run SD | Impact quality |
 |---|---:|---:|---:|---:|
-| wide_breaths_air_plus_5 | 786.90 | 32/32 | 4.01 | 0.826 |
-| wide_breaths | 779.09 | 32/32 | 3.88 | 0.798 |
-| offgrid_conversation | 767.20 | 32/32 | 4.81 | 0.660 |
-| offgrid_conversation_answer_early_25ms | 766.61 | 32/32 | 4.03 | 0.661 |
-| countercurrent | 724.36 | 32/32 | 4.53 | 0.596 |
-| countercurrent_impact_contrast_12 | 712.64 | 32/32 | 3.83 | 0.578 |
-| high_air_drive_air_minus_5 | 701.27 | 32/32 | 4.53 | 0.578 |
-| high_air_drive | 682.04 | 32/32 | 6.48 | 0.575 |
+| wide_breaths_air_plus_5 | 783.69 | 32/32 | 9.49 | 0.833 |
+| wide_breaths | 781.56 | 32/32 | 4.73 | 0.807 |
+| offgrid_conversation_answer_early_25ms | 773.81 | 32/32 | 4.78 | 0.670 |
+| offgrid_conversation | 773.79 | 32/32 | 4.25 | 0.670 |
+| countercurrent | 735.01 | 32/32 | 5.15 | 0.612 |
+| countercurrent_impact_contrast_12 | 721.61 | 32/32 | 4.10 | 0.591 |
+| high_air_drive_air_minus_5 | 706.63 | 32/32 | 4.62 | 0.583 |
+| high_air_drive | 690.73 | 32/32 | 5.11 | 0.583 |
 
 | Most seed-sensitive cases | Official score | Run SD | 5th–95th percentile |
 |---|---:|---:|---:|
-| regression_transition_mosaic_tempo_fast_5 | 619.84 | 24.65 | 588.34–646.40 |
-| frontier_dense_recovery | 412.36 | 18.75 | 386.15–438.24 |
-| regression_transition_mosaic | 638.14 | 17.46 | 602.98–662.32 |
-| frontier_dense_recovery_240ms_figures | 415.59 | 17.40 | 384.36–436.37 |
-| sparse_lowline | 643.32 | 13.32 | 625.34–655.73 |
-| frontier_low_air_endurance_7s | 601.76 | 12.99 | 582.34–619.46 |
-| frontier_low_air_endurance_6s | 604.32 | 11.72 | 581.07–620.94 |
-| dense_dialogue | 516.47 | 10.32 | 499.03–529.07 |
+| frontier_low_air_endurance_7s | 600.25 | 25.43 | 577.91–620.72 |
+| regression_transition_mosaic_tempo_fast_5 | 612.41 | 23.95 | 578.82–645.32 |
+| regression_transition_mosaic | 637.07 | 19.20 | 609.66–667.12 |
+| frontier_dense_recovery_240ms_figures | 420.81 | 14.89 | 393.28–444.95 |
+| believer_56_6s | 363.63 | 12.06 | 341.19–375.76 |
+| dense_dialogue | 518.93 | 11.82 | 497.55–531.36 |
+| frontier_dense_recovery | 421.00 | 11.48 | 402.15–436.27 |
+| split_signal | 566.56 | 11.29 | 543.57–580.97 |
 
 ## Components and associations
 
 | Component | Runs | Quality median | Quality mean | RMS-error median |
 |---|---:|---:|---:|---:|
-| air | 1408 | 0.795 | 0.750 | 0.057 |
-| amplitude | 384 | 0.418 | 0.428 | 0.218 |
-| impact | 1408 | 0.499 | 0.497 | 0.174 |
-| speed | 1408 | 0.805 | 0.787 | 0.054 |
+| air | 1408 | 0.793 | 0.752 | 0.058 |
+| amplitude | 384 | 0.418 | 0.429 | 0.218 |
+| impact | 1408 | 0.503 | 0.503 | 0.172 |
+| speed | 1408 | 0.802 | 0.787 | 0.055 |
 
 | Relationship | N | Pearson r | Spearman ρ |
 |---|---:|---:|---:|
-| headline score ↔ impact quality | 1408 | 0.893 | 0.847 |
-| headline score ↔ impact RMS error | 1408 | -0.901 | -0.847 |
-| headline score ↔ air quality | 1408 | 0.613 | 0.627 |
-| headline score ↔ speed quality | 1408 | 0.707 | 0.665 |
-| headline score ↔ amplitude quality | 384 | 0.432 | 0.155 |
-| headline score ↔ authored contacts | 1408 | -0.445 | -0.391 |
-| impact quality ↔ air quality | 1408 | 0.375 | 0.386 |
-| impact quality ↔ speed quality | 1408 | 0.505 | 0.409 |
+| headline score ↔ impact quality | 1408 | 0.893 | 0.850 |
+| headline score ↔ impact RMS error | 1408 | -0.902 | -0.850 |
+| headline score ↔ air quality | 1408 | 0.612 | 0.622 |
+| headline score ↔ speed quality | 1408 | 0.679 | 0.686 |
+| headline score ↔ amplitude quality | 384 | 0.438 | 0.175 |
+| headline score ↔ authored contacts | 1408 | -0.441 | -0.394 |
+| impact quality ↔ air quality | 1408 | 0.384 | 0.386 |
+| impact quality ↔ speed quality | 1408 | 0.484 | 0.418 |
 
 Correlations are observational and partly mechanical because the official score includes eligible component qualities. They do not identify causal compiler mechanisms.
 
 ## Contacted-frame impact observations
 
-Across 129,792 authored gap observations, target–achieved Pearson correlation is 0.824 (Spearman 0.806). Median absolute error is 0.1404; RMS error is 0.2024.
+Across 129,792 authored gap observations, target–achieved Pearson correlation is 0.824 (Spearman 0.808). Median absolute error is 0.1367; RMS error is 0.1998.
 
-Mean achieved impulse is 0.388 against a mean target of 0.542. 92.9% of observations are below target; 36.9% land within ±0.10. The descriptive linear fit is achieved ≈ -0.050 + 0.808 × target (R² 0.678).
+Mean achieved impulse is 0.391 against a mean target of 0.542. 92.9% of observations are below target; 38.0% land within ±0.10. The descriptive linear fit is achieved ≈ -0.044 + 0.802 × target (R² 0.679).
 
 | Target band | Observations | Target mean | Achieved mean | Signed error | MAE | RMS |
 |---|---:|---:|---:|---:|---:|---:|
-| [0.0,0.2) | 2496 | 0.136 | 0.133 | -0.003 | 0.028 | 0.045 |
-| [0.2,0.4) | 45856 | 0.304 | 0.177 | -0.128 | 0.132 | 0.152 |
-| [0.4,0.6) | 22016 | 0.512 | 0.385 | -0.127 | 0.130 | 0.166 |
-| [0.6,0.8) | 39488 | 0.697 | 0.539 | -0.157 | 0.161 | 0.211 |
-| [0.8,1.0] | 19936 | 0.868 | 0.611 | -0.258 | 0.262 | 0.308 |
+| [0.0,0.2) | 2496 | 0.136 | 0.133 | -0.003 | 0.028 | 0.044 |
+| [0.2,0.4) | 45856 | 0.304 | 0.182 | -0.123 | 0.127 | 0.148 |
+| [0.4,0.6) | 22016 | 0.512 | 0.388 | -0.124 | 0.127 | 0.163 |
+| [0.6,0.8) | 39488 | 0.697 | 0.540 | -0.157 | 0.160 | 0.209 |
+| [0.8,1.0] | 19936 | 0.868 | 0.613 | -0.255 | 0.260 | 0.306 |
 
 ## Seed stability
 
 | Most influential seed removals | Seed slot / actual | Seed headline | Valid | LOO headline change |
 |---|---|---:|---:|---:|
-| 29 / 629 | 599.94 | 44/44 | +0.1004 |
-| 13 / 613 | 599.99 | 44/44 | +0.0962 |
-| 6 / 22 | 600.22 | 44/44 | +0.0911 |
-| 30 / 630 | 605.75 | 44/44 | -0.0898 |
-| 26 / 626 | 605.69 | 44/44 | -0.0883 |
-| 21 / 621 | 605.49 | 44/44 | -0.0816 |
-| 17 / 617 | 600.61 | 44/44 | +0.0760 |
-| 23 / 623 | 605.23 | 44/44 | -0.0731 |
+| 4 / 20 | 602.97 | 44/44 | +0.1401 |
+| 2 / 18 | 603.51 | 44/44 | +0.1231 |
+| 27 / 627 | 604.04 | 44/44 | +0.1055 |
+| 14 / 614 | 604.58 | 44/44 | +0.0881 |
+| 26 / 626 | 609.94 | 44/44 | -0.0856 |
+| 0 / 16 | 609.95 | 44/44 | -0.0853 |
+| 10 / 610 | 604.90 | 44/44 | +0.0800 |
+| 15 / 615 | 609.62 | 44/44 | -0.0745 |
 
 ## Parent/variant diagnostics
 
@@ -138,21 +138,21 @@ Each variant has its own authored target, so score differences describe suite be
 
 | Most negative paired differences | Parent → variant | Mean run difference | 95% paired interval | Aggregate difference |
 |---|---|---:|---:|---:|
-| river_reentry → river_reentry_tempo_fast_5 | -24.59 | -26.44–-22.74 | -24.5860 |
-| sparse_lowline → sparse_lowline_air_minus_4 | -21.93 | -27.52–-16.35 | -21.8557 |
-| rising_switch → rising_switch_tempo_fast_5 | -21.86 | -25.04–-18.69 | -21.8429 |
-| regression_transition_mosaic → regression_transition_mosaic_tempo_fast_5 | -18.03 | -29.27–-6.80 | -18.3027 |
-| open_hook → open_hook_amplitude_plus_8 | -12.32 | -14.88–-9.77 | -12.3313 |
-| countercurrent → countercurrent_impact_contrast_12 | -11.72 | -13.67–-9.77 | -11.7183 |
+| river_reentry → river_reentry_tempo_fast_5 | -28.38 | -31.96–-24.79 | -28.4408 |
+| sparse_lowline → sparse_lowline_air_minus_4 | -28.32 | -32.37–-24.26 | -28.3392 |
+| rising_switch → rising_switch_tempo_fast_5 | -26.03 | -29.30–-22.75 | -26.0097 |
+| regression_transition_mosaic → regression_transition_mosaic_tempo_fast_5 | -24.48 | -34.31–-14.64 | -24.6594 |
+| open_hook → open_hook_amplitude_plus_8 | -15.41 | -17.95–-12.87 | -15.4044 |
+| frontier_low_air_endurance → frontier_low_air_endurance_7s | -14.24 | -23.56–-4.91 | -14.7835 |
 
 | Most positive paired differences | Parent → variant | Mean run difference | 95% paired interval | Aggregate difference |
 |---|---|---:|---:|---:|
-| believer_56_6s → believer_56_6s_impact_relief | 27.67 | 25.22–30.11 | +27.6414 |
-| high_air_drive → high_air_drive_air_minus_5 | 19.21 | 16.37–22.06 | +19.2300 |
-| wide_breaths → wide_breaths_air_plus_5 | 7.81 | 5.60–10.03 | +7.8122 |
-| pickup_lattice → pickup_lattice_speed_minus_4 | 3.43 | 0.77–6.09 | +3.4363 |
-| frontier_dense_recovery → frontier_dense_recovery_240ms_figures | 3.16 | -3.85–10.18 | +3.2287 |
-| amplitude_tides → amplitude_tides_restrained_10 | 2.21 | -1.16–5.58 | +2.2619 |
+| believer_56_6s → believer_56_6s_impact_relief | 29.65 | 24.85–34.46 | +29.8101 |
+| high_air_drive → high_air_drive_air_minus_5 | 15.89 | 13.85–17.93 | +15.8965 |
+| split_signal → split_signal_impact_relief_12 | 11.26 | 6.75–15.77 | +11.3499 |
+| pickup_lattice → pickup_lattice_speed_minus_4 | 3.96 | 0.17–7.76 | +3.9550 |
+| loose_pocket → loose_pocket_drag_later_20ms | 2.36 | 0.00–4.71 | +2.3604 |
+| wide_breaths → wide_breaths_air_plus_5 | 2.17 | -1.35–5.69 | +2.1310 |
 
 ## Practical interpretation
 

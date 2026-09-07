@@ -12,7 +12,8 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { loadVerifiedArchive } from "./benchmark_v2/decide.ts";
+import { activeCampaignAnalysisContract } from "../benchmark/campaign_baseline_analysis_contract.ts";
+import { loadVerifiedAnalysisArchive } from "./benchmark_v2/analysis_archive.ts";
 import { v2HeadlineForDecisionRuns, type DecisionRun } from "./benchmark_v2/decision_model.ts";
 import { loadSourceManifest, resolveSources } from "./benchmark_v2/model.ts";
 import { loadSuiteManifest } from "./benchmark_v2/suite_model.ts";
@@ -37,7 +38,7 @@ type Observation = {
   boundDeliveryRatio: number | null;
   speedTarget: number | null;
   speedAchieved: number | null;
-  incomingSpeedPxPerFrame: number | null;
+  meanGapSpeedPxPerFrame: number | null;
   airTarget: number | null;
   airAchieved: number | null;
   nextGapImpactSquaredError: number | null;
@@ -83,7 +84,7 @@ if (JSON.stringify(baseline.scope?.budgets) !== JSON.stringify([750_000])) {
   throw new Error("impact atlas requires the frozen 750k campaign scope");
 }
 const archivePath = resolve(baseline.development.compressed_archive);
-const verified = loadVerifiedArchive(archivePath, {
+const verified = await loadVerifiedAnalysisArchive(archivePath, {
   archive_sha256: baseline.development.archive_sha256,
   compressed_archive_sha256: baseline.development.compressed_archive_sha256,
 });
@@ -98,9 +99,10 @@ if (
 ) throw new Error("retained archive identity does not match the active campaign baseline");
 
 const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
+const analysisContract = activeCampaignAnalysisContract(baseline, archive, sources.length);
 const sourceById = new Map(sources.map((source) => [source.id, source]));
 const loadedSuite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
-const seedDepth = new Set(archive.runs.map((row: any) => row.task.seedSlot)).size;
+const seedDepth = analysisContract.promotionSeeds;
 const suite = {
   ...loadedSuite,
   profiles: {
@@ -149,7 +151,7 @@ const runs: AtlasRun[] = archive.runs.map((row: any, runIndex: number) => {
       boundDeliveryRatio: feasibilityBound !== null && feasibilityBound > 0 ? achieved / feasibilityBound : null,
       speedTarget: finiteOrNull(gap.axes?.speed?.target),
       speedAchieved: finiteOrNull(gap.axes?.speed?.achieved),
-      incomingSpeedPxPerFrame: finiteOrNull(gap.axes?.speed?.raw?.achieved),
+      meanGapSpeedPxPerFrame: finiteOrNull(gap.axes?.speed?.raw?.achieved),
       airTarget: finiteOrNull(gap.axes?.air?.target),
       airAchieved: finiteOrNull(gap.axes?.air?.achieved),
       nextGapImpactSquaredError: nextImpactError === null ? null : nextImpactError * nextImpactError,
@@ -172,8 +174,10 @@ const runs: AtlasRun[] = archive.runs.map((row: any, runIndex: number) => {
     impactObservations,
   };
 });
-if (runs.length !== 2_112 || runs.some((run) => !run.score.valid)) {
-  throw new Error("impact atlas requires the complete 2,112/2,112 active baseline");
+if (archive.runs.some((row: any) => row.status !== "ok") || runs.some((run) => !run.score.valid)) {
+  throw new Error(
+    `impact atlas requires the complete ${analysisContract.expectedRows}/${analysisContract.expectedRows} valid N=${seedDepth} promotion prefix`,
+  );
 }
 
 const headline = (score: (run: AtlasRun) => number): number => v2HeadlineForDecisionRuns(
@@ -267,13 +271,13 @@ function slicesFor(
 }
 
 const speedCuts = quantileCuts(observations.flatMap((observation) =>
-  observation.incomingSpeedPxPerFrame === null ? [] : [observation.incomingSpeedPxPerFrame]
+  observation.meanGapSpeedPxPerFrame === null ? [] : [observation.meanGapSpeedPxPerFrame]
 ));
 const nextPriceCuts = quantileCuts(observations.flatMap((observation) =>
   observation.nextGapAxisSquaredError === null ? [] : [observation.nextGapAxisSquaredError]
 ));
 const atlas = {
-  schema: "line.impact-delivery-loss-atlas.v1",
+  schema: "line.impact-delivery-loss-atlas.v2",
   // Keep the aggregate artifact byte-reproducible. Its identity is the frozen
   // campaign baseline, so use that baseline's publication timestamp rather
   // than the wall clock of whichever machine replays it.
@@ -289,6 +293,7 @@ const atlas = {
     archive: baseline.development.compressed_archive,
     archiveSha256: baseline.development.archive_sha256,
     compressedArchiveSha256: baseline.development.compressed_archive_sha256,
+    promotionSeeds: seedDepth,
   },
   cohortContract: {
     discoverySeeds: [700, 701, 702, 703, 704, 705, 706, 707],
@@ -333,9 +338,9 @@ const atlas = {
       : numericBand(observation.deliveryRatio, [0, 0.50, 0.65, 0.80, 0.95, 1.05, 1.25, Number.POSITIVE_INFINITY])),
     feasibility: slicesFor((observation) => observation.feasibility),
     durationFrames: slicesFor((observation) => numericBand(observation.durationFrames, [0, 11, 17, 25, 41, Number.POSITIVE_INFINITY])),
-    incomingSpeedPxPerFrame: slicesFor((observation) => observation.incomingSpeedPxPerFrame === null
+    meanGapSpeedPxPerFrame: slicesFor((observation) => observation.meanGapSpeedPxPerFrame === null
       ? "unavailable"
-      : quantileBand(observation.incomingSpeedPxPerFrame, speedCuts)),
+      : quantileBand(observation.meanGapSpeedPxPerFrame, speedCuts)),
     nextGapAxisPrice: slicesFor((observation) => observation.nextGapAxisSquaredError === null
       ? "terminal"
       : quantileBand(observation.nextGapAxisSquaredError, nextPriceCuts)),
@@ -374,7 +379,7 @@ function markdown(value: typeof atlas): string {
     "",
     `Baseline: \`${value.identity.baselineLabel}\`. Archive: \`${value.identity.archive}\`.`,
     "",
-    `The exact 750k/N=48 replay is **${value.replay.headline.toFixed(4)}** across ` +
+    `The exact 750k/N=${value.identity.promotionSeeds} replay is **${value.replay.headline.toFixed(4)}** across ` +
       `${value.replay.validRuns.toLocaleString("en-US")}/${value.replay.runs.toLocaleString("en-US")} valid runs and ` +
       `${value.replay.observations.toLocaleString("en-US")} impact observations. Reducing every retained impact residual ` +
       `to 75% replays to **${value.replay.allImpactResidual75Percent.headline.toFixed(2)}** ` +
@@ -387,13 +392,14 @@ function markdown(value: typeof atlas): string {
     table("Feasibility", value.bins.feasibility),
     table("Delivery ratio", value.bins.deliveryRatio),
     table("Gap duration", value.bins.durationFrames),
-    table("Incoming speed quartile", value.bins.incomingSpeedPxPerFrame),
+    table("Mean gap speed quartile", value.bins.meanGapSpeedPxPerFrame),
     table("Next-gap axis-price quartile", value.bins.nextGapAxisPrice),
     table("Cohort", value.bins.cohort),
     table("Largest source ceilings", value.bins.source, 16),
-    "## Frozen follow-up cohorts",
+    "## Historical first-tranche cohorts",
     "",
-    "First-tranche discovery 700–707; held-out validation 708–715; scale/source-spread 716–731; final confirmation 732–779. " +
+    "These are the original campaign's cohorts, not fresh reservations for a later campaign. " +
+      "First-tranche discovery 700–707; held-out validation 708–715; scale/source-spread 716–731; final confirmation 732–779. " +
       "Return-cell discovery 780–787; validation 788–795; scale 796–811; final confirmation 812–859. Production 14003–14005.",
     "",
   ].join("\n");

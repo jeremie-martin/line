@@ -14,8 +14,7 @@
  *     --archive=benchmark/v2/runs/segment-refine-development.json.gz \
  *     --budgets=750000
  */
-import { gunzipSync } from "node:zlib";
-import { readFileSync } from "node:fs";
+import { loadVerifiedAnalysisArchive } from "./benchmark_v2/analysis_archive.ts";
 import { v2HeadlineForDecisionRuns, type DecisionRun } from "./benchmark_v2/decision_model.ts";
 import { loadSuiteManifest } from "./benchmark_v2/suite_model.ts";
 import { loadSourceManifest, resolveSources } from "./benchmark_v2/model.ts";
@@ -26,11 +25,8 @@ function argument(argv: string[], name: string): string | undefined {
 
 type Row = DecisionRun & { rms: number; components: Record<string, { rmsError: number; weight: number }> };
 
-function load(path: string): { rows: Row[]; canonical: number } {
-  const raw = path.endsWith(".gz")
-    ? gunzipSync(readFileSync(path)).toString("utf8")
-    : readFileSync(path, "utf8");
-  const archive = JSON.parse(raw);
+async function load(path: string): Promise<{ rows: Row[]; canonical: number }> {
+  const { archive } = await loadVerifiedAnalysisArchive(path, undefined, (_raw, indexed) => indexed);
   const rows: Row[] = archive.runs.map((row: any) => ({
     sourceId: row.task.sourceId,
     budget: row.task.budget,
@@ -49,7 +45,7 @@ const archivePath = argument(argv, "archive") ??
 const suitePath = argument(argv, "suite") ?? "benchmark/v2/compat/suite-manifest.json";
 const manifestPath = argument(argv, "manifest") ?? "benchmark/v2/compat/source-manifest.json";
 
-const loaded = load(archivePath);
+const loaded = await load(archivePath);
 const requestedBudgets = argument(argv, "budgets")
   ?.split(",")
   .map(Number)

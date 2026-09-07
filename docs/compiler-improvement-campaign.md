@@ -113,9 +113,15 @@ only 0.463% of the original deficit; no local path reaches 25%. The 73 changed
 tracks have median −7.2350 V2 points versus the original incumbent. Cost is
 18,449,216 physics frames and 593.90 summed worker seconds, including ordinary
 continuations. Close the version and the tranche's two physical objectives;
-no source-default candidate is justified. A fixed directional audit will
-separate stale secant prediction from finite-step physical nonlinearity using
-the existing controls, with no new geometry choice or suffix search.
+no source-default candidate is justified. The fixed directional audit then
+replays all 88 paths exactly. In 84 precision-stable directions, median local
+model error is 17.4%, but the rejected finite step departs from the measured
+derivative by 17.05 times its norm. Eighty still descend infinitesimally.
+Contact impact and discrete support dominate this nonlinearity; derivative
+refitting alone is not the next mechanism. The audit costs 250,876 frames and
+5.64 worker seconds, with zero suffix searches. The next tranche must introduce
+a distinct physical transition, reviewed against prior closures and frozen on
+a new discovery cohort. The headline remains **607.2582**.
 
 ## Prior evidence
 

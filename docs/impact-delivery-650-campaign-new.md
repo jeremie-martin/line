@@ -720,6 +720,36 @@ No new direction, accepted update, geometry selection, suffix search, or full
 score is generated. This finite audit answers why this numerical proposal
 stopped; it cannot turn the failed physical experiment into a success.
 
+**Response-model audit result.** All 88 accepted paths and every stored final
+proposal replay exactly. There are 86 rejected directions to measure; 84 pass
+the 1% small-stencil agreement gate, with median disagreement 3.37e−7. Only
+four of those 84 directions cease to be local descent directions. Median
+infinitesimal response-model error is 0.1737, while median finite-step
+departure from the measured derivative is **17.0489 times its norm**. For the
+51 precision-stable model-rejection paths specifically, these medians are
+0.1100 and 11.8813. A stale secant matrix is therefore secondary to the large
+finite-step failure; replacing Broyden with another local derivative refit
+is not justified as the next campaign mechanism.
+
+Among the 76 precision-stable, admitted final proposals, impact dominates the
+nonlinear residual in 44 and air in 32. Their summed weighted curvature SSE
+is 0.01744 impact and 0.02605 air, versus 1.84e−6 speed and 1.92e−6 amplitude.
+The issue is concentrated in contact response and discrete support changes.
+This audit does not prove those errors are physically irreducible, nor does it
+license another trust-radius or step-halving optimization of the same basis.
+
+Cost: 104,256 exact complete-root warmup frames plus 146,620 audit frames;
+5.64 summed worker seconds, with zero suffix searches. All 46 JSON artifacts
+and checksums verify in
+`generated/benchmark-v2/impact-delivery-650-new/authored-output-model-audit/`.
+Request SHA-256:
+`8ade540e3976d51e32480975d2061dc5bd7e9abdefc5a873bbdc845a3cd8e874`;
+implementation is pinned in `4a2c9345`. The two-mechanism tranche is closed.
+The next tranche requires a distinct physical transition mechanism supported
+by the contact-response evidence, an explicit review against prior closures,
+and a new frozen discovery cohort. Do not reopen validation, canonical eval,
+general trajectory synthesis, or broad active material on these results.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

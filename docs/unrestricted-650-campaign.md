@@ -53,3 +53,28 @@ initial experiment sizes are resource allocations, not permanent scope limits.
   campaign archives. Their compiler closures and deferrals are superseded as
   policy; their observations remain evidence.
 - Current headline: 607.2582. Implementation and experiment results follow here.
+
+### First implemented assay: causal template transport and energy control
+
+`scripts/benchmark/whole_track_energy.ts` consumes the verified seed 260907001
+captures. It measures the original unforced arrival state at every catch, then
+replays a single real engine while transporting downstream catch geometry to
+the changed arrival. Three arms distinguish a fixed suffix, position transport,
+and position/heading/speed transport. Similarity scales initially use [0.5, 2]
+to keep this prototype numerically well behaved; that choice is revisable.
+No rider states are spliced and no ordinary suffix search is run.
+
+Controls apply native forward acceleration, braking, or an opposing adjacent
+pair to whole catches. A greedy update is retained only when the exact valid
+complete-track V2 score improves. The zero replay must exactly reproduce the
+saved geometry, every contact, every gap report, and the V2 score. Replaying
+the final selected controls must reproduce the winner again. All work is
+charged and reported as extra research compute beyond the captured compile.
+
+The initial implementation panel is amplitude tides, dense recovery,
+transition mosaic, and impact Believer: four strata, the same saved discovery
+seed, eight anchors per source chosen by baseline weighted axis error, one
+sweep of four energy actions, all three transports. Three physical-control
+invariants pass. After fidelity and implementation checks, apply the same
+assay to all 44 sources with 16 anchors; this is exploratory evidence, not
+independent validation or a 750k promotion result.

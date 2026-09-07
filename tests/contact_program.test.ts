@@ -25,8 +25,8 @@ describe("physical release programs", () => {
     expect(result[0]).toEqual(lines[0]);
     for (const line of result.slice(1)) {
       expect(line.type).toBe(1);
-      expect(line.x1).toBeGreaterThan(line.x2);
-      expect(line.flipped).toBe(true);
+      expect(line.x2).toBeGreaterThan(line.x1);
+      expect(line.flipped).toBe(false);
     }
   });
   it("rejects malformed seed carriers and nonfinite programs", () => {

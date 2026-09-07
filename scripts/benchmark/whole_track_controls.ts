@@ -65,8 +65,9 @@ export function transportCatch(
   });
 }
 
-/** Native type-1 acceleration is opposite the stored tangent. Reversal plus
- * side/extension exchange preserves the collision half-plane and segment. */
+/** Native type-1 propulsion follows the stored tangent. The kernel adds its
+ * opposite vector to previous position, hence subtracts it from velocity.
+ * Reversal plus side/extension exchange preserves the collision half-plane. */
 export function setCatchEnergy(
   lines: readonly TrackLine[], velocity: { x: number; y: number }, direction: -1 | 0 | 1,
 ): TrackLine[] {
@@ -74,7 +75,7 @@ export function setCatchEnergy(
   return lines.map(line => {
     if (line.type === 2) return { ...line };
     const tangentDot = (line.x2 - line.x1) * velocity.x + (line.y2 - line.y1) * velocity.y;
-    if (-tangentDot * direction >= 0) return { ...line, type: 1 };
+    if (tangentDot * direction >= 0) return { ...line, type: 1 };
     return { ...line, type: 1, x1: line.x2, y1: line.y2, x2: line.x1, y2: line.y1,
       flipped: !line.flipped, leftExtended: line.rightExtended, rightExtended: line.leftExtended };
   });

@@ -18,10 +18,10 @@ describe("whole-track physical controls", () => {
       (l.x2 - l.x1) * (l.flipped ? -1 : 1)];
     expect(normal(forward as typeof line)).toEqual(normal(line));
     expect(normal(brake as typeof line)).toEqual(normal(line));
-    expect(forward.x1 - forward.x2).toBeGreaterThan(0);
-    expect(brake.x1 - brake.x2).toBeLessThan(0);
-    expect(forward.leftExtended).toBe(line.rightExtended);
-    expect(forward.rightExtended).toBe(line.leftExtended);
+    expect(forward.x2 - forward.x1).toBeGreaterThan(0);
+    expect(brake.x2 - brake.x1).toBeLessThan(0);
+    expect(brake.leftExtended).toBe(line.rightExtended);
+    expect(brake.rightExtended).toBe(line.leftExtended);
     expect(line.type).toBe(0);
   });
   it("maps a catch through a known rotated and scaled arrival frame", () => {

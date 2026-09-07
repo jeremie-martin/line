@@ -1,0 +1,294 @@
+/** Exact physical prefix beam with state-conditioned catch and release synthesis.
+ * Saved tracks are warm starts; all search work is additional research compute.
+ */
+import { createHash } from "node:crypto";
+import { spawn } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { developmentCases } from "../../benchmark/v2/catalog.ts";
+import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
+import { applyJolt } from "../produce/seed.ts";
+import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
+import { disposeAllWasmEnginesForStudy } from "../lib/_lr_engine_wasm.ts";
+import { detect, extractRawTrajectory, getRiderMetered, getPhysicsFrameCount } from "../lib/detector.ts";
+import { buildDriftReport, findAuthoredContactNearFrame } from "../v0/core/substrate.ts";
+import { detectWindow } from "../v0/core/candidate.ts";
+import { measureGapAxes } from "../v0/core/measure.ts";
+import { readTargetStateFromRider } from "../v0/arc_placement.ts";
+import { buildAxisContract, scoreV2Report, summarizeDevelopmentBudget } from "../v0/benchmark_v2/evaluator.ts";
+import { shapeCatch, transportCatch, setCatchEnergy, type ArrivalFrame } from "./whole_track_controls.ts";
+import { releaseProgram } from "./contact_program.ts";
+import type { TrackLine } from "../v0/types.ts";
+
+const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
+const input = resolve(arg("input") ?? "generated/benchmark-v2/impact-delivery-650-new/interrupted-support-capture");
+const out = resolve(arg("out") ?? "generated/benchmark-v2/unrestricted-650/physical-prefix-beam");
+const script = fileURLToPath(import.meta.url);
+const hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex");
+const implementation = [script, resolve("scripts/benchmark/whole_track_controls.ts"), resolve("scripts/benchmark/contact_program.ts")]
+  .map(p => hash(readFileSync(p))).join(":");
+const baseline = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
+const suite = JSON.parse(readFileSync("benchmark/v2/compat/suite-manifest.json", "utf8"));
+const suiteHash = hash(readFileSync("benchmark/v2/compat/suite-manifest.json"));
+const engineHash = hash(readFileSync("engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm"));
+if (process.env.LR_ENGINE !== "wasm" || engineHash !== baseline.engine_artifact_fingerprint) throw new Error("frozen exact engine required");
+mkdirSync(out, { recursive: true });
+const read = (p: string) => {
+  const b = readFileSync(p);
+  if (readFileSync(`${p}.sha256`, "utf8").split(/\s/)[0] !== hash(b)) throw new Error(`checksum mismatch: ${p}`);
+  return JSON.parse(b.toString());
+};
+const write = (p: string, v: any) => {
+  const b = `${JSON.stringify(v)}\n`;
+  writeFileSync(p, b); writeFileSync(`${p}.sha256`, `${hash(b)}  ${basename(p)}\n`);
+};
+const lineKey = (lines: readonly TrackLine[]) => JSON.stringify(lines.map(l => [l.id, l.type, l.x1, l.y1, l.x2, l.y2,
+  !!l.flipped, !!l.leftExtended, !!l.rightExtended]));
+const freshEngine = (track: any) => new LineRiderEngine().setStart(track.startPosition, track.riders[0].startVelocity);
+const frameAt = (engine: any, frame: number): ArrivalFrame => {
+  const rider = getRiderMetered(engine, frame);
+  return readTargetStateFromRider(rider, rider.position.x, rider.position.y);
+};
+const packetAt = (engine: any, frame: number) => JSON.stringify(getRiderMetered(engine, frame).ballisticState());
+const weights = benchmarkPolicy.componentWeights as Record<string, number>;
+
+type Node = { engine: any; fits: any[]; sse: Record<string, number>; value: number;
+  original: boolean; id: number; parent: number; action: any; preview?: any };
+
+function worker(source: any, plan: any, planSha256: string): void {
+  const started = performance.now(), framesStart = getPhysicsFrameCount(), sourceId = source.sourceId;
+  const paths = ["capture", "track", "report"].map(kind => resolve(input, `${sourceId}.${kind}.json`));
+  paths.forEach((p, i) => { if (hash(readFileSync(p)) !== source.inputHashes[i]) throw new Error("frozen input changed"); });
+  const [capture, track, savedReport] = paths.map(read);
+  if (capture.candidateFingerprint !== baseline.candidate_fingerprint) throw new Error("wrong captured compiler");
+  const spec = applyJolt(developmentCases.find(e => e.case.metadata.id === sourceId)!.case.spec, benchmarkPolicy.transform.joltMs);
+  const contract = buildAxisContract(spec, Object.keys(weights) as any);
+  const ctx = capture.context, originals = capture.snapshot.node.search.prefixFits;
+  const startLines = capture.snapshot.node.startLines;
+  if (lineKey([...startLines, ...originals.flatMap((f: any) => f?.lines ?? [])]) !== lineKey(track.lines)) throw new Error("incomplete geometry ownership");
+  const originalScore = scoreV2Report(savedReport, spec.contacts.length, contract, suite);
+  const scoreFits = (engine: any, fits: any[]) => {
+    const report = buildDriftReport(detect(extractRawTrajectory(engine, track.duration)), spec,
+      ctx.gaps, ctx.allContactFrames, ctx.durationFrames, [], fits, ctx.gapAxisTargets);
+    return { report, score: scoreV2Report(report, spec.contacts.length, contract, suite) };
+  };
+  const references: Array<ArrivalFrame | null> = [], baselineLocal: any[] = [];
+  let serial = 0;
+  const counts: Record<string, number> = {}, totalSse: Record<string, number> = {};
+  for (const g of savedReport.gaps) for (const [axis, a] of Object.entries(g.axes) as Array<[string, any]>) {
+    if (!weights[axis]) continue;
+    counts[axis] = (counts[axis] ?? 0) + 1;
+    totalSse[axis] = (totalSse[axis] ?? 0) + a.error ** 2;
+  }
+  const value = (sse: Record<string, number>) => Object.keys(counts).reduce((s, a) => s + weights[a] * Math.sqrt(Math.max(0, sse[a]) / counts[a]), 0);
+  const nextFor = (i: number) => ctx.gaps.slice(i + 1).find((g: any) => g.endsWithContact);
+  const endFor = (i: number) => nextFor(i)?.endFrame - 2 || track.duration;
+  const local = (engine: any, i: number, lines: TrackLine[]) => {
+    const gap = ctx.gaps[i], end = endFor(i);
+    const det = detectWindow(engine, Math.max(0, gap.startFrame - 8), end);
+    const event = findAuthoredContactNearFrame(det, gap.endFrame, 1, gap.endFrame - gap.startFrame);
+    const offbeat = det.events.filter(e => e.type === "landing" && e.frame >= gap.startFrame &&
+      !ctx.allContactFrames.some((f: number) => Math.abs(f - e.frame) <= 1));
+    const next = nextFor(i);
+    return { valid: det.terminus.reason === "endOfSpec" && !!event && offbeat.length === 0,
+      reason: det.terminus.reason !== "endOfSpec" ? det.terminus.reason : !event ? "missed_contact" : offbeat.length ? "offbeat" : null,
+      achieved: measureGapAxes(det, gap, lines, gap.endFrame),
+      preview: next && det.terminus.reason === "endOfSpec" ? measureGapAxes(det, next, [], end) : null };
+  };
+  let winner: any, calibrationFrames = 0;
+  try {
+    let engine = freshEngine(track).addLine(startLines.map(createLineFromJson));
+    for (let i = 0; i < originals.length; i++) {
+      const fit = originals[i];
+      references.push(fit === null ? null : frameAt(engine, ctx.gaps[i].endFrame));
+      if (fit !== null) engine = engine.addLine(fit.lines.map(createLineFromJson));
+      baselineLocal.push(fit === null ? null : local(engine, i, fit.lines));
+    }
+    const neutral = scoreFits(engine, originals);
+    if (!neutral.score.valid || JSON.stringify(neutral.score) !== JSON.stringify(originalScore) ||
+        JSON.stringify(neutral.report) !== JSON.stringify(savedReport)) {
+      write(resolve(out, `${sourceId}.neutral-failure.json`), { neutral, originalScore, savedReport,
+        frames: getPhysicsFrameCount() - framesStart });
+      throw new Error("neutral exact replay mismatch");
+    }
+    winner = { ...neutral, fits: originals, actions: [] };
+  } finally { disposeAllWasmEnginesForStudy(); }
+  calibrationFrames = getPhysicsFrameCount() - framesStart;
+  const steps: any[] = [], nodes = new Map<number, any>();
+  const failures: Record<string, number> = {};
+  let trials = 0, validTrials = 0;
+  try {
+    const engine = freshEngine(track).addLine(startLines.map(createLineFromJson));
+    let beam: Node[] = [{ engine, fits: [], sse: { ...totalSse }, value: value(totalSse), original: true, id: serial++, parent: -1, action: null }];
+    for (let i = 0; i < originals.length; i++) {
+      const fit = originals[i], gap = ctx.gaps[i];
+      if (fit === null) { beam = beam.map(n => ({ ...n, fits: [...n.fits, null] })); continue; }
+      const pool: Node[] = [], stepTrials: any[] = [];
+      for (const parent of beam) {
+        const actual = frameAt(parent.engine, gap.endFrame);
+        const unchanged = packetAt(parent.engine, Math.max(0, gap.endFrame - 2));
+        // Reserve a disjoint ID range per contact. Incumbent lines keep their
+        // original IDs so its entire physical history remains bit-identical.
+        const idStart = 1000000 + i * 1000;
+        const candidates: Array<{ lines: TrackLine[]; action: any; original?: boolean }> = [];
+        if (parent.original) candidates.push({ lines: fit.lines, action: { family: "incumbent" }, original: true });
+        for (const mode of ["translate", "similarity"] as const) {
+          const base = transportCatch(fit.lines, references[i]!, actual, mode);
+          candidates.push({ lines: base, action: { family: "transport", mode } });
+          for (const turn of [-0.035, -0.01, 0.01, 0.035]) candidates.push({
+            lines: shapeCatch(base, actual, { turn, logScale: 0, energy: 0 }), action: { family: "turn", mode, turn } });
+          for (const logScale of [-0.12, -0.04, 0.04, 0.12]) candidates.push({
+            lines: shapeCatch(base, actual, { turn: 0, logScale, energy: 0 }), action: { family: "scale", mode, logScale } });
+          if (plan.materials) for (const energy of [-1, 1] as const) candidates.push({
+            lines: setCatchEnergy(base, actual.velocity, energy), action: { family: "material", mode, energy } });
+          if (plan.programs && mode === "translate") {
+            const next = nextFor(i), frames = next ? next.endFrame - gap.endFrame : 20;
+            const targetLength = Math.max(actual.speed * 2, actual.speed * frames * (1 - (next?.targets.air ?? 0.6)));
+            for (const scale of [0.7, 1, 1.3]) for (const exitTurn of [-0.3, -0.15, 0, 0.15]) {
+              const program = { length: targetLength * scale, exitTurn, bend: 0, energy: 0 as const };
+              const lines = releaseProgram(base, actual, program);
+              if (lines) candidates.push({ lines, action: { family: "program", ...program } });
+            }
+            for (const bend of [-0.12, 0.12]) for (const energy of (plan.materials ? [-1, 0, 1] : [0]) as Array<-1 | 0 | 1>) {
+              const program = { length: targetLength, exitTurn: -0.15, bend, energy };
+              const lines = releaseProgram(base, actual, program);
+              if (lines) candidates.push({ lines, action: { family: "program", ...program } });
+            }
+          }
+        }
+        const seen = new Set<string>();
+        for (const candidate of candidates) {
+          // Equal segment count can preserve the original IDs and ordering.
+          const lines = candidate.lines.length === fit.lines.length
+            ? candidate.lines.map((l, j) => ({ ...l, id: fit.lines[j].id }))
+            : candidate.lines.map((l, j) => ({ ...l, id: idStart + j }));
+          const key = lineKey(lines);
+          if (seen.has(key)) continue;
+          seen.add(key); trials++;
+          const child = parent.engine.addLine(lines.map(createLineFromJson));
+          if (!candidate.original && packetAt(child, Math.max(0, gap.endFrame - 2)) !== unchanged) {
+            failures.prefix_changed = (failures.prefix_changed ?? 0) + 1; continue;
+          }
+          const measured = local(child, i, lines);
+          if (!measured.valid && !candidate.original) {
+            failures[measured.reason!] = (failures[measured.reason!] ?? 0) + 1; continue;
+          }
+          validTrials++;
+          const sse = { ...parent.sse };
+          const originalGap = savedReport.gaps.find((g: any) => g.gap_index === i);
+          for (const axis of Object.keys(counts)) {
+            const a = originalGap?.axes[axis];
+            if (!a) continue;
+            const achieved = candidate.original ? a.achieved : measured.achieved[axis as keyof typeof measured.achieved];
+            if (achieved === undefined || !Number.isFinite(achieved)) { sse[axis] = Infinity; continue; }
+            sse[axis] += (a.target - achieved) ** 2 - a.error ** 2;
+          }
+          const projected = { ...sse }, next = nextFor(i);
+          if (measured.preview && next && plan.preview) {
+            const baseNext = savedReport.gaps.find((g: any) => g.gap_index === next.index);
+            for (const axis of ["air", "speed", "amplitude"]) {
+              const a = baseNext?.axes[axis], achieved = measured.preview[axis as keyof typeof measured.preview];
+              if (a && achieved !== undefined) projected[axis] += (a.target - achieved) ** 2 - a.error ** 2;
+            }
+          }
+          const node: Node = { engine: child, fits: [...parent.fits, { ...fit, lines }], sse, value: value(projected),
+            original: !!candidate.original, id: serial++, parent: parent.id, action: candidate.action, preview: measured.preview };
+          pool.push(node);
+          stepTrials.push({ id: node.id, parent: node.parent, action: node.action, value: node.value, original: node.original });
+        }
+      }
+      const original = pool.find(n => n.original);
+      if (!original) throw new Error("lost incumbent path");
+      const ranked = pool.filter(n => !n.original).sort((a, b) => a.value - b.value || a.id - b.id);
+      // Preserve alternative parent histories before filling with siblings.
+      const selected: Node[] = [], selectedParents = new Set<number>();
+      for (const n of ranked) if (!selectedParents.has(n.parent) && selected.length < plan.width - 1) {
+        selected.push(n); selectedParents.add(n.parent);
+      }
+      for (const n of ranked) if (selected.length < plan.width - 1 && !selected.includes(n)) selected.push(n);
+      beam = [original, ...selected];
+      for (const n of beam) nodes.set(n.id, { gap: i, parent: n.parent, action: n.action });
+      steps.push({ gap: i, trials: stepTrials, retained: beam.map(n => n.id) });
+    }
+    const completions: any[] = [];
+    for (const n of beam) {
+      const measured = scoreFits(n.engine, n.fits);
+      completions.push({ id: n.id, original: n.original, score: measured.score });
+      if (measured.score.valid && measured.score.score > winner.score.score) {
+        const actions: any[] = []; let at = n.id;
+        while (nodes.has(at)) { const item = nodes.get(at); actions.push({ gap: item.gap, action: item.action }); at = item.parent; }
+        winner = { ...measured, fits: n.fits, actions: actions.reverse() };
+      }
+    }
+    write(resolve(out, `${sourceId}.search.json`), { steps, completions, baselineLocal });
+  } finally { disposeAllWasmEnginesForStudy(); }
+  const bestTrack = { ...track, lines: [...startLines, ...winner.fits.flatMap((f: any) => f?.lines ?? [])] };
+  try {
+    const replay = scoreFits(freshEngine(track).addLine(bestTrack.lines.map(createLineFromJson)), winner.fits);
+    if (JSON.stringify(replay) !== JSON.stringify({ report: winner.report, score: winner.score })) throw new Error("winner exact replay mismatch");
+  } finally { disposeAllWasmEnginesForStudy(); }
+  write(resolve(out, `${sourceId}.track.json`), bestTrack);
+  write(resolve(out, `${sourceId}.report.json`), winner.report);
+  const result = { schema: "line.whole-track-planner-source.v1", implementation, planSha256, sourceId, seed: capture.seed,
+    originalScore, score: winner.score, delta: winner.score.score - originalScore.score, actions: winner.actions,
+    trials, validTrials, failures, calibrationFrames, frames: getPhysicsFrameCount() - framesStart, elapsedMs: performance.now() - started };
+  write(resolve(out, `${sourceId}.json`), result);
+  process.stderr.write(`${sourceId}: ${result.delta >= 0 ? "+" : ""}${result.delta.toFixed(4)}, ${validTrials}/${trials} local fits, ${result.frames} frames\n`);
+}
+
+const planPath = resolve(out, "plan.json");
+if (process.argv.includes("--plan")) {
+  if (existsSync(planPath)) throw new Error("plan exists");
+  const requested = arg("sources")?.split(",");
+  const members = developmentCases.filter(e => !requested || requested.includes(e.case.metadata.id));
+  if (!members.length || (requested && members.length !== requested.length)) throw new Error("unknown sources");
+  const width = Number(arg("width") ?? 6);
+  if (!Number.isSafeInteger(width) || width < 2) throw new Error("invalid width");
+  const sources = members.map(e => ({ sourceId: e.case.metadata.id,
+    inputHashes: ["capture", "track", "report"].map(kind => {
+      const p = resolve(input, `${e.case.metadata.id}.${kind}.json`); read(p); return hash(readFileSync(p));
+    }) }));
+  write(planPath, { schema: "line.whole-track-planner-plan.v1", implementation, engineHash, suiteHash,
+    candidateFingerprint: baseline.candidate_fingerprint, researchOnly: true, input, width,
+    materials: arg("materials") !== "off", programs: arg("programs") !== "off", preview: arg("preview") !== "off",
+    law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
+  console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
+} else {
+  const plan = read(planPath), planSha256 = hash(readFileSync(planPath));
+  if (plan.implementation !== implementation || plan.engineHash !== engineHash || plan.input !== input || plan.suiteHash !== suiteHash) throw new Error("frozen experiment changed");
+  if (arg("worker")) worker(plan.sources.find((s: any) => s.sourceId === arg("worker")), plan, planSha256);
+  else {
+    const queue = plan.sources.filter((s: any) => {
+      const p = resolve(out, `${s.sourceId}.json`);
+      if (!existsSync(p)) return true;
+      if (read(p).planSha256 !== planSha256) throw new Error("checkpoint identity mismatch");
+      return false;
+    });
+    const jobs = Number(arg("jobs") ?? 4), failures: string[] = [];
+    if (!Number.isSafeInteger(jobs) || jobs < 1) throw new Error("invalid jobs");
+    await Promise.all(Array.from({ length: Math.min(jobs, queue.length) }, async () => {
+      while (queue.length) {
+        const s = queue.shift()!;
+        const code = await new Promise<number | null>((done, reject) => {
+          const child = spawn(process.execPath, ["--import", "tsx", script, `--worker=${s.sourceId}`, `--input=${input}`, `--out=${out}`],
+            { env: process.env, stdio: ["ignore", "ignore", "inherit"] });
+          child.on("error", reject); child.on("exit", done);
+        });
+        if (code !== 0) failures.push(s.sourceId);
+      }
+    }));
+    if (failures.length) throw new Error(`failed workers: ${failures.join(", ")}`);
+    const sources = plan.sources.map((s: any) => read(resolve(out, `${s.sourceId}.json`)));
+    const aggregate = (key: string) => sources.length === 44 ? summarizeDevelopmentBudget(sources.map((s: any) => ({
+      sourceId: s.sourceId, budget: 750000, seedSlot: 0, actualSeed: s.seed, score: s[key],
+    })), 750000, suite) : null;
+    const summary = { schema: "line.whole-track-planner-summary.v1", planSha256, implementation, researchOnly: true,
+      sources: sources.length, baseline: aggregate("originalScore"), candidate: aggregate("score"),
+      positiveSources: sources.filter((s: any) => s.delta > 0).length,
+      meanDelta: sources.reduce((s: number, r: any) => s + r.delta, 0) / sources.length,
+      maxDelta: Math.max(...sources.map((s: any) => s.delta)),
+      frames: sources.reduce((s: number, r: any) => s + r.frames, 0), workerMs: sources.reduce((s: number, r: any) => s + r.elapsedMs, 0) };
+    write(resolve(out, "summary.json"), summary); console.log(JSON.stringify(summary));
+  }
+}

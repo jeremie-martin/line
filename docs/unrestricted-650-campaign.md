@@ -351,3 +351,31 @@ candidate, preserving the realized impact while attempting to recover outgoing
 speed. It is generated for an incumbent or pulse candidate whose measured next
 speed misses its target. Both future acceleration and braking are available;
 the signed measured residual selects the direction.
+
+
+The second broad paired-contact pass reaches **618.4730**, improving 38 of 44
+inputs, with all retained tracks valid. Cost: 135,130,267 frames and 1,052.26
+summed worker seconds. Its plan is
+`686bff8b04dfc5aa9bad27c0c3a8db47d8b47c614886920970ac4c7578d2382c`.
+The post-window energy pilot improves all four sources over the paired-contact
+panel: gains from the original tracks are 1.2932 (amplitude), 0.3127 (dense),
+17.4087 (transition), and 38.2114 (Believer). All selected energy actions are
+forward and follow a pulse; Believer now changes 48 of 49 catches. Its impact
+RMS falls 0.1174 → 0.0867, while speed improves 0.0610 → 0.0572 and amplitude
+0.2415 → 0.2189; air worsens 0.0548 → 0.0582. This is a complete physical track,
+not a local score extrapolation. Pilot cost: 13,790,708 frames and 108.52 worker
+seconds. The implementation is `a8ad3cd3`. A 44-source energy pass is running
+from the 618.4730 incumbent.
+
+A separate small physics probe tests point-local contacts sharing a common
+normal across either the sled or all rider points. Coincident points merge and
+surface width is limited by tangential point separation. At a free-flight
+frame, 7/24 sled-only proposals and 11/24 whole-rider proposals preserve the
+previous full packet and remain intact through five later frames. Largest
+next-frame velocity changes are 0.8843 and 2.1378 px/frame respectively. The
+first artifact recorded the contact frame's stored velocity and therefore did
+not yet observe its causal response; the companion next-frame artifact records
+the response at frames 21 and 25. Both artifacts are retained. These are actuator
+physics observations, not benchmark or scored-contact evidence. A focused exact
+engine test covers the causal, intact whole-rider example before integration
+into the research planner.

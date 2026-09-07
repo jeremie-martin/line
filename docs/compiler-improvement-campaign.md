@@ -99,7 +99,7 @@ Joint contact/release synthesis is now implemented as an exact physical prefix
 beam. The first 44-source discovery run improves 41 tracks, moving its offline
 aggregate from 607.4692 to 608.2268. Wider target-program search reaches
 610.1912 across all 44 tracks, then 611.4610 after another pass and
-616.1740 after paired contacts. All 44 remain valid; the paired pass improves
+616.1740 after paired contacts and 618.4730 after another paired pass. All 44 remain valid; the paired pass improves
 42 and adds 51.3530 on Rising Switch. Three panel passes accumulate a 38.2325-point Believer gain.
 Dense-case gains remain small, so the work is still research,
 with extra compute, rather than a promoted 750k compiler.

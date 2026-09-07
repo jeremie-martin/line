@@ -23,6 +23,7 @@ import { shapeCatch, transportCatch, setCatchEnergy, type ArrivalFrame } from ".
 import { releaseProgram } from "./contact_program.ts";
 import { nativeRailLayers } from "./native_rail_layers.ts";
 import { contactPulse } from "./contact_pulse.ts";
+import { collectiveContactPulse } from "./collective_contact_pulse.ts";
 import { authoredSpeedToPx, speedPxToAuthored, impactToRawPx, normImpact, type TrackLine } from "../v0/types.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
@@ -34,6 +35,7 @@ const hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex"
 const implementation = [script, resolve("scripts/benchmark/whole_track_controls.ts"), resolve("scripts/benchmark/contact_program.ts"),
   resolve("scripts/benchmark/native_rail_layers.ts")]
   .concat(resolve("scripts/benchmark/contact_pulse.ts"))
+  .concat(resolve("scripts/benchmark/collective_contact_pulse.ts"))
   .map(p => hash(readFileSync(p))).join(":");
 const baseline = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
 const suite = JSON.parse(readFileSync("benchmark/v2/compat/suite-manifest.json", "utf8"));
@@ -187,7 +189,7 @@ function worker(source: any, plan: any, planSha256: string): void {
             const preserve = { frame: gap.endFrame, packet: packetAt(seedEngine, gap.endFrame) };
             for (const phase of [2, 4]) {
               if (gap.endFrame + phase >= endFor(i)) continue;
-              const packet = getRiderMetered(seedEngine, gap.endFrame + phase).ballisticState();
+              const rider = getRiderMetered(seedEngine, gap.endFrame + phase), packet = rider.ballisticState();
               if (!packet.riderMounted || !packet.sledIntact) continue;
               for (const pointId of ["TAIL", "NOSE"]) for (const normalTurn of [-1, 1]) for (const depth of [0.5, 1.5, 3]) {
                 const point = packet.points[pointId];
@@ -207,6 +209,12 @@ function worker(source: any, plan: any, planSha256: string): void {
                       action: { family: "contact_pulse_pair", phase, pointId, normalTurn, depth, secondPoint, ratio } });
                   }
                 }
+              }
+              if (plan.collective) for (const normalTurn of [-1, -0.6, 0.6, 1]) for (const depth of [0.5, 1.5, 3]) for (const maxWidth of [0.5, 2]) {
+                const pulses = collectiveContactPulse(Object.values(packet.points) as Array<{ x: number; y: number }>,
+                  rider.velocity, normalTurn, depth, maxWidth, idStart + seedLines.length);
+                candidates.push({ lines: [...seedLines, ...pulses], preserve,
+                  action: { family: "contact_pulse_collective", phase, normalTurn, depth, maxWidth, pulseLineCount: pulses.length } });
               }
             }
           }
@@ -371,7 +379,8 @@ function worker(source: any, plan: any, planSha256: string): void {
             future: plan.lookahead === 2 ? future : undefined, original: node.original,
             achieved: plan.pulses ? measured.achieved : undefined,
             pulseContacts: candidate.action.family.startsWith("contact_pulse")
-              ? lines.slice(candidate.action.family === "contact_pulse_pair" ? -2 : -1).map(l => measured.impactLineIds?.includes(l.id)) : undefined });
+              ? lines.slice(-(candidate.action.pulseLineCount ?? (candidate.action.family === "contact_pulse_pair" ? 2 : 1)))
+                .map(l => measured.impactLineIds?.includes(l.id)) : undefined });
         }
       }
       const original = pool.find(n => n.original);
@@ -451,6 +460,7 @@ if (process.argv.includes("--plan")) {
     pulses: arg("pulses") === "on",
     pulsePairs: arg("pulse-pairs") === "on",
     tailEnergy: arg("tail-energy") === "on",
+    collective: arg("collective") === "on",
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

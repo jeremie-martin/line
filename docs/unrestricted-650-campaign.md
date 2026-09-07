@@ -94,3 +94,18 @@ catch rotation ±0.002 radians and log-scale ±0.005 about the measured arrival
 point. The three transport arms and exact full-track objective remain the same.
 This tests local geometry authority after removing the old fixed-suffix and
 local no-axis-debt assumptions. Four physical-control invariants pass.
+
+The geometry pilot passed all neutral and final-winner replay checks. Fixed
+suffixes improved one source by 0.0052; translation improved two (maximum
+0.0527); similarity improved three (maximum 0.9819 on impact Believer).
+Validity among the 128 trials per arm was 9/34/39 respectively. The four-source
+mean gains were 0.0013/0.0174/0.2554. Cost: 1,077,561 trial/replay frames,
+18,916 calibration/neutral frames, and 10.39 summed worker seconds. These
+small complete-track gains justify measuring coverage, not integration yet.
+Plan `952898bfc13f0814201a5577d5c5d6a45b7ce7a1158e16e302e4da2db9b317d9`
+is retained under `unrestricted-650/geometry-pilot`.
+
+Next: the same geometry algorithm on all 44 saved sources, 16 error-ranked
+anchors, one sweep, all three transports. This reuses discovery data and is
+explicitly exploratory. Report its exact hierarchical score as an offline
+postprocessing result with extra frames, never as an accepted 750k headline.

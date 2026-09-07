@@ -1,0 +1,78 @@
+{
+  "schema": "line.production-video-review.v1",
+  "archive": "archives/native-motion-feedback-2026-09-07",
+  "sourceBranch": "codex/native-motion-video-review",
+  "compilerBranch": "archive/native-motion-feedback-761",
+  "generatedAt": "2026-09-07T20:57:10.850Z",
+  "gitSha": "cbe45a57422c748896067604e8132bad4c6f59cd",
+  "candidateFingerprint": "b4c9bff756e14a0d4cbd07d0062bf824ce4f587a8cd88211b528b98e7c85ae23",
+  "compilerSourceFingerprint": "9522c81e47961ec7f83e40e2e33dd7f7e82e1b3f80be7f57589df9afa6896d34",
+  "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+  "seed": 260907010,
+  "songs": [
+    {
+      "song": "amor_na_praia_46s",
+      "compileDir": "inputs/amor_na_praia_46s",
+      "metrics": {
+        "seed": 260907010,
+        "score": 670.8042780248294,
+        "standTimePct": 0,
+        "rotations": 6.374284373530524,
+        "flipCount": 1,
+        "reachedEnd": true,
+        "offBeat": 0,
+        "contractPassed": true,
+        "durationFrames": 1860
+      },
+      "lineTypes": {
+        "1": 62086
+      },
+      "passesOriginalSelectionFloors": false,
+      "video": "amor_na_praia_46s/amor_na_praia_46s-s260907010/video.mp4",
+      "videoSha256": "a633c478d370d51c4c82ed63980ea5063abb2e44642a6ef3ed0eed267aa97ba0"
+    },
+    {
+      "song": "luna_bala_44s",
+      "compileDir": "inputs/luna_bala_44s",
+      "metrics": {
+        "seed": 260907010,
+        "score": 744.9733538896734,
+        "standTimePct": 0,
+        "rotations": 3.582213192708618,
+        "flipCount": 1,
+        "reachedEnd": true,
+        "offBeat": 0,
+        "contractPassed": true,
+        "durationFrames": 1780
+      },
+      "lineTypes": {
+        "1": 52477
+      },
+      "passesOriginalSelectionFloors": false,
+      "video": "luna_bala_44s/luna_bala_44s-s260907010/video.mp4",
+      "videoSha256": "d5c6885d4d661623384e9fcbc1bf7504168bfbf0e6f9fedde0b42326476f35d0"
+    },
+    {
+      "song": "tiki_tiki_48s",
+      "compileDir": "inputs/tiki_tiki_48s",
+      "metrics": {
+        "seed": 260907010,
+        "score": 666.5974368476025,
+        "standTimePct": 0,
+        "rotations": 4.80038356268089,
+        "flipCount": 1,
+        "reachedEnd": true,
+        "offBeat": 0,
+        "contractPassed": true,
+        "durationFrames": 1940
+      },
+      "lineTypes": {
+        "1": 72833
+      },
+      "passesOriginalSelectionFloors": false,
+      "video": "tiki_tiki_48s/tiki_tiki_48s-s260907010/video.mp4",
+      "videoSha256": "cfcec7eb89aa97a13b3ab78118a7b3d4dd48f06b9be658a58bbd58fbd3acb230"
+    }
+  ],
+  "purpose": "Local visual review requested by the owner; no upload or publication. Creative selection floors are recorded, not enforced; physical validity is required."
+}

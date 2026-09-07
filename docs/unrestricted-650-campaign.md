@@ -130,3 +130,45 @@ terminal tangent. This is geometry feedback, not a fabricated state reset.
 Test the same four-source/eight-anchor geometry pilot with this `restore` arm;
 five control invariants pass. A stronger optimizer is useful only if there is a
 stable region of complete-track improvements to exploit.
+
+The release-restoring pilot improved two sources by at most 0.0138, with
+33/128 valid trials. It cost 421,839 trial/replay frames plus 18,916 calibration
+and neutral frames, and 5.51 summed worker seconds. Exact neutral and winner
+replays passed. Plan SHA-256:
+`e503054e9c46709dfaf337e8f8fd403b1516fdc287b10523515ff3415e0c1af6`.
+The input/output blend does not solve the stability problem. No compiler arm
+or governed experiment is justified by these small offline gains.
+
+The next architectural direction is to jointly synthesize contact and release
+geometry over a short horizon, with acceleration/braking as native track
+actions and explicit recovery of contact constraints. The demonstrated
+weakness is dependence on old catch templates: rigid transport preserves too
+little of the rider's articulated state, and restoring only the exit tangent
+does not correct it. A planner should optimize realized intermediate states
+and generate geometry for them, retaining a valid complete incumbent while
+allowing its internal search to explore temporarily infeasible proposals.
+This is an open hypothesis, not yet an implementation or a claimed gain.
+
+All experiment artifacts are checksummed and resumable. No benchmark, scorer,
+evaluation physics, production compiler, or accepted baseline was modified by
+these assays. Five focused tests pass; the repository-wide TypeScript check
+still has pre-existing failures, with no diagnostics in either new assay file
+or its test after the final extension. All 385 JSON artifacts pass checksum
+verification. Total research cost is 26,838,954 physics frames and 276.39 summed
+worker seconds, with no repeated baseline searches. The accepted headline
+remains 607.2582.
+
+Recorded commands, run with the corresponding committed implementation and
+`LR_ENGINE=wasm node --import tsx scripts/benchmark/whole_track_energy.ts`:
+
+| Implementation | Output suffix under `generated/benchmark-v2/unrestricted-650/` | Plan arguments |
+|---|---|---|
+| `a5235837` | `energy-pilot-typed` | `--plan --anchors=8 --sources=amplitude_tides,frontier_dense_recovery,regression_transition_mosaic,believer_impact_56s` |
+| `4fb41225` | `geometry-pilot` | Same four-source plan plus `--family=geometry` |
+| `4fb41225` | `geometry-discovery` | `--plan --family=geometry --anchors=16` |
+| `c96e76db` | `restore-pilot` | Four-source geometry plan plus `--modes=restore` |
+
+Each command supplies its explicit `--out` directory. Execute the resulting
+frozen plan with that same output argument and `--jobs=4` for pilots or
+`--jobs=8` for discovery. Readers refuse mismatched implementations or changed
+inputs; committed source and checksum-bound artifacts preserve reconstruction.

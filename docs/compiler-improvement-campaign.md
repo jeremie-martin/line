@@ -87,11 +87,20 @@ full neutral track/report/frame check in [HOW_TO_WORK.md](HOW_TO_WORK.md).
 ## Current work
 
 The owner has authorized ambitious compiler research without inherited limits.
-Start by optimizing complete feasible tracks directly, with joint geometry and
-material controls, then use the evidence to develop coupled trajectory and
-energy planning. Reuse the verified discovery captures before paying for new
-baseline searches. Planning needs no further approval. The previous `goal.md`,
-including its uncommitted contents, is preserved in the historical archive.
+The first implementation directly optimizes complete tracks with material and
+geometry controls plus causal transport of downstream catches. Neutral replays
+match every saved contact and gap report. Coarse energy control gives no gain
+on its four-source pilot. On all 44 saved sources, geometry plus translation
+adds 0.2226 offline aggregate points; similarity adds 0.1717, versus 0.0191
+with a fixed suffix. This costs extra compute and is too small to integrate.
+A release-restoring transform also fails to produce a material gain.
+
+The next architectural direction is joint contact/release synthesis with
+explicit recovery of contact constraints, generating geometry for planned
+states instead of transporting old catch templates. Planning and active
+material need no further approval. The benchmark and score remain fixed.
+Exact commands, costs, and artifact identities are in the active program.
+The previous `goal.md`, including its uncommitted contents, is archived.
 
 ## Prior evidence
 

@@ -957,6 +957,29 @@ repository type checking reports no errors in the new capture, gap, metadata,
 or recapture scripts. No compiler source, evaluator, target, or baseline was
 changed. Validation and canonical seeds remain unopened.
 
+**Production-path metadata audit while the planning decision is pending.**
+The direct-readmission finding was checked for a remaining production defect
+before treating the scope decision as blocking. The checksum-verified promoted
+snapshot has the same sampling, optional-fit copying, snapshot cloning,
+seeded-extra reference clearing, and reuse functions as the working tree.
+Sampling attaches `ref`; cloning preserves it; successful reuse refreshes it.
+The seeded auxiliary lane explicitly clears it to prevent steady-state reuse.
+
+A checksum-verified read of both existing 44-source capture cohorts finds
+8,112 selected fits: 8,029 carry `ref`; 81 omissions retain `sampleAttempt`;
+the remaining two have the detector-runway template's exact nine-line geometry
+(16:1 approach/segment length ratio and eight three-degree turns, within
+4e-11 degrees). They occur at pickup g73 on seed 260907000 and shifted pickup
+g105 on seed 260907001. The runway proposer does not attach a reuse reference.
+Rank traces cover only the latest search suffix, so they cannot label every
+earlier fit's origin; no full-origin attribution is claimed for the 81 sampled
+omissions. This audit establishes no accidental loss in ordinary sampling,
+reuse, or cloning. Making auxiliary or runway geometry reusable would be a
+new reuse policy, not a demonstrated metadata repair. No compiler change or
+new seed is justified by this finding. Cost: zero new physics frames or
+compiler executions. The bounded planning proposal remains inactive pending
+the owner's decision on the explicit `goal.md` deferral.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

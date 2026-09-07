@@ -592,6 +592,43 @@ the active contract and must not be reused. Use the current compiler's exact
 authored setup. No source-default candidate or validation seed is opened by
 this next data/preflight task.
 
+**Capture and replay result.** All 44 metadata captures reproduce the existing
+discovery track, score, and charged compile count exactly. The ordinary snapshot
+API then reproduces all 44 full tracks and reports byte-for-byte, with identical
+scores. The captured setup includes the actual sampled gaps and unmodified
+authored targets from the existing rollout observation hook. Capture cost is
+44 full compiler searches and 33,759,592 charged frames; the 44 ordinary full-
+snapshot evaluations cost 104,256 physics frames. Combined retained worker
+time is 1,153.50 seconds. This extends metadata on seed 260907000 rather than
+creating independent evidence or recomputing a canonical cache row.
+
+The first replay attempt was invalid as an instrument: serializing `Spec`
+omitted its axis functions, and a counter difference crossed a per-compile
+reset. Those 44 failed preflights and their original implementation are retained
+under `continuation-capture/preflight-serialized-spec/`; they are not physical
+evidence and their negative frame deltas are not costs. Replays now reload the
+live authored catalog spec and read the reset counter correctly. The captured
+fits were reused, so no full discovery compile was repeated for this repair.
+
+**Avoided futile suffix grid.** Before declaring the proposed intervention run,
+the frozen path outputs establish a hard bound: only 2/78 have ≥90% of the
+requested 25% impact-deficit gain. Both are low-air variants at gap 32. Even
+perfect suffix recovery cannot meet the declared half-of-paths useful-gain
+gate. Do not spend 78 paired reconstruction searches or reinterpret small
+search-path displacement as sufficient physical benefit. Close that proposed
+grid while retaining the replay infrastructure.
+
+**Candidate-admission preflight, declared before execution.** For every captured
+winning fit, reconstruct its exact original prefix and submit its unchanged
+line geometry through `tryCandidateLines`, the ordinary exact candidate gate,
+using the captured authored setup and ordinary probe. Disable optional rideout
+polish so this test cannot alter the submitted geometry. Record every rejection,
+any changed geometry, and targeted-axis mismatch. Advance with the original
+fit regardless of that result to prevent one rejection from contaminating later
+states. This is an interface/fidelity test for a future authored-axis physical
+objective; it introduces no new geometry or source-default candidate. A future
+objective must be declared separately and tested with actual continuation.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

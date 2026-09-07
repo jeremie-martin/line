@@ -750,6 +750,59 @@ by the contact-response evidence, an explicit review against prior closures,
 and a new frozen discovery cohort. Do not reopen validation, canonical eval,
 general trajectory synthesis, or broad active material on these results.
 
+### Tranche 2 — interrupted support and recapture (declaration)
+
+The response audit identifies contact/support changes as the dominant finite
+effect. Test a different physical topology: preserve the native catch, remove
+a short internal support interval, and use the original downstream curve as
+the recapture surface within the same scored impact episode. This introduces
+free flight and a second load application; it does not deform the old normal-
+joint basis or change a turn/drive command. Prior closures cover continuous
+curve warps, seam extension/priority, terminal release, added static supports,
+chicanes, and local-response optimization. The reviewed history contains no
+internal support interruption followed by recapture. This is passive, local
+contact geometry; broad trajectory planning and active material remain closed.
+
+Open the already reserved second discovery seed **260907001** for all 44
+development sources using the exact promoted compiler. Capture winning-fit
+metadata and the full contact census in the same compile to avoid the earlier
+second search for metadata. Require exact ordinary snapshot replay and two
+observer-free controls. This is fresh discovery, not validation or a canonical
+experiment. No additional discovery seed is licensed by a weak result.
+
+From each baseline select two contacts nearest one-third and two-thirds of
+duration, without replacement, using only baseline facts: impact undershoot
+at least 0.05, full support H..H+6, a connected solid candidate, and a following
+authored contact beyond the current scoring window. Keep unavailable sources
+explicit. Construct exactly one proposed interruption per selected contact.
+Project the four native sled points at H+3 onto the original carrier's
+arclength. Center the gap on their projected span; its width is that span plus
+one frame of incoming collective speed. Retain all carrier geometry outside
+the interval. Disable extension only on the two new exposed endpoints and
+renumber the surviving candidate lines consecutively without changing their
+relative collision priority. Reject a cut outside the carrier. There is no
+gap-width, phase, line-count, or dose sweep.
+
+Submit the resulting geometry through ordinary exact admission without
+rideout polish. Require the exact physical prefix through H to match the
+incumbent. Record all current axes, impulse, contacted frames, owned contact
+points, and whether an actual support-free frame is followed by contact on
+the retained return side before H+6. A score gain without that sequence does
+not validate the hypothesized mechanism. Keep the unchanged candidate as a
+control; a rejected proposal falls back unchanged and counts as unavailable,
+not as success.
+
+For every changed admitted proposal, realize the remaining ordinary suffix
+from the original and changed prefixes with the same live authored spec,
+search seed, and first-completion ceiling
+`ceil(original budget * remaining gaps / all gaps)`. Retain every failure as
+zero under the frozen V2 scorer, and verify intervention geometry plus final
+impact. A useful physical success must preserve the proposed interruption,
+retain at least 25% of the original impact deficit gain, and improve a valid
+complete track against both ordinary control and the original incumbent.
+Report local, control, suffix, and metadata-capture costs separately. No source-
+default integration or validation is opened before this component evidence.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

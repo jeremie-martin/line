@@ -1,3 +1,12 @@
+# Current owner constraint — 2026-09-07
+
+The active compiler campaign uses normal type-0 lines only. Acceleration output
+is preserved on a separate branch for video review. `goal.md` and
+`normal-line-650-campaign.md` supersede the earlier unrestricted-material
+campaign status below; other compiler research restrictions remain removed.
+The active baseline is restored to `value-ranked-startup-expiration`, 607.2582,
+with its full N=48 cache. The scorer and benchmark remain unchanged.
+
 # How To Work On The Compiler
 
 Compiler research scope is unrestricted under the owner's 2026-09-07

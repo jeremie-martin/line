@@ -1,15 +1,15 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "native-motion-feedback",
-  "generated_at": "2026-09-07T19:45:51.130Z",
+  "label": "value-ranked-startup-expiration",
+  "generated_at": "2026-08-15T12:52:33.067Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
       750000
     ],
     "max_seeds": 48,
-    "promotion_seeds": 8,
+    "promotion_seeds": 32,
     "sequential_looks": [
       8,
       16,
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "9522c81e47961ec7f83e40e2e33dd7f7e82e1b3f80be7f57589df9afa6896d34",
+  "compiler_source_fingerprint": "89eb2b3dd4b89448fc83d7107e9b65543c07f87ac9dbe35514aa90a6eb3da66a",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -59,20 +59,6 @@
     "scripts/lib/export.ts",
     "scripts/lib/metrics.ts",
     "scripts/lib/moves.ts",
-    "scripts/lib/native_motion/Cargo.lock",
-    "scripts/lib/native_motion/Cargo.toml",
-    "scripts/lib/native_motion/README.md",
-    "scripts/lib/native_motion/engine.ts",
-    "scripts/lib/native_motion/engine.wasm",
-    "scripts/lib/native_motion/manifest.json",
-    "scripts/lib/native_motion/manifest.json.sha256",
-    "scripts/lib/native_motion/src/abi.rs",
-    "scripts/lib/native_motion/src/engine.rs",
-    "scripts/lib/native_motion/src/frame.rs",
-    "scripts/lib/native_motion/src/grid.rs",
-    "scripts/lib/native_motion/src/kernel.rs",
-    "scripts/lib/native_motion/src/lib.rs",
-    "scripts/lib/native_motion/src/line.rs",
     "scripts/lib/precise_landings.ts",
     "scripts/lib/primitive.ts",
     "scripts/lib/primitive_search.ts",
@@ -103,7 +89,6 @@
     "scripts/v0/optimizer/README.md",
     "scripts/v0/optimizer/aim.ts",
     "scripts/v0/optimizer/aim_impact_model.json",
-    "scripts/v0/optimizer/aim_impact_pool_value_model.json",
     "scripts/v0/optimizer/air_policy.ts",
     "scripts/v0/optimizer/arc_actuator.ts",
     "scripts/v0/optimizer/arc_control.ts",
@@ -122,9 +107,6 @@
     "scripts/v0/optimizer/impact_policy.ts",
     "scripts/v0/optimizer/impact_response_model.ts",
     "scripts/v0/optimizer/kinematic_support.ts",
-    "scripts/v0/optimizer/native_motion.ts",
-    "scripts/v0/optimizer/native_motion_schedule.ts",
-    "scripts/v0/optimizer/native_pointwise_energy.ts",
     "scripts/v0/optimizer/node.ts",
     "scripts/v0/optimizer/objective.ts",
     "scripts/v0/optimizer/objective_control.ts",
@@ -136,7 +118,6 @@
     "scripts/v0/optimizer/readiness_model_artifact.ts",
     "scripts/v0/optimizer/readiness_scoring.ts",
     "scripts/v0/optimizer/register.ts",
-    "scripts/v0/optimizer/repair_branch_bound.ts",
     "scripts/v0/optimizer/sample.ts",
     "scripts/v0/optimizer/selective_backtracking.ts",
     "scripts/v0/optimizer/sim_frames.ts",
@@ -151,7 +132,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "b4c9bff756e14a0d4cbd07d0062bf824ce4f587a8cd88211b528b98e7c85ae23",
+  "candidate_fingerprint": "23b4abc01031f81d7dafed400a998f6514230356de78e9ae0a87ef92e151873e",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "14c40a4fc7ab32638e61e16a6d4e89350e720d871144eb8767ed102329bd696e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -160,25 +141,25 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/native-motion-feedback-compiler-snapshot.tar.gz",
-    "archiveSha256": "d5d3d8f5a77a47ed4addd380b77ccaf9047a8e4396c9a70442c9c66988eda9a2",
-    "candidateFingerprint": "b4c9bff756e14a0d4cbd07d0062bf824ce4f587a8cd88211b528b98e7c85ae23",
-    "compilerSourceFingerprint": "9522c81e47961ec7f83e40e2e33dd7f7e82e1b3f80be7f57589df9afa6896d34",
+    "archive": "benchmark/v2/runs/value-ranked-startup-expiration-compiler-snapshot.tar.gz",
+    "archiveSha256": "cf13ddbeca760f54c60a25e1eb9a8dc235b4c63d5c39bb2f597c82f2fda67a5a",
+    "candidateFingerprint": "23b4abc01031f81d7dafed400a998f6514230356de78e9ae0a87ef92e151873e",
+    "compilerSourceFingerprint": "89eb2b3dd4b89448fc83d7107e9b65543c07f87ac9dbe35514aa90a6eb3da66a",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
-    "execution_policy_fingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
+    "execution_policy_fingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
     "implementation_fingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4",
-    "archive_sha256": "43e6a377b79061c9d4efffc205c2efa73f23f17c9e0706eb627162a9a888c6a4",
-    "compressed_archive": "benchmark/v2/runs/native-motion-feedback-development-750k-N8.json.gz",
-    "compressed_archive_sha256": "1cc2601ad02eb34108b116f676256c0ab4f6a4b1c4b5cdba3014d41cc008cd56",
-    "canonical_headline": 761.9107,
+    "archive_sha256": "d5f642643ed4e587d24c806065d0992399ee8a612d0f954e2cc22e2e324583c6",
+    "compressed_archive": "benchmark/v2/runs/value-ranked-startup-expiration-development-750k-N32.json.gz",
+    "compressed_archive_sha256": "9a6961c744719861dee07dd8205afab603050e6bb41c90ef0a593e24ff640c87",
+    "canonical_headline": 607.2582,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
       "seedBase": 0,
-      "seedsPerBudget": 8,
+      "seedsPerBudget": 32,
       "byBudget": [
         {
           "budget": 750000,
@@ -190,7 +171,31 @@
             20,
             21,
             22,
-            23
+            23,
+            608,
+            609,
+            610,
+            611,
+            612,
+            613,
+            614,
+            615,
+            616,
+            617,
+            618,
+            619,
+            620,
+            621,
+            622,
+            623,
+            624,
+            625,
+            626,
+            627,
+            628,
+            629,
+            630,
+            631
           ]
         }
       ]
@@ -198,16 +203,16 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 761.9107,
-        "valid_runs": 352,
-        "total_runs": 352
+        "score": 607.2582,
+        "valid_runs": 1408,
+        "total_runs": 1408
       }
     ]
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "native-motion-feedback",
-    "candidateFingerprint": "b4c9bff756e14a0d4cbd07d0062bf824ce4f587a8cd88211b528b98e7c85ae23",
+    "baselineLabel": "value-ranked-startup-expiration",
+    "candidateFingerprint": "23b4abc01031f81d7dafed400a998f6514230356de78e9ae0a87ef92e151873e",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -274,11 +279,22 @@
       {
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
-        "endSeedSlotExclusive": 8,
-        "archiveSha256": "43e6a377b79061c9d4efffc205c2efa73f23f17c9e0706eb627162a9a888c6a4",
-        "compressedArchive": "benchmark/v2/runs/native-motion-feedback-development-750k-N8.json.gz",
-        "compressedArchiveSha256": "1cc2601ad02eb34108b116f676256c0ab4f6a4b1c4b5cdba3014d41cc008cd56",
-        "executionPolicyFingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
+        "endSeedSlotExclusive": 32,
+        "archiveSha256": "d5f642643ed4e587d24c806065d0992399ee8a612d0f954e2cc22e2e324583c6",
+        "compressedArchive": "benchmark/v2/runs/value-ranked-startup-expiration-development-750k-N32.json.gz",
+        "compressedArchiveSha256": "9a6961c744719861dee07dd8205afab603050e6bb41c90ef0a593e24ff640c87",
+        "executionPolicyFingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
+        "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
+      },
+      {
+        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
+        "firstSeedSlot": 32,
+        "endSeedSlotExclusive": 48,
+        "archiveSha256": "de0108cfe75622eed30e7ec960cdc054f84f0ac95f62a935c3697893d4de8cfe",
+        "archive": "benchmark/v2/runs/value-ranked-startup-expiration-slots-32-48.json",
+        "compressedArchive": "benchmark/v2/runs/value-ranked-startup-expiration-slots-32-48.json.gz",
+        "compressedArchiveSha256": "1cbde72b73e925da06dd7d3806e40287eaa2cd301f3c7a167bed48f669d8445f",
+        "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
         "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
       }
     ]
@@ -298,21 +314,32 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/native-motion-feedback-comparison.json",
-    "artifact_sha256": "f3466352c32d6f4cc33f1101a5b4c52ca08722dc79ce954618b77dca53937edf",
-    "seeds": 8,
+    "artifact": "benchmark/v2/runs/value-ranked-startup-expiration-comparison.json",
+    "artifact_sha256": "9eb8c582c4b0425179baff0feda847c4ad24a3257c3dc220d10be395daec541d",
+    "seeds": 32,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
     "stopping_action": "accept",
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/native-motion-feedback-comparison-request.json",
-    "request_sha256": "4b8e78f6cc9ef84aa8c47431050aa4e2f3f7f0e170238ec462af02fdabc3286f",
+    "request": "benchmark/v2/runs/value-ranked-startup-expiration-comparison-request.json",
+    "request_sha256": "f7e582233dc54f705a9cf05f931afe7c4b053616540005cf12f88cfbf32d7760",
     "budgets": [
       750000
     ],
     "outcome": "accept",
-    "delta": 154.6787
+    "delta": 1.239
+  },
+  "cache_monitoring": {
+    "schema": "line.benchmark-v2.campaign-cache-monitoring.v1",
+    "authority": "descriptive-only",
+    "generated_at": "2026-08-15T13:16:42.157Z",
+    "coverage_seeds": 48,
+    "canonical_headline": 607.2546,
+    "valid_runs": 2112,
+    "total_runs": 2112,
+    "cache_manifest_fingerprint": "e5aa90f49cfda40cc2f3e70aba7522ac63a156e4b37b6d6afb6d78def133f96c",
+    "note": "This completed-cache headline does not replace the promotion headline or stopping depth."
   }
 }

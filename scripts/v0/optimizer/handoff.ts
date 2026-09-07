@@ -59,7 +59,6 @@
 import { createHash } from "node:crypto";
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
 import { beginEnvFlagEpoch, compileScopedEnv } from "../env_flags.ts";
-import { compileNativeMotion } from "./native_motion.ts";
 import { makeRng } from "../../lib/rng.ts";
 import {
   type GapFit,
@@ -1822,15 +1821,6 @@ export function compileHandoff(
   seed = 0,
   opts: CompileHandoffOptions,
 ): CompileCheckpoint {
-  // The native controller accepts the ordinary authored motion surface. Legacy
-  // diagnostics and other axes continue through their existing implementation.
-  if (process.env.LR_NATIVE_MOTION !== "0" && (process.env.LR_ENGINE ?? "wasm") === "wasm" &&
-      Object.entries(opts).every(([key, value]) => value === undefined || key === "budget" || key === "budgetTelemetry") &&
-      Object.keys(userSpec.axes).every(axis => ["air", "speed", "amplitude"].includes(axis)) &&
-      userSpec.contacts.length > 0 && userSpec.contacts.every(c => Math.round(c.t * FPS) >= 6) &&
-      opts.budget > 4 * (Math.round(userSpec.duration * FPS) + OUTPUT_TAIL_PAD_FRAMES)) {
-    return compileNativeMotion(userSpec, seed, opts);
-  }
   return compileHandoffInternal(userSpec, seed, opts, null);
 }
 

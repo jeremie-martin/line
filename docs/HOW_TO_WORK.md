@@ -199,6 +199,16 @@ deltas against the current campaign.
 
 ## Discipline
 
+When a physical component study resumes ordinary compiler search from a
+directly admitted fit, local axis and geometry equality is insufficient.
+`tryCandidateLines` does not attach the `ref` that ordinary sampling adds for
+future catch reuse. Restore the current probe's reference for a reusable
+source candidate and preserve applicable provenance while keeping freshly
+measured physical fields. Before interpreting continuation deltas, require
+an unchanged readmitted fit to reproduce the original control's track,
+report, and charged frames through the ordinary snapshot API. The September
+interrupted-support study verifies this distinction on 22 exact prefixes.
+
 - Keep one mechanism per candidate where practical.
 - Prefer focused tests and bounded panels before expensive runs.
 - Do not tune case by case or against qualification monitors.

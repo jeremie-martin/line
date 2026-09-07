@@ -858,6 +858,41 @@ selection, suffix budget, or acceptance criterion. Preserve the previous
 results as confounded evidence; do not silently overwrite them. No old local
 failure is reopened by this interface repair.
 
+**Corrected result.** All 22 metadata-restored neutral fits reproduce their
+earlier controls exactly, including track, report, and charged frames. Removing
+only the reference changes two control scores; restoring it changes one
+intervention score. Twenty corrected tracks remain valid, all 22 preserve the
+first-impact state window, and three beat both references; **none** meets the
+useful-impact criterion. The four local useful-gain tracks are all unchanged
+by the reference repair. Their paired deltas remain −31.47, −14.41, −25.20,
+and −4.49 points. Across all 22, the conventional median paired delta is
+−4.8009 and median incumbent delta −8.2867 (the generated summary also retains
+its upper-middle order statistics). The metadata issue was real, but it does
+not explain the useful-gain paths' continuation debt.
+
+Correction cost: 45,504 warmup, 23,470 admission/setup, 9,155,077 continuation,
+and 68,400 verification frames; 290.92 summed worker seconds. All 200 JSON
+artifacts verify in
+`generated/benchmark-v2/impact-delivery-650-new/interrupted-support-metadata-replay/`.
+Request SHA-256:
+`12000d24cb7a43a6a9a24f29ad133799ae09d5d6a83f39b5b198f267515083ca`;
+implementation is pinned in `8c6a5878`. Any later direct-admission continuation
+study must attach ordinary probe-reference metadata and pass this neutral
+continuation preflight, not merely local geometry/axis equality.
+
+**Report-only loss accounting.** Frozen V2 weighted-MSE allocation exactly
+reconstructs all 20 valid corrected scores. Keeping only the current-contact
+change would be worth 0.22–0.55 points in the four useful local rows. Already
+in the next interval, added air-error MSE is **3.95–73.44 times** the saved
+current-impact MSE, before later suffix losses. Thus these failures cannot be
+explained merely by comparing an optimized incumbent with an early ordinary
+completion. The interruption leaves an expensive immediate support-state
+change. The same current-only counterfactual has a median gain of just 0.0243
+points across the 20 valid proposals. The checksummed `loss-accounting.json`
+is derived by `scripts/benchmark/impact_gap_loss_accounting.py`, with zero new
+physics or search. Close the unchanged-return interruption as an integration
+candidate; neither a gap-width/phase sweep nor a suffix-budget walk follows.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

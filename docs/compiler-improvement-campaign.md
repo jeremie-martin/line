@@ -95,12 +95,24 @@ adds 0.2226 offline aggregate points; similarity adds 0.1717, versus 0.0191
 with a fixed suffix. This costs extra compute and is too small to integrate.
 A release-restoring transform also fails to produce a material gain.
 
-The next architectural direction is joint contact/release synthesis with
-explicit recovery of contact constraints, generating geometry for planned
-states instead of transporting old catch templates. Planning and active
-material need no further approval. The benchmark and score remain fixed.
-Exact commands, costs, and artifact identities are in the active program.
-The previous `goal.md`, including its uncommitted contents, is archived.
+Joint contact/release synthesis is now implemented as an exact physical prefix
+beam. The first 44-source discovery run improves 41 tracks, moving its offline
+aggregate from 607.4692 to 608.2268. Wider search and target-derived release
+programs produce a 22.7223-point complete-track Believer improvement; another
+pass adds 9.4948. Dense-case gains remain small, so the work is still research,
+with extra compute, rather than a promoted 750k compiler.
+
+The planner preserves the complete incumbent, explores native material and
+release geometry, and verifies the final fixed V2 score in a cold replay.
+Further work tests longer physical lookahead and iterative planning. Planning
+and active material need no further approval. Exact commands, costs, and
+artifact identities are in the active program. The previous `goal.md`, including
+its uncommitted contents, is archived.
+
+An omitted 20-frame rideout in the earlier transport harness was found by a
+stricter neutral check and corrected. A full-duration audit of all 160 retained
+tracks (119 unique replays) confirms unchanged scores and validity. This was a
+research validation correction; the benchmark and scorer were not changed.
 
 ## Prior evidence
 
@@ -110,4 +122,4 @@ Earlier physical closures remain in
 [the prior impact campaign](impact-delivery-650-campaign.md), and controller
 promotions and searched-pool closures remain in
 [the selective-backtracking roadmap](selective-backtracking-dfs-roadmap.md).
-The new campaign does not reopen those rejected mechanisms.
+Those results inform the new campaign; they do not prohibit new formulations.

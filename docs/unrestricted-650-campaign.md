@@ -172,3 +172,104 @@ Each command supplies its explicit `--out` directory. Execute the resulting
 frozen plan with that same output argument and `--jobs=4` for pilots or
 `--jobs=8` for discovery. Readers refuse mismatched implementations or changed
 inputs; committed source and checksum-bound artifacts preserve reconstruction.
+
+
+### Physical prefix planning (2026-09-07, continuing)
+
+The next architecture is implemented in `scripts/benchmark/whole_track_planner.ts`.
+It carries a beam of real immutable prefix engines, regenerates each catch from
+its actual incoming state, and synthesizes independent release length, exit
+heading, smooth impact-window bends, and native material. It preserves the
+exact original path alongside alternatives. Every changed proposal must preserve
+the complete articulated packet at H−2, then land on beat and survive its
+interval. Intermediate branches may lose local score; only the final complete
+track is retained against the fixed V2 score. A cold full-duration replay must
+reproduce the selected report and score exactly. No states are spliced.
+
+The beam can rank by measured next-interval motion, or explicitly simulate the
+next catch under two causal transports before pruning. It can continue from a
+previous verified improvement, with checksum-bound input geometry and reports.
+The warm start's line ownership is reconstructed and required to partition the
+complete geometry exactly. No additional baseline compiler search is used.
+All runs remain **additional-compute research**, never 750k promotion evidence.
+
+Three important checks corrected research implementation details:
+
+- Exact neutral comparison exposed the earlier transport harness's omitted
+  20-frame rideout. The harness now uses track duration and compares the entire
+  report and score, including terminus. `replay_whole_track_tail.ts` audited all
+  160 retained tracks, deduplicating to 119 exact replays: zero invalid tracks,
+  zero score changes, 281,856 frames and 2.35 seconds. The earlier outcomes are
+  confirmed over the full duration. The initial planner pilot aborted on the
+  neutral check; a one-source diagnostic identifies only terminus frame
+  2240 versus 2260. The first aborted four-worker attempt did not persist its
+  counters; it is excluded from the measured totals below.
+- The first beam combined per-axis RMSs as its internal objective. The fixed
+  judge combines MSEs before taking the square root. The planner now uses that
+  same reduction; the benchmark never changed. Explicit terminal comparisons
+  of accumulated versus realized per-axis SSE agree within 3.6e-15 on the
+  corrected four-source studies. Their final scores were always judged by the
+  unchanged scorer, including the earlier proxy-objective study.
+- A real-engine rail test exposed reversed forward/brake labels in the study
+  helper. The kernel applies its stored acceleration vector to *previous
+  position*, so realized propulsion follows the stored tangent. Both directions
+  were enumerated in earlier studies; their saved physical tracks and scores
+  remain evidence, but the old numeric sign labels are reversed. The helper
+  and tests are corrected. Exact physics now verifies forward versus passive
+  versus braking motion, and stronger force from two/four rail layers.
+
+The baseline four-source panel is unchanged: amplitude tides, dense recovery,
+transition mosaic, and impact Believer. All retained tracks in completed runs
+below are valid and reproduce in a cold replay. Entries marked 44 use the full
+hierarchical discovery aggregate; four-source means are descriptive.
+
+| Output directory | Sources | Mean per-source gain | Best source gain | Frames | Summed worker seconds |
+|---|---:|---:|---:|---:|---:|
+| `planner-pilot-full-tail` | 4 | 2.8155 | 10.6014 | 2,093,145 | 14.62 |
+| `planner-discovery` | 44 | 1.1071 | 11.3008 | 22,727,720 | 159.96 |
+| `planner-mse-pilot` | 4 | 0.7764 | 2.3097 | 2,067,370 | 14.61 |
+| `planner-mse-global-pilot` | 4 | 5.4292 | 21.0046 | 5,424,073 | 37.33 |
+| `planner-target-pilot` | 4 | 6.0096 | 22.7223 | 9,077,546 | 64.77 |
+| `planner-lookahead-pilot` | 4 | 3.8094 | 14.2874 | 8,504,094 | 63.37 |
+| `planner-target-pass2` | 4 | 2.6340 | 9.4948 | 8,892,491 | 64.85 |
+| `planner-target-pass3` | 4 | 1.7778 | 6.0154 | 8,809,004 | 64.61 |
+| `planner-layer-pilot` | 4 | 6.0096 | 22.7223 | 9,938,483 | 76.21 |
+| `planner-target-discovery` | 44 | 3.7421 | 25.3363 | 97,939,756 | 710.97 |
+
+`planner-discovery` moves 607.4692 → 608.2268 (+0.7576; 41/44 improve).
+The corrected wider target-program search, `planner-target-discovery`, moves
+607.4692 → **610.1912 (+2.7220; 44/44 improve)**. Its cold replay and all
+neutral checks pass. The four-source iterative target program reaches a
+cumulative Believer gain of **38.2325** after three passes; the other three
+cumulative gains are 0.9660, 0.2777, and 2.2094. These outcomes establish more
+physical authority than rigid transport, while dense-case gains remain small.
+A 640-frame flat-rail probe establishes that native layers increase propulsion;
+the layer pilot produces no gain beyond the target-program pilot, so the
+expensive extra family is not included in the next broad pass.
+
+The first planner implementation is commit `5104b1e3`; MSE ranking and full-tail
+checks are `c03218c2`; target-derived release geometry is `2d8f30d5`; two-contact
+lookahead is `682933c1`; iterative warm starts are `663bece7`; rail-layer trials
+are `251c701d`; corrected propulsion labels and exact-physics tests are
+`ac8cc980`. Each directory contains its full checksum-bound plan, per-source
+search records, selected track/report, and summary. The plans bind source
+hashes, original capture hashes, engine and suite identity, and warm-start hashes
+where applicable. Eleven focused tests pass after the physical sign correction.
+
+Commands use `LR_ENGINE=wasm node --import tsx scripts/benchmark/whole_track_planner.ts`.
+Every command supplies an explicit `--out=generated/benchmark-v2/unrestricted-650/NAME`.
+Create with `--plan`, then execute with `--jobs=4` (panel) or `--jobs=8` (44).
+The original panel uses `--width=6`; the wider target planner uses
+`--width=16 --selection=global --target-programs=on`. Omit `--sources` for all
+44. Two-contact lookahead adds `--lookahead=2`; native layers add
+`--rail-layers=on`; iterative planning adds the same explicit
+`--warm-start=PREVIOUS_OUTPUT` to plan and execution. The four-source IDs are
+listed above and in every panel's plan.
+
+Current work: continue the target-program planner on all 44 improved tracks,
+and test selection of reusable geometry from elsewhere in the same generated
+track by its measured impact/release behavior. This is per-compile geometry
+reuse, not a benchmark-output lookup. Measure coverage and accumulated gains
+before choosing the production-budget allocation and source integration.
+The accepted headline is still **607.2582**; no governed eval or promotion has
+been performed in this phase.

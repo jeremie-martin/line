@@ -20,7 +20,7 @@ import { buildAxisContract, scoreV2Report, summarizeDevelopmentBudget } from "..
 import { shapeCatch, transportCatch, setCatchEnergy, type ArrivalFrame } from "./whole_track_controls.ts";
 import { releaseProgram } from "./contact_program.ts";
 import { nativeRailLayers } from "./native_rail_layers.ts";
-import { authoredSpeedToPx, type TrackLine } from "../v0/types.ts";
+import { authoredSpeedToPx, speedPxToAuthored, impactToRawPx, normImpact, type TrackLine } from "../v0/types.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
 const input = resolve(arg("input") ?? "generated/benchmark-v2/impact-delivery-650-new/interrupted-support-capture");
@@ -208,6 +208,30 @@ function worker(source: any, plan: any, planSha256: string): void {
             }
           }
         }
+        if (plan.reuse > 0) {
+          const next = nextFor(i);
+          const rankedTemplates = originals.map((template: any, j: number) => {
+            if (!template || j === i || !references[j] || !baselineLocal[j]?.valid) return null;
+            const ratio = actual.speed / Math.max(1e-6, references[j]!.speed);
+            const measured = baselineLocal[j], preview = measured.preview;
+            let distance = 0.02 * Math.log(ratio) ** 2;
+            if (gap.targets.impact !== undefined && measured.achieved.impact !== undefined) {
+              const expected = normImpact(impactToRawPx(measured.achieved.impact) * ratio);
+              distance += weights.impact * (gap.targets.impact - expected) ** 2;
+            }
+            for (const axis of ["air", "speed", "amplitude"]) {
+              const target = next?.targets[axis], observed = preview?.[axis];
+              if (target === undefined || observed === undefined) continue;
+              const expected = axis === "speed" ? speedPxToAuthored(authoredSpeedToPx(observed) * ratio) : observed;
+              distance += weights[axis] * (target - expected) ** 2;
+            }
+            return { j, distance };
+          }).filter((x: any) => x !== null).sort((a: any, b: any) => a.distance - b.distance || a.j - b.j).slice(0, plan.reuse);
+          for (const { j } of rankedTemplates) for (const mode of ["translate", "similarity"] as const) {
+            candidates.push({ lines: transportCatch(originals[j].lines, references[j]!, actual, mode),
+              action: { family: "self_reuse", template: j, mode } });
+          }
+        }
         const seen = new Set<string>();
         for (const candidate of candidates) {
           // Equal segment count can preserve the original IDs and ordering.
@@ -342,6 +366,7 @@ if (process.argv.includes("--plan")) {
     targetPrograms: arg("target-programs") === "on",
     lookahead: Number(arg("lookahead") ?? 1),
     railLayers: arg("rail-layers") === "on",
+    reuse: Number(arg("reuse") ?? 0),
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

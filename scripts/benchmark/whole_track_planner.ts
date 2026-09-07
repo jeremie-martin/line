@@ -24,6 +24,7 @@ import { authoredSpeedToPx, type TrackLine } from "../v0/types.ts";
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
 const input = resolve(arg("input") ?? "generated/benchmark-v2/impact-delivery-650-new/interrupted-support-capture");
 const out = resolve(arg("out") ?? "generated/benchmark-v2/unrestricted-650/physical-prefix-beam");
+const warmStart = arg("warm-start") ? resolve(arg("warm-start")!) : null;
 const script = fileURLToPath(import.meta.url);
 const hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex");
 const implementation = [script, resolve("scripts/benchmark/whole_track_controls.ts"), resolve("scripts/benchmark/contact_program.ts")]
@@ -60,14 +61,35 @@ function worker(source: any, plan: any, planSha256: string): void {
   const started = performance.now(), framesStart = getPhysicsFrameCount(), sourceId = source.sourceId;
   const paths = ["capture", "track", "report"].map(kind => resolve(input, `${sourceId}.${kind}.json`));
   paths.forEach((p, i) => { if (hash(readFileSync(p)) !== source.inputHashes[i]) throw new Error("frozen input changed"); });
-  const [capture, track, savedReport] = paths.map(read);
+  const [capture, capturedTrack, capturedReport] = paths.map(read);
+  let track = capturedTrack, savedReport = capturedReport;
+  if (plan.warmStart) {
+    const warmPaths = ["track", "report"].map(kind => resolve(plan.warmStart, `${sourceId}.${kind}.json`));
+    warmPaths.forEach((p, i) => { if (hash(readFileSync(p)) !== source.warmHashes[i]) throw new Error("warm start changed"); });
+    [track, savedReport] = warmPaths.map(read);
+  }
   if (capture.candidateFingerprint !== baseline.candidate_fingerprint) throw new Error("wrong captured compiler");
   const spec = applyJolt(developmentCases.find(e => e.case.metadata.id === sourceId)!.case.spec, benchmarkPolicy.transform.joltMs);
   const contract = buildAxisContract(spec, Object.keys(weights) as any);
-  const ctx = capture.context, originals = capture.snapshot.node.search.prefixFits;
+  const ctx = capture.context;
+  let originals = capture.snapshot.node.search.prefixFits;
   const startLines = capture.snapshot.node.startLines;
+  if (plan.warmStart) {
+    const owners = new Map<number, number>();
+    originals.forEach((fit: any, i: number) => fit?.lines.forEach((l: TrackLine) => owners.set(l.id, i)));
+    const grouped: TrackLine[][] = originals.map(() => []);
+    const startIds = new Set(startLines.map((l: TrackLine) => l.id));
+    for (const line of track.lines as TrackLine[]) {
+      if (startIds.has(line.id)) continue;
+      const owner = owners.get(line.id) ?? (line.id >= 1000000 ? Math.floor((line.id - 1000000) / 1000) : -1);
+      if (!originals[owner]) throw new Error("unowned warm-start geometry");
+      grouped[owner].push(line);
+    }
+    originals = originals.map((fit: any, i: number) => fit === null ? null : { ...fit, lines: grouped[i] });
+  }
   if (lineKey([...startLines, ...originals.flatMap((f: any) => f?.lines ?? [])]) !== lineKey(track.lines)) throw new Error("incomplete geometry ownership");
   const originalScore = scoreV2Report(savedReport, spec.contacts.length, contract, suite);
+  const capturedScore = scoreV2Report(capturedReport, spec.contacts.length, contract, suite);
   const scoreFits = (engine: any, fits: any[]) => {
     const report = buildDriftReport(detect(extractRawTrajectory(engine, track.duration)), spec,
       ctx.gaps, ctx.allContactFrames, ctx.durationFrames, [], fits, ctx.gapAxisTargets);
@@ -285,7 +307,8 @@ function worker(source: any, plan: any, planSha256: string): void {
   write(resolve(out, `${sourceId}.track.json`), bestTrack);
   write(resolve(out, `${sourceId}.report.json`), winner.report);
   const result = { schema: "line.whole-track-planner-source.v1", implementation, planSha256, sourceId, seed: capture.seed,
-    originalScore, score: winner.score, delta: winner.score.score - originalScore.score, actions: winner.actions,
+    originalScore, capturedScore, score: winner.score, delta: winner.score.score - originalScore.score,
+    cumulativeDelta: winner.score.score - capturedScore.score, actions: winner.actions,
     trials, validTrials, failures, calibrationFrames, frames: getPhysicsFrameCount() - framesStart, elapsedMs: performance.now() - started };
   write(resolve(out, `${sourceId}.json`), result);
   process.stderr.write(`${sourceId}: ${result.delta >= 0 ? "+" : ""}${result.delta.toFixed(4)}, ${validTrials}/${trials} local fits, ${result.frames} frames\n`);
@@ -300,11 +323,14 @@ if (process.argv.includes("--plan")) {
   const width = Number(arg("width") ?? 6);
   if (!Number.isSafeInteger(width) || width < 2) throw new Error("invalid width");
   const sources = members.map(e => ({ sourceId: e.case.metadata.id,
+    warmHashes: warmStart ? ["track", "report"].map(kind => {
+      const p = resolve(warmStart, `${e.case.metadata.id}.${kind}.json`); read(p); return hash(readFileSync(p));
+    }) : null,
     inputHashes: ["capture", "track", "report"].map(kind => {
       const p = resolve(input, `${e.case.metadata.id}.${kind}.json`); read(p); return hash(readFileSync(p));
     }) }));
   write(planPath, { schema: "line.whole-track-planner-plan.v1", implementation, engineHash, suiteHash,
-    candidateFingerprint: baseline.candidate_fingerprint, researchOnly: true, input, width,
+    candidateFingerprint: baseline.candidate_fingerprint, researchOnly: true, input, warmStart, width,
     materials: arg("materials") !== "off", programs: arg("programs") !== "off", preview: arg("preview") !== "off",
     selection: arg("selection") ?? "parent",
     targetPrograms: arg("target-programs") === "on",
@@ -313,7 +339,8 @@ if (process.argv.includes("--plan")) {
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {
   const plan = read(planPath), planSha256 = hash(readFileSync(planPath));
-  if (plan.implementation !== implementation || plan.engineHash !== engineHash || plan.input !== input || plan.suiteHash !== suiteHash) throw new Error("frozen experiment changed");
+  if (plan.implementation !== implementation || plan.engineHash !== engineHash || plan.input !== input ||
+      plan.warmStart !== warmStart || plan.suiteHash !== suiteHash) throw new Error("frozen experiment changed");
   if (arg("worker")) worker(plan.sources.find((s: any) => s.sourceId === arg("worker")), plan, planSha256);
   else {
     const queue = plan.sources.filter((s: any) => {
@@ -328,7 +355,8 @@ if (process.argv.includes("--plan")) {
       while (queue.length) {
         const s = queue.shift()!;
         const code = await new Promise<number | null>((done, reject) => {
-          const child = spawn(process.execPath, ["--import", "tsx", script, `--worker=${s.sourceId}`, `--input=${input}`, `--out=${out}`],
+          const child = spawn(process.execPath, ["--import", "tsx", script, `--worker=${s.sourceId}`, `--input=${input}`, `--out=${out}`,
+            ...(warmStart ? [`--warm-start=${warmStart}`] : [])],
             { env: process.env, stdio: ["ignore", "ignore", "inherit"] });
           child.on("error", reject); child.on("exit", done);
         });
@@ -341,7 +369,7 @@ if (process.argv.includes("--plan")) {
       sourceId: s.sourceId, budget: 750000, seedSlot: 0, actualSeed: s.seed, score: s[key],
     })), 750000, suite) : null;
     const summary = { schema: "line.whole-track-planner-summary.v1", planSha256, implementation, researchOnly: true,
-      sources: sources.length, baseline: aggregate("originalScore"), candidate: aggregate("score"),
+      sources: sources.length, baseline: aggregate("originalScore"), capturedBaseline: aggregate("capturedScore"), candidate: aggregate("score"),
       positiveSources: sources.filter((s: any) => s.delta > 0).length,
       meanDelta: sources.reduce((s: number, r: any) => s + r.delta, 0) / sources.length,
       maxDelta: Math.max(...sources.map((s: any) => s.delta)),

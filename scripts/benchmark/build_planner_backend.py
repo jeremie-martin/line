@@ -13,6 +13,7 @@ import tarfile
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--out", required=True)
+parser.add_argument("--trace", action="store_true")
 args = parser.parse_args()
 out = Path(args.out).resolve()
 out.mkdir(parents=True, exist_ok=True)
@@ -68,6 +69,54 @@ with (out / "src/abi.rs").open("a") as stream:
 #[no_mangle]
 pub extern "C" fn detach_engine(h: u32) -> u32 { engine::detach(h) }
 ''')
+if args.trace:
+    path = out / "src/kernel.rs"
+    source = path.read_text()
+    anchor = "resolve_iter_constraints(s, rest, endur);\n            let it = it as u8;"
+    assert source.count(anchor) == 1
+    source = source.replace(anchor, "resolve_iter_constraints(s, rest, endur);\n            trace_collision_state(s, frame_index, it);\n            let it = it as u8;")
+    source += '''
+// Compiler observation only: copy state immediately before the collision sweep.
+static mut TRACE_TARGET: i32 = -1;
+static mut TRACE_COUNT: u32 = 0;
+static mut COLLISION_TRACE: [f64; 6 * NENT * 6] = [0.0; 6 * NENT * 6];
+pub(crate) fn set_trace_target(frame: i32) { unsafe { TRACE_TARGET = frame; TRACE_COUNT = 0; } }
+pub(crate) fn collision_trace_ptr() -> u32 { &raw const COLLISION_TRACE as u32 }
+pub(crate) fn collision_trace_count() -> u32 { unsafe { TRACE_COUNT } }
+unsafe fn trace_collision_state(s: &State, frame: i32, iteration: usize) {
+    if frame != TRACE_TARGET { return; }
+    for i in 0..NENT {
+        let k = (iteration * NENT + i) * 6;
+        COLLISION_TRACE[k] = s.px[i]; COLLISION_TRACE[k + 1] = s.py[i];
+        COLLISION_TRACE[k + 2] = s.prevx[i]; COLLISION_TRACE[k + 3] = s.prevy[i];
+        COLLISION_TRACE[k + 4] = s.vx[i]; COLLISION_TRACE[k + 5] = s.vy[i];
+    }
+    TRACE_COUNT = (iteration + 1) as u32;
+}
+'''
+    path.write_text(source)
+    with (out / "src/engine.rs").open("a") as stream:
+        stream.write('''
+/// Evict the requested frame so a subsequent metered read records its solver
+/// states. This API performs no stepping: the caller charges the actual replay.
+pub(crate) fn prepare_collision_trace(h: u32, frame: i32) {
+    assert!(frame > 0);
+    update_computed(h);
+    let holder = ver(h as i32).holder;
+    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
+    if cache.frames.len() > frame as usize { cache.set_frames_length(frame as usize); }
+    crate::kernel::set_trace_target(frame);
+}
+''')
+    with (out / "src/abi.rs").open("a") as stream:
+        stream.write('''
+#[no_mangle]
+pub extern "C" fn prepare_collision_trace(h: u32, frame: i32) { engine::prepare_collision_trace(h, frame); }
+#[no_mangle]
+pub extern "C" fn collision_trace_ptr() -> u32 { crate::kernel::collision_trace_ptr() }
+#[no_mangle]
+pub extern "C" fn collision_trace_count() -> u32 { crate::kernel::collision_trace_count() }
+''')
 subprocess.run(["cargo", "build", "--release", "--target", "wasm32-unknown-unknown", "--manifest-path", str(out / "Cargo.toml")], check=True)
 wrapper_path = Path("scripts/lib/_lr_engine_wasm.ts")
 wrapper = wrapper_path.read_text()
@@ -81,12 +130,27 @@ wrapper = wrapper.replace("  private h: number;", '''  private h: number;
       LIVE_ENGINES.delete(registration);
     }
   }''')
+if args.trace:
+    wrapper = wrapper.replace("  private h: number;", '''  private h: number;
+  prepareCollisionTrace(frame: number): void {
+    if (!Number.isSafeInteger(frame) || frame < 1) throw new Error("invalid trace frame");
+    ex.prepare_collision_trace(this.h, frame);
+  }
+  readCollisionTrace(): Array<Record<string, { x: number; y: number; prevx: number; prevy: number; vx: number; vy: number }>> {
+    if (ex.collision_trace_count() !== 6) throw new Error("collision trace is incomplete");
+    const data = new Float64Array(ex.memory.buffer, ex.collision_trace_ptr(), 6 * NENT * 6);
+    return Array.from({ length: 6 }, (_, iteration) => Object.fromEntries(RIDER_POINT_IDS.map(id => {
+      const k = (iteration * NENT + ENTITY_IDS.indexOf(id)) * 6;
+      return [id, { x: data[k], y: data[k + 1], prevx: data[k + 2], prevy: data[k + 3], vx: data[k + 4], vy: data[k + 5] }];
+    })));
+  }''')
 (out / "engine.ts").write_text(wrapper)
 generated = {str(p.relative_to(out)): digest(p.read_bytes()) for p in [*sorted((out / "src").glob("*.rs")), out / "engine.ts", out / "target/wasm32-unknown-unknown/release/lr_engine.wasm"]}
 manifest = dict(schema="line.planner-cache-backend.v1", researchOnly=True,
     implementation=digest(Path(__file__).read_bytes()), acceptedSources=sources,
     wrapperSource=digest(wrapper_path.read_bytes()), generated=generated,
-    note="Exact computed-cache copies only. Final judging uses the unchanged benchmark engine.")
+    capabilities=["detached_prefix_cache"] + (["metered_collision_trace"] if args.trace else []),
+    note="Computed-cache copies and optional solver observation only. Trace requests evict the frame and require a metered replay. Final judging uses the unchanged benchmark engine.")
 body = json.dumps(manifest, separators=(",", ":")) + "\n"
 (out / "manifest.json").write_text(body)
 (out / "manifest.json.sha256").write_text(digest(body.encode()) + "\n")

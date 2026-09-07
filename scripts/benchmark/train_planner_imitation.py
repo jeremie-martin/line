@@ -35,7 +35,10 @@ def controls(action, speed):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--inputs", required=True)
+parser.add_argument("--inputs", default="")
+parser.add_argument("--cache")
+parser.add_argument("--iterations", type=int, default=250)
+parser.add_argument("--leaves", type=int, default=31)
 parser.add_argument("--validity-model", required=True)
 parser.add_argument("--out", required=True)
 args = parser.parse_args()
@@ -46,82 +49,106 @@ if (out / "model.json").exists():
     raise ValueError("completed output exists")
 checked(Path(args.validity_model))
 validity_model = json.loads(Path(args.validity_model).read_text())
-directories = [Path(p) for p in args.inputs.split(",")]
-families = {}
-checked(directories[0] / "summary.json")
-for group in json.loads((directories[0] / "summary.json").read_text())["baseline"]["groups"]:
-    for parent in group["parents"]:
-        for source in parent["members"]:
-            families[source] = parent["id"]
-import hashlib
-held = {f for f in families.values() if int(hashlib.sha256(f.encode()).hexdigest()[:8], 16) % 4 == 0}
-blocks, labels, validation, bundles, provenance = [], [], [], [], []
-action_counts = collections.Counter()
-contexts = folded = 0
-for directory in directories:
-    checked(directory / "plan.json")
-    plan = json.loads((directory / "plan.json").read_text())
-    for source in plan["sources"]:
-        source_id = source["sourceId"]
-        result_path = directory / (source_id + ".json")
-        checked(result_path)
-        result = json.loads(result_path.read_text())
-        if not result["actions"]:
-            continue
-        search_path = directory / (source_id + ".search.json")
-        checked(search_path)
-        search = json.loads(search_path.read_text())
-        valid = [c for c in search["completions"] if c["score"]["valid"]]
-        terminal = max(valid, key=lambda c: c["score"]["score"])
-        assert terminal["score"] == result["score"]
-        nodes = {}
-        for step in search["steps"]:
-            retained = set(step["retained"])
-            nodes.update({t["id"]: t for t in step["trials"] if t["id"] in retained})
-        wanted, at = {}, terminal["id"]
-        while at in nodes:
-            node = nodes[at]
-            action = node["action"]
-            if action["family"] == "tail_energy":
-                action = action["base"]
-                folded += 1
-            if action["family"] not in ["incumbent", "transport"]:
-                wanted[node["parent"]] = action
-            at = node["parent"]
-        del search, nodes
-        corpus = directory / (source_id + ".training.jsonl.gz")
-        provenance.append(dict(path=str(corpus), sha256=checked(corpus), resultSha256=checked(result_path), searchSha256=checked(search_path)))
-        matched = 0
-        with gzip.open(corpus, "rt") as stream:
-            for line in stream:
-                header = json.loads(line[:line.index(',"context":')] + "}")
-                if header["parent"] not in wanted:
-                    continue
-                b = json.loads(line)
-                action = wanted[b["parent"]]
-                key = controls(action, b["context"][0] * 10)
-                # Neither reserved paths nor deferred energy children compete
-                # in the model's first-stage proposal ranking.
-                rows = [r for r in b["candidates"] if not (r["features"][22] or r["features"][23] or r["features"][35])]
-                y = np.asarray([np.array_equal(np.asarray(r["features"][22:], dtype=np.float32), key) for r in rows])
-                if y.sum() != 1:
-                    raise ValueError(f"ambiguous or missing teacher proposal: {source_id}/{b['parent']} {action} matches={y.sum()}")
-                X = np.asarray([b["context"] + r["features"] for r in rows], dtype=np.float32)
-                assert X.shape[1] == validity_model["features"] and np.isfinite(X).all()
-                blocks.append(X)
-                labels.extend(y.tolist())
-                check = families[source_id] in held
-                validation.extend([check] * len(y))
-                if check:
-                    bundles.append(dict(X=X, y=y, family=action["family"]))
-                action_counts[action["family"]] += 1
-                contexts += 1
-                matched += 1
-        assert matched == len(wanted)
-        print(f"read {directory.name}/{source_id}: {matched} teacher decisions", flush=True)
-X, y, check = np.concatenate(blocks), np.asarray(labels), np.asarray(validation)
-del blocks, labels, validation
-options = dict(max_iter=250, max_leaf_nodes=31, min_samples_leaf=20, learning_rate=0.08,
+cache = Path(args.cache) if args.cache else None
+if cache and (cache / "metadata.json").exists():
+    checked(cache / "metadata.json")
+    meta = json.loads((cache / "metadata.json").read_text())
+    arrays = {}
+    for name in ["X", "y", "check"]:
+        checked(cache / (name + ".npy"))
+        arrays[name] = np.load(cache / (name + ".npy"), allow_pickle=False)
+    X, y, check = [arrays[k] for k in ["X", "y", "check"]]
+    held, provenance = meta["held"], meta["provenance"]
+    contexts, folded, action_counts = meta["contexts"], meta["folded"], meta["actionCounts"]
+    bundles = [{**b, "X": X[b["start"]:b["end"]], "y": y[b["start"]:b["end"]]} for b in meta["bundles"]]
+    print(f"loaded verified teacher cache: {len(X)} rows", flush=True)
+else:
+    directories = [Path(p) for p in args.inputs.split(",")]
+    families = {}
+    checked(directories[0] / "summary.json")
+    for group in json.loads((directories[0] / "summary.json").read_text())["baseline"]["groups"]:
+        for parent in group["parents"]:
+            for source in parent["members"]:
+                families[source] = parent["id"]
+    import hashlib
+    held = {f for f in families.values() if int(hashlib.sha256(f.encode()).hexdigest()[:8], 16) % 4 == 0}
+    blocks, labels, validation, bundles, provenance = [], [], [], [], []
+    action_counts = collections.Counter()
+    contexts = folded = 0
+    for directory in directories:
+        checked(directory / "plan.json")
+        plan = json.loads((directory / "plan.json").read_text())
+        for source in plan["sources"]:
+            source_id = source["sourceId"]
+            result_path = directory / (source_id + ".json")
+            checked(result_path)
+            result = json.loads(result_path.read_text())
+            if not result["actions"]:
+                continue
+            search_path = directory / (source_id + ".search.json")
+            checked(search_path)
+            search = json.loads(search_path.read_text())
+            valid = [c for c in search["completions"] if c["score"]["valid"]]
+            terminal = max(valid, key=lambda c: c["score"]["score"])
+            assert terminal["score"] == result["score"]
+            nodes = {}
+            for step in search["steps"]:
+                retained = set(step["retained"])
+                nodes.update({t["id"]: t for t in step["trials"] if t["id"] in retained})
+            wanted, at = {}, terminal["id"]
+            while at in nodes:
+                node = nodes[at]
+                action = node["action"]
+                if action["family"] == "tail_energy":
+                    action = action["base"]
+                    folded += 1
+                if action["family"] not in ["incumbent", "transport"]:
+                    wanted[node["parent"]] = action
+                at = node["parent"]
+            del search, nodes
+            corpus = directory / (source_id + ".training.jsonl.gz")
+            provenance.append(dict(path=str(corpus), sha256=checked(corpus), resultSha256=checked(result_path), searchSha256=checked(search_path)))
+            matched = 0
+            with gzip.open(corpus, "rt") as stream:
+                for line in stream:
+                    header = json.loads(line[:line.index(',"context":')] + "}")
+                    if header["parent"] not in wanted:
+                        continue
+                    b = json.loads(line)
+                    action = wanted[b["parent"]]
+                    key = controls(action, b["context"][0] * 10)
+                    # Neither reserved paths nor deferred energy children compete
+                    # in the model's first-stage proposal ranking.
+                    rows = [r for r in b["candidates"] if not (r["features"][22] or r["features"][23] or r["features"][35])]
+                    y = np.asarray([np.array_equal(np.asarray(r["features"][22:], dtype=np.float32), key) for r in rows])
+                    if y.sum() != 1:
+                        raise ValueError(f"ambiguous or missing teacher proposal: {source_id}/{b['parent']} {action} matches={y.sum()}")
+                    X = np.asarray([b["context"] + r["features"] for r in rows], dtype=np.float32)
+                    assert X.shape[1] == validity_model["features"] and np.isfinite(X).all()
+                    blocks.append(X)
+                    row_start = len(labels)
+                    labels.extend(y.tolist())
+                    check = families[source_id] in held
+                    validation.extend([check] * len(y))
+                    if check:
+                        bundles.append(dict(X=X, y=y, family=action["family"], start=row_start, end=len(labels)))
+                    action_counts[action["family"]] += 1
+                    contexts += 1
+                    matched += 1
+            assert matched == len(wanted)
+            print(f"read {directory.name}/{source_id}: {matched} teacher decisions", flush=True)
+    X, y, check = np.concatenate(blocks), np.asarray(labels), np.asarray(validation)
+    del blocks, labels, validation
+    if cache:
+        cache.mkdir(parents=True, exist_ok=True)
+        for name, array in dict(X=X, y=y, check=check).items():
+            path = cache / (name + ".npy")
+            np.save(path, array, allow_pickle=False)
+            Path(str(path) + ".sha256").write_text(digest(path) + "\n")
+        write(cache / "metadata.json", dict(schema="line.planner-imitation-cache.v1", held=sorted(held),
+            provenance=provenance, contexts=contexts, folded=folded, actionCounts=dict(action_counts),
+            bundles=[{k: b[k] for k in ["start", "end", "family"]} for b in bundles]))
+options = dict(max_iter=args.iterations, max_leaf_nodes=args.leaves, min_samples_leaf=20, learning_rate=0.08,
                l2_regularization=1, early_stopping=False, random_state=260907, class_weight="balanced")
 model = HistGradientBoostingClassifier(**options).fit(X[~check], y[~check])
 readings = []
@@ -146,7 +173,7 @@ write(out / "model.json", artifact)
 indices = np.linspace(0, len(X) - 1, 64, dtype=int)
 write(out / "parity.json", dict(rows=[dict(features=x.tolist(), loss=float(v)) for x, v in zip(X[indices], -final.decision_function(X[indices]))]))
 report = dict(schema="line.planner-imitation-training.v1", implementation=digest(Path(__file__)), inputs=provenance,
-              contexts=contexts, rows=len(X), foldedEnergyActions=folded, teacherFamilies=dict(action_counts), heldFamilies=sorted(held),
+              contexts=contexts, rows=len(X), iterations=args.iterations, leaves=args.leaves, foldedEnergyActions=folded, teacherFamilies=dict(action_counts), heldFamilies=sorted(held),
               readings=readings, elapsedSeconds=time.monotonic() - started, researchOnly=True,
               note="Internal discovery-family selection; independent campaign validation remains untouched.")
 write(out / "report.json", report)

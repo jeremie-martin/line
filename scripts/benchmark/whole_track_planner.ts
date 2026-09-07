@@ -25,8 +25,9 @@ import { releaseProgram } from "./contact_program.ts";
 import { nativeRailLayers } from "./native_rail_layers.ts";
 import { contactPulse } from "./contact_pulse.ts";
 import { collectiveContactPulse } from "./collective_contact_pulse.ts";
+import { nativeEnergySteering } from "./native_energy_steering.ts";
 import { PLANNER_FEATURE_VERSION, plannerContextFeatures, plannerCandidateFeatures } from "./planner_features.ts";
-import { predictPlannerCandidate } from "./planner_student.ts";
+import { predictPlannerPriority } from "./planner_student.ts";
 import { authoredSpeedToPx, speedPxToAuthored, impactToRawPx, normImpact, type TrackLine } from "../v0/types.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
@@ -41,6 +42,7 @@ const implementation = [script, resolve("scripts/benchmark/whole_track_controls.
   resolve("scripts/benchmark/native_rail_layers.ts")]
   .concat(resolve("scripts/benchmark/contact_pulse.ts"))
   .concat(resolve("scripts/benchmark/collective_contact_pulse.ts"))
+  .concat(resolve("scripts/benchmark/native_energy_steering.ts"))
   .concat(resolve("scripts/benchmark/planner_features.ts"))
   .concat(resolve("scripts/benchmark/planner_student.ts"))
   .map(p => hash(readFileSync(p))).join(":");
@@ -120,7 +122,7 @@ function worker(source: any, plan: any, planSha256: string): void {
   const phaseBudget = plan.totalBudget === null ? null : plan.totalBudget - capture.compileFrames;
   if (phaseBudget !== null && (plan.warmStart || !(phaseBudget > track.duration * 4))) throw new Error("budget study requires a fresh completion with replay reserve");
   const effectiveWidth = phaseBudget === null ? plan.width : Math.max(2, Math.min(plan.width,
-    Math.floor((phaseBudget - track.duration * 4) / (track.duration * 6))));
+    Math.floor((phaseBudget - track.duration * 4) / (track.duration * (plan.keep + 2)))));
   if (phaseBudget !== null) setPhysicsFrameLimit(framesStart + phaseBudget - track.duration * 2);
   const scoreFits = (engine: any, fits: any[]) => {
     const report = buildDriftReport(detect(extractRawTrajectory(engine, track.duration)), spec,
@@ -177,11 +179,25 @@ function worker(source: any, plan: any, planSha256: string): void {
   const steps: any[] = [], nodes = new Map<number, any>();
   const failures: Record<string, number> = {};
   let trials = 0, validTrials = 0, filteredProposals = 0, generationFrames = 0, rebaseFrames = 0, detachFrames = 0, budgetStopped = false;
+  let finishing = false, finishGap: number | null = null;
+  const recentStepFrames: number[] = [];
   try {
     const engine = freshEngine(track).addLine(startLines.map(createLineFromJson));
     let beam: Node[] = [{ engine, fits: [], sse: { ...totalSse }, value: value(totalSse), original: true, id: serial++, parent: -1, action: null }];
     for (let i = 0; i < originals.length; i++) {
       const fit = originals[i], gap = ctx.gaps[i];
+      const stepStarted = getPhysicsFrameCount();
+      if (phaseBudget !== null && plan.finishReserve && !finishing) {
+        const remaining = Math.max(0, track.duration - gap.startFrame);
+        const nextStep = recentStepFrames.length ? Math.max(...recentStepFrames) * 1.25
+          : effectiveWidth * (plan.keep + 3) * Math.max(20, remaining / Math.max(1, originals.length - i));
+        const reserve = track.duration * 3 + remaining * 4 + 2000;
+        if (getPhysicsFrameCount() - framesStart + nextStep + reserve >= phaseBudget) {
+          finishing = true; finishGap = i;
+          beam = [beam.find(n => n.original)!, ...beam.filter(n => !n.original)
+            .sort((a, b) => a.value - b.value || a.id - b.id).slice(0, 2)];
+        }
+      }
       if (backend && i > 0) {
         const started = getPhysicsFrameCount(), frame = Math.max(0, gap.endFrame - 2);
         beam = beam.map(n => {
@@ -223,6 +239,7 @@ function worker(source: any, plan: any, planSha256: string): void {
         for (const mode of ["translate", "similarity"] as const) {
           const base = transportCatch(fit.lines, references[i]!, actual, mode);
           candidates.push({ lines: base, action: { family: "transport", mode } });
+          if (finishing) continue;
           for (const turn of [-0.035, -0.01, 0.01, 0.035]) candidates.push({
             lines: shapeCatch(base, actual, { turn, logScale: 0, energy: 0 }), action: { family: "turn", mode, turn } });
           for (const logScale of [-0.12, -0.04, 0.04, 0.12]) candidates.push({
@@ -283,7 +300,7 @@ function worker(source: any, plan: any, planSha256: string): void {
                   }
                 }
               }
-              if (plan.collectiveEnergy) for (const normalTurn of [-1.4, -1, 1, 1.4]) for (const layers of [4, 16, 32]) for (const energy of [-1, 1] as const) {
+              if (plan.collectiveEnergy) for (const normalTurn of (plan.energyPairs ? [-1.4, -1, -0.6, 0.6, 1, 1.4] : [-1.4, -1, 1, 1.4])) for (const layers of [4, 16, 32]) for (const energy of [-1, 1] as const) {
                 const depth = 0.1, maxWidth = 0.5;
                 const points = collectiveContactPulse(Object.values(packet.points) as Array<{ x: number; y: number }>,
                   rider.velocity, normalTurn, depth, maxWidth, idStart + seedLines.length);
@@ -292,6 +309,46 @@ function worker(source: any, plan: any, planSha256: string): void {
                 candidates.push({ lines: [...seedLines, ...pulses], preserve,
                   action: { family: "contact_pulse_collective", phase, normalTurn, depth, maxWidth, layers, energy,
                     spacing: 0.001, pulseLineCount: pulses.length } });
+                if (plan.energyPairs && phase === 2 && gap.endFrame + 4 < endFor(i)) {
+                  const firstEngine = seedEngine.addLine(pulses.map(createLineFromJson));
+                  if (packetAt(firstEngine, gap.endFrame) !== preserve.packet) continue;
+                  const laterRider = getRiderMetered(firstEngine, gap.endFrame + 4), later = laterRider.ballisticState();
+                  if (!later.riderMounted || !later.sledIntact) continue;
+                  const pairPreserve = { frame: gap.endFrame + 3, packet: packetAt(firstEngine, gap.endFrame + 3) };
+                  const secondTurn = Math.atan2(rider.velocity.y, rider.velocity.x) + normalTurn - Math.atan2(laterRider.velocity.y, laterRider.velocity.x);
+                  for (const ratio of [0.5, 1, 1.5]) {
+                    const secondLayers = Math.max(1, Math.round(layers * ratio));
+                    const points = collectiveContactPulse(Object.values(later.points) as Array<{ x: number; y: number }>,
+                      laterRider.velocity, secondTurn, depth, maxWidth, idStart + seedLines.length + pulses.length);
+                    const second = nativeRailLayers(points, rider.velocity, secondLayers, 0.001, energy === 1 ? -1 : 1);
+                    if (seedLines.length + pulses.length + second.length >= 1000) continue;
+                    candidates.push({ lines: [...seedLines, ...pulses, ...second], preserve: pairPreserve,
+                      action: { family: "contact_pulse_collective", phase, normalTurn, depth, maxWidth, layers, energy,
+                        spacing: 0.001, ratio, balanced: true, secondTurn, secondLayers, pulseLineCount: pulses.length + second.length } });
+                  }
+                }
+              }
+              if (plan.steering !== "off") {
+                const speed = Math.hypot(rider.velocity.x, rider.velocity.y);
+                const required = impactToRawPx(originalGap.axes.impact.target) - impactToRawPx(originalGap.axes.impact.achieved);
+                const nextSpeed = nextFor(i)?.targets.speed;
+                const speeds = [...new Set([speed, ...(nextSpeed === undefined ? [] : [authoredSpeedToPx(nextSpeed)])])];
+                for (const gain of [0.5, 1, 1.5]) for (const sign of [-1, 1]) for (const desiredSpeed of speeds) {
+                  const desiredTurn = sign * required * gain / Math.max(0.5, (speed + desiredSpeed) / 2);
+                  const steering = nativeEnergySteering(rider.velocity, desiredSpeed, desiredTurn);
+                  if (!steering) continue;
+                  const depth = 0.02, maxWidth = 0.5;
+                  const points = collectiveContactPulse(Object.values(packet.points) as Array<{ x: number; y: number }>,
+                    rider.velocity, steering.normalTurn, depth, maxWidth, idStart + seedLines.length);
+                  // Orient the stored tangent directly along the requested delta,
+                  // including a purely transverse force with zero flow projection.
+                  const pulses = nativeRailLayers(points, steering.desiredDelta, steering.layers, 0.001, 1);
+                  if (seedLines.length + pulses.length >= 1000) continue;
+                  candidates.push({ lines: [...seedLines, ...pulses], preserve,
+                    action: { family: "contact_pulse_collective", inverse: true, phase, depth, maxWidth,
+                      normalTurn: steering.normalTurn, layers: steering.layers, energy: steering.energy,
+                      spacing: 0.001, desiredSpeed, desiredTurn, gain, pulseLineCount: pulses.length } });
+                }
               }
             }
           }
@@ -330,7 +387,7 @@ function worker(source: any, plan: any, planSha256: string): void {
             }
           }
         }
-        if (plan.reuse > 0) {
+        if (!finishing && plan.reuse > 0) {
           const next = nextFor(i);
           const rankedTemplates = originals.map((template: any, j: number) => {
             if (!template || j === i || !references[j] || !baselineLocal[j]?.valid) return null;
@@ -354,7 +411,7 @@ function worker(source: any, plan: any, planSha256: string): void {
               action: { family: "self_reuse", template: j, mode } });
           }
         }
-        if (plan.nativeDraws > 0) {
+        if (!finishing && plan.nativeDraws > 0) {
           const rng = makeRng((capture.seed ^ Math.imul(i + 1, 65537) ^ parent.id) | 0);
           const targets = arcProposalTargetsForGap(gap, ctx.gaps);
           for (let attempt = 0; attempt < plan.nativeDraws; attempt++) {
@@ -364,6 +421,8 @@ function worker(source: any, plan: any, planSha256: string): void {
           }
         }
         generationFrames += getPhysicsFrameCount() - generationStart;
+        if (plan.steering === "only") candidates.splice(0, candidates.length,
+          ...candidates.filter(c => c.original || c.action.family === "transport" || c.action.inverse));
         if (student) {
           const unique = new Set<string>();
           const ranked = candidates.map((candidate, order) => {
@@ -373,8 +432,8 @@ function worker(source: any, plan: any, planSha256: string): void {
             const key = lineKey(canonical);
             if (unique.has(key)) return null;
             unique.add(key);
-            const prediction = predictPlannerCandidate(student, [...contextFeatures!, ...plannerCandidateFeatures(canonical, actual, candidate.action)]);
-            return { candidate, order, priority: prediction.loss + (plan.penalty ?? student.penalty) * (1 - prediction.validity),
+            const priority = predictPlannerPriority(student, [...contextFeatures!, ...plannerCandidateFeatures(canonical, actual, candidate.action)], plan.penalty ?? student.penalty);
+            return { candidate, order, priority,
               reserved: candidate.original || candidate.action.family === "transport" };
           }).filter((x): x is NonNullable<typeof x> => x !== null);
           const ordered = ranked.filter(r => !r.reserved).sort((a, b) => a.priority - b.priority || a.order - b.order);
@@ -412,7 +471,7 @@ function worker(source: any, plan: any, planSha256: string): void {
           if (!measured.valid && !candidate.original) {
             failures[measured.reason!] = (failures[measured.reason!] ?? 0) + 1; continue;
           }
-          if (plan.tailEnergy && (candidate.original || candidate.action.family.startsWith("contact_pulse")) &&
+          if (!finishing && plan.tailEnergy && (candidate.original || candidate.action.family.startsWith("contact_pulse")) &&
               measured.valid && measured.preview && gap.endFrame + 6 < endFor(i)) {
             const next = nextFor(i), target = next?.targets.speed, achieved = measured.preview.speed;
             if (target !== undefined && achieved !== undefined && Math.abs(target - achieved) > 0.01) {
@@ -512,22 +571,27 @@ function worker(source: any, plan: any, planSha256: string): void {
       const ranked = pool.filter(n => !n.original).sort((a, b) => a.value - b.value || a.id - b.id);
       // Preserve alternative parent histories before filling with siblings.
       const selected: Node[] = [], selectedParents = new Set<number>();
-      for (const n of ranked) if (plan.selection === "parent" && !selectedParents.has(n.parent) && selected.length < effectiveWidth - 1) {
+      const width = finishing ? Math.min(3, effectiveWidth) : effectiveWidth;
+      for (const n of ranked) if (plan.selection === "parent" && !selectedParents.has(n.parent) && selected.length < width - 1) {
         selected.push(n); selectedParents.add(n.parent);
       }
       if (plan.selection === "state") for (const n of ranked) {
-        if (selected.length >= effectiveWidth - 1) break;
+        if (selected.length >= width - 1) break;
         const distinct = selected.every(other => Math.sqrt(n.embedding!.reduce((sum, x, j) =>
           sum + (x - other.embedding![j]) ** 2, 0) / n.embedding!.length) >= plan.stateDistance);
         if (distinct) selected.push(n);
       }
-      for (const n of ranked) if (selected.length < effectiveWidth - 1 && !selected.includes(n)) selected.push(n);
+      for (const n of ranked) if (selected.length < width - 1 && !selected.includes(n)) selected.push(n);
       beam = [original, ...selected];
       for (const n of beam) nodes.set(n.id, { gap: i, parent: n.parent, action: n.action });
       steps.push({ gap: i, trials: stepTrials, retained: beam.map(n => n.id) });
+      recentStepFrames.push(getPhysicsFrameCount() - stepStarted);
+      if (recentStepFrames.length > 3) recentStepFrames.shift();
     }
     const completions: any[] = [];
-    for (const n of beam) {
+    const finalists = plan.finalists > 0 ? beam.filter(n => !n.original)
+      .sort((a, b) => value(a.sse) - value(b.sse) || a.id - b.id).slice(0, plan.finalists) : beam;
+    for (const n of finalists) {
       const measured = scoreFits(n.engine, n.fits);
       const realizedSse = Object.fromEntries(Object.keys(counts).map(axis => [axis,
         measured.report.gaps.reduce((sum, g) => sum + (g.axes[axis as keyof typeof g.axes]?.error ?? 0) ** 2, 0)]));
@@ -559,9 +623,10 @@ function worker(source: any, plan: any, planSha256: string): void {
     originalScore, capturedScore, score: winner.score, delta: winner.score.score - originalScore.score,
     cumulativeDelta: winner.score.score - capturedScore.score, actions: winner.actions,
     trials, validTrials, failures, filteredProposals, generationFrames, rebaseFrames, detachFrames, calibrationFrames,
-    phaseBudget, effectiveWidth, budgetStopped, priorCompileFrames: capture.compileFrames,
+    phaseBudget, effectiveWidth, budgetStopped, finishGap, priorCompileFrames: capture.compileFrames,
     totalFrames: capture.compileFrames + getPhysicsFrameCount() - framesStart,
     frames: getPhysicsFrameCount() - framesStart, elapsedMs: performance.now() - started };
+  if (plan.totalBudget !== null && result.totalFrames > plan.totalBudget) throw new Error("total compiler budget exceeded");
   write(resolve(out, `${sourceId}.json`), result);
   process.stderr.write(`${sourceId}: ${result.delta >= 0 ? "+" : ""}${result.delta.toFixed(4)}, ${validTrials}/${trials} local fits, ${result.frames} frames\n`);
 }
@@ -596,11 +661,14 @@ if (process.argv.includes("--plan")) {
     collective: arg("collective") === "on",
     collectivePairs: arg("collective-pairs") === "on",
     collectiveEnergy: arg("collective-energy") === "on",
+    energyPairs: arg("energy-pairs") === "on",
+    steering: arg("steering") ?? "off",
     rebaseEvery: Number(arg("rebase-every") ?? 0),
     collect: arg("collect") === "on",
     modelPath, modelHash: modelPath ? hash(readFileSync(modelPath)) : null, keep: Number(arg("keep") ?? 16),
     backendPath, backendHash: backendPath ? hash(readFileSync(resolve(backendPath, "manifest.json"))) : null,
     totalBudget: arg("total-budget") === undefined ? null : Number(arg("total-budget")),
+    finishReserve: arg("finish-reserve") === "on", finalists: Number(arg("finalists") ?? 0),
     penalty: arg("penalty") === undefined ? null : Number(arg("penalty")), familyKeep: Number(arg("family-keep") ?? 0),
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));

@@ -23,13 +23,27 @@ for (const sourceId of sources) {
   const fits = capture.snapshot.node.search.prefixFits, startLines = capture.snapshot.node.startLines;
   try {
     const start = (Engine: any) => new Engine().setStart(track.startPosition, track.riders[0].startVelocity).addLine(startLines);
-    let search = start(Search), judge = start(Judge), detachedReads = 0;
+    let search = start(Search), judge = start(Judge), detachedReads = 0, tracedReads = 0, maxProjection = 0;
     for (let i = 0; i < fits.length; i++) {
       if (!fits[i]) continue;
       const frame = capture.context.gaps[i].endFrame + 4;
       search = search.addLine(fits[i].lines); judge = judge.addLine(fits[i].lines);
       const expected = JSON.stringify(getRiderMetered(judge, frame).ballisticState());
       if (JSON.stringify(getRiderMetered(search, frame).ballisticState()) !== expected) throw new Error("prefix differs from fixed physics");
+      if (search.prepareCollisionTrace) {
+        search.prepareCollisionTrace(frame);
+        const beforeTrace = getPhysicsFrameCount();
+        const after = getRiderMetered(search, frame).ballisticState();
+        if (JSON.stringify(after) !== expected || getPhysicsFrameCount() - beforeTrace !== 1) throw new Error("trace replay or metering changed");
+        const trace = search.readCollisionTrace();
+        if (trace.length !== 6) throw new Error("incomplete solver trace");
+        for (const key of Object.keys(after.points)) {
+          const p = trace[5][key], q = after.points[key];
+          if (!Object.values(p).every(Number.isFinite)) throw new Error("nonfinite solver trace");
+          maxProjection = Math.max(maxProjection, Math.hypot(p.x - q.x, p.y - q.y));
+        }
+        tracedReads++;
+      }
       const old = search, before = getPhysicsFrameCount();
       search = old.detach();
       if (JSON.stringify(getRiderMetered(search, frame).ballisticState()) !== expected) throw new Error("detached packet changed");
@@ -46,7 +60,7 @@ for (const sourceId of sources) {
     }
     const actual = extractRawTrajectory(search, track.duration), expected = extractRawTrajectory(judge, track.duration);
     if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error("full trajectory changed");
-    rows.push({ sourceId, detachedReads, trajectorySha256: hash(JSON.stringify(actual)) });
+    rows.push({ sourceId, detachedReads, tracedReads, maxProjection, trajectorySha256: hash(JSON.stringify(actual)) });
   } finally { disposeSearch(); disposeAllWasmEnginesForStudy(); }
 }
 const report = { schema: "line.planner-cache-audit.v1", backendManifestSha256: hash(readFileSync(resolve(backend, "manifest.json"))),

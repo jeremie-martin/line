@@ -596,3 +596,55 @@ In 427 charged frames it finds, for example, a causal intact 1.823 px/frame
 initial velocity response with only 0.318 final residual. This measures physical
 response in free flight, not the benchmark's contact-gated angular impact.
 Complete-track scoring must determine whether it helps the authored target.
+
+
+### Completion reserves, expanded imitation, and direct native support
+
+Completion reserves and one full finalist replay improve the explicit 750k
+study to **608.0373** (31/44 improved, four budget stops). Expanding complete-path
+imitation with the fresh physical teacher produces **610.4406**, 44/44 valid,
+33 improved, zero budget stops, maximum total 742,842 frames. Its 10,349,547
+phase frames are charged in addition to the actual first-completion search.
+Plan: `31721ef0453f59b51d5c383436158c192fe1e55669955febb3e6426ce46d8c1b`.
+Model: `81acaae9c1384f55989a44586e4ff60648227af782567b97744457bd707acd9d`.
+The full teacher reaches **636.2329** from those 604.0352 first completions,
+using 264,729,120 additional frames; all 44 improve. Seed 260907002 is now
+adapted discovery data, not independent validation. No canonical evaluation or
+promotion has occurred, and the accepted headline remains 607.2582.
+
+The expanded imitation model learns 4,434 complete-path decisions, including
+763 deferred-energy admissions. Its reusable training arrays avoid reparsing
+the large physical corpus. Inference skips the unused validity head when its
+penalty is zero; 192 stored Python/TypeScript predictions retain exact priority
+parity. A wider one-proposal allocation scores only 605.6014 and is not preferred.
+
+Free-flight inverse native energy fields achieve requested velocity changes
+within about 2% in several intact examples, but they transfer poorly into the
+existing support geometry. On 48 actual catch contexts, 576 direct uniform or
+coherent proposals are all causal at H−2; only 48 survive their physical binding
+checks. Relaxing the freeze at H does not solve that failure. Single-layer force
+calibration improves a few cases but exposes uneven and repeated collisions.
+A compiler-only trace backend observes positions immediately before each of
+the six collision sweeps, with no change to physical stepping. Trace requests
+evict and charge a replay of the observed frame. Its audit checks 360 replays,
+branch/cache operations, and four full trajectories against the frozen engine;
+all match. Manifest:
+`6ecdf9ee2c6a3cb8cfdb0b0546ba814705207f967486041c0c1bfda5d7803f39`.
+Observed pre-sweep positions differ from final collision-projected positions by
+up to 1.036 px on the audit panel. Using actual solver positions raises useful
+contact controls, but most proposals still fail. Coarse balanced energy pairs
+also give only small complete-track improvements on the warm four-source panel.
+
+A new construction direction builds native support directly from an empty
+track. Point-local energy lines steer each physical rider point toward a common
+next-frame velocity, optionally correcting accumulated pose error. These are
+ordinary native line collisions; no point masks, forced states, or altered
+physics are used. Every finished fixture is cold-replayed with the fixed engine
+and its entire raw trajectory must match. Two constant-velocity fixtures sustain
+1,000 continuous contact frames for about 125k charged frames. A varying-heading
+fixture produces 47 timed landings over 1,000 frames with ten airborne frames
+before each landing, costing 66,743 frames. Adding pose feedback at gain 0.15
+extends a larger-turn fixture to 2,400 frames / 114 timed landings, costing
+159,405 frames. Other settings fail, sometimes on a delayed collision or binding
+break. These are physical feasibility fixtures, not benchmark scores. Short
+physical backtracking and authored-target construction are being developed next.

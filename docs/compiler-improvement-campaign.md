@@ -124,6 +124,19 @@ stricter neutral check and corrected. A full-duration audit of all 160 retained
 tracks (119 unique replays) confirms unchanged scores and validity. This was a
 research validation correction; the benchmark and scorer were not changed.
 
+The best explicit 750k two-stage discovery reading is now **610.4406** from
+604.0352 first completions: all 44 valid, 33 improved, no budget stops, maximum
+742,842 charged frames. Expanded complete-path imitation and completion reserves
+produce this result. This seed is training/discovery data; it is not canonical
+or independent evidence. A full additional-work teacher on the same inputs
+reaches 636.2329. The accepted headline remains **607.2582**.
+
+A new direct native-support construction sustains 114 timed landings across
+2,400 frames in 159,405 simulated frames, with an exact full frozen-engine
+replay. This bypasses saved catch templates in a physical fixture. Other control
+settings fail, so authored-target construction and short backtracking are the
+next tests; the fixture is not a scored benchmark improvement.
+
 ## Prior evidence
 
 The pre-restart log is preserved in

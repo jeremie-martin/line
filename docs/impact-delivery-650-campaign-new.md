@@ -932,6 +932,31 @@ impact-deficit gain, and valid complete improvement against all references.
 Record all unavailable and invalid rows; no failed direction gets another
 map or a larger suffix budget. This is the tranche's second and final mechanism.
 
+**State-matched recapture result.** All 22 rigid maps and exact candidate
+admissions are available; all 22 zero-map continuations reproduce their
+corrected controls exactly. One mapped surface changes its own pre-return
+history and is excluded by the frozen causal gate. The remaining 21 preserve
+that prefix and the interruption/recapture sequence, and 20 complete tracks
+are valid. Relative to the gap alone, median full-score movement is +3.3112;
+relative to the original ordinary control it is −1.6899 and relative to the
+original incumbent −10.0392. Only one track beats all references (+18.9759
+versus its incumbent), and it has *less* impact than the original catch.
+No continued proposal retains the useful local impact gain, so **0/22** pass
+the physical-success gate. Fixing the return geometry partly repays support
+debt while undoing the impact benefit. Close this form and tranche 2; no
+transform, blend, state-frame, or iteration walk is licensed.
+
+Cost: 45,504 warmup, 23,970 construction/admission, 5,704,712 continuation,
+and 44,813 verification frames; 189.50 summed worker seconds. All 154 JSON
+artifacts verify under
+`generated/benchmark-v2/impact-delivery-650-new/state-matched-recapture/`.
+Request SHA-256:
+`16f4d1190ab07a7e8ad4f1a5e2d719728cedabeaf3959485b517d1bb0b74cc04`;
+implementation is pinned in `1965182a`. Three rigid-map invariants pass and
+repository type checking reports no errors in the new capture, gap, metadata,
+or recapture scripts. No compiler source, evaluator, target, or baseline was
+changed. Validation and canonical seeds remain unopened.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

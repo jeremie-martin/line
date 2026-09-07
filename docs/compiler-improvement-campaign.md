@@ -106,6 +106,17 @@ updates with no retries. Only valid complete gains against both ordinary
 continuation and the original incumbent can justify integration work. The
 historical target-clamping setup is excluded. Validation seeds remain unopened.
 
+That assay completes with 73 changed pairs, all retaining valid ordinary
+continuations and exact local/final first impact. Five beat both complete-track
+references, but **0/88** meet the useful-impact gate. Median attained gain is
+only 0.463% of the original deficit; no local path reaches 25%. The 73 changed
+tracks have median −7.2350 V2 points versus the original incumbent. Cost is
+18,449,216 physics frames and 593.90 summed worker seconds, including ordinary
+continuations. Close the version and the tranche's two physical objectives;
+no source-default candidate is justified. A fixed directional audit will
+separate stale secant prediction from finite-step physical nonlinearity using
+the existing controls, with no new geometry choice or suffix search.
+
 ## Prior evidence
 
 The full pre-restart campaign log is preserved byte-for-byte in

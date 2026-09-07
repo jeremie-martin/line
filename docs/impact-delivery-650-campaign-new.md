@@ -672,6 +672,54 @@ Only actual retained complete-track gains can justify later integration-cost
 work; local improvements or unchanged fallback are insufficient. No validation
 or canonical seed is opened by this component study.
 
+**Authored-output result.** All 88 pairs complete the declared assay. The
+unchanged warmups are exact, all basis vertices belong to the two captured
+fits, and 1,074/1,450 initial derivative columns are stable (367 inactive,
+nine fail precision). Geometry changes in 73 pairs; all 73 ordinary rebuilt
+tracks are valid and retain every intervention line. Final first-impact
+measurements equal their local values exactly. The ordinary controls are
+87/88 valid. This resolves actual suffix realizability for these small moves.
+
+The useful-gain criterion fails in **0/88 successes**. No local move reaches
+the requested 25% deficit reduction: median attainment is 0.01851 of that
+request (0.463% of the original deficit), maximum 0.50581. Median local
+weighted squared-error reduction is 0.807%. Among changed tracks, 34 beat
+their paired continuation; only five also beat the original V2 incumbent,
+with a largest gain of 10.3977 points. Those five are not useful-impact
+successes. Changed-track median deltas are −0.1912 versus ordinary control
+and −7.2350 versus the original incumbent. These are diagnostic per-track
+scores, never a headline or independent seed-block estimate.
+
+Stopping reasons are response-model acceptance (52), first-impact worsening
+(25), exact admission (nine), and the total coordinate bound (two). Median
+accepted updates is two; no path reaches twelve. Cost is 104,256 warmup,
+505,731 local-response (379,564 derivative and 16,967 update), and 17,839,229
+ordinary suffix frames; 593.90 summed worker seconds. All 456 retained JSON
+artifacts and sidecars verify in
+`generated/benchmark-v2/impact-delivery-650-new/authored-output-relaxation/`.
+Request SHA-256:
+`7ec4654ad617ba45e39d42376f5938001b06201c035e126f5bc3f4678480a7e5`;
+implementation is pinned in `cab31d6f`. Three matrix invariants pass and the
+repository's existing type failures include neither new script. Close this
+version without another radius, iteration count, source selection, or suffix
+budget walk. Both physical objectives of this tranche have now failed their
+useful-gain gates; neither licenses source-default integration or validation.
+
+**Finite response-model audit, declared before execution.** Before proposing
+another tranche, distinguish a stale secant model from finite-step physical
+nonlinearity. For every one of the same 88 paths, replay its stored accepted
+controls through the already verified exact admission interface, requiring
+the stored objective and first-impact error to match. Reconstruct the exact
+Broyden matrix from those measured secants. For the final rejected proposal,
+compare its predicted output change with the exact full-step output change
+and central directional probes at ±0.001 and ±0.0005 of that same fixed step
+around the last accepted geometry. Report per-axis changes, agreement of the
+two small stencils, model error at infinitesimal scale, and finite-step
+curvature separately. Keep admission failures and bounded paths explicit.
+No new direction, accepted update, geometry selection, suffix search, or full
+score is generated. This finite audit answers why this numerical proposal
+stopped; it cannot turn the failed physical experiment into a success.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

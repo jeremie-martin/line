@@ -3,7 +3,8 @@
  */
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { developmentCases } from "../../benchmark/v2/catalog.ts";
@@ -24,6 +25,7 @@ import { releaseProgram } from "./contact_program.ts";
 import { nativeRailLayers } from "./native_rail_layers.ts";
 import { contactPulse } from "./contact_pulse.ts";
 import { collectiveContactPulse } from "./collective_contact_pulse.ts";
+import { PLANNER_FEATURE_VERSION, plannerContextFeatures, plannerCandidateFeatures } from "./planner_features.ts";
 import { authoredSpeedToPx, speedPxToAuthored, impactToRawPx, normImpact, type TrackLine } from "../v0/types.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
@@ -36,6 +38,7 @@ const implementation = [script, resolve("scripts/benchmark/whole_track_controls.
   resolve("scripts/benchmark/native_rail_layers.ts")]
   .concat(resolve("scripts/benchmark/contact_pulse.ts"))
   .concat(resolve("scripts/benchmark/collective_contact_pulse.ts"))
+  .concat(resolve("scripts/benchmark/planner_features.ts"))
   .map(p => hash(readFileSync(p))).join(":");
 const baseline = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
 const suite = JSON.parse(readFileSync("benchmark/v2/compat/suite-manifest.json", "utf8"));
@@ -67,6 +70,8 @@ type Node = { engine: any; fits: any[]; sse: Record<string, number>; value: numb
 
 function worker(source: any, plan: any, planSha256: string): void {
   const started = performance.now(), framesStart = getPhysicsFrameCount(), sourceId = source.sourceId;
+  const corpusPath = resolve(out, `${sourceId}.training.jsonl.gz`);
+  if (plan.collect) writeFileSync(corpusPath, "");
   const paths = ["capture", "track", "report"].map(kind => resolve(input, `${sourceId}.${kind}.json`));
   paths.forEach((p, i) => { if (hash(readFileSync(p)) !== source.inputHashes[i]) throw new Error("frozen input changed"); });
   const [capture, capturedTrack, capturedReport] = paths.map(read);
@@ -163,6 +168,9 @@ function worker(source: any, plan: any, planSha256: string): void {
       for (const parent of beam) {
         const actual = frameAt(parent.engine, gap.endFrame);
         const unchanged = packetAt(parent.engine, Math.max(0, gap.endFrame - 2));
+        const corpus: any[] = [];
+        const contextFeatures = plan.collect ? plannerContextFeatures(actual,
+          getRiderMetered(parent.engine, gap.endFrame).ballisticState(), gap, nextFor(i)) : null;
         // Reserve a disjoint ID range per contact. Incumbent lines keep their
         // original IDs so its entire physical history remains bit-identical.
         const idStart = 1000000 + i * 1000;
@@ -295,6 +303,9 @@ function worker(source: any, plan: any, planSha256: string): void {
           const key = lineKey(lines);
           if (seen.has(key)) continue;
           seen.add(key); trials++;
+          const training = plan.collect ? { features: plannerCandidateFeatures(lines, actual, candidate.action),
+            valid: false, loss: null as number | null } : null;
+          if (training) corpus.push(training);
           const child = parent.engine.addLine(lines.map(createLineFromJson));
           if (!candidate.original && packetAt(child, Math.max(0, gap.endFrame - 2)) !== unchanged) {
             failures.prefix_changed = (failures.prefix_changed ?? 0) + 1; continue;
@@ -367,6 +378,22 @@ function worker(source: any, plan: any, planSha256: string): void {
           }
           const node: Node = { engine: child, fits: [...parent.fits, { ...fit, lines }], sse, value: value(projected),
             original: !!candidate.original, id: serial++, parent: parent.id, action: candidate.action, preview: measured.preview };
+          if (training) {
+            training.valid = measured.valid;
+            if (measured.valid) {
+              let loss = 0;
+              for (const axis of Object.keys(counts)) {
+                const a = originalGap?.axes[axis], observed = measured.achieved[axis as keyof typeof measured.achieved];
+                if (a && observed !== undefined) loss += weights[axis] * (a.target - observed) ** 2;
+              }
+              const nextReport = next && savedReport.gaps.find((g: any) => g.gap_index === next.index);
+              for (const axis of ["air", "speed", "amplitude"]) {
+                const a = nextReport?.axes[axis], observed = measured.preview?.[axis as keyof typeof measured.preview];
+                if (a && observed !== undefined) loss += weights[axis] * (a.target - observed) ** 2;
+              }
+              training.loss = loss;
+            }
+          }
           if (plan.selection === "state") {
             const rider = getRiderMetered(child, endFor(i)), packet = rider.ballisticState();
             node.embedding = Object.keys(packet.points).sort().flatMap(key => {
@@ -382,6 +409,8 @@ function worker(source: any, plan: any, planSha256: string): void {
               ? lines.slice(-(candidate.action.pulseLineCount ?? (candidate.action.family === "contact_pulse_pair" ? 2 : 1)))
                 .map(l => measured.impactLineIds?.includes(l.id)) : undefined });
         }
+        if (plan.collect) appendFileSync(corpusPath, gzipSync(`${JSON.stringify({ featureVersion: PLANNER_FEATURE_VERSION,
+          sourceId, gap: i, parent: parent.id, context: contextFeatures, candidates: corpus })}\n`, { level: 1 }));
       }
       const original = pool.find(n => n.original);
       if (!original) throw new Error("lost incumbent path");
@@ -425,6 +454,7 @@ function worker(source: any, plan: any, planSha256: string): void {
   } finally { disposeAllWasmEnginesForStudy(); }
   write(resolve(out, `${sourceId}.track.json`), bestTrack);
   write(resolve(out, `${sourceId}.report.json`), winner.report);
+  if (plan.collect) writeFileSync(`${corpusPath}.sha256`, `${hash(readFileSync(corpusPath))}  ${basename(corpusPath)}\n`);
   const result = { schema: "line.whole-track-planner-source.v1", implementation, planSha256, sourceId, seed: capture.seed,
     originalScore, capturedScore, score: winner.score, delta: winner.score.score - originalScore.score,
     cumulativeDelta: winner.score.score - capturedScore.score, actions: winner.actions,
@@ -461,6 +491,7 @@ if (process.argv.includes("--plan")) {
     pulsePairs: arg("pulse-pairs") === "on",
     tailEnergy: arg("tail-energy") === "on",
     collective: arg("collective") === "on",
+    collect: arg("collect") === "on",
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

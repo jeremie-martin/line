@@ -95,18 +95,18 @@ adds 0.2226 offline aggregate points; similarity adds 0.1717, versus 0.0191
 with a fixed suffix. This costs extra compute and is too small to integrate.
 A release-restoring transform also fails to produce a material gain.
 
-Joint contact/release synthesis is now implemented as an exact physical prefix
-beam. The first 44-source discovery run improves 41 tracks, moving its offline
-aggregate from 607.4692 to 608.2268. Wider target-program search reaches
-610.1912 across all 44 tracks, then 611.4610 after another pass and
-616.1740 after paired contacts and 618.4730 after another paired pass. All 44 remain valid; the paired pass improves
-42 and adds 51.3530 on Rising Switch. Three panel passes accumulate a 38.2325-point Believer gain.
-Dense-case gains remain small, so the work is still research,
-with extra compute, rather than a promoted 750k compiler.
+Joint contact/release synthesis is implemented as an exact physical prefix
+beam. Paired contacts, energy recovery after the impact window, and distributed
+rider contacts now produce a 624.5730 offline score in a single pass from the
+607.4692 discovery tracks. Iteration reaches 628.7368; retaining the best of the
+two executed arms gives a 632.3348 research incumbent. All 44 tracks are valid.
+These results use additional compute and do not change the accepted 750k
+headline. Dense recovery remains the hardest regime.
 
 The planner preserves the complete incumbent, explores native material and
 release geometry, and verifies the final fixed V2 score in a cold replay.
-Further work tests longer physical lookahead and iterative planning. Planning
+Further work continues physical optimization and distills candidate selection
+to fit the real 750k budget. Planning
 and active material need no further approval. Exact commands, costs, and
 artifact identities are in the active program. The previous `goal.md`, including
 its uncommitted contents, is archived.

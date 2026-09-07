@@ -379,3 +379,58 @@ the response at frames 21 and 25. Both artifacts are retained. These are actuato
 physics observations, not benchmark or scored-contact evidence. A focused exact
 engine test covers the causal, intact whole-rider example before integration
 into the research planner.
+
+
+### Collective control and search distillation
+
+The full post-window energy pass reaches **620.5976** (43 further improved
+sources; 139,958,489 frames; 1,098.10 worker seconds). Whole-rider point-local
+contacts then improve the panel substantially: amplitude +14.5643, dense
++0.3438, transition +55.8450, and Believer +41.9014 from their original tracks.
+The transition's impact RMS falls 0.1663 → 0.1200 while speed also improves
+0.0756 → 0.0735. The complete-track tradeoff is now much better than a pulse
+without energy recovery. All four neutral and selected-track replays pass.
+The collective implementation is `be726ad8`; 12 focused tests pass, including
+an exact-engine causal whole-rider force example.
+
+The 44-source collective pass reaches **626.4268**, improving 42 tracks again
+from 620.5976. Cost: 194,142,636 frames and 1,640.09 summed worker seconds.
+Its plan is `8243630391e08d34372ec8423e56e3e415c63066281fe63af52991edd06bf2d3`.
+A full collective run starting directly from the original saved tracks reaches
+**624.5730 in one pass**, with 44/44 improved: this is not dependent on all the
+earlier optimization passes. Cost: 214,545,031 frames / 1,979.81 worker seconds.
+Another pass on the prior 626.4268 tracks reaches **628.7368**, with 39 further
+improvements, costing 180,450,502 frames / 1,697.47 worker seconds.
+
+Those last two runs collect candidate training observations. The collector
+reproduces all four panel scores, track replays, and physics-frame counts
+exactly. Inputs comprise incoming articulated state, authored current/next
+targets and durations, candidate geometry, and control parameters. They contain
+no source ID, seed, absolute time index, or measured candidate outcome. Labels
+record exact validity (including the prefix/capture checks) and realized local
+plus outgoing loss. Each checksum-bound gzip stream contains parent-context
+bundles. Collection is an observer, not a new scoring or selection rule.
+
+`retain_physical_incumbent.ts` keeps the best of these two already-executed
+44-source arms by copying verified track/report bytes. The resulting research
+portfolio reads **632.3348**, with no new simulation; all preceding research
+compute remains charged to its original runs. Thirteen sources prefer the
+single-pass result to the iterated result. This portfolio is an additional-work
+research incumbent, not a fixed-budget score or a benchmark promotion. A new
+collective pass is running from that complete incumbent.
+
+In parallel, `train_physical_planner.py` fits a compact candidate-validity and
+loss model. It samples uniformly within parent contexts for validity, adding
+best valid candidates for loss fitting. Internal model selection holds related
+source families together; it is explicitly not independent campaign validation.
+Model features describe inputs available before candidate evaluation. The exact
+engine will still decide every emitted candidate and the finished track.
+Cross-language inference parity will be checked before using the model.
+
+This efficiency work has a concrete budget reason. A checksum-verified reading
+of all 1,408 accepted N32 `first_completion_frame` statistics finds a minimum of
+307,713, median 491,381, 90th percentile 551,169, and maximum 730,037 frames.
+These are existing 750k-policy costs, not reduced-budget compiler experiments
+or first-completion scores. The median leaves roughly 259k frames for a new
+improvement phase, so an exhaustive multi-million-frame planner is not yet a
+750k compiler. No new canonical baseline search was performed for this reading.

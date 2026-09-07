@@ -382,6 +382,95 @@ arm before that test. Failure closes this numerical response route for the
 current tranche. Success still needs a separately measured useful-gain and
 compute-cost case; microscopic continuation alone cannot supply 650.
 
+**Corrector declaration (before execution).** Retain all 88 pair selections
+and the 78 frozen responses in each arm, including failures. Use only that
+arm's previously stable coordinates; no geometry basis or impact request is
+expanded. Starting from its unchanged parent command, permit four local Newton
+corrections. At each current state estimate central derivatives at ±1e−5 and
+±5e−6 speed-frame units, require ≤1% derivative agreement, and use Richardson
+extrapolation. Minimize the 61-component downstream residual plus the existing
+1e−6 step ridge subject to correcting the first impulse to the original request.
+Reject steps above 0.001 per coordinate or total controls above 0.002; do not
+scale the failed proposal or search another dose.
+
+Before applying a step, independently check its directional derivative with
+±0.01 times the proposed correction. Require vector error no greater than
+max(1e−8, 1% of predicted direction norm). Accept the actual step only if it
+preserves the exact prefix, both contact frames and integrity, reduces the
+downstream constraint norm by at least 10%, keeps first impulse within 1% of
+the frozen request (1e−9 absolute floor), and reduces total residual norm.
+An unsuccessful proposal ends that response; there is no line search. Stop
+early at downstream norm ≤1e−7. Record every proposal, rejection, and final
+complete-track score; unchanged fallback never counts as a corrected success.
+
+The sham arm replays the original command for the identical number of local
+and complete replays. Require exact frame-cost equality and reproduction of
+the parent score and validity. This controls the added replay cost without
+claiming that an offline assay measures compiler budget displacement.
+
+The component gate requires at least half the paired directions to reduce
+downstream error tenfold while retaining ≥99% of requested impact and contact
+compatibility, and more changed positive valid complete tracks than the sham.
+This asks whether correction is broadly usable on the retained states. Passing
+still requires useful-gain and integration-cost evidence. Failure closes this
+numerical response route for the tranche, as previously declared.
+
+Commands: `python scripts/benchmark/impact_pair_corrector_solve.py --self-test`,
+then `LR_ENGINE=wasm node --import tsx
+scripts/benchmark/impact_pair_corrector.ts --plan` and the same program with
+`--jobs=8`. Three new analytic invariants pass: impact-preserving correction,
+simultaneous impact and release correction, and honest unavoidable residual.
+
+**Corrector result.** All 44 baseline scores and targeted axes replay exactly;
+all 156 corrected/sham comparisons have identical charged frames. The pair
+passes the declared component gate: 46/78 directions reduce error tenfold
+while retaining requested impact, and 18 changed tracks have positive full
+scores versus six shams. Sixty pair responses accept a correction, 24 reach
+the 1e−7 constraint tolerance, and 24 preserve a valid complete track. The
+paired median residual ratio is 0.01968; median final constraint norm is
+4.49e−6. Largest positive changed track-score gain is only 0.01292.
+
+The first-surface control does not pass: 33/78 tenfold reductions, 12 positive
+changed complete tracks versus five shams, and six tolerance hits. Its largest
+positive score gain is 0.06218, which does not reverse the failed broad gate.
+No source or response is removed after reading results. This establishes the
+pair's local correction mechanism, not useful gain at the campaign scale.
+
+Cost: zero compiler executions, 26,178,361 physics frames including the sham,
+146.86 summed worker seconds. The frozen plan hash is
+`cd95afa5d8f61f8d83df655c3b8469e028045ff36e88a4b509173b26fb315477`;
+checksummed results are in
+`generated/benchmark-v2/impact-delivery-650-new/contact-pair-corrector/`.
+
+**Useful-gain continuation declaration (before execution).** Return to every
+unchanged baseline pair, keeping the previous pair's stable coordinate basis
+and all 88 selections (ten have no frozen usable direction). Request the
+original 25% raw impact deficit, with no scored intermediate candidates. A
+bounded predictor/corrector path gets at most twelve stages and four corrector
+steps per stage. Recompute the precision-checked Richardson Jacobian at each
+step; retain the directional check and actual residual acceptance from the
+successful component. A predictor solves for the remaining impact and baseline
+downstream packet, then scales uniformly to the current trust radius. Radius
+starts at 0.001, doubles only when a stage needs at most two corrections whose
+total control norm is ≤25% of the predictor norm, and never exceeds 0.1.
+Absolute controls remain ≤0.1. No failed stage is retried at another radius.
+
+Each stage preserves prefix and both authored contacts and keeps its predicted
+impact request within 1%. It must reduce the predictor's downstream residual
+tenfold or reach 1e−7; actual corrector steps must each reduce residual by at
+least 10%. A failed stage returns the last accepted physical state and ends
+the path. The terminal full-track replay is the only score used. The unchanged
+baseline sham consumes the same number of local/full replays with asserted
+frame equality. Record reached deficit fraction, complete validity, all axis
+movement, and cost, including partial and unsuccessful paths.
+
+Useful-gain success requires ≥90% of the 25%-deficit request, a changed track,
+exact prefix/contact compatibility, and positive valid complete score. At
+least half of the 78 available paths must succeed to justify an integration
+study. Otherwise close this continuation version without another radius,
+iteration-count, or subset walk. This gate does not declare a headline gain;
+integration still requires a retained physical effect and measured budget cost.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

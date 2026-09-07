@@ -99,18 +99,23 @@ Joint contact/release synthesis is implemented as an exact physical prefix
 beam. Paired contacts, energy recovery after the impact window, and distributed
 rider contacts now produce a 624.5730 offline score in a single pass from the
 607.4692 discovery tracks. Iteration reaches 628.7368; retaining the best of the
-two executed arms and continuing physical optimization reaches **636.0228**.
+two executed arms and continuing physical optimization with native energy
+reaches **641.9196**.
 All 44 retained tracks are valid.
 These results use additional compute and do not change the accepted 750k
 headline. Dense recovery remains the hardest regime.
 
 The planner preserves the complete incumbent, explores native material and
 release geometry, and verifies the final fixed V2 score in a cold replay.
-The first compact selector fits roughly 198k extra frames per pilot track but
-loses most gains. Wider-search and unfiltered controls identify both beam
-width and ranking as causes. A richer, within-context model and stronger native
-energy contacts are being tested. Planning
-and active material need no further approval. Exact commands, costs, and
+Local-loss selectors discard the strongest pulses because their later energy
+repair is not credited at admission. Learning from complete winning paths fixes
+that mismatch: the wide student retains 85.79% of the pilot gain with 16.32% of
+its physics. A 16-history/four-proposal variant averages 257k extra frames and
++11.36 points on the discovery panel. Fresh first-completion captures now test
+remaining budget and new states. An isolated copy of the accepted physical
+kernel provides independent computed-prefix caches; exact trajectory and
+whole-search parity pass, and final judging uses the unchanged benchmark engine.
+Planning and active material need no further approval. Exact commands, costs, and
 artifact identities are in the active program. The previous `goal.md`, including
 its uncommitted contents, is archived.
 

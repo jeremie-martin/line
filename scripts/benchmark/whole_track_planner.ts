@@ -12,7 +12,7 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { disposeAllWasmEnginesForStudy } from "../lib/_lr_engine_wasm.ts";
-import { detect, extractRawTrajectory, getRiderMetered, getPhysicsFrameCount } from "../lib/detector.ts";
+import { detect, extractRawTrajectory, getRiderMetered, getPhysicsFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded } from "../lib/detector.ts";
 import { buildDriftReport, findAuthoredContactNearFrame, contactLineIdsAt } from "../v0/core/substrate.ts";
 import { detectWindow } from "../v0/core/candidate.ts";
 import { measureGapAxes } from "../v0/core/measure.ts";
@@ -117,6 +117,11 @@ function worker(source: any, plan: any, planSha256: string): void {
   if (lineKey([...startLines, ...originals.flatMap((f: any) => f?.lines ?? [])]) !== lineKey(track.lines)) throw new Error("incomplete geometry ownership");
   const originalScore = scoreV2Report(savedReport, spec.contacts.length, contract, suite);
   const capturedScore = scoreV2Report(capturedReport, spec.contacts.length, contract, suite);
+  const phaseBudget = plan.totalBudget === null ? null : plan.totalBudget - capture.compileFrames;
+  if (phaseBudget !== null && (plan.warmStart || !(phaseBudget > track.duration * 4))) throw new Error("budget study requires a fresh completion with replay reserve");
+  const effectiveWidth = phaseBudget === null ? plan.width : Math.max(2, Math.min(plan.width,
+    Math.floor((phaseBudget - track.duration * 4) / (track.duration * 6))));
+  if (phaseBudget !== null) setPhysicsFrameLimit(framesStart + phaseBudget - track.duration * 2);
   const scoreFits = (engine: any, fits: any[]) => {
     const report = buildDriftReport(detect(extractRawTrajectory(engine, track.duration)), spec,
       ctx.gaps, ctx.allContactFrames, ctx.durationFrames, [], fits, ctx.gapAxisTargets);
@@ -171,7 +176,7 @@ function worker(source: any, plan: any, planSha256: string): void {
   calibrationFrames = getPhysicsFrameCount() - framesStart;
   const steps: any[] = [], nodes = new Map<number, any>();
   const failures: Record<string, number> = {};
-  let trials = 0, validTrials = 0, filteredProposals = 0, generationFrames = 0, rebaseFrames = 0, detachFrames = 0;
+  let trials = 0, validTrials = 0, filteredProposals = 0, generationFrames = 0, rebaseFrames = 0, detachFrames = 0, budgetStopped = false;
   try {
     const engine = freshEngine(track).addLine(startLines.map(createLineFromJson));
     let beam: Node[] = [{ engine, fits: [], sse: { ...totalSse }, value: value(totalSse), original: true, id: serial++, parent: -1, action: null }];
@@ -507,16 +512,16 @@ function worker(source: any, plan: any, planSha256: string): void {
       const ranked = pool.filter(n => !n.original).sort((a, b) => a.value - b.value || a.id - b.id);
       // Preserve alternative parent histories before filling with siblings.
       const selected: Node[] = [], selectedParents = new Set<number>();
-      for (const n of ranked) if (plan.selection === "parent" && !selectedParents.has(n.parent) && selected.length < plan.width - 1) {
+      for (const n of ranked) if (plan.selection === "parent" && !selectedParents.has(n.parent) && selected.length < effectiveWidth - 1) {
         selected.push(n); selectedParents.add(n.parent);
       }
       if (plan.selection === "state") for (const n of ranked) {
-        if (selected.length >= plan.width - 1) break;
+        if (selected.length >= effectiveWidth - 1) break;
         const distinct = selected.every(other => Math.sqrt(n.embedding!.reduce((sum, x, j) =>
           sum + (x - other.embedding![j]) ** 2, 0) / n.embedding!.length) >= plan.stateDistance);
         if (distinct) selected.push(n);
       }
-      for (const n of ranked) if (selected.length < plan.width - 1 && !selected.includes(n)) selected.push(n);
+      for (const n of ranked) if (selected.length < effectiveWidth - 1 && !selected.includes(n)) selected.push(n);
       beam = [original, ...selected];
       for (const n of beam) nodes.set(n.id, { gap: i, parent: n.parent, action: n.action });
       steps.push({ gap: i, trials: stepTrials, retained: beam.map(n => n.id) });
@@ -536,12 +541,17 @@ function worker(source: any, plan: any, planSha256: string): void {
       }
     }
     write(resolve(out, `${sourceId}.search.json`), { steps, completions, baselineLocal });
+  } catch (error) {
+    if (phaseBudget === null || !(error instanceof PhysicsFrameLimitExceeded)) throw error;
+    budgetStopped = true;
+    write(resolve(out, `${sourceId}.search.json`), { steps, completions: [], baselineLocal, budgetStopped });
   } finally { disposeEngines(); }
   const bestTrack = { ...track, lines: [...startLines, ...winner.fits.flatMap((f: any) => f?.lines ?? [])] };
+  if (phaseBudget !== null) setPhysicsFrameLimit(framesStart + phaseBudget);
   try {
     const replay = scoreFits(freshEngine(track, true).addLine(bestTrack.lines.map(createLineFromJson)), winner.fits);
     if (JSON.stringify(replay) !== JSON.stringify({ report: winner.report, score: winner.score })) throw new Error("winner exact replay mismatch");
-  } finally { disposeEngines(); }
+  } finally { disposeEngines(); setPhysicsFrameLimit(null); }
   write(resolve(out, `${sourceId}.track.json`), bestTrack);
   write(resolve(out, `${sourceId}.report.json`), winner.report);
   if (plan.collect) writeFileSync(`${corpusPath}.sha256`, `${hash(readFileSync(corpusPath))}  ${basename(corpusPath)}\n`);
@@ -549,6 +559,8 @@ function worker(source: any, plan: any, planSha256: string): void {
     originalScore, capturedScore, score: winner.score, delta: winner.score.score - originalScore.score,
     cumulativeDelta: winner.score.score - capturedScore.score, actions: winner.actions,
     trials, validTrials, failures, filteredProposals, generationFrames, rebaseFrames, detachFrames, calibrationFrames,
+    phaseBudget, effectiveWidth, budgetStopped, priorCompileFrames: capture.compileFrames,
+    totalFrames: capture.compileFrames + getPhysicsFrameCount() - framesStart,
     frames: getPhysicsFrameCount() - framesStart, elapsedMs: performance.now() - started };
   write(resolve(out, `${sourceId}.json`), result);
   process.stderr.write(`${sourceId}: ${result.delta >= 0 ? "+" : ""}${result.delta.toFixed(4)}, ${validTrials}/${trials} local fits, ${result.frames} frames\n`);
@@ -588,6 +600,7 @@ if (process.argv.includes("--plan")) {
     collect: arg("collect") === "on",
     modelPath, modelHash: modelPath ? hash(readFileSync(modelPath)) : null, keep: Number(arg("keep") ?? 16),
     backendPath, backendHash: backendPath ? hash(readFileSync(resolve(backendPath, "manifest.json"))) : null,
+    totalBudget: arg("total-budget") === undefined ? null : Number(arg("total-budget")),
     penalty: arg("penalty") === undefined ? null : Number(arg("penalty")), familyKeep: Number(arg("family-keep") ?? 0),
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));

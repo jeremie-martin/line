@@ -478,3 +478,102 @@ implemented with the second placement based on the actual first-pulse state;
 their pilot averages +23.2391 versus +28.1636 without them, so that broader
 proposal family does not yet earn a full-cohort run. Its cost is 19,739,518
 frames / 167.74 summed worker seconds.
+
+
+### Native energy, bounded history, and complete-path distillation
+
+The energy pilot initially completes Believer (+49.4950), then traps in
+`addLine` on the other three workers as native patch history grows. Those
+three aborted workers did not emit frame counters; successful-cohort totals do
+not pretend to include that missing work. The harness now records frames on
+future failures. A cold reconstruction every four contacts releases discarded
+histories, charges every replayed frame, and checks full incoming packets.
+Its Believer control exactly reproduces the unmodified collective track and
+report; the energy Believer also reproduces its previously completed result.
+The completed energy panel gains +8.6846 amplitude, +2.3240 dense, +50.5321
+transition, and +49.4950 Believer, using 24,774,751 frames / 544.92 worker seconds.
+This is a mixed panel result; dense and Believer improve over the prior family.
+
+An isolated compiler backend now copies computed prefixes into independent
+caches. `build_planner_backend.py` reads the checksum-verified accepted compiler
+archive. All seven original Rust source files match the workspace exactly.
+Only Clone derivations and a cache-copy ABI are added in a generated directory;
+no stepping, collision, invalidation, benchmark accounting, or evaluator source
+is changed. The benchmark engine artifact remains untouched. Copying previously
+computed states performs no integration; all actual new reads still use the
+existing meter. The final cold judge always instantiates the frozen engine.
+The backend manifest SHA is
+`75ad0584a7511e885388e54d5326573c8c911115df502ca741936fc9a1a8fd9b`.
+
+The backend audit covers 360 detached prefixes, zero-integration cached reads,
+near-contact perturbations, branch restoration, and all four full trajectories
+against the original engine, using 23,572 frames. Its full-search panel then
+reproduces all eight track/report files byte for byte, with the same candidate
+and validity counts. Cost falls 18,544,680 → 17,829,089 frames (3.86%), with
+147.06 summed worker seconds. Its main purpose is memory bounded by live search
+prefixes; it does not substitute an altered physical judge.
+
+The full energy pass on the 636.0228 incumbent reaches **641.2267**, improving
+40/44 tracks, all valid and cold-replayed with the fixed engine. Cost:
+215,869,676 frames / 4,080.36 summed worker seconds. Plan:
+`187cbbb3ea005941f0ef43e8fffbd101e8bc854753540b07e647558d1c95fb4c`.
+The original Believer case gains +134.775 in this pass; other larger gains
+include sparse lowline +18.281, the slower pickup variant +13.822, wide breaths
++12.864, and the faster meter variant +12.633. A further physical pass is running.
+These remain additional-work discovery tracks, not the official headline.
+
+The centered 250-tree student improves internal validity AUC to 0.95761 and
+loss MAE to 0.01343, with keep-16 regret 0.01327; cross-language error is
+5.55e-17. But its wide pilot averages only +4.3268 in 3,253,467 frames. A width-8,
+keep-4, family-exploration reading averages +2.7473 in 1,079,852 frames. Local
+prediction quality still fails to retain the complete search's main gains.
+
+A causal learning mismatch is now addressed: base pulses can look poor until
+the post-window energy child repairs their speed loss, and that child does not
+exist before admission of the pulse. `train_planner_imitation.py` learns which
+proposals led to the best complete physical paths and folds winning energy
+children back onto the base proposal that must be admitted. It excludes the
+already-reserved incumbent/transport options from proposal ranking. It learns
+from 2,357 decisions / 308,784 rows, with 354 folded energy actions. The teacher
+includes 359 collective, 160 single-point, and 65 paired-pulse admissions.
+Internal family-held teacher recall is 33.73% at keep 4, 49.63% at 8, 67.60% at
+16, and 82.03% at 32. Training takes 120.87 seconds; all 64 TypeScript loss
+predictions match Python exactly. Source IDs, seed, and absolute positions are
+still absent from model features. This is discovery training, not independent
+validation.
+
+The complete-path student's width-16/keep-16 pilot averages **+24.1606** in
+**3,027,193 frames**: 85.79% of the full search's average gain using 16.32% of
+its physics. Source gains are amplitude +11.8425, dense +1.4193, transition
++45.3812, and Believer +37.9993. Width 4 still averages only +4.3485 in 786,053
+frames. Keeping width 16 but four proposals, with paired-pulse generation off,
+averages **+11.3628 in 1,028,490 frames** (257,123 per source). Keeping eight
+instead averages +10.0234 in 1,624,918 frames; beam search is not monotonic in
+proposal breadth. Neither is a fixed-budget compiler result yet.
+
+The previously unused discovery seed 260907002 is now being captured at the
+accepted compiler's first completion, under its actual 750k policy, with two
+observer-free controls and exact ordinary replay. This measures real remaining
+budget and exposes the new policy to fresh incoming states. Independent
+validation and canonical evaluation seeds remain untouched. The capture script
+now accepts a frozen seed, source subset, and first-completion option; prior
+capture artifacts remain unchanged.
+
+
+The second full energy pass reaches **641.9196**, with 33 further improved
+tracks, all valid: 204,324,401 frames / 3,895.62 summed worker seconds. Its plan
+is `de65a826ce050b5caf5fbe3b89b38e63d21512eea4c3eb73640a527f30678097`.
+The fresh first-completion cohort completes all 44 sources and all 4,056
+selected-fit checks, with both observer controls exact. Actual search cost is
+21,702,749 frames; controls use 1,131,140, ordinary replay 104,256, and census
+104,256. First-completion cost ranges 346,537–658,471; the upper median is
+485,998. This leaves materially different improvement budgets by track.
+
+A first explicit 750k two-stage study is running on those fresh discovery
+tracks. It charges the original compile's real first-completion frames plus
+all new calibration, search, cache synchronization, and final cold replay work.
+Initial beam width scales with the measured budget left; four proposals are
+ranked per parent, and the standard physics-frame hard guard reserves a final
+replay. An unfinished improvement search returns its fully verified incumbent.
+This checks a concrete budget allocation before production integration; it is
+not a canonical promotion or independent validation reading.

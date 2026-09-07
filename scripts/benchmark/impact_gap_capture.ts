@@ -23,9 +23,13 @@ const out = resolve(arg("out") ?? "generated/benchmark-v2/impact-delivery-650-ne
 const script = fileURLToPath(import.meta.url), hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex");
 const implementation = [script, "scripts/benchmark/impact_release_response.ts"].map(p => hash(readFileSync(p))).join(":");
 const baseline = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
-const seed = 260907001, budget = 750000;
-const sources = developmentCases.map(e => e.case).sort((a, b) => a.metadata.id.localeCompare(b.metadata.id));
-const controls = ["amplitude_tides", "frontier_dense_recovery"];
+const seed = Number(arg("seed") ?? 260907001), budget = 750000;
+const stopAfterFirstCompletion = arg("first-completion") === "on";
+const requestedSources = arg("sources")?.split(",");
+const sources = developmentCases.map(e => e.case).filter(s => !requestedSources || requestedSources.includes(s.metadata.id))
+  .sort((a, b) => a.metadata.id.localeCompare(b.metadata.id));
+if (!Number.isSafeInteger(seed) || !sources.length || (requestedSources && requestedSources.length !== sources.length)) throw new Error("invalid capture request");
+const controls = ["amplitude_tides", "frontier_dense_recovery"].filter(id => sources.some(s => s.metadata.id === id));
 const lineKey = (lines: any[]) => JSON.stringify(lines.map(l => [l.id, l.type, l.x1, l.y1, l.x2, l.y2,
   !!l.flipped, !!l.leftExtended, !!l.rightExtended]));
 mkdirSync(out, { recursive: true });
@@ -40,7 +44,7 @@ function worker(sourceId: string, requestSha256: string): void {
   });
   let compiled: ReturnType<typeof compileHandoff>;
   try {
-    compiled = compileHandoff(spec, seed, { budget, onNode(node, key, event) {
+    compiled = compileHandoff(spec, seed, { budget, stopAfterFirstCompletion, onNode(node, key, event) {
       if (event.improved) Object.assign(holder, { node, key, event });
     } });
   } finally { setHandoffRolloutProbeHook(null); }
@@ -55,7 +59,7 @@ function worker(sourceId: string, requestSha256: string): void {
   } };
   let controlFrames = 0, observerExact: boolean | null = null;
   if (controls.includes(sourceId)) {
-    const control = compileHandoff(spec, seed, { budget });
+    const control = compileHandoff(spec, seed, { budget, stopAfterFirstCompletion });
     controlFrames = control.stats.sim_frames;
     observerExact = hash(JSON.stringify(control.track)) === trackHash && hash(JSON.stringify(control.report)) === reportHash &&
       control.stats.sim_frames === compiled.stats.sim_frames;
@@ -119,7 +123,7 @@ function worker(sourceId: string, requestSha256: string): void {
     captureSha256: hash(readFileSync(capturePath)), trackExact: true, reportExact: true, scoreExact: true, physicsFrames: preflightFrames });
 }
 
-const request = { schema: "line.interrupted-support-census-request.v1", implementation, seed, budget,
+const request = { schema: "line.interrupted-support-census-request.v1", implementation, seed, budget, stopAfterFirstCompletion,
   candidateFingerprint: baseline.candidate_fingerprint, sources: sources.map(s => s.metadata.id), controls,
   law: "capture full winning metadata and exact selected-fit census in one compile; ordinary full-snapshot replay; two observer-free controls" };
 const requestPath = resolve(out, "request.json");
@@ -148,7 +152,8 @@ else {
         while (queue.length) {
           const source = queue.shift()!;
           const code = await new Promise<number | null>((done, reject) => {
-            const child = spawn(process.execPath, ["--import", "tsx", "scripts/benchmark/impact_gap_capture.ts", `--worker=${source.metadata.id}`, `--out=${out}`],
+            const child = spawn(process.execPath, ["--import", "tsx", "scripts/benchmark/impact_gap_capture.ts", `--worker=${source.metadata.id}`, `--out=${out}`,
+              `--seed=${seed}`, `--first-completion=${stopAfterFirstCompletion ? "on" : "off"}`, `--sources=${sources.map(s => s.metadata.id).join(",")}`],
               { cwd: workspace.directory, env: environment, stdio: ["ignore", "ignore", "inherit"] });
             child.on("error", reject); child.on("exit", done);
           });

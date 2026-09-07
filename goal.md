@@ -31,8 +31,11 @@ reports, and provenance in `generated/reviews/native-motion-2026-09-07/` for lat
 viewing. This explicit review request permits acceleration in those preserved
 examples only. No upload or publication is requested.
 
-The active implementation branch is `codex/normal-line-650`; its independent
-checkout is `/home/wyss/line-normal` while the video rendering runs in
-`/home/wyss/line`. The current research record is `docs/normal-line-650-campaign.md`.
+The active implementation branch is `codex/normal-line-650`, now checked out
+in `/home/wyss/line`. The separate `/home/wyss/line-normal` checkout is detached
+at the validated discovery implementation. All three acceleration videos are
+complete and preserved with code and evidence in
+`archives/native-motion-feedback-2026-09-07/`. The current research record is
+`docs/normal-line-650-campaign.md`.
 Keep the concise campaign current, preserve comparable evidence, and continue
 until the normal-line goal is achieved and verified.

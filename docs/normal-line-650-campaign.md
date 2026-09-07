@@ -73,3 +73,19 @@ The long-tail open-hook case spends most of its budget attempting support after
 the last authored impact window even though its retained physical track already
 completes the spec. This is a compiler efficiency defect to address before the
 canonical comparison. The verified 662.5888 implementation is retained in git.
+
+The completion fix validates and charges a full physical continuation when a
+support proposal fails after the final authored impact window. It stops only
+if that actual complete output passes the unchanged report contract; otherwise
+ordinary backtracking continues. Open-hook amplitude now completes in **103,448
+frames**, score **722.6170**, versus 749,774 frames / 722.7296. It makes a small
+quality/computation tradeoff rather than claiming track parity. The completed
+track still receives its independent frozen-engine cold replay. This change
+also passes the public compiler/CLI tests and a physical regression test for
+vertically aligned rider points; the latter compares the full trajectory with
+the frozen judge and asserts only type-0 output.
+
+All three acceleration production videos are now complete, verified, and
+preserved with source, original music, benchmark evidence, and checksums in
+`archives/native-motion-feedback-2026-09-07/`. The main workspace has switched
+to `codex/normal-line-650`; the video branch and archive remain intact.

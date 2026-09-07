@@ -40,11 +40,17 @@ if (motionDuration > duration) {
 }
 const motionGaps = scheduleNativeContacts(motionGapInputs.map(g => ({ ...g,
   targets: { ...g.targets, ...sampleGapTargets(g.targets, spec.jitter ?? CALIB.SIGMA, rng) } })));
+const lastRequiredContactFrame = Math.max(...motionGaps.filter(g => g.endsWithContact).map(g => g.endFrame));
 
 const schedule = nativeMotionSchedule(motionGaps, motionDuration, scheduleOptions);
 const fixedStart = spec.start || !(spec.preroll && spec.preroll > 0) ? resolveStartState(spec) : null;
 const startPosition = fixedStart?.position ?? { x: 0, y: 0 }, startVelocity = fixedStart?.velocity ?? schedule.desired[0];
 const rows: any[] = [], lines: TrackLine[] = [], banned = new Map<string, Set<string>>();
+const reportFor = (raw: any) => buildDriftReport(detect(raw), spec, gaps, contactFrames, duration, [],
+  gaps.map(gap => ({ lines: lines.filter(l => Math.floor((l.id - 1000) / 10000) > gap.startFrame &&
+    Math.floor((l.id - 1000) / 10000) <= gap.endFrame) })) as any, gaps.map(g => g.targets));
+const reportValid = (report: ReturnType<typeof buildDriftReport>) => report.contacts.every(c => c.status === "hit") &&
+  !report.off_beat_landings.length && report.terminus.reason === "endOfSpec";
 let lineage = hash("[]"), failure: any = null, backtracks = 0, trajectory: any = null;
 const started = getPhysicsFrameCount();
 let candidateSamples = 0, viableCandidates = 0, constructionFrames = 0;
@@ -68,6 +74,15 @@ try {
   const initialPoints: any[] = Object.values(getRiderMetered(engine, 0).ballisticState().points);
   const mean = { x: initialPoints.reduce((s, p) => s + p.x, 0) / 10, y: initialPoints.reduce((s, p) => s + p.y, 0) / 10 };
   const shape = initialPoints.map(p => ({ x: p.x - mean.x, y: p.y - mean.y }));
+  const completedContinuation = (frame: number) => {
+    if (frame < lastRequiredContactFrame + 6) return false;
+    // A speculative support plan can fail after every authored impact window
+    // is complete. Charge the actual remaining ride and retain it if the full
+    // physical output already satisfies the spec, before rolling back a catch.
+    const complete = reportValid(reportFor(extractRawTrajectory(engine, duration + 20)));
+    if (complete) { failure = null; options.onDiagnostic?.({ terminalContinuationAcceptedAt: frame }); }
+    return complete;
+  };
   const rollback = () => {
     let rowIndex = rows.length - 1;
     while (rowIndex >= 0 && rows[rowIndex].airborne) rowIndex--;
@@ -85,6 +100,7 @@ try {
         const state = getRiderMetered(engine, frame).ballisticState();
         if (!state.riderMounted || !state.sledIntact || contacted(engine, frame)) {
           failure = { frame, reason: !state.riderMounted || !state.sledIntact ? "airborne_binding" : "unplanned_contact" };
+          if (completedContinuation(frame)) break;
           const retry = rollback(); if (retry !== null) { frame = retry; continue; } break;
         }
         rows.push({ frame, lines: 0, airborne: true }); continue;
@@ -132,7 +148,9 @@ try {
         const error = Object.values(result.points).reduce((sum: number, p: any, i) => sum + (p.vx - pointTargets[i].x) ** 2 + (p.vy - pointTargets[i].y) ** 2, 0) as number;
         if (!best || error < best.error) best = { engine: child, lines: added, error, iteration, width, forceScale, choice };
       }
-      if (!best) { failure = { frame, failures }; options.onDiagnostic?.({ failure, desired, trace, future }); const retry = rollback(); if (retry !== null) { frame = retry; continue; } break; }
+      if (!best) { failure = { frame, failures }; options.onDiagnostic?.({ failure, desired, trace, future });
+        if (completedContinuation(frame)) break;
+        const retry = rollback(); if (retry !== null) { frame = retry; continue; } break; }
       const lineStart = lines.length, oldLineage = lineage;
       engine = best.engine; lines.push(...best.lines); lineage = hash(lineage + JSON.stringify(best.lines));
       rows.push({ frame, lines: best.lines.length, error: best.error, lineStart, prefixKey, lineage: oldLineage, choice: best.choice });
@@ -152,14 +170,12 @@ try {
   const replay = extractRawTrajectory(new Judge().setStart(startPosition, startVelocity).addLine(lines), duration + 20);
   if (JSON.stringify(replay) !== JSON.stringify(trajectory)) throw new Error("fixed-engine replay mismatch");
 } finally { disposeAllWasmEnginesForStudy(); }
-const det = detect(trajectory);
-const fits = gaps.map(gap => ({ lines: lines.filter(l => Math.floor((l.id - 1000) / 10000) > gap.startFrame && Math.floor((l.id - 1000) / 10000) <= gap.endFrame) }));
-const report = buildDriftReport(det, spec, gaps, contactFrames, duration, [], fits as any, gaps.map(g => g.targets));
+const report = reportFor(trajectory);
 
 if (lines.some(l => l.type !== 0)) throw new Error("non-normal geometry");
 const track = buildTrackJson(lines, duration + 20, { position: startPosition, velocity: startVelocity });
 const total = getPhysicsFrameCount() - started, exhausted = failure?.reason === "budget";
-const valid = report.contacts.every(c => c.status === "hit") && !report.off_beat_landings.length && report.terminus.reason === "endOfSpec";
+const valid = reportValid(report);
 recorder.setActiveCandidateWork({ actualCandidateSamples: candidateSamples, viableCandidates, candidateSamplesByStream: { normal: candidateSamples } });
 const terminal = valid || rows.length === motionDuration;
 recorder.recordEvaluation({ totalSpentFrames: total, gapIndex: terminal ? gaps.length : gaps.findIndex(g => g.endFrame >= rows.length),

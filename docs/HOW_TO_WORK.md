@@ -178,9 +178,11 @@ source defaults before a normal cached comparison.
 ## Baselines
 
 `benchmark/v2/campaign-baseline.json` names the active 750k compiler snapshot,
-promotion depth, four-look policy, and cache maximum. The current cache is the fresh accumulated-contacted-frame-
-impulse bootstrap archive. It reuses only the historical baseline's literal
-seed schedule; it does not project or compare old-ruler scores.
+promotion depth, four-look policy, and cache maximum. The current cache is the
+`native-motion-feedback` archive under the accumulated contacted-frame impulse
+scorer, accepted at N=8 with a 761.9107
+headline. It retains the canonical seed schedule and makes no cross-ruler
+score comparison.
 
 `rebaseline --from=...` verifies the measured snapshot and current committed
 compiler identity, retains the candidate 750k development evidence, and starts

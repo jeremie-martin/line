@@ -1,0 +1,238 @@
+{
+  "schema": "line.native-motion-feedback.validation.v1",
+  "completedDate": "2026-09-07",
+  "status": "promoted-goal-achieved",
+  "candidateFingerprint": "b4c9bff756e14a0d4cbd07d0062bf824ce4f587a8cd88211b528b98e7c85ae23",
+  "compilerSourceFingerprint": "9522c81e47961ec7f83e40e2e33dd7f7e82e1b3f80be7f57589df9afa6896d34",
+  "compilerCommit": "75c3e9901c15db0c2d461751af0722da78201dc6",
+  "fixedMeasurement": {
+    "suite_fingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
+    "scoring_protocol_fingerprint": "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6",
+    "golden_evaluator_fingerprint": "07cf88383150",
+    "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+  },
+  "promotion": {
+    "label": "native-motion-feedback",
+    "budget": 750000,
+    "headline": 761.9107,
+    "previousPromotedHeadline": 607.2582,
+    "previousPromotionSeeds": 32,
+    "pairedBaselineHeadline": 607.232,
+    "validRuns": 352,
+    "totalRuns": 352,
+    "sequential": {
+      "policyFingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
+      "inferenceFingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
+      "calibrationFingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
+      "maximumSeeds": 48,
+      "stoppingDepth": 8,
+      "stoppingAction": "accept",
+      "looks": [
+        {
+          "schema": "line.benchmark-v2.sequential-look-decision.v2",
+          "depth": 8,
+          "maximumDepth": 48,
+          "informationFraction": 0.16666666666666666,
+          "estimate": 154.6787,
+          "standardError": 0.9294,
+          "degreesOfFreedom": 7,
+          "tStatistic": 166.42855606,
+          "directionalProbability": 1,
+          "requiredT": 4.81061015,
+          "requiredDirectionalProbability": 0.99902882,
+          "action": "accept"
+        }
+      ],
+      "candidateCompiles": 352
+    },
+    "baselineManifest": {
+      "path": "benchmark/v2/campaign-baseline.json",
+      "sha256": "cfaa150da3e9f87c8171c9222dd4681615de68401ab70aa4ca2a68480e73efb4",
+      "bytes": 12271
+    },
+    "comparison": {
+      "path": "benchmark/v2/runs/native-motion-feedback-comparison.json",
+      "sha256": "f3466352c32d6f4cc33f1101a5b4c52ca08722dc79ce954618b77dca53937edf",
+      "bytes": 31788
+    },
+    "request": {
+      "path": "benchmark/v2/runs/native-motion-feedback-comparison-request.json",
+      "sha256": "4b8e78f6cc9ef84aa8c47431050aa4e2f3f7f0e170238ec462af02fdabc3286f",
+      "bytes": 4209
+    },
+    "developmentArchive": {
+      "path": "benchmark/v2/runs/native-motion-feedback-development-750k-N8.json.gz",
+      "sha256": "1cc2601ad02eb34108b116f676256c0ab4f6a4b1c4b5cdba3014d41cc008cd56",
+      "bytes": 5819851
+    },
+    "developmentRawSha256": "43e6a377b79061c9d4efffc205c2efa73f23f17c9e0706eb627162a9a888c6a4",
+    "compilerSnapshot": {
+      "path": "benchmark/v2/runs/native-motion-feedback-compiler-snapshot.tar.gz",
+      "sha256": "d5d3d8f5a77a47ed4addd380b77ccaf9047a8e4396c9a70442c9c66988eda9a2",
+      "bytes": 1097187
+    },
+    "physicsFrames": {
+      "total": 52592616,
+      "minimumPerCompile": 58495,
+      "medianPerCompile": 133581,
+      "maximumPerCompile": 238907
+    },
+    "regressedSourceAggregates": [
+      {
+        "sourceId": "high_air_drive",
+        "delta": -12.3385
+      }
+    ],
+    "note": "Only the final N=8 prefix is promoted. The repeated initial-candidate evaluation used the same seeds and is not pooled as independent evidence."
+  },
+  "lowBudgetReading": {
+    "promoting": false,
+    "physicalSamples": 1,
+    "budget": 250000,
+    "sources": 11,
+    "seedsPerSource": 48,
+    "record": {
+      "path": "generated/benchmark-v2/low-budget/2026-09-07T19-45-26-954Z-after-native-motion-final-eval.json",
+      "sha256": "7782f27a843cbf8be5542d9fd999b93bac97eba896c0b152e6e5d9c511564586",
+      "bytes": 377789
+    },
+    "aggregate": {
+      "note": "Renormalized subset score over the mini manifest. NOT the suite headline.",
+      "baseline": 552.3198,
+      "tree": 793.8142,
+      "delta": 241.49440000000004
+    },
+    "paired": {
+      "unit": "score points per cell",
+      "blocks": 48,
+      "cellsPerBlock": 11,
+      "meanDelta": 265.2029659090909,
+      "standardDeviation": 34.55064910019341,
+      "standardError": 4.986956639668242,
+      "t": 53.17932058994873,
+      "degreesOfFreedom": 47,
+      "sumDelta": 140027.1659999992
+    },
+    "verdict": "RESCUE-POSITIVE",
+    "completions": {
+      "rescued": 63,
+      "lost": 0,
+      "net": 63,
+      "baselineValidCells": 465,
+      "treeValidCells": 528
+    },
+    "arms": {
+      "tree": {
+        "archive": {
+          "path": "generated/benchmark-v2/low-budget/arms/2026-09-07T19-17-25-334Z-after-native-motion-initial-eval/tree.json.gz",
+          "sha256": "9626ad9a0b11b17c138e00805092d05c3e732e13ac17b88b496d1f2db581e210",
+          "bytes": 7824346
+        },
+        "candidateFingerprint": "b4c9bff756e14a0d4cbd07d0062bf824ce4f587a8cd88211b528b98e7c85ae23",
+        "physicsFrames": {
+          "total": 97706880,
+          "maximumPerCompile": 211845
+        }
+      },
+      "baseline": {
+        "archive": {
+          "path": "generated/benchmark-v2/low-budget/arms/2026-09-07T19-17-25-334Z-after-native-motion-initial-eval/baseline.json.gz",
+          "sha256": "b59090fb79eaa7f65184cc5a2205132c18c99ece2d0e5d291d8aa2b4bf036d1d",
+          "bytes": 14005139
+        },
+        "candidateFingerprint": "23b4abc01031f81d7dafed400a998f6514230356de78e9ae0a87ef92e151873e",
+        "physicsFrames": {
+          "total": 135019423,
+          "maximumPerCompile": 328406
+        }
+      }
+    },
+    "note": "The same verified arms were re-reported after the final evaluation. This is one physical comparison, not two independent readings. The mini-manifest aggregate is not the suite headline."
+  },
+  "qualification": {
+    "promoting": false,
+    "compilerFrozenBeforeMonitor": true,
+    "qualificationTuning": false,
+    "archive": {
+      "path": "generated/benchmark-v2/eval/native-motion-final-qualification.json.gz",
+      "sha256": "66476f03b5cae1d59248480ff3b0bb0126562437b4e659ebcead45e15ea6de76",
+      "bytes": 1948503
+    },
+    "rawArchiveSha256": "be2de0da8d3ae7596a46d7d3e518728455acb217e894f7938c94c7d8a74b39c2",
+    "summary": {
+      "path": "generated/benchmark-v2/eval/native-motion-final-qualification.json.summary.json",
+      "sha256": "3fc771a74ae501505e2e95f25b0ef91ddb18470e9fc60a16a6e6b6781f67f177",
+      "bytes": 9517
+    },
+    "monitorScore": 694.0037,
+    "budgets": [
+      {
+        "budget": 250000,
+        "monitorScore": 695.2786,
+        "validRuns": 40,
+        "totalRuns": 40
+      },
+      {
+        "budget": 500000,
+        "monitorScore": 693.7097,
+        "validRuns": 40,
+        "totalRuns": 40
+      },
+      {
+        "budget": 750000,
+        "monitorScore": 693.6437,
+        "validRuns": 40,
+        "totalRuns": 40
+      }
+    ],
+    "physicsFrames": 10946079,
+    "maximumFramesPerCompile": 148715
+  },
+  "audits": {
+    "packagedBackend": {
+      "path": "generated/benchmark-v2/unrestricted-650/packaged-native-backend-audit.json",
+      "sha256": "580104340e22dccf2e7578d6ebb9fa627060bb0d95f9664c9f94e13d221cb16f",
+      "bytes": 934
+    },
+    "initialFinalCanonicalParity": {
+      "path": "generated/benchmark-v2/unrestricted-650/native-final-canonical-parity.json",
+      "sha256": "efa33096da8ef9b5857c38148c06e5fdfe894e1138e2024f0e0bc2a348782c5c",
+      "bytes": 416
+    },
+    "publishedJavaScriptAmplitude": {
+      "path": "generated/benchmark-v2/unrestricted-650/native-published-reference-amplitude_tides.json",
+      "sha256": "990b850c7b2363e40dc01db378fb0fb760f2cc218259ca144c2fc84c6baab3e3",
+      "bytes": 455
+    },
+    "publishedJavaScriptPickups": {
+      "path": "generated/benchmark-v2/unrestricted-650/native-published-reference-frontier_pickup_progression.json",
+      "sha256": "9f131909a42b2dc52cd595e108a86012fc38b6ef88fc2e740299357a9ab2529b",
+      "bytes": 455
+    },
+    "budgetRangeRiver": {
+      "path": "generated/benchmark-v2/unrestricted-650/native-budget-range-river_reentry.json",
+      "sha256": "965a697b4ede9e074bed1bfc8f521218c77461c687ad5b08cb54d1411f87e484",
+      "bytes": 3592
+    },
+    "budgetRangeLongLowAir": {
+      "path": "generated/benchmark-v2/unrestricted-650/native-budget-range-frontier_low_air_endurance_7s.json",
+      "sha256": "86bf97ff6822ce6302955b4521419213cf4b216474feef585450e2f172e7f132",
+      "bytes": 3596
+    }
+  },
+  "tests": {
+    "focusedCompilerAndIdentity": {
+      "passed": 17
+    },
+    "broaderCompilerCliBudget": {
+      "passed": 65
+    },
+    "postOptionalArgumentFixCompilerCli": {
+      "passed": 7
+    },
+    "baselineAnalysisContract": {
+      "passed": 5
+    },
+    "note": "Suites overlap; counts are not additive unique tests. Repository-wide TypeScript checking still reports unrelated pre-existing errors, with none in the new production files or final audit/report changes."
+  }
+}

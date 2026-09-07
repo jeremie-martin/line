@@ -218,7 +218,8 @@ const targetGap = baseline.scope.target_headline - summary.score;
 const hierarchyStrata = summary.strata.map((entry: any) => ({
   ...entry,
   targetGapContribution: round(entry.weight * (baseline.scope.target_headline - entry.score)),
-  targetGapShare: round(entry.weight * (baseline.scope.target_headline - entry.score) / targetGap),
+  targetGapShare: targetGap > 0 ? round(entry.weight * (baseline.scope.target_headline - entry.score) / targetGap) : null,
+  qualityLossContribution: round(entry.weight * (1000 - entry.score)),
 }));
 const stratumWeight = new Map<string, number>(
   summary.strata.map((entry: any) => [entry.id, entry.weight]),
@@ -233,7 +234,8 @@ const hierarchyGroups = summary.groups.map((entry: any) => {
     campaignWeight: round(campaignWeight),
     score: entry.score,
     targetGapContribution: round(targetGapContribution),
-    targetGapShare: round(targetGapContribution / targetGap),
+    targetGapShare: targetGap > 0 ? round(targetGapContribution / targetGap) : null,
+    qualityLossContribution: round(campaignWeight * (1000 - entry.score)),
   };
 });
 const invalidCounterfactuals = invalidRows.map((invalid: any) => {
@@ -289,6 +291,7 @@ const report = {
     score: summary.score,
     target: baseline.scope.target_headline,
     gapToTarget: round(baseline.scope.target_headline - summary.score),
+    targetReached: summary.score > baseline.scope.target_headline,
     validRuns: summary.validRuns,
     totalRuns: summary.totalRuns,
     validityRate: round(summary.validRuns / summary.totalRuns),
@@ -465,7 +468,7 @@ function twoWayDecomposition(input: any[]): Record<string, number | string> {
   );
   const residual = Math.max(0, total - caseSs - seedSs);
   return {
-    method: "balanced two-way arithmetic-score sum-of-squares decomposition; descriptive, not the geometric campaign headline",
+    method: "balanced two-way arithmetic-score sum-of-squares decomposition; descriptive, not the official hierarchical campaign headline",
     caseFraction: round(caseSs / total),
     seedFraction: round(seedSs / total),
     residualInteractionFraction: round(residual / total),
@@ -473,6 +476,8 @@ function twoWayDecomposition(input: any[]): Record<string, number | string> {
 }
 
 function renderMarkdown(value: any): string {
+  const reached = value.headline.targetReached;
+  const contribution = reached ? "qualityLossContribution" : "targetGapContribution";
   const lowest = value.caseStatistics.slice(0, 8);
   const highest = [...value.caseStatistics].sort((a, b) => b.officialScore - a.officialScore).slice(0, 8);
   const volatile = [...value.caseStatistics]
@@ -492,7 +497,8 @@ function renderMarkdown(value: any): string {
     "",
     "## Executive read",
     "",
-    `- Official 750k/N=${value.baseline.seedsPerCase} headline: **${value.headline.score.toFixed(4)}**; target gap: **${value.headline.gapToTarget.toFixed(4)}**.`,
+    `- Official 750k/N=${value.baseline.seedsPerCase} headline: **${value.headline.score.toFixed(4)}**; ` +
+      (reached ? `target exceeded by **${(-value.headline.gapToTarget).toFixed(4)}**.` : `target gap: **${value.headline.gapToTarget.toFixed(4)}**.`),
     `- Validity: **${value.headline.validRuns}/${value.headline.totalRuns}** (${(100 * value.headline.validityRate).toFixed(2)}%).`,
     `- Run-score median ${value.distributions.allRunScores.median.toFixed(2)}, IQR ` +
       `${value.distributions.allRunScores.p25.toFixed(2)}–${value.distributions.allRunScores.p75.toFixed(2)}, ` +
@@ -501,7 +507,7 @@ function renderMarkdown(value: any): string {
       `case identity explains ${(100 * value.arithmeticVarianceDecomposition.caseFraction).toFixed(1)}% of arithmetic run-score variation, ` +
       `seed identity ${(100 * value.arithmeticVarianceDecomposition.seedFraction).toFixed(1)}%.`,
     "",
-    "The headline is a weighted hierarchical geometric aggregate. Arithmetic means, correlations, and variance fractions below are descriptive diagnostics; none replaces the official headline.",
+    "The scorer uses shifted geometric aggregation within sources, parents, and groups, then weighted arithmetic aggregation across groups and strata. Run means, correlations, and variance fractions below are descriptive diagnostics; none replaces the official headline.",
     "",
     "## Run-score histogram",
     "",
@@ -513,21 +519,24 @@ function renderMarkdown(value: any): string {
     "",
     "## Suite hierarchy",
     "",
-    `| Stratum | Weight | Score | Contribution to ${value.headline.gapToTarget.toFixed(2)}-point target gap |`,
+    reached ? "| Stratum | Weight | Score | Weighted distance from 1000 |" :
+      `| Stratum | Weight | Score | Contribution to ${value.headline.gapToTarget.toFixed(2)}-point target gap |`,
     "|---|---:|---:|---:|",
     ...value.hierarchy.strata.map((entry: any) =>
       `| ${entry.id} | ${(100 * entry.weight).toFixed(0)}% | ${entry.score.toFixed(2)} | ` +
-        `${entry.targetGapContribution.toFixed(2)} (${(100 * entry.targetGapShare).toFixed(1)}%) |`
+        (reached ? `${entry.qualityLossContribution.toFixed(2)} |` :
+          `${entry.targetGapContribution.toFixed(2)} (${(100 * entry.targetGapShare).toFixed(1)}%) |`)
     ),
     "",
-    "| Largest weighted group gaps | Stratum | Campaign weight | Score | Target-gap contribution |",
+    reached ? "| Largest remaining group losses | Stratum | Campaign weight | Score | Weighted distance from 1000 |" :
+      "| Largest weighted group gaps | Stratum | Campaign weight | Score | Target-gap contribution |",
     "|---|---|---:|---:|---:|",
     ...[...value.hierarchy.groups]
-      .sort((a: any, b: any) => b.targetGapContribution - a.targetGapContribution)
+      .sort((a: any, b: any) => b[contribution] - a[contribution])
       .slice(0, 8)
       .map((entry: any) =>
         `| ${entry.id} | ${entry.stratum} | ${(100 * entry.campaignWeight).toFixed(1)}% | ` +
-          `${entry.score.toFixed(2)} | ${entry.targetGapContribution.toFixed(2)} |`
+          `${entry.score.toFixed(2)} | ${entry[contribution].toFixed(2)} |`
       ),
     "",
     "## Case behavior",
@@ -622,12 +631,10 @@ function renderMarkdown(value: any): string {
     "",
     "## Practical interpretation",
     "",
-    "- Numeric continuity across the scorer boundary would not establish unchanged quality: this baseline lives in a new score coordinate system and deliberately contains no cross-ruler comparison.",
-    "- The compiler is not blind to the promoted ruler. Current-gap candidate cost consumes the shared current impact measurement, while impact target plumbing, geometry steering, and readiness remain active. The strong target–achieved rank association is consistent with partial alignment, not proof that those mechanisms are optimal.",
-    "- Capability is the dominant weighted bottleneck. Dense recovery and rapid pickup alone account for nearly half of the gap to 650; development music is low but has only 5% campaign weight.",
-    "- The clearest impact-specific defect is systematic under-delivery, especially for 0.8–1.0 asks. That is a better optimization target than the raw scorer-boundary headline resemblance.",
-    "- The case ranking and component correlations identify where this compiler struggles under the new ruler; they do not show whether the ruler change improved or worsened the compiler.",
-    "- Impact target-band residuals show whether errors grow systematically with authored impulse demand. Those bands are a more useful optimization diagnostic than comparing this headline to the old-ruler headline.",
+    reached ? `- The active ${value.headline.target}-point goal is achieved. Remaining-loss tables use the existing 1000-point score ceiling.` :
+      `- The active target remains ${value.headline.gapToTarget.toFixed(4)} points away. The hierarchy shows how each group contributes under the fixed weights.`,
+    "- These are measurements of the exact promoted prefix. Component correlations and target-band residuals identify remaining errors, but do not establish the cause or prove a proposed optimization will work.",
+    "- The report makes no comparison across different score definitions. Candidate improvement requires the retained paired comparison on the same ruler.",
     `- ${activeCampaignComparisonGuidance(value.baseline.seedsPerCase)}`,
   ].join("\n")}\n`;
 }

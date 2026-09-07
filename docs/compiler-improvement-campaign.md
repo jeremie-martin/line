@@ -1,157 +1,91 @@
 # Compiler Improvement Campaign
 
-Target: accepted Benchmark V2 development headline above 650, followed by the
-required independent confirmation, scale, qualification, and production checks.
+The above-650 goal is achieved. The active 750k Benchmark V2 baseline is
+**761.9107**, promoted as `native-motion-feedback` on 2026-09-07, with
+**352/352 valid runs** at N=8. The prior promoted headline was 607.2582 at N=32.
+The benchmark, score, validity rules, compute accounting, and evaluation physics
+are unchanged.
 
-Current baseline: `value-ranked-startup-expiration`, **607.2582** at 750k/N=32,
-1,408/1,408 valid. Its accepted comparison was +1.2390 (SE 0.3366). Suite
-`7bd878d8aaea08a9`, scorer `c71466608589ae757`, Golden `07cf88383150`.
-The completed N=48 cache reads 607.2546 descriptively; all canonical baseline
-rows are covered. No compiler candidate has been promoted in the September
-restart. The historical 250k/500k evidence remains unchanged and deferred.
+The final governed comparison measures **+154.6787 paired points** (SE 0.9294)
+against the matching old-baseline N=8 prefix, whose headline is 607.2320.
+It accepts at the first declared look: t=166.4286 versus the required 4.8106.
+No force override was used. The new cache retains exactly that accepted prefix;
+N=48 was the declared maximum, not the number of executed seeds.
 
-The active program is [unrestricted compiler research](unrestricted-650-campaign.md),
-authorized by the owner on 2026-09-07. The benchmark and score stay fixed.
-Previous compiler restrictions, deferrals, study caps, and planning approval
-requirements are superseded. The existing 750k scorer and N=8/16/32/48
-comparison measure real gains. Prior closures below are evidence about tested
-implementations, not bans on better formulations.
+## What changed
 
-## September restart: completed evidence
+The compiler constructs physical motion directly from the authored contact,
+air, speed, amplitude, and impact targets. Native energy-line geometry controls
+the rider's actual next-frame velocity and corrects pose error. Ballistic release,
+contact timing, and feedback over the existing impact window replace dependence
+on the old catch templates for ordinary air/speed/amplitude requests. The
+construction uses generic spec data and honors manual starts.
 
-The owner requested a new campaign and a substantial change in method. The
-restart separates physical authority, continuation, measurement fidelity,
-and integration cost before opening a governed candidate experiment.
+An isolated compiler simulation backend adds exact computed-prefix reuse and
+collision-position observation. It retains the physical equations. All simulation
+work, including branch trials and replay, is charged. Every completed track must
+match a full cold replay with the frozen benchmark engine. The final canonical
+compiles use 58,495–238,907 physical frames each, median 133,581, within the actual
+750k limit. This is frame accounting, not a measured wall-clock speedup.
 
-The checksummed accepted N=32 archive reproduces 607.2582 exactly across
-129,792 impact observations. Its counterfactuals price the remaining 42.7418
-points: best observed source-seed selection reaches 621.07; impact RMS ×0.75
-reaches 660.61; a uniform 13.9% four-axis RMS reduction reaches 650. These are
-ceilings under fixed other measurements, not realizable candidate gains.
-See [the atlas](impact-delivery-650-new-baseline-atlas.md) and
-[current baseline analysis](benchmark-v2-current-baseline-analysis.md).
+The public compiler selects the new implementation by default for supported
+ordinary requests. Explicit legacy diagnostics and other axes retain their
+existing compiler path. Undefined optional arguments are correctly treated as
+absent, including the production and low-budget caller shapes.
 
-Two fresh observation cohorts, seeds 260907000 and 260907001, each produce
-44 valid tracks and exact local/final agreement for all 4,056 selected fits.
-Observer-free controls match tracks, reports, and charged frames. Winning
-metadata also reproduces every source through ordinary snapshot replay.
-Measurement drift is closed on this evidence. The second cohort captures the
-full metadata in one search per source, removing an earlier duplicate capture.
+## Evidence
 
-| Physical work | Decisive evidence | Decision |
+| Surface | Final result | Interpretation |
 |---|---|---|
-| Absolute release-state response and numerical continuation | Accurate tiny changes exist, but 0/78 useful-gain complete-track successes | Closed; no radius or iteration walk |
-| Whole-track translation premise | Unit shifts preserve only 2/176 valid tracks; whole-cell shifts still lack invariance | No translation join or engine change |
-| Authored-output relaxation | 73 valid changed continuations, but 0/88 reach the local useful-gain threshold | Closed before integration |
-| Fixed response-model audit | 84 stable directions; median finite-step departure is 17.05 times the local derivative norm | Refitting derivatives alone is not the next mechanism |
-| Interrupted support with native recapture | 22 exact-prefix admissions; four useful local gains in two physical states; 0 useful complete-track gains | Closed; immediate next-air debt dominates |
-| State-matched return surface | 21 causal continuations, 20 valid; partial support recovery removes the useful impact gain | Closed; tranche 2 complete |
+| Governed development, 44 sources × 8 seeds at 750k | 761.9107; 352/352 valid; accept | Promoted headline |
+| Standing mini manifest, 11 sources × 48 seeds at 250k | 528/528 valid versus 465/528; 63 rescued, zero lost | Separate non-promoting reading |
+| Qualification, 5 sources × 8 seeds × 3 budgets | 120/120 valid; monitor 694.0037 | Frozen candidate, no qualification tuning |
+| Budget range, two sources at 150k/750k/1M/3M | 8/8 valid; every run within budget | No special 750k dispatch; larger-budget outputs match 750k |
+| Published JavaScript engine replay, two full tracks | Exact entire raw trajectories | Ordinary geometry works outside the compiler backend |
 
-The first tranche's physical experiments and continuation preflights total
-about 114 million physics frames, excluding observation searches. The second
-cohort costs 35,493,049
-search/control/replay frames and 1,180.43 summed worker seconds. Its interrupted
-support assay costs 6,312,055 frames / 204.18 worker seconds; metadata fidelity
-correction costs 9,292,451 / 290.92; state-matched recapture costs
-5,818,999 / 189.50. Exact per-stage accounting, commands, script commits, and
-artifact checksums are retained in the active detailed campaign. No covered
-canonical baseline compile was repeated.
+All four canonical strata improve. One source-level aggregate regresses:
+`high_air_drive`, by 12.3385 points; all its runs remain valid. Dense recovery,
+high-air impact, and amplitude remain useful places to investigate in future
+work. No further improvement target is substituted for the completed goal.
 
-Report-only V2 loss allocation reproduces all 20 valid metadata-corrected
-interruption scores. The four useful local changes are worth only 0.22–0.55
-track points if every other measurement is fixed. Their next-interval added
-air-error MSE is already 3.95–73.44 times the saved current-impact MSE. More
-suffix compute or another gap width does not address that physical exchange.
-The rigid return reconstruction improves the gap-only score by a median
-3.3112, but its median delta versus the original incumbent is −10.0392 and
-none retains useful impact gain. No source-default integration is justified.
+The 250k mini-manifest score rises from 552.3198 to 793.8142; it is a
+renormalized subset score, not the suite headline. Its seed-blocked arithmetic
+per-cell gain is 265.2030 (SE 4.9870). The same archived arms were reported after
+the initial and final evaluations; this is one physical sample, not two.
+Qualification monitor scores are 695.2786 / 693.7097 / 693.6437 at
+250k / 500k / 750k, respectively, and do not alter baseline governance.
 
-## Workflow findings
+Seventeen focused compiler and identity tests, 65 broader compiler/CLI/budget
+tests, seven post-fix compiler/CLI tests, and five baseline-analysis contract
+tests pass. These suites overlap and are not an additive unique-test count.
+The packaged backend also passes 360 prefix/trace checks and full trajectory
+comparisons. The repository-wide TypeScript check retains unrelated existing
+failures; none points to the new production files or final audit/report changes.
 
-The atlas now honors the accepted stopping depth, and archive readers use the
-existing checksum-verifying streaming loader; six focused integrity tests pass.
-New matrix, gap-domain, and rigid-map invariants pass. The repository-wide
-TypeScript check retains unrelated existing failures; none points to the new
-capture, physical-response, metadata, or recapture scripts.
+The first accepted candidate preceded an optional-argument dispatch correction.
+The corrected final compiler received a new canonical comparison. All 352 tracks,
+reports, and frame counts exactly match the initial evaluation on the same
+seeds. These are separate candidate evaluations, not independent replicates;
+only the final N=8 comparison is promoted.
 
-Two fidelity errors are retained transparently. JSON serialization dropped
-executable spec axes in an early preflight; corrected replay reloads the live
-catalog without repeating the captured search. Direct geometry admission also
-omits the reference that ordinary sampling attaches for future catch reuse.
-Restoring that metadata and replaying an unchanged fit reproduces all 22
-interruption controls exactly. A reference-removal control changes two scores,
-and restoring the reference changes one intervention score; it does not explain
-the four useful local paths' losses. Future continuation studies must pass the
-full neutral track/report/frame check in [HOW_TO_WORK.md](HOW_TO_WORK.md).
+## Reproduction and retained records
 
-## Current work
+- Final candidate: `b4c9bff756e14a0d4cbd07d0062bf824ce4f587a8cd88211b528b98e7c85ae23`.
+- Source: `9522c81e47961ec7f83e40e2e33dd7f7e82e1b3f80be7f57589df9afa6896d34`.
+- Compiler commit: `75c3e990`; implementation commits `3135826e` and `0d6bde19`.
+- Active manifest: [campaign-baseline.json](../benchmark/v2/campaign-baseline.json).
+- Checksummed validation index: [native-motion-feedback-validation.json](../benchmark/v2/studies/native-motion-feedback-validation.json).
+- [Current baseline analysis](benchmark-v2-current-baseline-analysis.md) describes the exact promoted N=8 archive.
 
-The owner has authorized ambitious compiler research without inherited limits.
-The first implementation directly optimizes complete tracks with material and
-geometry controls plus causal transport of downstream catches. Neutral replays
-match every saved contact and gap report. Coarse energy control gives no gain
-on its four-source pilot. On all 44 saved sources, geometry plus translation
-adds 0.2226 offline aggregate points; similarity adds 0.1717, versus 0.0191
-with a fixed suffix. This costs extra compute and is too small to integrate.
-A release-restoring transform also fails to produce a material gain.
+The retained development archive, snapshot, comparison, and comparison request
+are under `benchmark/v2/runs/native-motion-feedback-*`. Generated research and
+monitor archives remain outside commits; the validation index records their
+paths, identities, and hashes. `npm run benchmark -- status` verifies the active
+baseline and reports the next governed comparison command.
 
-Joint contact/release synthesis is implemented as an exact physical prefix
-beam. Paired contacts, energy recovery after the impact window, and distributed
-rider contacts now produce a 624.5730 offline score in a single pass from the
-607.4692 discovery tracks. Iteration reaches 628.7368; retaining the best of the
-two executed arms and continuing physical optimization with native energy
-reaches **641.9196**.
-All 44 retained tracks are valid.
-These results use additional compute and do not change the accepted 750k
-headline. Dense recovery remains the hardest regime.
-
-The planner preserves the complete incumbent, explores native material and
-release geometry, and verifies the final fixed V2 score in a cold replay.
-Local-loss selectors discard the strongest pulses because their later energy
-repair is not credited at admission. Learning from complete winning paths fixes
-that mismatch: the wide student retains 85.79% of the pilot gain with 16.32% of
-its physics. A 16-history/four-proposal variant averages 257k extra frames and
-+11.36 points on the discovery panel. Fresh first-completion captures now test
-remaining budget and new states. An isolated copy of the accepted physical
-kernel provides independent computed-prefix caches; exact trajectory and
-whole-search parity pass, and final judging uses the unchanged benchmark engine.
-Planning and active material need no further approval. Exact commands, costs, and
-artifact identities are in the active program. The previous `goal.md`, including
-its uncommitted contents, is archived.
-
-An omitted 20-frame rideout in the earlier transport harness was found by a
-stricter neutral check and corrected. A full-duration audit of all 160 retained
-tracks (119 unique replays) confirms unchanged scores and validity. This was a
-research validation correction; the benchmark and scorer were not changed.
-
-The best explicit 750k two-stage discovery reading is now **610.4406** from
-604.0352 first completions: all 44 valid, 33 improved, no budget stops, maximum
-742,842 charged frames. Expanded complete-path imitation and completion reserves
-produce this result. This seed is training/discovery data; it is not canonical
-or independent evidence. A full additional-work teacher on the same inputs
-reaches 636.2329. The accepted headline remains **607.2582**.
-
-A new direct native-support construction sustains 114 timed landings across
-2,400 frames in 159,405 simulated frames, with an exact full frozen-engine
-replay. This bypasses saved catch templates in a physical fixture. Other control
-settings fail, so authored-target construction and short backtracking are the
-next tests; the fixture is not a scored benchmark improvement.
-
-Direct authored-target construction now gives a **720.6804 preliminary full-set
-reading**, with 42/44 valid and at most 238,907 frames per compile. The two short
-pickup failures are corrected using the existing timing tolerance; two manual
-starts found during integration are also preserved and rerun. All 44 corrected
-outputs are valid. The mechanism is integrated into the public compiler and is
-ready for governed evaluation. This discovery reading does not replace the
-accepted 607.2582 headline. Packaged-engine, public-library, and published-JS
-replay checks pass; the benchmark and its physics remain unchanged.
-
-## Prior evidence
-
-The pre-restart log is preserved in
-[the historical campaign archive](archive/compiler-improvement-campaign-through-2026-08-16.md).
-Earlier physical closures remain in
-[the prior impact campaign](impact-delivery-650-campaign.md), and controller
-promotions and searched-pool closures remain in
-[the selective-backtracking roadmap](selective-backtracking-dfs-roadmap.md).
-Those results inform the new campaign; they do not prohibit new formulations.
+The full sequence of hypotheses, failures, corrections, physical costs, commands,
+and evidence is in [the detailed campaign](unrestricted-650-campaign.md).
+The [pre-promotion campaign](archive/compiler-improvement-campaign-before-native-motion-promotion-2026-09-07.md)
+and [pre-restart history](archive/compiler-improvement-campaign-through-2026-08-16.md)
+are preserved. Their old closures inform future work without restricting the
+compiler authorization in [goal.md](../goal.md).

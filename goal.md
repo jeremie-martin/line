@@ -39,3 +39,17 @@ tools and contracts provide the reproducible measurement infrastructure.
 Record what changed, what was tested, and what the evidence supports. Keep
 working toward the full goal rather than substituting documentation, local
 proxy gains, or an unverified score for completion.
+
+## Verified completion — 2026-09-07
+
+The active 750k headline is **761.9107**, promoted as `native-motion-feedback`
+through the unchanged governed comparison: **+154.6787 paired points**
+(SE 0.9294), accepted at N=8, **352/352 valid**. The previous promoted headline
+was 607.2582 at N=32. The benchmark, scoring, accounting, and evaluation physics
+are unchanged. The above-650 objective is achieved.
+
+The standing 250k comparison is 528/528 valid, recovering 63 old-baseline
+failures with no validity losses. The separate qualification monitor passes
+120/120 runs across 250k, 500k, and 750k. Exact engine replay, public compiler,
+budget-range, and production-path checks are recorded in
+`docs/compiler-improvement-campaign.md` and the detailed campaign log.

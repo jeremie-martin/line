@@ -12,6 +12,11 @@ The starting accepted 750k headline is **607.2582**, at N=32, from
 accounting, and evaluation physics remain fixed. No score has been promoted
 by opening this campaign.
 
+**Completed 2026-09-07:** the accepted and promoted headline is now **761.9107**,
+352/352 valid at 750k/N=8. The final paired gain is **154.6787** (SE 0.9294).
+The fixed benchmark and score are unchanged. The chronological research below
+ends with the final evaluation, independent qualification, and promotion record.
+
 ## Reassessment
 
 Previous experiments establish results for their tested implementations, not
@@ -52,7 +57,7 @@ initial experiment sizes are resource allocations, not permanent scope limits.
 - Historical evidence: `impact-delivery-650-campaign-new.md` and the earlier
   campaign archives. Their compiler closures and deferrals are superseded as
   policy; their observations remain evidence.
-- Current headline: 607.2582. Implementation and experiment results follow here.
+- Starting headline: 607.2582. Implementation and experiment results follow here.
 
 ### First implemented assay: causal template transport and energy control
 
@@ -712,3 +717,119 @@ baseline; its complete artifacts can be re-reported after the final evaluation
 without duplicating either arm. Canonical preparation also required restoring
 44 generated click WAVs; every restored byte hash matches the existing approved
 review, whose contents remain unchanged.
+
+### Final frozen candidate, qualification, and promotion
+
+The optional-argument correction is committed as `75c3e990`, after integration
+commit `3135826e`. The final public compiler has candidate fingerprint
+`b4c9bff756e14a0d4cbd07d0062bf824ce4f587a8cd88211b528b98e7c85ae23`
+and source fingerprint
+`9522c81e47961ec7f83e40e2e33dd7f7e82e1b3f80be7f57589df9afa6896d34`.
+It receives its own governed comparison:
+
+```bash
+npm run benchmark -- eval --seeds=48 --jobs=40 \
+  --out=generated/benchmark-v2/eval/native-motion-final-2026-09-07.json
+```
+
+The final outcome is **accept at N=8**, **761.9107**, **352/352 valid**,
+paired **+154.6787** versus the old baseline's matching 607.2320 N=8 prefix,
+SE **0.9294**. The observed t=166.42855606 exceeds the unchanged repeated-look
+boundary 4.81061015. No later look is queued. All four strata improve:
+
+| Stratum | Paired baseline | Final candidate |
+|---|---:|---:|
+| Representative | 640.8936 | 784.0520 |
+| Capability | 484.4946 | 682.5251 |
+| Legacy regression | 609.6639 | 729.6504 |
+| Development music | 499.3183 | 754.6097 |
+
+There are 343 improved paired runs and nine regressions, with no validity losses.
+The only regressed source aggregate is `high_air_drive`, −12.3385 points.
+The candidate is deterministic for these zero-jitter specs, so its canonical
+seed blocks match; the paired SE reflects variation in the old compiler.
+The final archive SHA is
+`43e6a377b79061c9d4efffc205c2efa73f23f17c9e0706eb627162a9a888c6a4`;
+compiler snapshot SHA is
+`d5d3d8f5a77a47ed4addd380b77ccaf9047a8e4396c9a70442c9c66988eda9a2`.
+
+All 352 final tracks, reports, and frame counts exactly match the first
+candidate's canonical outputs on the same seeds. These evaluations are not
+independent replicates and are not pooled into N=16. Each evaluation costs
+52,592,616 physical frames: minimum 58,495, median 133,581, maximum 238,907 per
+compile. The two evaluations together cost 105,185,232 frames. The final run
+finishes in 9m46 while sharing the host with the standing 250k comparison; this
+does not establish a controlled wall-clock speedup. Covered canonical baseline
+rows were reused without recompiling the old 750k compiler.
+
+The standing 250k reading compiles 11 sources × 48 seeds in each arm. The new
+compiler is **528/528 valid** versus **465/528**, recovering **63 failures** and
+losing none. The instrument verdict is `RESCUE-POSITIVE`. Its renormalized
+mini-manifest score moves 552.3198 → 793.8142, while its arithmetic per-cell
+seed-blocked gain is +265.2030 (SE 4.9870). Those are separate descriptive
+measures, neither the suite headline. All three controls also move, as expected
+for a broad compiler replacement. The physically executed arms are under
+`generated/benchmark-v2/low-budget/arms/2026-09-07T19-17-25-334Z-after-native-motion-initial-eval/`.
+They were checksum-verified and re-reported after the final eval with
+`--report=<tree.json.gz>,<baseline.json.gz> --label=after-native-motion-final-eval`.
+The final record is
+`generated/benchmark-v2/low-budget/2026-09-07T19-45-26-954Z-after-native-motion-final-eval.json`.
+This is one physical sample reported twice, not independent duplicate evidence.
+
+With the final compiler frozen, independent qualification runs use:
+
+```bash
+LR_ENGINE=wasm node --import tsx scripts/v0/benchmark_v2/run_benchmark.ts \
+  --runner-mode=qualification --profile=canonical \
+  --development-archive=generated/benchmark-v2/eval/native-motion-final-2026-09-07.N8.json \
+  --jobs=32 --out=generated/benchmark-v2/eval/native-motion-final-qualification.json
+```
+
+All **120/120** runs pass, across five qualification sources, eight seeds, and
+250k/500k/750k. Per-budget monitor scores are 695.2786, 693.7097, and 693.6437;
+the weighted qualification monitor is **694.0037**, not a development headline.
+The sidecar costs 10,946,079 frames, maximum 148,715 per compile. No subsequent
+compiler changes or tuning use these results, and this sidecar does not alter
+the deferred lower-budget governance fields.
+
+The public budget-range audit runs river reentry and seven-second low-air
+endurance at 150k, 750k, 1M, and 3M. All eight tracks are valid and within budget;
+1M/3M geometry, reports, and charged frames exactly match 750k. River reentry is
+821.2573 at all four budgets in 121,970 frames. Long low-air endurance is
+763.9992 in 124,904 frames at 150k, and 764.7406 in 238,907 frames at the larger
+budgets. These are behavior audits on research seed 260907004, not headline
+replicates. `scripts/benchmark/audit_native_budget_range.ts` preserves the assay.
+
+A second untouched published JavaScript-engine audit covers short pickups:
+4,840 replay frames and exact entire raw trajectory SHA
+`365b5dea3c6b122bf323beef12c7581ff30baca77835d5ed662ffce4012c9554`.
+Together with the amplitude audit, this verifies the output geometry in the
+published engine as well as the frozen WASM judge. The latter's SHA remains
+`12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6`.
+The focused tests described above pass; 65 broader compiler/CLI/budget tests,
+seven post-dispatch-fix tests, and five baseline-analysis contract tests also
+pass. Suites overlap. Existing repository-wide TypeScript failures remain,
+with no errors pointing to the new production files or final audit/report code.
+
+Promotion uses the ordinary acceptance gate:
+
+```bash
+npm run benchmark -- rebaseline \
+  --from=generated/benchmark-v2/eval/native-motion-final-2026-09-07.json.comparison.json \
+  --label=native-motion-feedback
+node --import tsx scripts/benchmark/analyze_campaign_baseline.ts
+```
+
+The active manifest now retains the accepted **761.9107 / N=8** prefix and its
+verified compiler snapshot. No forced acceptance, benchmark edit, scorer edit,
+or judge edit was used. The frozen 250k/500k evidence remains unchanged. The
+baseline-analysis renderer was corrected to describe an achieved goal, remove
+old-compiler-specific conclusions, and explain the existing aggregation
+accurately; it changes reporting only. Remaining-loss tables use the existing
+1000-point ceiling, without substituting a new goal.
+
+The above-650 objective is complete. The concise campaign and `goal.md` record
+the verified outcome. `benchmark/v2/studies/native-motion-feedback-validation.json`
+indexes retained artifacts and hashes; raw/generated archives remain outside
+commits. Further compiler work can investigate the remaining amplitude,
+dense-recovery, and high-air impact errors from this verified baseline.

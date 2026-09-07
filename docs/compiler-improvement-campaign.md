@@ -63,6 +63,7 @@ tracks, with exact baseline replay and every failed suffix retained:
 | Precision-controlled correction | Pair passes its local component gate: 46/78 tenfold residual reductions; 18 changed positive tracks versus 6 shams | 26,178,361 / 146.86 |
 | Useful-gain continuation | 0/78 meet the useful-gain/full-score gate; largest valid gain 0.04672 track points | 52,051,618 / 277.04 |
 | Whole-track unit translation | Only 2/176 remain valid; spatial translation is not a safe engine-level invariant | 521,280 / 1.90 |
+| Whole-cell translation and causal trace | 61/176 remain valid at 14px; early collision-event differences precede material state divergence | 689,362 / 7.07 |
 
 The pair halves actual release motion (paired median ratio 0.480), but both
 arms have negative valid-only score sums. Its tiny predicted downstream
@@ -80,12 +81,20 @@ validation or governed experiment; the headline remains **607.2582**.
 
 A residual projection then identified common position shift as a substantial
 constraint component: removing it leaves a paired median norm ratio of 0.300.
-However, a premise audit found that even translating an entire unchanged track
-and its start by one pixel usually breaks it in the frozen engine. The older
-position-only suffix-swap failure stays closed. Next: test whole-cell (14px)
-translations to distinguish grid-phase ordering from arithmetic sensitivity,
-before considering a join that matches relative articulated state. No engine
-or evaluator mutation is licensed by this diagnostic.
+However, premise audits found that even translating an unchanged entire track
+and its start usually breaks it in the frozen engine. Whole-cell shifts help
+but do not establish invariance. The event trace shows tiny early collision
+branch differences, with much earlier material state jumps under unit shifts
+than under whole-cell shifts. An unchanged geometric suffix is therefore a
+fragile continuation test; no translation join or engine change is justified.
+
+Next: capture exact winning-fit metadata from the promoted snapshot, requiring
+identity with every retained discovery track, score, and compile cost. Prove
+unmodified replay through ordinary continuation before declaring a paired
+reconstruction assay for the existing frozen nonlinear paths. That task keeps
+authored targets intact and measures actual continuation cost. The historical
+guided-rebuild setup clamps impact and must not be copied. No geometry retune,
+source selection, validation seed, or governed run is opened.
 
 ## Prior evidence
 

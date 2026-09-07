@@ -551,6 +551,47 @@ state-error growth before a collision branch from coincident divergence;
 coincidence alone does not prove which branch caused it. The frozen engine
 remains unchanged, and no translation candidate or join is opened.
 
+**Divergence trace result.** All 176 positive-shift traces see a collision-event
+sequence difference before state error exceeds 1e−9. Median preceding state
+error at that first collision difference is 3.41e−13 for both displacement
+classes. These early differences often count near-zero repeat contacts; they
+do not alone identify the cause of later material divergence. Among the
+one-pixel shifts, 70/88 first state-threshold crossings jump above 1e−6, at a
+median first-crossing frame of 75.5. None of the 88 whole-cell shifts has that
+large initial jump; their median crossing frame is 536. This supports both
+cell-phase sensitivity and slower arithmetic/branch error growth, without
+claiming a specific engine defect or changing its semantics.
+
+Cost: 168,082 physics frames, 4.86 worker seconds. Checksummed source traces
+and summary are in
+`generated/benchmark-v2/impact-delivery-650-new/translation-divergence/`.
+The whole-cell score-audit implementation is pinned by commit `b229e559`;
+the subsequent type-only rewrite of its one-result-per-axis map changes no
+runtime output. Both translation-join versions remain unopened.
+
+**Next work — ordinary continuation preflight.** The retained absolute-geometry
+suffix is now demonstrated to be fragile even under a physically neutral
+whole-track transformation. This limits what its failures prove about a
+changed contact's ability to enter a freshly realized ordinary suffix. Keep
+the existing 78 nonlinear path outputs frozen; do not retune their geometry,
+request, radius, stage count, or select favorable sources. Before intervention
+work, capture the missing exact winning fits and start metadata from the
+promoted snapshot on the existing discovery seed 260907000. Require each
+regenerated track, report score, and compile-frame count to match the retained
+census, then prove exact unmodified prefix/continuation replay for all 44
+sources. This metadata extension is not new independent seed evidence and
+must not recreate any covered canonical cache row.
+
+Only after that preflight should a paired, bounded ordinary-suffix reconstruction
+be declared for the frozen physical paths and an unchanged control, with
+actual candidate evaluation, ordinary ranking, complete-score assessment,
+and measured cost. A translated template alone is insufficient. The historical
+guided-rebuild scripts can inform reconstruction mechanics, but their setup
+code clamps authored impact to a feasibility estimate: that behavior violates
+the active contract and must not be reused. Use the current compiler's exact
+authored setup. No source-default candidate or validation seed is opened by
+this next data/preflight task.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

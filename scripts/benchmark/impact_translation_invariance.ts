@@ -49,10 +49,10 @@ for (const source of request.sources) {
     const full = scoreTrack(translated, record);
     const differences = base.gaps.flatMap((g: any) => {
       const replay = full.gaps.find((v: any) => v.gapIndex === g.gapIndex);
-      return Object.entries(g.axes).flatMap(([axis, value]: [string, any]) => {
+      return Object.entries(g.axes).map(([axis, value]: [string, any]) => {
         const achieved = replay?.axes[axis]?.achieved;
-        return achieved === undefined ? [{ gapIndex: g.gapIndex, axis, missing: true, difference: null }] :
-          [{ gapIndex: g.gapIndex, axis, missing: false, difference: achieved - value.achieved }];
+        return { gapIndex: g.gapIndex, axis, missing: achieved === undefined,
+          difference: achieved === undefined ? null : achieved - value.achieved };
       });
     });
     return { dx, dy, valid: full.valid, scoreDelta: full.score - base.score, missing: full.missing, offBeat: full.offBeat,

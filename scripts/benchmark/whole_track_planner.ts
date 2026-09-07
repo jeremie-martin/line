@@ -163,12 +163,26 @@ function worker(source: any, plan: any, planSha256: string): void {
   calibrationFrames = getPhysicsFrameCount() - framesStart;
   const steps: any[] = [], nodes = new Map<number, any>();
   const failures: Record<string, number> = {};
-  let trials = 0, validTrials = 0, filteredProposals = 0, generationFrames = 0;
+  let trials = 0, validTrials = 0, filteredProposals = 0, generationFrames = 0, rebaseFrames = 0;
   try {
     const engine = freshEngine(track).addLine(startLines.map(createLineFromJson));
     let beam: Node[] = [{ engine, fits: [], sse: { ...totalSse }, value: value(totalSse), original: true, id: serial++, parent: -1, action: null }];
     for (let i = 0; i < originals.length; i++) {
       const fit = originals[i], gap = ctx.gaps[i];
+      if (plan.rebaseEvery > 0 && i > 0 && i % plan.rebaseEvery === 0) {
+        // The native lineage retains all historical patch nodes until every
+        // handle is released. Cold reconstruction bounds that research memory;
+        // it is ordinary, charged simulation, never an injected rider state.
+        const started = getPhysicsFrameCount(), frame = Math.max(0, gap.endFrame - 2);
+        const packets = beam.map(n => packetAt(n.engine, frame));
+        disposeAllWasmEnginesForStudy();
+        beam = beam.map((n, j) => {
+          const engine = freshEngine(track).addLine([...startLines, ...n.fits.flatMap(f => f?.lines ?? [])].map(createLineFromJson));
+          if (packetAt(engine, frame) !== packets[j]) throw new Error("rebased physical prefix mismatch");
+          return { ...n, engine };
+        });
+        rebaseFrames += getPhysicsFrameCount() - started;
+      }
       if (fit === null) { beam = beam.map(n => ({ ...n, fits: [...n.fits, null] })); continue; }
       const pool: Node[] = [], stepTrials: any[] = [];
       for (const parent of beam) {
@@ -509,7 +523,7 @@ function worker(source: any, plan: any, planSha256: string): void {
   const result = { schema: "line.whole-track-planner-source.v1", implementation, planSha256, sourceId, seed: capture.seed,
     originalScore, capturedScore, score: winner.score, delta: winner.score.score - originalScore.score,
     cumulativeDelta: winner.score.score - capturedScore.score, actions: winner.actions,
-    trials, validTrials, failures, filteredProposals, generationFrames, calibrationFrames,
+    trials, validTrials, failures, filteredProposals, generationFrames, rebaseFrames, calibrationFrames,
     frames: getPhysicsFrameCount() - framesStart, elapsedMs: performance.now() - started };
   write(resolve(out, `${sourceId}.json`), result);
   process.stderr.write(`${sourceId}: ${result.delta >= 0 ? "+" : ""}${result.delta.toFixed(4)}, ${validTrials}/${trials} local fits, ${result.frames} frames\n`);
@@ -545,6 +559,7 @@ if (process.argv.includes("--plan")) {
     collective: arg("collective") === "on",
     collectivePairs: arg("collective-pairs") === "on",
     collectiveEnergy: arg("collective-energy") === "on",
+    rebaseEvery: Number(arg("rebase-every") ?? 0),
     collect: arg("collect") === "on",
     modelPath, modelHash: modelPath ? hash(readFileSync(modelPath)) : null, keep: Number(arg("keep") ?? 16),
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
@@ -554,7 +569,14 @@ if (process.argv.includes("--plan")) {
   if (plan.implementation !== implementation || plan.engineHash !== engineHash || plan.input !== input ||
       plan.warmStart !== warmStart || plan.suiteHash !== suiteHash || plan.modelPath !== modelPath ||
       plan.modelHash !== (modelPath ? hash(readFileSync(modelPath)) : null)) throw new Error("frozen experiment changed");
-  if (arg("worker")) worker(plan.sources.find((s: any) => s.sourceId === arg("worker")), plan, planSha256);
+  if (arg("worker")) {
+    try { worker(plan.sources.find((s: any) => s.sourceId === arg("worker")), plan, planSha256); }
+    catch (error) {
+      write(resolve(out, `${arg("worker")}.failure.json`), { planSha256, sourceId: arg("worker"),
+        frames: getPhysicsFrameCount(), error: error instanceof Error ? error.stack : String(error) });
+      throw error;
+    }
+  }
   else {
     const queue = plan.sources.filter((s: any) => {
       const p = resolve(out, `${s.sourceId}.json`);

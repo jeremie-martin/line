@@ -434,3 +434,47 @@ These are existing 750k-policy costs, not reduced-budget compiler experiments
 or first-completion scores. The median leaves roughly 259k frames for a new
 improvement phase, so an exhaustive multi-million-frame planner is not yet a
 750k compiler. No new canonical baseline search was performed for this reading.
+
+
+### Retained physical gains and first efficiency ablation
+
+Two further exact passes on the 632.3348 portfolio reach **635.1623** and then
+**636.0228**. All 44 retained tracks remain valid, including cold full-report
+and full-score equality. The first pass improves 39 sources and uses
+173,943,804 frames / 1,467.55 summed worker seconds; plan
+`95c504f5f6a924841a461a1800b081cad5ddd34d5f6c5083203fc2987ee849dd`.
+The second improves 32 sources and uses 171,735,915 frames / 1,455.75 seconds;
+plan `888e43bbc12fbfb27c8e2f79fd25fba463a96afc887c24345bd2d88f98d7f374`.
+These are additional-work research readings, not the active headline.
+
+The first student fits 3,728,862 sampled rows from 18,945,348 exact candidate
+observations in 128,330 incoming contexts. Its internal family-held validity
+AUC is 0.94198, loss MAE 0.02257, and keep-16 proposal regret 0.01641 with a
+0.1 invalidity penalty. Training uses 336.50 seconds. Model SHA:
+`61550260b84a0c29433d28202faad342d80d5438ebc67055ae40aa5d4fc57a8d`.
+TypeScript inference agrees on all 64 parity rows to 1.11e-16. The model only
+selects which proposals receive exact simulation; it cannot admit geometry.
+
+The four-source keep-16/width-4 pilot uses **791,350 frames total**, averaging
+197,838 per source, but averages only +0.8404 points. Gains are amplitude
++0.2811, dense +0.1312, transition +0.0036, and Believer +2.9458. Width 16 with
+the same selector averages +2.1194 using 3,188,346 frames. Width 4 without
+filtering averages +3.4035 using 4,578,063 frames. The full width-16 reference
+averages +28.1636. Both pruning and beam width lose useful paths; the wider
+student winners contain no collective contacts. AUC alone did not establish
+useful search selection. A larger model now learns loss centered within each
+incoming context, with a checksum-verified array cache for efficient iteration.
+The saved corpora and first model remain intact.
+
+A 384-proposal free-flight probe combines point-local collective surfaces with
+native energy layers. It finds 119 causal, intact cases through five later
+frames in 1,205 charged frames. A 32-layer example adds 3.53 px/frame of speed
+with a 4.01 px/frame next-frame velocity change. This uses ordinary native
+segments and the existing acceleration constant. A focused engine test now
+covers the causal acceleration and intact bindings; all 13 physical-helper
+tests pass. The probe is physical authority evidence, not scored-track evidence.
+A whole-track energy pilot is running. Collective paired pulses were also
+implemented with the second placement based on the actual first-pulse state;
+their pilot averages +23.2391 versus +28.1636 without them, so that broader
+proposal family does not yet earn a full-cohort run. Its cost is 19,739,518
+frames / 167.74 summed worker seconds.

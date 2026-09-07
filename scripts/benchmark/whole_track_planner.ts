@@ -26,12 +26,14 @@ import { nativeRailLayers } from "./native_rail_layers.ts";
 import { contactPulse } from "./contact_pulse.ts";
 import { collectiveContactPulse } from "./collective_contact_pulse.ts";
 import { PLANNER_FEATURE_VERSION, plannerContextFeatures, plannerCandidateFeatures } from "./planner_features.ts";
+import { predictPlannerCandidate } from "./planner_student.ts";
 import { authoredSpeedToPx, speedPxToAuthored, impactToRawPx, normImpact, type TrackLine } from "../v0/types.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
 const input = resolve(arg("input") ?? "generated/benchmark-v2/impact-delivery-650-new/interrupted-support-capture");
 const out = resolve(arg("out") ?? "generated/benchmark-v2/unrestricted-650/physical-prefix-beam");
 const warmStart = arg("warm-start") ? resolve(arg("warm-start")!) : null;
+const modelPath = arg("model") ? resolve(arg("model")!) : null;
 const script = fileURLToPath(import.meta.url);
 const hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex");
 const implementation = [script, resolve("scripts/benchmark/whole_track_controls.ts"), resolve("scripts/benchmark/contact_program.ts"),
@@ -39,6 +41,7 @@ const implementation = [script, resolve("scripts/benchmark/whole_track_controls.
   .concat(resolve("scripts/benchmark/contact_pulse.ts"))
   .concat(resolve("scripts/benchmark/collective_contact_pulse.ts"))
   .concat(resolve("scripts/benchmark/planner_features.ts"))
+  .concat(resolve("scripts/benchmark/planner_student.ts"))
   .map(p => hash(readFileSync(p))).join(":");
 const baseline = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
 const suite = JSON.parse(readFileSync("benchmark/v2/compat/suite-manifest.json", "utf8"));
@@ -55,6 +58,9 @@ const write = (p: string, v: any) => {
   const b = `${JSON.stringify(v)}\n`;
   writeFileSync(p, b); writeFileSync(`${p}.sha256`, `${hash(b)}  ${basename(p)}\n`);
 };
+const student = modelPath ? read(modelPath) : null;
+if (student && (student.schema !== "line.physical-planner-model.v1" ||
+    student.featureVersion !== PLANNER_FEATURE_VERSION || student.inputDtype !== "float32")) throw new Error("unsupported planner model");
 const lineKey = (lines: readonly TrackLine[]) => JSON.stringify(lines.map(l => [l.id, l.type, l.x1, l.y1, l.x2, l.y2,
   !!l.flipped, !!l.leftExtended, !!l.rightExtended]));
 const freshEngine = (track: any) => new LineRiderEngine().setStart(track.startPosition, track.riders[0].startVelocity);
@@ -157,7 +163,7 @@ function worker(source: any, plan: any, planSha256: string): void {
   calibrationFrames = getPhysicsFrameCount() - framesStart;
   const steps: any[] = [], nodes = new Map<number, any>();
   const failures: Record<string, number> = {};
-  let trials = 0, validTrials = 0;
+  let trials = 0, validTrials = 0, filteredProposals = 0, generationFrames = 0;
   try {
     const engine = freshEngine(track).addLine(startLines.map(createLineFromJson));
     let beam: Node[] = [{ engine, fits: [], sse: { ...totalSse }, value: value(totalSse), original: true, id: serial++, parent: -1, action: null }];
@@ -166,10 +172,11 @@ function worker(source: any, plan: any, planSha256: string): void {
       if (fit === null) { beam = beam.map(n => ({ ...n, fits: [...n.fits, null] })); continue; }
       const pool: Node[] = [], stepTrials: any[] = [];
       for (const parent of beam) {
+        const generationStart = getPhysicsFrameCount();
         const actual = frameAt(parent.engine, gap.endFrame);
         const unchanged = packetAt(parent.engine, Math.max(0, gap.endFrame - 2));
         const corpus: any[] = [];
-        const contextFeatures = plan.collect ? plannerContextFeatures(actual,
+        const contextFeatures = plan.collect || student ? plannerContextFeatures(actual,
           getRiderMetered(parent.engine, gap.endFrame).ballisticState(), gap, nextFor(i)) : null;
         // Reserve a disjoint ID range per contact. Incumbent lines keep their
         // original IDs so its entire physical history remains bit-identical.
@@ -223,6 +230,31 @@ function worker(source: any, plan: any, planSha256: string): void {
                   rider.velocity, normalTurn, depth, maxWidth, idStart + seedLines.length);
                 candidates.push({ lines: [...seedLines, ...pulses], preserve,
                   action: { family: "contact_pulse_collective", phase, normalTurn, depth, maxWidth, pulseLineCount: pulses.length } });
+                if (plan.collectivePairs && phase === 2 && gap.endFrame + 4 < endFor(i)) {
+                  const firstEngine = seedEngine.addLine(pulses.map(createLineFromJson));
+                  if (packetAt(firstEngine, gap.endFrame) !== preserve.packet) continue;
+                  const laterRider = getRiderMetered(firstEngine, gap.endFrame + 4), later = laterRider.ballisticState();
+                  if (!later.riderMounted || !later.sledIntact) continue;
+                  const pairPreserve = { frame: gap.endFrame + 3, packet: packetAt(firstEngine, gap.endFrame + 3) };
+                  for (const ratio of [0.5, 1, 1.5]) {
+                    const second = collectiveContactPulse(Object.values(later.points) as Array<{ x: number; y: number }>,
+                      laterRider.velocity, -normalTurn, depth * ratio, maxWidth, idStart + seedLines.length + pulses.length);
+                    if (seedLines.length + pulses.length + second.length >= 1000) continue;
+                    candidates.push({ lines: [...seedLines, ...pulses, ...second], preserve: pairPreserve,
+                      action: { family: "contact_pulse_collective", phase, normalTurn, depth, maxWidth, ratio,
+                        paired: true, pulseLineCount: pulses.length + second.length } });
+                  }
+                }
+              }
+              if (plan.collectiveEnergy) for (const normalTurn of [-1.4, -1, 1, 1.4]) for (const layers of [4, 16, 32]) for (const energy of [-1, 1] as const) {
+                const depth = 0.1, maxWidth = 0.5;
+                const points = collectiveContactPulse(Object.values(packet.points) as Array<{ x: number; y: number }>,
+                  rider.velocity, normalTurn, depth, maxWidth, idStart + seedLines.length);
+                const pulses = nativeRailLayers(points, rider.velocity, layers, 0.001, energy);
+                if (seedLines.length + pulses.length >= 1000) continue;
+                candidates.push({ lines: [...seedLines, ...pulses], preserve,
+                  action: { family: "contact_pulse_collective", phase, normalTurn, depth, maxWidth, layers, energy,
+                    spacing: 0.001, pulseLineCount: pulses.length } });
               }
             }
           }
@@ -293,6 +325,25 @@ function worker(source: any, plan: any, planSha256: string): void {
               actual, attempt, gap, idStart, "normal", ctx.allContactFrames);
             candidates.push({ lines: geometry.lines, action: { family: "native_sample", attempt } });
           }
+        }
+        generationFrames += getPhysicsFrameCount() - generationStart;
+        if (student) {
+          const unique = new Set<string>();
+          const ranked = candidates.map((candidate, order) => {
+            const canonical = candidate.lines.length === fit.lines.length
+              ? candidate.lines.map((l, j) => ({ ...l, id: fit.lines[j].id }))
+              : candidate.lines.map((l, j) => ({ ...l, id: idStart + j }));
+            const key = lineKey(canonical);
+            if (unique.has(key)) return null;
+            unique.add(key);
+            const prediction = predictPlannerCandidate(student, [...contextFeatures!, ...plannerCandidateFeatures(canonical, actual, candidate.action)]);
+            return { candidate, order, priority: prediction.priority,
+              reserved: candidate.original || candidate.action.family === "transport" };
+          }).filter((x): x is NonNullable<typeof x> => x !== null);
+          const selected = [...ranked.filter(r => r.reserved), ...ranked.filter(r => !r.reserved)
+            .sort((a, b) => a.priority - b.priority || a.order - b.order).slice(0, plan.keep)].map(r => r.candidate);
+          filteredProposals += ranked.length - selected.length;
+          candidates.splice(0, candidates.length, ...selected);
         }
         const seen = new Set<string>();
         for (const candidate of candidates) {
@@ -458,7 +509,8 @@ function worker(source: any, plan: any, planSha256: string): void {
   const result = { schema: "line.whole-track-planner-source.v1", implementation, planSha256, sourceId, seed: capture.seed,
     originalScore, capturedScore, score: winner.score, delta: winner.score.score - originalScore.score,
     cumulativeDelta: winner.score.score - capturedScore.score, actions: winner.actions,
-    trials, validTrials, failures, calibrationFrames, frames: getPhysicsFrameCount() - framesStart, elapsedMs: performance.now() - started };
+    trials, validTrials, failures, filteredProposals, generationFrames, calibrationFrames,
+    frames: getPhysicsFrameCount() - framesStart, elapsedMs: performance.now() - started };
   write(resolve(out, `${sourceId}.json`), result);
   process.stderr.write(`${sourceId}: ${result.delta >= 0 ? "+" : ""}${result.delta.toFixed(4)}, ${validTrials}/${trials} local fits, ${result.frames} frames\n`);
 }
@@ -491,13 +543,17 @@ if (process.argv.includes("--plan")) {
     pulsePairs: arg("pulse-pairs") === "on",
     tailEnergy: arg("tail-energy") === "on",
     collective: arg("collective") === "on",
+    collectivePairs: arg("collective-pairs") === "on",
+    collectiveEnergy: arg("collective-energy") === "on",
     collect: arg("collect") === "on",
+    modelPath, modelHash: modelPath ? hash(readFileSync(modelPath)) : null, keep: Number(arg("keep") ?? 16),
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {
   const plan = read(planPath), planSha256 = hash(readFileSync(planPath));
   if (plan.implementation !== implementation || plan.engineHash !== engineHash || plan.input !== input ||
-      plan.warmStart !== warmStart || plan.suiteHash !== suiteHash) throw new Error("frozen experiment changed");
+      plan.warmStart !== warmStart || plan.suiteHash !== suiteHash || plan.modelPath !== modelPath ||
+      plan.modelHash !== (modelPath ? hash(readFileSync(modelPath)) : null)) throw new Error("frozen experiment changed");
   if (arg("worker")) worker(plan.sources.find((s: any) => s.sourceId === arg("worker")), plan, planSha256);
   else {
     const queue = plan.sources.filter((s: any) => {
@@ -513,7 +569,7 @@ if (process.argv.includes("--plan")) {
         const s = queue.shift()!;
         const code = await new Promise<number | null>((done, reject) => {
           const child = spawn(process.execPath, ["--import", "tsx", script, `--worker=${s.sourceId}`, `--input=${input}`, `--out=${out}`,
-            ...(warmStart ? [`--warm-start=${warmStart}`] : [])],
+            ...(warmStart ? [`--warm-start=${warmStart}`] : []), ...(modelPath ? [`--model=${modelPath}`] : [])],
             { env: process.env, stdio: ["ignore", "ignore", "inherit"] });
           child.on("error", reject); child.on("exit", done);
         });

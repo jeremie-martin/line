@@ -100,7 +100,8 @@ function worker(source: any, plan: any, planSha256: string): void {
     } finally { disposeAllWasmEnginesForStudy(); }
   }
 
-  const zero = originals.map(() => 0 as -1 | 0 | 1), neutral = evaluate(zero, "similarity");
+  const zero: Array<-1 | 0 | 1> = originals.map(() => 0);
+  const neutral = evaluate(zero, "similarity");
   if (!neutral.score?.valid || neutral.score.score !== originalScore.score || lineKey(neutral.track.lines) !== lineKey(track.lines) ||
       JSON.stringify(neutral.report.contacts) !== JSON.stringify(savedReport.contacts) ||
       JSON.stringify(neutral.report.gaps) !== JSON.stringify(savedReport.gaps)) throw new Error("neutral full-track replay mismatch");

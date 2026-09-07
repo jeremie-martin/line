@@ -7,11 +7,14 @@ import { getPhysicsFrameCount } from "../lib/detector.ts";
 import { read, write, scoreTrack } from "./impact_release_response.ts";
 
 const input = resolve("generated/benchmark-v2/impact-delivery-650-new/selected-fit-trace");
-const out = resolve("generated/benchmark-v2/impact-delivery-650-new/translation-invariance");
+const gridPeriod = process.argv.includes("--grid-period");
+const out = resolve(`generated/benchmark-v2/impact-delivery-650-new/translation-${gridPeriod ? "grid-period" : "invariance"}`);
 const hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex");
 const implementation = [fileURLToPath(import.meta.url), "scripts/benchmark/impact_release_response.ts"].map(p => hash(readFileSync(p))).join(":");
 const census = read(resolve(input, "summary.json")), censusSha256 = hash(readFileSync(resolve(input, "summary.json")));
-const shifts = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+// The 14px period is read from the frozen engine, not fitted to outcomes.
+const displacement = gridPeriod ? 14 : 1;
+const shifts = [[displacement, 0], [-displacement, 0], [0, displacement], [0, -displacement]];
 mkdirSync(out, { recursive: true });
 const request = { schema: "line.impact-translation-invariance-request.v1", implementation, censusSha256, shifts,
   purpose: "audit engine/scorer translation equivariance; no candidate selection",

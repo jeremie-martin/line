@@ -532,6 +532,25 @@ arithmetic/branch sensitivity. It remains an invariance diagnostic: no shift
 is selected as a compiler change, no engine fix is allowed, and the relative-
 state join remains unopened pending the result.
 
+**Grid-period result.** Exactly one-cell shifts preserve 61/176 valid tracks,
+and 13/176 have every targeted axis within 1e−9. This improves on the 2/176
+unit-shift result but still contradicts a generally safe translation join.
+All unshifted controls are exact. Cost: 521,280 physics frames, 2.21 worker
+seconds; checksummed evidence is in
+`generated/benchmark-v2/impact-delivery-650-new/translation-grid-period/`.
+The first unit-shift implementation is pinned by commit `de52c658`.
+
+**Next causal trace, declared before execution.** On all 44 saved tracks,
+compare the complete ten-point state and ordered collision events for the
+fixed positive shifts (+1,0), (0,+1), (+14,0), and (0,+14). Remove the expected
+translation from positions and previous positions. Retain the first state
+difference above 1e−9 and first collision-sequence divergence, their preceding
+state error, and whether the collision multiset also changes. Stop a trace
+after both first divergences are known or the track ends. This distinguishes
+state-error growth before a collision branch from coincident divergence;
+coincidence alone does not prove which branch caused it. The frozen engine
+remains unchanged, and no translation candidate or join is opened.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

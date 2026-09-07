@@ -818,6 +818,46 @@ implementation is pinned in `c45c1ee7`. Three geometry invariants verify the
 cut's body-span-plus-speed width, exposure flags, preserved outside pieces,
 monotone IDs, and rejection at the carrier's terminal boundaries.
 
+**First interruption result and discovered interface confound.** All 88 cuts
+are constructed; 22 pass exact admission and preserve every physical frame
+through H. All 22 exhibit actual free support followed by return-side contact.
+Twenty ordinary suffixes are valid and all 22 preserve the intervention and
+its exact first-impact window. Four reach the local useful-gain threshold,
+but none beats both complete-track references at that threshold. These four
+are two physical states within the low-air family (three duration variants
+share one exact prefix), not four independent regimes. The two complete-track
+wins do not meet the useful-impact gate. The uncorrected assay costs 104,256
+warmup, 107,770 local, 6,054,429 suffix, and 45,600 verification frames;
+204.18 summed worker seconds. All 222 JSON artifacts verify under
+`generated/benchmark-v2/impact-delivery-650-new/interrupted-support-response/`.
+Plan SHA-256:
+`26691fb06726147ca63bccc2bcf5cc44de26384225a1c54fc4d6e2a3b90f7c8f`.
+
+Code review then finds a material interface confound: `tryCandidateLines`
+returns physical fit fields but does not attach `ref`. Ordinary sampling adds
+the actual probe's sled reference in `optimizer/sample.ts`; ordinary catch
+reuse skips any prefix fit without it in `optimizer/handoff.ts`. All 22
+original controls have this reference and every direct-admitted intervention
+lacks it. Their continuation differences therefore combine geometry and
+loss of future reuse eligibility. The same issue affects the earlier
+authored-output continuation assay; its failed local useful-gain gate still
+stands, but its complete-score deltas do not isolate physical continuation.
+
+**Metadata-fidelity correction, declared before replay.** Keep the exact
+88 frozen interruption proposals and all local outcomes. For all 22 admitted
+prefix-preserving cuts, compute the ordinary reference from the unchanged
+entering probe and require identity with the original fit's reference. First
+re-admit the unchanged fit, restore that reference and inherited provenance,
+and require the original ordinary control's track, report, and charged-frame
+identity. Then replay (1) the original physical prefix with only its current
+fit's reference removed, and (2) the exact frozen interruption with the
+ordinary reference restored. Use the original declared search seed, ceiling,
+and first-completion API. Verify retained geometry and the full first-impact
+state window. This changes no cut, local target, candidate basis, source
+selection, suffix budget, or acceptance criterion. Preserve the previous
+results as confounded evidence; do not silently overwrite them. No old local
+failure is reopened by this interface repair.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

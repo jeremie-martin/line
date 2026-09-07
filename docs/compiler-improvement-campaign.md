@@ -123,6 +123,19 @@ refitting alone is not the next mechanism. The audit costs 250,876 frames and
 a distinct physical transition, reviewed against prior closures and frozen on
 a new discovery cohort. The headline remains **607.2582**.
 
+The next tranche tests a rider-scaled gap inside the native solid carrier,
+preserving the catch and using the original curve for recapture. Fresh seed
+260907001 produces 44 valid, exact captures and all 4,056 selected fits in one
+search per source. Of 88 frozen cuts, 22 pass exact admission and preserve the
+catch prefix; all exhibit free support then recapture, and four meet the local
+impact-gain threshold. Their initial ordinary suffix comparisons expose an
+interface defect: direct admission omits the `ref` that normal sampling adds
+for later catch reuse. The changed prefixes therefore lost a continuation
+capability retained by the controls. A fixed metadata correction and an
+unchanged-geometry reference-removal control are declared for all 22 states.
+The older authored-output assay has this same continuation confound, though
+its independently failed local useful-gain gate remains decisive.
+
 ## Prior evidence
 
 The full pre-restart campaign log is preserved byte-for-byte in

@@ -81,7 +81,10 @@ function worker(source: any, plan: any, planSha256: string): void {
     counts[axis] = (counts[axis] ?? 0) + 1;
     totalSse[axis] = (totalSse[axis] ?? 0) + a.error ** 2;
   }
-  const value = (sse: Record<string, number>) => Object.keys(counts).reduce((s, a) => s + weights[a] * Math.sqrt(Math.max(0, sse[a]) / counts[a]), 0);
+  // The fixed scorer takes the square root AFTER combining per-axis MSEs.
+  // Combining per-axis RMSs instead would underweight a large remaining error.
+  const value = (sse: Record<string, number>) => Math.sqrt(Object.keys(counts)
+    .reduce((s, a) => s + weights[a] * Math.max(0, sse[a]) / counts[a], 0));
   const nextFor = (i: number) => ctx.gaps.slice(i + 1).find((g: any) => g.endsWithContact);
   const endFor = (i: number) => nextFor(i)?.endFrame - 2 || track.duration;
   const local = (engine: any, i: number, lines: TrackLine[]) => {
@@ -203,7 +206,7 @@ function worker(source: any, plan: any, planSha256: string): void {
       const ranked = pool.filter(n => !n.original).sort((a, b) => a.value - b.value || a.id - b.id);
       // Preserve alternative parent histories before filling with siblings.
       const selected: Node[] = [], selectedParents = new Set<number>();
-      for (const n of ranked) if (!selectedParents.has(n.parent) && selected.length < plan.width - 1) {
+      for (const n of ranked) if (plan.selection === "parent" && !selectedParents.has(n.parent) && selected.length < plan.width - 1) {
         selected.push(n); selectedParents.add(n.parent);
       }
       for (const n of ranked) if (selected.length < plan.width - 1 && !selected.includes(n)) selected.push(n);
@@ -214,7 +217,11 @@ function worker(source: any, plan: any, planSha256: string): void {
     const completions: any[] = [];
     for (const n of beam) {
       const measured = scoreFits(n.engine, n.fits);
-      completions.push({ id: n.id, original: n.original, score: measured.score });
+      const realizedSse = Object.fromEntries(Object.keys(counts).map(axis => [axis,
+        measured.report.gaps.reduce((sum, g) => sum + (g.axes[axis as keyof typeof g.axes]?.error ?? 0) ** 2, 0)]));
+      completions.push({ id: n.id, original: n.original, score: measured.score,
+        estimatedSse: n.sse, realizedSse,
+        maxSseDifference: Math.max(...Object.keys(counts).map(a => Math.abs(n.sse[a] - realizedSse[a]))) });
       if (measured.score.valid && measured.score.score > winner.score.score) {
         const actions: any[] = []; let at = n.id;
         while (nodes.has(at)) { const item = nodes.get(at); actions.push({ gap: item.gap, action: item.action }); at = item.parent; }
@@ -252,6 +259,7 @@ if (process.argv.includes("--plan")) {
   write(planPath, { schema: "line.whole-track-planner-plan.v1", implementation, engineHash, suiteHash,
     candidateFingerprint: baseline.candidate_fingerprint, researchOnly: true, input, width,
     materials: arg("materials") !== "off", programs: arg("programs") !== "off", preview: arg("preview") !== "off",
+    selection: arg("selection") ?? "parent",
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

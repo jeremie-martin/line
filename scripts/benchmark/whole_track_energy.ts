@@ -91,7 +91,7 @@ function worker(source: any, plan: any, planSha256: string): void {
         fits.push({ ...original, lines }); allLines.push(...lines);
         engine = engine.addLine(lines.map(createLineFromJson));
       }
-      const det = detect(extractRawTrajectory(engine, ctx.durationFrames));
+      const det = detect(extractRawTrajectory(engine, track.duration));
       const report = buildDriftReport(det, spec, ctx.gaps, ctx.allContactFrames, ctx.durationFrames,
         [], fits, ctx.gapAxisTargets);
       const score = scoreV2Report(report, spec.contacts.length, contract, suite);
@@ -103,9 +103,9 @@ function worker(source: any, plan: any, planSha256: string): void {
 
   const zero: CatchControl[] = originals.map(() => ({ energy: 0, turn: 0, logScale: 0 }));
   const neutral = evaluate(zero, "similarity");
-  if (!neutral.score?.valid || neutral.score.score !== originalScore.score || lineKey(neutral.track.lines) !== lineKey(track.lines) ||
-      JSON.stringify(neutral.report.contacts) !== JSON.stringify(savedReport.contacts) ||
-      JSON.stringify(neutral.report.gaps) !== JSON.stringify(savedReport.gaps)) throw new Error("neutral full-track replay mismatch");
+  if (!neutral.score?.valid || JSON.stringify(neutral.score) !== JSON.stringify(originalScore) ||
+      lineKey(neutral.track.lines) !== lineKey(track.lines) ||
+      JSON.stringify(neutral.report) !== JSON.stringify(savedReport)) throw new Error("neutral full-track replay mismatch");
   const anchors = savedReport.gaps.filter((g: any) => originals[g.gap_index]?.lines.some((l: any) => l.type !== 2))
     .map((g: any) => ({ index: g.gap_index, loss: Object.entries(g.axes).reduce((s, [axis, a]: [string, any]) =>
       s + ((benchmarkPolicy.componentWeights as any)[axis] ?? 0) * a.error * a.error, 0) }))

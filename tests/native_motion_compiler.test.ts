@@ -16,7 +16,8 @@ it("physically completes a final-frame contact and preserves deterministic compi
   const manual = compileHandoff({ ...spec, start: { vx: 4.5, vy: 0, y: -160 } }, 18, { budget: 25000 });
   expect(manual.track.startPosition).toEqual({ x: 0, y: -160 });
   expect(manual.track.riders[0].startVelocity).toEqual({ x: 4.5, y: 0 });
-  const repeated = compileHandoff(spec, 17, { budget: 25000, budgetTelemetry: "off" });
+  const repeated = compileHandoff(spec, 17, { budget: 25000, budgetTelemetry: "off",
+    searchPolicyBudget: undefined, repairBudget: undefined, resumePolicy: undefined });
   expect(repeated.track).toEqual(first.track);
   expect(repeated.report).toEqual(first.report);
   expect(repeated.stats.sim_frames).toBe(first.stats.sim_frames);

@@ -1825,7 +1825,7 @@ export function compileHandoff(
   // The native controller accepts the ordinary authored motion surface. Legacy
   // diagnostics and other axes continue through their existing implementation.
   if (process.env.LR_NATIVE_MOTION !== "0" && (process.env.LR_ENGINE ?? "wasm") === "wasm" &&
-      Object.keys(opts).every(key => key === "budget" || key === "budgetTelemetry") &&
+      Object.entries(opts).every(([key, value]) => value === undefined || key === "budget" || key === "budgetTelemetry") &&
       Object.keys(userSpec.axes).every(axis => ["air", "speed", "amplitude"].includes(axis)) &&
       userSpec.contacts.length > 0 && userSpec.contacts.every(c => Math.round(c.t * FPS) >= 6) &&
       opts.budget > 4 * (Math.round(userSpec.duration * FPS) + OUTPUT_TAIL_PAD_FRAMES)) {

@@ -693,3 +693,22 @@ hard budgets, timing tolerance, and compiler identity. The new public route
 handles ordinary air/speed/amplitude requests. Existing diagnostic options and
 other axes retain their existing compiler path. No benchmark or judge bytes
 have been changed.
+
+
+The first governed comparison accepts at N=8: **761.9107**, paired **+154.6787**
+(SE 0.9294), 352/352 valid, with no validity losses. Candidate
+`b646bfbd93561cfac4915e1af56de339419c28ede6340e8cce0ad2ab9c3e760a`;
+comparison `generated/benchmark-v2/eval/native-motion-2026-09-07.json.comparison.json`.
+All four strata improve. This artifact is retained, not promoted yet.
+
+Before running the standing lower-budget comparison, inspection finds that its
+adapter passes undefined diagnostic keys. The new public dispatch mistakenly
+classified those absent values as requested diagnostics and selected the legacy
+path. The fix treats undefined options as absent; the repeated-compilation test
+now exercises that exact caller shape and requires track/report/frame parity.
+The final compiler will receive its own governed comparison. The standing
+250k reading measures this corrected compiler against the still-promoted old
+baseline; its complete artifacts can be re-reported after the final evaluation
+without duplicating either arm. Canonical preparation also required restoring
+44 generated click WAVs; every restored byte hash matches the existing approved
+review, whose contents remain unchanged.

@@ -47,8 +47,9 @@ full metadata in one search per source, removing an earlier duplicate capture.
 | Interrupted support with native recapture | 22 exact-prefix admissions; four useful local gains in two physical states; 0 useful complete-track gains | Closed; immediate next-air debt dominates |
 | State-matched return surface | 21 causal continuations, 20 valid; partial support recovery removes the useful impact gain | Closed; tranche 2 complete |
 
-The first tranche's detailed experiments total roughly 94 million replay
-frames before observation captures. The second cohort costs 35,493,049
+The first tranche's physical experiments and continuation preflights total
+about 114 million physics frames, excluding observation searches. The second
+cohort costs 35,493,049
 search/control/replay frames and 1,180.43 summed worker seconds. Its interrupted
 support assay costs 6,312,055 frames / 204.18 worker seconds; metadata fidelity
 correction costs 9,292,451 / 290.92; state-matched recapture costs

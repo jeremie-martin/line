@@ -304,3 +304,50 @@ initial capture packet and are judged through the following interval. Unlike a
 single flow-facing full-sled membrane, they can apply different turning actions
 at different phases and be followed by the new multi-contact planner. This is
 a new tested formulation, not a claim that earlier membrane failures were wrong.
+
+
+The single-pulse pilot (`4766e260`) and paired-pulse pilot (`7d594655`) are
+complete. All four sources improve and replay exactly. Pair geometry observes
+the state produced by its first pulse before placing its second, and requires
+that second geometry preserve the complete packet through H+3. It changes
+ordinary geometry; no state is forced or reset.
+
+| Output directory | Mean source gain | Best source gain | Frames | Worker seconds |
+|---|---:|---:|---:|---:|
+| `planner-pulse-pilot` | 8.0924 | 28.9751 | 11,379,887 | 80.37 |
+| `planner-pulse-pair-pilot` | 10.6301 | 28.9751 | 13,226,022 | 101.01 |
+
+The transition case rises by 12.8601 with pairs, versus 2.7093 with single
+pulses. Its winner changes 56 of 91 catches, including five single pulses and
+four pairs. Impact RMS falls 0.1663 → 0.1370, while air worsens 0.0644 → 0.0712
+and speed worsens 0.0756 → 0.1019. These are real whole-track tradeoffs: the
+impact improvement outweighs the added debt in the unchanged final score.
+Among all locally admitted transition-case pulse trials, 6,064 single pulses
+make a scored-window sled contact and 114 do not; 1,221 pairs engage both
+pulses and one engages only one. The mechanism is physically active.
+
+The paired planner is now running on all 44 verified outputs of
+`planner-target-discovery-pass2`, preserving that 611.4610 offline incumbent.
+This tests whether the contact-level authority composes across the suite.
+A subsequent energy-control direction can address the observed speed cost,
+using support after the impact window rather than changing the score or
+relabeling a loss as progress.
+
+
+The 44-source paired-contact pass completed: **611.4610 → 616.1740**, cumulative
+**+8.7048** over the captured discovery aggregate. All 44 tracks remain valid;
+42 improve further. Incremental gains include Rising Switch +51.3530,
+Open Hook amplitude variant +27.3305, Countercurrent impact variant +16.1567,
+impact Believer amplitude variant +14.8277, and delayed Loose Pocket +14.5315.
+This is broader evidence for composed physical contacts, still additional
+research compute. Cost: 143,012,318 frames and 1099.47
+summed worker seconds. Plan SHA-256 is
+`f45c8ca90e78caa16391ee49ece8c408f5155c16e6a0ce96ad45610a80ac44ff`. The original 750k benchmark headline remains 607.2582.
+
+The next pass continues from these 44 verified tracks. A parallel panel tests
+native energy on support unused through H+6. The material proposal is admitted
+only if it reproduces the complete articulated H+6 packet of its unmodified
+candidate, preserving the realized impact while attempting to recover outgoing
+speed. It is generated for an incumbent or pulse candidate whose measured next
+speed misses its target. Both future acceleration and braking are available;
+the signed measured residual selects the direction.

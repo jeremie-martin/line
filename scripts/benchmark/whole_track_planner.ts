@@ -298,6 +298,21 @@ function worker(source: any, plan: any, planSha256: string): void {
           if (!measured.valid && !candidate.original) {
             failures[measured.reason!] = (failures[measured.reason!] ?? 0) + 1; continue;
           }
+          if (plan.tailEnergy && (candidate.original || candidate.action.family.startsWith("contact_pulse")) &&
+              measured.valid && measured.preview && gap.endFrame + 6 < endFor(i)) {
+            const next = nextFor(i), target = next?.targets.speed, achieved = measured.preview.speed;
+            if (target !== undefined && achieved !== undefined && Math.abs(target - achieved) > 0.01) {
+              const used = new Set<number>();
+              for (let f = Math.max(0, gap.endFrame - 2); f <= gap.endFrame + 6; f++) {
+                for (const update of child.getUpdatesAtFrame(f)) if (update.type === "CollisionUpdate") used.add(update.id);
+              }
+              const direction = target > achieved ? 1 : -1;
+              const energized = lines.map(l => used.has(l.id) ? { ...l } : setCatchEnergy([l], actual.velocity, direction)[0]);
+              if (lineKey(energized) !== key) candidates.push({ lines: energized,
+                preserve: { frame: gap.endFrame + 6, packet: packetAt(child, gap.endFrame + 6) },
+                action: { family: "tail_energy", direction, base: candidate.action } });
+            }
+          }
           validTrials++;
           const sse = { ...parent.sse };
           const originalGap = savedReport.gaps.find((g: any) => g.gap_index === i);
@@ -435,6 +450,7 @@ if (process.argv.includes("--plan")) {
     nativeDraws: Number(arg("native-draws") ?? 0), stateDistance: Number(arg("state-distance") ?? 0.01),
     pulses: arg("pulses") === "on",
     pulsePairs: arg("pulse-pairs") === "on",
+    tailEnergy: arg("tail-energy") === "on",
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

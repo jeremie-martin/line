@@ -60,6 +60,9 @@ tracks, with exact baseline replay and every failed suffix retained:
 | Fixed step-halving, 504 trials | Derivatives converge; largest valid gain is only 0.02134 track points | 1,992,335 / 8.04 |
 | Same-horizon contact-pair response | 15/78 complete tracks survive versus 13/78 controls; largest gain 0.00769 | 7,829,542 / 46.76 |
 | Directional precision audit, 156 frozen directions | Both derivative cancellation error and nonlinear curvature explain the optimistic release prediction | 1,233,012 / 5.45 |
+| Precision-controlled correction | Pair passes its local component gate: 46/78 tenfold residual reductions; 18 changed positive tracks versus 6 shams | 26,178,361 / 146.86 |
+| Useful-gain continuation | 0/78 meet the useful-gain/full-score gate; largest valid gain 0.04672 track points | 52,051,618 / 277.04 |
+| Whole-track unit translation | Only 2/176 remain valid; spatial translation is not a safe engine-level invariant | 521,280 / 1.90 |
 
 The pair halves actual release motion (paired median ratio 0.480), but both
 arms have negative valid-only score sums. Its tiny predicted downstream
@@ -68,19 +71,21 @@ residual is also numerically unreliable: median predicted constraint norm
 Small directional stencils agree to a median 1.56e−8, establishing that this
 mismatch is measurable. Finite-step curvature contributes additional error.
 
-All four response studies spend zero compiler searches. Five mathematical
-solver invariants, the exact baseline checks, all 156 repeated unit-command
-release checks, and generated checksum verification pass. Repository type
-checking still has unrelated existing errors. No response implementation has
-earned integration, validation, or a governed experiment; the accepted headline
-remains **607.2582**.
+The numerical corrector resolves a real local defect but fails at useful gain.
+The fixed absolute-state continuation version is closed without another radius,
+iteration, or source walk. All studies above spend zero compiler searches.
+Exact baseline and same-cost sham checks pass. Repository type checking still
+has unrelated existing errors. No source-default candidate has earned a
+validation or governed experiment; the headline remains **607.2582**.
 
-Next: freeze a precision-controlled local corrector with actual residual
-acceptance and a finite iteration cap. It must first preserve the existing
-small impulse gain while removing release error on the same states. Failure
-closes this numerical route for the tranche; success still needs useful-gain
-and compute-cost evidence before integration. No further geometric dose walk
-or additional contact surface is authorized by these results.
+A residual projection then identified common position shift as a substantial
+constraint component: removing it leaves a paired median norm ratio of 0.300.
+However, a premise audit found that even translating an entire unchanged track
+and its start by one pixel usually breaks it in the frozen engine. The older
+position-only suffix-swap failure stays closed. Next: test whole-cell (14px)
+translations to distinguish grid-phase ordering from arithmetic sensitivity,
+before considering a join that matches relative articulated state. No engine
+or evaluator mutation is licensed by this diagnostic.
 
 ## Prior evidence
 

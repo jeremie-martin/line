@@ -471,6 +471,67 @@ study. Otherwise close this continuation version without another radius,
 iteration-count, or subset walk. This gate does not declare a headline gain;
 integration still requires a retained physical effect and measured budget cost.
 
+**Continuation result — closed.** All 44 unmodified baselines again reproduce
+every axis and score, and all 78 path/sham costs match exactly. Forty-five
+paths accept at least one stage; 16 changed complete tracks remain valid and
+15 improve their score. None reaches ≥90% of the 25%-deficit request with a
+positive valid complete score, so the useful-gain gate fails. Median delivered
+request fraction is 0.00345. The largest fraction is 0.98923, but that track
+is invalid; the largest valid positive gain is only 0.04672 track points.
+
+Termination is explicit: 38 actual-residual failures, 24 correction trust-region
+failures, nine incompatible predictors, five predictor precision failures,
+one correction precision failure, and one stage cap. The normal-joint pair
+with fixed absolute downstream state is closed for this tranche. Do not tune
+its radius, iteration cap, or source subset. Cost: 52,051,618 physics frames
+including sham, 277.04 summed worker seconds, zero compiler executions. All
+61 JSON checksums verify in
+`generated/benchmark-v2/impact-delivery-650-new/contact-pair-continuation/`;
+plan hash `6595780f02891db8bfa776c54b501c9f3ee253e00bdd75efd6965fa5a63704ca`.
+
+**A different constraint question.** Projecting the retained precision-audit
+release vectors onto the complement of a common x/y translation leaves median
+norm ratios 0.203 for the first-surface arm and 0.300 for the pair. Nineteen
+of the 78 pair residuals lose at least 90% of their norm. This is an algebraic
+diagnostic, not a changed track: absolute position is a substantial part of
+the constraint. Uniform-gravity mechanics permits translation, but the frozen
+engine's spatial collision ordering and floating-point arithmetic must be
+checked before using that property for a suffix join.
+
+The historical release-translation swap (`study_terminal_gap_swap.ts`, recorded
+in `docs/archive/compiler-improvement-log-v1.md`) yielded 0/150 valid swaps.
+It aligned a launch point without matching the complete articulated velocities
+and relative point histories. It stays closed; a new join would have to solve
+those missing state constraints and then demonstrate a real full continuation.
+
+**Translation-invariance audit declaration (before execution).** Replay every
+saved baseline with its start position and all line endpoints shifted together
+by (+1,0), (−1,0), (0,+1), and (0,−1) pixels. Preserve velocity, flags, material,
+order, targets, and the evaluator. Compare all targeted axes, score, and validity
+with each exact unshifted replay. Retain all 176 outcomes; no translation is
+selected for the compiler and no score movement is treated as an improvement.
+This tests the engine/scorer premise of a possible relative-state join, not
+another normal-joint dose or production candidate. If translation is materially
+non-invariant, diagnose it before starting that join.
+
+**Unit-translation result.** Only 2/176 translated baseline tracks are valid;
+none preserves every targeted axis to 1e−9. Every unshifted source still
+reproduces the retained axes and score. The problem is already present when
+the whole initial state and entire track move together, before a suffix join
+exists. Translation cannot be assumed to preserve this frozen engine's
+realized continuation. Cost: 521,280 physics frames, 1.90 worker seconds,
+zero compiler executions. Results are retained with checksums in
+`generated/benchmark-v2/impact-delivery-650-new/translation-invariance/`.
+
+**Grid-period control, declared next.** The unchanged engine uses 14-pixel
+spatial cells and groups collision lines by neighboring cell before line ID
+(`engine-rs/src/grid.rs`, `line.rs`, and `kernel.rs`). Repeat the same four
+whole-track translations at exactly ±14 pixels, which preserves the ideal
+grid phase. This distinguishes the unit shift's cell-phase change from
+arithmetic/branch sensitivity. It remains an invariance diagnostic: no shift
+is selected as a compiler change, no engine fix is allowed, and the relative-
+state join remains unopened pending the result.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

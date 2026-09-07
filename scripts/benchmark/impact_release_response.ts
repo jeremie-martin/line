@@ -152,7 +152,7 @@ function scoreTrack(track: any, record: any): any {
 }
 const norm = (a: number[]) => Math.hypot(...a);
 
-export { read, write, probe, scoreTrack, deform };
+export { read, write, probe, scoreTrack, deform, geometry, state, buildEngine };
 
 function runSource(plan: any, source: any): void {
   const started = performance.now(), frameStart = getPhysicsFrameCount();

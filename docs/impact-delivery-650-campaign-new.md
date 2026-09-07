@@ -276,6 +276,112 @@ Freeze that basis and its complete state selection before intervention results.
 The one-contact amplitude neighborhood and its one-step extrapolation remain
 closed as production candidates.
 
+**Two-contact declaration (before intervention results).** Keep all 88 original
+selections. Mark a selection unavailable if its following contact lacks retained
+solid geometry, a full impact observation before the third contact, or any new
+internal-joint coordinate; do not replace it. Append at most twelve normal-joint
+coordinates from the next surface to the original basis, deduplicating shared
+joints. Both arms observe the complete packet at min(H_next+12, third authored
+contact−2) and constrain the next raw impulse as well as those 60 state values.
+All responses are divided by the first contact's incoming speed.
+
+Compare a first-surface-only conditioned control with a two-surface conditioned
+response using the same 1e−6 ridge. Estimate central derivatives at ±0.001 and
+±0.0005, rejecting columns with changed prefix, either authored contact frame,
+integrity, or more than 25% disagreement in either the full response or first
+impulse derivative. Limit both proposals to 0.001 speed-frame displacement,
+then reduce their linear impulse requests to the smaller attainable gain so
+the comparison has a common request. Retain each arm's uncoupled capacity and
+all failed columns and complete suffix outcomes. Apply one step, without
+refitting or trying another dose. A measured improvement in compensation is a
+mechanism diagnostic; it does not by itself license compiler integration.
+
+Commands: `python scripts/benchmark/impact_pair_solve.py --self-test`, then
+`LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_pair_response.ts
+--plan` and the same program with `--jobs=8`. Two solver invariants check an
+independent compensation direction with equal gain and the explicitly reported
+cost of changing the next impulse. Every source must first reproduce its
+saved complete score and every targeted axis exactly.
+
+**Two-contact result.** All 88 original selections are eligible; 78 have a
+usable direction in both arms. All 44 saved baselines reproduce every targeted
+axis and score. Of 1,450 coordinates, 984 have stable nonzero derivatives,
+248 are unstable, 165 are inactive, and 53 alter contact or prefix. At the
+matched linear gain, the two-surface arm halves median actual release change
+relative to the first-surface control (paired median ratio 0.480), whereas its
+linear model predicts a much larger reduction (paired median ratio 0.093).
+
+| Same-horizon arm | Complete valid / 78 | Positive impulse and complete score | Largest valid track-score gain |
+|---|---:|---:|---:|
+| First surface | 13 | 5 | 0.00638 |
+| Contact pair | 15 | 6 | 0.00769 |
+
+Valid-only score sums are negative in both arms (−8.157 and −6.993); invalid
+tracks are retained, not omitted from the experiment. The first-impulse
+derivative remains accurate (median relative errors 0.255% and 0.128%). The
+pair's median release prediction is 0.00000106 but actual release change is
+0.00021746. Therefore an accurate first-impact derivative does not certify
+the much smaller residual left after cancellation of downstream motion.
+Adding the next surface supplies some independent compensation, but this
+one-step implementation still has no credible economic headroom. Do not
+integrate it or open validation/canonical seeds.
+
+Cost: zero compiler executions, 7,829,542 exact physics frames, 46.76 summed
+worker seconds. Plan SHA-256
+`87e7241aa4ab025e835ad73e20ff5ee311b77c02f10ccd1a9505e0392ad078a8`;
+57 checksummed JSON artifacts (including 11 positive trial tracks) are retained
+in `generated/benchmark-v2/impact-delivery-650-new/contact-pair-response/`.
+The two new solver invariants and three inherited invariants pass. The
+repository type check still fails on existing unrelated errors; neither new
+pair study nor the edited helper has a diagnostic.
+
+**Next diagnostic, declared before execution.** Distinguish finite-difference
+cancellation error from nonlinear curvature using the *unchanged* paired
+directions. For every solved arm, replay plus and minus its command at scales
+0.001 and 0.0005 relative to that command. These are directional derivative
+stencils, not candidate doses: no full-track score, choice among scales, refit,
+or production gain is obtained. Compare the central 61-component response
+with the stored Jacobian-times-command and the actual positive unit-command
+response; report derivative agreement, predicted versus measured small-signal
+norm, and the even-in-command response. This costs no compiler searches and
+decides whether more precise derivatives or nonlinear correction is the next
+justified numerical operation. Do not begin an optimizer while that distinction
+is unresolved.
+
+**Precision diagnostic result.** All 156 frozen directions complete the six
+declared directional replays, with exact reproduction of the earlier positive
+unit-command release norm. One direction per arm changes compatibility under
+at least one signed probe; those outcomes remain in the report. The two small
+central derivatives agree closely: median vector disagreement is 1.38e−8 for
+the first-surface arm and 1.56e−8 for the pair.
+
+For the pair, the median predicted 61-component constraint norm is 1.07e−6,
+but the directly measured infinitesimal directional norm is 8.62e−5. The
+original coordinate-wise derivative approximation was therefore insufficiently
+precise for cancellation, even where it predicted first impact accurately.
+The median norm of its Jacobian-times-command error is 5.13e−5; the median
+finite-step nonlinear remainder is 6.35e−5. Relative to the actual unit-command
+constraint change, the corresponding *paired* median ratios are 0.492 and
+0.671. These vector errors are not scalar additive shares. Both finite-
+difference precision and nonlinear correction matter; neither is licensed to
+be dismissed by choosing a smaller candidate dose.
+
+Cost: 1,233,012 physics frames, 5.45 worker seconds, zero compiler executions
+or new scored candidates. All 46 JSON checksum sidecars are verified in
+`generated/benchmark-v2/impact-delivery-650-new/contact-pair-precision/`.
+This diagnostic leaves the baseline and all validation seeds unchanged.
+
+**Next bounded work.** A precision-controlled local corrector is now justified
+by measured cancellation error and curvature. Its declaration must specify the
+derivative error check, actual residual acceptance test, maximum corrections,
+same-cost control, and full-suffix assessment before execution. Keep the same
+88 selections and ordinary physical states. First establish that it can retain
+the existing small impulse request while actually removing release error;
+do not jump to a large request, add more contact surfaces, or open a compiler
+arm before that test. Failure closes this numerical response route for the
+current tranche. Success still needs a separately measured useful-gain and
+compute-cost case; microscopic continuation alone cannot supply 650.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

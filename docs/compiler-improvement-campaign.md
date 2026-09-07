@@ -51,26 +51,36 @@ tracks and frame decompositions are retained for a release-state-constrained
 physical response study. The baseline remains 607.2582; no governed candidate
 experiment or promotion has occurred in this restart.
 
-The first release-state-conditioned response assay reuses 88 contacts from
-those saved tracks and spends no compiler searches. Both the impulse-only
-control and the release-conditioned one-step proposal produce zero valid full
-suffixes. The conditioned release prediction is poor (mean normalized L2
-0.0906 predicted versus 0.9208 actual), so this closes the large one-step
-implementation without proving physical impossibility. Cost: 4,326,539 exact
-replay frames, 30.37 summed worker seconds. Next: check the same directions at
-the measured derivative scale before considering a numerical continuation
-method. The 607.2582 baseline remains unchanged.
+The physical response experiments reuse 88 selected contacts from those saved
+tracks, with exact baseline replay and every failed suffix retained:
 
-The subsequent fixed step-halving audit completed 504 full-track replays. The
-small-step derivatives converge accurately. Release conditioning preserves
-7/13/18 of 84 complete tracks at the three declared scales; the unconstrained
-control preserves 1/4/7 and improves none. Conditioned positive trials gain at
-most 0.02134 track points. This confirms a real local compensation effect but
-does not support integration or a governed benchmark. Cost: 1,992,335 physics
-frames, 8.04 worker seconds, no compiler searches. Next: test whether controlling
-the following existing contact adds an independent compensation direction,
-with both arms observed at the same final state. Retain all negative outcomes
-and avoid another one-contact dose or ranker walk.
+| Experiment | Decisive result | Physics frames / worker seconds |
+|---|---|---:|
+| One-contact large linear step | Neither arm preserves any full suffix; release extrapolation is inaccurate | 4,326,539 / 30.37 |
+| Fixed step-halving, 504 trials | Derivatives converge; largest valid gain is only 0.02134 track points | 1,992,335 / 8.04 |
+| Same-horizon contact-pair response | 15/78 complete tracks survive versus 13/78 controls; largest gain 0.00769 | 7,829,542 / 46.76 |
+| Directional precision audit, 156 frozen directions | Both derivative cancellation error and nonlinear curvature explain the optimistic release prediction | 1,233,012 / 5.45 |
+
+The pair halves actual release motion (paired median ratio 0.480), but both
+arms have negative valid-only score sums. Its tiny predicted downstream
+residual is also numerically unreliable: median predicted constraint norm
+1.07e−6 versus directly measured infinitesimal directional norm 8.62e−5.
+Small directional stencils agree to a median 1.56e−8, establishing that this
+mismatch is measurable. Finite-step curvature contributes additional error.
+
+All four response studies spend zero compiler searches. Five mathematical
+solver invariants, the exact baseline checks, all 156 repeated unit-command
+release checks, and generated checksum verification pass. Repository type
+checking still has unrelated existing errors. No response implementation has
+earned integration, validation, or a governed experiment; the accepted headline
+remains **607.2582**.
+
+Next: freeze a precision-controlled local corrector with actual residual
+acceptance and a finite iteration cap. It must first preserve the existing
+small impulse gain while removing release error on the same states. Failure
+closes this numerical route for the tranche; success still needs useful-gain
+and compute-cost evidence before integration. No further geometric dose walk
+or additional contact surface is authorized by these results.
 
 ## Prior evidence
 

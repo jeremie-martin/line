@@ -803,6 +803,21 @@ complete track against both ordinary control and the original incumbent.
 Report local, control, suffix, and metadata-capture costs separately. No source-
 default integration or validation is opened before this component evidence.
 
+**Fresh cohort result.** All 44 source runs are valid on seed 260907001.
+All 4,056 selected fits match final geometry and every targeted axis; both
+observer-free controls match track, report, and charged frames. Captured
+winning metadata reproduces all 44 tracks, reports, and scores through the
+ordinary snapshot API. Capture costs 33,769,564 search frames, controls
+1,514,973, replay 104,256, and the full census 104,256; total 1,180.43 summed
+worker seconds. The snapshot and every authored target remain unchanged.
+Artifacts are checksummed under
+`generated/benchmark-v2/impact-delivery-650-new/interrupted-support-capture/`.
+Request SHA-256:
+`ac956463153f0ba50692110a8fc77cf369c8d3632c2d6827dc3c2a7c2ace2272`;
+implementation is pinned in `c45c1ee7`. Three geometry invariants verify the
+cut's body-span-plus-speed width, exposure flags, preserved outside pieces,
+monotone IDs, and rejection at the carrier's terminal boundaries.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

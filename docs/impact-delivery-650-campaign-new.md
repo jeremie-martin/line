@@ -220,6 +220,62 @@ No generated archive is committed. Three mathematical invariant checks and all
 44 exact baseline replay checks pass; the existing repository type errors do
 not include either new study file.
 
+**Step-halving diagnostic, declared before its results.** Retain every solved
+direction from Stage 2 unchanged and test maximum coordinate magnitudes
+0.001, 0.0005, and 0.00025: at and below the scale used to estimate the
+derivatives. Compare predicted/actual impulse derivatives, release norms,
+exact prefix, and complete suffix at each fixed scale. This is a convergence
+and tolerance diagnostic, not selection of a smaller production dose. No
+direction is refitted, no source is replaced, and no best-of-three score is
+reported as a compiler gain. If a stable region exists, it can justify a
+separately frozen numerical continuation method; if not, normal-joint response
+is not an identifiable local control on this evidence. A surviving tiny change
+alone does not establish enough headroom for 650.
+
+**Step-halving result.** All 504 declared full-track trials completed. The
+impact derivative is accurate at the measured scale: median relative error at
+0.001 is 0.15% for the unconstrained control and 0.66% for the conditioned
+direction, falling to 0.04% and 0.17% at 0.00025. Thus the first experiment's
+large-step failure was not evidence that the infinitesimal derivative was
+wrong. Conditioning does reduce actual release change and preserves more
+complete suffixes, but the usable effect is tiny:
+
+| Arm | Maximum joint step / entering speed | Valid complete tracks / 84 | Positive impulse and complete score | Largest valid track-score gain |
+|---|---:|---:|---:|---:|
+| Impulse-only | 0.001 | 1 | 0 | 0 |
+| Impulse-only | 0.0005 | 4 | 0 | 0 |
+| Impulse-only | 0.00025 | 7 | 0 | 0 |
+| Release-conditioned | 0.001 | 7 | 5 | 0.02134 |
+| Release-conditioned | 0.0005 | 13 | 7 | 0.01179 |
+| Release-conditioned | 0.00025 | 18 | 7 | 0.00958 |
+
+At 0.001 the conditioned median normalized release L2 is 0.000239, versus
+0.009195 for the unconstrained direction. Nineteen positive trial tracks are
+retained across the three scales; they are correlated observations, not
+nineteen independent successes. Valid-only sums at the two smaller scales are
+negative, and invalid tracks remain present in every report. No dose was
+selected for integration. There is still no credible 43-point route from this
+one-contact basis, and no governed look or validation seed is spent on it.
+
+Cost: zero compiler executions, 1,992,335 exact physics frames, 8.04 worker
+seconds. Outputs and all 65 JSON checksum sidecars are retained in
+`generated/benchmark-v2/impact-delivery-650-new/release-linearity/`. The original
+one-step implementation is pinned by commit `89a3a406`; the subsequent helper
+export enables the separate step-halving program without rewriting its results.
+The three new study scripts have no diagnostics in the repository TypeScript
+check; its pre-existing unrelated failures remain.
+
+**Next causal question.** Can the following authored contact absorb the first
+contact's state change? Test a bounded two-contact response using the already
+saved passive surfaces and compare it with a one-contact control at the same
+final observation frame. Preserve authored timing, targets, ordinary physical
+state, and the untouched suffix; add no general trajectory planner. Measure
+whether the second surface introduces a useful independent compensation
+direction before paying for nonlinear optimization or compiler integration.
+Freeze that basis and its complete state selection before intervention results.
+The one-contact amplitude neighborhood and its one-step extrapolation remain
+closed as production candidates.
+
 ```bash
 python scripts/benchmark/impact_release_solve.py --self-test
 LR_ENGINE=wasm node --import tsx scripts/benchmark/impact_release_response.ts --plan

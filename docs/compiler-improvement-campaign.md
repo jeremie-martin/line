@@ -61,6 +61,17 @@ replay frames, 30.37 summed worker seconds. Next: check the same directions at
 the measured derivative scale before considering a numerical continuation
 method. The 607.2582 baseline remains unchanged.
 
+The subsequent fixed step-halving audit completed 504 full-track replays. The
+small-step derivatives converge accurately. Release conditioning preserves
+7/13/18 of 84 complete tracks at the three declared scales; the unconstrained
+control preserves 1/4/7 and improves none. Conditioned positive trials gain at
+most 0.02134 track points. This confirms a real local compensation effect but
+does not support integration or a governed benchmark. Cost: 1,992,335 physics
+frames, 8.04 worker seconds, no compiler searches. Next: test whether controlling
+the following existing contact adds an independent compensation direction,
+with both arms observed at the same final state. Retain all negative outcomes
+and avoid another one-contact dose or ranker walk.
+
 ## Prior evidence
 
 The full pre-restart campaign log is preserved byte-for-byte in

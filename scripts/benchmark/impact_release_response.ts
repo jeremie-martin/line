@@ -152,6 +152,8 @@ function scoreTrack(track: any, record: any): any {
 }
 const norm = (a: number[]) => Math.hypot(...a);
 
+export { read, write, probe, scoreTrack, deform };
+
 function runSource(plan: any, source: any): void {
   const started = performance.now(), frameStart = getPhysicsFrameCount();
   const record = read(resolve(input, `${source.sourceId}.json`)), track = read(resolve(input, `${source.sourceId}.track.json`));
@@ -228,6 +230,7 @@ function runSource(plan: any, source: any): void {
     physicsFrames: getPhysicsFrameCount() - frameStart, elapsedMs: performance.now() - started });
 }
 
+if (resolve(process.argv[1] ?? "") === script) {
 if (process.argv.includes("--plan")) {
   const path = resolve(out, "plan.json");
   if (existsSync(path)) throw new Error("plan already exists; retain it instead of replacing a frozen experiment");
@@ -282,4 +285,5 @@ if (process.argv.includes("--plan")) {
       })) };
     write(resolve(out, "summary.json"), summary); console.log(JSON.stringify(summary, null, 2));
   }
+}
 }

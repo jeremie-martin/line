@@ -88,13 +88,23 @@ branch differences, with much earlier material state jumps under unit shifts
 than under whole-cell shifts. An unchanged geometric suffix is therefore a
 fragile continuation test; no translation join or engine change is justified.
 
-Next: capture exact winning-fit metadata from the promoted snapshot, requiring
-identity with every retained discovery track, score, and compile cost. Prove
-unmodified replay through ordinary continuation before declaring a paired
-reconstruction assay for the existing frozen nonlinear paths. That task keeps
-authored targets intact and measures actual continuation cost. The historical
-guided-rebuild setup clamps impact and must not be copied. No geometry retune,
-source selection, validation seed, or governed run is opened.
+Exact winning metadata is now captured for all 44 discovery tracks. Ordinary
+snapshot replay reproduces every track, report, score, and original search cost;
+all 4,056 winning fits also pass ordinary direct admission without any changed
+geometry or targeted axis. Capture cost 33,759,592 search frames; corrected
+replay and admission cost 384,415 frames. A serialized-spec preflight mistakenly
+lost executable axis functions; its failed results are quarantined, and the
+corrected replay reloads live authored specs without repeating any search.
+
+The old frozen continuation paths can meet the useful local gain in only 2/78
+states even with a perfect suffix. That upper bound closes the proposed suffix
+rebuild grid before spending its compute. The second physical objective is
+declared: reduce current/next authored output error through exact admission,
+then run paired ordinary suffix continuations. It keeps all 88 original pairs,
+one precision-checked initial Jacobian, and at most twelve bounded secant
+updates with no retries. Only valid complete gains against both ordinary
+continuation and the original incumbent can justify integration work. The
+historical target-clamping setup is excluded. Validation seeds remain unopened.
 
 ## Prior evidence
 

@@ -62,7 +62,7 @@ function worker(sourceId: string): void {
       const admitted = tryCandidateLines(entry.prefixEngine, gap, original.lines, entry.prefixNextLineId,
         ctx.allContactFrames, axisLookaheadEndFrame(gap, ctx.allContactFrames), gap.targets, true,
         "normal", probe.preTargetSledTrace, { allowRideOutPolish: false });
-      const differences = Object.keys(ctx.gapAxisTargets[index]).map(axis => ({ axis,
+      const differences = (Object.keys(ctx.gapAxisTargets[index]) as Array<keyof NonNullable<typeof admitted>["achieved"]>).map(axis => ({ axis,
         original: original.achieved[axis] ?? null, admitted: admitted?.achieved[axis] ?? null,
         exact: admitted?.achieved[axis] === original.achieved[axis] }));
       rows.push({ gapIndex: index, admitted: admitted !== null,

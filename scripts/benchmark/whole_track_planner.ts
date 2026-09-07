@@ -12,7 +12,7 @@ import { applyJolt } from "../produce/seed.ts";
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { disposeAllWasmEnginesForStudy } from "../lib/_lr_engine_wasm.ts";
 import { detect, extractRawTrajectory, getRiderMetered, getPhysicsFrameCount } from "../lib/detector.ts";
-import { buildDriftReport, findAuthoredContactNearFrame } from "../v0/core/substrate.ts";
+import { buildDriftReport, findAuthoredContactNearFrame, contactLineIdsAt } from "../v0/core/substrate.ts";
 import { detectWindow } from "../v0/core/candidate.ts";
 import { measureGapAxes } from "../v0/core/measure.ts";
 import { readTargetStateFromRider, sampleArcPlacementGeometry } from "../v0/arc_placement.ts";
@@ -125,6 +125,8 @@ function worker(source: any, plan: any, planSha256: string): void {
     return { valid: det.terminus.reason === "endOfSpec" && !!event && offbeat.length === 0,
       reason: det.terminus.reason !== "endOfSpec" ? det.terminus.reason : !event ? "missed_contact" : offbeat.length ? "offbeat" : null,
       achieved: measureGapAxes(det, gap, lines, gap.endFrame),
+      impactLineIds: plan.pulses ? [...new Set(Array.from({ length: Math.max(0, Math.min(7, end - gap.endFrame + 1)) },
+        (_, k) => contactLineIdsAt(det, gap.endFrame + k)).flat())] : undefined,
       preview: next && det.terminus.reason === "endOfSpec" ? measureGapAxes(det, next, [], end) : null };
   };
   let winner: any, calibrationFrames = 0;
@@ -192,6 +194,19 @@ function worker(source: any, plan: any, planSha256: string): void {
                 const pulse = contactPulse(point, normalTurn, depth, Math.max(4, actual.speed * 0.6), idStart + seedLines.length);
                 candidates.push({ lines: [...seedLines, pulse], preserve,
                   action: { family: "contact_pulse", phase, pointId, normalTurn, depth } });
+                if (plan.pulsePairs && phase === 2 && gap.endFrame + 4 < endFor(i)) {
+                  const firstEngine = seedEngine.addLine(createLineFromJson(pulse));
+                  if (packetAt(firstEngine, gap.endFrame) !== preserve.packet) continue;
+                  const later = getRiderMetered(firstEngine, gap.endFrame + 4).ballisticState();
+                  if (!later.riderMounted || !later.sledIntact) continue;
+                  const pairPreserve = { frame: gap.endFrame + 3, packet: packetAt(firstEngine, gap.endFrame + 3) };
+                  for (const secondPoint of ["TAIL", "NOSE"]) for (const ratio of [0.5, 1, 1.5]) {
+                    const second = contactPulse(later.points[secondPoint], -normalTurn, depth * ratio,
+                      Math.max(4, actual.speed * 0.6), idStart + seedLines.length + 1);
+                    candidates.push({ lines: [...seedLines, pulse, second], preserve: pairPreserve,
+                      action: { family: "contact_pulse_pair", phase, pointId, normalTurn, depth, secondPoint, ratio } });
+                  }
+                }
               }
             }
           }
@@ -338,7 +353,10 @@ function worker(source: any, plan: any, planSha256: string): void {
           }
           pool.push(node);
           stepTrials.push({ id: node.id, parent: node.parent, action: node.action, value: node.value,
-            future: plan.lookahead === 2 ? future : undefined, original: node.original });
+            future: plan.lookahead === 2 ? future : undefined, original: node.original,
+            achieved: plan.pulses ? measured.achieved : undefined,
+            pulseContacts: candidate.action.family.startsWith("contact_pulse")
+              ? lines.slice(candidate.action.family === "contact_pulse_pair" ? -2 : -1).map(l => measured.impactLineIds?.includes(l.id)) : undefined });
         }
       }
       const original = pool.find(n => n.original);
@@ -416,6 +434,7 @@ if (process.argv.includes("--plan")) {
     reuse: Number(arg("reuse") ?? 0),
     nativeDraws: Number(arg("native-draws") ?? 0), stateDistance: Number(arg("state-distance") ?? 0.01),
     pulses: arg("pulses") === "on",
+    pulsePairs: arg("pulse-pairs") === "on",
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

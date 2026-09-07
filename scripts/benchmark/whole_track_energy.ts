@@ -162,7 +162,7 @@ if (process.argv.includes("--plan")) {
     }) }));
   write(planPath, { schema: "line.whole-track-energy-plan.v1", implementation, engineHash,
     candidateFingerprint: baseline.candidate_fingerprint, suiteSha256: hash(readFileSync("benchmark/v2/compat/suite-manifest.json")),
-    researchOnly: true, input, modes: ["fixed", "translate", "similarity"], family: arg("family") ?? "energy",
+    researchOnly: true, input, modes: arg("modes")?.split(",") ?? ["fixed", "translate", "similarity"], family: arg("family") ?? "energy",
     anchors: Number(arg("anchors") ?? 16), rounds: Number(arg("rounds") ?? 1),
     law: "greedy full-valid-track improvement; native forward/braking material on one catch or opposing adjacent pair; exact causal downstream translation/similarity; saved incumbent retained",
     sources });

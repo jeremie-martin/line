@@ -6,7 +6,7 @@ describe("whole-track physical controls", () => {
     flipped: false, leftExtended: true, rightExtended: false };
   const frame = { sledX: 1.3, sledY: 2.8, speed: 5, angleDeg: 0, velocity: { x: 5, y: 0 } };
   it("preserves byte-identical geometry for a neutral replay in all transports", () => {
-    for (const mode of ["fixed", "translate", "similarity"] as const) {
+    for (const mode of ["fixed", "translate", "similarity", "restore"] as const) {
       expect(JSON.stringify(transportCatch([line], frame, { ...frame }, mode))).toBe(JSON.stringify([line]));
     }
     expect(setCatchEnergy([line], frame.velocity, 0)).toEqual([line]);
@@ -40,5 +40,20 @@ describe("whole-track physical controls", () => {
     const anchor = { ...line, x1: frame.sledX, y1: frame.sledY };
     expect(shapeCatch([anchor], frame, { energy: 0, turn: 0.3, logScale: Math.log(1.2) })[0]).toMatchObject({ x1: frame.sledX, y1: frame.sledY });
     expect(shapeCatch(joined, frame, { energy: 0, turn: 0, logScale: 0 })).toEqual(joined);
+  });
+  it("restores the terminal tangent while matching the entering frame", () => {
+    const chain = Array.from({ length: 5 }, (_, i) => ({ ...line, id: i + 1,
+      x1: i * 10, y1: 0, x2: (i + 1) * 10, y2: 0 }));
+    const original = { ...frame, sledX: 10, sledY: 0 };
+    const actual = { ...original, sledX: 20, sledY: 3, angleDeg: 20, speed: 6 };
+    const moved = transportCatch(chain, original, actual, "restore");
+    expect(moved[0].x2).toBe(actual.sledX);
+    expect(moved[0].y2).toBe(actual.sledY);
+    expect(moved[4].x2 - moved[4].x1).toBeCloseTo(10, 12);
+    expect(moved[4].y2 - moved[4].y1).toBeCloseTo(0, 12);
+    for (let i = 0; i < moved.length - 1; i++) {
+      expect(moved[i].x2).toBe(moved[i + 1].x1);
+      expect(moved[i].y2).toBe(moved[i + 1].y1);
+    }
   });
 });

@@ -4,7 +4,7 @@ export type ArrivalFrame = {
   sledX: number; sledY: number; speed: number; angleDeg: number;
   velocity: { x: number; y: number };
 };
-export type TransportMode = "fixed" | "translate" | "similarity";
+export type TransportMode = "fixed" | "translate" | "similarity" | "restore";
 export type CatchControl = { energy: -1 | 0 | 1; turn: number; logScale: number };
 
 /** Continuous catch controls about the measured arrival reference. */
@@ -26,16 +26,41 @@ export function transportCatch(
     (mode === "translate" || (original.speed === actual.speed && original.angleDeg === actual.angleDeg)))) {
     return lines.map(line => ({ ...line }));
   }
-  const angle = mode === "similarity" ? (actual.angleDeg - original.angleDeg) * Math.PI / 180 : 0;
-  const scale = mode === "similarity" && original.speed > 1e-9
+  const angle = mode !== "translate" ? (actual.angleDeg - original.angleDeg) * Math.PI / 180 : 0;
+  const scale = mode !== "translate" && original.speed > 1e-9
     ? Math.max(0.5, Math.min(2, actual.speed / original.speed)) : 1;
   const c = Math.cos(angle) * scale, s = Math.sin(angle) * scale;
-  const point = (x: number, y: number) => ({
-    x: actual.sledX + c * (x - original.sledX) - s * (y - original.sledY),
-    y: actual.sledY + s * (x - original.sledX) + c * (y - original.sledY),
+  if (mode !== "restore") {
+    const point = (x: number, y: number) => ({
+      x: actual.sledX + c * (x - original.sledX) - s * (y - original.sledY),
+      y: actual.sledY + s * (x - original.sledX) + c * (y - original.sledY),
+    });
+    return lines.map(line => { const a = point(line.x1, line.y1), b = point(line.x2, line.y2);
+      return { ...line, x1: a.x, y1: a.y, x2: b.x, y2: b.y }; });
+  }
+  const lengths = lines.map(l => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
+  const starts: number[] = []; let length = 0, closest = Infinity, captureDistance = 0;
+  lines.forEach((l, i) => {
+    starts.push(length);
+    if (lengths[i] > 0) {
+      const t = Math.max(0, Math.min(1, ((original.sledX - l.x1) * (l.x2 - l.x1) +
+        (original.sledY - l.y1) * (l.y2 - l.y1)) / lengths[i] ** 2));
+      const d = Math.hypot(original.sledX - l.x1 - t * (l.x2 - l.x1), original.sledY - l.y1 - t * (l.y2 - l.y1));
+      if (d < closest) { closest = d; captureDistance = length + t * lengths[i]; }
+    }
+    length += lengths[i];
   });
-  return lines.map(line => {
-    const a = point(line.x1, line.y1), b = point(line.x2, line.y2);
+  const restoreEnd = starts.at(-1) ?? length;
+  const point = (x: number, y: number, distance: number) => {
+    const u = mode === "restore" && restoreEnd > captureDistance
+      ? Math.max(0, Math.min(1, (distance - captureDistance) / (restoreEnd - captureDistance))) : 0;
+    const weight = 1 - u * u * (3 - 2 * u);
+    const dx = x - original.sledX, dy = y - original.sledY;
+    return { x: actual.sledX + dx + weight * (c * dx - s * dy - dx),
+      y: actual.sledY + dy + weight * (s * dx + c * dy - dy) };
+  };
+  return lines.map((line, i) => {
+    const a = point(line.x1, line.y1, starts[i]), b = point(line.x2, line.y2, starts[i] + lengths[i]);
     return { ...line, x1: a.x, y1: a.y, x2: b.x, y2: b.y };
   });
 }

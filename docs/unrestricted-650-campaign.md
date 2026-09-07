@@ -109,3 +109,24 @@ Next: the same geometry algorithm on all 44 saved sources, 16 error-ranked
 anchors, one sweep, all three transports. This reuses discovery data and is
 explicitly exploratory. Report its exact hierarchical score as an offline
 postprocessing result with extra frames, never as an accepted 750k headline.
+
+The 44-source geometry study completed: baseline discovery aggregate 607.4692;
+fixed suffix 607.4883 (+0.0191, 10 improved sources); translation 607.6918
+(+0.2226, 34 improved); similarity 607.6409 (+0.1717, 35 improved). All retained
+tracks remain valid by incumbent preservation and exact replay. Trial validity
+was 163/2,816, 863/2,816, and 965/2,816. Among translated/similarity failures,
+1,396/1,398 ended in rider ejection. Full propagation still destabilizes many
+later contacts. Cost: 23,941,986 trial/replay frames plus 205,094 calibration
+and neutral frames; 249.11 summed worker seconds. Plan SHA-256:
+`484d4404e81f4a966ad517775a447aeb98363563b40fade88d18d21251549a00`.
+These gains do not repay integration cost or approach the required improvement.
+
+Next physical hypothesis: matching incoming heading throughout a catch carries
+the incoming error into its release, allowing errors to grow over many contacts.
+Test an input-aligned catch that gradually returns to its original exit tangent
+and scale. The transform blends from arrival similarity at the nearest capture
+point to pure translation before the final segment, preserving the original
+terminal tangent. This is geometry feedback, not a fabricated state reset.
+Test the same four-source/eight-anchor geometry pilot with this `restore` arm;
+five control invariants pass. A stronger optimizer is useful only if there is a
+stable region of complete-track improvements to exploit.

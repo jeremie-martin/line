@@ -273,3 +273,34 @@ reuse, not a benchmark-output lookup. Measure coverage and accumulated gains
 before choosing the production-budget allocation and source integration.
 The accepted headline is still **607.2582**; no governed eval or promotion has
 been performed in this phase.
+
+
+Further completed runs: self-reuse of measured shapes adds little on the dense
+panel; fresh native sampling improves the other three more strongly; state
+spacing at width eight reduces compute but not the dense bottleneck. The second
+44-source target-program pass improves 42 tracks again, moving 610.1912 →
+**611.4610**, cumulative +3.9918 over the captured 607.4692. All 44 final tracks
+are valid. The measured versus accumulated terminal SSE discrepancy across the
+first 44-source target-program run is at most 5.33e-15.
+
+| Output directory | Sources | Mean incremental gain | Best incremental gain | Frames | Summed worker seconds |
+|---|---:|---:|---:|---:|---:|
+| `planner-reuse-pilot` | 4 | 5.7368 | 20.2491 | 12,098,940 | 86.47 |
+| `planner-target-discovery-pass2` | 44 | 1.4421 | 9.4948 | 94,410,546 | 696.25 |
+| `planner-state-pilot` | 4 | 3.5575 | 13.9037 | 4,536,474 | 34.12 |
+| `planner-native-pilot` | 4 | 8.4866 | 28.5125 | 17,392,551 | 114.83 |
+
+Self-reuse (`--reuse=12`) and the full second pass use implementation
+`67a8967d`. Fresh sampling (`--native-draws=64`, width 16/global) and state
+diversity (`--selection=state --width=8`) use `e55644f9`. Native geometry is
+regenerated for the actual incoming state and outgoing authored targets; it
+passes the same exact physical prefix and final-track judge. State diversity
+uses translation-relative articulated positions and point velocities only as a
+compiler search heuristic. Neither changes the evaluator.
+
+Next physical test: small finite contacts aimed at observed TAIL/NOSE states
+inside the impact window, with both normal directions. These preserve the exact
+initial capture packet and are judged through the following interval. Unlike a
+single flow-facing full-sled membrane, they can apply different turning actions
+at different phases and be followed by the new multi-contact planner. This is
+a new tested formulation, not a claim that earlier membrane failures were wrong.

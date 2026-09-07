@@ -22,6 +22,7 @@ import { buildAxisContract, scoreV2Report, summarizeDevelopmentBudget } from "..
 import { shapeCatch, transportCatch, setCatchEnergy, type ArrivalFrame } from "./whole_track_controls.ts";
 import { releaseProgram } from "./contact_program.ts";
 import { nativeRailLayers } from "./native_rail_layers.ts";
+import { contactPulse } from "./contact_pulse.ts";
 import { authoredSpeedToPx, speedPxToAuthored, impactToRawPx, normImpact, type TrackLine } from "../v0/types.ts";
 
 const arg = (key: string) => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
@@ -32,6 +33,7 @@ const script = fileURLToPath(import.meta.url);
 const hash = (v: string | Buffer) => createHash("sha256").update(v).digest("hex");
 const implementation = [script, resolve("scripts/benchmark/whole_track_controls.ts"), resolve("scripts/benchmark/contact_program.ts"),
   resolve("scripts/benchmark/native_rail_layers.ts")]
+  .concat(resolve("scripts/benchmark/contact_pulse.ts"))
   .map(p => hash(readFileSync(p))).join(":");
 const baseline = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
 const suite = JSON.parse(readFileSync("benchmark/v2/compat/suite-manifest.json", "utf8"));
@@ -160,7 +162,7 @@ function worker(source: any, plan: any, planSha256: string): void {
         // Reserve a disjoint ID range per contact. Incumbent lines keep their
         // original IDs so its entire physical history remains bit-identical.
         const idStart = 1000000 + i * 1000;
-        const candidates: Array<{ lines: TrackLine[]; action: any; original?: boolean }> = [];
+        const candidates: Array<{ lines: TrackLine[]; action: any; original?: boolean; preserve?: { frame: number; packet: string } }> = [];
         if (parent.original) candidates.push({ lines: fit.lines, action: { family: "incumbent" }, original: true });
         for (const mode of ["translate", "similarity"] as const) {
           const base = transportCatch(fit.lines, references[i]!, actual, mode);
@@ -174,6 +176,24 @@ function worker(source: any, plan: any, planSha256: string): void {
           if (plan.railLayers && mode === "translate") for (const layers of [2, 4]) for (const spacing of [0.005, 0.05]) for (const energy of [-1, 1] as const) {
             const lines = nativeRailLayers(base, actual.velocity, layers, spacing, energy);
             if (lines.length < 1000) candidates.push({ lines, action: { family: "rail_layers", mode, layers, spacing, energy } });
+          }
+          const originalGap = savedReport.gaps.find((g: any) => g.gap_index === i);
+          if (plan.pulses && mode === "translate" && originalGap?.axes.impact &&
+              originalGap.axes.impact.target - originalGap.axes.impact.achieved > 0.03) {
+            const seedLines = base.map((l, j) => ({ ...l, id: idStart + j }));
+            const seedEngine = parent.engine.addLine(seedLines.map(createLineFromJson));
+            const preserve = { frame: gap.endFrame, packet: packetAt(seedEngine, gap.endFrame) };
+            for (const phase of [2, 4]) {
+              if (gap.endFrame + phase >= endFor(i)) continue;
+              const packet = getRiderMetered(seedEngine, gap.endFrame + phase).ballisticState();
+              if (!packet.riderMounted || !packet.sledIntact) continue;
+              for (const pointId of ["TAIL", "NOSE"]) for (const normalTurn of [-1, 1]) for (const depth of [0.5, 1.5, 3]) {
+                const point = packet.points[pointId];
+                const pulse = contactPulse(point, normalTurn, depth, Math.max(4, actual.speed * 0.6), idStart + seedLines.length);
+                candidates.push({ lines: [...seedLines, pulse], preserve,
+                  action: { family: "contact_pulse", phase, pointId, normalTurn, depth } });
+              }
+            }
           }
           if (plan.programs && mode === "translate") {
             const next = nextFor(i), frames = next ? next.endFrame - gap.endFrame : 20;
@@ -255,6 +275,9 @@ function worker(source: any, plan: any, planSha256: string): void {
           const child = parent.engine.addLine(lines.map(createLineFromJson));
           if (!candidate.original && packetAt(child, Math.max(0, gap.endFrame - 2)) !== unchanged) {
             failures.prefix_changed = (failures.prefix_changed ?? 0) + 1; continue;
+          }
+          if (candidate.preserve && packetAt(child, candidate.preserve.frame) !== candidate.preserve.packet) {
+            failures.capture_changed = (failures.capture_changed ?? 0) + 1; continue;
           }
           const measured = local(child, i, lines);
           if (!measured.valid && !candidate.original) {
@@ -392,6 +415,7 @@ if (process.argv.includes("--plan")) {
     railLayers: arg("rail-layers") === "on",
     reuse: Number(arg("reuse") ?? 0),
     nativeDraws: Number(arg("native-draws") ?? 0), stateDistance: Number(arg("state-distance") ?? 0.01),
+    pulses: arg("pulses") === "on",
     law: "physical prefix beam; preserve exact incumbent; compare native release programs and state-conditioned templates; measure actual next interval; reserve parent diversity; final fixed V2 score and cold replay", sources });
   console.log(JSON.stringify({ plannedSources: sources.length, planSha256: hash(readFileSync(planPath)) }));
 } else {

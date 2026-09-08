@@ -16,7 +16,7 @@ const historicalOptions={...{budget:Number(arg('budget')??750000),samples:Number
 // Opt into the shipped allocation, then override only the mechanisms under study.
 // Existing research commands retain their historical defaults.
 const options=arg('defaults')==='production'
-  ? {...connectedArcOptions(spec,Number(arg('budget')??750000)),...JSON.parse(arg('options')??'{}')}
+  ? {...connectedArcOptions(spec,historicalOptions.budget),...JSON.parse(arg('options')??'{}')}
   : historicalOptions;
 if(options.valueModelPath)options.futureValueModel=JSON.parse(readFileSync(options.valueModelPath,'utf8'));
 const start=performance.now(),result=options.publicCompiler?compileHandoff(spec,Number(arg('seed')??260908011),{budget:options.budget}):compileArcMotion(spec,Number(arg('seed')??260908011),options);

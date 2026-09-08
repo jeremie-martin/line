@@ -10,12 +10,12 @@ const out=resolve(arg('out')!), mode=arg('mode')??'compile', jobs=Number(arg('jo
 const options=JSON.parse(arg('options')??'{}'), sourceIds=arg('sources')?.split(',')??developmentCases.map(e=>e.case.metadata.id).sort();
 const inputs=arg('inputs')??'generated/benchmark-v2/arc-motion-650/full-v12';
 const hash=(b:string|Buffer)=>createHash('sha256').update(b).digest('hex');
-const files=mode==='ablation'?['scripts/benchmark/arc_guidance_ablation.ts']:['scripts/benchmark/arc_motion_study.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts'];
+const files=mode==='ablation'?['scripts/benchmark/arc_guidance_ablation.ts']:['scripts/benchmark/arc_motion_study.ts','scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts'];
 if(options.valueModelPath)files.push(resolve(options.valueModelPath));
 const implementation=Object.fromEntries(files.map(p=>[p,hash(readFileSync(p))]));
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const budget=Number(options.budget??750000), seed=Number(arg('seed')??260908011);
-const plan={schema:'line.arc-guidance-panel.v1',researchOnly:true,mode,options,sourceIds,budget,seed,implementation,suiteSha256:hash(readFileSync('benchmark/v2/compat/suite-manifest.json')),judgeSha256:hash(readFileSync('engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm'))};
+const plan={schema:'line.arc-guidance-panel.v1',researchOnly:true,mode,...(arg('defaults')?{defaults:arg('defaults')}:{}),options,sourceIds,budget,seed,implementation,suiteSha256:hash(readFileSync('benchmark/v2/compat/suite-manifest.json')),judgeSha256:hash(readFileSync('engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm'))};
 const write=(path:string,value:unknown)=>{const b=JSON.stringify(value)+'\n';writeFileSync(path,b);writeFileSync(path+'.sha256',hash(b)+'\n');};
 const read=(path:string)=>{const b=readFileSync(path);if(hash(b)!==readFileSync(path+'.sha256','utf8').trim())throw new Error('checksum '+path);return JSON.parse(b.toString());};
 mkdirSync(out,{recursive:true});
@@ -29,7 +29,7 @@ await Promise.all(Array.from({length:Math.min(jobs,queue.length)},async()=>{
     if(files.some(p=>hash(readFileSync(p))!==implementation[p]))throw new Error('implementation changed during panel');
     const log=openSync(resolve(out,source+'.log'),'w');
     try{
-      const args=mode==='ablation'?['scripts/benchmark/arc_guidance_ablation.ts',`--input=${resolve(inputs,source+'.json')}`]:['scripts/benchmark/arc_motion_study.ts',`--source=${source}`,`--seed=${seed}`,`--options=${JSON.stringify(options)}`];
+      const args=mode==='ablation'?['scripts/benchmark/arc_guidance_ablation.ts',`--input=${resolve(inputs,source+'.json')}`]:['scripts/benchmark/arc_motion_study.ts',`--source=${source}`,`--seed=${seed}`,...(arg('defaults')?[`--defaults=${arg('defaults')}`]:[]),`--options=${JSON.stringify(options)}`];
       const code=await new Promise<number|null>((done,reject)=>{const child=spawn(process.execPath,['--import','tsx',...args,`--out=${path}`],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore',log,log]});child.on('error',reject);child.on('exit',done);});
       if(code!==0){failed.push(source);continue;}
       const r=read(path);process.stderr.write(JSON.stringify(mode==='ablation'?{source,rails:r.rows.length,unused:r.rows.filter((x:any)=>!x.contactedSegments).length,combinedExact:r.combinedTrim.identical}:{source,score:r.score.score,valid:r.score.valid,frames:r.stats.sim_frames})+'\n');

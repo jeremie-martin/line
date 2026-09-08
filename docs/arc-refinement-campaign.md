@@ -127,3 +127,27 @@ blending 25% predicted future cost into the measured comparison adds 21.9119
 valid. The 25% version proceeds to all 44 cases with the same parent-disjoint
 folds, and a single full-fit frozen model is evaluated separately. The model's
 training inputs are development examples; qualification has not been used.
+
+
+Full live cross-fit validation initially reaches 769.2029 in the fixed V2
+weighted aggregation (44/44), versus matched expressive reference 745.7898.
+This combines five held-parent models and is explicitly not a single-candidate
+canonical result. The single full-fit model reaches 767.7252 (44/44), maximum
+735,216 actual frames. Its training input is the full development teacher;
+its generalization evidence is the separate cross-fit study and forthcoming
+qualification and production checks.
+
+A validation audit found that the first fold fits shared a global quantile for
+the infeasible-outcome training penalty. The trainer now computes that penalty
+from each fold's training parents alone. This leaves the single full-fit model
+byte-identical. The stricter fold models are rerun live; earlier fold outputs
+remain archived rather than being overwritten.
+
+At 3M, the eight-case expressive pilot with adaptive allocation scores 740.2950;
+adding the frozen arrival model reaches 756.4520, versus 752.5105 with fixed
+width-five depth-two planning and the same model. All arms complete 8/8.
+Source ddcc679c integrates the expressive geometry, measured response fitting,
+learned arrival value, prefix cache and adaptive planning for full budget-matrix
+validation. Guidance work grows with available frames per ride frame, after
+basic construction breadth. The model's weight grows with that search maturity.
+There are no source-ID or named-budget branches.

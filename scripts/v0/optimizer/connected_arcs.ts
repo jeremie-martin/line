@@ -12,7 +12,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const duration = Math.round(spec.duration * 40), end = duration + 20;
   // Reserve construction capacity for revisiting difficult approaches. This
   // scales with actual ride length and budget, without benchmark-tier gates.
-  const samples = Math.max(12, Math.min(160, Math.floor(.6 * (options.budget - 2 * (end + 1)) / Math.max(1, end))));
+  const samples = Math.max(12, Math.min(160, Math.floor(.7 * (options.budget - 2 * (end + 1)) / Math.max(1, end))));
   const result = compileArcMotion(spec, seed, { budget: options.budget, samples,
     channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
@@ -28,7 +28,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
       interceptFrames: 0, contactFrames: 0, durationFrameScale: samples } });
   const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
     anchorGapIndex: 0, startTotalSpentFrames: 0, ceilingTotalSpentFrames: options.budget, includeStartup: false });
-  recorder.setActiveCandidateWork({ actualCandidateSamples: result.samples,
+  recorder.setActiveCandidateWork({ actualCandidateSamples: result.samples, viableCandidates: result.stats.viable_candidate_samples,
     candidateSamplesByStream: { normal: result.samples } });
   for (const row of result.rows) {
     const gap = gaps.findIndex(g => g.endFrame >= row.frame);
@@ -43,7 +43,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const costs = report.gaps.map(g => Object.values(g.axes).reduce((s, a) => s + (a?.error ?? 0) ** 2, 0));
   return { budget: options.budget, track, report,
     budgetTelemetry: recorder.snapshot(total, exhausted, valid ? total : null, valid ? total : null),
-    stats: { actual_candidate_samples: result.samples, engine_rebuilds: result.backtracks + 2,
+    stats: { actual_candidate_samples: result.samples, viable_candidate_samples: result.stats.viable_candidate_samples, engine_rebuilds: result.backtracks + 2,
       gap_commits: result.stats.gap_commits, gap_backtracks: result.backtracks,
       validation_retries: 0, polish_iterations: 0, total_committed_cost: costs.reduce((s, c) => s + c, 0),
       committed_costs_per_gap: costs, sim_frames: total, ballistic_micro_sim_frames: 0,

@@ -74,7 +74,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
   const start=fixed??{position:{x:0,y:0},velocity:{x:speed*Math.cos(pitch),y:speed*Math.sin(pitch)}};
   let engine:any=new Engine().setStart(start.position,start.velocity);
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
-  let samples=0;const qualityRetries=new Map<number,number>();
+  let samples=0,viableCandidates=0;const qualityRetries=new Map<number,number>();
   const backtrack=()=>{
     while(steps.length){
       const step=steps.pop(),old=rows.pop();lines.length=step.lineStart;
@@ -155,6 +155,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
         const finalState=state.points;
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
         const pose=deg(Math.atan2(finalState.NOSE.y-finalState.TAIL.y,finalState.NOSE.x-finalState.TAIL.x));
+        viableCandidates++;
         candidates.push({lines:added,c,cost,heading,endSpeed,pose,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
         if(!best||cost<best.cost)best=result;
         return result;
@@ -222,6 +223,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
   setPhysicsFrameLimit(budget);raw=extractRawTrajectory(new Engine().setStart(start.position,start.velocity).addLine(lines),end);disposeSearch();
   try{const replay=extractRawTrajectory(new Judge().setStart(start.position,start.velocity).addLine(lines),end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=buildDriftReport(detect(raw),spec,gaps,frames,duration,[],gaps.map(g=>({lines:lines.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
-  return{track:buildTrackJson(lines,end,start),report,stats:{sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),constructionFrames};
+  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),constructionFrames};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

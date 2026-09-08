@@ -21,6 +21,6 @@ if(result.track.lines.some(l=>l.type!==0))throw new Error('non-normal output');
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const score=scoreV2Report(result.report,spec.contacts.length,buildAxisContract(spec,Object.keys(benchmarkPolicy.componentWeights) as any),suite);
 if(result.stats.sim_frames+prior.stats.sim_frames>750000)throw new Error(`portfolio budget exceeded: prior=${prior.stats.sim_frames}, legacy=${result.stats.sim_frames}, allocation=${budget}`);
-const record={schema:'line.arc-legacy-complement.v1',researchOnly:true,sourceId:entry.case.metadata.id,seed,budget,elapsedMs:performance.now()-started,priorArtifactSha256:hash(priorBytes),priorFrames:prior.stats.sim_frames,priorScore:prior.score,score,...result};
+const record={schema:'line.arc-legacy-complement.v1',researchOnly:true,sourceId:entry.case.metadata.id,seed,elapsedMs:performance.now()-started,priorArtifactSha256:hash(priorBytes),priorFrames:prior.stats.sim_frames,priorScore:prior.score,score,...result};
 const out=arg('out')!,body=JSON.stringify(record)+'\n';mkdirSync(dirname(out),{recursive:true});writeFileSync(out,body);writeFileSync(out+'.sha256',hash(body)+'\n');
 console.log(JSON.stringify({sourceId:record.sourceId,score:score.score,valid:score.valid,priorScore:prior.score.score,frames:result.stats.sim_frames+prior.stats.sim_frames,budget}));

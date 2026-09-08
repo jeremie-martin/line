@@ -36,6 +36,8 @@ it("completes the physical contract with connected curves and reproducible meter
   expect(first.report.off_beat_landings).toHaveLength(0);
   expect(first.report.terminus.reason).toBe("endOfSpec");
   expect(first.stats.sim_frames).toBeLessThanOrEqual(30000);
+  expect(first.stats.viable_candidate_samples).toBeGreaterThan(0);
+  expect(first.stats.viable_candidate_samples).toBeLessThanOrEqual(first.stats.actual_candidate_samples!);
   expect(first.budgetTelemetry?.compile.total_spent_frames).toBe(first.stats.sim_frames);
   expect(first.budgetTelemetry?.compile.hard_overrun_frames).toBe(0);
   compileHandoff({ ...spec, start: { vx: 4.5, vy: 0, y: -160 } }, 18, { budget: 30000 });

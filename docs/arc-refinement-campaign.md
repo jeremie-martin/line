@@ -151,3 +151,44 @@ learned arrival value, prefix cache and adaptive planning for full budget-matrix
 validation. Guidance work grows with available frames per ride frame, after
 basic construction breadth. The model's weight grows with that search maturity.
 There are no source-ID or named-budget branches.
+
+
+## Integrated full-suite scaling
+
+The stricter live cross-fit check scores **766.4420**, 44/44 valid, compared
+with matched expressive reference 745.7898. Each fold's infeasible-outcome
+penalty is now computed only from its training parents. The arithmetic means
+are 759.9427 versus 737.7565. This research check used development pilot outcomes
+to choose the blend, so it is not an untouched final evaluation. The single
+public model is still byte-identical to the earlier full-development fit.
+
+The integrated public compiler, candidate
+`ab5f4ccc386a3d3a0d5b69503232a27127793163b2d1090567f7bad4df99e235`,
+completes its six-budget full-suite panel:
+
+| Allowance | Reference score | New score | Valid | Maximum actual frames |
+| --- | ---: | ---: | ---: | ---: |
+| 150k | 481.1128 | 481.1128 | 38/44 | 149,995 |
+| 250k | 610.9446 | 610.9446 | 44/44 | 244,538 |
+| 500k | 709.4171 | 718.8741 | 44/44 | 487,721 |
+| 750k | 744.5000 | 767.6851 | 44/44 | 735,216 |
+| 1M | 745.0343 | 793.3941 | 44/44 | 950,759 |
+| 3M | 745.0343 | 812.0916 | 44/44 | 2,563,754 |
+
+Each row uses seed 260908011 and all 44 development specifications. These are
+research discovery rows; canonical confirmation is separate. The new 3M gain
+is **67.0573** at the same allowance. The compiler spends additional physical
+work on useful planning. The eight matched adaptive pilots are exactly equal
+to their public 3M tracks and costs: 727 planning decisions reach depth two,
+nine use depth one, and the selected width varies from three to five.
+
+At 250k, every track, report, score and frame cost equals the preserved
+reference. At 150k, every report, score and frame cost equals the reference;
+the six failures are inherited. Two whole 750k tracks also reproduce the
+published JavaScript engine exactly in raw motion and detected events.
+
+The full 750k geometry audit has 4,100 beat groups, 1,048 with one curve and
+the rest with two contiguous curves. Every line is normal type 0. The shortest
+retained chain has six segments and physical length 18.61 px. Guidance reduction
+preserves substantial connected parts; it does not replace curves with point
+controls or impose a variety quota.

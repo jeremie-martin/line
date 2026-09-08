@@ -1,6 +1,7 @@
 /** Measured arc search: one connected physical support curve per contact interval.
  * The curve's entry, impact-window turn, later slope and release length are
  * corrected using actual engine measurements. No point controls or scenery. */
+import { createHash } from 'node:crypto';
 import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSearch } from '../../lib/native_motion/engine.ts';
 import { LineRiderEngine as Judge, disposeAllWasmEnginesForStudy as disposeJudge } from '../../lib/_lr_engine_wasm.ts';
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
@@ -81,6 +82,8 @@ export type ArcMotionOptions= {
   cachePrefixReads?:boolean;
   /** Reuse completed evaluations only within the same physical search prefix. */
   memoCandidates?:boolean;
+  /** Reuse complete measurements across searches with identical geometry prefixes. */
+  reuseEvaluations?:boolean;
   futureValueModel?:any;
   /** Research: use the learned value at the unresolved continuation boundary. */
   continuationValueWeight?:number;
@@ -104,7 +107,33 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   const speed=authoredSpeedToPx(gaps[0].targets.speed??.55);
   const pitch=rad(options.startPitch??8.59436692696);
   const start=fixed??{position:{x:0,y:0},velocity:{x:speed*Math.cos(pitch),y:speed*Math.sin(pitch)}};
-  let engine:any=createArcEngine(start);
+
+  type Prefix={parent?:Prefix;lines?:TrackLine[];key?:string};
+  const prefixes=new WeakMap<Engine,Prefix>(),rootPrefix:Prefix={key:'root'};
+  const memoContexts=new Map<string,Map<string,any>>();
+  const prefixKey=(node:Prefix):string=>node.key??=createHash('sha256').update(prefixKey(node.parent!)+'\n'+JSON.stringify(node.lines,(_key,value)=>Object.is(value,-0)?'-0':value)).digest('hex');
+  const addArc=(parent:Engine,geometry:TrackLine[])=>{
+    const child=parent.addLine(geometry),prefix=prefixes.get(parent);
+    if(options.reuseEvaluations&&prefix)prefixes.set(child,{parent:prefix,lines:geometry});
+    return child;
+  };
+  const detachArc=(source:Engine)=>{
+    const child=source.detach(),prefix=prefixes.get(source);
+    if(prefix)prefixes.set(child,prefix);return child;
+  };
+  const rebuildArc=(geometry:TrackLine[])=>{
+    const result=createArcEngine(start,geometry);
+    if(options.reuseEvaluations){
+      let prefix=rootPrefix;const groups:TrackLine[][]=[];
+      for(const line of geometry){
+        const group=Math.floor((line.id-1000)/10000),last=groups.at(-1);
+        if(!last||Math.floor((last[0].id-1000)/10000)!==group)groups.push([line]);else last.push(line);
+      }
+      for(const lines of groups)prefix={parent:prefix,lines};prefixes.set(result,prefix);
+    }
+    return result;
+  };
+  let engine:any=rebuildArc([]);
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
   let samples=0,viableCandidates=0,memoHits=0,memoRejectedHits=0;const qualityRetries=new Map<number,number>();
   let refinementStats:any=null, observedConstructionRate=0;
@@ -124,7 +153,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       if(!step.choices.length)continue;
       const choice=step.choices.shift();
       lines.push(...choice.lines);
-      disposeSearch();engine=createArcEngine(start,lines);
+      disposeSearch();engine=rebuildArc(lines);
       rows.push({...old,...choice.meta,control:choice.c,cost:choice.cost,spent:getPhysicsFrameCount()});steps.push(step);backtracks++;
       if(options.reuseContinuations&&choice.futureControl)pendingControl={index:rows.length,control:choice.futureControl};
       return rows.length-1;
@@ -161,7 +190,17 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const impact=gap>=0?gaps[gap].targets.impact:undefined;
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
-      const memo=options.memoCandidates?new Map<string,any>():null;
+
+      let memo=options.memoCandidates?new Map<string,any>():null;
+      const prefix=prefixes.get(engine);
+      if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue]);
+        const saved=memoContexts.get(context);
+        if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
+        memoContexts.set(context,memo!);
+        while(memoContexts.size>32)memoContexts.delete(memoContexts.keys().next().value!);
+      }
       const evaluate=(c:ArcMotionControl)=>{
         c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
@@ -185,10 +224,12 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           viableCandidates++;candidates.push({...saved.candidate,c});
           // Never reuse saved wrappers: retainOnly may already have freed them.
           // Rebuild from validated geometry; subsequent simulations stay metered.
-          // The saved cost already competed for best, which only improves.
-          return {...saved.result,c,child:engine.addLine(saved.result.lines)};
+          // A measurement from an earlier search must compete in this search.
+          const result={...saved.result,c,child:addArc(engine,saved.result.lines)};
+          if(!best||result.cost<best.cost)best=result;
+          return result;
         }
-        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=engine.addLine(added);
+        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=addArc(engine,added);
         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
         const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;return null;};
@@ -250,7 +291,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
         candidates.push({lines:added,c,cost,localCost,heading,endSpeed,pose,valueFeatures,predictedFuture,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
         // Interrupted evaluations never reach this cache insertion.
-        memo?.set(key,{result,candidate:candidates.at(-1)});
+        if(memo){const {child:_child,...measurement}=result;memo.set(key,{result:measurement,candidate:{...candidates.at(-1)}});}
         if(!best||cost<best.cost)best=result;
         return result;
       };
@@ -389,7 +430,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       let winner:any=null, completed=0;
       try {
       for(const candidate of distinct(searched.candidates,options.lookaheadBranching??2)){
-        const branch=base.addLine(candidate.lines);
+        const branch=addArc(base,candidate.lines);
         const tail=continuation(branch,index+1,depth-1,probeSamples,[...protectedEngines,base,anchor.child]);
         if(tail){
           completed++;
@@ -447,7 +488,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           let probeAllowance=0;
           for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*1.4;
           if(getPhysicsFrameCount()+reserve+probeAllowance>budget-2*(end+1))break;
-          const branch=engine.addLine(candidate.lines);
+          const branch=addArc(engine,candidate.lines);
           const future=continuation(branch,i+1,depth,probeSamples,[engine,original.child]);
           lookaheadStats.probes++;
           if(!future)lookaheadStats.failedProbes++;
@@ -468,7 +509,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         }
         if(winner&&JSON.stringify(winner.candidate.c)!==JSON.stringify(original.c)){
           const c=winner.candidate;
-          best={...original,child:engine.addLine(c.lines),lines:c.lines,c:c.c,cost:c.cost,localCost:c.localCost,achieved:c.meta.achieved,actualImpact:c.meta.impact,release:c.meta.release};
+          best={...original,child:addArc(engine,c.lines),lines:c.lines,c:c.c,cost:c.cost,localCost:c.localCost,achieved:c.meta.achieved,actualImpact:c.meta.impact,release:c.meta.release};
           lookaheadStats.changedChoices++;
         }
         if(winner&&options.lookaheadWarmStart!==false)pendingControl={index:i+1,control:winner.futureControl};
@@ -495,7 +536,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(alternatives.length>=12)break;
       }
       steps.push({lineStart:lines.length,choices:alternatives.filter(a=>JSON.stringify(a.c)!==JSON.stringify(best.c))});
-      lines.push(...best.lines);engine=best.child.detach();Engine.retainOnly([engine]);
+      lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);
       rows.push({frame,next,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});
       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\n');
     }

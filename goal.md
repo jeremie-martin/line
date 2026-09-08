@@ -1,4 +1,24 @@
-# Active compiler campaign: stronger trajectory shaping with coherent normal arcs
+# Active campaign: 825 with coherent normal arcs
+
+Target: **at least 825 on the unchanged canonical 750k Benchmark V2 headline**,
+starting from the accepted `compiler-integrity` compiler at **777.8193**.
+Work branch: `codex/arc-825`. Source reference: `291384e2`; accepted compiler
+fingerprint: `baf7999a450270741ef0730fedb4b1cac3ddfc9b6cc1f9708ae20c6599cf1fc1`.
+
+Preserve coherent, substantial normal type-0 arc primitives. Geometry, paired or
+single guidance, optimization, planning, models and allocation may evolve.
+No isolated point controls or acceleration lines. Benchmark, scorer, authored
+targets, detector, physics and actual-frame accounting remain fixed. Research
+compute is unrestricted; the accepted compiler earns its result within 750k.
+The headline governs promotion, with qualification and visual review disclosed.
+
+Work methodically toward the target: diagnose remaining error, compare competing
+hypotheses, improve promising first executions, validate complete-suite results,
+and review the resulting full production videos. Preserve adverse evidence.
+Code and compact evidence are committed and pushed; large archives stay local.
+See [the campaign ledger](docs/arc-825-campaign.md).
+
+# Preserved milestone: compiler integrity audit
 
 The methodical compiler audit is complete and `compiler-integrity` is promoted at
 **777.8193**, up from 771.3015 on the unchanged 750k Benchmark V2 headline.

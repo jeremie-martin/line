@@ -28,9 +28,9 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
     lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
-    reserveFactor: 1.4, reuseContinuations: true, pruneGuidance: true,
+    reserveFactor: .7, reuseContinuations: true, pruneGuidance: true,
     guidanceJoint: true, expressive: true, responseSamples,
-    adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true,
+    adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true, reuseEvaluations: true,
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
     // simulated continuation boundary. Do not blend it into the root twice.

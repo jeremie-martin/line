@@ -12,9 +12,9 @@ Nobody has published an automated pipeline; that's the gap this project fills.
 Status: the spec-to-track compiler and full vertical video pipeline are working.
 The current compiler uses coherent normal-line arcs with measured trajectory
 shaping and adaptive continuation planning. The accepted V2 milestone is
-**771.3015 at 750k simulated frames**, with the benchmark and scorer fixed.
+**777.8193 at 750k simulated frames**, with the benchmark and scorer fixed.
 The compiler also preserves validated curves when further search exhausts its budget.
-See [the current evidence](docs/arc-planning-continuity.md) and
+See [the current evidence](docs/compiler-integrity-audit.md) and
 [the compiler map](scripts/v0/optimizer/README.md).
 
 > **Working on the compiler?** Start at [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md)

@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "arc-planning-continuity",
-  "generated_at": "2026-09-08T19:00:14.549Z",
+  "label": "compiler-integrity",
+  "generated_at": "2026-09-08T20:09:26.991Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "717afcf9358a2c9ddd09ab225bb59f97c19c80892e48503bad6fd84518b9e209",
+  "compiler_source_fingerprint": "1fb413bb62881940dbee706ce0abf3925d1d91db0ac74b18c01b80e0642ddb96",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -107,6 +107,7 @@
     "scripts/v0/optimizer/air_policy.ts",
     "scripts/v0/optimizer/arc_actuator.ts",
     "scripts/v0/optimizer/arc_control.ts",
+    "scripts/v0/optimizer/arc_engine.ts",
     "scripts/v0/optimizer/arc_geometry.ts",
     "scripts/v0/optimizer/arc_guidance.ts",
     "scripts/v0/optimizer/arc_model.ts",
@@ -122,6 +123,7 @@
     "scripts/v0/optimizer/budget_estimator_model.json",
     "scripts/v0/optimizer/budget_model.ts",
     "scripts/v0/optimizer/budget_telemetry.ts",
+    "scripts/v0/optimizer/compiler_input.ts",
     "scripts/v0/optimizer/connected_arcs.ts",
     "scripts/v0/optimizer/contact_phase.ts",
     "scripts/v0/optimizer/contact_transition.ts",
@@ -162,7 +164,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "fcf775fcce8081a5f2d7576ef609bb8fc6fbd07d27454815f25aa01446b38657",
+  "candidate_fingerprint": "baf7999a450270741ef0730fedb4b1cac3ddfc9b6cc1f9708ae20c6599cf1fc1",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "14c40a4fc7ab32638e61e16a6d4e89350e720d871144eb8767ed102329bd696e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -171,20 +173,20 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/arc-planning-continuity-compiler-snapshot.tar.gz",
-    "archiveSha256": "12a4a6d390bd4da287dc97187d8144d9c147d2f3d2cd7cf0b49b15e919e3c4ec",
-    "candidateFingerprint": "fcf775fcce8081a5f2d7576ef609bb8fc6fbd07d27454815f25aa01446b38657",
-    "compilerSourceFingerprint": "717afcf9358a2c9ddd09ab225bb59f97c19c80892e48503bad6fd84518b9e209",
+    "archive": "benchmark/v2/runs/compiler-integrity-compiler-snapshot.tar.gz",
+    "archiveSha256": "0c6d041c3b751fc26e529294b2d45c4fa7d1a4b224053ed0f9dfb081bf21a248",
+    "candidateFingerprint": "baf7999a450270741ef0730fedb4b1cac3ddfc9b6cc1f9708ae20c6599cf1fc1",
+    "compilerSourceFingerprint": "1fb413bb62881940dbee706ce0abf3925d1d91db0ac74b18c01b80e0642ddb96",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
     "execution_policy_fingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
     "implementation_fingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4",
-    "archive_sha256": "08587d5590f2b318a6fa18e7eaf34d2efc64aba78ba7a4a8c3c247bee74ce6ca",
-    "compressed_archive": "benchmark/v2/runs/arc-planning-continuity-development-750k-N8.json.gz",
-    "compressed_archive_sha256": "4942a23afc0284ae2409605b9cfd4dcdfbfbc1027095a259d9e7aa9641cb352a",
-    "canonical_headline": 771.3015,
+    "archive_sha256": "b588e8d5794ae0ca386dbe8a5a689d3333a82293e32ea86f7e89ecded399e396",
+    "compressed_archive": "benchmark/v2/runs/compiler-integrity-development-750k-N8.json.gz",
+    "compressed_archive_sha256": "126aacebdf7184f218b59276d8bc5a0998e40964ed9cbb6c6b8b0e6564940491",
+    "canonical_headline": 777.8193,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -209,7 +211,7 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 771.3015,
+        "score": 777.8193,
         "valid_runs": 352,
         "total_runs": 352
       }
@@ -217,8 +219,8 @@
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "arc-planning-continuity",
-    "candidateFingerprint": "fcf775fcce8081a5f2d7576ef609bb8fc6fbd07d27454815f25aa01446b38657",
+    "baselineLabel": "compiler-integrity",
+    "candidateFingerprint": "baf7999a450270741ef0730fedb4b1cac3ddfc9b6cc1f9708ae20c6599cf1fc1",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -286,9 +288,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 8,
-        "archiveSha256": "08587d5590f2b318a6fa18e7eaf34d2efc64aba78ba7a4a8c3c247bee74ce6ca",
-        "compressedArchive": "benchmark/v2/runs/arc-planning-continuity-development-750k-N8.json.gz",
-        "compressedArchiveSha256": "4942a23afc0284ae2409605b9cfd4dcdfbfbc1027095a259d9e7aa9641cb352a",
+        "archiveSha256": "b588e8d5794ae0ca386dbe8a5a689d3333a82293e32ea86f7e89ecded399e396",
+        "compressedArchive": "benchmark/v2/runs/compiler-integrity-development-750k-N8.json.gz",
+        "compressedArchiveSha256": "126aacebdf7184f218b59276d8bc5a0998e40964ed9cbb6c6b8b0e6564940491",
         "executionPolicyFingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
         "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
       }
@@ -309,8 +311,8 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/arc-planning-continuity-comparison.json",
-    "artifact_sha256": "7fb75184445e835a962c0f12ba8a85a22e6e244aeb547dd0f195a8dd654a8ee8",
+    "artifact": "benchmark/v2/runs/compiler-integrity-comparison.json",
+    "artifact_sha256": "6152c84310865b4519812c573116d01ad8d3aae729371752535fa44ef448e7a1",
     "seeds": 8,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
@@ -318,12 +320,12 @@
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/arc-planning-continuity-comparison-request.json",
-    "request_sha256": "acf706cde107f1dd19069f816973b56535c322bf3ca8ea170df9ca411933ae43",
+    "request": "benchmark/v2/runs/compiler-integrity-comparison-request.json",
+    "request_sha256": "8c02a5204f8ed26a53776c90ff3587d922d13bffd250bd61f5759cdb021579fc",
     "budgets": [
       750000
     ],
     "outcome": "accept",
-    "delta": 3.6164
+    "delta": 6.5178
   }
 }

@@ -29,7 +29,8 @@ historical record, not live guidance.
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`../scripts/v0/optimizer/README.md`](../scripts/v0/optimizer/README.md) | LIVE | Current arc compiler and retained fallback map. |
-| [`arc-planning-continuity.md`](arc-planning-continuity.md) | LIVE | Accepted 771 compiler, budget-interruption root cause, correction and validation. |
+| [`compiler-integrity-audit.md`](compiler-integrity-audit.md) | LIVE | Accepted 777.82 compiler: implementation audit, measured inefficiencies, corrections and validation. |
+| [`arc-planning-continuity.md`](arc-planning-continuity.md) | REFERENCE | Preserved 771 compiler and first budget-interruption correction. |
 | [`compiler-foundations.md`](compiler-foundations.md) | REFERENCE | Cleanup audit, exact parity and research follow-up. |
 | [`arc-continuation-boundary-study.md`](arc-continuation-boundary-study.md) | REFERENCE | Adopted continuation-value research, higher-budget gains and the initially observed qualification regression. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | REFERENCE | Retained legacy prefix-search algorithm. |
@@ -40,7 +41,7 @@ historical record, not live guidance.
 
 ## Campaigns
 
-The current result is [planning continuity](arc-planning-continuity.md). Earlier
+The current result is the [compiler integrity audit](compiler-integrity-audit.md). Earlier
 framework-specific campaign layouts remain historical references.
 
 | Doc | Tag | What |

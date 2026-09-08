@@ -3,7 +3,8 @@
 **Follow-up:** the owner clarified that the headline governs promotion. The
 boundary-value improvement was subsequently adopted, and its qualification
 failure was traced to discarded valid work at budget exhaustion and corrected.
-The active compiler is now **771.3015**, with **120/120** qualification runs valid.
+That follow-up reached **771.3015**, with **120/120** qualification runs valid.
+The subsequent [compiler integrity audit](compiler-integrity-audit.md) is the active 777.8193 release.
 See [planning continuity](arc-planning-continuity.md). The decisions below record
 the earlier cleanup and research session; their non-promotion conclusion is superseded.
 

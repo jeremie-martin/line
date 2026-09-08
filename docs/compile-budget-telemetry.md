@@ -1,5 +1,11 @@
 # Compile budget telemetry V12
 
+The connected-arc recorder now reports `unvalidated_traversal_model` when its
+model identity or coefficients differ from the model used for the frozen legacy
+calibration. Such observations have no calibrated completion margin. This is
+reporting metadata; the arc planner uses its own measured construction work.
+See the [compiler integrity audit](compiler-integrity-audit.md).
+
 ## Contract
 
 `compileHandoff(..., { budgetTelemetry })` emits the authoritative account of

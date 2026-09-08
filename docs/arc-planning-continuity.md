@@ -1,5 +1,8 @@
 # Planning continuity at the frame budget
 
+**Preserved milestone:** the subsequent [compiler integrity audit](compiler-integrity-audit.md)
+is promoted at 777.8193. This page records the preceding 771.3015 release.
+
 September 2026. Active branch: `codex/arc-planning-continuity`.
 
 The active compiler is **771.3015**, promoted through the unchanged headline

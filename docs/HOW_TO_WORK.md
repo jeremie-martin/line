@@ -8,11 +8,11 @@ are part of evaluating the result. Acceleration output
 is preserved on a separate branch for video review. `goal.md` and
 `arc-motion-650-campaign.md` supersede the earlier unrestricted-material
 campaign status below; other compiler research restrictions remain removed.
-The active baseline is `arc-planning-continuity`, **771.3015**, accepted at N=8
+The active baseline is `compiler-integrity`, **777.8193**, accepted at N=8
 with 352/352 valid canonical runs (44 cases, seeds 16–23). All three full
 vertical production videos are archived locally. Code and compact evidence
 are pushed; large archives stay local at the owner's request. See
-[`arc-planning-continuity.md`](arc-planning-continuity.md) for the current result,
+[`compiler-integrity-audit.md`](compiler-integrity-audit.md) for the current result,
 and [`compiler-foundations.md`](compiler-foundations.md) for the cleanup audit.
 The headline is the campaign decision metric. Qualification is a disclosed
 diagnostic, with invalid runs scored normally; an individual regression does
@@ -23,7 +23,7 @@ not create an additional perfection veto. This follows the owner's clarification
 Compiler research scope is open within the owner's material and arc-geometry
 requirements in `goal.md`. The benchmark and score stay fixed. Historical
 mechanism closures, deferrals, and study caps are evidence to reconsider, not
-permission barriers. The current follow-up is `arc-planning-continuity.md`.
+permission barriers. The current audit is `compiler-integrity-audit.md`.
 
 The active compiler campaign compares the current compiler with a retained
 750k-only baseline at strict N=8/16/32/48 looks, then explicitly promotes an
@@ -201,8 +201,8 @@ source defaults before a normal cached comparison.
 
 `benchmark/v2/campaign-baseline.json` names the active 750k compiler snapshot,
 promotion depth, four-look policy, and cache maximum. The current cache is the
-`arc-planning-continuity` archive under the accumulated contacted-frame impulse scorer,
-accepted at N=8 with a 771.3015 headline. It retains the canonical seed schedule
+`compiler-integrity` archive under the accumulated contacted-frame impulse scorer,
+accepted at N=8 with a 777.8193 headline. It retains the canonical seed schedule
 and makes no cross-ruler score comparison.
 
 `rebaseline --from=...` verifies the measured snapshot and current committed

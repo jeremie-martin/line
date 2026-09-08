@@ -1,5 +1,29 @@
 # Active compiler campaign: stronger trajectory shaping with coherent normal arcs
 
+The methodical compiler audit is complete and `compiler-integrity` is promoted at
+**777.8193**, up from 771.3015 on the unchanged 750k Benchmark V2 headline.
+All **352/352** canonical runs pass over 44 cases and seeds 16–23; these repeat
+44 distinct zero-jitter tracks. Separate jitter testing passes **176/176 distinct
+tracks**, and the reused qualification panel passes **120/120**, with monitor
+707.3395. At 150k the final compiler reaches **509.7855**, 41/44 valid; at 1M,
+**805.7234**, 44/44 valid. Headline-panel physics work falls by 3.75%.
+
+The audit corrects repeated evaluation, recursive interruption, lost backtracking
+progress, stale reflow records, timeline/report mismatches, misleading telemetry,
+empty-prefix engine ownership and retry cost estimation. Remaining defects and
+measured opportunities are explicitly recorded in the
+[compiler integrity audit](docs/compiler-integrity-audit.md), including legacy
+fallback budget overruns and repeated prefix detection. No benchmark, scorer,
+detector, physics or actual-frame accounting changes. Normal coherent arcs remain
+the product constraint. The headline governs promotion; qualification is disclosed
+diagnostic evidence rather than a separate perfection veto.
+
+Large archives stay local. Code, tests, compact evidence and preservation indexes
+are pushed. Continue from this accepted compiler; the earlier milestones below
+remain reproducible history rather than restrictions on new research.
+
+## Preserved milestone: planning continuity
+
 The owner clarified that overall headline performance governs this compiler
 campaign. The accepted **771.3015** boundary-value compiler is now the starting
 point. Its separate 250k qualification failure was a defect to investigate, not
@@ -16,7 +40,7 @@ At 150k it recovers an inherited failure: **504.1253**, **39/44** valid, versus
 The benchmark, scorer and actual-frame accounting remain unchanged.
 
 Large archives remain local; push source and compact evidence. See
-[the current work](docs/arc-planning-continuity.md). The earlier milestones below
+[the planning-continuity evidence](docs/arc-planning-continuity.md). The earlier milestones below
 remain historical evidence.
 
 # Preserved milestone: arc refinement

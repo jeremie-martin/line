@@ -6,11 +6,11 @@ segments in the video review. Arc shapes and control may evolve, but the
 physical track must satisfy that visual requirement. Full production videos
 are part of evaluating the result. Acceleration output
 is preserved on a separate branch for video review. `goal.md` and
-`normal-line-650-campaign.md` supersede the earlier unrestricted-material
+`arc-motion-650-campaign.md` supersede the earlier unrestricted-material
 campaign status below; other compiler research restrictions remain removed.
-The active baseline is `normal-motion-feedback`, **662.5889**, accepted and
-promoted at N=8. This numerical milestone is preserved; the arc-based visual
-objective is outstanding. The scorer and benchmark remain unchanged.
+The active baseline is `connected-arc-feedback`, **687.5102**, accepted and
+promoted at N=8 with 352/352 valid canonical runs. All three full vertical arc videos and the qualification/lower-budget
+monitoring records are complete. The scorer and benchmark remain unchanged.
 
 # How To Work On The Compiler
 

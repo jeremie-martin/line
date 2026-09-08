@@ -1,0 +1,279 @@
+{
+  "schema": "line.connected-arc-feedback-validation.v1",
+  "candidateFingerprint": "8a81558e2ca3e5cc67a27b45bc9bba7be5b42c58c2026f7923544a754ee139fe",
+  "compilerSourceFingerprint": "9f2b2ebb223ae82ff8f3dd844eb227a5d2101de561ebbd9cfbcbd3694e0d5db7",
+  "compilerCommit": "affc8efd",
+  "fixedIdentities": {
+    "suite_fingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
+    "scoring_protocol_fingerprint": "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6",
+    "golden_evaluator_fingerprint": "07cf88383150",
+    "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+  },
+  "geometry": {
+    "normalLinesOnly": true,
+    "primitive": "Connected physical curve pairs; both rails participate in collisions. No isolated point controls or decorative cover.",
+    "canonicalTrackHashesMatchDiscovery": true,
+    "allCanonicalTracksScoresAndFrameCostsPreservedAfterTelemetryCorrection": true
+  },
+  "canonical": {
+    "headline": 687.5102,
+    "valid": 352,
+    "runs": 352,
+    "sources": 44,
+    "seeds": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "declaredMaximumSeeds": 48,
+    "acceptedAt": 8,
+    "pairedDelta": 24.9213,
+    "seedBlockSE": 0,
+    "seedInterpretation": "All 44 development inputs have zero jitter; these deterministic arms repeat across seeds. Catalog sensitivity remains nonzero.",
+    "frames": {
+      "min": 316533,
+      "median": 358313.0,
+      "max": 509155,
+      "total": 127870864
+    }
+  },
+  "qualification": {
+    "valid": 120,
+    "runs": 120,
+    "monitor": 626.5448,
+    "budgets": [
+      {
+        "budget": 250000,
+        "monitorScore": 583.736,
+        "validRuns": 40,
+        "totalRuns": 40,
+        "specifications": [
+          {
+            "id": "amor_na_praia_46s",
+            "score": 726.1334,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "luna_bala_44s",
+            "score": 661.5123,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "tiki_tiki_48s",
+            "score": 668.8152,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "shelter_impact_sync_81s",
+            "score": 561.7832,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "amour_de_ma_vie_short_44s",
+            "score": 375.4393,
+            "validRuns": 8,
+            "totalRuns": 8
+          }
+        ]
+      },
+      {
+        "budget": 500000,
+        "monitorScore": 630.8295,
+        "validRuns": 40,
+        "totalRuns": 40,
+        "specifications": [
+          {
+            "id": "amor_na_praia_46s",
+            "score": 756.697,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "luna_bala_44s",
+            "score": 709.3643,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "tiki_tiki_48s",
+            "score": 709.0989,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "shelter_impact_sync_81s",
+            "score": 631.2724,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "amour_de_ma_vie_short_44s",
+            "score": 415.6772,
+            "validRuns": 8,
+            "totalRuns": 8
+          }
+        ]
+      },
+      {
+        "budget": 750000,
+        "monitorScore": 647.9428,
+        "validRuns": 40,
+        "totalRuns": 40,
+        "specifications": [
+          {
+            "id": "amor_na_praia_46s",
+            "score": 756.697,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "luna_bala_44s",
+            "score": 709.3643,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "tiki_tiki_48s",
+            "score": 709.0989,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "shelter_impact_sync_81s",
+            "score": 699.3334,
+            "validRuns": 8,
+            "totalRuns": 8
+          },
+          {
+            "id": "amour_de_ma_vie_short_44s",
+            "score": 428.9637,
+            "validRuns": 8,
+            "totalRuns": 8
+          }
+        ]
+      }
+    ]
+  },
+  "lowBudget": {
+    "budget": 250000,
+    "valid": 528,
+    "runs": 528,
+    "baselineValid": 528,
+    "rescued": 0,
+    "lost": 0,
+    "subsetScore": 645.656,
+    "baselineSubsetScore": 670.9793,
+    "verdict": {
+      "code": "ADVERSE",
+      "rule": 2,
+      "rationale": "reliably worse per cell at -138.422/cell, t -5564846301164696.00 over 528 changed cells",
+      "criteria": "A=changed cells, R=rescues (invalid->valid), L=losses (valid->invalid), d=paired mean delta per cell blocked by seed, t=d/SE(d), T=2.0, reference loss rate=4.4% (the rate the 1b eval measured). In order: (1) PARITY if A=0; (2) ADVERSE if L>R or t<=-T; (3) RESCUE-POSITIVE if R>L and t>-T; (4) SCORE-POSITIVE if R=L and t>=+T; (5) PARITY if L=0, |t|<T and a zero-loss observation over A cells excludes the reference loss rate at 95%; (6) UNDERPOWERED otherwise.",
+      "inputs": {
+        "changedCells": 528,
+        "rescues": 0,
+        "losses": 0,
+        "meanDelta": -138.422181818182,
+        "standardError": 2.4874394426529064e-14,
+        "t": -5564846301164696,
+        "thresholdT": 2,
+        "referenceLossRate": 0.044444444444444446,
+        "exclusionBound": 0.005657670127739212
+      }
+    },
+    "record": "generated/benchmark-v2/low-budget/2026-09-08T07-10-16-032Z-connected-arc-feedback-final.json",
+    "note": "Tracked, not promoting. Preserved point baseline reused after checksum and exact candidate verification. Scores are weaker although validity is preserved."
+  },
+  "scaleChecks": {
+    "valid": 11,
+    "runs": 12,
+    "failures": [
+      {
+        "source": "frontier_pickup_progression",
+        "budget": 150000,
+        "frames": 149635
+      }
+    ],
+    "note": "One 150k pickup case exhausts its budget; every check stays within its actual budget."
+  },
+  "videos": {
+    "gallery": "archives/arc-motion-2026-09-08/index.html",
+    "count": 3,
+    "format": "1080x1920 / 60 fps with music, production camera, spectrum, beat punch, and locked effects",
+    "finalCompilerReproducesRenderedTracksAndReports": true,
+    "physicalContractsPassed": true,
+    "standingTimeCreativeFloorPassed": false,
+    "appearanceApprovedByOwner": false
+  },
+  "tests": {
+    "focusedChecks": 29,
+    "finalIntegrationChecksRerun": 5,
+    "typescript": "Full check completed. No errors in the new compiler, research, or review files; unrelated pre-existing repository errors remain."
+  },
+  "artifacts": [
+    {
+      "path": "benchmark/v2/campaign-baseline.json",
+      "sha256": "b10263632ff07b9f9295752c88097139364236300e3ba9918d10eca112f81af2"
+    },
+    {
+      "path": "benchmark/v2/runs/connected-arc-feedback-comparison.json",
+      "sha256": "4a70bec77d6d93e01db32050e16850dff9dbfdf5fb51a5aa1f4d0a1271cff309"
+    },
+    {
+      "path": "benchmark/v2/runs/connected-arc-feedback-compiler-snapshot.tar.gz",
+      "sha256": "48cbad5e1f8100815ba1d761662ea34be04e50799a3563758deeeb4a80930a66"
+    },
+    {
+      "path": "benchmark/v2/runs/connected-arc-feedback-development-750k-N8.json.gz",
+      "sha256": "2abf1093950d9854365fd7f2e2e898fc348f758f884c2f9121f89f98156b7eff"
+    },
+    {
+      "path": "generated/benchmark-v2/eval/connected-arcs-final-qualification.json.gz",
+      "sha256": "b41ee355d5f88b7dce102a28c091fa2dcfe0eaf32cdba39b2ed1995f16a8ede1"
+    },
+    {
+      "path": "generated/benchmark-v2/low-budget/2026-09-08T07-10-16-032Z-connected-arc-feedback-final.json",
+      "sha256": "ddb45ea4b3107cca161410acd2e9a5abbf7b810e7244a982043a34cef2336a54"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-motion-650/final-canonical-equivalence.json",
+      "sha256": "7e0c64956776071b057a51e45bc77353b4690130b31a4b468b32bf81b33aa639"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-motion-650/final-video-equivalence.json",
+      "sha256": "6c7b179b2a605b449cebff6476ca6290354099f3a8ec42bf016c26961ed3de20"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-motion-650/geometry-audit-river-v12.json",
+      "sha256": "49412b95fd71e33524284b982f6ca08837f1398dcbd0cb65d9523078642dae3e"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-motion-650/published-reference-v12-river_reentry.json",
+      "sha256": "514f0d1863df47f2cd7584bcabedbff8dba7b98d36c5393353305dfdafab3e82"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-motion-650/published-reference-v12-dense_dialogue.json",
+      "sha256": "1e6c842dda52c534e1d442f4152ee1e9a3c58a96610b5af2e99ad5f14884f78e"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-motion-650/final-scale-river_reentry.json",
+      "sha256": "464f22fda0f029ed7ab43af8996cb95cbffde8867167a063fd3c0120a7126022"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-motion-650/final-scale-frontier_pickup_progression.json",
+      "sha256": "72d7f689f55be3f4b2dcb1644bd714dd999edb35516e5fa5c5f7b70e142eb4fd"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-motion-650/final-scale-frontier_low_air_endurance.json",
+      "sha256": "6d6f014d005b4f37f3e24aac2182951d44b108c87ee9ddc439075f5885dfdf83"
+    }
+  ]
+}

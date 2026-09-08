@@ -7,9 +7,9 @@ Arc shape and parameterization may change. Benchmark V2, scorer, authored
 specifications, physics, and frame accounting remain fixed. The target is a
 verified 750k headline above 650, with early full vertical video review.
 
-Work branch: `codex/arc-motion-650`. The public compiler now routes ordinary requests to the connected-arc candidate
-for integration and canonical verification. The official baseline remains the
-preserved 662.5889 normal point-control result. No arc candidate has been promoted. Existing arc research
+Work branch: `codex/arc-motion-650`. The public compiler routes ordinary requests to connected arcs, now promoted
+at 687.5102 with 352/352 valid canonical runs. The previous 662.5889 point-control
+compiler and its evidence remain preserved. Existing arc research
 is evidence rather than a restriction on the new approach.
 
 ## First physical experiments
@@ -160,5 +160,69 @@ budget and ride length, honors seeded jitter and explicit starts, and emits
 standard compile/budget telemetry. Seven focused physical, repeatability,
 budget, jitter, and compiler-identity tests pass. Public River Reentry exactly
 matches the frozen research track, report, and 341,926 charged physics frames.
-TypeScript checking reports no errors in the added arc/compiler/review files;
-unrelated repository errors remain. Canonical verification is next.
+A later completed TypeScript audit caught two omitted viable-candidate fields;
+they are corrected in finalization below. Unrelated repository errors remain. Canonical verification is next.
+
+The three v11 videos are complete and checksummed in the local arc gallery;
+see `arc-motion-video-review.md`. Exact integrated-candidate videos are also
+rendering through `scripts/produce/review.ts`. All 12 scale checks (River,
+Pickup Progression, Low Air Endurance at 150k/250k/1M/3M) are valid and within
+their actual budgets. The 1M and 3M outputs match per source. River and Dense
+Dialogue have exact complete trajectory/event parity with the published
+JavaScript engine as well as the frozen WASM judge.
+
+## Canonical acceptance
+
+The integrated candidate `c58607b1` is accepted and promoted as **connected-arcs**
+at **687.5102**, **352/352 valid**, on all 44 cases × seeds 16–23. The existing
+N=8 boundary accepts +24.9213 over the normal point baseline. Both deterministic
+zero-jitter arms have zero measured seed-block variation; the independent
+catalog-sensitivity interval is [18.2560, 31.1076]. No scoring or suite identity
+changed, and no forced acceptance was used. Maximum actual compile cost is
+509,155 physical frames, median 358,313, minimum 316,533.
+
+Qualification passes 120/120, monitor 616.9096 (250k/500k/750k monitors
+566.8867 / 622.2936 / 641.2847). The lower-budget standing reading is running,
+with its 528-cell point baseline reused after checksum and exact candidate
+identity verification. Twenty-eight development sources improve and sixteen
+regress against the point compiler. Monitor regressions are retained openly;
+these are not a change to the 750k promotion policy.
+
+## Final telemetry and lower-budget correction
+
+The first accepted 687.5102 snapshot omitted the required viable-candidate
+count in two diagnostics. A completed TypeScript check caught this after the
+first promotion. The compiler now counts every fully evaluated viable proposal
+and reports it in both standard stats and telemetry. This does not affect
+geometry, proposal decisions, or frame charging.
+
+The first 250k reading is ADVERSE: 480/528 valid, with all 48 losses on the
+shifted pickup variant. At this smaller budget, increasing construction breadth
+from 0.6 to 0.7 of the per-frame allowance recovers the variant; the complete
+11-source seed-0 development reading is 11/11 valid and scores 645.66. The
+750k development proposal count stays at the already tested 160 throughout
+all 44 cases. The corrected source is being freshly certified and the full
+lower-budget reading repeated. The pre-campaign point baseline is restored
+only as the unchanged comparator for this final certification. The initial
+accepted arc reference and every original artifact remain preserved separately.
+
+## Final delivery
+
+Final source **affc8efd** is freshly accepted and promoted as
+**connected-arc-feedback**, again **687.5102**, **352/352 valid** at N=8.
+Every canonical track, score and charged frame count matches the initial
+accepted snapshot; viable-candidate counters are present. The 250k reading
+now passes **528/528**, repairing the earlier 48 losses, but its subset score
+645.6560 remains below the point baseline's 670.9793 (ADVERSE on score).
+Final qualification passes **120/120**, monitor **626.5448**; per-budget monitors
+are 583.7360 / 630.8295 / 647.9428. Final scale checks pass 11/12, with one
+150k pickup failure; all stay within budget. A completed TypeScript check has
+no errors in the new arc compiler, research or review files; unrelated existing
+repository errors remain.
+
+All three final vertical production videos are archived. Sampled rendered
+frames were visually inspected and all complete streams decoded without errors.
+Their tracks and reports exactly match the final compiler. The user has not
+yet approved the paired-arc appearance. See the gallery, video record, and
+`benchmark/v2/studies/connected-arc-feedback-validation.json` for durable evidence.
+The numerical objective and requested visual artifacts are complete.

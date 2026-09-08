@@ -15,6 +15,12 @@ behavior and accounting before exploring new ideas from the audit. The owner
 explicitly requests that large video/research archives stay local; push code,
 compact evidence and archive indexes. See [the audit](docs/compiler-foundations.md).
 
+This follow-up is complete: cleanup matches all 264 six-budget development
+outputs exactly, and 154 focused tests pass. A subsequent boundary-value
+experiment improved canonical and higher-budget scores but introduced a
+qualification failure, so it remains on its preserved research branch. The
+accepted 767.6851 planner stays active. Large archives remain local.
+
 ## Owner requirements
 
 Use only normal type-0 lines and coherent, visible physical arc primitives.

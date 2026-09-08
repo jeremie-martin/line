@@ -31,10 +31,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     guidanceJoint: true, expressive: true, responseSamples,
     adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true,
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
-    // Rank unprobed arrivals with the model, then use its value at the
-    // simulated continuation boundary. Do not blend it into the root twice.
-    valueSelection: false, valueWeight: .25 * guidanceSamples / 96,
-    continuationValueWeight: .5 * guidanceSamples / 96 };
+    valueSelection: true, valueWeight: .25 * guidanceSamples / 96 };
 }
 
 export function compileConnectedArcs(spec: Spec, seed: number,

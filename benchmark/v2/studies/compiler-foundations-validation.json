@@ -3486,5 +3486,13 @@
     "referenceErrors": 251,
     "currentErrors": 251,
     "delta": []
+  },
+  "finalRestoration": {
+    "schema": "line.compiler-foundations-restoration.v1",
+    "candidateFingerprint": "88633edcd3e7008d70350250c5576d62906dd5d78594ef1e70f5b144f1e2dbaf",
+    "compilerSourceFingerprint": "9bb92bd48dfbce7fac932779aecbb0d32d5bebfe820159779c2079b2c25493e9",
+    "matchesValidatedCleanup": true,
+    "retainedBaseline": 767.6851,
+    "researchCandidateNotPromoted": "39bf5f5079cf78d2a389673cbdbe26a227f32d428530130e7ab48e5826dd9fa4"
   }
 }

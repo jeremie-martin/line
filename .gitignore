@@ -83,3 +83,6 @@ scripts/__pycache__/
 # Long-carrier replication evidence is intentionally external to the checkout.
 # The CLIs reject these paths too; this is a last-resort guard for old/manual files.
 /long-carrier-replication*/
+
+# Large campaign archives stay local; push source and compact evidence instead.
+/archives/

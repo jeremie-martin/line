@@ -83,3 +83,22 @@ There are no added diagnostics. See the [compact validation record](../benchmark
 These are hypotheses, not promised score improvements. Explore paired panels,
 retain adverse outcomes, and expand promising candidates to the full fixed suite.
 Only a normal governed acceptance can change the canonical headline.
+
+## Completed follow-up and disposition
+
+The boundary-value idea was implemented twice and tested in 14 paired panels,
+then across the full canonical suite, higher budgets, jitter and qualification.
+Its canonical score reached 771.3015 and its 1M score reached 802.7438. However,
+qualification fell from 120/120 valid to 119/120, with a substantial 250k score
+regression. It was therefore **not promoted**, despite canonical acceptance.
+See [the complete study](arc-continuation-boundary-study.md) for gains, adverse
+results and the preserved implementation.
+
+The active branch restores the incumbent arc planner exactly. The experimental
+option and test remain on `research/arc-continuation-boundary`, rather than
+adding a disabled mechanism to production. Compiler source identity after this
+restoration matches the cleanup validated above. The improved panel tools remain.
+
+Both branches are pushed. The accepted baseline remains **767.6851**. Large
+artifacts stay local under `archives/compiler-foundations-2026-09-08/`, with
+checksums and an index; `.gitignore` now enforces the requested archive policy.

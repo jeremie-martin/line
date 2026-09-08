@@ -30,6 +30,7 @@ historical record, not live guidance.
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`../scripts/v0/optimizer/README.md`](../scripts/v0/optimizer/README.md) | LIVE | Current arc compiler and retained fallback map. |
 | [`compiler-foundations.md`](compiler-foundations.md) | LIVE | Cleanup audit, exact parity and research follow-up. |
+| [`arc-continuation-boundary-study.md`](arc-continuation-boundary-study.md) | REFERENCE | Higher-budget gains and the qualification regression that prevented promotion. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | REFERENCE | Retained legacy prefix-search algorithm. |
 | [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md) | REFERENCE | Pre-implementation source of truth for ballistic projection, gap composition, readiness, and proposal-utility boundaries. |
 | [`ARC_AIMING_FORMALIZATION.md`](ARC_AIMING_FORMALIZATION.md) | ARCHIVE | The aiming model and the shared current-quality × readiness objective. |

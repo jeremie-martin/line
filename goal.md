@@ -1,4 +1,17 @@
-# Active campaign: 825 with coherent normal arcs
+# Achieved campaign: 828.1228 with coherent normal arcs
+
+**The 825 performance target is exceeded.** `arc-control-policy` is promoted at
+**828.1228**, up **50.3035** from 777.8193 on the unchanged canonical 750k
+Benchmark V2. All **352/352** runs pass: 44 cases × eight seeds 16–23, repeating
+44 distinct zero-jitter tracks. Qualification passes 120/120; separate 2% jitter
+testing passes 176/176 distinct tracks. The compiler uses the same substantial
+normal arc primitive. No scorer, benchmark, detector or physics changes.
+
+All three complete vertical production review videos are generated. Code and
+compact evidence are preserved on `codex/arc-825`; large archives and videos stay
+local. See [the final evidence](benchmark/v2/studies/arc-825-validation.json),
+[campaign ledger](docs/arc-825-campaign.md), and
+[video review](docs/arc-825-video-review.md). The original campaign brief follows.
 
 Target: **at least 825 on the unchanged canonical 750k Benchmark V2 headline**,
 starting from the accepted `compiler-integrity` compiler at **777.8193**.

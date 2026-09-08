@@ -8791,6 +8791,3434 @@
       ]
     },
     {
+      "name": "final-150k",
+      "planSha256": "02dec9dc9cf5edcf93eb0d337dd588d992b4e71061b4f1d70c71464789a415b8",
+      "summarySha256": "aabef4938585d51a7fc83006cec7e8c4f5fa1abf14b2cfac4bd4aba1789acb66",
+      "options": {
+        "budget": 150000,
+        "publicCompiler": true
+      },
+      "budget": 150000,
+      "seed": 260908011,
+      "sources": 44,
+      "valid": 41,
+      "exploratoryHeadline": 509.7855,
+      "pilotMean": 538.9338318181818,
+      "meanDelta": -232.76677500000002,
+      "totalFrames": 5236134,
+      "maxFrames": 149990,
+      "rows": [
+        {
+          "source": "amplitude_tides",
+          "sha256": "774a3f3a9f744a6c14dbdc693b78b05602edcaff7a0f1c0bd36ae7d33bd7d333",
+          "referenceSha256": "ef119bfdcb1707b0adb6034f47a1ab6242afbfd3e7217b278b9ee85bbfd9e3e0",
+          "score": 601.7786,
+          "valid": true,
+          "delta": -141.25430000000006,
+          "frames": 111906,
+          "referenceFrames": 691156,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "amplitude_tides_restrained_10",
+          "sha256": "ec2822749ac16baadae9c5b24c05ea7d9199cefad77301b790ce84dedc4f7196",
+          "referenceSha256": "3a93cfc4bb07c6b24b8902bab4ae8f9490029f60ecd502b29bf83c3f41edad87",
+          "score": 574.0495,
+          "valid": true,
+          "delta": -164.19820000000004,
+          "frames": 115033,
+          "referenceFrames": 690260,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "believer_56_6s",
+          "sha256": "a37c49b204caad54ec606ac8f6c31d7c6e1553bdb24301ca3c573fdded8d6ab3",
+          "referenceSha256": "5ab1ea9656af4a51d4edce5b36a325402d06fb14f6236d348778b30cfe3d58bc",
+          "score": 0,
+          "valid": false,
+          "delta": -796.9172,
+          "frames": 149990,
+          "referenceFrames": 698355,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "believer_56_6s_impact_relief",
+          "sha256": "103fabf0964a552df2adfd8617467aebfd60ee385928ed992f32aa71e52135a5",
+          "referenceSha256": "149772dcd46d581919d39cda458df81cc71cff311defc4f0f61e016d862fcb57",
+          "score": 450.5802,
+          "valid": true,
+          "delta": -344.18359999999996,
+          "frames": 149085,
+          "referenceFrames": 695575,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "believer_impact_56s",
+          "sha256": "a92d24c2e9d5e151ad351bc80ae5ccbec870e1c0d39a620fbab40aa64c34592c",
+          "referenceSha256": "1d1508992a0361b1e908eee95b1888494d217293fdcca6580d09d8b3b5a6b572",
+          "score": 635.038,
+          "valid": true,
+          "delta": -75.94230000000005,
+          "frames": 107561,
+          "referenceFrames": 692109,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "believer_impact_56s_amplitude_plus_5",
+          "sha256": "9751f564a57ea6fe4b533352879ad2a64d8f607fbeaf1846da3ffb6075d300de",
+          "referenceSha256": "ef1d28dff4f60f4478a3cdb9a584d9fc37cf1c45ee6288e34ceaa2a1cd488dc6",
+          "score": 604.786,
+          "valid": true,
+          "delta": -128.50760000000002,
+          "frames": 107709,
+          "referenceFrames": 694256,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "countercurrent",
+          "sha256": "f378d5a32591d680195a839a67916f59d44ca29a5cf8f9585af7dddca4f5be16",
+          "referenceSha256": "593f7ab4ffbc5b6f0e8ebc7e98407f02b9334e166de65a585443692cd813e866",
+          "score": 659.2262,
+          "valid": true,
+          "delta": -237.4298,
+          "frames": 95546,
+          "referenceFrames": 690392,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "countercurrent_impact_contrast_12",
+          "sha256": "f0a563179d5c71b2beb49d6a38acf37bcb187a18dec7701c381e36b47f49988c",
+          "referenceSha256": "8d6bec634671895a13a797ab709807b5f0a1e8ee01161a7d0720bd167d5158b0",
+          "score": 653.555,
+          "valid": true,
+          "delta": -215.94730000000004,
+          "frames": 119985,
+          "referenceFrames": 693904,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "dense_dialogue",
+          "sha256": "b2e37090cfddefa8a7ae2590b20f2f732fa070aa8f594b37d74151c57d3f52ba",
+          "referenceSha256": "89161d078fac61462005e286e276241e1f3b0683f2e5d80b1dcdc836ddf5acd4",
+          "score": 560.3149,
+          "valid": true,
+          "delta": -180.58760000000007,
+          "frames": 115920,
+          "referenceFrames": 680328,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "dense_dialogue_impact_contrast_10",
+          "sha256": "cf12245290d2b90cfe5c732544290e6e4af9d0f6d0d6eb9f039669cf045eae0f",
+          "referenceSha256": "d2f5fcb7f77593e36d2b1299b1ca42bfc18b0102b880b50a2f68e4fd83d88538",
+          "score": 581.5612,
+          "valid": true,
+          "delta": -174.77869999999996,
+          "frames": 149963,
+          "referenceFrames": 677094,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_dense_recovery",
+          "sha256": "3a7aa1ca73c847c9483296bc8477c9ccead68330dfdcdd12365539bda075c652",
+          "referenceSha256": "682fd9569cc7f702eaa5028b46e868f326515b37a62ee86710e799b94bc2a812",
+          "score": 432.4076,
+          "valid": true,
+          "delta": -176.50019999999995,
+          "frames": 149744,
+          "referenceFrames": 702950,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_dense_recovery_240ms_figures",
+          "sha256": "c187765ffff342149fffd1efd1e29801a1d4a3730010fb476844a4831e7c0060",
+          "referenceSha256": "b6555498798f8fba81dcf31e95805d45be0c707a7b1adadb09f47396c025eed1",
+          "score": 0,
+          "valid": false,
+          "delta": -573.4935,
+          "frames": 149987,
+          "referenceFrames": 708092,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance",
+          "sha256": "d5dea66e62dca739a097ec208a573da214ac2ec35bdd1ee6ce5b1bfc2cd032a6",
+          "referenceSha256": "523e4d153a6edcfe267cf9d043ab91fd3157e162696d95d47c938a5bf23f182a",
+          "score": 476.2885,
+          "valid": true,
+          "delta": -232.2441,
+          "frames": 114855,
+          "referenceFrames": 671492,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_4s",
+          "sha256": "964120315b630dd0b9e3c7c31a4acb5dd471e8004f5775c8519ae1ad6511f0e5",
+          "referenceSha256": "8e9e9e13fb306886ee1333ac5d833946fa6557731fafee0751085af2c97db89c",
+          "score": 460.9014,
+          "valid": true,
+          "delta": -248.6356,
+          "frames": 142326,
+          "referenceFrames": 680666,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_6s",
+          "sha256": "3ad863ff6b7e2a9f620d4c83dd2468e2139bac569c1fccdf8e18433bc716a6ef",
+          "referenceSha256": "c26480855315031522ee93e2ede74daef1abcb4329065223e8db83189651bd7d",
+          "score": 455.7613,
+          "valid": true,
+          "delta": -260.93049999999994,
+          "frames": 112008,
+          "referenceFrames": 684069,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_7s",
+          "sha256": "a8409c4767ebc8353e9278e6835ada80afe97b422225a5c57fb7f769c891dc14",
+          "referenceSha256": "cb2486ebe8fb95ae3466474682bf8276dacd02e799e46740a238271d6c0b4ae7",
+          "score": 464.7935,
+          "valid": true,
+          "delta": -248.54129999999998,
+          "frames": 113994,
+          "referenceFrames": 684648,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_pickup_progression",
+          "sha256": "394580352c1a42a93dc05a02428a5c09cac47f70c4148e21a9e5fcbd62a9b877",
+          "referenceSha256": "416dd45a55b7b021751cc4197e6f0a8885fb23976321b1dfb6010d36a59d41ae",
+          "score": 0,
+          "valid": false,
+          "delta": -634.8806,
+          "frames": 149980,
+          "referenceFrames": 699611,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_pickup_progression_shifted",
+          "sha256": "1d36106136b8c550a0558319bb59e70d4f0f366bf26cd0e249cea5e43daa08cc",
+          "referenceSha256": "5cae906df0a8ac1c79a8eb7db42facd444fbb6ac6361864d7d0270b6b209031c",
+          "score": 413.0372,
+          "valid": true,
+          "delta": -221.27959999999996,
+          "frames": 125456,
+          "referenceFrames": 694647,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "high_air_drive",
+          "sha256": "cfe3fdd95aea493101ecf190e8f68723d139d7255d962df436f37a7f3f2b78d6",
+          "referenceSha256": "d773385445030ea0ba402321a0099456f14084e27e8d388aaa3d7c199bb009ca",
+          "score": 534.2067,
+          "valid": true,
+          "delta": -214.88740000000007,
+          "frames": 129164,
+          "referenceFrames": 679662,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "high_air_drive_air_minus_5",
+          "sha256": "6035979c47196cc5c10a795da55b5ce02b36f72f83b6586146875cae4848f2e0",
+          "referenceSha256": "c68bf4fc727b1a30a743774f82a24140a56a295cedea1233e0037f6a2a69a59a",
+          "score": 624.0591,
+          "valid": true,
+          "delta": -176.6544,
+          "frames": 103736,
+          "referenceFrames": 688998,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "loose_pocket",
+          "sha256": "a984e95c53f36dc653f48de3a98e2401a8da0ae68a1d1b4557a38378d278852e",
+          "referenceSha256": "e2584acfdb5d421d3522dd9543c4c1ddde3131eef22c109283bea178543a73c7",
+          "score": 677.1535,
+          "valid": true,
+          "delta": -169.79449999999997,
+          "frames": 122678,
+          "referenceFrames": 705516,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "loose_pocket_drag_later_20ms",
+          "sha256": "646f193987c0253d7eef33908a1f3aa2c4887f304dafe4195359d7ae0c8e2ed7",
+          "referenceSha256": "76de5d9cabafa3824827abfe0ac7c27e8c0c6919609cf21164aaf92a11eb6fe6",
+          "score": 644.56,
+          "valid": true,
+          "delta": -234.41110000000003,
+          "frames": 108407,
+          "referenceFrames": 705785,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "meter_exchange",
+          "sha256": "f93c29dab06b43252af3723a57d96b1568781ac1211981b2e3377217c2314421",
+          "referenceSha256": "defab2c78beaf50e09fe4f1e2de2106f1ead3c07ee438408e85ad2ab088d4d92",
+          "score": 617.2068,
+          "valid": true,
+          "delta": -216.76279999999997,
+          "frames": 104415,
+          "referenceFrames": 699000,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "meter_exchange_speed_plus_4",
+          "sha256": "5d004b808d637fb1674656c292d8f0ec67f29c3b3671bfb82657ab48a80a32cb",
+          "referenceSha256": "38225610d4bbbb7d69ce328b3d0f37022b5c85c691e7e4028c892d41b6e8f6a1",
+          "score": 616.6089,
+          "valid": true,
+          "delta": -227.5774,
+          "frames": 119638,
+          "referenceFrames": 699453,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "offgrid_conversation",
+          "sha256": "25c11c6c4b7e8e0f956bafd28722be3c30f3b2264564e7011616ead893bb9649",
+          "referenceSha256": "76deebb507461a32848bd96ad62fcb0a3ec80f70c60e8bfc42fc3797221a5762",
+          "score": 674.8823,
+          "valid": true,
+          "delta": -199.07360000000006,
+          "frames": 107379,
+          "referenceFrames": 698333,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "offgrid_conversation_answer_early_25ms",
+          "sha256": "362914b0ad90b0fea75e69826ed84cce23f1bc80f61c9d3ec8eef8fc9849756d",
+          "referenceSha256": "31c9e41676524538fd025cdf7cc1ddbf697a957b216517108f222478f8672fd9",
+          "score": 720.5269,
+          "valid": true,
+          "delta": -159.13650000000007,
+          "frames": 94665,
+          "referenceFrames": 699896,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "open_hook",
+          "sha256": "2f7ef3785f66b6c6dd52041f7bf2a29b71944efd56b1bc154b254a18a8f06523",
+          "referenceSha256": "2d8f172d346aa5bb27b7d6bd798305ef5c65d59ccf7292be5c24794e53db22aa",
+          "score": 553.2944,
+          "valid": true,
+          "delta": -241.15610000000004,
+          "frames": 113571,
+          "referenceFrames": 659393,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "open_hook_amplitude_plus_8",
+          "sha256": "9a72131c82ea5ea2abd56d3e0ddd539e97cee9fff0a3211aed4857eaaef553d9",
+          "referenceSha256": "ccaa14605a64df9239f436d9ceb2408532b8f6a79bb0f3f156eb140a6eb782f7",
+          "score": 569.7407,
+          "valid": true,
+          "delta": -159.8795,
+          "frames": 127703,
+          "referenceFrames": 666442,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "pickup_lattice",
+          "sha256": "e6d14ddf951188e5b6df116ac7484f332e5287deb7e83216aa020c980285f5db",
+          "referenceSha256": "b49cfeb4f3b03987650240c81bb00bccd70f1fa60817a5badbf14d65ceb61bf2",
+          "score": 597.1012,
+          "valid": true,
+          "delta": -192.49630000000002,
+          "frames": 135415,
+          "referenceFrames": 695297,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "pickup_lattice_speed_minus_4",
+          "sha256": "ea5512c8d8547670ab96561c74fc9555f889db7e477384774e735a9c77b076ff",
+          "referenceSha256": "219c9ea2b23ff63155842a42a81ad7aded0222b3733fcae50c644dcf9fafa3e5",
+          "score": 607.4543,
+          "valid": true,
+          "delta": -220.78409999999997,
+          "frames": 104570,
+          "referenceFrames": 695359,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "regression_amplitude_mosaic",
+          "sha256": "42f7819f9ce6110b6fa8df56be3bc08a62e8db484239356e8f75fff209f6d796",
+          "referenceSha256": "4c6ad530b025c04f85f03b0bd8747d3717163725957e4995f25b8c6b207b2a49",
+          "score": 552.0835,
+          "valid": true,
+          "delta": -106.81960000000004,
+          "frames": 114341,
+          "referenceFrames": 687290,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "regression_amplitude_mosaic_contrast_10",
+          "sha256": "6120100008d99635e90adcd25e93972800833ee34c74ab41d69a9406eaa6b503",
+          "referenceSha256": "3ec35b4ba50bb69565ef8b369a7a253c79f34834ad576af2858a92d4fd7db2e3",
+          "score": 516.3406,
+          "valid": true,
+          "delta": -142.17600000000004,
+          "frames": 144718,
+          "referenceFrames": 687963,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "regression_transition_mosaic",
+          "sha256": "cb752dde587ecdb241f988ae5bae0b4d74a1d178dd25bee1bc7c9744069fa3dd",
+          "referenceSha256": "9662f6eee0d703e50a7efdb1bccdb2306ffb6868e12448d3b60bf1dc5547bd6c",
+          "score": 601.58,
+          "valid": true,
+          "delta": -250.06779999999992,
+          "frames": 96946,
+          "referenceFrames": 691223,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "regression_transition_mosaic_tempo_fast_5",
+          "sha256": "81367d9a0ebdbca06e46e0f69f22e66ca8c85a9206838fdf88e5fc180df86b35",
+          "referenceSha256": "fd3e21cb213ee97a8e5b25b32785d95e9412b318303bb2e215c8fb3fa874dc50",
+          "score": 601.166,
+          "valid": true,
+          "delta": -230.3717999999999,
+          "frames": 124233,
+          "referenceFrames": 693263,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "rising_switch",
+          "sha256": "35a64d75c5bb04a7f1f235510d95ae817753baf185db2d80627d6792856bcb5f",
+          "referenceSha256": "2f3a78ae27c82ad66c23edbb29cda841b2d7ff165cb798b6950572577dd6dfe9",
+          "score": 637.167,
+          "valid": true,
+          "delta": -234.90639999999996,
+          "frames": 112544,
+          "referenceFrames": 686485,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "rising_switch_tempo_fast_5",
+          "sha256": "c03d65ae93fcba42bc82aaf1456a3f6eb7f48bb8e11acb0a92029526061a9581",
+          "referenceSha256": "04e946b54fe65b7d4db86d8473bd47adef51829ae23e986086cb917b184284ef",
+          "score": 637.8824,
+          "valid": true,
+          "delta": -207.54840000000002,
+          "frames": 117509,
+          "referenceFrames": 685072,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "river_reentry",
+          "sha256": "c2b7a38dcbeb739b9a6be5f9cab8ae0a17ad33dae94561b7669d6ec8860c7fdb",
+          "referenceSha256": "1ae7e7bbcb44ca24e2d2518f16625d2989a870e9de7dd7bfb2f506b04bc36a90",
+          "score": 665.1204,
+          "valid": true,
+          "delta": -210.92989999999998,
+          "frames": 107995,
+          "referenceFrames": 680869,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "river_reentry_tempo_fast_5",
+          "sha256": "7cab5005c1047bd57af7c258eb48d69b626f291b3f89089b0b40ee361ff719fb",
+          "referenceSha256": "c8afb2f74ede57e907e3011a9133ddee1bb085f97f2f25367e82737e259d23d6",
+          "score": 659.986,
+          "valid": true,
+          "delta": -177.21090000000004,
+          "frames": 113238,
+          "referenceFrames": 674440,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "sparse_lowline",
+          "sha256": "5e4f09f0829bcf11800da3d2c54491333a4bc53f1d2e1ffe64fcdfdc37a449c7",
+          "referenceSha256": "0bf520fdd9d87258c0c8017055ffae154f840ad3bc460ef4c373ca0f03cb6945",
+          "score": 509.7023,
+          "valid": true,
+          "delta": -261.15500000000003,
+          "frames": 99168,
+          "referenceFrames": 682485,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "sparse_lowline_air_minus_4",
+          "sha256": "1795387d11383f3e61214aec09141407b850652d1e8ab5115880a0a9799a26f3",
+          "referenceSha256": "5d18dd8a2b43c478cc4b73a54895445fa72537535aaf2ba5186cbf81a7d5d971",
+          "score": 455.6497,
+          "valid": true,
+          "delta": -312.0691,
+          "frames": 99191,
+          "referenceFrames": 678008,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "split_signal",
+          "sha256": "2d4ccb56f9a078978c961c836871c1fb5e96952be906b95f8ab1d827a5641b26",
+          "referenceSha256": "512cb0939ae694b7260e4d3ab25a322c7897b6177017f646bf1441f0651afcd1",
+          "score": 544.9999,
+          "valid": true,
+          "delta": -182.37119999999993,
+          "frames": 137254,
+          "referenceFrames": 682983,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "split_signal_impact_relief_12",
+          "sha256": "faf7ecbb7d3da8053db5a0ea0f3cfc1534fa255b10505c69827a6de44617872c",
+          "referenceSha256": "4dfd867658667a9f96db0806e2ae5d6967428c94b563bb29d4f1e85c8eae9906",
+          "score": 560.9299,
+          "valid": true,
+          "delta": -168.68759999999997,
+          "frames": 98609,
+          "referenceFrames": 690251,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "wide_breaths",
+          "sha256": "c0dba9fb1d63fa1671ff35af96c51e102f7175ce8d9f3a65cad236a92fbec026",
+          "referenceSha256": "42dec369fe8900484a7bef247bb00791da76bf5aa99debb195e5d415a032d668",
+          "score": 649.8101,
+          "valid": true,
+          "delta": -158.3918,
+          "frames": 111985,
+          "referenceFrames": 693928,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "wide_breaths_air_plus_5",
+          "sha256": "71525752672c94793a8673749bc867de2015dd7e0348d74b04b27641cc14ed71",
+          "referenceSha256": "66406d03c02f60aace56dcf16f5d893c725131013a926e39f29b76911f6ea90b",
+          "score": 659.7969,
+          "valid": true,
+          "delta": -130.16689999999994,
+          "frames": 106014,
+          "referenceFrames": 693981,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-1m",
+      "planSha256": "e5f7631512dd4ba2bdf6721c7f6f41b21b90f9809047e2e3e06b47d8a3316761",
+      "summarySha256": "417782850cd83ceea69e91cbcb6d7dd0611cdaf4fae0d501c9bd219fe87ad32e",
+      "options": {
+        "budget": 1000000,
+        "publicCompiler": true
+      },
+      "budget": 1000000,
+      "seed": 260908011,
+      "sources": 44,
+      "valid": 44,
+      "exploratoryHeadline": 831.0704,
+      "pilotMean": 825.7268090909091,
+      "meanDelta": 54.026202272727275,
+      "totalFrames": 41922165,
+      "maxFrames": 969274,
+      "rows": [
+        {
+          "source": "amplitude_tides",
+          "sha256": "607d41c5cdde71d5d3b3216853fe38f8bdb2ca2c74e0c56fe848f4fee67b6d34",
+          "referenceSha256": "ef119bfdcb1707b0adb6034f47a1ab6242afbfd3e7217b278b9ee85bbfd9e3e0",
+          "score": 812.8418,
+          "valid": true,
+          "delta": 69.8089,
+          "frames": 951447,
+          "referenceFrames": 691156,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "amplitude_tides_restrained_10",
+          "sha256": "67ab20ebbe5ef4ae5f991af9f621dc5eb24a02eb0d696d83d0c7e52302136467",
+          "referenceSha256": "3a93cfc4bb07c6b24b8902bab4ae8f9490029f60ecd502b29bf83c3f41edad87",
+          "score": 811.5389,
+          "valid": true,
+          "delta": 73.2912,
+          "frames": 957256,
+          "referenceFrames": 690260,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "believer_56_6s",
+          "sha256": "1477e9255c8aef7a3f846fe76dbbfd9b4e4a0855eb96d61b41ca9a64d2d2a41f",
+          "referenceSha256": "5ab1ea9656af4a51d4edce5b36a325402d06fb14f6236d348778b30cfe3d58bc",
+          "score": 844.7031,
+          "valid": true,
+          "delta": 47.78589999999997,
+          "frames": 954600,
+          "referenceFrames": 698355,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "believer_56_6s_impact_relief",
+          "sha256": "8cb90c3621276f1031d21ffa103d019a4cb668cae5c930bc5a991cf98d6d08ff",
+          "referenceSha256": "149772dcd46d581919d39cda458df81cc71cff311defc4f0f61e016d862fcb57",
+          "score": 830.6977,
+          "valid": true,
+          "delta": 35.93390000000011,
+          "frames": 955343,
+          "referenceFrames": 695575,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "believer_impact_56s",
+          "sha256": "c7392c30f52d0308982ed68a4d7721c7801ccaf4028cb0cb149d1fd4afb9d441",
+          "referenceSha256": "1d1508992a0361b1e908eee95b1888494d217293fdcca6580d09d8b3b5a6b572",
+          "score": 781.7289,
+          "valid": true,
+          "delta": 70.7485999999999,
+          "frames": 965041,
+          "referenceFrames": 692109,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "believer_impact_56s_amplitude_plus_5",
+          "sha256": "2010b7817eb97b1f58273ca0e6676587511790dc5c967c0689636e51f1b2e0be",
+          "referenceSha256": "ef1d28dff4f60f4478a3cdb9a584d9fc37cf1c45ee6288e34ceaa2a1cd488dc6",
+          "score": 799.7067,
+          "valid": true,
+          "delta": 66.41309999999999,
+          "frames": 958879,
+          "referenceFrames": 694256,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "countercurrent",
+          "sha256": "20fe945bca9c05aba0deecdee670c9ebcf21a392540643b8dcae8f02259e2192",
+          "referenceSha256": "593f7ab4ffbc5b6f0e8ebc7e98407f02b9334e166de65a585443692cd813e866",
+          "score": 919.1071,
+          "valid": true,
+          "delta": 22.451099999999997,
+          "frames": 939152,
+          "referenceFrames": 690392,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "countercurrent_impact_contrast_12",
+          "sha256": "f80248c7c40b5be2baf0a4732bbd792e256ccd6fbb2ccdb585eec7de4f814da6",
+          "referenceSha256": "8d6bec634671895a13a797ab709807b5f0a1e8ee01161a7d0720bd167d5158b0",
+          "score": 926.6064,
+          "valid": true,
+          "delta": 57.10410000000002,
+          "frames": 939954,
+          "referenceFrames": 693904,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "dense_dialogue",
+          "sha256": "9f0a7b81e6523d8881ea4a9a369d94c75d7e6899bfd14e7bf0cf60af30ffffb5",
+          "referenceSha256": "89161d078fac61462005e286e276241e1f3b0683f2e5d80b1dcdc836ddf5acd4",
+          "score": 845.1974,
+          "valid": true,
+          "delta": 104.29489999999998,
+          "frames": 930340,
+          "referenceFrames": 680328,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "dense_dialogue_impact_contrast_10",
+          "sha256": "1f87027ab6371bf6113999c4cf3e2fc18d9c83431d6f2103e4fd5ea13a5a59a7",
+          "referenceSha256": "d2f5fcb7f77593e36d2b1299b1ca42bfc18b0102b880b50a2f68e4fd83d88538",
+          "score": 825.2988,
+          "valid": true,
+          "delta": 68.95890000000009,
+          "frames": 934446,
+          "referenceFrames": 677094,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_dense_recovery",
+          "sha256": "324a2806ef8e64d16600499fd23eb03064705251f0e22d8b1d3417b65244942b",
+          "referenceSha256": "682fd9569cc7f702eaa5028b46e868f326515b37a62ee86710e799b94bc2a812",
+          "score": 617.3565,
+          "valid": true,
+          "delta": 8.44870000000003,
+          "frames": 965048,
+          "referenceFrames": 702950,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_dense_recovery_240ms_figures",
+          "sha256": "64d1b76fb3bcca354c44f24b3899dacce2bcd3f4e8d894392242a3211e3d07a9",
+          "referenceSha256": "b6555498798f8fba81dcf31e95805d45be0c707a7b1adadb09f47396c025eed1",
+          "score": 619.7617,
+          "valid": true,
+          "delta": 46.26819999999998,
+          "frames": 964531,
+          "referenceFrames": 708092,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance",
+          "sha256": "ca1baf983dffc6f89598d33c081ce0b3000df8ea48554f75a68c773046f48941",
+          "referenceSha256": "523e4d153a6edcfe267cf9d043ab91fd3157e162696d95d47c938a5bf23f182a",
+          "score": 764.5591,
+          "valid": true,
+          "delta": 56.02649999999994,
+          "frames": 965024,
+          "referenceFrames": 671492,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_4s",
+          "sha256": "e2220c067af62f2b3faad8657f5ca7148790a0e515939d6d1daeb5f16873f613",
+          "referenceSha256": "8e9e9e13fb306886ee1333ac5d833946fa6557731fafee0751085af2c97db89c",
+          "score": 774.3202,
+          "valid": true,
+          "delta": 64.78319999999997,
+          "frames": 965613,
+          "referenceFrames": 680666,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_6s",
+          "sha256": "985497360ac5a70e090914e108a0be8b15dc79c7f5542b4e40c28ffa528a64dd",
+          "referenceSha256": "c26480855315031522ee93e2ede74daef1abcb4329065223e8db83189651bd7d",
+          "score": 775.9485,
+          "valid": true,
+          "delta": 59.25670000000002,
+          "frames": 965626,
+          "referenceFrames": 684069,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_7s",
+          "sha256": "06827f68972f2b6936bc8665eb065008110e71bf911d48cfa99984ac31092845",
+          "referenceSha256": "cb2486ebe8fb95ae3466474682bf8276dacd02e799e46740a238271d6c0b4ae7",
+          "score": 771.6441,
+          "valid": true,
+          "delta": 58.30930000000001,
+          "frames": 964993,
+          "referenceFrames": 684648,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_pickup_progression",
+          "sha256": "c4dcb1906770323f1999846e3523b879cbdb844d6851c3f0c8aa257593f62217",
+          "referenceSha256": "416dd45a55b7b021751cc4197e6f0a8885fb23976321b1dfb6010d36a59d41ae",
+          "score": 678.4821,
+          "valid": true,
+          "delta": 43.60149999999999,
+          "frames": 963593,
+          "referenceFrames": 699611,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "frontier_pickup_progression_shifted",
+          "sha256": "48fec25dec5ba1339512a3243ac801f4df460b2aba213d733ac9630cbe4f0011",
+          "referenceSha256": "5cae906df0a8ac1c79a8eb7db42facd444fbb6ac6361864d7d0270b6b209031c",
+          "score": 681.7654,
+          "valid": true,
+          "delta": 47.448600000000056,
+          "frames": 968839,
+          "referenceFrames": 694647,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "high_air_drive",
+          "sha256": "e790287db3802daf95f10aa10535cfa4a06b0e0c1490aa9aa5945ed528b45f69",
+          "referenceSha256": "d773385445030ea0ba402321a0099456f14084e27e8d388aaa3d7c199bb009ca",
+          "score": 849.2957,
+          "valid": true,
+          "delta": 100.20159999999998,
+          "frames": 953598,
+          "referenceFrames": 679662,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "high_air_drive_air_minus_5",
+          "sha256": "5fb765af827c4ac8611ab14e4b396fcc78f1ca85fe98cd444da4f0e8e3ac6673",
+          "referenceSha256": "c68bf4fc727b1a30a743774f82a24140a56a295cedea1233e0037f6a2a69a59a",
+          "score": 873.1846,
+          "valid": true,
+          "delta": 72.47110000000009,
+          "frames": 944195,
+          "referenceFrames": 688998,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "loose_pocket",
+          "sha256": "7383c71d270d1c9ffb714d16d2f1176993f0988262071d93bc9c87da7151a05f",
+          "referenceSha256": "e2584acfdb5d421d3522dd9543c4c1ddde3131eef22c109283bea178543a73c7",
+          "score": 901.2757,
+          "valid": true,
+          "delta": 54.32770000000005,
+          "frames": 967426,
+          "referenceFrames": 705516,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "loose_pocket_drag_later_20ms",
+          "sha256": "bfb7dc37ac5ceb1be5062221f8b466d1787c40ecd8a761560f05e73bb4aa7d29",
+          "referenceSha256": "76de5d9cabafa3824827abfe0ac7c27e8c0c6919609cf21164aaf92a11eb6fe6",
+          "score": 902.3855,
+          "valid": true,
+          "delta": 23.4144,
+          "frames": 968187,
+          "referenceFrames": 705785,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "meter_exchange",
+          "sha256": "b5ff386bfcd4f75f83a87aebe163ac357985a408f71f92d55d7417006daea609",
+          "referenceSha256": "defab2c78beaf50e09fe4f1e2de2106f1ead3c07ee438408e85ad2ab088d4d92",
+          "score": 897.6713,
+          "valid": true,
+          "delta": 63.70169999999996,
+          "frames": 964510,
+          "referenceFrames": 699000,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "meter_exchange_speed_plus_4",
+          "sha256": "4bf6cc7ccac0000c7ec058f6e759311a8183d49dc8c1f23939c36480053f050d",
+          "referenceSha256": "38225610d4bbbb7d69ce328b3d0f37022b5c85c691e7e4028c892d41b6e8f6a1",
+          "score": 897.9373,
+          "valid": true,
+          "delta": 53.75100000000009,
+          "frames": 967609,
+          "referenceFrames": 699453,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "offgrid_conversation",
+          "sha256": "91c5099d9d7da70bfa4b5547e5c5c45441a9980b683e55629228895c2457d893",
+          "referenceSha256": "76deebb507461a32848bd96ad62fcb0a3ec80f70c60e8bfc42fc3797221a5762",
+          "score": 907.2426,
+          "valid": true,
+          "delta": 33.286699999999996,
+          "frames": 951450,
+          "referenceFrames": 698333,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "offgrid_conversation_answer_early_25ms",
+          "sha256": "c5a0e45cc188639ff3cd18fce39702a3e61bcd5e7f9ae8aaed714fa53449667e",
+          "referenceSha256": "31c9e41676524538fd025cdf7cc1ddbf697a957b216517108f222478f8672fd9",
+          "score": 912.2772,
+          "valid": true,
+          "delta": 32.61379999999997,
+          "frames": 951346,
+          "referenceFrames": 699896,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "open_hook",
+          "sha256": "9daa785aa400d2826a0395e3a4fd44473ca021db62eb919904d5c69ea1cba3d3",
+          "referenceSha256": "2d8f172d346aa5bb27b7d6bd798305ef5c65d59ccf7292be5c24794e53db22aa",
+          "score": 839.7659,
+          "valid": true,
+          "delta": 45.315399999999954,
+          "frames": 913575,
+          "referenceFrames": 659393,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "open_hook_amplitude_plus_8",
+          "sha256": "c7872ef662ffc22b97ce1bded6e7fc096ac607b46fbde13052ace40d2cbe42cf",
+          "referenceSha256": "ccaa14605a64df9239f436d9ceb2408532b8f6a79bb0f3f156eb140a6eb782f7",
+          "score": 839.9922,
+          "valid": true,
+          "delta": 110.37200000000007,
+          "frames": 916368,
+          "referenceFrames": 666442,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "pickup_lattice",
+          "sha256": "1dbfd55d816c67a008875a7fc5c154a9ce9c6fd81ee46011e80e44b9bf3bce62",
+          "referenceSha256": "b49cfeb4f3b03987650240c81bb00bccd70f1fa60817a5badbf14d65ceb61bf2",
+          "score": 855.4463,
+          "valid": true,
+          "delta": 65.84879999999998,
+          "frames": 964903,
+          "referenceFrames": 695297,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "pickup_lattice_speed_minus_4",
+          "sha256": "f3ce6cd008663b09437f294f906fc09e00dbd6467e6a899e89c688d3fb0851d3",
+          "referenceSha256": "219c9ea2b23ff63155842a42a81ad7aded0222b3733fcae50c644dcf9fafa3e5",
+          "score": 857.8445,
+          "valid": true,
+          "delta": 29.606100000000083,
+          "frames": 960393,
+          "referenceFrames": 695359,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "regression_amplitude_mosaic",
+          "sha256": "aabfbfa59dd3ba556ba72c908f48aa30eb95dc1ca5cb2290102d0f84acf7de17",
+          "referenceSha256": "4c6ad530b025c04f85f03b0bd8747d3717163725957e4995f25b8c6b207b2a49",
+          "score": 714.4819,
+          "valid": true,
+          "delta": 55.5788,
+          "frames": 959216,
+          "referenceFrames": 687290,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "regression_amplitude_mosaic_contrast_10",
+          "sha256": "4a57412a3593ef40fe93ef27e99ea602a0deb412848b30689f549565a5e260b9",
+          "referenceSha256": "3ec35b4ba50bb69565ef8b369a7a253c79f34834ad576af2858a92d4fd7db2e3",
+          "score": 686.4181,
+          "valid": true,
+          "delta": 27.901499999999942,
+          "frames": 962112,
+          "referenceFrames": 687963,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "regression_transition_mosaic",
+          "sha256": "98e23bf24a5558a6836dba09fd799b57a5b61172b5f74563e3ba8b83b542bfb5",
+          "referenceSha256": "9662f6eee0d703e50a7efdb1bccdb2306ffb6868e12448d3b60bf1dc5547bd6c",
+          "score": 883.491,
+          "valid": true,
+          "delta": 31.843200000000024,
+          "frames": 956753,
+          "referenceFrames": 691223,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "regression_transition_mosaic_tempo_fast_5",
+          "sha256": "ce0e487d5f9de25730e10790c0e03e089c8b0725a0324206d3a7013d91e0c7b9",
+          "referenceSha256": "fd3e21cb213ee97a8e5b25b32785d95e9412b318303bb2e215c8fb3fa874dc50",
+          "score": 887.6906,
+          "valid": true,
+          "delta": 56.15280000000007,
+          "frames": 949755,
+          "referenceFrames": 693263,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "rising_switch",
+          "sha256": "730ea8c250180a2677be9f41471984d8b4c1c90170b8a3e364f00e400b2e5f45",
+          "referenceSha256": "2f3a78ae27c82ad66c23edbb29cda841b2d7ff165cb798b6950572577dd6dfe9",
+          "score": 898.3349,
+          "valid": true,
+          "delta": 26.261499999999955,
+          "frames": 945653,
+          "referenceFrames": 686485,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "rising_switch_tempo_fast_5",
+          "sha256": "fe910e02e2deaccd74a246e6afd007281f930ef394bba67f848e4b0bd365a1bf",
+          "referenceSha256": "04e946b54fe65b7d4db86d8473bd47adef51829ae23e986086cb917b184284ef",
+          "score": 888.8791,
+          "valid": true,
+          "delta": 43.44830000000002,
+          "frames": 935982,
+          "referenceFrames": 685072,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "river_reentry",
+          "sha256": "ca7d80be1373fe9cf89c2a37a990e59e931b37a586d9a1a0ccbe3732df204c50",
+          "referenceSha256": "1ae7e7bbcb44ca24e2d2518f16625d2989a870e9de7dd7bfb2f506b04bc36a90",
+          "score": 923.6193,
+          "valid": true,
+          "delta": 47.56899999999996,
+          "frames": 921585,
+          "referenceFrames": 680869,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "river_reentry_tempo_fast_5",
+          "sha256": "32b4872a764191864db78b52d09446e524aba0b8ad8b0f898210949792e258ad",
+          "referenceSha256": "c8afb2f74ede57e907e3011a9133ddee1bb085f97f2f25367e82737e259d23d6",
+          "score": 899.073,
+          "valid": true,
+          "delta": 61.87609999999995,
+          "frames": 914272,
+          "referenceFrames": 674440,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "sparse_lowline",
+          "sha256": "4fc10271809b0dba58eb3383b27c46943be3194fbd7baf18457e689c7bfdca60",
+          "referenceSha256": "0bf520fdd9d87258c0c8017055ffae154f840ad3bc460ef4c373ca0f03cb6945",
+          "score": 851.2149,
+          "valid": true,
+          "delta": 80.35759999999993,
+          "frames": 952679,
+          "referenceFrames": 682485,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "sparse_lowline_air_minus_4",
+          "sha256": "8e02dab1d3c9d111afaef90680347414e494b6f6746a08152bf30f88cc3e29be",
+          "referenceSha256": "5d18dd8a2b43c478cc4b73a54895445fa72537535aaf2ba5186cbf81a7d5d971",
+          "score": 833.0679,
+          "valid": true,
+          "delta": 65.34910000000002,
+          "frames": 951880,
+          "referenceFrames": 678008,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "split_signal",
+          "sha256": "05e3b98ee1e556e5ba1dbada7012e4ba691fb4a1d5d0f17faa6c56d8489886dc",
+          "referenceSha256": "512cb0939ae694b7260e4d3ab25a322c7897b6177017f646bf1441f0651afcd1",
+          "score": 768.5517,
+          "valid": true,
+          "delta": 41.18060000000003,
+          "frames": 952749,
+          "referenceFrames": 682983,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "split_signal_impact_relief_12",
+          "sha256": "ae9c36abf67446c27babfd3294b0dc638efcdc1b6fb0c0f0261524678f0ce28a",
+          "referenceSha256": "4dfd867658667a9f96db0806e2ae5d6967428c94b563bb29d4f1e85c8eae9906",
+          "score": 767.4861,
+          "valid": true,
+          "delta": 37.868600000000015,
+          "frames": 951111,
+          "referenceFrames": 690251,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "wide_breaths",
+          "sha256": "3e00e1b74b321b051ef2a4acc862cff5afc214a5a0dd75b62eba1ca0666ed31b",
+          "referenceSha256": "42dec369fe8900484a7bef247bb00791da76bf5aa99debb195e5d415a032d668",
+          "score": 860.5135,
+          "valid": true,
+          "delta": 52.3116,
+          "frames": 965859,
+          "referenceFrames": 693928,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        },
+        {
+          "source": "wide_breaths_air_plus_5",
+          "sha256": "569b616713738887937338822888602ac643f336798308ec7c26e7d507efa496",
+          "referenceSha256": "66406d03c02f60aace56dcf16f5d893c725131013a926e39f29b76911f6ea90b",
+          "score": 853.5744,
+          "valid": true,
+          "delta": 63.61059999999998,
+          "frames": 969274,
+          "referenceFrames": 693981,
+          "memo": null,
+          "planning": null,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-export-fold-0",
+      "planSha256": "e01609c44e0d6e426a1f5c66ba5d4585d6bc9d10c21b07b6054b58d60b6d735a",
+      "summarySha256": "d7b4fa168628964e54a30b3a338f619bdca84722ee8092c7cfb892c1a58960d5",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-0.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 10,
+      "valid": 10,
+      "exploratoryHeadline": null,
+      "pilotMean": 822.31508,
+      "meanDelta": 39.828840000000014,
+      "totalFrames": 7420474,
+      "maxFrames": 749973,
+      "rows": [
+        {
+          "source": "countercurrent",
+          "sha256": "969580efb9d96d647c11c8dae1e575e9349ac0a678a1500f90fcb41e65b3054c",
+          "referenceSha256": "593f7ab4ffbc5b6f0e8ebc7e98407f02b9334e166de65a585443692cd813e866",
+          "score": 923.2327,
+          "valid": true,
+          "delta": 26.576700000000073,
+          "frames": 728490,
+          "referenceFrames": 690392,
+          "memo": {
+            "hits": 5521,
+            "rejectedHits": 828
+          },
+          "planning": {
+            "probes": 250,
+            "changedChoices": 59,
+            "failedProbes": 1,
+            "physicsFrames": 298674,
+            "continuationNodes": 250,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "countercurrent_impact_contrast_12",
+          "sha256": "3e165b8b313b86cd6a9d0509b6430c205a3592793843328f16e3902f79964e4e",
+          "referenceSha256": "8d6bec634671895a13a797ab709807b5f0a1e8ee01161a7d0720bd167d5158b0",
+          "score": 915.2327,
+          "valid": true,
+          "delta": 45.73040000000003,
+          "frames": 725496,
+          "referenceFrames": 693904,
+          "memo": {
+            "hits": 5850,
+            "rejectedHits": 949
+          },
+          "planning": {
+            "probes": 256,
+            "changedChoices": 53,
+            "failedProbes": 0,
+            "physicsFrames": 304776,
+            "continuationNodes": 256,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance",
+          "sha256": "b32226d37735e8fa7f14acdcc4f7ae6b29f4fa1e0ec83415e6fde68d085cbc7b",
+          "referenceSha256": "523e4d153a6edcfe267cf9d043ab91fd3157e162696d95d47c938a5bf23f182a",
+          "score": 754.2765,
+          "valid": true,
+          "delta": 45.74390000000005,
+          "frames": 749973,
+          "referenceFrames": 671492,
+          "memo": {
+            "hits": 5136,
+            "rejectedHits": 1249
+          },
+          "planning": {
+            "probes": 244,
+            "changedChoices": 41,
+            "failedProbes": 0,
+            "physicsFrames": 260181,
+            "continuationNodes": 250,
+            "maxDepth": 2
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_4s",
+          "sha256": "77b16d8417c6379b1c8962dadc513fe57739ea92a4b0632813731e558bce0200",
+          "referenceSha256": "8e9e9e13fb306886ee1333ac5d833946fa6557731fafee0751085af2c97db89c",
+          "score": 757.2792,
+          "valid": true,
+          "delta": 47.74219999999991,
+          "frames": 747952,
+          "referenceFrames": 680666,
+          "memo": {
+            "hits": 5352,
+            "rejectedHits": 1187
+          },
+          "planning": {
+            "probes": 253,
+            "changedChoices": 45,
+            "failedProbes": 0,
+            "physicsFrames": 266507,
+            "continuationNodes": 265,
+            "maxDepth": 2
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_6s",
+          "sha256": "d2782d648dec27bef755d825d8a7376cf3a72cfc0e4d9b9d15067156648972fc",
+          "referenceSha256": "c26480855315031522ee93e2ede74daef1abcb4329065223e8db83189651bd7d",
+          "score": 757.111,
+          "valid": true,
+          "delta": 40.419200000000046,
+          "frames": 747192,
+          "referenceFrames": 684069,
+          "memo": {
+            "hits": 4782,
+            "rejectedHits": 1044
+          },
+          "planning": {
+            "probes": 234,
+            "changedChoices": 40,
+            "failedProbes": 0,
+            "physicsFrames": 257051,
+            "continuationNodes": 240,
+            "maxDepth": 2
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_7s",
+          "sha256": "7bdfc6ef5359d8b7977bda13464290bd74418c6907119762a7646c2c77c5249b",
+          "referenceSha256": "cb2486ebe8fb95ae3466474682bf8276dacd02e799e46740a238271d6c0b4ae7",
+          "score": 767.3991,
+          "valid": true,
+          "delta": 54.0643,
+          "frames": 744544,
+          "referenceFrames": 684648,
+          "memo": {
+            "hits": 4580,
+            "rejectedHits": 1041
+          },
+          "planning": {
+            "probes": 218,
+            "changedChoices": 34,
+            "failedProbes": 0,
+            "physicsFrames": 244685,
+            "continuationNodes": 224,
+            "maxDepth": 2
+          },
+          "failure": null
+        },
+        {
+          "source": "offgrid_conversation",
+          "sha256": "731620de5c8441dfff3cbb1e92f3937947b7ec14e3d8e512cabfb1ec84275a97",
+          "referenceSha256": "76deebb507461a32848bd96ad62fcb0a3ec80f70c60e8bfc42fc3797221a5762",
+          "score": 921.5684,
+          "valid": true,
+          "delta": 47.612499999999955,
+          "frames": 741603,
+          "referenceFrames": 698333,
+          "memo": {
+            "hits": 5659,
+            "rejectedHits": 713
+          },
+          "planning": {
+            "probes": 286,
+            "changedChoices": 60,
+            "failedProbes": 0,
+            "physicsFrames": 299082,
+            "continuationNodes": 286,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "offgrid_conversation_answer_early_25ms",
+          "sha256": "bd488d07fe2f5f4b982adbf58f5943193d6d8589a7b25260a9c5ddadefb0731f",
+          "referenceSha256": "31c9e41676524538fd025cdf7cc1ddbf697a957b216517108f222478f8672fd9",
+          "score": 903.7213,
+          "valid": true,
+          "delta": 24.057900000000018,
+          "frames": 741893,
+          "referenceFrames": 699896,
+          "memo": {
+            "hits": 5914,
+            "rejectedHits": 804
+          },
+          "planning": {
+            "probes": 293,
+            "changedChoices": 58,
+            "failedProbes": 1,
+            "physicsFrames": 304091,
+            "continuationNodes": 293,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "split_signal",
+          "sha256": "5da91496405948d5179962afe60341068883c18350265853c74836b57b1073f3",
+          "referenceSha256": "512cb0939ae694b7260e4d3ab25a322c7897b6177017f646bf1441f0651afcd1",
+          "score": 762.4684,
+          "valid": true,
+          "delta": 35.09730000000002,
+          "frames": 746244,
+          "referenceFrames": 682983,
+          "memo": {
+            "hits": 5340,
+            "rejectedHits": 1014
+          },
+          "planning": {
+            "probes": 273,
+            "changedChoices": 65,
+            "failedProbes": 4,
+            "physicsFrames": 261260,
+            "continuationNodes": 273,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "split_signal_impact_relief_12",
+          "sha256": "c38d17a6e0d451f576396b51a1a305d87b141b5096961dc17ea92df5d2d37487",
+          "referenceSha256": "4dfd867658667a9f96db0806e2ae5d6967428c94b563bb29d4f1e85c8eae9906",
+          "score": 760.8615,
+          "valid": true,
+          "delta": 31.244000000000028,
+          "frames": 747087,
+          "referenceFrames": 690251,
+          "memo": {
+            "hits": 5329,
+            "rejectedHits": 1066
+          },
+          "planning": {
+            "probes": 274,
+            "changedChoices": 65,
+            "failedProbes": 0,
+            "physicsFrames": 264839,
+            "continuationNodes": 274,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-export-fold-1",
+      "planSha256": "da4d40656085054d0f7fd26edabad5456486b273b5037b6b2a9ad7212b1689e9",
+      "summarySha256": "3833569fea60583174ea305f8c3bab6cef02dffd3b433759cb163e95d9d0e490",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-1.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 8,
+      "valid": 8,
+      "exploratoryHeadline": null,
+      "pilotMean": 848.280675,
+      "meanDelta": 62.73468749999998,
+      "totalFrames": 5899328,
+      "maxFrames": 747889,
+      "rows": [
+        {
+          "source": "dense_dialogue",
+          "sha256": "7db01ce9f59f4a3b8cf74e358842c8bd0f949152ec6f00abf2ab05e2da118a01",
+          "referenceSha256": "89161d078fac61462005e286e276241e1f3b0683f2e5d80b1dcdc836ddf5acd4",
+          "score": 835.0888,
+          "valid": true,
+          "delta": 94.18629999999996,
+          "frames": 736457,
+          "referenceFrames": 680328,
+          "memo": {
+            "hits": 8249,
+            "rejectedHits": 2310
+          },
+          "planning": {
+            "probes": 406,
+            "changedChoices": 94,
+            "failedProbes": 7,
+            "physicsFrames": 278333,
+            "continuationNodes": 406,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "dense_dialogue_impact_contrast_10",
+          "sha256": "24f75d4bd8c8fec96d26864e46b4f8e9843763848bf9ca302228873ea95cdf08",
+          "referenceSha256": "d2f5fcb7f77593e36d2b1299b1ca42bfc18b0102b880b50a2f68e4fd83d88538",
+          "score": 814.7574,
+          "valid": true,
+          "delta": 58.41750000000002,
+          "frames": 739546,
+          "referenceFrames": 677094,
+          "memo": {
+            "hits": 8436,
+            "rejectedHits": 2447
+          },
+          "planning": {
+            "probes": 406,
+            "changedChoices": 93,
+            "failedProbes": 7,
+            "physicsFrames": 276663,
+            "continuationNodes": 406,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "high_air_drive",
+          "sha256": "fe45c8c7fe51fd87635c137e0ada3a2158ec2083cbcb37c674f0fe5ded02de66",
+          "referenceSha256": "d773385445030ea0ba402321a0099456f14084e27e8d388aaa3d7c199bb009ca",
+          "score": 829.1712,
+          "valid": true,
+          "delta": 80.07709999999997,
+          "frames": 747889,
+          "referenceFrames": 679662,
+          "memo": {
+            "hits": 5505,
+            "rejectedHits": 790
+          },
+          "planning": {
+            "probes": 278,
+            "changedChoices": 70,
+            "failedProbes": 0,
+            "physicsFrames": 263480,
+            "continuationNodes": 278,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "high_air_drive_air_minus_5",
+          "sha256": "6a2588df16726f9d2747c8c3b96a701e3c28ea068fdb29d9d29bc63fc78cd493",
+          "referenceSha256": "c68bf4fc727b1a30a743774f82a24140a56a295cedea1233e0037f6a2a69a59a",
+          "score": 838.1636,
+          "valid": true,
+          "delta": 37.45010000000002,
+          "frames": 743650,
+          "referenceFrames": 688998,
+          "memo": {
+            "hits": 5690,
+            "rejectedHits": 856
+          },
+          "planning": {
+            "probes": 279,
+            "changedChoices": 80,
+            "failedProbes": 4,
+            "physicsFrames": 262174,
+            "continuationNodes": 279,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "open_hook",
+          "sha256": "abb5dfdccd01924cf9fb5b15bc9b37949d0c070da0c1911efae037f27f8c457f",
+          "referenceSha256": "2d8f172d346aa5bb27b7d6bd798305ef5c65d59ccf7292be5c24794e53db22aa",
+          "score": 835.5901,
+          "valid": true,
+          "delta": 41.13959999999997,
+          "frames": 735164,
+          "referenceFrames": 659393,
+          "memo": {
+            "hits": 4910,
+            "rejectedHits": 1079
+          },
+          "planning": {
+            "probes": 250,
+            "changedChoices": 60,
+            "failedProbes": 0,
+            "physicsFrames": 270695,
+            "continuationNodes": 250,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "open_hook_amplitude_plus_8",
+          "sha256": "f98f1883bcfef9f70ffc2cc281acc4324c69bf04dce617079660030efcdf4e69",
+          "referenceSha256": "ccaa14605a64df9239f436d9ceb2408532b8f6a79bb0f3f156eb140a6eb782f7",
+          "score": 825.5119,
+          "valid": true,
+          "delta": 95.89170000000001,
+          "frames": 732122,
+          "referenceFrames": 666442,
+          "memo": {
+            "hits": 4862,
+            "rejectedHits": 1073
+          },
+          "planning": {
+            "probes": 250,
+            "changedChoices": 55,
+            "failedProbes": 2,
+            "physicsFrames": 270376,
+            "continuationNodes": 250,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "river_reentry",
+          "sha256": "3486e1675b5721edf961849a0ee7c2e57eeece77327f96e07104fd5f2f69e089",
+          "referenceSha256": "1ae7e7bbcb44ca24e2d2518f16625d2989a870e9de7dd7bfb2f506b04bc36a90",
+          "score": 900.3716,
+          "valid": true,
+          "delta": 24.32129999999995,
+          "frames": 737223,
+          "referenceFrames": 680869,
+          "memo": {
+            "hits": 5623,
+            "rejectedHits": 873
+          },
+          "planning": {
+            "probes": 268,
+            "changedChoices": 64,
+            "failedProbes": 1,
+            "physicsFrames": 275941,
+            "continuationNodes": 268,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "river_reentry_tempo_fast_5",
+          "sha256": "d050dde264103ce256c420b247e6163618acd707c14e68d86dd97461643eab4b",
+          "referenceSha256": "c8afb2f74ede57e907e3011a9133ddee1bb085f97f2f25367e82737e259d23d6",
+          "score": 907.5908,
+          "valid": true,
+          "delta": 70.39389999999992,
+          "frames": 727277,
+          "referenceFrames": 674440,
+          "memo": {
+            "hits": 6144,
+            "rejectedHits": 1165
+          },
+          "planning": {
+            "probes": 275,
+            "changedChoices": 67,
+            "failedProbes": 0,
+            "physicsFrames": 293139,
+            "continuationNodes": 275,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-export-fold-2",
+      "planSha256": "9f9eadd0eaf4ec638fc1b54a9d06f2fd2dbc5775323ff9c93c702f73aef157e3",
+      "summarySha256": "bb65cd446060129e6a2d6d5b21d24bf88a82f07f8b0578e29ebb71d9f63f0094",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-2.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 8,
+      "valid": 8,
+      "exploratoryHeadline": null,
+      "pilotMean": 813.4378875,
+      "meanDelta": 48.85820000000001,
+      "totalFrames": 5944219,
+      "maxFrames": 749971,
+      "rows": [
+        {
+          "source": "frontier_dense_recovery",
+          "sha256": "86ee4859d3aa88ee339f1bdd564fa63599f509e146780f1dab66c82afeff7293",
+          "referenceSha256": "682fd9569cc7f702eaa5028b46e868f326515b37a62ee86710e799b94bc2a812",
+          "score": 621.686,
+          "valid": true,
+          "delta": 12.778200000000083,
+          "frames": 741368,
+          "referenceFrames": 702950,
+          "memo": {
+            "hits": 7448,
+            "rejectedHits": 2185
+          },
+          "planning": {
+            "probes": 380,
+            "changedChoices": 71,
+            "failedProbes": 24,
+            "physicsFrames": 279327,
+            "continuationNodes": 380,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_dense_recovery_240ms_figures",
+          "sha256": "485f36b6d36b03e2884f387fc0af2cb5040fdf0250f9913e77f3d83650fc1c89",
+          "referenceSha256": "b6555498798f8fba81dcf31e95805d45be0c707a7b1adadb09f47396c025eed1",
+          "score": 632.9239,
+          "valid": true,
+          "delta": 59.43039999999996,
+          "frames": 742688,
+          "referenceFrames": 708092,
+          "memo": {
+            "hits": 7334,
+            "rejectedHits": 2111
+          },
+          "planning": {
+            "probes": 381,
+            "changedChoices": 72,
+            "failedProbes": 25,
+            "physicsFrames": 279044,
+            "continuationNodes": 381,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "meter_exchange",
+          "sha256": "4165852fed3f7242c3e0d65c0fc8bd05aca68a34519d47a3e3d97807e5afc52f",
+          "referenceSha256": "defab2c78beaf50e09fe4f1e2de2106f1ead3c07ee438408e85ad2ab088d4d92",
+          "score": 897.7346,
+          "valid": true,
+          "delta": 63.764999999999986,
+          "frames": 748411,
+          "referenceFrames": 699000,
+          "memo": {
+            "hits": 5653,
+            "rejectedHits": 829
+          },
+          "planning": {
+            "probes": 275,
+            "changedChoices": 68,
+            "failedProbes": 0,
+            "physicsFrames": 267924,
+            "continuationNodes": 275,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "meter_exchange_speed_plus_4",
+          "sha256": "9c82cdd55363963846c23ec38df8535640f9ee12a035ea3eca024edec91d40ed",
+          "referenceSha256": "38225610d4bbbb7d69ce328b3d0f37022b5c85c691e7e4028c892d41b6e8f6a1",
+          "score": 895.7974,
+          "valid": true,
+          "delta": 51.61110000000008,
+          "frames": 749971,
+          "referenceFrames": 699453,
+          "memo": {
+            "hits": 5912,
+            "rejectedHits": 890
+          },
+          "planning": {
+            "probes": 277,
+            "changedChoices": 69,
+            "failedProbes": 0,
+            "physicsFrames": 272467,
+            "continuationNodes": 277,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "rising_switch",
+          "sha256": "6508fe0ed1f252d2e4a3c5eaf8b8cd0875411a07c1351a9f1f2bddadc034054c",
+          "referenceSha256": "2f3a78ae27c82ad66c23edbb29cda841b2d7ff165cb798b6950572577dd6dfe9",
+          "score": 889.7771,
+          "valid": true,
+          "delta": 17.703700000000026,
+          "frames": 738039,
+          "referenceFrames": 686485,
+          "memo": {
+            "hits": 5958,
+            "rejectedHits": 1005
+          },
+          "planning": {
+            "probes": 264,
+            "changedChoices": 60,
+            "failedProbes": 0,
+            "physicsFrames": 285144,
+            "continuationNodes": 264,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "rising_switch_tempo_fast_5",
+          "sha256": "153b0397473cbcb652862014d57e78b5c953c748067f94812db8f3baa5d897c7",
+          "referenceSha256": "04e946b54fe65b7d4db86d8473bd47adef51829ae23e986086cb917b184284ef",
+          "score": 880.1698,
+          "valid": true,
+          "delta": 34.73900000000003,
+          "frames": 731035,
+          "referenceFrames": 685072,
+          "memo": {
+            "hits": 6486,
+            "rejectedHits": 1293
+          },
+          "planning": {
+            "probes": 288,
+            "changedChoices": 62,
+            "failedProbes": 0,
+            "physicsFrames": 303672,
+            "continuationNodes": 288,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "sparse_lowline",
+          "sha256": "8622cf10df31f8436d469ce06a07f3d4de82324364d62d1a31e70c0b32754e4a",
+          "referenceSha256": "0bf520fdd9d87258c0c8017055ffae154f840ad3bc460ef4c373ca0f03cb6945",
+          "score": 860.1569,
+          "valid": true,
+          "delta": 89.29959999999994,
+          "frames": 748201,
+          "referenceFrames": 682485,
+          "memo": {
+            "hits": 4770,
+            "rejectedHits": 901
+          },
+          "planning": {
+            "probes": 244,
+            "changedChoices": 47,
+            "failedProbes": 0,
+            "physicsFrames": 269361,
+            "continuationNodes": 244,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "sparse_lowline_air_minus_4",
+          "sha256": "6c765d6770ae542fe8ef8c74ac9b047b380bde6714177da03050c008a78b433a",
+          "referenceSha256": "5d18dd8a2b43c478cc4b73a54895445fa72537535aaf2ba5186cbf81a7d5d971",
+          "score": 829.2574,
+          "valid": true,
+          "delta": 61.538599999999974,
+          "frames": 744506,
+          "referenceFrames": 678008,
+          "memo": {
+            "hits": 4902,
+            "rejectedHits": 990
+          },
+          "planning": {
+            "probes": 244,
+            "changedChoices": 40,
+            "failedProbes": 0,
+            "physicsFrames": 268283,
+            "continuationNodes": 244,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-export-fold-3",
+      "planSha256": "09c6eb6bd2bc5994a6f9910ad5db7b386494cc740fa40db43e80ecca3a0c4df7",
+      "summarySha256": "e2ad75bf8eea15f1bbe728f7bfe24196cd58bbf4bb23beaa5671492737c679c7",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-3.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 8,
+      "valid": 8,
+      "exploratoryHeadline": null,
+      "pilotMean": 754.4451625,
+      "meanDelta": 46.18723750000001,
+      "totalFrames": 5987151,
+      "maxFrames": 749974,
+      "rows": [
+        {
+          "source": "amplitude_tides",
+          "sha256": "d986362ea8fcb77bd3b4ff1897230e0001bd7b797f646f52a4ca9dcd3d9303ae",
+          "referenceSha256": "ef119bfdcb1707b0adb6034f47a1ab6242afbfd3e7217b278b9ee85bbfd9e3e0",
+          "score": 802.6611,
+          "valid": true,
+          "delta": 59.62819999999999,
+          "frames": 748579,
+          "referenceFrames": 691156,
+          "memo": {
+            "hits": 5307,
+            "rejectedHits": 1026
+          },
+          "planning": {
+            "probes": 272,
+            "changedChoices": 60,
+            "failedProbes": 1,
+            "physicsFrames": 257512,
+            "continuationNodes": 272,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "amplitude_tides_restrained_10",
+          "sha256": "5537611c18c95dde7d01921f026d8dec8bc7f9d269a5c2bb6bf42614365fb17b",
+          "referenceSha256": "3a93cfc4bb07c6b24b8902bab4ae8f9490029f60ecd502b29bf83c3f41edad87",
+          "score": 800.5878,
+          "valid": true,
+          "delta": 62.34010000000001,
+          "frames": 746979,
+          "referenceFrames": 690260,
+          "memo": {
+            "hits": 5704,
+            "rejectedHits": 1056
+          },
+          "planning": {
+            "probes": 277,
+            "changedChoices": 64,
+            "failedProbes": 1,
+            "physicsFrames": 259367,
+            "continuationNodes": 277,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_pickup_progression",
+          "sha256": "9728babf6ddfe249186cef97748100eba90dc88f6ec49e38948fac2f92fcf08c",
+          "referenceSha256": "416dd45a55b7b021751cc4197e6f0a8885fb23976321b1dfb6010d36a59d41ae",
+          "score": 670.1885,
+          "valid": true,
+          "delta": 35.30790000000002,
+          "frames": 748128,
+          "referenceFrames": 699611,
+          "memo": {
+            "hits": 6757,
+            "rejectedHits": 1714
+          },
+          "planning": {
+            "probes": 331,
+            "changedChoices": 67,
+            "failedProbes": 10,
+            "physicsFrames": 274686,
+            "continuationNodes": 331,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_pickup_progression_shifted",
+          "sha256": "eb6fcabdf5a8f4c4cd34d02f4a7711a63e4d56de2b7426ac3c24a38896c7dc5b",
+          "referenceSha256": "5cae906df0a8ac1c79a8eb7db42facd444fbb6ac6361864d7d0270b6b209031c",
+          "score": 679.6224,
+          "valid": true,
+          "delta": 45.30560000000003,
+          "frames": 748830,
+          "referenceFrames": 694647,
+          "memo": {
+            "hits": 6574,
+            "rejectedHits": 1588
+          },
+          "planning": {
+            "probes": 332,
+            "changedChoices": 64,
+            "failedProbes": 22,
+            "physicsFrames": 273347,
+            "continuationNodes": 332,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "regression_amplitude_mosaic",
+          "sha256": "fd42ab206ca81bffb6926a98c80f4008f7c6c88567c980a979c767599be57849",
+          "referenceSha256": "4c6ad530b025c04f85f03b0bd8747d3717163725957e4995f25b8c6b207b2a49",
+          "score": 693.5225,
+          "valid": true,
+          "delta": 34.61940000000004,
+          "frames": 749974,
+          "referenceFrames": 687290,
+          "memo": {
+            "hits": 5000,
+            "rejectedHits": 1121
+          },
+          "planning": {
+            "probes": 266,
+            "changedChoices": 51,
+            "failedProbes": 3,
+            "physicsFrames": 264603,
+            "continuationNodes": 266,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "regression_amplitude_mosaic_contrast_10",
+          "sha256": "2c4b2b92c7c838e18eb051a8cbc75b8c0e345919e52fb67d19ddb7b679ab0539",
+          "referenceSha256": "3ec35b4ba50bb69565ef8b369a7a253c79f34834ad576af2858a92d4fd7db2e3",
+          "score": 676.1562,
+          "valid": true,
+          "delta": 17.639599999999973,
+          "frames": 745051,
+          "referenceFrames": 687963,
+          "memo": {
+            "hits": 5330,
+            "rejectedHits": 1205
+          },
+          "planning": {
+            "probes": 268,
+            "changedChoices": 57,
+            "failedProbes": 2,
+            "physicsFrames": 263356,
+            "continuationNodes": 268,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "wide_breaths",
+          "sha256": "99690be5e5daff50ab43ee46c8df672839f08f9430a6c0a1b4fa2b402597de9e",
+          "referenceSha256": "42dec369fe8900484a7bef247bb00791da76bf5aa99debb195e5d415a032d668",
+          "score": 853.6676,
+          "valid": true,
+          "delta": 45.46569999999997,
+          "frames": 749672,
+          "referenceFrames": 693928,
+          "memo": {
+            "hits": 4683,
+            "rejectedHits": 566
+          },
+          "planning": {
+            "probes": 226,
+            "changedChoices": 55,
+            "failedProbes": 2,
+            "physicsFrames": 258934,
+            "continuationNodes": 226,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "wide_breaths_air_plus_5",
+          "sha256": "f100b11ab94f0dd4a31cf621e13600ec2c98f2b2906b33b68a493283dcebbaf9",
+          "referenceSha256": "66406d03c02f60aace56dcf16f5d893c725131013a926e39f29b76911f6ea90b",
+          "score": 859.1552,
+          "valid": true,
+          "delta": 69.19140000000004,
+          "frames": 749938,
+          "referenceFrames": 693981,
+          "memo": {
+            "hits": 4649,
+            "rejectedHits": 421
+          },
+          "planning": {
+            "probes": 227,
+            "changedChoices": 54,
+            "failedProbes": 2,
+            "physicsFrames": 258244,
+            "continuationNodes": 227,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-export-fold-4",
+      "planSha256": "3409b83eb882bf8d124789f9f485ffb2248b1cc0e116ca6537194f7fefcdabe9",
+      "summarySha256": "b754e61986ad44eae8f158f835e632b52f60b939971c0b1ff6ed36463e672c60",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-4.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 10,
+      "valid": 10,
+      "exploratoryHeadline": null,
+      "pilotMean": 854.02053,
+      "meanDelta": 47.73098000000001,
+      "totalFrames": 7426635,
+      "maxFrames": 749612,
+      "rows": [
+        {
+          "source": "believer_56_6s",
+          "sha256": "5c2e6e7551de304c074ec432303868df6d98a2000bab2a0ca981a09d5d26fddc",
+          "referenceSha256": "5ab1ea9656af4a51d4edce5b36a325402d06fb14f6236d348778b30cfe3d58bc",
+          "score": 845.6211,
+          "valid": true,
+          "delta": 48.703899999999976,
+          "frames": 745312,
+          "referenceFrames": 698355,
+          "memo": {
+            "hits": 5254,
+            "rejectedHits": 1468
+          },
+          "planning": {
+            "probes": 270,
+            "changedChoices": 65,
+            "failedProbes": 2,
+            "physicsFrames": 288402,
+            "continuationNodes": 270,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "believer_56_6s_impact_relief",
+          "sha256": "16e99534f2f3c6162c0d7f6d7ffd5e8805cb4e605193a00862014b48e657caff",
+          "referenceSha256": "149772dcd46d581919d39cda458df81cc71cff311defc4f0f61e016d862fcb57",
+          "score": 848.2759,
+          "valid": true,
+          "delta": 53.51210000000003,
+          "frames": 743955,
+          "referenceFrames": 695575,
+          "memo": {
+            "hits": 5280,
+            "rejectedHits": 1355
+          },
+          "planning": {
+            "probes": 270,
+            "changedChoices": 64,
+            "failedProbes": 5,
+            "physicsFrames": 284744,
+            "continuationNodes": 270,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "believer_impact_56s",
+          "sha256": "b707862c68e24ec361f5a42008777ae1e142c10b1065ee10dac981c964d5352e",
+          "referenceSha256": "1d1508992a0361b1e908eee95b1888494d217293fdcca6580d09d8b3b5a6b572",
+          "score": 770.0418,
+          "valid": true,
+          "delta": 59.06149999999991,
+          "frames": 736501,
+          "referenceFrames": 692109,
+          "memo": {
+            "hits": 3103,
+            "rejectedHits": 442
+          },
+          "planning": {
+            "probes": 161,
+            "changedChoices": 36,
+            "failedProbes": 3,
+            "physicsFrames": 291987,
+            "continuationNodes": 161,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "believer_impact_56s_amplitude_plus_5",
+          "sha256": "6edd751dd7afcd044f4b914777edb9de353fc142d2bdc51a94994498a538f285",
+          "referenceSha256": "ef1d28dff4f60f4478a3cdb9a584d9fc37cf1c45ee6288e34ceaa2a1cd488dc6",
+          "score": 791.8783,
+          "valid": true,
+          "delta": 58.5847,
+          "frames": 737305,
+          "referenceFrames": 694256,
+          "memo": {
+            "hits": 3062,
+            "rejectedHits": 504
+          },
+          "planning": {
+            "probes": 160,
+            "changedChoices": 38,
+            "failedProbes": 5,
+            "physicsFrames": 288850,
+            "continuationNodes": 160,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "loose_pocket",
+          "sha256": "44aabca14cbc2bd22d59cf04b9eedc061d541c992ece849d1d1867e7e441f4ab",
+          "referenceSha256": "e2584acfdb5d421d3522dd9543c4c1ddde3131eef22c109283bea178543a73c7",
+          "score": 904.3786,
+          "valid": true,
+          "delta": 57.43060000000003,
+          "frames": 739455,
+          "referenceFrames": 705516,
+          "memo": {
+            "hits": 7355,
+            "rejectedHits": 1487
+          },
+          "planning": {
+            "probes": 330,
+            "changedChoices": 78,
+            "failedProbes": 0,
+            "physicsFrames": 298465,
+            "continuationNodes": 330,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "loose_pocket_drag_later_20ms",
+          "sha256": "ae51d6b063f0d51b6dbef0a4643c0462b88599f04d814f2199e3e2ef6382db90",
+          "referenceSha256": "76de5d9cabafa3824827abfe0ac7c27e8c0c6919609cf21164aaf92a11eb6fe6",
+          "score": 910.8173,
+          "valid": true,
+          "delta": 31.846200000000067,
+          "frames": 737809,
+          "referenceFrames": 705785,
+          "memo": {
+            "hits": 7267,
+            "rejectedHits": 1282
+          },
+          "planning": {
+            "probes": 323,
+            "changedChoices": 72,
+            "failedProbes": 0,
+            "physicsFrames": 293411,
+            "continuationNodes": 323,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "pickup_lattice",
+          "sha256": "0f6f7c49255d44e21a500c6b5f01532ac4bb70ab1a4361dcdb011ae827bd0243",
+          "referenceSha256": "b49cfeb4f3b03987650240c81bb00bccd70f1fa60817a5badbf14d65ceb61bf2",
+          "score": 851.4715,
+          "valid": true,
+          "delta": 61.874000000000024,
+          "frames": 749320,
+          "referenceFrames": 695297,
+          "memo": {
+            "hits": 6445,
+            "rejectedHits": 1273
+          },
+          "planning": {
+            "probes": 318,
+            "changedChoices": 71,
+            "failedProbes": 0,
+            "physicsFrames": 282707,
+            "continuationNodes": 318,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "pickup_lattice_speed_minus_4",
+          "sha256": "aeff8bd159e904b83e4dc364ea4396ccc940cf1d5c17620e6f141a258fe75394",
+          "referenceSha256": "219c9ea2b23ff63155842a42a81ad7aded0222b3733fcae50c644dcf9fafa3e5",
+          "score": 849.9156,
+          "valid": true,
+          "delta": 21.677200000000084,
+          "frames": 747723,
+          "referenceFrames": 695359,
+          "memo": {
+            "hits": 6387,
+            "rejectedHits": 1117
+          },
+          "planning": {
+            "probes": 320,
+            "changedChoices": 74,
+            "failedProbes": 1,
+            "physicsFrames": 283620,
+            "continuationNodes": 320,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "regression_transition_mosaic",
+          "sha256": "9dc82db194e9d63fd1cfb5627935ca15a5a6e4ea75ef6a491452eabc4e5013fa",
+          "referenceSha256": "9662f6eee0d703e50a7efdb1bccdb2306ffb6868e12448d3b60bf1dc5547bd6c",
+          "score": 892.3639,
+          "valid": true,
+          "delta": 40.71609999999998,
+          "frames": 749612,
+          "referenceFrames": 691223,
+          "memo": {
+            "hits": 5505,
+            "rejectedHits": 1019
+          },
+          "planning": {
+            "probes": 274,
+            "changedChoices": 59,
+            "failedProbes": 0,
+            "physicsFrames": 273335,
+            "continuationNodes": 274,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "regression_transition_mosaic_tempo_fast_5",
+          "sha256": "3118068646ad3c455c3502b191660686a737c55653a49f7d62c4eefb6333bc24",
+          "referenceSha256": "fd3e21cb213ee97a8e5b25b32785d95e9412b318303bb2e215c8fb3fa874dc50",
+          "score": 875.4413,
+          "valid": true,
+          "delta": 43.90350000000001,
+          "frames": 739643,
+          "referenceFrames": 693263,
+          "memo": {
+            "hits": 6037,
+            "rejectedHits": 1187
+          },
+          "planning": {
+            "probes": 306,
+            "changedChoices": 58,
+            "failedProbes": 2,
+            "physicsFrames": 290843,
+            "continuationNodes": 306,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-policy-fold-0",
+      "planSha256": "1f2a1311f86cae1f0fb03aeeeb7443f149202367b9d6c5229d6b3e26d7a1e6d2",
+      "summarySha256": "d7b4fa168628964e54a30b3a338f619bdca84722ee8092c7cfb892c1a58960d5",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-0.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 10,
+      "valid": 10,
+      "exploratoryHeadline": null,
+      "pilotMean": 822.31508,
+      "meanDelta": 39.828840000000014,
+      "totalFrames": 7420474,
+      "maxFrames": 749973,
+      "rows": [
+        {
+          "source": "countercurrent",
+          "sha256": "400c1fc777720b0eb5d708293e4c2c39acb8ea120a703620b97d5a91c45514c8",
+          "referenceSha256": "593f7ab4ffbc5b6f0e8ebc7e98407f02b9334e166de65a585443692cd813e866",
+          "score": 923.2327,
+          "valid": true,
+          "delta": 26.576700000000073,
+          "frames": 728490,
+          "referenceFrames": 690392,
+          "memo": {
+            "hits": 5521,
+            "rejectedHits": 828
+          },
+          "planning": {
+            "probes": 250,
+            "changedChoices": 59,
+            "failedProbes": 1,
+            "physicsFrames": 298674,
+            "continuationNodes": 250,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "countercurrent_impact_contrast_12",
+          "sha256": "f21a64ce2333a1489aafa5a8b9cb23568b01c98354463aaa7b2e52fa007f2deb",
+          "referenceSha256": "8d6bec634671895a13a797ab709807b5f0a1e8ee01161a7d0720bd167d5158b0",
+          "score": 915.2327,
+          "valid": true,
+          "delta": 45.73040000000003,
+          "frames": 725496,
+          "referenceFrames": 693904,
+          "memo": {
+            "hits": 5850,
+            "rejectedHits": 949
+          },
+          "planning": {
+            "probes": 256,
+            "changedChoices": 53,
+            "failedProbes": 0,
+            "physicsFrames": 304776,
+            "continuationNodes": 256,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance",
+          "sha256": "258dc1316ddfc68c5fb62ef6458f611c8c4d8e519402e8491e1f112e7a3fddcb",
+          "referenceSha256": "523e4d153a6edcfe267cf9d043ab91fd3157e162696d95d47c938a5bf23f182a",
+          "score": 754.2765,
+          "valid": true,
+          "delta": 45.74390000000005,
+          "frames": 749973,
+          "referenceFrames": 671492,
+          "memo": {
+            "hits": 5136,
+            "rejectedHits": 1249
+          },
+          "planning": {
+            "probes": 244,
+            "changedChoices": 41,
+            "failedProbes": 0,
+            "physicsFrames": 260181,
+            "continuationNodes": 250,
+            "maxDepth": 2
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_4s",
+          "sha256": "bf9cbd3001a246f286844731d99e697a6c744e483c6efe1ab82449ff1a0d8d69",
+          "referenceSha256": "8e9e9e13fb306886ee1333ac5d833946fa6557731fafee0751085af2c97db89c",
+          "score": 757.2792,
+          "valid": true,
+          "delta": 47.74219999999991,
+          "frames": 747952,
+          "referenceFrames": 680666,
+          "memo": {
+            "hits": 5352,
+            "rejectedHits": 1187
+          },
+          "planning": {
+            "probes": 253,
+            "changedChoices": 45,
+            "failedProbes": 0,
+            "physicsFrames": 266507,
+            "continuationNodes": 265,
+            "maxDepth": 2
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_6s",
+          "sha256": "3d0de0c869116f99cc499e30af82b488f7f21d252237e558e43b284e35c0b11f",
+          "referenceSha256": "c26480855315031522ee93e2ede74daef1abcb4329065223e8db83189651bd7d",
+          "score": 757.111,
+          "valid": true,
+          "delta": 40.419200000000046,
+          "frames": 747192,
+          "referenceFrames": 684069,
+          "memo": {
+            "hits": 4782,
+            "rejectedHits": 1044
+          },
+          "planning": {
+            "probes": 234,
+            "changedChoices": 40,
+            "failedProbes": 0,
+            "physicsFrames": 257051,
+            "continuationNodes": 240,
+            "maxDepth": 2
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_low_air_endurance_7s",
+          "sha256": "2ed87743810fda08baa8f01bda602e5336d7e67df4e271aa45d3d5a6c4263018",
+          "referenceSha256": "cb2486ebe8fb95ae3466474682bf8276dacd02e799e46740a238271d6c0b4ae7",
+          "score": 767.3991,
+          "valid": true,
+          "delta": 54.0643,
+          "frames": 744544,
+          "referenceFrames": 684648,
+          "memo": {
+            "hits": 4580,
+            "rejectedHits": 1041
+          },
+          "planning": {
+            "probes": 218,
+            "changedChoices": 34,
+            "failedProbes": 0,
+            "physicsFrames": 244685,
+            "continuationNodes": 224,
+            "maxDepth": 2
+          },
+          "failure": null
+        },
+        {
+          "source": "offgrid_conversation",
+          "sha256": "d6fa5533e39c2b3e8c9bd1377e78bd65303808a5ca8a3c50868fadfeb83675ef",
+          "referenceSha256": "76deebb507461a32848bd96ad62fcb0a3ec80f70c60e8bfc42fc3797221a5762",
+          "score": 921.5684,
+          "valid": true,
+          "delta": 47.612499999999955,
+          "frames": 741603,
+          "referenceFrames": 698333,
+          "memo": {
+            "hits": 5659,
+            "rejectedHits": 713
+          },
+          "planning": {
+            "probes": 286,
+            "changedChoices": 60,
+            "failedProbes": 0,
+            "physicsFrames": 299082,
+            "continuationNodes": 286,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "offgrid_conversation_answer_early_25ms",
+          "sha256": "251fff73ada0bfd12d5c01d7f13de0f4a9f218f8cb25ef31f7de58587f5b55e9",
+          "referenceSha256": "31c9e41676524538fd025cdf7cc1ddbf697a957b216517108f222478f8672fd9",
+          "score": 903.7213,
+          "valid": true,
+          "delta": 24.057900000000018,
+          "frames": 741893,
+          "referenceFrames": 699896,
+          "memo": {
+            "hits": 5914,
+            "rejectedHits": 804
+          },
+          "planning": {
+            "probes": 293,
+            "changedChoices": 58,
+            "failedProbes": 1,
+            "physicsFrames": 304091,
+            "continuationNodes": 293,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "split_signal",
+          "sha256": "efe76c45b884c9628a4b915c30dcff9db7839f5eea882ed2d00dcf9d98a16d4b",
+          "referenceSha256": "512cb0939ae694b7260e4d3ab25a322c7897b6177017f646bf1441f0651afcd1",
+          "score": 762.4684,
+          "valid": true,
+          "delta": 35.09730000000002,
+          "frames": 746244,
+          "referenceFrames": 682983,
+          "memo": {
+            "hits": 5340,
+            "rejectedHits": 1014
+          },
+          "planning": {
+            "probes": 273,
+            "changedChoices": 65,
+            "failedProbes": 4,
+            "physicsFrames": 261260,
+            "continuationNodes": 273,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "split_signal_impact_relief_12",
+          "sha256": "a9ff8aaf8dc7254b4ff226021c52ff0ad5988077495ab4d1d5072e7db8f8dea2",
+          "referenceSha256": "4dfd867658667a9f96db0806e2ae5d6967428c94b563bb29d4f1e85c8eae9906",
+          "score": 760.8615,
+          "valid": true,
+          "delta": 31.244000000000028,
+          "frames": 747087,
+          "referenceFrames": 690251,
+          "memo": {
+            "hits": 5329,
+            "rejectedHits": 1066
+          },
+          "planning": {
+            "probes": 274,
+            "changedChoices": 65,
+            "failedProbes": 0,
+            "physicsFrames": 264839,
+            "continuationNodes": 274,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-policy-fold-1",
+      "planSha256": "4ab25cc2328e644948923b9c0db6d700aba934ba11bf56cca88ef87c4485837c",
+      "summarySha256": "3833569fea60583174ea305f8c3bab6cef02dffd3b433759cb163e95d9d0e490",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-1.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 8,
+      "valid": 8,
+      "exploratoryHeadline": null,
+      "pilotMean": 848.280675,
+      "meanDelta": 62.73468749999998,
+      "totalFrames": 5899328,
+      "maxFrames": 747889,
+      "rows": [
+        {
+          "source": "dense_dialogue",
+          "sha256": "abfa5adcd4885141eb428ee372105afbd78d5f3dfc65ab1950c7e1e1cd7387ad",
+          "referenceSha256": "89161d078fac61462005e286e276241e1f3b0683f2e5d80b1dcdc836ddf5acd4",
+          "score": 835.0888,
+          "valid": true,
+          "delta": 94.18629999999996,
+          "frames": 736457,
+          "referenceFrames": 680328,
+          "memo": {
+            "hits": 8249,
+            "rejectedHits": 2310
+          },
+          "planning": {
+            "probes": 406,
+            "changedChoices": 94,
+            "failedProbes": 7,
+            "physicsFrames": 278333,
+            "continuationNodes": 406,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "dense_dialogue_impact_contrast_10",
+          "sha256": "36833d5771aff512c34c9aea9ae2df005b91e26e293f41a2092cf5090c144e89",
+          "referenceSha256": "d2f5fcb7f77593e36d2b1299b1ca42bfc18b0102b880b50a2f68e4fd83d88538",
+          "score": 814.7574,
+          "valid": true,
+          "delta": 58.41750000000002,
+          "frames": 739546,
+          "referenceFrames": 677094,
+          "memo": {
+            "hits": 8436,
+            "rejectedHits": 2447
+          },
+          "planning": {
+            "probes": 406,
+            "changedChoices": 93,
+            "failedProbes": 7,
+            "physicsFrames": 276663,
+            "continuationNodes": 406,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "high_air_drive",
+          "sha256": "7dfde4a277391ca61ff07144dbbcd626ac3b85c9a86b26766d6cc9be14d750fe",
+          "referenceSha256": "d773385445030ea0ba402321a0099456f14084e27e8d388aaa3d7c199bb009ca",
+          "score": 829.1712,
+          "valid": true,
+          "delta": 80.07709999999997,
+          "frames": 747889,
+          "referenceFrames": 679662,
+          "memo": {
+            "hits": 5505,
+            "rejectedHits": 790
+          },
+          "planning": {
+            "probes": 278,
+            "changedChoices": 70,
+            "failedProbes": 0,
+            "physicsFrames": 263480,
+            "continuationNodes": 278,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "high_air_drive_air_minus_5",
+          "sha256": "59de3d490d30776d21270e11135ee2a048a78f07497592e3c30741c20d84238b",
+          "referenceSha256": "c68bf4fc727b1a30a743774f82a24140a56a295cedea1233e0037f6a2a69a59a",
+          "score": 838.1636,
+          "valid": true,
+          "delta": 37.45010000000002,
+          "frames": 743650,
+          "referenceFrames": 688998,
+          "memo": {
+            "hits": 5690,
+            "rejectedHits": 856
+          },
+          "planning": {
+            "probes": 279,
+            "changedChoices": 80,
+            "failedProbes": 4,
+            "physicsFrames": 262174,
+            "continuationNodes": 279,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "open_hook",
+          "sha256": "a3c0805b2c0ec7ea5a6d45a3a04c4aac74c5a887033ddee87275d1df8c41af29",
+          "referenceSha256": "2d8f172d346aa5bb27b7d6bd798305ef5c65d59ccf7292be5c24794e53db22aa",
+          "score": 835.5901,
+          "valid": true,
+          "delta": 41.13959999999997,
+          "frames": 735164,
+          "referenceFrames": 659393,
+          "memo": {
+            "hits": 4910,
+            "rejectedHits": 1079
+          },
+          "planning": {
+            "probes": 250,
+            "changedChoices": 60,
+            "failedProbes": 0,
+            "physicsFrames": 270695,
+            "continuationNodes": 250,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "open_hook_amplitude_plus_8",
+          "sha256": "34b4fc9010130ff55649924daab979f7dda71cbb64bed8b5e035cbf4d6f6c08c",
+          "referenceSha256": "ccaa14605a64df9239f436d9ceb2408532b8f6a79bb0f3f156eb140a6eb782f7",
+          "score": 825.5119,
+          "valid": true,
+          "delta": 95.89170000000001,
+          "frames": 732122,
+          "referenceFrames": 666442,
+          "memo": {
+            "hits": 4862,
+            "rejectedHits": 1073
+          },
+          "planning": {
+            "probes": 250,
+            "changedChoices": 55,
+            "failedProbes": 2,
+            "physicsFrames": 270376,
+            "continuationNodes": 250,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "river_reentry",
+          "sha256": "d5846c82c34401209334f1c032d4efdbe8c62aa80536d7c2a923815db1b2d01d",
+          "referenceSha256": "1ae7e7bbcb44ca24e2d2518f16625d2989a870e9de7dd7bfb2f506b04bc36a90",
+          "score": 900.3716,
+          "valid": true,
+          "delta": 24.32129999999995,
+          "frames": 737223,
+          "referenceFrames": 680869,
+          "memo": {
+            "hits": 5623,
+            "rejectedHits": 873
+          },
+          "planning": {
+            "probes": 268,
+            "changedChoices": 64,
+            "failedProbes": 1,
+            "physicsFrames": 275941,
+            "continuationNodes": 268,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "river_reentry_tempo_fast_5",
+          "sha256": "e169fdc350fe2e8c788acd3c07b256e84c56e046b9a8d8c7b60c5b25b11c3c6a",
+          "referenceSha256": "c8afb2f74ede57e907e3011a9133ddee1bb085f97f2f25367e82737e259d23d6",
+          "score": 907.5908,
+          "valid": true,
+          "delta": 70.39389999999992,
+          "frames": 727277,
+          "referenceFrames": 674440,
+          "memo": {
+            "hits": 6144,
+            "rejectedHits": 1165
+          },
+          "planning": {
+            "probes": 275,
+            "changedChoices": 67,
+            "failedProbes": 0,
+            "physicsFrames": 293139,
+            "continuationNodes": 275,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-policy-fold-2",
+      "planSha256": "32ea46ff77a177b2fb59c47da47bbfb27d0fae39457209fcb1b779de4d249e56",
+      "summarySha256": "bb65cd446060129e6a2d6d5b21d24bf88a82f07f8b0578e29ebb71d9f63f0094",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-2.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 8,
+      "valid": 8,
+      "exploratoryHeadline": null,
+      "pilotMean": 813.4378875,
+      "meanDelta": 48.85820000000001,
+      "totalFrames": 5944219,
+      "maxFrames": 749971,
+      "rows": [
+        {
+          "source": "frontier_dense_recovery",
+          "sha256": "4af3b67153e27ed0989ab549affaab937baef5814210b399262fe5e8f92c599c",
+          "referenceSha256": "682fd9569cc7f702eaa5028b46e868f326515b37a62ee86710e799b94bc2a812",
+          "score": 621.686,
+          "valid": true,
+          "delta": 12.778200000000083,
+          "frames": 741368,
+          "referenceFrames": 702950,
+          "memo": {
+            "hits": 7448,
+            "rejectedHits": 2185
+          },
+          "planning": {
+            "probes": 380,
+            "changedChoices": 71,
+            "failedProbes": 24,
+            "physicsFrames": 279327,
+            "continuationNodes": 380,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_dense_recovery_240ms_figures",
+          "sha256": "1148e0859034f46d2580f386558df8c67c4261b6997f43a65a76a21ba3d499d3",
+          "referenceSha256": "b6555498798f8fba81dcf31e95805d45be0c707a7b1adadb09f47396c025eed1",
+          "score": 632.9239,
+          "valid": true,
+          "delta": 59.43039999999996,
+          "frames": 742688,
+          "referenceFrames": 708092,
+          "memo": {
+            "hits": 7334,
+            "rejectedHits": 2111
+          },
+          "planning": {
+            "probes": 381,
+            "changedChoices": 72,
+            "failedProbes": 25,
+            "physicsFrames": 279044,
+            "continuationNodes": 381,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "meter_exchange",
+          "sha256": "f69f7bf433fddd83c830587246580a4de33b6322e3ead7c172d2067502811c10",
+          "referenceSha256": "defab2c78beaf50e09fe4f1e2de2106f1ead3c07ee438408e85ad2ab088d4d92",
+          "score": 897.7346,
+          "valid": true,
+          "delta": 63.764999999999986,
+          "frames": 748411,
+          "referenceFrames": 699000,
+          "memo": {
+            "hits": 5653,
+            "rejectedHits": 829
+          },
+          "planning": {
+            "probes": 275,
+            "changedChoices": 68,
+            "failedProbes": 0,
+            "physicsFrames": 267924,
+            "continuationNodes": 275,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "meter_exchange_speed_plus_4",
+          "sha256": "2b2c92019b36ab0e395391185e78e511b81c00fbdde4a78543db076d4e01d9e3",
+          "referenceSha256": "38225610d4bbbb7d69ce328b3d0f37022b5c85c691e7e4028c892d41b6e8f6a1",
+          "score": 895.7974,
+          "valid": true,
+          "delta": 51.61110000000008,
+          "frames": 749971,
+          "referenceFrames": 699453,
+          "memo": {
+            "hits": 5912,
+            "rejectedHits": 890
+          },
+          "planning": {
+            "probes": 277,
+            "changedChoices": 69,
+            "failedProbes": 0,
+            "physicsFrames": 272467,
+            "continuationNodes": 277,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "rising_switch",
+          "sha256": "a04f695d59aca5e800a36a1bc9389c60384f34d2a9131b13700c571b264d12ee",
+          "referenceSha256": "2f3a78ae27c82ad66c23edbb29cda841b2d7ff165cb798b6950572577dd6dfe9",
+          "score": 889.7771,
+          "valid": true,
+          "delta": 17.703700000000026,
+          "frames": 738039,
+          "referenceFrames": 686485,
+          "memo": {
+            "hits": 5958,
+            "rejectedHits": 1005
+          },
+          "planning": {
+            "probes": 264,
+            "changedChoices": 60,
+            "failedProbes": 0,
+            "physicsFrames": 285144,
+            "continuationNodes": 264,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "rising_switch_tempo_fast_5",
+          "sha256": "70d29d9ff43c692c6a5b16daae89aef43446b4808786f10628429e36d82d0089",
+          "referenceSha256": "04e946b54fe65b7d4db86d8473bd47adef51829ae23e986086cb917b184284ef",
+          "score": 880.1698,
+          "valid": true,
+          "delta": 34.73900000000003,
+          "frames": 731035,
+          "referenceFrames": 685072,
+          "memo": {
+            "hits": 6486,
+            "rejectedHits": 1293
+          },
+          "planning": {
+            "probes": 288,
+            "changedChoices": 62,
+            "failedProbes": 0,
+            "physicsFrames": 303672,
+            "continuationNodes": 288,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "sparse_lowline",
+          "sha256": "795e9525c38ce1c71ac14da6cc5b59e2772768b722f094958eca679d243d6f0c",
+          "referenceSha256": "0bf520fdd9d87258c0c8017055ffae154f840ad3bc460ef4c373ca0f03cb6945",
+          "score": 860.1569,
+          "valid": true,
+          "delta": 89.29959999999994,
+          "frames": 748201,
+          "referenceFrames": 682485,
+          "memo": {
+            "hits": 4770,
+            "rejectedHits": 901
+          },
+          "planning": {
+            "probes": 244,
+            "changedChoices": 47,
+            "failedProbes": 0,
+            "physicsFrames": 269361,
+            "continuationNodes": 244,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "sparse_lowline_air_minus_4",
+          "sha256": "8a733beedf7b68d55c913cb5cd69a4af2657442b195042682a198296acae5de5",
+          "referenceSha256": "5d18dd8a2b43c478cc4b73a54895445fa72537535aaf2ba5186cbf81a7d5d971",
+          "score": 829.2574,
+          "valid": true,
+          "delta": 61.538599999999974,
+          "frames": 744506,
+          "referenceFrames": 678008,
+          "memo": {
+            "hits": 4902,
+            "rejectedHits": 990
+          },
+          "planning": {
+            "probes": 244,
+            "changedChoices": 40,
+            "failedProbes": 0,
+            "physicsFrames": 268283,
+            "continuationNodes": 244,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-policy-fold-3",
+      "planSha256": "a0f5f8fdbe6f41bd33b94114df9304519672aa08b34869a2ed158a370ae8511d",
+      "summarySha256": "e2ad75bf8eea15f1bbe728f7bfe24196cd58bbf4bb23beaa5671492737c679c7",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-3.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 8,
+      "valid": 8,
+      "exploratoryHeadline": null,
+      "pilotMean": 754.4451625,
+      "meanDelta": 46.18723750000001,
+      "totalFrames": 5987151,
+      "maxFrames": 749974,
+      "rows": [
+        {
+          "source": "amplitude_tides",
+          "sha256": "49d8d16f5704779fbeee5c791d6ae8305dec06184180d55fb97cbcef632e298f",
+          "referenceSha256": "ef119bfdcb1707b0adb6034f47a1ab6242afbfd3e7217b278b9ee85bbfd9e3e0",
+          "score": 802.6611,
+          "valid": true,
+          "delta": 59.62819999999999,
+          "frames": 748579,
+          "referenceFrames": 691156,
+          "memo": {
+            "hits": 5307,
+            "rejectedHits": 1026
+          },
+          "planning": {
+            "probes": 272,
+            "changedChoices": 60,
+            "failedProbes": 1,
+            "physicsFrames": 257512,
+            "continuationNodes": 272,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "amplitude_tides_restrained_10",
+          "sha256": "33d4e272c5fd8e72f1bf56a3431cb43a6599b6476d9b3b61d9fbbefeedb9038f",
+          "referenceSha256": "3a93cfc4bb07c6b24b8902bab4ae8f9490029f60ecd502b29bf83c3f41edad87",
+          "score": 800.5878,
+          "valid": true,
+          "delta": 62.34010000000001,
+          "frames": 746979,
+          "referenceFrames": 690260,
+          "memo": {
+            "hits": 5704,
+            "rejectedHits": 1056
+          },
+          "planning": {
+            "probes": 277,
+            "changedChoices": 64,
+            "failedProbes": 1,
+            "physicsFrames": 259367,
+            "continuationNodes": 277,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_pickup_progression",
+          "sha256": "160ff3b53842b12b657da2c6f10c3c67c10f38f5fa449647aa3a33959d845bbf",
+          "referenceSha256": "416dd45a55b7b021751cc4197e6f0a8885fb23976321b1dfb6010d36a59d41ae",
+          "score": 670.1885,
+          "valid": true,
+          "delta": 35.30790000000002,
+          "frames": 748128,
+          "referenceFrames": 699611,
+          "memo": {
+            "hits": 6757,
+            "rejectedHits": 1714
+          },
+          "planning": {
+            "probes": 331,
+            "changedChoices": 67,
+            "failedProbes": 10,
+            "physicsFrames": 274686,
+            "continuationNodes": 331,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "frontier_pickup_progression_shifted",
+          "sha256": "560a6dbb7bcea527d7d82ce9b9201b4efa9b0be167c90402a2799431c1b83e5f",
+          "referenceSha256": "5cae906df0a8ac1c79a8eb7db42facd444fbb6ac6361864d7d0270b6b209031c",
+          "score": 679.6224,
+          "valid": true,
+          "delta": 45.30560000000003,
+          "frames": 748830,
+          "referenceFrames": 694647,
+          "memo": {
+            "hits": 6574,
+            "rejectedHits": 1588
+          },
+          "planning": {
+            "probes": 332,
+            "changedChoices": 64,
+            "failedProbes": 22,
+            "physicsFrames": 273347,
+            "continuationNodes": 332,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "regression_amplitude_mosaic",
+          "sha256": "4377ecc1b7261620491bf2b70248c1a504f4c5c50fe43ca3b3658512a04360cb",
+          "referenceSha256": "4c6ad530b025c04f85f03b0bd8747d3717163725957e4995f25b8c6b207b2a49",
+          "score": 693.5225,
+          "valid": true,
+          "delta": 34.61940000000004,
+          "frames": 749974,
+          "referenceFrames": 687290,
+          "memo": {
+            "hits": 5000,
+            "rejectedHits": 1121
+          },
+          "planning": {
+            "probes": 266,
+            "changedChoices": 51,
+            "failedProbes": 3,
+            "physicsFrames": 264603,
+            "continuationNodes": 266,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "regression_amplitude_mosaic_contrast_10",
+          "sha256": "cfa9240c1ab9bdaaaae3c7c532e7af086d8ba6b4fbf0e99ed23453d9a65e129f",
+          "referenceSha256": "3ec35b4ba50bb69565ef8b369a7a253c79f34834ad576af2858a92d4fd7db2e3",
+          "score": 676.1562,
+          "valid": true,
+          "delta": 17.639599999999973,
+          "frames": 745051,
+          "referenceFrames": 687963,
+          "memo": {
+            "hits": 5330,
+            "rejectedHits": 1205
+          },
+          "planning": {
+            "probes": 268,
+            "changedChoices": 57,
+            "failedProbes": 2,
+            "physicsFrames": 263356,
+            "continuationNodes": 268,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "wide_breaths",
+          "sha256": "59d254988f510d61006cc40ddbb14cc4cba3c1adf711152dd24f5024a03e4d6e",
+          "referenceSha256": "42dec369fe8900484a7bef247bb00791da76bf5aa99debb195e5d415a032d668",
+          "score": 853.6676,
+          "valid": true,
+          "delta": 45.46569999999997,
+          "frames": 749672,
+          "referenceFrames": 693928,
+          "memo": {
+            "hits": 4683,
+            "rejectedHits": 566
+          },
+          "planning": {
+            "probes": 226,
+            "changedChoices": 55,
+            "failedProbes": 2,
+            "physicsFrames": 258934,
+            "continuationNodes": 226,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "wide_breaths_air_plus_5",
+          "sha256": "cfcf905c3c0ab55ab1819f92e913c235c691f399860ab60ecd2e1640e3101896",
+          "referenceSha256": "66406d03c02f60aace56dcf16f5d893c725131013a926e39f29b76911f6ea90b",
+          "score": 859.1552,
+          "valid": true,
+          "delta": 69.19140000000004,
+          "frames": 749938,
+          "referenceFrames": 693981,
+          "memo": {
+            "hits": 4649,
+            "rejectedHits": 421
+          },
+          "planning": {
+            "probes": 227,
+            "changedChoices": 54,
+            "failedProbes": 2,
+            "physicsFrames": 258244,
+            "continuationNodes": 227,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
+      "name": "final-policy-fold-4",
+      "planSha256": "f3936900676e8715dbab883697947b286709f9ea45d527e424a578ce562dfb33",
+      "summarySha256": "b754e61986ad44eae8f158f835e632b52f60b939971c0b1ff6ed36463e672c60",
+      "options": {
+        "budget": 750000,
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v2/arc-825/control-policy-model/fold-4.json",
+        "policySamples": 12,
+        "budgetAdaptiveLocal": true
+      },
+      "budget": 750000,
+      "seed": 260908011,
+      "sources": 10,
+      "valid": 10,
+      "exploratoryHeadline": null,
+      "pilotMean": 854.02053,
+      "meanDelta": 47.73098000000001,
+      "totalFrames": 7426635,
+      "maxFrames": 749612,
+      "rows": [
+        {
+          "source": "believer_56_6s",
+          "sha256": "1c428f2f57b92f3e8fb78e316eac77311da592ef0e9256075581ea1e0cd08383",
+          "referenceSha256": "5ab1ea9656af4a51d4edce5b36a325402d06fb14f6236d348778b30cfe3d58bc",
+          "score": 845.6211,
+          "valid": true,
+          "delta": 48.703899999999976,
+          "frames": 745312,
+          "referenceFrames": 698355,
+          "memo": {
+            "hits": 5254,
+            "rejectedHits": 1468
+          },
+          "planning": {
+            "probes": 270,
+            "changedChoices": 65,
+            "failedProbes": 2,
+            "physicsFrames": 288402,
+            "continuationNodes": 270,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "believer_56_6s_impact_relief",
+          "sha256": "5d17862b0a052f30004aad47bbaed91e2c4a04e4eb393944f525539ed0a9792b",
+          "referenceSha256": "149772dcd46d581919d39cda458df81cc71cff311defc4f0f61e016d862fcb57",
+          "score": 848.2759,
+          "valid": true,
+          "delta": 53.51210000000003,
+          "frames": 743955,
+          "referenceFrames": 695575,
+          "memo": {
+            "hits": 5280,
+            "rejectedHits": 1355
+          },
+          "planning": {
+            "probes": 270,
+            "changedChoices": 64,
+            "failedProbes": 5,
+            "physicsFrames": 284744,
+            "continuationNodes": 270,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "believer_impact_56s",
+          "sha256": "d67c8df6486da1ff7c85612b65be9363fb16608b8182e32583a20d40ef791be6",
+          "referenceSha256": "1d1508992a0361b1e908eee95b1888494d217293fdcca6580d09d8b3b5a6b572",
+          "score": 770.0418,
+          "valid": true,
+          "delta": 59.06149999999991,
+          "frames": 736501,
+          "referenceFrames": 692109,
+          "memo": {
+            "hits": 3103,
+            "rejectedHits": 442
+          },
+          "planning": {
+            "probes": 161,
+            "changedChoices": 36,
+            "failedProbes": 3,
+            "physicsFrames": 291987,
+            "continuationNodes": 161,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "believer_impact_56s_amplitude_plus_5",
+          "sha256": "af34655d2db1871c1c7eadbbdbd291f814eab7c059ed22fe241db1cdbfccf686",
+          "referenceSha256": "ef1d28dff4f60f4478a3cdb9a584d9fc37cf1c45ee6288e34ceaa2a1cd488dc6",
+          "score": 791.8783,
+          "valid": true,
+          "delta": 58.5847,
+          "frames": 737305,
+          "referenceFrames": 694256,
+          "memo": {
+            "hits": 3062,
+            "rejectedHits": 504
+          },
+          "planning": {
+            "probes": 160,
+            "changedChoices": 38,
+            "failedProbes": 5,
+            "physicsFrames": 288850,
+            "continuationNodes": 160,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "loose_pocket",
+          "sha256": "8e80a3450ad42da25f6ea57bb7b5bbbfa2f83ed57e97bb352c8b869d5308226f",
+          "referenceSha256": "e2584acfdb5d421d3522dd9543c4c1ddde3131eef22c109283bea178543a73c7",
+          "score": 904.3786,
+          "valid": true,
+          "delta": 57.43060000000003,
+          "frames": 739455,
+          "referenceFrames": 705516,
+          "memo": {
+            "hits": 7355,
+            "rejectedHits": 1487
+          },
+          "planning": {
+            "probes": 330,
+            "changedChoices": 78,
+            "failedProbes": 0,
+            "physicsFrames": 298465,
+            "continuationNodes": 330,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "loose_pocket_drag_later_20ms",
+          "sha256": "66091679e2bde9894abc8cb936fdada95ec4fda746367aa20b07b66f84dbf2a2",
+          "referenceSha256": "76de5d9cabafa3824827abfe0ac7c27e8c0c6919609cf21164aaf92a11eb6fe6",
+          "score": 910.8173,
+          "valid": true,
+          "delta": 31.846200000000067,
+          "frames": 737809,
+          "referenceFrames": 705785,
+          "memo": {
+            "hits": 7267,
+            "rejectedHits": 1282
+          },
+          "planning": {
+            "probes": 323,
+            "changedChoices": 72,
+            "failedProbes": 0,
+            "physicsFrames": 293411,
+            "continuationNodes": 323,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "pickup_lattice",
+          "sha256": "39cbda5a0480dc1fe1f951ea6a7ac1c70a7d7c79fbbcb83483f55d3b5a842d0c",
+          "referenceSha256": "b49cfeb4f3b03987650240c81bb00bccd70f1fa60817a5badbf14d65ceb61bf2",
+          "score": 851.4715,
+          "valid": true,
+          "delta": 61.874000000000024,
+          "frames": 749320,
+          "referenceFrames": 695297,
+          "memo": {
+            "hits": 6445,
+            "rejectedHits": 1273
+          },
+          "planning": {
+            "probes": 318,
+            "changedChoices": 71,
+            "failedProbes": 0,
+            "physicsFrames": 282707,
+            "continuationNodes": 318,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "pickup_lattice_speed_minus_4",
+          "sha256": "38356b60946f92ba024a6dde1d3cf368c44371ef4744ddf78e90a0ac88f29232",
+          "referenceSha256": "219c9ea2b23ff63155842a42a81ad7aded0222b3733fcae50c644dcf9fafa3e5",
+          "score": 849.9156,
+          "valid": true,
+          "delta": 21.677200000000084,
+          "frames": 747723,
+          "referenceFrames": 695359,
+          "memo": {
+            "hits": 6387,
+            "rejectedHits": 1117
+          },
+          "planning": {
+            "probes": 320,
+            "changedChoices": 74,
+            "failedProbes": 1,
+            "physicsFrames": 283620,
+            "continuationNodes": 320,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "regression_transition_mosaic",
+          "sha256": "81431ded60aaf5d476056e1d9f27f9f1cf4416ffd8a5cf85645de06daf2c9d03",
+          "referenceSha256": "9662f6eee0d703e50a7efdb1bccdb2306ffb6868e12448d3b60bf1dc5547bd6c",
+          "score": 892.3639,
+          "valid": true,
+          "delta": 40.71609999999998,
+          "frames": 749612,
+          "referenceFrames": 691223,
+          "memo": {
+            "hits": 5505,
+            "rejectedHits": 1019
+          },
+          "planning": {
+            "probes": 274,
+            "changedChoices": 59,
+            "failedProbes": 0,
+            "physicsFrames": 273335,
+            "continuationNodes": 274,
+            "maxDepth": 1
+          },
+          "failure": null
+        },
+        {
+          "source": "regression_transition_mosaic_tempo_fast_5",
+          "sha256": "6bbea65f7108c01e6e705ecdcf54c6e1ebba7d82fa024213b94a9465090eb469",
+          "referenceSha256": "fd3e21cb213ee97a8e5b25b32785d95e9412b318303bb2e215c8fb3fa874dc50",
+          "score": 875.4413,
+          "valid": true,
+          "delta": 43.90350000000001,
+          "frames": 739643,
+          "referenceFrames": 693263,
+          "memo": {
+            "hits": 6037,
+            "rejectedHits": 1187
+          },
+          "planning": {
+            "probes": 306,
+            "changedChoices": 58,
+            "failedProbes": 2,
+            "physicsFrames": 290843,
+            "continuationNodes": 306,
+            "maxDepth": 1
+          },
+          "failure": null
+        }
+      ]
+    },
+    {
       "name": "full-control-policy-adaptive",
       "planSha256": "27ef74a5e53de8f1b2bb88a9ea8b9dcee4d7e054cb8d0a750021abe28efa502b",
       "summarySha256": "8beb4656de02e4e93934f734bf6feb80b34464fd1b692b8e09570b03391d8201",

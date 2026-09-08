@@ -1,5 +1,17 @@
 # Arc 825 campaign
 
+**Promoted at 828.1228**, exceeding 825 by 3.1228 and improving the accepted
+777.8193 headline by **50.3035**. The full unchanged 750k V2 suite passes 352/352
+runs, 44 cases and seeds 16–23. The ordinary sequential comparison accepted at
+eight seeds from a declared maximum of 48. Zero jitter repeats 44 distinct tracks;
+the eight seeds do not supply 352 independent geometries.
+
+Measured compiler: `eafc32a51a6dfa0a881d38bef96feb2a40c5cc4f`. Candidate fingerprint:
+`005c5685e415406d4397f77ed58c43763bb15be17127a1d3098bfd52e26cc51b`.
+Promoted label: `arc-control-policy`. Code and compact evidence are pushed;
+large research and video artifacts stay local in `archives/arc-825-828/`.
+The sections below preserve the research sequence, including adverse results.
+
 The owner requests an ambitious, empirical campaign to reach at least 825 on the
 fixed canonical 750k V2 headline with coherent normal-line arcs. Baseline 777.8193,
 source `291384e2`, branch `codex/arc-825`. Prior accepted branches and archives stay
@@ -146,3 +158,72 @@ The portable evaluator now performs the same conversion before tree traversal;
 a threshold-boundary test distinguishes it from float64 comparisons. Canonical
 confirmation evaluates this corrected implementation, rather than assuming that
 ordinary prediction fixtures prove behavior at every decision boundary.
+
+## Final confirmation and interpretation
+
+The corrected, frozen compiler confirms **828.1228** canonically. Every canonical
+track, report, score and frame count matches the selected full-suite research
+panel. Source, suite, scorer, implementation and judge hashes are bound in the
+[checked validation](../benchmark/v2/studies/arc-825-validation.json). Protected
+source paths match the original 777 compiler. No score or geometry convention was
+changed to obtain the result.
+
+| Evidence | Result | Scope |
+| --- | ---: | --- |
+| Canonical 750k | **828.1228**, 352/352 valid | Full 44-case V2, eight seeds |
+| Qualification | 764.1572, 120/120 valid | Reused five-spec regression panel, three budgets |
+| 2% jitter | Mean 814.4260, 176/176 valid | 44 cases × seeds 101–104; 176 distinct tracks |
+| Parent-excluded policy | 825.7756, 44/44 valid | Five models excluding entire parent families |
+| 150k | 509.7855, 41/44 valid | Same aggregate and inherited failures as baseline |
+| 1M | 831.0704, 44/44 valid | Full suite, one seed per case |
+| Focused tests | 51 pass in 13 files | Frozen compiler, cache parity, inference and accounting |
+
+The main improvement is better joint control proposals within the existing arc
+search. The teacher's optimized controls are more useful as starting candidates
+than as a replacement continuation-value model in this implementation. Exact
+evaluation reuse and measured allocation make room to explore these proposals
+while finishing the track within the physical allowance. The adaptive reserve
+and local allocation solve observed budget failures; they are supported by the
+preserved failures and subsequent full-panel reproductions.
+
+The deployed model was trained on development-family teacher trajectories.
+Parent exclusion is an additional check against simple family memorization:
+each held-family track uses a model whose training parents exclude that family.
+Its 825.7756 combines five models and is not a canonical or independent external
+holdout score. The qualification panel was also reused after diagnosis. The
+headline governs promotion; individual case regressions remain in the evidence.
+
+The actual geometry audit covers all 44 distinct canonical tracks: 4,100 interval
+groups, of which 697 use one curve and 3,403 use two. All 299,792 constituent
+segments are normal type 0 and form connected substantial curves; the shortest
+connected chain measures 15.8052 world units. Those segment counts describe arc
+tessellation, not isolated point controls. The primitive implementation itself
+is unchanged. All three full vertical production videos use the same compiler;
+see [the video review](arc-825-video-review.md).
+
+Higher budget remains an opportunity: 1M improves the aggregate only modestly
+over 750k. The unsuccessful geometry, response-solver and alternative-model
+executions remain useful evidence rather than proofs those approaches cannot
+work. Three inherited 150k failures, 251 existing TypeScript diagnostics, and
+the earlier audit's legacy fallback budget issue remain explicitly outstanding.
+The production renders pass track contracts but still miss their 2% standing-time
+creative floor. Motion quality and broader geometric variety therefore remain
+useful future work even after this performance target is achieved.
+
+## Reproduction and preservation
+
+`scripts/benchmark/analyze_arc825.py` verifies final artifact hashes, source
+identity, budget bounds, coverage, model provenance and video binding, then writes
+the compact validation. `summarize_arc825.py` verifies immutable research panels;
+`audit_arc825_geometry.ts` joins rich geometry to canonical track hashes;
+`summarize_arc_policy_folds.ts` verifies family exclusion and uses the fixed V2
+weighted summarizer. Model collection, training, compact export and inference
+fixtures are committed alongside the compiler.
+
+Canonical comparison, compressed run evidence and its exact compiler snapshot
+are in `benchmark/v2/runs/arc-control-policy-*`. The compact experimental-code
+archive in `benchmark/v2/studies/arc-825-experimental-code.tar.gz` preserves nine
+alternative implementations as base commits, patches and new files. Full raw
+trials, failed panels, teacher trajectories, models, completion evidence and
+videos are local. Their restore paths and checksums are recorded in
+`benchmark/v2/studies/arc-825-local-archive.json` and the local archive README.

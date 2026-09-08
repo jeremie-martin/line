@@ -56,7 +56,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number}){
+export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number}){
   resetFrameCount();const budget=options.budget,duration=Math.round(spec.duration*40),end=duration+20;
   const frames=spec.contacts.map(c=>Math.round(c.t*40));
   const gaps=sliceTimeline(frames,duration);
@@ -101,7 +101,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
       const evaluate=(c:ArcMotionControl)=>{
-        c={entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
+        c={entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
         const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=engine.addLine(added);samples++;
         const reject=(reason:string)=>{failures[reason]=(failures[reason]??0)+1;return null;};
         if(JSON.stringify(getRiderMetered(child,frame-1).ballisticState())!==before)return reject('prefix');
@@ -114,11 +114,11 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
         if(det.events.some(e=>e.type==='landing'&&!frames.some(f=>Math.abs(e.frame-f)<=1)))return reject('offbeat');
         if(i<contacts.length-1&&!raw.frames.slice(-6).every(f=>f.sledContacts.length===0))return reject('late_release');
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:horizon},added,horizon);
-        const residuals:number[]=['air','speed','amplitude'].map(key=>targets[key as keyof typeof targets]===undefined?0:(achieved as any)[key]-(targets as any)[key]);
+        const residuals:number[]=['air','speed','amplitude'].map(key=>targets[key as keyof typeof targets]===undefined?0:((achieved as any)[key]-(targets as any)[key])*Math.sqrt(key==='amplitude'?(options.amplitudeWeight??1):1));
         let cost=residuals.reduce((s,x)=>s+x*x,0);
         let actualImpact:number|undefined;
-        if(impact!==undefined){actualImpact=measureGapAxes(det,gaps[gap],added,frame).impact;if(actualImpact===undefined)return reject('impact');cost+=2*(actualImpact-impact)**2;}
-        residuals.push(impact===undefined?0:Math.SQRT2*(actualImpact!-impact));
+        if(impact!==undefined){actualImpact=measureGapAxes(det,gaps[gap],added,frame).impact;if(actualImpact===undefined)return reject('impact');cost+=(options.impactWeight??2)*(actualImpact-impact)**2;}
+        residuals.push(impact===undefined?0:Math.sqrt(options.impactWeight??2)*(actualImpact!-impact));
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
         // Keep future catches physically accessible; this is an optimizer prior,
@@ -148,10 +148,11 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
         return result;
       };
       const center:ArcMotionControl=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
+      if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160;
       for(let k=0;k<Math.min(max,80);k++){
         const frac=(n:number)=>((k+1)*n)%1;
-        evaluate(k===0?center:{entry:incoming-((options.flow||options.channel)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:-frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
+        evaluate(k===0?center:{entry:incoming-((options.flow||options.channel)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
         if(k%10===9)Engine.retainOnly(best?[engine,best.child]:[engine]);
       }
       if(best){

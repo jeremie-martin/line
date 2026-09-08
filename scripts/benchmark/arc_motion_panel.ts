@@ -6,6 +6,9 @@ import { developmentCases } from "../../benchmark/v2/catalog.ts";
 import { compilerCandidateIdentity } from "../v0/benchmark_v2/compiler_identity.ts";
 import { summarizeDevelopmentBudget } from "../v0/benchmark_v2/evaluator.ts";
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
+const controls = {channel:Number(arg("channel")??12),radius:Number(arg("radius")??24),arrivalMode:arg("arrival-mode")??"speed",arrivalWeight:Number(arg("arrival-weight")??.3),samples:Number(arg("samples")??160),
+  bidirectional:arg("bidirectional")==="on",impactWeight:Number(arg("impact-weight")??2),amplitudeWeight:Number(arg("amplitude-weight")??1),poseWeight:Number(arg("pose-weight")??0)};
+const flags = Object.entries(controls).map(([k,v])=>`--${k.replace(/[A-Z]/g,c=>"-"+c.toLowerCase())}=${typeof v==="boolean"?(v?"on":"off"):v}`);
 const out = resolve(arg("out")!), reuse = arg("reuse-prefix"), jobs = Number(arg("jobs") ?? 16);
 const hash = (b: string | Buffer) => createHash("sha256").update(b).digest("hex");
 const files = ["scripts/benchmark/arc_motion_study.ts", "scripts/v0/optimizer/arc_motion.ts", "scripts/v0/optimizer/native_motion_schedule.ts"];
@@ -25,14 +28,14 @@ if (judgeEngineSha256 !== baseline.engine_artifact_fingerprint) throw new Error(
 const suiteBytes = readFileSync("benchmark/v2/compat/suite-manifest.json"), suite = JSON.parse(suiteBytes.toString());
 const sources = developmentCases.map(e => e.case.metadata.id).sort();
 const plan = { schema: "line.arc-motion-panel-plan.v1", researchOnly: true, implementation,
-  publicCompilerFingerprint: identity.candidateFingerprint, researchImplementationFingerprint:hash(JSON.stringify(implementation)), judgeEngineSha256, suiteSha256: hash(suiteBytes), sources, budget: 750000, seed: 260908011, normalLinesOnly: true, controls: {channel:12,radius:24,arrivalMode:"speed",arrivalWeight:.3,samples:160},
+  publicCompilerFingerprint: identity.candidateFingerprint, researchImplementationFingerprint:hash(JSON.stringify(implementation)), judgeEngineSha256, suiteSha256: hash(suiteBytes), sources, budget: 750000, seed: 260908011, normalLinesOnly: true, controls,
   note: "Connected physical arc rails with measured feedback; all actual physics and frozen-engine replay charged. Discovery, not canonical evaluation." };
 mkdirSync(out, { recursive: true });
 if (existsSync(resolve(out, "plan.json"))) {
   if (JSON.stringify(read(resolve(out, "plan.json"))) !== JSON.stringify(plan)) throw new Error("plan changed");
 } else write(resolve(out, "plan.json"), plan);
 const compatible = (record: any, sourceId: string) => record.sourceId === sourceId && record.seed === 260908011 &&
-  record.budget === 750000 && record.implementation[files[1]] === implementation[1] && record.track.lines.every((l: any) => l.type === 0);
+  record.budget === 750000 && Object.entries(controls).every(([k,v])=>typeof v==="number"?Number(record.options[k])===v:record.options[k]===v) && record.implementation[files[1]] === implementation[1] && record.track.lines.every((l: any) => l.type === 0);
 
 for (const sourceId of sources) {
   const dest = resolve(out, `${sourceId}.json`), src = reuse ? `${reuse}${sourceId}.json` : null;
@@ -49,7 +52,7 @@ await Promise.all(Array.from({ length: Math.min(jobs, queue.length) }, async () 
     const sourceId = queue.shift()!, log = openSync(resolve(out, `${sourceId}.log`), "w");
     try {
       const code = await new Promise<number | null>((done, reject) => {
-        const child = spawn(process.execPath, ["--import", "tsx", files[0], `--source=${sourceId}`, "--seed=260908011", "--channel=12", "--radius=24", "--arrival-mode=speed", "--arrival-weight=0.3",
+        const child = spawn(process.execPath, ["--import", "tsx", files[0], `--source=${sourceId}`, "--seed=260908011", ...flags,
           `--out=${resolve(out, `${sourceId}.json`)}`], { env: process.env, stdio: ["ignore", log, log] });
         child.on("error", reject); child.on("exit", done);
       });

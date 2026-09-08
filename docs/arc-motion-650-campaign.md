@@ -109,3 +109,13 @@ It hurts dense dialogue (266.4945) and dense recovery (268.9151); increasing
 weight to 0.3 hurts recovery further (235.3533). All six are valid and below
 354k physics frames. The prior is optional, not a new default. Dense sequences
 still expose repeated speed loss and poor approach orientation.
+
+## Bidirectional curved support
+
+The paired geometry still inherited a one-sided proposal assumption: almost
+all impact turns bent upward. Allowing both turn directions raises Dense
+Dialogue from 386.4700 to **714.3362** with impact objective weight 1 (all valid,
+349,814 physical frames). Dense Recovery reaches 489.4605, River 679.2321, and
+Believer Impact 546.0506. Weight 2 instead gives 616.8673 / 457.2512 / 757.7943 /
+238.2564. These are discovery pilots; broad evidence is still required.
+The objective weights affect search only; the evaluator remains unchanged.

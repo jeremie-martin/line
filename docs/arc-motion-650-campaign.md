@@ -94,3 +94,18 @@ actually collide with the rider on 248 frames. Removing them changes the
 trajectory at frame 136 and ejects the rider at frame 177; the complete track
 survives through frame 2340. Audit simulation is charged separately as 4,680
 frames and is not compiler-budget evidence. See `geometry-audit-river-v7.json`.
+
+## Complementary builders and arrival posture
+
+The v8 two-builder discovery uses the v7 paired arcs plus the legacy single-arc
+compiler in the remaining budget, with a 40k reserve for legacy checkpoint
+completion. All 44 combined costs fit 750k (maximum 730,712); the exploratory
+aggregate is **620.2903**, with legacy winning 23 cases. This reuses the frozen
+v7 evidence and is not an integrated portfolio or canonical headline.
+
+A v9 arrival-pose/angular-rate prior (weight 0.1) raises River Reentry to
+758.8610 and Believer Impact to 625.1991, and amplitude mosaic to 524.6445.
+It hurts dense dialogue (266.4945) and dense recovery (268.9151); increasing
+weight to 0.3 hurts recovery further (235.3533). All six are valid and below
+354k physics frames. The prior is optional, not a new default. Dense sequences
+still expose repeated speed loss and poor approach orientation.

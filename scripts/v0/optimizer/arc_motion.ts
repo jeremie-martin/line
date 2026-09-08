@@ -56,7 +56,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string}){
+export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number}){
   resetFrameCount();const budget=options.budget,duration=Math.round(spec.duration*40),end=duration+20;
   const frames=spec.contacts.map(c=>Math.round(c.t*40));
   const gaps=sliceTimeline(frames,duration);
@@ -129,6 +129,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
           const nextSpeed=authoredSpeedToPx(planned[contacts[i+1].gap+1]?.targets.speed??targets.speed??.55);
           const desiredArrival=clamp(15+deg(impactToRawPx(nextImpact)/nextSpeed),20,70);
           const weight=Math.sqrt(options.arrivalWeight??0), r1=options.arrivalMode==='speed'?0:weight*(deg(Math.atan2(finalVelocity.y,finalVelocity.x))-desiredArrival)/45,r2=weight*(Math.hypot(finalVelocity.x,finalVelocity.y)-nextSpeed)/7.2;
+          residuals.push(r1,r2);cost+=r1*r1+r2*r2;
+        }
+        const tail=state.points.TAIL,nose=state.points.NOSE,dx=nose.x-tail.x,dy=nose.y-tail.y;
+        const arrivalPose=Math.atan2(dy,dx),headingAngle=Math.atan2(finalVelocity.y,finalVelocity.x);
+        const angularRate=(dx*(nose.vy-tail.vy)-dy*(nose.vx-tail.vx))/Math.max(1,dx*dx+dy*dy);
+        if(i<contacts.length-1&&(options.poseWeight??0)>0){
+          const difference=Math.atan2(Math.sin(arrivalPose-headingAngle),Math.cos(arrivalPose-headingAngle));
+          const r1=Math.sqrt(options.poseWeight??0)*difference/(Math.PI/3),r2=Math.sqrt((options.poseWeight??0)*.2)*angularRate/.15;
           residuals.push(r1,r2);cost+=r1*r1+r2*r2;
         }
         const result={child,lines:added,c,cost,residuals,achieved,actualImpact,release:raw.frames.findLast(f=>f.sledContacts.length)?.frame};

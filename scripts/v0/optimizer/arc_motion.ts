@@ -11,6 +11,7 @@ import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { refineArcTrack } from './arc_refinement.ts';
 import { arcResponseStep } from './arc_response.ts';
+import { arcArrivalFeatures } from './arc_value.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -75,7 +76,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow';adaptivePlanning?:boolean;planningDepth?:number;planningWidth?:number;planningSamples?:number;strictHorizon?:boolean;directControls?:ArcMotionControl[];refineDirect?:boolean;refineRebuildSamples?:number;refineExpressive?:boolean;responseSamples?:number;responseDamping?:number};
+export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow';adaptivePlanning?:boolean;planningDepth?:number;planningWidth?:number;planningSamples?:number;strictHorizon?:boolean;directControls?:ArcMotionControl[];refineDirect?:boolean;refineRebuildSamples?:number;refineExpressive?:boolean;responseSamples?:number;responseDamping?:number;refineFollowSamples?:number;refineUseAlternatives?:boolean;collectValue?:boolean};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
@@ -200,7 +201,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
         const pose=deg(Math.atan2(finalState.NOSE.y-finalState.TAIL.y,finalState.NOSE.x-finalState.TAIL.x));
         viableCandidates++;
-        candidates.push({lines:added,c,cost,localCost,heading,endSpeed,pose,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+        candidates.push({lines:added,c,cost,localCost,heading,endSpeed,pose,arrivalFeatures:options.collectValue?arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(result.release??frame)):undefined,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
         if(!best||cost<best.cost)best=result;
         return result;
       };
@@ -365,7 +366,15 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           const terminal=options.lookaheadObjective==='terminal'||depth>1;
           const value=future?(terminal?candidate.localCost:candidate.cost)+(options.lookaheadWeight??1)*(terminal?future.value:future.localValue):Infinity;
           if(options.reuseContinuations){candidate.lookaheadValue=value;candidate.futureControl=future?.control;}
-          probes.push({control:candidate.c,currentCost:candidate.cost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null});
+          let valueFeatures:number[]|undefined;
+          if(options.collectValue){
+            valueFeatures=[...candidate.arrivalFeatures];
+            for(let k=1;k<=2;k++){
+              const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===contact.frame)?.targets:undefined;
+              valueFeatures.push(contact?((contacts[i+k+1]?.frame??end+1)-contact.frame)/40:0,contact?(gaps[contact.gap]?.targets.impact??-1):-1,target?.air??-1,target?.speed??-1,target?.amplitude??-1);
+            }
+          }
+          probes.push({control:candidate.c,currentCost:candidate.cost,localCost:candidate.localCost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null,valueFeatures});
           if(future&&(!winner||value<winner.value))winner={candidate,value,futureControl:future.control};
           Engine.retainOnly([engine,original.child]);
         }
@@ -397,7 +406,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\n');
     }
     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){
-      const refined=refineArcTrack({engine,lines,rows,contacts,end,start,budget,options,search:searchInterval,report:reportFor});
+      const refined=refineArcTrack({engine,lines,rows,alternatives:steps.map(s=>s.choices),contacts,end,start,budget,options,search:searchInterval,report:reportFor});
       lines.splice(0,lines.length,...refined.lines);rows.splice(0,rows.length,...refined.rows);
       engine=refined.engine;refinementStats=refined.stats;
     }

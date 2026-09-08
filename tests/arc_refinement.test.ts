@@ -82,3 +82,14 @@ it('fits joint responses for expressive curves and validates proposals in the re
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
   expect(result.track.lines.every(l => l.type === 0)).toBe(true);
 });
+
+it('reuses measured alternatives and adapts the following arcs without losing the complete track', () => {
+  const result = compileArcMotion(spec, 22, {...base, refineAttempts: 4,
+    refineUseAlternatives: true, refineMode: 'reflow', refineFollowSamples: 12,
+    refineRebuildSamples: 24, lookaheadWidth: 3, lookaheadSamples: 24,
+    reuseContinuations: true, lookaheadObjective: 'terminal'});
+  expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
+  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
+  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
+});

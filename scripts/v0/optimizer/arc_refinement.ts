@@ -18,7 +18,7 @@ export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3):
 }
 
 export type ArcRefinementInput = {
-  engine: Engine; lines: TrackLine[]; rows: any[];
+  engine: Engine; lines: TrackLine[]; rows: any[]; alternatives?: any[][];
   contacts: Array<{frame: number; gap: number}>; end: number;
   start: {position: {x: number; y: number}; velocity: {x: number; y: number}};
   budget: number; options: any;
@@ -49,7 +49,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
           if (belongs) error += value.error ** 2 * (axis === 'amplitude' ? (options.amplitudeWeight ?? 1 / 3) : 1);
         }
         const span = (contacts[i + 1]?.frame ?? end + 1) - contact.frame;
-        const estimate = contact.frame + span * (samples + 32) + (end - contact.frame + 1) * width;
+        const estimate = contact.frame + span * (samples + 32) + (end - contact.frame + 1) * width * (1 + (options.refineFollowSamples ?? 0) * 1.25);
         const priority = error / (1 + tries[i]) / (options.refineSelection === 'rate' ? estimate : 1);
         return {index: i, error, estimate, priority};
       }).filter(x => x.error > 0 && getPhysicsFrameCount() + x.estimate <= ceiling)
@@ -71,7 +71,8 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const scale = Math.pow(.5, Math.floor((tries[i] - 1) / 2));
       const directControls = Object.entries(directSteps).flatMap(([key, step]) => [-1, 1].map(sign => ({...control,
         [key]: (control[key] ?? (key === 'clearance' ? options.channel ?? 12 : key === 'turnFraction' ? Math.min(5, control.support * .5) / control.support : 0)) + sign * step * scale})));
-      const searchResult = search(base, i, {directControls: options.refineDirect ? directControls : undefined, warmStart: sourceRows[i].control, localOnly: true,
+      const retainedControls = options.refineUseAlternatives ? input.alternatives?.[i]?.map(a => a.c) : undefined;
+      const searchResult = search(base, i, {directControls: retainedControls?.length ? retainedControls : options.refineDirect ? directControls : undefined, warmStart: sourceRows[i].control, localOnly: true,
         samples, guidanceSamples: options.refineGuidanceSamples ?? 24,
         arrivalWeight: 0, headingWeight: 0, arrivalReference: reference,
         boundaryWeight: options.refineBoundaryWeight ?? 1}, [incumbent]);
@@ -89,7 +90,8 @@ export function refineArcTrack(input: ArcRefinementInput) {
         let completed = true;
         if (options.refineMode === 'reflow') {
           for (let j = i + 1; j < contacts.length; j++) {
-            let next = search(child, j, {samples: 0, guidance: undefined, warmStart: sourceRows[j].control}, [incumbent, base]);
+            const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
+            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control}, [incumbent, base]);
             if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control},[incumbent,base]);
             if (!next?.best) {completed = false; break;}
             proposed.push(...next.best.lines); child = next.best.child.detach();

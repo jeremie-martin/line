@@ -9,6 +9,7 @@ import { measureGapAxes } from '../core/measure.ts';
 import { makeSolidLine } from '../arc.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
+import { refineArcTrack } from './arc_refinement.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -17,7 +18,7 @@ const rad=(x:number)=>x*Math.PI/180;
 const deg=(x:number)=>x*180/Math.PI;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
-  clearance?:number; guideStart?:number; guideEnd?:number};
+  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number};
 
 /** Integrate a smooth tangent schedule into one contiguous polyline. All
  * subdivisions approximate the same physical curve; none isolates a point. */
@@ -32,10 +33,11 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   let v=Math.max(2,velocity.x*t.x+velocity.y*t.y),previousAngle=entry;
   const steps=Math.max(4,Math.ceil(c.support*4)),dt=c.support/steps;
   for(let k=0;k<steps;k++){
-    const time=(k+.5)*dt, first=Math.min(wave?6:5,c.support*.5);
+    const time=(k+.5)*dt, first=c.turnFraction===undefined?Math.min(wave?6:5,c.support*.5):c.support*c.turnFraction;
     const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);
     const easing=(z:number)=>c.bias>=0?Math.pow(z,1+c.bias):1-Math.pow(1-z,1-c.bias);
     let a=rad(time<first?c.entry+c.turn*(wave?Math.sin(Math.PI*u):easing(u)):lerp(c.entry+(wave?0:c.turn),c.exit,easing(w)));
+    if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
     if(radius>0)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
     if(flow){
       // A passive supporting surface cannot turn downward faster than free
@@ -53,7 +55,8 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     const roof=vertices.slice(2).map((p,i)=>{
       const index=i+2,prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];
       const a=Math.atan2(next.y-prev.y,next.x-prev.x);
-      return{x:p.x+clearance*Math.sin(a),y:p.y-clearance*Math.cos(a)};
+      const separation=c.guideFlare===undefined?clearance:clamp(clearance+c.guideFlare*i/Math.max(1,vertices.length-3),6,30);
+      return{x:p.x+separation*Math.sin(a),y:p.y-separation*Math.cos(a)};
     });
     const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+Math.hypot(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
     const length=distances.at(-1)!,from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
@@ -71,7 +74,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean};
+export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow'};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
@@ -91,6 +94,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   let engine:any=new Engine().setStart(start.position,start.velocity);
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
   let samples=0,viableCandidates=0;const qualityRetries=new Map<number,number>();
+  let refinementStats:any=null;
+  const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
   const backtrack=()=>{
@@ -133,6 +138,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
         if(c.guideStart!==undefined)c.guideStart=clamp(c.guideStart,0,1);
         if(c.guideEnd!==undefined)c.guideEnd=clamp(c.guideEnd,0,1);
+        if(c.turnFraction!==undefined)c.turnFraction=clamp(c.turnFraction,.1,.85);
+        if(c.bend!==undefined)c.bend=clamp(c.bend,-60,60);
+        if(c.guideFlare!==undefined)c.guideFlare=clamp(c.guideFlare,-16,16);
         const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=engine.addLine(added);samples++;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
         const reject=(reason:string)=>{failures[reason]=(failures[reason]??0)+1;return null;};
@@ -177,6 +185,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           const r1=Math.sqrt(options.poseWeight??0)*difference/(Math.PI/3),r2=Math.sqrt((options.poseWeight??0)*.2)*angularRate/.15;
           residuals.push(r1,r2);cost+=r1*r1+r2*r2;
         }
+        if(options.arrivalReference){
+          const target=options.arrivalReference,weight=Math.sqrt((options.boundaryWeight??1)/10);
+          const here=state.points.PEG,there=target.state.points.PEG;
+          for(const key of Object.keys(state.points)){
+            const a=state.points[key],b=target.state.points[key];
+            for(const r of [weight*((a.x-here.x)-(b.x-there.x))/18,weight*((a.y-here.y)-(b.y-there.y))/18,weight*(a.vx-b.vx)/7.2,weight*(a.vy-b.vy)/7.2]){residuals.push(r);cost+=r*r;}
+          }
+        }
         const result={child,lines:added,c,cost,localCost,residuals,achieved,actualImpact,release:raw.frames.slice().reverse().find(f=>f.sledContacts.length)?.frame};
         const finalState=state.points;
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
@@ -188,7 +204,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       };
       const center:ArcMotionControl=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
-      const max=options.samples??160,initial=Math.min(80,Math.ceil(max/2));
+      const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
       if(options.warmStart)evaluate(options.warmStart);
       for(let k=0;k<initial;k++){
         const frac=(n:number)=>((k+1)*n)%1;
@@ -232,6 +248,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         const origin=best, count=options.guidanceSamples??48;
         const keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
         if(options.guidanceJoint)keys.push('entry','turn','exit','support','bias','offset');
+        if(options.expressive)keys.push('turnFraction','bend','guideFlare');
         const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
         for(let k=0;k<count;k++){
           const frac=(n:number)=>((k+1)*n)%1;
@@ -239,13 +256,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           if(k<broad){
             c={...origin.c};
             if(options.guidance!=='span')c.clearance=k===0?12:8+16*frac(.61803398875);
+            if(options.expressive&&k>0){c.turnFraction=.15+.65*frac(.2718281828);c.bend=-35+70*frac(.1415926535);c.guideFlare=-12+24*frac(.5772156649);}
             if(options.guidance!=='clearance'){
               c.guideStart=k%3===0?0:frac(.41421356237)*.7;
               c.guideEnd=k===0?0:k%3===1?1:Math.max(c.guideStart,frac(.73205080757));
             }
           }else{
-            const key=keys[Math.floor(k/2)%keys.length],step={clearance:2,guideStart:.15,guideEnd:.15,entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4}[key];
-            c={...best.c,[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
+            const key=keys[Math.floor(k/2)%keys.length],step={clearance:2,guideStart:.15,guideEnd:.15,entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4,turnFraction:.12,bend:10,guideFlare:4}[key];
+            c={...best.c,[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:key==='turnFraction'?Math.min(5,best.c.support*.5)/best.c.support:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
@@ -335,6 +353,11 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       rows.push({frame,next,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});
       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\n');
     }
+    if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){
+      const refined=refineArcTrack({engine,lines,rows,contacts,end,start,budget,options,search:searchInterval,report:reportFor});
+      lines.splice(0,lines.length,...refined.lines);rows.splice(0,rows.length,...refined.rows);
+      engine=refined.engine;refinementStats=refined.stats;
+    }
   }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;failure={reason:'budget'};}
   const constructionFrames=getPhysicsFrameCount();
   setPhysicsFrameLimit(budget);
@@ -344,7 +367,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   if(guidanceReduction)lines.splice(0,lines.length,...guidanceReduction.lines);
   disposeSearch();
   try{const replay=extractRawTrajectory(new Judge().setStart(start.position,start.velocity).addLine(lines),end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
-  const report=buildDriftReport(detect(raw),spec,gaps,frames,duration,[],gaps.map(g=>({lines:lines.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+  const report=reportFor(raw,lines);
+  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,refinementStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

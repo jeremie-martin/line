@@ -1,91 +1,93 @@
 # Compiler improvement campaign
 
-The active normal-line arc compiler is **arc-guidance-planning**, promoted at
-**744.5000** on Benchmark V2 at 750k, up **56.9898** from 687.5102.
-All **352/352 runs** pass across the full 44-case development suite and eight
-seeds (16–23). The governed comparison accepts the first N=8 look of the
-declared N=48 maximum; no forced promotion was used. Benchmark, scorer,
-targets, physics, validity and frame accounting are unchanged.
+The active normal-line arc compiler is **arc-refinement**, promoted at
+**767.6851** on the unchanged Benchmark V2 at 750k, up **23.1851** from the
+preserved 744.5000 milestone. All **352/352 canonical runs** pass: the complete
+44-case development suite, seeds 16–23. The declared maximum was N=48 and the
+unchanged protocol accepted its first N=8 look. Promotion was not forced.
 
-The three approved work items are complete: causal rail ablation, general
-curve geometry, and planning across beats. The selected compiler searches
-guide clearance, tests the next arc before selecting the current arrival,
-and retains useful continuations for later construction and recovery.
-A replay identifies unused upper rails and unused ends; removal must preserve
-the entire raw trajectory under the frozen judge. Supporting arcs remain
-intact. Single arcs, partial guides and full pairs follow from physical need,
-without a motif schedule or random variety quota. Coverage search, joint
-shape refinement and deeper trees were also implemented and evaluated;
-their results and failed experiments remain in the
-[research record](arc-guidance-planning-campaign.md).
+## What changed
 
-Across the 44 final tracks, 952 of 4,100 upper guides are removed and 2,969
-shortened. Their combined length drops 59.48%. The remaining guides are
-contiguous curves; every line is normal type 0. All proposals, lookahead,
-backtracking and two full cold replays count toward actual physics work.
-Canonical costs are 687,744–737,686 frames, median 715,502, compared with the
-reference median 358,313. This is an improvement under the same allowance,
-with greater actual expenditure. A 320-proposal local-only control fails
-nine cases and scores 567.2923; increasing local breadth alone did not
-reproduce the gain in the tested implementation.
+Coherent supporting arcs now have variable turn timing, an additional smooth
+bend and varying guide separation. Joint response fitting measures how several
+controls affect the physical result and tests coupled corrections. Strict
+lookahead rejects incomplete deeper continuations. Adaptive planning reserves
+measured construction work and spends remaining allowance on useful depth,
+breadth and following-arc search.
 
-## Validation and limits
+A frozen model learns future continuation value from deeper simulations. It
+uses relative physical body state and upcoming authored targets, without case,
+seed, budget or absolute-position features. It ranks arrivals worth simulating;
+exact physics validates the candidates and the unchanged scorer judges the
+complete track. Training uses 20,298 development arrivals from 21 parents.
+Parent-disjoint live research scores 766.4420 versus matched reference 745.7898;
+pilot results selected the blend, so this is not an untouched final test.
+Qualification was excluded from training and configuration selection.
 
-Forty-two development cases improve; Amplitude Tides Restrained regresses
-23.9440 and Believer Impact regresses 5.5561. Canonical zero-jitter seeds
-repeat identical tracks, giving 44 distinct tracks and seed SE zero. The
-catalog sensitivity interval for the gain is [50.3714, 63.8088].
+Completed-track repair was implemented in several forms, including warm suffix
+reconstruction and retained alternatives. Its best eight-case pilot gains 6.3304
+points at 3M. Deeper initial planning is the stronger tested use of that allowance,
+so the repair implementations remain available for research. Initial adverse
+geometry and Newton trials are retained alongside successful experiments.
 
-Qualification passes **120/120**, with monitor scores 607.1908 / 641.5005 /
-690.3029 at 250k / 500k / 750k, combined 649.2793 (reference 626.5448).
-A separate all-44-case search-target-jitter study, jitter 0.02 and seeds
-101–104, passes **176/176 distinct tracks** versus 175/176 for the reference:
-one rescue, no losses, mean per-cell gain 60.6337. This stress study is not
-the canonical headline or a guarantee for other perturbations.
+## Scaling and validation
 
-| Actual frame allowance | Full-suite score | Valid cases | Reading |
-| --- | ---: | ---: | --- |
-| 150k | 481.1128 | 38/44 | All scores, reports and costs equal the reference |
-| 250k | 610.9446 | 44/44 | Score parity with reference |
-| 500k | 709.4171 | 44/44 | Reference 673.6385 |
-| 750k | 744.5000 | 44/44 | Canonically certified across eight seeds |
-| 1M | 745.0343 | 44/44 | Default search breadth saturates |
-| 3M | 745.0343 | 44/44 | All tracks equal the 1M output |
+| Actual frame allowance | Preserved reference | Arc refinement | Valid cases | Maximum actual work |
+| --- | ---: | ---: | ---: | ---: |
+|150k|481.1128|481.1128|38/44|149,995|
+|250k|610.9446|610.9446|44/44|244,538|
+|500k|709.4171|718.8741|44/44|487,721|
+|750k|744.5000|767.6851|44/44|735,216|
+|1M|745.0343|793.3941|44/44|950,759|
+|3M|745.0343|812.0916|44/44|2,563,754|
 
-The noncanonical rows use one seed per case. The separate standing 250k
-reading passes 528/528, scores 645.6560 and returns **PARITY** against the
-old arc reference, with no lost completions or score changes. Six 150k
-failures remain inherited limitations. Higher-budget saturation and the
-two score regressions warrant further work; no performance ceiling is established.
+All scale rows use the full 44-case suite and one zero-jitter discovery seed.
+The 750k row also has canonical confirmation. The 3M gain is 67.0573 at the same
+allowance. Actual work is greater at higher budgets; this is not a constant-cost
+gain. The 750k median cost is 716,007 frames versus 715,502 for the reference.
+[Standalone scaling chart](../archives/arc-refinement-2026-09-08/budget-scaling.svg).
 
-Two complete tracks, River Reentry and Dense Dialogue, exactly match the
-published JavaScript engine in raw trajectory and detected events. Seven
-focused test files pass all 22 tests. Repository-wide TypeScript checking
-still reports existing unrelated errors; it reports none in the changed
-compiler or review files. [Validation index](../benchmark/v2/studies/arc-guidance-planning-validation.json).
+Every canonical track, report, score and frame cost matches discovery exactly.
+Thirty-six cases improve and eight regress, the largest loss being Sparse
+Lowline at 31.927 points. Zero-jitter seeds repeat 44 distinct tracks; seed SE is
+zero. The catalog sensitivity interval for the gain is [19.9278,26.3050].
 
-## Videos and preservation
+Qualification passes 120/120: its monitor rises from 649.2793 to 691.0046.
+Its 250k component falls from 607.1908 to 601.2726; 500k rises to 690.5581 and 750k
+to 751.5702. Separate search-target jitter 0.02, all 44 sources and seeds 101–104,
+passes 176/176 distinct tracks for both candidate and reference, with mean
+per-cell gain 23.8694. Neither study establishes robustness to every new regime.
 
-[Open the three-video gallery](../archives/arc-guidance-2026-09-08/index.html).
-All production specifications have full 1080×1920 / 60 fps videos with music,
-camera, spectrum and locked post-processing. Full decode and physical
-contracts pass. Actual frames at 12 and 30 seconds were inspected in each
-video. Their standing time is zero, below the unchanged 2% creative floor;
-these are review examples, not a claim that all selection floors pass.
-[Video details and direct links](arc-guidance-video-review.md).
+At 250k every development track is unchanged. The standing reading independently
+passes 528/528 and returns PARITY, with all cells bit-identical and score 645.6560.
+At 150k all reports, scores and costs match the reference; six failures remain.
+Two complete tracks exactly reproduce the published JavaScript engine. Four
+focused test files pass 17 tests; repository-wide TypeScript checking retains
+unrelated existing errors and has no diagnostics in changed compiler modules.
 
-Work branch: `codex/arc-guidance-planning`; preservation branch:
-`archive/arc-guidance-planning-744`; compiler source commit: `6f71b4d8`.
-The [active baseline](../benchmark/v2/campaign-baseline.json) binds candidate
-`fd1f576b36213e0c1e9a32f6ad7a058658b151e1e81757e2fda258374679a1d2`
-to compiler fingerprint
-`05a89447ceabbadec189d0222b03ad4f53c44918709ca2d4a3137865a5b7c55d`.
-The [current baseline analysis](benchmark-v2-current-baseline-analysis.md)
-is regenerated from the accepted archive. Videos, original production inputs,
-source snapshot, research evidence and checksums are stored locally.
+Every line is normal type 0. The 750k geometry audit covers 4,100 groups, including
+1,048 single curves. Each group has at most two continuous chains, with no motif
+quota. All three full production videos are rendered at the original 1M budget
+with the full vertical pipeline. They pass physical contracts but remain below the unchanged 2% standing-time
+creative floor (Luna 1.6292%, Amor and Tiki 0%). Broader aesthetic objective
+design remains for owner discussion.
 
-The 687 arc reference, 662 normal-point proof and 761 acceleration proof remain
-on their respective `archive/connected-arc-feedback-687`,
-`archive/normal-motion-feedback-662` and `archive/native-motion-feedback-761`
-branches, with their original videos. Compiler research remains open within
-the owner's normal-line, coherent-arc requirements and fixed benchmark.
+## Saved milestone and further work
+
+[Video gallery](../archives/arc-refinement-2026-09-08/index.html) ·
+[Research record](arc-refinement-campaign.md) ·
+[Video review](arc-refinement-video-review.md) ·
+[Validation index](../benchmark/v2/studies/arc-refinement-validation.json).
+
+Work branch: `codex/arc-refinement`; preservation branch: `archive/arc-refinement-767`.
+The 744.5 reference remains on `archive/arc-guidance-planning-744`, with its original
+videos and source. Earlier arc and proof-of-concept archives remain intact.
+The new archive preserves source, judge, inputs, models, unsuccessful trials,
+reports and checksums locally; nothing was published.
+
+Research remains open. Useful next questions include repairing downstream motion
+without discarding good continuations, learning when additional search is worth
+its cost, improving the eight regressions, and extending the expressive geometry
+or planning beyond the tested horizons. The present results establish neither a
+performance ceiling nor an unlimited scaling law. Owner constraints remain normal
+coherent physical curves and the fixed benchmark/scorer/physics/accounting.

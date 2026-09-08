@@ -192,3 +192,36 @@ the rest with two contiguous curves. Every line is normal type 0. The shortest
 retained chain has six segments and physical length 18.61 px. Guidance reduction
 preserves substantial connected parts; it does not replace curves with point
 controls or impose a variety quota.
+
+## Accepted result and delivery
+
+Arc-refinement is promoted at 767.6851 (+23.1851), 352/352 valid, all 44 cases and
+seeds 16–23. The unchanged canonical protocol accepted the first N=8 look of its
+declared N=48 maximum without force. All canonical tracks, reports, scores and
+frame costs exactly match public discovery. Thirty-six cases improve and eight
+regress. Seed SE is zero; catalog sensitivity for the gain is [19.9278,26.3050].
+
+Qualification passes 120/120 with monitor 691.0046 versus 649.2793. Its 250k component
+regresses to 601.2726, while 500k and 750k rise to 690.5581 and 751.5702. Configuration
+and model were frozen before qualification. Separate jitter 0.02 with 44 cases and
+seeds 101–104 passes 176/176 distinct tracks for both compiler and reference,
+with mean per-cell gain 23.8694. The standing 250k reading passes 528/528 with
+bit-identical tracks and PARITY. All 17 focused tests pass; unrelated repository
+TypeScript errors remain, with none in the changed compiler modules.
+
+All three original production specifications have full 1080×1920, 60fps review
+videos with music, camera, spectrum and locked post-processing at the original
+1M allowance. All fully decode and pass physical contracts. Actual frames at 12
+and 30 seconds were inspected for each; these checks are not a full viewing of
+every video. All miss the unchanged 2% standing-time floor. Broader aesthetic
+objective design remains for discussion.
+
+The [gallery](../archives/arc-refinement-2026-09-08/index.html),
+[video review](arc-refinement-video-review.md) and
+[validation index](../benchmark/v2/studies/arc-refinement-validation.json) link
+the complete evidence. Source integration is ddcc679c; the accepted compiler
+source fingerprint is 36ba7724f3d734de63979859d6b88f0ed19c1918bdb0c96fae251a4444bb87bb.
+The model is included in the compiler identity. Preservation branch:
+`archive/arc-refinement-767`. The original 744.5 branch and videos remain intact.
+The archive includes all research trials and fold models, exact compiler
+snapshots, the fixed judge, production inputs and checksums. Nothing was uploaded.

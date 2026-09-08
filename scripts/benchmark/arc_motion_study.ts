@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {dirname} from 'node:path';
 import {developmentCases} from '../../benchmark/v2/catalog.ts';
 import {benchmarkPolicy} from '../../benchmark/v2/policy.ts';
@@ -18,10 +18,11 @@ const historicalOptions={...{budget:Number(arg('budget')??750000),samples:Number
 const options=arg('defaults')==='production'
   ? {...connectedArcOptions(spec,historicalOptions.budget),...JSON.parse(arg('options')??'{}')}
   : historicalOptions;
+if(options.controlPolicyPath)options.controlPolicy=JSON.parse(readFileSync(options.controlPolicyPath,'utf8'));
 if(options.valueModelPath)options.futureValueModel=JSON.parse(readFileSync(options.valueModelPath,'utf8'));
 const start=performance.now(),result=options.publicCompiler?compileHandoff(spec,Number(arg('seed')??260908011),{budget:options.budget}):compileArcMotion(spec,Number(arg('seed')??260908011),options);
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const score=scoreV2Report(result.report,spec.contacts.length,buildAxisContract(spec,Object.keys(benchmarkPolicy.componentWeights) as any),suite);
-const record={schema:'line.arc-motion-study.v1',researchOnly:true,sourceId:arg('source'),seed:Number(arg('seed')??260908011),elapsedMs:performance.now()-start,options,implementation:Object.fromEntries(['scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/benchmark/arc_motion_study.ts'].map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')])),score,...result};
+const record={schema:'line.arc-motion-study.v1',researchOnly:true,sourceId:arg('source'),seed:Number(arg('seed')??260908011),elapsedMs:performance.now()-start,options,implementation:Object.fromEntries(['scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/benchmark/arc_motion_study.ts',...['scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json'].filter(existsSync),...[options.controlPolicyPath,options.valueModelPath].filter(Boolean)].map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')])),score,...result};
 const out=arg('out')!,body=JSON.stringify(record)+'\n';mkdirSync(dirname(out),{recursive:true});writeFileSync(out,body);writeFileSync(out+'.sha256',createHash('sha256').update(body).digest('hex')+'\n');
 console.log(JSON.stringify({...record,track:{lines:result.track.lines.length},report:undefined,rows:undefined}));

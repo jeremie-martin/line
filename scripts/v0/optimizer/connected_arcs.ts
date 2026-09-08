@@ -1,6 +1,7 @@
 /** Public integration of measured, connected normal-line arc construction. */
 import { createHash } from "node:crypto";
 import { compileArcMotion, type ArcMotionOptions } from "./arc_motion.ts";
+import controlPolicy from "./arc_control_policy_model.json" with { type: "json" };
 import futureValueModel from "./arc_value_model.json" with { type: "json" };
 import { resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { sliceTimeline } from "../core/substrate.ts";
@@ -28,9 +29,11 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
     lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
-    reserveFactor: .7, reuseContinuations: true, pruneGuidance: true,
+    reserveFactor: .7 + .7 * (1 - guidanceSamples / 96), reuseContinuations: true, pruneGuidance: true,
     guidanceJoint: true, expressive: true, responseSamples,
     adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true, reuseEvaluations: true,
+    budgetAdaptiveLocal: guidanceSamples > 0,
+    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(12 * guidanceSamples / 96),
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
     // simulated continuation boundary. Do not blend it into the root twice.
@@ -54,7 +57,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const exhausted = result.searchBudgetExhausted || result.failure?.reason === "budget";
   const recorder = new CompileBudgetTelemetryRecorder({ level: options.budgetTelemetry ?? "summary",
     gaps, durationFrames: duration, hardBudgetFrames: options.budget, policyBudgetFrames: options.budget,
-    model: { name: "connected-arcs/v3", source: "arc_motion.ts expressive curves, measured planning and learned arrival value",
+    model: { name: "connected-arcs/v4", source: "arc_motion.ts learned curve proposals, measured planning and adaptive construction",
       interceptFrames: 0, contactFrames: 0, durationFrameScale: samples } });
   const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
     anchorGapIndex: 0, startTotalSpentFrames: 0, ceilingTotalSpentFrames: options.budget, includeStartup: false });

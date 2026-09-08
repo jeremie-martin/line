@@ -1,0 +1,37 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["numpy==2.5.1", "scikit-learn==1.7.2"]
+# ///
+"""Fit a modest ensemble of joint arc controls, with complete-parent validation."""
+import argparse,json,hashlib
+from pathlib import Path
+import numpy as np
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.model_selection import GroupKFold
+parser=argparse.ArgumentParser();parser.add_argument('--data',required=True);parser.add_argument('--out',required=True);parser.add_argument('--target-metric',choices=['raw','variance','search-step'],default='raw');args=parser.parse_args()
+p=Path(args.data);body=p.read_bytes();digest=hashlib.sha256(body).hexdigest();assert digest==Path(str(p)+'.sha256').read_text().strip()
+data=json.loads(body);out=Path(args.out);out.mkdir(parents=True,exist_ok=True)
+assert not (out/'model.json').exists()
+X=np.array([r['features'] for r in data['rows']]);y=np.array([r['target'] for r in data['rows']]);groups=np.array([r['parent'] for r in data['rows']]);assert X.shape[1]==57 and np.isfinite(X).all() and np.isfinite(y).all()
+def fitted(indices):
+ weights=np.ones(10)
+ if args.target_metric=='variance':weights=1/np.maximum(.05,np.std(y[indices],axis=0))
+ if args.target_metric=='search-step':weights=np.array([15,12,10,10,4,5,8,12.5,30/7,3.2])
+ model=ExtraTreesRegressor(n_estimators=32,max_depth=10,min_samples_leaf=12,max_features=.8,random_state=260908,n_jobs=4).fit(X[indices],y[indices]*weights)
+ return model,weights
+def write(path,record):
+ b=(json.dumps(record,separators=(',',':'),allow_nan=False)+'\n').encode();path.write_bytes(b);Path(str(path)+'.sha256').write_text(hashlib.sha256(b).hexdigest()+'\n')
+def export(model,parents,weights):
+ trees=[]
+ for estimator in model.estimators_:
+  t=estimator.tree_;trees.append(dict(left=t.children_left.tolist(),right=t.children_right.tolist(),feature=t.feature.tolist(),threshold=t.threshold.tolist(),value=(t.value[:,:,0]/weights).tolist()))
+ return dict(schema='line.arc-control-policy.v1',featureSchema=data['featureSchema'],featureCount=57,trees=trees,provenance=dict(dataSha256=digest,trainingParents=parents,datasetRows=len(data['rows']),targetMetric=args.target_metric,targetWeights=weights.tolist(),description='Joint control regression; no case or seed identity in features; full physical validation required.'))
+metrics=[];assignments={};pred=np.zeros_like(y)
+for fold,(train,test) in enumerate(GroupKFold(5).split(X,y,groups)):
+ m,w=fitted(train);pred[test]=m.predict(X[test])/w;held=sorted(set(groups[test]));write(out/f'fold-{fold}.json',export(m,sorted(set(groups[train])),w))
+ for index in test:assignments[data['rows'][index]['source']]=fold
+ metrics.append(dict(fold=fold,heldParents=held,train=len(train),test=len(test),controlRms=np.sqrt(np.mean((pred[test]-y[test])**2,axis=0)).tolist()))
+ print(json.dumps(metrics[-1]),flush=True)
+m,w=fitted(np.arange(len(y)));write(out/'model.json',export(m,sorted(set(groups)),w));write(out/'assignments.json',assignments)
+write(out/'validation.json',dict(rows=len(y),parents=len(set(groups)),folds=metrics,controlRms=np.sqrt(np.mean((pred-y)**2,axis=0)).tolist(),note='Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together.'))
+write(out/'parity.json',[dict(features=X[i].tolist(),mean=(m.predict(X[i:i+1])[0]/w).tolist()) for i in np.linspace(0,len(y)-1,24,dtype=int)])

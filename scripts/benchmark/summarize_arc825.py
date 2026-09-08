@@ -32,8 +32,10 @@ for directory in sorted(root.iterdir()):
         record, record_hash = checked(directory / f'{source}.json')
         before, before_hash = checked(reference / f'{source}.json')
         assert record['sourceId'] == source and record['seed'] == plan['seed']
-        assert all(record['implementation'].get(k) == v for k, v in plan['implementation'].items()
-                   if not k.startswith('/'))
+        assert all(record['implementation'][k] == v for k, v in plan['implementation'].items()
+                   if k in record['implementation'])
+        for name, expected in plan['implementation'].items():
+            assert hashlib.sha256((directory / 'source' / Path(name).name).read_bytes()).hexdigest() == expected
         assert record['stats']['sim_frames'] <= record['budget'] == plan['budget']
         rows.append(dict(source=source, sha256=record_hash, referenceSha256=before_hash,
                          score=record['score']['score'], valid=record['score']['valid'],

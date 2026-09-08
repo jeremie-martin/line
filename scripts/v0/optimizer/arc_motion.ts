@@ -12,6 +12,7 @@ export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { refineArcTrack } from './arc_refinement.ts';
+import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
 import { arcResponseStep } from './arc_response.ts';
 import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
@@ -84,6 +85,10 @@ export type ArcMotionOptions= {
   memoCandidates?:boolean;
   /** Reuse complete measurements across searches with identical geometry prefixes. */
   reuseEvaluations?:boolean;
+  controlPolicy?:any;
+  policySamples?:number;
+  /** Reduce local work if observed construction cost outgrows remaining capacity. */
+  budgetAdaptiveLocal?:boolean;
   futureValueModel?:any;
   /** Research: use the learned value at the unresolved continuation boundary. */
   continuationValueWeight?:number;
@@ -178,7 +183,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       if(horizon<=frame+2)return null;
       const outgoing=planned.find(g=>g.startFrame===(i===0?0:frame))??{index:gaps.length,startFrame:frame,endFrame:horizon,endsWithContact:false,targets:{}};
       const targets=outgoing.targets;
-      const before=JSON.stringify(getRiderMetered(engine,frame-1).ballisticState());
+      const beforeState=getRiderMetered(engine,frame-1).ballisticState(),before=JSON.stringify(beforeState);
       const free=getRiderMetered(engine,frame),velocity=free.velocity;
       engine.prepareCollisionTrace(frame);getRiderMetered(engine,frame);
       const trace=engine.readCollisionTrace()[0];
@@ -301,10 +306,11 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
+      const policy=options.controlPolicy&&i>0?arcControlProposals(futureFeatures(arcPolicyArrival(beforeState,velocity),i-1),incoming,span,options.controlPolicy,options.policySamples??8):[];
       if(options.warmStart)evaluate(options.warmStart);
       for(let k=0;k<initial;k++){
         const frac=(n:number)=>((k+1)*n)%1;
-        evaluate(k===0?center:{entry:incoming-((options.flow||options.channel)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
+        evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:{entry:incoming-((options.flow||options.channel)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
         if(k%10===9)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
       }
       if(best){
@@ -452,8 +458,20 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
     };
     for(let i=0;i<contacts.length;i++){
       const localStart=getPhysicsFrameCount();
-      const interval=searchInterval(engine,i,pendingControl?.index===i?{warmStart:pendingControl.control}:{});
-      if(interval){const rate=(getPhysicsFrameCount()-localStart)/Math.max(1,interval.next-interval.frame);observedConstructionRate=observedConstructionRate ? .8*observedConstructionRate+.2*rate : rate;}
+      const overrides:Partial<ArcMotionOptions>=pendingControl?.index===i?{warmStart:pendingControl.control}:{};
+      // Normalize the observed rate back to the full local allocation, so an
+      // emergency reduction does not falsely make later full searches look cheap.
+      let localScale=1;
+      if(options.budgetAdaptiveLocal){
+        const nominal=(options.samples??160)+(options.guidance?options.guidanceSamples??48:0);
+        const remaining=Math.max(1,end-contacts[i].frame),available=(budget-getPhysicsFrameCount()-2*(end+1))/remaining;
+        localScale=clamp(available/(Math.max(nominal*.7,observedConstructionRate||nominal)*1.1),.05,1);
+        overrides.samples=Math.max(12,Math.floor((options.samples??160)*localScale));
+        overrides.guidanceSamples=Math.floor((options.guidanceSamples??48)*localScale);
+        overrides.responseSamples=Math.floor((options.responseSamples??0)*localScale);
+      }
+      const interval=searchInterval(engine,i,overrides);
+      if(interval){const rate=(getPhysicsFrameCount()-localStart)/Math.max(1,interval.next-interval.frame)/localScale;observedConstructionRate=observedConstructionRate ? .8*observedConstructionRate+.2*rate : rate;}
       pendingControl=null;
       if(!interval){failure={frame:contacts[i].frame,reason:'contact_spacing'};break;}
       let {best}=interval;

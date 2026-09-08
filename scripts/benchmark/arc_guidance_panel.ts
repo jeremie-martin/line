@@ -12,6 +12,8 @@ const inputs=arg('inputs')??'generated/benchmark-v2/arc-motion-650/full-v12';
 const hash=(b:string|Buffer)=>createHash('sha256').update(b).digest('hex');
 const files=mode==='ablation'?['scripts/benchmark/arc_guidance_ablation.ts']:['scripts/benchmark/arc_motion_study.ts','scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts'];
 if(options.valueModelPath)files.push(resolve(options.valueModelPath));
+if(options.controlPolicyPath)files.push(resolve(options.controlPolicyPath));
+files.push(...['scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json'].filter(existsSync));
 const implementation=Object.fromEntries(files.map(p=>[p,hash(readFileSync(p))]));
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const budget=Number(options.budget??750000), seed=Number(arg('seed')??260908011);

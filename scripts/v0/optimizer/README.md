@@ -16,6 +16,7 @@ No point controls or acceleration lines enter this production path.
 | `arc_geometry.ts` | Pure coherent-curve construction: tangent schedule, turn timing, bend and guide separation. |
 | `arc_motion.ts` | Measured candidate search, continuation planning, backtracking and final replays. |
 | `arc_guidance.ts` | Remove unused portions of physical guides after replay. |
+| `arc_control_policy.ts`, `arc_control_policy_model.json` | Propose joint arc controls from relative physical state and upcoming targets; every proposal receives ordinary physical validation. |
 | `arc_response.ts` | Damped coupled response proposals from measured differences. |
 | `arc_value.ts`, `arc_value_model.json` | Predict continuation quality from physical arrival state and upcoming authored targets; exact simulation still validates candidates. |
 | `arc_refinement.ts` | Completed-track repair experiments, disabled in production defaults. Retains the incumbent and charges complete continuations. |
@@ -25,14 +26,24 @@ No point controls or acceleration lines enter this production path.
 
 Budget allocation depends on ride length and available simulated frames. The arc
 planner estimates construction rate from measured work and uses remaining work
-to choose continuation effort. It does not consult the legacy difficulty model.
+to choose continuation effort. Less mature local searches retain a larger construction
+reserve. If observed construction becomes too expensive for the remaining track,
+the planner reduces local work and keeps its completed candidates. It does not
+consult the legacy difficulty model.
 The selected geometry receives two complete cold replays, included in accounting.
-Completed evaluations of identical normalized controls are reused within one search
-prefix. Cached engine wrappers are never reused; new children receive ordinary
-physical metering. `memoCandidates: false` disables this for controlled studies.
+Completed evaluations of identical normalized controls are reused within and across
+searches with the same complete physical prefix and evaluation context. Prefix
+identity follows detached and rebuilt geometry; the shared cache is bounded.
+Cached engine wrappers are never reused; new children receive ordinary physical
+metering. Disable both `memoCandidates` and `reuseEvaluations` for a no-cache control.
 Budget interruptions preserve completed recursive branches and the deepest
 completed prefix. Proactive retry estimates include rebuilding from the actual
 backtracking boundary. Repair records describe every accepted rebuilt interval.
+The control policy replaces a limited part of broad search with learned proposals.
+Its features exclude case identity, seed, absolute frame and absolute position.
+Training and complete-parent validation are reproducible with the policy collector,
+trainer and compactor under `scripts/benchmark/`. Leaf predictions are checked
+against independent Python fixtures. The model never certifies physical validity.
 Same spec, seed and budget must give identical tracks. Each budget is a fresh run.
 
 ## Retained mechanisms

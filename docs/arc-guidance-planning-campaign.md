@@ -70,3 +70,49 @@ Full discovery panels from source `b08491bb`, all 44 cases and one seed:
 These are discovery results, not canonical promotion. The first lookahead
 does not carry its proposed next curve into the following full search; that
 reuse is the next experiment. The numerical and visual delivery remains in progress.
+
+## Planning, joint geometry and recovery
+
+Carrying a planned curve forward improved the initial eight-case panel, but
+the full panel exposed budget exhaustion on later difficult approaches. Those
+failures are retained in `full-l2-*`: full guidance completed 42/44, clearance
+43/44, and wider lookahead 42/44. Small-panel success did not justify promotion.
+
+Replacing the current-arrival prior in the lookahead comparison with the
+measured next curve and its terminal arrival cost produced 741.5662, 44/44.
+Reserving more future construction work produced 741.8474, 44/44, using at
+most 722,807 frames (`full-l3-reserve`). Looking two future intervals ahead
+with two continuations per branch was viable, but scored 719.4856 at the same
+budget (`full-l3-deep`). Longer horizons consume proposal quality and breadth;
+the deeper implementation remains available for research, not selected by default.
+
+Joint refinement of supporting-curve controls, clearance and guide coverage
+was implemented and tested after the first span-only result was adverse.
+It scores 733.6547, 44/44 (`full-l4-joint`), a useful result but below the
+best clearance-plus-planning configuration. This is evidence about this
+implementation and compute allocation, not proof that coverage search is inferior.
+
+Recovery now prefers alternatives with simulated viable continuations and
+carries their proposed next curves into subsequent search. If the initial
+shortlist has no viable continuation, it examines more diverse arrivals while
+budget remains. Combined with clearance search and terminal planning, this
+scores **744.5**, **44/44**, at most **737,686** actual frames
+(`full-l4-recovery`). Disabling geometry search while retaining terminal
+planning scores 705.2066, 44/44 (`full-ablate-guidance`). Together with the
+702.0956 geometry-only result, this supports a complementary contribution
+from geometry and planning rather than merely extra local proposals.
+
+## Integration and remaining validation
+
+The public integration preserves the selected 750k configuration. Initial
+small-budget allocations were adverse: adding geometry proposals to the old
+allocation lost completions. A proportional allocation repaired 500k to
+44/44 and 717.4848 (reference 673.64), but still lost four 250k completions.
+The preserved reference was independently rerun on all 44 cases at both
+budgets: 44/44 at 250k and 500k, with 610.9446 at 250k.
+
+The next allocation gives basic curve construction priority before expanding
+geometry variables and planning, using available physics work per ride frame.
+This is a continuous compiler allocation, with no benchmark-budget or source-ID
+dispatch. Public verification, canonical evaluation and final video delivery
+are still pending at this entry.

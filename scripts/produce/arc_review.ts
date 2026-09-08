@@ -5,6 +5,7 @@ import {mkdirSync,readFileSync,writeFileSync,existsSync,copyFileSync} from 'node
 import {resolve,join} from 'node:path';
 import {hostname} from 'node:os';
 import {compileArcMotion} from '../v0/optimizer/arc_motion.ts';
+import {compileConnectedArcs} from '../v0/optimizer/connected_arcs.ts';
 import {applyJolt,resolveJoltMs} from './seed.ts';
 import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
@@ -17,16 +18,20 @@ const work=join(out,'inputs',song);mkdirSync(work,{recursive:true});
 const hash=(p:string)=>createHash('sha256').update(readFileSync(p)).digest('hex');
 const write=(p:string,value:any)=>{writeFileSync(p,JSON.stringify(value,null,2)+'\n');writeFileSync(p+'.sha256',hash(p)+'\n');};
 const gitSha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
-const sourceFiles=['scripts/v0/optimizer/arc_motion.ts','scripts/produce/arc_review.ts'];
+const sourceFiles=['scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/connected_arcs.ts','scripts/produce/arc_review.ts'];
 const implementation=Object.fromEntries(sourceFiles.map(p=>[p,hash(p)]));
-const options={bidirectional:arg('bidirectional')==='on',impactWeight:Number(arg('impact-weight')??2),amplitudeWeight:Number(arg('amplitude-weight')??1),poseWeight:Number(arg('pose-weight')??0),qualityRetries:Number(arg('quality-retries')??0),budget:cfg.budget,samples:160,arrivalWeight:Number(arg('arrival-weight')??.3),arrivalMode:arg('arrival-mode')??'heading-speed',channel:Number(arg('channel')??0),wave:arg('wave')==='on',radius:Number(arg('radius')??0)};
+const publicCompiler=arg('compiler')==='public';
+if(publicCompiler&&arg('options'))throw new Error('public compiler uses its committed configuration');
+const options=publicCompiler?{compiler:'public',budget:cfg.budget}:{bidirectional:arg('bidirectional')==='on',impactWeight:Number(arg('impact-weight')??2),amplitudeWeight:Number(arg('amplitude-weight')??1),poseWeight:Number(arg('pose-weight')??0),qualityRetries:Number(arg('quality-retries')??0),samples:160,arrivalWeight:Number(arg('arrival-weight')??.3),arrivalMode:arg('arrival-mode')??'heading-speed',channel:Number(arg('channel')??0),wave:arg('wave')==='on',radius:Number(arg('radius')??0),...JSON.parse(arg('options')??'{}'),budget:cfg.budget};
 let record:any;
 if(existsSync(join(work,'compile.json'))){
   record=JSON.parse(readFileSync(join(work,'compile.json'),'utf8'));
   if(JSON.stringify(record.options)!==JSON.stringify(options))throw new Error('saved research options differ');
+  if(Object.entries(implementation).some(([p,digest])=>record.implementation[p]!==digest))throw new Error('saved compiler implementation differs');
   for(const [file,digest] of Object.entries(record.outputs))if(hash(join(work,file))!==digest)throw new Error('corrupt compiler output');
 }else{
-  const spec=applyJolt((await import(resolve(cfg.spec))).default,jolt),result=compileArcMotion(spec,seed,options);
+  const spec=applyJolt((await import(resolve(cfg.spec))).default,jolt);
+  const result:any=publicCompiler?compileConnectedArcs(spec,seed,{budget:cfg.budget}):compileArcMotion(spec,seed,options);
   const metrics=measure(seed,result.track,result.report,extractTrace(result.track));
   if(!metrics.contractPassed||!metrics.reachedEnd||metrics.offBeat)throw new Error(`research production contract failed: ${JSON.stringify({metrics,failure:result.failure})}`);
   if(result.track.lines.some(l=>l.type!==0))throw new Error('non-normal geometry');

@@ -12,11 +12,20 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const duration = Math.round(spec.duration * 40), end = duration + 20;
   // Reserve construction capacity for revisiting difficult approaches. This
   // scales with actual ride length and budget, without benchmark-tier gates.
-  const samples = Math.max(12, Math.min(160, Math.floor(.7 * (options.budget - 2 * (end + 1)) / Math.max(1, end))));
+  // Give the base curve search its initial breadth before adding independent
+  // guide variables. The allocation depends on available work per ride frame,
+  // including the two cold replays, rather than named benchmark budgets.
+  const allowance = .7 * (options.budget - 2 * (end + 1)) / Math.max(1, end);
+  const refinement = Math.max(0, allowance - 80);
+  const samples = Math.max(12, Math.min(160, Math.floor(Math.min(80, allowance) + .8 * refinement)));
+  const guidanceSamples = Math.min(48, Math.floor(.4 * refinement));
+  const lookaheadSamples = Math.max(8, Math.round(samples * .2));
   const result = compileArcMotion(spec, seed, { budget: options.budget, samples,
     channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
-    headingWeight: .3, qualityRetries: 2 });
+    headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
+    lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
+    reserveFactor: 1.4, reuseContinuations: true, pruneGuidance: true });
   const { track, report } = result, total = result.stats.sim_frames;
   const gaps = sliceTimeline(spec.contacts.map(c => Math.round(c.t * 40)), duration);
   const valid = report.contacts.every(c => c.status === "hit") &&
@@ -24,7 +33,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const exhausted = result.failure?.reason === "budget";
   const recorder = new CompileBudgetTelemetryRecorder({ level: options.budgetTelemetry ?? "summary",
     gaps, durationFrames: duration, hardBudgetFrames: options.budget, policyBudgetFrames: options.budget,
-    model: { name: "connected-arcs/v1", source: "arc_motion.ts measured full-interval proposals",
+    model: { name: "connected-arcs/v2", source: "arc_motion.ts measured curves and next-beat continuations",
       interceptFrames: 0, contactFrames: 0, durationFrameScale: samples } });
   const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
     anchorGapIndex: 0, startTotalSpentFrames: 0, ceilingTotalSpentFrames: options.budget, includeStartup: false });

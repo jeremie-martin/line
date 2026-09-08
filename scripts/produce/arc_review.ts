@@ -19,7 +19,7 @@ const write=(p:string,value:any)=>{writeFileSync(p,JSON.stringify(value,null,2)+
 const gitSha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
 const sourceFiles=['scripts/v0/optimizer/arc_motion.ts','scripts/produce/arc_review.ts'];
 const implementation=Object.fromEntries(sourceFiles.map(p=>[p,hash(p)]));
-const options={budget:cfg.budget,samples:160,arrivalWeight:Number(arg('arrival-weight')??.3),arrivalMode:arg('arrival-mode')??'heading-speed',channel:Number(arg('channel')??0),wave:arg('wave')==='on',radius:Number(arg('radius')??0)};
+const options={bidirectional:arg('bidirectional')==='on',impactWeight:Number(arg('impact-weight')??2),amplitudeWeight:Number(arg('amplitude-weight')??1),poseWeight:Number(arg('pose-weight')??0),qualityRetries:Number(arg('quality-retries')??0),budget:cfg.budget,samples:160,arrivalWeight:Number(arg('arrival-weight')??.3),arrivalMode:arg('arrival-mode')??'heading-speed',channel:Number(arg('channel')??0),wave:arg('wave')==='on',radius:Number(arg('radius')??0)};
 let record:any;
 if(existsSync(join(work,'compile.json'))){
   record=JSON.parse(readFileSync(join(work,'compile.json'),'utf8'));

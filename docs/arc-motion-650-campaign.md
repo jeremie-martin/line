@@ -119,3 +119,16 @@ Dialogue from 386.4700 to **714.3362** with impact objective weight 1 (all valid
 Believer Impact 546.0506. Weight 2 instead gives 616.8673 / 457.2512 / 757.7943 /
 238.2564. These are discovery pilots; broad evidence is still required.
 The objective weights affect search only; the evaluator remains unchanged.
+
+The complete v10 weight-1 panel is **623.8803**, 44/44 valid; weight 2 is
+573.0172, also 44/44 valid. The sparse lowline regression reaches a steep
+speed runaway and scores 11.2046 in the weight-1 arm. Merely keeping physical
+validity is insufficient: the planner must reconsider bad motion states too.
+
+The v11 prototype revisits preceding curves when outgoing speed error exceeds
+0.3, with two retries per contact and a remaining-construction budget reserve.
+Sparse Lowline recovers to **637.2194**, Believer Rhythm to 645.1766, Believer
+Impact to 603.3246, and Dense Recovery to 508.2126; Dense Dialogue stays at
+714.3362. All five are valid, maximum 436,155 physics frames. Five retries
+raises sparse to 654.4009 but costs more and slightly hurts dense recovery.
+The conservative two-retry policy is undergoing the full discovery panel.

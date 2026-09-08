@@ -17,7 +17,7 @@ objective is outstanding. The scorer and benchmark remain unchanged.
 Compiler research scope is open within the owner's material and arc-geometry
 requirements in `goal.md`. The benchmark and score stay fixed. Historical
 mechanism closures, deferrals, and study caps are evidence to reconsider, not
-permission barriers. The active program is `normal-line-650-campaign.md`.
+permission barriers. The active program is `arc-motion-650-campaign.md`.
 
 The active compiler campaign compares the current compiler with a retained
 750k-only baseline at strict N=8/16/32/48 looks, then explicitly promotes an

@@ -11,9 +11,9 @@ help real arc geometry. Keep the benchmark and score unchanged, and use full
 vertical production videos to evaluate appearance alongside measured quality.
 
 The 662.5889 result below is a completed numerical milestone, not completion
-of this corrected visual objective. The immediate request is to render the
-current normal-motion compiler for review, before any arc redesign; label
-those previews accordingly. Arc-based improvement remains outstanding.
+of this corrected visual objective. The normal-motion previews are complete. The owner has now asked to adapt
+the planning and feedback principles to real arcs. Arc-based improvement is
+the active task; numerical and visual objectives must both be addressed.
 
 Raise the active 750k Benchmark V2 headline above 650 using only normal Line
 Rider lines (type 0). Acceleration lines (type 1) are excluded from this campaign.
@@ -51,12 +51,12 @@ reports, and provenance in `generated/reviews/native-motion-2026-09-07/` for lat
 viewing. This explicit review request permits acceleration in those preserved
 examples only. No upload or publication is requested.
 
-The active implementation branch is `codex/normal-line-650`, now checked out
+The active implementation branch is `codex/arc-motion-650`, now checked out
 in `/home/wyss/line`. The separate `/home/wyss/line-normal` checkout is detached
 at the validated discovery implementation. All three acceleration videos are
 complete and preserved with code and evidence in
 `archives/native-motion-feedback-2026-09-07/`. The current research record is
-`docs/normal-line-650-campaign.md`.
+`docs/arc-motion-650-campaign.md`.
 Keep the concise campaign current and preserve comparable evidence. The
 above-650 numerical milestone is verified; the arc-based visual objective
 remains active.

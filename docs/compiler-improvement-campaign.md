@@ -4,8 +4,10 @@ Owner feedback, 2026-09-08: the point-like geometry is visually unacceptable.
 Future work must recover coherent physical arcs using normal lines, while
 retaining useful planning and feedback ideas. Arc shapes and controls may
 evolve; benchmark and scorer remain fixed. Full production video review is
-part of assessing that objective. The owner has also requested previews of
-the current normal-motion compiler; these precede an arc redesign.
+part of assessing that objective. The current normal-motion previews are complete. Active arc work is on
+`codex/arc-motion-650`; see [the research record](arc-motion-650-campaign.md).
+Early connected-curve prototypes pass full physical tracks but remain below
+the previous arc compiler in score. No arc candidate has been promoted.
 
 The earlier normal-line above-650 numerical goal is achieved. The active 750k
 Benchmark V2 headline is **662.5889**, promoted as `normal-motion-feedback`, with

@@ -1,17 +1,25 @@
-# Active follow-up: preserve useful planning at the budget boundary
+# Active compiler campaign: stronger trajectory shaping with coherent normal arcs
 
 The owner clarified that overall headline performance governs this compiler
 campaign. The accepted **771.3015** boundary-value compiler is now the starting
-point. Its separate 250k qualification failure is a defect to investigate, not
+point. Its separate 250k qualification failure was a defect to investigate, not
 an additional perfection veto. Benchmark V2 and the scorer remain fixed; invalid
 runs retain their ordinary zero scores. Diagnose mechanisms, test general fixes,
 and continue improving the compiler with coherent normal arcs.
+
+The defect is corrected: a frame-limit interruption no longer discards a fully
+validated candidate. The final compiler is promoted as `arc-planning-continuity`
+at **771.3015**, with **352/352** canonical runs valid, exact headline-track parity
+against the intermediate 771 compiler, and **120/120** qualification runs valid.
+At 150k it recovers an inherited failure: **504.1253**, **39/44** valid, versus
+481.1128 and 38/44. Qualification is a reused regression panel after diagnosis.
+The benchmark, scorer and actual-frame accounting remain unchanged.
 
 Large archives remain local; push source and compact evidence. See
 [the current work](docs/arc-planning-continuity.md). The earlier milestones below
 remain historical evidence.
 
-# Goal: stronger trajectory shaping with coherent normal arcs
+# Preserved milestone: arc refinement
 
 The arc-refinement campaign is complete. **Arc-refinement is promoted at
 767.6851**, up 23.1851 from the preserved 744.5 milestone on the unchanged 750k
@@ -20,7 +28,7 @@ and eight seeds 16–23. At higher allowance, the same public compiler reaches
 793.3941 at 1M and 812.0916 at 3M, both 44/44 valid. All three full vertical
 production videos are generated, inspected in sampled frames and archived.
 
-## Current follow-up: compiler foundations
+## Preserved follow-up: compiler foundations
 
 Preserve the accepted campaigns, then carefully clean up the compiler and
 outdated guidance without discarding useful legacy mechanisms. Verify exact
@@ -31,8 +39,8 @@ compact evidence and archive indexes. See [the audit](docs/compiler-foundations.
 This follow-up is complete: cleanup matches all 264 six-budget development
 outputs exactly, and 154 focused tests pass. A subsequent boundary-value
 experiment improved canonical and higher-budget scores but introduced a
-qualification failure, so it remains on its preserved research branch. The
-accepted 767.6851 planner stays active. Large archives remain local.
+qualification failure, so it initially remained on its preserved research branch.
+The follow-up above supersedes that non-promotion decision. Large archives remain local.
 
 ## Owner requirements
 

@@ -1,6 +1,15 @@
 # Compiler improvement campaign
 
-The active normal-line arc compiler is **arc-refinement**, promoted at
+The active compiler is **arc-planning-continuity**, promoted at **771.3015** on
+the unchanged 750k Benchmark V2: **352/352** valid, full 44-case suite, seeds 16–23.
+This adopts the continuation-boundary value improvement over 767.6851 and fixes
+discarded validated work when search exhausts its frame allowance. Qualification
+now passes **120/120**; the 150k development panel improves to **504.1253**, 39/44.
+See [the root cause, results and evidence](arc-planning-continuity.md).
+
+## Preserved arc-refinement milestone
+
+The preceding normal-line arc compiler was **arc-refinement**, promoted at
 **767.6851** on the unchanged Benchmark V2 at 750k, up **23.1851** from the
 preserved 744.5000 milestone. All **352/352 canonical runs** pass: the complete
 44-case development suite, seeds 16–23. The declared maximum was N=48 and the

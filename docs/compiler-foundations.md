@@ -1,5 +1,12 @@
 # Compiler foundations, September 2026
 
+**Follow-up:** the owner clarified that the headline governs promotion. The
+boundary-value improvement was subsequently adopted, and its qualification
+failure was traced to discarded valid work at budget exhaustion and corrected.
+The active compiler is now **771.3015**, with **120/120** qualification runs valid.
+See [planning continuity](arc-planning-continuity.md). The decisions below record
+the earlier cleanup and research session; their non-promotion conclusion is superseded.
+
 The accepted reference is arc-refinement at **767.6851**, commit `6215f0c2`.
 Work branch: `codex/compiler-foundations`. The owner requested careful cleanup
 before further experiments, preserving useful old mechanisms. Large archives

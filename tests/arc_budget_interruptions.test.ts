@@ -40,6 +40,19 @@ it('reports exhausted search truthfully even when its retained track completes',
   expect(result.budgetTelemetry?.compile.total_spent_frames).toBe(result.stats.sim_frames);
 });
 
+it('keeps the current curve when deeper planning is interrupted without treating the partial plan as complete', () => {
+  const result = compileArcMotion(spec, 17, {...options, budget: 10500,
+    lookaheadWidth: 3, lookaheadSamples: 8, lookaheadDepth: 2, strictHorizon: true,
+    reserveFactor: 0, guidance: true, guidanceSamples: 32, responsePasses: 2});
+  expect(result.budgetInterruptions).toContainEqual({
+    phase: 'planning', index: 3, frame: 72, viable: 1, retained: true});
+  expect(result.rows.at(-1).frame).toBe(72);
+  expect(result.report.contacts.filter(c => c.status === 'hit')).toHaveLength(3);
+  expect(result.rows.at(-1).lookahead.probes.every((p: {value: number | null}) => p.value === null)).toBe(true);
+  expect(result.failure?.reason).toBe('budget');
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(10500);
+});
+
 it('propagates non-budget evaluation errors', () => {
   expect(() => compileArcMotion(spec, 17, {...options, budget: 10000,
     futureValueModel: {featureSchema: 'invalid'}})).toThrow('arc future-value feature mismatch');

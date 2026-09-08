@@ -1,24 +1,24 @@
 {
   "schema": "line.benchmark-v2.active-baseline-analysis.v1",
-  "generatedAt": "2026-09-08T18:41:37.420Z",
+  "generatedAt": "2026-09-08T19:02:31.882Z",
   "boundary": "Within-baseline analysis under accumulated contacted-frame redirection impulse. No old-ruler score, delta, or ranking is used.",
   "baseline": {
     "path": "benchmark/v2/campaign-baseline.json",
-    "sha256": "84a711a900a414071d280ec7d427b18c2c2b9201874841d26b2e2d14d01855c1",
-    "label": "arc-continuation-boundary",
+    "sha256": "5fabc11f0d521f8718b2552066c2fdfbe9dbf242930b5393d812c291b5a98932",
+    "label": "arc-planning-continuity",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "scoringProtocolFingerprint": "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6",
     "goldenEvaluatorFingerprint": "07cf88383150",
-    "candidateFingerprint": "39bf5f5079cf78d2a389673cbdbe26a227f32d428530130e7ab48e5826dd9fa4",
+    "candidateFingerprint": "fcf775fcce8081a5f2d7576ef609bb8fc6fbd07d27454815f25aa01446b38657",
     "engine": "wasm",
     "budget": 750000,
     "seedsPerCase": 8,
     "cases": 44,
     "rawArchiveRetained": false,
     "rawArchive": null,
-    "rawArchiveSha256": "dae92d1a0743aa610412ee2db6238d7b0e968445bda4d7c66574e642cc4ea0f1",
-    "compressedArchive": "benchmark/v2/runs/arc-continuation-boundary-development-750k-N8.json.gz",
-    "compressedArchiveSha256": "d47fe98fdb7433dedf5e5055f1e5d7c78a5530cd19b8d7fc7b836f0414d4b7bd"
+    "rawArchiveSha256": "08587d5590f2b318a6fa18e7eaf34d2efc64aba78ba7a4a8c3c247bee74ce6ca",
+    "compressedArchive": "benchmark/v2/runs/arc-planning-continuity-development-750k-N8.json.gz",
+    "compressedArchiveSha256": "4942a23afc0284ae2409605b9cfd4dcdfbfbc1027095a259d9e7aa9641cb352a"
   },
   "headline": {
     "score": 771.3015,

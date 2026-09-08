@@ -1,6 +1,6 @@
 # Benchmark V2 Current Baseline Analysis
 
-Baseline: `arc-continuation-boundary`. Scorer: accumulated contacted-frame redirection impulse. Suite: `7bd878d8aaea08a9`.
+Baseline: `arc-planning-continuity`. Scorer: accumulated contacted-frame redirection impulse. Suite: `7bd878d8aaea08a9`.
 
 **Boundary:** Within-baseline analysis under accumulated contacted-frame redirection impulse. No old-ruler score, delta, or ranking is used.
 

@@ -29,8 +29,9 @@ historical record, not live guidance.
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`../scripts/v0/optimizer/README.md`](../scripts/v0/optimizer/README.md) | LIVE | Current arc compiler and retained fallback map. |
-| [`compiler-foundations.md`](compiler-foundations.md) | LIVE | Cleanup audit, exact parity and research follow-up. |
-| [`arc-continuation-boundary-study.md`](arc-continuation-boundary-study.md) | REFERENCE | Higher-budget gains and the qualification regression that prevented promotion. |
+| [`arc-planning-continuity.md`](arc-planning-continuity.md) | LIVE | Accepted 771 compiler, budget-interruption root cause, correction and validation. |
+| [`compiler-foundations.md`](compiler-foundations.md) | REFERENCE | Cleanup audit, exact parity and research follow-up. |
+| [`arc-continuation-boundary-study.md`](arc-continuation-boundary-study.md) | REFERENCE | Adopted continuation-value research, higher-budget gains and the initially observed qualification regression. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | REFERENCE | Retained legacy prefix-search algorithm. |
 | [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md) | REFERENCE | Pre-implementation source of truth for ballistic projection, gap composition, readiness, and proposal-utility boundaries. |
 | [`ARC_AIMING_FORMALIZATION.md`](ARC_AIMING_FORMALIZATION.md) | ARCHIVE | The aiming model and the shared current-quality × readiness objective. |
@@ -39,7 +40,7 @@ historical record, not live guidance.
 
 ## Campaigns
 
-The active follow-up is [compiler foundations](compiler-foundations.md). Earlier
+The current result is [planning continuity](arc-planning-continuity.md). Earlier
 framework-specific campaign layouts remain historical references.
 
 | Doc | Tag | What |

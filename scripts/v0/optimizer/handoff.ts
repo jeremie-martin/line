@@ -59,7 +59,7 @@
 import { createHash } from "node:crypto";
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
 import { beginEnvFlagEpoch, compileScopedEnv } from "../env_flags.ts";
-import { compileNormalMotion } from "./normal_motion.ts";
+import { compileConnectedArcs } from "./connected_arcs.ts";
 import { makeRng } from "../../lib/rng.ts";
 import {
   type GapFit,
@@ -1822,14 +1822,14 @@ export function compileHandoff(
   seed = 0,
   opts: CompileHandoffOptions,
 ): CompileCheckpoint {
-  // Ordinary requests use only type-0 collision geometry. Legacy diagnostics
+  // Ordinary requests use connected type-0 physical arc rails. Legacy diagnostics
   // and other axes keep their existing normal-line implementation.
   if ((process.env.LR_ENGINE ?? "wasm") === "wasm" &&
       Object.entries(opts).every(([key, value]) => value === undefined || key === "budget" || key === "budgetTelemetry") &&
       Object.keys(userSpec.axes).every(axis => ["air", "speed", "amplitude"].includes(axis)) &&
       userSpec.contacts.length > 0 && userSpec.contacts.every(c => Math.round(c.t * FPS) >= 6) &&
       opts.budget > 4 * (Math.round(userSpec.duration * FPS) + OUTPUT_TAIL_PAD_FRAMES)) {
-    return compileNormalMotion(userSpec, seed, opts);
+    return compileConnectedArcs(userSpec, seed, opts);
   }
   return compileHandoffInternal(userSpec, seed, opts, null);
 }

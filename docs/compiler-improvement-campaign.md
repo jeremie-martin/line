@@ -6,8 +6,9 @@ retaining useful planning and feedback ideas. Arc shapes and controls may
 evolve; benchmark and scorer remain fixed. Full production video review is
 part of assessing that objective. The current normal-motion previews are complete. Active arc work is on
 `codex/arc-motion-650`; see [the research record](arc-motion-650-campaign.md).
-Early connected-curve prototypes pass full physical tracks but remain below
-the previous arc compiler in score. No arc candidate has been promoted.
+The connected-arc candidate reaches 687.5102 in the 44-case discovery panel,
+with every case valid. Integration and canonical verification are underway;
+no arc candidate has been promoted.
 
 The earlier normal-line above-650 numerical goal is achieved. The active 750k
 Benchmark V2 headline is **662.5889**, promoted as `normal-motion-feedback`, with

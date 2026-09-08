@@ -7,9 +7,9 @@ Arc shape and parameterization may change. Benchmark V2, scorer, authored
 specifications, physics, and frame accounting remain fixed. The target is a
 verified 750k headline above 650, with early full vertical video review.
 
-Work branch: `codex/arc-motion-650`. The public compiler is temporarily still
-the preserved 662.5889 normal point-control compiler while arc prototypes are
-measured separately. No arc prototype has been promoted. Existing arc research
+Work branch: `codex/arc-motion-650`. The public compiler now routes ordinary requests to the connected-arc candidate
+for integration and canonical verification. The official baseline remains the
+preserved 662.5889 normal point-control result. No arc candidate has been promoted. Existing arc research
 is evidence rather than a restriction on the new approach.
 
 ## First physical experiments
@@ -147,3 +147,18 @@ High Air Drive recovers to 665.0856 with three backtracks, River reaches
 640.1087, and amplitude mosaic 584.7618. All six are valid, max 509,155 frames.
 Weight 0.1 is also valid on all six but less effective on most; it remains a
 recorded alternative. The 0.3 objective is proceeding to the full panel.
+
+## Complete arc candidate and integration
+
+The full v12 discovery is **687.5102**, **44/44 valid**, maximum **509,155**
+physical frames. Strata: representative 725.5574, capability 542.9614, legacy
+regression 668.0486, development music 627.4190. This remains a one-seed
+exploratory reading, not a promoted headline. Frozen research source: `fb3e4a81`.
+
+The integrated public compiler uses this design, scales proposal breadth with
+budget and ride length, honors seeded jitter and explicit starts, and emits
+standard compile/budget telemetry. Seven focused physical, repeatability,
+budget, jitter, and compiler-identity tests pass. Public River Reentry exactly
+matches the frozen research track, report, and 341,926 charged physics frames.
+TypeScript checking reports no errors in the added arc/compiler/review files;
+unrelated repository errors remain. Canonical verification is next.

@@ -1,0 +1,53 @@
+{
+  "schema": "line.compiler-integrity-audit-local-archive.v1",
+  "date": "2026-09-08",
+  "localDirectory": "archives/compiler-integrity-audit-2026-09-08",
+  "archivePolicy": "Large raw payloads remain local. Code, regression tests, compact evidence and indexes are pushed.",
+  "sourceCommit": "3122477aad3eb4ba33b0b0c633c0772424d50310",
+  "measuredCompilerCommit": "2d724c7e1f45d66b445aaebfd58054a147fdbb70",
+  "activeBranch": "codex/compiler-integrity-audit",
+  "preservationBranch": "archive/compiler-integrity-777",
+  "intermediateBranch": "archive/compiler-integrity-memo-777",
+  "intermediateCompilerCommit": "f8ae3cfeba6ecc80e225c8335a2c8ccf08cef638",
+  "candidateFingerprint": "baf7999a450270741ef0730fedb4b1cac3ddfc9b6cc1f9708ae20c6599cf1fc1",
+  "headline": 777.8193,
+  "canonicalValid": "352/352",
+  "canonicalDistinctTracks": 44,
+  "qualificationValid": "120/120",
+  "qualificationMonitor": 707.3395,
+  "jitterValid": "176/176 distinct tracks",
+  "lowBudget150k": {
+    "score": 509.7855,
+    "valid": "41/44"
+  },
+  "oneMillion": {
+    "score": 805.7234,
+    "valid": "44/44",
+    "role": "Exploratory full-suite public compiler panel"
+  },
+  "previousEvidenceArchive": "../arc-planning-continuity-2026-09-08/index.html",
+  "earlierVerticalVideoGallery": "../arc-refinement-2026-09-08/index.html",
+  "videoNote": "No new videos were rendered in this audit.",
+  "artifacts": [
+    {
+      "file": "evidence.tar.gz",
+      "bytes": 234131875,
+      "sha256": "487625a9be0c90d4e1d0486e849d8311923c4032c6c42cb473566b9892a4c224"
+    },
+    {
+      "file": "judge.wasm",
+      "bytes": 79556,
+      "sha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+    },
+    {
+      "file": "source.tar.gz",
+      "bytes": 5236715,
+      "sha256": "26d06ac456fe59f0f73aef35bcbd7a0e90f0b10a05b13838ecb62a37acc2182f"
+    },
+    {
+      "file": "validation.json",
+      "bytes": 103015,
+      "sha256": "a59b99775a8784a107221029f8c7aff6a30f5fd4291353c6ee3297b9588c3b50"
+    }
+  ]
+}

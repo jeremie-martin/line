@@ -10,7 +10,7 @@ const out=resolve(arg('out')!), mode=arg('mode')??'compile', jobs=Number(arg('jo
 const options=JSON.parse(arg('options')??'{}'), sourceIds=arg('sources')?.split(',')??developmentCases.map(e=>e.case.metadata.id).sort();
 const inputs=arg('inputs')??'generated/benchmark-v2/arc-motion-650/full-v12';
 const hash=(b:string|Buffer)=>createHash('sha256').update(b).digest('hex');
-const files=mode==='ablation'?['scripts/benchmark/arc_guidance_ablation.ts']:['scripts/benchmark/arc_motion_study.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/connected_arcs.ts'];
+const files=mode==='ablation'?['scripts/benchmark/arc_guidance_ablation.ts']:['scripts/benchmark/arc_motion_study.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/connected_arcs.ts'];
 const implementation=Object.fromEntries(files.map(p=>[p,hash(readFileSync(p))]));
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const budget=Number(options.budget??750000), seed=Number(arg('seed')??260908011);

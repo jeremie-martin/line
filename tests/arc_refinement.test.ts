@@ -73,3 +73,12 @@ it('offers direct expressive revisions with a fully evaluated continuation', () 
   expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
 });
+
+it('fits joint responses for expressive curves and validates proposals in the real engine', () => {
+  const result = compileArcMotion(spec, 21, {...base, expressive: true,
+    guidanceSamples: 96, guidanceJoint: true, responseSamples: 70});
+  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
+  expect(result.stats.viable_candidate_samples).toBeGreaterThan(0);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
+  expect(result.track.lines.every(l => l.type === 0)).toBe(true);
+});

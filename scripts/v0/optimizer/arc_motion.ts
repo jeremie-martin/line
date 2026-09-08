@@ -10,6 +10,7 @@ import { makeSolidLine } from '../arc.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { refineArcTrack } from './arc_refinement.ts';
+import { arcResponseStep } from './arc_response.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -74,7 +75,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow';adaptivePlanning?:boolean;planningDepth?:number;planningWidth?:number;planningSamples?:number;strictHorizon?:boolean;directControls?:ArcMotionControl[];refineDirect?:boolean;refineRebuildSamples?:number;refineExpressive?:boolean};
+export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow';adaptivePlanning?:boolean;planningDepth?:number;planningWidth?:number;planningSamples?:number;strictHorizon?:boolean;directControls?:ArcMotionControl[];refineDirect?:boolean;refineRebuildSamples?:number;refineExpressive?:boolean;responseSamples?:number;responseDamping?:number};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
@@ -247,7 +248,12 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         }
       }
       if(best&&options.guidance){
-        const origin=best, count=options.guidanceSamples??48;
+        const origin=best;
+        const responseKeys:(keyof ArcMotionControl)[]=['entry','turn','exit','support','bias','offset','clearance'];
+        if(options.expressive)responseKeys.push('turnFraction','bend','guideFlare');
+        const wantedResponse=Math.min(options.guidanceSamples??48,options.responseSamples??0);
+        const responseAllowance=wantedResponse>=2*responseKeys.length+3?wantedResponse:0;
+        const count=(options.guidanceSamples??48)-responseAllowance;
         const keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
         if(options.guidanceJoint)keys.push('entry','turn','exit','support','bias','offset');
         if(options.expressive)keys.push('turnFraction','bend','guideFlare');
@@ -268,6 +274,23 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
             c={...best.c,[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:key==='turnFraction'?Math.min(5,best.c.support*.5)/best.c.support:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
+        }
+        let responseUsed=0, trust=1;
+        while(responseUsed+2*responseKeys.length+3<=responseAllowance){
+          const origin=best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5};
+          const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:0);
+          const jac=origin.residuals.map(()=>Array(responseKeys.length).fill(0));
+          responseKeys.forEach((key,d)=>{
+            const step=scale[key as keyof typeof scale]*trust;
+            const a=evaluate({...origin.c,[key]:value(key)+step}),b=evaluate({...origin.c,[key]:value(key)-step});responseUsed+=2;
+            for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
+          });
+          const delta=arcResponseStep(jac,origin.residuals,options.responseDamping??.0002);
+          for(const fraction of [1,.5,.25]){
+            if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
+          }
+          if(best.cost>=origin.cost-1e-12)trust*=.5;
+          Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
       }
       return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support};

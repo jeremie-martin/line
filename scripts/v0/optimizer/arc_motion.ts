@@ -8,6 +8,7 @@ import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildD
 import { measureGapAxes } from '../core/measure.ts';
 import { makeSolidLine } from '../arc.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
+import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -70,7 +71,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number};
+export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
@@ -91,7 +92,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
   let samples=0,viableCandidates=0;const qualityRetries=new Map<number,number>();
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0};
+  let pendingControl:{index:number;control:ArcMotionControl}|null=null;
   const backtrack=()=>{
+    pendingControl=null;
     while(steps.length){
       const step=steps.pop(),old=rows.pop();lines.length=step.lineStart;
       if(!step.choices.length)continue;
@@ -185,6 +188,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const center:ArcMotionControl=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=Math.min(80,Math.ceil(max/2));
+      if(options.warmStart)evaluate(options.warmStart);
       for(let k=0;k<initial;k++){
         const frac=(n:number)=>((k+1)*n)%1;
         evaluate(k===0?center:{entry:incoming-((options.flow||options.channel)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
@@ -246,7 +250,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support};
     };
     for(let i=0;i<contacts.length;i++){
-      const interval=searchInterval(engine,i);
+      const interval=searchInterval(engine,i,pendingControl?.index===i?{warmStart:pendingControl.control}:{});
+      pendingControl=null;
       if(!interval){failure={frame:contacts[i].frame,reason:'contact_spacing'};break;}
       let {best}=interval;
       const {candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support}=interval;
@@ -278,6 +283,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           best={...original,child:engine.addLine(c.lines),lines:c.lines,c:c.c,cost:c.cost,localCost:c.localCost,achieved:c.meta.achieved,actualImpact:c.meta.impact,release:c.meta.release};
           lookaheadStats.changedChoices++;
         }
+        if(winner&&options.lookaheadWarmStart!==false)pendingControl={index:i+1,control:winner.futureControl};
         lookaheadStats.physicsFrames+=getPhysicsFrameCount()-startFrames;
         lookahead={probes,selected:winner?.candidate.c??original.c};
       }
@@ -300,9 +306,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
     }
   }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;failure={reason:'budget'};}
   const constructionFrames=getPhysicsFrameCount();
-  setPhysicsFrameLimit(budget);raw=extractRawTrajectory(new Engine().setStart(start.position,start.velocity).addLine(lines),end);disposeSearch();
+  setPhysicsFrameLimit(budget);
+  const coldEngine=new Engine().setStart(start.position,start.velocity).addLine(lines);
+  raw=extractRawTrajectory(coldEngine,end);
+  const guidanceReduction=options.pruneGuidance?trimUnusedArcGuides(lines,coldEngine,end):null;
+  if(guidanceReduction)lines.splice(0,lines.length,...guidanceReduction.lines);
+  disposeSearch();
   try{const replay=extractRawTrajectory(new Judge().setStart(start.position,start.velocity).addLine(lines),end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=buildDriftReport(detect(raw),spec,gaps,frames,duration,[],gaps.map(g=>({lines:lines.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,constructionFrames};
+  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

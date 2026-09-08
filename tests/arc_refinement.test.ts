@@ -53,3 +53,23 @@ it('expresses additional curvature and guide separation as connected normal curv
     expect(chain.reduce((s, l) => s + Math.hypot(l.x2 - l.x1, l.y2 - l.y1), 0)).toBeGreaterThan(24);
   }
 });
+
+it('allocates longer planning from measured construction work within the same hard meter', () => {
+  const result = compileArcMotion(spec, 19, {...base, adaptivePlanning: true,
+    lookaheadWidth: 3, lookaheadSamples: 24, lookaheadObjective: 'terminal',
+    strictHorizon: true, reuseContinuations: true});
+  expect(result.planningDecisions.some(d => d.depth === 2)).toBe(true);
+  expect(result.planningDecisions.every(d => d.observedConstructionRate > 0)).toBe(true);
+  expect(result.lookaheadStats.physicsFrames).toBeGreaterThan(0);
+  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
+});
+
+it('offers direct expressive revisions with a fully evaluated continuation', () => {
+  const result = compileArcMotion(spec, 20, {...base, refineAttempts: 5,
+    refineDirect: true, expressive: true, refineMode: 'reflow', refineRebuildSamples: 24});
+  expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
+  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
+  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
+});

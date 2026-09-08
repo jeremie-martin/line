@@ -65,7 +65,13 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const before = JSON.stringify(getRiderMetered(base, frame - 1).ballisticState());
       const boundary = getRiderMetered(incumbent, horizon);
       const reference = {position: boundary.position, velocity: boundary.velocity, state: boundary.ballisticState()};
-      const searchResult = search(base, i, {warmStart: sourceRows[i].control, localOnly: true,
+      const control = sourceRows[i].control;
+      const directSteps: Record<string, number> = {entry: 1, turn: 3, exit: 3, support: Math.max(.5, control.support * .06), bias: .2, offset: .1, clearance: 1};
+      if(options.expressive||options.refineExpressive)Object.assign(directSteps,{turnFraction: .06, bend: 5, guideFlare: 2});
+      const scale = Math.pow(.5, Math.floor((tries[i] - 1) / 2));
+      const directControls = Object.entries(directSteps).flatMap(([key, step]) => [-1, 1].map(sign => ({...control,
+        [key]: (control[key] ?? (key === 'clearance' ? options.channel ?? 12 : key === 'turnFraction' ? Math.min(5, control.support * .5) / control.support : 0)) + sign * step * scale})));
+      const searchResult = search(base, i, {directControls: options.refineDirect ? directControls : undefined, warmStart: sourceRows[i].control, localOnly: true,
         samples, guidanceSamples: options.refineGuidanceSamples ?? 24,
         arrivalWeight: 0, headingWeight: 0, arrivalReference: reference,
         boundaryWeight: options.refineBoundaryWeight ?? 1}, [incumbent]);
@@ -83,7 +89,8 @@ export function refineArcTrack(input: ArcRefinementInput) {
         let completed = true;
         if (options.refineMode === 'reflow') {
           for (let j = i + 1; j < contacts.length; j++) {
-            const next = search(child, j, {samples: 0, guidance: undefined, warmStart: sourceRows[j].control}, [incumbent, base]);
+            let next = search(child, j, {samples: 0, guidance: undefined, warmStart: sourceRows[j].control}, [incumbent, base]);
+            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control},[incumbent,base]);
             if (!next?.best) {completed = false; break;}
             proposed.push(...next.best.lines); child = next.best.child.detach();
             Engine.retainOnly([incumbent, base, child]);

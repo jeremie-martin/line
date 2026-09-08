@@ -74,7 +74,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow'};
+export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow';adaptivePlanning?:boolean;planningDepth?:number;planningWidth?:number;planningSamples?:number;strictHorizon?:boolean;directControls?:ArcMotionControl[];refineDirect?:boolean;refineRebuildSamples?:number;refineExpressive?:boolean};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
@@ -94,7 +94,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   let engine:any=new Engine().setStart(start.position,start.velocity);
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
   let samples=0,viableCandidates=0;const qualityRetries=new Map<number,number>();
-  let refinementStats:any=null;
+  let refinementStats:any=null, observedConstructionRate=0;
+  const planningDecisions:any[]=[];
   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
@@ -202,6 +203,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(!best||cost<best.cost)best=result;
         return result;
       };
+      if(options.directControls){for(const control of options.directControls)evaluate(control);return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support};}
       const center:ArcMotionControl=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
@@ -294,23 +296,41 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         }
         Engine.retainOnly([...protectedEngines,base,anchor.child]);
       }
-      return winner??{value:anchor.cost,localValue:anchor.localCost,control:anchor.c,depth:1};
+      return winner??(options.strictHorizon?null:{value:anchor.cost,localValue:anchor.localCost,control:anchor.c,depth:1});
     };
     for(let i=0;i<contacts.length;i++){
+      const localStart=getPhysicsFrameCount();
       const interval=searchInterval(engine,i,pendingControl?.index===i?{warmStart:pendingControl.control}:{});
+      if(interval){const rate=(getPhysicsFrameCount()-localStart)/Math.max(1,interval.next-interval.frame);observedConstructionRate=observedConstructionRate ? .8*observedConstructionRate+.2*rate : rate;}
       pendingControl=null;
       if(!interval){failure={frame:contacts[i].frame,reason:'contact_spacing'};break;}
       let {best}=interval;
       const {candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support}=interval;
       let lookahead:any=null;
       if(best&&(options.lookaheadWidth??0)>1&&i+1<contacts.length){
-        const width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32,depth=Math.max(1,options.lookaheadDepth??1);
+        let width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32,depth=Math.max(1,options.lookaheadDepth??1);
+        const nominalRate=(options.samples??160)+(options.guidance?options.guidanceSamples??48:0);
+        const constructionReserveRate=(options.adaptivePlanning?Math.max(nominalRate,observedConstructionRate):nominalRate)*(options.reserveFactor??1.1);
+        if(options.adaptivePlanning){
+          const remaining=Math.max(1,end-frame),rate=(budget-getPhysicsFrameCount()-2*(end+1))/remaining;
+          const localAllowance=Math.max(0,rate-constructionReserveRate)*(next-frame);
+          for(let d=Math.min(options.planningDepth??2,contacts.length-i-1);d>=1;d--){
+            let framesPerProbe=0;
+            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(options.lookaheadBranching??2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*1.4;
+            const affordable=localAllowance/Math.max(1,framesPerProbe);
+            if(affordable<width*probeSamples)continue;
+            width=Math.max(width,Math.min(options.planningWidth??5,Math.floor(affordable/probeSamples)));
+            probeSamples=Math.max(probeSamples,Math.min(options.planningSamples??48,Math.floor(affordable/width)));
+            depth=d;break;
+          }
+          planningDecisions.push({index:i,frame,observedConstructionRate,constructionReserveRate,localAllowance,width,probeSamples,depth});
+        }
         const shortlist=distinct(candidates,options.reuseContinuations?Math.max(12,width):width);
         const original=best, startFrames=getPhysicsFrameCount(), probes:any[]=[];
         let winner:any=null;
         for(const candidate of shortlist){
           if(probes.length>=width&&winner)break;
-          const reserve=(end-frame)*((options.samples??160)+(options.guidance?options.guidanceSamples??48:0))*(options.reserveFactor??1.1);
+          const reserve=options.adaptivePlanning?(end-frame)*constructionReserveRate:(end-frame)*nominalRate*(options.reserveFactor??1.1);
           let probeAllowance=0;
           for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*1.4;
           if(getPhysicsFrameCount()+reserve+probeAllowance>budget-2*(end+1))break;
@@ -368,6 +388,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   disposeSearch();
   try{const replay=extractRawTrajectory(new Judge().setStart(start.position,start.velocity).addLine(lines),end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,refinementStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

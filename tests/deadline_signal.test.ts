@@ -283,7 +283,7 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
    * decision's current-incumbent publication must be the only other writer.
    */
   test("the cost-to-end profile follows every adopted terminal incumbent", () => {
-    const source = readFileSync("scripts/v0/optimizer/handoff.ts", "utf8");
+    const source = readFileSync("scripts/v0/optimizer/legacy_handoff.ts", "utf8");
     const writes = [...source.matchAll(/\bincumbentCostToEnd = ([^;]*);/g)].map((m) => m[1]);
     expect(writes).toEqual(["adoptedCostToEnd", "observedCostToEnd"]);
     const adoption = source.indexOf("if (improved && terminal) {");
@@ -496,7 +496,7 @@ describe("aim-lane throttle — H2 closure", () => {
    * the un-keyed pool memo's exposure to the transition small.
    */
   test("the throttle flag is scoped to a single pool build, restored in finally", () => {
-    const source = readFileSync("scripts/v0/optimizer/handoff.ts", "utf8");
+    const source = readFileSync("scripts/v0/optimizer/legacy_handoff.ts", "utf8");
     const writes = [...source.matchAll(/setAimLaneDeadlineThrottled\(([^)]*)\)/g)];
     expect(writes.map((match) => match[1])).toEqual(["aimLaneThrottled", "false"]);
     const opened = source.indexOf("setAimLaneDeadlineThrottled(aimLaneThrottled)");

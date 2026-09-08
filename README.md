@@ -9,9 +9,12 @@ events / shapes in sync with the music → render to mp4. The community
 equivalent (DoodleChaos's hand-made music tracks) takes a month per video.
 Nobody has published an automated pipeline; that's the gap this project fills.
 
-Status: **substrate built**. The right half of the pipeline (JSON track → mp4)
-is automated end-to-end and pixel-deterministic. The left half (audio → JSON
-track — the actual procedural generator) is the remaining work.
+Status: the spec-to-track compiler and full vertical video pipeline are working.
+The current compiler uses coherent normal-line arcs with measured trajectory
+shaping and adaptive continuation planning. The accepted V2 milestone is
+**767.6851 at 750k simulated frames**, with the benchmark and scorer fixed.
+See [the campaign evidence](docs/arc-refinement-campaign.md) and
+[the compiler map](scripts/v0/optimizer/README.md).
 
 > **Working on the compiler?** Start at [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md)
 > — the single how-to-work doc. The full documentation map is [`docs/README.md`](docs/README.md).
@@ -89,9 +92,8 @@ with byte-range support, which `<video>` scrubbing requires. Python's
 
 ```
 audio file
-  → analysis      (beat/onset/feature extraction)        ┐
-  → planner       (timeline of "hit X at time T" events) │ TODO
-  → generator     (place lines to satisfy timeline)      ┘
+  → audio analysis and authored production specification
+  → compiler      (coherent arcs, exact physical evaluation)
   → JSON track
 ─────────────── boundary of our code ───────────────
   linerider.com bundle  (vendored as mirror/_v2153.0/, served from localhost)
@@ -100,8 +102,8 @@ audio file
   → mp4 file
 ```
 
-Everything left of the boundary is pure functions over data. Everything right
-is built and validated already.
+The compiler runs metered physics while searching. Production rendering adds
+the authored camera, music and post-processing.
 
 ## Repository layout
 
@@ -172,12 +174,13 @@ We've verified they produce **byte-identical trajectories** on the full
 test track — same MD5 over 11 sampled frames × position + velocity + 11
 contact points. Re-verify any time with `npm run parity`.
 
-So pick whichever is convenient for the use case:
+The current compiler and benchmark use the WASM engine by default; `lr-core`
+remains a reference implementation. See [engine workflow](docs/engine-workflow.md).
 
 | Use case | Engine | Why |
 |---|---|---|
-| **Procedural generator inner loop** (place candidate lines → simulate → score → iterate) | **lr-core** | Native Node, ~4000 fps cold / much faster warm. Browser path can't keep up. |
-| **Headless tests, batch jobs, CI** | **lr-core** | No Chromium, no mirror server, no Playwright. Direct `require()`. |
+| **Procedural generator inner loop** (place candidate lines → simulate → score → iterate) | **WASM** | Metered search and fixed-judge replay. |
+| **Headless tests, batch jobs, CI** | **WASM or lr-core reference** | No browser needed for physics. |
 | **Quick scripts / one-off rider-position queries** | **lr-core** | Cheaper to spin up; debug in Node. |
 | **Rendering a track to mp4** | **bundle** (via Playwright + `__lr.exportVideo`) | lr-core doesn't render. The bundle is the only thing that turns lines + simulator state into pixels. |
 | **"Does my generated track look right when rendered?"** | **bundle** | Implicit re-verification of parity on every render. |

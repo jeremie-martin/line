@@ -1,3 +1,7 @@
+> Historical campaign, superseded by the coherent-arc campaigns. Preserve the
+> experiments below as evidence; their status and targets are not current.
+> See [compiler foundations](compiler-foundations.md).
+
 # Impact Delivery 650 Campaign
 
 Status: **OPEN — post-promotion coupled transition search**.

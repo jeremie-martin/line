@@ -1,6 +1,8 @@
 # Handoff Prefix Search
 
-Status: active default compiler.
+Status: retained legacy implementation in `scripts/v0/optimizer/legacy_handoff.ts`.
+Ordinary production requests now use [connected arcs](../../scripts/v0/optimizer/README.md).
+References to `handoff.ts` in the historical algorithm below refer to the extracted legacy implementation.
 
 `scripts/v0/optimizer/handoff.ts` compiles by searching partial track prefixes
 at gap boundaries. A node contains committed fits, prefix engine state, selected

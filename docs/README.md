@@ -20,7 +20,7 @@ historical record, not live guidance.
 | [`benchmark-v2.md`](benchmark-v2.md) | LIVE | Benchmark V2 commands and operations. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
 | [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | LIVE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
-| [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | LIVE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |
+| [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | REFERENCE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |
 | [`benchmark-v2-baseline.md`](benchmark-v2-baseline.md) | LIVE | Generated summary of the currently accepted baseline. |
 | [`benchmark-v2-multi-budget.md`](benchmark-v2-multi-budget.md) | LIVE | Frozen compact multi-budget profile, paired scale decision, and execution workflow. |
 | [`compiler-telemetry-foundation.md`](compiler-telemetry-foundation.md) | LIVE | Strict compile telemetry semantics, identities, invariants, and trust boundary. |
@@ -28,24 +28,26 @@ historical record, not live guidance.
 | [`REBASELINE.md`](REBASELINE.md) | LIVE | Accepted-attempt rebaseline and initial/suite-rollover bootstrap semantics. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
-| [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | LIVE | The active compiler's search algorithm. |
-| [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md) | LIVE | Pre-implementation source of truth for ballistic projection, gap composition, readiness, and proposal-utility boundaries. |
+| [`../scripts/v0/optimizer/README.md`](../scripts/v0/optimizer/README.md) | LIVE | Current arc compiler and retained fallback map. |
+| [`compiler-foundations.md`](compiler-foundations.md) | LIVE | Cleanup audit, exact parity and research follow-up. |
+| [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | REFERENCE | Retained legacy prefix-search algorithm. |
+| [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md) | REFERENCE | Pre-implementation source of truth for ballistic projection, gap composition, readiness, and proposal-utility boundaries. |
 | [`ARC_AIMING_FORMALIZATION.md`](ARC_AIMING_FORMALIZATION.md) | ARCHIVE | The aiming model and the shared current-quality × readiness objective. |
 | [`READINESS_ROADMAP.md`](READINESS_ROADMAP.md) | REFERENCE | Historical readiness experiments and former composite semantics; not the current contract. |
 | [`ARC_STATE_CONTROL.md`](ARC_STATE_CONTROL.md) | ARCHIVE | Arc-state control, joint model shape, and proposer/search boundary. |
 
-## Live campaigns
+## Campaigns
 
-The standard campaign and the focused sub-campaigns. Each focused campaign is a triad —
-a `*-campaign.md` (scope), a `*-prompt.md` (working prompt), a `*-log.md` (attempt audit
-trail) — plus its `scripts/v0/eval_<name>.sh` board.
+The active follow-up is [compiler foundations](compiler-foundations.md). Earlier
+framework-specific campaign layouts remain historical references.
 
 | Doc | Tag | What |
 |---|---|---|
+| [`arc-refinement-campaign.md`](arc-refinement-campaign.md) | REFERENCE | Accepted 767 milestone, higher-budget results and full evidence. |
 | [`../goal.md`](../goal.md) | LIVE | The active compiler-improvement goal and strict sequential promotion discipline. |
-| [`impact-delivery-650-campaign.md`](impact-delivery-650-campaign.md) | LIVE | Frozen-evaluator campaign contract for passive contact-transition geometry, the 620 checkpoint, and the >650 target. |
-| [`impact-delivery-650-baseline-atlas.md`](impact-delivery-650-baseline-atlas.md) | LIVE | Exact current-baseline impact loss slices and counterfactual ceilings used to aim the 650 campaign. |
-| [`shelter-budget-sweep-four-priority-implementation.md`](shelter-budget-sweep-four-priority-implementation.md) | LIVE | Evidence and implementation record for budget identity, breadth, repair, persistent gaps, and the accepted outgoing-amplitude response law. |
+| [`impact-delivery-650-campaign.md`](impact-delivery-650-campaign.md) | ARCHIVE | Frozen-evaluator campaign contract for passive contact-transition geometry, the 620 checkpoint, and the >650 target. |
+| [`impact-delivery-650-baseline-atlas.md`](impact-delivery-650-baseline-atlas.md) | ARCHIVE | Exact current-baseline impact loss slices and counterfactual ceilings used to aim the 650 campaign. |
+| [`shelter-budget-sweep-four-priority-implementation.md`](shelter-budget-sweep-four-priority-implementation.md) | ARCHIVE | Evidence and implementation record for budget identity, breadth, repair, persistent gaps, and the accepted outgoing-amplitude response law. |
 | [`one-terminal-adaptive-repair-results.md`](one-terminal-adaptive-repair-results.md) | ARCHIVE | Frozen evidence that selected the clean-break one-terminal starting point. |
 | [`impact-mission.md`](impact-mission.md) | LIVE | Current impact mission, ownership boundaries, and change discipline. |
 

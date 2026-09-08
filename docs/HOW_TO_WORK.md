@@ -8,16 +8,19 @@ are part of evaluating the result. Acceleration output
 is preserved on a separate branch for video review. `goal.md` and
 `arc-motion-650-campaign.md` supersede the earlier unrestricted-material
 campaign status below; other compiler research restrictions remain removed.
-The active baseline is `connected-arc-feedback`, **687.5102**, accepted and
-promoted at N=8 with 352/352 valid canonical runs. All three full vertical arc videos and the qualification/lower-budget
-monitoring records are complete. The scorer and benchmark remain unchanged.
+The active baseline is `arc-refinement`, **767.6851**, accepted at N=8
+with 352/352 valid canonical runs (44 cases, seeds 16–23). All three full
+vertical production videos are archived locally. Code and compact evidence
+are pushed; large archives stay local at the owner's request. See
+[`arc-refinement-campaign.md`](arc-refinement-campaign.md) and
+[`compiler-foundations.md`](compiler-foundations.md) for the current follow-up.
 
 # How To Work On The Compiler
 
 Compiler research scope is open within the owner's material and arc-geometry
 requirements in `goal.md`. The benchmark and score stay fixed. Historical
 mechanism closures, deferrals, and study caps are evidence to reconsider, not
-permission barriers. The active program is `arc-motion-650-campaign.md`.
+permission barriers. The current follow-up is `compiler-foundations.md`.
 
 The active compiler campaign compares the current compiler with a retained
 750k-only baseline at strict N=8/16/32/48 looks, then explicitly promotes an
@@ -142,10 +145,12 @@ an argument about a model; evidence wants the regime where completions are
 actually at risk. That model question has since resolved the same way — the
 estimator's floor moved to 250k on 2026-08-03 — so this operating point reads
 calibrated margins rather than nulls.
-The first reading measured how at-risk: **118 of 528 baseline
-cells are invalid at 250k** — `dense_recovery_frontier` valid on 17 of 96,
+The historical prefix-search reading had **118 of 528 baseline
+cells invalid at 250k** — `dense_recovery_frontier` valid on 17 of 96,
 `rapid_pickup_frontier` on 57 of 96 — on the promotion ladder's own seeds,
-where 750k has none.
+where 750k had none. The accepted arc-refinement compiler now completes
+**528/528** in this standing 250k reading; its track outputs match the prior
+arc-guidance baseline exactly. Keep the reading to detect future regressions.
 
 **The baseline arm** is resolved from `benchmark/v2/campaign-baseline.json`'s
 `compiler_snapshot` — the checksum-verified tarball the promotion itself
@@ -193,10 +198,9 @@ source defaults before a normal cached comparison.
 
 `benchmark/v2/campaign-baseline.json` names the active 750k compiler snapshot,
 promotion depth, four-look policy, and cache maximum. The current cache is the
-`normal-motion-feedback` archive under the accumulated contacted-frame impulse
-scorer, accepted at N=8 with a 662.5889
-headline. It retains the canonical seed schedule and makes no cross-ruler
-score comparison.
+`arc-refinement` archive under the accumulated contacted-frame impulse scorer,
+accepted at N=8 with a 767.6851 headline. It retains the canonical seed schedule
+and makes no cross-ruler score comparison.
 
 `rebaseline --from=...` verifies the measured snapshot and current committed
 compiler identity, retains the candidate 750k development evidence, and starts

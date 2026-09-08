@@ -5,17 +5,23 @@ import {developmentCases} from '../../benchmark/v2/catalog.ts';
 import {benchmarkPolicy} from '../../benchmark/v2/policy.ts';
 import {applyJolt} from '../produce/seed.ts';
 import {compileArcMotion} from '../v0/optimizer/arc_motion.ts';
-import {compileConnectedArcs} from '../v0/optimizer/connected_arcs.ts';
+import {connectedArcOptions} from '../v0/optimizer/connected_arcs.ts';
+import {compileHandoff} from '../v0/optimizer/handoff.ts';
 import {buildAxisContract,scoreV2Report} from '../v0/benchmark_v2/evaluator.ts';
 const arg=(name:string)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
 const entry=developmentCases.find(e=>e.case.metadata.id===arg('source'));
 if(!entry||!arg('out'))throw new Error('require --source and --out');
 const spec=applyJolt(entry.case.spec,benchmarkPolicy.transform.joltMs);
-const options={...{budget:Number(arg('budget')??750000),samples:Number(arg('samples')??160),diagnostic:arg('diagnostic')==='on',arrivalWeight:Number(arg('arrival-weight')??0),flow:arg('flow')==='on',solver:arg('solver'),channel:Number(arg('channel')??0),wave:arg('wave')==='on',radius:Number(arg('radius')??0),arrivalMode:arg('arrival-mode'),headingWeight:Number(arg('heading-weight')??0),qualityRetries:Number(arg('quality-retries')??0),bidirectional:arg('bidirectional')==='on',impactWeight:Number(arg('impact-weight')??2),amplitudeWeight:Number(arg('amplitude-weight')??1),poseWeight:Number(arg('pose-weight')??0),startPitch:Number(arg('start-pitch')??8.59436692696)},...JSON.parse(arg('options')??'{}')};
+const historicalOptions={...{budget:Number(arg('budget')??750000),samples:Number(arg('samples')??160),diagnostic:arg('diagnostic')==='on',arrivalWeight:Number(arg('arrival-weight')??0),flow:arg('flow')==='on',solver:arg('solver'),channel:Number(arg('channel')??0),wave:arg('wave')==='on',radius:Number(arg('radius')??0),arrivalMode:arg('arrival-mode'),headingWeight:Number(arg('heading-weight')??0),qualityRetries:Number(arg('quality-retries')??0),bidirectional:arg('bidirectional')==='on',impactWeight:Number(arg('impact-weight')??2),amplitudeWeight:Number(arg('amplitude-weight')??1),poseWeight:Number(arg('pose-weight')??0),startPitch:Number(arg('start-pitch')??8.59436692696)},...JSON.parse(arg('options')??'{}')};
+// Opt into the shipped allocation, then override only the mechanisms under study.
+// Existing research commands retain their historical defaults.
+const options=arg('defaults')==='production'
+  ? {...connectedArcOptions(spec,Number(arg('budget')??750000)),...JSON.parse(arg('options')??'{}')}
+  : historicalOptions;
 if(options.valueModelPath)options.futureValueModel=JSON.parse(readFileSync(options.valueModelPath,'utf8'));
-const start=performance.now(),result=options.publicCompiler?compileConnectedArcs(spec,Number(arg('seed')??260908011),{budget:options.budget}):compileArcMotion(spec,Number(arg('seed')??260908011),options);
+const start=performance.now(),result=options.publicCompiler?compileHandoff(spec,Number(arg('seed')??260908011),{budget:options.budget}):compileArcMotion(spec,Number(arg('seed')??260908011),options);
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const score=scoreV2Report(result.report,spec.contacts.length,buildAxisContract(spec,Object.keys(benchmarkPolicy.componentWeights) as any),suite);
-const record={schema:'line.arc-motion-study.v1',researchOnly:true,sourceId:arg('source'),seed:Number(arg('seed')??260908011),elapsedMs:performance.now()-start,options,implementation:Object.fromEntries(['scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/benchmark/arc_motion_study.ts'].map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')])),score,...result};
+const record={schema:'line.arc-motion-study.v1',researchOnly:true,sourceId:arg('source'),seed:Number(arg('seed')??260908011),elapsedMs:performance.now()-start,options,implementation:Object.fromEntries(['scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/benchmark/arc_motion_study.ts'].map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')])),score,...result};
 const out=arg('out')!,body=JSON.stringify(record)+'\n';mkdirSync(dirname(out),{recursive:true});writeFileSync(out,body);writeFileSync(out+'.sha256',createHash('sha256').update(body).digest('hex')+'\n');
 console.log(JSON.stringify({...record,track:{lines:result.track.lines.length},report:undefined,rows:undefined}));

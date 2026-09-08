@@ -1,3 +1,6 @@
+/** ARCHIVED RESEARCH — outside the current coherent-arc product constraint.
+ * Uses small point controls; retained for reproducing the archived proof of concept.
+ * Production routing is in handoff.ts; current construction is in connected_arcs.ts. */
 /** Physical native motion construction. Authored targets and the evaluation
  * engine remain unchanged. No benchmark source identity enters this compiler. */
 import { createHash } from "node:crypto";

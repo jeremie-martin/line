@@ -7,6 +7,14 @@ and eight seeds 16–23. At higher allowance, the same public compiler reaches
 793.3941 at 1M and 812.0916 at 3M, both 44/44 valid. All three full vertical
 production videos are generated, inspected in sampled frames and archived.
 
+## Current follow-up: compiler foundations
+
+Preserve the accepted campaigns, then carefully clean up the compiler and
+outdated guidance without discarding useful legacy mechanisms. Verify exact
+behavior and accounting before exploring new ideas from the audit. The owner
+explicitly requests that large video/research archives stay local; push code,
+compact evidence and archive indexes. See [the audit](docs/compiler-foundations.md).
+
 ## Owner requirements
 
 Use only normal type-0 lines and coherent, visible physical arc primitives.

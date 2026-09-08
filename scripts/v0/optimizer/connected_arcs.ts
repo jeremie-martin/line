@@ -1,28 +1,28 @@
 /** Public integration of measured, connected normal-line arc construction. */
 import { createHash } from "node:crypto";
-import { compileArcMotion } from "./arc_motion.ts";
+import { compileArcMotion, type ArcMotionOptions } from "./arc_motion.ts";
 import futureValueModel from "./arc_value_model.json" with { type: "json" };
 import { resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { sliceTimeline } from "../core/substrate.ts";
 import { CompileBudgetTelemetryRecorder, type BudgetTelemetryLevel } from "./budget_telemetry.ts";
 import type { CompileCheckpoint, Spec } from "./types.ts";
 
-export function compileConnectedArcs(spec: Spec, seed: number,
-  options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel }): CompileCheckpoint {
-  resetPerCompileState();
+/** Production allocation from ride length and frame budget. Research can spread
+ * this configuration and override a mechanism without duplicating shipped defaults. */
+export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number): ArcMotionOptions {
   const duration = Math.round(spec.duration * 40), end = duration + 20;
   // Reserve construction capacity for revisiting difficult approaches. This
   // scales with actual ride length and budget, without benchmark-tier gates.
   // Give the base curve search its initial breadth before adding independent
   // guide variables. The allocation depends on available work per ride frame,
   // including the two cold replays, rather than named benchmark budgets.
-  const allowance = .7 * (options.budget - 2 * (end + 1)) / Math.max(1, end);
+  const allowance = .7 * (budget - 2 * (end + 1)) / Math.max(1, end);
   const refinement = Math.max(0, allowance - 80);
   const samples = Math.max(12, Math.min(160, Math.floor(Math.min(80, allowance) + .8 * refinement)));
   const guidanceSamples = Math.min(96, Math.floor(.8 * refinement));
   const responseSamples = Math.floor(guidanceSamples * 70 / 96);
   const lookaheadSamples = Math.max(8, Math.round(samples * .2));
-  const result = compileArcMotion(spec, seed, { budget: options.budget, samples,
+  return { budget, samples,
     channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
@@ -31,7 +31,16 @@ export function compileConnectedArcs(spec: Spec, seed: number,
     guidanceJoint: true, expressive: true, responseSamples,
     adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true,
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
-    valueSelection: true, valueWeight: .25 * guidanceSamples / 96 });
+    valueSelection: true, valueWeight: .25 * guidanceSamples / 96 };
+}
+
+export function compileConnectedArcs(spec: Spec, seed: number,
+  options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel }): CompileCheckpoint {
+  resetPerCompileState();
+  const searchOptions = connectedArcOptions(spec, options.budget);
+  const duration = Math.round(spec.duration * 40);
+  const samples = searchOptions.samples!;
+  const result = compileArcMotion(spec, seed, searchOptions);
   const { track, report } = result, total = result.stats.sim_frames;
   const gaps = sliceTimeline(spec.contacts.map(c => Math.round(c.t * 40)), duration);
   const valid = report.contacts.every(c => c.status === "hit") &&

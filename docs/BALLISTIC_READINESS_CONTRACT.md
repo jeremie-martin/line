@@ -1,3 +1,7 @@
+> Scope: retained legacy prefix-search architecture. The current arc planner
+> uses measured construction work and physical continuation search; see the
+> [compiler map](../scripts/v0/optimizer/README.md).
+
 # Ballistic projection and next-arc readiness
 
 Status: **normative target architecture**.

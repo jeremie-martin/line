@@ -1,79 +1,58 @@
-# scripts/v0/optimizer
+# Compiler components
 
-The active v0 compiler is `compileHandoff` in `handoff.ts`.
+`compileHandoff` in `handoff.ts` is the public entry point. Ordinary WASM
+requests with air, speed and amplitude axes use `connected_arcs.ts`. It builds
+normal type-0 physical support curves, optionally paired with a connected guide.
+No point controls or acceleration lines enter this production path.
 
-The compiler searches partial track prefixes at gap boundaries. Each node carries
-the committed gap fits, the current engine prefix, and the next line id. The
-search expands one gap at a time, sorts candidate pools with the shared
-`current_gap_quality * next_gap_readiness` objective, uses the measured handoff
-score or mature forward-eval for branch selection, and keeps the best
-complete-or-partial output in a strict best-so-far register.
+## Current construction
 
-## Contract
+| Module | Responsibility |
+|---|---|
+| `handoff.ts` | Routing and compatible budget/snapshot APIs. |
+| `connected_arcs.ts` | Production settings, budget allocation, checkpoint and telemetry integration. `connectedArcOptions` exposes the actual settings to studies. |
+| `arc_geometry.ts` | Pure coherent-curve construction: tangent schedule, turn timing, bend and guide separation. |
+| `arc_motion.ts` | Measured candidate search, continuation planning, backtracking and final replays. |
+| `arc_guidance.ts` | Remove unused portions of physical guides after replay. |
+| `arc_response.ts` | Damped coupled response proposals from measured differences. |
+| `arc_value.ts`, `arc_value_model.json` | Predict continuation quality from physical arrival state and upcoming authored targets; exact simulation still validates candidates. |
+| `arc_refinement.ts` | Completed-track repair experiments, disabled in production defaults. Retains the incumbent and charges complete continuations. |
+| `native_motion_schedule.ts` | Shared authored-contact scheduling; the historical name does not imply acceleration geometry. |
+| `budget_telemetry.ts` | Shared observation recorder; its legacy estimator metadata is not the arc planner's policy. |
+| `../core/compile_lifecycle.ts` | Reset registered per-compile state. |
 
-1. **Determinism.** Same `(spec, seed, budget)` produces the same Track.
-2. **Budget is an input.** Each budget is an independent full run; the search may use
-   the requested budget. The search READS it, on two separate coordinates:
-   DIFFICULTY (`budgetSlack = B / D(spec)`, static per compile, chooses the
-   shape of spend) and DEADLINE (`deadline.ts`'s live per-node margin, chooses
-   the pressure on spend). `handoff.ts`'s module header inventories every read.
-3. **Cheat resistance.** Work is metered in simulated rider frames at the
-   trajectory-extraction boundary.
-4. **Engine honesty.** Every geometric decision is validated by `lr-core` and the
-   detector before it can be scored.
+Budget allocation depends on ride length and available simulated frames. The arc
+planner estimates construction rate from measured work and uses remaining work
+to choose continuation effort. It does not consult the legacy difficulty model.
+The selected geometry receives two complete cold replays, included in accounting.
+Same spec, seed and budget must give identical tracks. Each budget is a fresh run.
 
-## Components
+## Retained mechanisms
 
-```
-sample.ts       sample one candidate catch from a prefix state
-solver.ts       sample a fixed candidate pool for one gap
-node.ts         prefix-search state and deterministic expansion helpers
-aim.ts          enumerative aiming proposer; model proposes, exact sim judges
-objective.ts    shared current-quality x readiness objective
-arc_model.ts    shared pitch/rotation knob transforms and response models
-arc_probe.ts    shared real-engine joint probe evaluator
-budget_model.ts structural traversal-cost predictor and budget slack helper
-deadline.ts     the one live deadline signal: per-node margin and its ramp
-budget_estimator.ts        runtime for the frozen remaining-work artifact
-budget_estimator_model.json  that artifact — LIVE POLICY on both layers
-budget_telemetry.ts        observation-only compile-budget recorder
-readiness.ts    catchability surface used by composite next-gap readiness
-handoff.ts      compileHandoff public entry point
-register.ts     strict best-so-far comparator
-polish.ts       clone-and-test polish variants
-sim_frames.ts   physics-frame instrumentation
-types.ts        checkpoint and compile-output types
-```
+`legacy_handoff.ts` preserves the older prefix search, readiness, deadline,
+restart and repair policies. Diagnostic options, alternate reference engines,
+unsupported axes, very early/absent contacts and tiny budgets retain their
+previous fallback. Existing imports through `handoff.ts` remain compatible;
+new legacy studies can import `compileLegacyHandoff` explicitly. The compatibility
+exports still load that module; this extraction makes no startup-speed claim.
+See [the retained inventory](../../../docs/optimizer/legacy-components.md).
 
-`budget_estimator_model.json` is fitted offline by
-`scripts/v0/calibrate_budget_estimator.ts`, but it is not a report: its point
-layer is the deadline margin's base and scale, and its `interval` band is the
-repair restart ceiling. It is inside `COMPILER_SOURCE_PATHS`, so editing it is a
-compiler change to the benchmark. Only `applicability` and `metrics` are inert
-for policy. `budget_telemetry.ts` is the one module here that decides nothing.
+`native_motion.ts` and `normal_motion.ts` reproduce archived point-control
+proofs of concept. They are outside the current product constraint and have no
+route from the public dispatcher. They and their research commands are retained
+because their physical-control ideas and evidence may remain useful.
 
-`node.ts`, `sample.ts`, and `solver.ts` are intentionally generic because future
-compiler variants should be able to reuse the same candidate and prefix-state
-building blocks.
+## Work and evidence
 
-The aiming lane is documented in
-[`docs/ARC_STATE_CONTROL.md`](../../../docs/ARC_STATE_CONTROL.md). Its core
-contract is that probe rides can fit local models and propose extra candidates,
-but every candidate that enters the sorted pool has still passed the normal
-engine/detector validation path.
-
-## Legacy V1 Benchmark
-
-These narrow compiler/debug invocations use the archived V1 runner. Current
-compiler-development decisions use Benchmark V2 as documented in
-[`docs/HOW_TO_WORK.md`](../../../docs/HOW_TO_WORK.md).
+Use [HOW_TO_WORK](../../../docs/HOW_TO_WORK.md) for the fixed V2 evaluation
+contract and [the foundations audit](../../../docs/compiler-foundations.md)
+for cleanup evidence and follow-up ideas. Research can start from shipped settings:
 
 ```bash
-LR_ENGINE=wasm npm run golden:v1 -- --jobs=6
-LR_ENGINE=wasm npm run golden:v1 -- --compiler=handoff --jobs=6
-LR_ENGINE=wasm npm run golden:v1 -- --budgets=30000,50000,70000 --specs=tiny_dance --seed=0 --jobs=6
-LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts --budget=200000 --seeds=0,1
+LR_ENGINE=wasm node --import tsx scripts/benchmark/arc_motion_study.ts \
+  --source=sparse_lowline --budget=750000 --defaults=production \
+  --options='{"responseDamping":0.3}' --out=generated/example.json
 ```
 
-`--compiler=handoff` is kept even though it is currently the only compiler so a
-future compiler can be added without changing the CLI shape.
+This is an exploratory single-case result, not a canonical benchmark headline.
+The older command defaults remain available for exact historical reproduction.

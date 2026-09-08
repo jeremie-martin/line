@@ -1,0 +1,44 @@
+{
+  "schema": "line.compiler-foundations-local-archive.v1",
+  "localDirectory": "archives/compiler-foundations-2026-09-08",
+  "archivePolicy": "Large payloads stay local. Code branches and compact evidence are pushed.",
+  "sourceCommit": "fe6aeeb1cec210fcb9fc44b0e64824ca476877e5",
+  "researchCommit": "44c4d570915ff73fe2b829a57271c10d7c0af44a",
+  "activeBranch": "codex/compiler-foundations",
+  "researchBranch": "research/arc-continuation-boundary",
+  "activeHeadline": 767.6851,
+  "researchCanonical": {
+    "score": 771.3015,
+    "acceptedByStatisticalGate": true,
+    "promoted": false,
+    "reason": "119/120 qualification valid versus 120/120 reference; 250k qualification score regresses."
+  },
+  "cleanupParity": {
+    "cells": 264,
+    "allExact": true,
+    "focusedTestsPassed": 154
+  },
+  "existingVideoGallery": "../arc-refinement-2026-09-08/index.html",
+  "artifacts": [
+    {
+      "file": "evidence.tar.gz",
+      "bytes": 202908936,
+      "sha256": "0bb74a0ab4010a5755db6d54d46c6b2c69c0bc1462574e213fb06c1965eb060b"
+    },
+    {
+      "file": "judge.wasm",
+      "bytes": 79556,
+      "sha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+    },
+    {
+      "file": "research-source.tar.gz",
+      "bytes": 43378,
+      "sha256": "79d9eb974e177be6aff3981cb5fd7e5e3fbc234a36fb4fb1d97fcb90ba1f9735"
+    },
+    {
+      "file": "source.tar.gz",
+      "bytes": 873729,
+      "sha256": "8c848f16e1fd152dc34c36e5f99474d7ca98927f4bccb31f16635b175ec989a5"
+    }
+  ]
+}

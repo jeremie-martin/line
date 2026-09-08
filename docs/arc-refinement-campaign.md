@@ -67,3 +67,63 @@ continuations, cheap recovery when an original curve no longer works, and
 selective planning based on measured construction work plus remaining budget.
 It also tests strict planning horizons: a failed deeper branch must not gain
 an artificially cheap comparison by silently returning only a shorter prefix.
+
+## Geometry, response models and measured scaling
+
+The simple Newton solver's eight-case 750k mean improved to 687.0371, but the
+full suite scored only 729.0882 (44/44), below 744.5. That configuration is
+rejected. This confirms why the diagnostic subset cannot decide promotion.
+
+Selective planning based on observed construction cost and remaining frame
+allowance reaches 745.0629 at 750k, 44/44. Strict depth-two comparison at 3M
+reaches 791.4600, 44/44, versus the earlier non-strict 781.0190. The original
+fallback could compare a failed deeper branch using a shorter, cheaper horizon.
+Strict horizons reject that incomplete lookahead while preserving the original
+physical construction fallback when no continuation is found.
+
+Source 936bb8ff adds local joint response fitting across curve and guide
+controls. It fits derivatives from exact simulations and validates every
+joint proposal. Combined expressive geometry and joint responses score
+745.7898 at 750k (44/44). Combined with strict deeper planning they reach
+**798.3729 at 3M, 44/44**, maximum 2,675,323 actual frames. Compared with the
+3M reference 745.0343, this is +53.3386; it does not replace the 750k headline.
+The matched strict-planning contrast without expressive response geometry is
+791.4600, so geometry and response fitting add 6.9129 in that tested setting.
+
+Completed-track refinement was further revised to reuse the physically diverse
+alternatives retained during initial construction and adapt following arcs from
+warm controls. Its eight-case 3M mean is 673.0431, versus reference 666.7127;
+the corresponding direct-revision follow-up is 666.9786. Both preserve 8/8
+validity. This is useful evidence for retaining continuation alternatives,
+though deeper initial planning remains the stronger use of this budget.
+
+## Future-value and runtime experiments
+
+The deeper expressive run records 20,298 candidate arrivals and measured
+future outcomes from 21 parent specifications. Physical features contain
+relative body state and authored upcoming targets, with no case, seed, absolute
+position or budget identity. Five folds hold each parent and all its variants
+out together. On teacher shortlists, the learned ranking's mean regret is
+0.06509 versus 0.12287 for current-only ranking. These are offline cost units,
+not headline points or live compiler improvement. The inference export matches
+all 32 retained Python predictions exactly. Live out-of-parent validation is
+required before judging the model useful.
+
+A compiler-only runtime experiment reuses raw prefix reads only when adding
+new geometry leaves the engine's cached physical prefix intact. Otherwise it
+uses the original extraction. Detector, physics, cold replay and frame charging
+remain unchanged. Focused combined planning/refinement tests preserve exact
+tracks, reports and physics costs; full-suite equivalence is evaluated separately.
+
+
+The prefix cache's full 44-case comparison preserves every track, report and
+actual physics cost exactly (`prefix-cache-equivalence.json`). No controlled
+wall-time speedup is claimed from concurrently run panels.
+
+The first live parent-disjoint pilot covers 16 cases. Admission-only ranking
+adds 19.2459 arithmetic mean points over its matched expressive reference;
+blending 25% predicted future cost into the measured comparison adds 21.9119
+(13 improvements, three regressions), and 50% adds 20.4293. All arms are 16/16
+valid. The 25% version proceeds to all 44 cases with the same parent-disjoint
+folds, and a single full-fit frozen model is evaluated separately. The model's
+training inputs are development examples; qualification has not been used.

@@ -26,7 +26,7 @@ if(arg('source')){
 }else{
   const seeds=(arg('seeds')??'101,102,103,104').split(',').map(Number),jobs=Number(arg('jobs')??16);
   const sources=arg('sources')?.split(',')??developmentCases.map(e=>e.case.metadata.id).sort();
-  const files=['scripts/v0/optimizer/connected_arcs.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts'].filter(p=>existsSync(resolve(compilerRoot,p)));
+  const files=['scripts/v0/optimizer/connected_arcs.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json'].filter(p=>existsSync(resolve(compilerRoot,p)));
   const implementation=Object.fromEntries(files.map(p=>[p,hash(readFileSync(resolve(compilerRoot,p)))]));
   const plan={schema:'line.arc-guidance-jitter-plan.v1',researchOnly:true,compilerRoot,head:execFileSync('git',['-C',compilerRoot,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),implementation,jitter,budget,seeds,sources,note:'Search-target jitter stress, evaluated against the unchanged authored targets; never a canonical headline.'};
   const planPath=resolve(out,'plan.json');

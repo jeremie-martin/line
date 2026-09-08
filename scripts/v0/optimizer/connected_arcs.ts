@@ -1,6 +1,7 @@
 /** Public integration of measured, connected normal-line arc construction. */
 import { createHash } from "node:crypto";
 import { compileArcMotion } from "./arc_motion.ts";
+import futureValueModel from "./arc_value_model.json" with { type: "json" };
 import { resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { sliceTimeline } from "../core/substrate.ts";
 import { CompileBudgetTelemetryRecorder, type BudgetTelemetryLevel } from "./budget_telemetry.ts";
@@ -18,14 +19,19 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const allowance = .7 * (options.budget - 2 * (end + 1)) / Math.max(1, end);
   const refinement = Math.max(0, allowance - 80);
   const samples = Math.max(12, Math.min(160, Math.floor(Math.min(80, allowance) + .8 * refinement)));
-  const guidanceSamples = Math.min(48, Math.floor(.4 * refinement));
+  const guidanceSamples = Math.min(96, Math.floor(.8 * refinement));
+  const responseSamples = Math.floor(guidanceSamples * 70 / 96);
   const lookaheadSamples = Math.max(8, Math.round(samples * .2));
   const result = compileArcMotion(spec, seed, { budget: options.budget, samples,
     channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
     lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
-    reserveFactor: 1.4, reuseContinuations: true, pruneGuidance: true });
+    reserveFactor: 1.4, reuseContinuations: true, pruneGuidance: true,
+    guidanceJoint: true, expressive: true, responseSamples,
+    adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true,
+    futureValueModel: guidanceSamples ? futureValueModel : undefined,
+    valueSelection: true, valueWeight: .25 * guidanceSamples / 96 });
   const { track, report } = result, total = result.stats.sim_frames;
   const gaps = sliceTimeline(spec.contacts.map(c => Math.round(c.t * 40)), duration);
   const valid = report.contacts.every(c => c.status === "hit") &&
@@ -33,7 +39,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const exhausted = result.failure?.reason === "budget";
   const recorder = new CompileBudgetTelemetryRecorder({ level: options.budgetTelemetry ?? "summary",
     gaps, durationFrames: duration, hardBudgetFrames: options.budget, policyBudgetFrames: options.budget,
-    model: { name: "connected-arcs/v2", source: "arc_motion.ts measured curves and next-beat continuations",
+    model: { name: "connected-arcs/v3", source: "arc_motion.ts expressive curves, measured planning and learned arrival value",
       interceptFrames: 0, contactFrames: 0, durationFrameScale: samples } });
   const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
     anchorGapIndex: 0, startTotalSpentFrames: 0, ceilingTotalSpentFrames: options.budget, includeStartup: false });

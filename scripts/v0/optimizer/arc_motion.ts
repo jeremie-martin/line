@@ -78,6 +78,8 @@ export type ArcMotionOptions= {
   collectValue?:boolean;
   cachePrefixReads?:boolean;
   futureValueModel?:any;
+  /** Research: use the learned value at the unresolved continuation boundary. */
+  continuationValueWeight?:number;
   valueWeight?:number;
   valueSelection?:boolean};
 
@@ -325,7 +327,22 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       lookaheadStats.continuationNodes++;
       if(!searched?.best)return null;
       const anchor=searched.best;
-      if(depth<=1||index+1>=contacts.length)return{value:anchor.cost,localValue:anchor.localCost,control:anchor.c,depth:1};
+      if(depth<=1||index+1>=contacts.length){
+        // A leaf has an exactly simulated local interval and unresolved future
+        // work. Blend its heuristic arrival prior with the learned future loss.
+        // Completed timelines have no remaining value to predict.
+        if((options.continuationValueWeight??0)>0&&index+1<contacts.length&&options.futureValueModel){
+          const weight=options.continuationValueWeight!;
+          let winner:any=null;
+          for(const candidate of searched.candidates){
+            const value=candidate.predictedFuture===undefined?candidate.cost:
+              candidate.cost+weight*(candidate.localCost+candidate.predictedFuture-candidate.cost);
+            if(!winner||value<winner.value)winner={value,localValue:candidate.localCost,control:candidate.c,depth:1};
+          }
+          if(winner)return winner;
+        }
+        return{value:anchor.cost,localValue:anchor.localCost,control:anchor.c,depth:1};
+      }
       let winner:any=null;
       for(const candidate of distinct(searched.candidates,options.lookaheadBranching??2)){
         const branch=base.addLine(candidate.lines);

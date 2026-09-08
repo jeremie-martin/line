@@ -8,7 +8,7 @@ import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildD
 import { measureGapAxes } from '../core/measure.ts';
 import { makeSolidLine } from '../arc.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
-import { authoredSpeedToPx, impactToRawPx, type Spec, type TrackLine } from '../types.ts';
+import { authoredSpeedToPx, impactToRawPx, PREROLL, type Spec, type TrackLine } from '../types.ts';
 
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
@@ -18,7 +18,7 @@ export type ArcMotionControl={entry:number; turn:number; exit:number; support:nu
 
 /** Integrate a smooth tangent schedule into one contiguous polyline. All
  * subdivisions approximate the same physical curve; none isolates a point. */
-export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false):TrackLine[]{
+export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0):TrackLine[]{
   const entry=rad(c.entry), n={x:Math.sin(entry),y:-Math.cos(entry)}, t={x:Math.cos(entry),y:Math.sin(entry)};
   const point=points.reduce((a,b)=>a.x*n.x+a.y*n.y<b.x*n.x+b.y*n.y?a:b);
   const speed=Math.hypot(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
@@ -33,6 +33,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);
     const easing=(z:number)=>c.bias>=0?Math.pow(z,1+c.bias):1-Math.pow(1-z,1-c.bias);
     let a=rad(time<first?c.entry+c.turn*(wave?Math.sin(Math.PI*u):easing(u)):lerp(c.entry+(wave?0:c.turn),c.exit,easing(w)));
+    if(radius>0)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
     if(flow){
       // A passive supporting surface cannot turn downward faster than free
       // fall without releasing. Limit the opposite turn to a finite load.
@@ -55,13 +56,13 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean}){
+export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string}){
   resetFrameCount();const budget=options.budget,duration=Math.round(spec.duration*40),end=duration+20;
   const frames=spec.contacts.map(c=>Math.round(c.t*40));
   const gaps=sliceTimeline(frames,duration);
   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
   const planned=scheduleNativeContacts(gaps);
-  const fixed=spec.start||!spec.preroll?resolveStartState(spec):null;
+  const fixed=spec.start||(spec.preroll??PREROLL.DEFAULT_S)<=0?resolveStartState(spec):null;
   const speed=authoredSpeedToPx(gaps[0].targets.speed??.55);
   const pitch=rad(options.startPitch??8.59436692696);
   const start=fixed??{position:{x:0,y:0},velocity:{x:speed*Math.cos(pitch),y:speed*Math.sin(pitch)}};
@@ -101,7 +102,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
       const evaluate=(c:ArcMotionControl)=>{
         c={entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
-        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave),child=engine.addLine(added);samples++;
+        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=engine.addLine(added);samples++;
         const reject=(reason:string)=>{failures[reason]=(failures[reason]??0)+1;return null;};
         if(JSON.stringify(getRiderMetered(child,frame-1).ballisticState())!==before)return reject('prefix');
         const state=getRiderMetered(child,horizon).ballisticState();
@@ -127,7 +128,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
           const nextImpact=gaps[contacts[i+1].gap].targets.impact??0;
           const nextSpeed=authoredSpeedToPx(planned[contacts[i+1].gap+1]?.targets.speed??targets.speed??.55);
           const desiredArrival=clamp(15+deg(impactToRawPx(nextImpact)/nextSpeed),20,70);
-          const weight=Math.sqrt(options.arrivalWeight??0), r1=weight*(deg(Math.atan2(finalVelocity.y,finalVelocity.x))-desiredArrival)/45,r2=weight*(Math.hypot(finalVelocity.x,finalVelocity.y)-nextSpeed)/7.2;
+          const weight=Math.sqrt(options.arrivalWeight??0), r1=options.arrivalMode==='speed'?0:weight*(deg(Math.atan2(finalVelocity.y,finalVelocity.x))-desiredArrival)/45,r2=weight*(Math.hypot(finalVelocity.x,finalVelocity.y)-nextSpeed)/7.2;
           residuals.push(r1,r2);cost+=r1*r1+r2*r2;
         }
         const result={child,lines:added,c,cost,residuals,achieved,actualImpact,release:raw.frames.findLast(f=>f.sledContacts.length)?.frame};

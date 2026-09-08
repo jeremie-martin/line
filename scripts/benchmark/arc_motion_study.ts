@@ -12,6 +12,7 @@ const entry=developmentCases.find(e=>e.case.metadata.id===arg('source'));
 if(!entry||!arg('out'))throw new Error('require --source and --out');
 const spec=applyJolt(entry.case.spec,benchmarkPolicy.transform.joltMs);
 const options={...{budget:Number(arg('budget')??750000),samples:Number(arg('samples')??160),diagnostic:arg('diagnostic')==='on',arrivalWeight:Number(arg('arrival-weight')??0),flow:arg('flow')==='on',solver:arg('solver'),channel:Number(arg('channel')??0),wave:arg('wave')==='on',radius:Number(arg('radius')??0),arrivalMode:arg('arrival-mode'),headingWeight:Number(arg('heading-weight')??0),qualityRetries:Number(arg('quality-retries')??0),bidirectional:arg('bidirectional')==='on',impactWeight:Number(arg('impact-weight')??2),amplitudeWeight:Number(arg('amplitude-weight')??1),poseWeight:Number(arg('pose-weight')??0),startPitch:Number(arg('start-pitch')??8.59436692696)},...JSON.parse(arg('options')??'{}')};
+if(options.valueModelPath)options.futureValueModel=JSON.parse(readFileSync(options.valueModelPath,'utf8'));
 const start=performance.now(),result=options.publicCompiler?compileConnectedArcs(spec,Number(arg('seed')??260908011),{budget:options.budget}):compileArcMotion(spec,Number(arg('seed')??260908011),options);
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const score=scoreV2Report(result.report,spec.contacts.length,buildAxisContract(spec,Object.keys(benchmarkPolicy.componentWeights) as any),suite);

@@ -11,3 +11,15 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
   }
   return features;
 }
+
+export function arcFutureValue(features: number[], artifact: any): number {
+  if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
+      features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
+  let value = artifact.model.initial;
+  for (const tree of artifact.model.trees) {
+    let node = 0;
+    while (!tree.leaf[node]) node = features[tree.feature[node]] <= tree.threshold[node] ? tree.left[node] : tree.right[node];
+    value += tree.value[node];
+  }
+  return Math.max(0, Math.expm1(value) / 100);
+}

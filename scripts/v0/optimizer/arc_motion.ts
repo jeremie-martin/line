@@ -3,7 +3,7 @@
  * corrected using actual engine measurements. No point controls or scenery. */
 import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSearch } from '../../lib/native_motion/engine.ts';
 import { LineRiderEngine as Judge, disposeAllWasmEnginesForStudy as disposeJudge } from '../../lib/_lr_engine_wasm.ts';
-import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, detect } from '../../lib/detector.ts';
+import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { makeSolidLine } from '../arc.ts';
@@ -11,7 +11,7 @@ import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { refineArcTrack } from './arc_refinement.ts';
 import { arcResponseStep } from './arc_response.ts';
-import { arcArrivalFeatures } from './arc_value.ts';
+import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -76,7 +76,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow';adaptivePlanning?:boolean;planningDepth?:number;planningWidth?:number;planningSamples?:number;strictHorizon?:boolean;directControls?:ArcMotionControl[];refineDirect?:boolean;refineRebuildSamples?:number;refineExpressive?:boolean;responseSamples?:number;responseDamping?:number;refineFollowSamples?:number;refineUseAlternatives?:boolean;collectValue?:boolean};
+export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean;expressive?:boolean;localOnly?:boolean;arrivalReference?:any;boundaryWeight?:number;refineAttempts?:number;refineSamples?:number;refineGuidanceSamples?:number;refineWidth?:number;refineBoundaryWeight?:number;refineSelection?:'regret'|'rate';refineMode?:'translate'|'reflow';adaptivePlanning?:boolean;planningDepth?:number;planningWidth?:number;planningSamples?:number;strictHorizon?:boolean;directControls?:ArcMotionControl[];refineDirect?:boolean;refineRebuildSamples?:number;refineExpressive?:boolean;responseSamples?:number;responseDamping?:number;refineFollowSamples?:number;refineUseAlternatives?:boolean;collectValue?:boolean;cachePrefixReads?:boolean;futureValueModel?:any;valueWeight?:number;valueSelection?:boolean};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
@@ -119,6 +119,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   const contacts=[{frame:1,gap:-1},...planned.filter(g=>g.endsWithContact).map(g=>({frame:g.endFrame,gap:g.index}))];
   try{
     const compileOptions=options;
+    const futureFeatures=(arrival:number[],i:number)=>{
+      const features=[...arrival];
+      for(let k=1;k<=2;k++){
+        const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===contact.frame)?.targets:undefined;
+        features.push(contact?((contacts[i+k+1]?.frame??end+1)-contact.frame)/40:0,contact?(gaps[contact.gap]?.targets.impact??-1):-1,target?.air??-1,target?.speed??-1,target?.amplitude??-1);
+      }
+      return features;
+    };
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides};
       const {frame,gap}=contacts[i],next=contacts[i+1]?.frame??end+1,horizon=next-1;
@@ -130,6 +138,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       engine.prepareCollisionTrace(frame);getRiderMetered(engine,frame);
       const trace=engine.readCollisionTrace()[0];
       const points=['PEG','TAIL','NOSE','STRING'].map(key=>trace[key]);
+      const prefixRaw=options.cachePrefixReads?extractRawTrajectory(engine,frame-1):null;
       const incoming=deg(Math.atan2(velocity.y,velocity.x)),pace=Math.hypot(velocity.x,velocity.y);
       const span=horizon-(i===0?0:frame);
       const support=clamp((1-(targets.air??.5))*(span+1),3,Math.max(3,span-6));
@@ -145,12 +154,13 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(c.bend!==undefined)c.bend=clamp(c.bend,-60,60);
         if(c.guideFlare!==undefined)c.guideFlare=clamp(c.guideFlare,-16,16);
         const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=engine.addLine(added);samples++;
+        const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
         const reject=(reason:string)=>{failures[reason]=(failures[reason]??0)+1;return null;};
         if(JSON.stringify(getRiderMetered(child,frame-1).ballisticState())!==before)return reject('prefix');
         const state=getRiderMetered(child,horizon).ballisticState();
         if(!state.riderMounted||!state.sledIntact)return reject('binding');
-        const raw=extractRawTrajectory(child,horizon),det=detect(raw);
+        const raw=prefixReusable?{duration:horizon,frames:[...prefixRaw!.frames,...extractRawTrajectoryWindow(child,frame,horizon).frames]}:extractRawTrajectory(child,horizon),det=detect(raw);
         if(det.terminus.reason!=='endOfSpec')return reject(det.terminus.reason);
         if(i>0&&!findAuthoredContactNearFrame(det,frame,1,frame-contacts[i-1].frame))return reject('missed');
         if(i===0&&!raw.frames.slice(1,4).some(f=>f.sledContacts.length))return reject('startup');
@@ -201,7 +211,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
         const pose=deg(Math.atan2(finalState.NOSE.y-finalState.TAIL.y,finalState.NOSE.x-finalState.TAIL.x));
         viableCandidates++;
-        candidates.push({lines:added,c,cost,localCost,heading,endSpeed,pose,arrivalFeatures:options.collectValue?arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(result.release??frame)):undefined,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+        const valueFeatures=options.collectValue||options.futureValueModel?futureFeatures(arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(result.release??frame)),i):undefined;
+        const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
+        candidates.push({lines:added,c,cost,localCost,heading,endSpeed,pose,valueFeatures,predictedFuture,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
         if(!best||cost<best.cost)best=result;
         return result;
       };
@@ -296,9 +308,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       }
       return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support};
     };
+    const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);
     const distinct=(candidates:any[],width:number)=>{
       const result:any[]=[];
-      for(const candidate of candidates.slice().sort((a,b)=>a.cost-b.cost)){
+      for(const candidate of candidates.slice().sort((a,b)=>valueRank(a)-valueRank(b))){
         if(result.every(a=>Math.abs(a.heading-candidate.heading)>4||Math.abs(a.endSpeed-candidate.endSpeed)>.4||Math.abs(a.pose-candidate.pose)>7||Math.abs(a.meta.release-candidate.meta.release)>2))result.push(candidate);
         if(result.length>=width)break;
       }
@@ -349,7 +362,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           }
           planningDecisions.push({index:i,frame,observedConstructionRate,constructionReserveRate,localAllowance,width,probeSamples,depth});
         }
-        const shortlist=distinct(candidates,options.reuseContinuations?Math.max(12,width):width);
+        let shortlist=distinct(candidates,options.reuseContinuations?Math.max(12,width):width);
+        if(options.futureValueModel){const original=candidates.find(c=>JSON.stringify(c.c)===JSON.stringify(best.c));if(original)shortlist=[original,...shortlist.filter(c=>c!==original)];}
         const original=best, startFrames=getPhysicsFrameCount(), probes:any[]=[];
         let winner:any=null;
         for(const candidate of shortlist){
@@ -364,17 +378,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           if(!future)lookaheadStats.failedProbes++;
           lookaheadStats.maxDepth=Math.max(lookaheadStats.maxDepth,future?.depth??0);
           const terminal=options.lookaheadObjective==='terminal'||depth>1;
-          const value=future?(terminal?candidate.localCost:candidate.cost)+(options.lookaheadWeight??1)*(terminal?future.value:future.localValue):Infinity;
+          let value=future?(terminal?candidate.localCost:candidate.cost)+(options.lookaheadWeight??1)*(terminal?future.value:future.localValue):Infinity;
+          if(future&&options.valueSelection&&candidate.predictedFuture!==undefined)value+=(options.valueWeight??.5)*(candidate.localCost+candidate.predictedFuture-value);
           if(options.reuseContinuations){candidate.lookaheadValue=value;candidate.futureControl=future?.control;}
-          let valueFeatures:number[]|undefined;
-          if(options.collectValue){
-            valueFeatures=[...candidate.arrivalFeatures];
-            for(let k=1;k<=2;k++){
-              const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===contact.frame)?.targets:undefined;
-              valueFeatures.push(contact?((contacts[i+k+1]?.frame??end+1)-contact.frame)/40:0,contact?(gaps[contact.gap]?.targets.impact??-1):-1,target?.air??-1,target?.speed??-1,target?.amplitude??-1);
-            }
-          }
-          probes.push({control:candidate.c,currentCost:candidate.cost,localCost:candidate.localCost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null,valueFeatures});
+          probes.push({control:candidate.c,currentCost:candidate.cost,localCost:candidate.localCost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null,valueFeatures:options.collectValue?candidate.valueFeatures:undefined,predictedFuture:candidate.predictedFuture});
           if(future&&(!winner||value<winner.value))winner={candidate,value,futureControl:future.control};
           Engine.retainOnly([engine,original.child]);
         }

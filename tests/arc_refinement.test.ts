@@ -93,3 +93,16 @@ it('reuses measured alternatives and adapts the following arcs without losing th
   expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
 });
+
+it('reuses only retained physical prefixes with exact outputs and unchanged physics charging', () => {
+  const options = {...base, expressive: true, guidanceSamples: 96, guidanceJoint: true,
+    responseSamples: 70, lookaheadWidth: 3, lookaheadDepth: 2, lookaheadSamples: 32,
+    strictHorizon: true, reuseContinuations: true, refineAttempts: 4, refineUseAlternatives: true,
+    refineMode: 'reflow' as const, refineFollowSamples: 12};
+  const original = compileArcMotion(spec, 23, options);
+  const cached = compileArcMotion(spec, 23, {...options, cachePrefixReads: true});
+  expect(cached.track).toEqual(original.track);
+  expect(cached.report).toEqual(original.report);
+  expect(cached.stats).toEqual(original.stats);
+  expect(cached.refinementStats).toEqual(original.refinementStats);
+});

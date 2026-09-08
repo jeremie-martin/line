@@ -1,4 +1,14 @@
-# Goal: coherent normal-line arcs above 650
+# Goal: stronger trajectory shaping with varied coherent arcs
+
+Active continuation, 2026-09-08: the owner approved thorough work on all three
+research items: causal upper-rail removal/shortening, searched guidance geometry,
+and planning across beats. Preserve the accepted 687.5102 compiler as the
+reference. Develop and evaluate the three mechanisms, validate useful changes
+under equal actual budgets with the fixed full benchmark, and render full
+production videos of the final result. Record unsuccessful experiments and
+tradeoffs as well as improvements. Work branch: `codex/arc-guidance-planning`.
+
+The earlier above-650 milestone remains complete:
 
 Status, 2026-09-08: the numerical objective and full video deliverables are
 complete. **Connected-arc-feedback is promoted at 687.5102**, with **352/352

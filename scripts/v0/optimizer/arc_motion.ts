@@ -15,7 +15,8 @@ const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const deg=(x:number)=>x*180/Math.PI;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
-export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number};
+export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
+  clearance?:number; guideStart?:number; guideEnd?:number};
 
 /** Integrate a smooth tangent schedule into one contiguous polyline. All
  * subdivisions approximate the same physical curve; none isolates a point. */
@@ -45,19 +46,31 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     const xx=x+Math.cos(a)*v*dt, yy=y+Math.sin(a)*v*dt;
     lines.push(makeSolidLine(id++,x,y,xx,yy));x=xx;y=yy;
   }
-  if(channel>0){
+  const clearance=c.clearance??channel;
+  if(clearance>0&&(c.guideEnd??1)>(c.guideStart??0)){
     const vertices=lines.map(l=>({x:l.x1,y:l.y1}));vertices.push({x:lines.at(-1)!.x2,y:lines.at(-1)!.y2});
     const roof=vertices.slice(2).map((p,i)=>{
       const index=i+2,prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];
       const a=Math.atan2(next.y-prev.y,next.x-prev.x);
-      return{x:p.x+channel*Math.sin(a),y:p.y-channel*Math.cos(a)};
-    }).reverse();
-    for(let i=1;i<roof.length;i++)lines.push(makeSolidLine(id++,roof[i-1].x,roof[i-1].y,roof[i].x,roof[i].y));
+      return{x:p.x+clearance*Math.sin(a),y:p.y-clearance*Math.cos(a)};
+    });
+    const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+Math.hypot(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
+    const length=distances.at(-1)!,from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
+    // Every guide remains one substantial connected curve, including when its
+    // endpoints move between subdivision vertices. Zero coverage is a single arc.
+    if((c.guideStart===undefined&&c.guideEnd===undefined)||to-from>=24){
+      const clipped=roof.filter((_,i)=>distances[i]>=from&&distances[i]<=to);
+      const at=(distance:number)=>{let i=1;while(i<distances.length-1&&distances[i]<distance)i++;const t=(distance-distances[i-1])/Math.max(1e-12,distances[i]-distances[i-1]);return{x:lerp(roof[i-1].x,roof[i].x,t),y:lerp(roof[i-1].y,roof[i].y,t)};};
+      if(from>0&&!distances.includes(from))clipped.unshift(at(from));
+      if(to<length&&!distances.includes(to))clipped.push(at(to));
+      clipped.reverse();
+      for(let i=1;i<clipped.length;i++)lines.push(makeSolidLine(id++,clipped[i-1].x,clipped[i-1].y,clipped[i].x,clipped[i].y));
+    }
   }
   return lines;
 }
 
-export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number}){
+export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number}){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   validateSpec(spec);
   resetFrameCount();const budget=options.budget,duration=Math.round(spec.duration*40),end=duration+20;
@@ -107,7 +120,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
       const evaluate=(c:ArcMotionControl)=>{
-        c={entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
+        c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
+        if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
+        if(c.guideStart!==undefined)c.guideStart=clamp(c.guideStart,0,1);
+        if(c.guideEnd!==undefined)c.guideEnd=clamp(c.guideEnd,0,1);
         const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=engine.addLine(added);samples++;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
         const reject=(reason:string)=>{failures[reason]=(failures[reason]??0)+1;return null;};
@@ -199,6 +215,26 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
           const candidate={...best.c,[key]:best.c[key]+sign*steps[key]*Math.pow(.65,Math.floor(round/2))};
           evaluate(candidate);
           if(k%10===9)Engine.retainOnly([engine,best.child]);
+        }
+      }
+      if(best&&options.guidance){
+        const origin=best, count=options.guidanceSamples??48;
+        const keys:('clearance'|'guideStart'|'guideEnd')[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
+        for(let k=0;k<count;k++){
+          const frac=(n:number)=>((k+1)*n)%1;
+          let c:ArcMotionControl;
+          if(k<count/2){
+            c={...origin.c};
+            if(options.guidance!=='span')c.clearance=k===0?12:8+16*frac(.61803398875);
+            if(options.guidance!=='clearance'){
+              c.guideStart=k%3===0?0:frac(.41421356237)*.7;
+              c.guideEnd=k===0?0:k%3===1?1:Math.max(c.guideStart,frac(.73205080757));
+            }
+          }else{
+            const key=keys[Math.floor(k/2)%keys.length],step=key==='clearance'?2:.15;
+            c={...best.c,[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-count/2)/(keys.length*4)))};
+          }
+          evaluate(c);if(k%8===7)Engine.retainOnly([engine,best.child]);
         }
       }
       if(best&&(options.qualityRetries??0)>0&&targets.speed!==undefined&&Math.abs(best.achieved.speed-targets.speed)>.3&&

@@ -1,6 +1,15 @@
 # Goal: stronger trajectory shaping with varied coherent arcs
 
-Status, 2026-09-08: all three approved work items are implemented and evaluated.
+Active continuation, 2026-09-08: the owner approved an ambitious next campaign
+on completed-track refinement, selective longer-horizon planning, expressive
+coherent arc geometry, and useful older proposal/difficulty/budget mechanisms.
+Study the earlier whispers and diminishing returns as evidence, while remaining
+free to redesign the approach. Preserve 744.5 as the reference and measure
+actual progress across the full fixed suite and higher budgets. Continue video
+review; broader aesthetic objective design is deferred for discussion.
+Work branch: `codex/arc-refinement`. Research: `docs/arc-refinement-campaign.md`.
+
+The previous milestone is complete:
 **Arc-guidance-planning is promoted at 744.5000**, up **56.9898** from the
 preserved 687.5102 arc compiler. The complete 44-case Benchmark V2 development
 suite passes **352/352 canonical runs**, eight seeds (16–23), within the

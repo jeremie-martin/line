@@ -71,7 +71,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number};
+export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number;reuseContinuations?:boolean;guidanceJoint?:boolean};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
@@ -102,6 +102,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       lines.push(...choice.lines);
       disposeSearch();engine=new Engine().setStart(start.position,start.velocity).addLine(lines);
       rows.push({...old,...choice.meta,control:choice.c,cost:choice.cost,spent:getPhysicsFrameCount()});steps.push(step);backtracks++;
+      if(options.reuseContinuations&&choice.futureControl)pendingControl={index:rows.length,control:choice.futureControl};
       return rows.length-1;
     }
     return null;
@@ -229,11 +230,13 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       }
       if(best&&options.guidance){
         const origin=best, count=options.guidanceSamples??48;
-        const keys:('clearance'|'guideStart'|'guideEnd')[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
+        const keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
+        if(options.guidanceJoint)keys.push('entry','turn','exit','support','bias','offset');
+        const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
         for(let k=0;k<count;k++){
           const frac=(n:number)=>((k+1)*n)%1;
           let c:ArcMotionControl;
-          if(k<count/2){
+          if(k<broad){
             c={...origin.c};
             if(options.guidance!=='span')c.clearance=k===0?12:8+16*frac(.61803398875);
             if(options.guidance!=='clearance'){
@@ -241,8 +244,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
               c.guideEnd=k===0?0:k%3===1?1:Math.max(c.guideStart,frac(.73205080757));
             }
           }else{
-            const key=keys[Math.floor(k/2)%keys.length],step=key==='clearance'?2:.15;
-            c={...best.c,[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-count/2)/(keys.length*4)))};
+            const key=keys[Math.floor(k/2)%keys.length],step={clearance:2,guideStart:.15,guideEnd:.15,entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4}[key];
+            c={...best.c,[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
@@ -284,10 +287,11 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       let lookahead:any=null;
       if(best&&(options.lookaheadWidth??0)>1&&i+1<contacts.length){
         const width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32,depth=Math.max(1,options.lookaheadDepth??1);
-        const shortlist=distinct(candidates,width);
+        const shortlist=distinct(candidates,options.reuseContinuations?Math.max(12,width):width);
         const original=best, startFrames=getPhysicsFrameCount(), probes:any[]=[];
         let winner:any=null;
         for(const candidate of shortlist){
+          if(probes.length>=width&&winner)break;
           const reserve=(end-frame)*((options.samples??160)+(options.guidance?options.guidanceSamples??48:0))*(options.reserveFactor??1.1);
           let probeAllowance=0;
           for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*1.4;
@@ -299,6 +303,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           lookaheadStats.maxDepth=Math.max(lookaheadStats.maxDepth,future?.depth??0);
           const terminal=options.lookaheadObjective==='terminal'||depth>1;
           const value=future?(terminal?candidate.localCost:candidate.cost)+(options.lookaheadWeight??1)*(terminal?future.value:future.localValue):Infinity;
+          if(options.reuseContinuations){candidate.lookaheadValue=value;candidate.futureControl=future?.control;}
           probes.push({control:candidate.c,currentCost:candidate.cost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null});
           if(future&&(!winner||value<winner.value))winner={candidate,value,futureControl:future.control};
           Engine.retainOnly([engine,original.child]);
@@ -320,7 +325,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       if(!best){failure={frame,reason:'no_arc',failures,incoming,pace,center};const retry=backtrack();if(retry!==null){i=retry;continue;}break;}
       failure=null;
       const alternatives:any[]=[];
-      for(const candidate of candidates.sort((a,b)=>a.cost-b.cost)){
+      const planRank=(c:any)=>c.lookaheadValue===undefined?1:Number.isFinite(c.lookaheadValue)?0:2;
+      for(const candidate of candidates.sort((a,b)=>options.reuseContinuations?(planRank(a)-planRank(b)||((a.lookaheadValue??a.cost)-(b.lookaheadValue??b.cost))):a.cost-b.cost)){
         if(alternatives.every(a=>Math.abs(a.heading-candidate.heading)>4||Math.abs(a.endSpeed-candidate.endSpeed)>.4||Math.abs(a.pose-candidate.pose)>7||Math.abs(a.meta.release-candidate.meta.release)>2))alternatives.push(candidate);
         if(alternatives.length>=12)break;
       }

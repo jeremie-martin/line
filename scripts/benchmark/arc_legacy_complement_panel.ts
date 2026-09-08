@@ -1,0 +1,17 @@
+import {spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {mkdirSync,openSync,closeSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {join} from 'node:path';
+import {developmentCases} from '../../benchmark/v2/catalog.ts';
+import {summarizeDevelopmentBudget} from '../v0/benchmark_v2/evaluator.ts';
+const out='generated/benchmark-v2/arc-motion-650/legacy-complement-v8';mkdirSync(out,{recursive:true});
+const queue=developmentCases.map(e=>e.case.metadata.id),errors:string[]=[];
+await Promise.all(Array.from({length:12},async()=>{while(queue.length){const source=queue.shift()!,path=join(out,source+'.json');if(existsSync(path))continue;
+const fd=openSync(join(out,source+'.log'),'w');
+try{const code=await new Promise(resolve=>{const p=spawn(process.execPath,['--import','tsx','scripts/benchmark/arc_legacy_complement.ts',`--source=${source}`,`--out=${path}`],{env:process.env,stdio:['ignore',fd,fd]});p.on('exit',resolve);});if(code!==0)errors.push(source);else process.stderr.write(source+' complete\n');}finally{closeSync(fd);}}}));
+if(errors.length)throw new Error(errors.join(', '));
+const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
+const rows=developmentCases.map(e=>JSON.parse(readFileSync(join(out,e.case.metadata.id+'.json'),'utf8')));
+const summary=summarizeDevelopmentBudget(rows.map(r=>({sourceId:r.sourceId,budget:750000,seedSlot:0,actualSeed:260908011,score:r.score.score>r.priorScore.score?r.score:r.priorScore})),750000,suite);
+const record={schema:'line.arc-legacy-complement-summary.v1',researchOnly:true,note:'Exploratory selection using the unchanged score. Both measured arms together stay within 750k; new-arc arm artifacts are reused.',summary,maxFrames:Math.max(...rows.map(r=>r.stats.sim_frames+r.priorFrames)),oldWins:rows.filter(r=>r.score.score>r.priorScore.score).length,perSource:rows.map(r=>({source:r.sourceId,old:r.score.score,new:r.priorScore.score,frames:r.stats.sim_frames+r.priorFrames}))};
+const body=JSON.stringify(record)+'\n';writeFileSync(join(out,'summary.json'),body);writeFileSync(join(out,'summary.json.sha256'),createHash('sha256').update(body).digest('hex')+'\n');console.log(JSON.stringify(record));

@@ -48,3 +48,49 @@ LR_ENGINE=wasm node --import tsx scripts/benchmark/arc_motion_study.ts \
   --source=river_reentry --arrival-weight=0.6 \
   --out=generated/benchmark-v2/arc-motion-650/EXPERIMENT.json
 ```
+
+## Paired-arc control and first complete panel
+
+The gravity-limited single-curve and local Newton variants keep the tested
+tracks valid, but do not yield a broad improvement. A paired-curve prototype
+adds a second real normal rail. Radius limits prevent the parallel curve from
+folding at a tight bend; an arrival-speed objective lets the stronger geometry
+choose a useful approach rather than imposing the one-sided catch's steep
+heading prior.
+
+The frozen v7 design (`1d258ec9`, channel clearance 12 px, minimum nominal
+radius 24 px, no transient wave, arrival-speed weight 0.3, 160 proposals) passes
+all 44 development cases at seed 260908011 and 750k. Its discovery aggregate
+is **582.9259**, not a canonical headline; all 44 are valid. It uses
+16,117,438 physical frames, max 502,772 per source. Representative score is
+626.1023; capability 437.6782; legacy regression 555.1495; development music
+469.7527. The full panel, checksums, and frozen plan are in `full-v7/`.
+
+River Reentry reaches **743.4679** with air / impact / speed RMS
+0.0493 / 0.0807 / 0.0868. These improvements do not generalize uniformly to dense
+passages, which remain the principal weakness. A complete mixed-family
+experiment is pricing the old arc builder on the budget actually left after
+the new one. Its checkpoint behavior can overshoot its requested allocation,
+so an explicit reserve is being tested; no over-budget run is accepted as
+portfolio evidence. The benchmark accounting is unchanged.
+
+The first complete production preview uses the v7 paired-arc compiler on
+Amor na Praia. It is a valid 46.5-second, 1080×1920/60 fps video with music and
+all production effects. Its production metric is 635.7647 and it has 1.72%
+standing time; this is a visual prototype, not production selection approval.
+The first attempt exposed an omitted-preroll handling error in the prototype;
+the corrected compiler uses the existing `PREROLL.DEFAULT_S` convention and
+honors explicit starts and zero-preroll specifications.
+
+Open [the early arc preview](../archives/arc-motion-2026-09-08/index.html).
+The archive retains the frozen generated track, report, controls, source copies,
+video validation, and checksums. The owner was asked whether paired curves are
+welcome or single curves should dominate; both directions remain open pending
+that optional preference.
+
+The River geometry audit finds 89 connected curve pairs (178 physical rails,
+9,348 normal segments; minimum segment length 1.687 px). The upper rails
+actually collide with the rider on 248 frames. Removing them changes the
+trajectory at frame 136 and ejects the rider at frame 177; the complete track
+survives through frame 2340. Audit simulation is charged separately as 4,680
+frames and is not compiler-budget evidence. See `geometry-audit-river-v7.json`.

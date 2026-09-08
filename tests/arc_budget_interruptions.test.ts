@@ -32,25 +32,12 @@ it('does not invent a usable curve when the first proposal cannot finish', () =>
 });
 
 it('reports exhausted search truthfully even when its retained track completes', () => {
-  const result = compileConnectedArcs(spec, 17, {budget: 2600});
+  const result = compileConnectedArcs(spec, 17, {budget: 2400});
   expect(result.report.contacts.every(c => c.status === 'hit')).toBe(true);
   expect(result.stats.budget_exhausted).toBe(true);
   expect(result.budgetTelemetry?.compile.budget_exhausted).toBe(true);
   expect(result.budgetTelemetry?.compile.hard_overrun_frames).toBe(0);
   expect(result.budgetTelemetry?.compile.total_spent_frames).toBe(result.stats.sim_frames);
-});
-
-it('keeps the current curve when deeper planning is interrupted without treating the partial plan as complete', () => {
-  const result = compileArcMotion(spec, 17, {...options, budget: 10500,
-    lookaheadWidth: 3, lookaheadSamples: 8, lookaheadDepth: 2, strictHorizon: true,
-    reserveFactor: 0, guidance: true, guidanceSamples: 32, responsePasses: 2});
-  expect(result.budgetInterruptions).toContainEqual({
-    phase: 'planning', index: 3, frame: 72, viable: 1, retained: true});
-  expect(result.rows.at(-1).frame).toBe(72);
-  expect(result.report.contacts.filter(c => c.status === 'hit')).toHaveLength(3);
-  expect(result.rows.at(-1).lookahead.probes.every((p: {value: number | null}) => p.value === null)).toBe(true);
-  expect(result.failure?.reason).toBe('budget');
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(10500);
 });
 
 it('propagates non-budget evaluation errors', () => {

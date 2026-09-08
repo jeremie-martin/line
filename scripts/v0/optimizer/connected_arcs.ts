@@ -6,6 +6,7 @@ import { resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { sliceTimeline } from "../core/substrate.ts";
 import { CompileBudgetTelemetryRecorder, type BudgetTelemetryLevel } from "./budget_telemetry.ts";
 import type { CompileCheckpoint, Spec } from "./types.ts";
+import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler_input.ts";
 
 /** Production allocation from ride length and frame budget. Research can spread
  * this configuration and override a mechanism without duplicating shipped defaults. */
@@ -29,7 +30,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
     reserveFactor: 1.4, reuseContinuations: true, pruneGuidance: true,
     guidanceJoint: true, expressive: true, responseSamples,
-    adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true,
+    adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true,
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
     // simulated continuation boundary. Do not blend it into the root twice.
@@ -39,6 +40,8 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
 
 export function compileConnectedArcs(spec: Spec, seed: number,
   options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel }): CompileCheckpoint {
+  spec = normalizeCompilerTimeline(spec);
+  validateCompilerTelemetry(options.budgetTelemetry);
   resetPerCompileState();
   const searchOptions = connectedArcOptions(spec, options.budget);
   const duration = Math.round(spec.duration * 40);
@@ -57,9 +60,10 @@ export function compileConnectedArcs(spec: Spec, seed: number,
     anchorGapIndex: 0, startTotalSpentFrames: 0, ceilingTotalSpentFrames: options.budget, includeStartup: false });
   recorder.setActiveCandidateWork({ actualCandidateSamples: result.samples, viableCandidates: result.stats.viable_candidate_samples,
     candidateSamplesByStream: { normal: result.samples } });
-  for (const row of result.rows) {
-    const gap = gaps.findIndex(g => g.endFrame >= row.frame);
-    if (gap >= 0) recorder.observeActiveEpisode(gap, row.spent);
+  for (const [index, row] of result.rows.entries()) {
+    // Interval zero is startup; committing interval i reaches authored contact i.
+    // Use that identity, since scheduling can shift its frame by one in either direction.
+    recorder.observeActiveEpisode(Math.min(index, gaps.length), row.spent);
   }
   recorder.recordEvaluation({ totalSpentFrames: total, gapIndex: valid ? gaps.length : result.stats.gap_commits,
     terminal: valid, origin: "frontier", firstTimeSearchNode: true,

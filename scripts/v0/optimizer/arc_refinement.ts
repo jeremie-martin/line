@@ -2,6 +2,7 @@
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { DriftReport, TrackLine } from '../types.ts';
+import { createArcEngine } from './arc_engine.ts';
 
 export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3): number {
   if (report.terminus.reason !== 'endOfSpec' || report.off_beat_landings.length ||
@@ -61,7 +62,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const spent = getPhysicsFrameCount(), lossBefore = loss;
       const sourceLines = lines, sourceRows = rows;
       const prefix = sourceLines.filter(l => indexOf(l) < i);
-      const base = new Engine().setStart(start.position, start.velocity).addLine(prefix);
+      const base = createArcEngine(start, prefix);
       const before = JSON.stringify(getRiderMetered(base, frame - 1).ballisticState());
       const boundary = getRiderMetered(incumbent, horizon);
       const reference = {position: boundary.position, velocity: boundary.velocity, state: boundary.ballisticState()};
@@ -86,7 +87,9 @@ export function refineArcTrack(input: ArcRefinementInput) {
         if (evaluated >= width || getPhysicsFrameCount() + 2 * (end + 1) > ceiling) break;
         evaluated++; counts.proposals++;
         let child = base.addLine(candidate.lines), proposed = [...prefix, ...candidate.lines];
-        const proposedRows = sourceRows.slice(); proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost};
+        const proposedRows = sourceRows.slice();
+        proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost,
+          ...candidate.meta, lookahead: null, spent: getPhysicsFrameCount()};
         let completed = true;
         if (options.refineMode === 'reflow') {
           for (let j = i + 1; j < contacts.length; j++) {
@@ -95,6 +98,10 @@ export function refineArcTrack(input: ArcRefinementInput) {
             if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control},[incumbent,base]);
             if (!next?.best) {completed = false; break;}
             proposed.push(...next.best.lines); child = next.best.child.detach();
+            proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
+              achieved: next.best.achieved, impact: next.best.actualImpact,
+              release: next.best.release, lines: next.best.lines.length,
+              failures: next.failures, lookahead: null, spent: getPhysicsFrameCount()};
             Engine.retainOnly([incumbent, base, child]);
           }
         } else {

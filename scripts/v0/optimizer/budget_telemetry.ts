@@ -126,7 +126,7 @@ export type BudgetEstimateObservation = {
   high_water: RemainingStructure;
   /** True only while the initial one-time structural intercept is still due. */
   structural_startup_included: boolean;
-  estimator_applicability: BudgetEstimatorApplicability;
+  estimator_applicability: BudgetEstimatorApplicability | "unvalidated_traversal_model";
   /** clamp((anchor structural work - current structural work) / anchor work, 0, 1). */
   structural_progress_fraction: number;
   /**
@@ -662,7 +662,7 @@ export type CompileBudgetTelemetry = {
      * anchor, so they are `extrapolated_policy_budget` at any policy budget the
      * artifact was not fitted at. Null when no episode was recorded.
      */
-    initial_structural_applicability: BudgetEstimatorApplicability | null;
+    initial_structural_applicability: BudgetEstimatorApplicability | "unvalidated_traversal_model" | null;
     /**
      * The compiler's own first-terminal work counter, independent of episode
      * attribution. Null when no terminal traversal was considered.
@@ -734,6 +734,7 @@ export class CompileBudgetTelemetryRecorder {
   private readonly searchPolicyBudgetFrames: number;
   private readonly repairBudgetFrames: number;
   private readonly model: TraversalBudgetModel;
+  private readonly calibrationApplies: boolean;
   /**
    * The artifact's budget-law scalar at this compile's policy budget.
    *
@@ -770,6 +771,8 @@ export class CompileBudgetTelemetryRecorder {
     this.searchPolicyBudgetFrames = input.searchPolicyBudgetFrames ?? input.policyBudgetFrames;
     this.repairBudgetFrames = input.repairBudgetFrames ?? input.policyBudgetFrames;
     this.model = input.model ?? BUDGET_ESTIMATOR_TRAVERSAL_MODEL;
+    this.calibrationApplies = (["name", "source", "interceptFrames", "contactFrames", "durationFrameScale"] as const)
+      .every(key => this.model[key] === BUDGET_ESTIMATOR_TRAVERSAL_MODEL[key]);
     this.structuralScale = budgetEstimatorStructuralScale(this.searchPolicyBudgetFrames);
   }
 
@@ -1105,7 +1108,7 @@ export class CompileBudgetTelemetryRecorder {
         traversal_source: this.model.source,
         estimator_model: BUDGET_ESTIMATOR_MODEL.modelId,
         estimator_fingerprint: BUDGET_ESTIMATOR_MODEL_FINGERPRINT,
-        calibrated: BUDGET_ESTIMATOR_MODEL.calibrated,
+        calibrated: this.calibrationApplies && BUDGET_ESTIMATOR_MODEL.calibrated,
       },
       compile: {
         hard_budget_frames: this.hardBudgetFrames,
@@ -1125,7 +1128,7 @@ export class CompileBudgetTelemetryRecorder {
         // assume the compile-scope numbers are calibrated everywhere.
         initial_structural_applicability: initial === undefined
           ? null
-          : budgetEstimatorApplicability({
+          : !this.calibrationApplies ? "unvalidated_traversal_model" : budgetEstimatorApplicability({
             pathAvailable: false,
             policyBudgetFrames: this.searchPolicyBudgetFrames,
             attemptKind: initial.lane,
@@ -1215,11 +1218,11 @@ export class CompileBudgetTelemetryRecorder {
       progressFraction,
     });
     const hardRemaining = Math.max(0, this.hardBudgetFrames - totalSpent);
-    const applicability = budgetEstimatorApplicability({
+    const applicability = this.calibrationApplies ? budgetEstimatorApplicability({
       pathAvailable: pathEstimate !== null,
       policyBudgetFrames: this.searchPolicyBudgetFrames,
       attemptKind: episode.lane,
-    });
+    }) : "unvalidated_traversal_model";
     // The interval stratum uses the same path predicate as the correction
     // factor: `pathEstimate` is already the positive-only value the selector
     // would route through.

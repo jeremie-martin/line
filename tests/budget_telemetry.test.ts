@@ -718,17 +718,10 @@ describe("compile budget telemetry", () => {
       budget_exhausted: false,
       first_terminal_total_spent_frames: 240,
     });
-    // The compile-scope structural prior is a path-free estimate, so it carries
-    // the structural domain's verdict rather than an implicit "calibrated".
-    expect(telemetry?.compile.initial_structural_applicability).toBe(
-      budgetEstimatorApplicability({
-        pathAvailable: false,
-        policyBudgetFrames: 800,
-        attemptKind: "initial",
-      }),
-    );
-    // Payloads copy the artifact's own claim; they never assert calibration.
-    expect(telemetry?.model.calibrated).toBe(BUDGET_ESTIMATOR_MODEL.calibrated);
+    // A different traversal model has no claim on the shipped calibration.
+    expect(telemetry?.compile.initial_structural_applicability).toBe("unvalidated_traversal_model");
+    expect(telemetry?.model.calibrated).toBe(false);
+    expect(telemetry?.episodes[0].start.estimator_applicability).toBe("unvalidated_traversal_model");
     expect(telemetry?.execution_intervals.map((interval) => interval.spent_frames)).toEqual([20, 240]);
     const recordedEpisode = telemetry?.episodes[0];
     expect(recordedEpisode?.ceiling_source).toBe("hard_budget");
@@ -777,7 +770,6 @@ describe("compile budget telemetry", () => {
       hardBudgetFrames: 1_000,
       policyBudgetFrames: 800,
       repairBudgetFrames: 900,
-      model: TEST_MODEL,
     });
     const initialEpisodeId = recorder.startEpisode({
       lane: "initial",
@@ -850,7 +842,6 @@ describe("compile budget telemetry", () => {
       durationFrames: 100,
       hardBudgetFrames: 1_000,
       policyBudgetFrames: 800,
-      model: TEST_MODEL,
     });
     recorder.startEpisode({
       lane: "repair",

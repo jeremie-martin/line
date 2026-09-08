@@ -13,6 +13,8 @@ import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { refineArcTrack } from './arc_refinement.ts';
 import { arcResponseStep } from './arc_response.ts';
 import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
+import { normalizeCompilerTimeline } from './compiler_input.ts';
+import { createArcEngine } from './arc_engine.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -77,6 +79,8 @@ export type ArcMotionOptions= {
   refineUseAlternatives?:boolean;
   collectValue?:boolean;
   cachePrefixReads?:boolean;
+  /** Reuse completed evaluations only within the same physical search prefix. */
+  memoCandidates?:boolean;
   futureValueModel?:any;
   /** Research: use the learned value at the unresolved continuation boundary. */
   continuationValueWeight?:number;
@@ -85,9 +89,11 @@ export type ArcMotionOptions= {
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
+  spec=normalizeCompilerTimeline(spec);
   validateSpec(spec);
   resetFrameCount();const budget=options.budget,duration=Math.round(spec.duration*40),end=duration+20;
-  if(budget<2*(end+1))throw new Error('arc budget cannot cover two complete replays');
+  if(duration<1)throw new Error('arc duration must cover at least one frame');
+  if(budget<=2*(end+1))throw new Error('arc budget must cover two complete replays and construction work');
   try{
   const frames=spec.contacts.map(c=>Math.round(c.t*40));
   const gaps=sliceTimeline(frames,duration);
@@ -98,24 +104,27 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   const speed=authoredSpeedToPx(gaps[0].targets.speed??.55);
   const pitch=rad(options.startPitch??8.59436692696);
   const start=fixed??{position:{x:0,y:0},velocity:{x:speed*Math.cos(pitch),y:speed*Math.sin(pitch)}};
-  let engine:any=new Engine().setStart(start.position,start.velocity);
+  let engine:any=createArcEngine(start);
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
-  let samples=0,viableCandidates=0;const qualityRetries=new Map<number,number>();
+  let samples=0,viableCandidates=0,memoHits=0,memoRejectedHits=0;const qualityRetries=new Map<number,number>();
   let refinementStats:any=null, observedConstructionRate=0;
   let searchBudgetExhausted=false;
-  const budgetInterruptions:Array<{phase:'local'|'planning';index:number;frame:number;viable:number;retained:boolean}>=[];
+  const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
   const planningDecisions:any[]=[];
   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
+  let deepestPrefix={lines:[] as TrackLine[],rows:[] as any[]};
   const backtrack=()=>{
+    // Save completed intervals before destructively walking to an earlier fork.
+    if(rows.length>deepestPrefix.rows.length)deepestPrefix={lines:lines.slice(),rows:rows.slice()};
     pendingControl=null;
     while(steps.length){
       const step=steps.pop(),old=rows.pop();lines.length=step.lineStart;
       if(!step.choices.length)continue;
       const choice=step.choices.shift();
       lines.push(...choice.lines);
-      disposeSearch();engine=new Engine().setStart(start.position,start.velocity).addLine(lines);
+      disposeSearch();engine=createArcEngine(start,lines);
       rows.push({...old,...choice.meta,control:choice.c,cost:choice.cost,spent:getPhysicsFrameCount()});steps.push(step);backtracks++;
       if(options.reuseContinuations&&choice.futureControl)pendingControl={index:rows.length,control:choice.futureControl};
       return rows.length-1;
@@ -152,6 +161,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const impact=gap>=0?gaps[gap].targets.impact:undefined;
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
+      const memo=options.memoCandidates?new Map<string,any>():null;
       const evaluate=(c:ArcMotionControl)=>{
         c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
@@ -160,10 +170,28 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(c.turnFraction!==undefined)c.turnFraction=clamp(c.turnFraction,.1,.85);
         if(c.bend!==undefined)c.bend=clamp(c.bend,-60,60);
         if(c.guideFlare!==undefined)c.guideFlare=clamp(c.guideFlare,-16,16);
-        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=engine.addLine(added);samples++;
+        // All geometry inputs besides these controls are fixed for this search.
+        // Preserve absence (explicit full-span guides have a length floor) and
+        // signed zero. The implicit clearance equals the fixed channel exactly.
+        const key=memo?JSON.stringify([c.entry,c.turn,c.exit,c.support,c.bias,c.offset,
+          c.clearance??options.channel??0,c.guideStart,c.guideEnd,c.turnFraction,c.bend,c.guideFlare]
+          .map(value=>value===undefined?'absent':Object.is(value,-0)?'-0':
+            Number.isFinite(value)?value:String(value))):'';
+        samples++;
+        const saved=memo?.get(key);
+        if(saved){
+          memoHits++;
+          if(saved.reason){memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
+          viableCandidates++;candidates.push({...saved.candidate,c});
+          // Never reuse saved wrappers: retainOnly may already have freed them.
+          // Rebuild from validated geometry; subsequent simulations stay metered.
+          // The saved cost already competed for best, which only improves.
+          return {...saved.result,c,child:engine.addLine(saved.result.lines)};
+        }
+        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=engine.addLine(added);
         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
-        const reject=(reason:string)=>{failures[reason]=(failures[reason]??0)+1;return null;};
+        const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;return null;};
         if(JSON.stringify(getRiderMetered(child,frame-1).ballisticState())!==before)return reject('prefix');
         const state=getRiderMetered(child,horizon).ballisticState();
         if(!state.riderMounted||!state.sledIntact)return reject('binding');
@@ -221,6 +249,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         const valueFeatures=options.collectValue||options.futureValueModel?futureFeatures(arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(result.release??frame)),i):undefined;
         const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
         candidates.push({lines:added,c,cost,localCost,heading,endSpeed,pose,valueFeatures,predictedFuture,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+        // Interrupted evaluations never reach this cache insertion.
+        memo?.set(key,{result,candidate:candidates.at(-1)});
         if(!best||cost<best.cost)best=result;
         return result;
       };
@@ -356,15 +386,26 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         }
         return{value:anchor.cost,localValue:anchor.localCost,control:anchor.c,depth:1};
       }
-      let winner:any=null;
+      let winner:any=null, completed=0;
+      try {
       for(const candidate of distinct(searched.candidates,options.lookaheadBranching??2)){
         const branch=base.addLine(candidate.lines);
         const tail=continuation(branch,index+1,depth-1,probeSamples,[...protectedEngines,base,anchor.child]);
         if(tail){
+          completed++;
           const value=candidate.localCost+(options.lookaheadWeight??1)*tail.value;
           if(!winner||value<winner.value)winner={value,localValue:value,control:candidate.c,depth:1+tail.depth};
         }
         Engine.retainOnly([...protectedEngines,base,anchor.child]);
+      }
+      } catch(error) {
+        if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
+        searchBudgetExhausted=true;
+        budgetInterruptions.push({phase:'continuation',index,frame:contacts[index].frame,viable:completed,retained:!!winner});
+        Engine.retainOnly([...protectedEngines,base,anchor.child]);
+        // A completed branch remains usable when exploration of a sibling stops.
+        // Without one, propagate the interruption instead of inventing a horizon.
+        if(!winner)throw error;
       }
       return winner??(options.strictHorizon?null:{value:anchor.cost,localValue:anchor.localCost,control:anchor.c,depth:1});
     };
@@ -458,15 +499,18 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       engine=refined.engine;refinementStats=refined.stats;
     }
   }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;searchBudgetExhausted=true;failure={reason:'budget'};}
+  if(failure&&deepestPrefix.rows.length>rows.length){
+    lines.splice(0,lines.length,...deepestPrefix.lines);rows.splice(0,rows.length,...deepestPrefix.rows);
+  }
   const constructionFrames=getPhysicsFrameCount();
   setPhysicsFrameLimit(budget);
-  const coldEngine=new Engine().setStart(start.position,start.velocity).addLine(lines);
+  const coldEngine=createArcEngine(start,lines);
   raw=extractRawTrajectory(coldEngine,end);
   const guidanceReduction=options.pruneGuidance?trimUnusedArcGuides(lines,coldEngine,end):null;
   if(guidanceReduction)lines.splice(0,lines.length,...guidanceReduction.lines);
   disposeSearch();
-  try{const replay=extractRawTrajectory(new Judge().setStart(start.position,start.velocity).addLine(lines),end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+  try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,searchBudgetExhausted,budgetInterruptions,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

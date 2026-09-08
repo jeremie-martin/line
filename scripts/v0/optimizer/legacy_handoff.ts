@@ -60,6 +60,7 @@
  * falls back to the structural suffix.
  */
 
+import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { createHash } from "node:crypto";
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
 import { beginEnvFlagEpoch, compileScopedEnv } from "../env_flags.ts";
@@ -1907,6 +1908,7 @@ function compileHandoffInternal(
   opts: CompileHandoffOptions,
   initialSnapshot: HandoffNodeSnapshot | null,
 ): CompileCheckpoint {
+  userSpec = normalizeCompilerTimeline(userSpec);
   beginEnvFlagEpoch();
   if (!Number.isSafeInteger(seed)) {
     throw new Error(`compileHandoff: seed must be a safe integer, got ${seed}`);
@@ -2007,26 +2009,13 @@ function compileHandoffInternal(
 
   {
     validateSpec(userSpec);
-    // Drop physically-uncatchable early contacts. A contact registers only when the detector
-    // emits a "landing" event within ±1 frame of its target, and a landing requires the rider to
-    // be airborne for more than K_BOUNCE_LANDING frames first (bounce rejection). From a frame-0
-    // start the soonest landing is therefore frame K_BOUNCE_LANDING+1, so any contact targeting a
-    // frame below K_BOUNCE_LANDING (~0.125s) can never be hit — it only tanks the score. We drop it
-    // up front so the search and the drift report share one feasible contract. (No-op on the golden
-    // suite: its earliest contact is frame 16, well above the floor — baselines are preserved.)
-    const feasibleContacts = userSpec.contacts.filter((c) => secToFrame(c.t) >= K_BOUNCE_LANDING);
-    if (feasibleContacts.length !== userSpec.contacts.length) {
-      const dropped = userSpec.contacts.length - feasibleContacts.length;
-      process.stderr.write(
-        `handoff: dropped ${dropped} contact(s) before the landing floor ` +
-        `(<${K_BOUNCE_LANDING} frames / ${(K_BOUNCE_LANDING / FPS).toFixed(3)}s — physically uncatchable)\n`,
-      );
-    }
+    // Preserve every authored contact, including physically infeasible ones.
+    // Search may fail to hit one; its drift report must still report that miss.
     // Do not run a separate optimized-preroll pre-pass here. In the handoff
     // optimizer, the initial condition is the first state boundary of the search;
     // pre-worlding belongs in this search, not as a hidden budget-consuming
     // compiler before it. A manual `start` is still honored by resolveStartState.
-    const spec: Spec = { ...userSpec, preroll: undefined, contacts: feasibleContacts };
+    const spec: Spec = { ...userSpec, preroll: undefined };
     const specProfile = buildHandoffSpecProfile(spec);
     setProposalUtilityPowers({
       settledIncomingQualityPower:

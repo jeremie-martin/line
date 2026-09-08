@@ -58,3 +58,16 @@ it("uses seeded target variation without changing the authored report contract",
   assertCurves(a.track.lines);
   assertCurves(b.track.lines);
 });
+
+it("attributes reached contacts by timeline position and discloses unvalidated cost estimates", () => {
+  const result = compileHandoff(spec, 17, { budget: 30000, budgetTelemetry: 'trace' });
+  const telemetry = result.budgetTelemetry!;
+  expect(telemetry.model.calibrated).toBe(false);
+  expect(telemetry.compile.initial_structural_applicability).toBe('unvalidated_traversal_model');
+  const observations = telemetry.episodes[0].observations!;
+  const reached = observations.filter(o => o.event === 'high_water');
+  expect(reached).toHaveLength(spec.contacts.length);
+  expect(reached.every(o => o.estimator_applicability === 'unvalidated_traversal_model')).toBe(true);
+  expect(reached.every(o => o.hard_completion_margin === null)).toBe(true);
+  expect(telemetry.compile.total_spent_frames).toBe(result.stats.sim_frames);
+});

@@ -6,6 +6,7 @@
 import { FPS, type Spec } from "../types.ts";
 import type { CompileCheckpoint } from "./types.ts";
 import { compileConnectedArcs } from "./connected_arcs.ts";
+import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler_input.ts";
 import { compileLegacyHandoff, compileHandoffFromSnapshot,
   type CompileHandoffOptions, type HandoffNodeSnapshot } from "./legacy_handoff.ts";
 
@@ -22,6 +23,8 @@ export function handoffBackend(userSpec: Spec, opts: CompileHandoffOptions): "ar
 }
 
 export function compileHandoff(userSpec: Spec, seed = 0, opts: CompileHandoffOptions): CompileCheckpoint {
+  userSpec = normalizeCompilerTimeline(userSpec);
+  validateCompilerTelemetry(opts.budgetTelemetry);
   return handoffBackend(userSpec, opts) === "arcs"
     ? compileConnectedArcs(userSpec, seed, opts)
     : compileLegacyHandoff(userSpec, seed, opts);

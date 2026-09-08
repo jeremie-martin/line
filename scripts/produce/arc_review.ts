@@ -34,7 +34,7 @@ if(existsSync(join(work,'compile.json'))){
   const result:any=publicCompiler?compileConnectedArcs(spec,seed,{budget:cfg.budget}):compileArcMotion(spec,seed,options);
   const metrics=measure(seed,result.track,result.report,extractTrace(result.track));
   if(!metrics.contractPassed||!metrics.reachedEnd||metrics.offBeat)throw new Error(`research production contract failed: ${JSON.stringify({metrics,failure:result.failure})}`);
-  if(result.track.lines.some(l=>l.type!==0))throw new Error('non-normal geometry');
+  if(result.track.lines.some((l:{type:number})=>l.type!==0))throw new Error('non-normal geometry');
   write(join(work,'track.json'),result.track);write(join(work,'report.json'),result.report);
   write(join(work,'research.json'),{rows:result.rows,stats:result.stats,failure:result.failure,samples:result.samples,backtracks:result.backtracks});
   write(join(work,'budget-telemetry.json'),{schema:'line.arc-motion-research-budget.v1',budget:cfg.budget,actualPhysicsFrames:result.stats.sim_frames,includes:'All construction proposals, backtracking rebuilds, and two cold full replays. Production measurement and video export are separate.'});

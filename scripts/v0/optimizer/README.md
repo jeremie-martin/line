@@ -31,7 +31,8 @@ Completed evaluations of identical normalized controls are reused within one sea
 prefix. Cached engine wrappers are never reused; new children receive ordinary
 physical metering. `memoCandidates: false` disables this for controlled studies.
 Budget interruptions preserve completed recursive branches and the deepest
-completed prefix. Repair records describe every accepted rebuilt interval.
+completed prefix. Proactive retry estimates include rebuilding from the actual
+backtracking boundary. Repair records describe every accepted rebuilt interval.
 Same spec, seed and budget must give identical tracks. Each budget is a fresh run.
 
 ## Retained mechanisms

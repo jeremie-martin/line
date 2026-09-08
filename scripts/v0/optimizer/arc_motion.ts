@@ -475,8 +475,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         lookaheadStats.physicsFrames+=getPhysicsFrameCount()-startFrames;
         lookahead={probes,selected:winner?.candidate.c??original.c};
       }
+      // A quality retry resumes at an earlier fork and rebuilds its engine.
+      // Estimate from that boundary, including its cold prefix, rather than
+      // granting a retry using only the shorter suffix at the current contact.
+      let retryIndex=steps.length-1;
+      while(retryIndex>=0&&!steps[retryIndex].choices.length)retryIndex--;
+      const retryFrame=retryIndex<0?frame:rows[retryIndex].frame;
       if(best&&(options.qualityRetries??0)>0&&targets.speed!==undefined&&Math.abs(best.achieved.speed-targets.speed)>.3&&
-        (qualityRetries.get(frame)??0)<options.qualityRetries!&&getPhysicsFrameCount()+(end-frame)*(options.samples??160)*1.1<budget-2*(end+1)){
+        (qualityRetries.get(frame)??0)<options.qualityRetries!&&getPhysicsFrameCount()+retryFrame+(end-retryFrame)*(options.samples??160)*1.1<budget-2*(end+1)){
         qualityRetries.set(frame,(qualityRetries.get(frame)??0)+1);
         const retry=steps.some(s=>s.choices.length)?backtrack():null;if(retry!==null){i=retry;continue;}
       }

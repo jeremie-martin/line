@@ -222,7 +222,10 @@ repository errors remain.
 
 All three final vertical production videos are archived. Sampled rendered
 frames were visually inspected and all complete streams decoded without errors.
-Their tracks and reports exactly match the final compiler. The user has not
-yet approved the paired-arc appearance. See the gallery, video record, and
+Their tracks and reports exactly match the final compiler. The user subsequently
+reviewed the videos and welcomed the paired-arc appearance, with interest in
+further performance and less repetitive geometry. The
+[video review](arc-motion-video-review.md#owner-feedback-2026-09-08) records that
+feedback and research hypotheses. See the gallery, video record, and
 `benchmark/v2/studies/connected-arc-feedback-validation.json` for durable evidence.
 The numerical objective and requested visual artifacts are complete.

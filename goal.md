@@ -3,8 +3,9 @@
 Status, 2026-09-08: the numerical objective and full video deliverables are
 complete. **Connected-arc-feedback is promoted at 687.5102**, with **352/352
 valid canonical runs** across the complete 44-case Benchmark V2 development
-suite and eight seeds (16–23), under the actual 750k frame budget. The owner's
-judgment of the new paired-arc appearance remains open.
+suite and eight seeds (16–23), under the actual 750k frame budget. The owner
+has reviewed the videos and welcomes the paired-arc appearance; further
+performance and visual variety remain open research directions.
 
 ## Owner requirements
 
@@ -21,6 +22,14 @@ closures, deferrals and study caps are historical evidence, not restrictions.
 Research compute is unrestricted; accepted compilers must earn their results
 inside the measured execution budget. Use full production videos to assess
 appearance alongside numerical quality.
+
+In the subsequent video review, the owner welcomed the curved guidance and
+impacts, while questioning the repeated use of two rails at every beat.
+Preserve general geometry and measured physical feedback. Explore when a
+single arc, a shorter upper guide, or a full pair is useful, without treating
+praise for an effect as a request to repeat it. Performance research can
+precede broader variety work. See the [review notes](docs/arc-motion-video-review.md)
+for the distinction between current design choices and proposed experiments.
 
 ## Delivered result
 

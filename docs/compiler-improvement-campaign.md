@@ -43,8 +43,10 @@ All three final videos are complete and archived, alongside the earlier
 research previews. The final compiler reproduces every rendered track and report. All use the production vertical format, music, camera,
 overlays, and locked effects. [Video details](arc-motion-video-review.md).
 The standing-time creative selection floor is not met by these review examples;
-physical survival and contact contracts are required and pass. Appearance still
-needs the owner's judgment.
+physical survival and contact contracts are required and pass. The owner has
+reviewed the videos and welcomes the paired-arc appearance, while encouraging
+further performance and less repetitive geometry. See the
+[owner feedback and research hypotheses](arc-motion-video-review.md#owner-feedback-2026-09-08).
 
 ## Evidence and continuation
 

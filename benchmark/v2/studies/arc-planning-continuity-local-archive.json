@@ -1,0 +1,43 @@
+{
+  "schema": "line.arc-planning-continuity-local-archive.v1",
+  "localDirectory": "archives/arc-planning-continuity-2026-09-08",
+  "archivePolicy": "Large payloads stay local. Code and compact evidence are pushed.",
+  "sourceCommit": "8aa3c66467af57c47dbf9540c8e3223212591837",
+  "measuredCompilerCommit": "72c0303ec10fbbd811e6267b22845edba95198c2",
+  "activeBranch": "codex/arc-planning-continuity",
+  "preservationBranch": "archive/arc-planning-continuity-771",
+  "intermediateBranch": "archive/arc-continuation-boundary-771",
+  "candidateFingerprint": "fcf775fcce8081a5f2d7576ef609bb8fc6fbd07d27454815f25aa01446b38657",
+  "headline": 771.3015,
+  "canonicalValid": "352/352",
+  "qualificationValid": "120/120",
+  "lowBudget150k": {
+    "score": 504.1253,
+    "valid": "39/44"
+  },
+  "previousEvidenceArchive": "../compiler-foundations-2026-09-08/index.html",
+  "existingArcRefinementVideoGallery": "../arc-refinement-2026-09-08/index.html",
+  "videoNote": "No new videos rendered for this interruption-only follow-up. The linked gallery is the preserved earlier arc-refinement milestone.",
+  "artifacts": [
+    {
+      "file": "evidence.tar.gz",
+      "bytes": 56666586,
+      "sha256": "01c7714f7c3f8e97bf96fc0db1e0e4b573df1fa9488435b7954344e6f149d4b2"
+    },
+    {
+      "file": "judge.wasm",
+      "bytes": 79556,
+      "sha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+    },
+    {
+      "file": "source.tar.gz",
+      "bytes": 2481260,
+      "sha256": "33825cc9df447e9aedfce36bf49da4e5c1983fb89a25ff191602fde8df3ed326"
+    },
+    {
+      "file": "validation.json",
+      "bytes": 33406,
+      "sha256": "7a2aaaad82df8c8120658a382cd77a660ffa891071ff1670b109ea97387cc00a"
+    }
+  ]
+}

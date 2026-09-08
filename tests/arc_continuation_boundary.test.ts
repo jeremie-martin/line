@@ -7,8 +7,8 @@ const spec: Spec = { duration: 4, preroll: 5, jitter: 0,
   contacts: [.6, 1.2, 1.8, 2.4, 3, 3.6].map(t => ({t, impact: .4})),
   axes: {air: () => .5, speed: () => .5} };
 
-it('keeps the default unchanged and meters physically valid learned boundary search', () => {
-  const options = connectedArcOptions(spec, 75000);
+it('treats zero as omitted and meters physically valid learned boundary search', () => {
+  const options = {...connectedArcOptions(spec, 75000), continuationValueWeight: undefined};
   const reference = compileArcMotion(spec, 17, options);
   const disabled = compileArcMotion(spec, 17, {...options, continuationValueWeight: 0});
   expect(disabled.track).toEqual(reference.track);

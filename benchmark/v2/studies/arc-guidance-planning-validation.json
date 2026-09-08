@@ -1,0 +1,538 @@
+{
+  "schema": "line.arc-guidance-planning-validation.v1",
+  "date": "2026-09-08",
+  "candidateFingerprint": "fd1f576b36213e0c1e9a32f6ad7a058658b151e1e81757e2fda258374679a1d2",
+  "compilerSourceFingerprint": "05a89447ceabbadec189d0222b03ad4f53c44918709ca2d4a3137865a5b7c55d",
+  "compilerCommit": "6f71b4d8",
+  "renderAndValidationCommit": "173cd5b8",
+  "workBranch": "codex/arc-guidance-planning",
+  "preservationBranch": "archive/arc-guidance-planning-744",
+  "referenceBranch": "archive/connected-arc-feedback-687",
+  "fixedIdentities": {
+    "suite_fingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
+    "scoring_protocol_fingerprint": "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6",
+    "golden_evaluator_fingerprint": "07cf88383150",
+    "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+  },
+  "fixedSuiteManifestFileSha256": "9116b08c364868256c90fe1dc867a4d52199551b8a26c7db296a44dcceab0ffc",
+  "geometry": {
+    "normalLinesOnly": true,
+    "primitive": "Smooth supporting arcs with searched clearance and causal contiguous upper-guide reduction.",
+    "noMotifQuota": true,
+    "allCanonicalTracksScoresAndFrameCostsMatchDiscovery": true,
+    "guidanceReduction": {
+      "originalGuides": 4100,
+      "removedGuides": 952,
+      "shortenedGuides": 2969,
+      "removedSegments": 117676,
+      "lengthBefore": 493716.64483438066,
+      "lengthAfter": 200055.90381428794,
+      "lengthReductionPct": 59.479611249201945
+    }
+  },
+  "workItems": {
+    "causalStudy": {
+      "sources": 44,
+      "rails": 4100,
+      "unused": 1389,
+      "identicalCombined": 44,
+      "removedSegments": 146472,
+      "auditPhysicsFrames": 29304164
+    },
+    "geometry": "Shared clearance/coverage representation, single/partial/full and joint shape experiments; selected clearance search plus causal coverage reduction.",
+    "planning": "Measured next-interval continuations, terminal arrival objective, warm reuse and viable-continuation recovery; depth-two trees evaluated but not selected."
+  },
+  "canonical": {
+    "headline": 744.5,
+    "referenceHeadline": 687.5102,
+    "pairedDelta": 56.9898,
+    "valid": 352,
+    "runs": 352,
+    "sources": 44,
+    "seeds": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "declaredMaximumSeeds": 48,
+    "acceptedAt": 8,
+    "forced": false,
+    "seedBlockSE": 0,
+    "distinctTracks": 44,
+    "seedInterpretation": "Zero-jitter deterministic repetitions. Separate jitter study below evaluates 176 distinct tracks.",
+    "catalogSensitivity": {
+      "available": true,
+      "estimate": 56.9898,
+      "bootstrapMedian": 56.9748,
+      "standardError": 3.5602,
+      "centralLevel": 0.95,
+      "centralLo": 50.3714,
+      "centralHi": 63.8088
+    },
+    "frames": {
+      "min": 687744,
+      "median": 715502.0,
+      "max": 737686,
+      "total": 251551536
+    },
+    "referenceMedianFrames": 358313,
+    "allowance": 750000,
+    "costInterpretation": "Same actual-frame allowance; candidate spends more actual compute than reference.",
+    "improvedCases": 42,
+    "regressedCases": [
+      {
+        "source": "amplitude_tides_restrained_10",
+        "delta": -23.944
+      },
+      {
+        "source": "believer_impact_56s",
+        "delta": -5.5561
+      }
+    ]
+  },
+  "qualification": {
+    "valid": 120,
+    "runs": 120,
+    "monitor": 649.2793,
+    "referenceMonitor": 626.5448,
+    "budgets": [
+      {
+        "budget": 250000,
+        "monitorScore": 607.1908,
+        "validRuns": 40,
+        "totalRuns": 40
+      },
+      {
+        "budget": 500000,
+        "monitorScore": 641.5005,
+        "validRuns": 40,
+        "totalRuns": 40
+      },
+      {
+        "budget": 750000,
+        "monitorScore": 690.3029,
+        "validRuns": 40,
+        "totalRuns": 40
+      }
+    ]
+  },
+  "searchTargetJitter": {
+    "schema": "line.arc-guidance-jitter-comparison.v1",
+    "researchOnly": true,
+    "cells": 176,
+    "jitter": 0.02,
+    "seeds": [
+      101,
+      102,
+      103,
+      104
+    ],
+    "candidateValid": 176,
+    "referenceValid": 175,
+    "rescued": [
+      {
+        "source": "high_air_drive",
+        "seed": 102
+      }
+    ],
+    "lost": [],
+    "meanCellScoreDelta": 60.63371534090909,
+    "note": "Separate search-target-jitter study; not a canonical headline or a guarantee for other perturbations."
+  },
+  "standingLowBudget": {
+    "budget": 250000,
+    "valid": 528,
+    "runs": 528,
+    "score": 645.656,
+    "verdict": "PARITY",
+    "changedTracks": 528,
+    "lost": 0,
+    "rescued": 0,
+    "scoreDelta": 0
+  },
+  "scale": {
+    "researchOnly": true,
+    "seeds": [
+      0
+    ],
+    "sources": 44,
+    "summaries": [
+      {
+        "budget": 150000,
+        "score": 481.1128,
+        "validRuns": 38,
+        "totalRuns": 44
+      },
+      {
+        "budget": 750000,
+        "score": 744.5,
+        "validRuns": 44,
+        "totalRuns": 44
+      },
+      {
+        "budget": 1000000,
+        "score": 745.0343,
+        "validRuns": 44,
+        "totalRuns": 44
+      },
+      {
+        "budget": 3000000,
+        "score": 745.0343,
+        "validRuns": 44,
+        "totalRuns": 44
+      }
+    ],
+    "maximumFramesByBudget": {
+      "150000": 149995,
+      "750000": 737686,
+      "1000000": 804515,
+      "3000000": 804515
+    },
+    "reference150k": {
+      "schema": "line.arc-guidance-150k-reference-comparison.v1",
+      "researchOnly": true,
+      "cells": 44,
+      "candidateValid": 38,
+      "referenceValid": 38,
+      "equalScoreCells": 44,
+      "equalFrameCostCells": 44,
+      "equalReportCells": 44,
+      "lost": [],
+      "rescued": [],
+      "inheritedFailures": [
+        "frontier_pickup_progression",
+        "frontier_dense_recovery",
+        "frontier_dense_recovery_240ms_figures",
+        "regression_amplitude_mosaic_contrast_10",
+        "believer_56_6s",
+        "believer_56_6s_impact_relief"
+      ],
+      "candidate": "final-scale.json",
+      "reference": "reference-150k.json"
+    },
+    "all1MAnd3MTrackHashesEqual": true
+  },
+  "experiments": [
+    {
+      "name": "full-g2-clearance",
+      "sources": 44,
+      "valid": 44,
+      "score": 702.0956,
+      "maxFrames": 560277,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-g2-clearance/summary.json",
+        "sha256": "41d5802616e08399bf06108022ed8ef6c6f0ae14dc6c70dde52008afef6dd205"
+      }
+    },
+    {
+      "name": "full-l1-guidance",
+      "sources": 44,
+      "valid": 44,
+      "score": 720.6183,
+      "maxFrames": 741557,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-l1-guidance/summary.json",
+        "sha256": "50ed5c3c4de9f14853967c320eff004a8efe897d511bc0b68480b04b1ee8aafe"
+      }
+    },
+    {
+      "name": "full-l3-terminal",
+      "sources": 44,
+      "valid": 44,
+      "score": 741.5662,
+      "maxFrames": 742375,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-l3-terminal/summary.json",
+        "sha256": "39c2121814545e3abbb5ec8411cfa0f866b18580ad1e0256e129a7f094a41d01"
+      }
+    },
+    {
+      "name": "full-l3-reserve",
+      "sources": 44,
+      "valid": 44,
+      "score": 741.8474,
+      "maxFrames": 722807,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-l3-reserve/summary.json",
+        "sha256": "c855c2d777e3264dfa31314b26c6f1980e292ffa26a7b2520a57e7c52730a9e6"
+      }
+    },
+    {
+      "name": "full-l3-deep",
+      "sources": 44,
+      "valid": 44,
+      "score": 719.4856,
+      "maxFrames": 740883,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-l3-deep/summary.json",
+        "sha256": "b6882f9c4d6567f0c07a78f9fbda7dd41702e0504195820a6ba26955f73219a8"
+      }
+    },
+    {
+      "name": "full-l4-joint",
+      "sources": 44,
+      "valid": 44,
+      "score": 733.6547,
+      "maxFrames": 737050,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-l4-joint/summary.json",
+        "sha256": "64a4978c605b49e7328a7c75b6de5b41a1f4b66394bed3445362965998857da6"
+      }
+    },
+    {
+      "name": "full-l4-recovery",
+      "sources": 44,
+      "valid": 44,
+      "score": 744.5,
+      "maxFrames": 737686,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-l4-recovery/summary.json",
+        "sha256": "3edaa96980869b185a41518b09ae2a282f8eccba8747c108d2a99c4dc24914c3"
+      }
+    },
+    {
+      "name": "full-ablate-guidance",
+      "sources": 44,
+      "valid": 44,
+      "score": 705.2066,
+      "maxFrames": 670179,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-ablate-guidance/summary.json",
+        "sha256": "2cb7bfc302259e25cbbc7146b5d227b688812619c67022dc567069db6ea9d389"
+      }
+    },
+    {
+      "name": "full-control-320",
+      "sources": 44,
+      "valid": 35,
+      "score": 567.2923,
+      "maxFrames": 749995,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/full-control-320/summary.json",
+        "sha256": "2f57bce9b53330080c148e11e65ff7733956f6dbb67bd33748c50c1c71c59be4"
+      }
+    },
+    {
+      "name": "public-priority-250000",
+      "sources": 44,
+      "valid": 44,
+      "score": 610.9446,
+      "maxFrames": 244538,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/public-priority-250000/summary.json",
+        "sha256": "784cd66d6944d32831894dfcedf35b9249efb1e4696208c50c24a2d1bbdbecf8"
+      }
+    },
+    {
+      "name": "public-priority-500000",
+      "sources": 44,
+      "valid": 44,
+      "score": 709.4171,
+      "maxFrames": 498781,
+      "artifact": {
+        "path": "generated/benchmark-v2/arc-guidance/public-priority-500000/summary.json",
+        "sha256": "c80cfdcfde2ed0ad8f721362a5b46ad56f96d6145e747ea31f2b88fcc1d84846"
+      }
+    }
+  ],
+  "tests": {
+    "files": 7,
+    "passed": 22,
+    "failed": 0,
+    "repositoryTypecheck": "Fails on pre-existing unrelated errors; no diagnostics in changed compiler or production-review files."
+  },
+  "videos": {
+    "gallery": "archives/arc-guidance-2026-09-08/index.html",
+    "entries": [
+      {
+        "id": "amor_na_praia_46s",
+        "title": "Amor na Praia",
+        "video": "amor_na_praia_46s/video.mp4",
+        "videoSha256": "f9d29b61542dbd0e97f205376895a00dadd36ed0e1564c18820e12a2b0e4267f",
+        "poster": "amor_na_praia_46s/poster.png",
+        "review": "amor_na_praia_46s/review.json",
+        "validation": "amor_na_praia_46s/review-validation.json",
+        "metrics": {
+          "seed": 260908011,
+          "score": 795.8005567837318,
+          "standTimePct": 0,
+          "rotations": 15.177238950651859,
+          "flipCount": 1,
+          "reachedEnd": true,
+          "offBeat": 0,
+          "contractPassed": true,
+          "durationFrames": 1860
+        },
+        "videoDuration": 46.5,
+        "videoCodec": "h264",
+        "audioCodec": "aac",
+        "lineCount": 2905,
+        "groups": 79,
+        "singleCurveGroups": 37,
+        "allNormal": true,
+        "physicalContractPassed": true,
+        "creativeFloorsPassed": false,
+        "creativeFloorFailure": "standTimePct=0 < unchanged standTimePctMin=2",
+        "budget": 1000000,
+        "seed": 260908011,
+        "renderGitCommit": "173cd5b8f1c11ca9ad51630fe7f2886f9860e0f9"
+      },
+      {
+        "id": "luna_bala_44s",
+        "title": "Luna Bala",
+        "video": "luna_bala_44s/video.mp4",
+        "videoSha256": "1e6acc75b4d324e201888329f6ed7cb8bd2a87b3405aafa2632ac2d22f55d680",
+        "poster": "luna_bala_44s/poster.png",
+        "review": "luna_bala_44s/review.json",
+        "validation": "luna_bala_44s/review-validation.json",
+        "metrics": {
+          "seed": 260908011,
+          "score": 794.7925993274924,
+          "standTimePct": 0,
+          "rotations": 17.908950363913466,
+          "flipCount": 2,
+          "reachedEnd": true,
+          "offBeat": 0,
+          "contractPassed": true,
+          "durationFrames": 1780
+        },
+        "videoDuration": 44.5,
+        "videoCodec": "h264",
+        "audioCodec": "aac",
+        "lineCount": 2752,
+        "groups": 76,
+        "singleCurveGroups": 28,
+        "allNormal": true,
+        "physicalContractPassed": true,
+        "creativeFloorsPassed": false,
+        "creativeFloorFailure": "standTimePct=0 < unchanged standTimePctMin=2",
+        "budget": 1000000,
+        "seed": 260908011,
+        "renderGitCommit": "173cd5b8f1c11ca9ad51630fe7f2886f9860e0f9"
+      },
+      {
+        "id": "tiki_tiki_48s",
+        "title": "Tiki Tiki",
+        "video": "tiki_tiki_48s/video.mp4",
+        "videoSha256": "0a224450bc3afd1d8c4a95b2c2bbf2bdcbc4fcbda9bcbd1bfb63c627dffc2535",
+        "poster": "tiki_tiki_48s/poster.png",
+        "review": "tiki_tiki_48s/review.json",
+        "validation": "tiki_tiki_48s/review-validation.json",
+        "metrics": {
+          "seed": 260908011,
+          "score": 688.224652808145,
+          "standTimePct": 0,
+          "rotations": 15.337085718346364,
+          "flipCount": 5,
+          "reachedEnd": true,
+          "offBeat": 0,
+          "contractPassed": true,
+          "durationFrames": 1940
+        },
+        "videoDuration": 48.5,
+        "videoCodec": "h264",
+        "audioCodec": "aac",
+        "lineCount": 3244,
+        "groups": 78,
+        "singleCurveGroups": 41,
+        "allNormal": true,
+        "physicalContractPassed": true,
+        "creativeFloorsPassed": false,
+        "creativeFloorFailure": "standTimePct=0 < unchanged standTimePctMin=2",
+        "budget": 1000000,
+        "seed": 260908011,
+        "renderGitCommit": "173cd5b8f1c11ca9ad51630fe7f2886f9860e0f9"
+      }
+    ],
+    "visualInspection": "Actual frames at 12 and 30 seconds in each video; all complete files decoded without errors.",
+    "allPhysicalContractsPassed": true,
+    "allCreativeFloorsPassed": false
+  },
+  "limitations": [
+    "Two full-development cases regress in score.",
+    "Six 150k failures match the preserved reference exactly.",
+    "Default search outputs saturate between 1M and 3M; deeper trees were weaker at 750k.",
+    "Three video review examples miss unchanged 2% standing-time floor.",
+    "Canonical seed repetitions are deterministic; jitter study is a separate limited stress test.",
+    "Repository-wide TypeScript checking retains unrelated existing errors."
+  ],
+  "artifacts": [
+    {
+      "path": "generated/benchmark-v2/arc-guidance/canonical-equivalence.json",
+      "sha256": "7003f3a266a8d76e7d96a2e114cb0025e4c654f73f38e372b3e4b5b536c2c8a9"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/qualification.json.gz",
+      "sha256": "762aac8f213bf41a5961c085b8f5ac64473911fd248eef007769dd19cc43202e"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/robustness-comparison.json",
+      "sha256": "8e87378c99728fb446d9b68b0ae8cb537453b3cafdd55c8534cf4fc0b4f29d3c"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/final-scale.json.gz",
+      "sha256": "e544945ac2035f9baa006d3969a5853cd3bbd5a0af3e2bec3784f536a26158c9"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/150k-reference-comparison.json",
+      "sha256": "b3062ae1be20022c93ecf7f2b5f4aeca85b4fc8bb3bef41d9b41b3b35c9bda21"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/reference-150k.json.gz",
+      "sha256": "7c647fb07f0caca9965d76ead7e50692298764344ae2dd0f249d5c469110e03d"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/lowbudget-tree.json.gz",
+      "sha256": "3f0fc53f147372c7de671b3aabc21b42ebf456ca73a919e5ae7c400c978d501c"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/published-reference-river_reentry.json",
+      "sha256": "55b4eca79b0dca8e94fdb76c59927a96ec388f1d87b404729a3138b9802663ce"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/published-reference-dense_dialogue.json",
+      "sha256": "0fad598f151c1dea11fb465804967af85279dac1d4f04c18e6002148d3ff931d"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/final-tests.log",
+      "sha256": "eb9630cd449dac8539f32038a0612f3c3e95e91ca28f52844e5f6a9532a55410"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/final-typecheck.log",
+      "sha256": "6b13a876acd1bd8e117faa5badc5c110a0178abe16557a631c57b5a2a6792463"
+    },
+    {
+      "path": "generated/benchmark-v2/arc-guidance/lowbudget-reading/2026-09-08T13-58-59-020Z-arc-guidance-planning.json",
+      "sha256": "6b520b88682c5e105e01542e91537d3f4b26dc7d95f4aa57a47c2ab51b546a32"
+    },
+    {
+      "path": "archives/arc-guidance-2026-09-08/manifest.json",
+      "sha256": "e316c819482d8f183196bf0b35a821dff092a23657248605f956f0d80e271e1c"
+    },
+    {
+      "path": "archives/arc-guidance-2026-09-08/research-evidence.tar.gz",
+      "sha256": "ac5e6573d26f3fc5c7901c8c27b497a2fd3873ae90aecf0099684a692161c44f"
+    },
+    {
+      "path": "benchmark/v2/runs/arc-guidance-planning-compiler-snapshot.tar.gz",
+      "sha256": "a3c50c7d86bda1bffd96906db292fd7c008277329cc7dfb79b0d8b866630297f"
+    },
+    {
+      "path": "benchmark/v2/runs/arc-guidance-planning-development-750k-N8.json.gz",
+      "sha256": "7734aa3038a315c8724423a7af7155cb2d9501582f806e1405c032822d6b1279"
+    },
+    {
+      "path": "benchmark/v2/runs/arc-guidance-planning-comparison.json",
+      "sha256": "1d4f690aec970f6e3987679f404a43e3a5fdc6939782d909884103637691c3ce"
+    },
+    {
+      "path": "benchmark/v2/studies/current-baseline-analysis.json",
+      "sha256": "6249a4c84c803802c8e66fbb35750df90b09f2b9f5d864b4c4cadaa1585697d0"
+    }
+  ]
+}

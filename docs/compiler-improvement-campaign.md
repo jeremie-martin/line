@@ -1,75 +1,91 @@
 # Compiler improvement campaign
 
-The active normal-line, arc-based compiler is **connected-arc-feedback**, promoted at
-**687.5102** on Benchmark V2 at 750k: **352/352 valid runs**, all 44 development
-cases × eight seeds (16–23). The governed comparison accepts at N=8, with
-**+24.9213** over the preserved point-control compiler's 662.5889. N=48 was the
-declared maximum; the accepted first look executed eight seeds. No forced
-promotion was used. Benchmark, score, targets, physics, validity, and frame
-accounting remain unchanged.
+The active normal-line arc compiler is **arc-guidance-planning**, promoted at
+**744.5000** on Benchmark V2 at 750k, up **56.9898** from 687.5102.
+All **352/352 runs** pass across the full 44-case development suite and eight
+seeds (16–23). The governed comparison accepts the first N=8 look of the
+declared N=48 maximum; no forced promotion was used. Benchmark, scorer,
+targets, physics, validity and frame accounting are unchanged.
 
-The compiler builds coherent physical curve pairs from normal type-0 lines.
-It proposes smooth curves, measures their actual motion, balances upward and
-downward redirection, and revisits earlier curves before bad approach states
-compound. A broad arrival-angle objective prevents steep speed runaways.
-The upper rail performs real physical control: removing it changes the audited
-River trajectory at frame 66 and ejects the rider at frame 192. The full track
-survives to frame 2340. This is physical arc construction, with no decorative
-cover over isolated point controls.
+The three approved work items are complete: causal rail ablation, general
+curve geometry, and planning across beats. The selected compiler searches
+guide clearance, tests the next arc before selecting the current arrival,
+and retains useful continuations for later construction and recovery.
+A replay identifies unused upper rails and unused ends; removal must preserve
+the entire raw trajectory under the frozen judge. Supporting arcs remain
+intact. Single arcs, partial guides and full pairs follow from physical need,
+without a motif schedule or random variety quota. Coverage search, joint
+shape refinement and deeper trees were also implemented and evaluated;
+their results and failed experiments remain in the
+[research record](arc-guidance-planning-campaign.md).
 
-Canonical compiles use 316,533–509,155 actual physics frames (median 358,313),
-including failed proposals, backtracking, and two complete cold replays.
-Both compiler and preserved point baseline are deterministic across these
-zero-jitter development seeds, so measured seed-block SE is zero; this does
-not imply zero uncertainty about other specifications. The catalog sensitivity
-interval for the gain is [18.2560, 31.1076].
+Across the 44 final tracks, 952 of 4,100 upper guides are removed and 2,969
+shortened. Their combined length drops 59.48%. The remaining guides are
+contiguous curves; every line is normal type 0. All proposals, lookahead,
+backtracking and two full cold replays count toward actual physics work.
+Canonical costs are 687,744–737,686 frames, median 715,502, compared with the
+reference median 358,313. This is an improvement under the same allowance,
+with greater actual expenditure. A 320-proposal local-only control fails
+nine cases and scores 567.2923; increasing local breadth alone did not
+reproduce the gain in the tested implementation.
 
-Qualification passes **120/120**, with monitor scores 583.7360 / 630.8295 /
-647.9428 at 250k / 500k / 750k. The combined monitor is 626.5448, below the
-previous point-control monitor of 644.8292. Twenty-eight development cases
-improve and sixteen regress; low-air and pickup cases are prominent weaknesses.
-The standing 250k comparison passes 528/528 with no lost completions, but
-its subset score is 645.6560 versus 670.9793; the reading is ADVERSE on score. These monitors do not change the 750k acceptance policy.
+## Validation and limits
 
-Twelve final scale checks across three sources at 150k, 750k, 1M, and 3M
-stay within their actual budgets. Eleven are valid; Pickup Progression fails
-at 150k. The 1M and 3M outputs match per source. Two
-complete tracks exactly match the published JavaScript engine, frame by frame
-and event by event, as well as the frozen WASM judge. Seven focused integration
-and identity tests plus 22 physics/runner/scoring tests pass.
+Forty-two development cases improve; Amplitude Tides Restrained regresses
+23.9440 and Believer Impact regresses 5.5561. Canonical zero-jitter seeds
+repeat identical tracks, giving 44 distinct tracks and seed SE zero. The
+catalog sensitivity interval for the gain is [50.3714, 63.8088].
 
-[Open the arc video gallery](../archives/arc-motion-2026-09-08/index.html).
-All three final videos are complete and archived, alongside the earlier
-research previews. The final compiler reproduces every rendered track and report. All use the production vertical format, music, camera,
-overlays, and locked effects. [Video details](arc-motion-video-review.md).
-The standing-time creative selection floor is not met by these review examples;
-physical survival and contact contracts are required and pass. The owner has
-reviewed the videos and welcomes the paired-arc appearance, while encouraging
-further performance and less repetitive geometry. See the
-[owner feedback and research hypotheses](arc-motion-video-review.md#owner-feedback-2026-09-08).
+Qualification passes **120/120**, with monitor scores 607.1908 / 641.5005 /
+690.3029 at 250k / 500k / 750k, combined 649.2793 (reference 626.5448).
+A separate all-44-case search-target-jitter study, jitter 0.02 and seeds
+101–104, passes **176/176 distinct tracks** versus 175/176 for the reference:
+one rescue, no losses, mean per-cell gain 60.6337. This stress study is not
+the canonical headline or a guarantee for other perturbations.
 
-## Evidence and continuation
+| Actual frame allowance | Full-suite score | Valid cases | Reading |
+| --- | ---: | ---: | --- |
+| 150k | 481.1128 | 38/44 | All scores, reports and costs equal the reference |
+| 250k | 610.9446 | 44/44 | Score parity with reference |
+| 500k | 709.4171 | 44/44 | Reference 673.6385 |
+| 750k | 744.5000 | 44/44 | Canonically certified across eight seeds |
+| 1M | 745.0343 | 44/44 | Default search breadth saturates |
+| 3M | 745.0343 | 44/44 | All tracks equal the 1M output |
 
-- Implementation branch: `codex/arc-motion-650`; final compiler source `affc8efd`.
-- Candidate: `8a81558e2ca3e5cc67a27b45bc9bba7be5b42c58c2026f7923544a754ee139fe`.
-- Source fingerprint: `9f2b2ebb223ae82ff8f3dd844eb227a5d2101de561ebbd9cfbcbd3694e0d5db7`.
-- [Active reference](../benchmark/v2/campaign-baseline.json) and
-  [current baseline analysis](benchmark-v2-current-baseline-analysis.md).
-- [Research history and experiments](arc-motion-650-campaign.md).
-- [Prior normal point compiler](normal-line-650-campaign.md) preserved on
-  `archive/normal-motion-feedback-662`; its original previews remain archived.
-- [Acceleration proof of concept](native-motion-video-review.md) preserved on
-  `archive/native-motion-feedback-761`, with all three original videos.
+The noncanonical rows use one seed per case. The separate standing 250k
+reading passes 528/528, scores 645.6560 and returns **PARITY** against the
+old arc reference, with no lost completions or score changes. Six 150k
+failures remain inherited limitations. Higher-budget saturation and the
+two score regressions warrant further work; no performance ceiling is established.
 
-Keep the benchmark and score fixed. Future compiler directions remain open
-within the owner's normal-line and coherent-arc requirements. Improve the
-physical planner and arc variety while using actual videos to evaluate the
-result. This campaign's numerical milestone is verified; it does not establish
-that all aesthetic goals or future optimization opportunities are exhausted.
+Two complete tracks, River Reentry and Dense Dialogue, exactly match the
+published JavaScript engine in raw trajectory and detected events. Seven
+focused test files pass all 22 tests. Repository-wide TypeScript checking
+still reports existing unrelated errors; it reports none in the changed
+compiler or review files. [Validation index](../benchmark/v2/studies/arc-guidance-planning-validation.json).
 
-The first accepted arc snapshot was subsequently corrected to report viable
-candidate counts and allocate more breadth at small budgets. The final source
-was freshly certified: all 352 canonical tracks, scores and frame costs match
-the first accepted snapshot, and the 250k validity loss is repaired. Both
-certifications and the initial adverse reading are retained. See the
-[checksummed validation index](../benchmark/v2/studies/connected-arc-feedback-validation.json).
+## Videos and preservation
+
+[Open the three-video gallery](../archives/arc-guidance-2026-09-08/index.html).
+All production specifications have full 1080×1920 / 60 fps videos with music,
+camera, spectrum and locked post-processing. Full decode and physical
+contracts pass. Actual frames at 12 and 30 seconds were inspected in each
+video. Their standing time is zero, below the unchanged 2% creative floor;
+these are review examples, not a claim that all selection floors pass.
+[Video details and direct links](arc-guidance-video-review.md).
+
+Work branch: `codex/arc-guidance-planning`; preservation branch:
+`archive/arc-guidance-planning-744`; compiler source commit: `6f71b4d8`.
+The [active baseline](../benchmark/v2/campaign-baseline.json) binds candidate
+`fd1f576b36213e0c1e9a32f6ad7a058658b151e1e81757e2fda258374679a1d2`
+to compiler fingerprint
+`05a89447ceabbadec189d0222b03ad4f53c44918709ca2d4a3137865a5b7c55d`.
+The [current baseline analysis](benchmark-v2-current-baseline-analysis.md)
+is regenerated from the accepted archive. Videos, original production inputs,
+source snapshot, research evidence and checksums are stored locally.
+
+The 687 arc reference, 662 normal-point proof and 761 acceleration proof remain
+on their respective `archive/connected-arc-feedback-687`,
+`archive/normal-motion-feedback-662` and `archive/native-motion-feedback-761`
+branches, with their original videos. Compiler research remains open within
+the owner's normal-line, coherent-arc requirements and fixed benchmark.

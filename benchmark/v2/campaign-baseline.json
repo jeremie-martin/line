@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "connected-arc-feedback",
-  "generated_at": "2026-09-08T07:08:52.496Z",
+  "label": "arc-guidance-planning",
+  "generated_at": "2026-09-08T13:55:18.933Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "9f2b2ebb223ae82ff8f3dd844eb227a5d2101de561ebbd9cfbcbd3694e0d5db7",
+  "compiler_source_fingerprint": "05a89447ceabbadec189d0222b03ad4f53c44918709ca2d4a3137865a5b7c55d",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -107,6 +107,7 @@
     "scripts/v0/optimizer/air_policy.ts",
     "scripts/v0/optimizer/arc_actuator.ts",
     "scripts/v0/optimizer/arc_control.ts",
+    "scripts/v0/optimizer/arc_guidance.ts",
     "scripts/v0/optimizer/arc_model.ts",
     "scripts/v0/optimizer/arc_motion.ts",
     "scripts/v0/optimizer/arc_probe.ts",
@@ -155,7 +156,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "8a81558e2ca3e5cc67a27b45bc9bba7be5b42c58c2026f7923544a754ee139fe",
+  "candidate_fingerprint": "fd1f576b36213e0c1e9a32f6ad7a058658b151e1e81757e2fda258374679a1d2",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "14c40a4fc7ab32638e61e16a6d4e89350e720d871144eb8767ed102329bd696e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -164,20 +165,20 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/connected-arc-feedback-compiler-snapshot.tar.gz",
-    "archiveSha256": "48cbad5e1f8100815ba1d761662ea34be04e50799a3563758deeeb4a80930a66",
-    "candidateFingerprint": "8a81558e2ca3e5cc67a27b45bc9bba7be5b42c58c2026f7923544a754ee139fe",
-    "compilerSourceFingerprint": "9f2b2ebb223ae82ff8f3dd844eb227a5d2101de561ebbd9cfbcbd3694e0d5db7",
+    "archive": "benchmark/v2/runs/arc-guidance-planning-compiler-snapshot.tar.gz",
+    "archiveSha256": "a3c50c7d86bda1bffd96906db292fd7c008277329cc7dfb79b0d8b866630297f",
+    "candidateFingerprint": "fd1f576b36213e0c1e9a32f6ad7a058658b151e1e81757e2fda258374679a1d2",
+    "compilerSourceFingerprint": "05a89447ceabbadec189d0222b03ad4f53c44918709ca2d4a3137865a5b7c55d",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
     "execution_policy_fingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
     "implementation_fingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4",
-    "archive_sha256": "a5e6cff84d765de85ee90b578a8f9563e605b85fe56c32ee68cc28948fdd5bba",
-    "compressed_archive": "benchmark/v2/runs/connected-arc-feedback-development-750k-N8.json.gz",
-    "compressed_archive_sha256": "2abf1093950d9854365fd7f2e2e898fc348f758f884c2f9121f89f98156b7eff",
-    "canonical_headline": 687.5102,
+    "archive_sha256": "4ad96b2dca495b9027e5c5c5c61a09af2cfb9536ee15ade709511707c39bf311",
+    "compressed_archive": "benchmark/v2/runs/arc-guidance-planning-development-750k-N8.json.gz",
+    "compressed_archive_sha256": "7734aa3038a315c8724423a7af7155cb2d9501582f806e1405c032822d6b1279",
+    "canonical_headline": 744.5,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -202,7 +203,7 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 687.5102,
+        "score": 744.5,
         "valid_runs": 352,
         "total_runs": 352
       }
@@ -210,8 +211,8 @@
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "connected-arc-feedback",
-    "candidateFingerprint": "8a81558e2ca3e5cc67a27b45bc9bba7be5b42c58c2026f7923544a754ee139fe",
+    "baselineLabel": "arc-guidance-planning",
+    "candidateFingerprint": "fd1f576b36213e0c1e9a32f6ad7a058658b151e1e81757e2fda258374679a1d2",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -279,9 +280,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 8,
-        "archiveSha256": "a5e6cff84d765de85ee90b578a8f9563e605b85fe56c32ee68cc28948fdd5bba",
-        "compressedArchive": "benchmark/v2/runs/connected-arc-feedback-development-750k-N8.json.gz",
-        "compressedArchiveSha256": "2abf1093950d9854365fd7f2e2e898fc348f758f884c2f9121f89f98156b7eff",
+        "archiveSha256": "4ad96b2dca495b9027e5c5c5c61a09af2cfb9536ee15ade709511707c39bf311",
+        "compressedArchive": "benchmark/v2/runs/arc-guidance-planning-development-750k-N8.json.gz",
+        "compressedArchiveSha256": "7734aa3038a315c8724423a7af7155cb2d9501582f806e1405c032822d6b1279",
         "executionPolicyFingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
         "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
       }
@@ -302,8 +303,8 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/connected-arc-feedback-comparison.json",
-    "artifact_sha256": "4a70bec77d6d93e01db32050e16850dff9dbfdf5fb51a5aa1f4d0a1271cff309",
+    "artifact": "benchmark/v2/runs/arc-guidance-planning-comparison.json",
+    "artifact_sha256": "1d4f690aec970f6e3987679f404a43e3a5fdc6939782d909884103637691c3ce",
     "seeds": 8,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
@@ -311,12 +312,12 @@
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/connected-arc-feedback-comparison-request.json",
-    "request_sha256": "deadaaf998be75e5ee1fc374e7bd861e5662ff12c424b3e71631827ab3b607ff",
+    "request": "benchmark/v2/runs/arc-guidance-planning-comparison-request.json",
+    "request_sha256": "dbfda3287813799428d8277724dbbad4635bf0d3efc0743091e30c210d0a4dbe",
     "budgets": [
       750000
     ],
     "outcome": "accept",
-    "delta": 24.9213
+    "delta": 56.9898
   }
 }

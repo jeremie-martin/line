@@ -116,3 +116,82 @@ geometry variables and planning, using available physics work per ride frame.
 This is a continuous compiler allocation, with no benchmark-budget or source-ID
 dispatch. Public verification, canonical evaluation and final video delivery
 are still pending at this entry.
+
+## Accepted compiler
+
+The final allocation preserves the reference motion and score at 250k:
+610.9446, 44/44 valid. At 500k it reaches 709.4171, 44/44 valid. All 44
+750k cases receive the selected 160 base proposals and 48 guidance proposals.
+Source `6f71b4d8` is accepted and promoted as **arc-guidance-planning**:
+**744.5**, **352/352 valid**, complete 44-case development suite and actual
+seeds 16–23. This is the accepted first N=8 look of a declared maximum N=48;
+no forced promotion was used. The gain is **56.9898** over 687.5102.
+
+The zero-jitter canonical seed repetitions are identical, so their seed SE is
+zero. The catalog sensitivity interval for the gain is [50.3714, 63.8088].
+Forty-two cases improve and two regress: Amplitude Tides Restrained (-23.9440)
+and Believer Impact (-5.5561). Actual physics costs are 687,744–737,686 frames,
+median 715,502; the comparison has the same 750k allowance, not equal expenditure.
+The full 320-proposal fixed-pair control completes 35/44 and scores 567.2923;
+its remaining cases exhaust the allowance. Simply doubling local work does
+not reproduce the selected result.
+
+Every one of the 352 canonical track hashes, scores and frame costs matches
+the measured public discovery output (`canonical-equivalence.json`). Two
+complete tracks, River Reentry and Dense Dialogue, also exactly match the
+published JavaScript engine in raw trajectory and detected events.
+
+The final geometry removes 952 of 4,100 upper rails and shortens another
+2,969. It removes 117,676 upper segments and reduces total upper-rail length
+from 493,716.6 to 200,055.9 px (59.48%). Every retained guide is a contiguous
+substantial curve. This is causal reduction verified by full replay, not
+decoration or a prescribed frequency of single arcs.
+
+Qualification passes 120/120. The separate search-target-jitter study uses
+all 44 cases, jitter 0.02 and seeds 101–104: 176/176 valid distinct tracks for
+the candidate versus 175/176 for the reference, with one rescue and no losses.
+The mean per-cell score gain in that stress study is 60.6337; it is not a
+canonical headline or a guarantee for untested perturbations.
+
+Seven focused test files pass all 22 tests, including deeper continuation
+trees, joint geometry refinement, exact physical replay after reduction,
+determinism and frame accounting. Repository-wide TypeScript checking uses
+`--allowImportingTsExtensions`; unrelated existing errors remain. Final video,
+extended-budget and standing lower-budget records follow below.
+
+## Final validation and delivery
+
+The qualification monitor is 649.2793 versus reference 626.5448. Its 250k,
+500k and 750k components are 607.1908, 641.5005 and 690.3029, all 40/40 valid.
+The formal standing 250k reading completes 528/528 and returns PARITY, with
+the same 645.6560 score as the arc reference: all 528 tracks change through
+guide reduction, while no completion or score changes. The reference arm
+is the checksummed archive bound to the preserved 687 compiler.
+
+The extended scale study covers all 44 cases at each of 150k, 750k, 1M and
+3M, one seed each. Scores are 481.1128, 744.5000, 745.0343 and 745.0343;
+validities are 38/44, 44/44, 44/44 and 44/44. All actual budgets are respected.
+A fresh full reference run at 150k confirms equality of every score, report
+and frame cost. The six failures are inherited, not introduced: Frontier
+Pickup Progression, Frontier Dense Recovery and its 240ms variant, Amplitude
+Mosaic Contrast, and both Believer 56.6s cases. All 1M and 3M tracks match;
+the default search breadth saturates and its maximum actual cost is 804,515.
+This leaves higher-budget allocation as an open opportunity.
+
+All three full production videos use the final public compiler at the original
+1M allowance, seed 260908011, and unchanged production settings: 1080×1920,
+60 fps, music, camera, spectrum and locked post-processing. Each fully decodes
+without error; all lines are type 0 and all physical contracts pass. Actual
+frames at 12 and 30 seconds were reviewed for each video. The supporting arcs
+remain visible, with single curves and partial upper guidance. These examples
+have zero standing time and miss the unchanged 2% creative floor. Production
+scores are distinct from the canonical benchmark, and Tiki does not improve
+over its earlier arc review metric.
+
+The [gallery](../archives/arc-guidance-2026-09-08/index.html),
+[video review](arc-guidance-video-review.md) and
+[validation index](../benchmark/v2/studies/arc-guidance-planning-validation.json)
+link the delivered files. The archive preserves source, authored inputs,
+accepted compiler snapshot, full research records (including adverse trials),
+reports and checksums. The final milestone is saved on
+`archive/arc-guidance-planning-744`; the original 687 reference remains intact.

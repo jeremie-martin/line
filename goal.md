@@ -1,28 +1,18 @@
 # Goal: stronger trajectory shaping with varied coherent arcs
 
-Active continuation, 2026-09-08: the owner approved thorough work on all three
-research items: causal upper-rail removal/shortening, searched guidance geometry,
-and planning across beats. Preserve the accepted 687.5102 compiler as the
-reference. Develop and evaluate the three mechanisms, validate useful changes
-under equal actual budgets with the fixed full benchmark, and render full
-production videos of the final result. Record unsuccessful experiments and
-tradeoffs as well as improvements. Work branch: `codex/arc-guidance-planning`.
-
-The earlier above-650 milestone remains complete:
-
-Status, 2026-09-08: the numerical objective and full video deliverables are
-complete. **Connected-arc-feedback is promoted at 687.5102**, with **352/352
-valid canonical runs** across the complete 44-case Benchmark V2 development
-suite and eight seeds (16–23), under the actual 750k frame budget. The owner
-has reviewed the videos and welcomes the paired-arc appearance; further
-performance and visual variety remain open research directions.
+Status, 2026-09-08: all three approved work items are implemented and evaluated.
+**Arc-guidance-planning is promoted at 744.5000**, up **56.9898** from the
+preserved 687.5102 arc compiler. The complete 44-case Benchmark V2 development
+suite passes **352/352 canonical runs**, eight seeds (16–23), within the
+unchanged 750k actual physics-frame allowance. All three full production
+videos are generated and archived.
 
 ## Owner requirements
 
 Use only normal type-0 Line Rider lines and coherent, visible physical arc
-primitives. The owner rejected the constellation of tiny point controls.
-Arc shape, variety, parameterization and control may evolve; isolated controls
-merely disguised by decorative curves do not satisfy this requirement.
+primitives. The owner rejected constellations of tiny point controls.
+Arc shape, variety, parameterization and planning may evolve; isolated controls
+disguised by decorative curves do not satisfy this requirement.
 The benchmark, scorer, authored targets, catalog, weights, validity rules,
 physics and compute accounting remain fixed.
 
@@ -33,38 +23,53 @@ Research compute is unrestricted; accepted compilers must earn their results
 inside the measured execution budget. Use full production videos to assess
 appearance alongside numerical quality.
 
-In the subsequent video review, the owner welcomed the curved guidance and
-impacts, while questioning the repeated use of two rails at every beat.
-Preserve general geometry and measured physical feedback. Explore when a
-single arc, a shorter upper guide, or a full pair is useful, without treating
-praise for an effect as a request to repeat it. Performance research can
-precede broader variety work. See the [review notes](docs/arc-motion-video-review.md)
-for the distinction between current design choices and proposed experiments.
+The owner welcomed paired arcs but asked for less repetitive geometry without
+hardcoded motifs, quotas or special cases. Praise for an effect is not a
+request to prescribe its frequency. Single arcs, partial guidance and full
+pairs should follow from geometry and measured physical need.
 
-## Delivered result
+## Delivered work
 
-The compiler controls real connected curve pairs with measured feedback,
-bidirectional turns, arrival planning and backtracking. Removing the upper
-rail changes the physical trajectory and ejects the audited rider; it is not
-scenery. Full published-engine replay and budget checks pass.
+1. **Causal reduction.** Audited all 4,100 upper rails of the reference.
+   The final compiler removes unused guidance and shortens unused ends while
+   preserving substantial contiguous curves. A complete frozen-judge replay
+   must reproduce the original trajectory exactly. Across the final suite,
+   952 upper rails disappear, 2,969 become shorter, and upper-rail length falls
+   59.48% without changing the planned motion.
+2. **General geometry.** Added guide clearance and coverage to the common
+   smooth-curve representation; tested single, partial, full and joint shape
+   refinement. The strongest measured version searches clearance and uses
+   causal reduction for coverage. No source-ID dispatch or variety quota.
+3. **Planning across beats.** Simulate candidate continuations before committing
+   the current arc, evaluate the terminal arrival, reuse useful next curves,
+   and retain viable continuations during recovery. Deeper trees were tested;
+   the selected implementation plans one future interval within the allowance.
 
-All three production specifications have full vertical 1080×1920 / 60 fps
-videos with music, camera, overlays and locked post-processing. Their tracks
-and reports exactly match the final compiler. The archive retains source,
-inputs, tracks, reports, validation and checksums. Nothing was published.
+Qualification passes **120/120**. A separate search-target-jitter study passes
+**176/176 distinct tracks**, versus 175/176 for the reference. The 250k standing
+reading passes 528/528 with score parity. Two whole tracks match the published
+JavaScript engine exactly, and all 22 focused tests pass.
 
-- [Video gallery](archives/arc-motion-2026-09-08/index.html)
-- [Current campaign and known limitations](docs/compiler-improvement-campaign.md)
-- [Experiments and evidence](docs/arc-motion-650-campaign.md)
-- [Validation index](benchmark/v2/studies/connected-arc-feedback-validation.json)
+The zero-jitter canonical repetitions produce 44 distinct tracks, not 352
+independent robustness samples. Two development cases regress in score.
+At 150k, six failures are inherited unchanged from the reference. The default
+search plateaus at 745.0343 between 1M and 3M. The videos pass physical contracts
+but miss the unchanged 2% standing-time creative floor. These remain useful
+research directions; this milestone does not establish a performance ceiling
+or completion of every aesthetic ambition.
 
-Work branch: `codex/arc-motion-650`; final compiler source: `affc8efd`.
-The acceleration proof of concept remains on `archive/native-motion-feedback-761`
-with its complete video archive. The normal point-control proof remains on
-`archive/normal-motion-feedback-662`, also with all three original videos.
+## Saved result
 
-Qualification passes 120/120 and the 250k reading passes 528/528, though its
-scores remain weaker than the point-control compiler. One 150k pickup stress
-case still fails. The three review videos miss the standing-time creative
-floor; that floor was not changed. Further aesthetic and low-budget improvement
-remain worthwhile, without diminishing the completed above-650 arc milestone.
+- [Full vertical video gallery](archives/arc-guidance-2026-09-08/index.html)
+- [Current campaign and limitations](docs/compiler-improvement-campaign.md)
+- [Experiments and reproducible evidence](docs/arc-guidance-planning-campaign.md)
+- [Video review and provenance](docs/arc-guidance-video-review.md)
+- [Validation index](benchmark/v2/studies/arc-guidance-planning-validation.json)
+
+Work branch: `codex/arc-guidance-planning`; compiler source: `6f71b4d8`.
+Preservation branch: `archive/arc-guidance-planning-744`.
+The earlier arc result remains on `archive/connected-arc-feedback-687`, the
+normal point proof on `archive/normal-motion-feedback-662`, and the acceleration
+proof on `archive/native-motion-feedback-761`, with their original video archives.
+The current archive contains videos, authored inputs, source snapshot, research
+records, validation and checksums. It is stored locally; nothing was published.

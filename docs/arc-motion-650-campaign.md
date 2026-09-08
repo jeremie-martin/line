@@ -132,3 +132,18 @@ Impact to 603.3246, and Dense Recovery to 508.2126; Dense Dialogue stays at
 714.3362. All five are valid, maximum 436,155 physics frames. Five retries
 raises sparse to 654.4009 but costs more and slightly hurts dense recovery.
 The conservative two-retry policy is undergoing the full discovery panel.
+
+The full v11 panel is **643.3307**, 43/44 valid. High Air Drive enters a speed
+runaway and spends its budget on unsuccessful recovery (748,981 physical
+frames, three missing contacts). This candidate is not eligible for promotion.
+All three production specifications do compile validly; full vertical renders
+are running from frozen v11 outputs (production metrics 666.84 / 760.16 / 674.81
+for Amor / Luna / Tiki, not benchmark scores).
+
+V12 adds a broad arrival-heading objective: no penalty inside -15 to +45
+ degrees, with a soft quadratic penalty beyond that interval. At weight 0.3,
+High Air Drive recovers to 665.0856 with three backtracks, River reaches
+819.6094, Dense Recovery 529.4652, Pickup Progression 544.0775, Sparse Lowline
+640.1087, and amplitude mosaic 584.7618. All six are valid, max 509,155 frames.
+Weight 0.1 is also valid on all six but less effective on most; it remains a
+recorded alternative. The 0.3 objective is proceeding to the full panel.

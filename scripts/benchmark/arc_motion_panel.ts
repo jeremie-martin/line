@@ -6,7 +6,7 @@ import { developmentCases } from "../../benchmark/v2/catalog.ts";
 import { compilerCandidateIdentity } from "../v0/benchmark_v2/compiler_identity.ts";
 import { summarizeDevelopmentBudget } from "../v0/benchmark_v2/evaluator.ts";
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
-const controls = {qualityRetries:Number(arg("quality-retries")??0),channel:Number(arg("channel")??12),radius:Number(arg("radius")??24),arrivalMode:arg("arrival-mode")??"speed",arrivalWeight:Number(arg("arrival-weight")??.3),samples:Number(arg("samples")??160),
+const controls = {headingWeight:Number(arg("heading-weight")??0),qualityRetries:Number(arg("quality-retries")??0),channel:Number(arg("channel")??12),radius:Number(arg("radius")??24),arrivalMode:arg("arrival-mode")??"speed",arrivalWeight:Number(arg("arrival-weight")??.3),samples:Number(arg("samples")??160),
   bidirectional:arg("bidirectional")==="on",impactWeight:Number(arg("impact-weight")??2),amplitudeWeight:Number(arg("amplitude-weight")??1),poseWeight:Number(arg("pose-weight")??0)};
 const flags = Object.entries(controls).map(([k,v])=>`--${k.replace(/[A-Z]/g,c=>"-"+c.toLowerCase())}=${typeof v==="boolean"?(v?"on":"off"):v}`);
 const out = resolve(arg("out")!), reuse = arg("reuse-prefix"), jobs = Number(arg("jobs") ?? 16);

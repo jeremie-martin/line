@@ -48,7 +48,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const gaps = sliceTimeline(spec.contacts.map(c => Math.round(c.t * 40)), duration);
   const valid = report.contacts.every(c => c.status === "hit") &&
     !report.off_beat_landings.length && report.terminus.reason === "endOfSpec";
-  const exhausted = result.failure?.reason === "budget";
+  const exhausted = result.searchBudgetExhausted || result.failure?.reason === "budget";
   const recorder = new CompileBudgetTelemetryRecorder({ level: options.budgetTelemetry ?? "summary",
     gaps, durationFrames: duration, hardBudgetFrames: options.budget, policyBudgetFrames: options.budget,
     model: { name: "connected-arcs/v3", source: "arc_motion.ts expressive curves, measured planning and learned arrival value",

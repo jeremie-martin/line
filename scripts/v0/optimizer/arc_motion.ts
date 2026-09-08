@@ -102,6 +102,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
   let samples=0,viableCandidates=0;const qualityRetries=new Map<number,number>();
   let refinementStats:any=null, observedConstructionRate=0;
+  let searchBudgetExhausted=false;
+  const budgetInterruptions:Array<{phase:'local'|'planning';index:number;frame:number;viable:number;retained:boolean}>=[];
   const planningDecisions:any[]=[];
   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
@@ -222,8 +224,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(!best||cost<best.cost)best=result;
         return result;
       };
+      let center:ArcMotionControl|undefined;
+      try {
       if(options.directControls){for(const control of options.directControls)evaluate(control);return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support};}
-      const center:ArcMotionControl=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
+      center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
       if(options.warmStart)evaluate(options.warmStart);
@@ -311,6 +315,15 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
       }
+      } catch(error) {
+        if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
+        searchBudgetExhausted=true;
+        budgetInterruptions.push({phase:'local',index:i,frame,viable:candidates.length,retained:!!best});
+        // Every retained candidate already passed the complete interval replay.
+        // Discard only the interrupted probe, preserving the best valid geometry.
+        Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
+        if(!best)throw error;
+      }
       return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support};
     };
     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);
@@ -386,6 +399,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(options.futureValueModel){const original=candidates.find(c=>JSON.stringify(c.c)===JSON.stringify(best.c));if(original)shortlist=[original,...shortlist.filter(c=>c!==original)];}
         const original=best, startFrames=getPhysicsFrameCount(), probes:any[]=[];
         let winner:any=null;
+        try {
         for(const candidate of shortlist){
           if(probes.length>=width&&winner)break;
           const reserve=options.adaptivePlanning?(end-frame)*constructionReserveRate:(end-frame)*nominalRate*(options.reserveFactor??1.1);
@@ -403,6 +417,12 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           if(options.reuseContinuations){candidate.lookaheadValue=value;candidate.futureControl=future?.control;}
           probes.push({control:candidate.c,currentCost:candidate.cost,localCost:candidate.localCost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null,valueFeatures:options.collectValue?candidate.valueFeatures:undefined,predictedFuture:candidate.predictedFuture});
           if(future&&(!winner||value<winner.value))winner={candidate,value,futureControl:future.control};
+          Engine.retainOnly([engine,original.child]);
+        }
+        } catch(error) {
+          if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
+          searchBudgetExhausted=true;
+          budgetInterruptions.push({phase:'planning',index:i,frame,viable:probes.length,retained:true});
           Engine.retainOnly([engine,original.child]);
         }
         if(winner&&JSON.stringify(winner.candidate.c)!==JSON.stringify(original.c)){
@@ -437,7 +457,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       lines.splice(0,lines.length,...refined.lines);rows.splice(0,rows.length,...refined.rows);
       engine=refined.engine;refinementStats=refined.stats;
     }
-  }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;failure={reason:'budget'};}
+  }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;searchBudgetExhausted=true;failure={reason:'budget'};}
   const constructionFrames=getPhysicsFrameCount();
   setPhysicsFrameLimit(budget);
   const coldEngine=new Engine().setStart(start.position,start.velocity).addLine(lines);
@@ -447,6 +467,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   disposeSearch();
   try{const replay=extractRawTrajectory(new Judge().setStart(start.position,start.velocity).addLine(lines),end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget,searchBudgetExhausted,budgetInterruptions,samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

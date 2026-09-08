@@ -27,3 +27,25 @@ using independent synthetic/development workloads and unchanged benchmark panels
 without a song-specific fallback or a named benchmark-budget gate. Qualification
 results remain disclosed, with the original panel now explicitly a regression
 check rather than a newly untouched holdout.
+
+## Root cause and correction
+
+The diagnostic reproduction found 24 fully validated alternatives for the final
+interval before the exception; none was committed. The fix catches frame-limit
+interruptions locally, retains only a fully evaluated incumbent, and commits it.
+No-incumbent interruptions still propagate, unrelated errors still propagate,
+and a partial deeper continuation never masquerades as a completed horizon.
+Planning interruption preserves the current validated curve and any fully
+returned plan. Exhaustion remains visible in telemetry even if the track completes.
+
+The failed run now completes all 85 contacts at the same 249,985 frames. A
+separate synthetic four-second track gains five valid budget settings, with no
+validity losses across 78 settings. The complete 44-case 750k panel matches the
+771.3015 intermediate compiler's tracks, reports and metering exactly.
+
+Final combined-release validation uses the preserved original 767.6851 reference
+from before this task, plus exact parity against the 771.3015 intermediate. This
+binds the finished source to the overall improvement without attributing a new
+headline gain to the interruption fix. It uses the normal unchanged sequential
+gate and no forced promotion. The prior qualification panel is explicitly reused
+as a regression check after diagnosing its failure, not called a fresh holdout.

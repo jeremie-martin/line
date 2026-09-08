@@ -1,0 +1,598 @@
+{
+  "schema": "line.arc-825-local-archive.v1",
+  "localOnly": true,
+  "root": "archives/arc-825-828",
+  "sourceCommit": "b8e262fb880f45d6035a6250f39eb8d1b7e8feb9",
+  "compilerCommit": "eafc32a51a6dfa0a881d38bef96feb2a40c5cc4f",
+  "headline": 828.1228,
+  "budget": 750000,
+  "preservationBranch": "archive/arc-control-policy-828",
+  "rawResearch": {
+    "file": "archives/arc-825-828/raw-panels.tar.gz",
+    "bytes": 2016393218,
+    "sha256": "231b0646d2cb8c8b4d6eb42dec72f9ef36ca764c63878d2fc4be81dadc412333",
+    "verifiedInnerFiles": 6469
+  },
+  "completion": {
+    "completion": {
+      "file": "archives/arc-825-828/completion-evidence.tar.gz",
+      "bytes": 61301364,
+      "sha256": "23658ac1ddbfbd6830145511400abf8460c598751dbc39af1c2f1edd8e21b62c",
+      "verifiedInnerFiles": 203
+    },
+    "source": {
+      "file": "archives/arc-825-828/source.tar.gz",
+      "bytes": 156422190,
+      "sha256": "72c36380f2cf30df199b39cead20b619caa84e9d32a38494914c2a75ef818c52",
+      "verifiedInnerFiles": 2770,
+      "gitCommit": "b8e262fb880f45d6035a6250f39eb8d1b7e8feb9"
+    },
+    "judge": {
+      "bytes": 79556,
+      "sha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+    }
+  },
+  "note": "Full raw research and videos stay local; code, canonical compressed evidence and this index are pushed. Friendly video paths are hard links to original renders.",
+  "files": {
+    "README.md": {
+      "bytes": 4940,
+      "sha256": "221c17ace4d0c4de1f5443c594e755a84af27255825ccb7c02bb146394011e06"
+    },
+    "amor_na_praia_46s/amor_na_praia_46s/amor_na_praia_46s-s260908011/budget-telemetry.json": {
+      "bytes": 256,
+      "sha256": "670ee9fdf770665eed9e15e519c3fa12425f561711b1a245933ad269ff6ca590"
+    },
+    "amor_na_praia_46s/amor_na_praia_46s/amor_na_praia_46s-s260908011/compile.json": {
+      "bytes": 2430,
+      "sha256": "b35f9195050ff5606c43fdbe80102ac8f57b5004af926dfc0b81d77a3874a209"
+    },
+    "amor_na_praia_46s/amor_na_praia_46s/amor_na_praia_46s-s260908011/report.json": {
+      "bytes": 72106,
+      "sha256": "5fccb4e82de30bf475a86eb8c63e1674c328a858ead71746651938b625c01080"
+    },
+    "amor_na_praia_46s/amor_na_praia_46s/amor_na_praia_46s-s260908011/review-validation.json": {
+      "bytes": 4162,
+      "sha256": "d0d9d8f7c5419491fe1918b6ec9e5b52298514fc6678d9ff7432c3b8cdef65ec"
+    },
+    "amor_na_praia_46s/amor_na_praia_46s/amor_na_praia_46s-s260908011/review-validation.json.sha256": {
+      "bytes": 65,
+      "sha256": "420350e278f1e45012c6e7649bd4680967e345b711e4f4994ffa93d2b871df8d"
+    },
+    "amor_na_praia_46s/amor_na_praia_46s/amor_na_praia_46s-s260908011/track.json": {
+      "bytes": 977053,
+      "sha256": "e8d42568d1046d4ea73d394bef79598a6f5c539a79101aa35a8d72653f640d81"
+    },
+    "amor_na_praia_46s/amor_na_praia_46s/amor_na_praia_46s-s260908011/upload.json": {
+      "bytes": 402,
+      "sha256": "4a79b6b99b0c39b806e69dbb971436d187aabda33c9587beb7b16f13e057c959"
+    },
+    "amor_na_praia_46s/amor_na_praia_46s/amor_na_praia_46s-s260908011/video.mp4": {
+      "bytes": 14882481,
+      "sha256": "7da670075cbed2f08263644866c6a7c8bf2bc0c43987a7bd956330afa498cd18"
+    },
+    "amor_na_praia_46s/frame-12.png": {
+      "bytes": 242551,
+      "sha256": "4fd068cb84944d11dcca90e54e36a4aaa51fd2c35b3a88acbd55fe60dd6ce766"
+    },
+    "amor_na_praia_46s/frame-30.png": {
+      "bytes": 268554,
+      "sha256": "badf4c8f95016f5ebaa1a6052357b01c66b983635ba6fe2e725f1d6e864ea086"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/amor_na_praia_46s-s260908011.render.log": {
+      "bytes": 175498,
+      "sha256": "3bd9d9f13fd1ba5f1da62a340254f2f7b0a30538fefed0e5087b47fdb6c7b55f"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_control_policy.ts": {
+      "bytes": 1751,
+      "sha256": "a9d06dc23bb359972e63af529ea07721cce588b9f1213fa4c04e2538748de559"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_control_policy_model.json": {
+      "bytes": 1413548,
+      "sha256": "2eecdced6608ee8062bf0764629415a83e23d5f64e0e238af1c27df985e50379"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_geometry.ts": {
+      "bytes": 4408,
+      "sha256": "f157e62171b711678fedf2f7e48914a32ddbdd694ec096faf76c3043f50fcb71"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_guidance.ts": {
+      "bytes": 3122,
+      "sha256": "ef5c0018db71c9dc465cd1dd96c6211beb3a6f04027f33cc7a9f5c46930da9cd"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_motion.ts": {
+      "bytes": 40907,
+      "sha256": "5e4a2c6b58c33b4ccbf0751ce162e4b753e4d35bf354a73c14ba29973eadfa8f"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_refinement.ts": {
+      "bytes": 9610,
+      "sha256": "36a69b4c22a7e72dea11ecada20e4e3072e73edc33f1f8c6c407dadfb4821117"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_response.ts": {
+      "bytes": 1196,
+      "sha256": "310430e78b4084bb9c7fc3d25085218ef6ce94688ea924097330c5d0ff5ec873"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_review.ts": {
+      "bytes": 6148,
+      "sha256": "a7b6a9d49babaf403cfea8572b790cfd2a320350d24d56c188e379f2eaaaa8ef"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_value.ts": {
+      "bytes": 1429,
+      "sha256": "610f921dae1935746ce5f4611bd13edb05a56060677ef07a1d4bb91bd14a1c84"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/arc_value_model.json": {
+      "bytes": 165467,
+      "sha256": "f111cd3b6b9d2a1265f1929e039f4eba4dd4b0d7f84a616943a9532ad429dbdc"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/budget-telemetry.json": {
+      "bytes": 256,
+      "sha256": "670ee9fdf770665eed9e15e519c3fa12425f561711b1a245933ad269ff6ca590"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/budget-telemetry.json.sha256": {
+      "bytes": 65,
+      "sha256": "abf0609df26fadce3efd6aa637d9463d27e1a02d8f255fbdaec1d12a0dbdcbba"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/compile.json": {
+      "bytes": 2430,
+      "sha256": "b35f9195050ff5606c43fdbe80102ac8f57b5004af926dfc0b81d77a3874a209"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/compile.json.sha256": {
+      "bytes": 65,
+      "sha256": "1810cd4546b46876a781eb8e8aa709c3169fc621a75b5bb1a96ee35e33239605"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/connected_arcs.ts": {
+      "bytes": 6458,
+      "sha256": "3809dfe0488ee2b886835c50cd1127b45344144cf1d504b941ab3f8c1bb6a050"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/report.json": {
+      "bytes": 72106,
+      "sha256": "5fccb4e82de30bf475a86eb8c63e1674c328a858ead71746651938b625c01080"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/report.json.sha256": {
+      "bytes": 65,
+      "sha256": "24d2c559c569fe9a2864517f7c389279011bbd0f36544694b08f7c275326685c"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/research.json": {
+      "bytes": 2689,
+      "sha256": "35fdcdd41513d5b736791613f03d39cefd7b19464d76e9ad0efde3749ee6bb00"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/research.json.sha256": {
+      "bytes": 65,
+      "sha256": "f36ca0e5546d7aebf30ef0c6351a2117708116f0a4ef1f3deff8e80bd22a8b09"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/track.json": {
+      "bytes": 977053,
+      "sha256": "e8d42568d1046d4ea73d394bef79598a6f5c539a79101aa35a8d72653f640d81"
+    },
+    "amor_na_praia_46s/inputs/amor_na_praia_46s/track.json.sha256": {
+      "bytes": 65,
+      "sha256": "1cf70c34c30f2c3bbf0cbb4e97ed0bb1978c63b1034c69ba4dadce3ed2c5b2d9"
+    },
+    "amor_na_praia_46s/poster.jpg": {
+      "bytes": 86904,
+      "sha256": "4d8b4b7e7f0a656ed8193eea9b979e2d57b25691cfb101b3361810402f524a6b"
+    },
+    "amor_na_praia_46s/production-inputs/audio.json": {
+      "bytes": 308962,
+      "sha256": "6824bfb4be0508dde12e051a88e765320f8ea86d2a210e0d7b77e4012cd4b5c7"
+    },
+    "amor_na_praia_46s/production-inputs/audio.mp3": {
+      "bytes": 1113357,
+      "sha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd"
+    },
+    "amor_na_praia_46s/production-inputs/resolved-config.json": {
+      "bytes": 440,
+      "sha256": "aa9c50ad5422c6c8d0569cbd89ef0b35fed15b8dc2dffe2c0685cb9e62744a47"
+    },
+    "amor_na_praia_46s/production-inputs/select.json": {
+      "bytes": 241,
+      "sha256": "9c547d3770f3f21e00b5d0cb510721c3058433f1de490743f3ce4939cc26f68a"
+    },
+    "amor_na_praia_46s/production-inputs/spec.ts": {
+      "bytes": 12677,
+      "sha256": "8b0478d8769d5b62b789fe6b2a2188a8c306bfff9af79bbff743a9082d7dc8b3"
+    },
+    "amor_na_praia_46s/review.json": {
+      "bytes": 2662,
+      "sha256": "ce7ab05d419fc6cc6b548b9753bde8d80e43684e74622bc03a353166d3238c5b"
+    },
+    "amor_na_praia_46s/review.json.sha256": {
+      "bytes": 65,
+      "sha256": "d79e7e2795c6e95d8ebe65bbee3b4b90e486ef546c74983a1b3d2b231591cdac"
+    },
+    "amor_na_praia_46s/video.mp4": {
+      "bytes": 14882481,
+      "sha256": "7da670075cbed2f08263644866c6a7c8bf2bc0c43987a7bd956330afa498cd18"
+    },
+    "completion-evidence.manifest.json": {
+      "bytes": 36504,
+      "sha256": "21694c09509fb9c4b2791de5f0f1e5f3b13fc29d12dc98df5afc06866e77f1bf"
+    },
+    "completion-evidence.manifest.json.sha256": {
+      "bytes": 65,
+      "sha256": "b7a0915b8b5de19afe50129b1197c97dcf4b7e0eff14f991f2c99048d42cb449"
+    },
+    "completion-evidence.tar.gz": {
+      "bytes": 61301364,
+      "sha256": "23658ac1ddbfbd6830145511400abf8460c598751dbc39af1c2f1edd8e21b62c"
+    },
+    "completion-validation.json": {
+      "bytes": 610,
+      "sha256": "cdd20889a1244c66b4c5d15eff3d7509249853837170b0997ea05028cb14b094"
+    },
+    "completion-validation.json.sha256": {
+      "bytes": 65,
+      "sha256": "621bd166a6077a2ba06d48f7248332dc6f25d7cd26d1647a320fc98e2177a0ef"
+    },
+    "index.html": {
+      "bytes": 2035,
+      "sha256": "7f59695924510adcd574b283dd82086397e5d4b46348b2123208fe56fd86a88b"
+    },
+    "judge.wasm": {
+      "bytes": 79556,
+      "sha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+    },
+    "luna_bala_44s/frame-12.png": {
+      "bytes": 244455,
+      "sha256": "268d3ae270758abfd431f4bfd09819341f79d03241072b061d0192f4c86caf8e"
+    },
+    "luna_bala_44s/frame-30.png": {
+      "bytes": 263176,
+      "sha256": "ecd85b0d48f2ac56976eee20cb6f33b5ba9b82f2c5da65fce6670931dd178f1f"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_control_policy.ts": {
+      "bytes": 1751,
+      "sha256": "a9d06dc23bb359972e63af529ea07721cce588b9f1213fa4c04e2538748de559"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_control_policy_model.json": {
+      "bytes": 1413548,
+      "sha256": "2eecdced6608ee8062bf0764629415a83e23d5f64e0e238af1c27df985e50379"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_geometry.ts": {
+      "bytes": 4408,
+      "sha256": "f157e62171b711678fedf2f7e48914a32ddbdd694ec096faf76c3043f50fcb71"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_guidance.ts": {
+      "bytes": 3122,
+      "sha256": "ef5c0018db71c9dc465cd1dd96c6211beb3a6f04027f33cc7a9f5c46930da9cd"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_motion.ts": {
+      "bytes": 40907,
+      "sha256": "5e4a2c6b58c33b4ccbf0751ce162e4b753e4d35bf354a73c14ba29973eadfa8f"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_refinement.ts": {
+      "bytes": 9610,
+      "sha256": "36a69b4c22a7e72dea11ecada20e4e3072e73edc33f1f8c6c407dadfb4821117"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_response.ts": {
+      "bytes": 1196,
+      "sha256": "310430e78b4084bb9c7fc3d25085218ef6ce94688ea924097330c5d0ff5ec873"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_review.ts": {
+      "bytes": 6148,
+      "sha256": "a7b6a9d49babaf403cfea8572b790cfd2a320350d24d56c188e379f2eaaaa8ef"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_value.ts": {
+      "bytes": 1429,
+      "sha256": "610f921dae1935746ce5f4611bd13edb05a56060677ef07a1d4bb91bd14a1c84"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/arc_value_model.json": {
+      "bytes": 165467,
+      "sha256": "f111cd3b6b9d2a1265f1929e039f4eba4dd4b0d7f84a616943a9532ad429dbdc"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/budget-telemetry.json": {
+      "bytes": 256,
+      "sha256": "470cb762df97f31097f93dbe8b033a178c3d981b33110930fde6223c0c13957b"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/budget-telemetry.json.sha256": {
+      "bytes": 65,
+      "sha256": "3a6d5730cde90595cd94c9ebc20c1fd216560f87a65c2480ff76ac1ecd908f99"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/compile.json": {
+      "bytes": 2426,
+      "sha256": "190b67ecb20793944f4837b9608e7962c52f3a38c1966b6e6e23ec6059d79984"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/compile.json.sha256": {
+      "bytes": 65,
+      "sha256": "88277e77495636516aab0e0a049a1545178fe2b15d4435264cd72948b1378883"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/connected_arcs.ts": {
+      "bytes": 6458,
+      "sha256": "3809dfe0488ee2b886835c50cd1127b45344144cf1d504b941ab3f8c1bb6a050"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/luna_bala_44s-s260908011.render.log": {
+      "bytes": 171105,
+      "sha256": "a4b8295e48c49e08c5798b02e141b662c6a1e4f8cce0e0539998dd5e51814715"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/report.json": {
+      "bytes": 69288,
+      "sha256": "9a26916fb45bd1655398714c8b6a6ac87640edc2ad812c3b0524bad35c2a8322"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/report.json.sha256": {
+      "bytes": 65,
+      "sha256": "1b7d8169e28f9129980c343ed7971fc3a56f1034127e29998f056e20e1ebde15"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/research.json": {
+      "bytes": 2593,
+      "sha256": "be75fdf279158b0ce881e5e4e31a6f961e6a16ecfb162770a9d86c2dd9478ee2"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/research.json.sha256": {
+      "bytes": 65,
+      "sha256": "b80fba30ee3eba0f251d218ac5123180e35593830a4f5db1d0a8878546f1e89c"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/track.json": {
+      "bytes": 868505,
+      "sha256": "ac23cc4f3ac608419bd2bd3f7b57b3a87cbdb9bc0e28fe95200b962f1e52cc3f"
+    },
+    "luna_bala_44s/inputs/luna_bala_44s/track.json.sha256": {
+      "bytes": 65,
+      "sha256": "4fc78a844fb53d41cdf8e74a898300f3fef4dca2671c4fad60b7713743193dcc"
+    },
+    "luna_bala_44s/luna_bala_44s/luna_bala_44s-s260908011/budget-telemetry.json": {
+      "bytes": 256,
+      "sha256": "470cb762df97f31097f93dbe8b033a178c3d981b33110930fde6223c0c13957b"
+    },
+    "luna_bala_44s/luna_bala_44s/luna_bala_44s-s260908011/compile.json": {
+      "bytes": 2426,
+      "sha256": "190b67ecb20793944f4837b9608e7962c52f3a38c1966b6e6e23ec6059d79984"
+    },
+    "luna_bala_44s/luna_bala_44s/luna_bala_44s-s260908011/report.json": {
+      "bytes": 69288,
+      "sha256": "9a26916fb45bd1655398714c8b6a6ac87640edc2ad812c3b0524bad35c2a8322"
+    },
+    "luna_bala_44s/luna_bala_44s/luna_bala_44s-s260908011/review-validation.json": {
+      "bytes": 4150,
+      "sha256": "86e36b52460d0e92ed7c7a5cb9133b399b5129f6f28cb0f30bef0041e3c5a895"
+    },
+    "luna_bala_44s/luna_bala_44s/luna_bala_44s-s260908011/review-validation.json.sha256": {
+      "bytes": 65,
+      "sha256": "b594f9c06eb72cd618d58ed6a71e7d4272556d5bc12c920d1a5f461378ddeb14"
+    },
+    "luna_bala_44s/luna_bala_44s/luna_bala_44s-s260908011/track.json": {
+      "bytes": 868505,
+      "sha256": "ac23cc4f3ac608419bd2bd3f7b57b3a87cbdb9bc0e28fe95200b962f1e52cc3f"
+    },
+    "luna_bala_44s/luna_bala_44s/luna_bala_44s-s260908011/upload.json": {
+      "bytes": 398,
+      "sha256": "6b3fac34cbd69d8563c51d8e3a570e43d75d4c929fc1971274ef52f430699d47"
+    },
+    "luna_bala_44s/luna_bala_44s/luna_bala_44s-s260908011/video.mp4": {
+      "bytes": 13286092,
+      "sha256": "eaa8884e35d806ddc67aa183267e25979b78c93535a5390a8076699e1c55bf00"
+    },
+    "luna_bala_44s/poster.jpg": {
+      "bytes": 80203,
+      "sha256": "957a575ee3e1c48df7f27c3cd948c7e68d81c7bd6a340c7cb3efa44d04357e51"
+    },
+    "luna_bala_44s/production-inputs/audio.json": {
+      "bytes": 292173,
+      "sha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5"
+    },
+    "luna_bala_44s/production-inputs/audio.mp3": {
+      "bytes": 1115373,
+      "sha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce"
+    },
+    "luna_bala_44s/production-inputs/resolved-config.json": {
+      "bytes": 428,
+      "sha256": "3f6dc0f1ceb7cd905b2e879e5a81cec118515f48a5d02c41fbb75a49399ef761"
+    },
+    "luna_bala_44s/production-inputs/select.json": {
+      "bytes": 241,
+      "sha256": "68756fc9b50a48c53df265123dc3bc64ee92e1412f3e4115100070f32b8409d4"
+    },
+    "luna_bala_44s/production-inputs/spec.ts": {
+      "bytes": 9338,
+      "sha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265"
+    },
+    "luna_bala_44s/review.json": {
+      "bytes": 2646,
+      "sha256": "5bc1d51e43820ad2b88727d25388d9020e952bb4cbf5119a9c5bbb8d0921e622"
+    },
+    "luna_bala_44s/review.json.sha256": {
+      "bytes": 65,
+      "sha256": "3cf619035ad0c6b84994f2672b28bfe1589b28a1b50d6e743b3bc2f238125812"
+    },
+    "luna_bala_44s/video.mp4": {
+      "bytes": 13286092,
+      "sha256": "eaa8884e35d806ddc67aa183267e25979b78c93535a5390a8076699e1c55bf00"
+    },
+    "preserve-completion.log": {
+      "bytes": 455,
+      "sha256": "3f62241c0e65aa0f803d7fef6d6c247058cd3c5287d803a0e73e013588335a12"
+    },
+    "raw-panels-validation.json": {
+      "bytes": 188,
+      "sha256": "ed7f69536d863896b858418cb7ded139afc5599810c8f955d80da946559e3ad3"
+    },
+    "raw-panels-validation.json.sha256": {
+      "bytes": 65,
+      "sha256": "4c4bb2e2e8c9958c6eb809fe0324cd593e0bd7bf5f940895eecce78f300f2c4e"
+    },
+    "raw-panels.manifest.json": {
+      "bytes": 1295130,
+      "sha256": "4fd5df7ff10a0045f07f69b3873c3b0220078fdb9a05212282755c1463c3081b"
+    },
+    "raw-panels.manifest.json.sha256": {
+      "bytes": 65,
+      "sha256": "2b4f3ee0a7b27a7b438dddc9d1b0bcb39f9f14b5980d6146a0e08468390c5897"
+    },
+    "raw-panels.tar.gz": {
+      "bytes": 2016393218,
+      "sha256": "231b0646d2cb8c8b4d6eb42dec72f9ef36ca764c63878d2fc4be81dadc412333"
+    },
+    "source.manifest.json": {
+      "bytes": 422416,
+      "sha256": "33d6d02b8288ba73ff228dfb346205a76dc555cfbffff79bed94e1463547a694"
+    },
+    "source.manifest.json.sha256": {
+      "bytes": 65,
+      "sha256": "7d93c0c69415fa536b8b4fcbbf201e59973c76bc9a183e11d4ca0e3664b70003"
+    },
+    "source.tar.gz": {
+      "bytes": 156422190,
+      "sha256": "72c36380f2cf30df199b39cead20b619caa84e9d32a38494914c2a75ef818c52"
+    },
+    "tiki_tiki_48s/frame-12.png": {
+      "bytes": 256130,
+      "sha256": "3a29102634ff6f9e7277938bae445d0ba95acecec5863fd976fc1fbba604ff57"
+    },
+    "tiki_tiki_48s/frame-30.png": {
+      "bytes": 277337,
+      "sha256": "f549fbe6ab393ff04a514da99f9e6d5f7f04132399b0d163d0619f9866c0cf62"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_control_policy.ts": {
+      "bytes": 1751,
+      "sha256": "a9d06dc23bb359972e63af529ea07721cce588b9f1213fa4c04e2538748de559"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_control_policy_model.json": {
+      "bytes": 1413548,
+      "sha256": "2eecdced6608ee8062bf0764629415a83e23d5f64e0e238af1c27df985e50379"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_geometry.ts": {
+      "bytes": 4408,
+      "sha256": "f157e62171b711678fedf2f7e48914a32ddbdd694ec096faf76c3043f50fcb71"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_guidance.ts": {
+      "bytes": 3122,
+      "sha256": "ef5c0018db71c9dc465cd1dd96c6211beb3a6f04027f33cc7a9f5c46930da9cd"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_motion.ts": {
+      "bytes": 40907,
+      "sha256": "5e4a2c6b58c33b4ccbf0751ce162e4b753e4d35bf354a73c14ba29973eadfa8f"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_refinement.ts": {
+      "bytes": 9610,
+      "sha256": "36a69b4c22a7e72dea11ecada20e4e3072e73edc33f1f8c6c407dadfb4821117"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_response.ts": {
+      "bytes": 1196,
+      "sha256": "310430e78b4084bb9c7fc3d25085218ef6ce94688ea924097330c5d0ff5ec873"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_review.ts": {
+      "bytes": 6148,
+      "sha256": "a7b6a9d49babaf403cfea8572b790cfd2a320350d24d56c188e379f2eaaaa8ef"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_value.ts": {
+      "bytes": 1429,
+      "sha256": "610f921dae1935746ce5f4611bd13edb05a56060677ef07a1d4bb91bd14a1c84"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/arc_value_model.json": {
+      "bytes": 165467,
+      "sha256": "f111cd3b6b9d2a1265f1929e039f4eba4dd4b0d7f84a616943a9532ad429dbdc"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/budget-telemetry.json": {
+      "bytes": 256,
+      "sha256": "17b0473762fa37b3ec79bed59a65aec9a71816d86756341b23776b6720371a13"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/budget-telemetry.json.sha256": {
+      "bytes": 65,
+      "sha256": "c4323f087ef6e4e1915ac064750ec0d73ea4ee45db02a4b1892ea2c0d7755fe1"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/compile.json": {
+      "bytes": 2426,
+      "sha256": "3f2c27f18a362e3ac622ff5b93eb3f56dae68991554d45048514d9b3abeb79a4"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/compile.json.sha256": {
+      "bytes": 65,
+      "sha256": "22d83b8ee796a60cb655769dda990ad611ed54acf9ab117b0a9778e54f6de009"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/connected_arcs.ts": {
+      "bytes": 6458,
+      "sha256": "3809dfe0488ee2b886835c50cd1127b45344144cf1d504b941ab3f8c1bb6a050"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/report.json": {
+      "bytes": 97324,
+      "sha256": "6f2fb69b5b3c37784ba89e99e923a849af712dc40ec8d93d6d9cf100e1f608a3"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/report.json.sha256": {
+      "bytes": 65,
+      "sha256": "53b15e33987ba487721fb316cc67bc96515202126d0278f1deeb07745948edf5"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/research.json": {
+      "bytes": 2612,
+      "sha256": "ab5bca34426bdb9c115eb023c53347c5551ae1250da43eae124d36c8969f8f8b"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/research.json.sha256": {
+      "bytes": 65,
+      "sha256": "34890ae9fda2ddcc200c5845b77500bcee66875e7679fbb3a906f5aa81503a59"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/tiki_tiki_48s-s260908011.render.log": {
+      "bytes": 175518,
+      "sha256": "9591c3845a723a9bf379f79d1c84209bc60c79f52d339a56d430c04537541b1a"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/track.json": {
+      "bytes": 1110041,
+      "sha256": "8a4acda898cf726714293974710e61eaadb6f94ea000bee04801aa6be326f406"
+    },
+    "tiki_tiki_48s/inputs/tiki_tiki_48s/track.json.sha256": {
+      "bytes": 65,
+      "sha256": "73f91b3b640a4acc3f9a6fb414713b2cdf1f2027fa6cf87f323c4fb7f7946a52"
+    },
+    "tiki_tiki_48s/poster.jpg": {
+      "bytes": 92490,
+      "sha256": "0f1b87caad510feca9361aee9881f8efb2dcfdfc31cb4af02614f951d3533334"
+    },
+    "tiki_tiki_48s/production-inputs/audio.json": {
+      "bytes": 182020,
+      "sha256": "fc551c8b35c312ac9f0463bd1bd155d4c416f177513e7123678d5b68b29f528f"
+    },
+    "tiki_tiki_48s/production-inputs/audio.mp3": {
+      "bytes": 1241517,
+      "sha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363"
+    },
+    "tiki_tiki_48s/production-inputs/resolved-config.json": {
+      "bytes": 428,
+      "sha256": "1c140091a23acc4a8e7a613228a1d50bb69108f194758bfc4f48e8a2d4d5daf3"
+    },
+    "tiki_tiki_48s/production-inputs/select.json": {
+      "bytes": 241,
+      "sha256": "6d36db92844851cbb13d9068ecca3bdd5dfd03cbee38808bc8be8ec896780eaf"
+    },
+    "tiki_tiki_48s/production-inputs/spec.ts": {
+      "bytes": 12987,
+      "sha256": "483ae3b178628242b140ba4c5dc375eca35c205fed3cc11a6a7f7b64d8b019ea"
+    },
+    "tiki_tiki_48s/review.json": {
+      "bytes": 2646,
+      "sha256": "1fc70cff73587247c30cfa0d6e03e3a215c8ea7aa4c378cdc110ed213dbd11ca"
+    },
+    "tiki_tiki_48s/review.json.sha256": {
+      "bytes": 65,
+      "sha256": "6dcb1f813b78592535945dceaefb7dde71ac2f12091ff2d86c907d610a108812"
+    },
+    "tiki_tiki_48s/tiki_tiki_48s/tiki_tiki_48s-s260908011/budget-telemetry.json": {
+      "bytes": 256,
+      "sha256": "17b0473762fa37b3ec79bed59a65aec9a71816d86756341b23776b6720371a13"
+    },
+    "tiki_tiki_48s/tiki_tiki_48s/tiki_tiki_48s-s260908011/compile.json": {
+      "bytes": 2426,
+      "sha256": "3f2c27f18a362e3ac622ff5b93eb3f56dae68991554d45048514d9b3abeb79a4"
+    },
+    "tiki_tiki_48s/tiki_tiki_48s/tiki_tiki_48s-s260908011/report.json": {
+      "bytes": 97324,
+      "sha256": "6f2fb69b5b3c37784ba89e99e923a849af712dc40ec8d93d6d9cf100e1f608a3"
+    },
+    "tiki_tiki_48s/tiki_tiki_48s/tiki_tiki_48s-s260908011/review-validation.json": {
+      "bytes": 4150,
+      "sha256": "f1e720807d1779e66dda685efe73964cf60e30ff6486b0eec0e59ab88d92b9e3"
+    },
+    "tiki_tiki_48s/tiki_tiki_48s/tiki_tiki_48s-s260908011/review-validation.json.sha256": {
+      "bytes": 65,
+      "sha256": "167712132a5adfcce342e5f0c9c87420dae8f3ee481e251c7ee85f25db7b1d3b"
+    },
+    "tiki_tiki_48s/tiki_tiki_48s/tiki_tiki_48s-s260908011/track.json": {
+      "bytes": 1110041,
+      "sha256": "8a4acda898cf726714293974710e61eaadb6f94ea000bee04801aa6be326f406"
+    },
+    "tiki_tiki_48s/tiki_tiki_48s/tiki_tiki_48s-s260908011/upload.json": {
+      "bytes": 398,
+      "sha256": "23b6181dac3eaf25b0bb28d871d545b0a1c3472c42ae1c8393181363638d8369"
+    },
+    "tiki_tiki_48s/tiki_tiki_48s/tiki_tiki_48s-s260908011/video.mp4": {
+      "bytes": 15974499,
+      "sha256": "1f4b1cc775461d6d9b8eef5b2bbcf6e91c5f64573ba22c2fffc6febade321244"
+    },
+    "tiki_tiki_48s/video.mp4": {
+      "bytes": 15974499,
+      "sha256": "1f4b1cc775461d6d9b8eef5b2bbcf6e91c5f64573ba22c2fffc6febade321244"
+    }
+  }
+}

@@ -71,7 +71,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean};
+export type ArcMotionOptions={budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string;channel?:number;wave?:boolean;radius?:number;arrivalMode?:string;poseWeight?:number;bidirectional?:boolean;impactWeight?:number;amplitudeWeight?:number;qualityRetries?:number;headingWeight?:number;guidance?:'span'|'clearance'|'full';guidanceSamples?:number;lookaheadWidth?:number;lookaheadSamples?:number;lookaheadWeight?:number;lookaheadWarmStart?:boolean;warmStart?:ArcMotionControl;pruneGuidance?:boolean;lookaheadDepth?:number;lookaheadBranching?:number;lookaheadObjective?:'local'|'terminal';reserveFactor?:number};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
@@ -91,7 +91,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   let engine:any=new Engine().setStart(start.position,start.velocity);
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
   let samples=0,viableCandidates=0;const qualityRetries=new Map<number,number>();
-  const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0};
+  const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
   const backtrack=()=>{
     pendingControl=null;
@@ -249,6 +249,32 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       }
       return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support};
     };
+    const distinct=(candidates:any[],width:number)=>{
+      const result:any[]=[];
+      for(const candidate of candidates.slice().sort((a,b)=>a.cost-b.cost)){
+        if(result.every(a=>Math.abs(a.heading-candidate.heading)>4||Math.abs(a.endSpeed-candidate.endSpeed)>.4||Math.abs(a.pose-candidate.pose)>7||Math.abs(a.meta.release-candidate.meta.release)>2))result.push(candidate);
+        if(result.length>=width)break;
+      }
+      return result;
+    };
+    const continuation=(base:Engine,index:number,depth:number,probeSamples:number,protectedEngines:Engine[]):any=>{
+      const searched=searchInterval(base,index,{samples:probeSamples,guidanceSamples:Math.min(12,options.guidanceSamples??48)},protectedEngines);
+      lookaheadStats.continuationNodes++;
+      if(!searched?.best)return null;
+      const anchor=searched.best;
+      if(depth<=1||index+1>=contacts.length)return{value:anchor.cost,localValue:anchor.localCost,control:anchor.c,depth:1};
+      let winner:any=null;
+      for(const candidate of distinct(searched.candidates,options.lookaheadBranching??2)){
+        const branch=base.addLine(candidate.lines);
+        const tail=continuation(branch,index+1,depth-1,probeSamples,[...protectedEngines,base,anchor.child]);
+        if(tail){
+          const value=candidate.localCost+(options.lookaheadWeight??1)*tail.value;
+          if(!winner||value<winner.value)winner={value,localValue:value,control:candidate.c,depth:1+tail.depth};
+        }
+        Engine.retainOnly([...protectedEngines,base,anchor.child]);
+      }
+      return winner??{value:anchor.cost,localValue:anchor.localCost,control:anchor.c,depth:1};
+    };
     for(let i=0;i<contacts.length;i++){
       const interval=searchInterval(engine,i,pendingControl?.index===i?{warmStart:pendingControl.control}:{});
       pendingControl=null;
@@ -257,25 +283,24 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const {candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support}=interval;
       let lookahead:any=null;
       if(best&&(options.lookaheadWidth??0)>1&&i+1<contacts.length){
-        const width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32;
-        const shortlist:any[]=[];
-        for(const candidate of candidates.slice().sort((a,b)=>a.cost-b.cost)){
-          if(shortlist.every(a=>Math.abs(a.heading-candidate.heading)>4||Math.abs(a.endSpeed-candidate.endSpeed)>.4||Math.abs(a.pose-candidate.pose)>7||Math.abs(a.meta.release-candidate.meta.release)>2))shortlist.push(candidate);
-          if(shortlist.length>=width)break;
-        }
+        const width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32,depth=Math.max(1,options.lookaheadDepth??1);
+        const shortlist=distinct(candidates,width);
         const original=best, startFrames=getPhysicsFrameCount(), probes:any[]=[];
         let winner:any=null;
         for(const candidate of shortlist){
-          const futureEnd=contacts[i+2]?.frame??end+1;
-          const reserve=(end-frame)*((options.samples??160)+(options.guidance?options.guidanceSamples??48:0))*1.1;
-          if(getPhysicsFrameCount()+reserve+(futureEnd-next)*probeSamples*1.4>budget-2*(end+1))break;
+          const reserve=(end-frame)*((options.samples??160)+(options.guidance?options.guidanceSamples??48:0))*(options.reserveFactor??1.1);
+          let probeAllowance=0;
+          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*1.4;
+          if(getPhysicsFrameCount()+reserve+probeAllowance>budget-2*(end+1))break;
           const branch=engine.addLine(candidate.lines);
-          const future=searchInterval(branch,i+1,{samples:probeSamples,guidanceSamples:Math.min(12,options.guidanceSamples??48)},[engine,original.child]);
+          const future=continuation(branch,i+1,depth,probeSamples,[engine,original.child]);
           lookaheadStats.probes++;
-          if(!future?.best)lookaheadStats.failedProbes++;
-          const value=future?.best?candidate.cost+(options.lookaheadWeight??1)*future.best.localCost:Infinity;
-          probes.push({control:candidate.c,currentCost:candidate.cost,futureCost:future?.best?.localCost??null,value:Number.isFinite(value)?value:null});
-          if(future?.best&&(!winner||value<winner.value))winner={candidate,value,futureControl:future.best.c};
+          if(!future)lookaheadStats.failedProbes++;
+          lookaheadStats.maxDepth=Math.max(lookaheadStats.maxDepth,future?.depth??0);
+          const terminal=options.lookaheadObjective==='terminal'||depth>1;
+          const value=future?(terminal?candidate.localCost:candidate.cost)+(options.lookaheadWeight??1)*(terminal?future.value:future.localValue):Infinity;
+          probes.push({control:candidate.c,currentCost:candidate.cost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null});
+          if(future&&(!winner||value<winner.value))winner={candidate,value,futureControl:future.control};
           Engine.retainOnly([engine,original.child]);
         }
         if(winner&&JSON.stringify(winner.candidate.c)!==JSON.stringify(original.c)){

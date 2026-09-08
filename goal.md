@@ -1,3 +1,16 @@
+# Active follow-up: preserve useful planning at the budget boundary
+
+The owner clarified that overall headline performance governs this compiler
+campaign. The accepted **771.3015** boundary-value compiler is now the starting
+point. Its separate 250k qualification failure is a defect to investigate, not
+an additional perfection veto. Benchmark V2 and the scorer remain fixed; invalid
+runs retain their ordinary zero scores. Diagnose mechanisms, test general fixes,
+and continue improving the compiler with coherent normal arcs.
+
+Large archives remain local; push source and compact evidence. See
+[the current work](docs/arc-planning-continuity.md). The earlier milestones below
+remain historical evidence.
+
 # Goal: stronger trajectory shaping with coherent normal arcs
 
 The arc-refinement campaign is complete. **Arc-refinement is promoted at

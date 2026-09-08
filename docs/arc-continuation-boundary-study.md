@@ -1,3 +1,9 @@
+> Update after the owner's September 2026 clarification: the accepted 771.3015
+> candidate is now promoted as `arc-continuation-boundary`. Qualification remains
+> diagnostic evidence and did not fail the headline gate. The earlier decision
+> below is preserved as history; [planning continuity](arc-planning-continuity.md)
+> addresses the compiler defect without changing the benchmark.
+
 # Learned value at continuation boundaries
 
 September 2026 research following the compiler-foundations cleanup.

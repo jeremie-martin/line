@@ -46,7 +46,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   return lines;
 }
 
-export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number}){
+export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;samples?:number;diagnostic?:boolean;arrivalWeight?:number;flow?:boolean;startPitch?:number;solver?:string}){
   resetFrameCount();const budget=options.budget,duration=Math.round(spec.duration*40),end=duration+20;
   const frames=spec.contacts.map(c=>Math.round(c.t*40));
   const gaps=sliceTimeline(frames,duration);
@@ -104,9 +104,11 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
         if(det.events.some(e=>e.type==='landing'&&!frames.some(f=>Math.abs(e.frame-f)<=1)))return reject('offbeat');
         if(i<contacts.length-1&&!raw.frames.slice(-6).every(f=>f.sledContacts.length===0))return reject('late_release');
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:horizon},added,horizon);
-        let cost=0;for(const key of ['air','speed','amplitude'] as const)if(targets[key]!==undefined)cost+=(key==='air'?1:1)*(achieved[key]!-targets[key]!)**2;
+        const residuals:number[]=['air','speed','amplitude'].map(key=>targets[key as keyof typeof targets]===undefined?0:(achieved as any)[key]-(targets as any)[key]);
+        let cost=residuals.reduce((s,x)=>s+x*x,0);
         let actualImpact:number|undefined;
         if(impact!==undefined){actualImpact=measureGapAxes(det,gaps[gap],added,frame).impact;if(actualImpact===undefined)return reject('impact');cost+=2*(actualImpact-impact)**2;}
+        residuals.push(impact===undefined?0:Math.SQRT2*(actualImpact!-impact));
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
         // Keep future catches physically accessible; this is an optimizer prior,
@@ -116,9 +118,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
           const nextImpact=gaps[contacts[i+1].gap].targets.impact??0;
           const nextSpeed=authoredSpeedToPx(planned[contacts[i+1].gap+1]?.targets.speed??targets.speed??.55);
           const desiredArrival=clamp(15+deg(impactToRawPx(nextImpact)/nextSpeed),20,70);
-          cost+=(options.arrivalWeight??0)*(Math.pow((deg(Math.atan2(finalVelocity.y,finalVelocity.x))-desiredArrival)/45,2)+Math.pow((Math.hypot(finalVelocity.x,finalVelocity.y)-nextSpeed)/7.2,2));
+          const weight=Math.sqrt(options.arrivalWeight??0), r1=weight*(deg(Math.atan2(finalVelocity.y,finalVelocity.x))-desiredArrival)/45,r2=weight*(Math.hypot(finalVelocity.x,finalVelocity.y)-nextSpeed)/7.2;
+          residuals.push(r1,r2);cost+=r1*r1+r2*r2;
         }
-        const result={child,lines:added,c,cost,achieved,actualImpact,release:raw.frames.findLast(f=>f.sledContacts.length)?.frame};
+        const result={child,lines:added,c,cost,residuals,achieved,actualImpact,release:raw.frames.findLast(f=>f.sledContacts.length)?.frame};
         const finalState=state.points;
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
         const pose=deg(Math.atan2(finalState.NOSE.y-finalState.TAIL.y,finalState.NOSE.x-finalState.TAIL.x));
@@ -135,7 +138,30 @@ export function compileArcMotion(spec:Spec,seed:number,options:{budget:number;sa
       }
       if(best){
         const keys=['entry','turn','exit','support','bias','offset'] as const;
-        for(let k=80;k<max;k++){
+        let local=80;
+        if(options.solver==='newton'){
+          for(let iteration=0;iteration<4&&local+15<max;iteration++){
+            const origin=best, scale=[2,5,6,Math.max(1,support*.1),.25,.2];
+            const jac=origin.residuals.map(()=>Array(6).fill(0));
+            for(let d=0;d<6;d++){
+              const key=keys[d], a=evaluate({...origin.c,[key]:origin.c[key]+scale[d]}),b=evaluate({...origin.c,[key]:origin.c[key]-scale[d]});local+=2;
+              for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
+            }
+            const matrix=Array.from({length:6},(_,a)=>Array.from({length:7},(_,b)=>b===6?-jac.reduce((sum:number,row:number[],r:number)=>sum+row[a]*origin.residuals[r],0):jac.reduce((sum:number,row:number[])=>sum+row[a]*row[b],0)+(a===b?.002:0)));
+            for(let d=0;d<6;d++){
+              let pivot=d;for(let r=d+1;r<6;r++)if(Math.abs(matrix[r][d])>Math.abs(matrix[pivot][d]))pivot=r;
+              [matrix[d],matrix[pivot]]=[matrix[pivot],matrix[d]];
+              const v=matrix[d][d];if(Math.abs(v)<1e-12)continue;
+              for(let c=d;c<7;c++)matrix[d][c]/=v;
+              for(let r=0;r<6;r++)if(r!==d){const f=matrix[r][d];for(let c=d;c<7;c++)matrix[r][c]-=f*matrix[d][c];}
+            }
+            for(const damping of [1,.5,.25]){
+              const c={...origin.c};keys.forEach((key,d)=>c[key]+=damping*scale[d]*clamp(matrix[d][6],-4,4));evaluate(c);local++;
+            }
+            Engine.retainOnly([engine,best.child]);
+          }
+        }
+        for(let k=local;k<max;k++){
           const key=keys[Math.floor((k-80)/2)%keys.length],round=Math.floor((k-80)/12),sign=k%2===0?-1:1;
           const steps={entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4};
           const candidate={...best.c,[key]:best.c[key]+sign*steps[key]*Math.pow(.65,Math.floor(round/2))};

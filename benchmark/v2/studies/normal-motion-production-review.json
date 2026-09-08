@@ -1,0 +1,79 @@
+{
+  "schema": "line.production-video-review.v1",
+  "archive": "archives/normal-motion-feedback-2026-09-08",
+  "compilerBranch": "archive/normal-motion-feedback-662",
+  "generatedAt": "2026-09-08T05:18:28.692Z",
+  "gitSha": "a02315e27942e784d49cc9982a92bc98923e7242",
+  "candidateFingerprint": "3ce6b356f9bcd18041e8e0818fd727683019f14859ca6144922c570f24eab1e1",
+  "compilerSourceFingerprint": "2149de41ba31b88500eabc8cfd5ccf8d83123339722b0ffa3e9f1dad7ec9944f",
+  "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+  "project": "normal-motion-review",
+  "seed": 260907010,
+  "songs": [
+    {
+      "song": "amor_na_praia_46s",
+      "compileDir": "inputs/amor_na_praia_46s",
+      "metrics": {
+        "seed": 260907010,
+        "score": 667.2524233957217,
+        "standTimePct": 0,
+        "rotations": 8.330636311522321,
+        "flipCount": 0,
+        "reachedEnd": true,
+        "offBeat": 0,
+        "contractPassed": true,
+        "durationFrames": 1860
+      },
+      "lineTypes": {
+        "0": 4343
+      },
+      "passesOriginalSelectionFloors": false,
+      "video": "amor_na_praia_46s/amor_na_praia_46s-s260907010/video.mp4",
+      "videoSha256": "3bfa218e989257a1b9458ebf780440793af5567141a0eb2f62b3430a896d6974"
+    },
+    {
+      "song": "luna_bala_44s",
+      "compileDir": "inputs/luna_bala_44s",
+      "metrics": {
+        "seed": 260907010,
+        "score": 655.8669832521773,
+        "standTimePct": 0,
+        "rotations": 10.629994170539781,
+        "flipCount": 0,
+        "reachedEnd": true,
+        "offBeat": 0,
+        "contractPassed": true,
+        "durationFrames": 1780
+      },
+      "lineTypes": {
+        "0": 3948
+      },
+      "passesOriginalSelectionFloors": false,
+      "video": "luna_bala_44s/luna_bala_44s-s260907010/video.mp4",
+      "videoSha256": "33481c8a98f5a9d6b63e8acd06204e1d7e569605f3746de092b187a04fb411a5"
+    },
+    {
+      "song": "tiki_tiki_48s",
+      "compileDir": "inputs/tiki_tiki_48s",
+      "metrics": {
+        "seed": 260907010,
+        "score": 612.9698935757275,
+        "standTimePct": 0,
+        "rotations": 8.115063093464997,
+        "flipCount": 1,
+        "reachedEnd": true,
+        "offBeat": 0,
+        "contractPassed": true,
+        "durationFrames": 1940
+      },
+      "lineTypes": {
+        "0": 5199
+      },
+      "passesOriginalSelectionFloors": false,
+      "video": "tiki_tiki_48s/tiki_tiki_48s-s260907010/video.mp4",
+      "videoSha256": "8ccb29a73a605d54be6c0649c61759625b84a1d1d773af7da7913c3a9f55bd97"
+    }
+  ],
+  "purpose": "Local visual review requested by the owner; no upload or publication. Creative selection floors are recorded, not enforced; physical validity is required.",
+  "visualStatus": "Current point-segment normal compiler before the requested arc redesign. Not visual acceptance."
+}

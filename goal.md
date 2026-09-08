@@ -1,4 +1,19 @@
-# Normal-line compiler improvement goal — achieved
+# Arc-based normal-line compiler improvement goal
+
+Owner correction, 2026-09-08: high benchmark scores alone do not fulfill the
+project's visual goal. The owner rejected the constellation of tiny segments
+in the production previews. Future compiler work must use coherent, visible
+arcs as the physical track primitive, with normal type-0 lines only. The arc
+shape, variety, parameterization, and control may evolve. Isolated point-like
+controls, including controls merely disguised by decorative curves, do not
+meet this request. Preserve the motion-planning and feedback ideas where they
+help real arc geometry. Keep the benchmark and score unchanged, and use full
+vertical production videos to evaluate appearance alongside measured quality.
+
+The 662.5889 result below is a completed numerical milestone, not completion
+of this corrected visual objective. The immediate request is to render the
+current normal-motion compiler for review, before any arc redesign; label
+those previews accordingly. Arc-based improvement remains outstanding.
 
 Raise the active 750k Benchmark V2 headline above 650 using only normal Line
 Rider lines (type 0). Acceleration lines (type 1) are excluded from this campaign.
@@ -6,8 +21,8 @@ The owner added this constraint on 2026-09-07 because normal-line tracks are
 preferred aesthetically. The benchmark, score, authored targets, catalog,
 weights, validity, physics, and compute accounting remain fixed.
 
-All other compiler directions remain open: new geometry, different contact
-representations, kinematic planning, joint multi-contact and whole-track
+Within the arc-based normal-line requirement, compiler directions remain open:
+new geometry, different contact representations, kinematic planning, joint multi-contact and whole-track
 optimization, learned models, search architecture, and exact simulation reuse.
 Challenge assumptions, collect decisive physical evidence, and improve promising
 ideas beyond their first implementation. Earlier closures and workflow limits
@@ -20,8 +35,8 @@ only type-0 geometry and pass the unchanged full-track replay and scoring.
 The starting normal-line reference was `value-ranked-startup-expiration`: 607.2582 at
 750k/N=32, with its complete N=48 cache retained. Restoring that reference for
 this new constraint is not a new promotion or a score-definition change.
-The normal-line objective is now achieved: `normal-motion-feedback` is promoted
-at **662.5889**, with 352/352 valid canonical runs at 750k/N=8. The paired gain
+The earlier normal-line numerical objective was achieved: `normal-motion-feedback`
+is promoted at **662.5889**, with 352/352 valid canonical runs at 750k/N=8. The paired gain
 is **55.3569** (SE 0.9294) against the matching old normal-line baseline prefix.
 Qualification passes 120/120 runs; the standing 250k reading passes 528/528 and
 recovers 63 old-baseline failures with no losses. All accepted output uses
@@ -42,5 +57,13 @@ at the validated discovery implementation. All three acceleration videos are
 complete and preserved with code and evidence in
 `archives/native-motion-feedback-2026-09-07/`. The current research record is
 `docs/normal-line-650-campaign.md`.
-Keep the concise campaign current, preserve comparable evidence, and continue
-under any future goal; this above-650 objective is achieved and verified.
+Keep the concise campaign current and preserve comparable evidence. The
+above-650 numerical milestone is verified; the arc-based visual objective
+remains active.
+
+The requested current normal-motion previews are complete for all three
+production specifications, in full vertical format with music and production
+effects. They are preserved in `archives/normal-motion-feedback-2026-09-08/`
+and indexed by `docs/normal-motion-video-review.md`. These previews precede
+an arc redesign and retain point-like geometry. The numerical compiler is
+preserved on `archive/normal-motion-feedback-662` at `a02315e2`.

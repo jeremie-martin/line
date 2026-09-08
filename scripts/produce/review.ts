@@ -18,6 +18,7 @@ import { resolveJoltMs, runSeed } from "./seed.ts";
 
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
 const out = resolve(arg("out") ?? "generated/reviews/production-review");
+const project = arg("project") ?? "production-review";
 const seed = Number(arg("seed") ?? 260907010);
 if (!Number.isSafeInteger(seed)) throw new Error("seed must be an integer");
 const root = resolve("productions"), jolt = resolveJoltMs();
@@ -32,7 +33,7 @@ const writeJson = (p: string, value: unknown) => {
 mkdirSync(out, { recursive: true });
 const index: any = { schema: "line.production-video-review.v1", generatedAt: new Date().toISOString(),
   gitSha, candidateFingerprint: identity.candidateFingerprint, compilerSourceFingerprint: identity.compilerSourceFingerprint,
-  engineArtifactFingerprint: identity.engineArtifactFingerprint, seed, songs: [],
+  engineArtifactFingerprint: identity.engineArtifactFingerprint, project, seed, songs: [],
   purpose: "Local visual review requested by the owner; no upload or publication. Creative selection floors are recorded, not enforced; physical validity is required." };
 const save = () => {
   writeJson(join(out, "review.json"), index);
@@ -87,7 +88,7 @@ try {
       const spectrumBase = await ensureSpectrum(cfg.audio, entry.song, join(work, "spectrum.log"));
       await renderBundle({ specPath: cfg.spec, trackPath: join(work, "track.json"), reportPath: join(work, "report.json"),
         budgetTelemetryPath: join(work, "budget-telemetry.json"), audioPath: cfg.audio, spectrumBase, seed,
-        song: entry.song, project: "native-motion-review", metrics: entry.metrics, render: cfg.render,
+        song: entry.song, project, metrics: entry.metrics, render: cfg.render,
         budget: cfg.budget, jolt, outDir: out, workDir: work, gitSha, host: hostname() });
       const probe = JSON.parse(execFileSync("ffprobe", ["-v", "error", "-show_streams", "-show_format", "-of", "json", video], { encoding: "utf8" }));
       const v = probe.streams.find((s: any) => s.codec_type === "video"), a = probe.streams.find((s: any) => s.codec_type === "audio");

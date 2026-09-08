@@ -1,7 +1,14 @@
 # Compiler improvement campaign
 
-The normal-line above-650 goal is achieved. The active 750k Benchmark V2
-headline is **662.5889**, promoted as `normal-motion-feedback`, with
+Owner feedback, 2026-09-08: the point-like geometry is visually unacceptable.
+Future work must recover coherent physical arcs using normal lines, while
+retaining useful planning and feedback ideas. Arc shapes and controls may
+evolve; benchmark and scorer remain fixed. Full production video review is
+part of assessing that objective. The owner has also requested previews of
+the current normal-motion compiler; these precede an arc redesign.
+
+The earlier normal-line above-650 numerical goal is achieved. The active 750k
+Benchmark V2 headline is **662.5889**, promoted as `normal-motion-feedback`, with
 **352/352 valid runs** across all 44 development cases and eight seeds (16–23).
 All accepted output uses **normal type-0 lines**. The benchmark, scoring,
 validity rules, physics, and compute accounting are unchanged.
@@ -86,3 +93,13 @@ selection settings used for these explicitly requested previews.
 The retained comparison, request, compiler snapshot, and canonical archive are
 under `benchmark/v2/runs/normal-motion-feedback-*`. `npm run benchmark -- status`
 verifies the active reference and current committed compiler identity.
+
+## Normal-line video review — 2026-09-08
+
+All three production specifications now have complete vertical videos from the
+current normal-motion compiler, with the same seed and full production effects
+as the acceleration previews. [Open the normal-line gallery](../archives/normal-motion-feedback-2026-09-08/index.html)
+or [read the verification record](normal-motion-video-review.md). The compiler
+is preserved on `archive/normal-motion-feedback-662` at `a02315e2`.
+These previews still use point-like normal segments; the requested arc-based
+visual objective remains outstanding. Benchmark and compiler are unchanged.

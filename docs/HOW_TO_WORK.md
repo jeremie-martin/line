@@ -1,16 +1,21 @@
-# Current owner constraint — 2026-09-07
+# Current owner constraint — 2026-09-08
 
-The active compiler campaign uses normal type-0 lines only. Acceleration output
+The active compiler campaign uses coherent, visible arc primitives made from
+normal type-0 lines. The owner rejected the constellation of tiny control
+segments in the video review. Arc shapes and control may evolve, but the
+physical track must satisfy that visual requirement. Full production videos
+are part of evaluating the result. Acceleration output
 is preserved on a separate branch for video review. `goal.md` and
 `normal-line-650-campaign.md` supersede the earlier unrestricted-material
 campaign status below; other compiler research restrictions remain removed.
 The active baseline is `normal-motion-feedback`, **662.5889**, accepted and
-promoted at N=8. The above-650 normal-line goal is achieved. The scorer and benchmark remain unchanged.
+promoted at N=8. This numerical milestone is preserved; the arc-based visual
+objective is outstanding. The scorer and benchmark remain unchanged.
 
 # How To Work On The Compiler
 
-Compiler research scope is unrestricted under the owner's 2026-09-07
-authorization in `goal.md`. The benchmark and score stay fixed. Historical
+Compiler research scope is open within the owner's material and arc-geometry
+requirements in `goal.md`. The benchmark and score stay fixed. Historical
 mechanism closures, deferrals, and study caps are evidence to reconsider, not
 permission barriers. The active program is `normal-line-650-campaign.md`.
 

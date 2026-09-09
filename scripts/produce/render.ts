@@ -172,6 +172,11 @@ function utcStamp(d: Date): { day: string; stamp: string; iso: string } {
 
 /** Render one track and commit a production-ready bundle. Returns the bundle dir. */
 export async function renderBundle(inp: RenderInput): Promise<string> {
+  // Bound compositor memory when several renders share a workstation. This
+  // changes worker concurrency only, preserving the locked visual recipe.
+  const concurrency = process.env.LR_REMOTION_CONCURRENCY;
+  if (concurrency !== undefined && (!/^\d+$/.test(concurrency) || Number(concurrency) < 1 ||
+    !Number.isSafeInteger(Number(concurrency)))) throw new Error("LR_REMOTION_CONCURRENCY must be a positive integer");
   const name = `${inp.song}-s${inp.seed}`;
   const gen = resolve(inp.workDir);
   mkdirSync(gen, { recursive: true });
@@ -226,7 +231,8 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
       spectrumFile: inp.spectrumBase, fps: OUTPUT_FPS, fx: LOCKED_FX,
     });
     await stage(name, "[4/5] Remotion overlay", () => run("npx", ["remotion", "render", "src/index.ts", "CurveOverlayVertical", outMp4,
-      `--crf=${FINAL_CRF}`, "--jpeg-quality=100", `--props=${props}`, `--public-dir=${renderPublic}`], log, join(ROOT, "remotion")),
+      `--crf=${FINAL_CRF}`, "--jpeg-quality=100", `--props=${props}`, `--public-dir=${renderPublic}`,
+      ...(concurrency === undefined ? [] : [`--concurrency=${concurrency}`])], log, join(ROOT, "remotion")),
       () => fileSizeLabel(outMp4));
 
     // 5. bundle: stage → upload.json (sidecar last) → atomic mv into this run dir.

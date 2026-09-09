@@ -1,0 +1,110 @@
+{
+  "schema": "line.benchmark-v2.comparison-request.v4",
+  "generatedAt": "2026-09-09T07:12:54.801Z",
+  "artifactPath": "generated/benchmark-v2/arc-850/final-canonical.json.comparison.json",
+  "baselinePath": "benchmark/v2/campaign-baseline.json",
+  "baselineLabel": "arc-control-policy",
+  "baselineCacheFingerprint": "ac81ef7e4e06797fa9b78b74442218f2930db055809ef249f218cc83745b559b",
+  "baselineIdentityFingerprint": "ad0e49a6ea3ca5d8ad6515e9650a6f6b313b3e7118908bbda7e81a08fc58de7b",
+  "baselineInitialShards": [
+    {
+      "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
+      "firstSeedSlot": 0,
+      "endSeedSlotExclusive": 8,
+      "archiveSha256": "f782e43961c9ec194f2efdee9fdfc34d10480e0bc03bdbe73eacd147b664f21a",
+      "compressedArchive": "benchmark/v2/runs/arc-control-policy-development-750k-N8.json.gz",
+      "compressedArchiveSha256": "c84994d429fda146079bfa2f6fc27b30117d962649ec2d5d0aa1d93c8cb32e7d",
+      "executionPolicyFingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
+      "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
+    }
+  ],
+  "candidateFingerprint": "499ff8624d113777cdfd46202083f0f0fcdac76fc53ac76f7431c5768ca566fb",
+  "candidateSnapshot": {
+    "schema": "line.benchmark-v2.compiler-snapshot.v1",
+    "archive": "generated/benchmark-v2/arc-850/final-canonical-compiler-snapshot.tar.gz",
+    "archiveSha256": "12fdf0b6233ad97504733767fce34ff504283ea2f1727c523d8c7104c66386b7",
+    "candidateFingerprint": "499ff8624d113777cdfd46202083f0f0fcdac76fc53ac76f7431c5768ca566fb",
+    "compilerSourceFingerprint": "748011ab325a5bb182be2ace0db17f068a46ef058f9b5a7512aa661b7960b879",
+    "compilerEnvironment": {},
+    "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+  },
+  "experiment": "sequential-improvement",
+  "seeds": 48,
+  "looks": [
+    8,
+    16,
+    32,
+    48
+  ],
+  "budgets": [
+    750000
+  ],
+  "mode": "improvement",
+  "margin": null,
+  "canonicalSeedBase": 0,
+  "seedScheduleFingerprint": "3dc531969ba24514baa0910a4ade78978749725049357018764b1db87c38d67f",
+  "canonicalSeedSchedule": {
+    "kind": "profile_budget_disjoint_contiguous",
+    "profile": "canonical",
+    "seedBase": 0,
+    "seedsPerBudget": 48,
+    "byBudget": [
+      {
+        "budget": 750000,
+        "actualSeeds": [
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          608,
+          609,
+          610,
+          611,
+          612,
+          613,
+          614,
+          615,
+          616,
+          617,
+          618,
+          619,
+          620,
+          621,
+          622,
+          623,
+          624,
+          625,
+          626,
+          627,
+          628,
+          629,
+          630,
+          631,
+          632,
+          633,
+          634,
+          635,
+          636,
+          637,
+          638,
+          639,
+          640,
+          641,
+          642,
+          643,
+          644,
+          645,
+          646,
+          647
+        ]
+      }
+    ]
+  },
+  "sequentialPolicyFingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
+  "sequentialInferenceFingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
+  "sequentialCalibrationFingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d"
+}

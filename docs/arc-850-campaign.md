@@ -113,3 +113,70 @@ The 47 focused tests pass. TypeScript still reports the same 251 inherited
 diagnostics as the accepted compiler, with no added diagnostic after normalizing
 line positions. Canonical confirmation and independent physical stress remain
 required before this exploratory score is accepted.
+
+## Canonical acceptance
+
+The normal sequential command declared a maximum of 48 seeds and accepted at its
+first complete N=8 look: **852.1248**, a **24.0020** gain over 828.1228. All 352
+runs pass over the entire 44-case V2 development suite, seeds 16–23. Zero jitter
+makes these 44 distinct tracks repeated eight times. The compiler, scorer,
+suite, targets, detector, engine and frame-accounting identities are checked in
+the final validation evidence. Only the compiler identity changes.
+
+The promoted baseline is `arc-control-memory`; measured compiler commit
+`5c397b51`. All four strata improve: representative +23.2974, capability +17.1992,
+legacy regression +26.4465 and development music +49.3848. Forty-three cases
+improve; `river_reentry_tempo_fast_5` regresses 0.8779. Across the 44 canonical
+geometries, actual physical work falls from 32,674,591 to 32,495,197 frames.
+No wall-clock speedup is claimed: the larger model and neighbor search add CPU
+and memory work outside the benchmark's physical-frame unit.
+
+Independent jittered compilation produces 176 distinct valid tracks across
+four seeds and all 44 cases, within 750k. Its unweighted mean is **839.0565**,
+up from 814.4260. Five conditional family-excluded final policies score
+**846.4560**, 44/44 valid. Families are excluded from both the forest and example
+datasets, but upstream teacher policies and the unchanged runtime future-value
+prior were already development-trained; this is not a fresh independent
+end-to-end holdout. The reused qualification sidecar
+passes 120/120, with monitor **785.4969** versus 764.1572. Its budget scores are
+672.5495 at 250k, 791.5388 at 500k and 850.7253 at 750k.
+
+The low-budget output exactly matches the prior compiler's 509.7855 and 41/44
+validity at 150k. The 1M result is 851.7820, improving on 831.0704 but below the
+new 750k result. Reliable aggregate scaling beyond the canonical allowance
+remains an opportunity. The existing standing-time creative floor is also
+separate from the successful physical contract and remains unmet.
+
+The canonical geometry audit joins every track hash to its rich record: all
+normal type 0, 4,100 interval groups comprising 625 single and 3,475 paired
+curves. The shortest connected curve is 10.4588 units. The primitive generator
+is unchanged. Seventy-two checksum-verified panels, including adverse trials,
+are indexed in `benchmark/v2/studies/arc-850-research.json`.
+
+## Local preservation and rendering recovery
+
+All raw panels, datasets, models and prototype source changes are preserved in
+`archives/arc-850-852/raw-panels.tar.zst`: 5,414 files, 12,988,303,186 uncompressed
+bytes, 839,031,896 compressed bytes. Every inner file was hash-verified. After
+the compact summary completed, 4,114 redundant extracted files (11,347,795,886
+bytes) were removed only after matching the verified archive. The retained
+reclamation record lists every path; `tar --zstd -xf` restores them at repo root.
+
+Two initial simultaneous Remotion overlays failed with browser page crashes;
+Luna explicitly logged `ERR_INSUFFICIENT_RESOURCES`. Both failures and logs are
+retained. `LR_REMOTION_CONCURRENCY` now allows a positive integer worker limit
+without changing the locked rendering recipe. Those videos are retried
+sequentially with four compositor workers. Their already-verified compiler
+outputs are reused. Tiki Tiki's original render completed normally.
+
+
+All three full 1080×1920, 60fps production review videos are complete and decode
+without errors. Six sample frames were inspected. Production scores are
+915.0055 (Amor na Praia), 902.9911 (Luna Bala), and 822.5694 (Tiki Tiki), using
+the unchanged 1M production settings. Their 0% standing time remains below the
+original creative floor. See [the video review](arc-850-video-review.md) and
+[the complete validation](../benchmark/v2/studies/arc-850-validation.json).
+The final source and completion evidence are archived locally, with a pushed
+[archive index](../benchmark/v2/studies/arc-850-local-archive.json). The compact
+[prototype patches](../benchmark/v2/studies/arc-850-prototypes/README.md) preserve
+the alternative implementations without publishing the large raw archive.

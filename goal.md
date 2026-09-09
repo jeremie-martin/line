@@ -1,4 +1,15 @@
-# Active campaign: strictly above 850 with coherent normal arcs
+# Achieved campaign: 852.1248 with coherent normal arcs
+
+**The >850 target is exceeded.** `arc-control-memory` is promoted at **852.1248**,
+up 24.0020 from 828.1228. All 352 canonical runs pass over 44 cases and eight
+zero-jitter seeds; separate jitter stress passes 176 distinct tracks and the
+reused qualification sidecar passes 120/120. The same substantial normal arc
+primitive and fixed benchmark/scorer/physics remain. All three full vertical
+review videos are generated and validated. Code and compact evidence are
+preserved on `codex/arc-850` and `archive/arc-control-memory-852`; large archives
+stay local. See [the final evidence](benchmark/v2/studies/arc-850-validation.json),
+[video review](docs/arc-850-video-review.md), and
+[local gallery](archives/arc-850-852/index.html). The original brief follows.
 
 Target: **greater than 850 on the unchanged canonical 750k Benchmark V2 headline**.
 Start from the promoted `arc-control-policy` compiler at **828.1228**, preserved at

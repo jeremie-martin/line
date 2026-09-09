@@ -8,11 +8,11 @@ are part of evaluating the result. Acceleration output
 is preserved on a separate branch for video review. `goal.md` and
 `arc-motion-650-campaign.md` supersede the earlier unrestricted-material
 campaign status below; other compiler research restrictions remain removed.
-The active baseline is `arc-control-policy`, **828.1228**, accepted at N=8
+The active baseline is `arc-control-memory`, **852.1248**, accepted at N=8
 with 352/352 valid canonical runs (44 cases, seeds 16–23). All three full
 vertical production videos are archived locally. Code and compact evidence
 are pushed; large archives stay local at the owner's request. See
-[`arc-825-campaign.md`](arc-825-campaign.md) for the accepted result,
+[`arc-850-campaign.md`](arc-850-campaign.md) for the accepted result,
 and [`compiler-foundations.md`](compiler-foundations.md) for the cleanup audit.
 The headline is the campaign decision metric. Qualification is a disclosed
 diagnostic, with invalid runs scored normally; an individual regression does

@@ -24,7 +24,7 @@ for(let fold=0;fold<5;fold++){
 if(rows.length!==44||new Set(rows.map(r=>r.sourceId)).size!==44)throw new Error('incomplete fold coverage');
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const result={schema:'line.arc-control-policy-held-families.v1',researchOnly:true,
- note:'Five models with complete parent families excluded from training; live compiler retest after budget diagnosis. This combines models and is not canonical confirmation.',
+ note:'Five control-proposal models with complete parent families excluded from their final training datasets. Other fixed models and upstream teacher policies can already depend on development families. This combines models and is neither a fresh independent end-to-end holdout nor canonical confirmation.',
  models,summary:summarizeDevelopmentBudget(rows,750000,suite)};
 const body=JSON.stringify(result)+'\n';writeFileSync(out,body);writeFileSync(out+'.sha256',hash(body)+'\n');
 console.log(JSON.stringify({score:result.summary.score,valid:result.summary.validRuns,sources:rows.length}));

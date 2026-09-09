@@ -1,0 +1,9 @@
+{
+  "root": "/tmp/line-arc850-objective",
+  "head": "975e7a63b6a292e207f5a95433766590700f8aec",
+  "files": [
+    "scripts/benchmark/arc_motion_study.ts",
+    "scripts/v0/optimizer/arc_control_policy.ts",
+    "scripts/v0/optimizer/arc_motion.ts"
+  ]
+}

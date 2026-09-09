@@ -1,3 +1,24 @@
+# Active campaign: 900 on frozen Benchmark V3
+
+Reach **at least 900** on the canonical V3 headline: all 88 specifications,
+seeds 16 and 17, and 750,000 actual compiler physics frames per run. Start from
+the published **853.9779** baseline. Work branch: `codex/arc-v3-900`.
+
+The V3 catalog, targets, scorer, aggregation, detector, physics and accounting
+are frozen. Preserve substantial coherent normal type-0 arcs; no acceleration
+lines, point constellations, or decorative curves disguising isolated controls.
+Compiler geometry, planning, optimization, learned proposals and allocation are
+open to research. Use measured evidence, preserve adverse results, and confirm
+the final compiler through the public entry point on the complete canonical
+panel. Headline performance governs the campaign; disclose regressions and
+robustness without inventing additional perfection gates.
+
+Research compute is unrestricted. Commit and push code and compact evidence;
+keep full tracks, large archives and raw research artifacts local. The owner
+cannot currently evaluate videos, so preserve the established arc style and
+do not claim new audiovisual approval. See [the campaign ledger](docs/arc-v3-900-campaign.md).
+Earlier milestones below describe their historical benchmark, not the active target.
+
 # Achieved campaign: 852.1248 with coherent normal arcs
 
 **The >850 target is exceeded.** `arc-control-memory` is promoted at **852.1248**,

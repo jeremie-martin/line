@@ -6,7 +6,7 @@ import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSear
 import { LineRiderEngine as Judge, disposeAllWasmEnginesForStudy as disposeJudge } from '../../lib/_lr_engine_wasm.ts';
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
-import { measureGapAxes } from '../core/measure.ts';
+import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
 import { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
@@ -27,6 +27,16 @@ const rad=(x:number)=>x*Math.PI/180;
 const deg=(x:number)=>x*180/Math.PI;
 export type ArcMotionOptions= {
   budget:number;
+  /** Measure the final objective at the authored end; still validate the grace. */
+  authoredHorizon?:boolean;
+  /** Balance authored span error by time and contact error by event count. */
+  timeObjective?:boolean;
+  /** Retain useful search pressure beyond the public amplitude cap. */
+  amplitudeOverflow?:'raw'|'log';
+  /** Predict the next grounded boundary when ranking an outgoing air span. */
+  predictAirBoundary?:boolean;
+  /** Transfer response matrices in physical units before changing loss weights. */
+  rescaleMemoryWeights?:boolean;
   memorySamples?:number;
   memoryResponseSamples?:number;
   /** Replace the preceding truncated span once its contact boundary is measured. */
@@ -112,6 +122,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   const frames=spec.contacts.map(c=>Math.round(c.t*40));
   const gaps=sliceTimeline(frames,duration);
   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
+  const impactCount=Math.max(1,gaps.filter(g=>g.targets.impact!==undefined).length);
+  const axisFrames=Object.fromEntries(['air','speed','amplitude'].map(axis=>[axis,gaps.reduce((n,g)=>n+(g.targets[axis as keyof typeof g.targets]===undefined?0:g.endFrame-g.startFrame),0)]));
+  const spanWeight=(g:typeof gaps[number],axis:string)=>options.timeObjective?impactCount*(g.endFrame-g.startFrame)/Math.max(1,axisFrames[axis]):1;
   const rng=makeRng(seed);
   const planned=scheduleNativeContacts(gaps.map(g=>({...g,targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
   const fixed=spec.start||(spec.preroll??PREROLL.DEFAULT_S)<=0?resolveStartState(spec):null;
@@ -190,6 +203,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       if(horizon<=frame+2)return null;
       const outgoing=planned.find(g=>g.startFrame===(i===0?0:frame))??{index:gaps.length,startFrame:frame,endFrame:horizon,endsWithContact:false,targets:{}};
       const targets=outgoing.targets;
+      const objectiveEnd=options.authoredHorizon?Math.min(horizon,duration):horizon;
       const beforeState=getRiderMetered(engine,frame-1).ballisticState(),before=JSON.stringify(beforeState);
       const free=getRiderMetered(engine,frame),velocity=free.velocity;
       engine.prepareCollisionTrace(frame);getRiderMetered(engine,frame);
@@ -197,7 +211,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const points=['PEG','TAIL','NOSE','STRING'].map(key=>trace[key]);
       const prefixRaw=options.cachePrefixReads?extractRawTrajectory(engine,frame-1):null;
       const incoming=deg(Math.atan2(velocity.y,velocity.x)),pace=Math.hypot(velocity.x,velocity.y);
-      const span=horizon-(i===0?0:frame);
+      const span=objectiveEnd-(i===0?0:frame);
       const support=clamp((1-(targets.air??.5))*(span+1),3,Math.max(3,span-6));
       const impact=gap>=0?gaps[gap].targets.impact:undefined;
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
@@ -207,16 +221,31 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
         while(memoContexts.size>32)memoContexts.delete(memoContexts.keys().next().value!);
       }
+      const objectiveAxes=(det:ReturnType<typeof detect>,g:typeof gaps[number],rangeEnd:number)=>{
+        const axes=measureGapAxes(det,g,[],rangeEnd);
+        if(options.predictAirBoundary&&g.endsWithContact&&rangeEnd===g.endFrame-1&&axes.air!==undefined){
+          const samples=rangeEnd-g.startFrame+1;axes.air*=samples/(samples+1);
+        }
+        if(options.amplitudeOverflow&&g.targets.amplitude!==undefined&&axes.amplitude===1){
+          const rawAmplitude=measureAmplitudePeakPx(det,g,rangeEnd)!/CALIB.AMPLITUDE_CAP;
+          axes.amplitude=options.amplitudeOverflow==='raw'?rawAmplitude:1+Math.log(rawAmplitude);
+        }
+        return axes;
+      };
       const priorGap=i>0?gaps[contacts[i].gap]:undefined;
       const priorAxes=options.completeBoundary&&priorGap
-        ?measureGapAxes(detect(prefixRaw??extractRawTrajectory(engine,frame-1)),priorGap,[],frame-1):undefined;
-      const priorLoss=priorAxes&&priorGap?arcSpanLoss(priorAxes,priorGap.targets,options.amplitudeWeight??1):0;
+        ?objectiveAxes(detect(prefixRaw??extractRawTrajectory(engine,frame-1)),priorGap,frame-1):undefined;
+      const weightedSpanLoss=(achieved:any,g:typeof gaps[number])=>['air','speed','amplitude'].reduce((sum,key)=>{
+        const value=achieved[key],target=g.targets[key as keyof typeof g.targets];
+        return sum+(value===undefined||target===undefined?0:(value-target)**2*(key==='amplitude'?(options.amplitudeWeight??1):1)*spanWeight(g,key));
+      },0);
+      const priorLoss=priorAxes&&priorGap?(options.timeObjective?weightedSpanLoss(priorAxes,priorGap):arcSpanLoss(priorAxes,priorGap.targets,options.amplitudeWeight??1)):0;
       const evaluate=(c:ArcMotionControl)=>{
         c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
@@ -258,16 +287,26 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(i===0&&!raw.frames.slice(1,4).some(f=>f.sledContacts.length))return reject('startup');
         if(det.events.some(e=>e.type==='landing'&&!frames.some(f=>Math.abs(e.frame-f)<=1)))return reject('offbeat');
         if(i<contacts.length-1&&!raw.frames.slice(-6).every(f=>f.sledContacts.length===0))return reject('late_release');
-        const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:horizon},added,horizon);
-        const residuals:number[]=['air','speed','amplitude'].map(key=>targets[key as keyof typeof targets]===undefined?0:((achieved as any)[key]-(targets as any)[key])*Math.sqrt(key==='amplitude'?(options.amplitudeWeight??1):1));
+        const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);
+        const measuredObjective=options.amplitudeOverflow||options.predictAirBoundary?objectiveAxes(det,{...outgoing,startFrame:i===0?0:frame},objectiveEnd):achieved;
+        const residuals:number[]=['air','speed','amplitude'].map(key=>targets[key as keyof typeof targets]===undefined?0:((measuredObjective as any)[key]-(targets as any)[key])*Math.sqrt((key==='amplitude'?(options.amplitudeWeight??1):1)*spanWeight(outgoing,key)));
         let cost=residuals.reduce((s,x)=>s+x*x,0);
         let actualImpact:number|undefined;
         if(impact!==undefined){actualImpact=measureGapAxes(det,gaps[gap],added,frame).impact;if(actualImpact===undefined)return reject('impact');cost+=(options.impactWeight??2)*(actualImpact-impact)**2;}
         residuals.push(impact===undefined?0:Math.sqrt(options.impactWeight??2)*(actualImpact!-impact));
         if(options.completeBoundary&&priorGap){
-          const actual=measureGapAxes(det,priorGap,added,priorGap.endFrame);
-          const correction=arcBoundaryCorrection(actual,priorGap.targets,priorLoss,options.amplitudeWeight??1,cost);
-          residuals.push(...correction.residuals);cost=correction.cost;
+          const actual=options.amplitudeOverflow?objectiveAxes(det,priorGap,priorGap.endFrame):measureGapAxes(det,priorGap,added,priorGap.endFrame);
+          if(options.timeObjective){
+            for(const key of ['air','speed','amplitude'] as const){
+              if(actual[key]===undefined||priorGap.targets[key]===undefined)continue;
+              const r=(actual[key]!-priorGap.targets[key]!)*Math.sqrt((key==='amplitude'?(options.amplitudeWeight??1):1)*spanWeight(priorGap,key));
+              residuals.push(r);cost+=r*r;
+            }
+            cost-=priorLoss;
+          }else{
+            const correction=arcBoundaryCorrection(actual,priorGap.targets,priorLoss,options.amplitudeWeight??1,cost);
+            residuals.push(...correction.residuals);cost=correction.cost;
+          }
         }
         const localCost=cost;
         const finalVelocity=raw.frames.at(-1)!.velocity;
@@ -323,11 +362,12 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
       const inputFeatures=futureFeatures(arcPolicyArrival(beforeState,velocity),i-1);
+      const responseAxisWeights=options.rescaleMemoryWeights?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;
       const policy=options.controlPolicy&&i>0?arcControlProposals(inputFeatures,incoming,span,options.controlPolicy,options.policySamples??8):[];
       policy.push(...controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0));
       policy.push(...controlMemory.proposeResponses(inputFeatures,incoming,span,
         [targets.air,targets.speed,targets.amplitude,impact],options.memoryResponseSamples??0,
-        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002}));
+        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights}));
       if(options.warmStart)evaluate(options.warmStart);
       for(let k=0;k<initial;k++){
         const frac=(n:number)=>((k+1)*n)%1;
@@ -410,6 +450,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
               control:{...origin.c,...Object.fromEntries(responseKeys.map(key=>[key,value(key)]))},
               targets:[targets.air,targets.speed,targets.amplitude,impact],keys:responseKeys.slice(),
               jac:jac.slice(0,4),residuals:origin.residuals.slice(0,4),
+              axisWeights:responseAxisWeights,
               scale:responseKeys.map(key=>scale[key as keyof typeof scale]*trust),
               loss:origin.residuals.slice(0,4).reduce((sum:number,v:number)=>sum+v*v,0)});
           }

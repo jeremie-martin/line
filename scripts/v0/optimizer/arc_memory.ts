@@ -8,6 +8,8 @@ export type ArcControlExample = {
 export type ArcResponseExample = ArcControlExample & {
   targets: Array<number | undefined>; keys: Array<keyof ArcMotionControl>;
   jac: number[][]; residuals: number[]; scale: number[]; loss: number;
+  /** Squared residual weights, when a caller varies them between intervals. */
+  axisWeights?: number[];
 };
 
 export function arcControlSimilar(a: ArcMotionControl, b: ArcMotionControl): boolean {
@@ -50,19 +52,26 @@ export class ArcControlMemory {
 
   proposeResponses(features: number[], incoming: number, span: number,
     wanted: Array<number | undefined>, count: number,
-    weights: {amplitude: number; impact: number; damping: number}): ArcMotionControl[] {
+    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]}): ArcMotionControl[] {
     if (count <= 0) return [];
     const nearest = this.responses.map(m => ({m, distance: distance(m.features, features)}))
       .sort((a, b) => a.distance - b.distance || a.m.loss - b.m.loss);
     const selected: ArcMotionControl[] = [];
     for (const {m} of nearest) {
       const control = adapted(m, incoming, span);
+      const currentWeights=weights.axisWeights??[1,1,weights.amplitude,weights.impact];
+      const storedWeights=m.axisWeights??[1,1,weights.amplitude,weights.impact];
       const residuals = m.residuals.map((r, j) => {
         const target = wanted[j];
+        if(weights.axisWeights||m.axisWeights){
+          return target===undefined||m.targets[j]===undefined?0:
+            (r/Math.sqrt(storedWeights[j])+m.targets[j]!-target)*Math.sqrt(currentWeights[j]);
+        }
         return target === undefined ? 0 : r + ((m.targets[j] ?? target) - target) *
           Math.sqrt(j === 2 ? weights.amplitude : j === 3 ? weights.impact : 1);
       });
-      const delta = arcResponseStep(m.jac, residuals, weights.damping);
+      const jac=weights.axisWeights||m.axisWeights?m.jac.map((row,j)=>row.map(v=>wanted[j]===undefined||m.targets[j]===undefined?0:v*Math.sqrt(currentWeights[j]/storedWeights[j]))):m.jac;
+      const delta = arcResponseStep(jac, residuals, weights.damping);
       if (!delta) continue;
       m.keys.forEach((key, d) => {
         control[key] = (control[key] as number) + m.scale[d] *

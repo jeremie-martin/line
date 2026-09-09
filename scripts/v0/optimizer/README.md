@@ -50,6 +50,14 @@ Training, replay verification and export are reproducible with the policy collec
 trainer, compactor and mixture exporter under `scripts/benchmark/`. Forest and
 example predictions are checked against independent Python fixtures.
 
+The current proposal model adds learned corrections to a frozen forest's mean
+prediction. Correction-tree alternatives and nearby verified teacher examples
+are still checked with metered physics. The residual builder exports independent
+prediction fixtures and binds its base model and teacher data. Long-arc timing
+normalization preserves the inherited five-frame turn when refinement makes it
+explicit, avoiding an artificial jump in geometry. Complete time-weighted ending
+refinement remains an optional research mechanism, disabled in production.
+
 Within one compile, a separate memory retains committed controls and a bounded
 collection of measured response matrices. Nearby controls adapt to current heading
 and interval length; response matrices propose corrections for changed targets.

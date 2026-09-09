@@ -10,7 +10,8 @@ from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 from sklearn.model_selection import GroupKFold
 parser=argparse.ArgumentParser();parser.add_argument('--data',required=True);parser.add_argument('--out',required=True);parser.add_argument('--target-metric',choices=['raw','variance','search-step'],default='raw')
 parser.add_argument('--trees',type=int,default=32);parser.add_argument('--depth',type=int,default=10);parser.add_argument('--leaf',type=int,default=12)
-parser.add_argument('--algorithm',choices=['extra','forest'],default='extra');parser.add_argument('--folds',type=int,default=5);args=parser.parse_args()
+parser.add_argument('--algorithm',choices=['extra','forest'],default='extra');parser.add_argument('--folds',type=int,default=5)
+parser.add_argument('--sample-weight',choices=['uniform','duration','sqrt-duration'],default='uniform');args=parser.parse_args()
 assert args.trees>=2 and args.depth>0 and args.leaf>0 and (args.folds==0 or args.folds>=2)
 p=Path(args.data);body=p.read_bytes();digest=hashlib.sha256(body).hexdigest();assert digest==Path(str(p)+'.sha256').read_text().strip()
 data=json.loads(body);out=Path(args.out);out.mkdir(parents=True,exist_ok=True)
@@ -21,7 +22,14 @@ def fitted(indices):
  if args.target_metric=='variance':weights=1/np.maximum(.05,np.std(y[indices],axis=0))
  if args.target_metric=='search-step':weights=np.array([15,12,10,10,4,5,8,12.5,30/7,3.2])
  cls=ExtraTreesRegressor if args.algorithm=='extra' else RandomForestRegressor
- model=cls(n_estimators=args.trees,max_depth=args.depth,min_samples_leaf=args.leaf,max_features=.8,random_state=260908,n_jobs=4).fit(X[indices],y[indices]*weights)
+ # Feature 47 is the current physical interval duration in seconds. It is
+ # available at runtime and gives longer, rarer spans a share of training work
+ # without consulting source identities or benchmark aggregation weights.
+ sample_weight=None
+ if args.sample_weight!='uniform':
+  sample_weight=np.maximum(.025,X[indices,47])**(.5 if args.sample_weight=='sqrt-duration' else 1.)
+  sample_weight=sample_weight/np.mean(sample_weight)
+ model=cls(n_estimators=args.trees,max_depth=args.depth,min_samples_leaf=args.leaf,max_features=.8,random_state=260908,n_jobs=4).fit(X[indices],y[indices]*weights,sample_weight=sample_weight)
  return model,weights
 def write(path,record):
  b=(json.dumps(record,separators=(',',':'),allow_nan=False)+'\n').encode();path.write_bytes(b);Path(str(path)+'.sha256').write_text(hashlib.sha256(b).hexdigest()+'\n')
@@ -29,7 +37,7 @@ def export(model,parents,weights):
  trees=[]
  for estimator in model.estimators_:
   t=estimator.tree_;trees.append(dict(left=t.children_left.tolist(),right=t.children_right.tolist(),feature=t.feature.tolist(),threshold=t.threshold.tolist(),value=(t.value[:,:,0]/weights).tolist()))
- return dict(schema='line.arc-control-policy.v1',featureSchema=data['featureSchema'],featureCount=57,trees=trees,provenance=dict(dataSha256=digest,trainingParents=parents,rows=int(np.isin(groups,parents).sum()),datasetRows=len(data['rows']),targetMetric=args.target_metric,targetWeights=weights.tolist(),algorithm=args.algorithm,estimators=args.trees,depth=args.depth,minLeaf=args.leaf,description='Joint control regression; no case or seed identity in features; full physical validation required.'))
+ return dict(schema='line.arc-control-policy.v1',featureSchema=data['featureSchema'],featureCount=57,trees=trees,provenance=dict(dataSha256=digest,trainingParents=parents,rows=int(np.isin(groups,parents).sum()),datasetRows=len(data['rows']),targetMetric=args.target_metric,targetWeights=weights.tolist(),sampleWeight=args.sample_weight,algorithm=args.algorithm,estimators=args.trees,depth=args.depth,minLeaf=args.leaf,description='Joint control regression; no case or seed identity in features; full physical validation required.'))
 metrics=[];assignments={};pred=np.zeros_like(y)
 for fold,(train,test) in enumerate(GroupKFold(args.folds).split(X,y,groups) if args.folds else []):
  m,w=fitted(train);pred[test]=m.predict(X[test])/w;held=sorted(set(groups[test]));write(out/f'fold-{fold}.json',export(m,sorted(set(groups[train])),w))

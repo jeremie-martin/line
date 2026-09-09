@@ -31,7 +31,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
     lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
     reserveFactor: .7 + .7 * (1 - guidanceSamples / 96), reuseContinuations: true, pruneGuidance: true,
-    guidanceJoint: true, expressive: true, responseSamples,
+    guidanceJoint: true, expressive: true, preserveTurnTiming: true, responseSamples,
     adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true, reuseEvaluations: true,
     budgetAdaptiveLocal: guidanceSamples > 0,
     // Complete-span correction needs the joint search's room to adjust the

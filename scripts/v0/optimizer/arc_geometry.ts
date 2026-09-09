@@ -8,6 +8,11 @@ const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number};
 
+/** Explicit timing must be able to represent the inherited five-frame turn. */
+export function normalizeArcTurnFraction(fraction:number,support:number,preserveImplicit=false):number{
+  return clamp(fraction,preserveImplicit?Math.min(.1,5/support):.1,.85);
+}
+
 /** Integrate a smooth tangent schedule into one contiguous polyline. All
  * subdivisions approximate the same physical curve; none isolates a point. */
 export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0):TrackLine[]{

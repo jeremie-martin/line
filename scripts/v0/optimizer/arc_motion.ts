@@ -7,7 +7,7 @@ import { LineRiderEngine as Judge, disposeAllWasmEnginesForStudy as disposeJudge
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
-import { motionArc, type ArcMotionControl } from './arc_geometry.ts';
+import { motionArc, normalizeArcTurnFraction, type ArcMotionControl } from './arc_geometry.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
@@ -34,6 +34,10 @@ export type ArcMotionOptions= {
   wholeTrackRefinement?:boolean;
   /** Rank already simulated complete alternatives by the full authored loss. */
   terminalSelection?:boolean;
+  /** Refine completed trajectories using time-weighted, bounded physical loss. */
+  terminalOptimization?:boolean;
+  /** Keep the inherited five-frame turn representable during refinement. */
+  preserveTurnTiming?:boolean;
   refineIndependentExit?:boolean;
   /** Measure the final objective at the authored end; still validate the grace. */
   authoredHorizon?:boolean;
@@ -155,7 +159,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
   const impactCount=Math.max(1,gaps.filter(g=>g.targets.impact!==undefined).length);
   const axisFrames=Object.fromEntries(['air','speed','amplitude'].map(axis=>[axis,gaps.reduce((n,g)=>n+(g.targets[axis as keyof typeof g.targets]===undefined?0:g.endFrame-g.startFrame),0)]));
-  const spanWeight=(g:typeof gaps[number],axis:string)=>options.timeObjective?impactCount*(g.endFrame-g.startFrame)/Math.max(1,axisFrames[axis]):1;
   const rng=makeRng(seed);
   const planned=scheduleNativeContacts(gaps.map(g=>({...g,targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
   const fixed=spec.start||(spec.preroll??PREROLL.DEFAULT_S)<=0?resolveStartState(spec):null;
@@ -231,6 +234,15 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
     };
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides};
+      // Once the timeline is complete, no future state needs a surrogate.
+      // Time weights make the varying span/impact terms proportional to the
+      // complete authored objective. Keep response-memory units consistent.
+      if(options.terminalOptimization&&i===contacts.length-1){
+        options.timeObjective=true;options.rescaleMemoryWeights=true;
+        options.authoredHorizon=true;options.completeBoundary=true;
+        options.amplitudeOverflow=undefined;options.predictAirBoundary=false;
+      }
+      const spanWeight=(g:typeof gaps[number],axis:string)=>options.timeObjective?impactCount*(g.endFrame-g.startFrame)/Math.max(1,axisFrames[axis]):1;
       const {frame,gap}=contacts[i],next=contacts[i+1]?.frame??end+1,horizon=next-1;
       if(horizon<=frame+2)return null;
       const outgoing=planned.find(g=>g.startFrame===(i===0?0:frame))??{index:gaps.length,startFrame:frame,endFrame:horizon,endsWithContact:false,targets:{}};
@@ -290,7 +302,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
         if(c.guideStart!==undefined)c.guideStart=clamp(c.guideStart,0,1);
         if(c.guideEnd!==undefined)c.guideEnd=clamp(c.guideEnd,0,1);
-        if(c.turnFraction!==undefined)c.turnFraction=clamp(c.turnFraction,.1,.85);
+        if(c.turnFraction!==undefined)c.turnFraction=normalizeArcTurnFraction(c.turnFraction,c.support,options.preserveTurnTiming);
         if(c.bend!==undefined)c.bend=clamp(c.bend,-60,60);
         if(c.guideFlare!==undefined)c.guideFlare=clamp(c.guideFlare,-16,16);
         // Materialize the inherited value before finite differences. Otherwise

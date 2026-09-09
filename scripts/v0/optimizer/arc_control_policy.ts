@@ -12,6 +12,14 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
   if(model.featureSchema!==ARC_POLICY_SCHEMA||features.length!==model.featureCount||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');
   if(!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc policy count');
   if(count===0)return [];
+  if(model.residualBase){
+    const base=arcControlProposals(features,incoming,span,model.residualBase,1)[0];
+    const residual=arcControlProposals(features,0,span,model.residualModel,count);
+    const strength=model.residualStrength??1;
+    if(!Number.isFinite(strength)||strength<0)throw new Error('invalid residual policy strength');
+    return residual.map(delta=>Object.fromEntries(Object.keys(base).map(key=>[key,
+      base[key as keyof ArcMotionControl]!+strength*delta[key as keyof ArcMotionControl]!])) as ArcMotionControl);
+  }
   if(model.models){
     const weights=model.proposalWeights??model.models.map(()=>1),sum=weights.reduce((a:number,b:number)=>a+b,0);
     const counts=weights.map((w:number)=>Math.floor(count*w/sum));

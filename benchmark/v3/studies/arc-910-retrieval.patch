@@ -1,0 +1,44 @@
+diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts
+index 00548ce9..6958a936 100644
+--- a/scripts/v0/optimizer/arc_control_policy.ts
++++ b/scripts/v0/optimizer/arc_control_policy.ts
+@@ -19,13 +19,23 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
+     return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);
+   }
+   if(model.exemplars){
++    // Transfer a measured control's residual around a shared predictor. The
++    // predictor adjusts for the new arrival/targets while the measured residual
++    // retains a concrete control mode rather than averaging distinct curves.
++    let predicted:number[]|undefined;
++    if(model.residualModel){
++      const c=arcControlProposals(features,0,1,model.residualModel,1)[0];
++      predicted=[c.entry/30,c.turn/60,c.exit/60,c.support,c.bias,c.offset,
++        c.clearance!/12,c.turnFraction!,c.bend!/30,c.guideFlare!/8];
++    }
+     const weights:number[]|undefined=model.featureWeights;
+     if(weights&&(weights.length!==features.length||weights.some(w=>!Number.isFinite(w)||w<0)))throw new Error('arc policy distance weights mismatch');
+     const nearest:Array<{distance:number;value:number[]}>=[],limit=Math.max(24,count*8);
+     for(const row of model.exemplars){
+       let distance=0;for(let k=0;k<features.length;k++)distance+=(features[k]-row.features[k])**2*(weights?.[k]??(k>=47?4:k<7?2:1));
+       if(nearest.length===limit&&distance>=nearest[nearest.length-1].distance)continue;
+-      nearest.push({distance,value:row.target});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
++      const value=predicted?row.target.map((v:number,k:number)=>v+(model.residualStrength??1)*(predicted![k]-row.prediction[k])):row.target;
++      nearest.push({distance,value});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
+     }
+     const selected:ArcMotionControl[]=[];
+     for(const {value:v} of nearest){
+@@ -43,6 +53,13 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
+   });
+   const mean=(rows:number[][])=>rows[0].map((_,j)=>rows.reduce((sum,row)=>sum+row[j],0)/rows.length);
+   const vectors=[mean(leaves),mean(leaves.filter((_:any,i:number)=>i%2===0)),mean(leaves.filter((_:any,i:number)=>i%2===1)),...leaves];
+-  return vectors.slice(0,count).map(v=>({entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],
++  const controls=vectors.slice(0,model.diverseLeaves?undefined:count).map(v=>({entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],
+     support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]}));
++  if(!model.diverseLeaves)return controls;
++  const selected:ArcMotionControl[]=[];
++  for(const c of controls){
++    if(selected.some(p=>Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;
++    selected.push(c);if(selected.length>=count)break;
++  }
++  return selected;
+ }

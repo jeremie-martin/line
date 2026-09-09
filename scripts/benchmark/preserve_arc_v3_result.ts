@@ -7,6 +7,7 @@ import {summarize} from '../../benchmark/v3/evaluator.ts';
 const arg=(key:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3);
 const read=(p:string)=>{const b=readFileSync(p);assert.equal(sha(b),readFileSync(p+'.sha256','utf8').trim().split(/\s+/)[0]);return JSON.parse((p.endsWith('.gz')?gunzipSync(b):b).toString());};
 const canonicalPath=arg('canonical')!,researchPath=arg('research')!,name=arg('name')!;assert.match(name,/^arc-\d+$/);
+const goal=Number(arg('goal')??900);assert.ok(Number.isFinite(goal)&&goal>0&&goal<=1000);
 const canonical=read(canonicalPath),research=read(researchPath),baseline=read('benchmark/v3/runs/initial-after.json.gz'),cases=loadCases();
 assert.equal(canonical.plan.profile,'canonical');assert.equal(canonical.plan.compiler.dirty,'');
 assert.equal(canonical.plan.suiteFingerprint,baseline.plan.suiteFingerprint);
@@ -25,7 +26,7 @@ for(const row of canonical.rows){
 }
 const archivePath=`benchmark/v3/runs/${name}.json.gz`,bytes=gzipSync(readFileSync(canonicalPath));
 writeFileSync(archivePath,bytes);writeFileSync(archivePath+'.sha256',sha(bytes)+'\n');
-const result={schema:'line.arc-v3-canonical-validation.v1',status:'canonical-result',goal:900,targetReached:summary.headline>=900,
+const result={schema:'line.arc-v3-canonical-validation.v1',status:'canonical-result',goal,targetReached:summary.headline>=goal,
   compilerCommit:canonical.plan.compiler.commit,suiteFingerprint:canonical.plan.suiteFingerprint,summary,
   deltaFromPublishedBaseline:Math.round((summary.headline-baseline.summary.headline)*10000)/10000,
   archive:{path:archivePath,rawSha256:sha(readFileSync(canonicalPath)),sha256:sha(bytes)},

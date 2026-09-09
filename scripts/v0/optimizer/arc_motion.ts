@@ -113,6 +113,8 @@ export type ArcMotionOptions= {
   planningSamples?:number;
   strictHorizon?:boolean;
   directControls?:ArcMotionControl[];
+  /** Research teacher: optimize each visited state, then replay this fixed path. */
+  replayControls?:ArcMotionControl[];
   refineDirect?:boolean;
   refineRebuildSamples?:number;
   refineExpressive?:boolean;
@@ -187,7 +189,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
     return result;
   };
   let engine:any=rebuildArc([]);
-  const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
+  const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[],teacherRows:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
   let samples=0,viableCandidates=0,memoHits=0,memoRejectedHits=0;const qualityRetries=new Map<number,number>();
   let refinementStats:any=null, terminalSelectionStats:any=null, observedConstructionRate=0;
   let searchBudgetExhausted=false;
@@ -216,6 +218,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   };
   setPhysicsFrameLimit(budget-2*(end+1));
   const contacts=[{frame:1,gap:-1},...planned.filter(g=>g.endsWithContact).map(g=>({frame:g.endFrame,gap:g.index}))];
+  if(options.replayControls&&options.replayControls.length!==contacts.length)throw new Error('replay controls do not cover the complete timeline');
   try{
     const compileOptions=options;
     const futureFeatures=(arrival:number[],i:number)=>{
@@ -625,6 +628,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       let terminalChildLines:TrackLine[]|null=null;
       const localStart=getPhysicsFrameCount();
       const overrides:Partial<ArcMotionOptions>=pendingControl?.index===i?{warmStart:pendingControl.control}:{};
+      if(options.replayControls)overrides.warmStart=options.replayControls[i];
       // Normalize the observed rate back to the full local allocation, so an
       // emergency reduction does not falsely make later full searches look cheap.
       let localScale=1;
@@ -708,7 +712,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       let retryIndex=steps.length-1;
       while(retryIndex>=0&&!steps[retryIndex].choices.length)retryIndex--;
       const retryFrame=retryIndex<0?frame:rows[retryIndex].frame;
-      if(best&&(options.qualityRetries??0)>0&&targets.speed!==undefined&&Math.abs(best.achieved.speed-targets.speed)>.3&&
+      if(best&&!options.replayControls&&(options.qualityRetries??0)>0&&targets.speed!==undefined&&Math.abs(best.achieved.speed-targets.speed)>.3&&
         (qualityRetries.get(frame)??0)<options.qualityRetries!&&getPhysicsFrameCount()+retryFrame+(end-retryFrame)*(options.samples??160)*1.1<budget-2*(end+1)){
         qualityRetries.set(frame,(qualityRetries.get(frame)??0)+1);
         const retry=steps.some(s=>s.choices.length)?backtrack():null;if(retry!==null){i=retry;continue;}
@@ -725,6 +729,20 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           best={...best,lines:selected.lines,c:selected.c,cost:selected.cost,localCost:selected.localCost,
             achieved:selected.meta.achieved,actualImpact:selected.meta.impact,release:selected.meta.release};
         }
+      }
+      if(options.replayControls){
+        const forced=candidates.find(c=>JSON.stringify(c.c)===JSON.stringify(options.replayControls![i]));
+        if(!forced)throw new Error('replayed control failed physical interval validation at '+i);
+        const prior=getRiderMetered(engine,frame-1).ballisticState(),velocity=getRiderMetered(engine,frame).velocity;
+        const objectiveEnd=options.authoredHorizon?Math.min(horizon,duration):horizon;
+        const span=objectiveEnd>frame||i===0?objectiveEnd-(i===0?0:frame):horizon-frame;
+        teacherRows.push({index:i,frame,features:futureFeatures(arcPolicyArrival(prior,velocity),i-1),
+          incoming,span,control:best.c,localCost:best.localCost,cost:best.cost,
+          physicalIntervalValidated:true,forcedControl:forced.c,lookahead});
+        terminalChildLines=forced.lines;
+        best={...best,lines:forced.lines,c:forced.c,cost:forced.cost,localCost:forced.localCost,
+          achieved:forced.meta.achieved,actualImpact:forced.meta.impact,release:forced.meta.release};
+        pendingControl=null;
       }
       failure=null;
       const alternatives:any[]=[];
@@ -765,6 +783,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   disposeSearch();
   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

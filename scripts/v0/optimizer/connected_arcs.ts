@@ -45,6 +45,8 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     // simulated continuation boundary. Do not blend it into the root twice.
     // Calibrate model influence directly, independently of curve-search allocation.
     valueSelection: false, valueWeight: .45,
+    // Let the learned arrival estimate guide geometry refinement before planning.
+    valueGuidanceWeight: .25,
     continuationValueWeight: .5 * guidanceSamples / 96 };
 }
 

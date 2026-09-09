@@ -22,8 +22,11 @@ if(arg('worker')){
   if(options.controlPolicyPath)options.controlPolicy=JSON.parse(readFileSync(options.controlPolicyPath,'utf8'));
   if(options.controlPolicyPath)assert.equal(sha(readFileSync(options.controlPolicyPath)),plan.modelSha256);
   if(options.valueModelPath){assert.equal(sha(readFileSync(options.valueModelPath)),plan.valueModelSha256);options.futureValueModel=JSON.parse(readFileSync(options.valueModelPath,'utf8'));}
+  const replay=options.replayControlPath?read(options.replayControlPath):undefined;
+  if(replay){assert.equal(sha(readFileSync(options.replayControlPath)),plan.replaySha256);options.replayControls=replay.cases[c.id].controls;}
   const began=performance.now(),result=compileArcMotion(spec,plan.seed,options),compileMs=performance.now()-began;
   assert.ok(result.stats.sim_frames<=plan.budget);
+  if(replay)assert.equal(sha(JSON.stringify(result.track)),replay.cases[c.id].trackHash,'teacher changed the replayed track');
   const evaluation=evaluateTrack(c,result.track);
   const row={schema:'line.arc-v3-study.cell.v1',sourceId:c.id,seed:plan.seed,planSha256:sha(readFileSync(resolve(out,'plan.json'))),trackHash:sha(JSON.stringify(result.track)),...evaluation,
     compileMs,resources:{physicalFrames:result.stats.sim_frames},...result};
@@ -38,6 +41,7 @@ if(arg('worker')){
   const plan={schema:'line.arc-v3-study.plan.v1',researchOnly:true,sources,seed,budget,options,
     compiler:identity,judgeFiles,scriptSha256:sha(readFileSync(import.meta.filename)),
     ...(options.controlPolicyPath?{modelSha256:sha(readFileSync(options.controlPolicyPath))}:{}),
+    ...(options.replayControlPath?{replaySha256:sha(readFileSync(options.replayControlPath))}:{}),
     ...(options.valueModelPath?{valueModelSha256:sha(readFileSync(options.valueModelPath))}:{})};
   mkdirSync(out,{recursive:true});
   if(existsSync(resolve(out,'plan.json')))assert.deepEqual(read(resolve(out,'plan.json')),plan);else write(resolve(out,'plan.json'),plan);
@@ -58,6 +62,7 @@ if(arg('worker')){
   assert.equal(sha(readFileSync(import.meta.filename)),plan.scriptSha256);
   if(options.controlPolicyPath)assert.equal(sha(readFileSync(options.controlPolicyPath)),plan.modelSha256);
   if(options.valueModelPath)assert.equal(sha(readFileSync(options.valueModelPath)),plan.valueModelSha256);
+  if(options.replayControlPath)assert.equal(sha(readFileSync(options.replayControlPath)),plan.replaySha256);
   if(failed.length){write(resolve(out,'execution-failures.json'),failed);throw new Error(`execution failures: ${failed}`);}
   const rows=sources.map(id=>read(resolve(out,id+'.json.gz')));for(const r of rows)assert.equal(r.planSha256,sha(readFileSync(resolve(out,'plan.json'))));
   const compact=rows.map(({track,report,rows,...r}:any)=>r);

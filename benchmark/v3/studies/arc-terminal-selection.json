@@ -1,0 +1,815 @@
+{
+  "schema": "line.arc-terminal-selection-validation.v1",
+  "before": {
+    "path": "generated/benchmark-v3/arc-900/full-916-root-45/run.json.gz",
+    "sha256": "8bdaf65e588481288f06a5b2214a3a7f2ab3f45d544776bad270cffd177711a2",
+    "headline": 900.8377
+  },
+  "after": {
+    "path": "generated/benchmark-v3/arc-900/full-terminal-45/run.json.gz",
+    "sha256": "9aa106425dcddb98a5a842714bbfeee73a3fa5f81d26af6e94a8f44673800ea0",
+    "headline": 901.0923
+  },
+  "cases": 88,
+  "valid": 88,
+  "changed": 19,
+  "improved": 19,
+  "regressed": 0,
+  "samePhysicsFrames": 88,
+  "sameEarlierControls": 88,
+  "maximumObjectiveError": 1.1709383462843448e-17,
+  "records": [
+    {
+      "source": "bridge_river_reentry",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.8973538018496328e-19,
+      "initialObjectiveError": 1.8973538018496328e-19
+    },
+    {
+      "source": "bridge_countercurrent",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.710505431213761e-20,
+      "initialObjectiveError": 2.710505431213761e-20
+    },
+    {
+      "source": "bridge_split_signal",
+      "changed": true,
+      "scoreDelta": 0.06370000000003984,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 0.0,
+      "initialObjectiveError": 4.336808689942018e-19
+    },
+    {
+      "source": "bridge_pickup_lattice",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.0842021724855044e-19,
+      "initialObjectiveError": 1.0842021724855044e-19
+    },
+    {
+      "source": "bridge_loose_pocket",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.5236570605778894e-19,
+      "initialObjectiveError": 3.5236570605778894e-19
+    },
+    {
+      "source": "bridge_offgrid_conversation",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.439454888092385e-19,
+      "initialObjectiveError": 2.439454888092385e-19
+    },
+    {
+      "source": "bridge_rising_switch",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.710505431213761e-19,
+      "initialObjectiveError": 2.710505431213761e-19
+    },
+    {
+      "source": "bridge_meter_exchange",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.0842021724855044e-19,
+      "initialObjectiveError": 1.0842021724855044e-19
+    },
+    {
+      "source": "bridge_wide_breaths",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.3010426069826053e-18,
+      "initialObjectiveError": 1.3010426069826053e-18
+    },
+    {
+      "source": "bridge_open_hook",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.1709383462843448e-17,
+      "initialObjectiveError": 1.1709383462843448e-17
+    },
+    {
+      "source": "bridge_amplitude_tides",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 8.673617379884035e-19,
+      "initialObjectiveError": 8.673617379884035e-19
+    },
+    {
+      "source": "bridge_dense_dialogue",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 6.505213034913027e-19,
+      "initialObjectiveError": 6.505213034913027e-19
+    },
+    {
+      "source": "bridge_high_air_drive",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.734723475976807e-18,
+      "initialObjectiveError": 1.734723475976807e-18
+    },
+    {
+      "source": "bridge_sparse_lowline",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 5.963111948670274e-19,
+      "initialObjectiveError": 5.963111948670274e-19
+    },
+    {
+      "source": "bridge_frontier_pickup_progression",
+      "changed": true,
+      "scoreDelta": 0.009300000000052933,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.168404344971009e-19,
+      "initialObjectiveError": 2.439454888092385e-19
+    },
+    {
+      "source": "bridge_frontier_dense_recovery",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.2526065174565133e-19,
+      "initialObjectiveError": 3.2526065174565133e-19
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 0.0,
+      "initialObjectiveError": 0.0
+    },
+    {
+      "source": "bridge_regression_transition_mosaic",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.87890977618477e-19,
+      "initialObjectiveError": 4.87890977618477e-19
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 8.673617379884035e-19,
+      "initialObjectiveError": 8.673617379884035e-19
+    },
+    {
+      "source": "bridge_believer_56_6s",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.710505431213761e-19,
+      "initialObjectiveError": 2.710505431213761e-19
+    },
+    {
+      "source": "bridge_believer_impact_56s",
+      "changed": true,
+      "scoreDelta": 0.010300000000029286,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.3852447794681098e-18,
+      "initialObjectiveError": 2.3852447794681098e-18
+    },
+    {
+      "source": "bridge_river_reentry_tempo_fast_5",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 7.589415207398531e-19,
+      "initialObjectiveError": 7.589415207398531e-19
+    },
+    {
+      "source": "bridge_countercurrent_impact_contrast_12",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 5.692061405548898e-19,
+      "initialObjectiveError": 5.692061405548898e-19
+    },
+    {
+      "source": "bridge_split_signal_impact_relief_12",
+      "changed": true,
+      "scoreDelta": 0.0026000000000294676,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.0842021724855044e-18,
+      "initialObjectiveError": 8.673617379884035e-19
+    },
+    {
+      "source": "bridge_pickup_lattice_speed_minus_4",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.0842021724855044e-19,
+      "initialObjectiveError": 1.0842021724855044e-19
+    },
+    {
+      "source": "bridge_loose_pocket_drag_later_20ms",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.6263032587282567e-19,
+      "initialObjectiveError": 1.6263032587282567e-19
+    },
+    {
+      "source": "bridge_offgrid_conversation_answer_early_25ms",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.981555974335137e-19,
+      "initialObjectiveError": 2.981555974335137e-19
+    },
+    {
+      "source": "bridge_rising_switch_tempo_fast_5",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.710505431213761e-19,
+      "initialObjectiveError": 2.710505431213761e-19
+    },
+    {
+      "source": "bridge_meter_exchange_speed_plus_4",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.168404344971009e-19,
+      "initialObjectiveError": 2.168404344971009e-19
+    },
+    {
+      "source": "bridge_wide_breaths_air_plus_5",
+      "changed": true,
+      "scoreDelta": 0.034700000000043474,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 8.673617379884035e-19,
+      "initialObjectiveError": 6.505213034913027e-19
+    },
+    {
+      "source": "bridge_open_hook_amplitude_plus_8",
+      "changed": true,
+      "scoreDelta": 1.9920999999999367,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 5.204170427930421e-18,
+      "initialObjectiveError": 6.5052130349130266e-18
+    },
+    {
+      "source": "bridge_amplitude_tides_restrained_10",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 0.0,
+      "initialObjectiveError": 0.0
+    },
+    {
+      "source": "bridge_dense_dialogue_impact_contrast_10",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 6.505213034913027e-19,
+      "initialObjectiveError": 6.505213034913027e-19
+    },
+    {
+      "source": "bridge_high_air_drive_air_minus_5",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.0842021724855044e-19,
+      "initialObjectiveError": 1.0842021724855044e-19
+    },
+    {
+      "source": "bridge_sparse_lowline_air_minus_4",
+      "changed": true,
+      "scoreDelta": 0.0003000000000383807,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.710505431213761e-19,
+      "initialObjectiveError": 1.0842021724855044e-19
+    },
+    {
+      "source": "bridge_frontier_pickup_progression_shifted",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 6.505213034913027e-19,
+      "initialObjectiveError": 6.505213034913027e-19
+    },
+    {
+      "source": "bridge_frontier_dense_recovery_240ms_figures",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.2526065174565133e-19,
+      "initialObjectiveError": 3.2526065174565133e-19
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_4s",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 0.0,
+      "initialObjectiveError": 0.0
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_6s",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.3010426069826053e-18,
+      "initialObjectiveError": 1.3010426069826053e-18
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_7s",
+      "changed": true,
+      "scoreDelta": 0.00010000000008858478,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.734723475976807e-18,
+      "initialObjectiveError": 1.3010426069826053e-18
+    },
+    {
+      "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 5.421010862427522e-20,
+      "initialObjectiveError": 5.421010862427522e-20
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic_contrast_10",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.734723475976807e-18,
+      "initialObjectiveError": 1.734723475976807e-18
+    },
+    {
+      "source": "bridge_believer_56_6s_impact_relief",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.2526065174565133e-19,
+      "initialObjectiveError": 3.2526065174565133e-19
+    },
+    {
+      "source": "bridge_believer_impact_56s_amplitude_plus_5",
+      "changed": true,
+      "scoreDelta": 0.15350000000000819,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.3010426069826053e-18,
+      "initialObjectiveError": 1.0842021724855044e-18
+    },
+    {
+      "source": "harbor_return",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.168404344971009e-18,
+      "initialObjectiveError": 2.168404344971009e-18
+    },
+    {
+      "source": "crossing_lights",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 8.131516293641283e-20,
+      "initialObjectiveError": 8.131516293641283e-20
+    },
+    {
+      "source": "afterglow_turn",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.0899761915836876e-18,
+      "initialObjectiveError": 3.0899761915836876e-18
+    },
+    {
+      "source": "woven_pickups",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 5.421010862427522e-20,
+      "initialObjectiveError": 5.421010862427522e-20
+    },
+    {
+      "source": "pickup_answers",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.710505431213761e-19,
+      "initialObjectiveError": 2.710505431213761e-19
+    },
+    {
+      "source": "broken_triplets",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 8.131516293641283e-18,
+      "initialObjectiveError": 8.131516293641283e-18
+    },
+    {
+      "source": "late_letters",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.3552527156068805e-20,
+      "initialObjectiveError": 1.3552527156068805e-20
+    },
+    {
+      "source": "swing_exchange",
+      "changed": true,
+      "scoreDelta": 1.4470000000000027,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 5.963111948670274e-19,
+      "initialObjectiveError": 5.963111948670274e-19
+    },
+    {
+      "source": "offbeat_echoes",
+      "changed": true,
+      "scoreDelta": 1.273300000000063,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.2526065174565133e-18,
+      "initialObjectiveError": 3.7947076036992655e-18
+    },
+    {
+      "source": "gear_changes",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.336808689942018e-19,
+      "initialObjectiveError": 4.336808689942018e-19
+    },
+    {
+      "source": "half_time_return",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.336808689942018e-19,
+      "initialObjectiveError": 4.336808689942018e-19
+    },
+    {
+      "source": "accelerando_reply",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.2468324983583301e-18,
+      "initialObjectiveError": 1.2468324983583301e-18
+    },
+    {
+      "source": "archipelago",
+      "changed": true,
+      "scoreDelta": 0.13650000000006912,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.336808689942018e-19,
+      "initialObjectiveError": 3.2526065174565133e-19
+    },
+    {
+      "source": "wide_arc_dialogue",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.903127820947816e-18,
+      "initialObjectiveError": 3.903127820947816e-18
+    },
+    {
+      "source": "terraced_skies",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.445228907190568e-18,
+      "initialObjectiveError": 4.445228907190568e-18
+    },
+    {
+      "source": "woven_pulse",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.168404344971009e-19,
+      "initialObjectiveError": 2.168404344971009e-19
+    },
+    {
+      "source": "density_release",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.2768245622195593e-18,
+      "initialObjectiveError": 2.2768245622195593e-18
+    },
+    {
+      "source": "compact_dialogue",
+      "changed": true,
+      "scoreDelta": 0.09699999999997999,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.222614453595284e-18,
+      "initialObjectiveError": 1.951563910473908e-18
+    },
+    {
+      "source": "lifted_refrain",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.4094628242311558e-18,
+      "initialObjectiveError": 1.4094628242311558e-18
+    },
+    {
+      "source": "flight_and_return",
+      "changed": true,
+      "scoreDelta": 0.752399999999966,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 6.5052130349130266e-18,
+      "initialObjectiveError": 6.071532165918825e-18
+    },
+    {
+      "source": "open_canopy",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.5236570605778894e-19,
+      "initialObjectiveError": 3.5236570605778894e-19
+    },
+    {
+      "source": "quiet_current",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 0.0,
+      "initialObjectiveError": 0.0
+    },
+    {
+      "source": "support_then_lift",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.734723475976807e-18,
+      "initialObjectiveError": 1.734723475976807e-18
+    },
+    {
+      "source": "rest_and_return",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 5.421010862427522e-19,
+      "initialObjectiveError": 5.421010862427522e-19
+    },
+    {
+      "source": "pickup_staircase",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 0.0,
+      "initialObjectiveError": 0.0
+    },
+    {
+      "source": "pickup_interruptions",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 0.0,
+      "initialObjectiveError": 0.0
+    },
+    {
+      "source": "pickup_recovery",
+      "changed": true,
+      "scoreDelta": 0.016900000000077853,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 6.505213034913027e-19,
+      "initialObjectiveError": 2.168404344971009e-19
+    },
+    {
+      "source": "dense_short_then_long",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.168404344971009e-18,
+      "initialObjectiveError": 2.168404344971009e-18
+    },
+    {
+      "source": "interleaved_recovery",
+      "changed": true,
+      "scoreDelta": 0.002299999999991087,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.3010426069826053e-18,
+      "initialObjectiveError": 8.673617379884035e-19
+    },
+    {
+      "source": "three_note_returns",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.336808689942018e-19,
+      "initialObjectiveError": 4.336808689942018e-19
+    },
+    {
+      "source": "supported_bridge",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 0.0,
+      "initialObjectiveError": 0.0
+    },
+    {
+      "source": "supported_speed_change",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 9.75781955236954e-19,
+      "initialObjectiveError": 9.75781955236954e-19
+    },
+    {
+      "source": "endurance_and_return",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.336808689942018e-19,
+      "initialObjectiveError": 4.336808689942018e-19
+    },
+    {
+      "source": "energy_weave",
+      "changed": true,
+      "scoreDelta": 10.492700000000013,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.2526065174565133e-19,
+      "initialObjectiveError": 5.421010862427522e-19
+    },
+    {
+      "source": "alternating_intentions",
+      "changed": true,
+      "scoreDelta": 0.7325000000000728,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.0842021724855044e-19,
+      "initialObjectiveError": 2.168404344971009e-19
+    },
+    {
+      "source": "recovery_mosaic",
+      "changed": true,
+      "scoreDelta": 0.4855000000000018,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.0115480381963664e-18,
+      "initialObjectiveError": 4.336808689942018e-18
+    },
+    {
+      "source": "amplitude_reply",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.0842021724855044e-18,
+      "initialObjectiveError": 1.0842021724855044e-18
+    },
+    {
+      "source": "restrained_then_wide",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 4.9873299934333204e-18,
+      "initialObjectiveError": 4.9873299934333204e-18
+    },
+    {
+      "source": "arches_at_new_tempos",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 7.589415207398531e-19,
+      "initialObjectiveError": 7.589415207398531e-19
+    },
+    {
+      "source": "music_amor_na_praia_46s",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 3.7947076036992655e-19,
+      "initialObjectiveError": 3.7947076036992655e-19
+    },
+    {
+      "source": "music_luna_bala_44s",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 1.0842021724855044e-19,
+      "initialObjectiveError": 1.0842021724855044e-19
+    },
+    {
+      "source": "music_tiki_tiki_48s",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 2.168404344971009e-19,
+      "initialObjectiveError": 2.168404344971009e-19
+    },
+    {
+      "source": "music_shelter_impact_sync_81s",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 8.673617379884035e-19,
+      "initialObjectiveError": 8.673617379884035e-19
+    },
+    {
+      "source": "music_amour_de_ma_vie_short_44s",
+      "changed": false,
+      "scoreDelta": 0.0,
+      "sameEarlierControls": true,
+      "physicalFrameDelta": 0,
+      "objectiveError": 6.505213034913027e-19,
+      "initialObjectiveError": 6.505213034913027e-19
+    }
+  ]
+}

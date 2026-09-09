@@ -24,7 +24,11 @@ const studies=readdirSync(root).sort().flatMap(name=>{
     totalPhysicalFrames:paired.reduce((s:number,r:any)=>s+r.physicalFrames,0),paired,
     finalizationRecovery:run.finalizationRecovery??null}];
 });
-const record={schema:'line.arc-v3-900-research.v1',status:'active',target:900,
+const canonicalPath='benchmark/v3/studies/arc-901-validation.json';
+const canonical=existsSync(canonicalPath)?read(canonicalPath):null;
+if(canonical)assert.equal(canonical.suiteFingerprint,baseline.plan.suiteFingerprint);
+const record={schema:'line.arc-v3-900-research.v1',status:canonical?.targetReached?'complete':'active',target:900,
+  canonical:canonical?{path:canonicalPath,sha256:sha(readFileSync(canonicalPath)),headline:canonical.summary.headline,compilerCommit:canonical.compilerCommit}:null,
   baseline:{headline:baseline.summary.headline,commit:baseline.plan.compiler.commit,seeds:baseline.plan.seeds,suiteFingerprint:baseline.plan.suiteFingerprint},
   note:'These are exposed development studies. Single-seed full-suite readings require canonical two-seed confirmation through the public compiler. Partial panels have no headline. Failed physical runs retain zero scores. Search/model choices must be tested together, not added arithmetically.',
   bestFullSuiteResearch:Math.max(...studies.flatMap(s=>s.headline===null?[]:[s.headline])),studies,

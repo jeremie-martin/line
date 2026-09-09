@@ -1,5 +1,10 @@
 # Arc V3 900 campaign
 
+**Completed at 901.0923**, up 47.1144 from the initial baseline. All 176 canonical
+runs pass and exactly reproduce the research tracks and physics-frame counts.
+The validated compiler is `fe7616c8`, preserved with code and compact evidence on
+`archive/arc-v3-901`. [Final validation](../benchmark/v3/studies/arc-901-validation.json)
+
 Target: at least **900** on frozen V3, 88 specifications × seeds 16/17, within
 750k actual compiler physics frames. Baseline: **853.9779**, all 176 runs valid.
 The established substantial normal-arc style remains required. No judge changes.
@@ -212,4 +217,28 @@ Thirty-one focused tests pass, including validity, hard accounting, candidate
 reuse, independent model parity, and the frozen V3 contract. The terminal
 selection test explicitly disables the production default for its control.
 The TypeScript check retains 251 inherited diagnostics and none in changed
-compiler files. Canonical confirmation of the combined candidate is pending.
+compiler files. The combined candidate then entered canonical confirmation.
+
+## Final canonical confirmation
+
+The combined candidate reaches **901.0923** on all **176/176** canonical runs:
+88 specifications × seeds 16/17. These are 88 distinct deterministic tracks.
+Total actual compiler work is 130,428,806 frames, with a per-run maximum of
+749,994. Every track, score and frame count matches the complete research panel.
+The frozen V3 suite fingerprint matches the original 853.9779 baseline.
+
+Completed-ending selection improves 19 cases, regresses none, preserves all
+earlier controls, and uses exactly the same physics-frame counts in all 88
+paired research cases. Its complete-axis loss agrees with the frozen judge to
+within 1.18e-17. [Selection evidence](../benchmark/v3/studies/arc-terminal-selection.json)
+
+All material is normal, with no isolated single-segment components. The same
+coherent arc primitive is retained; this is not new owner audiovisual approval.
+The shortest endpoint-connected component is 9.445988 units. Separate 2% target
+jitter with seeds 211/212 passes **88/88 distinct tracks** on the reused 44-case
+V2 development catalog, with a maximum of 749,946 actual frames. This stress
+panel is separate from the V3 headline and is not an independent-family test.
+[Stress evidence](../benchmark/v3/studies/arc-901-jitter.json)
+
+The goal is complete. Code, selected models and compact evidence are pushed;
+full tracks, teacher datasets, unselected models and large archives stay local.

@@ -1,13 +1,16 @@
-# Active campaign: 900 on frozen Benchmark V3
+# Achieved campaign: 901.0923 on frozen Benchmark V3
 
-Reach **at least 900** on the canonical V3 headline: all 88 specifications,
-seeds 16 and 17, and 750,000 actual compiler physics frames per run. Start from
-the published **853.9779** baseline. Work branch: `codex/arc-v3-900`.
+The **900 target is achieved** at **901.0923**, up **47.1144** from the published
+853.9779 baseline. All **176/176** canonical runs pass: 88 specifications and
+seeds 16/17, reproducing 88 distinct tracks. Every run stays within 750,000 actual
+compiler physics frames; the maximum is 749,994.
 
-Current preserved milestone: **893.7640**, confirmed on all **176/176** canonical
-runs at `29b9eaaf`, preserved on `archive/arc-v3-893`. Further full-suite research
-reaches **899.3806**, all 88 valid, pending canonical confirmation. The 900 goal
-remains active. See [the evidence](benchmark/v3/studies/arc-893-validation.json).
+Validated compiler: `fe7616c8`. Work branch: `codex/arc-v3-900`; preservation:
+`archive/arc-v3-901`. A separate 2% target-jitter stress passes **88/88 distinct
+tracks** on the reused V2 development panel. Thirty-one focused tests pass.
+See [canonical evidence](benchmark/v3/studies/arc-901-validation.json),
+[stress evidence](benchmark/v3/studies/arc-901-jitter.json), and the
+[campaign ledger](docs/arc-v3-900-campaign.md).
 
 The V3 catalog, targets, scorer, aggregation, detector, physics and accounting
 are frozen. Preserve substantial coherent normal type-0 arcs; no acceleration
@@ -22,7 +25,7 @@ Research compute is unrestricted. Commit and push code and compact evidence;
 keep full tracks, large archives and raw research artifacts local. The owner
 cannot currently evaluate videos, so preserve the established arc style and
 do not claim new audiovisual approval. See [the campaign ledger](docs/arc-v3-900-campaign.md).
-Earlier milestones below describe their historical benchmark, not the active target.
+The campaign is complete. Earlier milestones below describe their historical benchmarks.
 
 # Achieved campaign: 852.1248 with coherent normal arcs
 

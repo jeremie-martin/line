@@ -1,7 +1,13 @@
 {
   "schema": "line.arc-v3-900-research.v1",
-  "status": "active",
+  "status": "complete",
   "target": 900,
+  "canonical": {
+    "path": "benchmark/v3/studies/arc-901-validation.json",
+    "sha256": "8be92d333a89ddc12fba92fd231c9b28e413d24323cdf09e1bfab06c5a7de182",
+    "headline": 901.0923,
+    "compilerCommit": "fe7616c87dcd875fd2cb2e8da464e49d15e57b5c"
+  },
   "baseline": {
     "headline": 853.9779,
     "commit": "d5916576aa80a7dfc5946697938590b1cc71e228",

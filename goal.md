@@ -1,3 +1,16 @@
+# Active campaign: strictly above 850 with coherent normal arcs
+
+Target: **greater than 850 on the unchanged canonical 750k Benchmark V2 headline**.
+Start from the promoted `arc-control-policy` compiler at **828.1228**, preserved at
+`1bf6954a` on `archive/arc-control-policy-828`. Work branch: `codex/arc-850`.
+Keep substantial connected normal type-0 arcs; no point constellations or
+acceleration lines. Compiler approaches and research compute are open. Benchmark,
+score, authored targets, detector, physics and actual-frame accounting stay fixed.
+Investigate remaining loss and wasted effort, compare hypotheses empirically,
+retain adverse results, and confirm improvements on the full canonical suite.
+Disclose robustness and review full production videos. Push code and compact
+evidence; keep large archives local. See [the campaign ledger](docs/arc-850-campaign.md).
+
 # Achieved campaign: 828.1228 with coherent normal arcs
 
 **The 825 performance target is exceeded.** `arc-control-policy` is promoted at

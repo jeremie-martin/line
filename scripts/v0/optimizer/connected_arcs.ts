@@ -20,26 +20,29 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
   // including the two cold replays, rather than named benchmark budgets.
   const allowance = .7 * (budget - 2 * (end + 1)) / Math.max(1, end);
   const refinement = Math.max(0, allowance - 80);
-  const samples = Math.max(12, Math.min(160, Math.floor(Math.min(80, allowance) + .8 * refinement)));
-  const guidanceSamples = Math.min(96, Math.floor(.8 * refinement));
-  const responseSamples = Math.floor(guidanceSamples * 70 / 96);
-  const lookaheadSamples = Math.max(8, Math.round(samples * .2));
+  const planningBreadth = Math.max(12, Math.min(160, Math.floor(Math.min(80, allowance) + .8 * refinement)));
+  // Keep continuation capacity calibrated independently of the construction mix.
+  const planningGuidanceSamples = Math.min(96, Math.floor(.8 * refinement));
+  const samples = Math.min(96, planningBreadth);
+  const guidanceSamples = Math.min(160, Math.floor(2.25 * refinement));
+  const responseSamples = Math.floor(guidanceSamples * 138 / 160);
+  const lookaheadSamples = Math.max(8, Math.round(planningBreadth * .2));
   return { budget, samples,
     authoredHorizon: true, amplitudeOverflow: 'raw', budgetedProposals: true, terminalSelection: true,
     channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
     lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
-    reserveFactor: .7 + .7 * (1 - guidanceSamples / 96), reuseContinuations: true, pruneGuidance: true,
+    reserveFactor: .7 + .7 * (1 - planningGuidanceSamples / 96), reuseContinuations: true, pruneGuidance: true,
     guidanceJoint: true, expressive: true, preserveTurnTiming: true, responseSamples,
     adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true, reuseEvaluations: true,
     budgetAdaptiveLocal: guidanceSamples > 0,
     // Complete-span correction needs the joint search's room to adjust the
     // approach. Preserve the measured low-allowance curve search otherwise.
     completeBoundary: guidanceSamples > 0,
-    memorySamples: Math.round(4 * guidanceSamples / 96),
-    memoryResponseSamples: Math.round(4 * guidanceSamples / 96),
-    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(12 * guidanceSamples / 96),
+    memorySamples: Math.round(4 * planningGuidanceSamples / 96),
+    memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
+    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(32 * guidanceSamples / 160),
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
     // simulated continuation boundary. Do not blend it into the root twice.
@@ -47,7 +50,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     valueSelection: false, valueWeight: .45,
     // Let the learned arrival estimate guide geometry refinement before planning.
     valueGuidanceWeight: .25,
-    continuationValueWeight: .5 * guidanceSamples / 96 };
+    continuationValueWeight: .5 * planningGuidanceSamples / 96 };
 }
 
 export function compileConnectedArcs(spec: Spec, seed: number,

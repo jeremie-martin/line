@@ -27,11 +27,22 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
     return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);
   }
   if(model.exemplars){
+    const input=model.proximityTrees?features.map(Math.fround):undefined;
+    const queryLeaves=model.proximityTrees?.map((tree:any)=>{
+      let n=0;while(tree.left[n]>=0)n=input![tree.feature[n]]<=tree.threshold[n]?tree.left[n]:tree.right[n];
+      return n;
+    });
     const weights:number[]|undefined=model.featureWeights;
     if(weights&&(weights.length!==features.length||weights.some(w=>!Number.isFinite(w)||w<0)))throw new Error('arc policy distance weights mismatch');
     const nearest:Array<{distance:number;value:number[]}>=[],limit=Math.max(24,count*8);
     for(const row of model.exemplars){
       let distance=0;for(let k=0;k<features.length;k++)distance+=(features[k]-row.features[k])**2*(weights?.[k]??(k>=47?4:k<7?2:1));
+      if(queryLeaves){
+        if(row.proximityLeaves?.length!==queryLeaves.length)throw new Error('arc policy proximity mismatch');
+        // Shared supervised partitions provide the primary neighborhood;
+        // continuous physical distance breaks ties without case identities.
+        distance=queryLeaves.reduce((n:number,leaf:number,k:number)=>n+(leaf!==row.proximityLeaves[k]?1:0),0)+distance/(1+distance);
+      }
       if(nearest.length===limit&&distance>=nearest[nearest.length-1].distance)continue;
       nearest.push({distance,value:row.target});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
     }

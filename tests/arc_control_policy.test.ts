@@ -21,6 +21,10 @@ it('matches independently computed nearest measured controls and rescales their 
     expect(actual).toHaveLength(row.examples.length);
     actual.forEach((control,index)=>Object.entries(row.examples[index]).forEach(([key,value])=>
       expect(control[key as keyof typeof control]).toBeCloseTo(value,12)));
+    const expanded=arcControlProposals(row.features,20,30,model.models[1],24);
+    expect(expanded).toHaveLength(row.expandedExamples.length);
+    expanded.forEach((control,index)=>Object.entries(row.expandedExamples[index]).forEach(([key,value])=>
+      expect(control[key as keyof typeof control]).toBeCloseTo(value,12)));
     const changed=arcControlProposals(row.features,35,60,model.models[1],1)[0];
     expect(changed.entry).toBeCloseTo(actual[0].entry+15,12);
     expect(changed.exit).toBeCloseTo(actual[0].exit+15,12);
@@ -57,4 +61,16 @@ it('supports an explicit physical-feature metric for measured proposals',()=>{
   const weights=Array(57).fill(1);weights[7]=5;
   expect(arcControlProposals(query,20,30,{...fixture,featureWeights:weights},1)[0].entry).toBe(50);
   expect(()=>arcControlProposals(query,20,30,{...fixture,featureWeights:[1]},1)).toThrow('weights mismatch');
+});
+
+it('retrieves by supervised neighborhood before physical distance',()=>{
+  const query=Array(57).fill(0),near=query.slice(),far=query.slice();
+  near[0]=.01;far[1]=20;
+  const tree={left:[1,-1,-1],right:[2,-1,-1],feature:[0,-2,-2],threshold:[.005,0,0]};
+  const fixture={featureSchema:model.featureSchema,featureCount:57,proximityTrees:[tree],exemplars:[
+    {features:near,target:Array(10).fill(0),proximityLeaves:[2]},
+    {features:far,target:Array(10).fill(1),proximityLeaves:[1]}]};
+  expect(arcControlProposals(query,20,30,fixture,1)[0].entry).toBe(50);
+  expect(()=>arcControlProposals(query,20,30,{...fixture,exemplars:[{...fixture.exemplars[0],proximityLeaves:[]}]},1))
+    .toThrow('proximity mismatch');
 });

@@ -93,3 +93,53 @@ the continuation search's terminal heuristic, so they are not pure future loss.
 The active next studies test the 935 teacher's supervised neighborhoods and a
 larger measured-example proposal share. The frozen public 922 result remains
 the promotion baseline until canonical validation succeeds.
+
+## Candidate above 930
+
+The strongest completed research panel reaches **930.1556**, all 88 cases valid
+at 750k. The selected changes are supervised retrieval of 7,981 independently
+replayed controls from the **935.1842 / 3M** teacher, a **32-proposal quota**
+split 1:3 between the existing learned component and measured examples, and
+96 base / 160 joint-guidance samples with 138 response samples. The mean
+predictor and continuation-value model are unchanged from 922.
+
+The quota interaction is substantial and teacher-dependent:
+
+| Measured examples and retrieval | Quota / weights | Headline |
+| --- | --- | ---: |
+| 931 teacher, supervised retrieval | 16 / 1:1 | 926.2321 |
+| 931 teacher, supervised retrieval | 24 / 1:2 | 926.0547 |
+| 935 teacher, supervised retrieval | 12 / 2:1 | 926.1733 |
+| 935 teacher, supervised retrieval | 16 / 1:1 | 928.3544 |
+| 935 teacher, supervised retrieval | 24 / 1:2 | 929.6826 |
+| 935 teacher, supervised retrieval | 32 / 1:3 | **930.1556** |
+
+Exploring a second response basin reaches 925.8192 with the earlier retrieval
+configuration. Combining bounded response with the stronger 24-proposal setup
+reaches 928.3757. Adjusting examples by the supervised predictor's input-to-input
+control difference reaches 928.7069; this revisits an earlier transfer idea with
+new neighborhoods and data, without improving the unadjusted candidate.
+These mechanisms remain research prototypes. A cheaper, narrower continuation
+study was already running when the target was crossed; it finishes at 926.9354,
+all 88 valid, and remains unselected.
+
+The public allocation now caps initial/local curve work at 96 and grows joint
+guidance to 160 from available work per ride frame. Its nominal guide rate is
+2.25 times spare allowance beyond the initial breadth threshold; response work
+receives 138/160 of that guide allocation. The existing planning and memory
+calibration remains separate. The 32 learned/measured proposal slots scale with
+guide capacity. This duration-and-budget formula exactly matches the selected
+research settings on all 88 V3 specifications; actual work remains governed by
+adaptive construction and the hard physics meter. It also changes allocation
+at smaller budgets, which is covered by physical compiler tests.
+
+Independent Python retrieval fixtures match TypeScript exactly for 24 query
+states at both 4- and 24-example quotas. Normal connected-arc geometry is unchanged.
+The integrated public compiler is entering canonical and jitter validation;
+the goal is not complete until those checks and preservation finish.
+
+All 57 focused tests across 17 files pass. The TypeScript check retains the same
+251 inherited diagnostics as the 922 check, with none in changed files. The
+tests cover independent proposal predictions and retrieval, coherent geometry,
+small-budget physical compilation, interruption/reuse, teacher replay, and the
+frozen benchmark contract.

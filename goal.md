@@ -1,3 +1,19 @@
+# Active campaign: 910 on frozen Benchmark V3
+
+Target: **at least 910**, starting from the canonical **901.0923** compiler at
+`fe7616c8`, preserved with evidence at `da45da00` on `archive/arc-v3-901`.
+Use all 88 specifications × seeds 16/17 at 750,000 actual compiler physics
+frames per run. The V3 catalog, scorer, aggregation, targets, detector, physics
+and accounting remain fixed. Preserve substantial coherent normal type-0
+arcs; no acceleration lines or point constellations.
+
+Investigate remaining losses and search efficiency, test promising mechanisms
+and learned proposals in controlled studies, retain adverse evidence, and
+confirm the final candidate through the public canonical compiler. Headline
+performance governs; report regressions and robustness honestly. Code and
+compact evidence are committed and pushed; large/raw artifacts stay local.
+Work branch: `codex/arc-v3-910`. See [campaign ledger](docs/arc-v3-910-campaign.md).
+
 # Achieved campaign: 901.0923 on frozen Benchmark V3
 
 The **900 target is achieved** at **901.0923**, up **47.1144** from the published

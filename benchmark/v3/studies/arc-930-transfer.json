@@ -5599,6 +5599,903 @@
       "datasets": null
     },
     {
+      "path": "generated/benchmark-v3/arc-930/residual-proximity935-nested/data.json",
+      "sha256": "fffc4eb486222b1ab07d08035a385ba33553cbdf19cc68e9a9125a337d1e1472",
+      "rows": 7981,
+      "parents": 65,
+      "note": "Teacher controls minus the frozen baseline forest mean. This dataset is for a residual predictor, not standalone control decoding.",
+      "featureSchema": "line.arc-control-policy-features.v1",
+      "featureCount": 57,
+      "verifiedSource": null,
+      "checkedControls": 0,
+      "independentlyRevalidated": false,
+      "provenance": [
+        {
+          "source": "bridge_river_reentry",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_river_reentry.json.gz",
+          "sha256": "9d353733cceeb02a543fefde0281979a4110ebee7bffcd2f39c4282aded5073c",
+          "teacherScore": 964.0172,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4709,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_countercurrent",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_countercurrent.json.gz",
+          "sha256": "1cf45b6d5e41c938116f03232c773ac47fefc504943774faca1a40005fe5f240",
+          "teacherScore": 974.0777,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4457,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_split_signal",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_split_signal.json.gz",
+          "sha256": "85acdbfa4737b4b5ef0dde88704596acffa2b3c4bd61690297602d96757f371e",
+          "teacherScore": 849.4046,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4894,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_pickup_lattice",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_pickup_lattice.json.gz",
+          "sha256": "8db0dae2f4f3e7879548bd7588752a606f33c9e69b3616262d37d342ef12a1a8",
+          "teacherScore": 898.4839,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4723,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_loose_pocket",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_loose_pocket.json.gz",
+          "sha256": "3e9864f25a67bbdef6ee5b37b8b3edd74709da05cfafcc7adaebd4d0127cd050",
+          "teacherScore": 957.0996,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4549,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_offgrid_conversation",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_offgrid_conversation.json.gz",
+          "sha256": "f86e0fb8acf19df93d95fef8819aedcea1bf9a796c565139cd66d6522c918a98",
+          "teacherScore": 968.5337,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4539,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_rising_switch",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_rising_switch.json.gz",
+          "sha256": "39760b5a089c9f6c3d574d0aa3bb34b604d607c473d1a785731ac1dfa608ba47",
+          "teacherScore": 968.4174,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4695,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_meter_exchange",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_meter_exchange.json.gz",
+          "sha256": "bc0d90fefdbc23b5ea733eabfb7e8b67671a290f488da8a66925e66e7932c378",
+          "teacherScore": 953.1814,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4853,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_wide_breaths",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_wide_breaths.json.gz",
+          "sha256": "01bca4fd81e3ad3764186d908076270732b0276b5aaa3d7e280293a499bb0652",
+          "teacherScore": 902.3513,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5059,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_open_hook",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_open_hook.json.gz",
+          "sha256": "db62d50be65f882db757384c14f2c7d3f4c80ab3917beffb3ac3a57dd55e1d45",
+          "teacherScore": 829.4686,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4729,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_amplitude_tides",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_amplitude_tides.json.gz",
+          "sha256": "6bd434224cf8be40e92b011d57b06395b2a9a904183814e5a3a3499d84ed6e52",
+          "teacherScore": 858.5218,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5071,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_dense_dialogue",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_dense_dialogue.json.gz",
+          "sha256": "bc0f43e7c6db4fb9feb6e49c99b4dd19c7bd3e14e74f8a39cf26869347396c7b",
+          "teacherScore": 938.0823,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4778,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_high_air_drive",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_high_air_drive.json.gz",
+          "sha256": "3b65bd00cfd0ba77ef2b3054720d48ddd0c0f4004409e4b0e2739f8750014da0",
+          "teacherScore": 899.6027,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4846,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_sparse_lowline",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_sparse_lowline.json.gz",
+          "sha256": "2df98831e0841734fe1c9c1fcb589e800995749974810ceb7467c603cbead2dc",
+          "teacherScore": 959.7965,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4922,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_frontier_pickup_progression",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_frontier_pickup_progression.json.gz",
+          "sha256": "ca1f0a2fc0c62d41047dfdff0098bc914a3120a2a8e8da90d4176d82631583cd",
+          "teacherScore": 948.2827,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4951,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_frontier_dense_recovery",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_frontier_dense_recovery.json.gz",
+          "sha256": "3e3e4a6bd76b417ab69002dc79f061cf6312c742b00512f60ff4bdf745341b30",
+          "teacherScore": 932.9982,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4804,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_frontier_low_air_endurance.json.gz",
+          "sha256": "453e17710e13ced7c0824e2b59eb472b13e2ef4d3084652666b6b4b54f74def9",
+          "teacherScore": 871.5701,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5090,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_regression_transition_mosaic",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_regression_transition_mosaic.json.gz",
+          "sha256": "fc9c0abc6298b584f775696778510928900ef701ef7171c3c028a97508429c48",
+          "teacherScore": 951.1905,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4888,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_regression_amplitude_mosaic.json.gz",
+          "sha256": "6a0b3d521e9876d13f9259f7f5f89c623b7ee96e31bcfa0b229c9376a2ab8f27",
+          "teacherScore": 752.9762,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4925,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_believer_56_6s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_believer_56_6s.json.gz",
+          "sha256": "2c399ab962d9158f0a42d4a7afc6e5d16d7de79d5fc1b2015454024db432b4de",
+          "teacherScore": 936.5251,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4599,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_believer_impact_56s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_believer_impact_56s.json.gz",
+          "sha256": "180fc43cdfa4baf343a1c7f0a500120760ef626cf9f9df016d101521acf9e9ed",
+          "teacherScore": 890.4846,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4544,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_river_reentry_tempo_fast_5",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_river_reentry_tempo_fast_5.json.gz",
+          "sha256": "61d51aba44764178178f72ed61c7a64c5fbd0944c26505d3ffadeecd0a623872",
+          "teacherScore": 957.287,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4476,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_countercurrent_impact_contrast_12",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_countercurrent_impact_contrast_12.json.gz",
+          "sha256": "0faa750e04e34151615078267e0c38c41cf8e55012ac51560018f7ab2cf4a934",
+          "teacherScore": 970.6156,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4456,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_split_signal_impact_relief_12",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_split_signal_impact_relief_12.json.gz",
+          "sha256": "bad54532bbc244b137f4925b51b72a3ec02cc7ef934c9e707b251f4fc32a45d0",
+          "teacherScore": 848.0375,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4890,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_pickup_lattice_speed_minus_4",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_pickup_lattice_speed_minus_4.json.gz",
+          "sha256": "ce0af7e087901aa36482edfde85eff42366d1c8aa1e0ebfdc7a4bb27a9fbf8f7",
+          "teacherScore": 910.7042,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4722,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_loose_pocket_drag_later_20ms",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_loose_pocket_drag_later_20ms.json.gz",
+          "sha256": "33e86664e170baff155fd2e900baa0d356dc21eb9b687ce1bd1b2ff4595211c3",
+          "teacherScore": 958.0335,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4550,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_offgrid_conversation_answer_early_25ms",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_offgrid_conversation_answer_early_25ms.json.gz",
+          "sha256": "4a7ab142551181a7c7432150c5a4e6720b3ab93c86f0f1e1a375c4e2e8cfd6c1",
+          "teacherScore": 970.3123,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4541,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_rising_switch_tempo_fast_5",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_rising_switch_tempo_fast_5.json.gz",
+          "sha256": "1f355a02eca46424528a40625decf244b922bf85121c6afe75de685391460bc5",
+          "teacherScore": 958.9058,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4464,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_meter_exchange_speed_plus_4",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_meter_exchange_speed_plus_4.json.gz",
+          "sha256": "0837f59d329dbe387f8e36d813395dfdf565e1af6c9818d648b78ae54200fa8b",
+          "teacherScore": 959.3187,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4855,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_wide_breaths_air_plus_5",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_wide_breaths_air_plus_5.json.gz",
+          "sha256": "2a5e8a87bbf2f90848457f6a47588dbb67981b4d8bbfc7b73cf0903f56c96611",
+          "teacherScore": 891.7377,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5057,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_open_hook_amplitude_plus_8",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_open_hook_amplitude_plus_8.json.gz",
+          "sha256": "037f88d7bf3e793dbfe448cc757294ddf333c37f4c03479215418c7518416c16",
+          "teacherScore": 813.989,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4735,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_amplitude_tides_restrained_10",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_amplitude_tides_restrained_10.json.gz",
+          "sha256": "66e7a584cb19908b11cdb50a4bb2f7ac72b204a076bdae74a3f99a26054b4683",
+          "teacherScore": 874.7834,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5072,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_dense_dialogue_impact_contrast_10",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_dense_dialogue_impact_contrast_10.json.gz",
+          "sha256": "2b6aa5885a10ef50383a53c2511ecf5444d1ed614948fca3ef0bd0aa11231d8f",
+          "teacherScore": 933.0355,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4776,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_high_air_drive_air_minus_5",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_high_air_drive_air_minus_5.json.gz",
+          "sha256": "ae208a7590cbbc73593f844104cea50f83e4f7f750ee7de78f3445b088c7215f",
+          "teacherScore": 933.9938,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4842,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_sparse_lowline_air_minus_4",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_sparse_lowline_air_minus_4.json.gz",
+          "sha256": "3e267202149c8a5e4c503f664788f06b051ee39cb8027504da207248d5066dcf",
+          "teacherScore": 942.6373,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4923,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_frontier_pickup_progression_shifted",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_frontier_pickup_progression_shifted.json.gz",
+          "sha256": "dbe107152f0a2aec50fec6322297c98db54931f2f1e8d3b8a0583b5e628bf951",
+          "teacherScore": 946.8075,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4951,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_frontier_dense_recovery_240ms_figures",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_frontier_dense_recovery_240ms_figures.json.gz",
+          "sha256": "0872714709c749729d548cfbf2e7b79673b407cdd2286e095c28584215a5ee33",
+          "teacherScore": 941.1721,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4804,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_4s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_frontier_low_air_endurance_4s.json.gz",
+          "sha256": "9e7e81e4e703fc22ec36d455d9023be130b201eae2de35d775be9125a308eac5",
+          "teacherScore": 912.4666,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5011,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_6s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_frontier_low_air_endurance_6s.json.gz",
+          "sha256": "f5b980ff157c0a02d7c674773a29e0d28c773bd2ee983f058cad2d5b3bf97d27",
+          "teacherScore": 851.4764,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5169,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_7s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_frontier_low_air_endurance_7s.json.gz",
+          "sha256": "abcd593092fea44b016144719c101206668ab2f6267468478ddd492a0e3ee2d2",
+          "teacherScore": 873.8001,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5249,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_regression_transition_mosaic_tempo_fast_5.json.gz",
+          "sha256": "cbd3a9cd0c1807cffed19f328f53e9ca6f0e92b4e4dad086c8d374be2e653e83",
+          "teacherScore": 954.5385,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4644,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic_contrast_10",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_regression_amplitude_mosaic_contrast_10.json.gz",
+          "sha256": "364287e34e06197c33b6b5f6f368fbb6567acf9ae0aaf24ed1fa451c31c7a2e0",
+          "teacherScore": 740.7359,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4926,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_believer_56_6s_impact_relief",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_believer_56_6s_impact_relief.json.gz",
+          "sha256": "cdd202763517dadef3a2548149aa00ac4369837e5fec748b00c589a034252b1f",
+          "teacherScore": 940.1282,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4599,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "bridge_believer_impact_56s_amplitude_plus_5",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/bridge_believer_impact_56s_amplitude_plus_5.json.gz",
+          "sha256": "e500cac023a5224432d8f98f1157cf7bca923fce796900770851fb0c4280c796",
+          "teacherScore": 881.253,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 4542,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "harbor_return",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/harbor_return.json.gz",
+          "sha256": "bd7a1fff30e8c517341b6e8b04932b2ee19c7c87dc119dc1adf3758e1730b915",
+          "teacherScore": 954.3523,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5114,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "crossing_lights",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/crossing_lights.json.gz",
+          "sha256": "ed55b4f00490f469b92675b4b8fd1262948a34e1bdeea8e2d838ef9281538723",
+          "teacherScore": 964.5755,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5106,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "afterglow_turn",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/afterglow_turn.json.gz",
+          "sha256": "76a9b6f79268aabbbe70e2f5482b684f82d634efbd77023bd70046ebdaf65d41",
+          "teacherScore": 969.9295,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5425,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "woven_pickups",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/woven_pickups.json.gz",
+          "sha256": "efafb4797a352bd5fb2ce1d43a261d77ae50fd40385e896202c464708d88819c",
+          "teacherScore": 949.07,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5116,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "pickup_answers",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/pickup_answers.json.gz",
+          "sha256": "e5c347e6edb79dca99d4c5097077e0f4341a9151ef9e64bcc1f1d91ea80a8858",
+          "teacherScore": 957.2865,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5119,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "broken_triplets",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/broken_triplets.json.gz",
+          "sha256": "e84dee99253e615b5970f35810cbe8b8d7cc583adadb85ccef158df1ba8eba62",
+          "teacherScore": 955.9868,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5440,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "late_letters",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/late_letters.json.gz",
+          "sha256": "1e7b7a009765b0dc5d7f023ae5b05d437a79ace07d8fda50d037db830a6d2f1f",
+          "teacherScore": 966.6973,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5093,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "swing_exchange",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/swing_exchange.json.gz",
+          "sha256": "40515279bff3f01de9ae0ff4f267932b6d84289a569fb7122c447dba21e5e5c3",
+          "teacherScore": 968.5216,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5098,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "offbeat_echoes",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/offbeat_echoes.json.gz",
+          "sha256": "971b1de8109ef1af0e62b6ccbc5279dbd9f99af168b7c91addf02feb4d9b93d1",
+          "teacherScore": 973.5799,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5410,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "gear_changes",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/gear_changes.json.gz",
+          "sha256": "ea937786e560159aa6af62f4f28c33b428487b4213f1fb1e01cda36c4df081ee",
+          "teacherScore": 917.878,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5120,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "half_time_return",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/half_time_return.json.gz",
+          "sha256": "90da081743297f4b4a7c0691043127ad8a70582b5e479da2aa54ec0fb0c09fe8",
+          "teacherScore": 951.904,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5114,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "accelerando_reply",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/accelerando_reply.json.gz",
+          "sha256": "8d877d313459e1d3150d4cb535f2df44e9cdedaf38a254b5103f211965a673d6",
+          "teacherScore": 963.9991,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5430,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "archipelago",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/archipelago.json.gz",
+          "sha256": "f644a8753ecc347a8cc427f3cf5829bca4e63bdadbc62784231fb68e5e0f844b",
+          "teacherScore": 930.7264,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5076,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "wide_arc_dialogue",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/wide_arc_dialogue.json.gz",
+          "sha256": "ebac804c57d56e2ba923b5a016784df89ccfa8456dcf7a97b61517f6af706c17",
+          "teacherScore": 943.9942,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5072,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "terraced_skies",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/terraced_skies.json.gz",
+          "sha256": "9affa051360d1e3a1592f2cd63bebe86923db2f6a69cd8f74a40b781bf847bad",
+          "teacherScore": 942.3787,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5394,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "woven_pulse",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/woven_pulse.json.gz",
+          "sha256": "9b773892e70954cca2ce64fd49dcc82ac33d453032968bd73d9a0db5b5162945",
+          "teacherScore": 933.5989,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5114,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "density_release",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/density_release.json.gz",
+          "sha256": "47731942f6e1d412e7bcc067bfe8067dcae52f61bb75173a740e3cbefaf91cdc",
+          "teacherScore": 949.8901,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5115,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "compact_dialogue",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/compact_dialogue.json.gz",
+          "sha256": "dc0c6530bbf08c5f2cd5fbc683dc57a0e94bf8f4348609c4b1d3e90afcd0e7d0",
+          "teacherScore": 955.3511,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5431,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "lifted_refrain",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/lifted_refrain.json.gz",
+          "sha256": "2ca96c11b2e28653190a5814cddaab48efc3c11356908ea5af7a26d7538dcc20",
+          "teacherScore": 963.1911,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5042,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "flight_and_return",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/flight_and_return.json.gz",
+          "sha256": "c6bf3945499932b81632f5cb505154574120f1202797b77caa99980c7586b25e",
+          "teacherScore": 964.9665,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5046,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "open_canopy",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/open_canopy.json.gz",
+          "sha256": "c3dfa532a12ef76949bb931a854b7f86979e556429ce2f23f65ac3c5fc6c567c",
+          "teacherScore": 966.8077,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5364,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "quiet_current",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/quiet_current.json.gz",
+          "sha256": "02e4824c9d5eff6f084c17ab6e06e8a4cb17992bf0e5aa36d9ee3f8b28536de0",
+          "teacherScore": 948.8739,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5110,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "support_then_lift",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/support_then_lift.json.gz",
+          "sha256": "8d0370258d89f28e98a17ed4a8da71d33dbe2de4f362c47a3461684722d04569",
+          "teacherScore": 939.6027,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5105,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "rest_and_return",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/rest_and_return.json.gz",
+          "sha256": "1fff68047d721f6db5e88e223aeb698e8b83035b9ab9e1b3118e942c760e0ef7",
+          "teacherScore": 948.8595,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5424,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "pickup_staircase",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/pickup_staircase.json.gz",
+          "sha256": "5eff6033fd4e099bf9b3e8b4c8b5315a1ab0e800e64372b0ec4d574ef90407b4",
+          "teacherScore": 902.4987,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5106,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "pickup_interruptions",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/pickup_interruptions.json.gz",
+          "sha256": "4e45720ed04b3fb92b3a5f33b8e42aa6891cd4c95b17e6d5d3814a685dd13c96",
+          "teacherScore": 931.3013,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5110,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "pickup_recovery",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/pickup_recovery.json.gz",
+          "sha256": "cc253d8084cf8b13baa0e6ba1e45a531ece4a1e6d4f757a82b33a66f79c9cc44",
+          "teacherScore": 904.1276,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5422,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "dense_short_then_long",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/dense_short_then_long.json.gz",
+          "sha256": "72f8628a838b019e73498cffaf0eea7c65b7f6b8b295dcd2fd19dfc7ca6d6aca",
+          "teacherScore": 870.4879,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5100,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "interleaved_recovery",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/interleaved_recovery.json.gz",
+          "sha256": "a73adaf336605b3acd50dede235fbb5d7e1238311b790820ea281fd0310cc218",
+          "teacherScore": 876.5025,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5115,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "three_note_returns",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/three_note_returns.json.gz",
+          "sha256": "ac96169665f625acef1911e71079f754af79a64c7b94e0473372d8bdd63f3111",
+          "teacherScore": 872.0478,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5428,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "supported_bridge",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/supported_bridge.json.gz",
+          "sha256": "e9a90a344cf1c04b8b36d0b59e97fd9d6eab2890bc04c3f3e65c74c41ce6b5cc",
+          "teacherScore": 933.0511,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5119,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "supported_speed_change",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/supported_speed_change.json.gz",
+          "sha256": "30f2b847a72233eea8ddd9f77845639f048fa2d36524a4f1bd2fb40085013fc3",
+          "teacherScore": 937.3399,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5111,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "endurance_and_return",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/endurance_and_return.json.gz",
+          "sha256": "842d90aaab87fd0f68f6f88782b459741262704c86730ce1d1eeb4bcba335bbb",
+          "teacherScore": 933.3281,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5429,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "energy_weave",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/energy_weave.json.gz",
+          "sha256": "f1dc54fde0eb297969ea377db607394fa0544c8ea29c8375ca5acbcce50ad8b1",
+          "teacherScore": 959.6288,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5102,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "alternating_intentions",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/alternating_intentions.json.gz",
+          "sha256": "8e20ff2e9b5f791e8ed895368c4a42be4c645bb22a877c1b4c13f6915c48327f",
+          "teacherScore": 959.2405,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5107,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "recovery_mosaic",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/recovery_mosaic.json.gz",
+          "sha256": "8efdb4908781eb154324c235c48e51f3d7abc724804cf120ec1567008d06c0d4",
+          "teacherScore": 968.9949,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5416,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "amplitude_reply",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/amplitude_reply.json.gz",
+          "sha256": "8c3f91721e6388e926bf5ded81028647d94d35b35653295f8037fbf5f56e1d19",
+          "teacherScore": 944.2222,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5077,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "restrained_then_wide",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/restrained_then_wide.json.gz",
+          "sha256": "09b6c071b3195fae6b0e3b3049ec4086d267abf54401427ce1712254b728062a",
+          "teacherScore": 897.8865,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5082,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "arches_at_new_tempos",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/arches_at_new_tempos.json.gz",
+          "sha256": "34f4b74675c33012a13f1ba08d5c13610ef898f18e9c11d4f23494a85f4854cc",
+          "teacherScore": 938.4379,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 5400,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "music_amor_na_praia_46s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/music_amor_na_praia_46s.json.gz",
+          "sha256": "ed5bd870177fc73a946d89a45833fcbb2b2d874e6971ef91b352bd1c63abbbaa",
+          "teacherScore": 965.6647,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 3725,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "music_luna_bala_44s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/music_luna_bala_44s.json.gz",
+          "sha256": "4475e1c8e9542efb1b1c7b151a0106d962165a4feeee409ac78d119cce22a34e",
+          "teacherScore": 923.7383,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 3562,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "music_tiki_tiki_48s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/music_tiki_tiki_48s.json.gz",
+          "sha256": "1c3321177a986c1918ce1c90db3e86fae48f70857c67395ca95357f4ce915b86",
+          "teacherScore": 894.0351,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 3898,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "music_shelter_impact_sync_81s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/music_shelter_impact_sync_81s.json.gz",
+          "sha256": "e9c3107d056597ce186bbdab3e31efc8c0dd740e5054651b8278b3f5c35e8da1",
+          "teacherScore": 895.8008,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 6540,
+          "prefixesMatchedFullTrack": true
+        },
+        {
+          "source": "music_amour_de_ma_vie_short_44s",
+          "path": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m/music_amour_de_ma_vie_short_44s.json.gz",
+          "sha256": "ed7aa3b4a926502355e41c61e3ad78d224ec816ea56697b027b66389edf62bb6",
+          "teacherScore": 878.1171,
+          "teacherPlanSha256": "b5805df8ecf5e4272a3788e99c8998ac113915f04eb4a04fa25c9d3b2bd85b8a",
+          "authoredHorizon": true,
+          "replayFrames": 3649,
+          "prefixesMatchedFullTrack": true
+        }
+      ],
+      "residualBaseSha256": "92d57ed3c5f249a927989e9283d086a6ecb8eccd9253308e94f64749357db194",
+      "sourceDataSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+      "datasets": null
+    },
+    {
       "path": "generated/benchmark-v3/arc-930/residual-replay922-base/data.json",
       "sha256": "d4948cbc9cf2a0cfd49130b34b22af991857e0e5ee0f8754b766a52e65c1262f",
       "rows": 7981,
@@ -11448,6 +12345,283 @@
       }
     },
     {
+      "path": "generated/benchmark-v3/arc-930/residual-proximity935-nested/forest/model.json",
+      "sha256": "967219de5c4a45ed04884f7e35114a3c89f4d3f5301dce809bf877ed213ad972",
+      "bytes": 9253085,
+      "provenance": {
+        "dataSha256": "fffc4eb486222b1ab07d08035a385ba33553cbdf19cc68e9a9125a337d1e1472",
+        "trainingParents": [
+          "accelerando_reply",
+          "afterglow_turn",
+          "alternating_intentions",
+          "amplitude_reply",
+          "arches_at_new_tempos",
+          "archipelago",
+          "bridge_amplitude_tides",
+          "bridge_believer_56_6s",
+          "bridge_believer_impact_56s",
+          "bridge_countercurrent",
+          "bridge_dense_dialogue",
+          "bridge_frontier_dense_recovery",
+          "bridge_frontier_low_air_endurance",
+          "bridge_frontier_pickup_progression",
+          "bridge_high_air_drive",
+          "bridge_loose_pocket",
+          "bridge_meter_exchange",
+          "bridge_offgrid_conversation",
+          "bridge_open_hook",
+          "bridge_pickup_lattice",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_regression_transition_mosaic",
+          "bridge_rising_switch",
+          "bridge_river_reentry",
+          "bridge_sparse_lowline",
+          "bridge_split_signal",
+          "bridge_wide_breaths",
+          "broken_triplets",
+          "compact_dialogue",
+          "crossing_lights",
+          "dense_short_then_long",
+          "density_release",
+          "endurance_and_return",
+          "energy_weave",
+          "flight_and_return",
+          "gear_changes",
+          "half_time_return",
+          "harbor_return",
+          "interleaved_recovery",
+          "late_letters",
+          "lifted_refrain",
+          "music_amor_na_praia_46s",
+          "music_amour_de_ma_vie_short_44s",
+          "music_luna_bala_44s",
+          "music_shelter_impact_sync_81s",
+          "music_tiki_tiki_48s",
+          "offbeat_echoes",
+          "open_canopy",
+          "pickup_answers",
+          "pickup_interruptions",
+          "pickup_recovery",
+          "pickup_staircase",
+          "quiet_current",
+          "recovery_mosaic",
+          "rest_and_return",
+          "restrained_then_wide",
+          "support_then_lift",
+          "supported_bridge",
+          "supported_speed_change",
+          "swing_exchange",
+          "terraced_skies",
+          "three_note_returns",
+          "wide_arc_dialogue",
+          "woven_pickups",
+          "woven_pulse"
+        ],
+        "rows": 7981,
+        "datasetRows": 7981,
+        "targetMetric": "raw",
+        "targetWeights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "sampleWeight": "uniform",
+        "algorithm": "extra",
+        "estimators": 32,
+        "depth": 14,
+        "minLeaf": 4,
+        "description": "Joint control regression; no case or seed identity in features; full physical validation required."
+      },
+      "validation": {
+        "path": "generated/benchmark-v3/arc-930/residual-proximity935-nested/forest/validation.json",
+        "sha256": "1bc39f38eb4e5023f4c09f68471f70da81f6d8e844131b5606519752917c9b15",
+        "rows": 7981,
+        "parents": 65,
+        "folds": [
+          {
+            "fold": 0,
+            "heldParents": [
+              "archipelago",
+              "bridge_countercurrent",
+              "bridge_frontier_low_air_endurance",
+              "bridge_offgrid_conversation",
+              "bridge_split_signal",
+              "density_release",
+              "endurance_and_return",
+              "open_canopy",
+              "pickup_answers",
+              "pickup_recovery",
+              "recovery_mosaic",
+              "swing_exchange"
+            ],
+            "train": 6396,
+            "test": 1585,
+            "controlRms": [
+              0.10371236608015967,
+              0.09663500418062765,
+              0.13062503982959467,
+              0.055070127335083534,
+              0.7763540700904946,
+              0.7684146167732575,
+              0.12453050978455689,
+              0.07393440649682928,
+              0.1379042904447691,
+              0.2737913535092363
+            ]
+          },
+          {
+            "fold": 1,
+            "heldParents": [
+              "accelerando_reply",
+              "afterglow_turn",
+              "amplitude_reply",
+              "bridge_dense_dialogue",
+              "bridge_high_air_drive",
+              "bridge_rising_switch",
+              "bridge_wide_breaths",
+              "broken_triplets",
+              "flight_and_return",
+              "music_shelter_impact_sync_81s",
+              "supported_bridge",
+              "terraced_skies",
+              "woven_pickups"
+            ],
+            "train": 6397,
+            "test": 1584,
+            "controlRms": [
+              0.10825867825830904,
+              0.08795514547025095,
+              0.15643510276948425,
+              0.06484099451476907,
+              0.8288473016018607,
+              0.8199261503893907,
+              0.13475863932584933,
+              0.08145100820199515,
+              0.14921290507670182,
+              0.27637237179983276
+            ]
+          },
+          {
+            "fold": 2,
+            "heldParents": [
+              "bridge_frontier_dense_recovery",
+              "bridge_meter_exchange",
+              "bridge_river_reentry",
+              "bridge_sparse_lowline",
+              "crossing_lights",
+              "dense_short_then_long",
+              "energy_weave",
+              "harbor_return",
+              "interleaved_recovery",
+              "lifted_refrain",
+              "music_luna_bala_44s",
+              "restrained_then_wide",
+              "support_then_lift",
+              "wide_arc_dialogue"
+            ],
+            "train": 6337,
+            "test": 1644,
+            "controlRms": [
+              0.10770763441181364,
+              0.10714484314226946,
+              0.1679603060154279,
+              0.058741705149421126,
+              0.8073844073636574,
+              0.7462123403054753,
+              0.12611826295371345,
+              0.07359816935500349,
+              0.14712148717123122,
+              0.2748909683069687
+            ]
+          },
+          {
+            "fold": 3,
+            "heldParents": [
+              "bridge_amplitude_tides",
+              "bridge_believer_impact_56s",
+              "bridge_frontier_pickup_progression",
+              "bridge_open_hook",
+              "bridge_regression_transition_mosaic",
+              "compact_dialogue",
+              "music_amor_na_praia_46s",
+              "music_amour_de_ma_vie_short_44s",
+              "offbeat_echoes",
+              "quiet_current",
+              "rest_and_return",
+              "three_note_returns",
+              "woven_pulse"
+            ],
+            "train": 6397,
+            "test": 1584,
+            "controlRms": [
+              0.12223011105997712,
+              0.1107028873867344,
+              0.168755716468365,
+              0.06357388377286727,
+              0.8177344096143249,
+              0.8412523065165187,
+              0.11790381191364693,
+              0.07362826636128743,
+              0.15752418217365952,
+              0.30404312471146105
+            ]
+          },
+          {
+            "fold": 4,
+            "heldParents": [
+              "alternating_intentions",
+              "arches_at_new_tempos",
+              "bridge_believer_56_6s",
+              "bridge_loose_pocket",
+              "bridge_pickup_lattice",
+              "bridge_regression_amplitude_mosaic",
+              "gear_changes",
+              "half_time_return",
+              "late_letters",
+              "music_tiki_tiki_48s",
+              "pickup_interruptions",
+              "pickup_staircase",
+              "supported_speed_change"
+            ],
+            "train": 6397,
+            "test": 1584,
+            "controlRms": [
+              0.10880907940760669,
+              0.09608530447715911,
+              0.16755738407934123,
+              0.06670572383199093,
+              0.8045983015987248,
+              0.845847181414851,
+              0.12563081658807518,
+              0.07568700586816235,
+              0.15025664093798088,
+              0.27702017989689864
+            ]
+          }
+        ],
+        "controlRms": [
+          0.11030359794628142,
+          0.10009681471745567,
+          0.1590001619903081,
+          0.06190956484889106,
+          0.8071720071351912,
+          0.8048915214272653,
+          0.12590455812585638,
+          0.07570313964433954,
+          0.14852615339038364,
+          0.28140748194763177
+        ],
+        "note": "Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested."
+      }
+    },
+    {
       "path": "generated/benchmark-v3/arc-930/residual-replay922-base/forest/model.json",
       "sha256": "92ee2fce95577d920b09d2dab1883a774d554247bb87ae64eeabd2c30aaf5849",
       "bytes": 10896632,
@@ -12633,6 +13807,60 @@
       "refinementStage": null
     },
     {
+      "path": "generated/benchmark-v3/arc-930/models/proximity935-analogy-half.json",
+      "sha256": "0f874cfd4c52b869f292ab071ae3a033795bb77455e101fb8cc32d7d64ff47ee",
+      "bytes": 46363643,
+      "proposalWeights": [
+        1,
+        1
+      ],
+      "provenance": {
+        "residualSourceSha256": "59b0f8c649803e30c8c41bf8bde419b57b3a5774d1e2bd202d0732235a22652e",
+        "exampleSourceSha256": "0eb317db0845dc39987cb7199191e5dac1db68afd4d3a45e9c3d933afba25f38",
+        "description": "Learned corrections to the established controller, paired with verified examples from the 927 teacher.",
+        "sourceModelSha256": "babe6c44667e189f16e0141c401205fcc8b7684bb0ddf0328f0f711d852197c4",
+        "residualStrength": 1.15,
+        "parentPolicySha256": "e51a2cb249022d4cba91d64312bcc4316f47ed8da959ffa1c1256451d57acf0d",
+        "examplesSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+        "proximityInputPolicySha256": "9a0ce6a3c03d19fe69aa8fb7af5ae5651ef4d2dc42dc22d034cb2b9e8c1f82a5",
+        "proximityForestSha256": "22b287bc7f66849f5388ee9273199708cce1604ccdca7339ed50344daaca9809"
+      },
+      "componentSchemas": [
+        "line.arc-control-residual-policy.v1",
+        "line.arc-control-policy-examples.v1"
+      ],
+      "supervisedRetrieval": true,
+      "refinement": null,
+      "refinementStage": null
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/models/proximity935-equal.json",
+      "sha256": "9a0ce6a3c03d19fe69aa8fb7af5ae5651ef4d2dc42dc22d034cb2b9e8c1f82a5",
+      "bytes": 37758263,
+      "proposalWeights": [
+        1,
+        1
+      ],
+      "provenance": {
+        "residualSourceSha256": "59b0f8c649803e30c8c41bf8bde419b57b3a5774d1e2bd202d0732235a22652e",
+        "exampleSourceSha256": "0eb317db0845dc39987cb7199191e5dac1db68afd4d3a45e9c3d933afba25f38",
+        "description": "Learned corrections to the established controller, paired with verified examples from the 927 teacher.",
+        "sourceModelSha256": "babe6c44667e189f16e0141c401205fcc8b7684bb0ddf0328f0f711d852197c4",
+        "residualStrength": 1.15,
+        "parentPolicySha256": "e51a2cb249022d4cba91d64312bcc4316f47ed8da959ffa1c1256451d57acf0d",
+        "examplesSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+        "proximityInputPolicySha256": "70e5bb4fd753706a7200017c29706efdabfb2f9d6c67157c5a0b4dbbcb002245",
+        "proximityForestSha256": "22b287bc7f66849f5388ee9273199708cce1604ccdca7339ed50344daaca9809"
+      },
+      "componentSchemas": [
+        "line.arc-control-residual-policy.v1",
+        "line.arc-control-policy-examples.v1"
+      ],
+      "supervisedRetrieval": true,
+      "refinement": null,
+      "refinementStage": null
+    },
+    {
       "path": "generated/benchmark-v3/arc-930/models/proximity935-examples.json",
       "sha256": "70e5bb4fd753706a7200017c29706efdabfb2f9d6c67157c5a0b4dbbcb002245",
       "bytes": 34926383,
@@ -12654,6 +13882,87 @@
         "line.arc-control-policy-examples.v1"
       ],
       "supervisedRetrieval": false,
+      "refinement": null,
+      "refinementStage": null
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/models/proximity935-measured-analogy-half.json",
+      "sha256": "f9399cd5e448b6a337c78a76563b269bac495a5fde8299723242ad0a4893a1a7",
+      "bytes": 46363643,
+      "proposalWeights": [
+        1,
+        2
+      ],
+      "provenance": {
+        "residualSourceSha256": "59b0f8c649803e30c8c41bf8bde419b57b3a5774d1e2bd202d0732235a22652e",
+        "exampleSourceSha256": "0eb317db0845dc39987cb7199191e5dac1db68afd4d3a45e9c3d933afba25f38",
+        "description": "Learned corrections to the established controller, paired with verified examples from the 927 teacher.",
+        "sourceModelSha256": "babe6c44667e189f16e0141c401205fcc8b7684bb0ddf0328f0f711d852197c4",
+        "residualStrength": 1.15,
+        "parentPolicySha256": "e51a2cb249022d4cba91d64312bcc4316f47ed8da959ffa1c1256451d57acf0d",
+        "examplesSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+        "proximityInputPolicySha256": "9a0ce6a3c03d19fe69aa8fb7af5ae5651ef4d2dc42dc22d034cb2b9e8c1f82a5",
+        "proximityForestSha256": "22b287bc7f66849f5388ee9273199708cce1604ccdca7339ed50344daaca9809"
+      },
+      "componentSchemas": [
+        "line.arc-control-residual-policy.v1",
+        "line.arc-control-policy-examples.v1"
+      ],
+      "supervisedRetrieval": true,
+      "refinement": null,
+      "refinementStage": null
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/models/proximity935-measured.json",
+      "sha256": "b6f99c5e8a8405b87724f5409f7d18dad481db75d85c07311ebc3cc946703805",
+      "bytes": 37758263,
+      "proposalWeights": [
+        1,
+        2
+      ],
+      "provenance": {
+        "residualSourceSha256": "59b0f8c649803e30c8c41bf8bde419b57b3a5774d1e2bd202d0732235a22652e",
+        "exampleSourceSha256": "0eb317db0845dc39987cb7199191e5dac1db68afd4d3a45e9c3d933afba25f38",
+        "description": "Learned corrections to the established controller, paired with verified examples from the 927 teacher.",
+        "sourceModelSha256": "babe6c44667e189f16e0141c401205fcc8b7684bb0ddf0328f0f711d852197c4",
+        "residualStrength": 1.15,
+        "parentPolicySha256": "e51a2cb249022d4cba91d64312bcc4316f47ed8da959ffa1c1256451d57acf0d",
+        "examplesSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+        "proximityInputPolicySha256": "70e5bb4fd753706a7200017c29706efdabfb2f9d6c67157c5a0b4dbbcb002245",
+        "proximityForestSha256": "22b287bc7f66849f5388ee9273199708cce1604ccdca7339ed50344daaca9809"
+      },
+      "componentSchemas": [
+        "line.arc-control-residual-policy.v1",
+        "line.arc-control-policy-examples.v1"
+      ],
+      "supervisedRetrieval": true,
+      "refinement": null,
+      "refinementStage": null
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/models/proximity935-measured32.json",
+      "sha256": "f60139398b8c94cb18d5372aa6ab3562b585e0ea83a8d1d0f74810ebd01caa7f",
+      "bytes": 37758263,
+      "proposalWeights": [
+        1,
+        3
+      ],
+      "provenance": {
+        "residualSourceSha256": "59b0f8c649803e30c8c41bf8bde419b57b3a5774d1e2bd202d0732235a22652e",
+        "exampleSourceSha256": "0eb317db0845dc39987cb7199191e5dac1db68afd4d3a45e9c3d933afba25f38",
+        "description": "Learned corrections to the established controller, paired with verified examples from the 927 teacher.",
+        "sourceModelSha256": "babe6c44667e189f16e0141c401205fcc8b7684bb0ddf0328f0f711d852197c4",
+        "residualStrength": 1.15,
+        "parentPolicySha256": "e51a2cb249022d4cba91d64312bcc4316f47ed8da959ffa1c1256451d57acf0d",
+        "examplesSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+        "proximityInputPolicySha256": "70e5bb4fd753706a7200017c29706efdabfb2f9d6c67157c5a0b4dbbcb002245",
+        "proximityForestSha256": "22b287bc7f66849f5388ee9273199708cce1604ccdca7339ed50344daaca9809"
+      },
+      "componentSchemas": [
+        "line.arc-control-residual-policy.v1",
+        "line.arc-control-policy-examples.v1"
+      ],
+      "supervisedRetrieval": true,
       "refinement": null,
       "refinementStage": null
     },
@@ -13120,6 +14429,32 @@
       "refinementStage": null
     },
     {
+      "path": "generated/benchmark-v3/arc-930/models/rollout-proximity-measured.json",
+      "sha256": "68545cc037aa65e9cc7cfab56f6ed3a7511279b6259517906771159fb88ad49a",
+      "bytes": 37764202,
+      "proposalWeights": [
+        1,
+        2
+      ],
+      "provenance": {
+        "residualSourceSha256": "59b0f8c649803e30c8c41bf8bde419b57b3a5774d1e2bd202d0732235a22652e",
+        "exampleSourceSha256": "0eb317db0845dc39987cb7199191e5dac1db68afd4d3a45e9c3d933afba25f38",
+        "description": "Learned corrections to the established controller, paired with verified examples from the 927 teacher.",
+        "sourceModelSha256": "babe6c44667e189f16e0141c401205fcc8b7684bb0ddf0328f0f711d852197c4",
+        "residualStrength": 1.15,
+        "examplesSha256": "1b6303d44de7f4e3626c8bd2af58e344b55a86378dd7e885b60fdc0171e92e26",
+        "proximityInputPolicySha256": "18d7469d60f2f9895bf6a5575cf23428aab3bb8fc680b6feed6253b93ccca5ff",
+        "proximityForestSha256": "d02840a8dfd9e5a635af8aabd516643b1b21d6863deec4ac498dcac17d06cd99"
+      },
+      "componentSchemas": [
+        "line.arc-control-residual-policy.v1",
+        "line.arc-control-policy-examples.v1"
+      ],
+      "supervisedRetrieval": true,
+      "refinement": null,
+      "refinementStage": null
+    },
+    {
       "path": "generated/benchmark-v3/arc-930/models/rollout-proximity.json",
       "sha256": "c73c4f358ce6b6207a7150188e5cfddb4ceb9171dbf349676f54abd0231fded3",
       "bytes": 37764202,
@@ -13136,6 +14471,188 @@
         "examplesSha256": "1b6303d44de7f4e3626c8bd2af58e344b55a86378dd7e885b60fdc0171e92e26",
         "proximityInputPolicySha256": "18d7469d60f2f9895bf6a5575cf23428aab3bb8fc680b6feed6253b93ccca5ff",
         "proximityForestSha256": "d02840a8dfd9e5a635af8aabd516643b1b21d6863deec4ac498dcac17d06cd99"
+      },
+      "componentSchemas": [
+        "line.arc-control-residual-policy.v1",
+        "line.arc-control-policy-examples.v1"
+      ],
+      "supervisedRetrieval": true,
+      "refinement": null,
+      "refinementStage": null
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/residual-proximity935-nested/policy-0.5.json",
+      "sha256": "9faf56a51c5792bfb0eb8c103b4c8b20a1e353ce5d9f9c80d1fea2416bfcc911",
+      "bytes": 47014467,
+      "proposalWeights": [
+        1,
+        1
+      ],
+      "provenance": {
+        "baseSha256": "92d57ed3c5f249a927989e9283d086a6ecb8eccd9253308e94f64749357db194",
+        "residualDataSha256": "fffc4eb486222b1ab07d08035a385ba33553cbdf19cc68e9a9125a337d1e1472",
+        "sourceDataSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+        "residualModelSha256": "967219de5c4a45ed04884f7e35114a3c89f4d3f5301dce809bf877ed213ad972",
+        "rows": 7981,
+        "trainingParents": [
+          "accelerando_reply",
+          "afterglow_turn",
+          "alternating_intentions",
+          "amplitude_reply",
+          "arches_at_new_tempos",
+          "archipelago",
+          "bridge_amplitude_tides",
+          "bridge_believer_56_6s",
+          "bridge_believer_impact_56s",
+          "bridge_countercurrent",
+          "bridge_dense_dialogue",
+          "bridge_frontier_dense_recovery",
+          "bridge_frontier_low_air_endurance",
+          "bridge_frontier_pickup_progression",
+          "bridge_high_air_drive",
+          "bridge_loose_pocket",
+          "bridge_meter_exchange",
+          "bridge_offgrid_conversation",
+          "bridge_open_hook",
+          "bridge_pickup_lattice",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_regression_transition_mosaic",
+          "bridge_rising_switch",
+          "bridge_river_reentry",
+          "bridge_sparse_lowline",
+          "bridge_split_signal",
+          "bridge_wide_breaths",
+          "broken_triplets",
+          "compact_dialogue",
+          "crossing_lights",
+          "dense_short_then_long",
+          "density_release",
+          "endurance_and_return",
+          "energy_weave",
+          "flight_and_return",
+          "gear_changes",
+          "half_time_return",
+          "harbor_return",
+          "interleaved_recovery",
+          "late_letters",
+          "lifted_refrain",
+          "music_amor_na_praia_46s",
+          "music_amour_de_ma_vie_short_44s",
+          "music_luna_bala_44s",
+          "music_shelter_impact_sync_81s",
+          "music_tiki_tiki_48s",
+          "offbeat_echoes",
+          "open_canopy",
+          "pickup_answers",
+          "pickup_interruptions",
+          "pickup_recovery",
+          "pickup_staircase",
+          "quiet_current",
+          "recovery_mosaic",
+          "rest_and_return",
+          "restrained_then_wide",
+          "support_then_lift",
+          "supported_bridge",
+          "supported_speed_change",
+          "swing_exchange",
+          "terraced_skies",
+          "three_note_returns",
+          "wide_arc_dialogue",
+          "woven_pickups",
+          "woven_pulse"
+        ],
+        "mixtureSourceSha256": "9a0ce6a3c03d19fe69aa8fb7af5ae5651ef4d2dc42dc22d034cb2b9e8c1f82a5"
+      },
+      "componentSchemas": [
+        "line.arc-control-residual-policy.v1",
+        "line.arc-control-policy-examples.v1"
+      ],
+      "supervisedRetrieval": true,
+      "refinement": null,
+      "refinementStage": null
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/residual-proximity935-nested/policy-1.json",
+      "sha256": "6e98f4e55bb64a2030acce51a6fa02607e656edbce4bc9837438e7e090c0e2e3",
+      "bytes": 47014467,
+      "proposalWeights": [
+        1,
+        1
+      ],
+      "provenance": {
+        "baseSha256": "92d57ed3c5f249a927989e9283d086a6ecb8eccd9253308e94f64749357db194",
+        "residualDataSha256": "fffc4eb486222b1ab07d08035a385ba33553cbdf19cc68e9a9125a337d1e1472",
+        "sourceDataSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+        "residualModelSha256": "967219de5c4a45ed04884f7e35114a3c89f4d3f5301dce809bf877ed213ad972",
+        "rows": 7981,
+        "trainingParents": [
+          "accelerando_reply",
+          "afterglow_turn",
+          "alternating_intentions",
+          "amplitude_reply",
+          "arches_at_new_tempos",
+          "archipelago",
+          "bridge_amplitude_tides",
+          "bridge_believer_56_6s",
+          "bridge_believer_impact_56s",
+          "bridge_countercurrent",
+          "bridge_dense_dialogue",
+          "bridge_frontier_dense_recovery",
+          "bridge_frontier_low_air_endurance",
+          "bridge_frontier_pickup_progression",
+          "bridge_high_air_drive",
+          "bridge_loose_pocket",
+          "bridge_meter_exchange",
+          "bridge_offgrid_conversation",
+          "bridge_open_hook",
+          "bridge_pickup_lattice",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_regression_transition_mosaic",
+          "bridge_rising_switch",
+          "bridge_river_reentry",
+          "bridge_sparse_lowline",
+          "bridge_split_signal",
+          "bridge_wide_breaths",
+          "broken_triplets",
+          "compact_dialogue",
+          "crossing_lights",
+          "dense_short_then_long",
+          "density_release",
+          "endurance_and_return",
+          "energy_weave",
+          "flight_and_return",
+          "gear_changes",
+          "half_time_return",
+          "harbor_return",
+          "interleaved_recovery",
+          "late_letters",
+          "lifted_refrain",
+          "music_amor_na_praia_46s",
+          "music_amour_de_ma_vie_short_44s",
+          "music_luna_bala_44s",
+          "music_shelter_impact_sync_81s",
+          "music_tiki_tiki_48s",
+          "offbeat_echoes",
+          "open_canopy",
+          "pickup_answers",
+          "pickup_interruptions",
+          "pickup_recovery",
+          "pickup_staircase",
+          "quiet_current",
+          "recovery_mosaic",
+          "rest_and_return",
+          "restrained_then_wide",
+          "support_then_lift",
+          "supported_bridge",
+          "supported_speed_change",
+          "swing_exchange",
+          "terraced_skies",
+          "three_note_returns",
+          "wide_arc_dialogue",
+          "woven_pickups",
+          "woven_pulse"
+        ],
+        "mixtureSourceSha256": "9a0ce6a3c03d19fe69aa8fb7af5ae5651ef4d2dc42dc22d034cb2b9e8c1f82a5"
       },
       "componentSchemas": [
         "line.arc-control-residual-policy.v1",
@@ -14061,6 +15578,845 @@
           "clearance": 4,
           "bend": 1
         }
+      }
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/proximity-parity.json",
+      "sha256": "56bcd3f1e568ab626f08423dbdaa3f2e42053e07a15d3ef53980aeee71861841",
+      "checks": {
+        "fixtures": 24,
+        "quotas": [
+          4,
+          24
+        ],
+        "maximumDecodedError": 0,
+        "modelSha256": "f60139398b8c94cb18d5372aa6ab3562b585e0ea83a8d1d0f74810ebd01caa7f",
+        "fixtureSha256": "ef799ef26871ddcb0a3ed240a17a78240035cb528485e55bd88007f92257ee8b",
+        "runtimeSha256": "0b4175b9b5921ef29c104a79b9b6628647d442ff13b85fb7a3cf7bb532ff94d4"
+      }
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/proximity-reproduction.json",
+      "sha256": "cf0aa40139581319045bbf6643f3e9c0e738425297c09cb9489f6f01651f9d25",
+      "checks": {
+        "schema": "line.arc-policy-reproduction.v1",
+        "bytes": 37758263,
+        "sha256": "f60139398b8c94cb18d5372aa6ab3562b585e0ea83a8d1d0f74810ebd01caa7f",
+        "exactBytes": true,
+        "exporterSha256": "67752971c9ecf9d6324f452495e7a27b8446d32d7fbcf9592af2fe7a683b417d",
+        "inputPolicy": "generated/benchmark-v3/arc-930/models/proximity935-examples.json",
+        "inputForest": "generated/benchmark-v3/arc-930/models/forest-proximity935/model.json",
+        "proposalWeights": [
+          1,
+          3
+        ]
+      }
+    },
+    {
+      "path": "generated/benchmark-v3/arc-930/teacher-control-reconstruction.json",
+      "sha256": "5e752a53cc953b47e25818991f71b9556a2136008cb5643dc630cce4e65f3e73",
+      "checks": {
+        "schema": "line.arc-teacher-control-reconstruction.v1",
+        "input": "/home/wyss/line/generated/benchmark-v3/arc-930-teachers/proximity-joint-3m",
+        "runSha256": "6eddc5ff435f1467c854e2c5bbeb1034c06012bd7bf92542ba829fed8451eab3",
+        "geometrySha256": "71fee3bc89b38b81851f99164df7a88ef4d52dcff87bed75532c450882e0e1f6",
+        "scriptSha256": "620bfbdd85b15c7e63c078c0b0bcee40b6a8da7bf57844384b4021c55e08da8f",
+        "cases": 88,
+        "controls": 8069,
+        "rows": [
+          {
+            "source": "bridge_river_reentry",
+            "recordSha256": "9d353733cceeb02a543fefde0281979a4110ebee7bffcd2f39c4282aded5073c",
+            "controls": 89,
+            "retainedLines": 6536,
+            "physicsFrames": 4798,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_countercurrent",
+            "recordSha256": "1cf45b6d5e41c938116f03232c773ac47fefc504943774faca1a40005fe5f240",
+            "controls": 80,
+            "retainedLines": 6016,
+            "physicsFrames": 4537,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_split_signal",
+            "recordSha256": "85acdbfa4737b4b5ef0dde88704596acffa2b3c4bd61690297602d96757f371e",
+            "controls": 93,
+            "retainedLines": 6758,
+            "physicsFrames": 4987,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_pickup_lattice",
+            "recordSha256": "8db0dae2f4f3e7879548bd7588752a606f33c9e69b3616262d37d342ef12a1a8",
+            "controls": 100,
+            "retainedLines": 7205,
+            "physicsFrames": 4823,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_loose_pocket",
+            "recordSha256": "3e9864f25a67bbdef6ee5b37b8b3edd74709da05cfafcc7adaebd4d0127cd050",
+            "controls": 105,
+            "retainedLines": 6652,
+            "physicsFrames": 4654,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_offgrid_conversation",
+            "recordSha256": "f86e0fb8acf19df93d95fef8819aedcea1bf9a796c565139cd66d6522c918a98",
+            "controls": 88,
+            "retainedLines": 6202,
+            "physicsFrames": 4627,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_rising_switch",
+            "recordSha256": "39760b5a089c9f6c3d574d0aa3bb34b604d607c473d1a785731ac1dfa608ba47",
+            "controls": 89,
+            "retainedLines": 6152,
+            "physicsFrames": 4784,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_meter_exchange",
+            "recordSha256": "bc0d90fefdbc23b5ea733eabfb7e8b67671a290f488da8a66925e66e7932c378",
+            "controls": 97,
+            "retainedLines": 6303,
+            "physicsFrames": 4950,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_wide_breaths",
+            "recordSha256": "01bca4fd81e3ad3764186d908076270732b0276b5aaa3d7e280293a499bb0652",
+            "controls": 83,
+            "retainedLines": 6316,
+            "physicsFrames": 5142,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_open_hook",
+            "recordSha256": "db62d50be65f882db757384c14f2c7d3f4c80ab3917beffb3ac3a57dd55e1d45",
+            "controls": 83,
+            "retainedLines": 6706,
+            "physicsFrames": 4812,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_amplitude_tides",
+            "recordSha256": "6bd434224cf8be40e92b011d57b06395b2a9a904183814e5a3a3499d84ed6e52",
+            "controls": 98,
+            "retainedLines": 6806,
+            "physicsFrames": 5169,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_dense_dialogue",
+            "recordSha256": "bc0f43e7c6db4fb9feb6e49c99b4dd19c7bd3e14e74f8a39cf26869347396c7b",
+            "controls": 131,
+            "retainedLines": 6901,
+            "physicsFrames": 4909,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_high_air_drive",
+            "recordSha256": "3b65bd00cfd0ba77ef2b3054720d48ddd0c0f4004409e4b0e2739f8750014da0",
+            "controls": 95,
+            "retainedLines": 4154,
+            "physicsFrames": 4941,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_sparse_lowline",
+            "recordSha256": "2df98831e0841734fe1c9c1fcb589e800995749974810ceb7467c603cbead2dc",
+            "controls": 83,
+            "retainedLines": 11306,
+            "physicsFrames": 5005,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_frontier_pickup_progression",
+            "recordSha256": "ca1f0a2fc0c62d41047dfdff0098bc914a3120a2a8e8da90d4176d82631583cd",
+            "controls": 111,
+            "retainedLines": 10565,
+            "physicsFrames": 5062,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_frontier_dense_recovery",
+            "recordSha256": "3e3e4a6bd76b417ab69002dc79f061cf6312c742b00512f60ff4bdf745341b30",
+            "controls": 124,
+            "retainedLines": 8904,
+            "physicsFrames": 4928,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_frontier_low_air_endurance",
+            "recordSha256": "453e17710e13ced7c0824e2b59eb472b13e2ef4d3084652666b6b4b54f74def9",
+            "controls": 91,
+            "retainedLines": 10628,
+            "physicsFrames": 5181,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_regression_transition_mosaic",
+            "recordSha256": "fc9c0abc6298b584f775696778510928900ef701ef7171c3c028a97508429c48",
+            "controls": 92,
+            "retainedLines": 7396,
+            "physicsFrames": 4980,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_regression_amplitude_mosaic",
+            "recordSha256": "6a0b3d521e9876d13f9259f7f5f89c623b7ee96e31bcfa0b229c9376a2ab8f27",
+            "controls": 92,
+            "retainedLines": 6929,
+            "physicsFrames": 5017,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_believer_56_6s",
+            "recordSha256": "2c399ab962d9158f0a42d4a7afc6e5d16d7de79d5fc1b2015454024db432b4de",
+            "controls": 85,
+            "retainedLines": 6409,
+            "physicsFrames": 4684,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_believer_impact_56s",
+            "recordSha256": "180fc43cdfa4baf343a1c7f0a500120760ef626cf9f9df016d101521acf9e9ed",
+            "controls": 50,
+            "retainedLines": 5966,
+            "physicsFrames": 4594,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_river_reentry_tempo_fast_5",
+            "recordSha256": "61d51aba44764178178f72ed61c7a64c5fbd0944c26505d3ffadeecd0a623872",
+            "controls": 89,
+            "retainedLines": 6237,
+            "physicsFrames": 4565,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_countercurrent_impact_contrast_12",
+            "recordSha256": "0faa750e04e34151615078267e0c38c41cf8e55012ac51560018f7ab2cf4a934",
+            "controls": 80,
+            "retainedLines": 6126,
+            "physicsFrames": 4536,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_split_signal_impact_relief_12",
+            "recordSha256": "bad54532bbc244b137f4925b51b72a3ec02cc7ef934c9e707b251f4fc32a45d0",
+            "controls": 93,
+            "retainedLines": 6686,
+            "physicsFrames": 4983,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_pickup_lattice_speed_minus_4",
+            "recordSha256": "ce0af7e087901aa36482edfde85eff42366d1c8aa1e0ebfdc7a4bb27a9fbf8f7",
+            "controls": 100,
+            "retainedLines": 7070,
+            "physicsFrames": 4822,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_loose_pocket_drag_later_20ms",
+            "recordSha256": "33e86664e170baff155fd2e900baa0d356dc21eb9b687ce1bd1b2ff4595211c3",
+            "controls": 105,
+            "retainedLines": 6834,
+            "physicsFrames": 4655,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_offgrid_conversation_answer_early_25ms",
+            "recordSha256": "4a7ab142551181a7c7432150c5a4e6720b3ab93c86f0f1e1a375c4e2e8cfd6c1",
+            "controls": 88,
+            "retainedLines": 6048,
+            "physicsFrames": 4629,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_rising_switch_tempo_fast_5",
+            "recordSha256": "1f355a02eca46424528a40625decf244b922bf85121c6afe75de685391460bc5",
+            "controls": 89,
+            "retainedLines": 6071,
+            "physicsFrames": 4553,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_meter_exchange_speed_plus_4",
+            "recordSha256": "0837f59d329dbe387f8e36d813395dfdf565e1af6c9818d648b78ae54200fa8b",
+            "controls": 97,
+            "retainedLines": 6497,
+            "physicsFrames": 4952,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_wide_breaths_air_plus_5",
+            "recordSha256": "2a5e8a87bbf2f90848457f6a47588dbb67981b4d8bbfc7b73cf0903f56c96611",
+            "controls": 83,
+            "retainedLines": 5595,
+            "physicsFrames": 5140,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_open_hook_amplitude_plus_8",
+            "recordSha256": "037f88d7bf3e793dbfe448cc757294ddf333c37f4c03479215418c7518416c16",
+            "controls": 83,
+            "retainedLines": 6651,
+            "physicsFrames": 4818,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_amplitude_tides_restrained_10",
+            "recordSha256": "66e7a584cb19908b11cdb50a4bb2f7ac72b204a076bdae74a3f99a26054b4683",
+            "controls": 98,
+            "retainedLines": 6881,
+            "physicsFrames": 5170,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_dense_dialogue_impact_contrast_10",
+            "recordSha256": "2b6aa5885a10ef50383a53c2511ecf5444d1ed614948fca3ef0bd0aa11231d8f",
+            "controls": 131,
+            "retainedLines": 6678,
+            "physicsFrames": 4907,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_high_air_drive_air_minus_5",
+            "recordSha256": "ae208a7590cbbc73593f844104cea50f83e4f7f750ee7de78f3445b088c7215f",
+            "controls": 95,
+            "retainedLines": 4730,
+            "physicsFrames": 4937,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_sparse_lowline_air_minus_4",
+            "recordSha256": "3e267202149c8a5e4c503f664788f06b051ee39cb8027504da207248d5066dcf",
+            "controls": 83,
+            "retainedLines": 11622,
+            "physicsFrames": 5006,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_frontier_pickup_progression_shifted",
+            "recordSha256": "dbe107152f0a2aec50fec6322297c98db54931f2f1e8d3b8a0583b5e628bf951",
+            "controls": 111,
+            "retainedLines": 10527,
+            "physicsFrames": 5062,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_frontier_dense_recovery_240ms_figures",
+            "recordSha256": "0872714709c749729d548cfbf2e7b79673b407cdd2286e095c28584215a5ee33",
+            "controls": 124,
+            "retainedLines": 8786,
+            "physicsFrames": 4928,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_frontier_low_air_endurance_4s",
+            "recordSha256": "9e7e81e4e703fc22ec36d455d9023be130b201eae2de35d775be9125a308eac5",
+            "controls": 91,
+            "retainedLines": 10627,
+            "physicsFrames": 5102,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_frontier_low_air_endurance_6s",
+            "recordSha256": "f5b980ff157c0a02d7c674773a29e0d28c773bd2ee983f058cad2d5b3bf97d27",
+            "controls": 91,
+            "retainedLines": 11448,
+            "physicsFrames": 5260,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_frontier_low_air_endurance_7s",
+            "recordSha256": "abcd593092fea44b016144719c101206668ab2f6267468478ddd492a0e3ee2d2",
+            "controls": 91,
+            "retainedLines": 11797,
+            "physicsFrames": 5340,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+            "recordSha256": "cbd3a9cd0c1807cffed19f328f53e9ca6f0e92b4e4dad086c8d374be2e653e83",
+            "controls": 92,
+            "retainedLines": 7186,
+            "physicsFrames": 4736,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_regression_amplitude_mosaic_contrast_10",
+            "recordSha256": "364287e34e06197c33b6b5f6f368fbb6567acf9ae0aaf24ed1fa451c31c7a2e0",
+            "controls": 92,
+            "retainedLines": 6782,
+            "physicsFrames": 5018,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_believer_56_6s_impact_relief",
+            "recordSha256": "cdd202763517dadef3a2548149aa00ac4369837e5fec748b00c589a034252b1f",
+            "controls": 85,
+            "retainedLines": 6522,
+            "physicsFrames": 4684,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "bridge_believer_impact_56s_amplitude_plus_5",
+            "recordSha256": "e500cac023a5224432d8f98f1157cf7bca923fce796900770851fb0c4280c796",
+            "controls": 50,
+            "retainedLines": 5847,
+            "physicsFrames": 4592,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "harbor_return",
+            "recordSha256": "bd7a1fff30e8c517341b6e8b04932b2ee19c7c87dc119dc1adf3758e1730b915",
+            "controls": 105,
+            "retainedLines": 8261,
+            "physicsFrames": 5219,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "crossing_lights",
+            "recordSha256": "ed55b4f00490f469b92675b4b8fd1262948a34e1bdeea8e2d838ef9281538723",
+            "controls": 97,
+            "retainedLines": 8365,
+            "physicsFrames": 5203,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "afterglow_turn",
+            "recordSha256": "76a9b6f79268aabbbe70e2f5482b684f82d634efbd77023bd70046ebdaf65d41",
+            "controls": 96,
+            "retainedLines": 8425,
+            "physicsFrames": 5521,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "woven_pickups",
+            "recordSha256": "efafb4797a352bd5fb2ce1d43a261d77ae50fd40385e896202c464708d88819c",
+            "controls": 109,
+            "retainedLines": 7788,
+            "physicsFrames": 5225,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "pickup_answers",
+            "recordSha256": "e5c347e6edb79dca99d4c5097077e0f4341a9151ef9e64bcc1f1d91ea80a8858",
+            "controls": 102,
+            "retainedLines": 8027,
+            "physicsFrames": 5221,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "broken_triplets",
+            "recordSha256": "e84dee99253e615b5970f35810cbe8b8d7cc583adadb85ccef158df1ba8eba62",
+            "controls": 104,
+            "retainedLines": 9097,
+            "physicsFrames": 5544,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "late_letters",
+            "recordSha256": "1e7b7a009765b0dc5d7f023ae5b05d437a79ace07d8fda50d037db830a6d2f1f",
+            "controls": 103,
+            "retainedLines": 7669,
+            "physicsFrames": 5196,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "swing_exchange",
+            "recordSha256": "40515279bff3f01de9ae0ff4f267932b6d84289a569fb7122c447dba21e5e5c3",
+            "controls": 95,
+            "retainedLines": 7981,
+            "physicsFrames": 5193,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "offbeat_echoes",
+            "recordSha256": "971b1de8109ef1af0e62b6ccbc5279dbd9f99af168b7c91addf02feb4d9b93d1",
+            "controls": 95,
+            "retainedLines": 8247,
+            "physicsFrames": 5505,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "gear_changes",
+            "recordSha256": "ea937786e560159aa6af62f4f28c33b428487b4213f1fb1e01cda36c4df081ee",
+            "controls": 105,
+            "retainedLines": 8191,
+            "physicsFrames": 5225,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "half_time_return",
+            "recordSha256": "90da081743297f4b4a7c0691043127ad8a70582b5e479da2aa54ec0fb0c09fe8",
+            "controls": 94,
+            "retainedLines": 8066,
+            "physicsFrames": 5208,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "accelerando_reply",
+            "recordSha256": "8d877d313459e1d3150d4cb535f2df44e9cdedaf38a254b5103f211965a673d6",
+            "controls": 93,
+            "retainedLines": 8230,
+            "physicsFrames": 5523,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "archipelago",
+            "recordSha256": "f644a8753ecc347a8cc427f3cf5829bca4e63bdadbc62784231fb68e5e0f844b",
+            "controls": 67,
+            "retainedLines": 6083,
+            "physicsFrames": 5143,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "wide_arc_dialogue",
+            "recordSha256": "ebac804c57d56e2ba923b5a016784df89ccfa8456dcf7a97b61517f6af706c17",
+            "controls": 62,
+            "retainedLines": 6594,
+            "physicsFrames": 5134,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "terraced_skies",
+            "recordSha256": "9affa051360d1e3a1592f2cd63bebe86923db2f6a69cd8f74a40b781bf847bad",
+            "controls": 63,
+            "retainedLines": 6559,
+            "physicsFrames": 5457,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "woven_pulse",
+            "recordSha256": "9b773892e70954cca2ce64fd49dcc82ac33d453032968bd73d9a0db5b5162945",
+            "controls": 117,
+            "retainedLines": 7411,
+            "physicsFrames": 5231,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "density_release",
+            "recordSha256": "47731942f6e1d412e7bcc067bfe8067dcae52f61bb75173a740e3cbefaf91cdc",
+            "controls": 106,
+            "retainedLines": 7495,
+            "physicsFrames": 5221,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "compact_dialogue",
+            "recordSha256": "dc0c6530bbf08c5f2cd5fbc683dc57a0e94bf8f4348609c4b1d3e90afcd0e7d0",
+            "controls": 107,
+            "retainedLines": 8152,
+            "physicsFrames": 5538,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "lifted_refrain",
+            "recordSha256": "2ca96c11b2e28653190a5814cddaab48efc3c11356908ea5af7a26d7538dcc20",
+            "controls": 85,
+            "retainedLines": 4734,
+            "physicsFrames": 5127,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "flight_and_return",
+            "recordSha256": "c6bf3945499932b81632f5cb505154574120f1202797b77caa99980c7586b25e",
+            "controls": 77,
+            "retainedLines": 4553,
+            "physicsFrames": 5123,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "open_canopy",
+            "recordSha256": "c3dfa532a12ef76949bb931a854b7f86979e556429ce2f23f65ac3c5fc6c567c",
+            "controls": 78,
+            "retainedLines": 4527,
+            "physicsFrames": 5442,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "quiet_current",
+            "recordSha256": "02e4824c9d5eff6f084c17ab6e06e8a4cb17992bf0e5aa36d9ee3f8b28536de0",
+            "controls": 71,
+            "retainedLines": 12949,
+            "physicsFrames": 5181,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "support_then_lift",
+            "recordSha256": "8d0370258d89f28e98a17ed4a8da71d33dbe2de4f362c47a3461684722d04569",
+            "controls": 67,
+            "retainedLines": 13395,
+            "physicsFrames": 5172,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "rest_and_return",
+            "recordSha256": "1fff68047d721f6db5e88e223aeb698e8b83035b9ab9e1b3118e942c760e0ef7",
+            "controls": 66,
+            "retainedLines": 13580,
+            "physicsFrames": 5490,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "pickup_staircase",
+            "recordSha256": "5eff6033fd4e099bf9b3e8b4c8b5315a1ab0e800e64372b0ec4d574ef90407b4",
+            "controls": 123,
+            "retainedLines": 7099,
+            "physicsFrames": 5229,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "pickup_interruptions",
+            "recordSha256": "4e45720ed04b3fb92b3a5f33b8e42aa6891cd4c95b17e6d5d3814a685dd13c96",
+            "controls": 112,
+            "retainedLines": 7972,
+            "physicsFrames": 5222,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "pickup_recovery",
+            "recordSha256": "cc253d8084cf8b13baa0e6ba1e45a531ece4a1e6d4f757a82b33a66f79c9cc44",
+            "controls": 114,
+            "retainedLines": 7749,
+            "physicsFrames": 5536,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "dense_short_then_long",
+            "recordSha256": "72f8628a838b019e73498cffaf0eea7c65b7f6b8b295dcd2fd19dfc7ca6d6aca",
+            "controls": 117,
+            "retainedLines": 7128,
+            "physicsFrames": 5217,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "interleaved_recovery",
+            "recordSha256": "a73adaf336605b3acd50dede235fbb5d7e1238311b790820ea281fd0310cc218",
+            "controls": 110,
+            "retainedLines": 7867,
+            "physicsFrames": 5225,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "three_note_returns",
+            "recordSha256": "ac96169665f625acef1911e71079f754af79a64c7b94e0473372d8bdd63f3111",
+            "controls": 113,
+            "retainedLines": 7324,
+            "physicsFrames": 5541,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "supported_bridge",
+            "recordSha256": "e9a90a344cf1c04b8b36d0b59e97fd9d6eab2890bc04c3f3e65c74c41ce6b5cc",
+            "controls": 80,
+            "retainedLines": 11942,
+            "physicsFrames": 5199,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "supported_speed_change",
+            "recordSha256": "30f2b847a72233eea8ddd9f77845639f048fa2d36524a4f1bd2fb40085013fc3",
+            "controls": 71,
+            "retainedLines": 11839,
+            "physicsFrames": 5182,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "endurance_and_return",
+            "recordSha256": "842d90aaab87fd0f68f6f88782b459741262704c86730ce1d1eeb4bcba335bbb",
+            "controls": 70,
+            "retainedLines": 12855,
+            "physicsFrames": 5499,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "energy_weave",
+            "recordSha256": "f1dc54fde0eb297969ea377db607394fa0544c8ea29c8375ca5acbcce50ad8b1",
+            "controls": 93,
+            "retainedLines": 8132,
+            "physicsFrames": 5195,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "alternating_intentions",
+            "recordSha256": "8e20ff2e9b5f791e8ed895368c4a42be4c645bb22a877c1b4c13f6915c48327f",
+            "controls": 85,
+            "retainedLines": 8730,
+            "physicsFrames": 5192,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "recovery_mosaic",
+            "recordSha256": "8efdb4908781eb154324c235c48e51f3d7abc724804cf120ec1567008d06c0d4",
+            "controls": 85,
+            "retainedLines": 8667,
+            "physicsFrames": 5501,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "amplitude_reply",
+            "recordSha256": "8c3f91721e6388e926bf5ded81028647d94d35b35653295f8037fbf5f56e1d19",
+            "controls": 69,
+            "retainedLines": 6678,
+            "physicsFrames": 5146,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "restrained_then_wide",
+            "recordSha256": "09b6c071b3195fae6b0e3b3049ec4086d267abf54401427ce1712254b728062a",
+            "controls": 64,
+            "retainedLines": 6977,
+            "physicsFrames": 5146,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "arches_at_new_tempos",
+            "recordSha256": "34f4b74675c33012a13f1ba08d5c13610ef898f18e9c11d4f23494a85f4854cc",
+            "controls": 66,
+            "retainedLines": 6901,
+            "physicsFrames": 5466,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "music_amor_na_praia_46s",
+            "recordSha256": "ed5bd870177fc73a946d89a45833fcbb2b2d874e6971ef91b352bd1c63abbbaa",
+            "controls": 79,
+            "retainedLines": 4438,
+            "physicsFrames": 3804,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "music_luna_bala_44s",
+            "recordSha256": "4475e1c8e9542efb1b1c7b151a0106d962165a4feeee409ac78d119cce22a34e",
+            "controls": 76,
+            "retainedLines": 3894,
+            "physicsFrames": 3638,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "music_tiki_tiki_48s",
+            "recordSha256": "1c3321177a986c1918ce1c90db3e86fae48f70857c67395ca95357f4ce915b86",
+            "controls": 78,
+            "retainedLines": 4729,
+            "physicsFrames": 3976,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "music_shelter_impact_sync_81s",
+            "recordSha256": "e9c3107d056597ce186bbdab3e31efc8c0dd740e5054651b8278b3f5c35e8da1",
+            "controls": 114,
+            "retainedLines": 8311,
+            "physicsFrames": 6654,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          },
+          {
+            "source": "music_amour_de_ma_vie_short_44s",
+            "recordSha256": "ed7aa3b4a926502355e41c61e3ad78d224ec816ea56697b027b66389edf62bb6",
+            "controls": 86,
+            "retainedLines": 5133,
+            "physicsFrames": 3735,
+            "exactRetainedGeometry": true,
+            "exactPrefixAndTerminalStates": true
+          }
+        ]
       }
     }
   ]

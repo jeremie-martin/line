@@ -1,7 +1,16 @@
 # Arc V3 above-930 campaign
 
-Active target: **strictly above 930** on the frozen complete V3 benchmark,
-starting from **922.6418**, compiler `93201349`, preserved on
+**Achieved: 930.1556**, up **7.5138** on the frozen complete V3 benchmark.
+All 176 canonical runs pass at compiler `3420e481`, exactly reproducing research
+tracks, scores and physics-frame counts. Separate target jitter passes 88/88.
+Code and compact evidence are preserved on `codex/arc-v3-930` and
+`archive/arc-v3-930`; large research artifacts remain local.
+See [canonical evidence](../benchmark/v3/studies/arc-930-validation.json),
+[paired research](../benchmark/v3/studies/arc-930-research.json),
+[transfer provenance](../benchmark/v3/studies/arc-930-transfer.json) and
+[jitter evidence](../benchmark/v3/studies/arc-930-jitter.json).
+
+The campaign started from **922.6418**, compiler `93201349`, preserved on
 `archive/arc-v3-922`. The owner confirms continued alignment with the coherent
 normal-arc style. The same 750,000 actual compiler physics frames apply to each
 of the 88 specifications × seeds 16/17. No scorer, target, detector or physics
@@ -143,3 +152,42 @@ All 57 focused tests across 17 files pass. The TypeScript check retains the same
 tests cover independent proposal predictions and retrieval, coherent geometry,
 small-budget physical compilation, interruption/reuse, teacher replay, and the
 frozen benchmark contract.
+
+## Canonical confirmation
+
+The clean public compiler at `3420e481` confirms **930.1556** on all 88
+specifications × seeds 16/17, with **176/176 valid runs**. The deterministic
+seeds reproduce 88 distinct tracks. Every canonical track hash, score and
+actual-frame count matches `full-proximity935-policy32`. Total work is
+131,099,914 physics frames; the maximum per run is **749,993**. All recorded
+compiler-file hashes and frozen judge hashes match. Geometry remains entirely
+normal type 0 with zero isolated single-segment components; the shortest
+connected component is 13.434111 units.
+
+**68 specifications improve and 20 regress.** Largest gains include
+`bridge_frontier_low_air_endurance` (+65.6139), its 6-second variant (+54.4905),
+and `bridge_dense_dialogue_impact_contrast_10` (+46.1097). Largest regressions are
+`restrained_then_wide` (-33.0218), `endurance_and_return` (-26.3753), and
+`bridge_open_hook_amplitude_plus_8` (-14.0542). The representative, capability
+and development-music strata improve by 7.8891, 9.4546 and 14.0477 respectively;
+legacy regression declines 1.2908. Luna improves 3.7468 to 929.0809. The
+predeclared full headline governs; no case-level perfection gate was added.
+
+Separate 2% target jitter passes **88/88 distinct tracks** on the reused V2
+development catalog, with a maximum of 749,995 frames. This is a diagnostic,
+not a V3 headline or independent-family generalization test. Models use exposed
+development data; duplicated deterministic seeds are not independent samples.
+No new audiovisual review or wall-clock speedup is claimed.
+
+The selected model is 37,758,263 bytes, SHA-256
+`f60139398b8c94cb18d5372aa6ab3562b585e0ea83a8d1d0f74810ebd01caa7f`.
+The exporter reproduces those bytes exactly from its recorded inputs and
+proposal weights. A separate verifier rebuilds all **8,069 teacher controls**
+(including 88 startup controls unused by this policy), checks every retained
+geometry segment, and exactly reproduces all prefix and terminal states. This
+also verifies that post-construction removal of unused guides does not invalidate
+the source controls. All 57 focused tests pass; type checking retains the same
+251 inherited diagnostics and none in changed files.
+
+No benchmark, scorer, target, detector, physics, or actual-frame allowance was
+changed. The strictly-above-930 goal is complete.

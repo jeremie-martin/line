@@ -67,7 +67,9 @@ for path in sorted([*(root / 'models').glob('*.json'), *root.glob('residual-*/po
 parity = []
 for path in [root / 'model-parity.json', root / 'residual-parity.json',
              root / 'residual-reproduction-check.json',root / 'refinement-parity.json',
-             root / 'response-bounds-parity.json',root / 'response-bound-audit.json']:
+             root / 'response-bounds-parity.json',root / 'response-bound-audit.json',
+             root / 'proximity-parity.json',root / 'proximity-reproduction.json',
+             root / 'teacher-control-reconstruction.json']:
     if path.exists():
         value, digest = checked(path)
         parity.append(dict(path=str(path), sha256=digest, checks=value))

@@ -1,0 +1,94 @@
+diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts
+index c3590fed..d60a5247 100644
+--- a/scripts/v0/optimizer/arc_control_policy.ts
++++ b/scripts/v0/optimizer/arc_control_policy.ts
+@@ -27,11 +27,22 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
+     return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);
+   }
+   if(model.exemplars){
++    const input=model.proximityTrees?features.map(Math.fround):undefined;
++    const queryLeaves=model.proximityTrees?.map((tree:any)=>{
++      let n=0;while(tree.left[n]>=0)n=input![tree.feature[n]]<=tree.threshold[n]?tree.left[n]:tree.right[n];
++      return n;
++    });
+     const weights:number[]|undefined=model.featureWeights;
+     if(weights&&(weights.length!==features.length||weights.some(w=>!Number.isFinite(w)||w<0)))throw new Error('arc policy distance weights mismatch');
+     const nearest:Array<{distance:number;value:number[]}>=[],limit=Math.max(24,count*8);
+     for(const row of model.exemplars){
+       let distance=0;for(let k=0;k<features.length;k++)distance+=(features[k]-row.features[k])**2*(weights?.[k]??(k>=47?4:k<7?2:1));
++      if(queryLeaves){
++        if(row.proximityLeaves?.length!==queryLeaves.length)throw new Error('arc policy proximity mismatch');
++        // Shared supervised partitions provide the primary neighborhood;
++        // continuous physical distance breaks ties without case identities.
++        distance=queryLeaves.reduce((n:number,leaf:number,k:number)=>n+(leaf!==row.proximityLeaves[k]?1:0),0)+distance/(1+distance);
++      }
+       if(nearest.length===limit&&distance>=nearest[nearest.length-1].distance)continue;
+       nearest.push({distance,value:row.target});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
+     }
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index b1d2f92d..75e99b9b 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -123,6 +123,8 @@ export type ArcMotionOptions= {
+   refineRebuildSamples?:number;
+   refineExpressive?:boolean;
+   responseSamples?:number;
++  /** Explore distinct measured basins before concentrating the remaining response work. */
++  responseStarts?:number;
+   responseDamping?:number;
+   responseScale?:number;
+   refineFollowSamples?:number;
+@@ -413,7 +415,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
+           achieved,actualImpact,terminalLoss,release};
+         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
+-          searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
++          searchCost:cost,optimizationCost:guided.cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+         // Interrupted evaluations never reach this cache insertion.
+         if(memo){const {child:_child,...measurement}=result;memo.set(key,{result:measurement,candidate:{...candidates.at(-1)}});}
+         if(!best||guided.cost<best.optimizationCost)best=result;
+@@ -518,10 +520,27 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           }
+           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
+         }
+-        let responseUsed=0, trust=options.responseScale??1;
++        const responseSeeds:ArcMotionControl[]=[best.c];
++        if((options.responseStarts??1)>1){
++          const scale=[2,5,6,Math.max(.6,support*.1),.25,.2,1.5,.08,7,2.5];
++          const keys=['entry','turn','exit','support','bias','offset','clearance','turnFraction','bend','guideFlare'] as const;
++          const value=(c:ArcMotionControl,key:typeof keys[number])=>c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,c.support*.5)/c.support:0);
++          for(const candidate of candidates.slice().sort((a,b)=>a.optimizationCost-b.optimizationCost)){
++            if(responseSeeds.every(seed=>keys.reduce((sum,key,j)=>sum+((value(seed,key)-value(candidate.c,key))/scale[j])**2,0)>16))responseSeeds.push(candidate.c);
++            if(responseSeeds.length>=options.responseStarts!)break;
++          }
++        }
++        let responseUsed=0, responseRoundIndex=0, trust=options.responseScale??1;
+         let secant:{jac:number[][];trust:number;uses:number}|null=null;
+         while(responseUsed+(secant?3:2*responseKeys.length+3)<=responseAllowance){
+-          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4};
++          const alternate=responseRoundIndex>0&&responseRoundIndex<responseSeeds.length;
++          // Restoring a measured seed is normally a metered memo hit. Charge its
++          // candidate slot even when no new physics is required.
++          if(alternate&&responseUsed+2*responseKeys.length+4>responseAllowance)break;
++          const anchor=alternate?evaluate(responseSeeds[responseRoundIndex]):best;
++          if(alternate){responseUsed++;trust=options.responseScale??1;secant=null;}
++          responseRoundIndex++;
++          const origin=exitEnabled?{...anchor,c:{...anchor.c,exitBias:anchor.c.exitBias??anchor.c.bias}}:anchor,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4};
+           const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:key==='exitBias'?origin.c.bias:0);
+           const reused=secant!==null;
+           const jac=reused?secant!.jac:origin.residuals.map(()=>Array(responseKeys.length).fill(0));
+@@ -546,12 +565,12 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           }
+           const improving=best.optimizationCost<origin.optimizationCost-1e-12;
+           const previousUses:number=secant?.uses??0;
+-          if(improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
++          if(!alternate&&improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
+             const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale[key as keyof typeof scale]*trust));
+             const updated=arcSecantUpdate(jac,displacement,best.residuals.map((v:number,r:number)=>v-origin.residuals[r]));
+             secant=updated?{jac:updated,trust,uses:previousUses+1}:null;
+           }else secant=null;
+-          if(!improving)trust*=.5;
++          if(!improving&&!alternate)trust*=.5;
+           Engine.retainOnly([...protectedEngines,engine,best.child]);
+         }
+       }

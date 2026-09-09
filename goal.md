@@ -1,4 +1,16 @@
-# Active campaign: above 930 on frozen Benchmark V3
+# Achieved campaign: 930.1556 on frozen Benchmark V3
+
+The **strictly-above-930 target is achieved** at **930.1556**, up **7.5138**
+from canonical 922.6418. All **176/176** canonical runs pass over all 88
+specifications × seeds 16/17, with exact research track, score and physics-frame
+parity. Maximum work is 749,993 frames per run. Separate target jitter passes
+88/88 distinct tracks. The coherent normal-arc primitive and frozen benchmark
+are unchanged. Compiler `3420e481`; code and compact evidence are preserved on
+`codex/arc-v3-930` and `archive/arc-v3-930`. Large raw artifacts remain local.
+See the [campaign ledger](docs/arc-v3-930-campaign.md) and
+[canonical validation](benchmark/v3/studies/arc-930-validation.json).
+
+## Original above-930 objective
 
 Target: **strictly above 930**, starting from canonical **922.6418** at
 `93201349`. Work branch: `codex/arc-v3-930`; the starting point remains preserved

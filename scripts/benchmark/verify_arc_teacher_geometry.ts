@@ -4,7 +4,7 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {gunzipSync} from 'node:zlib';
-import {loadCases,caseSpec,sha} from '../../benchmark/v3/model.ts';
+import {loadArcCases,requestedArcSuite,caseSpec,sha} from './arc_suite.ts';
 import {createArcEngine} from '../v0/optimizer/arc_engine.ts';
 import {motionArc} from '../v0/optimizer/arc_geometry.ts';
 import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from '../lib/native_motion/engine.ts';
@@ -17,7 +17,7 @@ const {connectedArcOptions}=await import(pathToFileURL(resolve(compilerRoot,'scr
 const geometryPath='scripts/v0/optimizer/arc_geometry.ts';
 assert.equal(sha(readFileSync(geometryPath)),sha(readFileSync(resolve(compilerRoot,geometryPath))));
 const rows:any[]=[];
-for(const entry of loadCases()){
+for(const entry of loadArcCases(requestedArcSuite())){
   const path=resolve(input,entry.id+'.json.gz'),record=checked(path),spec=caseSpec(entry);
   const options={...connectedArcOptions(spec,run.plan.budget),...run.plan.options};
   assert.equal(sha(JSON.stringify(record.track)),record.trackHash);

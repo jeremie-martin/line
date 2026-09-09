@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {gunzipSync} from 'node:zlib';
-import {loadCases,caseSpec,sha} from '../../benchmark/v3/model.ts';
+import {loadArcCases,requestedArcSuite,caseSpec,sha} from './arc_suite.ts';
 import {sliceTimeline,effectiveAxes,sampleGapTargets} from '../v0/core/substrate.ts';
 import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
 import {scheduleNativeContacts} from '../v0/optimizer/native_motion_schedule.ts';
@@ -26,7 +26,7 @@ if(compilerRoot){
   for(const p of panels)assert.equal(p.run.plan.compiler.candidateFingerprint,fingerprint,'teacher compiler root mismatch');
   defaults=(await import(pathToFileURL(resolve(compilerRoot,'scripts/v0/optimizer/connected_arcs.ts')).href)).connectedArcOptions;
 }
-const cases=loadCases(),all:any[]=[],provenance:any[]=[];
+const suite=requestedArcSuite(),cases=loadArcCases(suite),all:any[]=[],provenance:any[]=[];
 for(const c of cases){
   const candidates=panels.map(p=>({panel:p,row:p.run.rows.find((r:any)=>r.sourceId===c.id)})).filter(p=>p.row?.score.valid);
   assert.ok(candidates.length,'no valid teacher '+c.id);
@@ -71,7 +71,7 @@ for(const c of cases){
 }
 const out=resolve(arg('out')!);mkdirSync(out,{recursive:true});
 const body=JSON.stringify({schema:'line.arc-control-policy-data.v1',featureSchema:ARC_POLICY_SCHEMA,
-  note:'Exposed V3 development training. Best valid complete trajectory per case among declared panels; this teacher selection is not a compiler score. Runtime features contain physical state and upcoming targets, with no source/seed/index/absolute-position identifiers.',
+  note:`Exposed ${suite.toUpperCase()} development training. Best valid complete trajectory per case among declared panels; this teacher selection is not a compiler score. Runtime features contain physical state and upcoming targets, with no source/seed/index/absolute-position identifiers.`,
   panels:panels.map(p=>({path:p.path,sha256:sha(readFileSync(resolve(p.path,'run.json.gz')))})),provenance,rows:all})+'\n';
 writeFileSync(resolve(out,'data.json'),body);writeFileSync(resolve(out,'data.json.sha256'),sha(body)+'\n');
 console.log(JSON.stringify({out,sources:provenance.length,rows:all.length}));

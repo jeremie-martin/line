@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {gunzipSync} from 'node:zlib';
-import {loadCases,caseSpec,sha} from '../../benchmark/v3/model.ts';
+import {loadArcCases,requestedArcSuite,caseSpec,sha} from './arc_suite.ts';
 import {connectedArcOptions} from '../v0/optimizer/connected_arcs.ts';
 import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
 import {arcPolicyArrival,ARC_POLICY_SCHEMA} from '../v0/optimizer/arc_control_policy.ts';
@@ -19,11 +19,12 @@ const arg=(key:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(k
 const read=(path:string)=>{const b=readFileSync(path);assert.equal(sha(b),readFileSync(path+'.sha256','utf8').trim());return JSON.parse((path.endsWith('.gz')?gunzipSync(b):b).toString());};
 const root=resolve(arg('inputs')!),out=resolve(arg('out')!),plan=read(root+'/plan.json'),run=read(root+'/run.json.gz');
 assert.ok(plan.options.replayControlPath);assert.equal(run.rows.length,plan.sources.length);
-if(arg('partial')!=='true')assert.equal(run.rows.length,88);
+const suite=requestedArcSuite(),cases=loadArcCases(suite);
+if(arg('partial')!=='true')assert.equal(run.rows.length,cases.length);
 assert.ok(run.rows.every((r:any)=>r.score.valid));
 const replay=read(plan.options.replayControlPath);assert.equal(sha(readFileSync(plan.options.replayControlPath)),plan.replaySha256);
 const rows:any[]=[],provenance:any[]=[];
-for(const c of loadCases().filter(c=>plan.sources.includes(c.id))){
+for(const c of cases.filter(c=>plan.sources.includes(c.id))){
   const path=root+'/'+c.id+'.json.gz',record=read(path),spec=normalizeCompilerTimeline(caseSpec(c));
   assert.equal(record.trackHash,replay.cases[c.id].trackHash);assert.equal(record.trackHash,sha(JSON.stringify(record.track)));
   const options={...connectedArcOptions(spec,plan.budget),...plan.options};

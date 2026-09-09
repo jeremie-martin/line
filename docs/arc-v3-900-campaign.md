@@ -186,3 +186,30 @@ all result hashes and frame accounting. `preserve_arc_v3_result.ts` automates
 these checks for subsequent canonical milestones. The secant experiment's
 TypeScript loop state now has an explicit annotation; the type check returns to
 the 251 inherited diagnostics with none in the changed compiler files.
+
+## Crossing the target and selecting complete endings
+
+The second transferred controller reaches **900.8377**, all 88 valid, when the
+learned root-ranking influence is calibrated to 0.45. Values 0.25, 0.5, 0.75
+and 0.55 reach 899.3806, 899.9695, 899.2827 and 894.9603 respectively. Larger
+example quotas and a predictor ensemble regress. The 9M-allowance teacher
+reaches **922.1743** with at most 5,293,586 actual frames, but transferring it
+back to 750k reaches only **893.2159**. Higher teacher scores do not guarantee
+better inexpensive inference.
+
+A final-choice mismatch remains after local optimization: completed candidate
+tracks are ranked by the local approximation even though their whole authored
+trajectories are available. The compiler can now rank those already simulated
+final arcs by the full authored-axis loss, sharing the objective validated
+against V3. The initial execution improves 899.9695 to **900.7770** without any
+case regression. It leaves all earlier construction choices intact. A shared
+prefix cache caused one additional physics-frame read in one case; deferring
+replacement-child construction until after prefix feature recording removes
+that redundant read. The final combined candidate uses the 0.45 calibration,
+second-generation controls/value model, and completed-ending selection.
+
+Thirty-one focused tests pass, including validity, hard accounting, candidate
+reuse, independent model parity, and the frozen V3 contract. The terminal
+selection test explicitly disables the production default for its control.
+The TypeScript check retains 251 inherited diagnostics and none in changed
+compiler files. Canonical confirmation of the combined candidate is pending.

@@ -10,6 +10,7 @@ parser.add_argument('--examples', required=True)
 parser.add_argument('--out', required=True)
 parser.add_argument('--forest-parity')
 parser.add_argument('--fixtures')
+parser.add_argument('--proposal-weights',default='2,1')
 args = parser.parse_args()
 
 
@@ -41,8 +42,10 @@ measured = {'schema': 'line.arc-control-policy-examples.v1',
             'provenance': {'dataSha256': data_sha,
                            'trainingParents': sorted({r['parent'] for r in data['rows']}),
                            'description': 'Relative physical state and authored targets only; no source, index, seed or absolute coordinates in inference data.'}}
+weights=json.loads('['+args.proposal_weights+']')
+assert len(weights)==2 and all(type(v) in (int,float) and v>0 for v in weights)
 model = {'schema': 'line.arc-control-policy.v2', 'featureSchema': forest['featureSchema'],
-         'featureCount': 57, 'models': [forest, measured], 'proposalWeights': [2, 1],
+         'featureCount': 57, 'models': [forest, measured], 'proposalWeights': weights,
          'provenance': {'forestSha256': forest_sha, 'examplesSha256': data_sha,
                         'forestTrainingRows': forest['provenance']['rows'], 'exemplarRows': len(examples),
                         'trainingParents': sorted(set(forest['provenance']['trainingParents']) |

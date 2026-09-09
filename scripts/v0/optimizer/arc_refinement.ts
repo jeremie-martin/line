@@ -24,7 +24,12 @@ export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3):
 export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3) {
   const regrets=Array(gaps.length+1).fill(0);
   if(report.terminus.reason!=='endOfSpec'||report.off_beat_landings.length||report.contacts.some(c=>c.status!=='hit'))return {loss:Infinity,regrets};
-  const det=detect(raw),measured=gaps.map(g=>measureGapAxes(det,g,[],g.endFrame));
+  return arcDetectedTrajectoryObjective(detect(raw),gaps,amplitudeWeight);
+}
+
+/** Whole authored-axis loss for an already detected physical trajectory. */
+export function arcDetectedTrajectoryObjective(det:ReturnType<typeof detect>,gaps:Gap[],amplitudeWeight=1/3){
+  const regrets=Array(gaps.length+1).fill(0),measured=gaps.map(g=>measureGapAxes(det,g,[],g.endFrame));
   let loss=0,normalizer=0;
   for(const axis of ['air','speed','amplitude','impact'] as const){
     const targeted=gaps.filter(g=>g.targets[axis]!==undefined);

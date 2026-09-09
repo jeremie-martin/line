@@ -25,7 +25,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
   const responseSamples = Math.floor(guidanceSamples * 70 / 96);
   const lookaheadSamples = Math.max(8, Math.round(samples * .2));
   return { budget, samples,
-    authoredHorizon: true, amplitudeOverflow: 'raw', budgetedProposals: true,
+    authoredHorizon: true, amplitudeOverflow: 'raw', budgetedProposals: true, terminalSelection: true,
     channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
@@ -43,7 +43,8 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
     // simulated continuation boundary. Do not blend it into the root twice.
-    valueSelection: false, valueWeight: .25 * guidanceSamples / 96,
+    // Calibrate model influence directly, independently of curve-search allocation.
+    valueSelection: false, valueWeight: .45,
     continuationValueWeight: .5 * guidanceSamples / 96 };
 }
 

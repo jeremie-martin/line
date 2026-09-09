@@ -17,7 +17,10 @@ const {connectedArcOptions}=await import(pathToFileURL(resolve(compilerRoot,'scr
 const geometryPath='scripts/v0/optimizer/arc_geometry.ts';
 assert.equal(sha(readFileSync(geometryPath)),sha(readFileSync(resolve(compilerRoot,geometryPath))));
 const rows:any[]=[];
-for(const entry of loadArcCases(requestedArcSuite())){
+const cases=loadArcCases(requestedArcSuite()),sources=new Set<string>(run.plan.sources);
+assert.equal(sources.size,run.plan.sources.length);assert.ok([...sources].every(id=>cases.some(c=>c.id===id)));
+assert.equal(run.rows.length,sources.size);
+for(const entry of cases.filter(c=>sources.has(c.id))){
   const path=resolve(input,entry.id+'.json.gz'),record=checked(path),spec=caseSpec(entry);
   const options={...connectedArcOptions(spec,run.plan.budget),...run.plan.options};
   assert.equal(sha(JSON.stringify(record.track)),record.trackHash);

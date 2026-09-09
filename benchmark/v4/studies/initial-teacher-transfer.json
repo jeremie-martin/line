@@ -1,0 +1,94 @@
+{
+  "schema": "line.arc-v4-teacher-transfer.v1",
+  "dataset": {
+    "path": "generated/benchmark-v4/recovery-data/best-teachers/data.json",
+    "sha256": "280a7d62c482ea9638d2476593d67105352bb3b00c51ced5679715c242df5e7e",
+    "rows": 15962,
+    "sources": 176,
+    "parents": 65,
+    "featureCount": 57,
+    "controlCount": 10
+  },
+  "panels": [
+    {
+      "path": "generated/benchmark-v4/teachers-final/baseline-3m/run.json.gz",
+      "sha256": "faeb7d24adf1c98706524e566a60201eb2efe22b4b9f2df4466b5c124e55b745",
+      "budget": 3000000,
+      "seed": 16,
+      "cases": 176,
+      "valid": 176,
+      "headline": 926.7191,
+      "compiler": "f26b61b3b0ed9f5b897b993d550c72a3b85fca4b5c5e4c1b7bf8ba869539f482",
+      "options": {
+        "samples": 216,
+        "guidanceSamples": 360,
+        "responseSamples": 322,
+        "collectValue": true
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/recovery-final/full-time-loss/run.json.gz",
+      "sha256": "de69008663d48707596228a6690cea49f6c45565387310abda28509648629e87",
+      "budget": 750000,
+      "seed": 16,
+      "cases": 176,
+      "valid": 176,
+      "headline": 912.286,
+      "compiler": "f26b61b3b0ed9f5b897b993d550c72a3b85fca4b5c5e4c1b7bf8ba869539f482",
+      "options": {
+        "timeObjective": true,
+        "rescaleMemoryWeights": true
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/teachers-final/pilot-time-3m/run.json.gz",
+      "sha256": "0afe6ef67b42d07a740506770592d9fa9805e38ff37703beaf7d527c57fbb669",
+      "budget": 3000000,
+      "seed": 16,
+      "cases": 8,
+      "valid": null,
+      "headline": null,
+      "compiler": "f26b61b3b0ed9f5b897b993d550c72a3b85fca4b5c5e4c1b7bf8ba869539f482",
+      "options": {
+        "samples": 216,
+        "guidanceSamples": 360,
+        "responseSamples": 322,
+        "collectValue": true,
+        "timeObjective": true,
+        "rescaleMemoryWeights": true
+      }
+    }
+  ],
+  "geometryProofs": [
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/ca4adf1a51cc62edf6aeb81192b1ed76afbb1702cd81631dde1b7de4facf2c1c.json",
+      "sha256": "ca4adf1a51cc62edf6aeb81192b1ed76afbb1702cd81631dde1b7de4facf2c1c",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/47d3bf374f05f02e1d4f0e52ac641ef4823e5e8aa093444e47c59a4f13490a67.json",
+      "sha256": "47d3bf374f05f02e1d4f0e52ac641ef4823e5e8aa093444e47c59a4f13490a67",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/4d5990fac05ae2b5db01158caf791a2f63956d57fe7e4f92a76d9cc5ab8ed407.json",
+      "sha256": "4d5990fac05ae2b5db01158caf791a2f63956d57fe7e4f92a76d9cc5ab8ed407",
+      "cases": 8,
+      "controls": 770,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    }
+  ],
+  "selectedTrajectoryCounts": {
+    "/home/wyss/line/generated/benchmark-v4/teachers-final/baseline-3m": 148,
+    "/home/wyss/line/generated/benchmark-v4/recovery-final/full-time-loss": 26,
+    "/home/wyss/line/generated/benchmark-v4/teachers-final/pilot-time-3m": 2
+  },
+  "verifiedSelectedPrefixes": 176,
+  "selectedReplayPhysicsFrames": 864116,
+  "scriptSha256": "21e45b7ecc1ddab76f9b4449beafb12a457dc11c51531974cd49f37cabf7ff08",
+  "note": "Exposed development training. The best valid complete trajectory per case supplies training actions; this selection is not a compiler run or score. Higher teacher budgets do not qualify for the 750k goal. Runtime inputs are physical state and upcoming targets, without source, seed or absolute-position identifiers."
+}

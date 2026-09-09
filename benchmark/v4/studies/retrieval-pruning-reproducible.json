@@ -1,0 +1,31 @@
+{
+  "schema": "line.arc-retrieval-parity.v1",
+  "queries": 512,
+  "comparisons": 2048,
+  "exactProposalParity": true,
+  "candidateRoot": "/home/wyss/line",
+  "referenceRoot": "/tmp/line-v3-compiler-930",
+  "candidateCodeSha256": "d35bff3a20a72c8e7b152c27bf81fd306f3fb4131e45da24323492c1c5de70aa",
+  "referenceCodeSha256": "0b4175b9b5921ef29c104a79b9b6628647d442ff13b85fb7a3cf7bb532ff94d4",
+  "modelPath": "/home/wyss/line/scripts/v0/optimizer/arc_control_policy_model.json",
+  "modelSha256": "f60139398b8c94cb18d5372aa6ab3562b585e0ea83a8d1d0f74810ebd01caa7f",
+  "dataPath": "generated/benchmark-v3/arc-930/policy-data-proximity935/data.json",
+  "dataSha256": "b83e4293aaaf12bfb6f9efab65d25c75f33a2c96c27759cab20c2cfb081a5354",
+  "scriptSha256": "1613700f56784487575f6c326a15f0c0026679b06e4574a9afa38d7cd2152982",
+  "queryRecipe": "256 evenly spaced measured records and deterministic +/-0.013 feature perturbations; proposal counts 1,8,16,24,32,48; four interleaved comparisons.",
+  "timingsMs": {
+    "reference": [
+      4873.806057,
+      4701.044006999999,
+      4430.410269,
+      4852.170435000004
+    ],
+    "candidate": [
+      4269.231427999999,
+      3807.129487,
+      4175.285132000001,
+      3852.537361999999
+    ]
+  },
+  "note": "Local query microbenchmark, possibly alongside other work; not an end-to-end compiler speed claim."
+}

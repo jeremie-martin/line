@@ -66,6 +66,48 @@ neighborhood. It preserves all 2,048 compared proposal lists exactly on 512
 measured and perturbed queries, and eight policy tests pass. Its local timing
 comparison runs alongside other work and is not an end-to-end speed claim.
 
+## Initial recovery experiments
+
+These results use the complete 176-case seed-16 research panel at 750k actual
+frames, with every run valid. They require canonical public confirmation before
+promotion; the recovery target remains 926.5382.
+
+| Change from the corrected baseline | Headline |
+| --- | ---: |
+| Preserved compiler | 915.6860 |
+| Time-weighted local objective | 912.2860 |
+| New initial-proposal forest, existing measured examples | 914.5635 |
+| New measured examples and supervised retrieval, existing mean predictor | 919.0800 |
+
+The 3M-frame teacher reaches 926.7191 over all 176 cases, with maximum work
+2,915,481 frames. This larger allowance cannot qualify for the public goal.
+Independent reconstruction checks 33,046 controls across that complete teacher,
+the complete time-objective study and an eight-case time-objective teacher pilot.
+The training dataset contains 15,962 non-startup controls from all 176 cases:
+148 complete trajectories from the ordinary teacher, 26 from the 750k
+time-objective study and two from its larger-budget pilot. Selecting these
+training trajectories is not a compiler run or score. See
+[transfer provenance](../benchmark/v4/studies/initial-teacher-transfer.json).
+
+The full time-objective regression prevents promoting a tempting pilot result.
+Its useful complete trajectories can still teach proposals without forcing that
+objective everywhere. Further complete panels test jointly replacing the mean
+and measured examples, learning residual corrections to the existing mean, and
+updating the continuation predictor. The latter is trained on 73,969 logged
+probes; family-held-out mean ranking regret falls from 0.0087109 to 0.0072335.
+Its 32 exported predictions match TypeScript exactly. These predictor checks
+are not a live compiler score or independent end-to-end generalization claim.
+
+[Frozen-loss counterfactuals](../benchmark/v4/studies/baseline-loss-diagnosis.json)
+identify impact error as the largest isolated opportunity in the extension.
+Setting only extension impact errors hypothetically to zero would raise that
+panel by 19.9076 points; this does not prove joint physical attainability.
+An eight-case [geometry audit](../benchmark/v4/studies/pilot-curvature-audit.json)
+finds the radius bound active in 51 of 770 accepted arcs, including 14 of the
+27 impact errors above 0.1. This motivates testing modestly tighter curvature,
+without changing the connected normal-arc primitive. The audit is correlational;
+only physical compilation can establish whether the change helps.
+
 Research starts with an exact-reproduction check of the independent study harness,
 then compares time-weighted optimization and construction allocation on a declared
 eight-case diagnostic panel. A complete 3M-frame teacher panel tests what the

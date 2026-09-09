@@ -14,15 +14,18 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import GroupKFold
 from train_physical_planner import export, write
 
-p=argparse.ArgumentParser();p.add_argument('--inputs',required=True);p.add_argument('--out',required=True);p.add_argument('--folds',type=int,default=5);args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--inputs',required=True);p.add_argument('--out',required=True);p.add_argument('--folds',type=int,default=5);p.add_argument('--suite',choices=['v3','v4'],default='v3');args=p.parse_args()
 root=Path(args.inputs);out=Path(args.out);out.mkdir(parents=True,exist_ok=True);assert not (out/'model.json').exists()
 def checked(path):
     b=path.read_bytes();assert hashlib.sha256(b).hexdigest()==Path(str(path)+'.sha256').read_text().strip()
     return json.loads(gzip.decompress(b) if path.suffix=='.gz' else b)
-plan=checked(root/'plan.json');run=checked(root/'run.json.gz');assert plan['options']['collectValue'];assert run['summary']['valid']==88
+plan=checked(root/'plan.json');run=checked(root/'run.json.gz');assert plan['options']['collectValue'];assert plan.get('suite','v3')==args.suite
 # Read the frozen materialized catalog for group identities, not runtime features.
-specs=json.loads(gzip.decompress(Path('benchmark/v3/specifications.json.gz').read_bytes()))
+catalog=Path('benchmark')/args.suite;lock=checked(catalog/'catalog.lock.json');raw=gzip.decompress((catalog/'specifications.json.gz').read_bytes())
+assert hashlib.sha256(raw).hexdigest()==lock['specificationsSha256']
+specs=json.loads(raw)
 cases=specs if isinstance(specs,list) else specs['cases']
+assert plan['sources']==[c['id'] for c in cases] and len(run['rows'])==len(cases) and run['summary']['valid']==len(cases)
 groups_by_source={c['id']:c['group'] for c in cases}
 rows=[];records=[];omitted=0
 for source in plan['sources']:
@@ -64,7 +67,7 @@ if args.folds:
 fitted=model().fit(X,np.log1p(100*costs));deployed=artifact(fitted,penalty)
 deployed['provenance']=dict(teacherPlanSha256=hashlib.sha256((root/'plan.json').read_bytes()).hexdigest(),records=records,rows=len(rows),groups=len(set(groups)),
     negativeBoundaryCorrectionsClipped=int(sum(finite<0)),omittedShorterNonterminalHorizons=omitted,
-    note='Exposed V3 development training. Labels include the teacher terminal prior, not just measured interval loss. Family-disjoint checks concern this predictor only; the teacher compiler already contains development-trained models. No independent end-to-end generalization claim.')
+    note=f'Exposed {args.suite.upper()} development training. Labels include the teacher terminal prior, not just measured interval loss. Family-disjoint checks concern this predictor only; the teacher compiler already contains development-trained models. No independent end-to-end generalization claim.')
 write(out/'model.json',deployed)
 write(out/'parity.json',[dict(features=X[i].tolist(),prediction=max(0.,float(np.expm1(fitted.predict(X[i:i+1])[0]))/100)) for i in np.linspace(0,len(X)-1,32,dtype=int)])
 write(out/'validation.json',dict(rows=len(rows),groups=len(set(groups)),folds=folds,comparedContexts=len(ranking),

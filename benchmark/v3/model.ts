@@ -36,13 +36,19 @@ export function sampledCurve(values: Array<number | null>): (t: number) => numbe
 }
 export function caseSpec(c: Case): Spec {
   // Counts are already authored and frozen in the catalog. No target repair
-  // occurs in the evaluator or compiler. Boundary samples are grounded; the
-  // interior encodes the requested interval mean in the existing Spec API.
+  // occurs in the evaluator or compiler. Shared boundary target samples and
+  // constant interiors encode each requested mean. They are not a prescribed
+  // flight/contact sequence. Half-scale boundaries avoid unit-valued interior
+  // targets, which exceed the existing compiler API's 0.99 air-sample limit.
   const air = Array<number | null>(c.durationFrames + 1).fill(0), gaps = caseGaps(c);
+  const boundaries = Array.from({ length: gaps.length + 1 }, (_, i) => Math.min(.5,
+    i ? c.air[i - 1].airborneFrames / 2 : .5,
+    i < gaps.length ? c.air[i].airborneFrames / 2 : .5));
   for (const request of c.air) {
     const gap = gaps[request.gap], interior = gap.endFrame - gap.startFrame - 1;
-    const value = request.airborneFrames / interior;
-    assert.ok(interior > 0 && value >= 0 && value <= 1);
+    const value = (request.airborneFrames - boundaries[request.gap] - boundaries[request.gap + 1]) / interior;
+    assert.ok(interior > 0 && value >= 0 && value <= .99);
+    air[gap.startFrame] = boundaries[request.gap]; air[gap.endFrame] = boundaries[request.gap + 1];
     for (let f = gap.startFrame + 1; f < gap.endFrame; f++) air[f] = value;
   }
   return { duration: c.durationFrames / 40, contacts: c.contacts.map(x => ({ t: x.frame / 40, ...(x.impact === undefined ? {} : { impact: x.impact }) })),

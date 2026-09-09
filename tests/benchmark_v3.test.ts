@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { scoreObservations, summarize, type Observation } from '../benchmark/v3/evaluator.ts';
 import { loadCases, caseGaps, caseSpec, targets } from '../benchmark/v3/model.ts';
-import { effectiveAxes } from '../scripts/v0/core/substrate.ts';
+import { effectiveAxes, validateSpec } from '../scripts/v0/core/substrate.ts';
 
 const observation = (axis: Observation['axis'], frames: number, error: number, tail = false): Observation => ({ gap: tail ? 1 : 0, startFrame: 0, endFrame: frames, tail, axis, target: 0, achieved: error, error });
 describe('V3 explicit scoring contract', () => {
@@ -35,6 +35,7 @@ describe('V3 explicit scoring contract', () => {
     const cases = loadCases(); expect(cases).toHaveLength(88);
     for (const c of cases) {
       const spec = caseSpec(c);
+      expect(() => validateSpec(spec)).not.toThrow();
       for (const gap of caseGaps(c)) {
         expect(effectiveAxes(gap, spec).air).toBeCloseTo(targets(c, gap).air!, 10);
         if (!gap.endsWithContact) expect(targets(c, gap).impact).toBeUndefined();

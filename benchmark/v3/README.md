@@ -42,9 +42,11 @@ without requiring a new visual review or inventing an aesthetic metric.
    per-contact impact. Keep episode diagnostics; introduce no extra phase gates.
 
 The airtime counts are adapted to the existing function-based compiler API with
-grounded boundary samples and a constant interior value whose inclusive mean
-is exactly the authored fraction. These are target samples, not a prescribed
-physical flight/contact sequence. All physical proposals remain compiler choices.
+shared boundary target samples and a constant interior value whose inclusive mean
+is exactly the authored fraction. Half-scale boundaries keep the samples inside
+the API's 0.99 air limit; zero-count intervals lower their adjacent boundaries.
+These are target samples, not a prescribed physical flight/contact sequence.
+All physical proposals remain compiler choices.
 
 ## Independence, style, and decisions
 
@@ -70,3 +72,10 @@ Authoring is separate from execution: `scripts/benchmark/v3_author.ts` emits the
 frozen, hash-checked catalog. `scripts/benchmark/v3_audit.ts` checks all inputs
 without compiler outcomes. Do not regenerate the catalog to improve a candidate's
 score; any intentional input change requires a new identity and fresh comparison.
+
+The initial execution exposed an adapter defect: zero-valued boundary samples
+could require an interior target of 1.0, which the compiler API rejects. Those
+runs were aborted without a headline and retained under `initial-852/828`.
+The correction changes target encoding only: all 88 frozen cases, interval means,
+policy weights and contact frames retain their pre-evaluation identities. The
+audit now invokes the actual compiler input validator for every specification.

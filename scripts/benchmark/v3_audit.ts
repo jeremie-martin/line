@@ -4,13 +4,14 @@ import { developmentCases } from '../../benchmark/v2/catalog.ts';
 import { loadCases, caseSpec, caseGaps, targets, sha } from '../../benchmark/v3/model.ts';
 import { policy } from '../../benchmark/v3/policy.ts';
 import { applyJolt } from '../produce/seed.ts';
-import { effectiveAxes } from '../v0/core/substrate.ts';
+import { effectiveAxes, validateSpec } from '../v0/core/substrate.ts';
 
 const cases = loadCases(), seen = new Set<string>();
 assert.equal(cases.length, 88);
 let intervals = 0, tailSeconds = 0, maximumTargetDiscrepancy = 0;
 for (const c of cases) {
   const spec = caseSpec(c), gaps = caseGaps(c);
+  validateSpec(spec);
   assert.ok(!seen.has(c.id)); seen.add(c.id);
   assert.ok(policy.strata.find(s => s.id === c.stratum)?.groups.some(g => g.id === c.group));
   assert.equal(c.air.length, gaps.length);

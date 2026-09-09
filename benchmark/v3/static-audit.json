@@ -7,7 +7,7 @@
   "distinctInputs": 88,
   "intervals": 8069,
   "tailSeconds": 262.4,
-  "maximumTargetDiscrepancy": 2.886579864025407e-15,
+  "maximumTargetDiscrepancy": 2.0539125955565396e-15,
   "contradictoryAirRequests": 0,
   "bridgeUnchangedContactsImpactsSpeedAmplitudeDuration": 44,
   "origins": {

@@ -164,3 +164,25 @@ optional and disabled. A separate predictor experiment learns actual next-two-
 interval losses from 15,690 accepted arrival records, eliminating the terminal
 prior from its labels. That experiment has limited state coverage and must earn
 its value in live compilation. Its results are not assumed from prediction error.
+
+## Canonical 893 and second transfer
+
+The public compiler at `29b9eaaf` confirms **893.7640** on all **176/176** runs,
+88 specifications and seeds 16/17. Every canonical track, score and actual-frame
+count matches the research panel. All material is normal with no isolated
+single-segment component. It is preserved on `archive/arc-v3-893`.
+
+The combined compiler supplies a second 3M teacher at **916.1196**, all 88 valid.
+Transferring both its controls and continuation predictor reaches **899.3806**
+on the complete 750k seed-16 panel, all 88 valid. The 900 goal is not yet met.
+Standalone transfers and quota-preserved combinations of teacher generations
+regress in the pilot. The actual-outcome predictor also regresses despite exact
+replay verification of all 15,690 training arrivals; its accepted-state coverage
+is a practical limitation. These negative results remain in the compact ledger.
+A 9M teacher is research only and cannot satisfy the standard-budget goal.
+
+[Canonical 893 evidence](../benchmark/v3/studies/arc-893-validation.json) includes
+all result hashes and frame accounting. `preserve_arc_v3_result.ts` automates
+these checks for subsequent canonical milestones. The secant experiment's
+TypeScript loop state now has an explicit annotation; the type check returns to
+the 251 inherited diagnostics with none in the changed compiler files.

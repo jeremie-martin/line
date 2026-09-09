@@ -518,7 +518,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
             if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
           }
           const improving=best.cost<origin.cost-1e-12;
-          const previousUses=secant?.uses??0;
+          const previousUses:number=secant?.uses??0;
           if(improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
             const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale[key as keyof typeof scale]*trust));
             const updated=arcSecantUpdate(jac,displacement,best.residuals.map((v:number,r:number)=>v-origin.residuals[r]));

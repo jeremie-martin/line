@@ -12,8 +12,757 @@
     "suiteFingerprint": "82e6e224e9f6fc9bf4ecfec4e5c946ce69e900c89d595c2b5a189357ab1ebd32"
   },
   "note": "These are exposed development studies. Single-seed full-suite readings require canonical two-seed confirmation through the public compiler. Partial panels have no headline. Failed physical runs retain zero scores. Search/model choices must be tested together, not added arithmetically.",
-  "bestFullSuiteResearch": 893.7641,
+  "bestFullSuiteResearch": 899.3806,
   "studies": [
+    {
+      "name": "full-916-joint",
+      "path": "generated/benchmark-v3/arc-900/full-916-joint/run.json.gz",
+      "sha256": "bc0ff5641d3aeaee12952076e37403c37afe5f8512cbf70313dbbb72c50781b8",
+      "compiler": "8070bc7f82df3dd126560ff20703c51ca6d03df610a70d61730b17f23689d1e1",
+      "head": "29b9eaaf2c1dca9219ef683488291c8da0994da1",
+      "options": {
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/original-forest-916-examples.json",
+        "valueModelPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/value-916/model.json"
+      },
+      "modelSha256": "7d63bec1d9e0b9c23601b4c00acc0fceb8007014441f946ab243d806e6e0dffc",
+      "valueModelSha256": "90defaf746fa11a09dba0a7d6282c94ec0fae6ce62bf97b73fb1ef5dc8f70e9d",
+      "cases": 88,
+      "valid": 88,
+      "headline": 899.3806,
+      "strata": [
+        {
+          "id": "representative",
+          "weight": 0.7,
+          "score": 913.0088
+        },
+        {
+          "id": "capability",
+          "weight": 0.15,
+          "score": 858.316
+        },
+        {
+          "id": "legacy_regression",
+          "weight": 0.1,
+          "score": 873.7226
+        },
+        {
+          "id": "development_music",
+          "weight": 0.05,
+          "score": 883.0966
+        }
+      ],
+      "arithmeticMean": 890.2662375000001,
+      "improved": 87,
+      "regressed": 1,
+      "totalPhysicalFrames": 65221684,
+      "paired": [
+        {
+          "id": "bridge_river_reentry",
+          "score": 948.5877,
+          "delta": 37.40090000000009,
+          "valid": true,
+          "physicalFrames": 729636,
+          "trackHash": "98734bf2ebcb3efc86dac0c7783120b63c41a698bc0f615494ed1fe86dfe1864"
+        },
+        {
+          "id": "bridge_countercurrent",
+          "score": 956.3348,
+          "delta": 45.29189999999994,
+          "valid": true,
+          "physicalFrames": 725615,
+          "trackHash": "b2556fe14ffc38e2605b17c44b53f50c4af909b8412a4c624c02c118d4620bdd"
+        },
+        {
+          "id": "bridge_split_signal",
+          "score": 828.1667,
+          "delta": 28.29060000000004,
+          "valid": true,
+          "physicalFrames": 745131,
+          "trackHash": "3b669f1dbd2ae91fc61c4731481c15be13be72d07af973e68413f9c3e45c7733"
+        },
+        {
+          "id": "bridge_pickup_lattice",
+          "score": 884.9599,
+          "delta": 17.865599999999972,
+          "valid": true,
+          "physicalFrames": 743891,
+          "trackHash": "29ea34e474773cb25c562f107853cf6ba5f1fc126f137711fa9da055e3491385"
+        },
+        {
+          "id": "bridge_loose_pocket",
+          "score": 935.0878,
+          "delta": 42.87440000000004,
+          "valid": true,
+          "physicalFrames": 736214,
+          "trackHash": "9eee1d6de47787a293247f67beea900632b321e79685c0d83e4fd87bdcee1ba4"
+        },
+        {
+          "id": "bridge_offgrid_conversation",
+          "score": 950.4495,
+          "delta": 50.503999999999905,
+          "valid": true,
+          "physicalFrames": 731290,
+          "trackHash": "6f3eca3db7b605b361c36f2b46587fd75e49394f662230cac047a454f317aac2"
+        },
+        {
+          "id": "bridge_rising_switch",
+          "score": 938.1624,
+          "delta": 37.85390000000007,
+          "valid": true,
+          "physicalFrames": 734581,
+          "trackHash": "c67f47e03898dd3f83773583d9b7bbcd9b33e48a41bbdd4d56f4213d125ccddb"
+        },
+        {
+          "id": "bridge_meter_exchange",
+          "score": 937.3685,
+          "delta": 33.25030000000004,
+          "valid": true,
+          "physicalFrames": 741078,
+          "trackHash": "33decea22f23fe939aa35200b7d78b356ccf000648b4ad5e414a8ecd42b9d9b6"
+        },
+        {
+          "id": "bridge_wide_breaths",
+          "score": 876.1034,
+          "delta": 26.17610000000002,
+          "valid": true,
+          "physicalFrames": 749443,
+          "trackHash": "19debcdc6f44f20a09c0b19edb7bc3af53a7cbe506445212cb4a358c6f3460db"
+        },
+        {
+          "id": "bridge_open_hook",
+          "score": 800.2975,
+          "delta": 79.8596,
+          "valid": true,
+          "physicalFrames": 720935,
+          "trackHash": "195450c70d26fcb0d89286a5d5e4c3c5e197fcd01c7d7f15774f3bcdd1f62a29"
+        },
+        {
+          "id": "bridge_amplitude_tides",
+          "score": 821.9526,
+          "delta": 54.82489999999996,
+          "valid": true,
+          "physicalFrames": 749913,
+          "trackHash": "2a754c18b8dee8cc0749f1640a5c1c9fdf13255de43c86765410ad5cb40a6025"
+        },
+        {
+          "id": "bridge_dense_dialogue",
+          "score": 914.6498,
+          "delta": 28.8836,
+          "valid": true,
+          "physicalFrames": 741679,
+          "trackHash": "9638b025dfb9c3fa807cddd61e087e05e3d186850d285d06af6548786bcece89"
+        },
+        {
+          "id": "bridge_high_air_drive",
+          "score": 882.389,
+          "delta": 34.275999999999954,
+          "valid": true,
+          "physicalFrames": 731934,
+          "trackHash": "33429b7722a34ba06434a06fad15f73fe0ceb4f7f10bf3518b10ea06a77be4d8"
+        },
+        {
+          "id": "bridge_sparse_lowline",
+          "score": 926.8439,
+          "delta": 31.77469999999994,
+          "valid": true,
+          "physicalFrames": 743684,
+          "trackHash": "fbc06595d5887781828c8f22ed970718f0b891e700309b61f7cac6b940c1f471"
+        },
+        {
+          "id": "bridge_frontier_pickup_progression",
+          "score": 929.5985,
+          "delta": 52.86569999999995,
+          "valid": true,
+          "physicalFrames": 745515,
+          "trackHash": "0a44b0aa1063775e8adab040aba2ec63118df9320603be803a4c7c18fbad3cad"
+        },
+        {
+          "id": "bridge_frontier_dense_recovery",
+          "score": 900.588,
+          "delta": 72.75709999999992,
+          "valid": true,
+          "physicalFrames": 736246,
+          "trackHash": "85d4d02ad2508e617ec6865767591fad48f2a6059057e03f97f1a77d216ef598"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance",
+          "score": 803.9462,
+          "delta": 26.857700000000023,
+          "valid": true,
+          "physicalFrames": 749925,
+          "trackHash": "468ac68b4be865d8112aaad143a8e43218b31058525b4f4d2c5ad09c8f6b4b37"
+        },
+        {
+          "id": "bridge_regression_transition_mosaic",
+          "score": 938.9314,
+          "delta": 37.35250000000008,
+          "valid": true,
+          "physicalFrames": 749993,
+          "trackHash": "d5fb8d80d94c5dc7d0b703acacf0478ddc314996bb1132f90096eec1c64d6251"
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "score": 732.2728,
+          "delta": 21.10259999999994,
+          "valid": true,
+          "physicalFrames": 736118,
+          "trackHash": "f2f25bcf89eaefb8cc6e41b6187dacc7a2b71470aa105778af4a67fce45349d6"
+        },
+        {
+          "id": "bridge_believer_56_6s",
+          "score": 905.0322,
+          "delta": 24.504800000000046,
+          "valid": true,
+          "physicalFrames": 732379,
+          "trackHash": "771468562aa26f92c784f7172bf271ceabfa5577a6fddfcc637c77c12af8605a"
+        },
+        {
+          "id": "bridge_believer_impact_56s",
+          "score": 870.6059,
+          "delta": 44.44590000000005,
+          "valid": true,
+          "physicalFrames": 728613,
+          "trackHash": "6d5271e14906c9f72a844e7835ecd5fb4410ff50f678816d77914e7f2bb31bd5"
+        },
+        {
+          "id": "bridge_river_reentry_tempo_fast_5",
+          "score": 941.2283,
+          "delta": 27.06989999999996,
+          "valid": true,
+          "physicalFrames": 724664,
+          "trackHash": "2df38ff84145f37ce32af511c2c2de61cd04098b80358df874e14ad9d7496713"
+        },
+        {
+          "id": "bridge_countercurrent_impact_contrast_12",
+          "score": 946.8071,
+          "delta": 43.08719999999994,
+          "valid": true,
+          "physicalFrames": 729564,
+          "trackHash": "db1d65932c68faa53223557a4dc82e404b43cbb3d5171b8a5cea09acd4cf07f5"
+        },
+        {
+          "id": "bridge_split_signal_impact_relief_12",
+          "score": 826.7646,
+          "delta": 33.31949999999995,
+          "valid": true,
+          "physicalFrames": 733812,
+          "trackHash": "ac83c5e3aa33aa8664a8082f55654a27aa57c9387b513c64fb61d4d44ac8e0a9"
+        },
+        {
+          "id": "bridge_pickup_lattice_speed_minus_4",
+          "score": 886.2328,
+          "delta": 21.15949999999998,
+          "valid": true,
+          "physicalFrames": 744696,
+          "trackHash": "7d51653d11003d0de53c2a8469f085d777e3db8ed157297ed47529bbd7a220fd"
+        },
+        {
+          "id": "bridge_loose_pocket_drag_later_20ms",
+          "score": 945.638,
+          "delta": 50.25490000000002,
+          "valid": true,
+          "physicalFrames": 733601,
+          "trackHash": "44f14bfde5cd27fd0f2602f1f8440d20115778de8cc43283c155efe4dbb20fef"
+        },
+        {
+          "id": "bridge_offgrid_conversation_answer_early_25ms",
+          "score": 946.5957,
+          "delta": 46.351,
+          "valid": true,
+          "physicalFrames": 737648,
+          "trackHash": "6f5205bbafcf3ec06cdcdbc77b3395da457dd3bbb2ddf6bac33c3862f39c87ea"
+        },
+        {
+          "id": "bridge_rising_switch_tempo_fast_5",
+          "score": 946.1492,
+          "delta": 41.9541999999999,
+          "valid": true,
+          "physicalFrames": 725558,
+          "trackHash": "a5b185a54eff083a6a5da2286ba065623b95241c1f9c43440597e15ecccc397d"
+        },
+        {
+          "id": "bridge_meter_exchange_speed_plus_4",
+          "score": 938.6733,
+          "delta": 30.384200000000078,
+          "valid": true,
+          "physicalFrames": 748676,
+          "trackHash": "5d908ee70f9f61530fffd36dc48906f736f8297ed0100a7e935ac4776ba1309f"
+        },
+        {
+          "id": "bridge_wide_breaths_air_plus_5",
+          "score": 882.4404,
+          "delta": 23.57759999999996,
+          "valid": true,
+          "physicalFrames": 747298,
+          "trackHash": "0abff666bea8b5f5af2aabf1126a974002929913f00bb5324f6bf6eee02aa992"
+        },
+        {
+          "id": "bridge_open_hook_amplitude_plus_8",
+          "score": 805.2142,
+          "delta": 66.98410000000001,
+          "valid": true,
+          "physicalFrames": 722741,
+          "trackHash": "023e10a74e8ad953326bf99c082d4782b41d68bd59c6d562279d3bce8f823c97"
+        },
+        {
+          "id": "bridge_amplitude_tides_restrained_10",
+          "score": 815.8478,
+          "delta": 35.663599999999974,
+          "valid": true,
+          "physicalFrames": 746711,
+          "trackHash": "480234d8c4f8670eaf8ae4d9b832adcee87fc3f1436019d88849a3b0ecb818c4"
+        },
+        {
+          "id": "bridge_dense_dialogue_impact_contrast_10",
+          "score": 894.888,
+          "delta": 49.8125,
+          "valid": true,
+          "physicalFrames": 743416,
+          "trackHash": "9a92e0cd92c8c0d9f19377148978a82abeb577015f6e030d4dd6a5147b2589ef"
+        },
+        {
+          "id": "bridge_high_air_drive_air_minus_5",
+          "score": 910.6158,
+          "delta": 31.73230000000001,
+          "valid": true,
+          "physicalFrames": 736193,
+          "trackHash": "21666f07869812d11f9a557e19597ebd0bed4e0606eb524eb1c7188cbbcd35a4"
+        },
+        {
+          "id": "bridge_sparse_lowline_air_minus_4",
+          "score": 926.0644,
+          "delta": 38.65480000000002,
+          "valid": true,
+          "physicalFrames": 736839,
+          "trackHash": "2f58eb6375e6aa7e4d68299d09fbb459dffa6db1010b48c85ebd6dadb5fed354"
+        },
+        {
+          "id": "bridge_frontier_pickup_progression_shifted",
+          "score": 929.3336,
+          "delta": 51.62060000000008,
+          "valid": true,
+          "physicalFrames": 744285,
+          "trackHash": "de3d8f5c673f3b9bf85afffa8c48d510fe8edcbdd7a144835eda8b171f86b4e3"
+        },
+        {
+          "id": "bridge_frontier_dense_recovery_240ms_figures",
+          "score": 895.6937,
+          "delta": 72.4588,
+          "valid": true,
+          "physicalFrames": 734839,
+          "trackHash": "1e7a59f667db42ceec3cf05d1b477d66963ba1f2cf2075bf7b138f974ad859dd"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance_4s",
+          "score": 854.8435,
+          "delta": 54.65089999999998,
+          "valid": true,
+          "physicalFrames": 745483,
+          "trackHash": "3348a8933a6ec43d453158af95046e0b8e1204fb575fd2716480bb65ee579be4"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance_6s",
+          "score": 802.6022,
+          "delta": 0.9337000000000444,
+          "valid": true,
+          "physicalFrames": 748584,
+          "trackHash": "946a2421646edb7bd9ff591fa47177d356fb646b967e68662279425fe44487c5"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance_7s",
+          "score": 804.4952,
+          "delta": 9.095199999999977,
+          "valid": true,
+          "physicalFrames": 745841,
+          "trackHash": "046bcba6cc2318eab46fe83f6a9bddee93fd3d54e2177235398a52cc64640424"
+        },
+        {
+          "id": "bridge_regression_transition_mosaic_tempo_fast_5",
+          "score": 932.4856,
+          "delta": 41.05579999999998,
+          "valid": true,
+          "physicalFrames": 742047,
+          "trackHash": "d6b9155c8efa2992888804d55108edc034171364d0bd584b6f3e2a656e562101"
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic_contrast_10",
+          "score": 708.7965,
+          "delta": 3.1509000000000924,
+          "valid": true,
+          "physicalFrames": 736945,
+          "trackHash": "ee9dc4001dc83e9fced01cbd5a845d8787d3e7662d60112342324522d6dc0b46"
+        },
+        {
+          "id": "bridge_believer_56_6s_impact_relief",
+          "score": 921.1385,
+          "delta": 55.79410000000007,
+          "valid": true,
+          "physicalFrames": 735879,
+          "trackHash": "a7a005d1d5452e6812245ff3a64b868e3a23939a6805700f25edadec176787bc"
+        },
+        {
+          "id": "bridge_believer_impact_56s_amplitude_plus_5",
+          "score": 869.4726,
+          "delta": 24.454600000000028,
+          "valid": true,
+          "physicalFrames": 728670,
+          "trackHash": "11f3af1225bb1411649bc2d9e955dad7f5d03101bb47e377df7024e1a2c0167e"
+        },
+        {
+          "id": "harbor_return",
+          "score": 918.0302,
+          "delta": 55.263900000000035,
+          "valid": true,
+          "physicalFrames": 747369,
+          "trackHash": "07729fa324eebe3642ca211b0e3b8c83a59b19ffca76361c5b25b9f25b0c6eb7"
+        },
+        {
+          "id": "crossing_lights",
+          "score": 927.8746,
+          "delta": 16.712499999999977,
+          "valid": true,
+          "physicalFrames": 747880,
+          "trackHash": "36a386cc37c2d0e8dad31e026ea63f29582b294435bcfc571bf732415e0ff1b1"
+        },
+        {
+          "id": "afterglow_turn",
+          "score": 925.8464,
+          "delta": 33.974699999999984,
+          "valid": true,
+          "physicalFrames": 743878,
+          "trackHash": "323ffc42174a659f3e9b85fcc450c8b11f424dc7e1a4130c749cf773161ba0bc"
+        },
+        {
+          "id": "woven_pickups",
+          "score": 908.4934,
+          "delta": 56.88459999999998,
+          "valid": true,
+          "physicalFrames": 748298,
+          "trackHash": "3a3f533b17bdd15ef950aab5ba950671b1bfc42389d8d517e0184b739f2382fd"
+        },
+        {
+          "id": "pickup_answers",
+          "score": 929.6588,
+          "delta": 38.62170000000003,
+          "valid": true,
+          "physicalFrames": 749374,
+          "trackHash": "b0da90c1b5ef77fc0d9e518011cf7bfb1017da0ca97ee8e1402fe9a0c339e815"
+        },
+        {
+          "id": "broken_triplets",
+          "score": 920.418,
+          "delta": 44.97270000000003,
+          "valid": true,
+          "physicalFrames": 749310,
+          "trackHash": "ec6075f12b1b09f17e238d9df21d6b0e27adf7172dd1e27fd08dd310b0e87656"
+        },
+        {
+          "id": "late_letters",
+          "score": 952.5299,
+          "delta": 36.63099999999997,
+          "valid": true,
+          "physicalFrames": 748197,
+          "trackHash": "3f4c1df8f1180a91b8ab1cb8e15c7446b25481fe83ec16ca836e5dd81ec035c8"
+        },
+        {
+          "id": "swing_exchange",
+          "score": 916.8667,
+          "delta": 32.73750000000007,
+          "valid": true,
+          "physicalFrames": 745546,
+          "trackHash": "0a041012143ccdef1b653fcc9e0f4cc5c92602b567c38cb98037b279d330569b"
+        },
+        {
+          "id": "offbeat_echoes",
+          "score": 950.3662,
+          "delta": 83.46030000000007,
+          "valid": true,
+          "physicalFrames": 745022,
+          "trackHash": "45d9a87cea319770096f1b41ec68c5fc0ef5c185e463d8e60f0d496c210ca350"
+        },
+        {
+          "id": "gear_changes",
+          "score": 879.4669,
+          "delta": 10.820100000000025,
+          "valid": true,
+          "physicalFrames": 748083,
+          "trackHash": "2ff25d6d7214f4c8e61ae8eaace9fb037cc6defc79e63d8ac66d4b7058e6ca17"
+        },
+        {
+          "id": "half_time_return",
+          "score": 901.0925,
+          "delta": 3.512899999999945,
+          "valid": true,
+          "physicalFrames": 747770,
+          "trackHash": "157d9c0c4c0514e239f599f42cf819029474993fa403d9b0e5598b59ca3c950b"
+        },
+        {
+          "id": "accelerando_reply",
+          "score": 912.3739,
+          "delta": 32.611000000000104,
+          "valid": true,
+          "physicalFrames": 745605,
+          "trackHash": "6cc6422ef3bfe81fb159045fdb0a09b4cadd25c7f80be500fbfec3e876d69b53"
+        },
+        {
+          "id": "archipelago",
+          "score": 888.1261,
+          "delta": 51.33789999999999,
+          "valid": true,
+          "physicalFrames": 749154,
+          "trackHash": "af7bb664345db2252f1b4e7911d9fc0f4e4f6a04b0f6e2582debedebcbb8e0ca"
+        },
+        {
+          "id": "wide_arc_dialogue",
+          "score": 907.997,
+          "delta": 138.6571,
+          "valid": true,
+          "physicalFrames": 744263,
+          "trackHash": "ce9a8ea5c598b3b6899a6610b28204ce71e70441e1209c2669ba41b522593c63"
+        },
+        {
+          "id": "terraced_skies",
+          "score": 899.4174,
+          "delta": 144.75070000000005,
+          "valid": true,
+          "physicalFrames": 743163,
+          "trackHash": "be642e0188c12a1900dd4123669b2106dfeeb18f3e457c687b7b5703ea76b504"
+        },
+        {
+          "id": "woven_pulse",
+          "score": 900.5206,
+          "delta": 61.20959999999991,
+          "valid": true,
+          "physicalFrames": 748377,
+          "trackHash": "cabbc03621904b31940b03d5837ee453002b267261d492556bf61fceade03ecf"
+        },
+        {
+          "id": "density_release",
+          "score": 920.724,
+          "delta": 37.70580000000007,
+          "valid": true,
+          "physicalFrames": 748794,
+          "trackHash": "d453b2b0559b58130fc6ba60df88ca4a3b190a6662d2dc1eb881ad988abd5b7c"
+        },
+        {
+          "id": "compact_dialogue",
+          "score": 923.237,
+          "delta": 45.809799999999996,
+          "valid": true,
+          "physicalFrames": 748233,
+          "trackHash": "b018f17048cd2968d80e5ad1bb37804e027f42b3a9043ebb50587a2054e8f45a"
+        },
+        {
+          "id": "lifted_refrain",
+          "score": 929.5029,
+          "delta": 36.47539999999992,
+          "valid": true,
+          "physicalFrames": 748459,
+          "trackHash": "e3236bd6a12ae5c8b49d37b0b3071f8c1d17473e85fdbe8b1f29fe8d5db2af78"
+        },
+        {
+          "id": "flight_and_return",
+          "score": 933.0799,
+          "delta": 30.7731,
+          "valid": true,
+          "physicalFrames": 749829,
+          "trackHash": "38512360865101ca6dcf9d694beb8a07bfa12494653a13f1116f39a1533f1ef7"
+        },
+        {
+          "id": "open_canopy",
+          "score": 940.3662,
+          "delta": 60.923500000000104,
+          "valid": true,
+          "physicalFrames": 746723,
+          "trackHash": "418d11a7f8569a937307593d0342a9af49156c86f5a68d889c91e54d36f1a36f"
+        },
+        {
+          "id": "quiet_current",
+          "score": 918.7804,
+          "delta": 39.147699999999986,
+          "valid": true,
+          "physicalFrames": 749904,
+          "trackHash": "0126937f66611b8d54ccb8c547fbf04077a55b38496467161fb5bd0c41fef885"
+        },
+        {
+          "id": "support_then_lift",
+          "score": 912.3751,
+          "delta": 115.2577,
+          "valid": true,
+          "physicalFrames": 749518,
+          "trackHash": "0f1da15fc6d09c634ab638af9b43f9f43cf51502bd4953e9806503cc776321ca"
+        },
+        {
+          "id": "rest_and_return",
+          "score": 879.396,
+          "delta": 64.6739,
+          "valid": true,
+          "physicalFrames": 736410,
+          "trackHash": "870e6e8878365601ec4d64d27257f59415147119d6ce1f86b8d256e1376e15c8"
+        },
+        {
+          "id": "pickup_staircase",
+          "score": 861.4852,
+          "delta": 42.48159999999996,
+          "valid": true,
+          "physicalFrames": 747077,
+          "trackHash": "3f811d8cb4c9f710355212bb0aed8064b97ab581aea9d36bcd3b45678680194d"
+        },
+        {
+          "id": "pickup_interruptions",
+          "score": 897.8369,
+          "delta": 61.433899999999994,
+          "valid": true,
+          "physicalFrames": 745206,
+          "trackHash": "d01ee503addb4e0d7c3a49c472f6871d4615d5765c467b6f3ca2fbc4700adfba"
+        },
+        {
+          "id": "pickup_recovery",
+          "score": 840.5249,
+          "delta": 35.36469999999997,
+          "valid": true,
+          "physicalFrames": 748278,
+          "trackHash": "d0dca787e54ea4e66a21e8c33e7d856607e6c94b1442b13f2d974eaccf7d2722"
+        },
+        {
+          "id": "dense_short_then_long",
+          "score": 816.6621,
+          "delta": 12.69240000000002,
+          "valid": true,
+          "physicalFrames": 746598,
+          "trackHash": "26960de4fb3a6cea30acecdffcd37480659d1129ed317924d1db6ab07d3c1a0c"
+        },
+        {
+          "id": "interleaved_recovery",
+          "score": 832.5109,
+          "delta": 20.348899999999958,
+          "valid": true,
+          "physicalFrames": 748673,
+          "trackHash": "249a593d5b9bab2221f60c17f440ace7c514237404f7bcdfb1e6ee5703cb1b79"
+        },
+        {
+          "id": "three_note_returns",
+          "score": 830.7178,
+          "delta": 60.89509999999996,
+          "valid": true,
+          "physicalFrames": 747378,
+          "trackHash": "e49edcad9596b7ae6702136417aa755ef11ab3cc911628fe500a141dc3c0c22e"
+        },
+        {
+          "id": "supported_bridge",
+          "score": 818.2683,
+          "delta": 19.373199999999997,
+          "valid": true,
+          "physicalFrames": 748774,
+          "trackHash": "1b507947acb0734f8d4c1d2b7dff3fb328e401932bd409c36d9c3a0555b0130e"
+        },
+        {
+          "id": "supported_speed_change",
+          "score": 880.3631,
+          "delta": 83.72710000000006,
+          "valid": true,
+          "physicalFrames": 749861,
+          "trackHash": "182dda588a42a130cad78322c855af5a382591dc4acea23561296a5152371f8e"
+        },
+        {
+          "id": "endurance_and_return",
+          "score": 851.1567,
+          "delta": 19.708600000000047,
+          "valid": true,
+          "physicalFrames": 745929,
+          "trackHash": "7aa1a54da25d779e1983bac44c2731b133831287ae00dd23c702733cefa1372b"
+        },
+        {
+          "id": "energy_weave",
+          "score": 924.2191,
+          "delta": 23.351300000000037,
+          "valid": true,
+          "physicalFrames": 747353,
+          "trackHash": "1c36adb0f609486dee47438c062308b36e581776c3dff55953b6779980a89366"
+        },
+        {
+          "id": "alternating_intentions",
+          "score": 946.0784,
+          "delta": 57.07629999999995,
+          "valid": true,
+          "physicalFrames": 749070,
+          "trackHash": "b0f4b230bb62cec8ff647930089e8c33e55d59a97d8c06dd4ae5d2a2b30024d6"
+        },
+        {
+          "id": "recovery_mosaic",
+          "score": 941.9382,
+          "delta": 88.08450000000005,
+          "valid": true,
+          "physicalFrames": 748974,
+          "trackHash": "564bd9731986be9573489e54da5edfb9b0c0b6911fe955587b19206d95128276"
+        },
+        {
+          "id": "amplitude_reply",
+          "score": 923.2685,
+          "delta": 145.08730000000003,
+          "valid": true,
+          "physicalFrames": 747101,
+          "trackHash": "5e348787242541f6a7362ee09766eb6f537ff2a5536737862d974a6bb90ff924"
+        },
+        {
+          "id": "restrained_then_wide",
+          "score": 719.6146,
+          "delta": -20.813300000000027,
+          "valid": true,
+          "physicalFrames": 746248,
+          "trackHash": "0dd34a3bda8b83992d84fba7684bab3416a822b0db4178b687863cc0c0040ac0"
+        },
+        {
+          "id": "arches_at_new_tempos",
+          "score": 840.6005,
+          "delta": 86.95100000000002,
+          "valid": true,
+          "physicalFrames": 745944,
+          "trackHash": "ea8c0630f3d420695508223e3c6efe1d42ea2edd9608be4557cd6c6b85006cf7"
+        },
+        {
+          "id": "music_amor_na_praia_46s",
+          "score": 933.5034,
+          "delta": 15.441400000000044,
+          "valid": true,
+          "physicalFrames": 715721,
+          "trackHash": "8afb49085307cd8663ccd53a23edb80b9db02125dff6a38d76cda2edf5e61f0a"
+        },
+        {
+          "id": "music_luna_bala_44s",
+          "score": 912.446,
+          "delta": 16.480099999999993,
+          "valid": true,
+          "physicalFrames": 702676,
+          "trackHash": "a64912e27ad220508b182df2b772f7bc531196c8b10d8a3285b10731fbc22f76"
+        },
+        {
+          "id": "music_tiki_tiki_48s",
+          "score": 870.5781,
+          "delta": 38.6742999999999,
+          "valid": true,
+          "physicalFrames": 724393,
+          "trackHash": "7fd1d38f0c52629fca776ee81363077411cc6c496ccd6a383ee0cbc4630938a1"
+        },
+        {
+          "id": "music_shelter_impact_sync_81s",
+          "score": 823.8888,
+          "delta": 5.503699999999981,
+          "valid": true,
+          "physicalFrames": 740858,
+          "trackHash": "50153834f30748f3168c0d257193d9102880903f6b2344d84f38932f6ee2b96a"
+        },
+        {
+          "id": "music_amour_de_ma_vie_short_44s",
+          "score": 866.8778,
+          "delta": 79.01239999999996,
+          "valid": true,
+          "physicalFrames": 718610,
+          "trackHash": "8f70f4d265adb466c0cbb39e170ec3a332795cc453ced6754c5ede469db6d232"
+        }
+      ],
+      "finalizationRecovery": null
+    },
     {
       "name": "full-horizon",
       "path": "generated/benchmark-v3/arc-900/full-horizon/run.json.gz",
@@ -8272,6 +9021,556 @@
       "finalizationRecovery": null
     },
     {
+      "name": "pilot-916-controls",
+      "path": "generated/benchmark-v3/arc-900/pilot-916-controls/run.json.gz",
+      "sha256": "99752f0e3cd71cc91e857b9232afa1be779b0ab63fe2568af306b5d81cf12c92",
+      "compiler": "89cbe621c71c81e281cc9d6c588dd17f3aa7d08dac52485cb0df5c480566c903",
+      "head": "29b9eaaf2c1dca9219ef683488291c8da0994da1",
+      "options": {
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/original-forest-916-examples.json"
+      },
+      "modelSha256": "7d63bec1d9e0b9c23601b4c00acc0fceb8007014441f946ab243d806e6e0dffc",
+      "valueModelSha256": null,
+      "cases": 20,
+      "valid": 20,
+      "headline": null,
+      "strata": null,
+      "arithmeticMean": 867.780365,
+      "improved": 19,
+      "regressed": 1,
+      "totalPhysicalFrames": 14775138,
+      "paired": [
+        {
+          "id": "bridge_river_reentry",
+          "score": 938.3021,
+          "delta": 27.115300000000047,
+          "valid": true,
+          "physicalFrames": 733187,
+          "trackHash": "13c8c0e12673fb158217c72180e0a05bff7e0076e90920eaa87fdce6ba97469d"
+        },
+        {
+          "id": "bridge_split_signal",
+          "score": 826.4791,
+          "delta": 26.603000000000065,
+          "valid": true,
+          "physicalFrames": 742592,
+          "trackHash": "0b9e246cda57385720b1b720e6f67b9e8031b317372a5446009acaffca81f4d9"
+        },
+        {
+          "id": "bridge_loose_pocket",
+          "score": 934.372,
+          "delta": 42.15859999999998,
+          "valid": true,
+          "physicalFrames": 733495,
+          "trackHash": "f8e6d87d34e90f999c3eea0b531e98ea0079bc4383f481877c982f25e8a4b195"
+        },
+        {
+          "id": "bridge_rising_switch",
+          "score": 936.449,
+          "delta": 36.140499999999975,
+          "valid": true,
+          "physicalFrames": 726437,
+          "trackHash": "a9246de7076f58e046ed97c4f94db0fa94816c7e98f2e5fbc2fd17ad3f64f17d"
+        },
+        {
+          "id": "bridge_open_hook",
+          "score": 811.7447,
+          "delta": 91.30679999999995,
+          "valid": true,
+          "physicalFrames": 724932,
+          "trackHash": "9a7b5c7bb051d347b296cd73780832f7c7180f0985a719cf3a6d390ec10eaa9d"
+        },
+        {
+          "id": "bridge_dense_dialogue",
+          "score": 900.2327,
+          "delta": 14.466499999999996,
+          "valid": true,
+          "physicalFrames": 734856,
+          "trackHash": "13f7e428f609df29c3c93bd3ee48f67006540670ab46a801c790749f812b0f4f"
+        },
+        {
+          "id": "bridge_high_air_drive",
+          "score": 875.1931,
+          "delta": 27.080099999999902,
+          "valid": true,
+          "physicalFrames": 735928,
+          "trackHash": "adcff4d16c5a1633a94a8cd56eda1424eae9f3e8347789f39d87d9a5e64bdd55"
+        },
+        {
+          "id": "bridge_sparse_lowline",
+          "score": 924.5133,
+          "delta": 29.444099999999935,
+          "valid": true,
+          "physicalFrames": 742258,
+          "trackHash": "c21b09a664743f38a2aafca9f9853048f3c889293f935911dbb947592d512296"
+        },
+        {
+          "id": "bridge_frontier_pickup_progression",
+          "score": 917.605,
+          "delta": 40.87220000000002,
+          "valid": true,
+          "physicalFrames": 746090,
+          "trackHash": "b1a24968daa47037d4c7f1dd8d082ffde40e03bac15a1c495e3a897610d4d179"
+        },
+        {
+          "id": "bridge_frontier_dense_recovery",
+          "score": 871.799,
+          "delta": 43.968099999999936,
+          "valid": true,
+          "physicalFrames": 736332,
+          "trackHash": "cd203faca14bc2ba38444e951e3e1ceac4259571afe3ebac52ca38b7770df159"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance",
+          "score": 806.8991,
+          "delta": 29.810600000000022,
+          "valid": true,
+          "physicalFrames": 744466,
+          "trackHash": "7b28a8ab0e1fd5c8b2cc57055e0e4195e960fd2bdf779be25aedfc9f6e605f85"
+        },
+        {
+          "id": "bridge_regression_transition_mosaic",
+          "score": 909.4606,
+          "delta": 7.8817000000000235,
+          "valid": true,
+          "physicalFrames": 749268,
+          "trackHash": "0d12e60f3eca2f11fe3eda3f52fb64fbf5f3233cee3d77ccd9a54a816fd18cc2"
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "score": 731.4254,
+          "delta": 20.255199999999945,
+          "valid": true,
+          "physicalFrames": 739201,
+          "trackHash": "09acda7778c882d9249ab12da0cccb417af34e5171f815eee4fd4b770d932ddf"
+        },
+        {
+          "id": "bridge_believer_56_6s",
+          "score": 905.4473,
+          "delta": 24.919900000000098,
+          "valid": true,
+          "physicalFrames": 739395,
+          "trackHash": "8679025919d571eefe2bd2bf75199d002dfa1ef1b334b3e91d9ffd161f239690"
+        },
+        {
+          "id": "endurance_and_return",
+          "score": 802.1529,
+          "delta": -29.29519999999991,
+          "valid": true,
+          "physicalFrames": 740893,
+          "trackHash": "adabb9bf9e69287e3d42a539c28f696fcbd2761bb264332826e23730be53dd61"
+        },
+        {
+          "id": "music_amour_de_ma_vie_short_44s",
+          "score": 865.3359,
+          "delta": 77.47050000000002,
+          "valid": true,
+          "physicalFrames": 720234,
+          "trackHash": "ccd94d6b61675c1491f6ab13b7d674b1c686ed56a4f1d16e2771738c22076ac9"
+        },
+        {
+          "id": "terraced_skies",
+          "score": 862.7723,
+          "delta": 108.10559999999998,
+          "valid": true,
+          "physicalFrames": 748448,
+          "trackHash": "4ff49cb9bf034282d840657ee3eb55ea7f38999349cc95d265d22c674239e57c"
+        },
+        {
+          "id": "restrained_then_wide",
+          "score": 862.2577,
+          "delta": 121.82979999999998,
+          "valid": true,
+          "physicalFrames": 747656,
+          "trackHash": "e3e8e932377db619e7419fc0ad6fd694d542ab105934a3ecf07eb673c81269d1"
+        },
+        {
+          "id": "wide_arc_dialogue",
+          "score": 912.8972,
+          "delta": 143.55730000000005,
+          "valid": true,
+          "physicalFrames": 747497,
+          "trackHash": "097b9b038a8e43bf968b34c45966f9c9af71d221c7da50d459c1e0d924e020d7"
+        },
+        {
+          "id": "arches_at_new_tempos",
+          "score": 760.2689,
+          "delta": 6.6194000000000415,
+          "valid": true,
+          "physicalFrames": 741973,
+          "trackHash": "b3d5b9d89637d24214088c88e9a726cbab844b1ef0d8efd65bb6d3f5a36d20ab"
+        }
+      ],
+      "finalizationRecovery": null
+    },
+    {
+      "name": "pilot-916-joint",
+      "path": "generated/benchmark-v3/arc-900/pilot-916-joint/run.json.gz",
+      "sha256": "63e5ccc9c16995ab1f827fb87eafa99f06c27a3133624ac20cd52f74de500187",
+      "compiler": "89cbe621c71c81e281cc9d6c588dd17f3aa7d08dac52485cb0df5c480566c903",
+      "head": "29b9eaaf2c1dca9219ef683488291c8da0994da1",
+      "options": {
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/original-forest-916-examples.json",
+        "valueModelPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/value-916/model.json"
+      },
+      "modelSha256": "7d63bec1d9e0b9c23601b4c00acc0fceb8007014441f946ab243d806e6e0dffc",
+      "valueModelSha256": "90defaf746fa11a09dba0a7d6282c94ec0fae6ce62bf97b73fb1ef5dc8f70e9d",
+      "cases": 20,
+      "valid": 20,
+      "headline": null,
+      "strata": null,
+      "arithmeticMean": 873.5108950000001,
+      "improved": 19,
+      "regressed": 1,
+      "totalPhysicalFrames": 14778127,
+      "paired": [
+        {
+          "id": "bridge_river_reentry",
+          "score": 948.5877,
+          "delta": 37.40090000000009,
+          "valid": true,
+          "physicalFrames": 729636,
+          "trackHash": "98734bf2ebcb3efc86dac0c7783120b63c41a698bc0f615494ed1fe86dfe1864"
+        },
+        {
+          "id": "bridge_split_signal",
+          "score": 828.1667,
+          "delta": 28.29060000000004,
+          "valid": true,
+          "physicalFrames": 745131,
+          "trackHash": "3b669f1dbd2ae91fc61c4731481c15be13be72d07af973e68413f9c3e45c7733"
+        },
+        {
+          "id": "bridge_loose_pocket",
+          "score": 935.0878,
+          "delta": 42.87440000000004,
+          "valid": true,
+          "physicalFrames": 736214,
+          "trackHash": "9eee1d6de47787a293247f67beea900632b321e79685c0d83e4fd87bdcee1ba4"
+        },
+        {
+          "id": "bridge_rising_switch",
+          "score": 938.1624,
+          "delta": 37.85390000000007,
+          "valid": true,
+          "physicalFrames": 734581,
+          "trackHash": "c67f47e03898dd3f83773583d9b7bbcd9b33e48a41bbdd4d56f4213d125ccddb"
+        },
+        {
+          "id": "bridge_open_hook",
+          "score": 800.2975,
+          "delta": 79.8596,
+          "valid": true,
+          "physicalFrames": 720935,
+          "trackHash": "195450c70d26fcb0d89286a5d5e4c3c5e197fcd01c7d7f15774f3bcdd1f62a29"
+        },
+        {
+          "id": "bridge_dense_dialogue",
+          "score": 914.6498,
+          "delta": 28.8836,
+          "valid": true,
+          "physicalFrames": 741679,
+          "trackHash": "9638b025dfb9c3fa807cddd61e087e05e3d186850d285d06af6548786bcece89"
+        },
+        {
+          "id": "bridge_high_air_drive",
+          "score": 882.389,
+          "delta": 34.275999999999954,
+          "valid": true,
+          "physicalFrames": 731934,
+          "trackHash": "33429b7722a34ba06434a06fad15f73fe0ceb4f7f10bf3518b10ea06a77be4d8"
+        },
+        {
+          "id": "bridge_sparse_lowline",
+          "score": 926.8439,
+          "delta": 31.77469999999994,
+          "valid": true,
+          "physicalFrames": 743684,
+          "trackHash": "fbc06595d5887781828c8f22ed970718f0b891e700309b61f7cac6b940c1f471"
+        },
+        {
+          "id": "bridge_frontier_pickup_progression",
+          "score": 929.5985,
+          "delta": 52.86569999999995,
+          "valid": true,
+          "physicalFrames": 745515,
+          "trackHash": "0a44b0aa1063775e8adab040aba2ec63118df9320603be803a4c7c18fbad3cad"
+        },
+        {
+          "id": "bridge_frontier_dense_recovery",
+          "score": 900.588,
+          "delta": 72.75709999999992,
+          "valid": true,
+          "physicalFrames": 736246,
+          "trackHash": "85d4d02ad2508e617ec6865767591fad48f2a6059057e03f97f1a77d216ef598"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance",
+          "score": 803.9462,
+          "delta": 26.857700000000023,
+          "valid": true,
+          "physicalFrames": 749925,
+          "trackHash": "468ac68b4be865d8112aaad143a8e43218b31058525b4f4d2c5ad09c8f6b4b37"
+        },
+        {
+          "id": "bridge_regression_transition_mosaic",
+          "score": 938.9314,
+          "delta": 37.35250000000008,
+          "valid": true,
+          "physicalFrames": 749993,
+          "trackHash": "d5fb8d80d94c5dc7d0b703acacf0478ddc314996bb1132f90096eec1c64d6251"
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "score": 732.2728,
+          "delta": 21.10259999999994,
+          "valid": true,
+          "physicalFrames": 736118,
+          "trackHash": "f2f25bcf89eaefb8cc6e41b6187dacc7a2b71470aa105778af4a67fce45349d6"
+        },
+        {
+          "id": "bridge_believer_56_6s",
+          "score": 905.0322,
+          "delta": 24.504800000000046,
+          "valid": true,
+          "physicalFrames": 732379,
+          "trackHash": "771468562aa26f92c784f7172bf271ceabfa5577a6fddfcc637c77c12af8605a"
+        },
+        {
+          "id": "endurance_and_return",
+          "score": 851.1567,
+          "delta": 19.708600000000047,
+          "valid": true,
+          "physicalFrames": 745929,
+          "trackHash": "7aa1a54da25d779e1983bac44c2731b133831287ae00dd23c702733cefa1372b"
+        },
+        {
+          "id": "music_amour_de_ma_vie_short_44s",
+          "score": 866.8778,
+          "delta": 79.01239999999996,
+          "valid": true,
+          "physicalFrames": 718610,
+          "trackHash": "8f70f4d265adb466c0cbb39e170ec3a332795cc453ced6754c5ede469db6d232"
+        },
+        {
+          "id": "terraced_skies",
+          "score": 899.4174,
+          "delta": 144.75070000000005,
+          "valid": true,
+          "physicalFrames": 743163,
+          "trackHash": "be642e0188c12a1900dd4123669b2106dfeeb18f3e457c687b7b5703ea76b504"
+        },
+        {
+          "id": "restrained_then_wide",
+          "score": 719.6146,
+          "delta": -20.813300000000027,
+          "valid": true,
+          "physicalFrames": 746248,
+          "trackHash": "0dd34a3bda8b83992d84fba7684bab3416a822b0db4178b687863cc0c0040ac0"
+        },
+        {
+          "id": "wide_arc_dialogue",
+          "score": 907.997,
+          "delta": 138.6571,
+          "valid": true,
+          "physicalFrames": 744263,
+          "trackHash": "ce9a8ea5c598b3b6899a6610b28204ce71e70441e1209c2669ba41b522593c63"
+        },
+        {
+          "id": "arches_at_new_tempos",
+          "score": 840.6005,
+          "delta": 86.95100000000002,
+          "valid": true,
+          "physicalFrames": 745944,
+          "trackHash": "ea8c0630f3d420695508223e3c6efe1d42ea2edd9608be4557cd6c6b85006cf7"
+        }
+      ],
+      "finalizationRecovery": null
+    },
+    {
+      "name": "pilot-916-value",
+      "path": "generated/benchmark-v3/arc-900/pilot-916-value/run.json.gz",
+      "sha256": "115631a485be7b3368bd157352da236391fca1ab5a4d4589a572a57416ea65ab",
+      "compiler": "89cbe621c71c81e281cc9d6c588dd17f3aa7d08dac52485cb0df5c480566c903",
+      "head": "29b9eaaf2c1dca9219ef683488291c8da0994da1",
+      "options": {
+        "valueModelPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/value-916/model.json"
+      },
+      "modelSha256": null,
+      "valueModelSha256": "90defaf746fa11a09dba0a7d6282c94ec0fae6ce62bf97b73fb1ef5dc8f70e9d",
+      "cases": 20,
+      "valid": 20,
+      "headline": null,
+      "strata": null,
+      "arithmeticMean": 850.510635,
+      "improved": 18,
+      "regressed": 2,
+      "totalPhysicalFrames": 14770566,
+      "paired": [
+        {
+          "id": "bridge_river_reentry",
+          "score": 936.198,
+          "delta": 25.01120000000003,
+          "valid": true,
+          "physicalFrames": 734625,
+          "trackHash": "a8914cecb8325be3ea42c41508518f3b61ce4648baea9f33482d10da88eb1f18"
+        },
+        {
+          "id": "bridge_split_signal",
+          "score": 825.1983,
+          "delta": 25.322200000000066,
+          "valid": true,
+          "physicalFrames": 738521,
+          "trackHash": "eb918633942aa66e8f6acfdf862bb57162a6d3c52f69f445154c8e1b30d4be7b"
+        },
+        {
+          "id": "bridge_loose_pocket",
+          "score": 931.5272,
+          "delta": 39.313800000000015,
+          "valid": true,
+          "physicalFrames": 735288,
+          "trackHash": "233433350916ce00a20796dba1e7a696f3675f94c607b15fa53571f2282b9333"
+        },
+        {
+          "id": "bridge_rising_switch",
+          "score": 933.4185,
+          "delta": 33.110000000000014,
+          "valid": true,
+          "physicalFrames": 731580,
+          "trackHash": "c4fbd0d33c132676fffdbb2ae4a54d4fa70ef99f0c37630f36189786c6559def"
+        },
+        {
+          "id": "bridge_open_hook",
+          "score": 807.397,
+          "delta": 86.95910000000003,
+          "valid": true,
+          "physicalFrames": 712200,
+          "trackHash": "8a9318911974e666508d9cc9df35ce50dbb6731fba0d615398a981c4a20382e8"
+        },
+        {
+          "id": "bridge_dense_dialogue",
+          "score": 905.4316,
+          "delta": 19.665399999999977,
+          "valid": true,
+          "physicalFrames": 738723,
+          "trackHash": "cd5cdd70c998d388af53f6f2da32d9bf7976872c9e4c298fb6349e38d6e6b751"
+        },
+        {
+          "id": "bridge_high_air_drive",
+          "score": 883.9259,
+          "delta": 35.8128999999999,
+          "valid": true,
+          "physicalFrames": 734683,
+          "trackHash": "92620b0cdca78a3e2a4a966ddc51b8539aefba4c80967808719b4b27d967798c"
+        },
+        {
+          "id": "bridge_sparse_lowline",
+          "score": 930.9592,
+          "delta": 35.889999999999986,
+          "valid": true,
+          "physicalFrames": 742680,
+          "trackHash": "08734b08a2cb9a28e7db26007d2b792bf08cf7bc847c794c312eae1bff910f57"
+        },
+        {
+          "id": "bridge_frontier_pickup_progression",
+          "score": 923.7888,
+          "delta": 47.05600000000004,
+          "valid": true,
+          "physicalFrames": 746034,
+          "trackHash": "8b22eea9f194f3162fb0ea349fe2d5f607b5b6cd8e08118c3ffe09049e921b68"
+        },
+        {
+          "id": "bridge_frontier_dense_recovery",
+          "score": 892.3031,
+          "delta": 64.47219999999993,
+          "valid": true,
+          "physicalFrames": 738025,
+          "trackHash": "75f4ebd9ebfe9e19e30a0eaf3ada6add950ad221e7af34028bc0abf1ff7887fa"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance",
+          "score": 821.2815,
+          "delta": 44.1930000000001,
+          "valid": true,
+          "physicalFrames": 745620,
+          "trackHash": "c38cc4a30fbec4c7c8bdb2a4c09243eb0ff66fad4fe272f10db692ef2fdacea2"
+        },
+        {
+          "id": "bridge_regression_transition_mosaic",
+          "score": 941.2413,
+          "delta": 39.66240000000005,
+          "valid": true,
+          "physicalFrames": 749977,
+          "trackHash": "fcbc9390e9e11c1e532cff0483d8d9d8dd352b2545e68e492e665646b4b2d954"
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "score": 716.658,
+          "delta": 5.487799999999993,
+          "valid": true,
+          "physicalFrames": 741838,
+          "trackHash": "1fda0b19fab32ef7143e0449786f07335ae22a98e061a0fe30f24db5af2864f2"
+        },
+        {
+          "id": "bridge_believer_56_6s",
+          "score": 918.9514,
+          "delta": 38.42400000000009,
+          "valid": true,
+          "physicalFrames": 738925,
+          "trackHash": "cd7ef06b322fcd3ffad19be201198f328279f42e88748cbc04fa1a6149cf4fa6"
+        },
+        {
+          "id": "endurance_and_return",
+          "score": 899.3937,
+          "delta": 67.94560000000001,
+          "valid": true,
+          "physicalFrames": 743896,
+          "trackHash": "caba0da459e291fa403ea82ecc813b6549798607a9bd98208a29d99cf93c2884"
+        },
+        {
+          "id": "music_amour_de_ma_vie_short_44s",
+          "score": 852.615,
+          "delta": 64.74959999999999,
+          "valid": true,
+          "physicalFrames": 720929,
+          "trackHash": "e2fd42fb09966914b6d61359265078adc946da8dbf9afcaea8a3ac6ff49d04ab"
+        },
+        {
+          "id": "terraced_skies",
+          "score": 890.4796,
+          "delta": 135.8129,
+          "valid": true,
+          "physicalFrames": 744265,
+          "trackHash": "ba114af34bd71b4770069dbf17a0a4f8f242a4d4e1866d1e976e7af139b62ac2"
+        },
+        {
+          "id": "restrained_then_wide",
+          "score": 489.8018,
+          "delta": -250.6261,
+          "valid": true,
+          "physicalFrames": 745830,
+          "trackHash": "cd51300aa1a9da62d18607ee708c5e0b4669551a169f51d05cd752572604d806"
+        },
+        {
+          "id": "wide_arc_dialogue",
+          "score": 922.604,
+          "delta": 153.2641000000001,
+          "valid": true,
+          "physicalFrames": 743929,
+          "trackHash": "967e2786b8fab2de1500a56512e7ae4cfc1a6ed3ef262fe5ddb4b8eca5ae7fad"
+        },
+        {
+          "id": "arches_at_new_tempos",
+          "score": 587.0388,
+          "delta": -166.61069999999995,
+          "valid": true,
+          "physicalFrames": 742998,
+          "trackHash": "757135a4c819b26c71517781d9c8dd9fb89dac32923e68619ef2b4cbdca9ae95"
+        }
+      ],
+      "finalizationRecovery": null
+    },
+    {
       "name": "pilot-air-boundary",
       "path": "generated/benchmark-v3/arc-900/pilot-air-boundary/run.json.gz",
       "sha256": "de25575bfda4cdbab6597bef556c6e17a1845e354564ae73c4821e64c6d839c4",
@@ -11288,6 +12587,374 @@
       "finalizationRecovery": null
     },
     {
+      "name": "pilot-generations-906",
+      "path": "generated/benchmark-v3/arc-900/pilot-generations-906/run.json.gz",
+      "sha256": "9ecd981cade536a391fd770876e9d5bfb8b5c02dd5ffc4568026c93593d293bf",
+      "compiler": "8070bc7f82df3dd126560ff20703c51ca6d03df610a70d61730b17f23689d1e1",
+      "head": "29b9eaaf2c1dca9219ef683488291c8da0994da1",
+      "options": {
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/generations-916-906.json",
+        "valueModelPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/value-906/model.json"
+      },
+      "modelSha256": "297172e648d874b93de8716b18afaf94066b68d4c59f45cf11ecb3769a455019",
+      "valueModelSha256": "ad9a5977bbe2b6895050a4aa7b66cf027639381ac12542bd25d7c88298800746",
+      "cases": 20,
+      "valid": 20,
+      "headline": null,
+      "strata": null,
+      "arithmeticMean": 866.5397650000001,
+      "improved": 19,
+      "regressed": 1,
+      "totalPhysicalFrames": 14764887,
+      "paired": [
+        {
+          "id": "bridge_river_reentry",
+          "score": 949.1832,
+          "delta": 37.99640000000011,
+          "valid": true,
+          "physicalFrames": 730031,
+          "trackHash": "616d0db95efc6b49401ac540958cda7e4350f5009dae1246291ebd8e34eb9872"
+        },
+        {
+          "id": "bridge_split_signal",
+          "score": 806.0065,
+          "delta": 6.130400000000009,
+          "valid": true,
+          "physicalFrames": 740024,
+          "trackHash": "90fcd513c0b9d379caec039f9cf6af18ade4227b388600c459cc8737cabe2807"
+        },
+        {
+          "id": "bridge_loose_pocket",
+          "score": 944.3096,
+          "delta": 52.09620000000007,
+          "valid": true,
+          "physicalFrames": 734482,
+          "trackHash": "b6c9059dc10a3c2e95d1e730ba844021f6423711c7fc018e8e9b83a70b9876af"
+        },
+        {
+          "id": "bridge_rising_switch",
+          "score": 938.1139,
+          "delta": 37.80539999999996,
+          "valid": true,
+          "physicalFrames": 728074,
+          "trackHash": "436d9f909a93269a0f0409f093b6c9391cb440929678c434727f3e151fad945c"
+        },
+        {
+          "id": "bridge_open_hook",
+          "score": 811.8332,
+          "delta": 91.39530000000002,
+          "valid": true,
+          "physicalFrames": 719950,
+          "trackHash": "62fc2a42bfa7c1880ec4b2bb7392f3d041cfb703eabb123f6750a9c0c9c43fbb"
+        },
+        {
+          "id": "bridge_dense_dialogue",
+          "score": 905.7474,
+          "delta": 19.981199999999944,
+          "valid": true,
+          "physicalFrames": 735399,
+          "trackHash": "1de3a4561680a067580f59391dfa9f5b4f2e790fed705a3fe7aa237d3845d4dd"
+        },
+        {
+          "id": "bridge_high_air_drive",
+          "score": 852.3318,
+          "delta": 4.2187999999999874,
+          "valid": true,
+          "physicalFrames": 733669,
+          "trackHash": "3b59dc93f6ea52178a076cb52c3e54f040456d5cad8c2dfe3c5282ec87b25a22"
+        },
+        {
+          "id": "bridge_sparse_lowline",
+          "score": 932.1476,
+          "delta": 37.07839999999999,
+          "valid": true,
+          "physicalFrames": 747658,
+          "trackHash": "aff1954c4b646b170ecb4aacb935183c31617e6bc6a12520792b922cc55d95c5"
+        },
+        {
+          "id": "bridge_frontier_pickup_progression",
+          "score": 918.0936,
+          "delta": 41.36080000000004,
+          "valid": true,
+          "physicalFrames": 743323,
+          "trackHash": "54e7aca1d1fc1dcf8abe350205e9a0c78181027c3c9c9aebf5b82e05b3b0e3a1"
+        },
+        {
+          "id": "bridge_frontier_dense_recovery",
+          "score": 893.0236,
+          "delta": 65.19269999999995,
+          "valid": true,
+          "physicalFrames": 736802,
+          "trackHash": "ef5f4f1bafa33768179cba646a95343de42d4483c7045510935caa525f1927c6"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance",
+          "score": 841.0648,
+          "delta": 63.97630000000004,
+          "valid": true,
+          "physicalFrames": 747516,
+          "trackHash": "65cdc550188b6ad7915701df0da1dc6c853753599669211ae2b70ac7804ef8f0"
+        },
+        {
+          "id": "bridge_regression_transition_mosaic",
+          "score": 931.4734,
+          "delta": 29.894499999999994,
+          "valid": true,
+          "physicalFrames": 747931,
+          "trackHash": "e9b508d4792014512916a51894362ce9c6df59082ff8d4a599df09d1f97dac08"
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "score": 730.2554,
+          "delta": 19.085199999999986,
+          "valid": true,
+          "physicalFrames": 737120,
+          "trackHash": "fdc4533c13546100b4a9186618a53f8e7df39ca80e7feab310761264c64f29e0"
+        },
+        {
+          "id": "bridge_believer_56_6s",
+          "score": 915.814,
+          "delta": 35.28660000000002,
+          "valid": true,
+          "physicalFrames": 732830,
+          "trackHash": "af42468776ad2b95b80ba306cd074a722e362673c2270d13c03e8929a26130cd"
+        },
+        {
+          "id": "endurance_and_return",
+          "score": 842.41,
+          "delta": 10.961900000000014,
+          "valid": true,
+          "physicalFrames": 742198,
+          "trackHash": "ccb1626f5002dcb276ae95aee869ddab8bee771fa6ae0d08ef31d2c574dd2ea8"
+        },
+        {
+          "id": "music_amour_de_ma_vie_short_44s",
+          "score": 787.4208,
+          "delta": -0.44460000000003674,
+          "valid": true,
+          "physicalFrames": 719162,
+          "trackHash": "e9258d3660a39d856b5f900ace7f2afb7a87f934f96ad43063847f092aa70efe"
+        },
+        {
+          "id": "terraced_skies",
+          "score": 836.3708,
+          "delta": 81.70410000000004,
+          "valid": true,
+          "physicalFrames": 747928,
+          "trackHash": "e0d6a2f67ed00a51a11ad1dba59a70d81b94a9e6529502455f9794788d7160fd"
+        },
+        {
+          "id": "restrained_then_wide",
+          "score": 793.5139,
+          "delta": 53.08600000000001,
+          "valid": true,
+          "physicalFrames": 749890,
+          "trackHash": "a3006b4897b6d89e2a160c36b3830643d849c69c1703d286cd8c7ebad31d14ef"
+        },
+        {
+          "id": "wide_arc_dialogue",
+          "score": 898.8134,
+          "delta": 129.47350000000006,
+          "valid": true,
+          "physicalFrames": 745213,
+          "trackHash": "d5d848dc84138e242dcfe302a5db80b664557aa3d8606b805db670943d0e4e73"
+        },
+        {
+          "id": "arches_at_new_tempos",
+          "score": 802.8684,
+          "delta": 49.21889999999996,
+          "valid": true,
+          "physicalFrames": 745687,
+          "trackHash": "56905aa09b748380134d592d852fc30cd2271b210a706720760c48068fa06d2b"
+        }
+      ],
+      "finalizationRecovery": null
+    },
+    {
+      "name": "pilot-generations-916",
+      "path": "generated/benchmark-v3/arc-900/pilot-generations-916/run.json.gz",
+      "sha256": "9c1cd3c78794c98eef6d5c3ee4abe342f73039bb318ddc0a9d06970dc09ce076",
+      "compiler": "8070bc7f82df3dd126560ff20703c51ca6d03df610a70d61730b17f23689d1e1",
+      "head": "29b9eaaf2c1dca9219ef683488291c8da0994da1",
+      "options": {
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/generations-916-906.json",
+        "valueModelPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/value-916/model.json"
+      },
+      "modelSha256": "297172e648d874b93de8716b18afaf94066b68d4c59f45cf11ecb3769a455019",
+      "valueModelSha256": "90defaf746fa11a09dba0a7d6282c94ec0fae6ce62bf97b73fb1ef5dc8f70e9d",
+      "cases": 20,
+      "valid": 19,
+      "headline": null,
+      "strata": null,
+      "arithmeticMean": 821.20419,
+      "improved": 18,
+      "regressed": 2,
+      "totalPhysicalFrames": 14768504,
+      "paired": [
+        {
+          "id": "bridge_river_reentry",
+          "score": 949.938,
+          "delta": 38.75120000000004,
+          "valid": true,
+          "physicalFrames": 729764,
+          "trackHash": "737399cf328217462e90a6473a9b67f9b1b196583c90c94214684a36113b588a"
+        },
+        {
+          "id": "bridge_split_signal",
+          "score": 826.408,
+          "delta": 26.531900000000064,
+          "valid": true,
+          "physicalFrames": 740162,
+          "trackHash": "ce95812b0bdf72ccbe39b17f0fd47e8ca919dde85baeed698826c092454281f9"
+        },
+        {
+          "id": "bridge_loose_pocket",
+          "score": 940.922,
+          "delta": 48.70860000000005,
+          "valid": true,
+          "physicalFrames": 735877,
+          "trackHash": "cc3ebebe00e8682af1d541b48838dfae61a3292aed8c96693e88529af0073cbe"
+        },
+        {
+          "id": "bridge_rising_switch",
+          "score": 934.7258,
+          "delta": 34.41730000000007,
+          "valid": true,
+          "physicalFrames": 731163,
+          "trackHash": "89bd2723c6ab0af1fa835f2d788c3cc7bda17f12f04b5fe567639b779b42502e"
+        },
+        {
+          "id": "bridge_open_hook",
+          "score": 814.8398,
+          "delta": 94.40189999999996,
+          "valid": true,
+          "physicalFrames": 717063,
+          "trackHash": "1744d0569ca336d8d37c1a6f1285f779ce666e929a8424561de7e5370d6387bf"
+        },
+        {
+          "id": "bridge_dense_dialogue",
+          "score": 918.3588,
+          "delta": 32.59259999999995,
+          "valid": true,
+          "physicalFrames": 737981,
+          "trackHash": "94f3b3d62f6b9a89f836f48ea3994f660ea09f9a002645585ee38166c98a91d1"
+        },
+        {
+          "id": "bridge_high_air_drive",
+          "score": 888.6151,
+          "delta": 40.50209999999993,
+          "valid": true,
+          "physicalFrames": 732597,
+          "trackHash": "e3c354851ef134ddce500490e158907cc9f302592aa44c5ec4c96bc4a0bfb0b9"
+        },
+        {
+          "id": "bridge_sparse_lowline",
+          "score": 939.5175,
+          "delta": 44.44830000000002,
+          "valid": true,
+          "physicalFrames": 740878,
+          "trackHash": "11197b767cc3259cb57e627e91f83c92e174363d1b5b708ce52b8767f65e5415"
+        },
+        {
+          "id": "bridge_frontier_pickup_progression",
+          "score": 931.3723,
+          "delta": 54.6395,
+          "valid": true,
+          "physicalFrames": 744760,
+          "trackHash": "b59909e3933c56d103c8043d6d2512317e53618c764e636821f1d83e150284b9"
+        },
+        {
+          "id": "bridge_frontier_dense_recovery",
+          "score": 888.514,
+          "delta": 60.68309999999997,
+          "valid": true,
+          "physicalFrames": 737535,
+          "trackHash": "ebebdb8f74ad1c98157b0abb5a65219e94ceb15aeca73b3dcd5670009a7ab8da"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance",
+          "score": 789.6914,
+          "delta": 12.60290000000009,
+          "valid": true,
+          "physicalFrames": 749879,
+          "trackHash": "62ada45a852b1c833d4d3aec68702894ba15f662e75fe5860a19ab10a24e2863"
+        },
+        {
+          "id": "bridge_regression_transition_mosaic",
+          "score": 0,
+          "delta": -901.5789,
+          "valid": false,
+          "physicalFrames": 749998,
+          "trackHash": "87c2c5498ebb0bcd1d64ee4656fafbd5f5a1c247a30b309020c9fa8ba2ff3523"
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "score": 737.2522,
+          "delta": 26.081999999999994,
+          "valid": true,
+          "physicalFrames": 737611,
+          "trackHash": "47edf4b5f80b35f484565948ef90f9d08033b9d1d2aee3059615b80f344a0f9d"
+        },
+        {
+          "id": "bridge_believer_56_6s",
+          "score": 911.6098,
+          "delta": 31.082400000000007,
+          "valid": true,
+          "physicalFrames": 731264,
+          "trackHash": "d5135a7c72e80261c61d4a9557ee94187778a5bcc171e69b0fdc1ba15defa273"
+        },
+        {
+          "id": "endurance_and_return",
+          "score": 851.8966,
+          "delta": 20.44850000000008,
+          "valid": true,
+          "physicalFrames": 740733,
+          "trackHash": "b8c2e37ce29e65113c24f03eb6d04e69cdcc1ca0df51dab1b058e0f145706d66"
+        },
+        {
+          "id": "music_amour_de_ma_vie_short_44s",
+          "score": 872.6686,
+          "delta": 84.80319999999995,
+          "valid": true,
+          "physicalFrames": 721004,
+          "trackHash": "1fe3704aace8e31f401efeca836cfd8e874e8326286b5bf9d0aca772521d223b"
+        },
+        {
+          "id": "terraced_skies",
+          "score": 753.5072,
+          "delta": -1.15949999999998,
+          "valid": true,
+          "physicalFrames": 747575,
+          "trackHash": "9abf8f28fa3455977c207b444c2997c92f4e62f32105ecbf905f04a04c273efa"
+        },
+        {
+          "id": "restrained_then_wide",
+          "score": 792.8133,
+          "delta": 52.385400000000004,
+          "valid": true,
+          "physicalFrames": 749798,
+          "trackHash": "1d6fecb2ba87caaf576cf8fde2db475a95f86edcaa9de17cc6c05ed1ec12b1c7"
+        },
+        {
+          "id": "wide_arc_dialogue",
+          "score": 833.5618,
+          "delta": 64.2219,
+          "valid": true,
+          "physicalFrames": 749845,
+          "trackHash": "474d61e05ea4cc4c2f0df05407dcdbcf71f95aeb372a523a550329249d417fe8"
+        },
+        {
+          "id": "arches_at_new_tempos",
+          "score": 847.8716,
+          "delta": 94.22209999999995,
+          "valid": true,
+          "physicalFrames": 743017,
+          "trackHash": "76b7e37873a681171eebcb63a1debe7b678144806e91de11bd80529a2c0ea33a"
+        }
+      ],
+      "finalizationRecovery": null
+    },
+    {
       "name": "pilot-guidance-remainders",
       "path": "generated/benchmark-v3/arc-900/pilot-guidance-remainders/run.json.gz",
       "sha256": "e0383639659ce7bacf55c383df6fbf0064fa8e36c94056c9cef0117455c94371",
@@ -12144,6 +13811,189 @@
           "valid": true,
           "physicalFrames": 747552,
           "trackHash": "aecbb91c58e6f1d90d7334d0f7a62efab27e68e959eb380e34b04dad5a4cc156"
+        }
+      ],
+      "finalizationRecovery": null
+    },
+    {
+      "name": "pilot-observed-value",
+      "path": "generated/benchmark-v3/arc-900/pilot-observed-value/run.json.gz",
+      "sha256": "2b7d476d289f2d193f271b82d15695fb24e93ec8a7b46e6be7a212397cef6756",
+      "compiler": "89cbe621c71c81e281cc9d6c588dd17f3aa7d08dac52485cb0df5c480566c903",
+      "head": "29b9eaaf2c1dca9219ef683488291c8da0994da1",
+      "options": {
+        "valueModelPath": "/home/wyss/line/generated/benchmark-v3/arc-900/models/observed-value/model.json"
+      },
+      "modelSha256": null,
+      "valueModelSha256": "20ac00519258b4e22a4317db66f19e5b693e3be6f5f67390d66b876503f977c7",
+      "cases": 20,
+      "valid": 20,
+      "headline": null,
+      "strata": null,
+      "arithmeticMean": 841.4908600000001,
+      "improved": 13,
+      "regressed": 7,
+      "totalPhysicalFrames": 14752563,
+      "paired": [
+        {
+          "id": "bridge_river_reentry",
+          "score": 938.5605,
+          "delta": 27.3737000000001,
+          "valid": true,
+          "physicalFrames": 734147,
+          "trackHash": "fea73ee1e4b53085a79be6a8f20627dcc3f774ab106401169d61fdefa2c1fb4f"
+        },
+        {
+          "id": "bridge_split_signal",
+          "score": 814.2512,
+          "delta": 14.375100000000089,
+          "valid": true,
+          "physicalFrames": 735971,
+          "trackHash": "22f44e5ca3c1ad7b6e094ffa157c1e73dfbac147fdd16192fe1e934c999bf001"
+        },
+        {
+          "id": "bridge_loose_pocket",
+          "score": 903.171,
+          "delta": 10.95760000000007,
+          "valid": true,
+          "physicalFrames": 734268,
+          "trackHash": "ddd7e28c694f164ad6d94993a5a0aae355f56fb434f1dd2759099204ad989067"
+        },
+        {
+          "id": "bridge_rising_switch",
+          "score": 930.0792,
+          "delta": 29.770700000000033,
+          "valid": true,
+          "physicalFrames": 730646,
+          "trackHash": "f74ce646fd220479e77716115c2e5a1e16edf2267c02724889ff4c4d42957a43"
+        },
+        {
+          "id": "bridge_open_hook",
+          "score": 584.0064,
+          "delta": -136.43150000000003,
+          "valid": true,
+          "physicalFrames": 720677,
+          "trackHash": "53eccd81ca32b679e74695301116c853c24a718c4e5295ae50338f7d2f6a899b"
+        },
+        {
+          "id": "bridge_dense_dialogue",
+          "score": 881.26,
+          "delta": -4.506200000000035,
+          "valid": true,
+          "physicalFrames": 736478,
+          "trackHash": "603ecb5952a11a141c6dbafb62ebcf7ba973cfd76207f77f048ca8bc3876c9dd"
+        },
+        {
+          "id": "bridge_high_air_drive",
+          "score": 783.1657,
+          "delta": -64.94730000000004,
+          "valid": true,
+          "physicalFrames": 722077,
+          "trackHash": "d3c9c07ddfedb1e1dab8061015629eba05ab449723e75ac959958124b67d2bd8"
+        },
+        {
+          "id": "bridge_sparse_lowline",
+          "score": 935.5375,
+          "delta": 40.4683,
+          "valid": true,
+          "physicalFrames": 746368,
+          "trackHash": "3da2e27dd85563607a7e3dde6152b0e3975c567ce38e7596032eef67a0f046e7"
+        },
+        {
+          "id": "bridge_frontier_pickup_progression",
+          "score": 905.3528,
+          "delta": 28.620000000000005,
+          "valid": true,
+          "physicalFrames": 744479,
+          "trackHash": "e54d865fe7d3d615054027e31f1695c7124c02b9a69165abe389717008afc5d3"
+        },
+        {
+          "id": "bridge_frontier_dense_recovery",
+          "score": 849.9438,
+          "delta": 22.112899999999968,
+          "valid": true,
+          "physicalFrames": 737109,
+          "trackHash": "e5f7840ccb993a0a1634f6228f81f6f49e1979ff73f198e2b5d62685e7c3688e"
+        },
+        {
+          "id": "bridge_frontier_low_air_endurance",
+          "score": 851.5359,
+          "delta": 74.44740000000002,
+          "valid": true,
+          "physicalFrames": 745203,
+          "trackHash": "33c77e529ba54485fe1646d5df7485b81f6bd6f1350713ebafaf34ef73e50ecd"
+        },
+        {
+          "id": "bridge_regression_transition_mosaic",
+          "score": 884.562,
+          "delta": -17.016899999999964,
+          "valid": true,
+          "physicalFrames": 749691,
+          "trackHash": "85de69cc276d351b0c1cc91635bcd03c52b8de3a73a3270c855677e4df26819b"
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "score": 706.0365,
+          "delta": -5.133699999999976,
+          "valid": true,
+          "physicalFrames": 744624,
+          "trackHash": "0fc193bccf4645d578164bc52747978dcee18722664e9f07bc12c5651e76dc1b"
+        },
+        {
+          "id": "bridge_believer_56_6s",
+          "score": 862.7448,
+          "delta": -17.78259999999989,
+          "valid": true,
+          "physicalFrames": 732990,
+          "trackHash": "e1f14c7a5c776fcb82318a90610ad08df1d7e6f4915c4a44dc80b5f41131ab0d"
+        },
+        {
+          "id": "endurance_and_return",
+          "score": 800.643,
+          "delta": -30.805099999999925,
+          "valid": true,
+          "physicalFrames": 737696,
+          "trackHash": "af155056bddc8388a2c6818cec34777b6447a36392e65d93c30517976f021a00"
+        },
+        {
+          "id": "music_amour_de_ma_vie_short_44s",
+          "score": 811.2573,
+          "delta": 23.391899999999964,
+          "valid": true,
+          "physicalFrames": 720735,
+          "trackHash": "f4fa1aa3ef9061e14513fc7bca4e2f81208ec494ab4a302046b980707a5e7ad7"
+        },
+        {
+          "id": "terraced_skies",
+          "score": 831.3336,
+          "delta": 76.66690000000006,
+          "valid": true,
+          "physicalFrames": 734614,
+          "trackHash": "68a69d3d13992e33206abe1d5c13ad00c74448e15e444c2afb09bbd219707ac3"
+        },
+        {
+          "id": "restrained_then_wide",
+          "score": 886.052,
+          "delta": 145.6241,
+          "valid": true,
+          "physicalFrames": 749869,
+          "trackHash": "2ea402494b1879e4fba8e99d522a429a15878eda8585656927b00f0ccf659e5a"
+        },
+        {
+          "id": "wide_arc_dialogue",
+          "score": 884.2059,
+          "delta": 114.8660000000001,
+          "valid": true,
+          "physicalFrames": 748239,
+          "trackHash": "3a5183272a7a1c6ab4bbafc0cc153925232213fb8aa420bd3d4d9204d305e421"
+        },
+        {
+          "id": "arches_at_new_tempos",
+          "score": 786.1181,
+          "delta": 32.46860000000004,
+          "valid": true,
+          "physicalFrames": 746682,
+          "trackHash": "91d7a2bc485838e0e45aabfd470fe9ef8c5db771f274637effe07c89b66456ba"
         }
       ],
       "finalizationRecovery": null

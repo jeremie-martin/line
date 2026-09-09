@@ -258,5 +258,306 @@
     "controlModelSha256": "da05080f3792506bbe5293b0035f39ec0dda34f2f4b7b901f8e287de7ecc89ae",
     "valueModelSha256": "145e7c7ea2a7b59f4b48bc370d676b0c31bb08cd1cbcaac20b3db4e3621bd128",
     "note": "Canonical public-entry-point confirmation pending. The value model metadata clarifies terminal priors; numerical predictions match the original research artifact."
+  },
+  "secondTeacher": {
+    "path": "generated/benchmark-v3/arc-900-teachers/joint-3m/run.json.gz",
+    "sha256": "ae63c6f873898026f14637572d2db0003cfbbc48ed8a79f675433d543cd5efc6",
+    "headline": 916.1196,
+    "valid": 88,
+    "budget": 3000000,
+    "seed": 16,
+    "compiler": {
+      "head": "77e5fba88a25dcd91b522ccfee0f5d8d411c97ca",
+      "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+      "compilerSourceFingerprint": "2bdfc303a459e25b5012da9e3ba4206af75452946940bca3ada8bca8616bc77d",
+      "compilerSourceFiles": [
+        "engine-rs/.gitignore",
+        "engine-rs/Cargo.lock",
+        "engine-rs/Cargo.toml",
+        "engine-rs/README.md",
+        "engine-rs/src/abi.rs",
+        "engine-rs/src/engine.rs",
+        "engine-rs/src/frame.rs",
+        "engine-rs/src/grid.rs",
+        "engine-rs/src/kernel.rs",
+        "engine-rs/src/lib.rs",
+        "engine-rs/src/line.rs",
+        "package-lock.json",
+        "package.json",
+        "scripts/lib/_lr_engine.ts",
+        "scripts/lib/_lr_engine_record.ts",
+        "scripts/lib/_lr_engine_wasm.ts",
+        "scripts/lib/adapt.ts",
+        "scripts/lib/arc.ts",
+        "scripts/lib/arcLines.ts",
+        "scripts/lib/beam_prune.ts",
+        "scripts/lib/beam_search.ts",
+        "scripts/lib/detector.ts",
+        "scripts/lib/export.ts",
+        "scripts/lib/metrics.ts",
+        "scripts/lib/moves.ts",
+        "scripts/lib/native_motion/Cargo.lock",
+        "scripts/lib/native_motion/Cargo.toml",
+        "scripts/lib/native_motion/README.md",
+        "scripts/lib/native_motion/engine.ts",
+        "scripts/lib/native_motion/engine.wasm",
+        "scripts/lib/native_motion/manifest.json",
+        "scripts/lib/native_motion/manifest.json.sha256",
+        "scripts/lib/native_motion/src/abi.rs",
+        "scripts/lib/native_motion/src/engine.rs",
+        "scripts/lib/native_motion/src/frame.rs",
+        "scripts/lib/native_motion/src/grid.rs",
+        "scripts/lib/native_motion/src/kernel.rs",
+        "scripts/lib/native_motion/src/lib.rs",
+        "scripts/lib/native_motion/src/line.rs",
+        "scripts/lib/precise_landings.ts",
+        "scripts/lib/primitive.ts",
+        "scripts/lib/primitive_search.ts",
+        "scripts/lib/ride.ts",
+        "scripts/lib/rng.ts",
+        "scripts/lib/rotation.ts",
+        "scripts/lib/route.ts",
+        "scripts/lib/search.ts",
+        "scripts/lib/tune.ts",
+        "scripts/lib/update_types.ts",
+        "scripts/v0/arc.ts",
+        "scripts/v0/arc_placement.ts",
+        "scripts/v0/core/ballistic_launch.ts",
+        "scripts/v0/core/ballistic_micro_sim.ts",
+        "scripts/v0/core/ballistic_projection.ts",
+        "scripts/v0/core/ballistic_trace.ts",
+        "scripts/v0/core/beats.ts",
+        "scripts/v0/core/camera.ts",
+        "scripts/v0/core/candidate.ts",
+        "scripts/v0/core/compile_lifecycle.ts",
+        "scripts/v0/core/curves.ts",
+        "scripts/v0/core/exit_read.ts",
+        "scripts/v0/core/measure.ts",
+        "scripts/v0/core/polish.ts",
+        "scripts/v0/core/substrate.ts",
+        "scripts/v0/core/support_geometry.ts",
+        "scripts/v0/core/trace.ts",
+        "scripts/v0/optimizer/README.md",
+        "scripts/v0/optimizer/aim.ts",
+        "scripts/v0/optimizer/aim_impact_model.json",
+        "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+        "scripts/v0/optimizer/air_policy.ts",
+        "scripts/v0/optimizer/arc_actuator.ts",
+        "scripts/v0/optimizer/arc_boundary.ts",
+        "scripts/v0/optimizer/arc_control.ts",
+        "scripts/v0/optimizer/arc_control_policy.ts",
+        "scripts/v0/optimizer/arc_control_policy_model.json",
+        "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+        "scripts/v0/optimizer/arc_engine.ts",
+        "scripts/v0/optimizer/arc_geometry.ts",
+        "scripts/v0/optimizer/arc_guidance.ts",
+        "scripts/v0/optimizer/arc_memory.ts",
+        "scripts/v0/optimizer/arc_model.ts",
+        "scripts/v0/optimizer/arc_motion.ts",
+        "scripts/v0/optimizer/arc_probe.ts",
+        "scripts/v0/optimizer/arc_proposal.ts",
+        "scripts/v0/optimizer/arc_refinement.ts",
+        "scripts/v0/optimizer/arc_response.ts",
+        "scripts/v0/optimizer/arc_value.ts",
+        "scripts/v0/optimizer/arc_value_model.json",
+        "scripts/v0/optimizer/arc_vector_model.ts",
+        "scripts/v0/optimizer/budget_estimator.ts",
+        "scripts/v0/optimizer/budget_estimator_model.json",
+        "scripts/v0/optimizer/budget_model.ts",
+        "scripts/v0/optimizer/budget_telemetry.ts",
+        "scripts/v0/optimizer/compiler_input.ts",
+        "scripts/v0/optimizer/connected_arcs.ts",
+        "scripts/v0/optimizer/contact_phase.ts",
+        "scripts/v0/optimizer/contact_transition.ts",
+        "scripts/v0/optimizer/deadline.ts",
+        "scripts/v0/optimizer/handoff.ts",
+        "scripts/v0/optimizer/impact_policy.ts",
+        "scripts/v0/optimizer/impact_response_model.ts",
+        "scripts/v0/optimizer/kinematic_support.ts",
+        "scripts/v0/optimizer/legacy_handoff.ts",
+        "scripts/v0/optimizer/native_motion.ts",
+        "scripts/v0/optimizer/native_motion_schedule.ts",
+        "scripts/v0/optimizer/native_pointwise_energy.ts",
+        "scripts/v0/optimizer/node.ts",
+        "scripts/v0/optimizer/normal_motion.ts",
+        "scripts/v0/optimizer/normal_pointwise_projection.ts",
+        "scripts/v0/optimizer/objective.ts",
+        "scripts/v0/optimizer/objective_control.ts",
+        "scripts/v0/optimizer/polish.ts",
+        "scripts/v0/optimizer/readiness.ts",
+        "scripts/v0/optimizer/readiness_base_features.ts",
+        "scripts/v0/optimizer/readiness_features.ts",
+        "scripts/v0/optimizer/readiness_model.json",
+        "scripts/v0/optimizer/readiness_model_artifact.ts",
+        "scripts/v0/optimizer/readiness_scoring.ts",
+        "scripts/v0/optimizer/register.ts",
+        "scripts/v0/optimizer/repair_branch_bound.ts",
+        "scripts/v0/optimizer/sample.ts",
+        "scripts/v0/optimizer/selective_backtracking.ts",
+        "scripts/v0/optimizer/sim_frames.ts",
+        "scripts/v0/optimizer/solver.ts",
+        "scripts/v0/optimizer/types.ts",
+        "scripts/v0/score.ts",
+        "scripts/v0/trajectory/curve_resolution.ts",
+        "scripts/v0/trajectory/native_catch_history.ts",
+        "scripts/v0/trajectory/precontact_multicontact_history.ts",
+        "scripts/v0/types.ts",
+        "tsconfig.json"
+      ],
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "be0030ad4448405875cf1cc279e7deda19b4399aff62b9aa14a46d88fa9800c3"
+    },
+    "controlModelSha256": "da05080f3792506bbe5293b0035f39ec0dda34f2f4b7b901f8e287de7ecc89ae",
+    "valueModelSha256": "ad9a5977bbe2b6895050a4aa7b66cf027639381ac12542bd25d7c88298800746",
+    "totalPhysicalFrames": 229480343,
+    "note": "Further research teacher; does not meet the 750k goal."
+  },
+  "secondValue": {
+    "path": "generated/benchmark-v3/arc-900/models/value-916/validation.json",
+    "sha256": "64ee09f612c05cc2a67ce30e1e10962088cd51e811af98fb22ade829b9bb513b",
+    "rows": 37126,
+    "folds": [
+      {
+        "fold": 0,
+        "heldGroups": [
+          "high_air_energy",
+          "legacy_transition_regression",
+          "spacious_amplitude"
+        ],
+        "train": 29722,
+        "test": 7404,
+        "mae": 0.013438834386130553
+      },
+      {
+        "fold": 1,
+        "heldGroups": [
+          "amor_na_praia",
+          "amour_de_ma_vie",
+          "dense_recovery_frontier",
+          "irregular_microtimed",
+          "shelter",
+          "tiki_tiki"
+        ],
+        "train": 29719,
+        "test": 7407,
+        "mae": 0.02311267667072157
+      },
+      {
+        "fold": 2,
+        "heldGroups": [
+          "cadence_transition",
+          "legacy_amplitude_regression",
+          "rapid_pickup_frontier"
+        ],
+        "train": 29671,
+        "test": 7455,
+        "mae": 0.02205763040998485
+      },
+      {
+        "fold": 3,
+        "heldGroups": [
+          "believer",
+          "low_air_frontier",
+          "luna_bala",
+          "subdivision_pickup"
+        ],
+        "train": 29687,
+        "test": 7439,
+        "mae": 0.014568189028894217
+      },
+      {
+        "fold": 4,
+        "heldGroups": [
+          "dense_musical",
+          "regular_exceptions",
+          "sparse_transition"
+        ],
+        "train": 29705,
+        "test": 7421,
+        "mae": 0.012177244482418179
+      }
+    ],
+    "runtimeParity": {
+      "fixtures": 32,
+      "maximumAbsoluteError": 0
+    }
+  },
+  "observedValue": {
+    "path": "generated/benchmark-v3/arc-900/models/observed-value/validation.json",
+    "sha256": "a962e578d779b23faf593c7f4de67156c581fc0b0e0c1be537314be08e394d71",
+    "rows": 15690,
+    "folds": [
+      {
+        "fold": 0,
+        "heldGroups": [
+          "high_air_energy",
+          "legacy_transition_regression",
+          "spacious_amplitude"
+        ],
+        "train": 12599,
+        "test": 3091,
+        "mae": 0.0034694363349035574
+      },
+      {
+        "fold": 1,
+        "heldGroups": [
+          "amor_na_praia",
+          "amour_de_ma_vie",
+          "luna_bala",
+          "rapid_pickup_frontier",
+          "shelter",
+          "subdivision_pickup"
+        ],
+        "train": 12518,
+        "test": 3172,
+        "mae": 0.004183178480309997
+      },
+      {
+        "fold": 2,
+        "heldGroups": [
+          "believer",
+          "irregular_microtimed",
+          "low_air_frontier",
+          "tiki_tiki"
+        ],
+        "train": 12559,
+        "test": 3131,
+        "mae": 0.0034638669204713358
+      },
+      {
+        "fold": 3,
+        "heldGroups": [
+          "cadence_transition",
+          "dense_musical",
+          "sparse_transition"
+        ],
+        "train": 12525,
+        "test": 3165,
+        "mae": 0.002911261713157435
+      },
+      {
+        "fold": 4,
+        "heldGroups": [
+          "dense_recovery_frontier",
+          "legacy_amplitude_regression",
+          "regular_exceptions"
+        ],
+        "train": 12559,
+        "test": 3131,
+        "mae": 0.007228023352684209
+      }
+    ],
+    "runtimeParity": {
+      "fixtures": 32,
+      "maximumAbsoluteError": 0
+    },
+    "replayedArrivals": {
+      "path": "generated/benchmark-v3/arc-900/observed-value-replay.json",
+      "sha256": "337f127d9574d2c7abee82ac440969365817170af637e444f70740af2eb2a774",
+      "total": 15690,
+      "maximum": 0
+    }
   }
 }

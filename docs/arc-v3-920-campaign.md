@@ -1,7 +1,17 @@
 # Arc V3 above-920 campaign
 
-Active target: **strictly above 920** on the frozen full V3 benchmark, starting
-from **910.5248**, compiler `f0ca9434`. All 176 baseline runs pass within 750k
+Achieved: **922.6418**, strictly above 920 on the frozen full V3 benchmark,
+up **12.1170** from **910.5248**. All **176/176** canonical runs pass through the
+public compiler at `93201349`, with exact track, score and frame parity against
+the selected research panel. Separate jitter passes 88/88 distinct tracks;
+47 focused tests pass. Code and compact evidence are preserved on
+`codex/arc-v3-920` and `archive/arc-v3-922`; large raw artifacts remain local.
+See [canonical validation](../benchmark/v3/studies/arc-920-validation.json),
+[paired research](../benchmark/v3/studies/arc-920-research.json),
+[teacher/model provenance](../benchmark/v3/studies/arc-920-transfer.json), and
+[jitter validation](../benchmark/v3/studies/arc-920-jitter.json).
+
+The starting compiler was `f0ca9434`. All 176 baseline runs pass within 750k
 actual compiler physics frames. The owner approved the new Luna video's visual
 alignment before opening this campaign. Preserve its coherent normal-arc style.
 
@@ -136,6 +146,39 @@ Selected model SHA-256:
 It occupies 34,920,171 bytes. This is a headline improvement within the fixed
 physics allowance; no reduction in wall-clock inference cost is claimed.
 
-The model is integrated into the public compiler. Full canonical two-seed
-confirmation, final focused tests and separate jitter checks must finish before
-the goal is marked achieved.
+The model is integrated into the public compiler. Final confirmation follows.
+
+## Canonical confirmation and limits
+
+The clean committed compiler produces **922.6418** on all 88 specifications ×
+seeds 16/17. All 176 runs are valid; the two deterministic seeds reproduce 88
+distinct tracks. Every track hash, score and actual compiler-frame count exactly
+matches the selected seed-16 research panel. Total physical work is 130,216,528
+frames, with a maximum of **749,997** per run. All geometry uses normal type-0
+lines with no single-segment components. All 132 recorded compiler-file hashes
+match the working tree; the complete frozen judge and suite fingerprints match
+the 910 baseline.
+
+**67 specifications improve and 21 regress.** The largest gains are
+`arches_at_new_tempos` (+155.6385), `interleaved_recovery` (+128.0978) and
+`rest_and_return` (+114.0416). The largest regressions are
+`bridge_dense_dialogue_impact_contrast_10` (-20.9966), `bridge_open_hook`
+(-20.6045) and `terraced_skies` (-14.6198). Luna improves from 915.1728 to
+925.3341. The complete paired results retain every regression; individual
+perfection is not an additional qualification gate.
+
+Separate 2% target jitter on the reused V2 development catalog passes **88/88
+distinct tracks** (44 specifications × seeds 211/212), at a maximum of 749,998
+frames. This is a diagnostic, not a V3 headline or independent-family test.
+The campaign models use exposed development data; neither the two deterministic
+canonical seeds nor the jitter checks establish independent generalization.
+The substantial normal-arc primitive is retained, but the owner has not reviewed
+a new 922 video. No wall-clock speedup is claimed.
+
+All **47 tests across 16 files** pass, covering independent policy predictions
+and residual units, turn geometry, complete ending-loss algebra, continuation
+guidance, teacher replay, hard budget accounting, canonical contracts and arc
+integrity. Repository type checking still reports the same 251 inherited
+diagnostics, with none in changed files. It is not a passing repository-wide
+type check. No benchmark, scorer, target, detector, physics or allowance changes
+were required. The above-920 campaign is complete.

@@ -55,7 +55,8 @@ for path in sorted((root / 'models').glob('*.json')):
                         proposalWeights=model.get('proposalWeights'), provenance=model.get('provenance'),
                         componentSchemas=[m['schema'] for m in model['models']]))
 parity = []
-for path in [root / 'model-parity.json', root / 'residual-parity.json']:
+for path in [root / 'model-parity.json', root / 'residual-parity.json',
+             root / 'residual-reproduction-check.json']:
     if path.exists():
         value, digest = checked(path)
         parity.append(dict(path=str(path), sha256=digest, checks=value))

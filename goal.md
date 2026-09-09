@@ -1,22 +1,30 @@
-# Active campaign: above 920 on frozen Benchmark V3
+# Achieved campaign: 922.6418 on frozen Benchmark V3
 
-Target: **strictly above 920**, starting from canonical **910.5248** at
-`f0ca9434`. Work branch: `codex/arc-v3-920`; the starting point remains preserved
-on `archive/arc-v3-910`. The owner reviewed the new Luna vertical video and
-confirmed that its visual results remain aligned with the desired style.
+The **strictly-above-920 target is achieved** at **922.6418**, up **12.1170**
+from canonical 910.5248. All **176/176** canonical runs pass: 88 specifications
+× seeds 16/17, reproducing 88 distinct deterministic tracks. Every track, score
+and physics-frame count exactly matches the selected research panel. The maximum
+is 749,997 frames within the unchanged 750,000-frame allowance.
 
-Keep the complete frozen V3 panel: 88 specifications × seeds 16/17, at 750,000
-actual compiler physics frames per run. Benchmark inputs, scorer, aggregation,
-detector, physics and accounting remain unchanged. Preserve substantial coherent
-normal type-0 arcs; no acceleration lines or point constellations. Compiler
-geometry, planning, learning and resource allocation remain open to research.
+Validated compiler: `93201349`. Work branch: `codex/arc-v3-920`;
+preservation: `archive/arc-v3-922`. The 910 starting point remains preserved on
+`archive/arc-v3-910`. Separate 2% target-jitter stress passes **88/88 distinct
+tracks** on the reused V2 development catalog. All **47 focused tests** pass.
+Sixty-seven specifications improve and 21 regress; the full frozen headline
+governs, and all paired changes and 32 complete research panels are preserved.
 
-Diagnose remaining losses, test general improvements empirically, preserve
-adverse results, and confirm the final compiler through the public canonical
-entry point. The full headline governs; disclose regressions and robustness
-without adding perfection gates. Research compute is unrestricted. Commit and
-push code and compact evidence; keep large/raw artifacts local. See the
-[campaign ledger](docs/arc-v3-920-campaign.md).
+The compiler learns corrections to existing arc proposals from independently
+validated teacher controls and keeps the inherited turn timing representable
+during long-arc refinement. It retains substantial coherent normal type-0 arcs,
+without acceleration lines or point constellations. Benchmark inputs, scorer,
+aggregation, detector, physics and accounting remain unchanged. These are
+development-trained results, with no independent generalization or new owner
+audiovisual approval claimed.
+
+Code and compact evidence are committed and pushed; large/raw artifacts stay
+local. See [canonical evidence](benchmark/v3/studies/arc-920-validation.json),
+[stress evidence](benchmark/v3/studies/arc-920-jitter.json), and the
+[campaign ledger](docs/arc-v3-920-campaign.md). This campaign is complete.
 
 # Achieved campaign: 910.5248 on frozen Benchmark V3
 

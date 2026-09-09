@@ -9324,6 +9324,24 @@
           "maximumEncodedDifference": 2.220446049250313e-16
         }
       ]
+    },
+    {
+      "path": "generated/benchmark-v3/arc-920/residual-reproduction-check.json",
+      "sha256": "2cc466e4be8e895e20d2a63c7e2b3e8c19377adfe69014f61b87051864516cc2",
+      "checks": [
+        {
+          "reference": "generated/benchmark-v3/arc-920/policy-data-teacher-residual/data.json",
+          "reproduction": "generated/benchmark-v3/arc-920/residual-reproduction/data.json",
+          "sha256": "593da7e7957da0333c9a17990350b44ea51a11393ee25c1271125631c0a4fdce",
+          "exact": true
+        },
+        {
+          "reference": "generated/benchmark-v3/arc-920/models/forest-teacher-residual/model.json",
+          "reproduction": "generated/benchmark-v3/arc-920/residual-reproduction/forest/model.json",
+          "sha256": "07f80648493748a996d953f8324a1bfae37968b3d1e4f0b6063d664517cee125",
+          "exact": true
+        }
+      ]
     }
   ]
 }

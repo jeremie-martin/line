@@ -13,7 +13,7 @@ local. See [V4 design](benchmark/v4/README.md).
 The corrected V4 freeze is `98936eeb`. Its complete baseline is **915.6860**,
 with **352/352 valid runs** and exact reproduction of the **930.1556** V3 subset.
 The real drop is **14.4696** points; recover at least 75% by reaching **926.5382**.
-The best completed 750k research panel so far is **919.0800**, all 176 cases
+The best completed 750k research panel so far is **921.5679**, all 176 cases
 valid; it is not yet a canonical promotion. Further compiler work remains active.
 
 The initial freeze `a1837655` and its 900.0351 result are superseded by a proven

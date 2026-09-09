@@ -78,6 +78,10 @@ promotion; the recovery target remains 926.5382.
 | Time-weighted local objective | 912.2860 |
 | New initial-proposal forest, existing measured examples | 914.5635 |
 | New measured examples and supervised retrieval, existing mean predictor | 919.0800 |
+| New mean predictor and new measured examples together | 919.9843 |
+| Learned corrections to the existing mean, with new measured examples | **921.5679** |
+| New continuation-value predictor alone | 913.6620 |
+| Learned mean corrections plus the new value predictor | 920.7629 |
 
 The 3M-frame teacher reaches 926.7191 over all 176 cases, with maximum work
 2,915,481 frames. This larger allowance cannot qualify for the public goal.
@@ -107,6 +111,25 @@ finds the radius bound active in 51 of 770 accepted arcs, including 14 of the
 27 impact errors above 0.1. This motivates testing modestly tighter curvature,
 without changing the connected normal-arc primitive. The audit is correlational;
 only physical compilation can establish whether the change helps.
+
+The complete selective-curvature prototype scores **900.9156**, with 175/176
+valid cases. One track exhausts its budget before the last catch; among all cases,
+50 improve and 57 regress relative to 921.5679. Its initial small-panel gains
+therefore do not justify promotion. Global tighter-radius pilots and larger catch
+offsets are also mixed. Soft offset penalties help some strong impacts but do not
+resolve the tradeoff on the diagnostic panel. These are rejected executions,
+not evidence that expressive geometry has no further potential. Their exact
+patches and paired changes are preserved in the research summary.
+
+The best completed result recovers 40.6501% of the real baseline drop; another
+4.9703 points are needed. A new 3M teacher query evaluates improved controls at
+the exact 921.5679 student arrival states, while forcibly reproducing its original
+completed tracks. Its replay headline describes that student, not a new teacher
+rollout. Each proposed teacher control must subsequently pass an independent
+physical replay at the same prefix and input features. A separate free-running
+3M teacher tests stronger complete trajectories. Further 750k studies test
+transferring those controls and shifting effort from initial search to joint
+refinement. Higher teacher allowances remain outside qualification.
 
 Research starts with an exact-reproduction check of the independent study harness,
 then compares time-weighted optimization and construction allocation on a declared

@@ -77,6 +77,11 @@ for(const c of cases.filter(c=>plan.sources.includes(c.id))){
   if(provenance.length%8===0)console.log(JSON.stringify({sources:provenance.length,rows:rows.length}));
 }
 mkdirSync(out,{recursive:true});const data={schema:'line.arc-control-policy-data.v1',featureSchema:ARC_POLICY_SCHEMA,
+  suite,scriptSha256:sha(readFileSync(import.meta.filename)),
+  catalogSha256:sha(readFileSync(`benchmark/${suite}/specifications.json.gz`)),
+  geometrySha256:sha(readFileSync('scripts/v0/optimizer/arc_geometry.ts')),
+  featureSourceSha256:sha(readFileSync('scripts/v0/optimizer/arc_control_policy.ts')),
+  arrivalSourceSha256:sha(readFileSync('scripts/v0/optimizer/arc_value.ts')),
   note:'Exposed development training. Counterfactual expert controls are queried at the declared student prefixes and independently replay-validated. Runtime features contain physical state and next authored targets only. The replayed headline measures the fixed student track, not an expert rollout.',
   teacherPlanSha256:sha(readFileSync(root+'/plan.json')),provenance,rows};
 const b=JSON.stringify(data)+'\n';writeFileSync(out+'/data.json',b);writeFileSync(out+'/data.json.sha256',sha(b)+'\n');

@@ -1,18 +1,27 @@
-# Active campaign: 910 on frozen Benchmark V3
+# Achieved campaign: 910.5248 on frozen Benchmark V3
 
-Target: **at least 910**, starting from the canonical **901.0923** compiler at
-`fe7616c8`, preserved with evidence at `da45da00` on `archive/arc-v3-901`.
-Use all 88 specifications × seeds 16/17 at 750,000 actual compiler physics
-frames per run. The V3 catalog, scorer, aggregation, targets, detector, physics
-and accounting remain fixed. Preserve substantial coherent normal type-0
-arcs; no acceleration lines or point constellations.
+The **910 target is achieved** at **910.5248**, up **9.4325** from 901.0923.
+All **176/176** canonical runs pass: 88 specifications × seeds 16/17, reproducing
+88 distinct deterministic tracks. Every run stays within 750,000 actual compiler
+physics frames; the maximum is 749,929.
 
-Investigate remaining losses and search efficiency, test promising mechanisms
-and learned proposals in controlled studies, retain adverse evidence, and
-confirm the final candidate through the public canonical compiler. Headline
-performance governs; report regressions and robustness honestly. Code and
-compact evidence are committed and pushed; large/raw artifacts stay local.
-Work branch: `codex/arc-v3-910`. See [campaign ledger](docs/arc-v3-910-campaign.md).
+Validated compiler: `f0ca9434`. Work branch: `codex/arc-v3-910`;
+preservation: `archive/arc-v3-910`. Separate 2% target-jitter stress passes
+**88/88 distinct tracks** on the reused V2 development catalog. All **34 focused
+tests** pass. Seventy specifications improve and 18 regress; the overall frozen
+headline governs the campaign, and individual regressions remain documented.
+
+The V3 benchmark, targets, scorer, aggregation, detector, physics and frame
+allowance remain unchanged. The compiler retains substantial coherent normal
+type-0 arcs, without acceleration lines or point constellations. This is not
+new owner audiovisual approval. Code and compact evidence are committed and
+pushed; large/raw artifacts stay local. A separately collected, independently
+validated student-prefix teacher dataset is retained for future research; it
+was not used to obtain this result.
+
+See [canonical evidence](benchmark/v3/studies/arc-910-validation.json),
+[stress evidence](benchmark/v3/studies/arc-910-jitter.json), and the
+[campaign ledger](docs/arc-v3-910-campaign.md). This campaign is complete.
 
 # Achieved campaign: 901.0923 on frozen Benchmark V3
 

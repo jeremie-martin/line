@@ -1,11 +1,17 @@
 {
   "schema": "line.arc-v3-910-research.v1",
-  "status": "in-progress",
+  "status": "complete",
   "target": 910,
   "baseline": {
     "path": "benchmark/v3/runs/arc-901.json.gz",
     "sha256": "84c156c9c090d259bc034952abcc9cf5ef4abe2b7dd63824b3070f8ed3751cf6",
     "headline": 901.0923
+  },
+  "canonical": {
+    "path": "benchmark/v3/studies/arc-910-validation.json",
+    "sha256": "8e2440a44c1cc86d77296bb6a7bf41f69fbc181b3e084b2ca84f0328d1abbf8a",
+    "headline": 910.5248,
+    "compilerCommit": "f0ca943475ada2b8656a4bfe372a487f734b7cd6"
   },
   "note": "Exposed development research. Partial pilots have no headline. Full single-seed results require canonical confirmation on seeds 16/17 through the public compiler. Failed runs retain zero scores.",
   "studies": [

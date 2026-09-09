@@ -41,8 +41,16 @@ for path in sorted(Path('generated/benchmark-v3/arc-910').glob('*/run.json.gz'))
                         arithmeticMeanDelta=sum(r['delta'] for r in paired)/len(paired),
                         improved=sum(r['delta']>0 for r in paired),regressed=sum(r['delta']<0 for r in paired),
                         physicalFrames=sum(r['physicalFrames'] for r in paired),paired=paired))
-record = dict(schema='line.arc-v3-910-research.v1',status='in-progress',target=910,
+canonical_path=Path('benchmark/v3/studies/arc-910-validation.json')
+canonical=None
+if canonical_path.exists():
+    validation,digest=read(canonical_path)
+    assert validation['goal']==910 and validation['targetReached']
+    canonical=dict(path=str(canonical_path),sha256=digest,headline=validation['summary']['headline'],
+                   compilerCommit=validation['compilerCommit'])
+record = dict(schema='line.arc-v3-910-research.v1',status='complete' if canonical else 'in-progress',target=910,
               baseline=dict(path=str(baseline_path),sha256=baseline_sha,headline=901.0923),
+              canonical=canonical,
               note='Exposed development research. Partial pilots have no headline. Full single-seed results require canonical confirmation on seeds 16/17 through the public compiler. Failed runs retain zero scores.',
               studies=studies)
 out=Path('benchmark/v3/studies/arc-910-research.json')

@@ -1,5 +1,9 @@
 # Arc V3 910 campaign
 
+**Completed at 910.5248**, up 9.4325 from 901.0923. All 176 canonical runs
+pass and exactly reproduce the research tracks, scores and physics-frame counts.
+[Final validation](../benchmark/v3/studies/arc-910-validation.json)
+
 Target: at least **910** on frozen V3 at 750k actual compiler physics frames.
 Starting compiler: `fe7616c8`, canonical **901.0923**, 176/176 valid runs over
 88 specifications × seeds 16/17. Preservation: `archive/arc-v3-901`.
@@ -87,3 +91,41 @@ Canonical public-entry-point confirmation and separate target-jitter checks are
 required before marking this campaign achieved. The targeted TypeScript check
 still reports 251 inherited diagnostics, with none in changed compiler or
 research TypeScript files.
+
+The gain is uneven. In the full research comparison, the representative stratum
+rises 15.3959 and development music rises 5.2883, while capability declines
+5.8573 and legacy regression declines 7.3047. The largest case drops are
+`arches_at_new_tempos` (-151.7222), `interleaved_recovery` (-129.7423), and
+`rest_and_return` (-98.6096). All remain physically valid. These regressions are
+retained explicitly; the predeclared overall headline governs this campaign.
+
+## Final canonical confirmation
+
+The public compiler at `f0ca9434` confirms **910.5248**, all
+**176/176** runs valid over the complete 88-specification × seed-16/17 panel.
+These reproduce 88 distinct deterministic tracks. Every track, score and actual
+frame count matches the complete research candidate. Total compiler work is
+130,315,500 frames; the maximum per run is 749,929.
+All 132 identified compiler files match the validated checkout exactly.
+
+All geometry is normal, with zero isolated single-segment components. The
+shortest endpoint-connected component is 15.596375 units.
+The established coherent arc primitive is unchanged; no new audiovisual review
+is claimed. The frozen suite fingerprint matches both the original published
+baseline and the preceding 901 compiler.
+
+Separate 2% target jitter with seeds 211/212 passes **88/88 distinct tracks**
+on the reused 44-case V2 development catalog. Its maximum work is
+749,984 frames and its total is 64,903,950. This diagnostic
+is separate from the V3 headline and does not establish independent-family
+generalization. [Stress evidence](../benchmark/v3/studies/arc-910-jitter.json)
+
+Thirty-four focused tests across 12 files pass. Type checking retains 251
+inherited diagnostics and none in changed files. The student-prefix teacher
+experiment finishes with all 88 replay tracks exactly matching the 901 source
+tracks; all 8,069 alternative arcs are independently revalidated, producing
+7,981 non-startup training examples. These remain unused research data.
+
+The goal is complete. Code and compact evidence are pushed and preserved on
+`archive/arc-v3-910`; full tracks, unselected models, teacher data and large
+archives remain local.

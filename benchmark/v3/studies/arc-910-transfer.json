@@ -1,6 +1,6 @@
 {
   "schema": "line.arc-v3-910-transfer.v1",
-  "status": "candidate-awaiting-canonical",
+  "status": "complete",
   "note": "Exposed development training. Offline grouped prediction checks are not live compiler scores or independent end-to-end generalization evidence.",
   "forests": [
     {
@@ -1700,7 +1700,13 @@
     "examplesDataSha256": "8e3ef673287c43babc902168878e21156957e2e0cc6cd7f7def547e36934d389",
     "valueGuidanceWeight": 0.25,
     "researchHeadline": 910.5248,
-    "note": "This candidate predates and does not use the student-prefix teacher data."
+    "note": "This candidate predates and does not use the student-prefix teacher data.",
+    "canonical": {
+      "path": "benchmark/v3/studies/arc-910-validation.json",
+      "sha256": "8e2440a44c1cc86d77296bb6a7bf41f69fbc181b3e084b2ca84f0328d1abbf8a",
+      "headline": 910.5248,
+      "compilerCommit": "f0ca943475ada2b8656a4bfe372a487f734b7cd6"
+    }
   },
   "studentPrefixTeacher": {
     "planPath": "generated/benchmark-v3/arc-910-teachers/replay-901-3m/plan.json",

@@ -1,0 +1,162 @@
+{
+  "schema": "line.arc-production-video-evidence.v1",
+  "researchOnly": true,
+  "song": "luna_bala_44s",
+  "compiler": {
+    "canonicalCommit": "f0ca943475ada2b8656a4bfe372a487f734b7cd6",
+    "renderCommit": "f2a88b73d6102255908a435411e67330205cf558",
+    "sourceSha256": "955eb9fd84c42862e669371df91669587034004d8fdc78e5cf609b5ce6692055",
+    "canonicalFilesVerified": 132,
+    "validation": {
+      "path": "benchmark/v3/studies/arc-910-validation.json",
+      "sha256": "8e2440a44c1cc86d77296bb6a7bf41f69fbc181b3e084b2ca84f0328d1abbf8a"
+    },
+    "implementation": {
+      "scripts/v0/optimizer/arc_motion.ts": "daf24c19dd5a6652db1c15eebf46c9857c571ceae1d44951835018b762cb0aed",
+      "scripts/v0/optimizer/arc_geometry.ts": "351792686d7c8370f64c2b2aaa6db4209c4b3d1c8af95d1497ef4c859f8ad8f4",
+      "scripts/v0/optimizer/arc_boundary.ts": "488fe4766fc37f55d0ebad90ab72d013c8fa8af6ff3faec5fec5b96f2881d395",
+      "scripts/v0/optimizer/arc_memory.ts": "fe109bcc8a3f779190b563dd161ae8d02ce36c271c69f3afd65260a9e8c742da",
+      "scripts/v0/optimizer/arc_control_policy.ts": "c0af7a0b9bb5aff586397601eb1848af49c4f538df2eef214c71eeec339dbc68",
+      "scripts/v0/optimizer/arc_control_policy_model.json": "9c692c771a58210bd8f20a7dbbe00accbe5acd22baf21f329af27051309c4cbe",
+      "scripts/v0/optimizer/arc_guidance.ts": "ef5c0018db71c9dc465cd1dd96c6211beb3a6f04027f33cc7a9f5c46930da9cd",
+      "scripts/v0/optimizer/arc_refinement.ts": "e266897fa071717cb915f1c72531483073c42c0b9725d785e751a755fdecbe16",
+      "scripts/v0/optimizer/arc_response.ts": "4a6eee1810a3ad96315b7c0236f36bb1131fafd5535e2d8125d84b3dce44af2c",
+      "scripts/v0/optimizer/arc_value.ts": "36ebca439e9b6a46a060de3b98cd274e3be1508435f1bcecf30bb44060f55d36",
+      "scripts/v0/optimizer/arc_value_model.json": "90defaf746fa11a09dba0a7d6282c94ec0fae6ce62bf97b73fb1ef5dc8f70e9d",
+      "scripts/v0/optimizer/connected_arcs.ts": "eda2a7fbad963d18e4634df63ffa76bbc2f30039a18890a3b12cf484d791bc12",
+      "scripts/produce/arc_review.ts": "b9f03e1ec665705377e9c7d27c298833f50eff918fc2ab70b330638840cb24ec"
+    }
+  },
+  "settings": {
+    "compiler": "public",
+    "engine": "wasm",
+    "budget": 1000000,
+    "seed": 260908011,
+    "joltMs": -15,
+    "jitterPct": 0,
+    "render": {
+      "res": "1080x1920",
+      "zoomMult": 1.8,
+      "beatPunchPct": 70
+    },
+    "remotionConcurrency": 4,
+    "intermediateQP": 14,
+    "finalCRF": 16
+  },
+  "productionInputs": {
+    "audio.json": {
+      "path": "archives/arc-v3-910/luna_bala_44s/production-inputs/audio.json",
+      "sha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5"
+    },
+    "audio.mp3": {
+      "path": "archives/arc-v3-910/luna_bala_44s/production-inputs/audio.mp3",
+      "sha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce"
+    },
+    "select.json": {
+      "path": "archives/arc-v3-910/luna_bala_44s/production-inputs/select.json",
+      "sha256": "68756fc9b50a48c53df265123dc3bc64ee92e1412f3e4115100070f32b8409d4"
+    },
+    "spec.ts": {
+      "path": "archives/arc-v3-910/luna_bala_44s/production-inputs/spec.ts",
+      "sha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265"
+    },
+    "spectrogram.json": {
+      "path": "archives/arc-v3-910/luna_bala_44s/production-inputs/spectrogram.json",
+      "sha256": "e570f9f15dfab805adb86ee4e4ae5fc162688d1191e49a78fa08580b105552c1"
+    },
+    "spectrogram.png": {
+      "path": "archives/arc-v3-910/luna_bala_44s/production-inputs/spectrogram.png",
+      "sha256": "f94313ed5859234d558f90c307e5b25a0f78ebc2d782d07654f322587bd2c115"
+    }
+  },
+  "metrics": {
+    "scope": "Production specification; not the canonical V3 headline",
+    "actualPhysicsFrames": 927177,
+    "seed": 260908011,
+    "score": 905.3429268881207,
+    "standTimePct": 0,
+    "rotations": 6.212653891549759,
+    "flipCount": 1,
+    "reachedEnd": true,
+    "offBeat": 0,
+    "contractPassed": true,
+    "durationFrames": 1780
+  },
+  "geometry": {
+    "allNormal": true,
+    "lines": 3592,
+    "components": 127,
+    "singleSegmentComponents": 0,
+    "shortestComponent": 24.056461871300638,
+    "intervalGroups": 76,
+    "singleCurveGroups": 25,
+    "pairedCurveGroups": 51
+  },
+  "video": {
+    "path": "archives/arc-v3-910/luna_bala_44s/video.mp4",
+    "sha256": "b9d4b758df32d2767cc3731e2c89b37c4c2b24d1a6714bdeb205da800489d180",
+    "bytes": 13288604,
+    "width": 1080,
+    "height": 1920,
+    "fps": "60/1",
+    "videoDurationSeconds": 44.5,
+    "containerDurationSeconds": 44.544,
+    "frames": 2670,
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "audioChannels": 2,
+    "audioSampleRate": 48000
+  },
+  "checks": {
+    "decodedWithoutErrors": true,
+    "audio": {
+      "nonSilent": true,
+      "meanDb": -7.4,
+      "maxDb": 0.0,
+      "log": {
+        "path": "archives/arc-v3-910/luna_bala_44s/audio-check.log",
+        "sha256": "56f81f1a5f20a90f0d9cb0506dc75e3d912eb77789304577aa0151f829da3c20"
+      }
+    },
+    "inspectedFrames": [
+      {
+        "seconds": 8.7,
+        "path": "archives/arc-v3-910/luna_bala_44s/frame-drop.png",
+        "sha256": "a9cfa5d9d364d25a0f9bde1ac7d5341be70cfb14311f2239b0d3b84d3c190428"
+      },
+      {
+        "seconds": 12,
+        "path": "archives/arc-v3-910/luna_bala_44s/frame-12.png",
+        "sha256": "7809bea4e290488b22103ed3ee1b0a0be28d095d49e214a2b579d863076fb0a7"
+      },
+      {
+        "seconds": 30,
+        "path": "archives/arc-v3-910/luna_bala_44s/frame-30.png",
+        "sha256": "7172a7bb3592ed7045ca1fbfd3d6b7d7c3ed1571ec72a329912aadf0b03df1df"
+      }
+    ],
+    "visualReviewScope": "Sampled final frames show coherent arcs, rider, spectrum and effects. Full motion aesthetics require owner review.",
+    "ownerApproval": false,
+    "creativeSelectionPassed": false,
+    "creativeSelectionReason": "Standing time is 0%, below the current production selection floor of 4%; this is a requested review render."
+  },
+  "preservation": {
+    "largeFiles": "Local only",
+    "review": {
+      "path": "archives/arc-v3-910/luna_bala_44s/review.json",
+      "sha256": "57897ce19635eb732ef8e4f8186ecc98c43eabaa7c5eb3c2574819c4a45d9f16"
+    },
+    "rendererHashes": {
+      "path": "archives/arc-v3-910/luna_bala_44s/renderer-hashes.json",
+      "sha256": "7d986ffa35c28fb9c690270d983686d5799eb9d4f77acac332f7cf8cfee15b62"
+    },
+    "gallery": {
+      "path": "archives/arc-v3-910/index.html",
+      "sha256": "d35626c2926aed0f34569ba415b4337cc26fc7d4dc69a02b7202452461e0a2af"
+    },
+    "previousVideo": {
+      "path": "archives/arc-850-852/luna_bala_44s/video.mp4",
+      "sha256": "cdb32ba4f4d5ea49676f29ceade4bb47ef8e12e0aac9dd05cfecb6d9ce77dae4"
+    }
+  }
+}

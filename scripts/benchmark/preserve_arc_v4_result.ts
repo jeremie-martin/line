@@ -15,7 +15,7 @@ const write=(path:string,value:unknown)=>{
   if(existsSync(path))assert.deepEqual(read(path),value,'refusing to replace different preserved evidence');
   else{writeFileSync(path,bytes);writeFileSync(path+'.sha256',sha(bytes)+'\n');}
 };
-const path=arg('canonical')!,name=arg('name')!,isBaseline=name==='baseline-930';assert.match(name,/^[a-z0-9-]+$/);
+const path=arg('canonical')!,name=arg('name')!,isBaseline=arg('baseline')==='true'||name==='baseline-930';assert.match(name,/^[a-z0-9-]+$/);
 const run=read(path),cases=loadCases(),original=loadV3(),originalIds=new Set(original.map(c=>c.id));
 assert.equal(run.plan.profile,'canonical');assert.equal(run.plan.compiler.dirty,'');
 assert.equal(run.plan.suiteFingerprint,sha(JSON.stringify(verifyFrozen())));

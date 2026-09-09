@@ -2,15 +2,15 @@
   "schema": "line.benchmark-v4.freeze.v1",
   "status": "frozen-before-baseline-evaluation",
   "judge": {
-    "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+    "inputSha256": "aafb8651d50e0bffc7e0122b5132348f4708b8f3df0e257a530e242ee1ccb0be",
     "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
     "files": {
       "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
       "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
       "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
       "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
-      "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
-      "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+      "benchmark/v4/catalog.lock.json": "362e89d45145ad26c0beb7da6febad165cf664f3cad2035a90e8fd89dd8c99fe",
+      "benchmark/v4/specifications.json.gz": "4c1b23debe464c9d7750701135bce1b1f2d1870108de3c02c51dc95e8f81680a",
       "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
       "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
       "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
@@ -26,6 +26,6 @@
       "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
     }
   },
-  "suiteFingerprint": "4acd7513aed8b03e1265fe7b07d4bd14c6e4f6fd93c5a4a38fd706b86270597d",
-  "staticAuditSha256": "6f57e796e6422a9a2d54803217b26f57c3df84e3b138d14c1dbf69e199ee6639"
+  "suiteFingerprint": "555e8a110aec983d119979426b5ec208cc0e6996f73036b0af49c5de0de61325",
+  "staticAuditSha256": "477e5550f252a87d7021e165c8fa4fba6e5b54f2be9e28df340d8322bd1512df"
 }

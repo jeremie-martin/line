@@ -6,15 +6,18 @@ import {loadCases as loadV3} from '../../benchmark/v3/model.ts';
 import {policy} from '../../benchmark/v4/policy.ts';
 import {policy as oldPolicy} from '../../benchmark/v3/policy.ts';
 import {validateSpec,effectiveAxes} from '../v0/core/substrate.ts';
+import {persistentContactTiming} from './persistent_contact_timing.ts';
 const cases=loadCases(),old=loadV3(),lock=JSON.parse(readFileSync('benchmark/v4/catalog.lock.json','utf8'));
 assert.equal(cases.length,176);assert.deepEqual(cases.slice(0,88),old);
 assert.equal(lock.authoringSourceSha256,sha(readFileSync('scripts/benchmark/v4_author.ts')));
 assert.equal(lock.policySha256,sha(readFileSync('benchmark/v4/policy.ts')));
+assert.equal(lock.timingConstraintSourceSha256,sha(readFileSync('scripts/benchmark/persistent_contact_timing.ts')));
 for(const key of ['budget','seeds','axisWeights','tolerance','spanWeight','impactWeight','includeTail','material','strata','aggregation'] as const)
   assert.deepEqual(policy[key],oldPolicy[key],key);
 let maximumTargetDiscrepancy=0,intervals=0;
 const rows=cases.map(c=>{
   const spec=caseSpec(c),gaps=caseGaps(c);validateSpec(spec);
+  const timing=persistentContactTiming(c.contacts.map(x=>x.frame));assert.ok(timing,c.id+': no persistent-contact timing witness');
   assert.equal(c.air.length,gaps.length);assert.ok(c.contacts[0].frame>=6);
   assert.ok(c.contacts.at(-1)!.frame<c.durationFrames);
   assert.ok(c.phases.every(p=>p.start>=0&&p.end>=p.start&&p.end<=c.durationFrames/40+1e-9));
@@ -35,7 +38,7 @@ const rows=cases.map(c=>{
     if(!g.endsWithContact)assert.equal(frozen.impact,undefined);
   }
   return {id:c.id,parentId:c.parentId,group:c.group,stratum:c.stratum,durationSeconds:c.durationFrames/40,
-    contacts:c.contacts.length,minimumContactGap:Math.min(...gaps.filter(g=>g.endsWithContact).map(g=>(g.endFrame-g.startFrame)/40)),
+    contacts:c.contacts.length,persistentContactTimingWitness:timing,minimumContactGap:Math.min(...gaps.filter(g=>g.endsWithContact).map(g=>(g.endFrame-g.startFrame)/40)),
     maximumContactGap:Math.max(...gaps.filter(g=>g.endsWithContact).map(g=>(g.endFrame-g.startFrame)/40)),
     endingSeconds:(c.durationFrames-c.contacts.at(-1)!.frame)/40,
     targetHash:sha(JSON.stringify({contacts:c.contacts,samples:c.samples,air:c.air.map(a=>a.target),duration:c.durationFrames})),
@@ -49,6 +52,7 @@ for(const source of old){
 const result={schema:'line.benchmark-v4.static-audit.v1',compilerOutcomesConsulted:false,cases:176,unchangedV3Cases:88,
   exactOriginalCaseObjects:true,oneCompanionPerOriginal:true,aggregationParents:new Set(cases.map(c=>c.parentId)).size,
   unchangedScoringAndBudget:true,distinctInputs:176,intervals,maximumTargetDiscrepancy,
+  necessaryPersistentTimingFeasible:true,
   inputSha256:lock.specificationsSha256,rows,
   limits:['Necessary discrete-air/sample conditions do not prove joint physical feasibility.',
     'The 88 companions are related development programs, not 88 independent musical works.',

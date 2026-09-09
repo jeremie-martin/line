@@ -480,10 +480,17 @@
   ],
   "unfinished": [
     {
+      "category": "recovery",
+      "name": "full-time-loss",
+      "planSha256": "78bafe7dad0e9a611fcdc51f1a5e2dc472ee672339a1fefc6dd83d906e019d3e",
+      "completedCells": 36,
+      "total": 176
+    },
+    {
       "category": "recovery-teachers",
       "name": "baseline-3m",
       "planSha256": "41fe089a2bb9aa4f195e985d7254e394663f006b4792b8c32db92178e4bdac11",
-      "completedCells": 34,
+      "completedCells": 72,
       "total": 176
     }
   ]

@@ -1,0 +1,24 @@
+{
+  "reason": "An independent necessary timing check found three consecutive 8-frame gaps, which cannot each have 3 persistent contact frames plus 6 airborne frames within the +/-1-frame authored tolerance.",
+  "case": "stretch_bridge_frontier_dense_recovery",
+  "authoredFrames": [
+    1371,
+    1379,
+    1387,
+    1395
+  ],
+  "requiredSpan": 27,
+  "availableSpanWithTolerance": 26,
+  "supersededFreezeCommit": "a1837655",
+  "baselineHeadline": 900.0351,
+  "status": "Superseded benchmark draft; not the final V4 baseline. All completed results and incomplete study plans retained.",
+  "repairRule": "Minimum total authored timestamp movement, bounded to one frame per contact, preserving contact count, event class, requested target-generation rules and all original V3 cases. Determined from detector timing constraints, without optimizing a compiler score.",
+  "actualRepair": {
+    "contactIndex": 67,
+    "beforeFrame": 1371,
+    "afterFrame": 1370,
+    "changedCases": 1,
+    "unchangedCases": 175,
+    "durationAndContactCountPreserved": true
+  }
+}

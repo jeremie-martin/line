@@ -31,6 +31,17 @@ target adaptation. These conditions are not a proof that all requested axes are
 jointly attainable. No cases will be edited or removed to manufacture a score
 drop or to improve an optimizer result.
 
+An initial draft exposed one authoring error: three consecutive eight-frame gaps
+cannot fit persistent landings under the unchanged detector and timing tolerance.
+That draft and its 900.0351 result remain in `provisional/` and the original run
+archive. A minimum-movement timing repair changes one contact by one frame in
+one companion, preserving all V3 cases, note counts, ride durations and requested
+target-generation rules. The corrected catalog passes a whole-sequence necessary
+timing check and is frozen again before its baseline. This correction was prompted
+by the failed run; its choice follows detector constraints, not score optimization.
+See [the erratum](provisional/erratum.json). The 75% recovery target is calculated
+from the corrected baseline, not the superseded draft.
+
 The initial compiler is the preserved V3 930.1556 compiler, `3420e481`.
 Let its complete V4 headline be H. The recovery target is fixed as
 **H + 0.75 × max(0, 930.1556 − H)**, rounded upward to four decimals. A 50–100

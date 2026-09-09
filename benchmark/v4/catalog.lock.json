@@ -5,11 +5,13 @@
   "unchangedV3": 88,
   "companions": 88,
   "aggregationParents": 65,
-  "specificationsSha256": "aafb8651d50e0bffc7e0122b5132348f4708b8f3df0e257a530e242ee1ccb0be",
-  "compressedSha256": "4c1b23debe464c9d7750701135bce1b1f2d1870108de3c02c51dc95e8f81680a",
+  "specificationsSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+  "compressedSha256": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
   "v3CatalogSha256": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
-  "authoringSourceSha256": "3db83b4a480e478e92266e210449735c63c0cf5def747864098824974d40b9a9",
+  "authoringSourceSha256": "ae550705aacfdc2f714179fd45a970b68e95e6a6db318e6be39fbdaa95994197",
   "policySha256": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+  "timingConstraintSourceSha256": "042e18879f8ffbc2e85811b5add818d254511bbd1f9509157553f1412fcfe4c7",
+  "revision": "Necessary timing-feasibility correction; see provisional/erratum.json. The authoring program reads no compiler outcomes.",
   "compilerOutcomesConsulted": false,
   "expectedDropIsNotADesignRequirement": true
 }

@@ -6,13 +6,13 @@ compiler evaluation. The shared V3 scoring implementation, physics, aggregation
 weights and 750,000 actual-frame budget remain fixed. See the
 [design](../benchmark/v4/README.md) and [static audit](../benchmark/v4/static-audit.json).
 
-The preserved compiler `3420e481` scores **900.0351** over 176 specifications ×
+The initial draft with compiler `3420e481` scored **900.0351** over 176 specifications ×
 seeds 16/17, with 350/352 valid runs and 176 distinct tracks. Its V3 subset scores
 **930.1556**, reproducing all 176 archived tracks, scores and frame counts exactly.
 The extension-only score is **876.2727**. The actual overall drop is **30.1205**;
 the expected 50–100-point drop was not a design target. The predeclared 75%
 recovery formula gives **922.6255**, rounded upward to four decimals. See the
-[baseline evidence](../benchmark/v4/baseline.json).
+[superseded baseline evidence](../benchmark/v4/provisional/baseline.json).
 
 One companion, `stretch_bridge_frontier_dense_recovery`, exhausts its budget
 without completing the ride. Both deterministic seeds reproduce that failure.
@@ -21,6 +21,30 @@ supported passages. As a diagnostic counterfactual only, replacing the incomplet
 case's zero by 800–900 would put the full headline at 915.4600–915.7933. Thus
 completion alone would recover about half the drop, and the goal also requires
 broader quality improvement. No hypothetical score is treated as a compiler result.
+
+## Timing erratum and corrected freeze
+
+Further diagnosis proved that the failing companion contained an impossible
+timing request at frames 1371, 1379, 1387 and 1395. Each normal landing needs
+three grounded persistence samples followed by six airborne samples before the
+next landing: at least 27 frames across the three intervals. The authored span
+plus both tolerance endpoints provides only 26. The initial static audit checked
+individual air counts but missed this whole-sequence constraint. This was an
+authoring/audit defect, not a compiler optimization problem.
+
+The initial draft, baseline, all completed pilots and unfinished studies are
+preserved under `benchmark/v4/provisional/` and their original local paths.
+Teacher and full-panel optimization studies were stopped. A deterministic
+minimum-movement repair changes one authored contact by one frame in that single
+companion. It retains every V3 case, contact count, duration and the same requested
+target-generation rules. All 176 cases now have independent persistent-contact
+timing witnesses. Eighteen contract tests pass, including the impossible triple,
+feasible pair and minimum repair. This necessary timing condition still does not
+prove that all requested motion axes are jointly attainable.
+
+The corrected catalog is frozen before measuring it. Its new baseline will
+replace the superseded 900.0351 and define the recovery target by the original
+75% formula. No scorer, detector, physics or frame-budget rule changed.
 
 Research starts with an exact-reproduction check of the independent study harness,
 then compares time-weighted optimization and construction allocation on a declared

@@ -10,7 +10,7 @@ const read=(path:string)=>{const bytes=readFileSync(path);assert.equal(sha(bytes
 const baseline=read('benchmark/v4/baseline.json'),baseRun=read(baseline.archive.path),cases=loadCases(),judge=verifyFrozen();
 const base=new Map<string,any>(baseRun.rows.filter((r:any)=>r.seed===16).map((r:any)=>[r.sourceId,r]));
 const studies:any[]=[],unfinished:any[]=[];
-for(const category of ['recovery','recovery-teachers']){
+for(const category of ['recovery-final','teachers-final']){
   const root=resolve('generated/benchmark-v4',category);if(!existsSync(root))continue;
   for(const name of readdirSync(root).sort()){
     const directory=resolve(root,name),planPath=resolve(directory,'plan.json'),path=resolve(directory,'run.json.gz');

@@ -10,11 +10,13 @@ drop is not a design target. Preserve coherent normal arcs, the 750k frame budge
 all results and adverse evidence. Push code/compact evidence; keep large artifacts
 local. See [V4 design](benchmark/v4/README.md).
 
-V4 is frozen at `a1837655`. The complete baseline is **900.0351**, a **30.1205**
-drop; the measured recovery target is **922.6255**. All original V3 tracks,
-scores and frame counts reproduce exactly. Baseline validity is 350/352, with
-one incomplete specification reproduced by both deterministic seeds. Work is
-active; see the [campaign ledger](docs/arc-v4-recovery-campaign.md).
+The initial freeze `a1837655` and its 900.0351 result are superseded by a proven
+timing-feasibility erratum: one companion had three impossible consecutive
+8-frame landing intervals. All draft evidence is preserved. A minimum one-frame
+contact adjustment corrects that single case; the scorer and every V3 case stay
+unchanged. The corrected catalog is frozen before measuring its new baseline,
+which will define the 75% recovery target. Work is active; see the
+[campaign ledger](docs/arc-v4-recovery-campaign.md).
 
 # Achieved campaign: 930.1556 on frozen Benchmark V3
 

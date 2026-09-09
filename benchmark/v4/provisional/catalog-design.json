@@ -11,7 +11,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.275,
     "endingAfter": 4.025,
@@ -30,7 +29,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.15,
     "endingAfter": 1.05,
@@ -51,7 +49,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3,
     "endingAfter": 2.825,
@@ -72,7 +69,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.7,
     "endingAfter": 1.55,
@@ -93,7 +89,6 @@
     "redistribution": [
       "paired 25–50ms-scale played offsets, preserving each pair duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.725,
     "endingAfter": 0.675,
@@ -114,7 +109,6 @@
     "redistribution": [
       "paired 25–50ms-scale played offsets, preserving each pair duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.675,
     "endingAfter": 0.625,
@@ -133,7 +127,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.05,
     "endingAfter": 2.875,
@@ -152,7 +145,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.275,
     "endingAfter": 1.15,
@@ -171,7 +163,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.275,
     "endingAfter": 1.2,
@@ -190,7 +181,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 7.025,
     "endingAfter": 6.4,
@@ -209,7 +199,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.225,
     "endingAfter": 7,
@@ -230,7 +219,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.6,
     "endingAfter": 3.375,
@@ -249,7 +237,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.15,
     "endingAfter": 2.95,
@@ -268,7 +255,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 2.325,
     "endingAfter": 7,
@@ -289,7 +275,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.175,
     "endingAfter": 1.1,
@@ -310,13 +295,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [
-      {
-        "contact": 67,
-        "before": 1371,
-        "after": 1370
-      }
-    ],
     "supportedSeconds": [],
     "endingBefore": 0.85,
     "endingAfter": 0.8,
@@ -335,7 +313,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [
       7,
       9,
@@ -358,7 +335,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.225,
     "endingAfter": 0.2,
@@ -377,7 +353,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.65,
     "endingAfter": 1.55,
@@ -396,7 +371,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.875,
     "endingAfter": 0.85,
@@ -415,7 +389,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.275,
     "endingAfter": 0.25,
@@ -434,7 +407,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": true,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.05,
     "endingAfter": 7,
@@ -453,7 +425,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.15,
     "endingAfter": 1.075,
@@ -474,7 +445,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3,
     "endingAfter": 7,
@@ -495,7 +465,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.7,
     "endingAfter": 1.6,
@@ -516,7 +485,6 @@
     "redistribution": [
       "paired 25–50ms-scale played offsets, preserving each pair duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.725,
     "endingAfter": 7,
@@ -537,7 +505,6 @@
     "redistribution": [
       "paired 25–50ms-scale played offsets, preserving each pair duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.675,
     "endingAfter": 0.625,
@@ -556,7 +523,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 2.9,
     "endingAfter": 7,
@@ -575,7 +541,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.275,
     "endingAfter": 1.2,
@@ -594,7 +559,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.275,
     "endingAfter": 1.2,
@@ -613,7 +577,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 7.025,
     "endingAfter": 6.4,
@@ -632,7 +595,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.225,
     "endingAfter": 8,
@@ -653,7 +615,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.6,
     "endingAfter": 3.275,
@@ -672,7 +633,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.15,
     "endingAfter": 2.875,
@@ -691,7 +651,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 2.325,
     "endingAfter": 9,
@@ -712,7 +671,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.175,
     "endingAfter": 1.075,
@@ -733,7 +691,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.85,
     "endingAfter": 0.775,
@@ -752,7 +709,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [
       8,
       10,
@@ -775,7 +731,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [
       9,
       12,
@@ -798,7 +753,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [
       7,
       9,
@@ -821,7 +775,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.225,
     "endingAfter": 0.2,
@@ -840,7 +793,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.65,
     "endingAfter": 1.5,
@@ -859,7 +811,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.875,
     "endingAfter": 0.825,
@@ -878,7 +829,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.275,
     "endingAfter": 0.275,
@@ -897,7 +847,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.025,
     "endingAfter": 2.75,
@@ -916,7 +865,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": true,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.975,
     "endingAfter": 8,
@@ -935,7 +883,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 5.075,
     "endingAfter": 4.775,
@@ -956,7 +903,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.2,
     "endingAfter": 2.9,
@@ -977,7 +923,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.275,
     "endingAfter": 8,
@@ -998,7 +943,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.925,
     "endingAfter": 4.625,
@@ -1019,7 +963,6 @@
     "redistribution": [
       "paired 25–50ms-scale played offsets, preserving each pair duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 2.875,
     "endingAfter": 2.625,
@@ -1040,7 +983,6 @@
     "redistribution": [
       "paired 25–50ms-scale played offsets, preserving each pair duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.7,
     "endingAfter": 8,
@@ -1061,7 +1003,6 @@
     "redistribution": [
       "paired 25–50ms-scale played offsets, preserving each pair duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 5.1,
     "endingAfter": 4.8,
@@ -1080,7 +1021,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.225,
     "endingAfter": 2.925,
@@ -1099,7 +1039,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.15,
     "endingAfter": 8,
@@ -1118,7 +1057,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 5.125,
     "endingAfter": 4.825,
@@ -1137,7 +1075,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 2.875,
     "endingAfter": 2.7,
@@ -1156,7 +1093,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.7,
     "endingAfter": 3.375,
@@ -1175,7 +1111,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.9,
     "endingAfter": 9,
@@ -1196,7 +1131,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.425,
     "endingAfter": 7,
@@ -1217,7 +1151,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.775,
     "endingAfter": 3.55,
@@ -1238,7 +1171,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 5.125,
     "endingAfter": 4.675,
@@ -1257,7 +1189,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": true,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 2.75,
     "endingAfter": 7,
@@ -1276,7 +1207,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.1,
     "endingAfter": 3.85,
@@ -1295,7 +1225,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 5.1,
     "endingAfter": 4.65,
@@ -1314,7 +1243,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.525,
     "endingAfter": 12,
@@ -1333,7 +1261,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.85,
     "endingAfter": 8,
@@ -1352,7 +1279,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 5.25,
     "endingAfter": 10,
@@ -1373,7 +1299,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 2.725,
     "endingAfter": 7,
@@ -1394,7 +1319,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4,
     "endingAfter": 3.75,
@@ -1415,7 +1339,6 @@
     "redistribution": [
       "short anticipation and compensating answer at phrase positions"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.925,
     "endingAfter": 4.475,
@@ -1436,7 +1359,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.125,
     "endingAfter": 7,
@@ -1457,7 +1379,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.4,
     "endingAfter": 4.125,
@@ -1478,7 +1399,6 @@
     "redistribution": [
       "two short contacts followed by a longer recovery, preserving figure duration"
     ],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.925,
     "endingAfter": 4.475,
@@ -1497,7 +1417,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [
       8,
       10,
@@ -1520,7 +1439,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [
       9,
       12,
@@ -1543,7 +1461,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [
       7,
       9,
@@ -1566,7 +1483,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 3.1,
     "endingAfter": 7,
@@ -1585,7 +1501,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.625,
     "endingAfter": 4.35,
@@ -1604,7 +1519,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 5.25,
     "endingAfter": 4.775,
@@ -1623,7 +1537,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 2.85,
     "endingAfter": 7,
@@ -1642,7 +1555,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.95,
     "endingAfter": 4.65,
@@ -1661,7 +1573,6 @@
     "amplitudeContrast": 1.22,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 4.875,
     "endingAfter": 4.425,
@@ -1680,7 +1591,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.675,
     "endingAfter": 1.6,
@@ -1699,7 +1609,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 1.6,
     "endingAfter": 1.525,
@@ -1718,7 +1627,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.075,
     "endingAfter": 0.075,
@@ -1737,7 +1645,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.25,
     "endingAfter": 0.25,
@@ -1756,7 +1663,6 @@
     "amplitudeContrast": 1.12,
     "addedAmplitude": false,
     "redistribution": [],
-    "timingRepairs": [],
     "supportedSeconds": [],
     "endingBefore": 0.65,
     "endingAfter": 0.625,

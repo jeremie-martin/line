@@ -5,6 +5,7 @@ import {gzipSync} from 'node:zlib';
 import {loadCases as loadV3,caseGaps,caseSpec,sampledCurve,sha,type Case} from '../../benchmark/v3/model.ts';
 import {policy} from '../../benchmark/v4/policy.ts';
 import {validateSpec,effectiveAxes} from '../v0/core/substrate.ts';
+import {repairPersistentContactTiming} from './persistent_contact_timing.ts';
 
 const output='benchmark/v4';mkdirSync(output,{recursive:true});
 assert.ok(!existsSync(output+'/catalog.lock.json'),'V4 already authored; a frozen catalog is not regenerated during optimization.');
@@ -60,6 +61,13 @@ for(const source of originals){
   else if(low&&variant===2)endingSeconds=15;
   else if(!music&&variant===2)endingSeconds=[7,8,9][Math.floor(order/3)%3];
   lengths[last]=Math.max(lengths[last],Math.round(endingSeconds*40));
+  const proposed:number[]=[];let contactCursor=0;
+  for(let i=0;i<last;i++){contactCursor+=lengths[i];proposed.push(contactCursor);}
+  const repaired=repairPersistentContactTiming(proposed);
+  const timingRepairs=repaired.flatMap((frame,i)=>frame===proposed[i]?[]:[{contact:i,before:proposed[i],after:frame}]);
+  for(let i=0;i<last;i++)lengths[i]=repaired[i]-(repaired[i-1]??0);
+  // Keep the authored end fixed when repairing the final contact.
+  lengths[last]+=proposed.at(-1)!-repaired.at(-1)!;
   const bounds=[0];for(const length of lengths)bounds.push(bounds.at(-1)!+length);
   const durationFrames=bounds.at(-1)!,longEnding=lengths[last]>=7*40;
   const inverse=(frame:number)=>{
@@ -110,7 +118,7 @@ for(const source of originals){
   for(const g of caseGaps(c))assert.ok(Math.abs(effectiveAxes(g,caseSpec(c)).air!-c.air[g.index].target)<1e-10);
   companions.push(c);
   design.push({source:source.id,companion:id,parentId:c.parentId,group,variant,tempo,impactContrast,
-    speedContrast:music?1.08:1.12,amplitudeContrast:music?1.12:1.22,addedAmplitude,redistribution,
+    speedContrast:music?1.08:1.12,amplitudeContrast:music?1.12:1.22,addedAmplitude,redistribution,timingRepairs,
     supportedSeconds:[...supported].map(i=>lengths[i]/40),endingBefore:(source.durationFrames-source.contacts.at(-1)!.frame)/40,
     endingAfter:lengths[last]/40,durationBefore:source.durationFrames/40,durationAfter:durationFrames/40});
 }
@@ -121,6 +129,8 @@ const lock={schema:'line.benchmark-v4.catalog-lock.v1',status:'authored-before-c
   unchangedV3:88,companions:88,aggregationParents:new Set(cases.map(c=>c.parentId)).size,
   specificationsSha256:sha(raw),compressedSha256:sha(compressed),v3CatalogSha256:sha(readFileSync('benchmark/v3/specifications.json.gz')),
   authoringSourceSha256:sha(readFileSync(import.meta.filename)),policySha256:sha(readFileSync('benchmark/v4/policy.ts')),
+  timingConstraintSourceSha256:sha(readFileSync('scripts/benchmark/persistent_contact_timing.ts')),
+  revision:'Necessary timing-feasibility correction; see provisional/erratum.json. The authoring program reads no compiler outcomes.',
   compilerOutcomesConsulted:false,expectedDropIsNotADesignRequirement:true};
 for(const [name,value] of [['catalog.lock.json',lock],['catalog-design.json',design]] as const){
   const body=JSON.stringify(value,null,2)+'\n';writeFileSync(output+'/'+name,body);writeFileSync(output+'/'+name+'.sha256',sha(body)+'\n');

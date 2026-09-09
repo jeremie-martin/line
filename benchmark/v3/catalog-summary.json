@@ -1,0 +1,5106 @@
+[
+  {
+    "id": "bridge_river_reentry",
+    "parentId": "bridge_river_reentry",
+    "stratum": "representative",
+    "group": "regular_exceptions",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/river_reentry.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 88,
+    "endingSeconds": 4.275,
+    "minimumGapSeconds": 0.35,
+    "longestContactGapSeconds": 1.6,
+    "airChanges": {
+      "quantization": 89,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.021501899790286272,
+    "phases": [
+      {
+        "id": "arrival",
+        "start": 0,
+        "end": 6,
+        "intent": "arrival"
+      },
+      {
+        "id": "first_current",
+        "start": 6,
+        "end": 24.24,
+        "intent": "first current"
+      },
+      {
+        "id": "displaced_fill",
+        "start": 24.24,
+        "end": 28.47,
+        "intent": "displaced fill"
+      },
+      {
+        "id": "second_current",
+        "start": 28.47,
+        "end": 46.71,
+        "intent": "second current"
+      },
+      {
+        "id": "release",
+        "start": 46.71,
+        "end": 58,
+        "intent": "release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_countercurrent",
+    "parentId": "bridge_countercurrent",
+    "stratum": "representative",
+    "group": "regular_exceptions",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/countercurrent.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 55,
+    "contacts": 79,
+    "endingSeconds": 1.15,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 1.4,
+    "airChanges": {
+      "quantization": 80,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.019354566782069815,
+    "phases": [
+      {
+        "id": "quiet_support",
+        "start": 0,
+        "end": 8.38,
+        "intent": "quiet support"
+      },
+      {
+        "id": "first_pulse_body",
+        "start": 8.38,
+        "end": 21.4,
+        "intent": "first pulse body"
+      },
+      {
+        "id": "open_turn",
+        "start": 21.4,
+        "end": 25.74,
+        "intent": "open turn"
+      },
+      {
+        "id": "second_pulse_body",
+        "start": 25.74,
+        "end": 47.44,
+        "intent": "second pulse body"
+      },
+      {
+        "id": "tail",
+        "start": 47.44,
+        "end": 55,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_split_signal",
+    "parentId": "bridge_split_signal",
+    "stratum": "representative",
+    "group": "subdivision_pickup",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/split_signal.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 92,
+    "endingSeconds": 3,
+    "minimumGapSeconds": 0.4,
+    "longestContactGapSeconds": 1.625,
+    "airChanges": {
+      "quantization": 93,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02889560511704692,
+    "phases": [
+      {
+        "id": "primary_open",
+        "start": 0,
+        "end": 10.66,
+        "intent": "primary open"
+      },
+      {
+        "id": "dense_answer_one",
+        "start": 10.66,
+        "end": 18.86,
+        "intent": "dense answer one"
+      },
+      {
+        "id": "primary_return",
+        "start": 18.86,
+        "end": 28.7,
+        "intent": "primary return"
+      },
+      {
+        "id": "dense_answer_two",
+        "start": 28.7,
+        "end": 36.9,
+        "intent": "dense answer two"
+      },
+      {
+        "id": "open_signal",
+        "start": 36.9,
+        "end": 46.74,
+        "intent": "open signal"
+      },
+      {
+        "id": "tail_answer",
+        "start": 46.74,
+        "end": 60,
+        "intent": "tail answer"
+      }
+    ]
+  },
+  {
+    "id": "bridge_pickup_lattice",
+    "parentId": "bridge_pickup_lattice",
+    "stratum": "representative",
+    "group": "subdivision_pickup",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/pickup_lattice.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 99,
+    "endingSeconds": 1.7,
+    "minimumGapSeconds": 0.275,
+    "longestContactGapSeconds": 0.675,
+    "airChanges": {
+      "quantization": 98,
+      "landing_floor": 2,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.08291731570512823,
+    "phases": [
+      {
+        "id": "alternating_pickups",
+        "start": 0,
+        "end": 14.74,
+        "intent": "alternating pickups"
+      },
+      {
+        "id": "double_answers_one",
+        "start": 14.74,
+        "end": 28.81,
+        "intent": "double answers one"
+      },
+      {
+        "id": "double_answers_two",
+        "start": 28.81,
+        "end": 42.88,
+        "intent": "double answers two"
+      },
+      {
+        "id": "final_lattice",
+        "start": 42.88,
+        "end": 58,
+        "intent": "final lattice"
+      }
+    ]
+  },
+  {
+    "id": "bridge_loose_pocket",
+    "parentId": "bridge_loose_pocket",
+    "stratum": "representative",
+    "group": "irregular_microtimed",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/loose_pocket.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 56,
+    "contacts": 104,
+    "endingSeconds": 0.725,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 0.575,
+    "airChanges": {
+      "quantization": 105,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02379134535957228,
+    "phases": [
+      {
+        "id": "push_drag_one",
+        "start": 0,
+        "end": 13.28,
+        "intent": "push drag one"
+      },
+      {
+        "id": "turn_one",
+        "start": 13.28,
+        "end": 26.03,
+        "intent": "turn one"
+      },
+      {
+        "id": "middle_pocket",
+        "start": 26.03,
+        "end": 38.78,
+        "intent": "middle pocket"
+      },
+      {
+        "id": "late_turn",
+        "start": 38.78,
+        "end": 51.53,
+        "intent": "late turn"
+      },
+      {
+        "id": "release",
+        "start": 51.53,
+        "end": 56,
+        "intent": "release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_offgrid_conversation",
+    "parentId": "bridge_offgrid_conversation",
+    "stratum": "representative",
+    "group": "irregular_microtimed",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/offgrid_conversation.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 56,
+    "contacts": 87,
+    "endingSeconds": 0.675,
+    "minimumGapSeconds": 0.425,
+    "longestContactGapSeconds": 1.125,
+    "airChanges": {
+      "quantization": 88,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02527383225930091,
+    "phases": [
+      {
+        "id": "question_answer",
+        "start": 0,
+        "end": 13.66,
+        "intent": "question answer"
+      },
+      {
+        "id": "first_overlap",
+        "start": 13.66,
+        "end": 26.4,
+        "intent": "first overlap"
+      },
+      {
+        "id": "tightened_answer",
+        "start": 26.4,
+        "end": 40.06,
+        "intent": "tightened answer"
+      },
+      {
+        "id": "late_overlap",
+        "start": 40.06,
+        "end": 56,
+        "intent": "late overlap"
+      }
+    ]
+  },
+  {
+    "id": "bridge_rising_switch",
+    "parentId": "bridge_rising_switch",
+    "stratum": "representative",
+    "group": "cadence_transition",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/rising_switch.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 88,
+    "endingSeconds": 3.05,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 0.75,
+    "airChanges": {
+      "quantization": 89,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.022404526684253412,
+    "phases": [
+      {
+        "id": "wide_open",
+        "start": 0,
+        "end": 12.58,
+        "intent": "wide open"
+      },
+      {
+        "id": "middle_switch",
+        "start": 12.58,
+        "end": 22.66,
+        "intent": "middle switch"
+      },
+      {
+        "id": "driving_crest",
+        "start": 22.66,
+        "end": 39.3,
+        "intent": "driving crest"
+      },
+      {
+        "id": "measured_release",
+        "start": 39.3,
+        "end": 58,
+        "intent": "measured release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_meter_exchange",
+    "parentId": "bridge_meter_exchange",
+    "stratum": "representative",
+    "group": "cadence_transition",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/meter_exchange.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 96,
+    "endingSeconds": 1.275,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 0.725,
+    "airChanges": {
+      "quantization": 97,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.023155948660714354,
+    "phases": [
+      {
+        "id": "compact_spacious_one",
+        "start": 0,
+        "end": 15.67,
+        "intent": "compact spacious one"
+      },
+      {
+        "id": "compact_spacious_two",
+        "start": 15.67,
+        "end": 31.54,
+        "intent": "compact spacious two"
+      },
+      {
+        "id": "compact_drive",
+        "start": 31.54,
+        "end": 43.54,
+        "intent": "compact drive"
+      },
+      {
+        "id": "broad_release",
+        "start": 43.54,
+        "end": 60,
+        "intent": "broad release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_wide_breaths",
+    "parentId": "bridge_wide_breaths",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/wide_breaths.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 62,
+    "contacts": 82,
+    "endingSeconds": 1.275,
+    "minimumGapSeconds": 0.675,
+    "longestContactGapSeconds": 1.375,
+    "airChanges": {
+      "quantization": 83,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.01737014066423692,
+    "phases": [
+      {
+        "id": "opening_groove",
+        "start": 0,
+        "end": 17.25,
+        "intent": "opening groove"
+      },
+      {
+        "id": "single_breath",
+        "start": 17.25,
+        "end": 22.08,
+        "intent": "single breath"
+      },
+      {
+        "id": "middle_groove",
+        "start": 22.08,
+        "end": 38.64,
+        "intent": "middle groove"
+      },
+      {
+        "id": "double_breath",
+        "start": 38.64,
+        "end": 44.16,
+        "intent": "double breath"
+      },
+      {
+        "id": "late_groove",
+        "start": 44.16,
+        "end": 62,
+        "intent": "late groove"
+      }
+    ]
+  },
+  {
+    "id": "bridge_open_hook",
+    "parentId": "bridge_open_hook",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/open_hook.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 82,
+    "endingSeconds": 7.025,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 1.95,
+    "airChanges": {
+      "quantization": 83,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.024398237002704604,
+    "phases": [
+      {
+        "id": "compact_hooks",
+        "start": 0,
+        "end": 10.29,
+        "intent": "compact hooks"
+      },
+      {
+        "id": "open_response_one",
+        "start": 10.29,
+        "end": 15.68,
+        "intent": "open response one"
+      },
+      {
+        "id": "hook_body",
+        "start": 15.68,
+        "end": 28.42,
+        "intent": "hook body"
+      },
+      {
+        "id": "open_response_two",
+        "start": 28.42,
+        "end": 34.79,
+        "intent": "open response two"
+      },
+      {
+        "id": "final_hook",
+        "start": 34.79,
+        "end": 43.61,
+        "intent": "final hook"
+      },
+      {
+        "id": "tail",
+        "start": 43.61,
+        "end": 58,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_amplitude_tides",
+    "parentId": "bridge_amplitude_tides",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/amplitude_tides.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 62,
+    "contacts": 97,
+    "endingSeconds": 3.225,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 1.55,
+    "airChanges": {
+      "quantization": 98,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.023336236979166536,
+    "phases": [
+      {
+        "id": "compact_opening",
+        "start": 0,
+        "end": 8.84,
+        "intent": "compact opening"
+      },
+      {
+        "id": "first_tide",
+        "start": 8.84,
+        "end": 21.32,
+        "intent": "first tide"
+      },
+      {
+        "id": "middle_compact",
+        "start": 21.32,
+        "end": 33.8,
+        "intent": "middle compact"
+      },
+      {
+        "id": "second_tide",
+        "start": 33.8,
+        "end": 46.28,
+        "intent": "second tide"
+      },
+      {
+        "id": "final_tide",
+        "start": 46.28,
+        "end": 62,
+        "intent": "final tide"
+      }
+    ]
+  },
+  {
+    "id": "bridge_dense_dialogue",
+    "parentId": "bridge_dense_dialogue",
+    "stratum": "representative",
+    "group": "dense_musical",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/dense_dialogue.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 130,
+    "endingSeconds": 3.6,
+    "minimumGapSeconds": 0.25,
+    "longestContactGapSeconds": 1.45,
+    "airChanges": {
+      "quantization": 126,
+      "landing_floor": 5,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.10717926409685863,
+    "phases": [
+      {
+        "id": "compact_exchange_one",
+        "start": 0,
+        "end": 12.16,
+        "intent": "compact exchange one"
+      },
+      {
+        "id": "compact_exchange_two",
+        "start": 12.16,
+        "end": 22.4,
+        "intent": "compact exchange two"
+      },
+      {
+        "id": "breathing_release",
+        "start": 22.4,
+        "end": 29.2,
+        "intent": "breathing release"
+      },
+      {
+        "id": "dense_return_one",
+        "start": 29.2,
+        "end": 41.68,
+        "intent": "dense return one"
+      },
+      {
+        "id": "dense_return_two",
+        "start": 41.68,
+        "end": 51.6,
+        "intent": "dense return two"
+      },
+      {
+        "id": "tail",
+        "start": 51.6,
+        "end": 58,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_high_air_drive",
+    "parentId": "bridge_high_air_drive",
+    "stratum": "representative",
+    "group": "high_air_energy",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/high_air_drive.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 94,
+    "endingSeconds": 3.15,
+    "minimumGapSeconds": 0.575,
+    "longestContactGapSeconds": 1.725,
+    "airChanges": {
+      "quantization": 95,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.020763168724279746,
+    "phases": [
+      {
+        "id": "lift_opening",
+        "start": 0,
+        "end": 9.86,
+        "intent": "lift opening"
+      },
+      {
+        "id": "first_crest",
+        "start": 9.86,
+        "end": 23.78,
+        "intent": "first crest"
+      },
+      {
+        "id": "middle_breath",
+        "start": 23.78,
+        "end": 33.06,
+        "intent": "middle breath"
+      },
+      {
+        "id": "late_crest",
+        "start": 33.06,
+        "end": 46.98,
+        "intent": "late crest"
+      },
+      {
+        "id": "floating_release",
+        "start": 46.98,
+        "end": 60,
+        "intent": "floating release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_sparse_lowline",
+    "parentId": "bridge_sparse_lowline",
+    "stratum": "representative",
+    "group": "sparse_transition",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/representative/sparse_lowline.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 82,
+    "endingSeconds": 2.325,
+    "minimumGapSeconds": 0.6,
+    "longestContactGapSeconds": 1.85,
+    "airChanges": {
+      "quantization": 62,
+      "landing_floor": 21,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.15053037247154705,
+    "phases": [
+      {
+        "id": "supported_opening",
+        "start": 0,
+        "end": 9.3,
+        "intent": "supported opening"
+      },
+      {
+        "id": "first_omissions",
+        "start": 9.3,
+        "end": 22.32,
+        "intent": "first omissions"
+      },
+      {
+        "id": "middle_support",
+        "start": 22.32,
+        "end": 35.34,
+        "intent": "middle support"
+      },
+      {
+        "id": "second_omissions",
+        "start": 35.34,
+        "end": 48.36,
+        "intent": "second omissions"
+      },
+      {
+        "id": "tail",
+        "start": 48.36,
+        "end": 60,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_frontier_pickup_progression",
+    "parentId": "bridge_frontier_pickup_progression",
+    "stratum": "capability",
+    "group": "rapid_pickup_frontier",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/capability/frontier_pickup_progression.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 110,
+    "endingSeconds": 1.175,
+    "minimumGapSeconds": 0.2,
+    "longestContactGapSeconds": 0.625,
+    "airChanges": {
+      "quantization": 49,
+      "landing_floor": 62,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.5239648019922254,
+    "phases": [
+      {
+        "id": "control",
+        "start": 0,
+        "end": 8.4,
+        "intent": "ordinary pulse establishes the control"
+      },
+      {
+        "id": "pickup_300ms",
+        "start": 8.4,
+        "end": 21,
+        "intent": "isolated 300ms anticipations"
+      },
+      {
+        "id": "pickup_250ms",
+        "start": 21,
+        "end": 33.6,
+        "intent": "bounded 250ms anticipations"
+      },
+      {
+        "id": "pickup_200ms",
+        "start": 33.6,
+        "end": 46.2,
+        "intent": "bounded 200ms anticipations"
+      },
+      {
+        "id": "pickup_180ms",
+        "start": 46.2,
+        "end": 60,
+        "intent": "ambitious 180ms boundary and release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_frontier_dense_recovery",
+    "parentId": "bridge_frontier_dense_recovery",
+    "stratum": "capability",
+    "group": "dense_recovery_frontier",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/capability/frontier_dense_recovery.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 123,
+    "endingSeconds": 0.85,
+    "minimumGapSeconds": 0.225,
+    "longestContactGapSeconds": 0.575,
+    "airChanges": {
+      "quantization": 48,
+      "landing_floor": 76,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.45333938882458846,
+    "phases": [
+      {
+        "id": "control",
+        "start": 0,
+        "end": 10,
+        "intent": "ordinary cadence control"
+      },
+      {
+        "id": "two_contact_figures",
+        "start": 10,
+        "end": 24,
+        "intent": "two-contact figures and clean recovery"
+      },
+      {
+        "id": "three_contact_figures",
+        "start": 24,
+        "end": 39,
+        "intent": "three-contact figures and clean recovery"
+      },
+      {
+        "id": "dense_stream",
+        "start": 39,
+        "end": 50,
+        "intent": "short sustained dense stream"
+      },
+      {
+        "id": "final_recovery",
+        "start": 50,
+        "end": 58,
+        "intent": "return to ordinary pulse"
+      }
+    ]
+  },
+  {
+    "id": "bridge_frontier_low_air_endurance",
+    "parentId": "bridge_frontier_low_air_endurance",
+    "stratum": "capability",
+    "group": "low_air_frontier",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/capability/frontier_low_air_endurance.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 62,
+    "contacts": 90,
+    "endingSeconds": 4.125,
+    "minimumGapSeconds": 0.55,
+    "longestContactGapSeconds": 5,
+    "airChanges": {
+      "quantization": 61,
+      "landing_floor": 30,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.240296442687747,
+    "phases": [
+      {
+        "id": "control",
+        "start": 0,
+        "end": 9,
+        "intent": "supported ordinary cadence"
+      },
+      {
+        "id": "rideout_2s",
+        "start": 9,
+        "end": 20,
+        "intent": "2s low-air rideout and recovery"
+      },
+      {
+        "id": "rideout_3s",
+        "start": 20,
+        "end": 34,
+        "intent": "3s low-air rideout and recovery"
+      },
+      {
+        "id": "rideout_5s",
+        "start": 34,
+        "end": 49,
+        "intent": "5s low-air rideout and recovery"
+      },
+      {
+        "id": "final_control",
+        "start": 49,
+        "end": 62,
+        "intent": "ordinary cadence after the frontier"
+      }
+    ]
+  },
+  {
+    "id": "bridge_regression_transition_mosaic",
+    "parentId": "bridge_regression_transition_mosaic",
+    "stratum": "legacy_regression",
+    "group": "legacy_transition_regression",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/regression/regression_transition_mosaic.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 91,
+    "endingSeconds": 0.225,
+    "minimumGapSeconds": 0.35,
+    "longestContactGapSeconds": 2.05,
+    "airChanges": {
+      "quantization": 90,
+      "landing_floor": 2,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.031235390946501962,
+    "phases": [
+      {
+        "id": "cold_initialization",
+        "start": 0,
+        "end": 13.6,
+        "intent": "cold initialization"
+      },
+      {
+        "id": "compact_ladder",
+        "start": 13.6,
+        "end": 24.4,
+        "intent": "compact ladder"
+      },
+      {
+        "id": "switchback_drive",
+        "start": 24.4,
+        "end": 35.2,
+        "intent": "switchback drive"
+      },
+      {
+        "id": "expanded_section",
+        "start": 35.2,
+        "end": 49.9,
+        "intent": "expanded section"
+      },
+      {
+        "id": "tail",
+        "start": 49.9,
+        "end": 60,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_regression_amplitude_mosaic",
+    "parentId": "bridge_regression_amplitude_mosaic",
+    "stratum": "legacy_regression",
+    "group": "legacy_amplitude_regression",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/regression/regression_amplitude_mosaic.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 91,
+    "endingSeconds": 1.65,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 1.575,
+    "airChanges": {
+      "quantization": 92,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.024425620298032413,
+    "phases": [
+      {
+        "id": "amplitude_ramp",
+        "start": 0,
+        "end": 19.5,
+        "intent": "amplitude ramp"
+      },
+      {
+        "id": "dense_settle",
+        "start": 19.5,
+        "end": 38.7,
+        "intent": "dense settle"
+      },
+      {
+        "id": "spacious_canyon",
+        "start": 38.7,
+        "end": 53.65,
+        "intent": "spacious canyon"
+      },
+      {
+        "id": "tail",
+        "start": 53.65,
+        "end": 60,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_believer_56_6s",
+    "parentId": "bridge_believer_56_6s",
+    "stratum": "development_music",
+    "group": "believer",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/development_music/believer_56_6s.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 56.6,
+    "contacts": 84,
+    "endingSeconds": 0.875,
+    "minimumGapSeconds": 0.45,
+    "longestContactGapSeconds": 1.425,
+    "airChanges": {
+      "quantization": 85,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.024095208438826288,
+    "phases": [
+      {
+        "id": "intro",
+        "start": 0,
+        "end": 7.7,
+        "intent": "music-authored intro section"
+      },
+      {
+        "id": "build",
+        "start": 7.7,
+        "end": 15.38,
+        "intent": "music-authored build section"
+      },
+      {
+        "id": "verse",
+        "start": 15.38,
+        "end": 23.06,
+        "intent": "music-authored verse section"
+      },
+      {
+        "id": "ramp",
+        "start": 23.06,
+        "end": 30.74,
+        "intent": "music-authored ramp section"
+      },
+      {
+        "id": "coil",
+        "start": 30.74,
+        "end": 38.42,
+        "intent": "music-authored coil section"
+      },
+      {
+        "id": "chorus",
+        "start": 38.42,
+        "end": 53.3,
+        "intent": "music-authored chorus section"
+      },
+      {
+        "id": "outro",
+        "start": 53.3,
+        "end": 56.6,
+        "intent": "music-authored outro section"
+      }
+    ]
+  },
+  {
+    "id": "bridge_believer_impact_56s",
+    "parentId": "bridge_believer_impact_56s",
+    "stratum": "development_music",
+    "group": "believer",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/normative/development_music/believer_impact_56s.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 56,
+    "contacts": 49,
+    "endingSeconds": 0.275,
+    "minimumGapSeconds": 0.45,
+    "longestContactGapSeconds": 2.05,
+    "airChanges": {
+      "quantization": 50,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.03935831101371651,
+    "phases": [
+      {
+        "id": "intro",
+        "start": 0,
+        "end": 7.69,
+        "intent": "music-authored intro section"
+      },
+      {
+        "id": "build",
+        "start": 7.69,
+        "end": 15.36,
+        "intent": "music-authored build section"
+      },
+      {
+        "id": "verse",
+        "start": 15.36,
+        "end": 23.04,
+        "intent": "music-authored verse section"
+      },
+      {
+        "id": "pre_chorus",
+        "start": 23.04,
+        "end": 38.42,
+        "intent": "music-authored pre-chorus section"
+      },
+      {
+        "id": "chorus",
+        "start": 38.42,
+        "end": 53.78,
+        "intent": "music-authored chorus section"
+      }
+    ]
+  },
+  {
+    "id": "bridge_river_reentry_tempo_fast_5",
+    "parentId": "bridge_river_reentry",
+    "stratum": "representative",
+    "group": "regular_exceptions",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/river_reentry_tempo_fast_5.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 55.1,
+    "contacts": 88,
+    "endingSeconds": 4.05,
+    "minimumGapSeconds": 0.325,
+    "longestContactGapSeconds": 1.525,
+    "airChanges": {
+      "quantization": 89,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.022475733353729765,
+    "phases": [
+      {
+        "id": "arrival",
+        "start": 0,
+        "end": 5.7,
+        "intent": "arrival"
+      },
+      {
+        "id": "first_current",
+        "start": 5.7,
+        "end": 23.028,
+        "intent": "first current"
+      },
+      {
+        "id": "displaced_fill",
+        "start": 23.028,
+        "end": 27.046,
+        "intent": "displaced fill"
+      },
+      {
+        "id": "second_current",
+        "start": 27.046,
+        "end": 44.374,
+        "intent": "second current"
+      },
+      {
+        "id": "release",
+        "start": 44.374,
+        "end": 55.1,
+        "intent": "release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_countercurrent_impact_contrast_12",
+    "parentId": "bridge_countercurrent",
+    "stratum": "representative",
+    "group": "regular_exceptions",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/countercurrent_impact_contrast_12.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 55,
+    "contacts": 79,
+    "endingSeconds": 1.15,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 1.4,
+    "airChanges": {
+      "quantization": 80,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.019354566782069815,
+    "phases": [
+      {
+        "id": "quiet_support",
+        "start": 0,
+        "end": 8.38,
+        "intent": "quiet support"
+      },
+      {
+        "id": "first_pulse_body",
+        "start": 8.38,
+        "end": 21.4,
+        "intent": "first pulse body"
+      },
+      {
+        "id": "open_turn",
+        "start": 21.4,
+        "end": 25.74,
+        "intent": "open turn"
+      },
+      {
+        "id": "second_pulse_body",
+        "start": 25.74,
+        "end": 47.44,
+        "intent": "second pulse body"
+      },
+      {
+        "id": "tail",
+        "start": 47.44,
+        "end": 55,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_split_signal_impact_relief_12",
+    "parentId": "bridge_split_signal",
+    "stratum": "representative",
+    "group": "subdivision_pickup",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/split_signal_impact_relief_12.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 92,
+    "endingSeconds": 3,
+    "minimumGapSeconds": 0.4,
+    "longestContactGapSeconds": 1.625,
+    "airChanges": {
+      "quantization": 93,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02889560511704692,
+    "phases": [
+      {
+        "id": "primary_open",
+        "start": 0,
+        "end": 10.66,
+        "intent": "primary open"
+      },
+      {
+        "id": "dense_answer_one",
+        "start": 10.66,
+        "end": 18.86,
+        "intent": "dense answer one"
+      },
+      {
+        "id": "primary_return",
+        "start": 18.86,
+        "end": 28.7,
+        "intent": "primary return"
+      },
+      {
+        "id": "dense_answer_two",
+        "start": 28.7,
+        "end": 36.9,
+        "intent": "dense answer two"
+      },
+      {
+        "id": "open_signal",
+        "start": 36.9,
+        "end": 46.74,
+        "intent": "open signal"
+      },
+      {
+        "id": "tail_answer",
+        "start": 46.74,
+        "end": 60,
+        "intent": "tail answer"
+      }
+    ]
+  },
+  {
+    "id": "bridge_pickup_lattice_speed_minus_4",
+    "parentId": "bridge_pickup_lattice",
+    "stratum": "representative",
+    "group": "subdivision_pickup",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/pickup_lattice_speed_minus_4.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 99,
+    "endingSeconds": 1.7,
+    "minimumGapSeconds": 0.275,
+    "longestContactGapSeconds": 0.675,
+    "airChanges": {
+      "quantization": 98,
+      "landing_floor": 2,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.08291731570512823,
+    "phases": [
+      {
+        "id": "alternating_pickups",
+        "start": 0,
+        "end": 14.74,
+        "intent": "alternating pickups"
+      },
+      {
+        "id": "double_answers_one",
+        "start": 14.74,
+        "end": 28.81,
+        "intent": "double answers one"
+      },
+      {
+        "id": "double_answers_two",
+        "start": 28.81,
+        "end": 42.88,
+        "intent": "double answers two"
+      },
+      {
+        "id": "final_lattice",
+        "start": 42.88,
+        "end": 58,
+        "intent": "final lattice"
+      }
+    ]
+  },
+  {
+    "id": "bridge_loose_pocket_drag_later_20ms",
+    "parentId": "bridge_loose_pocket",
+    "stratum": "representative",
+    "group": "irregular_microtimed",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/loose_pocket_drag_later_20ms.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 56,
+    "contacts": 104,
+    "endingSeconds": 0.725,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 0.575,
+    "airChanges": {
+      "quantization": 105,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.023618896640549725,
+    "phases": [
+      {
+        "id": "push_drag_one",
+        "start": 0,
+        "end": 13.28,
+        "intent": "push drag one"
+      },
+      {
+        "id": "turn_one",
+        "start": 13.28,
+        "end": 26.03,
+        "intent": "turn one"
+      },
+      {
+        "id": "middle_pocket",
+        "start": 26.03,
+        "end": 38.78,
+        "intent": "middle pocket"
+      },
+      {
+        "id": "late_turn",
+        "start": 38.78,
+        "end": 51.53,
+        "intent": "late turn"
+      },
+      {
+        "id": "release",
+        "start": 51.53,
+        "end": 56,
+        "intent": "release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_offgrid_conversation_answer_early_25ms",
+    "parentId": "bridge_offgrid_conversation",
+    "stratum": "representative",
+    "group": "irregular_microtimed",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/offgrid_conversation_answer_early_25ms.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 56,
+    "contacts": 87,
+    "endingSeconds": 0.675,
+    "minimumGapSeconds": 0.425,
+    "longestContactGapSeconds": 1.125,
+    "airChanges": {
+      "quantization": 88,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02527383225930091,
+    "phases": [
+      {
+        "id": "question_answer",
+        "start": 0,
+        "end": 13.66,
+        "intent": "question answer"
+      },
+      {
+        "id": "first_overlap",
+        "start": 13.66,
+        "end": 26.4,
+        "intent": "first overlap"
+      },
+      {
+        "id": "tightened_answer",
+        "start": 26.4,
+        "end": 40.06,
+        "intent": "tightened answer"
+      },
+      {
+        "id": "late_overlap",
+        "start": 40.06,
+        "end": 56,
+        "intent": "late overlap"
+      }
+    ]
+  },
+  {
+    "id": "bridge_rising_switch_tempo_fast_5",
+    "parentId": "bridge_rising_switch",
+    "stratum": "representative",
+    "group": "cadence_transition",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/rising_switch_tempo_fast_5.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 55.1,
+    "contacts": 88,
+    "endingSeconds": 2.9,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 0.725,
+    "airChanges": {
+      "quantization": 89,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.024879398393666263,
+    "phases": [
+      {
+        "id": "wide_open",
+        "start": 0,
+        "end": 11.951,
+        "intent": "wide open"
+      },
+      {
+        "id": "middle_switch",
+        "start": 11.951,
+        "end": 21.527,
+        "intent": "middle switch"
+      },
+      {
+        "id": "driving_crest",
+        "start": 21.527,
+        "end": 37.335,
+        "intent": "driving crest"
+      },
+      {
+        "id": "measured_release",
+        "start": 37.335,
+        "end": 55.1,
+        "intent": "measured release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_meter_exchange_speed_plus_4",
+    "parentId": "bridge_meter_exchange",
+    "stratum": "representative",
+    "group": "cadence_transition",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/meter_exchange_speed_plus_4.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 96,
+    "endingSeconds": 1.275,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 0.725,
+    "airChanges": {
+      "quantization": 97,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.023155948660714354,
+    "phases": [
+      {
+        "id": "compact_spacious_one",
+        "start": 0,
+        "end": 15.67,
+        "intent": "compact spacious one"
+      },
+      {
+        "id": "compact_spacious_two",
+        "start": 15.67,
+        "end": 31.54,
+        "intent": "compact spacious two"
+      },
+      {
+        "id": "compact_drive",
+        "start": 31.54,
+        "end": 43.54,
+        "intent": "compact drive"
+      },
+      {
+        "id": "broad_release",
+        "start": 43.54,
+        "end": 60,
+        "intent": "broad release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_wide_breaths_air_plus_5",
+    "parentId": "bridge_wide_breaths",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/wide_breaths_air_plus_5.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 62,
+    "contacts": 82,
+    "endingSeconds": 1.275,
+    "minimumGapSeconds": 0.675,
+    "longestContactGapSeconds": 1.375,
+    "airChanges": {
+      "quantization": 83,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.017690298832484852,
+    "phases": [
+      {
+        "id": "opening_groove",
+        "start": 0,
+        "end": 17.25,
+        "intent": "opening groove"
+      },
+      {
+        "id": "single_breath",
+        "start": 17.25,
+        "end": 22.08,
+        "intent": "single breath"
+      },
+      {
+        "id": "middle_groove",
+        "start": 22.08,
+        "end": 38.64,
+        "intent": "middle groove"
+      },
+      {
+        "id": "double_breath",
+        "start": 38.64,
+        "end": 44.16,
+        "intent": "double breath"
+      },
+      {
+        "id": "late_groove",
+        "start": 44.16,
+        "end": 62,
+        "intent": "late groove"
+      }
+    ]
+  },
+  {
+    "id": "bridge_open_hook_amplitude_plus_8",
+    "parentId": "bridge_open_hook",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/open_hook_amplitude_plus_8.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 82,
+    "endingSeconds": 7.025,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 1.95,
+    "airChanges": {
+      "quantization": 83,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.024398237002704604,
+    "phases": [
+      {
+        "id": "compact_hooks",
+        "start": 0,
+        "end": 10.29,
+        "intent": "compact hooks"
+      },
+      {
+        "id": "open_response_one",
+        "start": 10.29,
+        "end": 15.68,
+        "intent": "open response one"
+      },
+      {
+        "id": "hook_body",
+        "start": 15.68,
+        "end": 28.42,
+        "intent": "hook body"
+      },
+      {
+        "id": "open_response_two",
+        "start": 28.42,
+        "end": 34.79,
+        "intent": "open response two"
+      },
+      {
+        "id": "final_hook",
+        "start": 34.79,
+        "end": 43.61,
+        "intent": "final hook"
+      },
+      {
+        "id": "tail",
+        "start": 43.61,
+        "end": 58,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_amplitude_tides_restrained_10",
+    "parentId": "bridge_amplitude_tides",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/amplitude_tides_restrained_10.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 62,
+    "contacts": 97,
+    "endingSeconds": 3.225,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 1.55,
+    "airChanges": {
+      "quantization": 98,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.023336236979166536,
+    "phases": [
+      {
+        "id": "compact_opening",
+        "start": 0,
+        "end": 8.84,
+        "intent": "compact opening"
+      },
+      {
+        "id": "first_tide",
+        "start": 8.84,
+        "end": 21.32,
+        "intent": "first tide"
+      },
+      {
+        "id": "middle_compact",
+        "start": 21.32,
+        "end": 33.8,
+        "intent": "middle compact"
+      },
+      {
+        "id": "second_tide",
+        "start": 33.8,
+        "end": 46.28,
+        "intent": "second tide"
+      },
+      {
+        "id": "final_tide",
+        "start": 46.28,
+        "end": 62,
+        "intent": "final tide"
+      }
+    ]
+  },
+  {
+    "id": "bridge_dense_dialogue_impact_contrast_10",
+    "parentId": "bridge_dense_dialogue",
+    "stratum": "representative",
+    "group": "dense_musical",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/dense_dialogue_impact_contrast_10.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 130,
+    "endingSeconds": 3.6,
+    "minimumGapSeconds": 0.25,
+    "longestContactGapSeconds": 1.45,
+    "airChanges": {
+      "quantization": 126,
+      "landing_floor": 5,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.10717926409685863,
+    "phases": [
+      {
+        "id": "compact_exchange_one",
+        "start": 0,
+        "end": 12.16,
+        "intent": "compact exchange one"
+      },
+      {
+        "id": "compact_exchange_two",
+        "start": 12.16,
+        "end": 22.4,
+        "intent": "compact exchange two"
+      },
+      {
+        "id": "breathing_release",
+        "start": 22.4,
+        "end": 29.2,
+        "intent": "breathing release"
+      },
+      {
+        "id": "dense_return_one",
+        "start": 29.2,
+        "end": 41.68,
+        "intent": "dense return one"
+      },
+      {
+        "id": "dense_return_two",
+        "start": 41.68,
+        "end": 51.6,
+        "intent": "dense return two"
+      },
+      {
+        "id": "tail",
+        "start": 51.6,
+        "end": 58,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_high_air_drive_air_minus_5",
+    "parentId": "bridge_high_air_drive",
+    "stratum": "representative",
+    "group": "high_air_energy",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/high_air_drive_air_minus_5.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 94,
+    "endingSeconds": 3.15,
+    "minimumGapSeconds": 0.575,
+    "longestContactGapSeconds": 1.725,
+    "airChanges": {
+      "quantization": 95,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.020811528456047945,
+    "phases": [
+      {
+        "id": "lift_opening",
+        "start": 0,
+        "end": 9.86,
+        "intent": "lift opening"
+      },
+      {
+        "id": "first_crest",
+        "start": 9.86,
+        "end": 23.78,
+        "intent": "first crest"
+      },
+      {
+        "id": "middle_breath",
+        "start": 23.78,
+        "end": 33.06,
+        "intent": "middle breath"
+      },
+      {
+        "id": "late_crest",
+        "start": 33.06,
+        "end": 46.98,
+        "intent": "late crest"
+      },
+      {
+        "id": "floating_release",
+        "start": 46.98,
+        "end": 60,
+        "intent": "floating release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_sparse_lowline_air_minus_4",
+    "parentId": "bridge_sparse_lowline",
+    "stratum": "representative",
+    "group": "sparse_transition",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/representative/sparse_lowline_air_minus_4.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 82,
+    "endingSeconds": 2.325,
+    "minimumGapSeconds": 0.6,
+    "longestContactGapSeconds": 1.85,
+    "airChanges": {
+      "quantization": 47,
+      "landing_floor": 36,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.19053037247154708,
+    "phases": [
+      {
+        "id": "supported_opening",
+        "start": 0,
+        "end": 9.3,
+        "intent": "supported opening"
+      },
+      {
+        "id": "first_omissions",
+        "start": 9.3,
+        "end": 22.32,
+        "intent": "first omissions"
+      },
+      {
+        "id": "middle_support",
+        "start": 22.32,
+        "end": 35.34,
+        "intent": "middle support"
+      },
+      {
+        "id": "second_omissions",
+        "start": 35.34,
+        "end": 48.36,
+        "intent": "second omissions"
+      },
+      {
+        "id": "tail",
+        "start": 48.36,
+        "end": 60,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_frontier_pickup_progression_shifted",
+    "parentId": "bridge_frontier_pickup_progression",
+    "stratum": "capability",
+    "group": "rapid_pickup_frontier",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/capability/frontier_pickup_progression_shifted.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 110,
+    "endingSeconds": 1.175,
+    "minimumGapSeconds": 0.175,
+    "longestContactGapSeconds": 0.625,
+    "airChanges": {
+      "quantization": 49,
+      "landing_floor": 62,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.5680110852837792,
+    "phases": [
+      {
+        "id": "control",
+        "start": 0,
+        "end": 8.4,
+        "intent": "ordinary pulse establishes the control"
+      },
+      {
+        "id": "pickup_300ms",
+        "start": 8.4,
+        "end": 21,
+        "intent": "isolated 300ms anticipations"
+      },
+      {
+        "id": "pickup_250ms",
+        "start": 21,
+        "end": 33.6,
+        "intent": "bounded 250ms anticipations"
+      },
+      {
+        "id": "pickup_200ms",
+        "start": 33.6,
+        "end": 46.2,
+        "intent": "bounded 200ms anticipations"
+      },
+      {
+        "id": "pickup_180ms",
+        "start": 46.2,
+        "end": 60,
+        "intent": "ambitious 180ms boundary and release"
+      }
+    ]
+  },
+  {
+    "id": "bridge_frontier_dense_recovery_240ms_figures",
+    "parentId": "bridge_frontier_dense_recovery",
+    "stratum": "capability",
+    "group": "dense_recovery_frontier",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/capability/frontier_dense_recovery_240ms_figures.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 58,
+    "contacts": 123,
+    "endingSeconds": 0.85,
+    "minimumGapSeconds": 0.225,
+    "longestContactGapSeconds": 0.575,
+    "airChanges": {
+      "quantization": 48,
+      "landing_floor": 76,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.45333938882458846,
+    "phases": [
+      {
+        "id": "control",
+        "start": 0,
+        "end": 10,
+        "intent": "ordinary cadence control"
+      },
+      {
+        "id": "two_contact_figures",
+        "start": 10,
+        "end": 24,
+        "intent": "two-contact figures and clean recovery"
+      },
+      {
+        "id": "three_contact_figures",
+        "start": 24,
+        "end": 39,
+        "intent": "three-contact figures and clean recovery"
+      },
+      {
+        "id": "dense_stream",
+        "start": 39,
+        "end": 50,
+        "intent": "short sustained dense stream"
+      },
+      {
+        "id": "final_recovery",
+        "start": 50,
+        "end": 58,
+        "intent": "return to ordinary pulse"
+      }
+    ]
+  },
+  {
+    "id": "bridge_frontier_low_air_endurance_4s",
+    "parentId": "bridge_frontier_low_air_endurance",
+    "stratum": "capability",
+    "group": "low_air_frontier",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_4s.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 61,
+    "contacts": 90,
+    "endingSeconds": 4.125,
+    "minimumGapSeconds": 0.55,
+    "longestContactGapSeconds": 4,
+    "airChanges": {
+      "quantization": 61,
+      "landing_floor": 30,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.240296442687747,
+    "phases": [
+      {
+        "id": "control",
+        "start": 0,
+        "end": 9,
+        "intent": "supported ordinary cadence"
+      },
+      {
+        "id": "rideout_2s",
+        "start": 9,
+        "end": 20,
+        "intent": "2s low-air rideout and recovery"
+      },
+      {
+        "id": "rideout_3s",
+        "start": 20,
+        "end": 34,
+        "intent": "3s low-air rideout and recovery"
+      },
+      {
+        "id": "rideout_4s",
+        "start": 34,
+        "end": 48,
+        "intent": "4s low-air rideout and recovery"
+      },
+      {
+        "id": "final_control",
+        "start": 48,
+        "end": 61,
+        "intent": "ordinary cadence after the frontier"
+      }
+    ]
+  },
+  {
+    "id": "bridge_frontier_low_air_endurance_6s",
+    "parentId": "bridge_frontier_low_air_endurance",
+    "stratum": "capability",
+    "group": "low_air_frontier",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_6s.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 63,
+    "contacts": 90,
+    "endingSeconds": 4.125,
+    "minimumGapSeconds": 0.55,
+    "longestContactGapSeconds": 6,
+    "airChanges": {
+      "quantization": 61,
+      "landing_floor": 30,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.240296442687747,
+    "phases": [
+      {
+        "id": "control",
+        "start": 0,
+        "end": 9,
+        "intent": "supported ordinary cadence"
+      },
+      {
+        "id": "rideout_2s",
+        "start": 9,
+        "end": 20,
+        "intent": "2s low-air rideout and recovery"
+      },
+      {
+        "id": "rideout_3s",
+        "start": 20,
+        "end": 34,
+        "intent": "3s low-air rideout and recovery"
+      },
+      {
+        "id": "rideout_6s",
+        "start": 34,
+        "end": 50,
+        "intent": "6s low-air rideout and recovery"
+      },
+      {
+        "id": "final_control",
+        "start": 50,
+        "end": 63,
+        "intent": "ordinary cadence after the frontier"
+      }
+    ]
+  },
+  {
+    "id": "bridge_frontier_low_air_endurance_7s",
+    "parentId": "bridge_frontier_low_air_endurance",
+    "stratum": "capability",
+    "group": "low_air_frontier",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_7s.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 64,
+    "contacts": 90,
+    "endingSeconds": 4.125,
+    "minimumGapSeconds": 0.55,
+    "longestContactGapSeconds": 7,
+    "airChanges": {
+      "quantization": 62,
+      "landing_floor": 29,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.240296442687747,
+    "phases": [
+      {
+        "id": "control",
+        "start": 0,
+        "end": 9,
+        "intent": "supported ordinary cadence"
+      },
+      {
+        "id": "rideout_2s",
+        "start": 9,
+        "end": 20,
+        "intent": "2s low-air rideout and recovery"
+      },
+      {
+        "id": "rideout_3s",
+        "start": 20,
+        "end": 34,
+        "intent": "3s low-air rideout and recovery"
+      },
+      {
+        "id": "rideout_7s",
+        "start": 34,
+        "end": 51,
+        "intent": "7s low-air rideout and recovery"
+      },
+      {
+        "id": "final_control",
+        "start": 51,
+        "end": 64,
+        "intent": "ordinary cadence after the frontier"
+      }
+    ]
+  },
+  {
+    "id": "bridge_regression_transition_mosaic_tempo_fast_5",
+    "parentId": "bridge_regression_transition_mosaic",
+    "stratum": "legacy_regression",
+    "group": "legacy_transition_regression",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/regression/regression_transition_mosaic_tempo_fast_5.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 57,
+    "contacts": 91,
+    "endingSeconds": 0.225,
+    "minimumGapSeconds": 0.325,
+    "longestContactGapSeconds": 1.925,
+    "airChanges": {
+      "quantization": 89,
+      "landing_floor": 3,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.03214615049160097,
+    "phases": [
+      {
+        "id": "cold_initialization",
+        "start": 0,
+        "end": 12.92,
+        "intent": "cold initialization"
+      },
+      {
+        "id": "compact_ladder",
+        "start": 12.92,
+        "end": 23.18,
+        "intent": "compact ladder"
+      },
+      {
+        "id": "switchback_drive",
+        "start": 23.18,
+        "end": 33.44,
+        "intent": "switchback drive"
+      },
+      {
+        "id": "expanded_section",
+        "start": 33.44,
+        "end": 47.405,
+        "intent": "expanded section"
+      },
+      {
+        "id": "tail",
+        "start": 47.405,
+        "end": 57,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_regression_amplitude_mosaic_contrast_10",
+    "parentId": "bridge_regression_amplitude_mosaic",
+    "stratum": "legacy_regression",
+    "group": "legacy_amplitude_regression",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/regression/regression_amplitude_mosaic_contrast_10.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 60,
+    "contacts": 91,
+    "endingSeconds": 1.65,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 1.575,
+    "airChanges": {
+      "quantization": 92,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.024425620298032413,
+    "phases": [
+      {
+        "id": "amplitude_ramp",
+        "start": 0,
+        "end": 19.5,
+        "intent": "amplitude ramp"
+      },
+      {
+        "id": "dense_settle",
+        "start": 19.5,
+        "end": 38.7,
+        "intent": "dense settle"
+      },
+      {
+        "id": "spacious_canyon",
+        "start": 38.7,
+        "end": 53.65,
+        "intent": "spacious canyon"
+      },
+      {
+        "id": "tail",
+        "start": 53.65,
+        "end": 60,
+        "intent": "tail"
+      }
+    ]
+  },
+  {
+    "id": "bridge_believer_56_6s_impact_relief",
+    "parentId": "bridge_believer_56_6s",
+    "stratum": "development_music",
+    "group": "believer",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/development_music/believer_56_6s_impact_relief.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 56.6,
+    "contacts": 84,
+    "endingSeconds": 0.875,
+    "minimumGapSeconds": 0.45,
+    "longestContactGapSeconds": 1.425,
+    "airChanges": {
+      "quantization": 85,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.024095208438826288,
+    "phases": [
+      {
+        "id": "intro",
+        "start": 0,
+        "end": 7.7,
+        "intent": "music-authored intro section"
+      },
+      {
+        "id": "build",
+        "start": 7.7,
+        "end": 15.38,
+        "intent": "music-authored build section"
+      },
+      {
+        "id": "verse",
+        "start": 15.38,
+        "end": 23.06,
+        "intent": "music-authored verse section"
+      },
+      {
+        "id": "ramp",
+        "start": 23.06,
+        "end": 30.74,
+        "intent": "music-authored ramp section"
+      },
+      {
+        "id": "coil",
+        "start": 30.74,
+        "end": 38.42,
+        "intent": "music-authored coil section"
+      },
+      {
+        "id": "chorus",
+        "start": 38.42,
+        "end": 53.3,
+        "intent": "music-authored chorus section"
+      },
+      {
+        "id": "outro",
+        "start": 53.3,
+        "end": 56.6,
+        "intent": "music-authored outro section"
+      }
+    ]
+  },
+  {
+    "id": "bridge_believer_impact_56s_amplitude_plus_5",
+    "parentId": "bridge_believer_impact_56s",
+    "stratum": "development_music",
+    "group": "believer",
+    "provenance": {
+      "kind": "v2_bridge",
+      "source": "benchmark/v2/cases/variants/development_music/believer_impact_56s_amplitude_plus_5.ts",
+      "brief": "Retain V2 contact frames, impacts, speed/amplitude samples, duration and phases. Author airtime as discrete counts and include the existing ending."
+    },
+    "seconds": 56,
+    "contacts": 49,
+    "endingSeconds": 0.275,
+    "minimumGapSeconds": 0.45,
+    "longestContactGapSeconds": 2.05,
+    "airChanges": {
+      "quantization": 50,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.03935831101371651,
+    "phases": [
+      {
+        "id": "intro",
+        "start": 0,
+        "end": 7.69,
+        "intent": "music-authored intro section"
+      },
+      {
+        "id": "build",
+        "start": 7.69,
+        "end": 15.36,
+        "intent": "music-authored build section"
+      },
+      {
+        "id": "verse",
+        "start": 15.36,
+        "end": 23.04,
+        "intent": "music-authored verse section"
+      },
+      {
+        "id": "pre_chorus",
+        "start": 23.04,
+        "end": 38.42,
+        "intent": "music-authored pre-chorus section"
+      },
+      {
+        "id": "chorus",
+        "start": 38.42,
+        "end": 53.78,
+        "intent": "music-authored chorus section"
+      }
+    ]
+  },
+  {
+    "id": "harbor_return",
+    "parentId": "harbor_return",
+    "stratum": "representative",
+    "group": "regular_exceptions",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "regular_exceptions",
+      "brief": "Ordinary pulse, displaced answer and a spacious return. Authored form 0-1-2-3-1-4; pulse 0.565s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 104,
+    "endingSeconds": 3.025,
+    "minimumGapSeconds": 0.275,
+    "longestContactGapSeconds": 1,
+    "airChanges": {
+      "quantization": 103,
+      "landing_floor": 2,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.05692644249999984,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "crossing_lights",
+    "parentId": "crossing_lights",
+    "stratum": "representative",
+    "group": "regular_exceptions",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "regular_exceptions",
+      "brief": "Ordinary pulse, displaced answer and a spacious return. Authored form 0-2-1-4-3-1; pulse 0.605s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 96,
+    "endingSeconds": 3.975,
+    "minimumGapSeconds": 0.3,
+    "longestContactGapSeconds": 1.075,
+    "airChanges": {
+      "quantization": 92,
+      "landing_floor": 5,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.03596777878925811,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "afterglow_turn",
+    "parentId": "afterglow_turn",
+    "stratum": "representative",
+    "group": "regular_exceptions",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "regular_exceptions",
+      "brief": "Ordinary pulse, displaced answer and a spacious return. Authored form 0-3-1-2-4-2; pulse 0.635s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 95,
+    "endingSeconds": 5.075,
+    "minimumGapSeconds": 0.3,
+    "longestContactGapSeconds": 1.125,
+    "airChanges": {
+      "quantization": 96,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.035504373735768424,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Ordinary pulse, displaced answer and a spacious return."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "woven_pickups",
+    "parentId": "woven_pickups",
+    "stratum": "representative",
+    "group": "subdivision_pickup",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "subdivision_pickup",
+      "brief": "Short anticipations alternate with whole-pulse answers and recovery. Authored form 0-1-2-3-1-4; pulse 0.615s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 108,
+    "endingSeconds": 3.2,
+    "minimumGapSeconds": 0.3,
+    "longestContactGapSeconds": 0.925,
+    "airChanges": {
+      "quantization": 107,
+      "landing_floor": 2,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.035554810384615276,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "pickup_answers",
+    "parentId": "pickup_answers",
+    "stratum": "representative",
+    "group": "subdivision_pickup",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "subdivision_pickup",
+      "brief": "Short anticipations alternate with whole-pulse answers and recovery. Authored form 0-2-1-4-3-1; pulse 0.655s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 101,
+    "endingSeconds": 4.275,
+    "minimumGapSeconds": 0.325,
+    "longestContactGapSeconds": 1,
+    "airChanges": {
+      "quantization": 102,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.032881771660052794,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "broken_triplets",
+    "parentId": "broken_triplets",
+    "stratum": "representative",
+    "group": "subdivision_pickup",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "subdivision_pickup",
+      "brief": "Short anticipations alternate with whole-pulse answers and recovery. Authored form 0-3-1-2-4-2; pulse 0.685s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 103,
+    "endingSeconds": 4.925,
+    "minimumGapSeconds": 0.325,
+    "longestContactGapSeconds": 1.05,
+    "airChanges": {
+      "quantization": 104,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.03536674434166043,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Short anticipations alternate with whole-pulse answers and recovery."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "late_letters",
+    "parentId": "late_letters",
+    "stratum": "representative",
+    "group": "irregular_microtimed",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "irregular_microtimed",
+      "brief": "Played offsets and unequal subdivisions preserve a recognizable pulse. Authored form 0-1-2-3-1-4; pulse 0.585s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 102,
+    "endingSeconds": 2.875,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 0.7,
+    "airChanges": {
+      "quantization": 103,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.023766836402529856,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "swing_exchange",
+    "parentId": "swing_exchange",
+    "stratum": "representative",
+    "group": "irregular_microtimed",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "irregular_microtimed",
+      "brief": "Played offsets and unequal subdivisions preserve a recognizable pulse. Authored form 0-2-1-4-3-1; pulse 0.625s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 94,
+    "endingSeconds": 3.7,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 0.75,
+    "airChanges": {
+      "quantization": 95,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.020876161044705244,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "offbeat_echoes",
+    "parentId": "offbeat_echoes",
+    "stratum": "representative",
+    "group": "irregular_microtimed",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "irregular_microtimed",
+      "brief": "Played offsets and unequal subdivisions preserve a recognizable pulse. Authored form 0-3-1-2-4-2; pulse 0.655s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 94,
+    "endingSeconds": 5.1,
+    "minimumGapSeconds": 0.525,
+    "longestContactGapSeconds": 0.775,
+    "airChanges": {
+      "quantization": 95,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.022715664281705905,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Played offsets and unequal subdivisions preserve a recognizable pulse."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "gear_changes",
+    "parentId": "gear_changes",
+    "stratum": "representative",
+    "group": "cadence_transition",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "cadence_transition",
+      "brief": "Phrase-scale tempo changes meet independently changing energy targets. Authored form 0-1-2-3-1-4; pulse 0.595s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 104,
+    "endingSeconds": 3.225,
+    "minimumGapSeconds": 0.225,
+    "longestContactGapSeconds": 1.1,
+    "airChanges": {
+      "quantization": 100,
+      "landing_floor": 5,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.15607643953124994,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "half_time_return",
+    "parentId": "half_time_return",
+    "stratum": "representative",
+    "group": "cadence_transition",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "cadence_transition",
+      "brief": "Phrase-scale tempo changes meet independently changing energy targets. Authored form 0-2-1-4-3-1; pulse 0.635s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 93,
+    "endingSeconds": 4.15,
+    "minimumGapSeconds": 0.25,
+    "longestContactGapSeconds": 1.175,
+    "airChanges": {
+      "quantization": 92,
+      "landing_floor": 2,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.04999999999999988,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "accelerando_reply",
+    "parentId": "accelerando_reply",
+    "stratum": "representative",
+    "group": "cadence_transition",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "cadence_transition",
+      "brief": "Phrase-scale tempo changes meet independently changing energy targets. Authored form 0-3-1-2-4-2; pulse 0.665s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 92,
+    "endingSeconds": 5.125,
+    "minimumGapSeconds": 0.275,
+    "longestContactGapSeconds": 1.225,
+    "airChanges": {
+      "quantization": 92,
+      "landing_floor": 1,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02907654680625099,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Phrase-scale tempo changes meet independently changing energy targets."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "archipelago",
+    "parentId": "archipelago",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "spacious_amplitude",
+      "brief": "Broad gaps alternate arc-height programs, restrained replies and controlled endings. Authored form 0-1-2-3-1-4; pulse 0.635s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 66,
+    "endingSeconds": 2.875,
+    "minimumGapSeconds": 0.575,
+    "longestContactGapSeconds": 1.275,
+    "airChanges": {
+      "quantization": 67,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.017557218424478882,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "wide_arc_dialogue",
+    "parentId": "wide_arc_dialogue",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "spacious_amplitude",
+      "brief": "Broad gaps alternate arc-height programs, restrained replies and controlled endings. Authored form 0-2-1-4-3-1; pulse 0.675s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 61,
+    "endingSeconds": 3.7,
+    "minimumGapSeconds": 0.6,
+    "longestContactGapSeconds": 1.35,
+    "airChanges": {
+      "quantization": 62,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.016222646953637954,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "terraced_skies",
+    "parentId": "terraced_skies",
+    "stratum": "representative",
+    "group": "spacious_amplitude",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "spacious_amplitude",
+      "brief": "Broad gaps alternate arc-height programs, restrained replies and controlled endings. Authored form 0-3-1-2-4-2; pulse 0.705s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 62,
+    "endingSeconds": 4.9,
+    "minimumGapSeconds": 0.625,
+    "longestContactGapSeconds": 1.425,
+    "airChanges": {
+      "quantization": 63,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.016891072838353338,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Broad gaps alternate arc-height programs, restrained replies and controlled endings."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "woven_pulse",
+    "parentId": "woven_pulse",
+    "stratum": "representative",
+    "group": "dense_musical",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "dense_musical",
+      "brief": "Compact figures remain bounded and resolve into ordinary cadence. Authored form 0-1-2-3-1-4; pulse 0.585s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 116,
+    "endingSeconds": 3.425,
+    "minimumGapSeconds": 0.275,
+    "longestContactGapSeconds": 0.9,
+    "airChanges": {
+      "quantization": 112,
+      "landing_floor": 5,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.04108406249999996,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "density_release",
+    "parentId": "density_release",
+    "stratum": "representative",
+    "group": "dense_musical",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "dense_musical",
+      "brief": "Compact figures remain bounded and resolve into ordinary cadence. Authored form 0-2-1-4-3-1; pulse 0.625s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 105,
+    "endingSeconds": 3.775,
+    "minimumGapSeconds": 0.3,
+    "longestContactGapSeconds": 0.95,
+    "airChanges": {
+      "quantization": 106,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.034852947176789995,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "compact_dialogue",
+    "parentId": "compact_dialogue",
+    "stratum": "representative",
+    "group": "dense_musical",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "dense_musical",
+      "brief": "Compact figures remain bounded and resolve into ordinary cadence. Authored form 0-3-1-2-4-2; pulse 0.655s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 106,
+    "endingSeconds": 5.125,
+    "minimumGapSeconds": 0.325,
+    "longestContactGapSeconds": 1,
+    "airChanges": {
+      "quantization": 107,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.03534410311951364,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Compact figures remain bounded and resolve into ordinary cadence."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "lifted_refrain",
+    "parentId": "lifted_refrain",
+    "stratum": "representative",
+    "group": "high_air_energy",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "high_air_energy",
+      "brief": "High flight occupancy with softer responses and a supported release. Authored form 0-1-2-3-1-4; pulse 0.615s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 84,
+    "endingSeconds": 2.75,
+    "minimumGapSeconds": 0.45,
+    "longestContactGapSeconds": 0.925,
+    "airChanges": {
+      "quantization": 85,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.023396767236842253,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "flight_and_return",
+    "parentId": "flight_and_return",
+    "stratum": "representative",
+    "group": "high_air_energy",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "high_air_energy",
+      "brief": "High flight occupancy with softer responses and a supported release. Authored form 0-2-1-4-3-1; pulse 0.655s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 76,
+    "endingSeconds": 4.1,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 1,
+    "airChanges": {
+      "quantization": 77,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.022221506386175593,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "open_canopy",
+    "parentId": "open_canopy",
+    "stratum": "representative",
+    "group": "high_air_energy",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "high_air_energy",
+      "brief": "High flight occupancy with softer responses and a supported release. Authored form 0-3-1-2-4-2; pulse 0.685s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 77,
+    "endingSeconds": 5.1,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 1.05,
+    "airChanges": {
+      "quantization": 78,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02199142451298708,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: High flight occupancy with softer responses and a supported release."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "quiet_current",
+    "parentId": "quiet_current",
+    "stratum": "representative",
+    "group": "sparse_transition",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "sparse_transition",
+      "brief": "Supported travel gives way to a lifted answer and settles again. Authored form 0-1-2-3-1-4; pulse 0.635s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 70,
+    "endingSeconds": 3.525,
+    "minimumGapSeconds": 0.575,
+    "longestContactGapSeconds": 1.275,
+    "airChanges": {
+      "quantization": 64,
+      "landing_floor": 7,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.029523751891915917,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "support_then_lift",
+    "parentId": "support_then_lift",
+    "stratum": "representative",
+    "group": "sparse_transition",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "sparse_transition",
+      "brief": "Supported travel gives way to a lifted answer and settles again. Authored form 0-2-1-4-3-1; pulse 0.675s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 66,
+    "endingSeconds": 3.85,
+    "minimumGapSeconds": 0.6,
+    "longestContactGapSeconds": 1.35,
+    "airChanges": {
+      "quantization": 54,
+      "landing_floor": 13,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02324609494415042,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "rest_and_return",
+    "parentId": "rest_and_return",
+    "stratum": "representative",
+    "group": "sparse_transition",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "sparse_transition",
+      "brief": "Supported travel gives way to a lifted answer and settles again. Authored form 0-3-1-2-4-2; pulse 0.705s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 65,
+    "endingSeconds": 5.25,
+    "minimumGapSeconds": 0.625,
+    "longestContactGapSeconds": 1.425,
+    "airChanges": {
+      "quantization": 62,
+      "landing_floor": 4,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.017159453742324943,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Supported travel gives way to a lifted answer and settles again."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "pickup_staircase",
+    "parentId": "pickup_staircase",
+    "stratum": "capability",
+    "group": "rapid_pickup_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "rapid_pickup_frontier",
+      "brief": "200–300ms pickups occur in different incoming states, with ordinary recoveries. Authored form 0-1-2-3-1-4; pulse 0.585s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 122,
+    "endingSeconds": 2.725,
+    "minimumGapSeconds": 0.2,
+    "longestContactGapSeconds": 0.6,
+    "airChanges": {
+      "quantization": 119,
+      "landing_floor": 4,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.16110068766276042,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "pickup_interruptions",
+    "parentId": "pickup_interruptions",
+    "stratum": "capability",
+    "group": "rapid_pickup_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "rapid_pickup_frontier",
+      "brief": "200–300ms pickups occur in different incoming states, with ordinary recoveries. Authored form 0-2-1-4-3-1; pulse 0.625s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 111,
+    "endingSeconds": 4,
+    "minimumGapSeconds": 0.2,
+    "longestContactGapSeconds": 0.625,
+    "airChanges": {
+      "quantization": 103,
+      "landing_floor": 9,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.12635169340767716,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "pickup_recovery",
+    "parentId": "pickup_recovery",
+    "stratum": "capability",
+    "group": "rapid_pickup_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "rapid_pickup_frontier",
+      "brief": "200–300ms pickups occur in different incoming states, with ordinary recoveries. Authored form 0-3-1-2-4-2; pulse 0.655s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 113,
+    "endingSeconds": 4.925,
+    "minimumGapSeconds": 0.2,
+    "longestContactGapSeconds": 0.675,
+    "airChanges": {
+      "quantization": 104,
+      "landing_floor": 10,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.12293819147322105,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: 200–300ms pickups occur in different incoming states, with ordinary recoveries."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "dense_short_then_long",
+    "parentId": "dense_short_then_long",
+    "stratum": "capability",
+    "group": "dense_recovery_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "dense_recovery_frontier",
+      "brief": "Two- and three-contact clusters change placement; recovery remains part of the task. Authored form 0-1-2-3-1-4; pulse 0.595s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 116,
+    "endingSeconds": 3.125,
+    "minimumGapSeconds": 0.225,
+    "longestContactGapSeconds": 0.725,
+    "airChanges": {
+      "quantization": 108,
+      "landing_floor": 9,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.04501683475378793,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "interleaved_recovery",
+    "parentId": "interleaved_recovery",
+    "stratum": "capability",
+    "group": "dense_recovery_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "dense_recovery_frontier",
+      "brief": "Two- and three-contact clusters change placement; recovery remains part of the task. Authored form 0-2-1-4-3-1; pulse 0.635s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 109,
+    "endingSeconds": 4.4,
+    "minimumGapSeconds": 0.225,
+    "longestContactGapSeconds": 0.775,
+    "airChanges": {
+      "quantization": 102,
+      "landing_floor": 8,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.08599409722222218,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "three_note_returns",
+    "parentId": "three_note_returns",
+    "stratum": "capability",
+    "group": "dense_recovery_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "dense_recovery_frontier",
+      "brief": "Two- and three-contact clusters change placement; recovery remains part of the task. Authored form 0-3-1-2-4-2; pulse 0.665s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 112,
+    "endingSeconds": 4.925,
+    "minimumGapSeconds": 0.225,
+    "longestContactGapSeconds": 0.8,
+    "airChanges": {
+      "quantization": 103,
+      "landing_floor": 10,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.09992336647727262,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Two- and three-contact clusters change placement; recovery remains part of the task."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "supported_bridge",
+    "parentId": "supported_bridge",
+    "stratum": "capability",
+    "group": "low_air_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "low_air_frontier",
+      "brief": "Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry. Authored form 0-1-2-3-1-4; pulse 0.605s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 79,
+    "endingSeconds": 2.9,
+    "minimumGapSeconds": 0.45,
+    "longestContactGapSeconds": 6.5,
+    "airChanges": {
+      "quantization": 39,
+      "landing_floor": 41,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.14506553569592928,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "supported_speed_change",
+    "parentId": "supported_speed_change",
+    "stratum": "capability",
+    "group": "low_air_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "low_air_frontier",
+      "brief": "Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry. Authored form 0-2-1-4-3-1; pulse 0.645s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 70,
+    "endingSeconds": 4.175,
+    "minimumGapSeconds": 0.475,
+    "longestContactGapSeconds": 7,
+    "airChanges": {
+      "quantization": 30,
+      "landing_floor": 41,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.13000000000000003,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "endurance_and_return",
+    "parentId": "endurance_and_return",
+    "stratum": "capability",
+    "group": "low_air_frontier",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "low_air_frontier",
+      "brief": "Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry. Authored form 0-3-1-2-4-2; pulse 0.675s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 69,
+    "endingSeconds": 5.175,
+    "minimumGapSeconds": 0.5,
+    "longestContactGapSeconds": 7.5,
+    "airChanges": {
+      "quantization": 41,
+      "landing_floor": 29,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.12099182911706349,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Three extended supported passages with 2.5–7.5s gaps, speed changes and reentry."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "energy_weave",
+    "parentId": "energy_weave",
+    "stratum": "legacy_regression",
+    "group": "legacy_transition_regression",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "legacy_transition_regression",
+      "brief": "Recompose useful supported/dense/open transitions instead of copying a short probe. Authored form 0-1-2-3-1-4; pulse 0.595s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 92,
+    "endingSeconds": 3.1,
+    "minimumGapSeconds": 0.275,
+    "longestContactGapSeconds": 1.175,
+    "airChanges": {
+      "quantization": 90,
+      "landing_floor": 3,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.03810130230591169,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "alternating_intentions",
+    "parentId": "alternating_intentions",
+    "stratum": "legacy_regression",
+    "group": "legacy_transition_regression",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "legacy_transition_regression",
+      "brief": "Recompose useful supported/dense/open transitions instead of copying a short probe. Authored form 0-2-1-4-3-1; pulse 0.635s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 84,
+    "endingSeconds": 4.625,
+    "minimumGapSeconds": 0.3,
+    "longestContactGapSeconds": 1.25,
+    "airChanges": {
+      "quantization": 84,
+      "landing_floor": 1,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.031280383873456885,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "recovery_mosaic",
+    "parentId": "recovery_mosaic",
+    "stratum": "legacy_regression",
+    "group": "legacy_transition_regression",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "legacy_transition_regression",
+      "brief": "Recompose useful supported/dense/open transitions instead of copying a short probe. Authored form 0-3-1-2-4-2; pulse 0.665s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 84,
+    "endingSeconds": 5.25,
+    "minimumGapSeconds": 0.325,
+    "longestContactGapSeconds": 1.3,
+    "airChanges": {
+      "quantization": 85,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.0323582630009307,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Recompose useful supported/dense/open transitions instead of copying a short probe."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "amplitude_reply",
+    "parentId": "amplitude_reply",
+    "stratum": "legacy_regression",
+    "group": "legacy_amplitude_regression",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "legacy_amplitude_regression",
+      "brief": "Height contrast is not locked to maximum speed or maximum flight occupancy. Authored form 0-1-2-3-1-4; pulse 0.695s; ending 2.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 68,
+    "endingSeconds": 2.85,
+    "minimumGapSeconds": 0.575,
+    "longestContactGapSeconds": 1.225,
+    "airChanges": {
+      "quantization": 69,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.01767473842075884,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 18,
+        "intent": "Phrase form 1: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_3",
+        "start": 18,
+        "end": 30,
+        "intent": "Phrase form 2: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_4",
+        "start": 30,
+        "end": 40,
+        "intent": "Phrase form 3: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 52,
+        "intent": "Phrase form 1: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_6",
+        "start": 52,
+        "end": 60,
+        "intent": "Phrase form 4: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "ending",
+        "start": 60,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "restrained_then_wide",
+    "parentId": "restrained_then_wide",
+    "stratum": "legacy_regression",
+    "group": "legacy_amplitude_regression",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "legacy_amplitude_regression",
+      "brief": "Height contrast is not locked to maximum speed or maximum flight occupancy. Authored form 0-2-1-4-3-1; pulse 0.735s; ending 3.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 62.5,
+    "contacts": 63,
+    "endingSeconds": 4.95,
+    "minimumGapSeconds": 0.6,
+    "longestContactGapSeconds": 1.3,
+    "airChanges": {
+      "quantization": 64,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.01585800779472013,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 9,
+        "intent": "Phrase form 0: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_2",
+        "start": 9,
+        "end": 20,
+        "intent": "Phrase form 2: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_3",
+        "start": 20,
+        "end": 29,
+        "intent": "Phrase form 1: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_4",
+        "start": 29,
+        "end": 42,
+        "intent": "Phrase form 4: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_5",
+        "start": 42,
+        "end": 51,
+        "intent": "Phrase form 3: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_6",
+        "start": 51,
+        "end": 59,
+        "intent": "Phrase form 1: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "ending",
+        "start": 59,
+        "end": 62.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "arches_at_new_tempos",
+    "parentId": "arches_at_new_tempos",
+    "stratum": "legacy_regression",
+    "group": "legacy_amplitude_regression",
+    "provenance": {
+      "kind": "new_program",
+      "source": "scripts/benchmark/v3_author.ts",
+      "grammar": "legacy_amplitude_regression",
+      "brief": "Height contrast is not locked to maximum speed or maximum flight occupancy. Authored form 0-3-1-2-4-2; pulse 0.765s; ending 4.5s. The three programs share a family grammar and are not independent musical works."
+    },
+    "seconds": 66.5,
+    "contacts": 65,
+    "endingSeconds": 4.875,
+    "minimumGapSeconds": 0.625,
+    "longestContactGapSeconds": 1.35,
+    "airChanges": {
+      "quantization": 66,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.015316560650887379,
+    "phases": [
+      {
+        "id": "phrase_1",
+        "start": 0,
+        "end": 8,
+        "intent": "Phrase form 0: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_2",
+        "start": 8,
+        "end": 19,
+        "intent": "Phrase form 3: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_3",
+        "start": 19,
+        "end": 31,
+        "intent": "Phrase form 1: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_4",
+        "start": 31,
+        "end": 40,
+        "intent": "Phrase form 2: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_5",
+        "start": 40,
+        "end": 53,
+        "intent": "Phrase form 4: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "phrase_6",
+        "start": 53,
+        "end": 62,
+        "intent": "Phrase form 2: Height contrast is not locked to maximum speed or maximum flight occupancy."
+      },
+      {
+        "id": "ending",
+        "start": 62,
+        "end": 66.5,
+        "intent": "Controlled release through the actual end of the authored program."
+      }
+    ]
+  },
+  {
+    "id": "music_amor_na_praia_46s",
+    "parentId": "music_amor_na_praia_46s",
+    "stratum": "development_music",
+    "group": "amor_na_praia",
+    "provenance": {
+      "kind": "exposed_music_reference",
+      "source": "benchmark/v2/cases/qualification/amor_na_praia_46s.ts",
+      "brief": "Existing production work, already exposed through V2 monitoring. Broader music coverage, not a fresh holdout. V2 qualification remains unchanged."
+    },
+    "seconds": 46,
+    "contacts": 78,
+    "endingSeconds": 1.675,
+    "minimumGapSeconds": 0.325,
+    "longestContactGapSeconds": 1.45,
+    "airChanges": {
+      "quantization": 79,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.02303232339203054,
+    "phases": []
+  },
+  {
+    "id": "music_luna_bala_44s",
+    "parentId": "music_luna_bala_44s",
+    "stratum": "development_music",
+    "group": "luna_bala",
+    "provenance": {
+      "kind": "exposed_music_reference",
+      "source": "benchmark/v2/cases/qualification/luna_bala_44s.ts",
+      "brief": "Existing production work, already exposed through V2 monitoring. Broader music coverage, not a fresh holdout. V2 qualification remains unchanged."
+    },
+    "seconds": 44,
+    "contacts": 75,
+    "endingSeconds": 1.6,
+    "minimumGapSeconds": 0.4,
+    "longestContactGapSeconds": 1.275,
+    "airChanges": {
+      "quantization": 76,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.025454796092296617,
+    "phases": []
+  },
+  {
+    "id": "music_tiki_tiki_48s",
+    "parentId": "music_tiki_tiki_48s",
+    "stratum": "development_music",
+    "group": "tiki_tiki",
+    "provenance": {
+      "kind": "exposed_music_reference",
+      "source": "benchmark/v2/cases/qualification/tiki_tiki_48s.ts",
+      "brief": "Existing production work, already exposed through V2 monitoring. Broader music coverage, not a fresh holdout. V2 qualification remains unchanged."
+    },
+    "seconds": 48,
+    "contacts": 77,
+    "endingSeconds": 0.075,
+    "minimumGapSeconds": 0.4,
+    "longestContactGapSeconds": 0.975,
+    "airChanges": {
+      "quantization": 77,
+      "landing_floor": 0,
+      "contact_support_ceiling": 1
+    },
+    "maximumAirAdjustment": 0.08055754337810017,
+    "phases": []
+  },
+  {
+    "id": "music_shelter_impact_sync_81s",
+    "parentId": "music_shelter_impact_sync_81s",
+    "stratum": "development_music",
+    "group": "shelter",
+    "provenance": {
+      "kind": "exposed_music_reference",
+      "source": "benchmark/v2/cases/qualification/shelter_impact_sync_81s.ts",
+      "brief": "Existing production work, already exposed through V2 monitoring. Broader music coverage, not a fresh holdout. V2 qualification remains unchanged."
+    },
+    "seconds": 81,
+    "contacts": 113,
+    "endingSeconds": 0.25,
+    "minimumGapSeconds": 0.35,
+    "longestContactGapSeconds": 1.8,
+    "airChanges": {
+      "quantization": 114,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.019879814521811423,
+    "phases": []
+  },
+  {
+    "id": "music_amour_de_ma_vie_short_44s",
+    "parentId": "music_amour_de_ma_vie_short_44s",
+    "stratum": "development_music",
+    "group": "amour_de_ma_vie",
+    "provenance": {
+      "kind": "exposed_music_reference",
+      "source": "benchmark/v2/cases/qualification/amour_de_ma_vie_short_44s.ts",
+      "brief": "Existing production work, already exposed through V2 monitoring. Broader music coverage, not a fresh holdout. V2 qualification remains unchanged."
+    },
+    "seconds": 44.55,
+    "contacts": 85,
+    "endingSeconds": 0.65,
+    "minimumGapSeconds": 0.3,
+    "longestContactGapSeconds": 1.3,
+    "airChanges": {
+      "quantization": 86,
+      "landing_floor": 0,
+      "contact_support_ceiling": 0
+    },
+    "maximumAirAdjustment": 0.03750290078643548,
+    "phases": []
+  }
+]

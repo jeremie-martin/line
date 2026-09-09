@@ -1,0 +1,24 @@
+{
+  "schema": "line.benchmark-v3.static-audit.v1",
+  "compilerOutcomesConsulted": false,
+  "inputSha256": "24459bb65418016c696b9dd9b06dff3e3adfbade605ecf7ca8bddfd086e3a489",
+  "cases": 88,
+  "parents": 65,
+  "distinctInputs": 88,
+  "intervals": 8069,
+  "tailSeconds": 262.4,
+  "maximumTargetDiscrepancy": 2.886579864025407e-15,
+  "contradictoryAirRequests": 0,
+  "bridgeUnchangedContactsImpactsSpeedAmplitudeDuration": 44,
+  "origins": {
+    "v2_bridge": 44,
+    "new_program": 39,
+    "exposed_music_reference": 5
+  },
+  "spanWeighting": "Elapsed frames for air, speed and amplitude; one observation per authored impact. No extra ending impact.",
+  "limits": [
+    "Discrete airtime requests pass necessary contact/sample constraints; this does not establish joint physical feasibility.",
+    "39 new programs share 13 family grammars; 65 aggregation parents do not imply 65 independent musical works.",
+    "No new owner audiovisual approval or fresh real-music holdout is claimed."
+  ]
+}

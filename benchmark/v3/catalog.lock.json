@@ -1,0 +1,12 @@
+{
+  "schema": "line.benchmark-v3.catalog-lock.v1",
+  "status": "authored-before-compiler-evaluation",
+  "specifications": 88,
+  "aggregationParents": 65,
+  "specificationsSha256": "24459bb65418016c696b9dd9b06dff3e3adfbade605ecf7ca8bddfd086e3a489",
+  "compressedSha256": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+  "authoringSourceSha256": "8cd12c5eb756abd0eadd5d3d490b62ccebc617ad50a07ff2d431ee93cddb6063",
+  "policySha256": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+  "inputTransform": "Materialized production jolt -15ms once, 40fps contact frames; original speed/amplitude samples retained. Airtime frozen as discrete per-gap counts.",
+  "noVisualAttestation": "No new owner listening or video approval claimed. Conservative reuse of V2 musical families and exposed production material."
+}

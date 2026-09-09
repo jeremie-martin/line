@@ -4,6 +4,10 @@ Reach **at least 900** on the canonical V3 headline: all 88 specifications,
 seeds 16 and 17, and 750,000 actual compiler physics frames per run. Start from
 the published **853.9779** baseline. Work branch: `codex/arc-v3-900`.
 
+Current preserved milestone: **885.0206**, confirmed on all **176/176** canonical
+runs at `77e5fba8`, preserved on `archive/arc-v3-885`. The 900 goal remains active.
+See [the evidence](benchmark/v3/studies/arc-885-validation.json).
+
 The V3 catalog, targets, scorer, aggregation, detector, physics and accounting
 are frozen. Preserve substantial coherent normal type-0 arcs; no acceleration
 lines, point constellations, or decorative curves disguising isolated controls.

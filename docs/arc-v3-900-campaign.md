@@ -74,9 +74,13 @@ A short-probe allocation defect was identified: a 32-sample lookahead has only
 15 proposal slots after its analytic center, while the requested mixture could
 contain 20 or more proposals. Concatenation dropped later proposal types. The
 compiler now apportions the requested mixture to available slots, including
-resizing the forest/example mixture itself. This reaches **885.0206**, 88/88
-valid on seed 16. The selected public integration is undergoing canonical
-confirmation; the 900 target remains active.
+resizing the forest/example mixture itself. This reaches **885.0206** and is
+confirmed through the public compiler on **176/176 canonical runs**, all 88
+specifications and seeds 16/17. Every output matches its research track and
+physics-frame count. Total compiler work is 130,460,832 frames; the maximum is
+749,994. All material is normal, with no isolated single-segment component.
+The compiler is preserved at `77e5fba8` on `archive/arc-v3-885`; the 900 target
+remains active. [Canonical evidence](../benchmark/v3/studies/arc-885-validation.json)
 
 The full suite rejected time weighting with rescaled memory (**867.6155**) and
 the initial larger response allocation (**862.1137**). A second teacher-example
@@ -93,3 +97,13 @@ yet passed a full-suite comparison. It remains disabled in the preserved compile
 Next structural research separates late arc easing from impact-section easing.
 Both currently share one shape parameter. Geometry remains substantial connected
 normal curves, with the same curvature limit and physical validation.
+
+The first independent-easing executions regress. Further diagnosis found two
+implementation/allocation concerns: inherited parameter values must be explicit
+when taking independent finite differences, and incomplete response rounds had
+reserved work that they could not use. Corrected executions and a version that
+adds the parameter only during refinement of longer supports remain exploratory.
+The corresponding controls and regressions are retained. A separate 3M-frame
+teacher runs in the immutable 885 checkout to supply research trajectories;
+its results cannot satisfy the 750k goal. A missing data link in that checkout
+was corrected before any teacher compilation began.

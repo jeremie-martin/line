@@ -26,7 +26,8 @@ export type ArcResponseExample = ArcControlExample & {
 
 export function arcControlSimilar(a: ArcMotionControl, b: ArcMotionControl): boolean {
   return Math.abs(a.turn - b.turn) < 4 && Math.abs(a.entry - b.entry) < 2 &&
-    Math.abs(a.exit - b.exit) < 4 && Math.abs(a.support - b.support) < 1;
+    Math.abs(a.exit - b.exit) < 4 && Math.abs(a.support - b.support) < 1 &&
+    (a.exitBias===undefined&&b.exitBias===undefined||Math.abs((a.exitBias??a.bias)-(b.exitBias??b.bias))<.3);
 }
 
 const distance = (a: number[], b: number[]) => a.reduce((sum, value, k) =>

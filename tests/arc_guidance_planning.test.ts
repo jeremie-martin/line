@@ -22,6 +22,19 @@ it('expresses single, partial and paired guidance as substantial connected norma
   expect(chains(partial)[1].reduce((s,l)=>s+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)).toBeGreaterThanOrEqual(24);
 });
 
+it('changes late-arc easing while retaining the impact-section support geometry and connected curves',()=>{
+  const control={entry:15,turn:30,exit:-30,support:24,bias:.5,offset:.1,turnFraction:.3};
+  const points=[{x:0,y:0},{x:10,y:0}],velocity={x:8,y:1};
+  const original=motionArc(points,velocity,control,1000,false,12,false,24);
+  expect(motionArc(points,velocity,{...control,exitBias:control.bias},1000,false,12,false,24)).toEqual(original);
+  const changed=motionArc(points,velocity,{...control,exitBias:2},1000,false,12,false,24);
+  const a=chains(original),b=chains(changed);
+  expect(b).toHaveLength(2);expect(changed.every(l=>l.type===0)).toBe(true);
+  expect(b[0].slice(0,25)).toEqual(a[0].slice(0,25));
+  expect(b[0].at(-1)).not.toEqual(a[0].at(-1));
+  expect(b.every(chain=>chain.length>10)).toBe(true);
+});
+
 it('removes redundant rails with exact physical replay and unchanged frame charging',()=>{
   const full=compileArcMotion(spec,17,options),trimmed=compileArcMotion(spec,17,{...options,pruneGuidance:true});
   expect(trimmed.guidanceReduction!.removedSegments).toBeGreaterThan(0);

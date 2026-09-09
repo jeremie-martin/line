@@ -45,6 +45,12 @@ export type ArcMotionOptions= {
   airProjection?:number;
   /** Minimum distinct release-frame difference in a planning shortlist. */
   releaseDiversity?:number;
+  /** Search late-arc easing independently of the initial impact-section easing. */
+  independentExit?:boolean;
+  exitRefinementOnly?:boolean;
+  minExitSupport?:number;
+  /** Give unusable response-round remainders back to coordinate exploration. */
+  completeGuidanceBudget?:boolean;
   memorySamples?:number;
   memoryResponseSamples?:number;
   /** Replace the preceding truncated span once its contact boundary is measured. */
@@ -270,11 +276,16 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(c.turnFraction!==undefined)c.turnFraction=clamp(c.turnFraction,.1,.85);
         if(c.bend!==undefined)c.bend=clamp(c.bend,-60,60);
         if(c.guideFlare!==undefined)c.guideFlare=clamp(c.guideFlare,-16,16);
+        // Materialize the inherited value before finite differences. Otherwise
+        // changing entry bias would also move late bias during probing, while
+        // the joint step explicitly assigns them independently.
+        if(options.independentExit&&!options.exitRefinementOnly&&c.exitBias===undefined)c.exitBias=c.bias;
+        if(c.exitBias!==undefined)c.exitBias=clamp(c.exitBias,-3,3);
         // All geometry inputs besides these controls are fixed for this search.
         // Preserve absence (explicit full-span guides have a length floor) and
         // signed zero. The implicit clearance equals the fixed channel exactly.
         const key=memo?JSON.stringify([c.entry,c.turn,c.exit,c.support,c.bias,c.offset,
-          c.clearance??options.channel??0,c.guideStart,c.guideEnd,c.turnFraction,c.bend,c.guideFlare]
+          c.clearance??options.channel??0,c.guideStart,c.guideEnd,c.turnFraction,c.bend,c.guideFlare,c.exitBias]
           .map(value=>value===undefined?'absent':Object.is(value,-0)?'-0':
             Number.isFinite(value)?value:String(value))):'';
         samples++;
@@ -439,14 +450,18 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       }
       if(best&&options.guidance){
         const origin=best;
+        const exitEnabled=options.independentExit&&best.c.support>=(options.minExitSupport??0);
         const responseKeys:(keyof ArcMotionControl)[]=['entry','turn','exit','support','bias','offset','clearance'];
         if(options.expressive)responseKeys.push('turnFraction','bend','guideFlare');
+        if(exitEnabled)responseKeys.push('exitBias');
         const wantedResponse=Math.min(options.guidanceSamples??48,options.responseSamples??0);
-        const responseAllowance=wantedResponse>=2*responseKeys.length+3?wantedResponse:0;
+        const responseRound=2*responseKeys.length+3;
+        const responseAllowance=options.completeGuidanceBudget?Math.floor(wantedResponse/responseRound)*responseRound:wantedResponse>=responseRound?wantedResponse:0;
         const count=(options.guidanceSamples??48)-responseAllowance;
         const keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
         if(options.guidanceJoint)keys.push('entry','turn','exit','support','bias','offset');
         if(options.expressive)keys.push('turnFraction','bend','guideFlare');
+        if(exitEnabled)keys.push('exitBias');
         const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
         for(let k=0;k<count;k++){
           const frac=(n:number)=>((k+1)*n)%1;
@@ -455,20 +470,21 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
             c={...origin.c};
             if(options.guidance!=='span')c.clearance=k===0?12:8+16*frac(.61803398875);
             if(options.expressive&&k>0){c.turnFraction=.15+.65*frac(.2718281828);c.bend=-35+70*frac(.1415926535);c.guideFlare=-12+24*frac(.5772156649);}
+            if(exitEnabled)c.exitBias=k>0?-2+4*frac(.9159655941):c.exitBias??c.bias;
             if(options.guidance!=='clearance'){
               c.guideStart=k%3===0?0:frac(.41421356237)*.7;
               c.guideEnd=k===0?0:k%3===1?1:Math.max(c.guideStart,frac(.73205080757));
             }
           }else{
-            const key=keys[Math.floor(k/2)%keys.length],step={clearance:2,guideStart:.15,guideEnd:.15,entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4,turnFraction:.12,bend:10,guideFlare:4}[key];
-            c={...best.c,[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:key==='turnFraction'?Math.min(5,best.c.support*.5)/best.c.support:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
+            const key=keys[Math.floor(k/2)%keys.length],step={clearance:2,guideStart:.15,guideEnd:.15,entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4,turnFraction:.12,bend:10,guideFlare:4,exitBias:.5}[key];
+            c={...best.c,...(exitEnabled?{exitBias:best.c.exitBias??best.c.bias}:{}),[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:key==='turnFraction'?Math.min(5,best.c.support*.5)/best.c.support:key==='exitBias'?best.c.bias:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
         let responseUsed=0, trust=options.responseScale??1;
         while(responseUsed+2*responseKeys.length+3<=responseAllowance){
-          const origin=best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5};
-          const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:0);
+          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4};
+          const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:key==='exitBias'?origin.c.bias:0);
           const jac=origin.residuals.map(()=>Array(responseKeys.length).fill(0));
           responseKeys.forEach((key,d)=>{
             const step=scale[key as keyof typeof scale]*trust;

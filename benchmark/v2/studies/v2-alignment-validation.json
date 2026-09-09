@@ -1,0 +1,107 @@
+{
+  "schema": "line.v2-alignment-validation.v1",
+  "date": "2026-09-09",
+  "referenceCommit": "d5916576aa80a7dfc5946697938590b1cc71e228",
+  "branch": "codex/benchmark-v2-review",
+  "protectedPaths": [
+    "benchmark/v2/catalog.ts",
+    "benchmark/v2/policy.ts",
+    "benchmark/v2/catalog.lock.json",
+    "benchmark/v2/campaign-baseline.json",
+    "benchmark/v2/compat",
+    "benchmark/v2/evidence",
+    "scripts/v0",
+    "scripts/lib",
+    "engine-rs",
+    "productions",
+    "goal.md"
+  ],
+  "protectedChanges": [],
+  "replay": {
+    "cases": 44,
+    "scoredGaps": 4056,
+    "frameSamples": 104300,
+    "maximumMeasurementDifference": 0
+  },
+  "tests": {
+    "command": "npm test -- --run tests/benchmark_v2_evaluator.test.ts tests/campaign_baseline_analysis.test.ts tests/v0_impact.test.ts",
+    "files": 3,
+    "passed": 61
+  },
+  "typescript": {
+    "command": "npx tsc --noEmit --allowImportingTsExtensions --pretty false",
+    "exitCode": 2,
+    "inheritedDiagnostics": 251,
+    "newDiagnostics": 0,
+    "referenceLog": "generated/benchmark-v2/arc-850/completion-typescript.log",
+    "comparison": "Equal diagnostic multisets after removing source line/column numbers"
+  },
+  "localLogs": {
+    "tests": {
+      "path": "generated/benchmark-v2/review-2026-09/tests.log",
+      "sha256": "700946dbc8137cc7c6a47cc1541851cb3af5eecccc48c3b5cd8fe8884f921d0e"
+    },
+    "typescript": {
+      "path": "generated/benchmark-v2/review-2026-09/typescript.log",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "replay": {
+      "path": "generated/benchmark-v2/review-2026-09/replay.log",
+      "sha256": "c5f7f6f68744c7ce30a430eb669c6235b3d814e966e080d58790efac1d95f12f"
+    }
+  },
+  "localOnly": [
+    "generated/benchmark-v2/review-2026-09/replays",
+    "generated/benchmark-v2/review-2026-09/gap-observations.json"
+  ],
+  "artifacts": {
+    "scripts/benchmark/review_v2_alignment.ts": {
+      "sha256": "326d8ac68255297857ccaca275508d42791d269bbf67fa12af91a3aa8fe681a6",
+      "bytes": 12566
+    },
+    "scripts/benchmark/replay_v2_alignment.ts": {
+      "sha256": "0508fa2e84de621da6e33d99d8c19d4ebe08a8e78948a3d11ec6ac093dcb74d5",
+      "bytes": 7753
+    },
+    "scripts/benchmark/plot_v2_alignment.py": {
+      "sha256": "0dac3813f1adbcfed239475bd17c9afa1669f3a344265a75bd15aa4ab20715db",
+      "bytes": 4933
+    },
+    "scripts/benchmark/analyze_campaign_baseline.ts": {
+      "sha256": "dee90b7a3a64db759023c42973ec349b5ad1c948b4930dceb4f29d0804defb3e",
+      "bytes": 32335
+    },
+    "benchmark/v2/studies/v2-alignment-review.json": {
+      "sha256": "4fa0b1672e2917ff51f214dbe4d1b53571b810d14da0605ef3ece859aa890fe6",
+      "bytes": 268887
+    },
+    "benchmark/v2/studies/v2-alignment-replay.json": {
+      "sha256": "009c71f03ad0ba968141ff65eb6c8bde599b87a5a1f8998494bd3a36f1a7719a",
+      "bytes": 1684743
+    },
+    "benchmark/v2/studies/current-baseline-analysis.json": {
+      "sha256": "fb4d284cfbac265cc6426448483b8909b725f8dc0f329bf19174dbeb44e9c7d0",
+      "bytes": 77190
+    },
+    "docs/benchmark-v2-alignment-review.md": {
+      "sha256": "5ca5a90f3f807857d545eeead5b00db2c7e6c68e259b01f85be88d36b6aed0bf",
+      "bytes": 22051
+    },
+    "docs/benchmark-v2-current-baseline-analysis.md": {
+      "sha256": "34bbce8566aca2ce590edc4299c12e41353de5b197a18cc4e466f32a6b1015a0",
+      "bytes": 8482
+    },
+    "docs/benchmark-v2.md": {
+      "sha256": "e7b08bc43a54188fcfb395237e92831f6d3f5836a1a90f93b8cec55ead48e3fb",
+      "bytes": 7929
+    },
+    "docs/assets/v2-alignment-headroom.png": {
+      "sha256": "976f2bf6884f7d5f82a8fa39f03edafa31ac20365fa4dc8bedb44b135b762fe7",
+      "bytes": 162279
+    },
+    "docs/assets/v2-alignment-outro.png": {
+      "sha256": "fc267d13e288401b643c695b24476a4121f166de9607eb676b75530353d6658d",
+      "bytes": 119926
+    }
+  }
+}

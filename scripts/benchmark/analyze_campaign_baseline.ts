@@ -497,8 +497,7 @@ function renderMarkdown(value: any): string {
     "",
     "## Executive read",
     "",
-    `- Official 750k/N=${value.baseline.seedsPerCase} headline: **${value.headline.score.toFixed(4)}**; ` +
-      (reached ? `target exceeded by **${(-value.headline.gapToTarget).toFixed(4)}**.` : `target gap: **${value.headline.gapToTarget.toFixed(4)}**.`),
+    `- Official 750k/N=${value.baseline.seedsPerCase} headline: **${value.headline.score.toFixed(4)}**.`,
     `- Validity: **${value.headline.validRuns}/${value.headline.totalRuns}** (${(100 * value.headline.validityRate).toFixed(2)}%).`,
     `- Run-score median ${value.distributions.allRunScores.median.toFixed(2)}, IQR ` +
       `${value.distributions.allRunScores.p25.toFixed(2)}–${value.distributions.allRunScores.p75.toFixed(2)}, ` +
@@ -631,8 +630,7 @@ function renderMarkdown(value: any): string {
     "",
     "## Practical interpretation",
     "",
-    reached ? `- The active ${value.headline.target}-point goal is achieved. Remaining-loss tables use the existing 1000-point score ceiling.` :
-      `- The active target remains ${value.headline.gapToTarget.toFixed(4)} points away. The hierarchy shows how each group contributes under the fixed weights.`,
+    `- The baseline metadata retains a ${value.headline.target}-point campaign reference; it does not identify the current user goal. Remaining-loss tables use 1000 as the numerical score maximum, not a demonstrated attainable ceiling.`,
     "- These are measurements of the exact promoted prefix. Component correlations and target-band residuals identify remaining errors, but do not establish the cause or prove a proposed optimization will work.",
     "- The report makes no comparison across different score definitions. Candidate improvement requires the retained paired comparison on the same ruler.",
     `- ${activeCampaignComparisonGuidance(value.baseline.seedsPerCase)}`,

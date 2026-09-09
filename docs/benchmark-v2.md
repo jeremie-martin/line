@@ -24,12 +24,16 @@ and scoring contract remains in `benchmark-v2-context.md`.
 All public physics comparisons require the optimized WASM engine. They default
 to at most 48 workers and retain resumable checkpoints.
 
+The [alignment review](benchmark-v2-alignment-review.md) examines the current
+baseline's measurement limits, product coverage, and a proposed future pilot.
+It does not change this benchmark or its acceptance protocol.
+
 ## Cached comparisons
 
 The active campaign baseline owns one literal 750k seed ladder through 48
-slots. The current baseline happens to cover all 48 because it predates the
-sequential workflow; future accepted baselines may initially contain only
-their stopping prefix. The baseline is exact scorer-bound evidence, not a
+slots. The current `arc-control-memory` baseline was promoted at N=8;
+accepted baselines initially contain their stopping prefix and may later
+receive explicit cache extensions. The baseline is exact scorer-bound evidence, not a
 projection from the old ruler. A campaign improvement comparison:
 
 1. verifies the frozen source cache, available shards, and literal 48-slot ladder;

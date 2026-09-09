@@ -64,13 +64,13 @@ export class ArcControlMemory {
       const residuals = m.residuals.map((r, j) => {
         const target = wanted[j];
         if(weights.axisWeights||m.axisWeights){
-          return target===undefined||m.targets[j]===undefined?0:
+          return target===undefined||m.targets[j]===undefined||storedWeights[j]<=0?0:
             (r/Math.sqrt(storedWeights[j])+m.targets[j]!-target)*Math.sqrt(currentWeights[j]);
         }
         return target === undefined ? 0 : r + ((m.targets[j] ?? target) - target) *
           Math.sqrt(j === 2 ? weights.amplitude : j === 3 ? weights.impact : 1);
       });
-      const jac=weights.axisWeights||m.axisWeights?m.jac.map((row,j)=>row.map(v=>wanted[j]===undefined||m.targets[j]===undefined?0:v*Math.sqrt(currentWeights[j]/storedWeights[j]))):m.jac;
+      const jac=weights.axisWeights||m.axisWeights?m.jac.map((row,j)=>row.map(v=>wanted[j]===undefined||m.targets[j]===undefined||storedWeights[j]<=0?0:v*Math.sqrt(currentWeights[j]/storedWeights[j]))):m.jac;
       const delta = arcResponseStep(jac, residuals, weights.damping);
       if (!delta) continue;
       m.keys.forEach((key, d) => {

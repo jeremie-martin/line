@@ -1,0 +1,65 @@
+/** Distill ordinary arc controls from replay-verified V3 development trajectories. */
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {gunzipSync} from 'node:zlib';
+import {loadCases,caseSpec,sha} from '../../benchmark/v3/model.ts';
+import {sliceTimeline,effectiveAxes,sampleGapTargets} from '../v0/core/substrate.ts';
+import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
+import {scheduleNativeContacts} from '../v0/optimizer/native_motion_schedule.ts';
+import {createArcEngine} from '../v0/optimizer/arc_engine.ts';
+import {arcPolicyArrival,ARC_POLICY_SCHEMA} from '../v0/optimizer/arc_control_policy.ts';
+import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from '../lib/native_motion/engine.ts';
+import {getRiderMetered,resetFrameCount,getPhysicsFrameCount} from '../lib/detector.ts';
+import {makeRng} from '../lib/rng.ts';
+import {CALIB} from '../v0/types.ts';
+const arg=(name:string)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
+const read=(p:string)=>{const b=readFileSync(p);assert.equal(sha(b),readFileSync(p+'.sha256','utf8').trim());return JSON.parse((p.endsWith('.gz')?gunzipSync(b):b).toString());};
+const paths=arg('inputs')!.split(','),panels=paths.map(p=>({path:p,run:read(resolve(p,'run.json.gz'))}));
+const cases=loadCases(),all:any[]=[],provenance:any[]=[];
+for(const c of cases){
+  const candidates=panels.map(p=>({panel:p,row:p.run.rows.find((r:any)=>r.sourceId===c.id)})).filter(p=>p.row?.score.valid);
+  assert.ok(candidates.length,'no valid teacher '+c.id);
+  candidates.sort((a,b)=>b.row.score.score-a.row.score.score);
+  const teacher=candidates[0],path=resolve(teacher.panel.path,c.id+'.json.gz'),record=read(path),plan=teacher.panel.run.plan;
+  assert.equal(record.trackHash,sha(JSON.stringify(record.track)));assert.equal(record.seed,plan.seed);
+  const spec=normalizeCompilerTimeline(caseSpec(c)),duration=Math.round(spec.duration*40),end=duration+20;
+  const gaps=sliceTimeline(spec.contacts.map(x=>Math.round(x.t*40)),duration);
+  for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
+  const rng=makeRng(record.seed),planned=scheduleNativeContacts(gaps.map(g=>({...g,targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
+  const contacts=[{frame:1,gap:-1},...planned.filter(g=>g.endsWithContact).map(g=>({frame:g.endFrame,gap:g.index}))];
+  const future=(features:number[],i:number)=>{
+    for(let k=1;k<=2;k++){
+      const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===contact.frame)?.targets:undefined;
+      features.push(contact?((contacts[i+k+1]?.frame??end+1)-contact.frame)/40:0,contact?(gaps[contact.gap]?.targets.impact??-1):-1,target?.air??-1,target?.speed??-1,target?.amplitude??-1);
+    }return features;
+  };
+  resetFrameCount();const start={position:record.track.startPosition,velocity:record.track.riders[0].startVelocity};
+  let engine=createArcEngine(start);const reference=createArcEngine(start,record.track.lines);
+  assert.equal(record.rows.length,contacts.length);
+  try{
+    for(let i=0;i<contacts.length;i++){
+      const row=record.rows[i],frame=contacts[i].frame;assert.equal(row.frame,frame);
+      const before=getRiderMetered(engine,frame-1).ballisticState(),velocity=getRiderMetered(engine,frame).velocity;
+      assert.equal(JSON.stringify(before),JSON.stringify(getRiderMetered(reference,frame-1).ballisticState()),c.id+':'+i);
+      if(i>0){
+        const incoming=Math.atan2(velocity.y,velocity.x)*180/Math.PI,
+          span=(plan.options.authoredHorizon?Math.min(duration,row.next-1):row.next-1)-frame,control=row.control;
+        const target=[(control.entry-incoming)/30,control.turn/60,(control.exit-incoming)/60,control.support/span,control.bias,control.offset,
+          (control.clearance??12)/12,control.turnFraction??Math.min(5,control.support*.5)/control.support,(control.bend??0)/30,(control.guideFlare??0)/8];
+        all.push({source:c.id,parent:c.parentId,group:c.group,index:i,features:future(arcPolicyArrival(before,velocity),i-1),target,control});
+      }
+      const geometry=record.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)===i);assert.ok(geometry.length);
+      engine=engine.addLine(geometry).detach();Engine.retainOnly([engine,reference]);
+    }
+    assert.equal(JSON.stringify(getRiderMetered(engine,end).ballisticState()),JSON.stringify(getRiderMetered(reference,end).ballisticState()));
+    provenance.push({source:c.id,path,sha256:sha(readFileSync(path)),teacherScore:record.score.score,teacherPlanSha256:record.planSha256,replayFrames:getPhysicsFrameCount(),prefixesMatchedFullTrack:true});
+  }finally{dispose();}
+  if(provenance.length%8===0)console.log(JSON.stringify({sources:provenance.length,rows:all.length}));
+}
+const out=resolve(arg('out')!);mkdirSync(out,{recursive:true});
+const body=JSON.stringify({schema:'line.arc-control-policy-data.v1',featureSchema:ARC_POLICY_SCHEMA,
+  note:'Exposed V3 development training. Best valid complete trajectory per case among declared panels; this teacher selection is not a compiler score. Runtime features contain physical state and upcoming targets, with no source/seed/index/absolute-position identifiers.',
+  panels:panels.map(p=>({path:p.path,sha256:sha(readFileSync(resolve(p.path,'run.json.gz')))})),provenance,rows:all})+'\n';
+writeFileSync(resolve(out,'data.json'),body);writeFileSync(resolve(out,'data.json.sha256'),sha(body)+'\n');
+console.log(JSON.stringify({out,sources:provenance.length,rows:all.length}));

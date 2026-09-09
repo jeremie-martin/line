@@ -93,6 +93,7 @@ export type ArcMotionOptions= {
   refineExpressive?:boolean;
   responseSamples?:number;
   responseDamping?:number;
+  responseScale?:number;
   refineFollowSamples?:number;
   refineUseAlternatives?:boolean;
   collectValue?:boolean;
@@ -435,7 +436,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
-        let responseUsed=0, trust=1;
+        let responseUsed=0, trust=options.responseScale??1;
         while(responseUsed+2*responseKeys.length+3<=responseAllowance){
           const origin=best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5};
           const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:0);

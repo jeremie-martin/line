@@ -20,6 +20,7 @@ if(arg('worker')){
   const plan=read(resolve(out,'plan.json')),c=all.find(c=>c.id===arg('worker'))!;assert.ok(c);
   const spec=caseSpec(c),options={...connectedArcOptions(spec,plan.budget),...plan.options};
   if(options.controlPolicyPath)options.controlPolicy=JSON.parse(readFileSync(options.controlPolicyPath,'utf8'));
+  if(options.controlPolicyPath)assert.equal(sha(readFileSync(options.controlPolicyPath)),plan.modelSha256);
   const began=performance.now(),result=compileArcMotion(spec,plan.seed,options),compileMs=performance.now()-began;
   assert.ok(result.stats.sim_frames<=plan.budget);
   const evaluation=evaluateTrack(c,result.track);
@@ -53,6 +54,7 @@ if(arg('worker')){
   assert.deepEqual(compilerIdentity(),identity,'compiler changed during study');
   for(const [p,h] of Object.entries(judgeFiles))assert.equal(sha(readFileSync(p)),h);
   assert.equal(sha(readFileSync(import.meta.filename)),plan.scriptSha256);
+  if(options.controlPolicyPath)assert.equal(sha(readFileSync(options.controlPolicyPath)),plan.modelSha256);
   if(failed.length){write(resolve(out,'execution-failures.json'),failed);throw new Error(`execution failures: ${failed}`);}
   const rows=sources.map(id=>read(resolve(out,id+'.json.gz')));for(const r of rows)assert.equal(r.planSha256,sha(readFileSync(resolve(out,'plan.json'))));
   const compact=rows.map(({track,report,rows,...r}:any)=>r);

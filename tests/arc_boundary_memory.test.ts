@@ -41,3 +41,19 @@ it('transfers a measured coupled response to a changed target',()=>{
   expect(example.control.entry).toBe(8);
   expect(example.control.support).toBe(12);
 });
+
+it('transfers a weighted response through physical residual units before applying new weights',()=>{
+  const memory=new ArcControlMemory(),features=Array(57).fill(0);
+  const example:ArcResponseExample={features,incoming:10,span:20,
+    control:{entry:8,turn:20,exit:15,support:12,bias:0,offset:.1},
+    targets:[.3,.6,undefined,undefined],keys:['entry','support'],
+    jac:[[2,2],[3,-3],[0,0],[0,0]],residuals:[.2,-.3,0,0],scale:[2,3],loss:.13,
+    axisWeights:[4,9,1/3,1]};
+  memory.rememberResponse(example);
+  const proposal=memory.proposeResponses(features,30,40,[.5,.7,undefined,undefined],1,
+    {amplitude:1/3,impact:1,damping:0,axisWeights:[16,.25,1/3,1]})[0];
+  // Stored physical measurements are .4/.5; solve J delta = [.1,.2].
+  expect(proposal.entry).toBeCloseTo(28+.15*2,12);
+  expect(proposal.support).toBeCloseTo(24-.05*3*2,12);
+  expect(example.jac).toEqual([[2,2],[3,-3],[0,0],[0,0]]);
+});

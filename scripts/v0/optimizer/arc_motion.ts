@@ -14,7 +14,7 @@ import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { refineArcTrack } from './arc_refinement.ts';
 import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
 import { arcResponseStep } from './arc_response.ts';
-import { ArcControlMemory } from './arc_memory.ts';
+import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
 import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
@@ -33,10 +33,18 @@ export type ArcMotionOptions= {
   timeObjective?:boolean;
   /** Retain useful search pressure beyond the public amplitude cap. */
   amplitudeOverflow?:'raw'|'log';
+  /** Explore with overflow gradients, then retain the bounded objective winner. */
+  boundedSelection?:boolean;
   /** Predict the next grounded boundary when ranking an outgoing air span. */
   predictAirBoundary?:boolean;
   /** Transfer response matrices in physical units before changing loss weights. */
   rescaleMemoryWeights?:boolean;
+  /** Preserve the proposal mix within the slots a local probe can evaluate. */
+  budgetedProposals?:boolean;
+  /** Correct discrete flight counts using support-length proposals. */
+  airProjection?:number;
+  /** Minimum distinct release-frame difference in a planning shortlist. */
+  releaseDiversity?:number;
   memorySamples?:number;
   memoryResponseSamples?:number;
   /** Replace the preceding truncated span once its contact boundary is measured. */
@@ -212,7 +220,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const points=['PEG','TAIL','NOSE','STRING'].map(key=>trace[key]);
       const prefixRaw=options.cachePrefixReads?extractRawTrajectory(engine,frame-1):null;
       const incoming=deg(Math.atan2(velocity.y,velocity.x)),pace=Math.hypot(velocity.x,velocity.y);
-      const span=objectiveEnd-(i===0?0:frame);
+      // A final authored contact can have no scored tail. Its support still
+      // needs room to realize the impact and survive the unscored grace.
+      const span=objectiveEnd>frame||i===0?objectiveEnd-(i===0?0:frame):horizon-frame;
       const support=clamp((1-(targets.air??.5))*(span+1),3,Math.max(3,span-6));
       const impact=gap>=0?gaps[gap].targets.impact:undefined;
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
@@ -222,7 +232,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -247,6 +257,11 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         return sum+(value===undefined||target===undefined?0:(value-target)**2*(key==='amplitude'?(options.amplitudeWeight??1):1)*spanWeight(g,key));
       },0);
       const priorLoss=priorAxes&&priorGap?(options.timeObjective?weightedSpanLoss(priorAxes,priorGap):arcSpanLoss(priorAxes,priorGap.targets,options.amplitudeWeight??1)):0;
+      const amplitudeExcess=(achieved:any,g:typeof gaps[number])=>{
+        const value=achieved.amplitude,target=g.targets.amplitude;
+        return value===undefined||target===undefined||value<=1?0:
+          ((value-target)**2-(1-target)**2)*(options.amplitudeWeight??1)*spanWeight(g,'amplitude');
+      };
       const evaluate=(c:ArcMotionControl)=>{
         c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
@@ -291,12 +306,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);
         const measuredObjective=options.amplitudeOverflow||options.predictAirBoundary?objectiveAxes(det,{...outgoing,startFrame:i===0?0:frame},objectiveEnd):achieved;
         const residuals:number[]=['air','speed','amplitude'].map(key=>targets[key as keyof typeof targets]===undefined?0:((measuredObjective as any)[key]-(targets as any)[key])*Math.sqrt((key==='amplitude'?(options.amplitudeWeight??1):1)*spanWeight(outgoing,key)));
+        let overflowPenalty=options.boundedSelection?amplitudeExcess(measuredObjective,outgoing):0;
         let cost=residuals.reduce((s,x)=>s+x*x,0);
         let actualImpact:number|undefined;
         if(impact!==undefined){actualImpact=measureGapAxes(det,gaps[gap],added,frame).impact;if(actualImpact===undefined)return reject('impact');cost+=(options.impactWeight??2)*(actualImpact-impact)**2;}
         residuals.push(impact===undefined?0:Math.sqrt(options.impactWeight??2)*(actualImpact!-impact));
         if(options.completeBoundary&&priorGap){
           const actual=options.amplitudeOverflow?objectiveAxes(det,priorGap,priorGap.endFrame):measureGapAxes(det,priorGap,added,priorGap.endFrame);
+          if(options.boundedSelection)overflowPenalty+=amplitudeExcess(actual,priorGap)-amplitudeExcess(priorAxes,priorGap);
           if(options.timeObjective){
             for(const key of ['air','speed','amplitude'] as const){
               if(actual[key]===undefined||priorGap.targets[key]===undefined)continue;
@@ -350,25 +367,37 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         viableCandidates++;
         const valueFeatures=options.collectValue||options.futureValueModel?futureFeatures(arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(result.release??frame)),i):undefined;
         const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
-        candidates.push({lines:added,c,cost,localCost,heading,endSpeed,pose,valueFeatures,predictedFuture,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+        candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
+          searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
         // Interrupted evaluations never reach this cache insertion.
         if(memo){const {child:_child,...measurement}=result;memo.set(key,{result:measurement,candidate:{...candidates.at(-1)}});}
         if(!best||cost<best.cost)best=result;
         return result;
       };
       let center:ArcMotionControl|undefined;
+      const selectBounded=()=>{
+        if(!options.boundedSelection||!best)return;
+        const selected=candidates.reduce((a,b)=>a.cost<=b.cost?a:b);
+        const child=JSON.stringify(selected.c)===JSON.stringify(best.c)?best.child:addArc(engine,selected.lines);
+        best={...best,child,lines:selected.lines,c:selected.c,cost:selected.cost,
+          localCost:selected.localCost,residuals:selected.residuals,achieved:selected.meta.achieved,
+          actualImpact:selected.meta.impact,release:selected.meta.release};
+      };
       try {
-      if(options.directControls){for(const control of options.directControls)evaluate(control);return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support};}
+      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support};}
       center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
       const inputFeatures=futureFeatures(arcPolicyArrival(beforeState,velocity),i-1);
       const responseAxisWeights=options.rescaleMemoryWeights?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;
-      const policy=options.controlPolicy&&i>0?arcControlProposals(inputFeatures,incoming,span,options.controlPolicy,options.policySamples??8):[];
-      policy.push(...controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0));
-      policy.push(...controlMemory.proposeResponses(inputFeatures,incoming,span,
+      const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0);
+      const responses=controlMemory.proposeResponses(inputFeatures,incoming,span,
         [targets.air,targets.speed,targets.amplitude,impact],options.memoryResponseSamples??0,
-        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights}));
+        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights});
+      const requested=[options.controlPolicy&&i>0?options.policySamples??8:0,remembered.length,responses.length];
+      const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
+      const policy=counts[0]?arcControlProposals(inputFeatures,incoming,span,options.controlPolicy,counts[0]):[];
+      policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
       if(options.warmStart)evaluate(options.warmStart);
       for(let k=0;k<initial;k++){
         const frac=(n:number)=>((k+1)*n)%1;
@@ -463,6 +492,20 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
       }
+      for(let pass=0;best&&targets.air!==undefined&&pass<(options.airProjection??0);pass++){
+        const origin=best,measuredSamples=objectiveEnd-(i===0?0:frame)+1;
+        const airborne=origin.achieved.air*measuredSamples;
+        const wanted=Math.round(targets.air*(outgoing.endFrame-outgoing.startFrame+1));
+        const counts=outgoing.endsWithContact?[wanted,wanted-1]:[wanted];
+        const first=origin.c.turnFraction===undefined?Math.min(options.wave?6:5,origin.c.support*.5):origin.c.support*origin.c.turnFraction;
+        for(const count of counts)for(const fraction of [.6,1,1.4]){
+          const delta=clamp((airborne-count)*fraction,-Math.max(2,.2*span),Math.max(2,.2*span));
+          if(Math.abs(delta)<.05)continue;
+          const adjusted=Math.max(2,origin.c.support+delta);
+          evaluate({...origin.c,support:adjusted,turnFraction:first/adjusted});
+        }
+        Engine.retainOnly([...protectedEngines,engine,best.child]);
+      }
       } catch(error) {
         if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
         searchBudgetExhausted=true;
@@ -472,13 +515,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
         if(!best)throw error;
       }
+      selectBounded();
       return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support};
     };
     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);
     const distinct=(candidates:any[],width:number)=>{
       const result:any[]=[];
       for(const candidate of candidates.slice().sort((a,b)=>valueRank(a)-valueRank(b))){
-        if(result.every(a=>Math.abs(a.heading-candidate.heading)>4||Math.abs(a.endSpeed-candidate.endSpeed)>.4||Math.abs(a.pose-candidate.pose)>7||Math.abs(a.meta.release-candidate.meta.release)>2))result.push(candidate);
+        if(result.every(a=>Math.abs(a.heading-candidate.heading)>4||Math.abs(a.endSpeed-candidate.endSpeed)>.4||Math.abs(a.pose-candidate.pose)>7||Math.abs(a.meta.release-candidate.meta.release)>(options.releaseDiversity??2)))result.push(candidate);
         if(result.length>=width)break;
       }
       return result;
@@ -557,7 +601,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           const localAllowance=Math.max(0,rate-constructionReserveRate)*(next-frame);
           for(let d=Math.min(options.planningDepth??2,contacts.length-i-1);d>=1;d--){
             let framesPerProbe=0;
-            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(options.lookaheadBranching??2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*1.4;
+            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(options.lookaheadBranching??2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*(1.4+6*(options.airProjection??0)/probeSamples);
             const affordable=localAllowance/Math.max(1,framesPerProbe);
             if(affordable<width*probeSamples)continue;
             width=Math.max(width,Math.min(options.planningWidth??5,Math.floor(affordable/probeSamples)));
@@ -575,7 +619,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           if(probes.length>=width&&winner)break;
           const reserve=options.adaptivePlanning?(end-frame)*constructionReserveRate:(end-frame)*nominalRate*(options.reserveFactor??1.1);
           let probeAllowance=0;
-          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*1.4;
+          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*(1.4+6*(options.airProjection??0)/probeSamples);
           if(getPhysicsFrameCount()+reserve+probeAllowance>budget-2*(end+1))break;
           const branch=addArc(engine,candidate.lines);
           const future=continuation(branch,i+1,depth,probeSamples,[engine,original.child]);

@@ -1,6 +1,20 @@
 import {expect,it} from 'vitest';
 import {arcBoundaryCorrection,arcSpanLoss} from '../scripts/v0/optimizer/arc_boundary.ts';
-import {ArcControlMemory,type ArcResponseExample} from '../scripts/v0/optimizer/arc_memory.ts';
+import {ArcControlMemory,allocateArcProposalSlots,type ArcResponseExample} from '../scripts/v0/optimizer/arc_memory.ts';
+
+it('keeps learned, remembered and response proposals represented in short lookahead probes',()=>{
+  // A 32-sample probe has 16 initial evaluations; the analytic center uses one.
+  expect(allocateArcProposalSlots([12,4,4],15)).toEqual([9,3,3]);
+  expect(allocateArcProposalSlots([24,4,4],15)).toEqual([11,2,2]);
+  expect(allocateArcProposalSlots([12,0,4],15)).toEqual([11,0,4]);
+  expect(allocateArcProposalSlots([12,4,4],79)).toEqual([12,4,4]);
+  expect(allocateArcProposalSlots([12,4,4],0)).toEqual([0,0,0]);
+  for(let slots=0;slots<=25;slots++){
+    const counts=allocateArcProposalSlots([12,4,4],slots);
+    expect(counts.reduce((a,b)=>a+b,0)).toBe(Math.min(20,slots));
+    expect(counts.every((n,i)=>Number.isSafeInteger(n)&&n>=0&&n<=[12,4,4][i])).toBe(true);
+  }
+});
 
 it('replaces the truncated span without counting it twice or changing summation order',()=>{
   const targets={air:.3,speed:.6,amplitude:.2},before={air:.4,speed:.65,amplitude:.15};

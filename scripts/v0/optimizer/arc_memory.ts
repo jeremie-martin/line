@@ -2,6 +2,18 @@
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcResponseStep } from './arc_response.ts';
 
+/** Largest-remainder apportionment keeps a short probe's proposal mix intact. */
+export function allocateArcProposalSlots(requested: readonly number[], slots: number): number[] {
+  if(!Number.isSafeInteger(slots)||slots<0||requested.some(n=>!Number.isSafeInteger(n)||n<0))throw new Error('invalid arc proposal allocation');
+  const total=requested.reduce((a,b)=>a+b,0);
+  if(total<=slots)return [...requested];
+  const exact=requested.map(n=>slots*n/total),counts=exact.map(Math.floor);
+  const order=exact.map((n,i)=>({i,fraction:n-counts[i]})).sort((a,b)=>b.fraction-a.fraction||a.i-b.i);
+  let remaining=slots-counts.reduce((a,b)=>a+b,0);
+  for(const {i} of order){if(!remaining)break;if(counts[i]<requested[i]){counts[i]++;remaining--;}}
+  return counts;
+}
+
 export type ArcControlExample = {
   features: number[]; incoming: number; span: number; control: ArcMotionControl;
 };

@@ -60,3 +60,36 @@ Fourteen focused tests pass, including authored-ending versus survival-grace
 measurement and rescaling stored responses through physical residual units.
 Further studies compare air-boundary prediction, response-model rescaling,
 future-value removal, and allocation of more work to measured local correction.
+
+## Preserved 885 research compiler
+
+The ending correction plus raw internal amplitude overflow reaches **877.5730**
+on all 88 cases. Replacing the measured examples with 7,981 replay-verified V3
+controls, while retaining the existing forest, reaches **884.2863**. These are
+explicit development-trained proposals: their runtime features contain relative
+physical state and upcoming targets, without source, seed, index or absolute
+position identifiers. Every proposed curve is physically evaluated.
+
+A short-probe allocation defect was identified: a 32-sample lookahead has only
+15 proposal slots after its analytic center, while the requested mixture could
+contain 20 or more proposals. Concatenation dropped later proposal types. The
+compiler now apportions the requested mixture to available slots, including
+resizing the forest/example mixture itself. This reaches **885.0206**, 88/88
+valid on seed 16. The selected public integration is undergoing canonical
+confirmation; the 900 target remains active.
+
+The full suite rejected time weighting with rescaled memory (**867.6155**) and
+the initial larger response allocation (**862.1137**). A second teacher-example
+iteration reaches **877.9917**, below the selected first iteration. Smaller
+response perturbations, cheaper/deeper lookahead, and one-frame air projection
+also fail to establish an improvement. All favorable and adverse complete
+studies are indexed in [compact evidence](../benchmark/v3/studies/arc-900-research.json).
+
+Separating the overflow search surrogate from bounded candidate selection is
+implemented experimentally. It does not improve the selected compiler's pilot;
+a combination with more response work is promising in the pilot but has not
+yet passed a full-suite comparison. It remains disabled in the preserved compiler.
+
+Next structural research separates late arc easing from impact-section easing.
+Both currently share one shape parameter. Geometry remains substantial connected
+normal curves, with the same curvature limit and physical validation.

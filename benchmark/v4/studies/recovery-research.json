@@ -1,0 +1,301 @@
+{
+  "schema": "line.arc-v4-recovery-research.v1",
+  "baseline": {
+    "path": "benchmark/v4/runs/baseline-corrected-930.json.gz",
+    "headline": 915.686
+  },
+  "recoveryTarget": 926.5382,
+  "suiteFingerprint": "4acd7513aed8b03e1265fe7b07d4bd14c6e4f6fd93c5a4a38fd706b86270597d",
+  "note": "Exposed development research. Partial diagnostics have no headline. Higher-budget teachers do not count toward the 750k recovery goal. All complete experiments and regressions are retained; public canonical confirmation uses all 176 cases and seeds 16/17.",
+  "studies": [
+    {
+      "category": "recovery-final",
+      "name": "pilot-diagnostic",
+      "path": "/home/wyss/line/generated/benchmark-v4/recovery-final/pilot-diagnostic/run.json.gz",
+      "sha256": "31850810ed450c42f27520cfd6002e20cc52b8a409077d8e6d09090254168e9a",
+      "planSha256": "0a306e01f7fa3b3b14200e52985d829cc30dfd56175fbca8736abc58be949495",
+      "compiler": "f26b61b3b0ed9f5b897b993d550c72a3b85fca4b5c5e4c1b7bf8ba869539f482",
+      "head": "3420e4814a1c729ee381670f42beee97da600446",
+      "budget": 750000,
+      "options": {},
+      "cases": 8,
+      "fullSuite": false,
+      "valid": 8,
+      "improved": 0,
+      "regressed": 0,
+      "physicalFrames": 5869844,
+      "paired": [
+        {
+          "id": "stretch_bridge_frontier_dense_recovery",
+          "before": 866.5746,
+          "after": 866.5746,
+          "delta": 0,
+          "valid": true,
+          "physicalFrames": 742151,
+          "trackHash": "564b3490f1374d1b44217cc0bb233c6ea59238a6990c29dca9e0a8e4112b01fb",
+          "sameTrack": true,
+          "sameFrames": true,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 293523
+        },
+        {
+          "id": "stretch_three_note_returns",
+          "before": 783.4065,
+          "after": 783.4065,
+          "delta": 0,
+          "valid": true,
+          "physicalFrames": 748660,
+          "trackHash": "c732730c953ca7ce7e357d1c87106b4550efc419cfca9ce84886f30e83ef3092",
+          "sameTrack": true,
+          "sameFrames": true,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 257016
+        },
+        {
+          "id": "stretch_bridge_frontier_low_air_endurance_6s",
+          "before": 800.1388,
+          "after": 800.1388,
+          "delta": 0,
+          "valid": true,
+          "physicalFrames": 713494,
+          "trackHash": "5b19665f9f51a248a662b0d13dc7fce56c167ca21bd4957ead34d1e4621a7696",
+          "sameTrack": true,
+          "sameFrames": true,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 16618
+        },
+        {
+          "id": "stretch_supported_speed_change",
+          "before": 816.976,
+          "after": 816.976,
+          "delta": 0,
+          "valid": true,
+          "physicalFrames": 701209,
+          "trackHash": "431bf601d1ac67c4ce04f92014340e67dc3762a81a182d0bb7f86b37f38d4f78",
+          "sameTrack": true,
+          "sameFrames": true,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 25574
+        },
+        {
+          "id": "stretch_bridge_amplitude_tides_restrained_10",
+          "before": 756.1723,
+          "after": 756.1723,
+          "delta": 0,
+          "valid": true,
+          "physicalFrames": 745749,
+          "trackHash": "ea6f6d8653da3c99170bed765c04fd66cd4190ecd058df5a99b2f0a852119bd1",
+          "sameTrack": true,
+          "sameFrames": true,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 236791
+        },
+        {
+          "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "before": 694.5906,
+          "after": 694.5906,
+          "delta": 0,
+          "valid": true,
+          "physicalFrames": 734205,
+          "trackHash": "405437181e518790dedfea2ef95dfade591cd6a5d965f2d4e533016e11016519",
+          "sameTrack": true,
+          "sameFrames": true,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 289847
+        },
+        {
+          "id": "bridge_river_reentry",
+          "before": 967.7369,
+          "after": 967.7369,
+          "delta": 0,
+          "valid": true,
+          "physicalFrames": 734745,
+          "trackHash": "66b36987dd5be1762b6e9a3bcbcb14c5501b410f259123c2ce06f22cbc5ed637",
+          "sameTrack": true,
+          "sameFrames": true,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 259988
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "before": 751.2852,
+          "after": 751.2852,
+          "delta": 0,
+          "valid": true,
+          "physicalFrames": 749631,
+          "trackHash": "090705f0490afa50cacda1a4452026ecfa48e52b511119e954adad6a544b1c23",
+          "sameTrack": true,
+          "sameFrames": true,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 255168
+        }
+      ],
+      "compilerPatch": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "category": "recovery-final",
+      "name": "pilot-time-loss",
+      "path": "/home/wyss/line/generated/benchmark-v4/recovery-final/pilot-time-loss/run.json.gz",
+      "sha256": "4ef4f78729b94789e61025a1f9d8d6e1d26951b2f29621fb0808b88e5fc50616",
+      "planSha256": "7c4c203977b22ffdb1b11944d21b7cb92381057cd9a59b80018c1a436a704f24",
+      "compiler": "f26b61b3b0ed9f5b897b993d550c72a3b85fca4b5c5e4c1b7bf8ba869539f482",
+      "head": "3420e4814a1c729ee381670f42beee97da600446",
+      "budget": 750000,
+      "options": {
+        "timeObjective": true,
+        "rescaleMemoryWeights": true
+      },
+      "cases": 8,
+      "fullSuite": false,
+      "valid": 8,
+      "improved": 5,
+      "regressed": 3,
+      "physicalFrames": 5861209,
+      "paired": [
+        {
+          "id": "stretch_bridge_frontier_dense_recovery",
+          "before": 866.5746,
+          "after": 839.3579,
+          "delta": -27.2167,
+          "valid": true,
+          "physicalFrames": 741374,
+          "trackHash": "3a91a0303ad3cec5315ba65f03d4c6c4f82fab5aa474b53720741f479e23e9e5",
+          "sameTrack": false,
+          "sameFrames": false,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 290950
+        },
+        {
+          "id": "stretch_three_note_returns",
+          "before": 783.4065,
+          "after": 785.0707,
+          "delta": 1.6642,
+          "valid": true,
+          "physicalFrames": 748039,
+          "trackHash": "e38079bccd3f7a740ab834e296def820e6cd83013604a42bf282e118b31287be",
+          "sameTrack": false,
+          "sameFrames": false,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 255713
+        },
+        {
+          "id": "stretch_bridge_frontier_low_air_endurance_6s",
+          "before": 800.1388,
+          "after": 864.312,
+          "delta": 64.1732,
+          "valid": true,
+          "physicalFrames": 714146,
+          "trackHash": "cb5e7b4d7008728292506bc39c3912cac9d1b9eb056a7f02a1877280e2cf1fe4",
+          "sameTrack": false,
+          "sameFrames": false,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 0
+        },
+        {
+          "id": "stretch_supported_speed_change",
+          "before": 816.976,
+          "after": 891.3241,
+          "delta": 74.3481,
+          "valid": true,
+          "physicalFrames": 694041,
+          "trackHash": "acdde7de4d0f8e7a30ef9d4408e1b89aa04a1c8e4bd75a7903f2dab5e4207230",
+          "sameTrack": false,
+          "sameFrames": false,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 25245
+        },
+        {
+          "id": "stretch_bridge_amplitude_tides_restrained_10",
+          "before": 756.1723,
+          "after": 798.716,
+          "delta": 42.5437,
+          "valid": true,
+          "physicalFrames": 744114,
+          "trackHash": "28c4e81c6a3eba2cb6a87d610b0b5928ece307bebfca088f4bc81cabddfefd6c",
+          "sameTrack": false,
+          "sameFrames": false,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 232164
+        },
+        {
+          "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "before": 694.5906,
+          "after": 693.842,
+          "delta": -0.7486,
+          "valid": true,
+          "physicalFrames": 729677,
+          "trackHash": "b16ae72e94f473e929ba98519a3939c06b5d1c64a648a7eae80f4b5086ce0f4d",
+          "sameTrack": false,
+          "sameFrames": false,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 290834
+        },
+        {
+          "id": "bridge_river_reentry",
+          "before": 967.7369,
+          "after": 963.6583,
+          "delta": -4.0786,
+          "valid": true,
+          "physicalFrames": 739827,
+          "trackHash": "21d711f8269d842cee4889801f4e73ce6755b3ee48d1039b69a351de08c2386e",
+          "sameTrack": false,
+          "sameFrames": false,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 267225
+        },
+        {
+          "id": "bridge_regression_amplitude_mosaic",
+          "before": 751.2852,
+          "after": 755.6546,
+          "delta": 4.3694,
+          "valid": true,
+          "physicalFrames": 749991,
+          "trackHash": "db86b53c1b7c8bd198f2617f88690eae6ba5ad20069ff723b83caef2aa53467a",
+          "sameTrack": false,
+          "sameFrames": false,
+          "failure": null,
+          "backtracks": 0,
+          "planningFrames": 260804
+        }
+      ],
+      "compilerPatch": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    }
+  ],
+  "unfinished": [
+    {
+      "category": "recovery-final",
+      "name": "full-time-loss",
+      "planSha256": "28cde9adf8622c2335c67f16b2ce245767f330fae953dabba921742853c34f14",
+      "completedCells": 36,
+      "total": 176
+    },
+    {
+      "category": "teachers-final",
+      "name": "baseline-3m",
+      "planSha256": "ee1f80f7c2305e628eb8005217176070c32b510588999c9ac135089ae97b3805",
+      "completedCells": 72,
+      "total": 176
+    }
+  ]
+}

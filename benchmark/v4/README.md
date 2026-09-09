@@ -42,6 +42,11 @@ by the failed run; its choice follows detector constraints, not score optimizati
 See [the erratum](provisional/erratum.json). The 75% recovery target is calculated
 from the corrected baseline, not the superseded draft.
 
+The corrected freeze is `98936eeb`. Its complete baseline is **915.6860**, with
+352/352 valid runs and 176 distinct tracks. The unchanged V3 subset is **930.1556**;
+the extension-only panel is **901.5040**. The real drop is **14.4696** points and
+the recovery target is **926.5382**. See [baseline evidence](baseline.json).
+
 The initial compiler is the preserved V3 930.1556 compiler, `3420e481`.
 Let its complete V4 headline be H. The recovery target is fixed as
 **H + 0.75 × max(0, 930.1556 − H)**, rounded upward to four decimals. A 50–100

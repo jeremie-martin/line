@@ -1,5 +1,10 @@
 # V4 expansion and compiler recovery
 
+Current target: **926.5382**, starting from the corrected V4 baseline
+**915.6860**. All 352 baseline runs are valid. The real V3-to-V4 drop is
+**14.4696** points, and the target recovers 75% of it. Corrected freeze:
+`98936eeb`; [canonical baseline](../benchmark/v4/baseline.json).
+
 The frozen V4 catalog contains all 88 V3 specifications unchanged plus 88 matched
 companions. The design was committed and pushed at `a1837655` before the first
 compiler evaluation. The shared V3 scoring implementation, physics, aggregation
@@ -42,9 +47,24 @@ timing witnesses. Eighteen contract tests pass, including the impossible triple,
 feasible pair and minimum repair. This necessary timing condition still does not
 prove that all requested motion axes are jointly attainable.
 
-The corrected catalog is frozen before measuring it. Its new baseline will
-replace the superseded 900.0351 and define the recovery target by the original
-75% formula. No scorer, detector, physics or frame-budget rule changed.
+The corrected catalog was frozen at `98936eeb` before measuring it. Its complete
+baseline is 915.6860, with 352/352 valid runs and 176 distinct tracks. The V3
+subset reproduces 930.1556 exactly; the extension-only panel scores 901.5040.
+The original 75% recovery formula gives 926.5382. No scorer, detector, physics or
+frame-budget rule changed.
+
+Completed research cells from the draft can be reused only with identical case
+objects, compiler, options, seed and frame allowance. All shared scoring code
+and physics hashes must agree. The harness independently scores each imported
+track again and records its original cell and plan hashes. The changed case
+must be compiled again. This preserves 72 completed teacher cells and 36 full
+time-objective cells without claiming they were compiled twice.
+
+A retrieval optimization skips physical-distance arithmetic when the supervised
+partition distance already proves an example cannot enter the retained
+neighborhood. It preserves all 2,048 compared proposal lists exactly on 512
+measured and perturbed queries, and eight policy tests pass. Its local timing
+comparison runs alongside other work and is not an end-to-end speed claim.
 
 Research starts with an exact-reproduction check of the independent study harness,
 then compares time-weighted optimization and construction allocation on a declared

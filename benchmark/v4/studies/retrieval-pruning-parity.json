@@ -1,0 +1,23 @@
+{
+  "schema": "line.arc-retrieval-pruning-parity.v1",
+  "queries": 512,
+  "comparisons": 2048,
+  "exactProposalParity": true,
+  "description": "Physical distance is skipped only when supervised partition distance already exceeds the retained neighborhood. No candidate ordering or physics work changes.",
+  "modelSha256": "f60139398b8c94cb18d5372aa6ab3562b585e0ea83a8d1d0f74810ebd01caa7f",
+  "timingsMs": {
+    "previous": [
+      5876.340563,
+      4214.693598999998,
+      3586.7025719999983,
+      3310.6927810000016
+    ],
+    "current": [
+      4897.668038,
+      4708.673652000001,
+      3014.1777760000004,
+      2746.643436000002
+    ]
+  },
+  "note": "Local interleaved query microbenchmark during other work, not an end-to-end compiler speed claim."
+}

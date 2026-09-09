@@ -44,14 +44,45 @@ if(arg('worker')){
   assert.ok(sources.length&&new Set(sources).size===sources.length&&sources.every(id=>all.some(c=>c.id===id)));
   const compiler=identity(compilerRoot),frozen=judge();
   for(const [path,digest] of Object.entries(frozen.files))assert.equal(sha(readFileSync(path)),digest,path);
+  // Reuse is explicit and audited after an authoring erratum. It is allowed only
+  // for byte-identical cases, the identical compiler/options/work allowance and
+  // unchanged scoring code. Every imported track receives a fresh cold grade.
+  const reuseRoot=arg('reuse-from')?resolve(arg('reuse-from')!):undefined;
+  let reusePlan:any,reuseCases:any[]|undefined;
+  if(reuseRoot){
+    assert.ok(arg('reuse-catalog'),'reuse requires the original case catalog');
+    reusePlan=read(resolve(reuseRoot,'plan.json'));
+    const catalogBytes=readFileSync(arg('reuse-catalog')!),raw=gunzipSync(catalogBytes);reuseCases=JSON.parse(raw.toString());
+    assert.equal(sha(raw),reusePlan.judge.inputSha256);assert.deepEqual(reusePlan.compiler,compiler);
+    assert.equal(reusePlan.seed,seed);assert.equal(reusePlan.budget,budget);assert.deepEqual(reusePlan.options,options);
+    assert.equal(reusePlan.judge.engineSha256,(frozen as any).engineSha256);
+    for(const [path,digest] of Object.entries(reusePlan.judge.files))
+      if(!['benchmark/v4/catalog.lock.json','benchmark/v4/specifications.json.gz'].includes(path))
+        assert.equal((frozen.files as any)[path],digest,'reuse judge changed: '+path);
+  }
   const plan={schema:'line.arc-study.plan.v2',researchOnly:true,suite,compilerRoot,compiler,sources,seed,budget,options,judge:frozen,
     scriptSha256:sha(readFileSync(import.meta.filename)),suiteAdapterSha256:sha(readFileSync('scripts/benchmark/arc_suite.ts')),
     ...(options.controlPolicyPath?{modelSha256:sha(readFileSync(options.controlPolicyPath))}:{}),
     ...(options.valueModelPath?{valueModelSha256:sha(readFileSync(options.valueModelPath))}:{}),
-    ...(options.replayControlPath?{replaySha256:sha(readFileSync(options.replayControlPath))}:{})};
+    ...(options.replayControlPath?{replaySha256:sha(readFileSync(options.replayControlPath))}:{}),
+    ...(reuseRoot?{reuse:{path:reuseRoot,planSha256:sha(readFileSync(resolve(reuseRoot,'plan.json'))),catalogPath:arg('reuse-catalog'),catalogSha256:sha(readFileSync(arg('reuse-catalog')!))}}:{})};
   mkdirSync(out,{recursive:true});
   if(existsSync(resolve(out,'plan.json')))assert.deepEqual(read(resolve(out,'plan.json')),plan);else write(resolve(out,'plan.json'),plan);
   writeFileSync(resolve(out,'compiler.patch'),execFileSync('git',['-C',compilerRoot,'diff','--binary','HEAD','--','scripts/v0/optimizer'],{maxBuffer:128*1024*1024}));
+  let reused=0;
+  if(reuseRoot)for(const id of sources){
+    const target=resolve(out,id+'.json.gz'),path=resolve(reuseRoot,id+'.json.gz');
+    if(existsSync(target)||!existsSync(path)||!existsSync(path+'.sha256'))continue;
+    const oldCase=reuseCases!.find(c=>c.id===id),current=all.find(c=>c.id===id)!;
+    if(JSON.stringify(oldCase)!==JSON.stringify(current))continue;
+    const previous=read(path);assert.equal(previous.planSha256,plan.reuse!.planSha256);
+    assert.equal(previous.seed,seed);assert.equal(previous.sourceId,id);assert.equal(previous.trackHash,sha(JSON.stringify(previous.track)));
+    assert.ok(previous.resources.physicalFrames<=budget);const grade=evaluateTrack(current,previous.track);
+    assert.deepEqual(grade.score,previous.score);
+    write(target,{...previous,...grade,planSha256:sha(readFileSync(resolve(out,'plan.json'))),
+      reusedFrom:{path,sha256:sha(readFileSync(path)),planSha256:previous.planSha256,note:'Exact input/compiler/options parity; fresh cold grade, original compilation work and time retained.'}});reused++;
+  }
+  if(reuseRoot)console.log(JSON.stringify({reused,remaining:sources.length-reused}));
   const queue=sources.slice(),failed:string[]=[];let completed=0;
   await Promise.all(Array.from({length:Math.min(jobs,queue.length)},async()=>{
     while(queue.length){

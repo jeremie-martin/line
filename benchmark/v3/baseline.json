@@ -1,0 +1,24 @@
+{
+  "schema": "line.benchmark-v3.baseline.v1",
+  "status": "evaluated-pilot-baseline",
+  "label": "arc-control-memory-on-v3",
+  "compilerCommit": "d5916576aa80a7dfc5946697938590b1cc71e228",
+  "compilerSourceSha256": "8de6726c3a0d2923eea9c1f8435a16da1b477e7941b4a3bb6f9fea7940a34c6c",
+  "suiteFingerprint": "82e6e224e9f6fc9bf4ecfec4e5c946ce69e900c89d595c2b5a189357ab1ebd32",
+  "inputSha256": "24459bb65418016c696b9dd9b06dff3e3adfbade605ecf7ca8bddfd086e3a489",
+  "headline": 853.9779,
+  "valid": 176,
+  "runs": 176,
+  "budget": 750000,
+  "seeds": [
+    16,
+    17
+  ],
+  "archive": {
+    "path": "benchmark/v3/runs/initial-after.json.gz",
+    "rawSha256": "b90d2f318dc6a4f8e076b0b65b6470fe67d2b72f9817b7d0a85a5fdd8c5d3e1f",
+    "compressedSha256": "82d6b7125f62fe501c72f5ea82a9d61d80df8044c5b734f8b5fce1afd38f3922",
+    "bytes": 1759433
+  },
+  "note": "Separate V3 baseline. No compiler promotion, V2 rebaseline, or audiovisual approval is implied."
+}

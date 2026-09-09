@@ -1,0 +1,182 @@
+{
+  "schema": "line.benchmark-v3.completion.v1",
+  "date": "2026-09-09",
+  "branch": "codex/benchmark-v3",
+  "previousReviewCommit": "3e9f6083",
+  "authoringFreezeCommit": "3831bae4",
+  "targetInputsAndPolicyUnchangedSinceFreeze": true,
+  "protectedPaths": [
+    "benchmark/v2",
+    "scripts/v0",
+    "scripts/lib",
+    "engine-rs",
+    "productions",
+    "goal.md",
+    "package.json",
+    "package-lock.json"
+  ],
+  "protectedChanges": [],
+  "tests": {
+    "files": 4,
+    "passed": 65,
+    "command": "npm test -- --run tests/benchmark_v3.test.ts tests/benchmark_v3_cli.test.ts tests/benchmark_v2_evaluator.test.ts tests/v0_impact.test.ts"
+  },
+  "typescript": {
+    "command": "npx tsc --noEmit --allowImportingTsExtensions --pretty false",
+    "exitCode": 2,
+    "inheritedDiagnostics": 251,
+    "newDiagnostics": 0
+  },
+  "browser": [
+    {
+      "layout": {
+        "width": 390,
+        "scroll": 390,
+        "cases": 88
+      },
+      "filteredCases": 7,
+      "notTargetedLabels": 1,
+      "errors": []
+    },
+    {
+      "layout": {
+        "width": 1200,
+        "scroll": 1200,
+        "cases": 88
+      },
+      "filteredCases": 7,
+      "notTargetedLabels": 1,
+      "errors": []
+    }
+  ],
+  "localLogs": {
+    "tests": {
+      "path": "generated/benchmark-v3/tests.log",
+      "sha256": "69af8a85201164cc5425f0dda3bb7d8bc68c3399b43a94c433d573a4dddbc872"
+    },
+    "typescript": {
+      "path": "generated/benchmark-v3/typescript.log",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "bridge": {
+      "path": "generated/benchmark-v3/bridge.log",
+      "sha256": "8aefee1c0557f2dbc78547c8a5990f91f26feae078ebddab83f16e00da57270c"
+    }
+  },
+  "canonical": {
+    "cases": 88,
+    "seeds": [
+      16,
+      17
+    ],
+    "compilesPerCompiler": 176,
+    "currentValid": 176,
+    "previousValid": 176,
+    "currentHeadline": 853.9779,
+    "previousHeadline": 831.1509,
+    "pairedDelta": 22.827
+  },
+  "sameTrackBridge": {
+    "originalV2Reproduced": 852.1248,
+    "tracks": 44
+  },
+  "archivalPolicy": "Frozen benchmark inputs, code, compact compressed evidence and the explorer are tracked. Full tracks, raw records, failed attempts and browser screenshots stay local under generated/benchmark-v3.",
+  "artifacts": {
+    "benchmark/v3/README.md": {
+      "sha256": "d2273ddd2eb2fe8dc5a6ecdaba53ccc38e34a5765d0de01a1fd41e153599d919",
+      "bytes": 5131
+    },
+    "benchmark/v3/baseline.json": {
+      "sha256": "8953a4ba8095cdd8cf2aeace3c0851c9fa15f13344b0ff1fe9d569f0be895630",
+      "bytes": 950
+    },
+    "benchmark/v3/catalog-summary.json": {
+      "sha256": "1dd04d0de060213500bafe714b46e7d840d281a0984d8733f31f52e0312a6f8f",
+      "bytes": 151453
+    },
+    "benchmark/v3/catalog.lock.json": {
+      "sha256": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+      "bytes": 845
+    },
+    "benchmark/v3/evaluator.ts": {
+      "sha256": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+      "bytes": 7825
+    },
+    "benchmark/v3/fixed-track-bridge.json": {
+      "sha256": "8a39e4dfc130406eca8fca7c0f06f7a0ee3080c6c1732db909de0b035b4af442",
+      "bytes": 83366
+    },
+    "benchmark/v3/initial-validation.json": {
+      "sha256": "7efbf34900dc1add8c9ddbe9853a8d4124ca550a7999066ea6a527659eb1cf00",
+      "bytes": 91621
+    },
+    "benchmark/v3/model.ts": {
+      "sha256": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+      "bytes": 4212
+    },
+    "benchmark/v3/policy.ts": {
+      "sha256": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+      "bytes": 1948
+    },
+    "benchmark/v3/runs/initial-after.json.gz": {
+      "sha256": "82d6b7125f62fe501c72f5ea82a9d61d80df8044c5b734f8b5fce1afd38f3922",
+      "bytes": 1759433
+    },
+    "benchmark/v3/runs/initial-before.json.gz": {
+      "sha256": "adff26abe844c91577a363629851bf9c6ca9ff68c99ff143f8a314b1105413e3",
+      "bytes": 1764059
+    },
+    "benchmark/v3/specifications.json.gz": {
+      "sha256": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+      "bytes": 1983616
+    },
+    "benchmark/v3/static-audit.json": {
+      "sha256": "643a5cc4c1c2ac213a54d920d925446714b7e0f1a2373eff6d7b5f64edd67886",
+      "bytes": 992
+    },
+    "docs/assets/benchmark-v3-explorer.html": {
+      "sha256": "28bfaa35ed611aa6cc3d5a9db5621573958c299950fdb1d35c8c330d23464d88",
+      "bytes": 2335734
+    },
+    "docs/benchmark-v2.md": {
+      "sha256": "d70c8973f5858008c88a204b25046ad71f08238aa79a80dd6fd8467d15966e15",
+      "bytes": 8148
+    },
+    "docs/benchmark-v3.md": {
+      "sha256": "daf31d7bbc49704afc790de61c89e27d218c8d34c984ce4c257fa2c7d67a719d",
+      "bytes": 9989
+    },
+    "scripts/benchmark/v3.ts": {
+      "sha256": "00e82d29bd909cd627da1e77aa458a3487b632e548257c000fe6280bf70c606d",
+      "bytes": 11232
+    },
+    "scripts/benchmark/v3_analyze.ts": {
+      "sha256": "494b4a0bc55625e47bd671281feb9e673cd0127fbfd91827a8785d20d32b2e39",
+      "bytes": 9733
+    },
+    "scripts/benchmark/v3_audit.ts": {
+      "sha256": "d8f805bb07638d711a13851739586eba09d9df7f5ca81fca72f97fd07f6019a3",
+      "bytes": 4487
+    },
+    "scripts/benchmark/v3_author.ts": {
+      "sha256": "8cd12c5eb756abd0eadd5d3d490b62ccebc617ad50a07ff2d431ee93cddb6063",
+      "bytes": 13357
+    },
+    "scripts/benchmark/v3_bridge.ts": {
+      "sha256": "7353f9cf3a7d1434778c099e6d7b180321af2b50c83be523d4742ad533864251",
+      "bytes": 2909
+    },
+    "scripts/benchmark/v3_explorer.ts": {
+      "sha256": "df49697c5c51db7091f5a128584f5c070117011c024ad097a3d1977c9f2955fe",
+      "bytes": 9232
+    },
+    "tests/benchmark_v3.test.ts": {
+      "sha256": "668ba88ff97ee1e1a60ec14dd6d904bdb78d568a2b0703ea7e2426523855b52f",
+      "bytes": 3315
+    },
+    "tests/benchmark_v3_cli.test.ts": {
+      "sha256": "216004b6f57520e63d6f33417e8b88cdd5028e45bfdcc7de194c0f1208e83f55",
+      "bytes": 2029
+    }
+  }
+}

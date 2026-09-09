@@ -4,9 +4,11 @@ import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, openSync, closeSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { gunzipSync } from 'node:zlib';
 import { loadCases, caseSpec, sha, type Case } from '../../benchmark/v3/model.ts';
 import { policy } from '../../benchmark/v3/policy.ts';
 import { evaluateTrack, summarize } from '../../benchmark/v3/evaluator.ts';
+import { validateSpec } from '../v0/core/substrate.ts';
 
 const args = process.argv.slice(2), command = args.find(a => !a.startsWith('--')) ?? 'help';
 const arg = (key: string) => args.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
@@ -16,7 +18,7 @@ const write = (path: string, value: unknown) => {
   const body = JSON.stringify(value) + '\n', temporary = path + '.' + process.pid + '.tmp';
   writeFileSync(temporary, body); renameSync(temporary, path); writeFileSync(path + '.sha256', sha(body) + '\n');
 };
-const verified = (path: string) => { const b = readFileSync(path); assert.equal(sha(b), readFileSync(path + '.sha256', 'utf8').trim(), path); return JSON.parse(b.toString()); };
+const verified = (path: string) => { const b = readFileSync(path); assert.equal(sha(b), readFileSync(path + '.sha256', 'utf8').trim(), path); return JSON.parse((path.endsWith('.gz') ? gunzipSync(b) : b).toString()); };
 const judgeFiles = ['benchmark/v3/model.ts', 'benchmark/v3/policy.ts', 'benchmark/v3/evaluator.ts', 'benchmark/v3/catalog.lock.json',
   'scripts/v0/core/substrate.ts', 'scripts/v0/core/measure.ts', 'scripts/v0/types.ts', 'scripts/v0/score.ts',
   'scripts/lib/_lr_engine.ts', 'scripts/lib/_lr_engine_wasm.ts', 'scripts/lib/detector.ts', 'scripts/lib/update_types.ts'];
@@ -53,7 +55,8 @@ function geometry(track: any) {
     note: 'Descriptive physical geometry, not an automatic aesthetic certificate.' };
 }
 if (command === 'status') {
-  console.log(JSON.stringify({ policy, catalog: lock, audit: read('benchmark/v3/static-audit.json') }, null, 2));
+  console.log(JSON.stringify({ policy, catalog: lock, audit: read('benchmark/v3/static-audit.json'),
+    ...(existsSync('benchmark/v3/baseline.json') ? { baseline: verified('benchmark/v3/baseline.json') } : {}) }, null, 2));
 } else if (command === 'worker') {
   const out = resolve(arg('out')!), plan = verified(resolve(out, 'plan.json'));
   const c = cases.find(c => c.id === arg('source'))!; assert.ok(c);
@@ -76,6 +79,7 @@ if (command === 'status') {
   const seeds = (arg('seeds') ?? policy.seeds.join(',')).split(',').map(Number), budget = Number(arg('budget') ?? policy.budget), jobs = Number(arg('jobs') ?? 16);
   assert.ok(seeds.length && seeds.every(Number.isSafeInteger) && new Set(seeds).size === seeds.length);
   assert.ok(Number.isSafeInteger(budget) && budget > 0 && Number.isSafeInteger(jobs) && jobs > 0 && jobs <= 48);
+  for (const c of cases) validateSpec(caseSpec(c));
   const compiler = compilerIdentity(compilerRoot); assert.equal(compiler.dirty, '', 'use a clean compiler checkout');
   const identity = judge(); assert.equal(compiler.engineSha256, identity.engineSha256, 'compiler/judge engine mismatch');
   const plan = { schema: 'line.benchmark-v3.plan.v1', compilerRoot, compiler, judge: identity,
@@ -112,7 +116,9 @@ if (command === 'status') {
   write(resolve(out, 'run.json'), record);
   console.log(JSON.stringify({ headline: summary.headline, valid: summary.valid, runs: summary.runs, distinctTracks: summary.distinctTracks, strata: summary.strata, out }));
 } else if (command === 'compare') {
-  const left = verified(resolve(arg('baseline')!)), right = verified(resolve(arg('candidate')!));
+  if (!arg('candidate')) throw new Error('compare requires --candidate=RUN');
+  const baselinePath = resolve(arg('baseline') ?? verified('benchmark/v3/baseline.json').archive.path);
+  const left = verified(baselinePath), right = verified(resolve(arg('candidate')!));
   assert.equal(left.plan.suiteFingerprint, right.plan.suiteFingerprint, 'suite mismatch');
   assert.equal(left.plan.budget, right.plan.budget, 'budget mismatch');
   assert.deepEqual(left.plan.seeds, right.plan.seeds, 'seed mismatch');
@@ -120,7 +126,7 @@ if (command === 'status') {
   const before = summarize(left.rows, cases, left.plan.seeds), after = summarize(right.rows, cases, right.plan.seeds);
   const delta = round(after.headline - before.headline);
   const result = { schema: 'line.benchmark-v3.comparison.v1', suiteFingerprint: right.plan.suiteFingerprint,
-    baselineSha256: sha(readFileSync(resolve(arg('baseline')!))), candidateSha256: sha(readFileSync(resolve(arg('candidate')!))),
+    baselineSha256: sha(readFileSync(baselinePath)), candidateSha256: sha(readFileSync(resolve(arg('candidate')!))),
     before, after, delta, cases: after.specifications.map(c => ({ id: c.id, before: before.specifications.find(b => b.id === c.id)!.score, after: c.score, delta: round(c.score - before.specifications.find(b => b.id === c.id)!.score) })),
     decision: 'descriptive paired full-suite result; no automatic promotion or claim of generalization probability' };
   if (arg('out')) write(resolve(arg('out')!), result);

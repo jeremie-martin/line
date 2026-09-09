@@ -28,6 +28,10 @@ The [alignment review](benchmark-v2-alignment-review.md) examines the current
 baseline's measurement limits, product coverage, and a proposed future pilot.
 It does not change this benchmark or its acceptance protocol.
 
+The separately evaluated [V3 successor](benchmark-v3.md) now provides 88
+specifications, explicit ending coverage, and a two-seed canonical panel.
+Its dedicated command and baseline leave the V2 workflow below intact.
+
 ## Cached comparisons
 
 The active campaign baseline owns one literal 750k seed ladder through 48

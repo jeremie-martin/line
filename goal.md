@@ -1,3 +1,23 @@
+# Active campaign: above 920 on frozen Benchmark V3
+
+Target: **strictly above 920**, starting from canonical **910.5248** at
+`f0ca9434`. Work branch: `codex/arc-v3-920`; the starting point remains preserved
+on `archive/arc-v3-910`. The owner reviewed the new Luna vertical video and
+confirmed that its visual results remain aligned with the desired style.
+
+Keep the complete frozen V3 panel: 88 specifications × seeds 16/17, at 750,000
+actual compiler physics frames per run. Benchmark inputs, scorer, aggregation,
+detector, physics and accounting remain unchanged. Preserve substantial coherent
+normal type-0 arcs; no acceleration lines or point constellations. Compiler
+geometry, planning, learning and resource allocation remain open to research.
+
+Diagnose remaining losses, test general improvements empirically, preserve
+adverse results, and confirm the final compiler through the public canonical
+entry point. The full headline governs; disclose regressions and robustness
+without adding perfection gates. Research compute is unrestricted. Commit and
+push code and compact evidence; keep large/raw artifacts local. See the
+[campaign ledger](docs/arc-v3-920-campaign.md).
+
 # Achieved campaign: 910.5248 on frozen Benchmark V3
 
 The **910 target is achieved** at **910.5248**, up **9.4325** from 901.0923.

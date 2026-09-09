@@ -28,8 +28,11 @@ assert run['plan'] == plan
 assert data['teacherPlanSha256'] == plan_sha
 replay, replay_sha = checked(plan['options']['replayControlPath'])
 assert replay_sha == plan['replaySha256']
+assert plan['suite'] == 'v4'
+assert run['summary']['headline'] == replay['studentHeadline']
 catalog_path = Path('benchmark/v4/specifications.json.gz')
 assert data['catalogSha256'] == hashlib.sha256(catalog_path.read_bytes()).hexdigest()
+assert plan['judge']['inputSha256'] == hashlib.sha256(gzip.decompress(catalog_path.read_bytes())).hexdigest()
 cases = json.loads(gzip.decompress(catalog_path.read_bytes()))
 ids = {c['id'] for c in cases}
 assert len(ids) == len(cases) == len(plan['sources']) == 176

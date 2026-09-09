@@ -69,7 +69,7 @@ comparison runs alongside other work and is not an end-to-end speed claim.
 ## Initial recovery experiments
 
 These results use the complete 176-case seed-16 research panel at 750k actual
-frames, with every run valid. They require canonical public confirmation before
+frames. All cases are valid unless indicated. They require canonical public confirmation before
 promotion; the recovery target remains 926.5382.
 
 | Change from the corrected baseline | Headline |
@@ -82,6 +82,11 @@ promotion; the recovery target remains 926.5382.
 | Learned corrections to the existing mean, with new measured examples | **921.5679** |
 | New continuation-value predictor alone | 913.6620 |
 | Learned mean corrections plus the new value predictor | 920.7629 |
+| Learned mean corrections, 80 base / 176 guidance / 161 response allocation | **922.2635** |
+| Equal predicted/measured proposal weights | 921.5070 |
+| Corrections learned from fixed-prefix teacher queries | 917.4498 |
+| Measured examples from fixed-prefix queries (175/176 valid) | 895.5296 |
+| Refined allocation plus time-weighted terminal optimization | 920.9307 |
 
 The 3M-frame teacher reaches 926.7191 over all 176 cases, with maximum work
 2,915,481 frames. This larger allowance cannot qualify for the public goal.
@@ -121,8 +126,11 @@ resolve the tradeoff on the diagnostic panel. These are rejected executions,
 not evidence that expressive geometry has no further potential. Their exact
 patches and paired changes are preserved in the research summary.
 
-The best completed result recovers 40.6501% of the real baseline drop; another
-4.9703 points are needed. A new 3M teacher query evaluates improved controls at
+The best completed result is now 922.2635; another 4.2747 points are needed.
+The 80/176 allocation retains a nominal total of 256 evaluations but directs
+more work to joint arc refinement. These research overrides also raise smaller
+duration-dependent allocations and need a production budget formula if selected.
+A new 3M teacher query evaluates improved controls at
 the exact 921.5679 student arrival states, while forcibly reproducing its original
 completed tracks. Its replay headline describes that student, not a new teacher
 rollout. Each proposed teacher control must subsequently pass an independent
@@ -131,12 +139,36 @@ physical replay at the same prefix and input features. A separate free-running
 transferring those controls and shifting effort from initial search to joint
 refinement. Higher teacher allowances remain outside qualification.
 
-Research starts with an exact-reproduction check of the independent study harness,
-then compares time-weighted optimization and construction allocation on a declared
-eight-case diagnostic panel. A complete 3M-frame teacher panel tests what the
-existing geometry can achieve with more search; that budget cannot qualify for
-the public target. All candidate selection must be confirmed on the complete
-176-case suite at 750k and then through the canonical public entry point.
+The fixed-prefix query completes with exact reproduction of 921.5679 and all
+176 cases valid. Independent replay verifies 16,138 controls (15,962 after
+excluding startup) at exact student prefixes and features. See the
+[counterfactual transfer proof](../benchmark/v4/studies/replay-residual-transfer.json).
+Two candidates independently test corrected mean predictions and replacement
+measured examples. Their 24 Python/TypeScript mean fixtures agree within
+2.23e-16; this checks export arithmetic, not compiler performance.
+
+The example-only query study exposed a budget-handling defect. A diagnostic
+replay exactly reproduces its failed track and work: after validating the final
+arc, recording control memory re-reads the incoming velocity and requests one
+additional frame beyond the construction limit. This read sits outside the
+search-interruption handler, so the valid final arc is never committed. The fix
+reuses incoming features already measured before candidate construction, both
+for control memory and teacher-query records. No physics work is refunded.
+The failed case now completes at 891.2618 within 750k. A 5,050-frame regression
+fixture reproduces the defect and passes with the fix; all 18 focused tests pass,
+and TypeScript retains the same 251 inherited diagnostics. See the
+[repair proof](../benchmark/v4/studies/arrival-cache-budget-repair.json).
+The complete fixed compiler still requires measurement.
+
+The stronger free-running 3M teacher reaches **931.6814**, all 176 cases valid.
+The refreshed, replay-validated dataset chooses 78 complete trajectories from
+that teacher, 40 from the original teacher, 22 from the refined allocation,
+15 from equal proposal weights, 14 from the original residual policy, five from
+the time-weighted 750k study and two from its 3M pilot. This selection supplies
+training controls, not a new rollout or headline. New complete panels test its
+measured examples and a newly fitted correction to the original mean predictor.
+Higher-budget teachers cannot qualify for the public target. All selected
+changes require the complete 176-case suite at 750k and canonical public confirmation.
 
 The compiler must retain substantial coherent normal type-0 arcs. Runtime learned
 features may describe physical state and upcoming targets, without benchmark case

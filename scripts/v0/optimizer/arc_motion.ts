@@ -419,6 +419,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(!best||guided.cost<best.optimizationCost)best=result;
         return result;
       };
+      // These describe the immutable incoming prefix already measured above.
+      // Reusing them avoids a new physics read after committing the search budget.
+      const inputFeatures=futureFeatures(arcPolicyArrival(beforeState,velocity),i-1);
       let center:ArcMotionControl|undefined;
       const selectBounded=()=>{
         if(!options.boundedSelection||!best)return;
@@ -429,11 +432,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           actualImpact:selected.meta.impact,release:selected.meta.release};
       };
       try {
-      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support};}
+      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};}
       center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
-      const inputFeatures=futureFeatures(arcPolicyArrival(beforeState,velocity),i-1);
       const responseAxisWeights=options.rescaleMemoryWeights?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;
       const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0);
       const responses=controlMemory.proposeResponses(inputFeatures,incoming,span,
@@ -579,7 +581,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(!best)throw error;
       }
       selectBounded();
-      return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support};
+      return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,inputFeatures};
     };
     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);
     const distinct=(candidates:any[],width:number)=>{
@@ -745,10 +747,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       if(options.replayControls){
         const forced=candidates.find(c=>JSON.stringify(c.c)===JSON.stringify(options.replayControls![i]));
         if(!forced)throw new Error('replayed control failed physical interval validation at '+i);
-        const prior=getRiderMetered(engine,frame-1).ballisticState(),velocity=getRiderMetered(engine,frame).velocity;
         const objectiveEnd=options.authoredHorizon?Math.min(horizon,duration):horizon;
         const span=objectiveEnd>frame||i===0?objectiveEnd-(i===0?0:frame):horizon-frame;
-        teacherRows.push({index:i,frame,features:futureFeatures(arcPolicyArrival(prior,velocity),i-1),
+        teacherRows.push({index:i,frame,features:interval.inputFeatures,
           incoming,span,control:best.c,localCost:best.localCost,cost:best.cost,
           physicalIntervalValidated:true,forcedControl:forced.c,lookahead});
         terminalChildLines=forced.lines;
@@ -765,11 +766,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       }
       steps.push({lineStart:lines.length,choices:alternatives.filter(a=>JSON.stringify(a.c)!==JSON.stringify(best.c))});
       if((options.memorySamples??0)>0&&i>0){
-        const prior=getRiderMetered(engine,frame-1).ballisticState(),velocity=getRiderMetered(engine,frame).velocity;
-        controlMemory.rememberControl({features:futureFeatures(arcPolicyArrival(prior,velocity),i-1),incoming,span:horizon-frame,control:best.c});
+        controlMemory.rememberControl({features:interval.inputFeatures,incoming,span:horizon-frame,control:best.c});
       }
-      // Read prefix features before constructing the replacement child: adding
-      // it can evict a shared prefix frame that the memory recorder still needs.
+      // Incoming features were captured before candidate construction, which
+      // can invalidate cached prefix frames even for a validated child.
       if(terminalChildLines)best.child=addArc(engine,terminalChildLines);
       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);
       rows.push({frame,next,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});

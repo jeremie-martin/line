@@ -1,0 +1,25 @@
+{
+  "schema": "line.arc-control-policy-data.v1",
+  "featureSchema": "line.arc-control-policy-features.v1",
+  "inputs": [
+    {
+      "path": "generated/benchmark-v4/recovery-data/best-teachers/data.json",
+      "sha256": "280a7d62c482ea9638d2476593d67105352bb3b00c51ced5679715c242df5e7e",
+      "rows": 15962,
+      "sources": 176
+    },
+    {
+      "path": "generated/benchmark-v4/recovery-data/replay-residual/data.json",
+      "sha256": "181f76b317ce22fa2ee3d4d5fa7a9cc21fb1c659401dde8893312f18605a8c99",
+      "rows": 15962,
+      "sources": 176
+    }
+  ],
+  "scriptSha256": "06749dfd33ade7692e122e021e0819265020db59d4c2626b7b2fda00e051e701",
+  "note": "Exposed development training. Rows are concatenated unchanged from declared datasets, whose physical validation remains attached to their original hashes. Multiple valid actions at the same state are retained. This merge performs no new physical validation and claims no new rollout score.",
+  "dataset": {
+    "path": "generated/benchmark-v4/recovery-data/combined-teaching/data.json",
+    "sha256": "3dcd8eff877817877d57f3168e5fbc0693b23b6b20b4f712d8f5fc25fe53eafc",
+    "rows": 31924
+  }
+}

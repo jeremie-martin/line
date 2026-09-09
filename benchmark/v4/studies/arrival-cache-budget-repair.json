@@ -1,0 +1,75 @@
+{
+  "schema": "line.arc-v4-arrival-cache-budget-repair.v1",
+  "source": "bridge_pickup_lattice",
+  "diagnosticExactlyReproducesFailedTrackAndWork": true,
+  "failureStack": "PhysicsFrameLimitExceeded: physics frame budget hard limit exceeded (limit=745318, attempted=745319)\n    at getRiderMetered (/tmp/line-v4-budget-research/scripts/lib/detector.ts:588:11)\n    at compileArcMotion (/tmp/line-v4-budget-research/scripts/v0/optimizer/arc_motion.ts:768:79)\n    at <anonymous> (/home/wyss/line/scripts/benchmark/arc_study.ts:33:40)",
+  "records": [
+    {
+      "path": "generated/benchmark-v4/recovery-final/full-replay-examples/bridge_pickup_lattice.json.gz",
+      "sha256": "31479bf00b90a84c3ee6e1e88312f2149ac16944137686b31b08cebbfbc068be",
+      "score": 0,
+      "valid": false,
+      "physicalFrames": 749998,
+      "trackHash": "d8e8ce1daa0a2756d871c354b8183707a2fdd73606667bc7b9d0fd397cdce585"
+    },
+    {
+      "path": "generated/benchmark-v4/recovery-final/pilot-budget-origin/bridge_pickup_lattice.json.gz",
+      "sha256": "bbadf2ca3d54fcb5cc4270b487b37e8552221f595e71fde9527a61d47cb4f8ba",
+      "score": 0,
+      "valid": false,
+      "physicalFrames": 749998,
+      "trackHash": "d8e8ce1daa0a2756d871c354b8183707a2fdd73606667bc7b9d0fd397cdce585"
+    },
+    {
+      "path": "generated/benchmark-v4/recovery-final/pilot-cached-arrival/bridge_pickup_lattice.json.gz",
+      "sha256": "691f218cc36f7c191b5a196b672edacb80f33704539ceb6702669d1312523925",
+      "score": 891.2618,
+      "valid": true,
+      "physicalFrames": 749954,
+      "trackHash": "bc459a20851a31b33022a422602dd58b26fd0f630e674a4bbb35393589207c11"
+    }
+  ],
+  "smallRegression": {
+    "budget": 5050,
+    "old": {
+      "failure": {
+        "reason": "budget",
+        "diagnosticStack": "PhysicsFrameLimitExceeded: physics frame budget hard limit exceeded (limit=4688, attempted=4689)\n    at getRiderMetered (/tmp/line-v4-budget-research/scripts/lib/detector.ts:588:11)\n    at compileArcMotion (/tmp/line-v4-budget-research/scripts/v0/optimizer/arc_motion_debug.ts:768:79)\n    at file:///home/wyss/line/[eval1]:7:10"
+      },
+      "rows": 6,
+      "frames": 5048,
+      "interruptions": [
+        {
+          "phase": "local",
+          "index": 6,
+          "frame": 144,
+          "viable": 6,
+          "retained": true
+        }
+      ]
+    },
+    "fixed": {
+      "failure": null,
+      "rows": 7,
+      "frames": 5046,
+      "valid": true,
+      "interruptions": [
+        {
+          "phase": "local",
+          "index": 6,
+          "frame": 144,
+          "viable": 6,
+          "retained": true
+        }
+      ]
+    }
+  },
+  "testPath": "tests/arc_budget_interruptions.test.ts",
+  "testSha256": "30804e21360dce201e109daa580f64e780a972458fcf7e86757d9bd9ceeb60ff",
+  "fixedSourceSha256": "d53db7ffa09d07aec5cdf5b10524c6e0661e82d3f4b9a3c05a28fa5461559410",
+  "focusedTests": {
+    "files": 5,
+    "passed": 18
+  },
+  "note": "The final validated arc was discarded because remembering its incoming velocity re-read one additional physics frame outside search interruption handling. Cache the already-measured incoming features. This is a single-case repair proof, not a full-suite compiler result. Physics metering, scorer and allowance are unchanged."
+}

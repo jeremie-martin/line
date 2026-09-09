@@ -1,0 +1,13 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index b1d2f92d..2d28edbb 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -782,7 +782,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       lines.splice(0,lines.length,...refined.lines);rows.splice(0,rows.length,...refined.rows);
+       engine=refined.engine;refinementStats=refined.stats;
+     }
+-  }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;searchBudgetExhausted=true;failure={reason:'budget'};}
++  }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;searchBudgetExhausted=true;failure={reason:'budget',diagnosticStack:error.stack};}
+   if(failure&&deepestPrefix.rows.length>rows.length){
+     lines.splice(0,lines.length,...deepestPrefix.lines);rows.splice(0,rows.length,...deepestPrefix.rows);
+   }

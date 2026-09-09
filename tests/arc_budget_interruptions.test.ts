@@ -31,6 +31,17 @@ it('does not invent a usable curve when the first proposal cannot finish', () =>
   expect(result.stats.sim_frames).toBeLessThanOrEqual(372);
 });
 
+it('commits a validated final curve without spending another frame to remember its arrival', () => {
+  const result = compileArcMotion(spec, 17, {...options, memorySamples: 4, budget: 5050});
+  expect(result.failure).toBeNull();
+  expect(result.rows).toHaveLength(spec.contacts.length + 1);
+  expect(result.budgetInterruptions.at(-1)).toMatchObject({index: 6, retained: true});
+  expect(result.report.contacts.every(c => c.status === 'hit')).toBe(true);
+  expect(result.report.off_beat_landings).toHaveLength(0);
+  expect(result.report.terminus.reason).toBe('endOfSpec');
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(5050);
+});
+
 it('reports exhausted search truthfully even when its retained track completes', () => {
   const result = compileConnectedArcs(spec, 17, {budget: 2400});
   expect(result.report.contacts.every(c => c.status === 'hit')).toBe(true);

@@ -1,0 +1,11 @@
+{
+  "schema": "line.arc-policy-mean-parity.v1",
+  "modelPath": "generated/benchmark-v4/recovery-models/replay-v4/proximity.json",
+  "modelSha256": "2110f109d9b5176f7fc6bed127fc6251dfaf8a01678cda956917dfada9af95f4",
+  "fixturePath": "generated/benchmark-v4/recovery-models/residual-v4/parity-1.json",
+  "fixtureSha256": "ee8e6dbafa87a7fef4eb5639634e1636ddac485580b5d5bd09056916df082baa",
+  "fixtures": 24,
+  "maxError": 2.220446049250313e-16,
+  "runtimeSha256": "d35bff3a20a72c8e7b152c27bf81fd306f3fb4131e45da24323492c1c5de70aa",
+  "scriptSha256": "622278057e168e27e35fe7b5e767273e8c84cc5001989f8db45b6fedbc46b21c"
+}

@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Procedural Line Rider track generation synced to music \u2014 exploratory.",
   "scripts": {
+    "benchmark:v4": "LR_ENGINE=wasm node --import tsx scripts/benchmark/v4.ts",
     "probe": "tsx scripts/probe.ts",
     "probe2": "tsx scripts/probe2.ts",
     "export": "tsx scripts/export.ts",

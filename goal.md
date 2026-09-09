@@ -1,3 +1,15 @@
+# Active work: V4 expansion and recovery
+
+Build a 176-specification V4 superset: retain all 88 V3 cases exactly and add 88
+musically related companions stretching timing, contrast, axis combinations,
+recovery and supported intervals/endings. Freeze the catalog and unchanged V3
+scoring rules before evaluating the preserved 930.1556 compiler. Measure its
+complete V4 baseline H, then improve the compiler to at least
+ceil(10000 × (H + .75 × max(0, 930.1556 − H))) / 10000. The expected 50–100 point
+drop is not a design target. Preserve coherent normal arcs, the 750k frame budget,
+all results and adverse evidence. Push code/compact evidence; keep large artifacts
+local. See [V4 design](benchmark/v4/README.md).
+
 # Achieved campaign: 930.1556 on frozen Benchmark V3
 
 The **strictly-above-930 target is achieved** at **930.1556**, up **7.5138**

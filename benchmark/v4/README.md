@@ -1,0 +1,47 @@
+# V4: a matched expansion of V3
+
+The owner requested twice as many specifications, retaining every V3 case and
+stretching the same musical ideas in several reasonable directions. V4 contains
+**176 cases: the 88 frozen V3 cases, unchanged, and 88 authored companions**.
+Each original receives one companion in the same aggregation parent. Thus every
+family retains its relative influence, and existing strata/group/parent weights
+do not drift merely because a family has more variants.
+
+The companions are related programs, not 88 independent musical works. They
+cover moderate tempo increases, phrase-scale cadence changes, pickup and recovery
+redistribution, played timing offsets, stronger impact/speed/height contrasts,
+different relationships between those axes, and longer supported passages and
+endings. Extended supported intervals reach 7–12 seconds, with a small number
+reaching 15 seconds. Stretching does not mean simultaneously maximizing every
+axis. Synthetic companions of production references are not claimed to synchronize
+to the original recordings. No new audiovisual approval is claimed.
+
+The cold judge, detector, physics, 30/30/30/10 axis weights, tolerance 0.25,
+time-weighted span errors, event-weighted impacts, complete endings, invalid-run
+zeros and shifted geometric hierarchy are the V3 implementation. V4 imports
+that implementation and fingerprints its dependencies. Every case uses seeds
+16/17 and the same 750,000 actual compiler physics-frame allowance. Separate
+V3-subset and extension-only results accompany the complete V4 headline.
+
+The authoring program must not inspect compiler outcomes. The complete catalog,
+authoring source, static audit and policy are committed **before baseline
+evaluation**. Static checks cover exact V3 inclusion, input uniqueness, the
+compiler's real input validator, discrete-air necessary conditions and exact
+target adaptation. These conditions are not a proof that all requested axes are
+jointly attainable. No cases will be edited or removed to manufacture a score
+drop or to improve an optimizer result.
+
+The initial compiler is the preserved V3 930.1556 compiler, `3420e481`.
+Let its complete V4 headline be H. The recovery target is fixed as
+**H + 0.75 × max(0, 930.1556 − H)**, rounded upward to four decimals. A 50–100
+point drop is an expectation from the owner, not a benchmark-design requirement.
+If no drop occurs, report it plainly and pursue actual compiler improvement
+without manufacturing a deficit. Once measured, the V4 catalog and scorer stay
+frozen throughout the compiler campaign.
+
+Compiler improvements must retain substantial coherent normal type-0 arcs.
+All proposals receive physical validation; no point constellations or acceleration
+lines. Report the entire panel, per-case gains and regressions, actual work,
+distinct tracks and separate jitter diagnostics. Two deterministic seeds do not
+establish independent generalization. Code and compact evidence are pushed;
+raw tracks, research datasets, unselected models and videos remain local.

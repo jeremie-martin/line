@@ -1,0 +1,15 @@
+{
+  "schema": "line.benchmark-v4.catalog-lock.v1",
+  "status": "authored-before-compiler-evaluation",
+  "specifications": 176,
+  "unchangedV3": 88,
+  "companions": 88,
+  "aggregationParents": 65,
+  "specificationsSha256": "aafb8651d50e0bffc7e0122b5132348f4708b8f3df0e257a530e242ee1ccb0be",
+  "compressedSha256": "4c1b23debe464c9d7750701135bce1b1f2d1870108de3c02c51dc95e8f81680a",
+  "v3CatalogSha256": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+  "authoringSourceSha256": "3db83b4a480e478e92266e210449735c63c0cf5def747864098824974d40b9a9",
+  "policySha256": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+  "compilerOutcomesConsulted": false,
+  "expectedDropIsNotADesignRequirement": true
+}

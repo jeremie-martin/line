@@ -1,3 +1,22 @@
+# Active campaign: above 930 on frozen Benchmark V3
+
+Target: **strictly above 930**, starting from canonical **922.6418** at
+`93201349`. Work branch: `codex/arc-v3-930`; the starting point remains preserved
+on `archive/arc-v3-922`. The owner confirms continued visual alignment.
+
+Keep the complete frozen V3 panel: 88 specifications × seeds 16/17, at 750,000
+actual compiler physics frames per run. Benchmark inputs, scorer, aggregation,
+detector, physics and accounting remain unchanged. Preserve substantial coherent
+normal type-0 arcs; no acceleration lines or point constellations. Compiler
+geometry, planning, learning and resource allocation remain open to research.
+
+Diagnose remaining measured losses and wasted work, test general improvements
+empirically, preserve adverse results, and confirm the final compiler through
+the public canonical entry point. The full headline governs; disclose regressions
+and robustness without adding perfection gates. Research compute is unrestricted.
+Commit and push code and compact evidence; keep large/raw artifacts local. See
+the [campaign ledger](docs/arc-v3-930-campaign.md).
+
 # Achieved campaign: 922.6418 on frozen Benchmark V3
 
 The **strictly-above-920 target is achieved** at **922.6418**, up **12.1170**

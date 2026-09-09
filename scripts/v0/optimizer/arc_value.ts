@@ -23,3 +23,15 @@ export function arcFutureValue(features: number[], artifact: any): number {
   }
   return Math.max(0, Math.expm1(value) / 100);
 }
+
+/** Guide local geometry refinement with the same future estimate used to rank
+ * arrivals. Keep physical span residuals intact and blend only the arrival prior.
+ * This is an optional search objective, never a reported track measurement. */
+export function arcValueGuidance(cost:number,localCost:number,residuals:number[],priorStart:number,
+  predictedFuture:number|undefined,weight:number){
+  if(!Number.isFinite(weight)||weight<0||weight>1)throw new Error('invalid arc value guidance weight');
+  if(!weight||predictedFuture===undefined)return {cost,residuals};
+  const guided=residuals.map((r,i)=>i<priorStart?r:r*Math.sqrt(1-weight));
+  guided.push(Math.sqrt(weight*predictedFuture));
+  return {cost:cost+weight*(localCost+predictedFuture-cost),residuals:guided};
+}

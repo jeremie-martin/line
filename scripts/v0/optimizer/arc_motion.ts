@@ -16,7 +16,7 @@ import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
 import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
 import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
 import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
-import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
+import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { createArcEngine } from './arc_engine.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
@@ -83,6 +83,9 @@ export type ArcMotionOptions= {
   guidanceSamples?:number;
   lookaheadWidth?:number;
   lookaheadSamples?:number;
+  /** Explicit local correction allowance for simulated continuation probes. */
+  continuationGuidanceSamples?:number;
+  continuationResponseSamples?:number;
   lookaheadWeight?:number;
   lookaheadWarmStart?:boolean;
   warmStart?:ArcMotionControl;
@@ -132,6 +135,8 @@ export type ArcMotionOptions= {
   /** Research: use the learned value at the unresolved continuation boundary. */
   continuationValueWeight?:number;
   valueWeight?:number;
+  /** Blend learned arrival value into local geometry optimization as well as ranking. */
+  valueGuidanceWeight?:number;
   valueSelection?:boolean};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
@@ -247,7 +252,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -307,7 +312,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           // Rebuild from validated geometry; subsequent simulations stay metered.
           // A measurement from an earlier search must compete in this search.
           const result={...saved.result,c,child:addArc(engine,saved.result.lines)};
-          if(!best||result.cost<best.cost)best=result;
+          if(!best||result.optimizationCost<best.optimizationCost)best=result;
           return result;
         }
         const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=addArc(engine,added);
@@ -346,7 +351,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
             residuals.push(...correction.residuals);cost=correction.cost;
           }
         }
-        const localCost=cost;
+        const localCost=cost,priorStart=residuals.length;
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
         // Keep future catches physically accessible; this is an optimizer prior,
@@ -381,18 +386,22 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           }
         }
         const terminalLoss=options.terminalSelection&&i===contacts.length-1?arcDetectedTrajectoryObjective(det,gaps,options.amplitudeWeight).loss:undefined;
-        const result={child,lines:added,c,cost,localCost,residuals,achieved,actualImpact,terminalLoss,release:raw.frames.slice().reverse().find(f=>f.sledContacts.length)?.frame};
+        const release=raw.frames.slice().reverse().find(f=>f.sledContacts.length)?.frame;
         const finalState=state.points;
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
         const pose=deg(Math.atan2(finalState.NOSE.y-finalState.TAIL.y,finalState.NOSE.x-finalState.TAIL.x));
         viableCandidates++;
-        const valueFeatures=options.collectValue||options.futureValueModel?futureFeatures(arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(result.release??frame)),i):undefined;
+        const valueFeatures=options.collectValue||options.futureValueModel?futureFeatures(arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(release??frame)),i):undefined;
         const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
+        const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
+          i<contacts.length-1?options.valueGuidanceWeight??0:0);
+        const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
+          achieved,actualImpact,terminalLoss,release};
         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
           searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
         // Interrupted evaluations never reach this cache insertion.
         if(memo){const {child:_child,...measurement}=result;memo.set(key,{result:measurement,candidate:{...candidates.at(-1)}});}
-        if(!best||cost<best.cost)best=result;
+        if(!best||guided.cost<best.optimizationCost)best=result;
         return result;
       };
       let center:ArcMotionControl|undefined;
@@ -520,7 +529,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           for(const fraction of [1,.5,.25]){
             if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
           }
-          const improving=best.cost<origin.cost-1e-12;
+          const improving=best.optimizationCost<origin.optimizationCost-1e-12;
           const previousUses:number=secant?.uses??0;
           if(improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
             const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale[key as keyof typeof scale]*trust));
@@ -567,7 +576,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       return result;
     };
     const continuation=(base:Engine,index:number,depth:number,probeSamples:number,protectedEngines:Engine[]):any=>{
-      const searched=searchInterval(base,index,{samples:probeSamples,guidanceSamples:Math.min(12,options.guidanceSamples??48)},protectedEngines);
+      const searched=searchInterval(base,index,{samples:probeSamples,
+        guidanceSamples:options.continuationGuidanceSamples??Math.min(12,options.guidanceSamples??48),
+        responseSamples:options.continuationResponseSamples??options.responseSamples},protectedEngines);
       lookaheadStats.continuationNodes++;
       if(!searched?.best)return null;
       const anchor=searched.best;
@@ -634,6 +645,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       let lookahead:any=null;
       if(best&&(options.lookaheadWidth??0)>1&&i+1<contacts.length){
         let width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32,depth=Math.max(1,options.lookaheadDepth??1);
+        const probeRate=()=>options.continuationGuidanceSamples===undefined?1.4:
+          1+options.continuationGuidanceSamples/probeSamples;
         const nominalRate=(options.samples??160)+(options.guidance?options.guidanceSamples??48:0);
         const constructionReserveRate=(options.adaptivePlanning?Math.max(nominalRate,observedConstructionRate):nominalRate)*(options.reserveFactor??1.1);
         if(options.adaptivePlanning){
@@ -641,7 +654,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           const localAllowance=Math.max(0,rate-constructionReserveRate)*(next-frame);
           for(let d=Math.min(options.planningDepth??2,contacts.length-i-1);d>=1;d--){
             let framesPerProbe=0;
-            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(options.lookaheadBranching??2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*(1.4+6*(options.airProjection??0)/probeSamples);
+            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(options.lookaheadBranching??2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*(probeRate()+6*(options.airProjection??0)/probeSamples);
             const affordable=localAllowance/Math.max(1,framesPerProbe);
             if(affordable<width*probeSamples)continue;
             width=Math.max(width,Math.min(options.planningWidth??5,Math.floor(affordable/probeSamples)));
@@ -659,7 +672,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           if(probes.length>=width&&winner)break;
           const reserve=options.adaptivePlanning?(end-frame)*constructionReserveRate:(end-frame)*nominalRate*(options.reserveFactor??1.1);
           let probeAllowance=0;
-          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*(1.4+6*(options.airProjection??0)/probeSamples);
+          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*(probeRate()+6*(options.airProjection??0)/probeSamples);
           if(getPhysicsFrameCount()+reserve+probeAllowance>budget-2*(end+1))break;
           const branch=addArc(engine,candidate.lines);
           const future=continuation(branch,i+1,depth,probeSamples,[engine,original.child]);

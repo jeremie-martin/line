@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
 import {gunzipSync} from 'node:zlib';
 import {loadCases,caseSpec,sha} from '../../benchmark/v3/model.ts';
 import {sliceTimeline,effectiveAxes,sampleGapTargets} from '../v0/core/substrate.ts';
@@ -16,6 +18,14 @@ import {CALIB} from '../v0/types.ts';
 const arg=(name:string)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
 const read=(p:string)=>{const b=readFileSync(p);assert.equal(sha(b),readFileSync(p+'.sha256','utf8').trim());return JSON.parse((p.endsWith('.gz')?gunzipSync(b):b).toString());};
 const paths=arg('inputs')!.split(','),panels=paths.map(p=>({path:p,run:read(resolve(p,'run.json.gz'))}));
+const compilerRoot=arg('compiler-root')?resolve(arg('compiler-root')!):null;
+let defaults:typeof import('../v0/optimizer/connected_arcs.ts').connectedArcOptions|undefined;
+if(compilerRoot){
+  const fingerprint=execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',
+    'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; console.log(compilerCandidateIdentity("wasm").candidateFingerprint);'],{cwd:compilerRoot,encoding:'utf8'}).trim();
+  for(const p of panels)assert.equal(p.run.plan.compiler.candidateFingerprint,fingerprint,'teacher compiler root mismatch');
+  defaults=(await import(pathToFileURL(resolve(compilerRoot,'scripts/v0/optimizer/connected_arcs.ts')).href)).connectedArcOptions;
+}
 const cases=loadCases(),all:any[]=[],provenance:any[]=[];
 for(const c of cases){
   const candidates=panels.map(p=>({panel:p,row:p.run.rows.find((r:any)=>r.sourceId===c.id)})).filter(p=>p.row?.score.valid);
@@ -24,6 +34,7 @@ for(const c of cases){
   const teacher=candidates[0],path=resolve(teacher.panel.path,c.id+'.json.gz'),record=read(path),plan=teacher.panel.run.plan;
   assert.equal(record.trackHash,sha(JSON.stringify(record.track)));assert.equal(record.seed,plan.seed);
   const spec=normalizeCompilerTimeline(caseSpec(c)),duration=Math.round(spec.duration*40),end=duration+20;
+  const authoredHorizon=plan.options.authoredHorizon??defaults?.(spec,plan.budget).authoredHorizon??false;
   const gaps=sliceTimeline(spec.contacts.map(x=>Math.round(x.t*40)),duration);
   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
   const rng=makeRng(record.seed),planned=scheduleNativeContacts(gaps.map(g=>({...g,targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
@@ -42,9 +53,10 @@ for(const c of cases){
       const row=record.rows[i],frame=contacts[i].frame;assert.equal(row.frame,frame);
       const before=getRiderMetered(engine,frame-1).ballisticState(),velocity=getRiderMetered(engine,frame).velocity;
       assert.equal(JSON.stringify(before),JSON.stringify(getRiderMetered(reference,frame-1).ballisticState()),c.id+':'+i);
-      if(i>0){
+      if(i>0||arg('include-startup')==='true'){
         const incoming=Math.atan2(velocity.y,velocity.x)*180/Math.PI,
-          span=(plan.options.authoredHorizon?Math.min(duration,row.next-1):row.next-1)-frame,control=row.control;
+          objectiveEnd=authoredHorizon?Math.min(duration,row.next-1):row.next-1,
+          span=objectiveEnd>frame||i===0?objectiveEnd-(i===0?0:frame):row.next-1-frame,control=row.control;
         const target=[(control.entry-incoming)/30,control.turn/60,(control.exit-incoming)/60,control.support/span,control.bias,control.offset,
           (control.clearance??12)/12,control.turnFraction??Math.min(5,control.support*.5)/control.support,(control.bend??0)/30,(control.guideFlare??0)/8];
         all.push({source:c.id,parent:c.parentId,group:c.group,index:i,features:future(arcPolicyArrival(before,velocity),i-1),target,control});
@@ -53,7 +65,7 @@ for(const c of cases){
       engine=engine.addLine(geometry).detach();Engine.retainOnly([engine,reference]);
     }
     assert.equal(JSON.stringify(getRiderMetered(engine,end).ballisticState()),JSON.stringify(getRiderMetered(reference,end).ballisticState()));
-    provenance.push({source:c.id,path,sha256:sha(readFileSync(path)),teacherScore:record.score.score,teacherPlanSha256:record.planSha256,replayFrames:getPhysicsFrameCount(),prefixesMatchedFullTrack:true});
+    provenance.push({source:c.id,path,sha256:sha(readFileSync(path)),teacherScore:record.score.score,teacherPlanSha256:record.planSha256,authoredHorizon,replayFrames:getPhysicsFrameCount(),prefixesMatchedFullTrack:true});
   }finally{dispose();}
   if(provenance.length%8===0)console.log(JSON.stringify({sources:provenance.length,rows:all.length}));
 }

@@ -46,3 +46,15 @@ it('matches the training library at float32 decision boundaries',()=>{
   expect(features[0]).toBeGreaterThan(tree.threshold[0]);
   expect(arcControlProposals(features,20,30,fixture,1)[0].entry).toBe(20);
 });
+
+it('supports an explicit physical-feature metric for measured proposals',()=>{
+  const query=Array(57).fill(0),bodyDifferent=query.slice(),targetDifferent=query.slice();
+  bodyDifferent[7]=1;targetDifferent[47]=1;
+  const fixture={featureSchema:model.featureSchema,featureCount:57,exemplars:[
+    {features:bodyDifferent,target:Array(10).fill(0)},
+    {features:targetDifferent,target:Array(10).fill(1)}]};
+  expect(arcControlProposals(query,20,30,fixture,1)[0].entry).toBe(20);
+  const weights=Array(57).fill(1);weights[7]=5;
+  expect(arcControlProposals(query,20,30,{...fixture,featureWeights:weights},1)[0].entry).toBe(50);
+  expect(()=>arcControlProposals(query,20,30,{...fixture,featureWeights:[1]},1)).toThrow('weights mismatch');
+});

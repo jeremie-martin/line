@@ -17,7 +17,7 @@ const studies=readdirSync(root).sort().flatMap(name=>{
     physicalFrames:r.stats.sim_frames,trackHash:r.trackHash}));
   assert.ok(paired.every((r:any)=>r.physicalFrames<=750000));
   return [{name,path,sha256:sha(readFileSync(path)),compiler:run.plan.compiler.candidateFingerprint,head:run.plan.compiler.head,
-    options:run.plan.options,modelSha256:run.plan.modelSha256??null,cases:paired.length,valid:paired.filter((r:any)=>r.valid).length,
+    options:run.plan.options,modelSha256:run.plan.modelSha256??null,valueModelSha256:run.plan.valueModelSha256??null,cases:paired.length,valid:paired.filter((r:any)=>r.valid).length,
     headline:summary?.headline??null,strata:summary?.strata??null,
     arithmeticMean:paired.reduce((s:number,r:any)=>s+r.score,0)/paired.length,
     improved:paired.filter((r:any)=>r.delta>0).length,regressed:paired.filter((r:any)=>r.delta<0).length,

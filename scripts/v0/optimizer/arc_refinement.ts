@@ -1,7 +1,8 @@
 /** Improve complete physical arc tracks; every offered continuation is simulated. */
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
-import type { DriftReport, TrackLine } from '../types.ts';
+import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFrameLimitExceeded, detect } from '../../lib/detector.ts';
+import type { DriftReport, TrackLine, Gap } from '../types.ts';
+import { measureGapAxes } from '../core/measure.ts';
 import { createArcEngine } from './arc_engine.ts';
 
 export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3): number {
@@ -18,6 +19,28 @@ export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3):
   return weight ? loss / weight : 0;
 }
 
+/** Compiler objective over the whole authored timeline. Span axes represent
+ * time; impacts represent events. No benchmark IDs or benchmark code are used. */
+export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3) {
+  const regrets=Array(gaps.length+1).fill(0);
+  if(report.terminus.reason!=='endOfSpec'||report.off_beat_landings.length||report.contacts.some(c=>c.status!=='hit'))return {loss:Infinity,regrets};
+  const det=detect(raw),measured=gaps.map(g=>measureGapAxes(det,g,[],g.endFrame));
+  let loss=0,normalizer=0;
+  for(const axis of ['air','speed','amplitude','impact'] as const){
+    const targeted=gaps.filter(g=>g.targets[axis]!==undefined);
+    if(!targeted.length)continue;
+    const importance=axis==='amplitude'?amplitudeWeight:1;
+    const mass=targeted.reduce((s,g)=>s+(axis==='impact'?1:g.endFrame-g.startFrame),0);
+    normalizer+=importance;
+    for(const g of targeted){
+      const value=measured[g.index][axis];if(value===undefined||!Number.isFinite(value))return {loss:Infinity,regrets};
+      const contribution=importance*(axis==='impact'?1:g.endFrame-g.startFrame)*(value-g.targets[axis]!)**2/mass;
+      loss+=contribution;regrets[axis==='impact'?g.index+1:g.index]+=contribution;
+    }
+  }
+  return {loss:normalizer?loss/normalizer:0,regrets:regrets.map(v=>normalizer?v/normalizer:0)};
+}
+
 export type ArcRefinementInput = {
   engine: Engine; lines: TrackLine[]; rows: any[]; alternatives?: any[][];
   contacts: Array<{frame: number; gap: number}>; end: number;
@@ -25,14 +48,17 @@ export type ArcRefinementInput = {
   budget: number; options: any;
   search: (engine: Engine, index: number, overrides: any, protectedEngines: Engine[]) => any;
   report: (raw: any, lines: TrackLine[]) => DriftReport;
+  objective?: (raw:any, report:DriftReport) => {loss:number;regrets:number[]};
 };
 
 export function refineArcTrack(input: ArcRefinementInput) {
   const {contacts, end, start, options, search, report} = input;
   const began = getPhysicsFrameCount(), ceiling = input.budget - 2 * (end + 1);
   let incumbent = input.engine, lines = input.lines.slice(), rows = input.rows.slice();
-  let incumbentReport = report(extractRawTrajectory(incumbent, end), lines);
-  let loss = arcTrajectoryLoss(incumbentReport, options.amplitudeWeight);
+  const initialRaw=extractRawTrajectory(incumbent,end);
+  let incumbentReport = report(initialRaw, lines);
+  let objective=input.objective?.(initialRaw,incumbentReport);
+  let loss = objective?.loss??arcTrajectoryLoss(incumbentReport, options.amplitudeWeight);
   const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes).map(([axis, value]) => [axis, value?.target])));
   const expectedObservations = observationContract(incumbentReport);
   const initialLoss = loss, tries = contacts.map(() => 0), records: any[] = [];
@@ -43,14 +69,14 @@ export function refineArcTrack(input: ArcRefinementInput) {
     for (let attempt = 0; attempt < (options.refineAttempts ?? 32); attempt++) {
       const width = options.refineWidth ?? 4, samples = options.refineSamples ?? 48;
       const regret = contacts.map((contact, i) => {
-        let error = 0;
-        for (const gap of incumbentReport.gaps) for (const [axis, value] of Object.entries(gap.axes)) {
+        let error = objective?.regrets[i]??0;
+        if(!objective)for (const gap of incumbentReport.gaps) for (const [axis, value] of Object.entries(gap.axes)) {
           if (!value) continue;
           const belongs = axis === 'impact' ? gap.gap_index === contact.gap : gap.gap_index === i;
           if (belongs) error += value.error ** 2 * (axis === 'amplitude' ? (options.amplitudeWeight ?? 1 / 3) : 1);
         }
         const span = (contacts[i + 1]?.frame ?? end + 1) - contact.frame;
-        const estimate = contact.frame + span * (samples + 32) + (end - contact.frame + 1) * width * (1 + (options.refineFollowSamples ?? 0) * 1.25);
+        const estimate = contact.frame + span * (samples + (options.refineGuidanceSamples??24) + 8) + (end - contact.frame + 1) * width * (1 + (options.refineFollowSamples ?? 0) * 1.25);
         const priority = error / (1 + tries[i]) / (options.refineSelection === 'rate' ? estimate : 1);
         return {index: i, error, estimate, priority};
       }).filter(x => x.error > 0 && getPhysicsFrameCount() + x.estimate <= ceiling)
@@ -75,7 +101,11 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const retainedControls = options.refineUseAlternatives ? input.alternatives?.[i]?.map(a => a.c) : undefined;
       const searchResult = search(base, i, {directControls: retainedControls?.length ? retainedControls : options.refineDirect ? directControls : undefined, warmStart: sourceRows[i].control, localOnly: true,
         samples, guidanceSamples: options.refineGuidanceSamples ?? 24,
-        arrivalWeight: 0, headingWeight: 0, arrivalReference: reference,
+        arrivalWeight: 0, headingWeight: 0, arrivalReference: input.objective&&i+1===contacts.length?undefined:reference,
+        independentExit:options.refineIndependentExit??options.independentExit,
+        exitRefinementOnly:options.refineIndependentExit?true:options.exitRefinementOnly,
+        minExitSupport:options.refineIndependentExit?12:options.minExitSupport,
+        completeGuidanceBudget:input.objective?true:options.completeGuidanceBudget,
         boundaryWeight: options.refineBoundaryWeight ?? 1}, [incumbent]);
       if (!searchResult) {Engine.retainOnly([incumbent]); continue;}
       const candidates = searchResult.candidates.slice().sort((a: any, b: any) => a.cost - b.cost);
@@ -114,12 +144,13 @@ export function refineArcTrack(input: ArcRefinementInput) {
         if (JSON.stringify(getRiderMetered(child, frame - 1).ballisticState()) !== before) {
           counts.prefixChanged++; Engine.retainOnly([incumbent, base]); continue;
         }
-        const candidateReport = report(extractRawTrajectory(child, end), proposed);
-        const candidateLoss = observationContract(candidateReport) === expectedObservations ? arcTrajectoryLoss(candidateReport, options.amplitudeWeight) : Infinity;
+        const candidateRaw=extractRawTrajectory(child,end),candidateReport = report(candidateRaw, proposed);
+        const candidateObjective=input.objective?.(candidateRaw,candidateReport);
+        const candidateLoss = observationContract(candidateReport) === expectedObservations ? candidateObjective?.loss??arcTrajectoryLoss(candidateReport, options.amplitudeWeight) : Infinity;
         if (Number.isFinite(candidateLoss)) counts.complete++;
         if (candidateLoss + 1e-12 < loss) {
           incumbent = child.detach(); lines = proposed; rows = proposedRows;
-          incumbentReport = candidateReport; loss = candidateLoss; counts.accepted++;
+          incumbentReport = candidateReport;objective=candidateObjective; loss = candidateLoss; counts.accepted++;
         }
         Engine.retainOnly([incumbent, base]);
       }

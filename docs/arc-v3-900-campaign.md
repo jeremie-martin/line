@@ -107,3 +107,60 @@ The corresponding controls and regressions are retained. A separate 3M-frame
 teacher runs in the immutable 885 checkout to supply research trajectories;
 its results cannot satisfy the 750k goal. A missing data link in that checkout
 was corrected before any teacher compilation began.
+
+## Transfer from a stronger search
+
+An immutable 885 compiler with a 3M research allowance reaches **906.9194** on
+all 88 specifications, improving 83 relative to 885. This does not meet the
+750k goal. It supplies 7,981 replay-verified catch controls and 37,120 usable
+continuation records. The continuation labels include the teacher's terminal
+heuristic/value prior; they are bootstrapped search values, not pure measured
+benchmark loss. The initial local artifact's target description was corrected
+in the research record and training script without rewriting the preserved
+artifact used by the experiments.
+
+At 750k, replacing the measured controls reaches **887.2975**. Combining those
+controls with the new continuation predictor reaches **893.7640**, all 88 valid.
+The predictor alone regresses in the 20-case pilot; simply aggregating old and
+new controls also regresses. These interactions are why gains are tested jointly.
+Predictor cross-validation holds musical families together, but the teacher and
+V3 catalog are exposed development data. No independent generalization claim is
+made. Python-to-runtime prediction parity is exact on 32 fixtures.
+
+Completed-track repair now has an optional objective covering every authored
+span, including the ending. Its loss matches the frozen judge's squared RMS to
+within 1.52e-17 on all 88 retained tracks. Reserving 75k frames for repair harms
+construction more than the repair recovers; both translated and reconstructed
+continuations remain disabled. A separate study tests only naturally unspent
+work, preserving the stronger initial construction.
+
+Startup controls can now be learned separately from later catches. Their first
+execution regresses in all three pilot configurations and remains unselected.
+Another experiment updates the local response matrix after successful physical
+steps, testing whether some full finite-difference sweeps can be replaced by
+observed secants. The opening and secant changes are research mechanisms, not
+claims of new benchmark improvement. A further 3M teacher tests the combined
+control/value models in a separate frozen compiler checkout.
+
+[Transfer evidence](../benchmark/v3/studies/arc-900-transfer.json) retains the
+teacher budget, provenance, replay checks, predictor checks and objective parity.
+The complete compiler still needs canonical public-entry-point confirmation
+before the 900 campaign can be marked achieved. The latest targeted type check
+(with TypeScript import extensions enabled) retains the same 251 pre-existing
+diagnostics, with none in the changed compiler and research TypeScript files.
+
+The first secant variants and a distance metric balancing feature groups regress
+in the 20-case pilot. Spending natural leftovers on whole-track repair changes
+the full headline only from 893.7640 to 893.7641; it remains disabled. Neither
+additional response allocation nor weaker arrival priors improves the pilot.
+An audit of 8,069 teacher arcs finds the radius limit active in only 359 arcs
+and 1,362 of 454,202 integration steps; this does not support treating tighter
+curvature as the main bottleneck.
+
+The 893 candidate is now integrated with the original joint forest, the 3M
+teacher's 7,981 catch examples and the new continuation predictor. Geometry and
+production search allocation stay as in 885. All other new mechanisms remain
+optional and disabled. A separate predictor experiment learns actual next-two-
+interval losses from 15,690 accepted arrival records, eliminating the terminal
+prior from its labels. That experiment has limited state coverage and must earn
+its value in live compilation. Its results are not assumed from prediction error.

@@ -21,6 +21,7 @@ if(arg('worker')){
   const spec=caseSpec(c),options={...connectedArcOptions(spec,plan.budget),...plan.options};
   if(options.controlPolicyPath)options.controlPolicy=JSON.parse(readFileSync(options.controlPolicyPath,'utf8'));
   if(options.controlPolicyPath)assert.equal(sha(readFileSync(options.controlPolicyPath)),plan.modelSha256);
+  if(options.valueModelPath){assert.equal(sha(readFileSync(options.valueModelPath)),plan.valueModelSha256);options.futureValueModel=JSON.parse(readFileSync(options.valueModelPath,'utf8'));}
   const began=performance.now(),result=compileArcMotion(spec,plan.seed,options),compileMs=performance.now()-began;
   assert.ok(result.stats.sim_frames<=plan.budget);
   const evaluation=evaluateTrack(c,result.track);
@@ -36,7 +37,8 @@ if(arg('worker')){
   for(const [p,h] of Object.entries(judgeFiles))assert.equal(sha(readFileSync(p)),h,`judge changed: ${p}`);
   const plan={schema:'line.arc-v3-study.plan.v1',researchOnly:true,sources,seed,budget,options,
     compiler:identity,judgeFiles,scriptSha256:sha(readFileSync(import.meta.filename)),
-    ...(options.controlPolicyPath?{modelSha256:sha(readFileSync(options.controlPolicyPath))}:{})};
+    ...(options.controlPolicyPath?{modelSha256:sha(readFileSync(options.controlPolicyPath))}:{}),
+    ...(options.valueModelPath?{valueModelSha256:sha(readFileSync(options.valueModelPath))}:{})};
   mkdirSync(out,{recursive:true});
   if(existsSync(resolve(out,'plan.json')))assert.deepEqual(read(resolve(out,'plan.json')),plan);else write(resolve(out,'plan.json'),plan);
   // Save the compiler diff once per panel; models are already hash-bound by identity.
@@ -55,6 +57,7 @@ if(arg('worker')){
   for(const [p,h] of Object.entries(judgeFiles))assert.equal(sha(readFileSync(p)),h);
   assert.equal(sha(readFileSync(import.meta.filename)),plan.scriptSha256);
   if(options.controlPolicyPath)assert.equal(sha(readFileSync(options.controlPolicyPath)),plan.modelSha256);
+  if(options.valueModelPath)assert.equal(sha(readFileSync(options.valueModelPath)),plan.valueModelSha256);
   if(failed.length){write(resolve(out,'execution-failures.json'),failed);throw new Error(`execution failures: ${failed}`);}
   const rows=sources.map(id=>read(resolve(out,id+'.json.gz')));for(const r of rows)assert.equal(r.planSha256,sha(readFileSync(resolve(out,'plan.json'))));
   const compact=rows.map(({track,report,rows,...r}:any)=>r);

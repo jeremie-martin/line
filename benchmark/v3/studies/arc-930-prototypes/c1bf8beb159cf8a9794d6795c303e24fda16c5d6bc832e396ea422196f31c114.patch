@@ -1,0 +1,110 @@
+diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts
+index c3590fed..88fc26f0 100644
+--- a/scripts/v0/optimizer/arc_control_policy.ts
++++ b/scripts/v0/optimizer/arc_control_policy.ts
+@@ -2,19 +2,28 @@
+ import {arcArrivalFeatures} from './arc_value.ts';
+ import type {ArcMotionControl} from './arc_geometry.ts';
+ export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';
++export function arcRefinementInput(state:number[],c:ArcMotionControl,incoming:number,span:number,targets:any,achieved:any,impact?:number,actualImpact?:number,channel=12){
++  const control={...c,clearance:c.clearance??channel,
++    turnFraction:c.turnFraction??Math.min(5,c.support*.5)/c.support,bend:c.bend??0,guideFlare:c.guideFlare??0};
++  const encoded=[(control.entry-incoming)/30,control.turn/60,(control.exit-incoming)/60,control.support/span,control.bias,control.offset,
++    control.clearance/12,control.turnFraction,control.bend/30,control.guideFlare/8];
++  const errors=['air','speed','amplitude'].map(key=>targets[key]===undefined?0:achieved[key]-targets[key])
++    .concat(impact===undefined?0:actualImpact!-impact);
++  return {features:[...state,...encoded,...errors],control};
++}
+ export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[]{
+   const tail=state.points.TAIL,nose=state.points.NOSE,dx=nose.x-tail.x,dy=nose.y-tail.y;
+   const angular=(dx*(nose.vy-tail.vy)-dy*(nose.vx-tail.vx))/Math.max(1,dx*dx+dy*dy);
+   return arcArrivalFeatures(state,Math.atan2(velocity.y,velocity.x)*180/Math.PI,
+     Math.hypot(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);
+ }
+-export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number):ArcMotionControl[]{
+-  if(model.featureSchema!==ARC_POLICY_SCHEMA||features.length!==model.featureCount||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');
++export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number,schema=ARC_POLICY_SCHEMA):ArcMotionControl[]{
++  if(model.featureSchema!==schema||features.length!==model.featureCount||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');
+   if(!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc policy count');
+   if(count===0)return [];
+   if(model.residualBase){
+-    const base=arcControlProposals(features,incoming,span,model.residualBase,1)[0];
+-    const residual=arcControlProposals(features,0,span,model.residualModel,count);
++    const base=arcControlProposals(features,incoming,span,model.residualBase,1,schema)[0];
++    const residual=arcControlProposals(features,0,span,model.residualModel,count,schema);
+     const strength=model.residualStrength??1;
+     if(!Number.isFinite(strength)||strength<0)throw new Error('invalid residual policy strength');
+     return residual.map(delta=>Object.fromEntries(Object.keys(base).map(key=>[key,
+@@ -24,7 +33,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
+     const weights=model.proposalWeights??model.models.map(()=>1),sum=weights.reduce((a:number,b:number)=>a+b,0);
+     const counts=weights.map((w:number)=>Math.floor(count*w/sum));
+     for(let j=0;counts.reduce((a:number,b:number)=>a+b,0)<count;j++)counts[j%counts.length]++;
+-    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);
++    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j],schema):[]);
+   }
+   if(model.exemplars){
+     const weights:number[]|undefined=model.featureWeights;
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index b1d2f92d..6af71e81 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -12,7 +12,7 @@ export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
+ import { scheduleNativeContacts } from './native_motion_schedule.ts';
+ import { trimUnusedArcGuides } from './arc_guidance.ts';
+ import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
+-import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
++import { arcPolicyArrival, arcControlProposals, arcRefinementInput } from './arc_control_policy.ts';
+ import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
+ import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
+ import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
+@@ -134,6 +134,8 @@ export type ArcMotionOptions= {
+   /** Reuse complete measurements across searches with identical geometry prefixes. */
+   reuseEvaluations?:boolean;
+   controlPolicy?:any;
++  /** Apply measured-control corrections locally; shallow probes disable them. */
++  learnedRefinement?:boolean;
+   policySamples?:number;
+   /** Reduce local work if observed construction cost outgrows remaining capacity. */
+   budgetAdaptiveLocal?:boolean;
+@@ -434,6 +436,16 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
+       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
+       const inputFeatures=futureFeatures(arcPolicyArrival(beforeState,velocity),i-1);
++      const learnedRefinement=(stage:string)=>{
++        const model=options.controlPolicy?.refinementModel;
++        if(!best||i===0||!model||options.learnedRefinement===false||(model.stage??'after-guidance')!==stage)return;
++        const origin=best,input=arcRefinementInput(inputFeatures,origin.c,incoming,span,targets,origin.achieved,impact,origin.actualImpact,options.channel??12),base=input.control;
++        const proposals=arcControlProposals(input.features,0,span,model,model.proposals??3,'line.arc-control-refinement-features.v1');
++        for(const delta of proposals)for(const scale of model.stepScales??[1,.5]){
++          evaluate({...base,...Object.fromEntries(Object.keys(delta).map(key=>[key,base[key as keyof ArcMotionControl]!+scale*delta[key as keyof ArcMotionControl]!]))});
++        }
++        Engine.retainOnly([...protectedEngines,engine,best.child]);
++      };
+       const responseAxisWeights=options.rescaleMemoryWeights?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;
+       const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0);
+       const responses=controlMemory.proposeResponses(inputFeatures,incoming,span,
+@@ -485,6 +497,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           if(k%10===9)Engine.retainOnly([...protectedEngines,engine,best.child]);
+         }
+       }
++      learnedRefinement('before-guidance');
+       if(best&&options.guidance){
+         const origin=best;
+         const exitEnabled=options.independentExit&&best.c.support>=(options.minExitSupport??0);
+@@ -555,6 +568,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           Engine.retainOnly([...protectedEngines,engine,best.child]);
+         }
+       }
++      learnedRefinement('after-guidance');
+       for(let pass=0;best&&targets.air!==undefined&&pass<(options.airProjection??0);pass++){
+         const origin=best,measuredSamples=objectiveEnd-(i===0?0:frame)+1;
+         const airborne=origin.achieved.air*measuredSamples;
+@@ -591,7 +605,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       return result;
+     };
+     const continuation=(base:Engine,index:number,depth:number,probeSamples:number,protectedEngines:Engine[]):any=>{
+-      const searched=searchInterval(base,index,{samples:probeSamples,
++      const searched=searchInterval(base,index,{samples:probeSamples,learnedRefinement:false,
+         guidanceSamples:options.continuationGuidanceSamples??Math.min(12,options.guidanceSamples??48),
+         responseSamples:options.continuationResponseSamples??options.responseSamples},protectedEngines);
+       lookaheadStats.continuationNodes++;

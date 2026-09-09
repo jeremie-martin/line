@@ -48,17 +48,23 @@ def write(path, value):
 base, base_sha = checked(args.base)
 data, data_sha = checked(args.data)
 mixture, mixture_sha = checked(args.mixture)
-assert base['featureCount'] == 57 and 'trees' in base
+assert base['featureCount'] == 57 and ('trees' in base or 'residualBase' in base)
 assert data['featureSchema'] == base['featureSchema'] == mixture['featureSchema']
 assert len(mixture['models']) == 2 and 'exemplars' in mixture['models'][1]
 
 
-def predict(features):
+def predict(features, component=None):
+    component = base if component is None else component
+    if 'residualBase' in component:
+        strength = component.get('residualStrength', 1)
+        assert np.isfinite(strength) and strength >= 0
+        return (predict(features, component['residualBase']) +
+                strength * predict(features, component['residualModel']))
     # Match the training library's float32 input conversion and the runtime's
     # sequential mean of tree predictions, independently of TypeScript.
     features = np.asarray(features, dtype=np.float32)
     output = np.zeros((len(features), 10))
-    for tree in base['trees']:
+    for tree in component['trees']:
         left, right = np.asarray(tree['left']), np.asarray(tree['right'])
         feature, threshold = np.asarray(tree['feature']), np.asarray(tree['threshold'])
         value = np.asarray(tree['value'])
@@ -68,7 +74,7 @@ def predict(features):
             n = nodes[selected]
             nodes[selected] = np.where(features[selected, feature[n]] <= threshold[n], left[n], right[n])
         output += value[nodes]
-    return output / len(base['trees'])
+    return output / len(component['trees'])
 
 
 means = predict([r['features'] for r in data['rows']])
@@ -90,7 +96,9 @@ for strength in map(float, args.strengths.split(',')):
                    featureSchema=base['featureSchema'], featureCount=57,
                    residualBase=base, residualModel=delta, residualStrength=strength,
                    provenance=dict(baseSha256=base_sha, residualDataSha256=residual_sha,
-                                   sourceDataSha256=data_sha, residualModelSha256=delta_sha))
+                                   sourceDataSha256=data_sha, residualModelSha256=delta_sha,
+                                   rows=len(data['rows']),
+                                   trainingParents=sorted({r['parent'] for r in data['rows']})))
     policy = {**mixture, 'models': [wrapped, mixture['models'][1]],
               'provenance': {**wrapped['provenance'], 'mixtureSourceSha256': mixture_sha}}
     write(out / f'policy-{strength:g}.json', policy)

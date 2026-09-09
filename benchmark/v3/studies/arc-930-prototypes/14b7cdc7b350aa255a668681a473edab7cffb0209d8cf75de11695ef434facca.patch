@@ -1,0 +1,125 @@
+diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts
+index c3590fed..d60a5247 100644
+--- a/scripts/v0/optimizer/arc_control_policy.ts
++++ b/scripts/v0/optimizer/arc_control_policy.ts
+@@ -27,11 +27,22 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
+     return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);
+   }
+   if(model.exemplars){
++    const input=model.proximityTrees?features.map(Math.fround):undefined;
++    const queryLeaves=model.proximityTrees?.map((tree:any)=>{
++      let n=0;while(tree.left[n]>=0)n=input![tree.feature[n]]<=tree.threshold[n]?tree.left[n]:tree.right[n];
++      return n;
++    });
+     const weights:number[]|undefined=model.featureWeights;
+     if(weights&&(weights.length!==features.length||weights.some(w=>!Number.isFinite(w)||w<0)))throw new Error('arc policy distance weights mismatch');
+     const nearest:Array<{distance:number;value:number[]}>=[],limit=Math.max(24,count*8);
+     for(const row of model.exemplars){
+       let distance=0;for(let k=0;k<features.length;k++)distance+=(features[k]-row.features[k])**2*(weights?.[k]??(k>=47?4:k<7?2:1));
++      if(queryLeaves){
++        if(row.proximityLeaves?.length!==queryLeaves.length)throw new Error('arc policy proximity mismatch');
++        // Shared supervised partitions provide the primary neighborhood;
++        // continuous physical distance breaks ties without case identities.
++        distance=queryLeaves.reduce((n:number,leaf:number,k:number)=>n+(leaf!==row.proximityLeaves[k]?1:0),0)+distance/(1+distance);
++      }
+       if(nearest.length===limit&&distance>=nearest[nearest.length-1].distance)continue;
+       nearest.push({distance,value:row.target});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
+     }
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index b1d2f92d..124d2a5c 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -13,7 +13,7 @@ import { scheduleNativeContacts } from './native_motion_schedule.ts';
+ import { trimUnusedArcGuides } from './arc_guidance.ts';
+ import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
+ import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
+-import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
++import { arcResponseStep, arcSecantUpdate, arcMeasuredResponseColumn, arcBoundedResponseStep } from './arc_response.ts';
+ import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
+ import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
+ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
+@@ -125,6 +125,11 @@ export type ArcMotionOptions= {
+   responseSamples?:number;
+   responseDamping?:number;
+   responseScale?:number;
++  /** Fit response columns using the displacements remaining after control bounds. */
++  boundedResponse?:boolean;
++  /** Optimize the response inside control and trust limits instead of clipping it afterward. */
++  boundedResponseStep?:boolean;
++  responseTrustRadius?:number;
+   refineFollowSamples?:number;
+   refineUseAlternatives?:boolean;
+   collectValue?:boolean;
+@@ -529,7 +534,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           if(!reused)responseKeys.forEach((key,d)=>{
+             const step=scale[key as keyof typeof scale]*trust;
+             const a=evaluate({...origin.c,[key]:value(key)+step}),b=evaluate({...origin.c,[key]:value(key)-step});responseUsed+=2;
+-            for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
++            const ap=a?(a.c[key]-value(key))/step:null,bp=b?(b.c[key]-value(key))/step:null;
++            const clipped=options.boundedResponse&&((ap!==null&&Math.abs(ap-1)>1e-9)||(bp!==null&&Math.abs(bp+1)>1e-9));
++            const column=clipped?arcMeasuredResponseColumn(origin.residuals,[a?{step:ap!,residuals:a.residuals}:null,b?{step:bp!,residuals:b.residuals}:null]):null;
++            for(let r=0;r<jac.length;r++)jac[r][d]=column?column[r]:a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
+           });
+           if(!reused&&(options.memoryResponseSamples??0)>0){
+             controlMemory.rememberResponse({features:inputFeatures,incoming,span,
+@@ -540,9 +548,13 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+               scale:responseKeys.map(key=>scale[key as keyof typeof scale]*trust),
+               loss:origin.residuals.slice(0,4).reduce((sum:number,v:number)=>sum+v*v,0)});
+           }
+-          const delta=arcResponseStep(jac,origin.residuals,options.responseDamping??.0002);
++          const limits:Record<string,[number,number]>={entry:[-75,85],turn:[-120,options.bidirectional?120:15],exit:[-80,85],support:[2,Math.max(2,span-4)],bias:[-2,2],offset:[-2,3],clearance:[6,30],
++            turnFraction:[normalizeArcTurnFraction(-Infinity,origin.c.support,options.preserveTurnTiming),.85],bend:[-60,60],guideFlare:[-16,16],exitBias:[-3,3]};
++          const radius=options.responseTrustRadius??3;
++          const bounds=responseKeys.map(key=>limits[key].map((v,j)=>j===0?Math.max(-radius,(v-value(key))/(scale[key as keyof typeof scale]*trust)):Math.min(radius,(v-value(key))/(scale[key as keyof typeof scale]*trust))) as [number,number]);
++          const delta=options.boundedResponseStep?arcBoundedResponseStep(jac,origin.residuals,options.responseDamping??.0002,bounds):arcResponseStep(jac,origin.residuals,options.responseDamping??.0002);
+           for(const fraction of [1,.5,.25]){
+-            if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
++            if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-radius,radius));evaluate(c);}responseUsed++;
+           }
+           const improving=best.optimizationCost<origin.optimizationCost-1e-12;
+           const previousUses:number=secant?.uses??0;
+diff --git a/scripts/v0/optimizer/arc_response.ts b/scripts/v0/optimizer/arc_response.ts
+index 9bbd95cc..c8d0f967 100644
+--- a/scripts/v0/optimizer/arc_response.ts
++++ b/scripts/v0/optimizer/arc_response.ts
+@@ -1,4 +1,12 @@
+ /** Damped local response step in normalized curve-control coordinates. */
++export function arcMeasuredResponseColumn(origin:number[],probes:Array<{step:number;residuals:number[]}|null>):number[]{
++  // Fit changes through the measured origin. Clipped or one-sided probes must
++  // use their actual normalized displacement rather than an assumed unit step.
++  const useful=probes.filter((p):p is {step:number;residuals:number[]}=>!!p&&Math.abs(p.step)>1e-9);
++  const mass=useful.reduce((sum,p)=>sum+p.step*p.step,0);
++  return origin.map((value,r)=>mass?useful.reduce((sum,p)=>sum+p.step*(p.residuals[r]-value),0)/mass:0);
++}
++
+ export function arcResponseStep(jacobian: number[][], residuals: number[], damping: number): number[] | null {
+   const n = jacobian[0]?.length ?? 0;
+   if (!n || jacobian.length !== residuals.length) return null;
+@@ -21,6 +29,27 @@ export function arcResponseStep(jacobian: number[][], residuals: number[], dampi
+   return step.every(Number.isFinite) ? step : null;
+ }
+ 
++/** Solve the damped linear response inside its actual control/trust bounds. */
++export function arcBoundedResponseStep(jacobian:number[][],residuals:number[],damping:number,bounds:Array<[number,number]>):number[]|null{
++  const free=arcResponseStep(jacobian,residuals,damping);
++  if(!free||bounds.length!==free.length||bounds.some(([lo,hi])=>!Number.isFinite(lo)||!Number.isFinite(hi)||lo>hi))return null;
++  if(free.every((v,i)=>v>=bounds[i][0]&&v<=bounds[i][1]))return free;
++  const h=free.map((_,i)=>free.map((_,j)=>jacobian.reduce((sum,row)=>sum+row[i]*row[j],0)+(i===j?damping:0)));
++  const b=free.map((_,i)=>-jacobian.reduce((sum,row,r)=>sum+row[i]*residuals[r],0));
++  const x=free.map((v,i)=>Math.max(bounds[i][0],Math.min(bounds[i][1],v)));
++  for(let pass=0;pass<96;pass++){
++    let movement=0;
++    for(let i=0;i<x.length;i++){
++      if(!(h[i][i]>0))return null;
++      const gradient=h[i].reduce((sum,v,j)=>sum+v*x[j],-b[i]);
++      const next=Math.max(bounds[i][0],Math.min(bounds[i][1],x[i]-gradient/h[i][i]));
++      movement=Math.max(movement,Math.abs(next-x[i]));x[i]=next;
++    }
++    if(movement<1e-9)break;
++  }
++  return x.every(Number.isFinite)?x:null;
++}
++
+ /** Update a local response with one physically observed displacement. Inputs
+  * use the same normalized control coordinates as the response matrix. */
+ export function arcSecantUpdate(jacobian:number[][], step:number[], change:number[]):number[][]|null {

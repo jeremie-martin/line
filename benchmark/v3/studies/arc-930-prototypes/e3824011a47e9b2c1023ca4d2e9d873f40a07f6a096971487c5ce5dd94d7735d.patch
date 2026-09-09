@@ -1,0 +1,29 @@
+diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts
+index c3590fed..7629c68c 100644
+--- a/scripts/v0/optimizer/arc_control_policy.ts
++++ b/scripts/v0/optimizer/arc_control_policy.ts
+@@ -50,7 +50,23 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
+     return tree.value[n] as number[];
+   });
+   const mean=(rows:number[][])=>rows[0].map((_,j)=>rows.reduce((sum,row)=>sum+row[j],0)/rows.length);
+-  const vectors=[mean(leaves),mean(leaves.filter((_:any,i:number)=>i%2===0)),mean(leaves.filter((_:any,i:number)=>i%2===1)),...leaves];
++  let vectors=[mean(leaves),mean(leaves.filter((_:any,i:number)=>i%2===0)),mean(leaves.filter((_:any,i:number)=>i%2===1)),...leaves];
++  if(model.proposalSelection==='diverse'&&count>3){
++    // Retain the three aggregate predictions, then cover distinct leaf actions
++    // in the physical units of the local response search, not tree-file order.
++    const scale=[15,12,10,span/Math.max(.6,.1*span),4,5,8,12.5,30/7,3.2];
++    const distance=(a:number[],b:number[])=>a.reduce((sum,v,j)=>sum+((v-b[j])*scale[j])**2,0);
++    vectors=vectors.slice(0,3);
++    const pool=leaves.slice();
++    while(vectors.length<count&&pool.length){
++      let best=0,spread=-Infinity;
++      for(let j=0;j<pool.length;j++){
++        const margin=Math.min(...vectors.map(v=>distance(v,pool[j])));
++        if(margin>spread){best=j;spread=margin;}
++      }
++      vectors.push(pool.splice(best,1)[0]);
++    }
++  }
+   return vectors.slice(0,count).map(v=>({entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],
+     support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]}));
+ }

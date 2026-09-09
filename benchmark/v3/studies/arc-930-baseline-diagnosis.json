@@ -1,0 +1,4393 @@
+{
+  "schema": "line.arc-v3-ending-diagnosis.v1",
+  "canonical": {
+    "path": "benchmark/v3/runs/arc-920.json.gz",
+    "sha256": "8e0732093b1fcf5f39870e1ca902f02b766ae9e084885f13ce383d1e3ee1a205",
+    "headline": 922.6418
+  },
+  "research": {
+    "path": "generated/benchmark-v3/arc-920/full-residual-scale-115",
+    "planSha256": "18b83df6715f0f2ab7fb83b2d3aeaa77d45342c41dcea7d5915c7e9e6a2cb6b1"
+  },
+  "note": "Case-pooled squared-loss diagnostics, not a replacement headline. Each source appears once. Research tracks, scores and compiler frame counts match canonical results. Final compiler objective agrees with the cold judge.",
+  "pooledAxisLoss": {
+    "air": 0.019584116675727233,
+    "speed": 0.014802295580515028,
+    "impact": 0.013360404323088373,
+    "amplitude": 0.017116732276473676
+  },
+  "pooledRegionLoss": {
+    "body": 0.059527505632345774,
+    "ending": 0.005336043223458453
+  },
+  "work": {
+    "compilerFrames": 65108264,
+    "lookaheadFrames": 25370603,
+    "endingFrames": 2341266,
+    "candidateAttempts": 3177455,
+    "memoHits": 590598,
+    "backtracks": 1
+  },
+  "planningDepthCounts": {
+    "1": 7937,
+    "2": 45
+  },
+  "cases": [
+    {
+      "id": "bridge_river_reentry",
+      "recordSha256": "1f21490857ac5df3e1a1462c70f9d6c04c94d8c9e6fb97b8f361fda69e86e771",
+      "score": 954.9515,
+      "axisLoss": {
+        "air": 4.486555686456838e-05,
+        "speed": 6.474294259473313e-05,
+        "impact": 2.3186942550404054e-05
+      },
+      "endingLossShare": 4.732297106601863e-06,
+      "topFiveGapLossShare": 0.2946490504738767,
+      "worstGap": [
+        65,
+        1.0626967274852784e-05
+      ],
+      "endingWork": 36966,
+      "endingRideFrames": 192,
+      "endingObservations": [
+        {
+          "gap": 88,
+          "startFrame": 2149,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4418604651162791,
+          "achieved": 0.4418604651162791,
+          "error": 0
+        },
+        {
+          "gap": 88,
+          "startFrame": 2149,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5598415942382814,
+          "achieved": 0.560001525789841,
+          "error": 0.00015993155155957783
+        }
+      ],
+      "finalSelection": {
+        "candidates": 215,
+        "initialLoss": 0.00013279544200970518,
+        "finalLoss": 0.00013279544200970518,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_countercurrent",
+      "recordSha256": "306594f4684e98d072b0890b34559b5b2da00e11e0feb012ff57922fc5adb598",
+      "score": 967.5912,
+      "axisLoss": {
+        "air": 1.1206741975972762e-05,
+        "speed": 4.122977455606948e-05,
+        "impact": 1.5401890304685546e-05
+      },
+      "endingLossShare": 2.2973461991780056e-05,
+      "topFiveGapLossShare": 0.3404622933357123,
+      "worstGap": [
+        68,
+        8.272053966744532e-06
+      ],
+      "endingWork": 12302,
+      "endingRideFrames": 67,
+      "endingObservations": [
+        {
+          "gap": 79,
+          "startFrame": 2154,
+          "endFrame": 2200,
+          "tail": true,
+          "axis": "air",
+          "target": 0.48936170212765956,
+          "achieved": 0.48936170212765956,
+          "error": 0
+        },
+        {
+          "gap": 79,
+          "startFrame": 2154,
+          "endFrame": 2200,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5006733888888889,
+          "achieved": 0.5002005163487752,
+          "error": 0.0004728725401137446
+        }
+      ],
+      "finalSelection": {
+        "candidates": 211,
+        "initialLoss": 6.783840683672766e-05,
+        "finalLoss": 6.783840683672766e-05,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_split_signal",
+      "recordSha256": "0c169c80b679499162bd417748919d61533fbdddf288fa88b0c2645b14250779",
+      "score": 832.8513,
+      "axisLoss": {
+        "air": 0.00020995271296728784,
+        "speed": 0.00021697167448226208,
+        "amplitude": 0.0015007933472654007,
+        "impact": 0.0001630608028916107
+      },
+      "endingLossShare": 5.845973132393788e-05,
+      "topFiveGapLossShare": 0.29399868618165487,
+      "worstGap": [
+        66,
+        0.00017376077136675754
+      ],
+      "endingWork": 27172,
+      "endingRideFrames": 141,
+      "endingObservations": [
+        {
+          "gap": 92,
+          "startFrame": 2280,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5041322314049587,
+          "achieved": 0.5041322314049587,
+          "error": 0
+        },
+        {
+          "gap": 92,
+          "startFrame": 2280,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5542695312500002,
+          "achieved": 0.5547183330591438,
+          "error": 0.00044880180914352863
+        },
+        {
+          "gap": 92,
+          "startFrame": 2280,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.27271020814516705,
+          "achieved": 0.2775929329092302,
+          "error": 0.004882724764063151
+        }
+      ],
+      "finalSelection": {
+        "candidates": 208,
+        "initialLoss": 0.002090778537606562,
+        "finalLoss": 0.002090778537606562,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_pickup_lattice",
+      "recordSha256": "628fe64ec9e2ec77f4c121a8e1b29665126bc6f2887524ce60a514cb075f24c5",
+      "score": 890.9413,
+      "axisLoss": {
+        "air": 8.235222325671262e-05,
+        "speed": 0.000713032793362455,
+        "impact": 3.804485975646132e-05
+      },
+      "endingLossShare": 1.9206538860317247e-06,
+      "topFiveGapLossShare": 0.8482184683673095,
+      "worstGap": [
+        0,
+        0.0006698693442534619
+      ],
+      "endingWork": 17054,
+      "endingRideFrames": 89,
+      "endingObservations": [
+        {
+          "gap": 99,
+          "startFrame": 2252,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.463768115942029,
+          "achieved": 0.463768115942029,
+          "error": 0
+        },
+        {
+          "gap": 99,
+          "startFrame": 2252,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.818712658170232,
+          "achieved": 0.8183078873000013,
+          "error": 0.00040477087023071956
+        }
+      ],
+      "finalSelection": {
+        "candidates": 183,
+        "initialLoss": 0.0008334298763756298,
+        "finalLoss": 0.0008334298763756298,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_loose_pocket",
+      "recordSha256": "4f0120330bbd7179679c84181c05b942826574f34dfda6f71acdd4734019a657",
+      "score": 952.4473,
+      "axisLoss": {
+        "air": 3.211239832753138e-05,
+        "speed": 8.133223808920639e-05,
+        "impact": 3.491071947898996e-05
+      },
+      "endingLossShare": 8.038935610009221e-06,
+      "topFiveGapLossShare": 0.25435656930321693,
+      "worstGap": [
+        79,
+        8.949559544321857e-06
+      ],
+      "endingWork": 10047,
+      "endingRideFrames": 50,
+      "endingObservations": [
+        {
+          "gap": 104,
+          "startFrame": 2211,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5,
+          "achieved": 0.5,
+          "error": 0
+        },
+        {
+          "gap": 104,
+          "startFrame": 2211,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5817532928466795,
+          "achieved": 0.5822789910920754,
+          "error": 0.0005256982453958337
+        }
+      ],
+      "finalSelection": {
+        "candidates": 183,
+        "initialLoss": 0.00014835535936801532,
+        "finalLoss": 0.00014835535589572782,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_offgrid_conversation",
+      "recordSha256": "25358ead331588eeaa1cc4a8f481333b4b76e5f372fef37f0947e9b6b07b88cd",
+      "score": 956.9587,
+      "axisLoss": {
+        "air": 3.335245102311051e-05,
+        "speed": 5.9761584031756895e-05,
+        "impact": 2.785894741403866e-05
+      },
+      "endingLossShare": 1.939160215581804e-09,
+      "topFiveGapLossShare": 0.3176133713136812,
+      "worstGap": [
+        71,
+        1.1951301036321757e-05
+      ],
+      "endingWork": 9292,
+      "endingRideFrames": 48,
+      "endingObservations": [
+        {
+          "gap": 87,
+          "startFrame": 2213,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5357142857142857,
+          "achieved": 0.5357142857142857,
+          "error": 0
+        },
+        {
+          "gap": 87,
+          "startFrame": 2213,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.719625731395084,
+          "achieved": 0.7196180903318343,
+          "error": 7.641063249685942e-06
+        }
+      ],
+      "finalSelection": {
+        "candidates": 195,
+        "initialLoss": 0.00012097298246890595,
+        "finalLoss": 0.00012097298246890595,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_rising_switch",
+      "recordSha256": "6917fa69e26a44f3de941379d91df5c1ddb61fe8939bf778434aa4346ecc4cb7",
+      "score": 949.1958,
+      "axisLoss": {
+        "air": 4.233596692770828e-05,
+        "speed": 7.579754435429968e-05,
+        "impact": 5.1778557990288e-05
+      },
+      "endingLossShare": 0.0002969368379269463,
+      "topFiveGapLossShare": 0.28025769817906077,
+      "worstGap": [
+        37,
+        1.3179894644429449e-05
+      ],
+      "endingWork": 26957,
+      "endingRideFrames": 143,
+      "endingObservations": [
+        {
+          "gap": 88,
+          "startFrame": 2198,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.7154471544715447,
+          "achieved": 0.7154471544715447,
+          "error": 0
+        },
+        {
+          "gap": 88,
+          "startFrame": 2198,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5684887868986882,
+          "achieved": 0.5667922283234011,
+          "error": 0.001696558575287055
+        }
+      ],
+      "finalSelection": {
+        "candidates": 204,
+        "initialLoss": 0.00016991206927229594,
+        "finalLoss": 0.00016991206927229594,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_meter_exchange",
+      "recordSha256": "f3252d7b91ed5dd30538592c258e72860cffc8e917e9905a761bc29cae457977",
+      "score": 943.6729,
+      "axisLoss": {
+        "air": 7.201696738831183e-05,
+        "speed": 5.605194381952601e-05,
+        "impact": 8.200458528485743e-05
+      },
+      "endingLossShare": 3.841676368336521e-13,
+      "topFiveGapLossShare": 0.4970648596255031,
+      "worstGap": [
+        68,
+        4.6867111177693717e-05
+      ],
+      "endingWork": 13467,
+      "endingRideFrames": 72,
+      "endingObservations": [
+        {
+          "gap": 96,
+          "startFrame": 2349,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5576923076923077,
+          "achieved": 0.5576923076923077,
+          "error": 0
+        },
+        {
+          "gap": 96,
+          "startFrame": 2349,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5233209151953419,
+          "achieved": 0.5233208084553463,
+          "error": 1.067399955090309e-07
+        }
+      ],
+      "finalSelection": {
+        "candidates": 211,
+        "initialLoss": 0.00021007349649269555,
+        "finalLoss": 0.00021007349649269555,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_wide_breaths",
+      "recordSha256": "82240164debb462d7759447862682ac20e77a6721a4b86d9de7f6206a7b022ab",
+      "score": 879.5987,
+      "axisLoss": {
+        "air": 0.00015499863402842633,
+        "speed": 0.00013395458743443317,
+        "amplitude": 0.0005603214914753692,
+        "impact": 0.00017936205600148244
+      },
+      "endingLossShare": 2.199167065522012e-07,
+      "topFiveGapLossShare": 0.6643863469651482,
+      "worstGap": [
+        78,
+        0.0002680057966481668
+      ],
+      "endingWork": 15281,
+      "endingRideFrames": 72,
+      "endingObservations": [
+        {
+          "gap": 82,
+          "startFrame": 2429,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5384615384615384,
+          "achieved": 0.5384615384615384,
+          "error": 0
+        },
+        {
+          "gap": 82,
+          "startFrame": 2429,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5201514705882354,
+          "achieved": 0.5203266668593476,
+          "error": 0.00017519627111217684
+        },
+        {
+          "gap": 82,
+          "startFrame": 2429,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.3219833607029644,
+          "achieved": 0.3218494909852386,
+          "error": 0.0001338697177258319
+        }
+      ],
+      "finalSelection": {
+        "candidates": 220,
+        "initialLoss": 0.001028636768939711,
+        "finalLoss": 0.001028636768939711,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_open_hook",
+      "recordSha256": "68da493ffc5d2bdd523e5812fe4baf53177d51b9df875a532a68e0ade32148df",
+      "score": 817.6469,
+      "axisLoss": {
+        "air": 0.0012380229450617846,
+        "speed": 0.0006194141088856199,
+        "amplitude": 0.0005551124094828985,
+        "impact": 0.00012067884760517315
+      },
+      "endingLossShare": 0.7276268142876092,
+      "topFiveGapLossShare": 0.8299551663626603,
+      "worstGap": [
+        82,
+        0.0018432448458219244
+      ],
+      "endingWork": 56285,
+      "endingRideFrames": 302,
+      "endingObservations": [
+        {
+          "gap": 82,
+          "startFrame": 2039,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.48936170212765956,
+          "achieved": 0.3191489361702128,
+          "error": 0.17021276595744678
+        },
+        {
+          "gap": 82,
+          "startFrame": 2039,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5690984200756193,
+          "achieved": 0.6840960732209439,
+          "error": 0.11499765314532462
+        },
+        {
+          "gap": 82,
+          "startFrame": 2039,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.36921316358024686,
+          "achieved": 0.529188020471367,
+          "error": 0.15997485689112018
+        }
+      ],
+      "finalSelection": {
+        "candidates": 187,
+        "initialLoss": 0.002573528263638863,
+        "finalLoss": 0.0025332283110354853,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_amplitude_tides",
+      "recordSha256": "7a3d7848aede36b2e71dca052bb7281a97732f3fe19d317d2e2471e66a4ff2eb",
+      "score": 861.5123,
+      "axisLoss": {
+        "air": 0.0003056998789660244,
+        "speed": 0.00023158938786820463,
+        "amplitude": 0.0007717130152394603,
+        "impact": 7.978887545140404e-05
+      },
+      "endingLossShare": 0.028330757340960036,
+      "topFiveGapLossShare": 0.49661396484170534,
+      "worstGap": [
+        32,
+        0.00018818208714809552
+      ],
+      "endingWork": 31313,
+      "endingRideFrames": 150,
+      "endingObservations": [
+        {
+          "gap": 97,
+          "startFrame": 2351,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "air",
+          "target": 0.676923076923077,
+          "achieved": 0.6307692307692307,
+          "error": 0.04615384615384621
+        },
+        {
+          "gap": 97,
+          "startFrame": 2351,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6590365916955014,
+          "achieved": 0.6564446295083092,
+          "error": 0.002591962187192265
+        },
+        {
+          "gap": 97,
+          "startFrame": 2351,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.42127055730287427,
+          "achieved": 0.4552324446325973,
+          "error": 0.03396188732972305
+        }
+      ],
+      "finalSelection": {
+        "candidates": 161,
+        "initialLoss": 0.0013887911575250933,
+        "finalLoss": 0.0013887911575250933,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_dense_dialogue",
+      "recordSha256": "5812ee337cadd0e6c5a8485f7544bca40efb9290631e600ff94217739b229e7e",
+      "score": 923.2722,
+      "axisLoss": {
+        "air": 0.00010397273753943583,
+        "speed": 0.0001254850523485863,
+        "impact": 0.00016885575987920856
+      },
+      "endingLossShare": 2.3139074137570982e-11,
+      "topFiveGapLossShare": 0.3894317553834462,
+      "worstGap": [
+        91,
+        6.205616052253944e-05
+      ],
+      "endingWork": 30805,
+      "endingRideFrames": 165,
+      "endingObservations": [
+        {
+          "gap": 130,
+          "startFrame": 2176,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.3931034482758621,
+          "achieved": 0.3931034482758621,
+          "error": 0
+        },
+        {
+          "gap": 130,
+          "startFrame": 2176,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6431221606648196,
+          "achieved": 0.6431228280997053,
+          "error": 6.674348856927637e-07
+        }
+      ],
+      "finalSelection": {
+        "candidates": 204,
+        "initialLoss": 0.00039831354976723046,
+        "finalLoss": 0.00039831354976723046,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_high_air_drive",
+      "recordSha256": "d4380093484e4500124e397dd665233c51e99c83490fff6fcc57ce0bbfb91c01",
+      "score": 881.3351,
+      "axisLoss": {
+        "air": 0.0006015707514487277,
+        "speed": 0.0002201816422980291,
+        "impact": 0.0001755027771814772
+      },
+      "endingLossShare": 1.4424536727391407e-06,
+      "topFiveGapLossShare": 0.236211749002755,
+      "worstGap": [
+        33,
+        6.442294404955453e-05
+      ],
+      "endingWork": 24215,
+      "endingRideFrames": 147,
+      "endingObservations": [
+        {
+          "gap": 94,
+          "startFrame": 2274,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.7086614173228346,
+          "achieved": 0.7086614173228346,
+          "error": 0
+        },
+        {
+          "gap": 94,
+          "startFrame": 2274,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5244811202422145,
+          "achieved": 0.5241944153781406,
+          "error": 0.0002867048640738945
+        }
+      ],
+      "finalSelection": {
+        "candidates": 209,
+        "initialLoss": 0.000997255170928233,
+        "finalLoss": 0.000997255170928233,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_sparse_lowline",
+      "recordSha256": "d13dc2645a94105f987cce52b6772efa8123449de82d3b436e1258f50ea18655",
+      "score": 948.1915,
+      "axisLoss": {
+        "air": 5.897131900161799e-05,
+        "speed": 8.44669745008871e-05,
+        "impact": 3.34436989843644e-05
+      },
+      "endingLossShare": 2.5610863570963908e-05,
+      "topFiveGapLossShare": 0.33248637997306674,
+      "worstGap": [
+        29,
+        1.759612042578792e-05
+      ],
+      "endingWork": 24377,
+      "endingRideFrames": 114,
+      "endingObservations": [
+        {
+          "gap": 82,
+          "startFrame": 2307,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.2765957446808511,
+          "achieved": 0.2765957446808511,
+          "error": 0
+        },
+        {
+          "gap": 82,
+          "startFrame": 2307,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6008982954545455,
+          "achieved": 0.6003060814188429,
+          "error": 0.0005922140357026429
+        }
+      ],
+      "finalSelection": {
+        "candidates": 191,
+        "initialLoss": 0.00017688199248686975,
+        "finalLoss": 0.00017688199248686975,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_frontier_pickup_progression",
+      "recordSha256": "978494624109d7cd5a32ee9b9aba1e759d4b9d187da9f7d7fe75017cda031044",
+      "score": 939.6902,
+      "axisLoss": {
+        "air": 5.8666666666666746e-05,
+        "speed": 0.00012180503157916458,
+        "impact": 6.136958749798916e-05
+      },
+      "endingLossShare": 3.1493173139363882e-06,
+      "topFiveGapLossShare": 0.3099887208286553,
+      "worstGap": [
+        40,
+        2.2310868004415186e-05
+      ],
+      "endingWork": 12297,
+      "endingRideFrames": 68,
+      "endingObservations": [
+        {
+          "gap": 110,
+          "startFrame": 2353,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.2708333333333333,
+          "achieved": 0.2708333333333333,
+          "error": 0
+        },
+        {
+          "gap": 110,
+          "startFrame": 2353,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.7218034651360542,
+          "achieved": 0.7214618864597613,
+          "error": 0.0003415786762929196
+        }
+      ],
+      "finalSelection": {
+        "candidates": 187,
+        "initialLoss": 0.00024184128574382025,
+        "finalLoss": 0.00024184128574382025,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_frontier_dense_recovery",
+      "recordSha256": "89fe46100e8f35c2dc4dc108b6677eafaa52787820e1e6e711eb8d97d5cbda80",
+      "score": 920.9086,
+      "axisLoss": {
+        "air": 9.46292403315251e-05,
+        "speed": 0.00010818737199575984,
+        "impact": 0.00022148671013513848
+      },
+      "endingLossShare": 1.8104956568227525e-06,
+      "topFiveGapLossShare": 0.514478912339743,
+      "worstGap": [
+        67,
+        7.447335901510344e-05
+      ],
+      "endingWork": 9480,
+      "endingRideFrames": 55,
+      "endingObservations": [
+        {
+          "gap": 123,
+          "startFrame": 2286,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4,
+          "achieved": 0.4,
+          "error": 0
+        },
+        {
+          "gap": 123,
+          "startFrame": 2286,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6603759615384616,
+          "achieved": 0.6607725153433027,
+          "error": 0.0003965538048411599
+        }
+      ],
+      "finalSelection": {
+        "candidates": 204,
+        "initialLoss": 0.00042433231256632935,
+        "finalLoss": 0.0004243033224624236,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_frontier_low_air_endurance",
+      "recordSha256": "6143bd0b8deca51627983aff9f12548cdd895de5e9b66ae50ed7b2a95e4e3a89",
+      "score": 835.8783,
+      "axisLoss": {
+        "air": 0.0012790858788778526,
+        "speed": 0.0005362967471424977,
+        "impact": 0.00019327624823490763
+      },
+      "endingLossShare": 6.186162672524606e-09,
+      "topFiveGapLossShare": 0.9381571287238826,
+      "worstGap": [
+        55,
+        0.0007708045967944002
+      ],
+      "endingWork": 33917,
+      "endingRideFrames": 186,
+      "endingObservations": [
+        {
+          "gap": 90,
+          "startFrame": 2315,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "air",
+          "target": 0.3373493975903614,
+          "achieved": 0.3373493975903614,
+          "error": 0
+        },
+        {
+          "gap": 90,
+          "startFrame": 2315,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6067934825898951,
+          "achieved": 0.6067698120448833,
+          "error": 2.36705450117336e-05
+        }
+      ],
+      "finalSelection": {
+        "candidates": 181,
+        "initialLoss": 0.002008658874255258,
+        "finalLoss": 0.002008658874255258,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_regression_transition_mosaic",
+      "recordSha256": "d2a0d819fdb41bf6f9e04a9cc0af38213aca0dd13d5e238ae5ba1ea341f0e7f5",
+      "score": 943.4163,
+      "axisLoss": {
+        "air": 5.407982637318446e-05,
+        "speed": 9.878644734293254e-05,
+        "impact": 5.9183189506113065e-05
+      },
+      "endingLossShare": 0.019681911080132678,
+      "topFiveGapLossShare": 0.3098733256924711,
+      "worstGap": [
+        27,
+        1.793929133638777e-05
+      ],
+      "endingWork": 5836,
+      "endingRideFrames": 30,
+      "endingObservations": [
+        {
+          "gap": 91,
+          "startFrame": 2391,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.6,
+          "achieved": 0.6,
+          "error": 0
+        },
+        {
+          "gap": 91,
+          "startFrame": 2391,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.7199567465379009,
+          "achieved": 0.7777393645452553,
+          "error": 0.0577826180073544
+        }
+      ],
+      "finalSelection": {
+        "candidates": 163,
+        "initialLoss": 0.00021224864046573248,
+        "finalLoss": 0.00021204946322222999,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_regression_amplitude_mosaic",
+      "recordSha256": "c78ded192987bbf28eddd9ebb789700fb92351c29358b20df3203353b1957f68",
+      "score": 740.1808,
+      "axisLoss": {
+        "air": 0.0006454079901359298,
+        "speed": 0.00044993041778776914,
+        "amplitude": 0.004206189427374365,
+        "impact": 0.0003557980363421536
+      },
+      "endingLossShare": 1.7316053016066839e-06,
+      "topFiveGapLossShare": 0.42874668621365597,
+      "worstGap": [
+        20,
+        0.0006227654807487293
+      ],
+      "endingWork": 15628,
+      "endingRideFrames": 87,
+      "endingObservations": [
+        {
+          "gap": 91,
+          "startFrame": 2334,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5074626865671642,
+          "achieved": 0.5074626865671642,
+          "error": 0
+        },
+        {
+          "gap": 91,
+          "startFrame": 2334,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6592777849582739,
+          "achieved": 0.6596592953287926,
+          "error": 0.0003815103705187006
+        },
+        {
+          "gap": 91,
+          "startFrame": 2334,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.3493745995130079,
+          "achieved": 0.34760665601030727,
+          "error": 0.001767943502700653
+        }
+      ],
+      "finalSelection": {
+        "candidates": 192,
+        "initialLoss": 0.0056573962848585286,
+        "finalLoss": 0.0056573258716402204,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_believer_56_6s",
+      "recordSha256": "5bfd646a627b6956e6f64d29e4ca7ad0d8308b8439b8b2af842250e0eb72a282",
+      "score": 934.4729,
+      "axisLoss": {
+        "air": 0.00013962842974338965,
+        "speed": 9.171183980639519e-05,
+        "impact": 5.573010326848317e-05
+      },
+      "endingLossShare": 2.78842078446852e-13,
+      "topFiveGapLossShare": 0.21488246984635512,
+      "worstGap": [
+        44,
+        1.613314798431021e-05
+      ],
+      "endingWork": 11059,
+      "endingRideFrames": 56,
+      "endingObservations": [
+        {
+          "gap": 84,
+          "startFrame": 2229,
+          "endFrame": 2264,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5555555555555556,
+          "achieved": 0.5555555555555556,
+          "error": 0
+        },
+        {
+          "gap": 84,
+          "startFrame": 2229,
+          "endFrame": 2264,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.7098745782084254,
+          "achieved": 0.709874453573959,
+          "error": 1.2463446641408638e-07
+        }
+      ],
+      "finalSelection": {
+        "candidates": 206,
+        "initialLoss": 0.00028707037281826796,
+        "finalLoss": 0.00028707037281826796,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_believer_impact_56s",
+      "recordSha256": "965c792a0d82810d76edab0436d3f195864cc195f56743a3c35c2e246a2d01e0",
+      "score": 869.9274,
+      "axisLoss": {
+        "air": 0.00035491334629073566,
+        "speed": 0.00021689259331947097,
+        "amplitude": 0.00047444864518693386,
+        "impact": 0.0001673184751607965
+      },
+      "endingLossShare": 0.027333428829603084,
+      "topFiveGapLossShare": 0.3943461257021211,
+      "worstGap": [
+        28,
+        0.00012910642441130285
+      ],
+      "endingWork": 6068,
+      "endingRideFrames": 32,
+      "endingObservations": [
+        {
+          "gap": 49,
+          "startFrame": 2229,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5,
+          "achieved": 0.5,
+          "error": 0
+        },
+        {
+          "gap": 49,
+          "startFrame": 2229,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5210694816438061,
+          "achieved": 0.5350970669050383,
+          "error": 0.014027585261232267
+        },
+        {
+          "gap": 49,
+          "startFrame": 2229,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.39799565553665167,
+          "achieved": 0.1392329677917919,
+          "error": 0.2587626877448598
+        }
+      ],
+      "finalSelection": {
+        "candidates": 144,
+        "initialLoss": 0.0012138083353601503,
+        "finalLoss": 0.0012135730599579374,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_river_reentry_tempo_fast_5",
+      "recordSha256": "d67df5069f1dd345276abf08204ed5441d48f87ad5c2858c912dfc37f14488ab",
+      "score": 961.3954,
+      "axisLoss": {
+        "air": 1.613804091275219e-05,
+        "speed": 5.0774836316493765e-05,
+        "impact": 2.9959494703579858e-05
+      },
+      "endingLossShare": 3.2062719327301114e-06,
+      "topFiveGapLossShare": 0.35274617055401064,
+      "worstGap": [
+        48,
+        1.4376754720720902e-05
+      ],
+      "endingWork": 31246,
+      "endingRideFrames": 183,
+      "endingObservations": [
+        {
+          "gap": 88,
+          "startFrame": 2042,
+          "endFrame": 2204,
+          "tail": true,
+          "axis": "air",
+          "target": 0.44171779141104295,
+          "achieved": 0.44171779141104295,
+          "error": 0
+        },
+        {
+          "gap": 88,
+          "startFrame": 2042,
+          "endFrame": 2204,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.559742984240596,
+          "achieved": 0.5598555766359444,
+          "error": 0.00011259239534844312
+        }
+      ],
+      "finalSelection": {
+        "candidates": 199,
+        "initialLoss": 9.68723719328259e-05,
+        "finalLoss": 9.68723719328259e-05,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_countercurrent_impact_contrast_12",
+      "recordSha256": "11acfa6612d36e14d9978a67fd2adb83004b62c98dc5193a928ab2a6b634f4da",
+      "score": 959.5341,
+      "axisLoss": {
+        "air": 3.647600236719059e-05,
+        "speed": 4.533338351353748e-05,
+        "impact": 2.4834403734652657e-05
+      },
+      "endingLossShare": 4.0029313137662433e-07,
+      "topFiveGapLossShare": 0.3444907744437091,
+      "worstGap": [
+        10,
+        1.2056669053320773e-05
+      ],
+      "endingWork": 13744,
+      "endingRideFrames": 67,
+      "endingObservations": [
+        {
+          "gap": 79,
+          "startFrame": 2154,
+          "endFrame": 2200,
+          "tail": true,
+          "axis": "air",
+          "target": 0.48936170212765956,
+          "achieved": 0.48936170212765956,
+          "error": 0
+        },
+        {
+          "gap": 79,
+          "startFrame": 2154,
+          "endFrame": 2200,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5006733888888889,
+          "achieved": 0.5007516507021122,
+          "error": 7.826181322334591e-05
+        }
+      ],
+      "finalSelection": {
+        "candidates": 194,
+        "initialLoss": 0.00010664384645970582,
+        "finalLoss": 0.00010664378961538038,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_split_signal_impact_relief_12",
+      "recordSha256": "0aa48ad121c4f037673a11a2d0cca64559138414b08e52123c3af1827b55e846",
+      "score": 836.2243,
+      "axisLoss": {
+        "air": 0.00038493550912274915,
+        "speed": 0.00014987008646939577,
+        "amplitude": 0.001331703920752933,
+        "impact": 0.0001328866139891265
+      },
+      "endingLossShare": 0.0521527378600244,
+      "topFiveGapLossShare": 0.27352955005865076,
+      "worstGap": [
+        61,
+        0.00012412070530507888
+      ],
+      "endingWork": 31795,
+      "endingRideFrames": 141,
+      "endingObservations": [
+        {
+          "gap": 92,
+          "startFrame": 2280,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5041322314049587,
+          "achieved": 0.4297520661157025,
+          "error": 0.07438016528925617
+        },
+        {
+          "gap": 92,
+          "startFrame": 2280,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5542695312500002,
+          "achieved": 0.5838781815152879,
+          "error": 0.029608650265287695
+        },
+        {
+          "gap": 92,
+          "startFrame": 2280,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.27271020814516705,
+          "achieved": 0.23236726606398234,
+          "error": 0.04034294208118472
+        }
+      ],
+      "finalSelection": {
+        "candidates": 171,
+        "initialLoss": 0.0019993961303342014,
+        "finalLoss": 0.0019993961303342014,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_pickup_lattice_speed_minus_4",
+      "recordSha256": "dd612c8c310e08dd898b734135ceed640a7ebeea1114b38b6fc50e9647e42cfe",
+      "score": 901.3275,
+      "axisLoss": {
+        "air": 5.4781547333469166e-05,
+        "speed": 0.0005818315623458202,
+        "impact": 3.79132312890586e-05
+      },
+      "endingLossShare": 2.3785509797032832e-05,
+      "topFiveGapLossShare": 0.8581229767047898,
+      "worstGap": [
+        0,
+        0.0005494616686726245
+      ],
+      "endingWork": 16604,
+      "endingRideFrames": 89,
+      "endingObservations": [
+        {
+          "gap": 99,
+          "startFrame": 2252,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.463768115942029,
+          "achieved": 0.463768115942029,
+          "error": 0
+        },
+        {
+          "gap": 99,
+          "startFrame": 2252,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.7787126581702322,
+          "achieved": 0.7774311958155227,
+          "error": 0.001281462354709495
+        }
+      ],
+      "finalSelection": {
+        "candidates": 206,
+        "initialLoss": 0.0006745263409683478,
+        "finalLoss": 0.0006745263409683478,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_loose_pocket_drag_later_20ms",
+      "recordSha256": "e5625d85abf75592a7f00eee655be7478f77bef9aa277a701d74e9b72c357b2f",
+      "score": 954.18,
+      "axisLoss": {
+        "air": 1.3525063951200286e-05,
+        "speed": 9.313309474595276e-05,
+        "impact": 3.0834644575521786e-05
+      },
+      "endingLossShare": 5.0695745554968934e-08,
+      "topFiveGapLossShare": 0.308199163900875,
+      "worstGap": [
+        80,
+        1.5957994714286742e-05
+      ],
+      "endingWork": 9757,
+      "endingRideFrames": 50,
+      "endingObservations": [
+        {
+          "gap": 104,
+          "startFrame": 2211,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5,
+          "achieved": 0.5,
+          "error": 0
+        },
+        {
+          "gap": 104,
+          "startFrame": 2211,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5817532928466795,
+          "achieved": 0.5817131034600446,
+          "error": 4.018938663497007e-05
+        }
+      ],
+      "finalSelection": {
+        "candidates": 203,
+        "initialLoss": 0.00013749283313272963,
+        "finalLoss": 0.0001374928032726749,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_offgrid_conversation_answer_early_25ms",
+      "recordSha256": "665e9bbf0c0727dfb58e24fc19ac193e380151a722b815d34b2d2a1cf69a6014",
+      "score": 962.4983,
+      "axisLoss": {
+        "air": 3.0347125697849145e-05,
+        "speed": 3.892598237875031e-05,
+        "impact": 2.2038988320885023e-05
+      },
+      "endingLossShare": 1.597765237282576e-07,
+      "topFiveGapLossShare": 0.33350128594869294,
+      "worstGap": [
+        52,
+        6.895586402726528e-06
+      ],
+      "endingWork": 8969,
+      "endingRideFrames": 48,
+      "endingObservations": [
+        {
+          "gap": 87,
+          "startFrame": 2213,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5357142857142857,
+          "achieved": 0.5357142857142857,
+          "error": 0
+        },
+        {
+          "gap": 87,
+          "startFrame": 2213,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.719625731395084,
+          "achieved": 0.7195654721904259,
+          "error": 6.025920465813073e-05
+        }
+      ],
+      "finalSelection": {
+        "candidates": 222,
+        "initialLoss": 9.131209639748451e-05,
+        "finalLoss": 9.131209639748451e-05,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_rising_switch_tempo_fast_5",
+      "recordSha256": "11c40b75bfa168ad2ef6f2a661a8136eaac3d370626ff16ec1775ee0108b6ba1",
+      "score": 950.633,
+      "axisLoss": {
+        "air": 6.673507025891631e-05,
+        "speed": 6.007820081716874e-05,
+        "impact": 3.338124380004274e-05
+      },
+      "endingLossShare": 1.3547473480588649e-05,
+      "topFiveGapLossShare": 0.27975359142309114,
+      "worstGap": [
+        23,
+        1.1236004706098496e-05
+      ],
+      "endingWork": 23652,
+      "endingRideFrames": 137,
+      "endingObservations": [
+        {
+          "gap": 88,
+          "startFrame": 2088,
+          "endFrame": 2204,
+          "tail": true,
+          "axis": "air",
+          "target": 0.717948717948718,
+          "achieved": 0.717948717948718,
+          "error": 0
+        },
+        {
+          "gap": 88,
+          "startFrame": 2088,
+          "endFrame": 2204,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5685041168697081,
+          "achieved": 0.5688558314751699,
+          "error": 0.0003517146054617948
+        }
+      ],
+      "finalSelection": {
+        "candidates": 193,
+        "initialLoss": 0.0001601945148761276,
+        "finalLoss": 0.0001601945148761276,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_meter_exchange_speed_plus_4",
+      "recordSha256": "637f0817a66dc81087bcc7ddfa19aa51b1ec58606fb9b77ab2fd7907ce419277",
+      "score": 946.1907,
+      "axisLoss": {
+        "air": 6.477045908253045e-05,
+        "speed": 6.950254942832301e-05,
+        "impact": 5.693477077476803e-05
+      },
+      "endingLossShare": 1.6672396264844063e-06,
+      "topFiveGapLossShare": 0.4163948507089867,
+      "worstGap": [
+        16,
+        3.124410387500877e-05
+      ],
+      "endingWork": 13807,
+      "endingRideFrames": 72,
+      "endingObservations": [
+        {
+          "gap": 96,
+          "startFrame": 2349,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5576923076923077,
+          "achieved": 0.5576923076923077,
+          "error": 0
+        },
+        {
+          "gap": 96,
+          "startFrame": 2349,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5633209151953419,
+          "achieved": 0.5631087701218328,
+          "error": 0.00021214507350908463
+        }
+      ],
+      "finalSelection": {
+        "candidates": 214,
+        "initialLoss": 0.0001912077792856216,
+        "finalLoss": 0.0001912077792856216,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_wide_breaths_air_plus_5",
+      "recordSha256": "0201fda087093ace796e8e636b088859c38c569db119e24a1b398e8e7a7b8a10",
+      "score": 893.1936,
+      "axisLoss": {
+        "air": 0.00017032650646801252,
+        "speed": 0.00010575137839978961,
+        "amplitude": 0.000453052000811211,
+        "impact": 6.825384893047468e-05
+      },
+      "endingLossShare": 2.710404664201166e-06,
+      "topFiveGapLossShare": 0.46604878775135367,
+      "worstGap": [
+        74,
+        0.00010989414945600397
+      ],
+      "endingWork": 16068,
+      "endingRideFrames": 72,
+      "endingObservations": [
+        {
+          "gap": 82,
+          "startFrame": 2429,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5961538461538461,
+          "achieved": 0.5961538461538461,
+          "error": 0
+        },
+        {
+          "gap": 82,
+          "startFrame": 2429,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5201514705882354,
+          "achieved": 0.5199357096502929,
+          "error": 0.00021576093794251072
+        },
+        {
+          "gap": 82,
+          "startFrame": 2429,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.3219833607029644,
+          "achieved": 0.32102874351637933,
+          "error": 0.0009546171865850717
+        }
+      ],
+      "finalSelection": {
+        "candidates": 193,
+        "initialLoss": 0.0007973837346094874,
+        "finalLoss": 0.0007973837346094874,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "bridge_open_hook_amplitude_plus_8",
+      "recordSha256": "4595367842aa537b948d9aa68a46ea137fc5190889e933d6ddfc63edd2afca86",
+      "score": 810.5669,
+      "axisLoss": {
+        "air": 0.0013692599461409326,
+        "speed": 0.0006977257806751768,
+        "amplitude": 0.0004477422280635207,
+        "impact": 0.00024208395492268837
+      },
+      "endingLossShare": 0.6141148211821249,
+      "topFiveGapLossShare": 0.7336558437524127,
+      "worstGap": [
+        82,
+        0.001692999053021003
+      ],
+      "endingWork": 44845,
+      "endingRideFrames": 302,
+      "endingObservations": [
+        {
+          "gap": 82,
+          "startFrame": 2039,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.48936170212765956,
+          "achieved": 0.31560283687943264,
+          "error": 0.17375886524822692
+        },
+        {
+          "gap": 82,
+          "startFrame": 2039,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5690984200756193,
+          "achieved": 0.6943695993327661,
+          "error": 0.12527117925714681
+        },
+        {
+          "gap": 82,
+          "startFrame": 2039,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.4492131635802469,
+          "achieved": 0.4952872663260912,
+          "error": 0.046074102745844336
+        }
+      ],
+      "finalSelection": {
+        "candidates": 180,
+        "initialLoss": 0.0027568119098023217,
+        "finalLoss": 0.0027568119098023217,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_amplitude_tides_restrained_10",
+      "recordSha256": "bd311256a995a1669853c4f037895413af769c14203453c88f7c677de76a33a4",
+      "score": 857.325,
+      "axisLoss": {
+        "air": 0.00037327502505803036,
+        "speed": 0.00014819137326778551,
+        "amplitude": 0.0008297052169123459,
+        "impact": 0.00012988939829628812
+      },
+      "endingLossShare": 0.06496976477271134,
+      "topFiveGapLossShare": 0.49558638595287907,
+      "worstGap": [
+        60,
+        0.0002005851556332229
+      ],
+      "endingWork": 28595,
+      "endingRideFrames": 150,
+      "endingObservations": [
+        {
+          "gap": 97,
+          "startFrame": 2351,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "air",
+          "target": 0.676923076923077,
+          "achieved": 0.6,
+          "error": 0.07692307692307698
+        },
+        {
+          "gap": 97,
+          "startFrame": 2351,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6590365916955014,
+          "achieved": 0.6601081859228959,
+          "error": 0.0010715942273944457
+        },
+        {
+          "gap": 97,
+          "startFrame": 2351,
+          "endFrame": 2480,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.42914350157258696,
+          "achieved": 0.40186734018032233,
+          "error": 0.02727616139226463
+        }
+      ],
+      "finalSelection": {
+        "candidates": 102,
+        "initialLoss": 0.0014810610135344501,
+        "finalLoss": 0.0014810610135344501,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_dense_dialogue_impact_contrast_10",
+      "recordSha256": "97483b6a031e2cd52db74dc332f47be2b59a223f6541932a12786db6f464682c",
+      "score": 890.0221,
+      "axisLoss": {
+        "air": 0.00017575336469901072,
+        "speed": 0.00021982855147182975,
+        "impact": 0.00045281421651195995
+      },
+      "endingLossShare": 1.909791699402636e-13,
+      "topFiveGapLossShare": 0.5533927608083671,
+      "worstGap": [
+        107,
+        0.00034390567688202063
+      ],
+      "endingWork": 31596,
+      "endingRideFrames": 165,
+      "endingObservations": [
+        {
+          "gap": 130,
+          "startFrame": 2176,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.3931034482758621,
+          "achieved": 0.3931034482758621,
+          "error": 0
+        },
+        {
+          "gap": 130,
+          "startFrame": 2176,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6431221606648196,
+          "achieved": 0.6431220721704348,
+          "error": 8.849438482005922e-08
+        }
+      ],
+      "finalSelection": {
+        "candidates": 223,
+        "initialLoss": 0.0008483961326828009,
+        "finalLoss": 0.0008483961326828009,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_high_air_drive_air_minus_5",
+      "recordSha256": "34708f0ef404989384e5f05bcb43dabc4cc63e55673e328239dee18fe8cca297",
+      "score": 924.0508,
+      "axisLoss": {
+        "air": 0.00015976851851851861,
+        "speed": 0.0001501880203697923,
+        "impact": 7.998984600289008e-05
+      },
+      "endingLossShare": 2.1224525883221934e-10,
+      "topFiveGapLossShare": 0.23997368919388828,
+      "worstGap": [
+        24,
+        3.275335276508441e-05
+      ],
+      "endingWork": 24694,
+      "endingRideFrames": 147,
+      "endingObservations": [
+        {
+          "gap": 94,
+          "startFrame": 2274,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.6535433070866141,
+          "achieved": 0.6535433070866141,
+          "error": 0
+        },
+        {
+          "gap": 94,
+          "startFrame": 2274,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5244811202422145,
+          "achieved": 0.5244789455268454,
+          "error": 2.1747153691187293e-06
+        }
+      ],
+      "finalSelection": {
+        "candidates": 202,
+        "initialLoss": 0.0003899463848912003,
+        "finalLoss": 0.0003899463848912003,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_sparse_lowline_air_minus_4",
+      "recordSha256": "e1cb6270d9087f7f2466e2ead4b9f88aa3d7a89ceb924680839fe4501307d7bf",
+      "score": 941.3943,
+      "axisLoss": {
+        "air": 0.00010165237261448778,
+        "speed": 7.33511304661081e-05,
+        "impact": 5.2955055565273245e-05
+      },
+      "endingLossShare": 0.00011309054728546192,
+      "topFiveGapLossShare": 0.3724920024593323,
+      "worstGap": [
+        42,
+        2.4126707804159202e-05
+      ],
+      "endingWork": 24528,
+      "endingRideFrames": 114,
+      "endingObservations": [
+        {
+          "gap": 82,
+          "startFrame": 2307,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.24468085106382978,
+          "achieved": 0.24468085106382978,
+          "error": 0
+        },
+        {
+          "gap": 82,
+          "startFrame": 2307,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6008982954545455,
+          "achieved": 0.5994855436263108,
+          "error": 0.0014127518282347484
+        }
+      ],
+      "finalSelection": {
+        "candidates": 201,
+        "initialLoss": 0.00022795855864586915,
+        "finalLoss": 0.00022795855864586915,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_frontier_pickup_progression_shifted",
+      "recordSha256": "e7bec33ca26d50b1ffba800cbc6281246319ddd4e009996fed0574a7ff92bfae",
+      "score": 949.846,
+      "axisLoss": {
+        "air": 4.2666666666666696e-05,
+        "speed": 8.726691884861834e-05,
+        "impact": 3.554541483140226e-05
+      },
+      "endingLossShare": 0.002149076736600702,
+      "topFiveGapLossShare": 0.22815641510670043,
+      "worstGap": [
+        24,
+        9.853775385848007e-06
+      ],
+      "endingWork": 12211,
+      "endingRideFrames": 68,
+      "endingObservations": [
+        {
+          "gap": 110,
+          "startFrame": 2353,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.2708333333333333,
+          "achieved": 0.2708333333333333,
+          "error": 0
+        },
+        {
+          "gap": 110,
+          "startFrame": 2353,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.7218034651360542,
+          "achieved": 0.7291844569743453,
+          "error": 0.007380991838291107
+        }
+      ],
+      "finalSelection": {
+        "candidates": 204,
+        "initialLoss": 0.000165479000346687,
+        "finalLoss": 0.000165479000346687,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_frontier_dense_recovery_240ms_figures",
+      "recordSha256": "2a12ed9cad361b98abbf390b5ab9d3c3804b2acdb1be46a8220acbc1bd220599",
+      "score": 932.5784,
+      "axisLoss": {
+        "air": 0.00010014944948557024,
+        "speed": 0.00011105959021910732,
+        "impact": 9.331114745529266e-05
+      },
+      "endingLossShare": 8.063894428149514e-07,
+      "topFiveGapLossShare": 0.3577245530397342,
+      "worstGap": [
+        34,
+        2.728940354910644e-05
+      ],
+      "endingWork": 11107,
+      "endingRideFrames": 55,
+      "endingObservations": [
+        {
+          "gap": 123,
+          "startFrame": 2286,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4,
+          "achieved": 0.4,
+          "error": 0
+        },
+        {
+          "gap": 123,
+          "startFrame": 2286,
+          "endFrame": 2320,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6603759615384616,
+          "achieved": 0.6606001667080107,
+          "error": 0.00022420516954912983
+        }
+      ],
+      "finalSelection": {
+        "candidates": 176,
+        "initialLoss": 0.0003045201871599704,
+        "finalLoss": 0.0003045201871599704,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_frontier_low_air_endurance_4s",
+      "recordSha256": "558c120e3372ec549f097ece4161a38510cbddf6197a31708c8cd7f1fb55e93f",
+      "score": 849.1361,
+      "axisLoss": {
+        "air": 0.0009356481295980287,
+        "speed": 0.0005653690600779396,
+        "impact": 0.0001704799149825578
+      },
+      "endingLossShare": 0.012235159525411588,
+      "topFiveGapLossShare": 0.9181759075691382,
+      "worstGap": [
+        19,
+        0.0005599194998489365
+      ],
+      "endingWork": 38697,
+      "endingRideFrames": 186,
+      "endingObservations": [
+        {
+          "gap": 90,
+          "startFrame": 2275,
+          "endFrame": 2440,
+          "tail": true,
+          "axis": "air",
+          "target": 0.3373493975903614,
+          "achieved": 0.3674698795180723,
+          "error": 0.030120481927710885
+        },
+        {
+          "gap": 90,
+          "startFrame": 2275,
+          "endFrame": 2440,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6067934825898951,
+          "achieved": 0.6069904387654678,
+          "error": 0.0001969561755726934
+        }
+      ],
+      "finalSelection": {
+        "candidates": 211,
+        "initialLoss": 0.001671497104658527,
+        "finalLoss": 0.001671497104658527,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_frontier_low_air_endurance_6s",
+      "recordSha256": "e4014a736bcbae28fd932a749d317c18a5fc5e2235b3704098c013b657818a2b",
+      "score": 824.7814,
+      "axisLoss": {
+        "air": 0.0015070972403549204,
+        "speed": 0.0006374694621516249,
+        "impact": 0.00017474510545935473
+      },
+      "endingLossShare": 0.00034260559233735696,
+      "topFiveGapLossShare": 0.9409984520910561,
+      "worstGap": [
+        55,
+        0.001100894104023928
+      ],
+      "endingWork": 32969,
+      "endingRideFrames": 186,
+      "endingObservations": [
+        {
+          "gap": 90,
+          "startFrame": 2355,
+          "endFrame": 2520,
+          "tail": true,
+          "axis": "air",
+          "target": 0.3373493975903614,
+          "achieved": 0.3433734939759036,
+          "error": 0.006024096385542188
+        },
+        {
+          "gap": 90,
+          "startFrame": 2355,
+          "endFrame": 2520,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6067934825898951,
+          "achieved": 0.6071367191620879,
+          "error": 0.00034323657219281767
+        }
+      ],
+      "finalSelection": {
+        "candidates": 174,
+        "initialLoss": 0.002319311807965903,
+        "finalLoss": 0.002319311807965903,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_frontier_low_air_endurance_7s",
+      "recordSha256": "feec342f83ceab5f859303ad2ad933b3ad22deae79448af3fda9fdd9cecf9164",
+      "score": 863.1064,
+      "axisLoss": {
+        "air": 0.0006519713098395117,
+        "speed": 0.0005334528760640554,
+        "impact": 0.00016913427153415997
+      },
+      "endingLossShare": 0.005564638608009679,
+      "topFiveGapLossShare": 0.8880461296631017,
+      "worstGap": [
+        19,
+        0.000533673543937562
+      ],
+      "endingWork": 34670,
+      "endingRideFrames": 186,
+      "endingObservations": [
+        {
+          "gap": 90,
+          "startFrame": 2395,
+          "endFrame": 2560,
+          "tail": true,
+          "axis": "air",
+          "target": 0.3373493975903614,
+          "achieved": 0.3493975903614458,
+          "error": 0.012048192771084376
+        },
+        {
+          "gap": 90,
+          "startFrame": 2395,
+          "endFrame": 2560,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6067934825898951,
+          "achieved": 0.6211351486667479,
+          "error": 0.014341666076852833
+        }
+      ],
+      "finalSelection": {
+        "candidates": 176,
+        "initialLoss": 0.001354558457437727,
+        "finalLoss": 0.001354558457437727,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_regression_transition_mosaic_tempo_fast_5",
+      "recordSha256": "aef149f6992375eddea488102b643653847ebde4f8fd9d6eae12e3e4c8a7125f",
+      "score": 949.7848,
+      "axisLoss": {
+        "air": 6.817275326678522e-05,
+        "speed": 6.966917890573304e-05,
+        "impact": 2.8051584612670695e-05
+      },
+      "endingLossShare": 0.000351858614238216,
+      "topFiveGapLossShare": 0.3136676928115683,
+      "worstGap": [
+        53,
+        1.170685983695606e-05
+      ],
+      "endingWork": 5949,
+      "endingRideFrames": 30,
+      "endingObservations": [
+        {
+          "gap": 91,
+          "startFrame": 2271,
+          "endFrame": 2280,
+          "tail": true,
+          "axis": "air",
+          "target": 0.6,
+          "achieved": 0.6,
+          "error": 0
+        },
+        {
+          "gap": 91,
+          "startFrame": 2271,
+          "endFrame": 2280,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.7199520952446127,
+          "achieved": 0.7132916141940708,
+          "error": 0.006660481050541844
+        }
+      ],
+      "finalSelection": {
+        "candidates": 195,
+        "initialLoss": 0.00016589351678518893,
+        "finalLoss": 0.00016589351678518893,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_regression_amplitude_mosaic_contrast_10",
+      "recordSha256": "6d9cc42cb6d3feb7b558a9cab5ec62b90f4e13ea1f087c3f640293045630defa",
+      "score": 735.8823,
+      "axisLoss": {
+        "air": 0.0004940680393074287,
+        "speed": 0.0006700132893194601,
+        "amplitude": 0.004049509959908607,
+        "impact": 0.0006648925898346373
+      },
+      "endingLossShare": 6.0529277863327876e-05,
+      "topFiveGapLossShare": 0.4224614858822489,
+      "worstGap": [
+        24,
+        0.0006092242121113501
+      ],
+      "endingWork": 19605,
+      "endingRideFrames": 87,
+      "endingObservations": [
+        {
+          "gap": 91,
+          "startFrame": 2334,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5074626865671642,
+          "achieved": 0.5074626865671642,
+          "error": 0
+        },
+        {
+          "gap": 91,
+          "startFrame": 2334,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.6592777849582739,
+          "achieved": 0.6601079316926531,
+          "error": 0.0008301467343792002
+        },
+        {
+          "gap": 91,
+          "startFrame": 2334,
+          "endFrame": 2400,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.33431205946430864,
+          "achieved": 0.34559575565731215,
+          "error": 0.011283696193003512
+        }
+      ],
+      "finalSelection": {
+        "candidates": 180,
+        "initialLoss": 0.005878483878370132,
+        "finalLoss": 0.005878483878370132,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_believer_56_6s_impact_relief",
+      "recordSha256": "1e029c2f3319c27ec349950eb3190136a92e9484c189593639f02e38ded79b8d",
+      "score": 927.5605,
+      "axisLoss": {
+        "air": 0.00015643544575901888,
+        "speed": 0.00011950542667236918,
+        "impact": 7.747363091112796e-05
+      },
+      "endingLossShare": 1.8186370192257739e-06,
+      "topFiveGapLossShare": 0.24232674934243287,
+      "worstGap": [
+        41,
+        2.9747146029988125e-05
+      ],
+      "endingWork": 11070,
+      "endingRideFrames": 56,
+      "endingObservations": [
+        {
+          "gap": 84,
+          "startFrame": 2229,
+          "endFrame": 2264,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5555555555555556,
+          "achieved": 0.5555555555555556,
+          "error": 0
+        },
+        {
+          "gap": 84,
+          "startFrame": 2229,
+          "endFrame": 2264,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.7098745782084254,
+          "achieved": 0.7102277451252952,
+          "error": 0.00035316691686981816
+        }
+      ],
+      "finalSelection": {
+        "candidates": 198,
+        "initialLoss": 0.00035341450334251597,
+        "finalLoss": 0.00035341450334251597,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "bridge_believer_impact_56s_amplitude_plus_5",
+      "recordSha256": "a337b9bad74d8199e75e12fefca83a4412957dbefc34d00a3e8f9c91dcd416cd",
+      "score": 875.3617,
+      "axisLoss": {
+        "air": 0.00039912578401642417,
+        "speed": 0.0001620939439294261,
+        "amplitude": 0.00039719520231823897,
+        "impact": 0.00014911166864329243
+      },
+      "endingLossShare": 0.041820342304839324,
+      "topFiveGapLossShare": 0.45942855972227065,
+      "worstGap": [
+        28,
+        0.00014240454140254657
+      ],
+      "endingWork": 6038,
+      "endingRideFrames": 32,
+      "endingObservations": [
+        {
+          "gap": 49,
+          "startFrame": 2229,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5,
+          "achieved": 0.5,
+          "error": 0
+        },
+        {
+          "gap": 49,
+          "startFrame": 2229,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5210694816438061,
+          "achieved": 0.5509124732741236,
+          "error": 0.02984299163031756
+        },
+        {
+          "gap": 49,
+          "startFrame": 2229,
+          "endFrame": 2240,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.4479956666666667,
+          "achieved": 0.1452635570419844,
+          "error": 0.3027321096246823
+        }
+      ],
+      "finalSelection": {
+        "candidates": 168,
+        "initialLoss": 0.001111849661091845,
+        "finalLoss": 0.0011075265989073837,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "harbor_return",
+      "recordSha256": "868c5452138c56eff0779d6e90286accc95e6ed5a66d0c7e79edf6f7457ad600",
+      "score": 948.3024,
+      "axisLoss": {
+        "air": 5.7602957436041604e-05,
+        "speed": 6.128016770296703e-05,
+        "impact": 5.72221197883688e-05
+      },
+      "endingLossShare": 0.11323943640204616,
+      "topFiveGapLossShare": 0.3505397848481668,
+      "worstGap": [
+        104,
+        1.994205868302052e-05
+      ],
+      "endingWork": 25918,
+      "endingRideFrames": 142,
+      "endingObservations": [
+        {
+          "gap": 104,
+          "startFrame": 2379,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4180327868852459,
+          "achieved": 0.45081967213114754,
+          "error": 0.03278688524590162
+        },
+        {
+          "gap": 104,
+          "startFrame": 2379,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5419851381745885,
+          "achieved": 0.5546775836999659,
+          "error": 0.012692445525377405
+        }
+      ],
+      "finalSelection": {
+        "candidates": 172,
+        "initialLoss": 0.00018125451867159322,
+        "finalLoss": 0.00017610524492737845,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "crossing_lights",
+      "recordSha256": "37ed2a2aa26f7359f2b7acb256bdaf2c0d4c0981e544dd807c53f1efed211d17",
+      "score": 949.718,
+      "axisLoss": {
+        "air": 6.397875637889816e-05,
+        "speed": 6.144532178919999e-05,
+        "impact": 4.092290313757158e-05
+      },
+      "endingLossShare": 0.005237339150161418,
+      "topFiveGapLossShare": 0.29835279297363376,
+      "worstGap": [
+        54,
+        1.4200265800679684e-05
+      ],
+      "endingWork": 33197,
+      "endingRideFrames": 180,
+      "endingObservations": [
+        {
+          "gap": 96,
+          "startFrame": 2341,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.41875,
+          "achieved": 0.425,
+          "error": 0.006249999999999978
+        },
+        {
+          "gap": 96,
+          "startFrame": 2341,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5647499999999999,
+          "achieved": 0.563324316487935,
+          "error": 0.001425683512064846
+        }
+      ],
+      "finalSelection": {
+        "candidates": 177,
+        "initialLoss": 0.00016634698130566945,
+        "finalLoss": 0.00016634698130566945,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "afterglow_turn",
+      "recordSha256": "e7fa307975d6cad5f0857830c6ff6e30daf08009dff7827b484bdc123007a38a",
+      "score": 954.8674,
+      "axisLoss": {
+        "air": 5.2947786718461325e-05,
+        "speed": 4.91102312347327e-05,
+        "impact": 3.124532732169824e-05
+      },
+      "endingLossShare": 0.007273005729843954,
+      "topFiveGapLossShare": 0.2723430205865937,
+      "worstGap": [
+        66,
+        9.122374081637315e-06
+      ],
+      "endingWork": 44873,
+      "endingRideFrames": 224,
+      "endingObservations": [
+        {
+          "gap": 95,
+          "startFrame": 2457,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4166666666666667,
+          "achieved": 0.4166666666666667,
+          "error": 0
+        },
+        {
+          "gap": 95,
+          "startFrame": 2457,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5895715075042365,
+          "achieved": 0.5833980151344613,
+          "error": 0.006173492369775158
+        }
+      ],
+      "finalSelection": {
+        "candidates": 173,
+        "initialLoss": 0.0001335450049745156,
+        "finalLoss": 0.0001333033452748922,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "woven_pickups",
+      "recordSha256": "3d7f13493a3e3122f18c99fb196c3c9d3029b5db69b1d2b1bb22d06b1ea48986",
+      "score": 937.2547,
+      "axisLoss": {
+        "air": 6.237078604738071e-05,
+        "speed": 0.0001141930614183862,
+        "impact": 8.58780720138001e-05
+      },
+      "endingLossShare": 0.006869954072875814,
+      "topFiveGapLossShare": 0.3248835170323498,
+      "worstGap": [
+        90,
+        2.9346244152551082e-05
+      ],
+      "endingWork": 24752,
+      "endingRideFrames": 149,
+      "endingObservations": [
+        {
+          "gap": 108,
+          "startFrame": 2372,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4108527131782946,
+          "achieved": 0.4186046511627907,
+          "error": 0.007751937984496138
+        },
+        {
+          "gap": 108,
+          "startFrame": 2372,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5438997797624456,
+          "achieved": 0.5371507149775891,
+          "error": 0.006749064784856484
+        }
+      ],
+      "finalSelection": {
+        "candidates": 150,
+        "initialLoss": 0.000262441919479567,
+        "finalLoss": 0.000262441919479567,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "pickup_answers",
+      "recordSha256": "f05bfe05cd01d518d168c7487dde43f466b6240898abf22fd5fa7c0d63cef321",
+      "score": 944.978,
+      "axisLoss": {
+        "air": 7.95318591348134e-05,
+        "speed": 6.706614058374484e-05,
+        "impact": 5.357942765237189e-05
+      },
+      "endingLossShare": 0.0009853791956223068,
+      "topFiveGapLossShare": 0.3258728283679733,
+      "worstGap": [
+        40,
+        2.520024808188286e-05
+      ],
+      "endingWork": 34055,
+      "endingRideFrames": 192,
+      "endingObservations": [
+        {
+          "gap": 101,
+          "startFrame": 2329,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4127906976744186,
+          "achieved": 0.4127906976744186,
+          "error": 0
+        },
+        {
+          "gap": 101,
+          "startFrame": 2329,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5672093023255812,
+          "achieved": 0.5701506192549761,
+          "error": 0.0029413169293949215
+        }
+      ],
+      "finalSelection": {
+        "candidates": 174,
+        "initialLoss": 0.00020017742737093002,
+        "finalLoss": 0.00020017742737093002,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "broken_triplets",
+      "recordSha256": "23b9164669ba2204e87ab74078eca84d245250a57596535f40c3bf6d6fab7382",
+      "score": 941.4006,
+      "axisLoss": {
+        "air": 0.00010690523107080754,
+        "speed": 7.25078669859847e-05,
+        "impact": 4.8494848852123696e-05
+      },
+      "endingLossShare": 0.10871378201470162,
+      "topFiveGapLossShare": 0.2656146817611757,
+      "worstGap": [
+        103,
+        2.4776734859674076e-05
+      ],
+      "endingWork": 43186,
+      "endingRideFrames": 218,
+      "endingObservations": [
+        {
+          "gap": 103,
+          "startFrame": 2463,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4090909090909091,
+          "achieved": 0.4292929292929293,
+          "error": 0.020202020202020166
+        },
+        {
+          "gap": 103,
+          "startFrame": 2463,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5884608135171158,
+          "achieved": 0.5640574367647985,
+          "error": 0.024403376752317296
+        }
+      ],
+      "finalSelection": {
+        "candidates": 177,
+        "initialLoss": 0.00022790794690891463,
+        "finalLoss": 0.00022790794690891463,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "late_letters",
+      "recordSha256": "1b228fe7f62150f40874e80bfbcfa63832e1222c0aaeb1960b0f2fc70cc203d1",
+      "score": 962.7599,
+      "axisLoss": {
+        "air": 2.5369959644526984e-05,
+        "speed": 4.5730775615836576e-05,
+        "impact": 1.891766429605863e-05
+      },
+      "endingLossShare": 0.0167666912758808,
+      "topFiveGapLossShare": 0.3093194754662139,
+      "worstGap": [
+        46,
+        6.960519541572261e-06
+      ],
+      "endingWork": 23455,
+      "endingRideFrames": 136,
+      "endingObservations": [
+        {
+          "gap": 102,
+          "startFrame": 2385,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.43103448275862066,
+          "achieved": 0.4396551724137931,
+          "error": 0.008620689655172431
+        },
+        {
+          "gap": 102,
+          "startFrame": 2385,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5402121413658403,
+          "achieved": 0.5353012333706383,
+          "error": 0.004910907995201996
+        }
+      ],
+      "finalSelection": {
+        "candidates": 172,
+        "initialLoss": 9.001839955642228e-05,
+        "finalLoss": 9.001839955642228e-05,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "swing_exchange",
+      "recordSha256": "304fbf5daec646e79436029594b27a93343f80639cd68987e919e38e477141e0",
+      "score": 961.0142,
+      "axisLoss": {
+        "air": 4.195290453622232e-05,
+        "speed": 4.108239099313483e-05,
+        "impact": 1.5798388678649033e-05
+      },
+      "endingLossShare": 0.02181350155957593,
+      "topFiveGapLossShare": 0.3453285469730757,
+      "worstGap": [
+        59,
+        7.3901685083985355e-06
+      ],
+      "endingWork": 33387,
+      "endingRideFrames": 169,
+      "endingObservations": [
+        {
+          "gap": 94,
+          "startFrame": 2352,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.42953020134228187,
+          "achieved": 0.4228187919463087,
+          "error": 0.006711409395973145
+        },
+        {
+          "gap": 94,
+          "startFrame": 2352,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5621476510067113,
+          "achieved": 0.5701607100501939,
+          "error": 0.008013059043482595
+        }
+      ],
+      "finalSelection": {
+        "candidates": 147,
+        "initialLoss": 9.883368420800638e-05,
+        "finalLoss": 9.883368420800638e-05,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "offbeat_echoes",
+      "recordSha256": "1f51f5668834195baf42f09461c823ce202b23e441a51d5409636ee4b5f4d645",
+      "score": 964.9796,
+      "axisLoss": {
+        "air": 1.3318414334052311e-05,
+        "speed": 4.282607563598337e-05,
+        "impact": 2.328078669628669e-05
+      },
+      "endingLossShare": 0.015245846132491176,
+      "topFiveGapLossShare": 0.2786174478937605,
+      "worstGap": [
+        79,
+        5.042565604861127e-06
+      ],
+      "endingWork": 42597,
+      "endingRideFrames": 225,
+      "endingObservations": [
+        {
+          "gap": 94,
+          "startFrame": 2456,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4292682926829268,
+          "achieved": 0.43414634146341463,
+          "error": 0.004878048780487809
+        },
+        {
+          "gap": 94,
+          "startFrame": 2456,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5897524089129781,
+          "achieved": 0.5848972656702266,
+          "error": 0.004855143242751492
+        }
+      ],
+      "finalSelection": {
+        "candidates": 179,
+        "initialLoss": 7.969945645979513e-05,
+        "finalLoss": 7.942527666632199e-05,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "gear_changes",
+      "recordSha256": "7b3ea2b80afe421c513c0effc79d67c3ffdbe50acae6b08485653d1f2185bb9b",
+      "score": 898.3103,
+      "axisLoss": {
+        "air": 0.00013909300765473995,
+        "speed": 0.0002538697516200383,
+        "impact": 0.000325809160530044
+      },
+      "endingLossShare": 0.0022863698477015564,
+      "topFiveGapLossShare": 0.48407238215100823,
+      "worstGap": [
+        22,
+        9.677100391771935e-05
+      ],
+      "endingWork": 27707,
+      "endingRideFrames": 150,
+      "endingObservations": [
+        {
+          "gap": 104,
+          "startFrame": 2371,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4230769230769231,
+          "achieved": 0.4307692307692308,
+          "error": 0.0076923076923077205
+        },
+        {
+          "gap": 104,
+          "startFrame": 2371,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5441621623112605,
+          "achieved": 0.5381311042957531,
+          "error": 0.006031058015507407
+        }
+      ],
+      "finalSelection": {
+        "candidates": 148,
+        "initialLoss": 0.000729587597474696,
+        "finalLoss": 0.0007187719198048221,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "half_time_return",
+      "recordSha256": "40c6506106b9a7412925857a7f7989c321438ae219297a091c4c01dcbcac3903",
+      "score": 950.4676,
+      "axisLoss": {
+        "air": 3.7858610742217856e-05,
+        "speed": 6.093689750891573e-05,
+        "impact": 6.25020237847633e-05
+      },
+      "endingLossShare": 0.0072305906327786605,
+      "topFiveGapLossShare": 0.44267664566891657,
+      "worstGap": [
+        89,
+        1.662230886186658e-05
+      ],
+      "endingWork": 34482,
+      "endingRideFrames": 187,
+      "endingObservations": [
+        {
+          "gap": 93,
+          "startFrame": 2334,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.41916167664670656,
+          "achieved": 0.41317365269461076,
+          "error": 0.0059880239520958
+        },
+        {
+          "gap": 93,
+          "startFrame": 2334,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5662275449101793,
+          "achieved": 0.5621242802237147,
+          "error": 0.004103264686464603
+        }
+      ],
+      "finalSelection": {
+        "candidates": 166,
+        "initialLoss": 0.00016129753203589746,
+        "finalLoss": 0.00016129753203589746,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "accelerando_reply",
+      "recordSha256": "da72b613a54643647cac6e917a6315f4da3104e3b9970015db606c3149c5d02f",
+      "score": 944.4006,
+      "axisLoss": {
+        "air": 5.575311185594005e-05,
+        "speed": 4.7341640363485795e-05,
+        "impact": 0.00010142997384394671
+      },
+      "endingLossShare": 0.008978374192773291,
+      "topFiveGapLossShare": 0.5506760887218123,
+      "worstGap": [
+        36,
+        7.236678910917543e-05
+      ],
+      "endingWork": 42879,
+      "endingRideFrames": 226,
+      "endingObservations": [
+        {
+          "gap": 92,
+          "startFrame": 2455,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4174757281553398,
+          "achieved": 0.4223300970873786,
+          "error": 0.004854368932038833
+        },
+        {
+          "gap": 92,
+          "startFrame": 2455,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5899322210714738,
+          "achieved": 0.5830100523173504,
+          "error": 0.006922168754123437
+        }
+      ],
+      "finalSelection": {
+        "candidates": 193,
+        "initialLoss": 0.00020452472606337263,
+        "finalLoss": 0.00020452472606337263,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "archipelago",
+      "recordSha256": "f7d311adc6a638ac298886b885a8a1ebe59fb71d5d922dba310c94fb5f7f1adc",
+      "score": 923.3236,
+      "axisLoss": {
+        "air": 0.00014788381818534155,
+        "speed": 5.739888906896546e-05,
+        "amplitude": 9.264749214036063e-05,
+        "impact": 9.982767050110714e-05
+      },
+      "endingLossShare": 0.1617031714514442,
+      "topFiveGapLossShare": 0.48095804255238356,
+      "worstGap": [
+        65,
+        9.319638056025984e-05
+      ],
+      "endingWork": 25656,
+      "endingRideFrames": 136,
+      "endingObservations": [
+        {
+          "gap": 66,
+          "startFrame": 2385,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5172413793103449,
+          "achieved": 0.45689655172413796,
+          "error": 0.060344827586206906
+        },
+        {
+          "gap": 66,
+          "startFrame": 2385,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5402121413658403,
+          "achieved": 0.5203050784506474,
+          "error": 0.01990706291519284
+        },
+        {
+          "gap": 66,
+          "startFrame": 2385,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.1845717015759698,
+          "achieved": 0.22780317089475932,
+          "error": 0.04323146931878952
+        }
+      ],
+      "finalSelection": {
+        "candidates": 100,
+        "initialLoss": 0.00039972862790518154,
+        "finalLoss": 0.0003977578698957754,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "wide_arc_dialogue",
+      "recordSha256": "9341e1e48a6684e9200111b0777ffe99f41f6d8dc8575f8943eb9b5b60dbc6b3",
+      "score": 918.3471,
+      "axisLoss": {
+        "air": 0.00010244313090300485,
+        "speed": 7.743931770668838e-05,
+        "amplitude": 0.00015850045729969443,
+        "impact": 0.00011509303481935392
+      },
+      "endingLossShare": 0.1269307554826168,
+      "topFiveGapLossShare": 0.45100516380502503,
+      "worstGap": [
+        60,
+        7.779318426538094e-05
+      ],
+      "endingWork": 31979,
+      "endingRideFrames": 169,
+      "endingObservations": [
+        {
+          "gap": 61,
+          "startFrame": 2352,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5167785234899329,
+          "achieved": 0.5436241610738255,
+          "error": 0.02684563758389258
+        },
+        {
+          "gap": 61,
+          "startFrame": 2352,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5621476510067113,
+          "achieved": 0.5861284345861489,
+          "error": 0.02398078357943767
+        },
+        {
+          "gap": 61,
+          "startFrame": 2352,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.21687919463087252,
+          "achieved": 0.2932708279950598,
+          "error": 0.0763916333641873
+        }
+      ],
+      "finalSelection": {
+        "candidates": 161,
+        "initialLoss": 0.000484310348851246,
+        "finalLoss": 0.0004534759407287406,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "terraced_skies",
+      "recordSha256": "65b5c17ca43f36a4d616f40c38af5ff76b48d1147f371b7006bd6395e50a5189",
+      "score": 889.4931,
+      "axisLoss": {
+        "air": 0.0005813210898393834,
+        "speed": 7.678229988232703e-05,
+        "amplitude": 0.00014085410447235125,
+        "impact": 5.811974331615992e-05
+      },
+      "endingLossShare": 0.5244966726805802,
+      "topFiveGapLossShare": 0.6105830435164321,
+      "worstGap": [
+        62,
+        0.0004495341593043746
+      ],
+      "endingWork": 42254,
+      "endingRideFrames": 217,
+      "endingObservations": [
+        {
+          "gap": 62,
+          "startFrame": 2464,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5177664974619289,
+          "achieved": 0.3756345177664975,
+          "error": 0.14213197969543145
+        },
+        {
+          "gap": 62,
+          "startFrame": 2464,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5882710597926373,
+          "achieved": 0.5839580160914501,
+          "error": 0.004313043701187125
+        },
+        {
+          "gap": 62,
+          "startFrame": 2464,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.25286840362641266,
+          "achieved": 0.23421629007774325,
+          "error": 0.018652113548669413
+        }
+      ],
+      "finalSelection": {
+        "candidates": 135,
+        "initialLoss": 0.0008570772375102141,
+        "finalLoss": 0.0008570772375102141,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "woven_pulse",
+      "recordSha256": "04e2249a1f41779c9552685f937072bddfd641504606a1deaa3bab14a87a282e",
+      "score": 923.6914,
+      "axisLoss": {
+        "air": 0.000162624096670467,
+        "speed": 0.000120151465219172,
+        "impact": 0.00011102068890859882
+      },
+      "endingLossShare": 0.0012897723638984435,
+      "topFiveGapLossShare": 0.263743009026132,
+      "worstGap": [
+        38,
+        4.3414489632664046e-05
+      ],
+      "endingWork": 29776,
+      "endingRideFrames": 158,
+      "endingObservations": [
+        {
+          "gap": 116,
+          "startFrame": 2363,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4420289855072464,
+          "achieved": 0.4420289855072464,
+          "error": 0
+        },
+        {
+          "gap": 116,
+          "startFrame": 2363,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5461812659354831,
+          "achieved": 0.5409082064559397,
+          "error": 0.005273059479543374
+        }
+      ],
+      "finalSelection": {
+        "candidates": 161,
+        "initialLoss": 0.00039379625079823767,
+        "finalLoss": 0.00039379625079823767,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "density_release",
+      "recordSha256": "0ecc786c87007edaa759afab3db3ddf6bcebc2e9cd0dbb5dc0d10a325b9fd446",
+      "score": 940.6463,
+      "axisLoss": {
+        "air": 9.448145528743525e-05,
+        "speed": 8.991060289435807e-05,
+        "impact": 4.960716788489712e-05
+      },
+      "endingLossShare": 0.005380586127118604,
+      "topFiveGapLossShare": 0.28190460024941455,
+      "worstGap": [
+        94,
+        1.970406620024267e-05
+      ],
+      "endingWork": 32701,
+      "endingRideFrames": 172,
+      "endingObservations": [
+        {
+          "gap": 105,
+          "startFrame": 2349,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4407894736842105,
+          "achieved": 0.4473684210526316,
+          "error": 0.006578947368421073
+        },
+        {
+          "gap": 105,
+          "startFrame": 2349,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.562894736842105,
+          "achieved": 0.567282583242866,
+          "error": 0.004387846400760953
+        }
+      ],
+      "finalSelection": {
+        "candidates": 178,
+        "initialLoss": 0.00023399922606669039,
+        "finalLoss": 0.00023399922606669039,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "compact_dialogue",
+      "recordSha256": "12e0dcc977362a7d58bbc5ec0df9896df69a3fd758270553e8e9594efb1ba42e",
+      "score": 947.5099,
+      "axisLoss": {
+        "air": 7.862851346483581e-05,
+        "speed": 5.77556136065378e-05,
+        "impact": 4.531191927497655e-05
+      },
+      "endingLossShare": 0.00392067964045853,
+      "topFiveGapLossShare": 0.27523822463369807,
+      "worstGap": [
+        69,
+        1.3074546475991582e-05
+      ],
+      "endingWork": 41083,
+      "endingRideFrames": 226,
+      "endingObservations": [
+        {
+          "gap": 106,
+          "startFrame": 2455,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4368932038834951,
+          "achieved": 0.441747572815534,
+          "error": 0.004854368932038888
+        },
+        {
+          "gap": 106,
+          "startFrame": 2455,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5899322210714738,
+          "achieved": 0.5919731730769703,
+          "error": 0.002040952005496477
+        }
+      ],
+      "finalSelection": {
+        "candidates": 147,
+        "initialLoss": 0.00018169604634635011,
+        "finalLoss": 0.00018169604634635011,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "lifted_refrain",
+      "recordSha256": "244c3b9bec28f77b9377d6617c7a792a7c316764c2897d47b47e9361fc1fcc43",
+      "score": 950.3124,
+      "axisLoss": {
+        "air": 4.18275500336016e-05,
+        "speed": 8.086932673650982e-05,
+        "impact": 3.963925339582998e-05
+      },
+      "endingLossShare": 0.00033747614541659784,
+      "topFiveGapLossShare": 0.3051800436460754,
+      "worstGap": [
+        3,
+        1.4524271571853354e-05
+      ],
+      "endingWork": 26512,
+      "endingRideFrames": 131,
+      "endingObservations": [
+        {
+          "gap": 84,
+          "startFrame": 2390,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.6396396396396397,
+          "achieved": 0.6396396396396397,
+          "error": 0
+        },
+        {
+          "gap": 84,
+          "startFrame": 2390,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.538616597356023,
+          "achieved": 0.5366839019089457,
+          "error": 0.001932695447077304
+        }
+      ],
+      "finalSelection": {
+        "candidates": 197,
+        "initialLoss": 0.0001628812472153307,
+        "finalLoss": 0.0001623361301659417,
+        "changed": true
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "flight_and_return",
+      "recordSha256": "49c129fa69c1b760366d2612e8e67fd971f29f949b66aad9fbde939f6ac6414c",
+      "score": 960.8606,
+      "axisLoss": {
+        "air": 3.677529670188408e-05,
+        "speed": 4.271238565508122e-05,
+        "impact": 2.014243918564574e-05
+      },
+      "endingLossShare": 2.5554843750647983e-05,
+      "topFiveGapLossShare": 0.24071071446281023,
+      "worstGap": [
+        55,
+        5.174397325856583e-06
+      ],
+      "endingWork": 38020,
+      "endingRideFrames": 185,
+      "endingObservations": [
+        {
+          "gap": 76,
+          "startFrame": 2336,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.6424242424242425,
+          "achieved": 0.6424242424242425,
+          "error": 0
+        },
+        {
+          "gap": 76,
+          "startFrame": 2336,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5658181818181817,
+          "achieved": 0.5654769569672671,
+          "error": 0.00034122485091458987
+        }
+      ],
+      "finalSelection": {
+        "candidates": 191,
+        "initialLoss": 9.963012154261062e-05,
+        "finalLoss": 9.963012154261062e-05,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "open_canopy",
+      "recordSha256": "bdfe0088e1cd6189f1b78f94401cbdc41b76a9f6d954c4c3fd2dee37f1a8609f",
+      "score": 950.4249,
+      "axisLoss": {
+        "air": 8.651210737025716e-05,
+        "speed": 4.6456366932202935e-05,
+        "impact": 2.861434731982628e-05
+      },
+      "endingLossShare": 0.2035387860139375,
+      "topFiveGapLossShare": 0.38651604903216674,
+      "worstGap": [
+        77,
+        3.288837135370678e-05
+      ],
+      "endingWork": 39916,
+      "endingRideFrames": 225,
+      "endingObservations": [
+        {
+          "gap": 77,
+          "startFrame": 2456,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.6390243902439025,
+          "achieved": 0.6731707317073171,
+          "error": 0.034146341463414664
+        },
+        {
+          "gap": 77,
+          "startFrame": 2456,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5897524089129781,
+          "achieved": 0.5787731982119435,
+          "error": 0.01097921070103458
+        }
+      ],
+      "finalSelection": {
+        "candidates": 154,
+        "initialLoss": 0.00016158282162228723,
+        "finalLoss": 0.00016158282162228723,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "quiet_current",
+      "recordSha256": "8c73898ea805430f67ce17bbe701eb52020b4b1622e786eeb991cf44e1171556",
+      "score": 929.9471,
+      "axisLoss": {
+        "air": 0.0002058505929006856,
+        "speed": 9.282402557315322e-05,
+        "impact": 3.099858906789794e-05
+      },
+      "endingLossShare": 0.34413664961876284,
+      "topFiveGapLossShare": 0.582465289651872,
+      "worstGap": [
+        70,
+        0.00011345263311248435
+      ],
+      "endingWork": 32662,
+      "endingRideFrames": 162,
+      "endingObservations": [
+        {
+          "gap": 70,
+          "startFrame": 2359,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.176056338028169,
+          "achieved": 0.2535211267605634,
+          "error": 0.07746478873239437
+        },
+        {
+          "gap": 70,
+          "startFrame": 2359,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5471467778036627,
+          "achieved": 0.5529709544755461,
+          "error": 0.0058241766718833965
+        }
+      ],
+      "finalSelection": {
+        "candidates": 209,
+        "initialLoss": 0.000329673207541738,
+        "finalLoss": 0.000329673207541738,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "support_then_lift",
+      "recordSha256": "4d4edab22d7d50a73a1bd16b56b3f30990f610de4511955cd2e414ab7d39fbfd",
+      "score": 925.1902,
+      "axisLoss": {
+        "air": 0.00021365326280484436,
+        "speed": 7.573375645231774e-05,
+        "impact": 8.848679555235464e-05
+      },
+      "endingLossShare": 0.03624983880352328,
+      "topFiveGapLossShare": 0.364807706685007,
+      "worstGap": [
+        44,
+        4.2949708108638306e-05
+      ],
+      "endingWork": 30516,
+      "endingRideFrames": 175,
+      "endingObservations": [
+        {
+          "gap": 66,
+          "startFrame": 2346,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.16774193548387098,
+          "achieved": 0.1935483870967742,
+          "error": 0.02580645161290321
+        },
+        {
+          "gap": 66,
+          "startFrame": 2346,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5636129032258063,
+          "achieved": 0.5625494823334664,
+          "error": 0.0010634208923399058
+        }
+      ],
+      "finalSelection": {
+        "candidates": 148,
+        "initialLoss": 0.0003778738148095164,
+        "finalLoss": 0.0003778738148095164,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "rest_and_return",
+      "recordSha256": "3b913b56ad3659a242f180a4bc547d7767151e75c5c24bc34ef79efda205e56f",
+      "score": 926.1541,
+      "axisLoss": {
+        "air": 0.0002089142659433801,
+        "speed": 0.00010548990263888844,
+        "impact": 5.3416752590471006e-05
+      },
+      "endingLossShare": 0.0011298615883241526,
+      "topFiveGapLossShare": 0.5069435429175944,
+      "worstGap": [
+        19,
+        9.378606963903697e-05
+      ],
+      "endingWork": 48552,
+      "endingRideFrames": 231,
+      "endingObservations": [
+        {
+          "gap": 65,
+          "startFrame": 2450,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.17061611374407584,
+          "achieved": 0.17061611374407584,
+          "error": 0
+        },
+        {
+          "gap": 65,
+          "startFrame": 2450,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5908163392831024,
+          "achieved": 0.5947902914403601,
+          "error": 0.00397395215725771
+        }
+      ],
+      "finalSelection": {
+        "candidates": 149,
+        "initialLoss": 0.00037069623568691617,
+        "finalLoss": 0.0003678209211727393,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "pickup_staircase",
+      "recordSha256": "871057777e1fe7923baed423473dbe1b411129600674bbd9b1d766fc4ea3a00d",
+      "score": 898.7163,
+      "axisLoss": {
+        "air": 0.00015398700644149942,
+        "speed": 0.00016128918855118867,
+        "impact": 0.0003974521011603151
+      },
+      "endingLossShare": 0.02012025617175668,
+      "topFiveGapLossShare": 0.5222941494471679,
+      "worstGap": [
+        76,
+        0.00015547979173390704
+      ],
+      "endingWork": 21015,
+      "endingRideFrames": 130,
+      "endingObservations": [
+        {
+          "gap": 122,
+          "startFrame": 2391,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4636363636363636,
+          "achieved": 0.43636363636363634,
+          "error": 0.027272727272727282
+        },
+        {
+          "gap": 122,
+          "startFrame": 2391,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5382824489246715,
+          "achieved": 0.5226967317861653,
+          "error": 0.015585717138506205
+        }
+      ],
+      "finalSelection": {
+        "candidates": 165,
+        "initialLoss": 0.0007127282961530024,
+        "finalLoss": 0.0007127282961530024,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "pickup_interruptions",
+      "recordSha256": "99e24e5f347917b8c8382f33368c1a6446b24dd98b7034a97e0514b24e54aed3",
+      "score": 905.3327,
+      "axisLoss": {
+        "air": 0.00018720380695002169,
+        "speed": 8.710018394478143e-05,
+        "impact": 0.00034387464042038554
+      },
+      "endingLossShare": 0.014007116496237032,
+      "topFiveGapLossShare": 0.5229886328216135,
+      "worstGap": [
+        91,
+        0.00017773061666301256
+      ],
+      "endingWork": 35392,
+      "endingRideFrames": 181,
+      "endingObservations": [
+        {
+          "gap": 111,
+          "startFrame": 2340,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4720496894409938,
+          "achieved": 0.45962732919254656,
+          "error": 0.012422360248447228
+        },
+        {
+          "gap": 111,
+          "startFrame": 2340,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5649689440993787,
+          "achieved": 0.5808299310878237,
+          "error": 0.01586098698844496
+        }
+      ],
+      "finalSelection": {
+        "candidates": 176,
+        "initialLoss": 0.000618178631315188,
+        "finalLoss": 0.000618178631315188,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "pickup_recovery",
+      "recordSha256": "bec2ec597974d6d0bf19c6da41ce03d8fb58e17b09c4474e30c9614e20c96303",
+      "score": 904.0482,
+      "axisLoss": {
+        "air": 0.0001546372323905382,
+        "speed": 0.0001812584156485761,
+        "impact": 0.00030005917112995296
+      },
+      "endingLossShare": 0.0009969968286831002,
+      "topFiveGapLossShare": 0.4156830463607926,
+      "worstGap": [
+        79,
+        8.958308458398829e-05
+      ],
+      "endingWork": 44302,
+      "endingRideFrames": 218,
+      "endingObservations": [
+        {
+          "gap": 113,
+          "startFrame": 2463,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4696969696969697,
+          "achieved": 0.47474747474747475,
+          "error": 0.0050505050505050275
+        },
+        {
+          "gap": 113,
+          "startFrame": 2463,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5884608135171158,
+          "achieved": 0.5888803924405591,
+          "error": 0.00041957892344335335
+        }
+      ],
+      "finalSelection": {
+        "candidates": 170,
+        "initialLoss": 0.0006359548191690669,
+        "finalLoss": 0.0006359548191690669,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "dense_short_then_long",
+      "recordSha256": "749dcb8d2463d2d22a378acfa7f816b4f14df9aa59c4501e5208bb03688e38fe",
+      "score": 865.6339,
+      "axisLoss": {
+        "air": 0.00010169417034540264,
+        "speed": 0.00017949717890002834,
+        "impact": 0.0010200915242597824
+      },
+      "endingLossShare": 0.001011042262788738,
+      "topFiveGapLossShare": 0.6728600869705317,
+      "worstGap": [
+        64,
+        0.00032610418390458234
+      ],
+      "endingWork": 26062,
+      "endingRideFrames": 146,
+      "endingObservations": [
+        {
+          "gap": 116,
+          "startFrame": 2375,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.48412698412698413,
+          "achieved": 0.48412698412698413,
+          "error": 0
+        },
+        {
+          "gap": 116,
+          "startFrame": 2375,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5430968602498373,
+          "achieved": 0.5519816291752183,
+          "error": 0.008884768925381037
+        }
+      ],
+      "finalSelection": {
+        "candidates": 149,
+        "initialLoss": 0.0013012828735052132,
+        "finalLoss": 0.0013012828735052132,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "interleaved_recovery",
+      "recordSha256": "02804a66492550d55f97cd9ff7efd42914ccbef456f1d5e0d776a2fd0214cb32",
+      "score": 854.9124,
+      "axisLoss": {
+        "air": 0.00011638248606844766,
+        "speed": 0.00016681602061200721,
+        "impact": 0.0012525840732868939
+      },
+      "endingLossShare": 0.003968018343702019,
+      "topFiveGapLossShare": 0.7244252546042088,
+      "worstGap": [
+        79,
+        0.0005065062142433323
+      ],
+      "endingWork": 34939,
+      "endingRideFrames": 197,
+      "endingObservations": [
+        {
+          "gap": 109,
+          "startFrame": 2324,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.480225988700565,
+          "achieved": 0.4915254237288136,
+          "error": 0.011299435028248594
+        },
+        {
+          "gap": 109,
+          "startFrame": 2324,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5681355932203388,
+          "achieved": 0.5796251903048223,
+          "error": 0.011489597084483494
+        }
+      ],
+      "finalSelection": {
+        "candidates": 153,
+        "initialLoss": 0.00153655652606707,
+        "finalLoss": 0.0015357825799673487,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "three_note_returns",
+      "recordSha256": "1f1e0c0cc06261c924bfb98379e326e9e7e3d9fb2c1e18ada16557998e05c328",
+      "score": 852.5982,
+      "axisLoss": {
+        "air": 9.154056455897061e-05,
+        "speed": 0.00018912100978287462,
+        "impact": 0.0013086933098341706
+      },
+      "endingLossShare": 0.001455772343395521,
+      "topFiveGapLossShare": 0.6797333917490201,
+      "worstGap": [
+        16,
+        0.0003889004284703859
+      ],
+      "endingWork": 42445,
+      "endingRideFrames": 218,
+      "endingObservations": [
+        {
+          "gap": 112,
+          "startFrame": 2463,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4797979797979798,
+          "achieved": 0.48484848484848486,
+          "error": 0.005050505050505083
+        },
+        {
+          "gap": 112,
+          "startFrame": 2463,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5884608135171158,
+          "achieved": 0.5967201379959727,
+          "error": 0.008259324478856911
+        }
+      ],
+      "finalSelection": {
+        "candidates": 162,
+        "initialLoss": 0.001589354884176015,
+        "finalLoss": 0.001589354884176015,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "supported_bridge",
+      "recordSha256": "d35577b2104c32e05e2c4e05b4cb13929e2cb64f8fcec185bc78a91f972f17ed",
+      "score": 860.4061,
+      "axisLoss": {
+        "air": 0.0007210969789354235,
+        "speed": 0.0004341670091814066,
+        "impact": 0.00025757100318775134
+      },
+      "endingLossShare": 0.11639617052615453,
+      "topFiveGapLossShare": 0.7539176025930039,
+      "worstGap": [
+        21,
+        0.0005492451100562251
+      ],
+      "endingWork": 26736,
+      "endingRideFrames": 137,
+      "endingObservations": [
+        {
+          "gap": 79,
+          "startFrame": 2384,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.1452991452991453,
+          "achieved": 0.24786324786324787,
+          "error": 0.10256410256410256
+        },
+        {
+          "gap": 79,
+          "startFrame": 2384,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5405175290464742,
+          "achieved": 0.529884734273002,
+          "error": 0.010632794773472232
+        }
+      ],
+      "finalSelection": {
+        "candidates": 172,
+        "initialLoss": 0.0014128349913045818,
+        "finalLoss": 0.0014128349913045818,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "supported_speed_change",
+      "recordSha256": "4e163b482955089433fec44464d3a5e352580a57682f29f9ad995ff3d59f2768",
+      "score": 926.2966,
+      "axisLoss": {
+        "air": 8.02517712833319e-05,
+        "speed": 0.00014454457325865965,
+        "impact": 0.00014155085857191276
+      },
+      "endingLossShare": 0.027941815185804627,
+      "topFiveGapLossShare": 0.42133589941034505,
+      "worstGap": [
+        69,
+        9.532411771282416e-05
+      ],
+      "endingWork": 38007,
+      "endingRideFrames": 188,
+      "endingObservations": [
+        {
+          "gap": 70,
+          "startFrame": 2333,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.1488095238095238,
+          "achieved": 0.15476190476190477,
+          "error": 0.005952380952380959
+        },
+        {
+          "gap": 70,
+          "startFrame": 2333,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5664285714285712,
+          "achieved": 0.5458303194082377,
+          "error": 0.020598252020333496
+        }
+      ],
+      "finalSelection": {
+        "candidates": 163,
+        "initialLoss": 0.0003663472031139043,
+        "finalLoss": 0.0003663472031139043,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "endurance_and_return",
+      "recordSha256": "e7efa6fdb6dcec41584a3519a2fb46e9f04a50574f3c383402c5981c794d0695",
+      "score": 916.5987,
+      "axisLoss": {
+        "air": 0.000227082409908397,
+        "speed": 9.97298337154242e-05,
+        "impact": 0.00014718106293814466
+      },
+      "endingLossShare": 0.1026828141924084,
+      "topFiveGapLossShare": 0.5812512864295822,
+      "worstGap": [
+        19,
+        9.54973969963714e-05
+      ],
+      "endingWork": 45282,
+      "endingRideFrames": 228,
+      "endingObservations": [
+        {
+          "gap": 69,
+          "startFrame": 2453,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.14903846153846154,
+          "achieved": 0.19230769230769232,
+          "error": 0.04326923076923078
+        },
+        {
+          "gap": 69,
+          "startFrame": 2453,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5902887399839746,
+          "achieved": 0.5882701511468316,
+          "error": 0.0020185888371430094
+        }
+      ],
+      "finalSelection": {
+        "candidates": 72,
+        "initialLoss": 0.00047399330656196535,
+        "finalLoss": 0.00047399330656196535,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "energy_weave",
+      "recordSha256": "b93fb4609985cabde0fe7d464ccf0b11d7da9cad17148f6acd0048388aaba31f",
+      "score": 953.8662,
+      "axisLoss": {
+        "air": 5.284479727075096e-05,
+        "speed": 4.7708823914702487e-05,
+        "impact": 3.887424385355294e-05
+      },
+      "endingLossShare": 0.014768336013089764,
+      "topFiveGapLossShare": 0.2576178189705451,
+      "worstGap": [
+        83,
+        1.0412056637627691e-05
+      ],
+      "endingWork": 27706,
+      "endingRideFrames": 145,
+      "endingObservations": [
+        {
+          "gap": 92,
+          "startFrame": 2376,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.408,
+          "achieved": 0.416,
+          "error": 0.008000000000000007
+        },
+        {
+          "gap": 92,
+          "startFrame": 2376,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.542823583984375,
+          "achieved": 0.5350426199801072,
+          "error": 0.007780964004267865
+        }
+      ],
+      "finalSelection": {
+        "candidates": 155,
+        "initialLoss": 0.00013942786503900648,
+        "finalLoss": 0.00013942786503900648,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "alternating_intentions",
+      "recordSha256": "53bd4603c339ff30e2dde022db554b0c77f3cb85005464618d6bb78b9e17653d",
+      "score": 955.816,
+      "axisLoss": {
+        "air": 5.13459815790196e-05,
+        "speed": 4.825520872064594e-05,
+        "impact": 2.8031234089924768e-05
+      },
+      "endingLossShare": 0.006973301701836933,
+      "topFiveGapLossShare": 0.3312934428041594,
+      "worstGap": [
+        4,
+        1.0815149611814617e-05
+      ],
+      "endingWork": 39284,
+      "endingRideFrames": 206,
+      "endingObservations": [
+        {
+          "gap": 84,
+          "startFrame": 2315,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.41397849462365593,
+          "achieved": 0.40860215053763443,
+          "error": 0.005376344086021501
+        },
+        {
+          "gap": 84,
+          "startFrame": 2315,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5696774193548385,
+          "achieved": 0.5723563728680002,
+          "error": 0.0026789535131617193
+        }
+      ],
+      "finalSelection": {
+        "candidates": 173,
+        "initialLoss": 0.0001276324243895902,
+        "finalLoss": 0.0001276324243895902,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "recovery_mosaic",
+      "recordSha256": "90a4e764ac9f4b3548cd5f303bcfecc7542a59b77f0ed53c377af401f267423c",
+      "score": 959.0295,
+      "axisLoss": {
+        "air": 5.0639593287133716e-05,
+        "speed": 3.796962585313718e-05,
+        "impact": 2.076786712273545e-05
+      },
+      "endingLossShare": 0.0036470096441607526,
+      "topFiveGapLossShare": 0.29194371777242223,
+      "worstGap": [
+        9,
+        9.820250768713858e-06
+      ],
+      "endingWork": 46116,
+      "endingRideFrames": 231,
+      "endingObservations": [
+        {
+          "gap": 84,
+          "startFrame": 2450,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.41232227488151657,
+          "achieved": 0.41232227488151657,
+          "error": 0
+        },
+        {
+          "gap": 84,
+          "startFrame": 2450,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5908163392831024,
+          "achieved": 0.594709689121115,
+          "error": 0.003893349838012594
+        }
+      ],
+      "finalSelection": {
+        "candidates": 151,
+        "initialLoss": 0.00010937708626300602,
+        "finalLoss": 0.00010937708626300602,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "amplitude_reply",
+      "recordSha256": "de58c3f49ea850500397e31f6aa05f8d8caf45fb8cbee35203270d115cb4e786",
+      "score": 928.7918,
+      "axisLoss": {
+        "air": 0.00010489580891899062,
+        "speed": 8.488895536610066e-05,
+        "amplitude": 0.00010876890356987703,
+        "impact": 4.250106936628679e-05
+      },
+      "endingLossShare": 0.13426376338840318,
+      "topFiveGapLossShare": 0.2969280821010771,
+      "worstGap": [
+        68,
+        4.5791292540768623e-05
+      ],
+      "endingWork": 24644,
+      "endingRideFrames": 135,
+      "endingObservations": [
+        {
+          "gap": 68,
+          "startFrame": 2386,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4956521739130435,
+          "achieved": 0.45217391304347826,
+          "error": 0.043478260869565244
+        },
+        {
+          "gap": 68,
+          "startFrame": 2386,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5399024195132046,
+          "achieved": 0.5039495754105958,
+          "error": 0.035952844102608794
+        },
+        {
+          "gap": 68,
+          "startFrame": 2386,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.1842987783680791,
+          "achieved": 0.16209401273850688,
+          "error": 0.022204765629572215
+        }
+      ],
+      "finalSelection": {
+        "candidates": 152,
+        "initialLoss": 0.0003559094094739975,
+        "finalLoss": 0.00034105473722125456,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "restrained_then_wide",
+      "recordSha256": "984c8a919fcaf9027b2165238f2eb62a577bd49d3baa8432c83fac501493ce79",
+      "score": 908.7833,
+      "axisLoss": {
+        "air": 0.00032063658605247815,
+        "speed": 6.180891545368253e-05,
+        "amplitude": 0.00012434227169909982,
+        "impact": 6.50026085762406e-05
+      },
+      "endingLossShare": 0.44294436965321043,
+      "topFiveGapLossShare": 0.6266030705558957,
+      "worstGap": [
+        63,
+        0.0002532713302319755
+      ],
+      "endingWork": 45233,
+      "endingRideFrames": 219,
+      "endingObservations": [
+        {
+          "gap": 63,
+          "startFrame": 2302,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "air",
+          "target": 0.507537688442211,
+          "achieved": 0.41708542713567837,
+          "error": 0.09045226130653267
+        },
+        {
+          "gap": 63,
+          "startFrame": 2302,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5716582914572863,
+          "achieved": 0.5461577721283528,
+          "error": 0.02550051932893349
+        },
+        {
+          "gap": 63,
+          "startFrame": 2302,
+          "endFrame": 2500,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.22520100502512566,
+          "achieved": 0.2992485514232771,
+          "error": 0.07404754639815145
+        }
+      ],
+      "finalSelection": {
+        "candidates": 136,
+        "initialLoss": 0.0005717903817814959,
+        "finalLoss": 0.0005717903817814959,
+        "changed": false
+      },
+      "endingInterrupted": true
+    },
+    {
+      "id": "arches_at_new_tempos",
+      "recordSha256": "fdae5e80ea93c43084232151897b4cc1762427a22f2f749d5d1a97aa4fe3a5a2",
+      "score": 917.4279,
+      "axisLoss": {
+        "air": 0.00010900929698259059,
+        "speed": 9.343211419940488e-05,
+        "amplitude": 0.0001246529466121863,
+        "impact": 0.00013710625537268923
+      },
+      "endingLossShare": 0.09168730166644624,
+      "topFiveGapLossShare": 0.42173412690544565,
+      "worstGap": [
+        64,
+        0.00011440623324652061
+      ],
+      "endingWork": 43329,
+      "endingRideFrames": 216,
+      "endingObservations": [
+        {
+          "gap": 65,
+          "startFrame": 2465,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5,
+          "achieved": 0.46938775510204084,
+          "error": 0.030612244897959162
+        },
+        {
+          "gap": 65,
+          "startFrame": 2465,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5880798532375916,
+          "achieved": 0.5654256502407313,
+          "error": 0.022654202996860273
+        },
+        {
+          "gap": 65,
+          "startFrame": 2465,
+          "endFrame": 2660,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.2527000661375661,
+          "achieved": 0.29084230936365135,
+          "error": 0.038142243226085226
+        }
+      ],
+      "finalSelection": {
+        "candidates": 129,
+        "initialLoss": 0.0004642006131668713,
+        "finalLoss": 0.0004642006131668713,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "music_amor_na_praia_46s",
+      "recordSha256": "a24a1deaddbdf33cf9f24e7fc8efdad021c93b2db9a8bc4dc908ec78ada5e0da",
+      "score": 937.5263,
+      "axisLoss": {
+        "air": 6.524532916622209e-05,
+        "speed": 0.00011516170767302354,
+        "impact": 7.969264695554123e-05
+      },
+      "endingLossShare": 0.012259024309245482,
+      "topFiveGapLossShare": 0.46206785252803495,
+      "worstGap": [
+        12,
+        5.500931196773656e-05
+      ],
+      "endingWork": 17044,
+      "endingRideFrames": 88,
+      "endingObservations": [
+        {
+          "gap": 78,
+          "startFrame": 1773,
+          "endFrame": 1840,
+          "tail": true,
+          "axis": "air",
+          "target": 0.8382352941176471,
+          "achieved": 0.8235294117647058,
+          "error": 0.014705882352941235
+        },
+        {
+          "gap": 78,
+          "startFrame": 1773,
+          "endFrame": 1840,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.514421237244898,
+          "achieved": 0.5212357059338343,
+          "error": 0.006814468688936315
+        }
+      ],
+      "finalSelection": {
+        "candidates": 128,
+        "initialLoss": 0.0002600996837947875,
+        "finalLoss": 0.0002600996837947875,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "music_luna_bala_44s",
+      "recordSha256": "4b2e10ad38e938ba93f7c0cf8f993ce3c289338f4db52239108252b0241a7788",
+      "score": 925.3341,
+      "axisLoss": {
+        "air": 0.000201179024774937,
+        "speed": 9.58406355160369e-05,
+        "impact": 7.934419532956434e-05
+      },
+      "endingLossShare": 9.505083346063761e-07,
+      "topFiveGapLossShare": 0.5037306014438695,
+      "worstGap": [
+        74,
+        7.426833594905665e-05
+      ],
+      "endingWork": 15563,
+      "endingRideFrames": 85,
+      "endingObservations": [
+        {
+          "gap": 75,
+          "startFrame": 1696,
+          "endFrame": 1760,
+          "tail": true,
+          "axis": "air",
+          "target": 0.8461538461538461,
+          "achieved": 0.8461538461538461,
+          "error": 0
+        },
+        {
+          "gap": 75,
+          "startFrame": 1696,
+          "endFrame": 1760,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.53359375,
+          "achieved": 0.533765544356668,
+          "error": 0.00017179435666803133
+        }
+      ],
+      "finalSelection": {
+        "candidates": 193,
+        "initialLoss": 0.00037636385562053845,
+        "finalLoss": 0.00037636385562053845,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "music_tiki_tiki_48s",
+      "recordSha256": "9798873f90714206943cae2e46482e4f63d3890eaa1d19adff6f2a17c33b7862",
+      "score": 884.2288,
+      "axisLoss": {
+        "air": 0.00029253350172817066,
+        "speed": 0.00014777862481212044,
+        "amplitude": 0.0003243820281710648,
+        "impact": 0.0001814745393383033
+      },
+      "endingLossShare": 0.03155821780600128,
+      "topFiveGapLossShare": 0.2894612409124331,
+      "worstGap": [
+        11,
+        0.00013565412074472967
+      ],
+      "endingWork": 3897,
+      "endingRideFrames": 24,
+      "endingObservations": [
+        {
+          "gap": 77,
+          "startFrame": 1917,
+          "endFrame": 1920,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5,
+          "achieved": 0.25,
+          "error": 0.25
+        },
+        {
+          "gap": 77,
+          "startFrame": 1917,
+          "endFrame": 1920,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5002144397608078,
+          "achieved": 0.4999942432961138,
+          "error": 0.00022019646469401133
+        },
+        {
+          "gap": 77,
+          "startFrame": 1917,
+          "endFrame": 1920,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.06,
+          "achieved": 0,
+          "error": 0.06
+        }
+      ],
+      "finalSelection": {
+        "candidates": 167,
+        "initialLoss": 0.0009461686964348666,
+        "finalLoss": 0.0009461686940496598,
+        "changed": true
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "music_shelter_impact_sync_81s",
+      "recordSha256": "04aabb9d4bd498ff89ad26cbb82aae6c6190767ece4096de82794c403310a14f",
+      "score": 864.309,
+      "axisLoss": {
+        "air": 0.0005387472634579598,
+        "speed": 0.00016280327432479922,
+        "amplitude": 0.0004650972077177419,
+        "impact": 0.0001624082564442674
+      },
+      "endingLossShare": 0.014505876789368852,
+      "topFiveGapLossShare": 0.4329319505607815,
+      "worstGap": [
+        68,
+        0.00024599923558876193
+      ],
+      "endingWork": 3609,
+      "endingRideFrames": 31,
+      "endingObservations": [
+        {
+          "gap": 113,
+          "startFrame": 3230,
+          "endFrame": 3240,
+          "tail": true,
+          "axis": "air",
+          "target": 0.5454545454545454,
+          "achieved": 0.5454545454545454,
+          "error": 0
+        },
+        {
+          "gap": 113,
+          "startFrame": 3230,
+          "endFrame": 3240,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.5201275267097081,
+          "achieved": 0.4971390739660008,
+          "error": 0.022988452743707255
+        },
+        {
+          "gap": 113,
+          "startFrame": 3230,
+          "endFrame": 3240,
+          "tail": true,
+          "axis": "amplitude",
+          "target": 0.3403386783260347,
+          "achieved": 0.0936020771113211,
+          "error": 0.2467366012147136
+        }
+      ],
+      "finalSelection": {
+        "candidates": 88,
+        "initialLoss": 0.0013290560019447715,
+        "finalLoss": 0.0013290560019447715,
+        "changed": false
+      },
+      "endingInterrupted": false
+    },
+    {
+      "id": "music_amour_de_ma_vie_short_44s",
+      "recordSha256": "f63db0b99f7106bc770c18ade6cbe3cb19aecb9ecbcaa14f11e253a82c52ebdd",
+      "score": 861.2684,
+      "axisLoss": {
+        "air": 0.0002746424662512317,
+        "speed": 0.0006342016328135434,
+        "impact": 0.0004852278528354691
+      },
+      "endingLossShare": 1.4542068619954946e-10,
+      "topFiveGapLossShare": 0.5595896602283069,
+      "worstGap": [
+        33,
+        0.00026109976727497423
+      ],
+      "endingWork": 8512,
+      "endingRideFrames": 47,
+      "endingObservations": [
+        {
+          "gap": 85,
+          "startFrame": 1756,
+          "endFrame": 1782,
+          "tail": true,
+          "axis": "air",
+          "target": 0.4444444444444444,
+          "achieved": 0.4444444444444444,
+          "error": 0
+        },
+        {
+          "gap": 85,
+          "startFrame": 1756,
+          "endFrame": 1782,
+          "tail": true,
+          "axis": "speed",
+          "target": 0.7202851695436465,
+          "achieved": 0.7202787132467601,
+          "error": 6.4562968864478876e-06
+        }
+      ],
+      "finalSelection": {
+        "candidates": 183,
+        "initialLoss": 0.0013940719519002455,
+        "finalLoss": 0.0013940719519002455,
+        "changed": false
+      },
+      "endingInterrupted": false
+    }
+  ]
+}

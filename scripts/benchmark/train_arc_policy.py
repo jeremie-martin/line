@@ -16,7 +16,7 @@ assert args.trees>=2 and args.depth>0 and args.leaf>0 and (args.folds==0 or args
 p=Path(args.data);body=p.read_bytes();digest=hashlib.sha256(body).hexdigest();assert digest==Path(str(p)+'.sha256').read_text().strip()
 data=json.loads(body);out=Path(args.out);out.mkdir(parents=True,exist_ok=True)
 assert not (out/'model.json').exists()
-X=np.array([r['features'] for r in data['rows']]);y=np.array([r['target'] for r in data['rows']]);groups=np.array([r['parent'] for r in data['rows']]);assert X.shape[1]==57 and np.isfinite(X).all() and np.isfinite(y).all()
+X=np.array([r['features'] for r in data['rows']]);y=np.array([r['target'] for r in data['rows']]);groups=np.array([r['parent'] for r in data['rows']]);assert X.shape[1]=={'line.arc-control-policy-features.v1':57,'line.arc-control-refinement-features.v1':71}[data['featureSchema']] and np.isfinite(X).all() and np.isfinite(y).all()
 def fitted(indices):
  weights=np.ones(10)
  if args.target_metric=='variance':weights=1/np.maximum(.05,np.std(y[indices],axis=0))
@@ -37,7 +37,7 @@ def export(model,parents,weights):
  trees=[]
  for estimator in model.estimators_:
   t=estimator.tree_;trees.append(dict(left=t.children_left.tolist(),right=t.children_right.tolist(),feature=t.feature.tolist(),threshold=t.threshold.tolist(),value=(t.value[:,:,0]/weights).tolist()))
- return dict(schema='line.arc-control-policy.v1',featureSchema=data['featureSchema'],featureCount=57,trees=trees,provenance=dict(dataSha256=digest,trainingParents=parents,rows=int(np.isin(groups,parents).sum()),datasetRows=len(data['rows']),targetMetric=args.target_metric,targetWeights=weights.tolist(),sampleWeight=args.sample_weight,algorithm=args.algorithm,estimators=args.trees,depth=args.depth,minLeaf=args.leaf,description='Joint control regression; no case or seed identity in features; full physical validation required.'))
+ return dict(schema='line.arc-control-policy.v1',featureSchema=data['featureSchema'],featureCount=int(X.shape[1]),trees=trees,provenance=dict(dataSha256=digest,trainingParents=parents,rows=int(np.isin(groups,parents).sum()),datasetRows=len(data['rows']),targetMetric=args.target_metric,targetWeights=weights.tolist(),sampleWeight=args.sample_weight,algorithm=args.algorithm,estimators=args.trees,depth=args.depth,minLeaf=args.leaf,description='Joint control regression; no case or seed identity in features; full physical validation required.'))
 metrics=[];assignments={};pred=np.zeros_like(y)
 for fold,(train,test) in enumerate(GroupKFold(args.folds).split(X,y,groups) if args.folds else []):
  m,w=fitted(train);pred[test]=m.predict(X[test])/w;held=sorted(set(groups[test]));write(out/f'fold-{fold}.json',export(m,sorted(set(groups[train])),w))

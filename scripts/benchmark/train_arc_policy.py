@@ -6,9 +6,12 @@
 import argparse,json,hashlib
 from pathlib import Path
 import numpy as np
-from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 from sklearn.model_selection import GroupKFold
-parser=argparse.ArgumentParser();parser.add_argument('--data',required=True);parser.add_argument('--out',required=True);parser.add_argument('--target-metric',choices=['raw','variance','search-step'],default='raw');args=parser.parse_args()
+parser=argparse.ArgumentParser();parser.add_argument('--data',required=True);parser.add_argument('--out',required=True);parser.add_argument('--target-metric',choices=['raw','variance','search-step'],default='raw')
+parser.add_argument('--trees',type=int,default=32);parser.add_argument('--depth',type=int,default=10);parser.add_argument('--leaf',type=int,default=12)
+parser.add_argument('--algorithm',choices=['extra','forest'],default='extra');parser.add_argument('--folds',type=int,default=5);args=parser.parse_args()
+assert args.trees>=2 and args.depth>0 and args.leaf>0 and (args.folds==0 or args.folds>=2)
 p=Path(args.data);body=p.read_bytes();digest=hashlib.sha256(body).hexdigest();assert digest==Path(str(p)+'.sha256').read_text().strip()
 data=json.loads(body);out=Path(args.out);out.mkdir(parents=True,exist_ok=True)
 assert not (out/'model.json').exists()
@@ -17,7 +20,8 @@ def fitted(indices):
  weights=np.ones(10)
  if args.target_metric=='variance':weights=1/np.maximum(.05,np.std(y[indices],axis=0))
  if args.target_metric=='search-step':weights=np.array([15,12,10,10,4,5,8,12.5,30/7,3.2])
- model=ExtraTreesRegressor(n_estimators=32,max_depth=10,min_samples_leaf=12,max_features=.8,random_state=260908,n_jobs=4).fit(X[indices],y[indices]*weights)
+ cls=ExtraTreesRegressor if args.algorithm=='extra' else RandomForestRegressor
+ model=cls(n_estimators=args.trees,max_depth=args.depth,min_samples_leaf=args.leaf,max_features=.8,random_state=260908,n_jobs=4).fit(X[indices],y[indices]*weights)
  return model,weights
 def write(path,record):
  b=(json.dumps(record,separators=(',',':'),allow_nan=False)+'\n').encode();path.write_bytes(b);Path(str(path)+'.sha256').write_text(hashlib.sha256(b).hexdigest()+'\n')
@@ -25,13 +29,13 @@ def export(model,parents,weights):
  trees=[]
  for estimator in model.estimators_:
   t=estimator.tree_;trees.append(dict(left=t.children_left.tolist(),right=t.children_right.tolist(),feature=t.feature.tolist(),threshold=t.threshold.tolist(),value=(t.value[:,:,0]/weights).tolist()))
- return dict(schema='line.arc-control-policy.v1',featureSchema=data['featureSchema'],featureCount=57,trees=trees,provenance=dict(dataSha256=digest,trainingParents=parents,datasetRows=len(data['rows']),targetMetric=args.target_metric,targetWeights=weights.tolist(),description='Joint control regression; no case or seed identity in features; full physical validation required.'))
+ return dict(schema='line.arc-control-policy.v1',featureSchema=data['featureSchema'],featureCount=57,trees=trees,provenance=dict(dataSha256=digest,trainingParents=parents,rows=int(np.isin(groups,parents).sum()),datasetRows=len(data['rows']),targetMetric=args.target_metric,targetWeights=weights.tolist(),algorithm=args.algorithm,estimators=args.trees,depth=args.depth,minLeaf=args.leaf,description='Joint control regression; no case or seed identity in features; full physical validation required.'))
 metrics=[];assignments={};pred=np.zeros_like(y)
-for fold,(train,test) in enumerate(GroupKFold(5).split(X,y,groups)):
+for fold,(train,test) in enumerate(GroupKFold(args.folds).split(X,y,groups) if args.folds else []):
  m,w=fitted(train);pred[test]=m.predict(X[test])/w;held=sorted(set(groups[test]));write(out/f'fold-{fold}.json',export(m,sorted(set(groups[train])),w))
  for index in test:assignments[data['rows'][index]['source']]=fold
  metrics.append(dict(fold=fold,heldParents=held,train=len(train),test=len(test),controlRms=np.sqrt(np.mean((pred[test]-y[test])**2,axis=0)).tolist()))
  print(json.dumps(metrics[-1]),flush=True)
 m,w=fitted(np.arange(len(y)));write(out/'model.json',export(m,sorted(set(groups)),w));write(out/'assignments.json',assignments)
-write(out/'validation.json',dict(rows=len(y),parents=len(set(groups)),folds=metrics,controlRms=np.sqrt(np.mean((pred-y)**2,axis=0)).tolist(),note='Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together.'))
+write(out/'validation.json',dict(rows=len(y),parents=len(set(groups)),folds=metrics,controlRms=np.sqrt(np.mean((pred-y)**2,axis=0)).tolist() if args.folds else None,note='Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested.'))
 write(out/'parity.json',[dict(features=X[i].tolist(),mean=(m.predict(X[i:i+1])[0]/w).tolist()) for i in np.linspace(0,len(y)-1,24,dtype=int)])

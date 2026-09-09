@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {mkdirSync,readFileSync,writeFileSync,existsSync,renameSync} from 'node:fs';
 import {dirname} from 'node:path';
 import {developmentCases} from '../../benchmark/v2/catalog.ts';
 import {benchmarkPolicy} from '../../benchmark/v2/policy.ts';
@@ -23,6 +23,22 @@ if(options.valueModelPath)options.futureValueModel=JSON.parse(readFileSync(optio
 const start=performance.now(),result=options.publicCompiler?compileHandoff(spec,Number(arg('seed')??260908011),{budget:options.budget}):compileArcMotion(spec,Number(arg('seed')??260908011),options);
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const score=scoreV2Report(result.report,spec.contacts.length,buildAxisContract(spec,Object.keys(benchmarkPolicy.componentWeights) as any),suite);
-const record={schema:'line.arc-motion-study.v1',researchOnly:true,sourceId:arg('source'),seed:Number(arg('seed')??260908011),elapsedMs:performance.now()-start,options,implementation:Object.fromEntries(['scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/benchmark/arc_motion_study.ts',...['scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json'].filter(existsSync),...[options.controlPolicyPath,options.valueModelPath].filter(Boolean)].map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')])),score,...result};
-const out=arg('out')!,body=JSON.stringify(record)+'\n';mkdirSync(dirname(out),{recursive:true});writeFileSync(out,body);writeFileSync(out+'.sha256',createHash('sha256').update(body).digest('hex')+'\n');
-console.log(JSON.stringify({...record,track:{lines:result.track.lines.length},report:undefined,rows:undefined}));
+const elapsedMs=performance.now()-start;
+// Large learned artifacts are shared across a panel, rather than copied into
+// every result and again into stdout. Preserve the exact loaded JSON once,
+// with a content hash and atomic publication for concurrent study workers.
+const out=arg('out')!,recordOptions={...options},modelArtifacts:Record<string,{path:string;sha256:string}>={};
+for(const key of ['controlPolicy','futureValueModel']){
+  const model=(recordOptions as any)[key];if(!model||typeof model!=='object')continue;
+  const body=JSON.stringify(model)+'\n',sha256=createHash('sha256').update(body).digest('hex');
+  const path='models/'+sha256+'.json',destination=dirname(out)+'/'+path;
+  mkdirSync(dirname(destination),{recursive:true});
+  if(!existsSync(destination)){
+    const temporary=destination+'.'+process.pid+'.tmp';writeFileSync(temporary,body);renameSync(temporary,destination);
+  }
+  if(createHash('sha256').update(readFileSync(destination)).digest('hex')!==sha256)throw new Error('study model artifact mismatch');
+  modelArtifacts[key]={path,sha256};delete (recordOptions as any)[key];
+}
+const record={schema:'line.arc-motion-study.v2',researchOnly:true,sourceId:arg('source'),seed:Number(arg('seed')??260908011),elapsedMs,options:recordOptions,modelArtifacts,implementation:Object.fromEntries(['scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/benchmark/arc_motion_study.ts',...['scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json','scripts/v0/optimizer/arc_boundary.ts','scripts/v0/optimizer/arc_memory.ts'].filter(existsSync),...[options.controlPolicyPath,options.valueModelPath].filter(Boolean)].map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')])),score,...result};
+const body=JSON.stringify(record)+'\n';mkdirSync(dirname(out),{recursive:true});writeFileSync(out,body);writeFileSync(out+'.sha256',createHash('sha256').update(body).digest('hex')+'\n');
+console.log(JSON.stringify({source:record.sourceId,score:score.score,valid:score.valid,frames:result.stats.sim_frames,lines:result.track.lines.length,elapsedMs:record.elapsedMs}));

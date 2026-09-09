@@ -1,0 +1,1710 @@
+{
+  "schema": "line.arc-850-baseline-diagnosis.v1",
+  "referenceHeadline": 828.1228,
+  "note": "Observation-pooled diagnostics, not an alternative weighted headline. Local span estimates exclude the next contact boundary. The grounded-boundary estimate is a hypothesis; the subsequent live panels test its effect.",
+  "geometryAuditSha256": "13a23215c44741573a53c99c564de694b749f2d79d677768f60dfb253dc856f6",
+  "axes": {
+    "air": {
+      "observations": 4056,
+      "finalSquaredError": 22.5920693491685,
+      "localSquaredError": 24.71314648085027,
+      "differenceSquaredError": 2.2983693765787634,
+      "summedBias": -67.43598483147048,
+      "groundedBoundaryEstimateSquaredError": 1.256927478935508,
+      "finalSquaredErrorRms": 0.07463267931534487,
+      "localSquaredErrorRms": 0.0780575738321194,
+      "differenceSquaredErrorRms": 0.023804602843011304,
+      "groundedBoundaryEstimateSquaredErrorRms": 0.017603788304131684
+    },
+    "speed": {
+      "observations": 4056,
+      "finalSquaredError": 5.9054423850649265,
+      "localSquaredError": 6.26623110871375,
+      "differenceSquaredError": 0.04112994383566745,
+      "summedBias": 8.273491462949966,
+      "groundedBoundaryEstimateSquaredError": 0.04112994383566745,
+      "finalSquaredErrorRms": 0.03815726561737234,
+      "localSquaredErrorRms": 0.039305581974291,
+      "differenceSquaredErrorRms": 0.003184418109664098,
+      "groundedBoundaryEstimateSquaredErrorRms": 0.003184418109664098
+    },
+    "amplitude": {
+      "observations": 986,
+      "finalSquaredError": 27.188012237363747,
+      "localSquaredError": 29.873530250071102,
+      "differenceSquaredError": 0.4745750841202959,
+      "summedBias": 20.229977990077234,
+      "groundedBoundaryEstimateSquaredError": 0.4745750841202959,
+      "finalSquaredErrorRms": 0.16605435532462137,
+      "localSquaredErrorRms": 0.1740623394717665,
+      "differenceSquaredErrorRms": 0.021938857598759257,
+      "groundedBoundaryEstimateSquaredErrorRms": 0.021938857598759257
+    }
+  },
+  "scheduledVersusAuthoredBoundary": {
+    "startShift0": 4044,
+    "endShift0": 4044,
+    "endShift-1": 9,
+    "startShift-1": 9,
+    "endShift1": 3,
+    "startShift1": 3
+  },
+  "cases": [
+    {
+      "source": "amplitude_tides",
+      "recordSha256": "1f6dc86349d0d72cb334208d99a597fd69e5d7363d05f9e9f64717485a65f1d7",
+      "score": 821.8922,
+      "components": {
+        "air": {
+          "observations": 97,
+          "rmsError": 0.0338,
+          "quality": 0.8735,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 97,
+          "rmsError": 0.1316,
+          "quality": 0.5908,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 97,
+          "rmsError": 0.0227,
+          "quality": 0.9131,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 97,
+          "rmsError": 0.0242,
+          "quality": 0.9077,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.00801526802378313,
+      "topFiveGapFraction": 0.49095108523347303,
+      "planning": {
+        "probes": 280,
+        "changedChoices": 68,
+        "failedProbes": 3,
+        "physicsFrames": 260252,
+        "continuationNodes": 280,
+        "maxDepth": 1
+      },
+      "frames": 749941
+    },
+    {
+      "source": "amplitude_tides_restrained_10",
+      "recordSha256": "e1431245a6d3ea45ddb0d6ca81a82995b308181463e3e95ca2a47c216aada4bc",
+      "score": 811.1279,
+      "components": {
+        "air": {
+          "observations": 97,
+          "rmsError": 0.0369,
+          "quality": 0.8629,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 97,
+          "rmsError": 0.1353,
+          "quality": 0.5821,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 97,
+          "rmsError": 0.0281,
+          "quality": 0.8938,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 97,
+          "rmsError": 0.0297,
+          "quality": 0.8879,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.009128932485728273,
+      "topFiveGapFraction": 0.3669448780686495,
+      "planning": {
+        "probes": 280,
+        "changedChoices": 58,
+        "failedProbes": 0,
+        "physicsFrames": 262558,
+        "continuationNodes": 280,
+        "maxDepth": 1
+      },
+      "frames": 749400
+    },
+    {
+      "source": "believer_56_6s",
+      "recordSha256": "5127bd74857cfdc362d3e7971aef499c98cffc44824095f748ebf8e6ce12f2ab",
+      "score": 834.1906,
+      "components": {
+        "air": {
+          "observations": 84,
+          "rmsError": 0.0492,
+          "quality": 0.8214,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 84,
+          "rmsError": 0.0462,
+          "quality": 0.8312,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 84,
+          "rmsError": 0.0401,
+          "quality": 0.8519,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.006162618597353203,
+      "topFiveGapFraction": 0.3180512563233881,
+      "planning": {
+        "probes": 273,
+        "changedChoices": 64,
+        "failedProbes": 2,
+        "physicsFrames": 294345,
+        "continuationNodes": 273,
+        "maxDepth": 1
+      },
+      "frames": 743523
+    },
+    {
+      "source": "believer_56_6s_impact_relief",
+      "recordSha256": "6d033eda38a981341a30431d9dd9e861929ada045bd98326539f5a9113981751",
+      "score": 818.8969,
+      "components": {
+        "air": {
+          "observations": 84,
+          "rmsError": 0.0507,
+          "quality": 0.8165,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 84,
+          "rmsError": 0.0407,
+          "quality": 0.8498,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 84,
+          "rmsError": 0.0571,
+          "quality": 0.7958,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.007484793284586233,
+      "topFiveGapFraction": 0.27060196283881793,
+      "planning": {
+        "probes": 271,
+        "changedChoices": 63,
+        "failedProbes": 1,
+        "physicsFrames": 290548,
+        "continuationNodes": 271,
+        "maxDepth": 1
+      },
+      "frames": 743662
+    },
+    {
+      "source": "believer_impact_56s",
+      "recordSha256": "5816002b46dc3c367d57ae13347a3e2c8a1b7ee1dd7f5862e1e20d57b28838d6",
+      "score": 803.2233,
+      "components": {
+        "air": {
+          "observations": 49,
+          "rmsError": 0.0298,
+          "quality": 0.8875,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 49,
+          "rmsError": 0.1483,
+          "quality": 0.5526,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 49,
+          "rmsError": 0.0296,
+          "quality": 0.8884,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 49,
+          "rmsError": 0.0301,
+          "quality": 0.8864,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.010003063081761252,
+      "topFiveGapFraction": 0.423393163488847,
+      "planning": {
+        "probes": 159,
+        "changedChoices": 38,
+        "failedProbes": 2,
+        "physicsFrames": 287087,
+        "continuationNodes": 159,
+        "maxDepth": 1
+      },
+      "frames": 736899
+    },
+    {
+      "source": "believer_impact_56s_amplitude_plus_5",
+      "recordSha256": "3300d87a700d7e65220b575636b5ccb54b3f2b3fff0523944b45dab172af1616",
+      "score": 794.3269,
+      "components": {
+        "air": {
+          "observations": 49,
+          "rmsError": 0.0343,
+          "quality": 0.8718,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 49,
+          "rmsError": 0.1514,
+          "quality": 0.5458,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 49,
+          "rmsError": 0.0327,
+          "quality": 0.8774,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 49,
+          "rmsError": 0.034,
+          "quality": 0.8727,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.011045781001976064,
+      "topFiveGapFraction": 0.3888464264371225,
+      "planning": {
+        "probes": 160,
+        "changedChoices": 36,
+        "failedProbes": 3,
+        "physicsFrames": 286369,
+        "continuationNodes": 160,
+        "maxDepth": 1
+      },
+      "frames": 738301
+    },
+    {
+      "source": "countercurrent",
+      "recordSha256": "ad4dcb82092e14b368a77b1f362601db5b78666fe37d6fedb28ee4b3dd134b86",
+      "score": 926.2533,
+      "components": {
+        "air": {
+          "observations": 79,
+          "rmsError": 0.0243,
+          "quality": 0.9075,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 79,
+          "rmsError": 0.0128,
+          "quality": 0.9502,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 79,
+          "rmsError": 0.0186,
+          "quality": 0.9281,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0011003843826548202,
+      "topFiveGapFraction": 0.18995292530543878,
+      "planning": {
+        "probes": 250,
+        "changedChoices": 60,
+        "failedProbes": 0,
+        "physicsFrames": 296595,
+        "continuationNodes": 250,
+        "maxDepth": 1
+      },
+      "frames": 728064
+    },
+    {
+      "source": "countercurrent_impact_contrast_12",
+      "recordSha256": "8c1531d90b0f1df19338846d72e42fa3ec194b77fc128e907e1886c336d6faf0",
+      "score": 921.4484,
+      "components": {
+        "air": {
+          "observations": 79,
+          "rmsError": 0.0262,
+          "quality": 0.9004,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 79,
+          "rmsError": 0.0143,
+          "quality": 0.9444,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 79,
+          "rmsError": 0.019,
+          "quality": 0.9267,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0012548690801421937,
+      "topFiveGapFraction": 0.18335840826202296,
+      "planning": {
+        "probes": 254,
+        "changedChoices": 55,
+        "failedProbes": 0,
+        "physicsFrames": 300429,
+        "continuationNodes": 254,
+        "maxDepth": 1
+      },
+      "frames": 726504
+    },
+    {
+      "source": "dense_dialogue",
+      "recordSha256": "9143f8981a57076136d49f29a3032e8e725149241a737be9b797bde61a379834",
+      "score": 839.1165,
+      "components": {
+        "air": {
+          "observations": 130,
+          "rmsError": 0.0467,
+          "quality": 0.8296,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 130,
+          "rmsError": 0.04,
+          "quality": 0.8522,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 130,
+          "rmsError": 0.0446,
+          "quality": 0.8367,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.005768847322507412,
+      "topFiveGapFraction": 0.25297784032850806,
+      "planning": {
+        "probes": 408,
+        "changedChoices": 89,
+        "failedProbes": 12,
+        "physicsFrames": 277044,
+        "continuationNodes": 408,
+        "maxDepth": 1
+      },
+      "frames": 734266
+    },
+    {
+      "source": "dense_dialogue_impact_contrast_10",
+      "recordSha256": "7ccbc79132b81a20e6a9793cefb075f11a9034acc9b176235f916deb808493ec",
+      "score": 830.1765,
+      "components": {
+        "air": {
+          "observations": 130,
+          "rmsError": 0.0458,
+          "quality": 0.8327,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 130,
+          "rmsError": 0.0475,
+          "quality": 0.827,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 130,
+          "rmsError": 0.0463,
+          "quality": 0.8309,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.006494906010239294,
+      "topFiveGapFraction": 0.2611315212233101,
+      "planning": {
+        "probes": 408,
+        "changedChoices": 90,
+        "failedProbes": 6,
+        "physicsFrames": 279182,
+        "continuationNodes": 408,
+        "maxDepth": 1
+      },
+      "frames": 735138
+    },
+    {
+      "source": "frontier_dense_recovery",
+      "recordSha256": "ec0b51babd248ccf762cb97c8c2051cc2db93e5d3e456cac480420f7dca960f2",
+      "score": 614.7141,
+      "components": {
+        "air": {
+          "observations": 123,
+          "rmsError": 0.1907,
+          "quality": 0.4664,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 123,
+          "rmsError": 0.0765,
+          "quality": 0.7364,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 123,
+          "rmsError": 0.0468,
+          "quality": 0.8294,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.04439580775039349,
+      "topFiveGapFraction": 0.19176616220235954,
+      "planning": {
+        "probes": 379,
+        "changedChoices": 75,
+        "failedProbes": 15,
+        "physicsFrames": 280592,
+        "continuationNodes": 379,
+        "maxDepth": 1
+      },
+      "frames": 742413
+    },
+    {
+      "source": "frontier_dense_recovery_240ms_figures",
+      "recordSha256": "6a25b1a95999a0f145c937b22a0b0488e688630d24c53e99f926841b1a739ff0",
+      "score": 621.1027,
+      "components": {
+        "air": {
+          "observations": 123,
+          "rmsError": 0.1861,
+          "quality": 0.475,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 123,
+          "rmsError": 0.0724,
+          "quality": 0.7485,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 123,
+          "rmsError": 0.0515,
+          "quality": 0.8137,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0425292069166712,
+      "topFiveGapFraction": 0.17535894846092887,
+      "planning": {
+        "probes": 379,
+        "changedChoices": 70,
+        "failedProbes": 20,
+        "physicsFrames": 279534,
+        "continuationNodes": 379,
+        "maxDepth": 1
+      },
+      "frames": 743582
+    },
+    {
+      "source": "frontier_low_air_endurance",
+      "recordSha256": "d0c8ae607d13db8bc85c717ddf817ced5278a5ed3efa3250262c13d7876d5243",
+      "score": 765.1525,
+      "components": {
+        "air": {
+          "observations": 90,
+          "rmsError": 0.0985,
+          "quality": 0.6742,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 90,
+          "rmsError": 0.0421,
+          "quality": 0.8452,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 90,
+          "rmsError": 0.0442,
+          "quality": 0.8379,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.013434874709298812,
+      "topFiveGapFraction": 0.3665419821873083,
+      "planning": {
+        "probes": 245,
+        "changedChoices": 51,
+        "failedProbes": 1,
+        "physicsFrames": 263797,
+        "continuationNodes": 251,
+        "maxDepth": 2
+      },
+      "frames": 747415
+    },
+    {
+      "source": "frontier_low_air_endurance_4s",
+      "recordSha256": "5fdd9902a332205dafc45241622f644781e01881f7ebf98b493276775c7c8575",
+      "score": 762.6961,
+      "components": {
+        "air": {
+          "observations": 90,
+          "rmsError": 0.0983,
+          "quality": 0.675,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 90,
+          "rmsError": 0.0442,
+          "quality": 0.838,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 90,
+          "rmsError": 0.0464,
+          "quality": 0.8306,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.013759586632250983,
+      "topFiveGapFraction": 0.3663574859465696,
+      "planning": {
+        "probes": 257,
+        "changedChoices": 51,
+        "failedProbes": 0,
+        "physicsFrames": 272266,
+        "continuationNodes": 269,
+        "maxDepth": 2
+      },
+      "frames": 749853
+    },
+    {
+      "source": "frontier_low_air_endurance_6s",
+      "recordSha256": "8615ee12e29ffb9aa5055c377252f5b63b0e6a2168ab304735ffd7edb2ff22dc",
+      "score": 767.0724,
+      "components": {
+        "air": {
+          "observations": 90,
+          "rmsError": 0.096,
+          "quality": 0.6811,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 90,
+          "rmsError": 0.0456,
+          "quality": 0.8332,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 90,
+          "rmsError": 0.0434,
+          "quality": 0.8405,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.013184488653890067,
+      "topFiveGapFraction": 0.35195901968155946,
+      "planning": {
+        "probes": 238,
+        "changedChoices": 47,
+        "failedProbes": 1,
+        "physicsFrames": 259423,
+        "continuationNodes": 244,
+        "maxDepth": 2
+      },
+      "frames": 746128
+    },
+    {
+      "source": "frontier_low_air_endurance_7s",
+      "recordSha256": "e5ef9ca921aa58a907717a9004ea9e075aee209c2368b5eebba726967a8256ac",
+      "score": 763.532,
+      "components": {
+        "air": {
+          "observations": 90,
+          "rmsError": 0.0968,
+          "quality": 0.679,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 90,
+          "rmsError": 0.0469,
+          "quality": 0.829,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 90,
+          "rmsError": 0.0456,
+          "quality": 0.8331,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.013648537925291946,
+      "topFiveGapFraction": 0.3957148582920753,
+      "planning": {
+        "probes": 220,
+        "changedChoices": 49,
+        "failedProbes": 0,
+        "physicsFrames": 250356,
+        "continuationNodes": 226,
+        "maxDepth": 2
+      },
+      "frames": 743888
+    },
+    {
+      "source": "frontier_pickup_progression",
+      "recordSha256": "138fe7bf8dc487263164cad16e203491ebaf2ca3d5fe073a6b402cdbaed6f15f",
+      "score": 671.7764,
+      "components": {
+        "air": {
+          "observations": 110,
+          "rmsError": 0.1595,
+          "quality": 0.5284,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 110,
+          "rmsError": 0.0339,
+          "quality": 0.8732,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 110,
+          "rmsError": 0.0556,
+          "quality": 0.8007,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.029675350229210053,
+      "topFiveGapFraction": 0.4149548566953489,
+      "planning": {
+        "probes": 330,
+        "changedChoices": 75,
+        "failedProbes": 16,
+        "physicsFrames": 271564,
+        "continuationNodes": 330,
+        "maxDepth": 1
+      },
+      "frames": 748977
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "recordSha256": "b324232137cde24378524e12f3c39399d2b81a5342cf781b772cf41083bb9ad4",
+      "score": 686.5409,
+      "components": {
+        "air": {
+          "observations": 110,
+          "rmsError": 0.1538,
+          "quality": 0.5406,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 110,
+          "rmsError": 0.0331,
+          "quality": 0.8761,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 110,
+          "rmsError": 0.0423,
+          "quality": 0.8445,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.02652061557179099,
+      "topFiveGapFraction": 0.434032735040481,
+      "planning": {
+        "probes": 328,
+        "changedChoices": 70,
+        "failedProbes": 9,
+        "physicsFrames": 272319,
+        "continuationNodes": 328,
+        "maxDepth": 1
+      },
+      "frames": 749956
+    },
+    {
+      "source": "high_air_drive",
+      "recordSha256": "ac1521af584cb628bf25b2b82bbd8d03202cf67deb964f4037f42baeac17075c",
+      "score": 841.9153,
+      "components": {
+        "air": {
+          "observations": 94,
+          "rmsError": 0.0621,
+          "quality": 0.78,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 94,
+          "rmsError": 0.0272,
+          "quality": 0.8971,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 94,
+          "rmsError": 0.0309,
+          "quality": 0.8837,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.005551895353030229,
+      "topFiveGapFraction": 0.28550761363373517,
+      "planning": {
+        "probes": 278,
+        "changedChoices": 73,
+        "failedProbes": 1,
+        "physicsFrames": 264730,
+        "continuationNodes": 278,
+        "maxDepth": 1
+      },
+      "frames": 746454
+    },
+    {
+      "source": "high_air_drive_air_minus_5",
+      "recordSha256": "5ae02b7d4f83236405ad8331f74c1c4e436f8669221755611bf546f8c9dec095",
+      "score": 858.074,
+      "components": {
+        "air": {
+          "observations": 94,
+          "rmsError": 0.0525,
+          "quality": 0.8105,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 94,
+          "rmsError": 0.0273,
+          "quality": 0.8965,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 94,
+          "rmsError": 0.0298,
+          "quality": 0.8878,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.004392913867711573,
+      "topFiveGapFraction": 0.2593667506950643,
+      "planning": {
+        "probes": 279,
+        "changedChoices": 66,
+        "failedProbes": 2,
+        "physicsFrames": 266451,
+        "continuationNodes": 279,
+        "maxDepth": 1
+      },
+      "frames": 743296
+    },
+    {
+      "source": "loose_pocket",
+      "recordSha256": "641c29e6cde75199a78dc9d716f16ea139307ed3306b6ea6c9a5a3ce0b18d49d",
+      "score": 904.5188,
+      "components": {
+        "air": {
+          "observations": 104,
+          "rmsError": 0.0289,
+          "quality": 0.8907,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 104,
+          "rmsError": 0.0181,
+          "quality": 0.9301,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 104,
+          "rmsError": 0.0269,
+          "quality": 0.898,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0018882308123926357,
+      "topFiveGapFraction": 0.20182782224701212,
+      "planning": {
+        "probes": 327,
+        "changedChoices": 73,
+        "failedProbes": 1,
+        "physicsFrames": 294815,
+        "continuationNodes": 327,
+        "maxDepth": 1
+      },
+      "frames": 738775
+    },
+    {
+      "source": "loose_pocket_drag_later_20ms",
+      "recordSha256": "28348b6c40e6b6d9c208b5600cebc8de8fc8afc947be840c616398de601e60e1",
+      "score": 909.0233,
+      "components": {
+        "air": {
+          "observations": 104,
+          "rmsError": 0.0307,
+          "quality": 0.8846,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 104,
+          "rmsError": 0.0148,
+          "quality": 0.9425,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 104,
+          "rmsError": 0.0234,
+          "quality": 0.9107,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0017059146974091216,
+      "topFiveGapFraction": 0.18552796282657424,
+      "planning": {
+        "probes": 325,
+        "changedChoices": 79,
+        "failedProbes": 1,
+        "physicsFrames": 294791,
+        "continuationNodes": 325,
+        "maxDepth": 1
+      },
+      "frames": 738616
+    },
+    {
+      "source": "meter_exchange",
+      "recordSha256": "fe0111fe29e20f5072e7300f4966243a857dc84ed2f7ac18cd2caf5021a995d1",
+      "score": 900.2787,
+      "components": {
+        "air": {
+          "observations": 96,
+          "rmsError": 0.0321,
+          "quality": 0.8794,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 96,
+          "rmsError": 0.0199,
+          "quality": 0.9236,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 96,
+          "rmsError": 0.0253,
+          "quality": 0.9036,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.00206919244815426,
+      "topFiveGapFraction": 0.3209395444265233,
+      "planning": {
+        "probes": 282,
+        "changedChoices": 62,
+        "failedProbes": 1,
+        "physicsFrames": 272973,
+        "continuationNodes": 282,
+        "maxDepth": 1
+      },
+      "frames": 749352
+    },
+    {
+      "source": "meter_exchange_speed_plus_4",
+      "recordSha256": "331f57b6293bfa1614f0c15c0a496a138cc5137a83c9b97ced61b5ed7d489e30",
+      "score": 879.4701,
+      "components": {
+        "air": {
+          "observations": 96,
+          "rmsError": 0.0363,
+          "quality": 0.8649,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 96,
+          "rmsError": 0.0271,
+          "quality": 0.8971,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 96,
+          "rmsError": 0.0322,
+          "quality": 0.879,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0030929482933414417,
+      "topFiveGapFraction": 0.39989041671078,
+      "planning": {
+        "probes": 277,
+        "changedChoices": 59,
+        "failedProbes": 1,
+        "physicsFrames": 269325,
+        "continuationNodes": 277,
+        "maxDepth": 1
+      },
+      "frames": 749864
+    },
+    {
+      "source": "offgrid_conversation",
+      "recordSha256": "46a1820141491a6ad604a29b34daad3df59d3c9f60a8294d20d529e32756aa4d",
+      "score": 911.86,
+      "components": {
+        "air": {
+          "observations": 87,
+          "rmsError": 0.0284,
+          "quality": 0.8925,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 87,
+          "rmsError": 0.0149,
+          "quality": 0.9422,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 87,
+          "rmsError": 0.0238,
+          "quality": 0.9093,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0015962890207530827,
+      "topFiveGapFraction": 0.19696641050054414,
+      "planning": {
+        "probes": 291,
+        "changedChoices": 63,
+        "failedProbes": 1,
+        "physicsFrames": 300658,
+        "continuationNodes": 291,
+        "maxDepth": 1
+      },
+      "frames": 742156
+    },
+    {
+      "source": "offgrid_conversation_answer_early_25ms",
+      "recordSha256": "15c08669e0d04b6941f794cd05569ba35f368f52cf4da54f0a7ff83b07fabbbc",
+      "score": 910.8174,
+      "components": {
+        "air": {
+          "observations": 87,
+          "rmsError": 0.031,
+          "quality": 0.8834,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 87,
+          "rmsError": 0.0144,
+          "quality": 0.9441,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 87,
+          "rmsError": 0.0217,
+          "quality": 0.917,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0016361161460729564,
+      "topFiveGapFraction": 0.2378357172606426,
+      "planning": {
+        "probes": 292,
+        "changedChoices": 60,
+        "failedProbes": 0,
+        "physicsFrames": 303352,
+        "continuationNodes": 292,
+        "maxDepth": 1
+      },
+      "frames": 740009
+    },
+    {
+      "source": "open_hook",
+      "recordSha256": "eda1f3a5e27e37d1f8629e875f48ebc0cbe958761685a937d0f7c00c34aac530",
+      "score": 834.1313,
+      "components": {
+        "air": {
+          "observations": 82,
+          "rmsError": 0.0368,
+          "quality": 0.8632,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 82,
+          "rmsError": 0.0917,
+          "quality": 0.6929,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "rmsError": 0.0421,
+          "quality": 0.8451,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 82,
+          "rmsError": 0.0304,
+          "quality": 0.8854,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.006852723973433535,
+      "topFiveGapFraction": 0.3192421978252221,
+      "planning": {
+        "probes": 250,
+        "changedChoices": 56,
+        "failedProbes": 4,
+        "physicsFrames": 269819,
+        "continuationNodes": 250,
+        "maxDepth": 1
+      },
+      "frames": 735713
+    },
+    {
+      "source": "open_hook_amplitude_plus_8",
+      "recordSha256": "2e7791af516bf01bccc56f4b8b80061b3455c1f1aff8be30a186a7cdf3b0c6a6",
+      "score": 798.4365,
+      "components": {
+        "air": {
+          "observations": 82,
+          "rmsError": 0.038,
+          "quality": 0.859,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 82,
+          "rmsError": 0.1411,
+          "quality": 0.5688,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "rmsError": 0.0327,
+          "quality": 0.8774,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 82,
+          "rmsError": 0.0376,
+          "quality": 0.8605,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.01055623293757733,
+      "topFiveGapFraction": 0.412933726364171,
+      "planning": {
+        "probes": 250,
+        "changedChoices": 61,
+        "failedProbes": 2,
+        "physicsFrames": 269087,
+        "continuationNodes": 250,
+        "maxDepth": 1
+      },
+      "frames": 731678
+    },
+    {
+      "source": "pickup_lattice",
+      "recordSha256": "685d23f21f79f3ea64e4b948d3a0688dd111e8046b1f49aa5c1c6bb73de6f877",
+      "score": 843.4935,
+      "components": {
+        "air": {
+          "observations": 99,
+          "rmsError": 0.0392,
+          "quality": 0.8549,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 99,
+          "rmsError": 0.021,
+          "quality": 0.9194,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 99,
+          "rmsError": 0.0588,
+          "quality": 0.7905,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.005431702334006893,
+      "topFiveGapFraction": 0.6443974012924623,
+      "planning": {
+        "probes": 314,
+        "changedChoices": 72,
+        "failedProbes": 1,
+        "physicsFrames": 279499,
+        "continuationNodes": 314,
+        "maxDepth": 1
+      },
+      "frames": 749380
+    },
+    {
+      "source": "pickup_lattice_speed_minus_4",
+      "recordSha256": "73d7e3235bf325ea5e2a34308773440aa04c873625bcb400b284a16d3b0b7939",
+      "score": 853.5889,
+      "components": {
+        "air": {
+          "observations": 99,
+          "rmsError": 0.0392,
+          "quality": 0.855,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 99,
+          "rmsError": 0.0188,
+          "quality": 0.9275,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 99,
+          "rmsError": 0.053,
+          "quality": 0.8089,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0046988729769914354,
+      "topFiveGapFraction": 0.5854735349669333,
+      "planning": {
+        "probes": 317,
+        "changedChoices": 72,
+        "failedProbes": 5,
+        "physicsFrames": 282256,
+        "continuationNodes": 317,
+        "maxDepth": 1
+      },
+      "frames": 747592
+    },
+    {
+      "source": "regression_amplitude_mosaic",
+      "recordSha256": "e452ee45a214cce1365f4860090214a85dc54dc1415920a3cb662c6e79b93246",
+      "score": 697.7751,
+      "components": {
+        "air": {
+          "observations": 91,
+          "rmsError": 0.0383,
+          "quality": 0.8579,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 91,
+          "rmsError": 0.2457,
+          "quality": 0.3743,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 91,
+          "rmsError": 0.0511,
+          "quality": 0.815,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 91,
+          "rmsError": 0.0526,
+          "quality": 0.8101,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.026978775847633647,
+      "topFiveGapFraction": 0.31204025367372956,
+      "planning": {
+        "probes": 268,
+        "changedChoices": 59,
+        "failedProbes": 1,
+        "physicsFrames": 266730,
+        "continuationNodes": 268,
+        "maxDepth": 1
+      },
+      "frames": 748367
+    },
+    {
+      "source": "regression_amplitude_mosaic_contrast_10",
+      "recordSha256": "9198ec89995aafaf0e19e48eaca5d5e87495a9dda1e47b089bbc648c8afb919a",
+      "score": 694.6333,
+      "components": {
+        "air": {
+          "observations": 91,
+          "rmsError": 0.0369,
+          "quality": 0.8629,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 91,
+          "rmsError": 0.2588,
+          "quality": 0.3552,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 91,
+          "rmsError": 0.0445,
+          "quality": 0.8368,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 91,
+          "rmsError": 0.0447,
+          "quality": 0.8362,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.027659650723083774,
+      "topFiveGapFraction": 0.3205459198364613,
+      "planning": {
+        "probes": 266,
+        "changedChoices": 60,
+        "failedProbes": 0,
+        "physicsFrames": 267088,
+        "continuationNodes": 266,
+        "maxDepth": 1
+      },
+      "frames": 749746
+    },
+    {
+      "source": "regression_transition_mosaic",
+      "recordSha256": "1d769aaafdadffe6f4b61714454124618a535b259fbaa3fe6780413a281da255",
+      "score": 864.2722,
+      "components": {
+        "air": {
+          "observations": 91,
+          "rmsError": 0.0408,
+          "quality": 0.8493,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 91,
+          "rmsError": 0.0332,
+          "quality": 0.8758,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 91,
+          "rmsError": 0.035,
+          "quality": 0.8695,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.003989498759483885,
+      "topFiveGapFraction": 0.3631221788892271,
+      "planning": {
+        "probes": 277,
+        "changedChoices": 66,
+        "failedProbes": 3,
+        "physicsFrames": 273803,
+        "continuationNodes": 277,
+        "maxDepth": 1
+      },
+      "frames": 748203
+    },
+    {
+      "source": "regression_transition_mosaic_tempo_fast_5",
+      "recordSha256": "aad530efc9a6dd109a39dbabac421a294097c528b52c3e2e7acfbbd796abed24",
+      "score": 884.3117,
+      "components": {
+        "air": {
+          "observations": 91,
+          "rmsError": 0.0343,
+          "quality": 0.8719,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 91,
+          "rmsError": 0.0264,
+          "quality": 0.8997,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 91,
+          "rmsError": 0.031,
+          "quality": 0.8834,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.002834180194375153,
+      "topFiveGapFraction": 0.4030282650829076,
+      "planning": {
+        "probes": 307,
+        "changedChoices": 62,
+        "failedProbes": 3,
+        "physicsFrames": 290885,
+        "continuationNodes": 307,
+        "maxDepth": 1
+      },
+      "frames": 740033
+    },
+    {
+      "source": "rising_switch",
+      "recordSha256": "a2009918d17ffee6bd15846c3e6e389d1065855d454051617968c3c78b95000c",
+      "score": 901.6296,
+      "components": {
+        "air": {
+          "observations": 88,
+          "rmsError": 0.0274,
+          "quality": 0.8964,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 88,
+          "rmsError": 0.0234,
+          "quality": 0.9108,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 88,
+          "rmsError": 0.0268,
+          "quality": 0.8985,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0020105449708931428,
+      "topFiveGapFraction": 0.3379063996381718,
+      "planning": {
+        "probes": 264,
+        "changedChoices": 68,
+        "failedProbes": 0,
+        "physicsFrames": 281375,
+        "continuationNodes": 264,
+        "maxDepth": 1
+      },
+      "frames": 741617
+    },
+    {
+      "source": "rising_switch_tempo_fast_5",
+      "recordSha256": "7070654865ad259c53aa1a05767a0795350dff2e690b10d7cbdf33d106a1fc8b",
+      "score": 896.4177,
+      "components": {
+        "air": {
+          "observations": 88,
+          "rmsError": 0.0331,
+          "quality": 0.876,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 88,
+          "rmsError": 0.0184,
+          "quality": 0.9289,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 88,
+          "rmsError": 0.0284,
+          "quality": 0.8927,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0022419687778948995,
+      "topFiveGapFraction": 0.2621052194471938,
+      "planning": {
+        "probes": 285,
+        "changedChoices": 65,
+        "failedProbes": 0,
+        "physicsFrames": 303088,
+        "continuationNodes": 285,
+        "maxDepth": 1
+      },
+      "frames": 733767
+    },
+    {
+      "source": "river_reentry",
+      "recordSha256": "a601054737c118d9eaea62d71b80eafe267264eb0cae1d38df303d10945745be",
+      "score": 914.9217,
+      "components": {
+        "air": {
+          "observations": 88,
+          "rmsError": 0.027,
+          "quality": 0.8977,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 88,
+          "rmsError": 0.0165,
+          "quality": 0.9362,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 88,
+          "rmsError": 0.022,
+          "quality": 0.9159,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0014824134822283537,
+      "topFiveGapFraction": 0.2333076291209729,
+      "planning": {
+        "probes": 268,
+        "changedChoices": 57,
+        "failedProbes": 0,
+        "physicsFrames": 276416,
+        "continuationNodes": 268,
+        "maxDepth": 1
+      },
+      "frames": 735710
+    },
+    {
+      "source": "river_reentry_tempo_fast_5",
+      "recordSha256": "5cecc8d18e5d8569cd05ce1a35f75820c2a2dee7f48d82ae1292cc10daf8ceed",
+      "score": 914.9603,
+      "components": {
+        "air": {
+          "observations": 88,
+          "rmsError": 0.0297,
+          "quality": 0.888,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 88,
+          "rmsError": 0.0132,
+          "quality": 0.9486,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 88,
+          "rmsError": 0.0206,
+          "quality": 0.9208,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.0014810067906543135,
+      "topFiveGapFraction": 0.27930349690894785,
+      "planning": {
+        "probes": 279,
+        "changedChoices": 60,
+        "failedProbes": 0,
+        "physicsFrames": 294424,
+        "continuationNodes": 279,
+        "maxDepth": 1
+      },
+      "frames": 721570
+    },
+    {
+      "source": "sparse_lowline",
+      "recordSha256": "e58c4fabdd2af88221f15dc594aa07d1ae44ac0c8905c497bf185e20da37ee13",
+      "score": 850.6174,
+      "components": {
+        "air": {
+          "observations": 82,
+          "rmsError": 0.0487,
+          "quality": 0.8232,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 82,
+          "rmsError": 0.0315,
+          "quality": 0.8815,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 82,
+          "rmsError": 0.0393,
+          "quality": 0.8544,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.004908170508304493,
+      "topFiveGapFraction": 0.34437965232648465,
+      "planning": {
+        "probes": 247,
+        "changedChoices": 54,
+        "failedProbes": 0,
+        "physicsFrames": 272130,
+        "continuationNodes": 247,
+        "maxDepth": 1
+      },
+      "frames": 745629
+    },
+    {
+      "source": "sparse_lowline_air_minus_4",
+      "recordSha256": "575317ce69fa62c6caa95d34f6443ce8bc9f80f1bc2ef27633984ede46497343",
+      "score": 834.3646,
+      "components": {
+        "air": {
+          "observations": 82,
+          "rmsError": 0.0644,
+          "quality": 0.773,
+          "weight": 0.3333
+        },
+        "impact": {
+          "observations": 82,
+          "rmsError": 0.0314,
+          "quality": 0.882,
+          "weight": 0.3333
+        },
+        "speed": {
+          "observations": 82,
+          "rmsError": 0.0319,
+          "quality": 0.8802,
+          "weight": 0.3333
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.006148448195577003,
+      "topFiveGapFraction": 0.313976547631945,
+      "planning": {
+        "probes": 244,
+        "changedChoices": 54,
+        "failedProbes": 1,
+        "physicsFrames": 267309,
+        "continuationNodes": 244,
+        "maxDepth": 1
+      },
+      "frames": 748100
+    },
+    {
+      "source": "split_signal",
+      "recordSha256": "e05e0572e3d3ef6e03e0a05b17b3f21aedabceeb9aa3621c0bf68aa20fd7bbb1",
+      "score": 756.4124,
+      "components": {
+        "air": {
+          "observations": 92,
+          "rmsError": 0.05,
+          "quality": 0.8188,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 92,
+          "rmsError": 0.1849,
+          "quality": 0.4774,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 92,
+          "rmsError": 0.0338,
+          "quality": 0.8735,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 92,
+          "rmsError": 0.0347,
+          "quality": 0.8704,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.016236473762034458,
+      "topFiveGapFraction": 0.2785088837958145,
+      "planning": {
+        "probes": 274,
+        "changedChoices": 58,
+        "failedProbes": 0,
+        "physicsFrames": 265040,
+        "continuationNodes": 274,
+        "maxDepth": 1
+      },
+      "frames": 747837
+    },
+    {
+      "source": "split_signal_impact_relief_12",
+      "recordSha256": "f431aad607cd91ac89658c6a068d6386e8b0500f4e702f6c83aba9294eadab75",
+      "score": 766.3088,
+      "components": {
+        "air": {
+          "observations": 92,
+          "rmsError": 0.0468,
+          "quality": 0.8293,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 92,
+          "rmsError": 0.1774,
+          "quality": 0.4919,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 92,
+          "rmsError": 0.031,
+          "quality": 0.8834,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 92,
+          "rmsError": 0.0335,
+          "quality": 0.8745,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.014759688869065764,
+      "topFiveGapFraction": 0.2884727500690788,
+      "planning": {
+        "probes": 274,
+        "changedChoices": 64,
+        "failedProbes": 2,
+        "physicsFrames": 260910,
+        "continuationNodes": 274,
+        "maxDepth": 1
+      },
+      "frames": 747063
+    },
+    {
+      "source": "wide_breaths",
+      "recordSha256": "c2de86feef9a1913f8f2722f3f9cba9d947b4044bf6ad339578daf8dc49ed920",
+      "score": 852.8058,
+      "components": {
+        "air": {
+          "observations": 82,
+          "rmsError": 0.0279,
+          "quality": 0.8943,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 82,
+          "rmsError": 0.0953,
+          "quality": 0.6831,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "rmsError": 0.0267,
+          "quality": 0.8987,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 82,
+          "rmsError": 0.0276,
+          "quality": 0.8955,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.005281686610278357,
+      "topFiveGapFraction": 0.48975646850976257,
+      "planning": {
+        "probes": 229,
+        "changedChoices": 47,
+        "failedProbes": 0,
+        "physicsFrames": 264198,
+        "continuationNodes": 229,
+        "maxDepth": 1
+      },
+      "frames": 748730
+    },
+    {
+      "source": "wide_breaths_air_plus_5",
+      "recordSha256": "7986ecc16e0a9a039f28ed61a2312fe3bee5d5fe6f1b47ab1a0a968ab303db14",
+      "score": 843.3928,
+      "components": {
+        "air": {
+          "observations": 82,
+          "rmsError": 0.0266,
+          "quality": 0.8991,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 82,
+          "rmsError": 0.1013,
+          "quality": 0.6667,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "rmsError": 0.0266,
+          "quality": 0.8989,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 82,
+          "rmsError": 0.0347,
+          "quality": 0.8705,
+          "weight": 0.3
+        }
+      },
+      "meanLocalDiagnosticLoss": 0.006043694719176661,
+      "topFiveGapFraction": 0.49735488765841807,
+      "planning": {
+        "probes": 227,
+        "changedChoices": 51,
+        "failedProbes": 3,
+        "physicsFrames": 261176,
+        "continuationNodes": 227,
+        "maxDepth": 1
+      },
+      "frames": 747424
+    }
+  ]
+}

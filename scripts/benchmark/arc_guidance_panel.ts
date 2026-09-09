@@ -14,6 +14,7 @@ const files=mode==='ablation'?['scripts/benchmark/arc_guidance_ablation.ts']:['s
 if(options.valueModelPath)files.push(resolve(options.valueModelPath));
 if(options.controlPolicyPath)files.push(resolve(options.controlPolicyPath));
 files.push(...['scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json'].filter(existsSync));
+files.push(...['scripts/v0/optimizer/arc_boundary.ts','scripts/v0/optimizer/arc_memory.ts'].filter(existsSync));
 const implementation=Object.fromEntries(files.map(p=>[p,hash(readFileSync(p))]));
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));
 const budget=Number(options.budget??750000), seed=Number(arg('seed')??260908011);

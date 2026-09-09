@@ -33,6 +33,11 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     guidanceJoint: true, expressive: true, responseSamples,
     adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true, reuseEvaluations: true,
     budgetAdaptiveLocal: guidanceSamples > 0,
+    // Complete-span correction needs the joint search's room to adjust the
+    // approach. Preserve the measured low-allowance curve search otherwise.
+    completeBoundary: guidanceSamples > 0,
+    memorySamples: Math.round(4 * guidanceSamples / 96),
+    memoryResponseSamples: Math.round(4 * guidanceSamples / 96),
     controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(12 * guidanceSamples / 96),
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
@@ -57,7 +62,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const exhausted = result.searchBudgetExhausted || result.failure?.reason === "budget";
   const recorder = new CompileBudgetTelemetryRecorder({ level: options.budgetTelemetry ?? "summary",
     gaps, durationFrames: duration, hardBudgetFrames: options.budget, policyBudgetFrames: options.budget,
-    model: { name: "connected-arcs/v4", source: "arc_motion.ts learned curve proposals, measured planning and adaptive construction",
+    model: { name: "connected-arcs/v5", source: "arc_motion.ts learned and measured curve proposals, complete boundaries and adaptive construction",
       interceptFrames: 0, contactFrames: 0, durationFrameScale: samples } });
   const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
     anchorGapIndex: 0, startTotalSpentFrames: 0, ceilingTotalSpentFrames: options.budget, includeStartup: false });

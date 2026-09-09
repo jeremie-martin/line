@@ -14,6 +14,8 @@ import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { refineArcTrack } from './arc_refinement.ts';
 import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
 import { arcResponseStep } from './arc_response.ts';
+import { ArcControlMemory } from './arc_memory.ts';
+import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { createArcEngine } from './arc_engine.ts';
@@ -25,6 +27,10 @@ const rad=(x:number)=>x*Math.PI/180;
 const deg=(x:number)=>x*180/Math.PI;
 export type ArcMotionOptions= {
   budget:number;
+  memorySamples?:number;
+  memoryResponseSamples?:number;
+  /** Replace the preceding truncated span once its contact boundary is measured. */
+  completeBoundary?:boolean;
   samples?:number;
   diagnostic?:boolean;
   arrivalWeight?:number;
@@ -147,6 +153,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   const planningDecisions:any[]=[];
   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+  const controlMemory=new ArcControlMemory();
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
   let deepestPrefix={lines:[] as TrackLine[],rows:[] as any[]};
   const backtrack=()=>{
@@ -200,12 +207,16 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
         while(memoContexts.size>32)memoContexts.delete(memoContexts.keys().next().value!);
       }
+      const priorGap=i>0?gaps[contacts[i].gap]:undefined;
+      const priorAxes=options.completeBoundary&&priorGap
+        ?measureGapAxes(detect(prefixRaw??extractRawTrajectory(engine,frame-1)),priorGap,[],frame-1):undefined;
+      const priorLoss=priorAxes&&priorGap?arcSpanLoss(priorAxes,priorGap.targets,options.amplitudeWeight??1):0;
       const evaluate=(c:ArcMotionControl)=>{
         c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
@@ -253,6 +264,11 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         let actualImpact:number|undefined;
         if(impact!==undefined){actualImpact=measureGapAxes(det,gaps[gap],added,frame).impact;if(actualImpact===undefined)return reject('impact');cost+=(options.impactWeight??2)*(actualImpact-impact)**2;}
         residuals.push(impact===undefined?0:Math.sqrt(options.impactWeight??2)*(actualImpact!-impact));
+        if(options.completeBoundary&&priorGap){
+          const actual=measureGapAxes(det,priorGap,added,priorGap.endFrame);
+          const correction=arcBoundaryCorrection(actual,priorGap.targets,priorLoss,options.amplitudeWeight??1,cost);
+          residuals.push(...correction.residuals);cost=correction.cost;
+        }
         const localCost=cost;
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
@@ -306,7 +322,12 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
-      const policy=options.controlPolicy&&i>0?arcControlProposals(futureFeatures(arcPolicyArrival(beforeState,velocity),i-1),incoming,span,options.controlPolicy,options.policySamples??8):[];
+      const inputFeatures=futureFeatures(arcPolicyArrival(beforeState,velocity),i-1);
+      const policy=options.controlPolicy&&i>0?arcControlProposals(inputFeatures,incoming,span,options.controlPolicy,options.policySamples??8):[];
+      policy.push(...controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0));
+      policy.push(...controlMemory.proposeResponses(inputFeatures,incoming,span,
+        [targets.air,targets.speed,targets.amplitude,impact],options.memoryResponseSamples??0,
+        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002}));
       if(options.warmStart)evaluate(options.warmStart);
       for(let k=0;k<initial;k++){
         const frac=(n:number)=>((k+1)*n)%1;
@@ -384,6 +405,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
             const a=evaluate({...origin.c,[key]:value(key)+step}),b=evaluate({...origin.c,[key]:value(key)-step});responseUsed+=2;
             for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
           });
+          if((options.memoryResponseSamples??0)>0){
+            controlMemory.rememberResponse({features:inputFeatures,incoming,span,
+              control:{...origin.c,...Object.fromEntries(responseKeys.map(key=>[key,value(key)]))},
+              targets:[targets.air,targets.speed,targets.amplitude,impact],keys:responseKeys.slice(),
+              jac:jac.slice(0,4),residuals:origin.residuals.slice(0,4),
+              scale:responseKeys.map(key=>scale[key as keyof typeof scale]*trust),
+              loss:origin.residuals.slice(0,4).reduce((sum:number,v:number)=>sum+v*v,0)});
+          }
           const delta=arcResponseStep(jac,origin.residuals,options.responseDamping??.0002);
           for(const fraction of [1,.5,.25]){
             if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
@@ -554,6 +583,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         if(alternatives.length>=12)break;
       }
       steps.push({lineStart:lines.length,choices:alternatives.filter(a=>JSON.stringify(a.c)!==JSON.stringify(best.c))});
+      if((options.memorySamples??0)>0&&i>0){
+        const prior=getRiderMetered(engine,frame-1).ballisticState(),velocity=getRiderMetered(engine,frame).velocity;
+        controlMemory.rememberControl({features:futureFeatures(arcPolicyArrival(prior,velocity),i-1),incoming,span:horizon-frame,control:best.c});
+      }
       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);
       rows.push({frame,next,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});
       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\n');

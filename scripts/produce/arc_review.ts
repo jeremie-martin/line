@@ -18,7 +18,7 @@ const work=join(out,'inputs',song);mkdirSync(work,{recursive:true});
 const hash=(p:string)=>createHash('sha256').update(readFileSync(p)).digest('hex');
 const write=(p:string,value:any)=>{writeFileSync(p,JSON.stringify(value,null,2)+'\n');writeFileSync(p+'.sha256',hash(p)+'\n');};
 const gitSha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
-const sourceFiles=['scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/produce/arc_review.ts'];
+const sourceFiles=['scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_boundary.ts','scripts/v0/optimizer/arc_memory.ts','scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/produce/arc_review.ts'];
 const implementation=Object.fromEntries(sourceFiles.map(p=>[p,hash(p)]));
 const publicCompiler=arg('compiler')==='public';
 if(publicCompiler&&arg('options'))throw new Error('public compiler uses its committed configuration');

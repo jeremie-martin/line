@@ -15,8 +15,10 @@ No point controls or acceleration lines enter this production path.
 | `arc_engine.ts` | Construct owned engine wrappers without empty-batch handle aliases. |
 | `arc_geometry.ts` | Pure coherent-curve construction: tangent schedule, turn timing, bend and guide separation. |
 | `arc_motion.ts` | Measured candidate search, continuation planning, backtracking and final replays. |
+| `arc_boundary.ts` | Replace a truncated planning estimate with the preceding span's actual measurement once the next contact completes it. |
+| `arc_memory.ts` | Reuse successful controls and measured local response matrices within one compile; every resulting proposal is physically evaluated. |
 | `arc_guidance.ts` | Remove unused portions of physical guides after replay. |
-| `arc_control_policy.ts`, `arc_control_policy_model.json` | Propose joint arc controls from relative physical state and upcoming targets; every proposal receives ordinary physical validation. |
+| `arc_control_policy.ts`, `arc_control_policy_model.json` | Mix learned joint-control proposals with nearby replay-verified control examples, using relative physical state and upcoming targets. |
 | `arc_response.ts` | Damped coupled response proposals from measured differences. |
 | `arc_value.ts`, `arc_value_model.json` | Predict continuation quality from physical arrival state and upcoming authored targets; exact simulation still validates candidates. |
 | `arc_refinement.ts` | Completed-track repair experiments, disabled in production defaults. Retains the incumbent and charges complete continuations. |
@@ -39,11 +41,26 @@ metering. Disable both `memoCandidates` and `reuseEvaluations` for a no-cache co
 Budget interruptions preserve completed recursive branches and the deepest
 completed prefix. Proactive retry estimates include rebuilding from the actual
 backtracking boundary. Repair records describe every accepted rebuilt interval.
-The control policy replaces a limited part of broad search with learned proposals.
-Its features exclude case identity, seed, absolute frame and absolute position.
-Training and complete-parent validation are reproducible with the policy collector,
-trainer and compactor under `scripts/benchmark/`. Leaf predictions are checked
-against independent Python fixtures. The model never certifies physical validity.
+The control policy replaces a limited part of broad search with learned proposals
+and measured control examples. Its runtime inputs and stored example vectors
+exclude case identity, seed, absolute frame and absolute position. The forest
+supplies joint means, while the example pool retains complete control combinations
+that averaging can lose. Geometry is regenerated for the current rider state.
+Training, replay verification and export are reproducible with the policy collector,
+trainer, compactor and mixture exporter under `scripts/benchmark/`. Forest and
+example predictions are checked against independent Python fixtures.
+
+Within one compile, a separate memory retains committed controls and a bounded
+collection of measured response matrices. Nearby controls adapt to current heading
+and interval length; response matrices propose corrections for changed targets.
+The memory contains no live engines and is discarded between compiles. Its work
+allocation scales with the available guide-search allowance. All proposals receive
+the same metered simulation and validity checks as broad-search candidates.
+
+When a new contact makes the preceding span fully measurable, boundary correction
+replaces that span's truncated planning estimate. Adjacent planning stages do not
+count both estimates. The measurement registry, final report and scorer are unchanged.
+The models and local memories never certify physical validity.
 Same spec, seed and budget must give identical tracks. Each budget is a fresh run.
 
 ## Retained mechanisms
@@ -77,3 +94,8 @@ LR_ENGINE=wasm node --import tsx scripts/benchmark/arc_motion_study.ts \
 
 This is an exploratory single-case result, not a canonical benchmark headline.
 The older command defaults remain available for exact historical reproduction.
+
+Complete-span correction is enabled with joint guidance. The low-allowance curve
+search retains its prior interval objective: a full 150k study found that enabling
+the correction there reduced validity and score, while changing the proposal model
+had no effect because that allocation does not request learned proposals.

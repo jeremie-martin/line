@@ -1,17 +1,33 @@
 import {expect,it} from 'vitest';
 import {arcPolicyArrival,arcControlProposals} from '../scripts/v0/optimizer/arc_control_policy.ts';
-import model from '../scripts/v0/optimizer/arc_control_policy_model.json' with {type:'json'};
+import artifact from '../scripts/v0/optimizer/arc_control_policy_model.json' with {type:'json'};
 import fixtures from './fixtures/arc_control_policy_predictions.json' with {type:'json'};
+const model:any=artifact;
 
 it('matches independently exported Python ensemble predictions after control decoding',()=>{
   for(const row of fixtures){
-    const incoming=20,span=30,c=arcControlProposals(row.features,incoming,span,model,1)[0];
+    const incoming=20,span=30,c=arcControlProposals(row.features,incoming,span,model.models[0],1)[0];
     const encoded=[(c.entry-incoming)/30,c.turn/60,(c.exit-incoming)/60,c.support/span,c.bias,c.offset,c.clearance!/12,c.turnFraction!,c.bend!/30,c.guideFlare!/8];
     encoded.forEach((value,index)=>expect(value).toBeCloseTo(row.mean[index],13));
-    expect(arcControlProposals(row.features,incoming,span,model,8)).toHaveLength(8);
+    expect(arcControlProposals(row.features,incoming,span,model.models[0],8)).toHaveLength(8);
   }
   expect(()=>arcControlProposals(fixtures[0].features.slice(1),20,30,model,8)).toThrow('feature mismatch');
   expect(()=>arcControlProposals(fixtures[0].features.map(()=>NaN),20,30,model,8)).toThrow('feature mismatch');
+});
+
+it('matches independently computed nearest measured controls and rescales their geometry',()=>{
+  for(const row of fixtures){
+    const actual=arcControlProposals(row.features,20,30,model.models[1],4);
+    expect(actual).toHaveLength(row.examples.length);
+    actual.forEach((control,index)=>Object.entries(row.examples[index]).forEach(([key,value])=>
+      expect(control[key as keyof typeof control]).toBeCloseTo(value,12)));
+    const changed=arcControlProposals(row.features,35,60,model.models[1],1)[0];
+    expect(changed.entry).toBeCloseTo(actual[0].entry+15,12);
+    expect(changed.exit).toBeCloseTo(actual[0].exit+15,12);
+    expect(changed.support).toBeCloseTo(actual[0].support*2,12);
+  }
+  expect(arcControlProposals(fixtures[0].features,20,30,model,0)).toEqual([]);
+  expect(()=>arcControlProposals(fixtures[0].features,20,30,model,-1)).toThrow('count');
 });
 
 it('uses relative body state rather than absolute track position',()=>{

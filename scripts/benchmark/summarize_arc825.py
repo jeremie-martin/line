@@ -8,6 +8,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--root', default='generated/benchmark-v2/arc-825')
 parser.add_argument('--reference', default='generated/benchmark-v2/compiler-integrity-audit/retry-anchor-750000')
 parser.add_argument('--out', default='benchmark/v2/studies/arc-825-research.json')
+parser.add_argument('--reference-label', default='compiler-integrity canonical 777.8193; exact-parity rich 750k reference')
 args = parser.parse_args()
 root, reference = Path(args.root), Path(args.reference)
 
@@ -30,6 +31,8 @@ for directory in sorted(root.iterdir()):
     rows = []
     for source in plan['sourceIds']:
         record, record_hash = checked(directory / f'{source}.json')
+        for artifact in record.get('modelArtifacts', {}).values():
+            assert hashlib.sha256((directory / artifact['path']).read_bytes()).hexdigest() == artifact['sha256']
         before, before_hash = checked(reference / f'{source}.json')
         assert record['sourceId'] == source and record['seed'] == plan['seed']
         assert all(record['implementation'][k] == v for k, v in plan['implementation'].items()
@@ -56,7 +59,7 @@ for directory in sorted(root.iterdir()):
                        totalFrames=summary['totalFrames'], maxFrames=summary['maxFrames'], rows=rows))
 
 result = dict(schema='line.arc-825-research.v1', researchOnly=True,
-              reference='compiler-integrity canonical 777.8193; exact-parity rich 750k reference',
+              reference=args.reference_label,
               note='Pilot means are screening evidence. Full-suite headlines use the unchanged weighted '
                    'summarizer, one seed per case, and are not canonical confirmation. '
                    'Higher-budget trials are research teachers, not 750k results.',

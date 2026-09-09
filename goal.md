@@ -13,8 +13,11 @@ local. See [V4 design](benchmark/v4/README.md).
 The corrected V4 freeze is `98936eeb`. Its complete baseline is **915.6860**,
 with **352/352 valid runs** and exact reproduction of the **930.1556** V3 subset.
 The real drop is **14.4696** points; recover at least 75% by reaching **926.5382**.
-The best completed 750k research panel so far is **922.2635**, all 176 cases
-valid; it is not yet a canonical promotion. Further compiler work remains active.
+The selected compiler reaches **926.9397** on the complete 750k research panel,
+with all 176 cases valid. This exceeds the recovery target; public canonical
+confirmation and final preservation remain active. The selected model combines
+validated complete-trajectory and fixed-prefix teacher examples and includes
+the incoming-feature cache fix.
 
 The initial freeze `a1837655` and its 900.0351 result are superseded by a proven
 timing-feasibility erratum: one companion had three impossible consecutive

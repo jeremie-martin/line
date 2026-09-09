@@ -1,13 +1,17 @@
 /** Public integration of measured, connected normal-line arc construction. */
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { compileArcMotion, type ArcMotionOptions } from "./arc_motion.ts";
-import controlPolicy from "./arc_control_policy_model.json" with { type: "json" };
 import futureValueModel from "./arc_value_model.json" with { type: "json" };
 import { resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { sliceTimeline } from "../core/substrate.ts";
 import { CompileBudgetTelemetryRecorder, type BudgetTelemetryLevel } from "./budget_telemetry.ts";
 import type { CompileCheckpoint, Spec } from "./types.ts";
 import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler_input.ts";
+
+// This is a data artifact; reading it directly also avoids expanding the large
+// model into generated JavaScript and source maps in development tooling.
+const controlPolicy = JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
 
 /** Production allocation from ride length and frame budget. Research can spread
  * this configuration and override a mechanism without duplicating shipped defaults. */
@@ -23,9 +27,12 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
   const planningBreadth = Math.max(12, Math.min(160, Math.floor(Math.min(80, allowance) + .8 * refinement)));
   // Keep continuation capacity calibrated independently of the construction mix.
   const planningGuidanceSamples = Math.min(96, Math.floor(.8 * refinement));
-  const samples = Math.min(96, planningBreadth);
-  const guidanceSamples = Math.min(160, Math.floor(2.25 * refinement));
-  const responseSamples = Math.floor(guidanceSamples * 138 / 160);
+  // Preserve proposal and continuation calibration while directing more of the
+  // construction allowance to joint geometry refinement.
+  const proposalGuidanceSamples = Math.min(160, Math.floor(2.25 * refinement));
+  const samples = Math.min(80, planningBreadth);
+  const guidanceSamples = Math.min(176, Math.floor(1.5 * proposalGuidanceSamples));
+  const responseSamples = Math.floor(guidanceSamples * 161 / 176);
   const lookaheadSamples = Math.max(8, Math.round(planningBreadth * .2));
   return { budget, samples,
     authoredHorizon: true, amplitudeOverflow: 'raw', budgetedProposals: true, terminalSelection: true,
@@ -42,7 +49,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     completeBoundary: guidanceSamples > 0,
     memorySamples: Math.round(4 * planningGuidanceSamples / 96),
     memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
-    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(32 * guidanceSamples / 160),
+    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
     // simulated continuation boundary. Do not blend it into the root twice.

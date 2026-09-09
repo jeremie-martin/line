@@ -29,7 +29,7 @@ for(const row of run.rows){
   assert.ok(Number.isSafeInteger(row.resources.physicalFrames)&&row.resources.physicalFrames>=0&&row.resources.physicalFrames<=750000);
   assert.equal(row.geometry.allNormal,true);assert.equal(row.geometry.singleSegmentComponents,0);
 }
-const archivePath=`benchmark/v4/runs/${name}.json.gz`;write(archivePath,run);
+const archivePath=`benchmark/v4/runs/${name}.json.gz`;
 const reference=read('benchmark/v3/runs/arc-930.json.gz');assert.equal(reference.summary.headline,930.1556);
 const initial=isBaseline?run:read(read('benchmark/v4/baseline.json').archive.path);
 assert.equal(initial.plan.suiteFingerprint,run.plan.suiteFingerprint);
@@ -51,6 +51,8 @@ if(isBaseline){
   for(const row of run.rows){const r=expected.get(row.sourceId)!;assert.ok(r);assert.equal(row.trackHash,r.trackHash,row.sourceId);assert.deepEqual(row.score,r.score);assert.equal(row.resources.physicalFrames,r.resources.physicalFrames);}
   parity={kind:'research',path:arg('research'),sha256:sha(readFileSync(arg('research')!)),matches:run.rows.length};
 }
+// Preserve only after the complete compiler/judge and research parity checks.
+write(archivePath,run);
 const before=new Map<string,any>(initial.summary.specifications.map((c:any)=>[c.id,c]));
 const paired=summary.specifications.map(c=>({id:c.id,before:before.get(c.id).score,after:c.score,delta:Math.round((c.score-before.get(c.id).score)*10000)/10000}));
 const result={schema:'line.arc-v4-canonical-validation.v1',status:isBaseline?'baseline':'canonical-result',

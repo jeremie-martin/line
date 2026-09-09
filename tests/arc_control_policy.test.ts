@@ -1,8 +1,8 @@
 import {expect,it} from 'vitest';
+import {readFileSync} from 'node:fs';
 import {arcPolicyArrival,arcControlProposals} from '../scripts/v0/optimizer/arc_control_policy.ts';
-import artifact from '../scripts/v0/optimizer/arc_control_policy_model.json' with {type:'json'};
 import fixtures from './fixtures/arc_control_policy_predictions.json' with {type:'json'};
-const model:any=artifact;
+const model:any=JSON.parse(readFileSync(new URL('../scripts/v0/optimizer/arc_control_policy_model.json',import.meta.url),'utf8'));
 
 it('matches independently exported Python ensemble predictions after control decoding',()=>{
   for(const row of fixtures){

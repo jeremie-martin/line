@@ -87,6 +87,10 @@ promotion; the recovery target remains 926.5382.
 | Corrections learned from fixed-prefix teacher queries | 917.4498 |
 | Measured examples from fixed-prefix queries (175/176 valid) | 895.5296 |
 | Refined allocation plus time-weighted terminal optimization | 920.9307 |
+| Combined complete-trajectory and fixed-prefix teaching examples | 927.1957 |
+| Combined examples with incoming-feature cache fix (selected) | **926.9397** |
+| Refreshed complete-trajectory corrections and examples | 924.5037 |
+| Refreshed complete-trajectory examples, existing corrected mean | 925.2330 |
 
 The 3M-frame teacher reaches 926.7191 over all 176 cases, with maximum work
 2,915,481 frames. This larger allowance cannot qualify for the public goal.
@@ -126,7 +130,8 @@ resolve the tradeoff on the diagnostic panel. These are rejected executions,
 not evidence that expressive geometry has no further potential. Their exact
 patches and paired changes are preserved in the research summary.
 
-The best completed result is now 922.2635; another 4.2747 points are needed.
+The selected research result is now 926.9397, above the 926.5382 target;
+canonical confirmation remains outstanding.
 The 80/176 allocation retains a nominal total of 256 evaluations but directs
 more work to joint arc refinement. These research overrides also raise smaller
 duration-dependent allocations and need a production budget formula if selected.
@@ -158,7 +163,20 @@ The failed case now completes at 891.2618 within 750k. A 5,050-frame regression
 fixture reproduces the defect and passes with the fix; all 18 focused tests pass,
 and TypeScript retains the same 251 inherited diagnostics. See the
 [repair proof](../benchmark/v4/studies/arrival-cache-budget-repair.json).
-The complete fixed compiler still requires measurement.
+The complete fixed compiler with queried examples scores 922.7930, all 176 valid.
+Combining the initial complete-trajectory and queried datasets gives 31,924
+measured actions and reaches 927.1957 before the cache fix, or **926.9397** with
+the fix. The latter is selected for canonical validation. The original normal-arc
+geometry is unchanged.
+
+Production caps base search at 80 and joint guidance at 176, reserving 161/176 of
+guidance for the response solver. Guidance grows as 1.5 times the preceding
+budget-dependent guidance allowance, while proposal and continuation quotas keep
+their existing calibration. All non-model options, model bytes and shared solver
+sources match the selected research candidate across all 176 cases. Direct JSON
+data loading resolves the larger model's test-transform import failure without
+changing its values. All 121 focused tests across 29 files pass after rerunning
+the eight affected import suites; TypeScript retains 251 inherited diagnostics.
 
 The stronger free-running 3M teacher reaches **931.6814**, all 176 cases valid.
 The refreshed, replay-validated dataset chooses 78 complete trajectories from

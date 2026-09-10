@@ -1,6 +1,7 @@
 /** Public integration of measured, connected normal-line arc construction. */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { gunzipSync } from "node:zlib";
 import { compileArcMotion, type ArcMotionOptions } from "./arc_motion.ts";
 import futureValueModel from "./arc_value_model.json" with { type: "json" };
 import { resetPerCompileState } from "../core/compile_lifecycle.ts";
@@ -12,7 +13,22 @@ import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler
 // This is a data artifact; reading it directly also avoids expanding the large
 // model into generated JavaScript and source maps in development tooling.
 let controlPolicy: any;
-const loadControlPolicy = () => controlPolicy ??= JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
+export function parseArcPolicyArtifact(bytes:Buffer|string,artifactUrl?:URL):any {
+  const artifact=JSON.parse(bytes.toString());
+  if(artifact.schema!=="line.arc-compressed-policy.v1")return artifact;
+  if(artifact.compression!=="gzip-file"||!artifactUrl||typeof artifact.file!=="string"||
+    !/^[a-zA-Z0-9_.-]+\.gz$/.test(artifact.file)||!Number.isSafeInteger(artifact.uncompressedBytes)||artifact.uncompressedBytes<=0)
+    throw new Error("invalid arc policy archive");
+  const compressed=readFileSync(new URL(artifact.file,artifactUrl));
+  if(createHash("sha256").update(compressed).digest("hex")!==artifact.compressedSha256)
+    throw new Error("arc policy archive checksum mismatch");
+  const raw=gunzipSync(compressed,{maxOutputLength:artifact.uncompressedBytes});
+  if(raw.length!==artifact.uncompressedBytes||createHash("sha256").update(raw).digest("hex")!==artifact.sha256)
+    throw new Error("arc policy archive checksum mismatch");
+  return JSON.parse(raw.toString());
+}
+const policyUrl=new URL("./arc_control_policy_model.json",import.meta.url);
+const loadControlPolicy = () => controlPolicy ??= parseArcPolicyArtifact(readFileSync(policyUrl),policyUrl);
 
 /** Production allocation from ride length and frame budget. Research can spread
  * this configuration and override a mechanism without duplicating shipped defaults. */
@@ -40,7 +56,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
-    lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
+    policyPreview: true, lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
     reserveFactor: .7 + .7 * (1 - planningGuidanceSamples / 96), reuseContinuations: true, pruneGuidance: true,
     guidanceJoint: true, expressive: true, preserveTurnTiming: true, responseSamples,
     adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true, reuseEvaluations: true,
@@ -99,7 +115,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const costs = report.gaps.map(g => Object.values(g.axes).reduce((s, a) => s + (a?.error ?? 0) ** 2, 0));
   return { budget: options.budget, track, report,
     budgetTelemetry: recorder.snapshot(total, exhausted, valid ? total : null, valid ? total : null),
-    stats: { actual_candidate_samples: result.samples, viable_candidate_samples: result.stats.viable_candidate_samples, engine_rebuilds: result.backtracks + 2,
+    stats: { actual_candidate_samples: result.samples, viable_candidate_samples: result.stats.viable_candidate_samples, engine_rebuilds: result.engineRebuilds ?? result.backtracks + 2,
       gap_commits: result.stats.gap_commits, gap_backtracks: result.backtracks,
       validation_retries: 0, polish_iterations: 0, total_committed_cost: costs.reduce((s, c) => s + c, 0),
       committed_costs_per_gap: costs, sim_frames: total, ballistic_micro_sim_frames: 0,

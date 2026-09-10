@@ -76,7 +76,6 @@
     "scripts/v0/study_velocity_leading_anchor_normal_pool.ts",
     "tests/budget_telemetry.test.ts",
     "tests/forward_eval_base_override.test.ts",
-    "tests/handoff_reference_import.test.ts",
     "tests/handoff_rollout_probe.test.ts",
     "tests/impact_multicontact_geometry.test.ts"
   ],
@@ -172,5 +171,9 @@
       "localPath": "generated/review-fixes-2026-09-11/canonical.log",
       "sha256": "d3dc3b21b6aafd6b854787068de6bfa892aaa64a01a9ec9f553b301f5ee93f91"
     }
+  },
+  "localScratchMigration": {
+    "path": "scripts/v0/_probe_spread.ts",
+    "note": "Ignored local scratch probe also switched to the legacy backend; it remains untracked."
   }
 }

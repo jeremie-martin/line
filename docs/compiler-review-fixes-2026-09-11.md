@@ -27,7 +27,7 @@ compilation exactly.
 
 ## Hook-driven diagnostics
 
-29 research/probe scripts and four existing test modules now import
+28 tracked research/probe scripts and four existing test modules now import
 `compileLegacyHandoff` and legacy hooks explicitly. Their instrumentation no
 longer depends on the public dispatcher's choice. The rollout-economics study
 clears hooks in `finally` and rejects instrumented work with missing observations.

@@ -1,0 +1,37 @@
+{
+  "schema": "line.arc-control-policy-data.v1",
+  "featureSchema": "line.arc-control-policy-features.v1",
+  "inputs": [
+    {
+      "path": "generated/benchmark-v4/arc-940/data/expanded-teaching/data.json",
+      "sha256": "210c342d9f66aa319a09d6526a2f418d582e3c57979d95befe09ac927af4c651",
+      "rows": 47886,
+      "sources": 176
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/data/refreshed-934/data.json",
+      "sha256": "4c81776c2f050a6ed722b3f821abe3bdd556aecf09994def33f0b6dd2f5e5a11",
+      "rows": 15962,
+      "sources": 176
+    }
+  ],
+  "scriptSha256": "06749dfd33ade7692e122e021e0819265020db59d4c2626b7b2fda00e051e701",
+  "note": "Exposed development training. Rows are concatenated unchanged from declared datasets, whose physical validation remains attached to their original hashes. Multiple valid actions at the same state are retained. This merge performs no new physical validation and claims no new rollout score.",
+  "dataset": {
+    "path": "generated/benchmark-v4/arc-940/data/expanded-934/data.json",
+    "sha256": "d9e2c72f29a94effd5a1b767b7495f2c8cd79a9ef3f160026b6724f1927256b3",
+    "rows": 63848
+  },
+  "inputProofs": [
+    {
+      "path": "benchmark/v4/studies/arc-940-expanded-teaching-data.json",
+      "sha256": "bdcc59a45c8de09157e4fdd191012e79995130df93127d412675f45c66161eff",
+      "datasetSha256": "210c342d9f66aa319a09d6526a2f418d582e3c57979d95befe09ac927af4c651"
+    },
+    {
+      "path": "benchmark/v4/studies/arc-940-refreshed-934-transfer.json",
+      "sha256": "07010cfa39cae8738539034576a40d2882fecf0dde80a5eea07a91c7b590e357",
+      "datasetSha256": "4c81776c2f050a6ed722b3f821abe3bdd556aecf09994def33f0b6dd2f5e5a11"
+    }
+  ]
+}

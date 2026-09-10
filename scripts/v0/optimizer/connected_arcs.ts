@@ -11,7 +11,8 @@ import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler
 
 // This is a data artifact; reading it directly also avoids expanding the large
 // model into generated JavaScript and source maps in development tooling.
-const controlPolicy = JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
+let controlPolicy: any;
+const loadControlPolicy = () => controlPolicy ??= JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
 
 /** Production allocation from ride length and frame budget. Research can spread
  * this configuration and override a mechanism without duplicating shipped defaults. */
@@ -49,7 +50,9 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     completeBoundary: guidanceSamples > 0,
     memorySamples: Math.round(4 * planningGuidanceSamples / 96),
     memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
-    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
+    // Resolve only the selected policy. Research can replace this factory with
+    // another artifact without retaining an unused copy of the default model.
+    controlPolicy: guidanceSamples ? loadControlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
     // simulated continuation boundary. Do not blend it into the root twice.

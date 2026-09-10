@@ -1,0 +1,37 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 7897bac8..23a939f9 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -154,6 +154,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   if(duration<1)throw new Error('arc duration must cover at least one frame');
+   if(budget<=2*(end+1))throw new Error('arc budget must cover two complete replays and construction work');
+   try{
++  if(typeof options.controlPolicy==='function')options={...options,controlPolicy:options.controlPolicy()};
+   const frames=spec.contacts.map(c=>Math.round(c.t*40));
+   const gaps=sliceTimeline(frames,duration);
+   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
+diff --git a/scripts/v0/optimizer/connected_arcs.ts b/scripts/v0/optimizer/connected_arcs.ts
+index 6024c249..3c7718c0 100644
+--- a/scripts/v0/optimizer/connected_arcs.ts
++++ b/scripts/v0/optimizer/connected_arcs.ts
+@@ -11,7 +11,8 @@ import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler
+ 
+ // This is a data artifact; reading it directly also avoids expanding the large
+ // model into generated JavaScript and source maps in development tooling.
+-const controlPolicy = JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
++let controlPolicy: any;
++const loadControlPolicy = () => controlPolicy ??= JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
+ 
+ /** Production allocation from ride length and frame budget. Research can spread
+  * this configuration and override a mechanism without duplicating shipped defaults. */
+@@ -49,7 +50,9 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
+     completeBoundary: guidanceSamples > 0,
+     memorySamples: Math.round(4 * planningGuidanceSamples / 96),
+     memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
+-    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
++    // Resolve only the selected policy. Research can replace this factory with
++    // another artifact without retaining an unused copy of the default model.
++    controlPolicy: guidanceSamples ? loadControlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
+     futureValueModel: guidanceSamples ? futureValueModel : undefined,
+     // Rank unprobed arrivals with the model, then use its value at the
+     // simulated continuation boundary. Do not blend it into the root twice.

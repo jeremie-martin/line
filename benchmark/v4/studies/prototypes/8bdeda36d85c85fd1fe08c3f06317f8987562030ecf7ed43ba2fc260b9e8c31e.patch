@@ -1,0 +1,124 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 7897bac8..7839e986 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -123,6 +123,9 @@ export type ArcMotionOptions= {
+   refineRebuildSamples?:number;
+   refineExpressive?:boolean;
+   responseSamples?:number;
++  /** Sustain separate response trajectories before selecting their best result. */
++  responseStarts?:number;
++  responseBasinRounds?:number;
+   responseDamping?:number;
+   responseScale?:number;
+   refineFollowSamples?:number;
+@@ -198,6 +201,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   let searchBudgetExhausted=false;
+   const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
+   const planningDecisions:any[]=[];
++  const responseExplorations:any[]=[];
+   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
+   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+   const controlMemory=new ArcControlMemory();
+@@ -261,7 +265,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       const support=clamp((1-(targets.air??.5))*(span+1),3,Math.max(3,span-6));
+       const impact=gap>=0?gaps[gap].targets.impact:undefined;
+       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
+-      let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
++      let best:any=null,activeResponseBest:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
+ 
+       let memo=options.memoCandidates?new Map<string,any>():null;
+       const prefix=prefixes.get(engine);
+@@ -327,6 +331,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           // Rebuild from validated geometry; subsequent simulations stay metered.
+           // A measurement from an earlier search must compete in this search.
+           const result={...saved.result,c,child:addArc(engine,saved.result.lines)};
++          if(activeResponseBest&&result.optimizationCost<activeResponseBest.optimizationCost)activeResponseBest=result;
+           if(!best||result.optimizationCost<best.optimizationCost)best=result;
+           return result;
+         }
+@@ -413,9 +418,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
+           achieved,actualImpact,terminalLoss,release};
+         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
+-          searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
++          searchCost:cost,optimizationCost:guided.cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+         // Interrupted evaluations never reach this cache insertion.
+         if(memo){const {child:_child,...measurement}=result;memo.set(key,{result:measurement,candidate:{...candidates.at(-1)}});}
++        if(activeResponseBest&&guided.cost<activeResponseBest.optimizationCost)activeResponseBest=result;
+         if(!best||guided.cost<best.optimizationCost)best=result;
+         return result;
+       };
+@@ -520,10 +526,32 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           }
+           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
+         }
+-        let responseUsed=0, trust=options.responseScale??1;
++        const basinRounds=Math.max(1,Math.floor(options.responseBasinRounds??3));
++        const startCount=Math.min(options.responseStarts??1,Math.floor(responseAllowance/(responseRound*basinRounds+1)));
++        const starts:ArcMotionControl[]=[];
++        if(startCount>1){
++          starts.push(best.c);
++          const scales=[2,5,6,Math.max(.6,support*.1),.25,.2,1.5,.08,7,2.5];
++          const keys=['entry','turn','exit','support','bias','offset','clearance','turnFraction','bend','guideFlare'] as const;
++          const value=(c:ArcMotionControl,key:typeof keys[number])=>c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,c.support*.5)/c.support:0);
++          for(const candidate of candidates.slice().sort((a,b)=>a.optimizationCost-b.optimizationCost)){
++            if(starts.every(seed=>keys.reduce((sum,key,j)=>sum+((value(seed,key)-value(candidate.c,key))/scales[j])**2,0)>16))starts.push(candidate.c);
++            if(starts.length>=startCount)break;
++          }
++          if(starts.length<2)starts.length=0;
++        }
++        let responseUsed=0, trust=options.responseScale??1,basinIndex=0,basinRound=0;
+         let secant:{jac:number[][];trust:number;uses:number}|null=null;
+         while(responseUsed+(secant?3:2*responseKeys.length+3)<=responseAllowance){
+-          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4};
++          const exploring=basinIndex<starts.length;
++          if(exploring&&basinRound===0){
++            if(responseUsed+responseRound+1>responseAllowance)break;
++            activeResponseBest=null;activeResponseBest=evaluate(starts[basinIndex]);responseUsed++;
++            trust=options.responseScale??1;secant=null;
++            if(!activeResponseBest){basinIndex++;continue;}
++          }
++          const anchor=activeResponseBest??best;
++          const origin=exitEnabled?{...anchor,c:{...anchor.c,exitBias:anchor.c.exitBias??anchor.c.bias}}:anchor,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4};
+           const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:key==='exitBias'?origin.c.bias:0);
+           const reused=secant!==null;
+           const jac=reused?secant!.jac:origin.residuals.map(()=>Array(responseKeys.length).fill(0));
+@@ -546,16 +574,24 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           for(const fraction of [1,.5,.25]){
+             if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
+           }
+-          const improving=best.optimizationCost<origin.optimizationCost-1e-12;
++          const refined=activeResponseBest??best;
++          const improving=refined.optimizationCost<origin.optimizationCost-1e-12;
+           const previousUses:number=secant?.uses??0;
+-          if(improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
+-            const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale[key as keyof typeof scale]*trust));
+-            const updated=arcSecantUpdate(jac,displacement,best.residuals.map((v:number,r:number)=>v-origin.residuals[r]));
++          if(!exploring&&improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
++            const displacement=responseKeys.map(key=>((refined.c[key]??value(key))-value(key))/(scale[key as keyof typeof scale]*trust));
++            const updated=arcSecantUpdate(jac,displacement,refined.residuals.map((v:number,r:number)=>v-origin.residuals[r]));
+             secant=updated?{jac:updated,trust,uses:previousUses+1}:null;
+           }else secant=null;
+           if(!improving)trust*=.5;
+-          Engine.retainOnly([...protectedEngines,engine,best.child]);
++          if(exploring){
++            responseExplorations.push({index:i,frame,basin:basinIndex,round:basinRound,initialCost:origin.optimizationCost,
++              finalCost:refined.optimizationCost,globalCost:best.optimizationCost});
++            basinRound++;
++            if(basinRound>=basinRounds){basinIndex++;basinRound=0;activeResponseBest=null;trust=options.responseScale??1;}
++          }
++          Engine.retainOnly([...protectedEngines,engine,best.child,...(activeResponseBest?[activeResponseBest.child]:[])]);
+         }
++        activeResponseBest=null;
+       }
+       for(let pass=0;best&&targets.air!==undefined&&pass<(options.airProjection??0);pass++){
+         const origin=best,measuredSamples=objectiveEnd-(i===0?0:frame)+1;
+@@ -795,6 +831,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,responseExplorations};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }

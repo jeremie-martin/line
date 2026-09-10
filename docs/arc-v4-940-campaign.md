@@ -46,7 +46,7 @@ Giving continuation probes 46 joint-response evaluations improves one of eight
 750k pilot cases, regresses five and leaves two unchanged. Its separate 3M
 teacher pilot is diagnostic only. A wider proposal mix (112 base, 144 guidance,
 138 response, 48 learned/measured proposals) improves six pilot cases and
-regresses two; its full panel is running. A proposal-diversity prototype also
+regresses two; its full panel later reaches 925.1309. A proposal-diversity prototype also
 distinguishes bias, offset and guide geometry, instead of only four support
 controls. Its pilot is mixed and does not establish a full-suite gain.
 
@@ -55,17 +55,16 @@ refreshed rollout controls yields 47,886 examples. No labels are changed and
 no new physical validation is claimed by this merge; the source proofs remain
 bound to their dataset hashes. The corrected mean predictor stays fixed, while
 new supervised partitions retrieve the expanded examples. Independent mean
-fixtures agree within 2.23e-16. All eight pilot cases improve, and a full panel
-is running. See [data provenance](../benchmark/v4/studies/arc-940-expanded-teaching-data.json).
+fixtures agree within 2.23e-16. All eight pilot cases improve; the complete panel reaches 928.0792. See [data provenance](../benchmark/v4/studies/arc-940-expanded-teaching-data.json).
 
 A separate prototype jointly refines two adjacent arcs. It measures the first
 arc's completed span once, both impacts, the second outgoing span and its
 arrival prior. An independent physical test reconstructs the pair and matches
 the objective; a bounded-work test preserves completion and the global frame
-allowance. Initial 750k and 3M pilots are running. This is an unselected research
+allowance. The 750k and 3M pilots are complete and mixed. This is an unselected research
 mechanism, with no full-suite performance claim.
 
-The complete 3M teacher using the preserved 926 compiler is still running.
+The complete 3M teacher using the preserved 926 compiler reaches 934.2764.
 All completed pilots, full panels, regressions and declared unfinished work are
 listed in [research evidence](../benchmark/v4/studies/arc-940-research.json).
 The canonical public baseline remains **926.9397** until a stronger result is
@@ -111,5 +110,47 @@ The first 750k joint-pair pilot mostly regresses, spending approximately
 150k–190k frames on joint work in affected cases. Its larger-budget pilot has
 useful trajectories but mixed results. A 12M diagnostic reserves the first 3M
 for unchanged construction and then revisits complete tracks, accepting only
-full-trajectory improvements. It remains an ongoing teacher experiment, outside
-the qualification allowance.
+full-trajectory improvements. It is a completed teacher diagnostic, outside the qualification allowance.
+
+
+## Further transfer, memory and search diagnostics
+
+The refreshed teacher-only examples reach **924.8756** at 750k. Adding a learned
+correction to the current mean raises that variant to **927.5517**, still below
+the expanded library's 928.0792. Separate full panels now test the corrected
+mean with the broader library and a 63,848-row union. Merging data does not
+itself establish an improvement; all source validation is bound in
+[the expanded-data record](../benchmark/v4/studies/arc-940-expanded-934-data.json).
+
+The 3M fixed-prefix teacher reproduces all 176 preserved student tracks at
+**926.9397**. Independently rebuilding every prefix and proposed arc validates
+16,138 teacher controls and 15,962 non-startup training rows. That headline is
+the fixed student's score, not a rollout of the new controls. See
+[the replay transfer](../benchmark/v4/studies/arc-940-replay-926-transfer.json).
+
+Deferred default-policy loading avoids parsing an unused model during research
+with an explicit model override. A fresh-process import/options probe falls
+from 82.0 MB to 13.3 MB live heap after garbage collection (RSS 206.8 MB to
+141.0 MB). These measurements describe that probe, not peak compilation memory.
+Eight default and eight override cases exactly retain tracks, scores and actual
+physics frames, and focused factory and compiler checks pass. This change is
+integrated without changing the public model or proposal distribution. See
+[memory measurements](../benchmark/v4/studies/arc-940-policy-loading-memory.json)
+and [physical parity](../benchmark/v4/studies/arc-940-lazy-policy-parity.json).
+
+Sustained response multi-start gives alternative shapes several consecutive
+refinement rounds while protecting the global best. Its two eight-case pilots
+remain mixed and unselected. Completed-track refinement accepts changes on
+three of eight cases, but none on five others; valid suffixes often still worsen
+the complete objective. A new isolated diagnostic aligns local refinement's
+span weights and amplitude handling with its full-trajectory acceptance test,
+without changing initial construction. Another 6M teacher uses the stronger
+expanded library and more proposal/response work.
+
+A separate measurement-only prototype logs initial proposals, their measured
+validity and local objective at ordinary construction prefixes. It includes
+prior-span targets and measurements alongside relative physical state, so a
+future proposal ranker need not infer hidden boundary targets. Six focused
+trace/budget tests pass with exact track, report and physics-work parity. Its
+complete data-collection panel is underway. This is preparation for a learned
+proposal-ordering experiment; no live improvement is claimed.

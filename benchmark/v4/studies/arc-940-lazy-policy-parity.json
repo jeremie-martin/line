@@ -1,0 +1,21 @@
+{
+  "schema": "line.arc-lazy-policy-parity.v1",
+  "panels": [
+    {
+      "pilot": "generated/benchmark-v4/arc-940/pilots/lazy-reference/run.json.gz",
+      "sha256": "c24e73f315c888c7e5d950e5ffe58dbed13ffec532deb36e9b41e38d2f9980c5",
+      "reference": "generated/benchmark-v4/arc-940/full/indexed-reference/run.json.gz",
+      "referenceSha256": "837fa8e1bfa0a4e8b16850cd336723a865b5bc2f43e7115d2068a7a949866a47",
+      "matches": 8
+    },
+    {
+      "pilot": "generated/benchmark-v4/arc-940/pilots/lazy-expanded/run.json.gz",
+      "sha256": "f1f1a1f32c55829fa68ff31759abd46fd217cd0a7be78f57e1cde0b0cca83902",
+      "reference": "generated/benchmark-v4/arc-940/full/expanded-teaching/run.json.gz",
+      "referenceSha256": "f5ec193ce00dfc628f18022211da4c12b88b0aa9378cb850330c3321f29d53e6",
+      "matches": 8
+    }
+  ],
+  "exactTracksScoresAndPhysicsFrames": true,
+  "note": "Eight default-policy and eight overridden-policy development cases. This is not full canonical confirmation."
+}

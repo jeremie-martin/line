@@ -1,0 +1,47 @@
+{
+  "schema": "line.arc-policy-loading-memory.v1",
+  "probe": "global.gc(); const before=process.memoryUsage(); const {connectedArcOptions}=await import('./scripts/v0/optimizer/connected_arcs.ts'); const options=connectedArcOptions({duration:20},750000); global.gc(); console.log(JSON.stringify({before,after:process.memoryUsage(),policyRepresentation:typeof options.controlPolicy}));",
+  "rows": [
+    {
+      "root": "/tmp/line-v4-940-indexed",
+      "connectedSha256": "21251ee5516e891bfc4e77c65d2c11ffa0f046da8f258bbbc30e50ec4b4b820d",
+      "motionSha256": "d53db7ffa09d07aec5cdf5b10524c6e0661e82d3f4b9a3c05a28fa5461559410",
+      "before": {
+        "rss": 92299264,
+        "heapTotal": 19238912,
+        "heapUsed": 9230208,
+        "external": 2280848,
+        "arrayBuffers": 16883
+      },
+      "after": {
+        "rss": 206811136,
+        "heapTotal": 119156736,
+        "heapUsed": 82003376,
+        "external": 7788657,
+        "arrayBuffers": 25115
+      },
+      "policyRepresentation": "object"
+    },
+    {
+      "root": "/tmp/line-v4-940-lazy",
+      "connectedSha256": "f0caefb5c9060e87bb802d966020df979340a720ebfeb07fd5e5809e92ce8c47",
+      "motionSha256": "d87542f792b7c8e67e9c09610cb9c525d607bf6d2fd6a9cc8d8dc3e5b30aebe3",
+      "before": {
+        "rss": 94502912,
+        "heapTotal": 18976768,
+        "heapUsed": 9240320,
+        "external": 2280720,
+        "arrayBuffers": 16883
+      },
+      "after": {
+        "rss": 141000704,
+        "heapTotal": 23212032,
+        "heapUsed": 13342728,
+        "external": 8538330,
+        "arrayBuffers": 25115
+      },
+      "policyRepresentation": "function"
+    }
+  ],
+  "note": "Fresh-process import and option construction after forced GC. Model selection has not compiled a track. Memory observations are diagnostic, not an end-to-end speed or score claim."
+}

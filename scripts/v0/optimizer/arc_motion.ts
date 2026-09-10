@@ -154,6 +154,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
   if(duration<1)throw new Error('arc duration must cover at least one frame');
   if(budget<=2*(end+1))throw new Error('arc budget must cover two complete replays and construction work');
   try{
+  if(typeof options.controlPolicy==='function')options={...options,controlPolicy:options.controlPolicy()};
   const frames=spec.contacts.map(c=>Math.round(c.t*40));
   const gaps=sliceTimeline(frames,duration);
   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}

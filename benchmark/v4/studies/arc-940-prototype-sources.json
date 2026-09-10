@@ -111,6 +111,16 @@
       "tests": [
         "tests/arc_response_network.test.ts"
       ]
+    },
+    {
+      "name": "value-correction",
+      "base": "e975dfcedbc97e80d714982aa91119c508486cc2",
+      "patch": "benchmark/v4/studies/prototypes/a62b4de12e23ee0d30d2128ab2296b633c3baa77743f4cc4e0dff3c4d7aacd65.patch",
+      "sha256": "a62b4de12e23ee0d30d2128ab2296b633c3baa77743f4cc4e0dff3c4d7aacd65",
+      "bytes": 3986,
+      "tests": [
+        "tests/arc_value_correction.test.ts"
+      ]
     }
   ]
 }

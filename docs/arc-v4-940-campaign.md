@@ -346,3 +346,32 @@ score is now 934.0704; neither the 750k target nor canonical promotion is claime
 A further 6M teacher now uses the stronger separate-library policy with the
 same accurate continuation allocation. It remains a diagnostic outside the
 qualification budget.
+
+## Correcting the future-value prior
+
+Increasing the new library's proposal share does not improve the complete
+panel: equal shares reach **929.8586** and two-thirds new-library proposals
+reach **931.8409**, all 176 cases valid. The original three-to-one allocation
+remains the stronger control policy.
+
+A residual predictor preserves the existing future-value model and learns a
+correction in log-cost space. Its inputs are the same 57 physical features plus
+the frozen prior's prediction. All 64,464 recorded prior predictions match an
+independent evaluation within 5.56e-17. Five folds hold out complete catalog
+groups. Mean within-context ranking regret falls from 0.004010 to 0.003532 at
+half strength and 0.003536 at full strength. Labels include terminal priors,
+so this measures development prediction quality, not independent qualification.
+
+Both runtime variants exactly reproduce 32 independent Python fixtures.
+Eleven focused tests pass, including physical track and work parity with a
+zero-strength wrapper. At 750k, half strength reaches **934.2402**, all 176 valid,
+compared with 934.0704 for its starting policy. Full strength reaches 932.5682.
+The pilot's seven-of-eight improvement therefore transfers only a small full
+headline gain. A complete panel is testing greater guidance weight for the
+half-strength correction. See [the correction evidence](../benchmark/v4/studies/arc-940-value-correction.json).
+
+A separate six-million-frame query study replays the 934.0704 student's exact
+prefixes while asking the stronger search for counterfactual controls. Its
+replayed score is fixed by construction; useful evidence will come from
+independently validated controls and subsequent live student evaluations.
+The public canonical baseline remains **926.9397**, and the 940 goal is active.

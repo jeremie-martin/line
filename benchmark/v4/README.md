@@ -57,6 +57,17 @@ See [canonical evidence](studies/recovery-validation.json),
 [jitter evidence](studies/recovery-jitter.json), and the
 [campaign ledger](../../docs/arc-v4-recovery-campaign.md).
 
+The subsequent 940 campaign reaches **952.4115** with compiler `97d2af4d`:
+**352/352** valid canonical runs, **176** distinct tracks, at most **749,997**
+actual physics frames per run. The V3 subset scores **957.9371** and the extension
+scores **946.9458**. Relative to 926.9397, 173 specifications improve and three
+regress. The benchmark remains frozen; the compiler combines exact demonstrated
+arc proposals with its general physical search under one shared allowance.
+Separate 2% search-target jitter passes 176/176 runs, with 148 distinct tracks.
+See [canonical evidence](studies/arc-940-validation.json),
+[jitter evidence](studies/arc-940-jitter.json), and the
+[campaign ledger](../../docs/arc-v4-940-campaign.md).
+
 The initial compiler is the preserved V3 930.1556 compiler, `3420e481`.
 Let its complete V4 headline be H. The recovery target is fixed as
 **H + 0.75 × max(0, 930.1556 − H)**, rounded upward to four decimals. A 50–100

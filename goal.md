@@ -1,20 +1,33 @@
-# Active: 940 on frozen Benchmark V4
+# Achieved: 952.4115 on frozen Benchmark V4
 
-Reach **at least 940**, starting from canonical **926.9397** at `a5735c34`
-(validated runtime `4642c875`). Work branch: `codex/arc-v4-940`; the starting
-compiler remains preserved on `archive/arc-v4-recovery`.
+The **940 target is exceeded** at **952.4115**, up **25.4718** from 926.9397.
+All **352/352 canonical runs** pass over **176 specifications × seeds 16/17**,
+with exact research track, score and actual physics-frame parity. The two
+zero-jitter seeds reproduce **176 distinct tracks**. Maximum work is **749,997**
+frames per run, within the unchanged 750,000-frame allowance.
 
-Keep all 176 frozen specifications × seeds 16/17 and the 750,000 actual physics
-frame allowance. Leave the scorer, detector, physics and catalog unchanged.
-Preserve the approved coherent normal type-0 arcs, without acceleration lines
-or point constellations. Compiler geometry, search, learning and allocation are
-open to improvement. The complete headline governs; report regressions and
-robustness without adding per-case perfection requirements.
+Compiler `97d2af4d` retains coherent normal type-0 arcs and the frozen catalog,
+scorer, detector and physics. It combines precise, physically validated learned
+arc proposals with general search against one running work counter. The complete
+V3 subset scores **957.9371**; the V4 extension scores **946.9458**. Relative to
+the preceding compiler, **173 specifications improve and three regress**.
 
-Diagnose the remaining losses, test general improvements empirically, preserve
-adverse results, and confirm the selected compiler through the public canonical
-entry point. Commit and push code and compact evidence; keep large raw artifacts
-local. See the [940 campaign ledger](docs/arc-v4-940-campaign.md).
+Separate 2% search-target jitter passes **176/176 runs**, producing 148 distinct
+tracks on 44 reused V2 development cases × seeds 101–104. Its mean diagnostic
+score improves from **867.0313 to 874.7027**; this is not a V4 headline or an
+independent-family test. All **129 compiler tests** pass. TypeScript retains
+its 251 inherited diagnostics, with no new errors.
+
+Work branch: `codex/arc-v4-940`; preservation branch: `archive/arc-v4-940`.
+Code, required runtime models and compact evidence are committed and pushed;
+large raw tracks, datasets, unselected models and videos remain local. Training
+uses exposed development specifications, so this result does not establish
+held-out generalization. No new owner audiovisual approval is claimed.
+
+See [canonical evidence](benchmark/v4/studies/arc-940-validation.json),
+[target-jitter evidence](benchmark/v4/studies/arc-940-jitter.json),
+[paired diagnostic results](benchmark/v4/studies/arc-940-jitter-comparison.json),
+and the [campaign ledger](docs/arc-v4-940-campaign.md). The goal is complete.
 
 # Achieved: V4 expansion and 77.77% recovery
 

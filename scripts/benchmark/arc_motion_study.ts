@@ -1,11 +1,12 @@
 import {createHash} from 'node:crypto';
 import {mkdirSync,readFileSync,writeFileSync,existsSync,renameSync} from 'node:fs';
 import {dirname} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {developmentCases} from '../../benchmark/v2/catalog.ts';
 import {benchmarkPolicy} from '../../benchmark/v2/policy.ts';
 import {applyJolt} from '../produce/seed.ts';
 import {compileArcMotion} from '../v0/optimizer/arc_motion.ts';
-import {connectedArcOptions} from '../v0/optimizer/connected_arcs.ts';
+import {connectedArcOptions,parseArcPolicyArtifact} from '../v0/optimizer/connected_arcs.ts';
 import {compileHandoff} from '../v0/optimizer/handoff.ts';
 import {buildAxisContract,scoreV2Report} from '../v0/benchmark_v2/evaluator.ts';
 const arg=(name:string)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
@@ -18,7 +19,7 @@ const historicalOptions={...{budget:Number(arg('budget')??750000),samples:Number
 const options=arg('defaults')==='production'
   ? {...connectedArcOptions(spec,historicalOptions.budget),...JSON.parse(arg('options')??'{}')}
   : historicalOptions;
-if(options.controlPolicyPath)options.controlPolicy=JSON.parse(readFileSync(options.controlPolicyPath,'utf8'));
+if(options.controlPolicyPath)options.controlPolicy=parseArcPolicyArtifact(readFileSync(options.controlPolicyPath),pathToFileURL(options.controlPolicyPath));
 if(options.valueModelPath)options.futureValueModel=JSON.parse(readFileSync(options.valueModelPath,'utf8'));
 const start=performance.now(),result=options.publicCompiler?compileHandoff(spec,Number(arg('seed')??260908011),{budget:options.budget}):compileArcMotion(spec,Number(arg('seed')??260908011),options);
 const suite=JSON.parse(readFileSync('benchmark/v2/compat/suite-manifest.json','utf8'));

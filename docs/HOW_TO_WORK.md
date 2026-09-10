@@ -1,3 +1,12 @@
+# Current benchmark: frozen V4
+
+The current public canonical result is **952.4115**, with all **352/352** runs
+valid across **176 specifications × seeds 16/17**, at **750,000 actual physics
+frames per run**. The normal, coherent arc constraint remains in force. Follow
+[`goal.md`](../goal.md), the [V4 contract](../benchmark/v4/README.md), and the
+[current campaign evidence](arc-v4-940-campaign.md). The V2 workflow and campaign
+status below are historical; they do not replace the V4 evaluation contract.
+
 # Current owner constraint — 2026-09-08
 
 The active compiler campaign uses coherent, visible arc primitives made from

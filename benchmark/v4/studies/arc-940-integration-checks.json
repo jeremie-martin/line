@@ -59,6 +59,20 @@
     "integration-final-arc-suite.log": {
       "path": "generated/benchmark-v4/arc-940/integration-final-arc-suite.log",
       "sha256": "e061bb581b8172ca24b2dd0aea6cef176d16411eab4e6f477498aa181c3db6b5"
+    },
+    "final-tsc-supported.log": {
+      "path": "generated/benchmark-v4/arc-940/final-tsc-supported.log",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "completion-tsc-supported.log": {
+      "path": "generated/benchmark-v4/arc-940/completion-tsc-supported.log",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
     }
+  },
+  "explicitCompressedModelStudy": {
+    "source": "accelerando_reply",
+    "exactCanonicalTrackScoreAndWork": true,
+    "planSha256": "abd84e812599f64689dbd8f66586f9e62f030de7e7334cbb9755fd4ce09729d8",
+    "runSha256": "a55c02a154bdae8f70852bb613980ce67675a515725ed5c99250641aa6b6ff32"
   }
 }

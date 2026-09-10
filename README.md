@@ -14,9 +14,9 @@ The current compiler uses coherent normal-line arcs with measured trajectory
 shaping and adaptive continuation planning. The current development benchmark is
 [V4](benchmark/v4/README.md): 176 specifications, retaining all 88 V3 cases,
 with two canonical seeds and a 750,000-frame allowance per run.
-The current canonical score is **926.9397**, with **352/352 valid runs**.
+The current canonical score is **952.4115**, with **352/352 valid runs**.
 The compiler also preserves validated curves when further search exhausts its budget.
-See [the V4 campaign and evidence](docs/arc-v4-recovery-campaign.md) and
+See [the V4 campaign and evidence](docs/arc-v4-940-campaign.md) and
 [the compiler map](scripts/v0/optimizer/README.md).
 
 > **Working on the compiler?** Start at [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md)

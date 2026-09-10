@@ -1,6 +1,6 @@
 # V4 compiler campaign: 940
 
-The active target is **at least 940** on the frozen V4 benchmark, starting from
+The completed target was **at least 940** on the frozen V4 benchmark, starting from
 canonical **926.9397**. The reference is `a5735c34`, whose runtime matches the
 validated `4642c875` compiler. The previous campaign and its artifacts remain
 preserved on `archive/arc-v4-recovery`.
@@ -11,11 +11,12 @@ fixed. The approved primitive remains substantial coherent normal type-0 arcs.
 Research results require public canonical confirmation; higher-budget teachers
 and hypothetical loss reductions are diagnostics, not qualifying scores.
 
-The complete research candidate now reaches **952.4115**, all 176 valid, with a
-maximum of **749,997** actual physics frames. Public qualification of runtime
-`97d2af4d` is underway across both canonical seeds, together with a separate
-2% target-jitter diagnostic. The last confirmed canonical result remains
-926.9397 until that validation finishes.
+The target is exceeded at **952.4115**, confirmed through the public canonical
+entry point with **352/352 valid runs**. Runtime `97d2af4d` matches all research
+tracks, scores and actual physics-frame counts across both canonical seeds.
+Maximum work is **749,997** frames. The gain over 926.9397 is **25.4718**;
+173 specifications improve and three regress. Separate 2% search-target jitter
+passes **176/176** runs, with 148 distinct tracks. See [canonical evidence](../benchmark/v4/studies/arc-940-validation.json).
 
 Code, required runtime models and compact evidence will be pushed. Large raw
 tracks, datasets, unselected models and videos stay local.
@@ -650,3 +651,44 @@ reference controls and the updated value model.
 See [exact-transfer and selection evidence](../benchmark/v4/studies/arc-940-exact-preview.json),
 [production configuration parity](../benchmark/v4/studies/arc-940-production-allocation.json),
 and [the complete research ledger](../benchmark/v4/studies/arc-940-research.json).
+
+## Canonical completion and robustness
+
+The public entry point confirms **952.4115**, all **352/352 valid**, at runtime
+`97d2af4d`. Both canonical seeds reproduce the research tracks, scores and actual
+work exactly. They produce 176 distinct tracks. The V3 subset scores **957.9371**
+and the V4 extension **946.9458**. Total compiler work is 261,348,702 physics
+frames, maximum 749,997. Every line is normal type 0; there are no isolated
+single-segment components. The shortest connected component is 15.4363 units.
+These geometry checks do not replace owner audiovisual review.
+
+173 specifications improve over 926.9397. The three regressions are
+`bridge_offgrid_conversation_answer_early_25ms` (−8.0889),
+`bridge_pickup_lattice` (−7.8144), and
+`bridge_loose_pocket_drag_later_20ms` (−3.1259).
+
+The separate 2% search-target jitter panel uses 44 reused V2 development cases
+and seeds 101–104. All 176 runs are valid and within budget, with 148 distinct
+tracks. Mean diagnostic score rises from **867.0313 to 874.7027**; 139 cells
+improve and 37 regress. Authored inputs and scoring sources match the preserved
+baseline. This is neither a V4 headline nor an independent-family evaluation.
+
+All **129 tests across 34 files** pass after the explicit research replay fix.
+Supported TypeScript checking retains the baseline's 251 diagnostics, with no
+new errors. An explicit compressed-model research run also reproduces its
+canonical track, score and physical-frame count exactly. The canonical harness's
+only change records the new required compiler payload; the frozen judge verifies
+unchanged. The committed runtime and compact evidence are available on
+`codex/arc-v4-940` and `archive/arc-v4-940`; raw artifacts remain local.
+
+The larger model is a tradeoff: 243 MB decoded JSON, stored losslessly in a
+102 MB payload. In this concurrent canonical run, median per-worker compile peak
+RSS was approximately 1.28 GiB, and median compilation time was 35.98 seconds.
+Workload concurrency differs from earlier runs, so these timings are descriptive,
+not a controlled speed comparison. The result is an exposed development-score
+improvement, not evidence of held-out generalization.
+
+See [canonical validation](../benchmark/v4/studies/arc-940-validation.json),
+[stress validation](../benchmark/v4/studies/arc-940-jitter.json),
+[paired stress comparison](../benchmark/v4/studies/arc-940-jitter-comparison.json),
+and [integration checks](../benchmark/v4/studies/arc-940-integration-checks.json).

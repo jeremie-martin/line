@@ -18,7 +18,7 @@ No point controls or acceleration lines enter this production path.
 | `arc_boundary.ts` | Replace a truncated planning estimate with the preceding span's actual measurement once the next contact completes it. |
 | `arc_memory.ts` | Reuse successful controls and measured local response matrices within one compile; every resulting proposal is physically evaluated. |
 | `arc_guidance.ts` | Remove unused portions of physical guides after replay. |
-| `arc_control_policy.ts`, `arc_control_policy_model.json` | Mix learned joint-control proposals with nearby replay-verified control examples, using relative physical state and upcoming targets. |
+| `arc_control_policy.ts`, `arc_control_policy_model.json` and its `.gz` payload | Mix learned joint-control proposals with nearby replay-verified control examples, using relative physical state and upcoming targets. |
 | `arc_response.ts` | Damped coupled response proposals from measured differences. |
 | `arc_value.ts`, `arc_value_model.json` | Predict continuation quality from physical arrival state and upcoming authored targets; exact simulation still validates candidates. |
 | `arc_refinement.ts` | Completed-track repair experiments, disabled in production defaults. Retains the incumbent and charges complete continuations. |
@@ -32,7 +32,7 @@ to choose continuation effort. Less mature local searches retain a larger constr
 reserve. If observed construction becomes too expensive for the remaining track,
 the planner reduces local work and keeps its completed candidates. It does not
 consult the legacy difficulty model.
-The selected geometry receives two complete cold replays, included in accounting.
+Each construction attempt receives two complete cold replays, included in accounting.
 Completed evaluations of identical normalized controls are reused within and across
 searches with the same complete physical prefix and evaluation context. Prefix
 identity follows detached and rebuilt geometry; the shared cache is bounded.
@@ -70,6 +70,25 @@ replaces that span's truncated planning estimate. Adjacent planning stages do no
 count both estimates. The measurement registry, final report and scorer are unchanged.
 The models and local memories never certify physical validity.
 Same spec, seed and budget must give identical tracks. Each budget is a fresh run.
+
+The compiler first tries a complete trajectory from a separate learned proposal
+library, with a ceiling of 5% of the existing allowance. Original control values
+and omitted geometry fields are preserved exactly at demonstrated states;
+otherwise entry/exit angles and support adapt to the measured incoming direction
+and interval. The proposal is physically validated and stops early on rejection.
+General search then continues against the same absolute frame ceiling, without
+resetting or refunding any proposal work. The existing complete-trajectory
+objective chooses between the two finished tracks; general search wins ties.
+Explicit replay/direct-control studies bypass this competition. Disable
+`policyPreview` to study general search alone.
+
+The policy JSON is a small manifest for a lossless gzip payload. The loader checks
+both compressed and decoded SHA-256 hashes and decoded length. The runtime uses
+243,143,468 bytes of decoded JSON; the stored payload is 102,442,793 bytes. This
+larger learned library has a material loading/memory cost. Research tools accept
+both unpacked policy JSON and the committed manifest. Training demonstrations
+come from exposed development specifications; canonical gains do not establish
+held-out generalization.
 
 ## Retained mechanisms
 

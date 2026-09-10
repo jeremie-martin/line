@@ -18,7 +18,7 @@
     "onlyDifference": "bypass preview for explicit replayControls/directControls"
   },
   "productionCodeSha256": "77f5c01f261cd421bcdce7748e636fadfb2b483dbfd5997c5a9d3b34168ac902",
-  "scriptSha256": "2cab4258223b2189ef821f291fed0b89d3eb79d7caf55e3a9c9fa57ab89100c9",
+  "scriptSha256": "19d41407813a59ceb2caddea82fa9334fcb189176edc9b44a8a3e5d86e477cb8",
   "note": "Configuration and model/source parity with the declared research candidate. Complete track, score and work parity still requires canonical validation.",
   "rows": [
     {

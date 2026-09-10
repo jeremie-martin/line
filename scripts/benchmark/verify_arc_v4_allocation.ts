@@ -28,7 +28,10 @@ if(manifest.schema==='line.arc-compressed-policy.v1'){
   assert.equal(sha(compressed),manifest.compressedSha256);modelBytes=gunzipSync(compressed);
   assert.equal(modelBytes.length,manifest.uncompressedBytes);assert.equal(sha(modelBytes),manifest.sha256);
 }
-assert.equal(sha(modelBytes),plan.modelSha256);
+const researchArtifact=JSON.parse(readFileSync(plan.options.controlPolicyPath,'utf8'));
+assert.equal(sha(readFileSync(plan.options.controlPolicyPath)),plan.modelSha256);
+const decodedResearchSha256=researchArtifact.schema==='line.arc-compressed-policy.v1'?researchArtifact.sha256:plan.modelSha256;
+assert.equal(sha(modelBytes),decodedResearchSha256);
 const valuePath='scripts/v0/optimizer/arc_value_model.json',valueSha256=sha(readFileSync(valuePath));
 assert.equal(valueSha256,plan.valueModelSha256??sha(readFileSync(resolve(plan.compilerRoot,valuePath))));
 // The only motion-source integration difference protects explicit research

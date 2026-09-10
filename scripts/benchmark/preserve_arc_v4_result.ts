@@ -16,6 +16,11 @@ const write=(path:string,value:unknown)=>{
   else{writeFileSync(path,bytes);writeFileSync(path+'.sha256',sha(bytes)+'\n');}
 };
 const path=arg('canonical')!,name=arg('name')!,isBaseline=arg('baseline')==='true'||name==='baseline-930';assert.match(name,/^[a-z0-9-]+$/);
+const campaignTarget=arg('target')===undefined?undefined:Number(arg('target'));
+if(campaignTarget!==undefined){
+  assert.ok(!isBaseline&&arg('comparison-baseline'),'explicit targets require a canonical comparison baseline');
+  assert.ok(Number.isFinite(campaignTarget)&&campaignTarget>0&&campaignTarget<=1000);
+}else assert.ok(!arg('comparison-baseline'),'comparison-baseline requires an explicit campaign target');
 const run=read(path),cases=loadCases(),original=loadV3(),originalIds=new Set(original.map(c=>c.id));
 assert.equal(run.plan.profile,'canonical');assert.equal(run.plan.compiler.dirty,'');
 assert.equal(run.plan.suiteFingerprint,sha(JSON.stringify(verifyFrozen())));
@@ -31,10 +36,12 @@ for(const row of run.rows){
 }
 const archivePath=`benchmark/v4/runs/${name}.json.gz`;
 const reference=read('benchmark/v3/runs/arc-930.json.gz');assert.equal(reference.summary.headline,930.1556);
-const initial=isBaseline?run:read(read('benchmark/v4/baseline.json').archive.path);
+const initial=isBaseline?run:read(arg('comparison-baseline')??read('benchmark/v4/baseline.json').archive.path);
 assert.equal(initial.plan.suiteFingerprint,run.plan.suiteFingerprint);
+assert.equal(initial.plan.profile,'canonical');assert.deepEqual(initial.plan.seeds,[16,17]);
+assert.deepEqual(summarize(initial.rows,cases,[16,17]),initial.summary);
 const initialUnits=Math.round(initial.summary.headline*10000),referenceUnits=Math.round(reference.summary.headline*10000);
-const target=(initialUnits+Math.ceil(3*Math.max(0,referenceUnits-initialUnits)/4))/10000;
+const target=campaignTarget??(initialUnits+Math.ceil(3*Math.max(0,referenceUnits-initialUnits)/4))/10000;
 let parity:any;
 if(isBaseline){
   const old=new Map<string,any>(reference.rows.map((r:any)=>[`${r.sourceId}:${r.seed}`,r]));
@@ -52,15 +59,21 @@ if(isBaseline){
   parity={kind:'research',path:arg('research'),sha256:sha(readFileSync(arg('research')!)),matches:run.rows.length};
 }
 // Preserve only after the complete compiler/judge and research parity checks.
+if(arg('check-only')==='true'){
+  console.log(JSON.stringify({checked:true,headline:summary.headline,valid:summary.valid,target,targetReached:summary.headline>=target,parity}));
+  process.exit(0);
+}
 write(archivePath,run);
 const before=new Map<string,any>(initial.summary.specifications.map((c:any)=>[c.id,c]));
 const paired=summary.specifications.map(c=>({id:c.id,before:before.get(c.id).score,after:c.score,delta:Math.round((c.score-before.get(c.id).score)*10000)/10000}));
-const result={schema:'line.arc-v4-canonical-validation.v1',status:isBaseline?'baseline':'canonical-result',
+const result={schema:campaignTarget===undefined?'line.arc-v4-canonical-validation.v1':'line.arc-v4-canonical-validation.v2',status:isBaseline?'baseline':'canonical-result',
   compilerCommit:run.plan.compiler.commit,suiteFingerprint:run.plan.suiteFingerprint,summary,
   panels:Object.fromEntries(Object.entries(run.panels).map(([k,v]:[string,any])=>[k,{headline:v.headline,valid:v.valid,runs:v.runs,distinctTracks:v.distinctTracks}])),
-  referenceV3:reference.summary.headline,baseline:initial.summary.headline,dropFromV3:(referenceUnits-initialUnits)/10000,
+  ...(campaignTarget===undefined?{referenceV3:reference.summary.headline,baseline:initial.summary.headline,dropFromV3:(referenceUnits-initialUnits)/10000,
   recoveryTarget:target,targetReached:summary.headline>=target,
-  recoveredFraction:referenceUnits>initialUnits?(Math.round(summary.headline*10000)-initialUnits)/(referenceUnits-initialUnits):null,
+  recoveredFraction:referenceUnits>initialUnits?(Math.round(summary.headline*10000)-initialUnits)/(referenceUnits-initialUnits):null}:
+  {baseline:initial.summary.headline,baselineArchive:{path:arg('comparison-baseline'),sha256:sha(readFileSync(arg('comparison-baseline')!))},
+    target,targetReached:summary.headline>=target,gain:(Math.round(summary.headline*10000)-initialUnits)/10000}),
   archive:{path:archivePath,rawSha256:sha(readFileSync(path)),sha256:sha(readFileSync(archivePath))},parity,
   physicalFrames:{total:run.rows.reduce((s:number,r:any)=>s+r.resources.physicalFrames,0),maximum:Math.max(...run.rows.map((r:any)=>r.resources.physicalFrames))},
   geometry:{allNormal:true,singleSegmentComponents:0,shortestComponent:Math.min(...run.rows.map((r:any)=>r.geometry.shortestComponent))},

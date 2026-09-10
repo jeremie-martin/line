@@ -1,3 +1,21 @@
+# Active: 940 on frozen Benchmark V4
+
+Reach **at least 940**, starting from canonical **926.9397** at `a5735c34`
+(validated runtime `4642c875`). Work branch: `codex/arc-v4-940`; the starting
+compiler remains preserved on `archive/arc-v4-recovery`.
+
+Keep all 176 frozen specifications × seeds 16/17 and the 750,000 actual physics
+frame allowance. Leave the scorer, detector, physics and catalog unchanged.
+Preserve the approved coherent normal type-0 arcs, without acceleration lines
+or point constellations. Compiler geometry, search, learning and allocation are
+open to improvement. The complete headline governs; report regressions and
+robustness without adding per-case perfection requirements.
+
+Diagnose the remaining losses, test general improvements empirically, preserve
+adverse results, and confirm the selected compiler through the public canonical
+entry point. Commit and push code and compact evidence; keep large raw artifacts
+local. See the [940 campaign ledger](docs/arc-v4-940-campaign.md).
+
 # Achieved: V4 expansion and 77.77% recovery
 
 V4 contains **176 specifications**, including all 88 V3 cases unchanged. The

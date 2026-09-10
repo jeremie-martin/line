@@ -60,10 +60,10 @@ import {
 } from "./arc_placement.ts";
 import { candidateQualityObjective } from "./optimizer/aim.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffFrontierNodeProbeHook,
   type HandoffNode,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
 import {
   getCandidateProbe,
@@ -464,7 +464,7 @@ for (const definition of definitions) {
     setNormalPoolSnapshotHook((record) => captureRawPool(rawSnapshots, record));
     const started = performance.now();
     try {
-      compileHandoff(spec, seed, { budget: BUDGET });
+      compileLegacyHandoff(spec, seed, { budget: BUDGET });
     } finally {
       setHandoffFrontierNodeProbeHook(null);
       setNormalPoolSnapshotHook(null);

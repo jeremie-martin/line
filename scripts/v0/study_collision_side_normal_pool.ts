@@ -19,7 +19,7 @@ import { getRiderMetered } from "../lib/detector.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { sampleArcPlacementGeometry, type ImpactFrameTargetState } from "./arc_placement.ts";
 import { candidateQualityObjective } from "./optimizer/aim.ts";
-import { compileHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/handoff.ts";
+import { compileLegacyHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/legacy_handoff.ts";
 import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
 import { getCandidateProbe, sampleOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { axisLookaheadEndFrame, tryCandidateGeometry } from "./core/candidate.ts";
@@ -209,7 +209,7 @@ for (const definition of definitions) {
     setNormalPoolSnapshotHook((record) => snapshotRawPool(rawPools, record));
     const started = performance.now();
     try {
-      compileHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
+      compileLegacyHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
     } finally {
       setHandoffFrontierNodeProbeHook(null);
       setNormalPoolSnapshotHook(null);

@@ -8,12 +8,12 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeCandidate,
   type HandoffPoolProbeContactResponse,
   type HandoffPoolProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { AXES, type AxisName, type AxisValues } from "./types.ts";
 import type { PrecontactMulticontactHistoryReady } from "./trajectory/precontact_multicontact_history.ts";
@@ -506,7 +506,7 @@ for (const { name: specName, spec } of compileInputs) {
     const beforePools = poolCount;
     const beforeRows = rows.length;
     const started = Date.now();
-    compileHandoff(spec, seed, { budget });
+    compileLegacyHandoff(spec, seed, { budget });
     writeCheckpoints();
     console.error(
       `  ${specName}/s${seed}: ${poolCount - beforePools} pools, ${rows.length - beforeRows} axis rows, ` +

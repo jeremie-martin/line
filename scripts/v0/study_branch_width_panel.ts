@@ -21,10 +21,10 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { scoreDriftReport } from "./score.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffRankedOptionsProbeHook,
   type HandoffRankedOptionsProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { FPS, type Spec } from "./types.ts";
 
 const catalog: Record<string, Spec> = {
@@ -80,7 +80,7 @@ const rows = selected.map(([name, source]) => {
   }
   let checkpoint;
   try {
-    checkpoint = compileHandoff(spec, seed, {
+    checkpoint = compileLegacyHandoff(spec, seed, {
       budget,
       searchSeed: seed + searchSeedOffset,
       polish,

@@ -38,7 +38,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { applyJolt } from "../produce/seed.ts";
-import { compileHandoff, setHandoffDeadlineProbeHook } from "./optimizer/handoff.ts";
+import { compileLegacyHandoff, setHandoffDeadlineProbeHook } from "./optimizer/legacy_handoff.ts";
 import { getCandidatesSorted, type SearchNode } from "./optimizer/node.ts";
 import { getSimFrames, refundSimFramesTo } from "./optimizer/sim_frames.ts";
 import { loadSourceManifest, loadSourceSpec, resolveSources } from "./benchmark_v2/model.ts";
@@ -169,7 +169,7 @@ async function workerMain(task: Task): Promise<void> {
       }
     });
 
-    const { track, report, stats } = compileHandoff(spec, task.seed, { budget: task.budget });
+    const { track, report, stats } = compileLegacyHandoff(spec, task.seed, { budget: task.budget });
     setHandoffDeadlineProbeHook(null);
 
     const anyStats = stats as unknown as Record<string, unknown>;

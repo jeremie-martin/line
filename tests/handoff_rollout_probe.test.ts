@@ -2,12 +2,12 @@ import { createHash } from "node:crypto";
 import { describe, expect, test } from "vitest";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffExpansionProbeHook,
   setHandoffRolloutProbeHook,
   type HandoffExpansionProbeRecord,
   type HandoffRolloutProbeRecord,
-} from "../scripts/v0/optimizer/handoff.ts";
+} from "../scripts/v0/optimizer/legacy_handoff.ts";
 
 /**
  * The rollout-economics observation hooks (`scripts/v0/study_rollout_economics.ts`).
@@ -49,12 +49,12 @@ describe("rollout observation hooks", () => {
     setHandoffExpansionProbeHook((record) => expansions.push(record));
     let instrumented;
     try {
-      instrumented = compileHandoff(spec, SEED, { budget: BUDGET });
+      instrumented = compileLegacyHandoff(spec, SEED, { budget: BUDGET });
     } finally {
       setHandoffRolloutProbeHook(null);
       setHandoffExpansionProbeHook(null);
     }
-    const bare = compileHandoff(spec, SEED, { budget: BUDGET });
+    const bare = compileLegacyHandoff(spec, SEED, { budget: BUDGET });
 
     expect(rollouts.length).toBeGreaterThan(0);
     expect(expansions.length).toBeGreaterThan(0);

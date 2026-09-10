@@ -31,13 +31,13 @@ import { applyJolt } from "../produce/seed.ts";
 import { scoreDriftReport } from "./score.ts";
 import { compilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeCollisionCounts,
   type HandoffPoolProbeCollisionWindow,
   type HandoffPoolProbeCandidate,
   type HandoffPoolProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { FPS, type AxisName, type AxisValues, type Spec } from "./types.ts";
 
 const BUDGET = 500_000;
@@ -256,7 +256,7 @@ try {
       activeSeed = seed;
       const spec = applyJolt(definition.spec, benchmarkPolicy.transform.joltMs);
       const started = performance.now();
-      const checkpoint = compileHandoff(spec, seed, { budget: BUDGET });
+      const checkpoint = compileLegacyHandoff(spec, seed, { budget: BUDGET });
       const elapsedMs = Math.round(performance.now() - started);
       const score = scoreDriftReport(checkpoint.report, { totalFrames: Math.round(spec.duration * FPS) });
       resolveDeferredCollisionTraces();
@@ -440,7 +440,7 @@ function observePool(record: HandoffPoolProbeRecord): void {
 }
 
 /**
- * Resolve the exact engine reads only after `compileHandoff` has returned.
+ * Resolve the exact engine reads only after `compileLegacyHandoff` has returned.
  * `addLine()` has implementation-local caches, so reading it during a live
  * traversal is not observationally safe even when it leaves the final report
  * unchanged.  The deferred reads cannot affect a completed search.

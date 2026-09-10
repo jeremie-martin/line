@@ -25,14 +25,14 @@ import {
   setLandingProbeHook,
   type LandingProbeCostSink,
 } from "./core/candidate.ts";
-import { compileHandoff } from "./optimizer/handoff.ts";
+import { compileLegacyHandoff } from "./optimizer/legacy_handoff.ts";
 import type { DetectorRunwayStats } from "./optimizer/contact_phase.ts";
 import {
   setHandoffPoolProbeHook,
   type HandoffPoolProbeCandidate,
   type HandoffPoolProbeRecord,
   type HandoffRankTraceEntry,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import {
   AIR_DELIVERABILITY_DEADBAND,
   airDeliverabilityAsk,
@@ -147,7 +147,7 @@ for (const mode of modes) {
       });
 
       const started = performance.now();
-      const checkpoint = compileHandoff(testCase.spec, seed, {
+      const checkpoint = compileLegacyHandoff(testCase.spec, seed, {
         budget,
         onNode(node, _key, event) {
           if (event.improved) selectedTrace = node.rankTrace.map((entry) => ({ ...entry }));

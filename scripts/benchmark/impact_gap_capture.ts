@@ -9,7 +9,7 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { compilerCandidateIdentity } from "../v0/benchmark_v2/compiler_identity.ts";
 import { createSnapshotWorkspace, disposeSnapshotWorkspace } from "../v0/benchmark_v2/compiler_snapshot.ts";
-import { compileHandoff, compileHandoffFromSnapshot, setHandoffRolloutProbeHook } from "../v0/optimizer/handoff.ts";
+import { compileLegacyHandoff, compileHandoffFromSnapshot, setHandoffRolloutProbeHook } from "../v0/optimizer/legacy_handoff.ts";
 import { makeRootNode, extendNodeCached } from "../v0/optimizer/node.ts";
 import { makeBaseEngine, engineLineFromTrackLine, contactRedirArcPxAtLanding, findAuthoredContactNearFrame } from "../v0/core/substrate.ts";
 import { scoreDriftReport } from "../v0/score.ts";
@@ -42,9 +42,9 @@ function worker(sourceId: string, requestSha256: string): void {
     if (r.gaps && r.ctx) holder.context = { gaps: r.gaps, gapAxisTargets: r.ctx.gapAxisTargets,
       allContactFrames: r.ctx.allContactFrames, durationFrames: r.ctx.durationFrames };
   });
-  let compiled: ReturnType<typeof compileHandoff>;
+  let compiled: ReturnType<typeof compileLegacyHandoff>;
   try {
-    compiled = compileHandoff(spec, seed, { budget, stopAfterFirstCompletion, onNode(node, key, event) {
+    compiled = compileLegacyHandoff(spec, seed, { budget, stopAfterFirstCompletion, onNode(node, key, event) {
       if (event.improved) Object.assign(holder, { node, key, event });
     } });
   } finally { setHandoffRolloutProbeHook(null); }
@@ -59,7 +59,7 @@ function worker(sourceId: string, requestSha256: string): void {
   } };
   let controlFrames = 0, observerExact: boolean | null = null;
   if (controls.includes(sourceId)) {
-    const control = compileHandoff(spec, seed, { budget, stopAfterFirstCompletion });
+    const control = compileLegacyHandoff(spec, seed, { budget, stopAfterFirstCompletion });
     controlFrames = control.stats.sim_frames;
     observerExact = hash(JSON.stringify(control.track)) === trackHash && hash(JSON.stringify(control.report)) === reportHash &&
       control.stats.sim_frames === compiled.stats.sim_frames;

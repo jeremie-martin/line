@@ -20,7 +20,7 @@ import { sampleArcPlacementGeometry, type ImpactFrameTargetState } from "./arc_p
 import { axisLookaheadEndFrame, tryCandidateGeometry } from "./core/candidate.ts";
 import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
 import { candidateQualityObjective } from "./optimizer/aim.ts";
-import { compileHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/handoff.ts";
+import { compileLegacyHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/legacy_handoff.ts";
 import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
 import { getCandidateProbe, sampleOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
@@ -121,7 +121,7 @@ function runCase(definition: typeof CASES[number], seed: number, mode: FrameMode
   });
   setNormalPoolSnapshotHook((record) => snapshotRawPool(pools, record));
   try {
-    compileHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
+    compileLegacyHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
   } finally {
     setHandoffFrontierNodeProbeHook(null);
     setNormalPoolSnapshotHook(null);

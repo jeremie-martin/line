@@ -3,7 +3,6 @@
  * corrected using actual engine measurements. No point controls or scenery. */
 import { createHash } from 'node:crypto';
 import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSearch } from '../../lib/native_motion/engine.ts';
-import { LineRiderEngine as Judge, disposeAllWasmEnginesForStudy as disposeJudge } from '../../lib/_lr_engine_wasm.ts';
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
@@ -22,6 +21,12 @@ import { createArcEngine } from './arc_engine.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
+// The frozen judge wrapper has an isolate-wide handle registry, not individual
+// disposal. A private module instance gives replay its own WASM instance and
+// registry without changing judge code or freeing engines retained by callers.
+// Keep these handles local to the synchronous replay and dispose them below.
+const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:disposeJudge} =
+  await import(new URL('../../lib/_lr_engine_wasm.ts?arc-compiler-replay',import.meta.url).href);
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const deg=(x:number)=>x*180/Math.PI;

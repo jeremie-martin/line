@@ -13,11 +13,11 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeCandidate,
   type HandoffPoolProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { AXES, type AxisValues } from "./types.ts";
 
 const argv = process.argv.slice(2);
@@ -175,7 +175,7 @@ for (const spec of specs) {
     activeSeed = seed;
     const before = rows.length;
     const started = Date.now();
-    compileHandoff(loaded, seed, { budget });
+    compileLegacyHandoff(loaded, seed, { budget });
     console.error(
       `  ${spec}/s${seed}: ${rows.length - before} pools, ` +
         `${((Date.now() - started) / 1000).toFixed(1)}s`,

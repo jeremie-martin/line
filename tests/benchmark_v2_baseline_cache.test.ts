@@ -50,11 +50,14 @@ describe("canonical baseline cache fixed-N plans", () => {
       reference.compiler_snapshot.candidateFingerprint,
     );
     expect(reference.decision_protocol_fingerprint).toBe(decisionProtocolFingerprint());
-    expect(baselineCacheHeadlineAtDepth(cache, 8)).toEqual({
-      seeds: 8,
-      headline: 607.232,
-      validRuns: 352,
-      totalRuns: 352,
+    // Check the cache's recomputed promoted prefix against the independently
+    // preserved headline, rather than pinning a superseded active compiler.
+    const promotedSeeds = reference.scope.promotion_seeds;
+    expect(baselineCacheHeadlineAtDepth(cache, promotedSeeds)).toEqual({
+      seeds: promotedSeeds,
+      headline: reference.development.canonical_headline,
+      validRuns: plan.developmentSources * promotedSeeds,
+      totalRuns: plan.developmentSources * promotedSeeds,
     });
   });
 

@@ -3,7 +3,9 @@
 `compileHandoff` in `handoff.ts` is the public entry point. Ordinary WASM
 requests with air, speed and amplitude axes use `connected_arcs.ts`. It builds
 normal type-0 physical support curves, optionally paired with a connected guide.
-No point controls or acceleration lines enter this production path.
+No point controls or acceleration lines enter this production path. The dispatcher
+loads the arc module only for WASM selection, so JS and official-reference
+checkouts can import and run the legacy backend without Rust or arc assets.
 
 ## Current construction
 
@@ -33,6 +35,9 @@ reserve. If observed construction becomes too expensive for the remaining track,
 the planner reduces local work and keeps its completed candidates. It does not
 consult the legacy difficulty model.
 Each construction attempt receives two complete cold replays, included in accounting.
+Fixed-judge replay uses a private instance of the unchanged judge module, whose
+handle registry belongs only to the compiler. Its cleanup cannot release engines
+or handoff snapshots held by callers.
 Completed evaluations of identical normalized controls are reused within and across
 searches with the same complete physical prefix and evaluation context. Prefix
 identity follows detached and rebuilt geometry; the shared cache is bounded.
@@ -100,6 +105,8 @@ the fallback still has inherited expansion-boundary budget overruns (see the
 [integrity audit](../../../docs/compiler-integrity-audit.md)). Existing imports through `handoff.ts` remain compatible;
 new legacy studies can import `compileLegacyHandoff` explicitly. The compatibility
 exports still load that module; this extraction makes no startup-speed claim.
+Hook-driven studies import `compileLegacyHandoff` and their hooks directly from
+`legacy_handoff.ts`; ordinary arc requests do not emit legacy traversal events.
 See [the retained inventory](../../../docs/optimizer/legacy-components.md).
 
 `native_motion.ts` and `normal_motion.ts` reproduce archived point-control

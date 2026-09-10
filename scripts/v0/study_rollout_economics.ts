@@ -3,7 +3,7 @@
  * buys, and whether its dead-end verdicts are true.
  *
  * Observation-only. The compiler edits this study relies on are three null-checked
- * hooks in `optimizer/handoff.ts` (`setHandoffRolloutProbeHook`,
+ * hooks in `optimizer/legacy_handoff.ts` (`setHandoffRolloutProbeHook`,
  * `setHandoffExpansionProbeHook`, plus the existing ranked-options hook); with no
  * hook installed the compiler does one comparison per rollout and nothing else.
  * `--verify-identity` proves that on a real cell (score, trackHash, sim-frames).
@@ -55,7 +55,7 @@ import { dirname, resolve } from "node:path";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { applyJolt } from "../produce/seed.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffExpansionProbeHook,
   setHandoffRankedOptionsProbeHook,
   setHandoffRolloutProbeHook,
@@ -63,7 +63,7 @@ import {
   type HandoffRankedOptionsProbeRecord,
   type HandoffRolloutOutcome,
   type HandoffRolloutProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import {
   getCandidatesSorted,
   setRolloutAimSuppressed,
@@ -444,10 +444,18 @@ async function workerMain(task: Task): Promise<void> {
       });
     }
 
-    const { track, report, stats } = compileHandoff(spec, task.seed, { budget: task.budget });
-    setHandoffRolloutProbeHook(null);
-    setHandoffExpansionProbeHook(null);
-    setHandoffRankedOptionsProbeHook(null);
+    let compiled:ReturnType<typeof compileLegacyHandoff>;
+    try {
+      compiled = compileLegacyHandoff(spec, task.seed, { budget: task.budget });
+    } finally {
+      setHandoffRolloutProbeHook(null);
+      setHandoffExpansionProbeHook(null);
+      setHandoffRankedOptionsProbeHook(null);
+    }
+    const { track, report, stats } = compiled;
+    if (!task.identity && ((stats.search_nodes_expanded ?? 0) > 0 && policyNCandCount === 0 ||
+        (stats.fwd_eval?.fwd_eval_calls ?? 0) > 0 && rolloutTotal === 0))
+      throw new Error('legacy compilation performed work without the required hook observations');
 
     const trackHash = createHash("sha256").update(JSON.stringify(track)).digest("hex");
     const contacts = report.contacts ?? [];

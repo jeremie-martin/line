@@ -12,8 +12,8 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { compilerCandidateIdentity } from "../v0/benchmark_v2/compiler_identity.ts";
 import { createSnapshotWorkspace, disposeSnapshotWorkspace } from "../v0/benchmark_v2/compiler_snapshot.ts";
-import { compileHandoff, compileHandoffFromSnapshot, setHandoffRolloutProbeHook,
-  type HandoffNode, type HandoffNodeSnapshot } from "../v0/optimizer/handoff.ts";
+import { compileLegacyHandoff, compileHandoffFromSnapshot, setHandoffRolloutProbeHook,
+  type HandoffNode, type HandoffNodeSnapshot } from "../v0/optimizer/legacy_handoff.ts";
 import { makeRootNode, extendNodeCached } from "../v0/optimizer/node.ts";
 import { makeBaseEngine, engineLineFromTrackLine } from "../v0/core/substrate.ts";
 import { scoreDriftReport } from "../v0/score.ts";
@@ -70,9 +70,9 @@ function worker(sourceId: string): void {
       if (record.gaps && record.ctx) holder.context = { gaps: record.gaps,
         gapAxisTargets: record.ctx.gapAxisTargets, allContactFrames: record.ctx.allContactFrames, durationFrames: record.ctx.durationFrames };
     });
-    let compiled: ReturnType<typeof compileHandoff>;
+    let compiled: ReturnType<typeof compileLegacyHandoff>;
     try {
-      compiled = compileHandoff(spec, original.seed, { budget: original.budget, onNode(node, key, event) {
+      compiled = compileLegacyHandoff(spec, original.seed, { budget: original.budget, onNode(node, key, event) {
         if (event.improved) { holder.node = node; holder.key = key; holder.event = event; }
       } });
     } finally { setHandoffRolloutProbeHook(null); }

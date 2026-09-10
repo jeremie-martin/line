@@ -5,7 +5,10 @@
  */
 import { FPS, type Spec } from "../types.ts";
 import type { CompileCheckpoint } from "./types.ts";
-import { compileConnectedArcs } from "./connected_arcs.ts";
+// Reference-engine checkouts need no WASM artifacts or arc models. Load the arc
+// graph only for the engine selection that can dispatch to it (as in _lr_engine).
+const arcBackend = (process.env.LR_ENGINE ?? "wasm") === "wasm"
+  ? await import("./connected_arcs.ts") : undefined;
 import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler_input.ts";
 import { compileLegacyHandoff, compileHandoffFromSnapshot,
   type CompileHandoffOptions, type HandoffNodeSnapshot } from "./legacy_handoff.ts";
@@ -26,7 +29,7 @@ export function compileHandoff(userSpec: Spec, seed = 0, opts: CompileHandoffOpt
   userSpec = normalizeCompilerTimeline(userSpec);
   validateCompilerTelemetry(opts.budgetTelemetry);
   return handoffBackend(userSpec, opts) === "arcs"
-    ? compileConnectedArcs(userSpec, seed, opts)
+    ? arcBackend!.compileConnectedArcs(userSpec, seed, opts)
     : compileLegacyHandoff(userSpec, seed, opts);
 }
 

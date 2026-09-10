@@ -20,10 +20,10 @@ import frontier5 from "../../benchmark/v2/cases/normative/capability/frontier_lo
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { type Spec } from "./types.ts";
 
 const catalog: Record<string, Spec> = {
@@ -156,7 +156,7 @@ try {
     for (const seed of seeds) {
       active = { name, seed };
       const spec = applyJolt(source, benchmarkPolicy.transform.joltMs);
-      compileHandoff(spec, seed, { budget });
+      compileLegacyHandoff(spec, seed, { budget });
       process.stderr.write(`${name} seed=${seed}: visits so far ${visits.length}\n`);
     }
   }

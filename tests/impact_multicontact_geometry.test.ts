@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeRecord,
-} from "../scripts/v0/optimizer/handoff.ts";
+} from "../scripts/v0/optimizer/legacy_handoff.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 
 describe("deferred multi-contact geometry observer", () => {
@@ -14,7 +14,7 @@ describe("deferred multi-contact geometry observer", () => {
       if (record === null && next.candidates.length > 0) record = next;
     });
     try {
-      compileHandoff(spec, 0, { budget: 40_000, maxNodes: 12, polish: false });
+      compileLegacyHandoff(spec, 0, { budget: 40_000, maxNodes: 12, polish: false });
     } finally {
       setHandoffPoolProbeHook(null);
     }

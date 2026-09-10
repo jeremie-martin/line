@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   REPAIR_LAST_CHANCE_COST_RATIO,
   setHandoffExpansionProbeHook,
   type HandoffExpansionProbeRecord,
-} from "../scripts/v0/optimizer/handoff.ts";
+} from "../scripts/v0/optimizer/legacy_handoff.ts";
 import {
   adaptiveEstimate,
   BUDGET_TELEMETRY_SCHEMA,
@@ -1077,10 +1077,10 @@ describe("compile budget telemetry", () => {
   test("is byte-behavior-neutral at off, summary, and trace levels", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const options = { budget: 20_000, maxNodes: 12, polish: false } as const;
-    const off = compileHandoff(spec, 0, { ...options, budgetTelemetry: "off" });
-    const summary = compileHandoff(spec, 0, { ...options, budgetTelemetry: "summary" });
-    const trace = compileHandoff(spec, 0, { ...options, budgetTelemetry: "trace" });
-    const traceAgain = compileHandoff(spec, 0, { ...options, budgetTelemetry: "trace" });
+    const off = compileLegacyHandoff(spec, 0, { ...options, budgetTelemetry: "off" });
+    const summary = compileLegacyHandoff(spec, 0, { ...options, budgetTelemetry: "summary" });
+    const trace = compileLegacyHandoff(spec, 0, { ...options, budgetTelemetry: "trace" });
+    const traceAgain = compileLegacyHandoff(spec, 0, { ...options, budgetTelemetry: "trace" });
 
     for (const candidate of [summary, trace, traceAgain]) {
       expect(candidate.track).toEqual(off.track);
@@ -1105,9 +1105,9 @@ describe("compile budget telemetry", () => {
     // the repair-phase and resumed-search instrumentation is observation-only.
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const options = { budget: 150_000, polish: false } as const;
-    const off = compileHandoff(spec, 0, { ...options, budgetTelemetry: "off" });
-    const summary = compileHandoff(spec, 0, { ...options, budgetTelemetry: "summary" });
-    const trace = compileHandoff(spec, 0, { ...options, budgetTelemetry: "trace" });
+    const off = compileLegacyHandoff(spec, 0, { ...options, budgetTelemetry: "off" });
+    const summary = compileLegacyHandoff(spec, 0, { ...options, budgetTelemetry: "summary" });
+    const trace = compileLegacyHandoff(spec, 0, { ...options, budgetTelemetry: "trace" });
 
     for (const candidate of [summary, trace]) {
       expect(candidate.track).toEqual(off.track);
@@ -1119,7 +1119,7 @@ describe("compile budget telemetry", () => {
 
   test("attributes repair and resumed search at a repair-enabled budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
-    const result = compileHandoff(spec, 0, {
+    const result = compileLegacyHandoff(spec, 0, {
       budget: 150_000,
       polish: false,
       budgetTelemetry: "trace",
@@ -1239,7 +1239,7 @@ describe("compile budget telemetry", () => {
     const builds: HandoffExpansionProbeRecord[] = [];
     setHandoffExpansionProbeHook((record) => builds.push(record));
     try {
-      const output = compileHandoff(spec, 0, {
+      const output = compileLegacyHandoff(spec, 0, {
         budget: 20_000,
         maxNodes: 12,
         polish: false,
@@ -1266,7 +1266,7 @@ describe("compile budget telemetry", () => {
     process.env.LR_STUDY_NCAND_POLICY = "repair-descendants-three-quarter";
     setHandoffExpansionProbeHook((record) => builds.push(record));
     try {
-      const output = compileHandoff(spec, 0, {
+      const output = compileLegacyHandoff(spec, 0, {
         budget: 150_000,
         polish: false,
         budgetTelemetry: "trace",
@@ -1307,8 +1307,8 @@ describe("compile budget telemetry", () => {
       polish: false,
       budgetTelemetry: "trace" as const,
     };
-    const first = compileHandoff(spec, 0, options);
-    const second = compileHandoff(spec, 0, options);
+    const first = compileLegacyHandoff(spec, 0, options);
+    const second = compileLegacyHandoff(spec, 0, options);
     expect(second.track).toEqual(first.track);
     expect(second.report).toEqual(first.report);
     expect(second.stats).toEqual(first.stats);
@@ -1399,7 +1399,7 @@ describe("compile budget telemetry", () => {
     process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "1";
     try {
       const spec = await loadGoldenSpec("cold_start", "base");
-      const result = compileHandoff(spec, 0, {
+      const result = compileLegacyHandoff(spec, 0, {
         budget: 150_000,
         polish: false,
         budgetTelemetry: "summary",
@@ -1440,7 +1440,7 @@ describe("compile budget telemetry", () => {
     process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "optimistic-axis-bound";
     try {
       const spec = await loadGoldenSpec("cold_start", "base");
-      const result = compileHandoff(spec, 0, {
+      const result = compileLegacyHandoff(spec, 0, {
         budget: 150_000,
         polish: false,
         budgetTelemetry: "summary",
@@ -1481,7 +1481,7 @@ describe("compile budget telemetry", () => {
     // so that combination is gone by design — the measured cost that was good
     // enough to observe against is good enough to size the restart with.
     const spec = await loadGoldenSpec("cold_start", "base");
-    const result = compileHandoff(spec, 0, {
+    const result = compileLegacyHandoff(spec, 0, {
       budget: 150_000,
       polish: false,
       budgetTelemetry: "trace",
@@ -1519,7 +1519,7 @@ describe("compile budget telemetry", () => {
     // not a different bound. This compile runs at 150k, outside that domain,
     // so it exercises exactly that divergence.
     const spec = await loadGoldenSpec("cold_start", "base");
-    const result = compileHandoff(spec, 0, {
+    const result = compileLegacyHandoff(spec, 0, {
       budget: 150_000,
       polish: false,
       budgetTelemetry: "trace",
@@ -1563,7 +1563,7 @@ describe("compile budget telemetry", () => {
   test("uses the hard budget as the initial attempt ceiling when policy budget is lower", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const hardBudget = 20_000;
-    const result = compileHandoff(spec, 0, {
+    const result = compileLegacyHandoff(spec, 0, {
       budget: hardBudget,
       policyBudget: 10_000,
       maxNodes: 12,

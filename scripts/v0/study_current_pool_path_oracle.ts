@@ -20,7 +20,7 @@ import {
   resolveSources,
 } from "./benchmark_v2/model.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffFrontierNodeProbeHook,
   setHandoffPoolProbeHook,
   setHandoffRankedOptionsProbeHook,
@@ -29,7 +29,7 @@ import {
   type HandoffPoolProbeRecord,
   type HandoffRankTraceEntry,
   type HandoffRankedOptionsProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import type { LeafKey } from "./optimizer/register.ts";
 import { scoreDriftReport } from "./score.ts";
 import {
@@ -376,7 +376,7 @@ function runOne(source: string, spec: Spec, seed: number): Run {
     };
   };
 
-  const checkpoint = compileHandoff(spec, seed, { budget, onNode });
+  const checkpoint = compileLegacyHandoff(spec, seed, { budget, onNode });
   setHandoffFrontierNodeProbeHook(null);
   setHandoffPoolProbeHook(null);
   setHandoffRankedOptionsProbeHook(null);

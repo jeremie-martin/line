@@ -21,7 +21,7 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { makeRng } from "../lib/rng.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { candidateQualityObjective } from "./optimizer/aim.ts";
-import { compileHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/handoff.ts";
+import { compileLegacyHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/legacy_handoff.ts";
 import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
 import { sampleOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { axisLookaheadEndFrame } from "./core/candidate.ts";
@@ -112,7 +112,7 @@ for (const definition of CASES) {
     setNormalPoolSnapshotHook((record) => snapshotRawPool(rawPools, record));
     const started = performance.now();
     try {
-      compileHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
+      compileLegacyHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
     } finally {
       setHandoffFrontierNodeProbeHook(null);
       setNormalPoolSnapshotHook(null);

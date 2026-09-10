@@ -17,10 +17,10 @@ import splitSignal from "../../benchmark/v2/cases/normative/representative/split
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { type Spec } from "./types.ts";
 
 const catalog: Record<string, Spec> = {
@@ -86,7 +86,7 @@ try {
     if (source === undefined) throw new Error(`unknown case ${name}`);
     for (const seed of seeds) {
       active = { name, seed };
-      compileHandoff(applyJolt(source, benchmarkPolicy.transform.joltMs), seed, { budget });
+      compileLegacyHandoff(applyJolt(source, benchmarkPolicy.transform.joltMs), seed, { budget });
       process.stderr.write(`${name} seed=${seed}: visits ${visits.length}\n`);
     }
   }

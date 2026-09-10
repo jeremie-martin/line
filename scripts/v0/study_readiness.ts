@@ -39,7 +39,7 @@ import {
   loadSuiteManifest,
 } from "./benchmark_v2/suite_model.ts";
 import { compilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
-import { compileHandoff } from "./optimizer/handoff.ts";
+import { compileLegacyHandoff } from "./optimizer/legacy_handoff.ts";
 import {
   setCandidateSampleTraceSink,
   type CandidateSampleTrace,
@@ -779,7 +779,7 @@ async function collectCaseSeed(
     entry.context.predictedIncomingBoundary = predictedBoundary;
   });
   try {
-    compileHandoff(spec, seed, { budget: READINESS_BUDGET });
+    compileLegacyHandoff(spec, seed, { budget: READINESS_BUDGET });
   } finally {
     setCandidateSampleTraceSink(null);
     setNormalPoolSnapshotHook(null);

@@ -18,7 +18,7 @@ import { getRiderMetered } from "../lib/detector.ts";
 import { makeRng } from "../lib/rng.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { candidateQualityObjective } from "./optimizer/aim.ts";
-import { compileHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/handoff.ts";
+import { compileLegacyHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/legacy_handoff.ts";
 import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
 import { axisLookaheadEndFrame, tryCandidateLines } from "./core/candidate.ts";
 import { effectiveAxes, engineLineFromTrackLine, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
@@ -130,7 +130,7 @@ for (const definition of CASES) {
     });
     setNormalPoolSnapshotHook((record) => snapshotRawPool(rawPools, record));
     try {
-      compileHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
+      compileLegacyHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
     } finally {
       setHandoffFrontierNodeProbeHook(null);
       setNormalPoolSnapshotHook(null);

@@ -42,7 +42,7 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { scoreDriftReport } from "./score.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffFrontierNodeProbeHook,
   setHandoffRankedOptionsProbeHook,
   type HandoffFrontierNodeProbeRecord,
@@ -50,7 +50,7 @@ import {
   type HandoffNodeEvent,
   type HandoffRankedOptionsProbeRecord,
   type HandoffRankTraceEntry,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import type { LeafKey } from "./optimizer/register.ts";
 import { FPS, type Spec } from "./types.ts";
 
@@ -140,7 +140,7 @@ function round(x: number, d = 4): number {
 // Run ONE compile with the three observation hooks installed; return the winner
 // and the captured records. Purely observational — hooks only read + append.
 function observedCompile(spec: Spec, seed: number): {
-  checkpoint: ReturnType<typeof compileHandoff>;
+  checkpoint: ReturnType<typeof compileLegacyHandoff>;
   winner: Winner | null;
   records: Map<string, StoredRecord>;
   frameLog: FrameRecord[];
@@ -193,7 +193,7 @@ function observedCompile(spec: Spec, seed: number): {
     };
   };
 
-  const checkpoint = compileHandoff(spec, seed, { budget, onNode });
+  const checkpoint = compileLegacyHandoff(spec, seed, { budget, onNode });
 
   setHandoffFrontierNodeProbeHook(null);
   setHandoffRankedOptionsProbeHook(null);
@@ -343,7 +343,7 @@ function byteIdentityCheck(source: string, seed: number): {
   const totalFrames = Math.round(spec.duration * FPS);
   const { checkpoint: hookedCp } = observedCompile(spec, seed);
   const hooked = scoreDriftReport(hookedCp.report, { totalFrames }).score;
-  const hooklessCp = compileHandoff(spec, seed, { budget });
+  const hooklessCp = compileLegacyHandoff(spec, seed, { budget });
   const hookless = scoreDriftReport(hooklessCp.report, { totalFrames }).score;
   return { pass: hooked === hookless, hooked, hookless };
 }

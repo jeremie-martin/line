@@ -14,13 +14,13 @@ import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import { setAimCompileBudgetFrames } from "../scripts/v0/optimizer/aim.ts";
 import { deadlinePressure } from "../scripts/v0/optimizer/deadline.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   handoffCandidatePool,
   postCompletionPhaseWeight,
   redrawFirstHopOnEmpty,
   setHandoffDeadlineProbeHook,
   setHandoffRolloutProbeHook,
-} from "../scripts/v0/optimizer/handoff.ts";
+} from "../scripts/v0/optimizer/legacy_handoff.ts";
 import {
   getCandidatesSorted,
   isRolloutAimSuppressed,
@@ -112,7 +112,7 @@ function compileWithShapes(s: Spec, budget = BUDGET): { track: string; shapes: M
     shapes.set(key, (shapes.get(key) ?? 0) + 1);
   });
   try {
-    const { track } = compileHandoff(s, 0, { budget });
+    const { track } = compileLegacyHandoff(s, 0, { budget });
     return { track: JSON.stringify(track), shapes };
   } finally {
     setHandoffRolloutProbeHook(null);
@@ -208,7 +208,7 @@ describe("scoped aim suppression for wide base shapes", () => {
       seen.set(nCand, at);
     });
     try {
-      compileHandoff(s, 0, { budget });
+      compileLegacyHandoff(s, 0, { budget });
     } finally {
       setNormalPoolSnapshotHook(null);
     }
@@ -294,12 +294,12 @@ describe("study-only env gates refuse rather than clamp", () => {
     const s = await spec();
     for (const bad of ["-0.1", "1.1", "high"]) {
       expect(() => withEnv({ LR_STUDY_IMPACT_ASK_START: bad }, () =>
-        compileHandoff(s, 0, { budget: BUDGET })))
+        compileLegacyHandoff(s, 0, { budget: BUDGET })))
         .toThrow(/LR_STUDY_IMPACT_ASK_START must be a finite number in \[0, 1\]/);
     }
     for (const bad of ["0", "9", "three", "2.5"]) {
       expect(() => withEnv({ LR_STUDY_IMPACT_BRANCH: bad }, () =>
-        compileHandoff(s, 0, { budget: BUDGET })))
+        compileLegacyHandoff(s, 0, { budget: BUDGET })))
         .toThrow(/LR_STUDY_IMPACT_BRANCH must be an integer in \[1, 8\]/);
     }
     // Depth is closed at 2 on purpose: 3 was measured negative on 5 of 6
@@ -307,7 +307,7 @@ describe("study-only env gates refuse rather than clamp", () => {
     // typo away.
     for (const bad of ["0", "3", "two", "1.5", "-1"]) {
       expect(() => withEnv({ LR_STUDY_IMPACT_DEPTH: bad }, () =>
-        compileHandoff(s, 0, { budget: BUDGET })))
+        compileLegacyHandoff(s, 0, { budget: BUDGET })))
         .toThrow(/LR_STUDY_IMPACT_DEPTH must be an integer in \[1, 2\]/);
     }
   }, 300_000);
@@ -406,7 +406,7 @@ describe("study-only env gates refuse rather than clamp", () => {
           });
         });
         try {
-          return JSON.stringify(compileHandoff(s, 0, { budget: BUDGET }).track);
+          return JSON.stringify(compileLegacyHandoff(s, 0, { budget: BUDGET }).track);
         } finally {
           setHandoffDeadlineProbeHook(null);
         }

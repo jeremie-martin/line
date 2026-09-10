@@ -47,7 +47,7 @@ import {
   type LandingWindowProbeRecord,
 } from "./landing_probe.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   compileHandoffFromSnapshot,
   objectiveLeafValue,
   setForwardEvalContext,
@@ -65,7 +65,7 @@ import {
   type HandoffFrontierProbeRecord,
   type HandoffPoolProbeRecord,
   type HandoffRankedOptionsProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { CompileDeadline, underFullDeadlinePressure } from "./optimizer/deadline.ts";
 import {
   extendNodeCached,
@@ -358,7 +358,7 @@ if (frontierProbeGap >= 0 && frontierSnapshotRank !== null) {
 }
 if (deadEndProbe) setHandoffDeadEndProbeHook((record) => deadEndProbeRecords.push(record));
 if (compileLandingProbe) enableLandingWindowProbe();
-const checkpoint = compileHandoff(spec, seed, {
+const checkpoint = compileLegacyHandoff(spec, seed, {
   budget,
   searchSeed,
   onNode(node, key, event) {

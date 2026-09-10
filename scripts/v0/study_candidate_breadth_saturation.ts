@@ -11,10 +11,10 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffExpansionProbeHook,
   type HandoffExpansionProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import {
   setNormalPoolSnapshotHook,
   type NormalPoolSnapshotRecord,
@@ -183,7 +183,7 @@ try {
         activeBudget = budget;
         const before = rows.length;
         const started = Date.now();
-        compileHandoff(spec, seed, { budget });
+        compileLegacyHandoff(spec, seed, { budget });
         console.error(
           `${source.id}/${budget}/s${seed}: ${rows.length - before} fresh breadth pools, ` +
             `${((Date.now() - started) / 1000).toFixed(1)}s`,

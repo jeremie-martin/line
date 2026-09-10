@@ -15,12 +15,12 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { compilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeCandidate,
   type HandoffPoolProbeContactResponse,
   type HandoffPoolProbeRecord,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import type { AxisName, AxisValues, Spec } from "./types.ts";
 
 const BUDGET = 500_000;
@@ -91,7 +91,7 @@ try {
       active = definition;
       activeSeed = seed;
       const started = performance.now();
-      compileHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
+      compileLegacyHandoff(applyJolt(definition.spec, benchmarkPolicy.transform.joltMs), seed, { budget: BUDGET });
       resolveDeferredPairs();
       const elapsedMs = Math.round(performance.now() - started);
       runs.push({ id: definition.id, seed, elapsedMs });

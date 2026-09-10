@@ -11,6 +11,7 @@ import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
 import {extractTrace} from '../v0/core/trace.ts';
 import {ensureMirror,ensureSpectrum,renderBundle} from './render.ts';
+import {readArcReviewCompile} from './arc_review_cache.ts';
 const arg=(name:string)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
 const song=arg('song')??'amor_na_praia_46s',out=resolve(arg('out')!);
 const cfg=loadSelect(join('productions',song)),seed=260908011,jolt=resolveJoltMs();
@@ -18,17 +19,15 @@ const work=join(out,'inputs',song);mkdirSync(work,{recursive:true});
 const hash=(p:string)=>createHash('sha256').update(readFileSync(p)).digest('hex');
 const write=(p:string,value:any)=>{writeFileSync(p,JSON.stringify(value,null,2)+'\n');writeFileSync(p+'.sha256',hash(p)+'\n');};
 const gitSha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
-const sourceFiles=['scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_boundary.ts','scripts/v0/optimizer/arc_memory.ts','scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/produce/arc_review.ts',...['scripts/v0/optimizer/arc_control_policy_model.json.gz'].filter(existsSync)];
+const sourceFiles=['scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_boundary.ts','scripts/v0/optimizer/arc_memory.ts','scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json','scripts/v0/optimizer/connected_arcs.ts','scripts/produce/arc_review.ts','scripts/produce/arc_review_cache.ts',...['scripts/v0/optimizer/arc_control_policy_model.json.gz'].filter(existsSync)];
 const implementation=Object.fromEntries(sourceFiles.map(p=>[p,hash(p)]));
 const publicCompiler=arg('compiler')==='public';
 if(publicCompiler&&arg('options'))throw new Error('public compiler uses its committed configuration');
 const options=publicCompiler?{compiler:'public',budget:cfg.budget}:{bidirectional:arg('bidirectional')==='on',impactWeight:Number(arg('impact-weight')??2),amplitudeWeight:Number(arg('amplitude-weight')??1),poseWeight:Number(arg('pose-weight')??0),qualityRetries:Number(arg('quality-retries')??0),samples:160,arrivalWeight:Number(arg('arrival-weight')??.3),arrivalMode:arg('arrival-mode')??'heading-speed',channel:Number(arg('channel')??0),wave:arg('wave')==='on',radius:Number(arg('radius')??0),...JSON.parse(arg('options')??'{}'),budget:cfg.budget};
+const identity={song,seed,jolt,specSha256:hash(cfg.spec),audioSha256:hash(cfg.audio),render:cfg.render,options,implementation};
 let record:any;
 if(existsSync(join(work,'compile.json'))){
-  record=JSON.parse(readFileSync(join(work,'compile.json'),'utf8'));
-  if(JSON.stringify(record.options)!==JSON.stringify(options))throw new Error('saved research options differ');
-  if(Object.entries(implementation).some(([p,digest])=>record.implementation[p]!==digest))throw new Error('saved compiler implementation differs');
-  for(const [file,digest] of Object.entries(record.outputs))if(hash(join(work,file))!==digest)throw new Error('corrupt compiler output');
+  record=readArcReviewCompile(join(work,'compile.json'),identity);
 }else{
   const spec=applyJolt((await import(resolve(cfg.spec))).default,jolt);
   const result:any=publicCompiler?compileConnectedArcs(spec,seed,{budget:cfg.budget}):compileArcMotion(spec,seed,options);
@@ -39,7 +38,7 @@ if(existsSync(join(work,'compile.json'))){
   write(join(work,'research.json'),{rows:result.rows,stats:result.stats,failure:result.failure,samples:result.samples,backtracks:result.backtracks});
   write(join(work,'budget-telemetry.json'),{schema:'line.arc-motion-research-budget.v1',budget:cfg.budget,actualPhysicsFrames:result.stats.sim_frames,includes:'All construction proposals, backtracking rebuilds, and two cold full replays. Production measurement and video export are separate.'});
   for(const file of sourceFiles)copyFileSync(file,join(work,file.split('/').at(-1)!));
-  record={schema:'line.arc-motion-production-review.v1',researchOnly:true,song,seed,jolt,gitSha,implementation,options,metrics,specSha256:hash(cfg.spec),audioSha256:hash(cfg.audio),render:cfg.render,outputs:Object.fromEntries(['track.json','report.json','research.json','budget-telemetry.json'].map(p=>[p,hash(join(work,p))]))};
+  record={schema:'line.arc-motion-production-review.v1',researchOnly:true,...identity,gitSha,metrics,outputs:Object.fromEntries(['track.json','report.json','research.json','budget-telemetry.json'].map(p=>[p,hash(join(work,p))]))};
   write(join(work,'compile.json'),record);
 }
 console.log(JSON.stringify({song,metrics:record.metrics,options:record.options}));

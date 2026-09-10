@@ -22,10 +22,10 @@ import {
 import { setLandingProbeHook, type LandingProbeCostSink } from "./core/candidate.ts";
 import { disposeAllWasmEnginesForStudy } from "../lib/_lr_engine_wasm.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeCandidate,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import type { SupportGeometryMode } from "./core/support_geometry.ts";
 import { scoreDriftReport } from "./score.ts";
 import { FPS, type Spec } from "./types.ts";
@@ -125,7 +125,7 @@ for (const mode of modes) {
         },
       });
       const started = performance.now();
-      const checkpoint = compileHandoff(testCase.spec, seed, { budget });
+      const checkpoint = compileLegacyHandoff(testCase.spec, seed, { budget });
       const elapsedMs = performance.now() - started;
       setLandingProbeHook(null);
       setSupportGeometryProbeHook(null);
@@ -214,7 +214,7 @@ function writeCheckpoint(complete: boolean): void {
   renameSync(temporary, absolute);
 }
 
-function boundary(report: ReturnType<typeof compileHandoff>["report"], seconds: number, endTime: number) {
+function boundary(report: ReturnType<typeof compileLegacyHandoff>["report"], seconds: number, endTime: number) {
   const contact = report.contacts.find((entry) => Math.abs(entry.t_target - endTime) < 0.001);
   const gap = report.gaps.find((entry) => Math.abs(entry.t_end - endTime) < 0.001);
   const air = gap?.axes.air;

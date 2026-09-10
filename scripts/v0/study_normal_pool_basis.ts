@@ -16,10 +16,10 @@ import { makeRng } from "../lib/rng.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { candidateQualityObjective } from "./optimizer/aim.ts";
 import {
-  compileHandoff,
+  compileLegacyHandoff,
   setHandoffFrontierNodeProbeHook,
   type HandoffNode,
-} from "./optimizer/handoff.ts";
+} from "./optimizer/legacy_handoff.ts";
 import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
 import { sampleOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import {
@@ -182,7 +182,7 @@ for (const definition of definitions) {
     });
     const started = performance.now();
     try {
-      compileHandoff(spec, seed, { budget: BUDGET });
+      compileLegacyHandoff(spec, seed, { budget: BUDGET });
     } finally {
       setHandoffFrontierNodeProbeHook(null);
       setNormalPoolSnapshotHook(null);

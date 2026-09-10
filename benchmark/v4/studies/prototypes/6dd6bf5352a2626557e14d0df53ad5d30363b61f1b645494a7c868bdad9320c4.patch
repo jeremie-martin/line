@@ -1,0 +1,57 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..1bb70e17 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -135,6 +135,10 @@ export type ArcMotionOptions= {
+   reuseEvaluations?:boolean;
+   controlPolicy?:any;
+   policySamples?:number;
++  /** Separately limit learned proposals for the single opening curve. */
++  startupPolicySamples?:number;
++  /** The authored opening span starts at zero, before its physical curve. */
++  authoredStartupTargets?:boolean;
+   /** Reduce local work if observed construction cost outgrows remaining capacity. */
+   budgetAdaptiveLocal?:boolean;
+   futureValueModel?:any;
+@@ -228,7 +232,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+     const futureFeatures=(arrival:number[],i:number)=>{
+       const features=[...arrival];
+       for(let k=1;k<=2;k++){
+-        const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===contact.frame)?.targets:undefined;
++        const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===(options.authoredStartupTargets&&contact.gap===-1?0:contact.frame))?.targets:undefined;
+         features.push(contact?((contacts[i+k+1]?.frame??end+1)-contact.frame)/40:0,contact?(gaps[contact.gap]?.targets.impact??-1):-1,target?.air??-1,target?.speed??-1,target?.amplitude??-1);
+       }
+       return features;
+@@ -445,7 +449,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       // Startup has a different physical-state distribution from a later catch.
+       // Its optional learned proposals still pass the ordinary interval search.
+       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
+-      const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];
++      const requested=[proposalModel?(i===0?options.startupPolicySamples??options.policySamples??8:options.policySamples??8):0,remembered.length,responses.length];
+       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
+       const policy=counts[0]?arcControlProposals(inputFeatures,incoming,span,proposalModel,counts[0]):[];
+       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
+diff --git a/scripts/v0/optimizer/arc_value.ts b/scripts/v0/optimizer/arc_value.ts
+index b35c7fb7..5a7756dc 100644
+--- a/scripts/v0/optimizer/arc_value.ts
++++ b/scripts/v0/optimizer/arc_value.ts
+@@ -15,6 +15,19 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
+ export function arcFutureValue(features: number[], artifact: any): number {
+   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
+       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
++  if(artifact.residualBase){
++    const strength=artifact.residualStrength??1;
++    if(!Number.isFinite(strength)||strength<0||strength>1||artifact.residualInput!=='features-plus-log1p-base')throw new Error('invalid arc future-value correction');
++    const base=arcFutureValue(features,artifact.residualBase);if(strength===0)return base;
++    const input=[...features,Math.log1p(100*base)],model=artifact.residualModel;
++    let correction=model.initial;
++    for(const tree of model.trees){
++      let node=0;
++      while(!tree.leaf[node])node=input[tree.feature[node]]<=tree.threshold[node]?tree.left[node]:tree.right[node];
++      correction+=tree.value[node];
++    }
++    return Math.max(0,Math.expm1(Math.log1p(100*base)+strength*correction)/100);
++  }
+   let value = artifact.model.initial;
+   for (const tree of artifact.model.trees) {
+     let node = 0;

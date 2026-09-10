@@ -418,3 +418,51 @@ A 12M pilot tests more accurate, deeper teaching. The fixed-prefix 6M query stud
 continues. These are research outside the qualification allowance. The public
 canonical score is still 926.9397, the best complete 750k research score is
 934.2402, and the 940 goal remains active.
+
+
+## Retaining knowledge and checking the policy inputs
+
+The opening library's complete panel reaches **934.1653**, all 176 valid. Replacing
+the 945 teacher library with the refreshed 948 library reaches **933.8446**.
+Neither improves 934.2402. Preserving the entire prior policy and adding the new
+library with outer weights seven-to-one reaches **934.8092**, all 176 valid.
+Actual proposal counts vary with the available search allocation. A separate
+31,924-example merged teacher bank is prepared and prediction-checked but has no
+live result yet. See [retention evidence](../benchmark/v4/studies/arc-940-teacher-bank-retention.json).
+
+The policy's original 57 inputs cover the current authored interval and one
+future interval, while the stronger teacher explicitly searches two future
+intervals. A matched 67-input variant adds two authored target blocks only for
+learned proposals. Response-memory and future-value inputs remain unchanged.
+All 15,962 controls and original 57 inputs exactly match the ablation dataset.
+Fifteen focused tests pass, including physical/work parity with an inactive
+longer-window mixture and explicit future-window and end-padding checks.
+Prediction parity is within 6.67e-16; held-parent control RMS is mostly slightly
+worse. The full physical panel is underway; no benefit is claimed yet. See
+[transfer](../benchmark/v4/studies/arc-940-horizon-948-transfer.json) and
+[model evidence](../benchmark/v4/studies/arc-940-horizon-948-models.json).
+
+The audit also finds that all 176 opening examples mark their current-span
+axis targets as missing, even though all 176 authored openings provide targets.
+The lookup uses physical frame one while the authored opening starts at zero.
+An isolated correction updates the three target inputs and retrains the opening
+library; all measured controls and other inputs remain unchanged. Nine focused
+tests pass. The corrected pilot is mixed, changing two of the eight tracks
+relative to the prior opening policy. The public compiler has no learned opening
+policy, so this omission does not by itself establish a public headline loss.
+See [the paired correction](../benchmark/v4/studies/arc-940-startup-target-correction.json).
+
+A future-value residual fitted to the 948 teacher passes both sets of 32
+independent fixtures exactly. Five held-group folds improve ranking regret
+relative to the original frozen prior from 0.003717 to 0.003522 at half strength.
+This is a different dataset and does not compare directly with the currently
+used 945 correction. Both matched live pilots are mixed and remain unselected; see
+[the refreshed value evidence](../benchmark/v4/studies/arc-940-value-correction-948.json).
+
+The 12M, depth-three teacher pilot is valid in all eight cases and improves five
+relative to the 948 teacher. Its full study reuses those eight verified tracks;
+a coordinator restart lets all six active workers finish and retains their
+completed runs before increasing concurrency. A separate one-response continuation pilot is mixed.
+The fixed-prefix 6M query study continues. The best complete 750k research score
+is **934.8092**; the public canonical score remains **926.9397**, and the 940 goal
+is active.

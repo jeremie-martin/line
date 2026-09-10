@@ -1,0 +1,217 @@
+{
+  "schema": "line.arc-teacher-bank-retention.v1",
+  "selected": false,
+  "models": [
+    {
+      "name": "banked-945-plus-948",
+      "path": "generated/benchmark-v4/arc-940/models/banked-945-plus-948/proximity.json",
+      "sha256": "4e5d0c66da1e52c9e21d86e7f0164a8ad0f2ab65a1aad6fadb6bec24e3be6844",
+      "bytes": 208656048,
+      "proposalWeights": [
+        7,
+        1
+      ],
+      "provenance": {
+        "baseSha256": "cd351c1f8f7b909fa50ecfb30ffecaa3a7abff34056758d4a4d633e0a36de9ee",
+        "teacherPolicySha256": "263c1d60409e509b2ad75cfd17d85cad0d921af98f9db38af1cd5dc985c43ff5",
+        "note": "Unchanged 934.0704 control policy plus a small separate library from the 948 teacher. Existing 945 examples remain intact; all proposals require physical validation."
+      }
+    },
+    {
+      "name": "combined-945-948-bank",
+      "path": "generated/benchmark-v4/arc-940/models/combined-945-948-bank/proximity.json",
+      "sha256": "749c498bcaf032b1e0b936d3779709b282af3e2e587aebc8bd719e7c6bf8a57a",
+      "bytes": 207472789,
+      "proposalWeights": [
+        3,
+        1
+      ],
+      "provenance": {
+        "baseSha256": "3f178aeb4bbb89cdd3596c3ec7a944be0e022f8e9480189dbb6289fc598d865b",
+        "dataSha256": "99f4818976633114aa2749e1c3a5f3fe0cc210fddc1ae5f1bb0da58d3bb4d7bf",
+        "note": "Unchanged baseline component plus a measured library; all proposals still require physical validation. No source or seed identifiers are supplied to the runtime.",
+        "proximityInputPolicySha256": "4c98ab1ebb05e8554f7bc5a4162fc9b919965b5286a109c042ab73556ae57bdc",
+        "proximityForestSha256": "b497e4c74844c8904eb16400fc7ec3690bfb89c03dcb3cafe31fdaf65d44b781"
+      }
+    }
+  ],
+  "mergedData": {
+    "path": "generated/benchmark-v4/arc-940/data/combined-945-948-bank/data.json",
+    "sha256": "99f4818976633114aa2749e1c3a5f3fe0cc210fddc1ae5f1bb0da58d3bb4d7bf",
+    "rows": 31924,
+    "inputs": [
+      {
+        "path": "generated/benchmark-v4/arc-940/data/refreshed-945/data.json",
+        "sha256": "f8cd1f6e25f6e32c3e1f9345bf9979514626c9ad5180024a5447e87e28a92cc2",
+        "rows": 15962,
+        "sources": 176
+      },
+      {
+        "path": "generated/benchmark-v4/arc-940/data/refreshed-948/data.json",
+        "sha256": "5ee446d12be70891badb653823cb2e97f607dc1a26ca622d97148c1db2b19de8",
+        "rows": 15962,
+        "sources": 176
+      }
+    ],
+    "allRowsUnchanged": true
+  },
+  "mergedForestValidation": {
+    "rows": 31924,
+    "parents": 65,
+    "folds": [
+      {
+        "fold": 0,
+        "heldParents": [
+          "afterglow_turn",
+          "archipelago",
+          "bridge_frontier_low_air_endurance",
+          "bridge_high_air_drive",
+          "bridge_offgrid_conversation",
+          "bridge_pickup_lattice",
+          "bridge_regression_transition_mosaic",
+          "bridge_sparse_lowline",
+          "compact_dialogue",
+          "endurance_and_return",
+          "half_time_return",
+          "harbor_return",
+          "lifted_refrain",
+          "music_amour_de_ma_vie_short_44s",
+          "music_luna_bala_44s",
+          "music_shelter_impact_sync_81s",
+          "music_tiki_tiki_48s",
+          "pickup_answers",
+          "pickup_interruptions",
+          "pickup_staircase",
+          "restrained_then_wide"
+        ],
+        "train": 21404,
+        "test": 10520,
+        "controlRms": [
+          0.1480551742401297,
+          0.1226528995952806,
+          0.1948509859621572,
+          0.07405539945618611,
+          0.9137437458695503,
+          0.7882503441470209,
+          0.15629200003563745,
+          0.09865209732071879,
+          0.2026363993631101,
+          0.3660814623759799
+        ]
+      },
+      {
+        "fold": 1,
+        "heldParents": [
+          "accelerando_reply",
+          "amplitude_reply",
+          "arches_at_new_tempos",
+          "bridge_believer_impact_56s",
+          "bridge_dense_dialogue",
+          "bridge_loose_pocket",
+          "bridge_meter_exchange",
+          "bridge_open_hook",
+          "bridge_rising_switch",
+          "bridge_split_signal",
+          "bridge_wide_breaths",
+          "dense_short_then_long",
+          "flight_and_return",
+          "gear_changes",
+          "late_letters",
+          "music_amor_na_praia_46s",
+          "quiet_current",
+          "recovery_mosaic",
+          "swing_exchange",
+          "three_note_returns",
+          "wide_arc_dialogue",
+          "woven_pickups"
+        ],
+        "train": 21220,
+        "test": 10704,
+        "controlRms": [
+          0.14662259456120022,
+          0.12237389044707773,
+          0.21763730993867547,
+          0.07633024121100847,
+          0.9065442834036445,
+          0.8991902627842627,
+          0.16220335994830246,
+          0.0954669934993958,
+          0.2205472570928528,
+          0.36136939549641023
+        ]
+      },
+      {
+        "fold": 2,
+        "heldParents": [
+          "alternating_intentions",
+          "bridge_amplitude_tides",
+          "bridge_believer_56_6s",
+          "bridge_countercurrent",
+          "bridge_frontier_dense_recovery",
+          "bridge_frontier_pickup_progression",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_river_reentry",
+          "broken_triplets",
+          "crossing_lights",
+          "density_release",
+          "energy_weave",
+          "interleaved_recovery",
+          "offbeat_echoes",
+          "open_canopy",
+          "pickup_recovery",
+          "rest_and_return",
+          "support_then_lift",
+          "supported_bridge",
+          "supported_speed_change",
+          "terraced_skies",
+          "woven_pulse"
+        ],
+        "train": 21224,
+        "test": 10700,
+        "controlRms": [
+          0.14804637062158943,
+          0.12993477798308953,
+          0.22655163823979232,
+          0.07576540264479004,
+          0.9054987756123106,
+          0.8585310465230054,
+          0.15108755558133394,
+          0.10014064557399353,
+          0.20358860341817162,
+          0.36709901506627735
+        ]
+      }
+    ],
+    "controlRms": [
+      0.14757342500832724,
+      0.12504917309638228,
+      0.21353184719089588,
+      0.07539746064399805,
+      0.9085736685585939,
+      0.8502348313092145,
+      0.15659590950821078,
+      0.0981025353821185,
+      0.20912332164775452,
+      0.364851152641426
+    ],
+    "note": "Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested."
+  },
+  "mergedForestParity": {
+    "schema": "line.arc-policy-mean-parity.v1",
+    "modelPath": "generated/benchmark-v4/arc-940/models/combined-945-948-forest/model.json",
+    "modelSha256": "b497e4c74844c8904eb16400fc7ec3690bfb89c03dcb3cafe31fdaf65d44b781",
+    "fixturePath": "generated/benchmark-v4/arc-940/models/combined-945-948-forest/parity.json",
+    "fixtureSha256": "0b5371add9cc7a2a1706be5bea7e5c07bac7cd81e11b2041ef9b289f1d60ef65",
+    "fixtures": 24,
+    "maxError": 4.440892098500626e-16,
+    "runtimeSha256": "70582a519bd3305f7d837e2c23c98544a3cc4443d8ec7fa5497259598319c195",
+    "scriptSha256": "366f0695ec015d5b4526b96c545f1b3ae84d2d75cfe170e94dc54a558353a101"
+  },
+  "complete750k": {
+    "headline": 934.8092,
+    "valid": 176,
+    "runs": 176,
+    "runSha256": "93570942b37b92453fae11dbe27af5499bfa213c68203d148c47242ffd845863"
+  },
+  "note": "Outer proposal weights are seven parts unchanged 934 control policy to one part added 948 teaching library. All old examples and forests are preserved exactly; actual integer proposal counts depend on each search allocation. The merged 31,924-example bank is separately prepared but not yet physically evaluated. No canonical promotion is claimed."
+}

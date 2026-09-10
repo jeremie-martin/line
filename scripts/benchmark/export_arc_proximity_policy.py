@@ -15,7 +15,7 @@ def checked(path):
     return json.loads(body),digest
 policy,policy_sha=checked(args.policy);forest,forest_sha=checked(args.forest)
 assert policy['featureSchema']==forest['featureSchema'] and forest['featureCount']==policy['featureCount']
-assert forest['featureCount'] in (57,63)
+assert forest['featureCount'] in (57,63,67)
 examples=policy['models'][1];assert 'exemplars' in examples and 'trees' in forest
 assert examples['featureCount']==forest['featureCount']
 features=np.asarray([r['features'] for r in examples['exemplars']],dtype=np.float32)

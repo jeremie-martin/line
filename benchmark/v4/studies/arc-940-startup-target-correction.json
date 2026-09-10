@@ -1,0 +1,187 @@
+{
+  "schema": "line.arc-startup-target-correction-evidence.v1",
+  "selected": false,
+  "sourcePatch": "benchmark/v4/studies/prototypes/d1b77618586e7e44f946380458ff36c8a88f44d4b11fd4d0de5b5638e3f2dc0e.patch",
+  "correction": {
+    "inputPath": "generated/benchmark-v4/arc-940/data/startup-945/data.json",
+    "inputSha256": "53f7e6c29d1998556cc06ee29abac9ecf962c47236c40a09a38515be640bc721",
+    "cases": 176,
+    "changedIndices": [
+      49,
+      50,
+      51
+    ],
+    "unchangedPhysicalInputsAndMeasuredControls": true,
+    "scriptSha256": "577aab9cbb36714aeb6d2e4fbf861c2451d88b62d31dd9895fab9ef117f72c11",
+    "note": "Opening starts at authored frame zero although the initial physical curve is placed at frame one. Runtime requires authoredStartupTargets. No physics, controls or scored targets are changed."
+  },
+  "all176OpeningTargetsPreviouslyMissing": true,
+  "all176OpeningSpansHaveAuthoredTargets": true,
+  "allControlsAndOtherInputsUnchanged": true,
+  "correctedDataSha256": "303f716e681a266e1125b9bd7a6a64a2b915671b5e92fe832d147be2f782ee37",
+  "validation": {
+    "rows": 176,
+    "parents": 65,
+    "folds": [
+      {
+        "fold": 0,
+        "heldParents": [
+          "accelerando_reply",
+          "amplitude_reply",
+          "bridge_believer_56_6s",
+          "bridge_countercurrent",
+          "bridge_frontier_dense_recovery",
+          "bridge_frontier_low_air_endurance",
+          "bridge_frontier_pickup_progression",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_regression_transition_mosaic",
+          "crossing_lights",
+          "dense_short_then_long",
+          "energy_weave",
+          "half_time_return",
+          "late_letters",
+          "music_amour_de_ma_vie_short_44s",
+          "music_tiki_tiki_48s",
+          "pickup_answers",
+          "pickup_staircase",
+          "restrained_then_wide",
+          "supported_bridge",
+          "terraced_skies"
+        ],
+        "train": 116,
+        "test": 60,
+        "controlRms": [
+          0.09983827937379888,
+          0.12170393326500682,
+          0.17735651682037987,
+          0.07149434790110998,
+          0.8005051021153216,
+          0.8645955678425059,
+          0.14894314575609474,
+          0.12957472336879364,
+          0.06462228275186228,
+          0.20299954263909126
+        ]
+      },
+      {
+        "fold": 1,
+        "heldParents": [
+          "alternating_intentions",
+          "archipelago",
+          "bridge_amplitude_tides",
+          "bridge_dense_dialogue",
+          "bridge_high_air_drive",
+          "bridge_meter_exchange",
+          "bridge_pickup_lattice",
+          "bridge_sparse_lowline",
+          "bridge_wide_breaths",
+          "density_release",
+          "flight_and_return",
+          "harbor_return",
+          "lifted_refrain",
+          "music_luna_bala_44s",
+          "offbeat_echoes",
+          "pickup_interruptions",
+          "quiet_current",
+          "rest_and_return",
+          "support_then_lift",
+          "swing_exchange",
+          "three_note_returns",
+          "woven_pulse"
+        ],
+        "train": 118,
+        "test": 58,
+        "controlRms": [
+          0.11204704292077902,
+          0.10454795214351174,
+          0.13107397688856723,
+          0.09626900977156129,
+          1.0002593531881325,
+          0.7564447298457981,
+          0.18856192522788817,
+          0.15348937529918888,
+          0.09972425526411909,
+          0.3304465376313527
+        ]
+      },
+      {
+        "fold": 2,
+        "heldParents": [
+          "afterglow_turn",
+          "arches_at_new_tempos",
+          "bridge_believer_impact_56s",
+          "bridge_loose_pocket",
+          "bridge_offgrid_conversation",
+          "bridge_open_hook",
+          "bridge_rising_switch",
+          "bridge_river_reentry",
+          "bridge_split_signal",
+          "broken_triplets",
+          "compact_dialogue",
+          "endurance_and_return",
+          "gear_changes",
+          "interleaved_recovery",
+          "music_amor_na_praia_46s",
+          "music_shelter_impact_sync_81s",
+          "open_canopy",
+          "pickup_recovery",
+          "recovery_mosaic",
+          "supported_speed_change",
+          "wide_arc_dialogue",
+          "woven_pickups"
+        ],
+        "train": 118,
+        "test": 58,
+        "controlRms": [
+          0.1254232474196552,
+          0.13338145065119386,
+          0.15466829281102235,
+          0.09714204466933901,
+          1.023625491524416,
+          1.1825272815201484,
+          0.2161842604385748,
+          0.14335392078695045,
+          0.13102005591926405,
+          0.28982996833550995
+        ]
+      }
+    ],
+    "controlRms": [
+      0.1127805015509071,
+      0.12047543628109351,
+      0.1557838464644599,
+      0.08891824174470332,
+      0.9452378383423906,
+      0.9509120472584089,
+      0.18622956291579945,
+      0.14233678776018147,
+      0.10177434179086899,
+      0.27877487349093105
+    ],
+    "note": "Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested."
+  },
+  "parity": {
+    "schema": "line.arc-policy-mean-parity.v1",
+    "modelPath": "generated/benchmark-v4/arc-940/models/startup-945-authored-forest/model.json",
+    "modelSha256": "c3141c019047b161604c908c1c1d5b8ccbe701e55ea1db7fc29bbcc20c3aeaf8",
+    "fixturePath": "generated/benchmark-v4/arc-940/models/startup-945-authored-forest/parity.json",
+    "fixtureSha256": "0de09d10c0b16a6559a0c1b0e4c10c97bd1b90bcaf09f4433ade93259ab0d13e",
+    "fixtures": 24,
+    "maxError": 4.440892098500626e-16,
+    "runtimeSha256": "70582a519bd3305f7d837e2c23c98544a3cc4443d8ec7fa5497259598319c195",
+    "scriptSha256": "366f0695ec015d5b4526b96c545f1b3ae84d2d75cfe170e94dc54a558353a101"
+  },
+  "model": {
+    "path": "generated/benchmark-v4/arc-940/models/startup-945-authored/policy.json",
+    "sha256": "ca2b1195028a882b4d2eeacbf554aa336a3689aab2254f08cfff98ad23e347e4"
+  },
+  "tests": {
+    "passed": 9,
+    "files": [
+      "arc_startup_targets.test.ts",
+      "arc_budget_interruptions.test.ts",
+      "arc_value_guidance.test.ts"
+    ]
+  },
+  "note": "Research pairs corrected opening inputs with a retrained startup library. The public compiler has no learned startup policy, so the diagnosed input omission does not by itself demonstrate a public score loss. Later catch and future-value inputs are unchanged. Physical output/work parity holds when no opening proposals consume the corrected fields. Live performance remains to be measured."
+}

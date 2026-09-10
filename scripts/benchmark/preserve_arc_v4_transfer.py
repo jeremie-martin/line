@@ -30,7 +30,7 @@ for path in args.proofs.split(','):
 for row in data['provenance']:
     assert row['prefixesMatchedFullTrack'] and row['sha256'] in verified
     assert verified[row['sha256']]['source']==row['source']
-feature_count={'line.arc-control-policy-features.v1':57,'line.arc-context-control-policy-features.v1':63}[data['featureSchema']]
+feature_count={'line.arc-control-policy-features.v1':57,'line.arc-context-control-policy-features.v1':63,'line.arc-horizon-control-policy-features.v1':67}[data['featureSchema']]
 for row in data['rows']:
     assert len(row['features'])==feature_count and len(row['target'])==10
     assert all(math.isfinite(x) for x in row['features']+row['target'])

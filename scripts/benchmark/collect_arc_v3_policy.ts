@@ -17,7 +17,8 @@ import {measureGapAxes,measureAmplitudePeakPx} from '../v0/core/measure.ts';
 import {makeRng} from '../lib/rng.ts';
 import {CALIB} from '../v0/types.ts';
 const arg=(name:string)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
-const contextual=arg('context')==='true';
+const contextual=arg('context')==='true',horizon=arg('horizon')==='true';
+assert.ok(!(contextual&&horizon),'choose one feature extension per study');
 const read=(p:string)=>{const b=readFileSync(p);assert.equal(sha(b),readFileSync(p+'.sha256','utf8').trim());return JSON.parse((p.endsWith('.gz')?gunzipSync(b):b).toString());};
 const paths=arg('inputs')!.split(','),panels=paths.map(p=>({path:p,run:read(resolve(p,'run.json.gz'))}));
 assert.ok(!(arg('compiler-root')&&arg('compiler-roots')),'choose one compiler-root argument');
@@ -57,7 +58,7 @@ for(const c of cases){
   const rng=makeRng(record.seed),planned=scheduleNativeContacts(gaps.map(g=>({...g,targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
   const contacts=[{frame:1,gap:-1},...planned.filter(g=>g.endsWithContact).map(g=>({frame:g.endFrame,gap:g.index}))];
   const future=(features:number[],i:number)=>{
-    for(let k=1;k<=2;k++){
+    for(let k=1;k<=(horizon?4:2);k++){
       const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===contact.frame)?.targets:undefined;
       features.push(contact?((contacts[i+k+1]?.frame??end+1)-contact.frame)/40:0,contact?(gaps[contact.gap]?.targets.impact??-1):-1,target?.air??-1,target?.speed??-1,target?.amplitude??-1);
     }return features;
@@ -112,7 +113,7 @@ for(const identity of compilerIdentities){
     'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; console.log(compilerCandidateIdentity("wasm").candidateFingerprint);'],{cwd:identity.root,encoding:'utf8'}).trim();
   assert.equal(current,identity.fingerprint,'teacher compiler changed during collection');
 }
-const body=JSON.stringify({schema:'line.arc-control-policy-data.v1',featureSchema:contextual?'line.arc-context-control-policy-features.v1':ARC_POLICY_SCHEMA,
+const body=JSON.stringify({schema:'line.arc-control-policy-data.v1',featureSchema:contextual?'line.arc-context-control-policy-features.v1':horizon?'line.arc-horizon-control-policy-features.v1':ARC_POLICY_SCHEMA,
   compilerIdentities,scriptSha256:sha(readFileSync(import.meta.filename)),
   note:`Exposed ${suite.toUpperCase()} development training. Best valid complete trajectory per case among declared panels; this teacher selection is not a compiler score. Runtime features contain physical state and upcoming targets, with no source/seed/index/absolute-position identifiers.`,
   panels:panels.map(p=>({path:p.path,sha256:sha(readFileSync(resolve(p.path,'run.json.gz')))})),provenance,rows:all})+'\n';

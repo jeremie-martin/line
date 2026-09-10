@@ -10,7 +10,7 @@ def checked(path):
     return json.loads(body),digest
 base,base_sha=checked(args.base);data,data_sha=checked(args.data)
 assert base['featureCount']==57 and args.base_weight>0
-count={'line.arc-control-policy-features.v1':57,'line.arc-context-control-policy-features.v1':63}[data['featureSchema']]
+count={'line.arc-control-policy-features.v1':57,'line.arc-context-control-policy-features.v1':63,'line.arc-horizon-control-policy-features.v1':67}[data['featureSchema']]
 assert all(len(r['features'])==count and len(r['target'])==10 for r in data['rows'])
 library=dict(schema='line.arc-control-policy-examples.v1',featureSchema=data['featureSchema'],featureCount=count,
     exemplars=[dict(features=r['features'],target=r['target']) for r in data['rows']],

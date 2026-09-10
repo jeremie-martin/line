@@ -151,6 +151,26 @@
       "tests": [
         "tests/arc_startup_quota.test.ts"
       ]
+    },
+    {
+      "name": "horizon-policy",
+      "base": "a508711a926015be78524d2ba5c0f56ced058911",
+      "patch": "benchmark/v4/studies/prototypes/021773704e65a335399860652868082931958c98b03900c08051c906de606e10.patch",
+      "sha256": "021773704e65a335399860652868082931958c98b03900c08051c906de606e10",
+      "bytes": 9022,
+      "tests": [
+        "tests/arc_horizon_policy.test.ts"
+      ]
+    },
+    {
+      "name": "startup-targets",
+      "base": "a508711a926015be78524d2ba5c0f56ced058911",
+      "patch": "benchmark/v4/studies/prototypes/d1b77618586e7e44f946380458ff36c8a88f44d4b11fd4d0de5b5638e3f2dc0e.patch",
+      "sha256": "d1b77618586e7e44f946380458ff36c8a88f44d4b11fd4d0de5b5638e3f2dc0e",
+      "bytes": 6240,
+      "tests": [
+        "tests/arc_startup_targets.test.ts"
+      ]
     }
   ]
 }

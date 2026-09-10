@@ -1,0 +1,3530 @@
+{
+  "schema": "line.arc-feedback-transfer-evidence.v1",
+  "records": [
+    {
+      "name": "measured-correction",
+      "dataPath": "generated/benchmark-v4/arc-940/data/measured-correction/data.json",
+      "dataSha256": "2a935d7165e1a01f2edaabcc469dcafd1e63a392af378e072c51c6af64c87fa9",
+      "rows": 256162,
+      "contexts": 15962,
+      "invalidExcluded": 78823,
+      "duplicateProbesExcluded": 217,
+      "featureCount": 77,
+      "comparableRowsSha256": "f86023db4d319ae7cc39bc518eaca3a0627f0da4c8f87ddcbdd015a84a75600b",
+      "sourceProvenance": {
+        "observations": "generated/benchmark-v4/arc-940/teachers/feedback-probes",
+        "planSha256": "67e3c63bb1abf25e848e01192b5ec6f98c12609530301483fa4aafae8344746f",
+        "runSha256": "d3bc381299c1c72cbbb9ccd798a6079c11b70c8094bcb2f33e16880a95093581",
+        "teacher": "generated/benchmark-v4/arc-940/teachers/replay-926-3m",
+        "teacherPlanSha256": "a7a639f47b44a774ccb2c3cd8b37cafd9dc5b552362dc105fcc0bdc989fc8544",
+        "teacherRunSha256": "b2310cb761b177be3cc2aed8d9e3eb3e8e60dc66c4cf1e64d900ee3794b75bc5",
+        "teacherProof": "benchmark/v4/studies/arc-940-replay-926-transfer.json",
+        "teacherProofSha256": "f124f887ddfae38292de465a0fe1c785d6dbe133e6d3e34badac33918412fdd3"
+      },
+      "sourceValidation": [
+        {
+          "source": "bridge_river_reentry",
+          "observationSha256": "e35038f2fb11ef760cd2ceceaffa3d9b9f367d70dbe4d53bdf3a53b8527a7af4",
+          "teacherSha256": "a32c3758d2f1f6d63d89e92f4778911a536c5fd5e583b54558f9b2fd44b9293c",
+          "trackHash": "9122f247c1243c582ff30ecedfd4f369bd8cb51238655ed5d93d448895f7744a",
+          "exactInputAndSpanParity": true,
+          "rows": 1643,
+          "observationPhysicsFrames": 82953
+        },
+        {
+          "source": "bridge_countercurrent",
+          "observationSha256": "94f52040cca8dabe8d624ad889f229feb98cf880fec33348cae73854dafcc505",
+          "teacherSha256": "bbd14fa343d230c91bf6d6fc6cfe20278ecdff5a544ddcd89c45f15c3c6a2db4",
+          "trackHash": "e1a5e71eb41cb27c50383e096110d514835a4a7a28d22ad8694f7614c25224d9",
+          "exactInputAndSpanParity": true,
+          "rows": 1545,
+          "observationPhysicsFrames": 82929
+        },
+        {
+          "source": "bridge_split_signal",
+          "observationSha256": "f07639b27b382b23649625c29437fe085c94003fe3526eb087807919957537c9",
+          "teacherSha256": "be5e57524bf6bd204707bc58f3d4805949ee6bbb9daf61c82e6aaa66e41454b2",
+          "trackHash": "c931896ba6865352e0607813be070a32c6b3e842e12821c5eb1eb7847d4e22ad",
+          "exactInputAndSpanParity": true,
+          "rows": 1344,
+          "observationPhysicsFrames": 88238
+        },
+        {
+          "source": "bridge_pickup_lattice",
+          "observationSha256": "b02512be20aeed0332a7e1d74b3319bb1b09a19da036710b4fcab5484064f1e6",
+          "teacherSha256": "2bb4d21a84053d614e2253f3392a28ca46f5fb887de227f541a4772d7ce304c8",
+          "trackHash": "f89cff450269810fa88a8fc9e001b31d41534725d22a33ffb71959a2343ec0b5",
+          "exactInputAndSpanParity": true,
+          "rows": 1717,
+          "observationPhysicsFrames": 85064
+        },
+        {
+          "source": "bridge_loose_pocket",
+          "observationSha256": "4bf05d8e19f0b0a90896cacb28a35c8afa7056b07cede9e0e7f8232360661c34",
+          "teacherSha256": "2f83df65cadf5d1c592bbafa2e605c4a0b1ab30683776b28e86c377f51d1841a",
+          "trackHash": "089792a35b43c6f4ae90ae67d98f440c5ce26faa7446869c0fa675d257f59f9c",
+          "exactInputAndSpanParity": true,
+          "rows": 1913,
+          "observationPhysicsFrames": 82685
+        },
+        {
+          "source": "bridge_offgrid_conversation",
+          "observationSha256": "9ebf90b1c268252de1ac0eb69e1e61ad0e85f2197a909b0af235a455cf7d9ad5",
+          "teacherSha256": "5712256a5a5f1d5d6881c91ca1b4cb713de6e219f2c978380a82289b0b4674fa",
+          "trackHash": "c60e15c84f758ab62fd82d4c1d3ef8a21384c05d4e2c5656242c8a004d5437b8",
+          "exactInputAndSpanParity": true,
+          "rows": 1669,
+          "observationPhysicsFrames": 83848
+        },
+        {
+          "source": "bridge_rising_switch",
+          "observationSha256": "be0751d413a6c2e8ef6ac07e71eee9325db762565dd44d789af8615fbc09a57c",
+          "teacherSha256": "2ab7f30c0efcd1238d200b156f633046dd5b92c9dad46588090e137cce7a4342",
+          "trackHash": "ed654a6d9137fb72e252e4caf06be939a06bc4a89b7a8b9ae2161ae31f8d7ab7",
+          "exactInputAndSpanParity": true,
+          "rows": 1605,
+          "observationPhysicsFrames": 86541
+        },
+        {
+          "source": "bridge_meter_exchange",
+          "observationSha256": "46bbea02e51e2c8c44460500d19cfe42e0884501f018421f431a419bdf0e69f4",
+          "teacherSha256": "2f01924fb58480d8097ba06387c38a6ef34103e842a4793fd10f6f7ffea71868",
+          "trackHash": "1faa592672d04749c234d48e720d935dfa2ca94bb14e573f84c406d5b5889e46",
+          "exactInputAndSpanParity": true,
+          "rows": 1784,
+          "observationPhysicsFrames": 87994
+        },
+        {
+          "source": "bridge_wide_breaths",
+          "observationSha256": "a04b1231a83ad125514281197eb6bcb09be4bc669a1e716d9e47b6304bf1ba44",
+          "teacherSha256": "54a9139500bafa297f424dfab9955905c0546024f526eccda41501e579b64591",
+          "trackHash": "165df4fcdaeebb33d2e74b96912634ef3bcbd4af6deb1c7e7a2d35e60b458ee8",
+          "exactInputAndSpanParity": true,
+          "rows": 1496,
+          "observationPhysicsFrames": 91205
+        },
+        {
+          "source": "bridge_open_hook",
+          "observationSha256": "22aa4776d38b3a309270cd044afa2dc39dcef19514c56235e1dd7de492ef352b",
+          "teacherSha256": "f2822ddca6e5d79f7a4c306ecd51aa092d45aa9390ecfe72a60a104c7cd91bb0",
+          "trackHash": "ce0b203b89799604c500354c9c485d59fbb79f101e6c600386e6cad7e8b9edb5",
+          "exactInputAndSpanParity": true,
+          "rows": 1260,
+          "observationPhysicsFrames": 82006
+        },
+        {
+          "source": "bridge_amplitude_tides",
+          "observationSha256": "cef7f53e1622899f96eb7f165a31714336b91a5cf93a1cde535983fdd9c6533c",
+          "teacherSha256": "a753f7e432f830e667f9ba318744c6390accddc543c6b06485599bb64887dcdb",
+          "trackHash": "321cad4a03528bd9d0acade0fcd7ec6582756f5a446a77cd45dc7427e04149b6",
+          "exactInputAndSpanParity": true,
+          "rows": 1467,
+          "observationPhysicsFrames": 89906
+        },
+        {
+          "source": "bridge_dense_dialogue",
+          "observationSha256": "43c460f26fef96c7bbce9950868eb0f50bcb8ebd6a8b8f9cbb85b220f997661f",
+          "teacherSha256": "e07b2c0c527d305afe6e9b9f226fc03214b159bf65d00e3e71669dc25a0690c7",
+          "trackHash": "52c87f662e0bb982c8f314968457160bdd967e478e4e9f0e5e1c039600cb3069",
+          "exactInputAndSpanParity": true,
+          "rows": 1837,
+          "observationPhysicsFrames": 85596
+        },
+        {
+          "source": "bridge_high_air_drive",
+          "observationSha256": "5e05b9e70a616082dda3ed1417d2487ab7744c065ff6c7a1df1d76d96987c160",
+          "teacherSha256": "8684839c2fe4f7a3d96fec0433d8728ba26abb9afbe01045a87259ee7b40d9ac",
+          "trackHash": "c09645100f07eb1996c680ea58a559581c28511dc7b0dfa793fe85c0635b7605",
+          "exactInputAndSpanParity": true,
+          "rows": 1616,
+          "observationPhysicsFrames": 86996
+        },
+        {
+          "source": "bridge_sparse_lowline",
+          "observationSha256": "0033b04f5d6a5c984acfb455253e7f9fee09c3035452c34bb18e89b2e6427e25",
+          "teacherSha256": "7a6a55c6a8cce81d8a0c29cdb498a05cd81df4ff99e8106dc11e0f513647ec31",
+          "trackHash": "e4a9f42e38fc745a31a65c3cc507190f4272cbb2bd6a00045f017f53ed9fa412",
+          "exactInputAndSpanParity": true,
+          "rows": 1395,
+          "observationPhysicsFrames": 89671
+        },
+        {
+          "source": "bridge_frontier_pickup_progression",
+          "observationSha256": "fd0f614aa45cf64fbbf81cb2d4cc6854d66e7ad5bbb3f87d1bef9c1572cfeb31",
+          "teacherSha256": "f82a830667b55cf5b1d1436a2840445d03e5dd5ca46461c72625e3eba375fc3d",
+          "trackHash": "c1a655b8430a5cac76692ace5a95c54ceca3c7dc01c3422bc5213b7f8fd10546",
+          "exactInputAndSpanParity": true,
+          "rows": 1598,
+          "observationPhysicsFrames": 89142
+        },
+        {
+          "source": "bridge_frontier_dense_recovery",
+          "observationSha256": "40738bd5f237561097ec77fc3cbdb75c42b2169f8cc12b8dbb8022b502ec1494",
+          "teacherSha256": "efc69093d58c992495072811da8518ddff9205e22e1011978c31bbeb137312e8",
+          "trackHash": "14e358b4336938e03e6144f309ca40cefe41a06c0addea2b8890fb615546cfff",
+          "exactInputAndSpanParity": true,
+          "rows": 1692,
+          "observationPhysicsFrames": 85192
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance",
+          "observationSha256": "2e8e25cdee0631da1eaa844d0036005d5ed6ca90a85f4000eb1bc056befb209a",
+          "teacherSha256": "726127780e11ac2fbd3f8465e1621bfc767ea637d2a1bb2001a257ae64b645e7",
+          "trackHash": "806f26954ecd3a3604c60a8423e58f7c3e5a0a35503a79458e9214d2d265196e",
+          "exactInputAndSpanParity": true,
+          "rows": 1277,
+          "observationPhysicsFrames": 91113
+        },
+        {
+          "source": "bridge_regression_transition_mosaic",
+          "observationSha256": "ab45bae3da6b261e82f6758eccf6927b8a608c2406dfa9d98e5900f0ad4b7111",
+          "teacherSha256": "5d554f5c5dff18f9f7738d21e862f0cd3f7ab1375126d0d9b9f38d70078c404f",
+          "trackHash": "e47d55c2a556c9ddd0b35d937cccd7048c3e895de3921684d0164b6d1d43297f",
+          "exactInputAndSpanParity": true,
+          "rows": 1534,
+          "observationPhysicsFrames": 88576
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic",
+          "observationSha256": "114205fb7ab15a00cb907b301d4efe197451f5d5e220b18816b80908c9fb7747",
+          "teacherSha256": "6d526f25582140ec2c0de8298fadb0703fda11d97ab971a81f6a1c28b18a76c1",
+          "trackHash": "e50350731d0f0ad8842b91e21b4998a29f1424c6d68e3b714e7a2b8f46d58c01",
+          "exactInputAndSpanParity": true,
+          "rows": 1167,
+          "observationPhysicsFrames": 87132
+        },
+        {
+          "source": "bridge_believer_56_6s",
+          "observationSha256": "d9ce9b8740ee1de875694eff99cfc3d4c640616b2edb613af9068a0b1a047e89",
+          "teacherSha256": "626d56aa004a748cfba9bf83f9c553edce7db2426c48eaacd398a49766eb1ca9",
+          "trackHash": "2f59b40b9fb490ef216e705ac126570117fa8e62542bcba294d360c2aeac5417",
+          "exactInputAndSpanParity": true,
+          "rows": 1158,
+          "observationPhysicsFrames": 83516
+        },
+        {
+          "source": "bridge_believer_impact_56s",
+          "observationSha256": "c5fa6754f5424789d9b42e1f3026ea8b7e7fe612460e058fd71a23039e8c89a6",
+          "teacherSha256": "e75daf5630cbd561a907dc86edb162a18aaa874bcf4317d0e962e43ec8ee7759",
+          "trackHash": "676af9154ecda37f369aef043ae049d488542dfcbfb5c849234110ddad26d9ca",
+          "exactInputAndSpanParity": true,
+          "rows": 822,
+          "observationPhysicsFrames": 84291
+        },
+        {
+          "source": "bridge_river_reentry_tempo_fast_5",
+          "observationSha256": "f7b68e06cbf4c7be4f410f73e631d4273504de95a180b01456614f8a2367abe8",
+          "teacherSha256": "4893c2088dff359825402c1157c2dec5499855b6824d9410efa64063909e8279",
+          "trackHash": "bf9fca063cc15a9d67f22ee2685eec6940282e6b57d23829fa0072bb75db9603",
+          "exactInputAndSpanParity": true,
+          "rows": 1596,
+          "observationPhysicsFrames": 81526
+        },
+        {
+          "source": "bridge_countercurrent_impact_contrast_12",
+          "observationSha256": "85a592f0228855f9282ba598e286151b9b1ac3940e32fc0e82f40913a620e81f",
+          "teacherSha256": "7bfa083870a41f95bd2ec5ec95e16b5fa5ccce1b38a7e5054b198697e882b01a",
+          "trackHash": "83c1a3802b2c4257004ecbd80d00c6b1ebd577abd55b3e57cd6f0bd4b016d020",
+          "exactInputAndSpanParity": true,
+          "rows": 1558,
+          "observationPhysicsFrames": 80955
+        },
+        {
+          "source": "bridge_split_signal_impact_relief_12",
+          "observationSha256": "12abfb8bb6d3e55789163768f37813c8c20271bbec2b4c3fb3b4736795a2950e",
+          "teacherSha256": "ee387b5621535cae95f573e529b53b974a75dea1f320408116af0101f7abf62b",
+          "trackHash": "0fba4572ec92861a1a1f1089fcf88247fae630a5e28f5d6965baa3f25b0971e8",
+          "exactInputAndSpanParity": true,
+          "rows": 1279,
+          "observationPhysicsFrames": 87042
+        },
+        {
+          "source": "bridge_pickup_lattice_speed_minus_4",
+          "observationSha256": "cfe908e20149ff6924c80888699102ccc626c03abbe92f7ef64d3abcbadc4f6d",
+          "teacherSha256": "b34d29fd395aeaac991308b9783d77205a62bd744d32f03857a7f466bccdfc25",
+          "trackHash": "099e8615e6b0f20a0664a31aca40c2a1d465f6a7f0a30ad6524a7828a0d70a4e",
+          "exactInputAndSpanParity": true,
+          "rows": 1733,
+          "observationPhysicsFrames": 87498
+        },
+        {
+          "source": "bridge_loose_pocket_drag_later_20ms",
+          "observationSha256": "5be51c10b44a70fcb2631cbd250d87685a254c397157ce5ec6bec95ce302b84f",
+          "teacherSha256": "7f14ec609b2b92a50ce9856627cfa913780c36d5c493a749a1b31b06cf3b83c8",
+          "trackHash": "fcc90cc06d546352461372518cdf06e000e8e3e125b81619c3e64186d272a5aa",
+          "exactInputAndSpanParity": true,
+          "rows": 1873,
+          "observationPhysicsFrames": 81913
+        },
+        {
+          "source": "bridge_offgrid_conversation_answer_early_25ms",
+          "observationSha256": "9d8748adaa6c1d4a8da37d2b8d61e2a351bd406121c2fe4159b4a075f09fed02",
+          "teacherSha256": "7d37872b34e11c24b4ac7e32ddb0e742f004c2711582cb12b16c1706bdd24d4f",
+          "trackHash": "f25e2379c1c7f4d828ef5d932d270491a39e25f1f34ba4e45034b60731b9bba5",
+          "exactInputAndSpanParity": true,
+          "rows": 1685,
+          "observationPhysicsFrames": 82370
+        },
+        {
+          "source": "bridge_rising_switch_tempo_fast_5",
+          "observationSha256": "7dcd686caf8baaac249c0a56393da71ca42fec11d053292c30cfefb9868c383f",
+          "teacherSha256": "d50ef3f89a14326980e554ed26e88021cdcf255ee7f5c2a6b7bf99d2b93a0d8d",
+          "trackHash": "4507c3a8db64ff2302603ed2f8a9ed298abb0f61f701e6d838a76ae019ea11a1",
+          "exactInputAndSpanParity": true,
+          "rows": 1566,
+          "observationPhysicsFrames": 79843
+        },
+        {
+          "source": "bridge_meter_exchange_speed_plus_4",
+          "observationSha256": "fb02fedabd05dfd58cd0fd1528cd3b275a0e925bf8a560c795d16b8b7edf8c4d",
+          "teacherSha256": "978e5cdbc98785b126a0be0b1f758921d08fec1e1eed46443e35d817f5db8589",
+          "trackHash": "228e219122d289bdfa953fbf57c9f6eaa13dd8642a2056bbee83454a0ee06d0d",
+          "exactInputAndSpanParity": true,
+          "rows": 1743,
+          "observationPhysicsFrames": 88465
+        },
+        {
+          "source": "bridge_wide_breaths_air_plus_5",
+          "observationSha256": "e0c4c714318504e72409746683348df0ed9c8b0269eb03927346b92a61fba471",
+          "teacherSha256": "75faa680cdd26d69a9b720ed47b54336d73d549975c8accac0bcf410ca369350",
+          "trackHash": "0b7dd1445147cf78b70fad74da8cb021706ceb97a22c41334e721e82fdabf8bb",
+          "exactInputAndSpanParity": true,
+          "rows": 1520,
+          "observationPhysicsFrames": 92205
+        },
+        {
+          "source": "bridge_open_hook_amplitude_plus_8",
+          "observationSha256": "cb63a15c6b9f5b8798f088af78a21ac5d069162e2fae7e75982704c22c6cc577",
+          "teacherSha256": "9292f938e915100f099e50776c4b701111d607b84e81dd30f7ab6b4cf9932fa0",
+          "trackHash": "db9d0598af6d89c8c3b643601f737a4455be99e63873d25d2497e3510687c471",
+          "exactInputAndSpanParity": true,
+          "rows": 1119,
+          "observationPhysicsFrames": 85889
+        },
+        {
+          "source": "bridge_amplitude_tides_restrained_10",
+          "observationSha256": "f6128a203cec0d126e1986d3170047c1fdcd071278705d7b33b524744ab59581",
+          "teacherSha256": "0962d8aa8033dadfc4e43724087ce93a6878fcbe61ef83045c38643a7f3a5a51",
+          "trackHash": "d8bf06f3853014d07a3bed1df5d546e0d8e1b519b6084ddf4298c32d9aa96ed5",
+          "exactInputAndSpanParity": true,
+          "rows": 1443,
+          "observationPhysicsFrames": 90860
+        },
+        {
+          "source": "bridge_dense_dialogue_impact_contrast_10",
+          "observationSha256": "2a6b0e4b3433114ef5c61b7775e60df1cec5db7172c60200a1e404ae6ef584bb",
+          "teacherSha256": "b55c8ff09e85cb8e1b2dc6d7217bf3df0b38da8e294be5b1e4455989af33ee0b",
+          "trackHash": "162b0a842e459d33baa1eb38239cb94de8ad288b45a96fd2e2fcc3e3d09cdae2",
+          "exactInputAndSpanParity": true,
+          "rows": 1833,
+          "observationPhysicsFrames": 84410
+        },
+        {
+          "source": "bridge_high_air_drive_air_minus_5",
+          "observationSha256": "b6733d91c9977edb155395697a947b35d1de92a0389e0c3ef38c26a0904d36c8",
+          "teacherSha256": "fe90a4fe21caaf203d65c27c22938d5139f7b93c4473a2a51cf6e139f7e0db08",
+          "trackHash": "5c134921a588003d697134d53916a2908ff2fa9e00d9c44027b46e1f28745aea",
+          "exactInputAndSpanParity": true,
+          "rows": 1667,
+          "observationPhysicsFrames": 86738
+        },
+        {
+          "source": "bridge_sparse_lowline_air_minus_4",
+          "observationSha256": "5b91d837cd08393963bc49223118b323b0baae9b0d523e4bbf1c5751a1a206e1",
+          "teacherSha256": "76761ab9818f73ee6c25d645c55f9105f601b4605ecf95ef759ca1aa36bac04b",
+          "trackHash": "d167cf553384086c28a3ab2b4eda1aef3bd21b11d4f7d87a0f1ceacac52090f4",
+          "exactInputAndSpanParity": true,
+          "rows": 1290,
+          "observationPhysicsFrames": 89606
+        },
+        {
+          "source": "bridge_frontier_pickup_progression_shifted",
+          "observationSha256": "e161fefea6454bdbcc7f32ad107bd109ef098aaf0e32cd80c5278c95f9bbd54d",
+          "teacherSha256": "6b0b1ab20b6a22861170fc4b32ddc003301efa113d13682dd24b6ad074a673d4",
+          "trackHash": "dae1f38d7debf761a580cb6f130d4275ad619c6c47484c394b7ca22626a0b9a9",
+          "exactInputAndSpanParity": true,
+          "rows": 1660,
+          "observationPhysicsFrames": 88035
+        },
+        {
+          "source": "bridge_frontier_dense_recovery_240ms_figures",
+          "observationSha256": "31f3ac9a8f053ef99294cf4c170b3b279fc68f0cf637a584db3b13d1c856a3fa",
+          "teacherSha256": "cf60346a65cfcd5f78fcc66e85a5db51cae6b1e7d3f1df4a0b7ae2ceb3ecebe7",
+          "trackHash": "2ca5286d3fc5a7eb02b6fe39a60a0a8bd116805f7f0c90a62c789e0ea130604e",
+          "exactInputAndSpanParity": true,
+          "rows": 1762,
+          "observationPhysicsFrames": 86181
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_4s",
+          "observationSha256": "21586dd8489ad28c8ef20a64f5051456b011f1acdb167bcc2cf9437191285a60",
+          "teacherSha256": "348b5b0c6ca565e6f05a6f5b3e8049f65a388d03671f9402ddc71d4a4e1242d1",
+          "trackHash": "c7a0ce5af115de365d0ad2399bfd44f30ff6b875ba7116eb49faa198e7e06075",
+          "exactInputAndSpanParity": true,
+          "rows": 1244,
+          "observationPhysicsFrames": 89235
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_6s",
+          "observationSha256": "d79f423e476984bd02ff4bc2288c0a9d7319cbcf20f856a4b0078f9e3178c75a",
+          "teacherSha256": "3630f86bdaffb689e47c2884944da54d37af5d2098475c950fc8388dc2cc8893",
+          "trackHash": "4de9c1f75ba83480c584cc27da0b4044fb973d09b558431f2879a152b28a353a",
+          "exactInputAndSpanParity": true,
+          "rows": 1241,
+          "observationPhysicsFrames": 93927
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_7s",
+          "observationSha256": "f151ba5527aba65ffe4f9ef5b0fcd76ee58fbd4cf1b70ed3e951506cbdaf6b14",
+          "teacherSha256": "144f10d5c3ca1cbe4e32795561acbd5ebd8446c4a6974fe1c821fe5c7c65673f",
+          "trackHash": "d749edaca692858e1b8a95f908f909d7cbf7852801ef5cb2f9ce510cb08bbac3",
+          "exactInputAndSpanParity": true,
+          "rows": 1244,
+          "observationPhysicsFrames": 95724
+        },
+        {
+          "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+          "observationSha256": "8df7bd1ab5eac2b032df75559e4959b95beb1f6074fa149df6c3109242f1661a",
+          "teacherSha256": "efba74762f0bdd5ce6e3550e38e45b90c7c64f78cf09d93d5d452c8125799cee",
+          "trackHash": "f8ff478081c46257d5b0f0096548ae0022a3b59092db956f7affdafe1a032e6e",
+          "exactInputAndSpanParity": true,
+          "rows": 1522,
+          "observationPhysicsFrames": 84304
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic_contrast_10",
+          "observationSha256": "e8c1728c37bd77926110f63a366929df42e2faf632adff18a3fadbfa2d05547b",
+          "teacherSha256": "d3334767c4a3f79e8dd002699d166add93a9c8177416e115f26017872ec8d9a3",
+          "trackHash": "00a6cf829e411a06a3b36119054b65b9b4ce03cb48054761ebd211c4e71d2efa",
+          "exactInputAndSpanParity": true,
+          "rows": 1142,
+          "observationPhysicsFrames": 87984
+        },
+        {
+          "source": "bridge_believer_56_6s_impact_relief",
+          "observationSha256": "d5723bede414cc5a18baa281f383e1011ab86b0c110c02e06a1e3ba7d1e528cd",
+          "teacherSha256": "7c864d49aa6c271ecd34f5bd0bb2d1db7d2e5cad9a19894fa86860562e0143dc",
+          "trackHash": "0c99d1d49352930a6fcbb0ff43585286955b40977d4a5a270c3b3b527f947dfe",
+          "exactInputAndSpanParity": true,
+          "rows": 1194,
+          "observationPhysicsFrames": 83472
+        },
+        {
+          "source": "bridge_believer_impact_56s_amplitude_plus_5",
+          "observationSha256": "1157a05b01c74642dccd11913c618057ef6fb626a29db3bba4807ecd38a3b548",
+          "teacherSha256": "ac61c2466e320d7ecc4e4dbde7cd8c865f40bb30841442bbaee54922c4f4843c",
+          "trackHash": "b08ec66b4cfb673c87a303c36342f1d5639e2f4eb415bb280cd81f6a5dc3a151",
+          "exactInputAndSpanParity": true,
+          "rows": 821,
+          "observationPhysicsFrames": 83339
+        },
+        {
+          "source": "harbor_return",
+          "observationSha256": "9c8b4fb652192f92154ae5c21f98e4d38c3c90d12a629a972c6fbbd27ea21af5",
+          "teacherSha256": "d3276c13152203e948466957a70f76189f1ae1746d4fd76a66a215fde5faf281",
+          "trackHash": "d2ee4cd02f78a5616d9267260252f5ab79670a1047c2512341bf77e4245f777e",
+          "exactInputAndSpanParity": true,
+          "rows": 1827,
+          "observationPhysicsFrames": 92980
+        },
+        {
+          "source": "crossing_lights",
+          "observationSha256": "a83cdc37e13496b9c363a87da178ca123e1e04040cb0c67c6986fb32c429748d",
+          "teacherSha256": "c42320cfb407d9443a5d0459f72804427b999887e5ee5f36be81f959c924d00d",
+          "trackHash": "c625a19c7bf92bf5e2ea9027c46553547c66f2b3624327a9d579fce0e818931f",
+          "exactInputAndSpanParity": true,
+          "rows": 1660,
+          "observationPhysicsFrames": 91697
+        },
+        {
+          "source": "afterglow_turn",
+          "observationSha256": "81c594a0e8dd0b012c8d72e4f7a7657643ea58b9acf5c6287773083263aed193",
+          "teacherSha256": "91869a3cb86df61b26db12ad95108e90d21e81871d59e6c8fea1f12b1ac60fbb",
+          "trackHash": "c2f6daf26538a8b920846f43975dec5d5abbd20271004d496e662048f14f82b9",
+          "exactInputAndSpanParity": true,
+          "rows": 1763,
+          "observationPhysicsFrames": 98811
+        },
+        {
+          "source": "woven_pickups",
+          "observationSha256": "dded3deee54f4eccb10a9342037c4068070f38fecd8580398ac9ef3d60ff84f4",
+          "teacherSha256": "7defbed29b41fd76222043c3f21cf7941919e1d6b8ab6430a18f93f9fac8d518",
+          "trackHash": "bdf006b635568b92cf7c193c0ab42353e030a3f9beae577ad4b19dcc653df11b",
+          "exactInputAndSpanParity": true,
+          "rows": 1661,
+          "observationPhysicsFrames": 92312
+        },
+        {
+          "source": "pickup_answers",
+          "observationSha256": "a1c2d0c69b436407cb3bf896ce699037e878a6ae0e46035d12cc564460b328a8",
+          "teacherSha256": "146275566dff8cf46178329bf5bf5524eb47d0a05aea91665ead53aa88fb4077",
+          "trackHash": "f468afeec81d28c0a28e08b2ec9fdb3d256fb22a16b86fff4e95357d3f5c22ea",
+          "exactInputAndSpanParity": true,
+          "rows": 1645,
+          "observationPhysicsFrames": 92556
+        },
+        {
+          "source": "broken_triplets",
+          "observationSha256": "07a5809db5ceccbac3ae21ba84e036754fd409bbf6325c3619dbf3ad1944a7b8",
+          "teacherSha256": "88e2433c430e4dd6960d6d7e1614faf49c198375576c21d0366f7f6b2ab84808",
+          "trackHash": "7418743a64c3c77222f4c492b1abac9f63e42ef92c98f9509787fe8e43f49f69",
+          "exactInputAndSpanParity": true,
+          "rows": 1684,
+          "observationPhysicsFrames": 96898
+        },
+        {
+          "source": "late_letters",
+          "observationSha256": "aa8e841fe3cb60a0d9f27c7a803205b8b90d5a75ff1ccc4043d403698f4a31c5",
+          "teacherSha256": "d87fc049409872053617dd6c5aa38ce208fd596466b8b7d0c6c8e7114ef11b71",
+          "trackHash": "4110473291fc7741ee7684f2a5ef695c9b9cf139c3a798ece1aded233345fbf1",
+          "exactInputAndSpanParity": true,
+          "rows": 1882,
+          "observationPhysicsFrames": 92329
+        },
+        {
+          "source": "swing_exchange",
+          "observationSha256": "a50a7a2a27c13767be5007e081b1a51a8b3983e2b519ed0695df3b2620db07e3",
+          "teacherSha256": "2a2b0aaa06573612d4063424fc2939faba75ed3a9070413ccb1b89d3fe8251bf",
+          "trackHash": "90d2f97a97124a202b3f353d501c9e1e1ba3169a8648474d506fe0a03e1bf727",
+          "exactInputAndSpanParity": true,
+          "rows": 1792,
+          "observationPhysicsFrames": 92449
+        },
+        {
+          "source": "offbeat_echoes",
+          "observationSha256": "d61e7c93bbcd5fde0e35b12e3a708ccb2125bbe0f6d18b29a7e75aa58ab06168",
+          "teacherSha256": "de5ca34bdef7ac8bd577c48df2aa1299c13ebbf67001bfc5d98095a67b0a6d0b",
+          "trackHash": "f76669d4b7031c0ba98ee5d58754932b3f3c69e6276e0ef3c07def737abdb40e",
+          "exactInputAndSpanParity": true,
+          "rows": 1802,
+          "observationPhysicsFrames": 96951
+        },
+        {
+          "source": "gear_changes",
+          "observationSha256": "f3341f089315166aafd1a3fe07bdc47cf1b08b1b98774523be9dcb953b1532a5",
+          "teacherSha256": "930017b2d4c5a9145220cef8070e25db44452ccb032fc6330555311c9bb42b4f",
+          "trackHash": "93a61f8c10e716383d873c69b11a9f0a7b9c13e77cab5762af518bc865a11dd9",
+          "exactInputAndSpanParity": true,
+          "rows": 1708,
+          "observationPhysicsFrames": 92349
+        },
+        {
+          "source": "half_time_return",
+          "observationSha256": "1020aa5398eed0ae321fe141e126fe0fc7b1a6385b0428dc27c3abb71fb22cc9",
+          "teacherSha256": "928dbf6435f922a499427431463256db282c72e925d58c2283bb977ddbd47810",
+          "trackHash": "da6a6bc20360455c1c648b99627cdd7b592a9f885279f4be9d32fcfd2c507795",
+          "exactInputAndSpanParity": true,
+          "rows": 1634,
+          "observationPhysicsFrames": 91732
+        },
+        {
+          "source": "accelerando_reply",
+          "observationSha256": "1e70fc87a25eb97906859dabfacfc916ba6be48e360fe9d4bbd824a03212958a",
+          "teacherSha256": "b729c873b5d858df50628259661017211f78baab45c7366ec81e0b70d629e02d",
+          "trackHash": "cd6ce5d49d3f8999714201609698c535407867b38db5836beba0930ea3ee29fd",
+          "exactInputAndSpanParity": true,
+          "rows": 1653,
+          "observationPhysicsFrames": 98200
+        },
+        {
+          "source": "archipelago",
+          "observationSha256": "c84378c94e74aa456fa488247c43cee0f7a8091b4c6ed907a40b8f9e5a47f7f4",
+          "teacherSha256": "ce4dc9c21cdbb87ccdb97f2935589a053f3ccd1675e2d793f21823889222333a",
+          "trackHash": "9e5ab22534d0436e3792f0031c326d8cc4fa711d173ab8d8c83ea12d4e29557a",
+          "exactInputAndSpanParity": true,
+          "rows": 1227,
+          "observationPhysicsFrames": 92856
+        },
+        {
+          "source": "wide_arc_dialogue",
+          "observationSha256": "f1df22ab86a5e52d93ff38da287941f9a4ee1266ea9ad60d4e724e485d7b8cab",
+          "teacherSha256": "77cf7eca96434aec83191d9a221eb25c133a62035efac32c2d959617b83d57d3",
+          "trackHash": "86444a1bf3dbf851ad30b099849dbb0bb46044c221cc6c7d2a8ba271f0ef4f86",
+          "exactInputAndSpanParity": true,
+          "rows": 1101,
+          "observationPhysicsFrames": 93049
+        },
+        {
+          "source": "terraced_skies",
+          "observationSha256": "79a630350d8f33862abd2e56dbc8c3f71ed970a9cb9886e7c4529077df27f569",
+          "teacherSha256": "c6b6d610ddc44ca8dfff222502f760038b1c0f1acdd658d467658a0399195fba",
+          "trackHash": "fdde795786f1eb48f0d632b4910000100cf0d712346b10c58a1a9c446e83b512",
+          "exactInputAndSpanParity": true,
+          "rows": 1137,
+          "observationPhysicsFrames": 96456
+        },
+        {
+          "source": "woven_pulse",
+          "observationSha256": "f7f9a4d9479b63babb7a56e279de2bc13c45ee8bf2d67dcc6884da22d307a108",
+          "teacherSha256": "e99f3cf37b30d1b3f4ce05acd4af136b1b98846db1525a6f94c3990e453fcf18",
+          "trackHash": "b05f4494e6abf738e74b3657bc0df8daf498f479dd8bc7ba52b7ea015f7b19b6",
+          "exactInputAndSpanParity": true,
+          "rows": 1783,
+          "observationPhysicsFrames": 91655
+        },
+        {
+          "source": "density_release",
+          "observationSha256": "6cf80cc1d3fbe42ea038c95844a231884a18c3c41fffbca0db49bd627d6b7d57",
+          "teacherSha256": "7803824f146f6429f7cbccb2a903ccfd10e0cb72e899d22716b57862fc92f73a",
+          "trackHash": "05dda3b72d75177d19e657cc89b231703d575a5006638da0d595e649d9d2934e",
+          "exactInputAndSpanParity": true,
+          "rows": 1662,
+          "observationPhysicsFrames": 93198
+        },
+        {
+          "source": "compact_dialogue",
+          "observationSha256": "d75257b71b47faef52bb64cde7888c40210dc481b5c8c1ba711638ab6e6ebe72",
+          "teacherSha256": "254c25ced1946a76f11c6a1bc4e34f94e925ab87867ce7ea2635f14bb91a67d8",
+          "trackHash": "2e7639e5a17063afc97abea1fe542c4c7e958694b4b42fe24f0c862614106af6",
+          "exactInputAndSpanParity": true,
+          "rows": 1738,
+          "observationPhysicsFrames": 97879
+        },
+        {
+          "source": "lifted_refrain",
+          "observationSha256": "b09425998f84b40654b12bd84c2e3a12cab38260779a170f14cbc51f2a793eae",
+          "teacherSha256": "80a4f751e6d2f2c26e3d59db1bf3bbc34987328acc22dba0cfd563cd713282b2",
+          "trackHash": "33bc17cd3531cfa4ad7ae26904666bb725b2c45288299f5db3750d75dec193f5",
+          "exactInputAndSpanParity": true,
+          "rows": 1604,
+          "observationPhysicsFrames": 90501
+        },
+        {
+          "source": "flight_and_return",
+          "observationSha256": "fd0036e9dd341201cff1f05b1c3f9aaf38f6b1ed3ab7d3bdb39deabe0fe7c501",
+          "teacherSha256": "881f5be67cbcd8d0305720685e3995b48e755aa93bcda1f9425faada1c6e2137",
+          "trackHash": "3c44d9c0335f245baecb7056ff3fff37065a8574047a12f35455098018f99707",
+          "exactInputAndSpanParity": true,
+          "rows": 1508,
+          "observationPhysicsFrames": 90478
+        },
+        {
+          "source": "open_canopy",
+          "observationSha256": "1f778845e3f1dc0a1dcfa66481961cb1eeae03ef702d66d1d7d723ae8816dec0",
+          "teacherSha256": "8f36371cba58a03de616a6b780f868b51eb78f7f4d2152f221dd9faba00de44e",
+          "trackHash": "cc9f9a2cfbb19a1fdd4c7075fd6393057be5fce632bd59a7ab1fc136915dd058",
+          "exactInputAndSpanParity": true,
+          "rows": 1492,
+          "observationPhysicsFrames": 96023
+        },
+        {
+          "source": "quiet_current",
+          "observationSha256": "0a5baaa86721acf7234c26f00796146a89f645580824c03dbaa03f3d22d142c3",
+          "teacherSha256": "a41c2b4f5bfcdfc30021718211cb1f3ef95c060aa2d5a168c7f3a9a936142826",
+          "trackHash": "7864a8299949a86175aee11530895ea12418d0f8c01c44994e02c8f86c1c4e56",
+          "exactInputAndSpanParity": true,
+          "rows": 1171,
+          "observationPhysicsFrames": 93402
+        },
+        {
+          "source": "support_then_lift",
+          "observationSha256": "7cf4db5e8dc6ad0a5e2d5334e64235890192fa543866f4e8f5c45f41fc13faea",
+          "teacherSha256": "ec7b9165839c18fb76afca2dd652a2f10b7455f0dd7acc286fd4ebc6d90c0c53",
+          "trackHash": "b7e3821e0a93d29306b22176f9110ae116905108a40f1bc594839a6f3af05a5c",
+          "exactInputAndSpanParity": true,
+          "rows": 1169,
+          "observationPhysicsFrames": 91934
+        },
+        {
+          "source": "rest_and_return",
+          "observationSha256": "f2309a771c524374172476afab866419876da773cdb30d8d00e8bcf6708e02bb",
+          "teacherSha256": "0fd6bc7a69047db525e27d2ad86ee3f0a5e645a2b90daed994c15349c5aee24d",
+          "trackHash": "fb32af885ceb7a3c0a5095dd1d5d748ffd8d89ff4a2a48e9080fbc2682313a3a",
+          "exactInputAndSpanParity": true,
+          "rows": 1162,
+          "observationPhysicsFrames": 97701
+        },
+        {
+          "source": "pickup_staircase",
+          "observationSha256": "eb4f5c87a40be0fb3db5bb9076da85b79f50324ec1f6a0f898a4977cc1f47d3d",
+          "teacherSha256": "51b1147ba0f0f74f43751e462a81fc59871670a4e5319531dc06fcac03a89124",
+          "trackHash": "3af2ddf5b0277f76c22d75879e763a96a9c15ffe18f62cb8179b7b55040f267d",
+          "exactInputAndSpanParity": true,
+          "rows": 1928,
+          "observationPhysicsFrames": 92535
+        },
+        {
+          "source": "pickup_interruptions",
+          "observationSha256": "588bc430538790413985dde4948c13fdeca53410a6afecd630a4db729439d16c",
+          "teacherSha256": "4237713844a96fd280893545c70d63b985b674ba7701d684c11fbad85f4e3b1a",
+          "trackHash": "147545711ca5533f408599e6b189f9edfe216b4acf078391d6def016267732ba",
+          "exactInputAndSpanParity": true,
+          "rows": 1831,
+          "observationPhysicsFrames": 92561
+        },
+        {
+          "source": "pickup_recovery",
+          "observationSha256": "a459055a8f09e097f52e6d8b16ae5c780dd7efb8599701183d9eba84b84c57bb",
+          "teacherSha256": "3a2d9623db36aeba2c0a88d8360ad9bce49027135e3ba95dbe675a50efbf5eb3",
+          "trackHash": "8dcf72f63a2dce507fd56245b2a6956ffb3bb1699d779ddd057c985198e5ee0f",
+          "exactInputAndSpanParity": true,
+          "rows": 1890,
+          "observationPhysicsFrames": 96889
+        },
+        {
+          "source": "dense_short_then_long",
+          "observationSha256": "1d78cbe356ae3fb2d48188b05695d6d3ea5ef4da9b75241749fb81863a7f4893",
+          "teacherSha256": "54eba93738bef2373c4667011621b83cd4ed27c4a5cd5566e5bce9013bc2ca48",
+          "trackHash": "2412c2bb3ff349d61c34533ab1217742230f2ce86516ba8ccc67bc04cf479947",
+          "exactInputAndSpanParity": true,
+          "rows": 1816,
+          "observationPhysicsFrames": 91940
+        },
+        {
+          "source": "interleaved_recovery",
+          "observationSha256": "81681068a29c847273aa1bb1435104318a0f773c8a3312a07f07b6f8f31dc12c",
+          "teacherSha256": "d80a9774fca2227b89470c41c335c1eabe22ce4184dba179ecf67d62929bd33b",
+          "trackHash": "94a7604a5e513736b6a953a4022b00700146c6f097ebedbd175c6b313071cf33",
+          "exactInputAndSpanParity": true,
+          "rows": 1687,
+          "observationPhysicsFrames": 93605
+        },
+        {
+          "source": "three_note_returns",
+          "observationSha256": "acddb936bdf68d266ec4f2cb3f82c5fa4b71475d820c2bd4c2c8bcd5d0ab9fd5",
+          "teacherSha256": "c36fee40932ab26bd4446b2f0b0bd0edf533547b862d6da4f96c1c6c11f6f1ea",
+          "trackHash": "8febf341031a12b87ba929895b724292c697983440afbe609135233430b08e5c",
+          "exactInputAndSpanParity": true,
+          "rows": 1750,
+          "observationPhysicsFrames": 98149
+        },
+        {
+          "source": "supported_bridge",
+          "observationSha256": "913599b805df7bb054847d4d6adaf2a11c41b78e97407c3491ad5d0cf5dcf9c9",
+          "teacherSha256": "ecccda1729cc6eb829cb4923011568b62c86418dc0a95ee2ff6215fbcca9b20b",
+          "trackHash": "2925d004e29135298b2783c73786abbfcf9426af196e1c57ade8cf2f38350db5",
+          "exactInputAndSpanParity": true,
+          "rows": 1058,
+          "observationPhysicsFrames": 91076
+        },
+        {
+          "source": "supported_speed_change",
+          "observationSha256": "ddd00bd83593f03f7bf057eb3b0ffcafd6f5681e3dd2ee0b2161b5ce7d5b5491",
+          "teacherSha256": "8f6542668622139cb99029ad1cccac25a0555109418a6c3c3cf0146caef46f6a",
+          "trackHash": "b7d8a2c7f8841af340c1082bc055026b821d86690053d12397a33c7dde8855a7",
+          "exactInputAndSpanParity": true,
+          "rows": 1022,
+          "observationPhysicsFrames": 92865
+        },
+        {
+          "source": "endurance_and_return",
+          "observationSha256": "8cad3aeeccc38272b50ad4a66f023a64098dfdbdd456df88198dd6785eec59cd",
+          "teacherSha256": "4afba2cc604d86103cc37ec4798fc4523ff676f026453a51b9325337fd68da3e",
+          "trackHash": "2893fcdded3a56fd2255fc21c5e2a91df9c1194ef6c4e21b425823db9220303b",
+          "exactInputAndSpanParity": true,
+          "rows": 1008,
+          "observationPhysicsFrames": 97803
+        },
+        {
+          "source": "energy_weave",
+          "observationSha256": "e899eaa9eb968f69820e8b9fd00a880c95353adf7932f94f9b6cb6c685c027be",
+          "teacherSha256": "8e91526ebb8a0ffadb42616f04050682d4a45a984573de3c839349e33194bcd9",
+          "trackHash": "aca310e6940b8f24f5e936c72ae5ff0cc97a27df96de144638838eb69cf0b6f7",
+          "exactInputAndSpanParity": true,
+          "rows": 1594,
+          "observationPhysicsFrames": 90747
+        },
+        {
+          "source": "alternating_intentions",
+          "observationSha256": "1267076518fbbade73071be152c1920eb8cec803aff6e503106de43200d5ab91",
+          "teacherSha256": "49a2690e9afa0a8e941bf266e703d67483dd388da9a62cca5e4b48252a41d118",
+          "trackHash": "42bf6a5295fbffe62f5890a8dca32a26e0bfcdd52c65d64dc8e6c6c70ae83a96",
+          "exactInputAndSpanParity": true,
+          "rows": 1450,
+          "observationPhysicsFrames": 92441
+        },
+        {
+          "source": "recovery_mosaic",
+          "observationSha256": "b40b7a626b0ec749b92f7d00c8d47d945716b5c59618d673f574e748b6013cff",
+          "teacherSha256": "779503727b5460a33011e5f714337b055a33e63c7c76b0955569742ec1d408f9",
+          "trackHash": "80244c190ef91f9e8064eed2fd1a8919b3bffda7673ed0ba5b870ab058e1a299",
+          "exactInputAndSpanParity": true,
+          "rows": 1544,
+          "observationPhysicsFrames": 99038
+        },
+        {
+          "source": "amplitude_reply",
+          "observationSha256": "2ae1bf29cdae212bcdd40742ba9cc85d67c982d343ad36d512b0bc63a7d50a20",
+          "teacherSha256": "2f5e408b0991b7f8d71b9a3a87d590f2644a99e378b948b9414e55f94abdff42",
+          "trackHash": "94ae9234b37b15db3643636f2ca30257f91e890f3bb8e211cd29a1deaf1c2326",
+          "exactInputAndSpanParity": true,
+          "rows": 1232,
+          "observationPhysicsFrames": 92103
+        },
+        {
+          "source": "restrained_then_wide",
+          "observationSha256": "700ef7559e631d7254c4371a47a1bcd704046600ea66268d46d3fae4e3f8663f",
+          "teacherSha256": "737ea03b4e0e7152140393997eb68e8e5c04e26d8906374005a93e0dd7fc463b",
+          "trackHash": "3e7377a58c1dae2d433b3e1e43050982b3f7b415f92ecfa1806b29ccbd0cc698",
+          "exactInputAndSpanParity": true,
+          "rows": 1167,
+          "observationPhysicsFrames": 91519
+        },
+        {
+          "source": "arches_at_new_tempos",
+          "observationSha256": "764a63c80d77354b707d801993cff6382bc4074a8efd4af3667a797d0424a121",
+          "teacherSha256": "90d28a01f581606623d12d48b899e2677b9b6c9f642c998c9fb3b97cafbd26b7",
+          "trackHash": "980383fa7748def80a31fb58be7baafd56fb8d7ab0b40031ed6124c56726e6c3",
+          "exactInputAndSpanParity": true,
+          "rows": 1147,
+          "observationPhysicsFrames": 99038
+        },
+        {
+          "source": "music_amor_na_praia_46s",
+          "observationSha256": "8560d581d9affe82b2db7d44aa8d36cfcc2a63b272404426e0d426d189c5f600",
+          "teacherSha256": "8cb81a41af6364a5f7763cc772c6b84da4a47f9ae78fb3144a70893a9c8420af",
+          "trackHash": "6156f5fa5f44c731d2b0aa4e70ffa4b4aa4f5736be2347760a428d4271d0e536",
+          "exactInputAndSpanParity": true,
+          "rows": 1379,
+          "observationPhysicsFrames": 67167
+        },
+        {
+          "source": "music_luna_bala_44s",
+          "observationSha256": "21dc56afc1e0c8e218f651dfea6637a6ad6808147d8f497fff6fadc9213f6f62",
+          "teacherSha256": "a444ed28a837b03ea6a082ea4f3ffcd989e6163fff36be1c35757b40a1178319",
+          "trackHash": "57dbd060464c81c63556b32590978099eacf0f5ec42aa4f646d663cd7433ffb7",
+          "exactInputAndSpanParity": true,
+          "rows": 1281,
+          "observationPhysicsFrames": 64990
+        },
+        {
+          "source": "music_tiki_tiki_48s",
+          "observationSha256": "f260ba63d61d03dca1c0ab471bd53721b4959a09b8d247475cd5d44232fb099a",
+          "teacherSha256": "49353a52266484264d4df24ef44295bd82143955098225d9fdf8f2f5bcd7d096",
+          "trackHash": "3fb04781059377aba539f9c691625bbb4a360d8e7f3510c171299f8153575481",
+          "exactInputAndSpanParity": true,
+          "rows": 1030,
+          "observationPhysicsFrames": 70504
+        },
+        {
+          "source": "music_shelter_impact_sync_81s",
+          "observationSha256": "8cf2048e26d61b8192009b3726eab464b112b8582308ae98eeef176749bb0d3c",
+          "teacherSha256": "be29efc9b131afd77338f6f0fca5e654320f8fc578450bf8c6896c8231ada54e",
+          "trackHash": "04761d398edb2c34bd49e01eeee944c7381b2764a133a6d0313f7d87f5d1c8ae",
+          "exactInputAndSpanParity": true,
+          "rows": 1900,
+          "observationPhysicsFrames": 115071
+        },
+        {
+          "source": "music_amour_de_ma_vie_short_44s",
+          "observationSha256": "0f276c2e617e961e92a71f01582b145264e73ef327b784c72be0c074b770beae",
+          "teacherSha256": "b4a2463c8d5236a261125e9de6e9f9237bf3467681867145f107fb2fbdbd5f79",
+          "trackHash": "63bad6ba825cbaee1f6d346b12ed0ccb18ba5c5c2d7388d90b6f9271db2bbcaa",
+          "exactInputAndSpanParity": true,
+          "rows": 1101,
+          "observationPhysicsFrames": 65935
+        },
+        {
+          "source": "stretch_bridge_river_reentry",
+          "observationSha256": "2600fcb8ff62c5a8b02c06d77df1717f63d14bf5d475073203a5ad18ce08a5f8",
+          "teacherSha256": "c0c0a066fac66f43407793b6d1a22861ba2d70b28c13cead0e2fac57f36e3165",
+          "trackHash": "0a3028874938ccde4ca407cc3ded5f606f826bd0a04e4316b4df0c6c7dbaee82",
+          "exactInputAndSpanParity": true,
+          "rows": 1603,
+          "observationPhysicsFrames": 80478
+        },
+        {
+          "source": "stretch_bridge_countercurrent",
+          "observationSha256": "1545168ce04221ffab6fa4d3bc4bc86a095ad1750e51ef48a12078de188001e4",
+          "teacherSha256": "0169b887747050c0df2c29b57a9c7105032ea08b6a56a28eca729a867e8000ae",
+          "trackHash": "cb90388e0b9b13fde24e4ff692ab2656f7d1b4da0e25c16a02ebb121a882b874",
+          "exactInputAndSpanParity": true,
+          "rows": 1455,
+          "observationPhysicsFrames": 74496
+        },
+        {
+          "source": "stretch_bridge_split_signal",
+          "observationSha256": "ec792e5ed3b790c508d9be99c734d7b90f17a8e2f34c93878aac3dd38058cf7f",
+          "teacherSha256": "3ea6f57c6640aef39cdde00f555a41ba0be2590ff9ed3fc2ca2473a4b52eaf4a",
+          "trackHash": "633a052a0b705a43d814336be7c55a245d6a884b5e20cf9ca0d8fceab4005c37",
+          "exactInputAndSpanParity": true,
+          "rows": 1215,
+          "observationPhysicsFrames": 82439
+        },
+        {
+          "source": "stretch_bridge_pickup_lattice",
+          "observationSha256": "bd76e7a1a3ac920b531ed7be94d719dc1bd280bdcafe938d902d50c58fd70ca1",
+          "teacherSha256": "d8b22e5cf6e9b5ede2d3e18f7e95d9db809b3998bf4ba21e9668fb58f19a0131",
+          "trackHash": "f3a8f0e138f884b0f74040f79198b9902094d8f77c51396d284a2141198053d9",
+          "exactInputAndSpanParity": true,
+          "rows": 1745,
+          "observationPhysicsFrames": 80685
+        },
+        {
+          "source": "stretch_bridge_loose_pocket",
+          "observationSha256": "ac2948845c1dd632afa7df6abe84ebe38a793bdedb6a24e2216a96d2bb562607",
+          "teacherSha256": "72504312192b50f823a5b864566ab713d055a01af441db204e48fbf8a06e8b75",
+          "trackHash": "d4d421a5aca8643c9b8dd71d6baa74bdb6097282a12de26324ffbd2dc455f73e",
+          "exactInputAndSpanParity": true,
+          "rows": 1834,
+          "observationPhysicsFrames": 79466
+        },
+        {
+          "source": "stretch_bridge_offgrid_conversation",
+          "observationSha256": "db5b974cfb36645fb577deeb4af8356ea76394b57fb7bf03bfcf26cf5d2ed0c5",
+          "teacherSha256": "036a8d2dc9182eb023beb9075bf5cb22a518ada9b9336f9e1f2e7592b8bfe85a",
+          "trackHash": "acb105fa7a9d10298ccbb972761e3bad06d1f549f9c71ffc1f3d9bf4eec593ed",
+          "exactInputAndSpanParity": true,
+          "rows": 1610,
+          "observationPhysicsFrames": 74826
+        },
+        {
+          "source": "stretch_bridge_rising_switch",
+          "observationSha256": "4abe739a9c7b0e32b6be2b7f7477d854d58040b26661ffd8a9f46a49b4882220",
+          "teacherSha256": "5c784cb953d989d23976d32b6d3e835a9ef6906221073e7352549857bed178ed",
+          "trackHash": "3db7b7b1fc6f438fc2c76049405322a294475d04ef26dfc62b8a6acde92a7c29",
+          "exactInputAndSpanParity": true,
+          "rows": 1524,
+          "observationPhysicsFrames": 77656
+        },
+        {
+          "source": "stretch_bridge_meter_exchange",
+          "observationSha256": "8093b2f9b0d52b7c0981dda9b1f3ac46df9213671e885c8b5c160ce25b0a977c",
+          "teacherSha256": "47505fa46b5f7e1ad56c0b325c85588ede5658764ad67c7f6a026b9408d73fd8",
+          "trackHash": "89238344a07a0aa96ca037a79ec557614683b356b05e4e1731612835ad159ec5",
+          "exactInputAndSpanParity": true,
+          "rows": 1678,
+          "observationPhysicsFrames": 80190
+        },
+        {
+          "source": "stretch_bridge_wide_breaths",
+          "observationSha256": "280bad80fb1e3ed672afe7cf4b88d8208f46fad47d2e1ca7647d14bb3623b328",
+          "teacherSha256": "6013153db301f1b69cfcc74c58ebfcbd359accd434f5035c4505fc471e4d612e",
+          "trackHash": "a6cee2d8c951047295f13894c789344e26d1e6b69662731bd2e05ffe6cfcfca9",
+          "exactInputAndSpanParity": true,
+          "rows": 1451,
+          "observationPhysicsFrames": 83726
+        },
+        {
+          "source": "stretch_bridge_open_hook",
+          "observationSha256": "f2d8815d5b4fd896e06ab1bdbf673866314a740d3284175a711195b4242692f3",
+          "teacherSha256": "a3482e1c99dbecb494b9d4f5d9139c7f306381c3d57147a8ae2b002e36181ba7",
+          "trackHash": "15ee1e900a8a39fa4eaf394c58a217c8fe09cbd81d8e86644e29bc08cf2c0ed5",
+          "exactInputAndSpanParity": true,
+          "rows": 1127,
+          "observationPhysicsFrames": 76418
+        },
+        {
+          "source": "stretch_bridge_amplitude_tides",
+          "observationSha256": "3c7ea352ca2b1a51929df71342785ad38e67bd0f760294bff77ca95e31d6ad96",
+          "teacherSha256": "5e6d7175d92b55ec9c424026d05ec5ecaacd1a535f40527007cef517eaaa95eb",
+          "trackHash": "b43be9f7a1047c9fdc0b97c3ee9febeba38b6f11277cf7f4721763fcdf476b85",
+          "exactInputAndSpanParity": true,
+          "rows": 1451,
+          "observationPhysicsFrames": 90373
+        },
+        {
+          "source": "stretch_bridge_dense_dialogue",
+          "observationSha256": "66209dd4646211a889c6d6966b005ee410aa2724480a396c40d06529342435a4",
+          "teacherSha256": "59a8a88bbae4c87c120ad77e48744f1437cddb75676f59a36f142558ab56245f",
+          "trackHash": "d8910f98708f45050b205eeb1241b6394d088e7cd4d0588b32f73d191e985ba9",
+          "exactInputAndSpanParity": true,
+          "rows": 1676,
+          "observationPhysicsFrames": 80190
+        },
+        {
+          "source": "stretch_bridge_high_air_drive",
+          "observationSha256": "538502bf472d1a8a375c0b3b3a6ef28a50118f0eafd95568a00149207662a819",
+          "teacherSha256": "3d9fcd0df18aa493b0e5a1461dacbd038cf9c92af565f731cd1fd4f66a547afc",
+          "trackHash": "e5435bd2e340a2c7f7bd70e0a6f3fc1e32ce8bb5987669228c5d96d685777d4b",
+          "exactInputAndSpanParity": true,
+          "rows": 1536,
+          "observationPhysicsFrames": 82930
+        },
+        {
+          "source": "stretch_bridge_sparse_lowline",
+          "observationSha256": "5f980865ba391f52f221ee7cfb4cc6dc800ddca2761d6f8d26a2e4168ee7a3ec",
+          "teacherSha256": "a46904bebd403fa8a28e9fc06589040b39ce66ded21f8f117b2f4bee989e2935",
+          "trackHash": "aa488cd42c6fc915617b39745d57e9785d5939755f215aeb395f51e7afe8be00",
+          "exactInputAndSpanParity": true,
+          "rows": 1339,
+          "observationPhysicsFrames": 90670
+        },
+        {
+          "source": "stretch_bridge_frontier_pickup_progression",
+          "observationSha256": "d64668a6a99829f46ee7897787e921c5c3567b2ca7ae045689b24d35ff3fc904",
+          "teacherSha256": "a9e725704c077f87149a1d79af7aef0571a1bf97556275274aad56b6208439ca",
+          "trackHash": "4b06042e2401a1599ff6cc6923b491b313fa5f825f024a8ac6b2bbaaac4c3e2b",
+          "exactInputAndSpanParity": true,
+          "rows": 1487,
+          "observationPhysicsFrames": 84986
+        },
+        {
+          "source": "stretch_bridge_frontier_dense_recovery",
+          "observationSha256": "87c29a40da09694308166574d8249ec1ffef281472122af6bb0c62c2f3b99657",
+          "teacherSha256": "d5908566048bbbf10e45e2192112482774fbc1d6e3c05c2603ea1fdba8443cd4",
+          "trackHash": "6d9bd80db580f3be1d0790cdd677a4607226866f72d45e63751788d4a2d57039",
+          "exactInputAndSpanParity": true,
+          "rows": 1497,
+          "observationPhysicsFrames": 81254
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance",
+          "observationSha256": "0c751c63d05d4d5aa417d505628e261e4179e6a6e7532e326f2250e2ed3d1738",
+          "teacherSha256": "83c55bab2501df0649cd2d8ef4d7454741cc1dc796087749877ee6ce7584e97f",
+          "trackHash": "8a522155fc3cfd3fa12106d83c2ab77721b8d57cc83a9ea45388215e450a1ad7",
+          "exactInputAndSpanParity": true,
+          "rows": 1167,
+          "observationPhysicsFrames": 115139
+        },
+        {
+          "source": "stretch_bridge_regression_transition_mosaic",
+          "observationSha256": "6c569bd8384a7ee6d449733cbb4a90763e0eb8c885ecc0a1484a1c8aa553f62a",
+          "teacherSha256": "1326d53d254ae73bd10fa52329c48e8fbc47a4433bdef45ec40f320fb38d5db2",
+          "trackHash": "2185a1bb6b022b6a44ed2d3c7dd8e82144ad0132b930fe4956e16ffc0c5d743a",
+          "exactInputAndSpanParity": true,
+          "rows": 1530,
+          "observationPhysicsFrames": 83696
+        },
+        {
+          "source": "stretch_bridge_regression_amplitude_mosaic",
+          "observationSha256": "665e4c16f748cba4596d4ea25f7e4ba99ba59e3654b89a7a9d5cac9ed6495b4b",
+          "teacherSha256": "35ee9059b62e3713159d7fe7033a1d373b4ca1fa56e686f3cf2dfb09e4a63278",
+          "trackHash": "ff10d439a6398099463728c4bd9bd98c08dfa132ac18586fe895c6111962dfe7",
+          "exactInputAndSpanParity": true,
+          "rows": 1158,
+          "observationPhysicsFrames": 81925
+        },
+        {
+          "source": "stretch_bridge_believer_56_6s",
+          "observationSha256": "c3e0fa430e3c4765493231aacf67c95c6762cdf06b67d768985748f49fee57da",
+          "teacherSha256": "025d4abcf1fa87476b644e17f2bc8a3190d431795d922451f896644b41e7ccf7",
+          "trackHash": "9ac6514cfb97821715914bf98d598c1ff1c2d4947e2945119f6a975c81dc45da",
+          "exactInputAndSpanParity": true,
+          "rows": 1133,
+          "observationPhysicsFrames": 79743
+        },
+        {
+          "source": "stretch_bridge_believer_impact_56s",
+          "observationSha256": "c87c987113ccd14c1bb2ad6fa8d0b028f2caf6b798a60c124aff3d455211e82d",
+          "teacherSha256": "9ec97761366b57ca7744582a4d03560c3dc9a21fc629fd65ebe61295ba667928",
+          "trackHash": "3501e2892fa08e1db854f16287d67f86ff92b8d16f90a0448a54a5779eba73d1",
+          "exactInputAndSpanParity": true,
+          "rows": 830,
+          "observationPhysicsFrames": 78401
+        },
+        {
+          "source": "stretch_bridge_river_reentry_tempo_fast_5",
+          "observationSha256": "9a3505b1149a1db1efdbbec08f2cacfd0c4332db6fec3e29e764cd2cd3f257c7",
+          "teacherSha256": "800d210496aa8a97c2200ce0134edb1fa7887e74431e68208a30175cc6b5fb79",
+          "trackHash": "7ca9675510123a33f920f22d68f4bb40a64f1d5aea895b3a268d1b26a0a073f3",
+          "exactInputAndSpanParity": true,
+          "rows": 1393,
+          "observationPhysicsFrames": 80732
+        },
+        {
+          "source": "stretch_bridge_countercurrent_impact_contrast_12",
+          "observationSha256": "3da37ad2fdf8431f34842e297a37bf18ec09da42e893c568d93b321e2e11df05",
+          "teacherSha256": "5cfa2fba8d32dd496b6caca03910be881017d9d10c8289a1d8a686bde24fdec1",
+          "trackHash": "3eb2b2b01ea100b5fedace9f5fb14cad2f0578420e9e5a178c7b97cc2c93e217",
+          "exactInputAndSpanParity": true,
+          "rows": 1521,
+          "observationPhysicsFrames": 78086
+        },
+        {
+          "source": "stretch_bridge_split_signal_impact_relief_12",
+          "observationSha256": "3afeb36d660b61a33d35b0a8cf744e2ea11c730c59af19aacae0516ee9f393ae",
+          "teacherSha256": "79d936a63ee21c672222bc1d621be74d9cd1290e7d0cb860c8ec6a0b69fb302a",
+          "trackHash": "b34d9570f4467f854e0e76cebba8e21b96e1709a5ea040a094f8f1e7c2a6ab6d",
+          "exactInputAndSpanParity": true,
+          "rows": 1247,
+          "observationPhysicsFrames": 90951
+        },
+        {
+          "source": "stretch_bridge_pickup_lattice_speed_minus_4",
+          "observationSha256": "8561366e0b1171d4833c5da226a65e84249bb86d512721b272965b51bc24193a",
+          "teacherSha256": "f7e7c15c7f0459a307ec66b9b6aad4ff3520e0c467bfaa2c911e47fa1ec0a3d1",
+          "trackHash": "bee8daf25f4609969bc4c2cb5924403033435d654ab8715e5e10516821576107",
+          "exactInputAndSpanParity": true,
+          "rows": 1590,
+          "observationPhysicsFrames": 80499
+        },
+        {
+          "source": "stretch_bridge_loose_pocket_drag_later_20ms",
+          "observationSha256": "8bd65f6506e172953d65220c9c91dbfd8cd42a98dc3e3241f5cbc467d6392546",
+          "teacherSha256": "9008771f40230ac056ecff5e5a81f273a4c41763dd3ea6311672aa6264478004",
+          "trackHash": "546f6d4017dd2694b0d191daf07e28da96d0903a8999ad9fee09b68fd67071cc",
+          "exactInputAndSpanParity": true,
+          "rows": 1775,
+          "observationPhysicsFrames": 87369
+        },
+        {
+          "source": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+          "observationSha256": "2fc2365dcd843b19eaf96ea2567d0e1db1672016f386f14d2d0e32264e5367e1",
+          "teacherSha256": "24822686821c8130e141ce685b7a23abb33e72774992c5c413516d08fc45a8a3",
+          "trackHash": "9258733dd34ce2771e9e56720c0d61305e62bea5c9becc5886ea1bc0149bb96a",
+          "exactInputAndSpanParity": true,
+          "rows": 1637,
+          "observationPhysicsFrames": 77367
+        },
+        {
+          "source": "stretch_bridge_rising_switch_tempo_fast_5",
+          "observationSha256": "55103865a99766c018e83aafb761408a6fcd75bff7570539d4e834f42883cdae",
+          "teacherSha256": "b490723c6dea8d5cce5f28b5d42f06125261b297f70b41ffb893a6064da58b11",
+          "trackHash": "f838a273301a15c0e7003a96ff5f1af1dcc02a2cfe34a9203642b95d5e2df765",
+          "exactInputAndSpanParity": true,
+          "rows": 1551,
+          "observationPhysicsFrames": 82338
+        },
+        {
+          "source": "stretch_bridge_meter_exchange_speed_plus_4",
+          "observationSha256": "6cc2d5a9181bf58f125edade71ce3e26a04b83c4383fb45b23f4cb233fb8c829",
+          "teacherSha256": "5d4d5d644642efb5f4d7b33b7f6d0d33f4e234377d6a38ccdfd92af5d069b2fe",
+          "trackHash": "d9fe3d197092e0ff260a558775a9272cf481734bde0ae6a2683e444cd24d4f91",
+          "exactInputAndSpanParity": true,
+          "rows": 1684,
+          "observationPhysicsFrames": 81260
+        },
+        {
+          "source": "stretch_bridge_wide_breaths_air_plus_5",
+          "observationSha256": "d07882563737545637828a9c092802b47b7821469cb4dbb0f49da7cdd9576972",
+          "teacherSha256": "cdedfa077bac495888b508878e24b90e192480e145931474029c22df6673e480",
+          "trackHash": "96ee0a2e0bce1a630ef6685b7a71e2ef9179b2fc1997bcc201a9f969b41a767c",
+          "exactInputAndSpanParity": true,
+          "rows": 1483,
+          "observationPhysicsFrames": 86245
+        },
+        {
+          "source": "stretch_bridge_open_hook_amplitude_plus_8",
+          "observationSha256": "6f967665b7b7b06a181f637310341d664f80987fea62c02494cfad1a54e1c2ab",
+          "teacherSha256": "b0bff623054f612d0a2efb0dec3823a13b7d8c4a6f8144efbbff9bdba8b91f16",
+          "trackHash": "5ed00c9fff22f8f1db2a2d12983afb497f2e719385307d27353a38bb7214f9f4",
+          "exactInputAndSpanParity": true,
+          "rows": 1018,
+          "observationPhysicsFrames": 74019
+        },
+        {
+          "source": "stretch_bridge_amplitude_tides_restrained_10",
+          "observationSha256": "671afa5ff93d609db6c2ff32913353d0e64b6f87ad980e21cf809bff58debba8",
+          "teacherSha256": "5ff9154eebb88331359811a23c9d2ce48e14976e76f43b4c372100fa5c07d3be",
+          "trackHash": "32668cb71bb7af42c1ae97382a4a8d4def7799b47264897d6ceb37e4d6c74ce5",
+          "exactInputAndSpanParity": true,
+          "rows": 1372,
+          "observationPhysicsFrames": 94445
+        },
+        {
+          "source": "stretch_bridge_dense_dialogue_impact_contrast_10",
+          "observationSha256": "7667002366b8225a123b8b9e917a55f0402cc2ef9bc9ce1a8df7fa87c1f9c6d8",
+          "teacherSha256": "673052b75e82e07fbf61c8481fce3696b43d5cebfd7eb703f77afb38eecdb486",
+          "trackHash": "823e61def06d893a17cbd958a3cce7f9f28dcd3662cf3ffaeb55c1c5f491d175",
+          "exactInputAndSpanParity": true,
+          "rows": 1619,
+          "observationPhysicsFrames": 78555
+        },
+        {
+          "source": "stretch_bridge_high_air_drive_air_minus_5",
+          "observationSha256": "baf6b1130ca88e5fb063e21b7d1e4d2cb2dc90b0fc0c89b99e57e6e263a16031",
+          "teacherSha256": "177c6e985ef7269cc5fe7f1d205b0e00b7c54cdc454d08b873796084745be5f5",
+          "trackHash": "427c9bfefd2e28f95d01043edf974cb28b746c96900a7fe129fc65a74f1002f4",
+          "exactInputAndSpanParity": true,
+          "rows": 1451,
+          "observationPhysicsFrames": 79807
+        },
+        {
+          "source": "stretch_bridge_sparse_lowline_air_minus_4",
+          "observationSha256": "113060b535c8db35bcaacb2d490ade07106865872e914f6092255a7d7bca5ae4",
+          "teacherSha256": "d4dfaef365c4415fef80beb39e3d1f4f32fc945384e89aa3e208a4c0cfa22ccc",
+          "trackHash": "dd710a61360ef97cadf62f0597d75d6c8b6c234cb253dccf8da704275e92cd06",
+          "exactInputAndSpanParity": true,
+          "rows": 1199,
+          "observationPhysicsFrames": 89858
+        },
+        {
+          "source": "stretch_bridge_frontier_pickup_progression_shifted",
+          "observationSha256": "cdaf7632a60464dfef4b42a0ca04a38bde094787f41a80cea83a24eb9937acff",
+          "teacherSha256": "9b6133af2c0efd26f3bda8cf8b017d087f3b91b1b6423f72af7ea95101fa33a9",
+          "trackHash": "52d878c92257a4b9350aa2569d6466e66cf8e89cf480c085f843499e345b3c4e",
+          "exactInputAndSpanParity": true,
+          "rows": 1351,
+          "observationPhysicsFrames": 82539
+        },
+        {
+          "source": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+          "observationSha256": "3e69fd666acf8f630b4ff254d2750996fda5d969e6c3a551723987133bd51b39",
+          "teacherSha256": "8db02ca3b7223e834583575d0f441d1dcbc6802eefb574f56f67889e5348f4f6",
+          "trackHash": "f3373ace6f26d50a091b6c5c5fb9fb9a064f661243d0a0507ce73091e943645e",
+          "exactInputAndSpanParity": true,
+          "rows": 1363,
+          "observationPhysicsFrames": 79065
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_4s",
+          "observationSha256": "903252b1d900334b7503e46991a1d88d5a0bc7f514de9262e10217ce86b5b935",
+          "teacherSha256": "7cbf473e76cf0c352752cde1d215b5db9abdb07cb8ba2ab6c8bd804f1888a225",
+          "trackHash": "5363d4185d838ee63e97c9ce38bedaf4ef915c359a322d6b548a9af4c8a70d36",
+          "exactInputAndSpanParity": true,
+          "rows": 952,
+          "observationPhysicsFrames": 111114
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_6s",
+          "observationSha256": "468c90c60d6048a1a428faf113528141e89fb99f71b4a238ad34aee842d33c6b",
+          "teacherSha256": "cea7116278f167a78fcf62ee8094c79583bdbcaceee6eb1e0f63b803bdda9d19",
+          "trackHash": "b5f034aec6fc99f2ded9eadf54123d05c088de5f23c4e8849215fc20bf47bf49",
+          "exactInputAndSpanParity": true,
+          "rows": 1069,
+          "observationPhysicsFrames": 148930
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_7s",
+          "observationSha256": "7d3612b7635e79e7a5286ceb669edaee1ac1be95940e432781ecbf2cda748a43",
+          "teacherSha256": "6d75c8e308944fccc29ac1d673ae70a5ff12e328028852508dfae045cabfe61e",
+          "trackHash": "571d004070dd97d848175a69feeded211b2521b2fb2f9598ce01b61137ac49c2",
+          "exactInputAndSpanParity": true,
+          "rows": 1130,
+          "observationPhysicsFrames": 116096
+        },
+        {
+          "source": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+          "observationSha256": "67b76ce79a5c3ee89d582c49163553c37f10b5c002636e9f43f6d819690e9710",
+          "teacherSha256": "28b00b47b2606a13902badf38f1781a364e3f1fe7d1c10d33e731dd67f24c4e0",
+          "trackHash": "626c09b599c46e357f6803999c76aec734369dec4ecf4d12e2fe42abbaec84c8",
+          "exactInputAndSpanParity": true,
+          "rows": 1451,
+          "observationPhysicsFrames": 77789
+        },
+        {
+          "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "observationSha256": "f26259bba2566d5e5a70af28c2aa31ac69302e00282891b4d6bdb936d36c06a5",
+          "teacherSha256": "12582200290159466da96e1df10a2184ed42f62658b94fafd918643db2fbfe73",
+          "trackHash": "429dbb97ed99d943a83682891d53c8688058baa49ae420ff6cf63741f485f399",
+          "exactInputAndSpanParity": true,
+          "rows": 1160,
+          "observationPhysicsFrames": 78862
+        },
+        {
+          "source": "stretch_bridge_believer_56_6s_impact_relief",
+          "observationSha256": "d0103f8517d01249eb105c35be9facdd0a0c4b06af26f4d52b103eaf611604b0",
+          "teacherSha256": "e2128a9f91762038f2449ac2a123310d1b586a8d38aa62c20c65992c650269e8",
+          "trackHash": "64faa16c482de5df24c495686e2950db65bf1ae0dd5fec9f508d219eb9b4622a",
+          "exactInputAndSpanParity": true,
+          "rows": 1108,
+          "observationPhysicsFrames": 79886
+        },
+        {
+          "source": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+          "observationSha256": "6725da182d554510936ee70acf9258de99797af11b2b7a2191654ea94d018f1b",
+          "teacherSha256": "65086a335a86073f36f52e13cbdefae22e944dbee1b710e766e4e2882aa4871b",
+          "trackHash": "268e920b518d23007487c9b38f47ab52b0197610e4a9f26554214b0459d0a77d",
+          "exactInputAndSpanParity": true,
+          "rows": 787,
+          "observationPhysicsFrames": 78328
+        },
+        {
+          "source": "stretch_harbor_return",
+          "observationSha256": "fc9d55b9073384763a0106a5a3389f51f5a28d34ce2633ae1aa6277c51a347d4",
+          "teacherSha256": "f785124bdb8dd4344bbbd1b1e042003ff7f7f3eab0f318edb9286548ca8a8e57",
+          "trackHash": "10be7ae3fea3306fba6506b860573fa31c3a06e65aebbfed0297a46abca9e52a",
+          "exactInputAndSpanParity": true,
+          "rows": 1740,
+          "observationPhysicsFrames": 84442
+        },
+        {
+          "source": "stretch_crossing_lights",
+          "observationSha256": "b4719ad8f4caef1daad3673dd5501b07d11dfb565366c9bcf3c67ec52ea94452",
+          "teacherSha256": "d1033ae4ee4977c8c23d1ed4cf412ea62f050a544f2cfa6b7f8ae081ec47ba09",
+          "trackHash": "6a8c6998edb5596bf28d74a2a80e43b50c60b65b7e680d11c22e63b05d07240f",
+          "exactInputAndSpanParity": true,
+          "rows": 1543,
+          "observationPhysicsFrames": 95210
+        },
+        {
+          "source": "stretch_afterglow_turn",
+          "observationSha256": "206c8dbbbd781c7ea78d1341a67a0616596a306e01e33448e10357169c57de16",
+          "teacherSha256": "8afbdee3f37c8a653814b185fc278759f1e1283dae5deaca5a28f84cd4a3de62",
+          "trackHash": "29762f2b99aa740d34b2eba2c6ce6ebaca7bd61545a319e508395ea8e27d2bf8",
+          "exactInputAndSpanParity": true,
+          "rows": 1688,
+          "observationPhysicsFrames": 92804
+        },
+        {
+          "source": "stretch_woven_pickups",
+          "observationSha256": "6ebb69f6d36d1b7c019c144681e40e156bf8b5992e81105584dd65f2e2f8f8cd",
+          "teacherSha256": "93b7a99f2267be0f166cda598bd4ae168cb105edd54c8932b14961276c650a63",
+          "trackHash": "fd5981c4c9fd24d025dc0571d3234213b4af454e468a56e7669ff4cff6a125c7",
+          "exactInputAndSpanParity": true,
+          "rows": 1632,
+          "observationPhysicsFrames": 86275
+        },
+        {
+          "source": "stretch_pickup_answers",
+          "observationSha256": "e8476f6af517495fd97a5e15cb2010a251c5dca8e9cbf6dc9982ef8c548afb2e",
+          "teacherSha256": "1f601b4578d9ef87863b15b02d9183369ca3bb72539a5b2489928122abb9a008",
+          "trackHash": "a302143cc68303b2013fb2b93476bf5d0839e835c18db18319815cc7a4dd4d47",
+          "exactInputAndSpanParity": true,
+          "rows": 1503,
+          "observationPhysicsFrames": 94081
+        },
+        {
+          "source": "stretch_broken_triplets",
+          "observationSha256": "0b2b96c8dc9623638203362c423c2eb9d309cee853ca1f46d742c5e527a630ee",
+          "teacherSha256": "829285d59d6d9b4408355cf9fe6171f0f242973e4c48ac348ad8983b77da260a",
+          "trackHash": "24e4ea7fab94d4a14bac67b9d2f41f1469a4a313344f0f7dcfb3cebb4fc320de",
+          "exactInputAndSpanParity": true,
+          "rows": 1585,
+          "observationPhysicsFrames": 91886
+        },
+        {
+          "source": "stretch_late_letters",
+          "observationSha256": "830dc7fc53580cb5110205c4496af891cd748150b71568a9cb0271c02cc997d6",
+          "teacherSha256": "d730ff1ebbb074f5b1105f57e87b1059284fd63cd4455e59e9902f4a87b6b76f",
+          "trackHash": "ad8b9072e9f77182a1a6fae646959750f6910111fbeeec7d5da258d0e1295c93",
+          "exactInputAndSpanParity": true,
+          "rows": 1740,
+          "observationPhysicsFrames": 84212
+        },
+        {
+          "source": "stretch_swing_exchange",
+          "observationSha256": "2a1e705e6018c3e4c06f479c330e0b0868cd715061f58b14b490c94070c87529",
+          "teacherSha256": "306466c02e54ef96ecb6cfdb80789e480eb8cdf3f3e537b820b8732d7c783ae8",
+          "trackHash": "9ea821214ff07e342f94642dcfb1d2b6a84f7eea1eac354571b949421517591a",
+          "exactInputAndSpanParity": true,
+          "rows": 1748,
+          "observationPhysicsFrames": 94900
+        },
+        {
+          "source": "stretch_offbeat_echoes",
+          "observationSha256": "5ac79171ca517ad740c3e25d92281642f2da99790f6164408d48c3ba0238cc1f",
+          "teacherSha256": "3ed9d402b35b8104c2c12d986bd128a361101f3b797220c58c2ba36b648d5ea9",
+          "trackHash": "e10e9de809eaabed7f30990e17a8b97bb692429a0b0d9f2fc53597925aa2f1b7",
+          "exactInputAndSpanParity": true,
+          "rows": 1745,
+          "observationPhysicsFrames": 91350
+        },
+        {
+          "source": "stretch_gear_changes",
+          "observationSha256": "766b262326132594ff28f5579f5edcab6435d9c0a17c24f7ac02a7bd331ca603",
+          "teacherSha256": "ffa5a78dec17d1ee55ec9e5f3057d8cfd05371c0362c8bea9ba9b419a471233a",
+          "trackHash": "e894b7518ace5b3cf37a319e0026d2592ea669955d7fd1b0a4499d3fa1e99c69",
+          "exactInputAndSpanParity": true,
+          "rows": 1584,
+          "observationPhysicsFrames": 82175
+        },
+        {
+          "source": "stretch_half_time_return",
+          "observationSha256": "12b2345fb18ed77902896676ba36f269d17bfc90e8c02838948749f30d875997",
+          "teacherSha256": "333271dcfa61dacbfbb10552e1a4ef603007285f8f097915fdd45e72173e5813",
+          "trackHash": "2962b063995a8d2256d8abe13c65549855037d2d9710e2a5793e6c187fe4edca",
+          "exactInputAndSpanParity": true,
+          "rows": 1610,
+          "observationPhysicsFrames": 95874
+        },
+        {
+          "source": "stretch_accelerando_reply",
+          "observationSha256": "9782eda13284cc578a07cca871cbdcc1a747e6b011577451b6aba1859d0e11cd",
+          "teacherSha256": "6890a458feaa2614c443fc22e193c692c11ad94f2d41513533d44db8f857ff6c",
+          "trackHash": "34884114175ee4c2af7f9589c03840138450b948c0eb1252ff039e5b8471a2ec",
+          "exactInputAndSpanParity": true,
+          "rows": 1572,
+          "observationPhysicsFrames": 91391
+        },
+        {
+          "source": "stretch_archipelago",
+          "observationSha256": "35fe88a119635dc5b20333a2261f0d633c764145fe52bb1e1ad7bedae360c95c",
+          "teacherSha256": "2cfe6974000441c2b54adf246385629e7b98074664b0d05e551c2eecdee4eb59",
+          "trackHash": "3be1c3f3a3d84eb8e14c435bc9f70b81f925e0cdf7b7b86486009b43cf129dc3",
+          "exactInputAndSpanParity": true,
+          "rows": 1187,
+          "observationPhysicsFrames": 86639
+        },
+        {
+          "source": "stretch_wide_arc_dialogue",
+          "observationSha256": "ee9363339c22f19082553222e4cc435d366db98a810391d9e1b440eba01a9954",
+          "teacherSha256": "6ef291c155f345d692561080ea2e8b254330d86eea134a2b8fbed3da4cf46944",
+          "trackHash": "7556be63b63bb6f70548e34455d8826ea21f8cb4ef96ffc91d9b614384c4cdd4",
+          "exactInputAndSpanParity": true,
+          "rows": 1077,
+          "observationPhysicsFrames": 84481
+        },
+        {
+          "source": "stretch_terraced_skies",
+          "observationSha256": "c5bbf04d3d1045a9e762335a11a66786328be6712fbe9b91c5c4133f14526c77",
+          "teacherSha256": "317b96d7f731546bb41ddb7e06893c06a92e6fc2f31d7bd4a5090d1549eefea3",
+          "trackHash": "158c19ab518eb2131a8796dcbe5ebaa4cbfea2fcac03d1bf819779b8c5d7c015",
+          "exactInputAndSpanParity": true,
+          "rows": 1096,
+          "observationPhysicsFrames": 99069
+        },
+        {
+          "source": "stretch_woven_pulse",
+          "observationSha256": "0186f3811ab0e188f9c1db810c8cbcf94c9bf0ba1a4de2bd720cb0ec073f6516",
+          "teacherSha256": "d42c83668120a38b9b023cc632af0bc4928e9c6de0ac62f9282a0cafb0089768",
+          "trackHash": "8a2e83c8348e8816d161fa66349b62b9b5af09373ef46fbc1ba31afbe9a0aa33",
+          "exactInputAndSpanParity": true,
+          "rows": 1713,
+          "observationPhysicsFrames": 95803
+        },
+        {
+          "source": "stretch_density_release",
+          "observationSha256": "5d349c9991756d303bcf91731f5fb3f5f6b46a586a22ca91f269a42bc4bc8eae",
+          "teacherSha256": "c024e5147621bafec7caed0ebe6915eb7110bc8f13f4e6fd8790f2c95ede13ed",
+          "trackHash": "9662994a973a4d35c54455be52d58a082b7d20963513e5fd9673625b73bac458",
+          "exactInputAndSpanParity": true,
+          "rows": 1591,
+          "observationPhysicsFrames": 86934
+        },
+        {
+          "source": "stretch_compact_dialogue",
+          "observationSha256": "76ac115f6fc0ef1fb91b857d5475ad5f8110d899d283c9419ee1309a98ed374b",
+          "teacherSha256": "bbf61db4766f7f863ad42ee31d0f60ebec571ad1c97b9925452c5054bc5bfd04",
+          "trackHash": "296c28a52b7615c8baa86145a14e92967ac927b348efcf23f9fb8d3ff40d67da",
+          "exactInputAndSpanParity": true,
+          "rows": 1614,
+          "observationPhysicsFrames": 89179
+        },
+        {
+          "source": "stretch_lifted_refrain",
+          "observationSha256": "105f629e33a7765f1e1320a961d48d67ffea7e91910f445ea74cdf0cea62da8f",
+          "teacherSha256": "55bd26cdb2de358ace22181693fdc06630ffbe64bdd9eecf629a2a056ae70b02",
+          "trackHash": "94d40494881954e7f81926f964efd31d41a045eb8f67d66652cee66ed3d435af",
+          "exactInputAndSpanParity": true,
+          "rows": 1523,
+          "observationPhysicsFrames": 94005
+        },
+        {
+          "source": "stretch_flight_and_return",
+          "observationSha256": "819acecdbdae57b56e4af417d0550b51d05350ccf2968057f14a63f09eb817c3",
+          "teacherSha256": "845938975438b874e911a08b08664629d0050c0d806f52210087fe73cadf3f48",
+          "trackHash": "d859c005fb4954477b24a08ae1a0c9beed347931627ee9748b278b99daee6c30",
+          "exactInputAndSpanParity": true,
+          "rows": 1466,
+          "observationPhysicsFrames": 86512
+        },
+        {
+          "source": "stretch_open_canopy",
+          "observationSha256": "c2ad2415fc35841ad1ee718e116943c93101efc76563427e1db71a76a2f46fe9",
+          "teacherSha256": "2f7813473424fd2dcdf6f98029b8a35968e4105f0374cc8c8c7e468812cb98f8",
+          "trackHash": "d64d9b4f4a2a5e8ff6d3a03c8fe71009d46072d2998978f5e6ccbf9ec66763c3",
+          "exactInputAndSpanParity": true,
+          "rows": 1438,
+          "observationPhysicsFrames": 88741
+        },
+        {
+          "source": "stretch_quiet_current",
+          "observationSha256": "a2a7e1f5c886400ae4b8551c915fb29552770193fc91a6f3cc6b7b490777f77e",
+          "teacherSha256": "80e00cb449e0c7e4f53589f527fd8f323f5b0adc6c3240d1b1d0764c78fe30ac",
+          "trackHash": "ba0c16d9bd7e0b0d4a81d85118fe1aab4a722bf04c497f77e7853b2eb847b5d0",
+          "exactInputAndSpanParity": true,
+          "rows": 1163,
+          "observationPhysicsFrames": 99827
+        },
+        {
+          "source": "stretch_support_then_lift",
+          "observationSha256": "68361733bd20346bee86de52a0351263bc5b7ac862412a6c1b68d7cff0bc0cdf",
+          "teacherSha256": "4b4f7703e0d901e5446e3521df6f8c1b0a069d7a0a8971f1f3656ff615c962f1",
+          "trackHash": "670ef8be17bd6ecad84cbccef9c7e83ed28aad32c8ed5ea02fc1dc9ff232a423",
+          "exactInputAndSpanParity": true,
+          "rows": 1122,
+          "observationPhysicsFrames": 91913
+        },
+        {
+          "source": "stretch_rest_and_return",
+          "observationSha256": "47ee6f77fa581704fa55a5e6d4fa061b33d2656c7d33ac1700328c531a17c9ab",
+          "teacherSha256": "0b0518bddde544c220e24b07f054acf506b2921869765b5b211b5357890fc394",
+          "trackHash": "dd0653736bd2454650b55b7d6f664b211be73527b0ecf3ceaec8d7ef378afd13",
+          "exactInputAndSpanParity": true,
+          "rows": 1106,
+          "observationPhysicsFrames": 95878
+        },
+        {
+          "source": "stretch_pickup_staircase",
+          "observationSha256": "06819dcc1c069678f3b0251da82f328e8f8b1ae7a27ed8fcacf9e56d6d1860ef",
+          "teacherSha256": "08332410280a5bb7f72894592eb67524dcff450c9d455303d7559c4f0692834a",
+          "trackHash": "efce0827ecfcc099671d98cafb18c680074154ddad0987277b6a33421be29c8f",
+          "exactInputAndSpanParity": true,
+          "rows": 1915,
+          "observationPhysicsFrames": 94794
+        },
+        {
+          "source": "stretch_pickup_interruptions",
+          "observationSha256": "a60c2de5957c7ba311cac6476d04103966570a0a7218afec5211d59ad08260b9",
+          "teacherSha256": "faa4b8c4885ff704e9d5ee5baedfc5a4d8d17072526bbb34f9885efb834d916b",
+          "trackHash": "5ded466005344e81a5677d12bf6254703f5c71fae3ceee62a2dd073db3c5d2e8",
+          "exactInputAndSpanParity": true,
+          "rows": 1687,
+          "observationPhysicsFrames": 88471
+        },
+        {
+          "source": "stretch_pickup_recovery",
+          "observationSha256": "f8fbd41c17b12e764e86c39a58bae4ab99cdac32fa1a8046edfb345bae2d1a93",
+          "teacherSha256": "3f38b8ac188bec144caf0312cf6b1cd3c12a030525f59ac554421d8853e86efe",
+          "trackHash": "d6cef9f3f7f299c388f54e444b887a4058840f6eade6a1705735008c3847b420",
+          "exactInputAndSpanParity": true,
+          "rows": 1758,
+          "observationPhysicsFrames": 92226
+        },
+        {
+          "source": "stretch_dense_short_then_long",
+          "observationSha256": "a5a730d1d8206e09437ae5599e975184d53f8d1bb068723b275e4cc5e81425ea",
+          "teacherSha256": "eb4301633f8e1f00515f880ea7cdc6bb1c354df9de2608515159147088c43a81",
+          "trackHash": "814a19556fa17b8d4c2cdedc6e8eb4f172ba44dbc781f687287622909bcdd9b7",
+          "exactInputAndSpanParity": true,
+          "rows": 1868,
+          "observationPhysicsFrames": 94003
+        },
+        {
+          "source": "stretch_interleaved_recovery",
+          "observationSha256": "ba59cb76b3b9f5e709648bee345cca5b978ad5ec9dd4d52d1abe3c1fd084d043",
+          "teacherSha256": "1790a7f49869599b320bb4eccee90e657534d8b663b9abc9de3c00943274c79e",
+          "trackHash": "ff75815f56ef826e78ef053927126591c04e9d328adb8a91f0229570f2b54371",
+          "exactInputAndSpanParity": true,
+          "rows": 1621,
+          "observationPhysicsFrames": 85088
+        },
+        {
+          "source": "stretch_three_note_returns",
+          "observationSha256": "1d5e7dcf7bb4b51e96fbd5702731b9e4b6109ef075c1fd80714f7c4ad314db66",
+          "teacherSha256": "88b3ea9b39bd25459c36966dd43999361cbba6f0760b204f6e710da8f870ced1",
+          "trackHash": "be408e6bd08b47e06e1006cfdecb7cc9dc40adff3d49193329c3eb8d72f2d880",
+          "exactInputAndSpanParity": true,
+          "rows": 1689,
+          "observationPhysicsFrames": 89681
+        },
+        {
+          "source": "stretch_supported_bridge",
+          "observationSha256": "33134a3a94d0d76514bb23661df0562ade7248023173bdc1a04ac2bac096d142",
+          "teacherSha256": "4baeb6e8fcaf2e6850a14e8ca9aae61721ff13d4c773a58e854325d76fbc5528",
+          "trackHash": "065612a67d519399e9502cc48d52c0996186897cb982756b9a41f3e967a40863",
+          "exactInputAndSpanParity": true,
+          "rows": 948,
+          "observationPhysicsFrames": 109372
+        },
+        {
+          "source": "stretch_supported_speed_change",
+          "observationSha256": "bdb6210559cbe1fb191b0922080e5769a6e8a41a7d5aaaae97f98c802de1183e",
+          "teacherSha256": "d2272acd62d1055e7e30cffc63f1be6c608f1771306a05ee454b3a33b5f29ae9",
+          "trackHash": "d5d952c1f05c2b090d7f0fb10546ce405ef4ce43f083f6c8e7b61d5d2e0f7877",
+          "exactInputAndSpanParity": true,
+          "rows": 969,
+          "observationPhysicsFrames": 133015
+        },
+        {
+          "source": "stretch_endurance_and_return",
+          "observationSha256": "2293e9d5784a54d998a2bcfd13d3f94e4007689fc42aac053dc976a7de480952",
+          "teacherSha256": "b0adaef97928f3a6e04731a372c28cbe5d98753ed528263e2525ae6d43e97c69",
+          "trackHash": "f74740e0339256a436f399d6ed1fac4c7f25609488505d1c6dd8eacb5ceaa9c9",
+          "exactInputAndSpanParity": true,
+          "rows": 977,
+          "observationPhysicsFrames": 108436
+        },
+        {
+          "source": "stretch_energy_weave",
+          "observationSha256": "bfebccbb7b0112af5597ffda3e2d64ed9c7da6485e723a60b26b8044f1385d6c",
+          "teacherSha256": "355fdf3753279fa7ebec152ed879dc0aeac09cf8e3cee35d5040f0652d6fd50c",
+          "trackHash": "2faf95e645167dab737c2ce56a664eeca148f196bc4bfbc50341867c9c06b29d",
+          "exactInputAndSpanParity": true,
+          "rows": 1575,
+          "observationPhysicsFrames": 94356
+        },
+        {
+          "source": "stretch_alternating_intentions",
+          "observationSha256": "49adfc63d8363ff347e5c3096f389eeb7ccc9e937bcddd9ce549e2b27439fef9",
+          "teacherSha256": "b7ea5ac90fec2b0aa6790da9d85baa7d3938c0310e51dd5ef702b50a56ff6339",
+          "trackHash": "39d32c173f214dcb34c92cef710ee3f791d30ec6b88012771bc43cd13f04057f",
+          "exactInputAndSpanParity": true,
+          "rows": 1492,
+          "observationPhysicsFrames": 87758
+        },
+        {
+          "source": "stretch_recovery_mosaic",
+          "observationSha256": "154493c49e7a86e40285b8769a1b48d964b6a74c1ba00c40bed88ed807a36302",
+          "teacherSha256": "436f558d642a876ed419cc10865365e298f9f71fc6d51148ebf9563a65fde3c3",
+          "trackHash": "91045c0eb82cfc9d74a4b7f024434656c376648eb75bb7d16a1f5cfa0ce04d72",
+          "exactInputAndSpanParity": true,
+          "rows": 1480,
+          "observationPhysicsFrames": 91422
+        },
+        {
+          "source": "stretch_amplitude_reply",
+          "observationSha256": "b52acaae675abdb4cf4dff3ad8c799f429829bd74d10adc487cac43eaac5d608",
+          "teacherSha256": "1bac71975a34a5420be2b7f79b9c699c06d873c9d35e894e3cf0f6a2dd7afaff",
+          "trackHash": "94ac4028cf0f4f50e3a920ee6bac9e4e1821ebca9816f038caa7535ae99e42a3",
+          "exactInputAndSpanParity": true,
+          "rows": 1206,
+          "observationPhysicsFrames": 93549
+        },
+        {
+          "source": "stretch_restrained_then_wide",
+          "observationSha256": "28d04b801adfbe3b5dfc3ff60dc143fde4994b6037af14eded4ed3d9cd4e82b3",
+          "teacherSha256": "a689e0694269969e700d704153a09681266664b234e92f07faa6957264f78b57",
+          "trackHash": "6c5df9483181d7ec895ccc9a426d0109be48ee6636be45d5dcba074f2cc62b2c",
+          "exactInputAndSpanParity": true,
+          "rows": 1058,
+          "observationPhysicsFrames": 85506
+        },
+        {
+          "source": "stretch_arches_at_new_tempos",
+          "observationSha256": "4ed3eedef569b5298940f508437083fd4bc2e3915888e2395e27a7c2b444c396",
+          "teacherSha256": "ba069b013f96cad752b36623784dbb1d7c23bb9fa6afbc709f497c53aad9fe8e",
+          "trackHash": "947e37aa311ad1d71e50140b5a0cff80518cbec8a58965e9d5470728e4d780ef",
+          "exactInputAndSpanParity": true,
+          "rows": 1090,
+          "observationPhysicsFrames": 87515
+        },
+        {
+          "source": "stretch_music_amor_na_praia_46s",
+          "observationSha256": "02d1698f85eb9c0ec895d07866ed043bc16fedd013babe39fa059ff0e5877b1f",
+          "teacherSha256": "df8ce9b19f932247642fb95a0361a19ed97461b2004e557f51ede5d8a51030c6",
+          "trackHash": "1eb4b5dd31b2c4923d7642288c7911f0aa9dfb55d446e9995196238634d1da2c",
+          "exactInputAndSpanParity": true,
+          "rows": 1330,
+          "observationPhysicsFrames": 64279
+        },
+        {
+          "source": "stretch_music_luna_bala_44s",
+          "observationSha256": "b0c3bae41f3acadd1ba845493a7da9cc819080615c958d2ba020193f48569b25",
+          "teacherSha256": "2f272ab739a99523b371b84096039397c86c92cb716e83364fa93a54ccaf61b7",
+          "trackHash": "072df60439397c8df215e03f323b5f9e7fac9d50e69989c79d795e370988335e",
+          "exactInputAndSpanParity": true,
+          "rows": 1248,
+          "observationPhysicsFrames": 60681
+        },
+        {
+          "source": "stretch_music_tiki_tiki_48s",
+          "observationSha256": "69fa8e6132f4d9b94e7cd5e8bd8d2930dfd2261ecb1346fd7a39c26329e8aee5",
+          "teacherSha256": "7db84acc95b24b22fcd7e1fcda4097eb5f23451fb4f78b38681519cea10f8835",
+          "trackHash": "93aafb62b3b69ef88595a3d42f23005daee86a81851d77f992ca58b5662e4aec",
+          "exactInputAndSpanParity": true,
+          "rows": 1021,
+          "observationPhysicsFrames": 66764
+        },
+        {
+          "source": "stretch_music_shelter_impact_sync_81s",
+          "observationSha256": "928b222ac76d7ca3ec119c9a4fe985cd80f29dceb34480f3862e9f33137c66fe",
+          "teacherSha256": "ba899a016bf62b9d38ac901c6cadf74e41e6ef14f92c87e0f7931294d9b3488b",
+          "trackHash": "1d3940f59dc713366ab5a01571a1a83a322add01969739d2746ab56dd09ff3ff",
+          "exactInputAndSpanParity": true,
+          "rows": 1793,
+          "observationPhysicsFrames": 111782
+        },
+        {
+          "source": "stretch_music_amour_de_ma_vie_short_44s",
+          "observationSha256": "eb4cad4b93c32734fc608d5221c779fd9173a4c8aa0c37b22d42574a38c9845f",
+          "teacherSha256": "588a7a9caee06880335c27a2038b78957cd2877a2993504a5085fb5f597f3801",
+          "trackHash": "0ff73524d875435f5e03851b6aac206e747e6c360658957ee4303453bfdec42b",
+          "exactInputAndSpanParity": true,
+          "rows": 1140,
+          "observationPhysicsFrames": 62133
+        }
+      ],
+      "validation": {
+        "rows": 256162,
+        "parents": 65,
+        "folds": [
+          {
+            "fold": 0,
+            "heldParents": [
+              "amplitude_reply",
+              "arches_at_new_tempos",
+              "bridge_amplitude_tides",
+              "bridge_countercurrent",
+              "bridge_frontier_low_air_endurance",
+              "bridge_offgrid_conversation",
+              "bridge_regression_amplitude_mosaic",
+              "bridge_rising_switch",
+              "compact_dialogue",
+              "crossing_lights",
+              "density_release",
+              "endurance_and_return",
+              "gear_changes",
+              "lifted_refrain",
+              "music_luna_bala_44s",
+              "offbeat_echoes",
+              "pickup_recovery",
+              "pickup_staircase",
+              "recovery_mosaic",
+              "support_then_lift",
+              "wide_arc_dialogue",
+              "woven_pulse"
+            ],
+            "train": 170109,
+            "test": 86053,
+            "controlRms": [
+              0.1325489787905888,
+              0.10963277705155675,
+              0.20337699463415318,
+              0.0802701083029565,
+              0.8898986128944517,
+              0.8434819963227951,
+              0.1679611505386017,
+              0.10866251028593682,
+              0.20469244629064878,
+              0.3859588240214311
+            ]
+          },
+          {
+            "fold": 1,
+            "heldParents": [
+              "archipelago",
+              "bridge_believer_56_6s",
+              "bridge_believer_impact_56s",
+              "bridge_frontier_pickup_progression",
+              "bridge_high_air_drive",
+              "bridge_loose_pocket",
+              "bridge_pickup_lattice",
+              "bridge_split_signal",
+              "bridge_wide_breaths",
+              "flight_and_return",
+              "half_time_return",
+              "late_letters",
+              "music_amor_na_praia_46s",
+              "music_shelter_impact_sync_81s",
+              "music_tiki_tiki_48s",
+              "pickup_answers",
+              "pickup_interruptions",
+              "rest_and_return",
+              "supported_speed_change",
+              "terraced_skies",
+              "three_note_returns",
+              "woven_pickups"
+            ],
+            "train": 170131,
+            "test": 86031,
+            "controlRms": [
+              0.13113389172701548,
+              0.1039885153175263,
+              0.1864747471738201,
+              0.08193361298263424,
+              0.8928724478339791,
+              0.8186666946125232,
+              0.1648277150885512,
+              0.10285794562790172,
+              0.20745971189199358,
+              0.38371969024391683
+            ]
+          },
+          {
+            "fold": 2,
+            "heldParents": [
+              "accelerando_reply",
+              "afterglow_turn",
+              "alternating_intentions",
+              "bridge_dense_dialogue",
+              "bridge_frontier_dense_recovery",
+              "bridge_meter_exchange",
+              "bridge_open_hook",
+              "bridge_regression_transition_mosaic",
+              "bridge_river_reentry",
+              "bridge_sparse_lowline",
+              "broken_triplets",
+              "dense_short_then_long",
+              "energy_weave",
+              "harbor_return",
+              "interleaved_recovery",
+              "music_amour_de_ma_vie_short_44s",
+              "open_canopy",
+              "quiet_current",
+              "restrained_then_wide",
+              "supported_bridge",
+              "swing_exchange"
+            ],
+            "train": 172084,
+            "test": 84078,
+            "controlRms": [
+              0.1375530997931375,
+              0.11125883709637283,
+              0.20775126327553153,
+              0.07904207837334896,
+              0.9022468476849894,
+              0.8238571145689693,
+              0.17098115922837787,
+              0.10826366794730402,
+              0.20734313702194004,
+              0.3940328587847331
+            ]
+          }
+        ],
+        "controlRms": [
+          0.13374434066972965,
+          0.10831572548021509,
+          0.19934757933741332,
+          0.0804344274107024,
+          0.894965688098658,
+          0.8287758854037656,
+          0.1679187540384279,
+          0.10661518235968313,
+          0.20649580798831357,
+          0.3878820043843241
+        ],
+        "note": "Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested."
+      },
+      "validationSha256": "405689036a7b496a73cc8b7b65772cb5a71f9f9d6453a865866905d29be4c678",
+      "inferenceParity": {
+        "schema": "line.arc-correction-parity.v1",
+        "modelPath": "generated/benchmark-v4/arc-940/models/measured-correction/model.json",
+        "modelSha256": "24737c2c2b3277917d53423ef17b097b352533000aadedb42040228ed1fc1bec",
+        "fixturePath": "generated/benchmark-v4/arc-940/models/measured-correction/parity.json",
+        "fixtureSha256": "a69d67e3ac4a1163b2680ed3c00fe4230d6d21888824e3d9e7f2c32a7d501823",
+        "fixtures": 24,
+        "maxError": 3.3306690738754696e-16,
+        "runtimeSha256": "849c33e5300d9baaa21578e9811ef76accb937c22fc66f852ebbe2da8c472f3d",
+        "scriptSha256": "46d727ba647fb4b5c270b917e9f638a4b5228d72dbf185f306726af3103ffb5e"
+      },
+      "inferenceParitySha256": "d01ad60e150826f6da89c3bad6d1f4eca464db3f3e8fd665ab8bd213593f2503"
+    },
+    {
+      "name": "context-correction",
+      "dataPath": "generated/benchmark-v4/arc-940/data/context-correction/data.json",
+      "dataSha256": "949209217472cd7dc302e28f9f5c50f3411ed2cffc80b88a72a7ae6a33bb1e32",
+      "rows": 256162,
+      "contexts": 15962,
+      "invalidExcluded": 78823,
+      "duplicateProbesExcluded": 217,
+      "featureCount": 73,
+      "comparableRowsSha256": "f86023db4d319ae7cc39bc518eaca3a0627f0da4c8f87ddcbdd015a84a75600b",
+      "sourceProvenance": {
+        "observations": "generated/benchmark-v4/arc-940/teachers/feedback-probes",
+        "planSha256": "67e3c63bb1abf25e848e01192b5ec6f98c12609530301483fa4aafae8344746f",
+        "runSha256": "d3bc381299c1c72cbbb9ccd798a6079c11b70c8094bcb2f33e16880a95093581",
+        "teacher": "generated/benchmark-v4/arc-940/teachers/replay-926-3m",
+        "teacherPlanSha256": "a7a639f47b44a774ccb2c3cd8b37cafd9dc5b552362dc105fcc0bdc989fc8544",
+        "teacherRunSha256": "b2310cb761b177be3cc2aed8d9e3eb3e8e60dc66c4cf1e64d900ee3794b75bc5",
+        "teacherProof": "benchmark/v4/studies/arc-940-replay-926-transfer.json",
+        "teacherProofSha256": "f124f887ddfae38292de465a0fe1c785d6dbe133e6d3e34badac33918412fdd3"
+      },
+      "sourceValidation": [
+        {
+          "source": "bridge_river_reentry",
+          "observationSha256": "e35038f2fb11ef760cd2ceceaffa3d9b9f367d70dbe4d53bdf3a53b8527a7af4",
+          "teacherSha256": "a32c3758d2f1f6d63d89e92f4778911a536c5fd5e583b54558f9b2fd44b9293c",
+          "trackHash": "9122f247c1243c582ff30ecedfd4f369bd8cb51238655ed5d93d448895f7744a",
+          "exactInputAndSpanParity": true,
+          "rows": 1643,
+          "observationPhysicsFrames": 82953
+        },
+        {
+          "source": "bridge_countercurrent",
+          "observationSha256": "94f52040cca8dabe8d624ad889f229feb98cf880fec33348cae73854dafcc505",
+          "teacherSha256": "bbd14fa343d230c91bf6d6fc6cfe20278ecdff5a544ddcd89c45f15c3c6a2db4",
+          "trackHash": "e1a5e71eb41cb27c50383e096110d514835a4a7a28d22ad8694f7614c25224d9",
+          "exactInputAndSpanParity": true,
+          "rows": 1545,
+          "observationPhysicsFrames": 82929
+        },
+        {
+          "source": "bridge_split_signal",
+          "observationSha256": "f07639b27b382b23649625c29437fe085c94003fe3526eb087807919957537c9",
+          "teacherSha256": "be5e57524bf6bd204707bc58f3d4805949ee6bbb9daf61c82e6aaa66e41454b2",
+          "trackHash": "c931896ba6865352e0607813be070a32c6b3e842e12821c5eb1eb7847d4e22ad",
+          "exactInputAndSpanParity": true,
+          "rows": 1344,
+          "observationPhysicsFrames": 88238
+        },
+        {
+          "source": "bridge_pickup_lattice",
+          "observationSha256": "b02512be20aeed0332a7e1d74b3319bb1b09a19da036710b4fcab5484064f1e6",
+          "teacherSha256": "2bb4d21a84053d614e2253f3392a28ca46f5fb887de227f541a4772d7ce304c8",
+          "trackHash": "f89cff450269810fa88a8fc9e001b31d41534725d22a33ffb71959a2343ec0b5",
+          "exactInputAndSpanParity": true,
+          "rows": 1717,
+          "observationPhysicsFrames": 85064
+        },
+        {
+          "source": "bridge_loose_pocket",
+          "observationSha256": "4bf05d8e19f0b0a90896cacb28a35c8afa7056b07cede9e0e7f8232360661c34",
+          "teacherSha256": "2f83df65cadf5d1c592bbafa2e605c4a0b1ab30683776b28e86c377f51d1841a",
+          "trackHash": "089792a35b43c6f4ae90ae67d98f440c5ce26faa7446869c0fa675d257f59f9c",
+          "exactInputAndSpanParity": true,
+          "rows": 1913,
+          "observationPhysicsFrames": 82685
+        },
+        {
+          "source": "bridge_offgrid_conversation",
+          "observationSha256": "9ebf90b1c268252de1ac0eb69e1e61ad0e85f2197a909b0af235a455cf7d9ad5",
+          "teacherSha256": "5712256a5a5f1d5d6881c91ca1b4cb713de6e219f2c978380a82289b0b4674fa",
+          "trackHash": "c60e15c84f758ab62fd82d4c1d3ef8a21384c05d4e2c5656242c8a004d5437b8",
+          "exactInputAndSpanParity": true,
+          "rows": 1669,
+          "observationPhysicsFrames": 83848
+        },
+        {
+          "source": "bridge_rising_switch",
+          "observationSha256": "be0751d413a6c2e8ef6ac07e71eee9325db762565dd44d789af8615fbc09a57c",
+          "teacherSha256": "2ab7f30c0efcd1238d200b156f633046dd5b92c9dad46588090e137cce7a4342",
+          "trackHash": "ed654a6d9137fb72e252e4caf06be939a06bc4a89b7a8b9ae2161ae31f8d7ab7",
+          "exactInputAndSpanParity": true,
+          "rows": 1605,
+          "observationPhysicsFrames": 86541
+        },
+        {
+          "source": "bridge_meter_exchange",
+          "observationSha256": "46bbea02e51e2c8c44460500d19cfe42e0884501f018421f431a419bdf0e69f4",
+          "teacherSha256": "2f01924fb58480d8097ba06387c38a6ef34103e842a4793fd10f6f7ffea71868",
+          "trackHash": "1faa592672d04749c234d48e720d935dfa2ca94bb14e573f84c406d5b5889e46",
+          "exactInputAndSpanParity": true,
+          "rows": 1784,
+          "observationPhysicsFrames": 87994
+        },
+        {
+          "source": "bridge_wide_breaths",
+          "observationSha256": "a04b1231a83ad125514281197eb6bcb09be4bc669a1e716d9e47b6304bf1ba44",
+          "teacherSha256": "54a9139500bafa297f424dfab9955905c0546024f526eccda41501e579b64591",
+          "trackHash": "165df4fcdaeebb33d2e74b96912634ef3bcbd4af6deb1c7e7a2d35e60b458ee8",
+          "exactInputAndSpanParity": true,
+          "rows": 1496,
+          "observationPhysicsFrames": 91205
+        },
+        {
+          "source": "bridge_open_hook",
+          "observationSha256": "22aa4776d38b3a309270cd044afa2dc39dcef19514c56235e1dd7de492ef352b",
+          "teacherSha256": "f2822ddca6e5d79f7a4c306ecd51aa092d45aa9390ecfe72a60a104c7cd91bb0",
+          "trackHash": "ce0b203b89799604c500354c9c485d59fbb79f101e6c600386e6cad7e8b9edb5",
+          "exactInputAndSpanParity": true,
+          "rows": 1260,
+          "observationPhysicsFrames": 82006
+        },
+        {
+          "source": "bridge_amplitude_tides",
+          "observationSha256": "cef7f53e1622899f96eb7f165a31714336b91a5cf93a1cde535983fdd9c6533c",
+          "teacherSha256": "a753f7e432f830e667f9ba318744c6390accddc543c6b06485599bb64887dcdb",
+          "trackHash": "321cad4a03528bd9d0acade0fcd7ec6582756f5a446a77cd45dc7427e04149b6",
+          "exactInputAndSpanParity": true,
+          "rows": 1467,
+          "observationPhysicsFrames": 89906
+        },
+        {
+          "source": "bridge_dense_dialogue",
+          "observationSha256": "43c460f26fef96c7bbce9950868eb0f50bcb8ebd6a8b8f9cbb85b220f997661f",
+          "teacherSha256": "e07b2c0c527d305afe6e9b9f226fc03214b159bf65d00e3e71669dc25a0690c7",
+          "trackHash": "52c87f662e0bb982c8f314968457160bdd967e478e4e9f0e5e1c039600cb3069",
+          "exactInputAndSpanParity": true,
+          "rows": 1837,
+          "observationPhysicsFrames": 85596
+        },
+        {
+          "source": "bridge_high_air_drive",
+          "observationSha256": "5e05b9e70a616082dda3ed1417d2487ab7744c065ff6c7a1df1d76d96987c160",
+          "teacherSha256": "8684839c2fe4f7a3d96fec0433d8728ba26abb9afbe01045a87259ee7b40d9ac",
+          "trackHash": "c09645100f07eb1996c680ea58a559581c28511dc7b0dfa793fe85c0635b7605",
+          "exactInputAndSpanParity": true,
+          "rows": 1616,
+          "observationPhysicsFrames": 86996
+        },
+        {
+          "source": "bridge_sparse_lowline",
+          "observationSha256": "0033b04f5d6a5c984acfb455253e7f9fee09c3035452c34bb18e89b2e6427e25",
+          "teacherSha256": "7a6a55c6a8cce81d8a0c29cdb498a05cd81df4ff99e8106dc11e0f513647ec31",
+          "trackHash": "e4a9f42e38fc745a31a65c3cc507190f4272cbb2bd6a00045f017f53ed9fa412",
+          "exactInputAndSpanParity": true,
+          "rows": 1395,
+          "observationPhysicsFrames": 89671
+        },
+        {
+          "source": "bridge_frontier_pickup_progression",
+          "observationSha256": "fd0f614aa45cf64fbbf81cb2d4cc6854d66e7ad5bbb3f87d1bef9c1572cfeb31",
+          "teacherSha256": "f82a830667b55cf5b1d1436a2840445d03e5dd5ca46461c72625e3eba375fc3d",
+          "trackHash": "c1a655b8430a5cac76692ace5a95c54ceca3c7dc01c3422bc5213b7f8fd10546",
+          "exactInputAndSpanParity": true,
+          "rows": 1598,
+          "observationPhysicsFrames": 89142
+        },
+        {
+          "source": "bridge_frontier_dense_recovery",
+          "observationSha256": "40738bd5f237561097ec77fc3cbdb75c42b2169f8cc12b8dbb8022b502ec1494",
+          "teacherSha256": "efc69093d58c992495072811da8518ddff9205e22e1011978c31bbeb137312e8",
+          "trackHash": "14e358b4336938e03e6144f309ca40cefe41a06c0addea2b8890fb615546cfff",
+          "exactInputAndSpanParity": true,
+          "rows": 1692,
+          "observationPhysicsFrames": 85192
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance",
+          "observationSha256": "2e8e25cdee0631da1eaa844d0036005d5ed6ca90a85f4000eb1bc056befb209a",
+          "teacherSha256": "726127780e11ac2fbd3f8465e1621bfc767ea637d2a1bb2001a257ae64b645e7",
+          "trackHash": "806f26954ecd3a3604c60a8423e58f7c3e5a0a35503a79458e9214d2d265196e",
+          "exactInputAndSpanParity": true,
+          "rows": 1277,
+          "observationPhysicsFrames": 91113
+        },
+        {
+          "source": "bridge_regression_transition_mosaic",
+          "observationSha256": "ab45bae3da6b261e82f6758eccf6927b8a608c2406dfa9d98e5900f0ad4b7111",
+          "teacherSha256": "5d554f5c5dff18f9f7738d21e862f0cd3f7ab1375126d0d9b9f38d70078c404f",
+          "trackHash": "e47d55c2a556c9ddd0b35d937cccd7048c3e895de3921684d0164b6d1d43297f",
+          "exactInputAndSpanParity": true,
+          "rows": 1534,
+          "observationPhysicsFrames": 88576
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic",
+          "observationSha256": "114205fb7ab15a00cb907b301d4efe197451f5d5e220b18816b80908c9fb7747",
+          "teacherSha256": "6d526f25582140ec2c0de8298fadb0703fda11d97ab971a81f6a1c28b18a76c1",
+          "trackHash": "e50350731d0f0ad8842b91e21b4998a29f1424c6d68e3b714e7a2b8f46d58c01",
+          "exactInputAndSpanParity": true,
+          "rows": 1167,
+          "observationPhysicsFrames": 87132
+        },
+        {
+          "source": "bridge_believer_56_6s",
+          "observationSha256": "d9ce9b8740ee1de875694eff99cfc3d4c640616b2edb613af9068a0b1a047e89",
+          "teacherSha256": "626d56aa004a748cfba9bf83f9c553edce7db2426c48eaacd398a49766eb1ca9",
+          "trackHash": "2f59b40b9fb490ef216e705ac126570117fa8e62542bcba294d360c2aeac5417",
+          "exactInputAndSpanParity": true,
+          "rows": 1158,
+          "observationPhysicsFrames": 83516
+        },
+        {
+          "source": "bridge_believer_impact_56s",
+          "observationSha256": "c5fa6754f5424789d9b42e1f3026ea8b7e7fe612460e058fd71a23039e8c89a6",
+          "teacherSha256": "e75daf5630cbd561a907dc86edb162a18aaa874bcf4317d0e962e43ec8ee7759",
+          "trackHash": "676af9154ecda37f369aef043ae049d488542dfcbfb5c849234110ddad26d9ca",
+          "exactInputAndSpanParity": true,
+          "rows": 822,
+          "observationPhysicsFrames": 84291
+        },
+        {
+          "source": "bridge_river_reentry_tempo_fast_5",
+          "observationSha256": "f7b68e06cbf4c7be4f410f73e631d4273504de95a180b01456614f8a2367abe8",
+          "teacherSha256": "4893c2088dff359825402c1157c2dec5499855b6824d9410efa64063909e8279",
+          "trackHash": "bf9fca063cc15a9d67f22ee2685eec6940282e6b57d23829fa0072bb75db9603",
+          "exactInputAndSpanParity": true,
+          "rows": 1596,
+          "observationPhysicsFrames": 81526
+        },
+        {
+          "source": "bridge_countercurrent_impact_contrast_12",
+          "observationSha256": "85a592f0228855f9282ba598e286151b9b1ac3940e32fc0e82f40913a620e81f",
+          "teacherSha256": "7bfa083870a41f95bd2ec5ec95e16b5fa5ccce1b38a7e5054b198697e882b01a",
+          "trackHash": "83c1a3802b2c4257004ecbd80d00c6b1ebd577abd55b3e57cd6f0bd4b016d020",
+          "exactInputAndSpanParity": true,
+          "rows": 1558,
+          "observationPhysicsFrames": 80955
+        },
+        {
+          "source": "bridge_split_signal_impact_relief_12",
+          "observationSha256": "12abfb8bb6d3e55789163768f37813c8c20271bbec2b4c3fb3b4736795a2950e",
+          "teacherSha256": "ee387b5621535cae95f573e529b53b974a75dea1f320408116af0101f7abf62b",
+          "trackHash": "0fba4572ec92861a1a1f1089fcf88247fae630a5e28f5d6965baa3f25b0971e8",
+          "exactInputAndSpanParity": true,
+          "rows": 1279,
+          "observationPhysicsFrames": 87042
+        },
+        {
+          "source": "bridge_pickup_lattice_speed_minus_4",
+          "observationSha256": "cfe908e20149ff6924c80888699102ccc626c03abbe92f7ef64d3abcbadc4f6d",
+          "teacherSha256": "b34d29fd395aeaac991308b9783d77205a62bd744d32f03857a7f466bccdfc25",
+          "trackHash": "099e8615e6b0f20a0664a31aca40c2a1d465f6a7f0a30ad6524a7828a0d70a4e",
+          "exactInputAndSpanParity": true,
+          "rows": 1733,
+          "observationPhysicsFrames": 87498
+        },
+        {
+          "source": "bridge_loose_pocket_drag_later_20ms",
+          "observationSha256": "5be51c10b44a70fcb2631cbd250d87685a254c397157ce5ec6bec95ce302b84f",
+          "teacherSha256": "7f14ec609b2b92a50ce9856627cfa913780c36d5c493a749a1b31b06cf3b83c8",
+          "trackHash": "fcc90cc06d546352461372518cdf06e000e8e3e125b81619c3e64186d272a5aa",
+          "exactInputAndSpanParity": true,
+          "rows": 1873,
+          "observationPhysicsFrames": 81913
+        },
+        {
+          "source": "bridge_offgrid_conversation_answer_early_25ms",
+          "observationSha256": "9d8748adaa6c1d4a8da37d2b8d61e2a351bd406121c2fe4159b4a075f09fed02",
+          "teacherSha256": "7d37872b34e11c24b4ac7e32ddb0e742f004c2711582cb12b16c1706bdd24d4f",
+          "trackHash": "f25e2379c1c7f4d828ef5d932d270491a39e25f1f34ba4e45034b60731b9bba5",
+          "exactInputAndSpanParity": true,
+          "rows": 1685,
+          "observationPhysicsFrames": 82370
+        },
+        {
+          "source": "bridge_rising_switch_tempo_fast_5",
+          "observationSha256": "7dcd686caf8baaac249c0a56393da71ca42fec11d053292c30cfefb9868c383f",
+          "teacherSha256": "d50ef3f89a14326980e554ed26e88021cdcf255ee7f5c2a6b7bf99d2b93a0d8d",
+          "trackHash": "4507c3a8db64ff2302603ed2f8a9ed298abb0f61f701e6d838a76ae019ea11a1",
+          "exactInputAndSpanParity": true,
+          "rows": 1566,
+          "observationPhysicsFrames": 79843
+        },
+        {
+          "source": "bridge_meter_exchange_speed_plus_4",
+          "observationSha256": "fb02fedabd05dfd58cd0fd1528cd3b275a0e925bf8a560c795d16b8b7edf8c4d",
+          "teacherSha256": "978e5cdbc98785b126a0be0b1f758921d08fec1e1eed46443e35d817f5db8589",
+          "trackHash": "228e219122d289bdfa953fbf57c9f6eaa13dd8642a2056bbee83454a0ee06d0d",
+          "exactInputAndSpanParity": true,
+          "rows": 1743,
+          "observationPhysicsFrames": 88465
+        },
+        {
+          "source": "bridge_wide_breaths_air_plus_5",
+          "observationSha256": "e0c4c714318504e72409746683348df0ed9c8b0269eb03927346b92a61fba471",
+          "teacherSha256": "75faa680cdd26d69a9b720ed47b54336d73d549975c8accac0bcf410ca369350",
+          "trackHash": "0b7dd1445147cf78b70fad74da8cb021706ceb97a22c41334e721e82fdabf8bb",
+          "exactInputAndSpanParity": true,
+          "rows": 1520,
+          "observationPhysicsFrames": 92205
+        },
+        {
+          "source": "bridge_open_hook_amplitude_plus_8",
+          "observationSha256": "cb63a15c6b9f5b8798f088af78a21ac5d069162e2fae7e75982704c22c6cc577",
+          "teacherSha256": "9292f938e915100f099e50776c4b701111d607b84e81dd30f7ab6b4cf9932fa0",
+          "trackHash": "db9d0598af6d89c8c3b643601f737a4455be99e63873d25d2497e3510687c471",
+          "exactInputAndSpanParity": true,
+          "rows": 1119,
+          "observationPhysicsFrames": 85889
+        },
+        {
+          "source": "bridge_amplitude_tides_restrained_10",
+          "observationSha256": "f6128a203cec0d126e1986d3170047c1fdcd071278705d7b33b524744ab59581",
+          "teacherSha256": "0962d8aa8033dadfc4e43724087ce93a6878fcbe61ef83045c38643a7f3a5a51",
+          "trackHash": "d8bf06f3853014d07a3bed1df5d546e0d8e1b519b6084ddf4298c32d9aa96ed5",
+          "exactInputAndSpanParity": true,
+          "rows": 1443,
+          "observationPhysicsFrames": 90860
+        },
+        {
+          "source": "bridge_dense_dialogue_impact_contrast_10",
+          "observationSha256": "2a6b0e4b3433114ef5c61b7775e60df1cec5db7172c60200a1e404ae6ef584bb",
+          "teacherSha256": "b55c8ff09e85cb8e1b2dc6d7217bf3df0b38da8e294be5b1e4455989af33ee0b",
+          "trackHash": "162b0a842e459d33baa1eb38239cb94de8ad288b45a96fd2e2fcc3e3d09cdae2",
+          "exactInputAndSpanParity": true,
+          "rows": 1833,
+          "observationPhysicsFrames": 84410
+        },
+        {
+          "source": "bridge_high_air_drive_air_minus_5",
+          "observationSha256": "b6733d91c9977edb155395697a947b35d1de92a0389e0c3ef38c26a0904d36c8",
+          "teacherSha256": "fe90a4fe21caaf203d65c27c22938d5139f7b93c4473a2a51cf6e139f7e0db08",
+          "trackHash": "5c134921a588003d697134d53916a2908ff2fa9e00d9c44027b46e1f28745aea",
+          "exactInputAndSpanParity": true,
+          "rows": 1667,
+          "observationPhysicsFrames": 86738
+        },
+        {
+          "source": "bridge_sparse_lowline_air_minus_4",
+          "observationSha256": "5b91d837cd08393963bc49223118b323b0baae9b0d523e4bbf1c5751a1a206e1",
+          "teacherSha256": "76761ab9818f73ee6c25d645c55f9105f601b4605ecf95ef759ca1aa36bac04b",
+          "trackHash": "d167cf553384086c28a3ab2b4eda1aef3bd21b11d4f7d87a0f1ceacac52090f4",
+          "exactInputAndSpanParity": true,
+          "rows": 1290,
+          "observationPhysicsFrames": 89606
+        },
+        {
+          "source": "bridge_frontier_pickup_progression_shifted",
+          "observationSha256": "e161fefea6454bdbcc7f32ad107bd109ef098aaf0e32cd80c5278c95f9bbd54d",
+          "teacherSha256": "6b0b1ab20b6a22861170fc4b32ddc003301efa113d13682dd24b6ad074a673d4",
+          "trackHash": "dae1f38d7debf761a580cb6f130d4275ad619c6c47484c394b7ca22626a0b9a9",
+          "exactInputAndSpanParity": true,
+          "rows": 1660,
+          "observationPhysicsFrames": 88035
+        },
+        {
+          "source": "bridge_frontier_dense_recovery_240ms_figures",
+          "observationSha256": "31f3ac9a8f053ef99294cf4c170b3b279fc68f0cf637a584db3b13d1c856a3fa",
+          "teacherSha256": "cf60346a65cfcd5f78fcc66e85a5db51cae6b1e7d3f1df4a0b7ae2ceb3ecebe7",
+          "trackHash": "2ca5286d3fc5a7eb02b6fe39a60a0a8bd116805f7f0c90a62c789e0ea130604e",
+          "exactInputAndSpanParity": true,
+          "rows": 1762,
+          "observationPhysicsFrames": 86181
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_4s",
+          "observationSha256": "21586dd8489ad28c8ef20a64f5051456b011f1acdb167bcc2cf9437191285a60",
+          "teacherSha256": "348b5b0c6ca565e6f05a6f5b3e8049f65a388d03671f9402ddc71d4a4e1242d1",
+          "trackHash": "c7a0ce5af115de365d0ad2399bfd44f30ff6b875ba7116eb49faa198e7e06075",
+          "exactInputAndSpanParity": true,
+          "rows": 1244,
+          "observationPhysicsFrames": 89235
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_6s",
+          "observationSha256": "d79f423e476984bd02ff4bc2288c0a9d7319cbcf20f856a4b0078f9e3178c75a",
+          "teacherSha256": "3630f86bdaffb689e47c2884944da54d37af5d2098475c950fc8388dc2cc8893",
+          "trackHash": "4de9c1f75ba83480c584cc27da0b4044fb973d09b558431f2879a152b28a353a",
+          "exactInputAndSpanParity": true,
+          "rows": 1241,
+          "observationPhysicsFrames": 93927
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_7s",
+          "observationSha256": "f151ba5527aba65ffe4f9ef5b0fcd76ee58fbd4cf1b70ed3e951506cbdaf6b14",
+          "teacherSha256": "144f10d5c3ca1cbe4e32795561acbd5ebd8446c4a6974fe1c821fe5c7c65673f",
+          "trackHash": "d749edaca692858e1b8a95f908f909d7cbf7852801ef5cb2f9ce510cb08bbac3",
+          "exactInputAndSpanParity": true,
+          "rows": 1244,
+          "observationPhysicsFrames": 95724
+        },
+        {
+          "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+          "observationSha256": "8df7bd1ab5eac2b032df75559e4959b95beb1f6074fa149df6c3109242f1661a",
+          "teacherSha256": "efba74762f0bdd5ce6e3550e38e45b90c7c64f78cf09d93d5d452c8125799cee",
+          "trackHash": "f8ff478081c46257d5b0f0096548ae0022a3b59092db956f7affdafe1a032e6e",
+          "exactInputAndSpanParity": true,
+          "rows": 1522,
+          "observationPhysicsFrames": 84304
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic_contrast_10",
+          "observationSha256": "e8c1728c37bd77926110f63a366929df42e2faf632adff18a3fadbfa2d05547b",
+          "teacherSha256": "d3334767c4a3f79e8dd002699d166add93a9c8177416e115f26017872ec8d9a3",
+          "trackHash": "00a6cf829e411a06a3b36119054b65b9b4ce03cb48054761ebd211c4e71d2efa",
+          "exactInputAndSpanParity": true,
+          "rows": 1142,
+          "observationPhysicsFrames": 87984
+        },
+        {
+          "source": "bridge_believer_56_6s_impact_relief",
+          "observationSha256": "d5723bede414cc5a18baa281f383e1011ab86b0c110c02e06a1e3ba7d1e528cd",
+          "teacherSha256": "7c864d49aa6c271ecd34f5bd0bb2d1db7d2e5cad9a19894fa86860562e0143dc",
+          "trackHash": "0c99d1d49352930a6fcbb0ff43585286955b40977d4a5a270c3b3b527f947dfe",
+          "exactInputAndSpanParity": true,
+          "rows": 1194,
+          "observationPhysicsFrames": 83472
+        },
+        {
+          "source": "bridge_believer_impact_56s_amplitude_plus_5",
+          "observationSha256": "1157a05b01c74642dccd11913c618057ef6fb626a29db3bba4807ecd38a3b548",
+          "teacherSha256": "ac61c2466e320d7ecc4e4dbde7cd8c865f40bb30841442bbaee54922c4f4843c",
+          "trackHash": "b08ec66b4cfb673c87a303c36342f1d5639e2f4eb415bb280cd81f6a5dc3a151",
+          "exactInputAndSpanParity": true,
+          "rows": 821,
+          "observationPhysicsFrames": 83339
+        },
+        {
+          "source": "harbor_return",
+          "observationSha256": "9c8b4fb652192f92154ae5c21f98e4d38c3c90d12a629a972c6fbbd27ea21af5",
+          "teacherSha256": "d3276c13152203e948466957a70f76189f1ae1746d4fd76a66a215fde5faf281",
+          "trackHash": "d2ee4cd02f78a5616d9267260252f5ab79670a1047c2512341bf77e4245f777e",
+          "exactInputAndSpanParity": true,
+          "rows": 1827,
+          "observationPhysicsFrames": 92980
+        },
+        {
+          "source": "crossing_lights",
+          "observationSha256": "a83cdc37e13496b9c363a87da178ca123e1e04040cb0c67c6986fb32c429748d",
+          "teacherSha256": "c42320cfb407d9443a5d0459f72804427b999887e5ee5f36be81f959c924d00d",
+          "trackHash": "c625a19c7bf92bf5e2ea9027c46553547c66f2b3624327a9d579fce0e818931f",
+          "exactInputAndSpanParity": true,
+          "rows": 1660,
+          "observationPhysicsFrames": 91697
+        },
+        {
+          "source": "afterglow_turn",
+          "observationSha256": "81c594a0e8dd0b012c8d72e4f7a7657643ea58b9acf5c6287773083263aed193",
+          "teacherSha256": "91869a3cb86df61b26db12ad95108e90d21e81871d59e6c8fea1f12b1ac60fbb",
+          "trackHash": "c2f6daf26538a8b920846f43975dec5d5abbd20271004d496e662048f14f82b9",
+          "exactInputAndSpanParity": true,
+          "rows": 1763,
+          "observationPhysicsFrames": 98811
+        },
+        {
+          "source": "woven_pickups",
+          "observationSha256": "dded3deee54f4eccb10a9342037c4068070f38fecd8580398ac9ef3d60ff84f4",
+          "teacherSha256": "7defbed29b41fd76222043c3f21cf7941919e1d6b8ab6430a18f93f9fac8d518",
+          "trackHash": "bdf006b635568b92cf7c193c0ab42353e030a3f9beae577ad4b19dcc653df11b",
+          "exactInputAndSpanParity": true,
+          "rows": 1661,
+          "observationPhysicsFrames": 92312
+        },
+        {
+          "source": "pickup_answers",
+          "observationSha256": "a1c2d0c69b436407cb3bf896ce699037e878a6ae0e46035d12cc564460b328a8",
+          "teacherSha256": "146275566dff8cf46178329bf5bf5524eb47d0a05aea91665ead53aa88fb4077",
+          "trackHash": "f468afeec81d28c0a28e08b2ec9fdb3d256fb22a16b86fff4e95357d3f5c22ea",
+          "exactInputAndSpanParity": true,
+          "rows": 1645,
+          "observationPhysicsFrames": 92556
+        },
+        {
+          "source": "broken_triplets",
+          "observationSha256": "07a5809db5ceccbac3ae21ba84e036754fd409bbf6325c3619dbf3ad1944a7b8",
+          "teacherSha256": "88e2433c430e4dd6960d6d7e1614faf49c198375576c21d0366f7f6b2ab84808",
+          "trackHash": "7418743a64c3c77222f4c492b1abac9f63e42ef92c98f9509787fe8e43f49f69",
+          "exactInputAndSpanParity": true,
+          "rows": 1684,
+          "observationPhysicsFrames": 96898
+        },
+        {
+          "source": "late_letters",
+          "observationSha256": "aa8e841fe3cb60a0d9f27c7a803205b8b90d5a75ff1ccc4043d403698f4a31c5",
+          "teacherSha256": "d87fc049409872053617dd6c5aa38ce208fd596466b8b7d0c6c8e7114ef11b71",
+          "trackHash": "4110473291fc7741ee7684f2a5ef695c9b9cf139c3a798ece1aded233345fbf1",
+          "exactInputAndSpanParity": true,
+          "rows": 1882,
+          "observationPhysicsFrames": 92329
+        },
+        {
+          "source": "swing_exchange",
+          "observationSha256": "a50a7a2a27c13767be5007e081b1a51a8b3983e2b519ed0695df3b2620db07e3",
+          "teacherSha256": "2a2b0aaa06573612d4063424fc2939faba75ed3a9070413ccb1b89d3fe8251bf",
+          "trackHash": "90d2f97a97124a202b3f353d501c9e1e1ba3169a8648474d506fe0a03e1bf727",
+          "exactInputAndSpanParity": true,
+          "rows": 1792,
+          "observationPhysicsFrames": 92449
+        },
+        {
+          "source": "offbeat_echoes",
+          "observationSha256": "d61e7c93bbcd5fde0e35b12e3a708ccb2125bbe0f6d18b29a7e75aa58ab06168",
+          "teacherSha256": "de5ca34bdef7ac8bd577c48df2aa1299c13ebbf67001bfc5d98095a67b0a6d0b",
+          "trackHash": "f76669d4b7031c0ba98ee5d58754932b3f3c69e6276e0ef3c07def737abdb40e",
+          "exactInputAndSpanParity": true,
+          "rows": 1802,
+          "observationPhysicsFrames": 96951
+        },
+        {
+          "source": "gear_changes",
+          "observationSha256": "f3341f089315166aafd1a3fe07bdc47cf1b08b1b98774523be9dcb953b1532a5",
+          "teacherSha256": "930017b2d4c5a9145220cef8070e25db44452ccb032fc6330555311c9bb42b4f",
+          "trackHash": "93a61f8c10e716383d873c69b11a9f0a7b9c13e77cab5762af518bc865a11dd9",
+          "exactInputAndSpanParity": true,
+          "rows": 1708,
+          "observationPhysicsFrames": 92349
+        },
+        {
+          "source": "half_time_return",
+          "observationSha256": "1020aa5398eed0ae321fe141e126fe0fc7b1a6385b0428dc27c3abb71fb22cc9",
+          "teacherSha256": "928dbf6435f922a499427431463256db282c72e925d58c2283bb977ddbd47810",
+          "trackHash": "da6a6bc20360455c1c648b99627cdd7b592a9f885279f4be9d32fcfd2c507795",
+          "exactInputAndSpanParity": true,
+          "rows": 1634,
+          "observationPhysicsFrames": 91732
+        },
+        {
+          "source": "accelerando_reply",
+          "observationSha256": "1e70fc87a25eb97906859dabfacfc916ba6be48e360fe9d4bbd824a03212958a",
+          "teacherSha256": "b729c873b5d858df50628259661017211f78baab45c7366ec81e0b70d629e02d",
+          "trackHash": "cd6ce5d49d3f8999714201609698c535407867b38db5836beba0930ea3ee29fd",
+          "exactInputAndSpanParity": true,
+          "rows": 1653,
+          "observationPhysicsFrames": 98200
+        },
+        {
+          "source": "archipelago",
+          "observationSha256": "c84378c94e74aa456fa488247c43cee0f7a8091b4c6ed907a40b8f9e5a47f7f4",
+          "teacherSha256": "ce4dc9c21cdbb87ccdb97f2935589a053f3ccd1675e2d793f21823889222333a",
+          "trackHash": "9e5ab22534d0436e3792f0031c326d8cc4fa711d173ab8d8c83ea12d4e29557a",
+          "exactInputAndSpanParity": true,
+          "rows": 1227,
+          "observationPhysicsFrames": 92856
+        },
+        {
+          "source": "wide_arc_dialogue",
+          "observationSha256": "f1df22ab86a5e52d93ff38da287941f9a4ee1266ea9ad60d4e724e485d7b8cab",
+          "teacherSha256": "77cf7eca96434aec83191d9a221eb25c133a62035efac32c2d959617b83d57d3",
+          "trackHash": "86444a1bf3dbf851ad30b099849dbb0bb46044c221cc6c7d2a8ba271f0ef4f86",
+          "exactInputAndSpanParity": true,
+          "rows": 1101,
+          "observationPhysicsFrames": 93049
+        },
+        {
+          "source": "terraced_skies",
+          "observationSha256": "79a630350d8f33862abd2e56dbc8c3f71ed970a9cb9886e7c4529077df27f569",
+          "teacherSha256": "c6b6d610ddc44ca8dfff222502f760038b1c0f1acdd658d467658a0399195fba",
+          "trackHash": "fdde795786f1eb48f0d632b4910000100cf0d712346b10c58a1a9c446e83b512",
+          "exactInputAndSpanParity": true,
+          "rows": 1137,
+          "observationPhysicsFrames": 96456
+        },
+        {
+          "source": "woven_pulse",
+          "observationSha256": "f7f9a4d9479b63babb7a56e279de2bc13c45ee8bf2d67dcc6884da22d307a108",
+          "teacherSha256": "e99f3cf37b30d1b3f4ce05acd4af136b1b98846db1525a6f94c3990e453fcf18",
+          "trackHash": "b05f4494e6abf738e74b3657bc0df8daf498f479dd8bc7ba52b7ea015f7b19b6",
+          "exactInputAndSpanParity": true,
+          "rows": 1783,
+          "observationPhysicsFrames": 91655
+        },
+        {
+          "source": "density_release",
+          "observationSha256": "6cf80cc1d3fbe42ea038c95844a231884a18c3c41fffbca0db49bd627d6b7d57",
+          "teacherSha256": "7803824f146f6429f7cbccb2a903ccfd10e0cb72e899d22716b57862fc92f73a",
+          "trackHash": "05dda3b72d75177d19e657cc89b231703d575a5006638da0d595e649d9d2934e",
+          "exactInputAndSpanParity": true,
+          "rows": 1662,
+          "observationPhysicsFrames": 93198
+        },
+        {
+          "source": "compact_dialogue",
+          "observationSha256": "d75257b71b47faef52bb64cde7888c40210dc481b5c8c1ba711638ab6e6ebe72",
+          "teacherSha256": "254c25ced1946a76f11c6a1bc4e34f94e925ab87867ce7ea2635f14bb91a67d8",
+          "trackHash": "2e7639e5a17063afc97abea1fe542c4c7e958694b4b42fe24f0c862614106af6",
+          "exactInputAndSpanParity": true,
+          "rows": 1738,
+          "observationPhysicsFrames": 97879
+        },
+        {
+          "source": "lifted_refrain",
+          "observationSha256": "b09425998f84b40654b12bd84c2e3a12cab38260779a170f14cbc51f2a793eae",
+          "teacherSha256": "80a4f751e6d2f2c26e3d59db1bf3bbc34987328acc22dba0cfd563cd713282b2",
+          "trackHash": "33bc17cd3531cfa4ad7ae26904666bb725b2c45288299f5db3750d75dec193f5",
+          "exactInputAndSpanParity": true,
+          "rows": 1604,
+          "observationPhysicsFrames": 90501
+        },
+        {
+          "source": "flight_and_return",
+          "observationSha256": "fd0036e9dd341201cff1f05b1c3f9aaf38f6b1ed3ab7d3bdb39deabe0fe7c501",
+          "teacherSha256": "881f5be67cbcd8d0305720685e3995b48e755aa93bcda1f9425faada1c6e2137",
+          "trackHash": "3c44d9c0335f245baecb7056ff3fff37065a8574047a12f35455098018f99707",
+          "exactInputAndSpanParity": true,
+          "rows": 1508,
+          "observationPhysicsFrames": 90478
+        },
+        {
+          "source": "open_canopy",
+          "observationSha256": "1f778845e3f1dc0a1dcfa66481961cb1eeae03ef702d66d1d7d723ae8816dec0",
+          "teacherSha256": "8f36371cba58a03de616a6b780f868b51eb78f7f4d2152f221dd9faba00de44e",
+          "trackHash": "cc9f9a2cfbb19a1fdd4c7075fd6393057be5fce632bd59a7ab1fc136915dd058",
+          "exactInputAndSpanParity": true,
+          "rows": 1492,
+          "observationPhysicsFrames": 96023
+        },
+        {
+          "source": "quiet_current",
+          "observationSha256": "0a5baaa86721acf7234c26f00796146a89f645580824c03dbaa03f3d22d142c3",
+          "teacherSha256": "a41c2b4f5bfcdfc30021718211cb1f3ef95c060aa2d5a168c7f3a9a936142826",
+          "trackHash": "7864a8299949a86175aee11530895ea12418d0f8c01c44994e02c8f86c1c4e56",
+          "exactInputAndSpanParity": true,
+          "rows": 1171,
+          "observationPhysicsFrames": 93402
+        },
+        {
+          "source": "support_then_lift",
+          "observationSha256": "7cf4db5e8dc6ad0a5e2d5334e64235890192fa543866f4e8f5c45f41fc13faea",
+          "teacherSha256": "ec7b9165839c18fb76afca2dd652a2f10b7455f0dd7acc286fd4ebc6d90c0c53",
+          "trackHash": "b7e3821e0a93d29306b22176f9110ae116905108a40f1bc594839a6f3af05a5c",
+          "exactInputAndSpanParity": true,
+          "rows": 1169,
+          "observationPhysicsFrames": 91934
+        },
+        {
+          "source": "rest_and_return",
+          "observationSha256": "f2309a771c524374172476afab866419876da773cdb30d8d00e8bcf6708e02bb",
+          "teacherSha256": "0fd6bc7a69047db525e27d2ad86ee3f0a5e645a2b90daed994c15349c5aee24d",
+          "trackHash": "fb32af885ceb7a3c0a5095dd1d5d748ffd8d89ff4a2a48e9080fbc2682313a3a",
+          "exactInputAndSpanParity": true,
+          "rows": 1162,
+          "observationPhysicsFrames": 97701
+        },
+        {
+          "source": "pickup_staircase",
+          "observationSha256": "eb4f5c87a40be0fb3db5bb9076da85b79f50324ec1f6a0f898a4977cc1f47d3d",
+          "teacherSha256": "51b1147ba0f0f74f43751e462a81fc59871670a4e5319531dc06fcac03a89124",
+          "trackHash": "3af2ddf5b0277f76c22d75879e763a96a9c15ffe18f62cb8179b7b55040f267d",
+          "exactInputAndSpanParity": true,
+          "rows": 1928,
+          "observationPhysicsFrames": 92535
+        },
+        {
+          "source": "pickup_interruptions",
+          "observationSha256": "588bc430538790413985dde4948c13fdeca53410a6afecd630a4db729439d16c",
+          "teacherSha256": "4237713844a96fd280893545c70d63b985b674ba7701d684c11fbad85f4e3b1a",
+          "trackHash": "147545711ca5533f408599e6b189f9edfe216b4acf078391d6def016267732ba",
+          "exactInputAndSpanParity": true,
+          "rows": 1831,
+          "observationPhysicsFrames": 92561
+        },
+        {
+          "source": "pickup_recovery",
+          "observationSha256": "a459055a8f09e097f52e6d8b16ae5c780dd7efb8599701183d9eba84b84c57bb",
+          "teacherSha256": "3a2d9623db36aeba2c0a88d8360ad9bce49027135e3ba95dbe675a50efbf5eb3",
+          "trackHash": "8dcf72f63a2dce507fd56245b2a6956ffb3bb1699d779ddd057c985198e5ee0f",
+          "exactInputAndSpanParity": true,
+          "rows": 1890,
+          "observationPhysicsFrames": 96889
+        },
+        {
+          "source": "dense_short_then_long",
+          "observationSha256": "1d78cbe356ae3fb2d48188b05695d6d3ea5ef4da9b75241749fb81863a7f4893",
+          "teacherSha256": "54eba93738bef2373c4667011621b83cd4ed27c4a5cd5566e5bce9013bc2ca48",
+          "trackHash": "2412c2bb3ff349d61c34533ab1217742230f2ce86516ba8ccc67bc04cf479947",
+          "exactInputAndSpanParity": true,
+          "rows": 1816,
+          "observationPhysicsFrames": 91940
+        },
+        {
+          "source": "interleaved_recovery",
+          "observationSha256": "81681068a29c847273aa1bb1435104318a0f773c8a3312a07f07b6f8f31dc12c",
+          "teacherSha256": "d80a9774fca2227b89470c41c335c1eabe22ce4184dba179ecf67d62929bd33b",
+          "trackHash": "94a7604a5e513736b6a953a4022b00700146c6f097ebedbd175c6b313071cf33",
+          "exactInputAndSpanParity": true,
+          "rows": 1687,
+          "observationPhysicsFrames": 93605
+        },
+        {
+          "source": "three_note_returns",
+          "observationSha256": "acddb936bdf68d266ec4f2cb3f82c5fa4b71475d820c2bd4c2c8bcd5d0ab9fd5",
+          "teacherSha256": "c36fee40932ab26bd4446b2f0b0bd0edf533547b862d6da4f96c1c6c11f6f1ea",
+          "trackHash": "8febf341031a12b87ba929895b724292c697983440afbe609135233430b08e5c",
+          "exactInputAndSpanParity": true,
+          "rows": 1750,
+          "observationPhysicsFrames": 98149
+        },
+        {
+          "source": "supported_bridge",
+          "observationSha256": "913599b805df7bb054847d4d6adaf2a11c41b78e97407c3491ad5d0cf5dcf9c9",
+          "teacherSha256": "ecccda1729cc6eb829cb4923011568b62c86418dc0a95ee2ff6215fbcca9b20b",
+          "trackHash": "2925d004e29135298b2783c73786abbfcf9426af196e1c57ade8cf2f38350db5",
+          "exactInputAndSpanParity": true,
+          "rows": 1058,
+          "observationPhysicsFrames": 91076
+        },
+        {
+          "source": "supported_speed_change",
+          "observationSha256": "ddd00bd83593f03f7bf057eb3b0ffcafd6f5681e3dd2ee0b2161b5ce7d5b5491",
+          "teacherSha256": "8f6542668622139cb99029ad1cccac25a0555109418a6c3c3cf0146caef46f6a",
+          "trackHash": "b7d8a2c7f8841af340c1082bc055026b821d86690053d12397a33c7dde8855a7",
+          "exactInputAndSpanParity": true,
+          "rows": 1022,
+          "observationPhysicsFrames": 92865
+        },
+        {
+          "source": "endurance_and_return",
+          "observationSha256": "8cad3aeeccc38272b50ad4a66f023a64098dfdbdd456df88198dd6785eec59cd",
+          "teacherSha256": "4afba2cc604d86103cc37ec4798fc4523ff676f026453a51b9325337fd68da3e",
+          "trackHash": "2893fcdded3a56fd2255fc21c5e2a91df9c1194ef6c4e21b425823db9220303b",
+          "exactInputAndSpanParity": true,
+          "rows": 1008,
+          "observationPhysicsFrames": 97803
+        },
+        {
+          "source": "energy_weave",
+          "observationSha256": "e899eaa9eb968f69820e8b9fd00a880c95353adf7932f94f9b6cb6c685c027be",
+          "teacherSha256": "8e91526ebb8a0ffadb42616f04050682d4a45a984573de3c839349e33194bcd9",
+          "trackHash": "aca310e6940b8f24f5e936c72ae5ff0cc97a27df96de144638838eb69cf0b6f7",
+          "exactInputAndSpanParity": true,
+          "rows": 1594,
+          "observationPhysicsFrames": 90747
+        },
+        {
+          "source": "alternating_intentions",
+          "observationSha256": "1267076518fbbade73071be152c1920eb8cec803aff6e503106de43200d5ab91",
+          "teacherSha256": "49a2690e9afa0a8e941bf266e703d67483dd388da9a62cca5e4b48252a41d118",
+          "trackHash": "42bf6a5295fbffe62f5890a8dca32a26e0bfcdd52c65d64dc8e6c6c70ae83a96",
+          "exactInputAndSpanParity": true,
+          "rows": 1450,
+          "observationPhysicsFrames": 92441
+        },
+        {
+          "source": "recovery_mosaic",
+          "observationSha256": "b40b7a626b0ec749b92f7d00c8d47d945716b5c59618d673f574e748b6013cff",
+          "teacherSha256": "779503727b5460a33011e5f714337b055a33e63c7c76b0955569742ec1d408f9",
+          "trackHash": "80244c190ef91f9e8064eed2fd1a8919b3bffda7673ed0ba5b870ab058e1a299",
+          "exactInputAndSpanParity": true,
+          "rows": 1544,
+          "observationPhysicsFrames": 99038
+        },
+        {
+          "source": "amplitude_reply",
+          "observationSha256": "2ae1bf29cdae212bcdd40742ba9cc85d67c982d343ad36d512b0bc63a7d50a20",
+          "teacherSha256": "2f5e408b0991b7f8d71b9a3a87d590f2644a99e378b948b9414e55f94abdff42",
+          "trackHash": "94ae9234b37b15db3643636f2ca30257f91e890f3bb8e211cd29a1deaf1c2326",
+          "exactInputAndSpanParity": true,
+          "rows": 1232,
+          "observationPhysicsFrames": 92103
+        },
+        {
+          "source": "restrained_then_wide",
+          "observationSha256": "700ef7559e631d7254c4371a47a1bcd704046600ea66268d46d3fae4e3f8663f",
+          "teacherSha256": "737ea03b4e0e7152140393997eb68e8e5c04e26d8906374005a93e0dd7fc463b",
+          "trackHash": "3e7377a58c1dae2d433b3e1e43050982b3f7b415f92ecfa1806b29ccbd0cc698",
+          "exactInputAndSpanParity": true,
+          "rows": 1167,
+          "observationPhysicsFrames": 91519
+        },
+        {
+          "source": "arches_at_new_tempos",
+          "observationSha256": "764a63c80d77354b707d801993cff6382bc4074a8efd4af3667a797d0424a121",
+          "teacherSha256": "90d28a01f581606623d12d48b899e2677b9b6c9f642c998c9fb3b97cafbd26b7",
+          "trackHash": "980383fa7748def80a31fb58be7baafd56fb8d7ab0b40031ed6124c56726e6c3",
+          "exactInputAndSpanParity": true,
+          "rows": 1147,
+          "observationPhysicsFrames": 99038
+        },
+        {
+          "source": "music_amor_na_praia_46s",
+          "observationSha256": "8560d581d9affe82b2db7d44aa8d36cfcc2a63b272404426e0d426d189c5f600",
+          "teacherSha256": "8cb81a41af6364a5f7763cc772c6b84da4a47f9ae78fb3144a70893a9c8420af",
+          "trackHash": "6156f5fa5f44c731d2b0aa4e70ffa4b4aa4f5736be2347760a428d4271d0e536",
+          "exactInputAndSpanParity": true,
+          "rows": 1379,
+          "observationPhysicsFrames": 67167
+        },
+        {
+          "source": "music_luna_bala_44s",
+          "observationSha256": "21dc56afc1e0c8e218f651dfea6637a6ad6808147d8f497fff6fadc9213f6f62",
+          "teacherSha256": "a444ed28a837b03ea6a082ea4f3ffcd989e6163fff36be1c35757b40a1178319",
+          "trackHash": "57dbd060464c81c63556b32590978099eacf0f5ec42aa4f646d663cd7433ffb7",
+          "exactInputAndSpanParity": true,
+          "rows": 1281,
+          "observationPhysicsFrames": 64990
+        },
+        {
+          "source": "music_tiki_tiki_48s",
+          "observationSha256": "f260ba63d61d03dca1c0ab471bd53721b4959a09b8d247475cd5d44232fb099a",
+          "teacherSha256": "49353a52266484264d4df24ef44295bd82143955098225d9fdf8f2f5bcd7d096",
+          "trackHash": "3fb04781059377aba539f9c691625bbb4a360d8e7f3510c171299f8153575481",
+          "exactInputAndSpanParity": true,
+          "rows": 1030,
+          "observationPhysicsFrames": 70504
+        },
+        {
+          "source": "music_shelter_impact_sync_81s",
+          "observationSha256": "8cf2048e26d61b8192009b3726eab464b112b8582308ae98eeef176749bb0d3c",
+          "teacherSha256": "be29efc9b131afd77338f6f0fca5e654320f8fc578450bf8c6896c8231ada54e",
+          "trackHash": "04761d398edb2c34bd49e01eeee944c7381b2764a133a6d0313f7d87f5d1c8ae",
+          "exactInputAndSpanParity": true,
+          "rows": 1900,
+          "observationPhysicsFrames": 115071
+        },
+        {
+          "source": "music_amour_de_ma_vie_short_44s",
+          "observationSha256": "0f276c2e617e961e92a71f01582b145264e73ef327b784c72be0c074b770beae",
+          "teacherSha256": "b4a2463c8d5236a261125e9de6e9f9237bf3467681867145f107fb2fbdbd5f79",
+          "trackHash": "63bad6ba825cbaee1f6d346b12ed0ccb18ba5c5c2d7388d90b6f9271db2bbcaa",
+          "exactInputAndSpanParity": true,
+          "rows": 1101,
+          "observationPhysicsFrames": 65935
+        },
+        {
+          "source": "stretch_bridge_river_reentry",
+          "observationSha256": "2600fcb8ff62c5a8b02c06d77df1717f63d14bf5d475073203a5ad18ce08a5f8",
+          "teacherSha256": "c0c0a066fac66f43407793b6d1a22861ba2d70b28c13cead0e2fac57f36e3165",
+          "trackHash": "0a3028874938ccde4ca407cc3ded5f606f826bd0a04e4316b4df0c6c7dbaee82",
+          "exactInputAndSpanParity": true,
+          "rows": 1603,
+          "observationPhysicsFrames": 80478
+        },
+        {
+          "source": "stretch_bridge_countercurrent",
+          "observationSha256": "1545168ce04221ffab6fa4d3bc4bc86a095ad1750e51ef48a12078de188001e4",
+          "teacherSha256": "0169b887747050c0df2c29b57a9c7105032ea08b6a56a28eca729a867e8000ae",
+          "trackHash": "cb90388e0b9b13fde24e4ff692ab2656f7d1b4da0e25c16a02ebb121a882b874",
+          "exactInputAndSpanParity": true,
+          "rows": 1455,
+          "observationPhysicsFrames": 74496
+        },
+        {
+          "source": "stretch_bridge_split_signal",
+          "observationSha256": "ec792e5ed3b790c508d9be99c734d7b90f17a8e2f34c93878aac3dd38058cf7f",
+          "teacherSha256": "3ea6f57c6640aef39cdde00f555a41ba0be2590ff9ed3fc2ca2473a4b52eaf4a",
+          "trackHash": "633a052a0b705a43d814336be7c55a245d6a884b5e20cf9ca0d8fceab4005c37",
+          "exactInputAndSpanParity": true,
+          "rows": 1215,
+          "observationPhysicsFrames": 82439
+        },
+        {
+          "source": "stretch_bridge_pickup_lattice",
+          "observationSha256": "bd76e7a1a3ac920b531ed7be94d719dc1bd280bdcafe938d902d50c58fd70ca1",
+          "teacherSha256": "d8b22e5cf6e9b5ede2d3e18f7e95d9db809b3998bf4ba21e9668fb58f19a0131",
+          "trackHash": "f3a8f0e138f884b0f74040f79198b9902094d8f77c51396d284a2141198053d9",
+          "exactInputAndSpanParity": true,
+          "rows": 1745,
+          "observationPhysicsFrames": 80685
+        },
+        {
+          "source": "stretch_bridge_loose_pocket",
+          "observationSha256": "ac2948845c1dd632afa7df6abe84ebe38a793bdedb6a24e2216a96d2bb562607",
+          "teacherSha256": "72504312192b50f823a5b864566ab713d055a01af441db204e48fbf8a06e8b75",
+          "trackHash": "d4d421a5aca8643c9b8dd71d6baa74bdb6097282a12de26324ffbd2dc455f73e",
+          "exactInputAndSpanParity": true,
+          "rows": 1834,
+          "observationPhysicsFrames": 79466
+        },
+        {
+          "source": "stretch_bridge_offgrid_conversation",
+          "observationSha256": "db5b974cfb36645fb577deeb4af8356ea76394b57fb7bf03bfcf26cf5d2ed0c5",
+          "teacherSha256": "036a8d2dc9182eb023beb9075bf5cb22a518ada9b9336f9e1f2e7592b8bfe85a",
+          "trackHash": "acb105fa7a9d10298ccbb972761e3bad06d1f549f9c71ffc1f3d9bf4eec593ed",
+          "exactInputAndSpanParity": true,
+          "rows": 1610,
+          "observationPhysicsFrames": 74826
+        },
+        {
+          "source": "stretch_bridge_rising_switch",
+          "observationSha256": "4abe739a9c7b0e32b6be2b7f7477d854d58040b26661ffd8a9f46a49b4882220",
+          "teacherSha256": "5c784cb953d989d23976d32b6d3e835a9ef6906221073e7352549857bed178ed",
+          "trackHash": "3db7b7b1fc6f438fc2c76049405322a294475d04ef26dfc62b8a6acde92a7c29",
+          "exactInputAndSpanParity": true,
+          "rows": 1524,
+          "observationPhysicsFrames": 77656
+        },
+        {
+          "source": "stretch_bridge_meter_exchange",
+          "observationSha256": "8093b2f9b0d52b7c0981dda9b1f3ac46df9213671e885c8b5c160ce25b0a977c",
+          "teacherSha256": "47505fa46b5f7e1ad56c0b325c85588ede5658764ad67c7f6a026b9408d73fd8",
+          "trackHash": "89238344a07a0aa96ca037a79ec557614683b356b05e4e1731612835ad159ec5",
+          "exactInputAndSpanParity": true,
+          "rows": 1678,
+          "observationPhysicsFrames": 80190
+        },
+        {
+          "source": "stretch_bridge_wide_breaths",
+          "observationSha256": "280bad80fb1e3ed672afe7cf4b88d8208f46fad47d2e1ca7647d14bb3623b328",
+          "teacherSha256": "6013153db301f1b69cfcc74c58ebfcbd359accd434f5035c4505fc471e4d612e",
+          "trackHash": "a6cee2d8c951047295f13894c789344e26d1e6b69662731bd2e05ffe6cfcfca9",
+          "exactInputAndSpanParity": true,
+          "rows": 1451,
+          "observationPhysicsFrames": 83726
+        },
+        {
+          "source": "stretch_bridge_open_hook",
+          "observationSha256": "f2d8815d5b4fd896e06ab1bdbf673866314a740d3284175a711195b4242692f3",
+          "teacherSha256": "a3482e1c99dbecb494b9d4f5d9139c7f306381c3d57147a8ae2b002e36181ba7",
+          "trackHash": "15ee1e900a8a39fa4eaf394c58a217c8fe09cbd81d8e86644e29bc08cf2c0ed5",
+          "exactInputAndSpanParity": true,
+          "rows": 1127,
+          "observationPhysicsFrames": 76418
+        },
+        {
+          "source": "stretch_bridge_amplitude_tides",
+          "observationSha256": "3c7ea352ca2b1a51929df71342785ad38e67bd0f760294bff77ca95e31d6ad96",
+          "teacherSha256": "5e6d7175d92b55ec9c424026d05ec5ecaacd1a535f40527007cef517eaaa95eb",
+          "trackHash": "b43be9f7a1047c9fdc0b97c3ee9febeba38b6f11277cf7f4721763fcdf476b85",
+          "exactInputAndSpanParity": true,
+          "rows": 1451,
+          "observationPhysicsFrames": 90373
+        },
+        {
+          "source": "stretch_bridge_dense_dialogue",
+          "observationSha256": "66209dd4646211a889c6d6966b005ee410aa2724480a396c40d06529342435a4",
+          "teacherSha256": "59a8a88bbae4c87c120ad77e48744f1437cddb75676f59a36f142558ab56245f",
+          "trackHash": "d8910f98708f45050b205eeb1241b6394d088e7cd4d0588b32f73d191e985ba9",
+          "exactInputAndSpanParity": true,
+          "rows": 1676,
+          "observationPhysicsFrames": 80190
+        },
+        {
+          "source": "stretch_bridge_high_air_drive",
+          "observationSha256": "538502bf472d1a8a375c0b3b3a6ef28a50118f0eafd95568a00149207662a819",
+          "teacherSha256": "3d9fcd0df18aa493b0e5a1461dacbd038cf9c92af565f731cd1fd4f66a547afc",
+          "trackHash": "e5435bd2e340a2c7f7bd70e0a6f3fc1e32ce8bb5987669228c5d96d685777d4b",
+          "exactInputAndSpanParity": true,
+          "rows": 1536,
+          "observationPhysicsFrames": 82930
+        },
+        {
+          "source": "stretch_bridge_sparse_lowline",
+          "observationSha256": "5f980865ba391f52f221ee7cfb4cc6dc800ddca2761d6f8d26a2e4168ee7a3ec",
+          "teacherSha256": "a46904bebd403fa8a28e9fc06589040b39ce66ded21f8f117b2f4bee989e2935",
+          "trackHash": "aa488cd42c6fc915617b39745d57e9785d5939755f215aeb395f51e7afe8be00",
+          "exactInputAndSpanParity": true,
+          "rows": 1339,
+          "observationPhysicsFrames": 90670
+        },
+        {
+          "source": "stretch_bridge_frontier_pickup_progression",
+          "observationSha256": "d64668a6a99829f46ee7897787e921c5c3567b2ca7ae045689b24d35ff3fc904",
+          "teacherSha256": "a9e725704c077f87149a1d79af7aef0571a1bf97556275274aad56b6208439ca",
+          "trackHash": "4b06042e2401a1599ff6cc6923b491b313fa5f825f024a8ac6b2bbaaac4c3e2b",
+          "exactInputAndSpanParity": true,
+          "rows": 1487,
+          "observationPhysicsFrames": 84986
+        },
+        {
+          "source": "stretch_bridge_frontier_dense_recovery",
+          "observationSha256": "87c29a40da09694308166574d8249ec1ffef281472122af6bb0c62c2f3b99657",
+          "teacherSha256": "d5908566048bbbf10e45e2192112482774fbc1d6e3c05c2603ea1fdba8443cd4",
+          "trackHash": "6d9bd80db580f3be1d0790cdd677a4607226866f72d45e63751788d4a2d57039",
+          "exactInputAndSpanParity": true,
+          "rows": 1497,
+          "observationPhysicsFrames": 81254
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance",
+          "observationSha256": "0c751c63d05d4d5aa417d505628e261e4179e6a6e7532e326f2250e2ed3d1738",
+          "teacherSha256": "83c55bab2501df0649cd2d8ef4d7454741cc1dc796087749877ee6ce7584e97f",
+          "trackHash": "8a522155fc3cfd3fa12106d83c2ab77721b8d57cc83a9ea45388215e450a1ad7",
+          "exactInputAndSpanParity": true,
+          "rows": 1167,
+          "observationPhysicsFrames": 115139
+        },
+        {
+          "source": "stretch_bridge_regression_transition_mosaic",
+          "observationSha256": "6c569bd8384a7ee6d449733cbb4a90763e0eb8c885ecc0a1484a1c8aa553f62a",
+          "teacherSha256": "1326d53d254ae73bd10fa52329c48e8fbc47a4433bdef45ec40f320fb38d5db2",
+          "trackHash": "2185a1bb6b022b6a44ed2d3c7dd8e82144ad0132b930fe4956e16ffc0c5d743a",
+          "exactInputAndSpanParity": true,
+          "rows": 1530,
+          "observationPhysicsFrames": 83696
+        },
+        {
+          "source": "stretch_bridge_regression_amplitude_mosaic",
+          "observationSha256": "665e4c16f748cba4596d4ea25f7e4ba99ba59e3654b89a7a9d5cac9ed6495b4b",
+          "teacherSha256": "35ee9059b62e3713159d7fe7033a1d373b4ca1fa56e686f3cf2dfb09e4a63278",
+          "trackHash": "ff10d439a6398099463728c4bd9bd98c08dfa132ac18586fe895c6111962dfe7",
+          "exactInputAndSpanParity": true,
+          "rows": 1158,
+          "observationPhysicsFrames": 81925
+        },
+        {
+          "source": "stretch_bridge_believer_56_6s",
+          "observationSha256": "c3e0fa430e3c4765493231aacf67c95c6762cdf06b67d768985748f49fee57da",
+          "teacherSha256": "025d4abcf1fa87476b644e17f2bc8a3190d431795d922451f896644b41e7ccf7",
+          "trackHash": "9ac6514cfb97821715914bf98d598c1ff1c2d4947e2945119f6a975c81dc45da",
+          "exactInputAndSpanParity": true,
+          "rows": 1133,
+          "observationPhysicsFrames": 79743
+        },
+        {
+          "source": "stretch_bridge_believer_impact_56s",
+          "observationSha256": "c87c987113ccd14c1bb2ad6fa8d0b028f2caf6b798a60c124aff3d455211e82d",
+          "teacherSha256": "9ec97761366b57ca7744582a4d03560c3dc9a21fc629fd65ebe61295ba667928",
+          "trackHash": "3501e2892fa08e1db854f16287d67f86ff92b8d16f90a0448a54a5779eba73d1",
+          "exactInputAndSpanParity": true,
+          "rows": 830,
+          "observationPhysicsFrames": 78401
+        },
+        {
+          "source": "stretch_bridge_river_reentry_tempo_fast_5",
+          "observationSha256": "9a3505b1149a1db1efdbbec08f2cacfd0c4332db6fec3e29e764cd2cd3f257c7",
+          "teacherSha256": "800d210496aa8a97c2200ce0134edb1fa7887e74431e68208a30175cc6b5fb79",
+          "trackHash": "7ca9675510123a33f920f22d68f4bb40a64f1d5aea895b3a268d1b26a0a073f3",
+          "exactInputAndSpanParity": true,
+          "rows": 1393,
+          "observationPhysicsFrames": 80732
+        },
+        {
+          "source": "stretch_bridge_countercurrent_impact_contrast_12",
+          "observationSha256": "3da37ad2fdf8431f34842e297a37bf18ec09da42e893c568d93b321e2e11df05",
+          "teacherSha256": "5cfa2fba8d32dd496b6caca03910be881017d9d10c8289a1d8a686bde24fdec1",
+          "trackHash": "3eb2b2b01ea100b5fedace9f5fb14cad2f0578420e9e5a178c7b97cc2c93e217",
+          "exactInputAndSpanParity": true,
+          "rows": 1521,
+          "observationPhysicsFrames": 78086
+        },
+        {
+          "source": "stretch_bridge_split_signal_impact_relief_12",
+          "observationSha256": "3afeb36d660b61a33d35b0a8cf744e2ea11c730c59af19aacae0516ee9f393ae",
+          "teacherSha256": "79d936a63ee21c672222bc1d621be74d9cd1290e7d0cb860c8ec6a0b69fb302a",
+          "trackHash": "b34d9570f4467f854e0e76cebba8e21b96e1709a5ea040a094f8f1e7c2a6ab6d",
+          "exactInputAndSpanParity": true,
+          "rows": 1247,
+          "observationPhysicsFrames": 90951
+        },
+        {
+          "source": "stretch_bridge_pickup_lattice_speed_minus_4",
+          "observationSha256": "8561366e0b1171d4833c5da226a65e84249bb86d512721b272965b51bc24193a",
+          "teacherSha256": "f7e7c15c7f0459a307ec66b9b6aad4ff3520e0c467bfaa2c911e47fa1ec0a3d1",
+          "trackHash": "bee8daf25f4609969bc4c2cb5924403033435d654ab8715e5e10516821576107",
+          "exactInputAndSpanParity": true,
+          "rows": 1590,
+          "observationPhysicsFrames": 80499
+        },
+        {
+          "source": "stretch_bridge_loose_pocket_drag_later_20ms",
+          "observationSha256": "8bd65f6506e172953d65220c9c91dbfd8cd42a98dc3e3241f5cbc467d6392546",
+          "teacherSha256": "9008771f40230ac056ecff5e5a81f273a4c41763dd3ea6311672aa6264478004",
+          "trackHash": "546f6d4017dd2694b0d191daf07e28da96d0903a8999ad9fee09b68fd67071cc",
+          "exactInputAndSpanParity": true,
+          "rows": 1775,
+          "observationPhysicsFrames": 87369
+        },
+        {
+          "source": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+          "observationSha256": "2fc2365dcd843b19eaf96ea2567d0e1db1672016f386f14d2d0e32264e5367e1",
+          "teacherSha256": "24822686821c8130e141ce685b7a23abb33e72774992c5c413516d08fc45a8a3",
+          "trackHash": "9258733dd34ce2771e9e56720c0d61305e62bea5c9becc5886ea1bc0149bb96a",
+          "exactInputAndSpanParity": true,
+          "rows": 1637,
+          "observationPhysicsFrames": 77367
+        },
+        {
+          "source": "stretch_bridge_rising_switch_tempo_fast_5",
+          "observationSha256": "55103865a99766c018e83aafb761408a6fcd75bff7570539d4e834f42883cdae",
+          "teacherSha256": "b490723c6dea8d5cce5f28b5d42f06125261b297f70b41ffb893a6064da58b11",
+          "trackHash": "f838a273301a15c0e7003a96ff5f1af1dcc02a2cfe34a9203642b95d5e2df765",
+          "exactInputAndSpanParity": true,
+          "rows": 1551,
+          "observationPhysicsFrames": 82338
+        },
+        {
+          "source": "stretch_bridge_meter_exchange_speed_plus_4",
+          "observationSha256": "6cc2d5a9181bf58f125edade71ce3e26a04b83c4383fb45b23f4cb233fb8c829",
+          "teacherSha256": "5d4d5d644642efb5f4d7b33b7f6d0d33f4e234377d6a38ccdfd92af5d069b2fe",
+          "trackHash": "d9fe3d197092e0ff260a558775a9272cf481734bde0ae6a2683e444cd24d4f91",
+          "exactInputAndSpanParity": true,
+          "rows": 1684,
+          "observationPhysicsFrames": 81260
+        },
+        {
+          "source": "stretch_bridge_wide_breaths_air_plus_5",
+          "observationSha256": "d07882563737545637828a9c092802b47b7821469cb4dbb0f49da7cdd9576972",
+          "teacherSha256": "cdedfa077bac495888b508878e24b90e192480e145931474029c22df6673e480",
+          "trackHash": "96ee0a2e0bce1a630ef6685b7a71e2ef9179b2fc1997bcc201a9f969b41a767c",
+          "exactInputAndSpanParity": true,
+          "rows": 1483,
+          "observationPhysicsFrames": 86245
+        },
+        {
+          "source": "stretch_bridge_open_hook_amplitude_plus_8",
+          "observationSha256": "6f967665b7b7b06a181f637310341d664f80987fea62c02494cfad1a54e1c2ab",
+          "teacherSha256": "b0bff623054f612d0a2efb0dec3823a13b7d8c4a6f8144efbbff9bdba8b91f16",
+          "trackHash": "5ed00c9fff22f8f1db2a2d12983afb497f2e719385307d27353a38bb7214f9f4",
+          "exactInputAndSpanParity": true,
+          "rows": 1018,
+          "observationPhysicsFrames": 74019
+        },
+        {
+          "source": "stretch_bridge_amplitude_tides_restrained_10",
+          "observationSha256": "671afa5ff93d609db6c2ff32913353d0e64b6f87ad980e21cf809bff58debba8",
+          "teacherSha256": "5ff9154eebb88331359811a23c9d2ce48e14976e76f43b4c372100fa5c07d3be",
+          "trackHash": "32668cb71bb7af42c1ae97382a4a8d4def7799b47264897d6ceb37e4d6c74ce5",
+          "exactInputAndSpanParity": true,
+          "rows": 1372,
+          "observationPhysicsFrames": 94445
+        },
+        {
+          "source": "stretch_bridge_dense_dialogue_impact_contrast_10",
+          "observationSha256": "7667002366b8225a123b8b9e917a55f0402cc2ef9bc9ce1a8df7fa87c1f9c6d8",
+          "teacherSha256": "673052b75e82e07fbf61c8481fce3696b43d5cebfd7eb703f77afb38eecdb486",
+          "trackHash": "823e61def06d893a17cbd958a3cce7f9f28dcd3662cf3ffaeb55c1c5f491d175",
+          "exactInputAndSpanParity": true,
+          "rows": 1619,
+          "observationPhysicsFrames": 78555
+        },
+        {
+          "source": "stretch_bridge_high_air_drive_air_minus_5",
+          "observationSha256": "baf6b1130ca88e5fb063e21b7d1e4d2cb2dc90b0fc0c89b99e57e6e263a16031",
+          "teacherSha256": "177c6e985ef7269cc5fe7f1d205b0e00b7c54cdc454d08b873796084745be5f5",
+          "trackHash": "427c9bfefd2e28f95d01043edf974cb28b746c96900a7fe129fc65a74f1002f4",
+          "exactInputAndSpanParity": true,
+          "rows": 1451,
+          "observationPhysicsFrames": 79807
+        },
+        {
+          "source": "stretch_bridge_sparse_lowline_air_minus_4",
+          "observationSha256": "113060b535c8db35bcaacb2d490ade07106865872e914f6092255a7d7bca5ae4",
+          "teacherSha256": "d4dfaef365c4415fef80beb39e3d1f4f32fc945384e89aa3e208a4c0cfa22ccc",
+          "trackHash": "dd710a61360ef97cadf62f0597d75d6c8b6c234cb253dccf8da704275e92cd06",
+          "exactInputAndSpanParity": true,
+          "rows": 1199,
+          "observationPhysicsFrames": 89858
+        },
+        {
+          "source": "stretch_bridge_frontier_pickup_progression_shifted",
+          "observationSha256": "cdaf7632a60464dfef4b42a0ca04a38bde094787f41a80cea83a24eb9937acff",
+          "teacherSha256": "9b6133af2c0efd26f3bda8cf8b017d087f3b91b1b6423f72af7ea95101fa33a9",
+          "trackHash": "52d878c92257a4b9350aa2569d6466e66cf8e89cf480c085f843499e345b3c4e",
+          "exactInputAndSpanParity": true,
+          "rows": 1351,
+          "observationPhysicsFrames": 82539
+        },
+        {
+          "source": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+          "observationSha256": "3e69fd666acf8f630b4ff254d2750996fda5d969e6c3a551723987133bd51b39",
+          "teacherSha256": "8db02ca3b7223e834583575d0f441d1dcbc6802eefb574f56f67889e5348f4f6",
+          "trackHash": "f3373ace6f26d50a091b6c5c5fb9fb9a064f661243d0a0507ce73091e943645e",
+          "exactInputAndSpanParity": true,
+          "rows": 1363,
+          "observationPhysicsFrames": 79065
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_4s",
+          "observationSha256": "903252b1d900334b7503e46991a1d88d5a0bc7f514de9262e10217ce86b5b935",
+          "teacherSha256": "7cbf473e76cf0c352752cde1d215b5db9abdb07cb8ba2ab6c8bd804f1888a225",
+          "trackHash": "5363d4185d838ee63e97c9ce38bedaf4ef915c359a322d6b548a9af4c8a70d36",
+          "exactInputAndSpanParity": true,
+          "rows": 952,
+          "observationPhysicsFrames": 111114
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_6s",
+          "observationSha256": "468c90c60d6048a1a428faf113528141e89fb99f71b4a238ad34aee842d33c6b",
+          "teacherSha256": "cea7116278f167a78fcf62ee8094c79583bdbcaceee6eb1e0f63b803bdda9d19",
+          "trackHash": "b5f034aec6fc99f2ded9eadf54123d05c088de5f23c4e8849215fc20bf47bf49",
+          "exactInputAndSpanParity": true,
+          "rows": 1069,
+          "observationPhysicsFrames": 148930
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_7s",
+          "observationSha256": "7d3612b7635e79e7a5286ceb669edaee1ac1be95940e432781ecbf2cda748a43",
+          "teacherSha256": "6d75c8e308944fccc29ac1d673ae70a5ff12e328028852508dfae045cabfe61e",
+          "trackHash": "571d004070dd97d848175a69feeded211b2521b2fb2f9598ce01b61137ac49c2",
+          "exactInputAndSpanParity": true,
+          "rows": 1130,
+          "observationPhysicsFrames": 116096
+        },
+        {
+          "source": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+          "observationSha256": "67b76ce79a5c3ee89d582c49163553c37f10b5c002636e9f43f6d819690e9710",
+          "teacherSha256": "28b00b47b2606a13902badf38f1781a364e3f1fe7d1c10d33e731dd67f24c4e0",
+          "trackHash": "626c09b599c46e357f6803999c76aec734369dec4ecf4d12e2fe42abbaec84c8",
+          "exactInputAndSpanParity": true,
+          "rows": 1451,
+          "observationPhysicsFrames": 77789
+        },
+        {
+          "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "observationSha256": "f26259bba2566d5e5a70af28c2aa31ac69302e00282891b4d6bdb936d36c06a5",
+          "teacherSha256": "12582200290159466da96e1df10a2184ed42f62658b94fafd918643db2fbfe73",
+          "trackHash": "429dbb97ed99d943a83682891d53c8688058baa49ae420ff6cf63741f485f399",
+          "exactInputAndSpanParity": true,
+          "rows": 1160,
+          "observationPhysicsFrames": 78862
+        },
+        {
+          "source": "stretch_bridge_believer_56_6s_impact_relief",
+          "observationSha256": "d0103f8517d01249eb105c35be9facdd0a0c4b06af26f4d52b103eaf611604b0",
+          "teacherSha256": "e2128a9f91762038f2449ac2a123310d1b586a8d38aa62c20c65992c650269e8",
+          "trackHash": "64faa16c482de5df24c495686e2950db65bf1ae0dd5fec9f508d219eb9b4622a",
+          "exactInputAndSpanParity": true,
+          "rows": 1108,
+          "observationPhysicsFrames": 79886
+        },
+        {
+          "source": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+          "observationSha256": "6725da182d554510936ee70acf9258de99797af11b2b7a2191654ea94d018f1b",
+          "teacherSha256": "65086a335a86073f36f52e13cbdefae22e944dbee1b710e766e4e2882aa4871b",
+          "trackHash": "268e920b518d23007487c9b38f47ab52b0197610e4a9f26554214b0459d0a77d",
+          "exactInputAndSpanParity": true,
+          "rows": 787,
+          "observationPhysicsFrames": 78328
+        },
+        {
+          "source": "stretch_harbor_return",
+          "observationSha256": "fc9d55b9073384763a0106a5a3389f51f5a28d34ce2633ae1aa6277c51a347d4",
+          "teacherSha256": "f785124bdb8dd4344bbbd1b1e042003ff7f7f3eab0f318edb9286548ca8a8e57",
+          "trackHash": "10be7ae3fea3306fba6506b860573fa31c3a06e65aebbfed0297a46abca9e52a",
+          "exactInputAndSpanParity": true,
+          "rows": 1740,
+          "observationPhysicsFrames": 84442
+        },
+        {
+          "source": "stretch_crossing_lights",
+          "observationSha256": "b4719ad8f4caef1daad3673dd5501b07d11dfb565366c9bcf3c67ec52ea94452",
+          "teacherSha256": "d1033ae4ee4977c8c23d1ed4cf412ea62f050a544f2cfa6b7f8ae081ec47ba09",
+          "trackHash": "6a8c6998edb5596bf28d74a2a80e43b50c60b65b7e680d11c22e63b05d07240f",
+          "exactInputAndSpanParity": true,
+          "rows": 1543,
+          "observationPhysicsFrames": 95210
+        },
+        {
+          "source": "stretch_afterglow_turn",
+          "observationSha256": "206c8dbbbd781c7ea78d1341a67a0616596a306e01e33448e10357169c57de16",
+          "teacherSha256": "8afbdee3f37c8a653814b185fc278759f1e1283dae5deaca5a28f84cd4a3de62",
+          "trackHash": "29762f2b99aa740d34b2eba2c6ce6ebaca7bd61545a319e508395ea8e27d2bf8",
+          "exactInputAndSpanParity": true,
+          "rows": 1688,
+          "observationPhysicsFrames": 92804
+        },
+        {
+          "source": "stretch_woven_pickups",
+          "observationSha256": "6ebb69f6d36d1b7c019c144681e40e156bf8b5992e81105584dd65f2e2f8f8cd",
+          "teacherSha256": "93b7a99f2267be0f166cda598bd4ae168cb105edd54c8932b14961276c650a63",
+          "trackHash": "fd5981c4c9fd24d025dc0571d3234213b4af454e468a56e7669ff4cff6a125c7",
+          "exactInputAndSpanParity": true,
+          "rows": 1632,
+          "observationPhysicsFrames": 86275
+        },
+        {
+          "source": "stretch_pickup_answers",
+          "observationSha256": "e8476f6af517495fd97a5e15cb2010a251c5dca8e9cbf6dc9982ef8c548afb2e",
+          "teacherSha256": "1f601b4578d9ef87863b15b02d9183369ca3bb72539a5b2489928122abb9a008",
+          "trackHash": "a302143cc68303b2013fb2b93476bf5d0839e835c18db18319815cc7a4dd4d47",
+          "exactInputAndSpanParity": true,
+          "rows": 1503,
+          "observationPhysicsFrames": 94081
+        },
+        {
+          "source": "stretch_broken_triplets",
+          "observationSha256": "0b2b96c8dc9623638203362c423c2eb9d309cee853ca1f46d742c5e527a630ee",
+          "teacherSha256": "829285d59d6d9b4408355cf9fe6171f0f242973e4c48ac348ad8983b77da260a",
+          "trackHash": "24e4ea7fab94d4a14bac67b9d2f41f1469a4a313344f0f7dcfb3cebb4fc320de",
+          "exactInputAndSpanParity": true,
+          "rows": 1585,
+          "observationPhysicsFrames": 91886
+        },
+        {
+          "source": "stretch_late_letters",
+          "observationSha256": "830dc7fc53580cb5110205c4496af891cd748150b71568a9cb0271c02cc997d6",
+          "teacherSha256": "d730ff1ebbb074f5b1105f57e87b1059284fd63cd4455e59e9902f4a87b6b76f",
+          "trackHash": "ad8b9072e9f77182a1a6fae646959750f6910111fbeeec7d5da258d0e1295c93",
+          "exactInputAndSpanParity": true,
+          "rows": 1740,
+          "observationPhysicsFrames": 84212
+        },
+        {
+          "source": "stretch_swing_exchange",
+          "observationSha256": "2a1e705e6018c3e4c06f479c330e0b0868cd715061f58b14b490c94070c87529",
+          "teacherSha256": "306466c02e54ef96ecb6cfdb80789e480eb8cdf3f3e537b820b8732d7c783ae8",
+          "trackHash": "9ea821214ff07e342f94642dcfb1d2b6a84f7eea1eac354571b949421517591a",
+          "exactInputAndSpanParity": true,
+          "rows": 1748,
+          "observationPhysicsFrames": 94900
+        },
+        {
+          "source": "stretch_offbeat_echoes",
+          "observationSha256": "5ac79171ca517ad740c3e25d92281642f2da99790f6164408d48c3ba0238cc1f",
+          "teacherSha256": "3ed9d402b35b8104c2c12d986bd128a361101f3b797220c58c2ba36b648d5ea9",
+          "trackHash": "e10e9de809eaabed7f30990e17a8b97bb692429a0b0d9f2fc53597925aa2f1b7",
+          "exactInputAndSpanParity": true,
+          "rows": 1745,
+          "observationPhysicsFrames": 91350
+        },
+        {
+          "source": "stretch_gear_changes",
+          "observationSha256": "766b262326132594ff28f5579f5edcab6435d9c0a17c24f7ac02a7bd331ca603",
+          "teacherSha256": "ffa5a78dec17d1ee55ec9e5f3057d8cfd05371c0362c8bea9ba9b419a471233a",
+          "trackHash": "e894b7518ace5b3cf37a319e0026d2592ea669955d7fd1b0a4499d3fa1e99c69",
+          "exactInputAndSpanParity": true,
+          "rows": 1584,
+          "observationPhysicsFrames": 82175
+        },
+        {
+          "source": "stretch_half_time_return",
+          "observationSha256": "12b2345fb18ed77902896676ba36f269d17bfc90e8c02838948749f30d875997",
+          "teacherSha256": "333271dcfa61dacbfbb10552e1a4ef603007285f8f097915fdd45e72173e5813",
+          "trackHash": "2962b063995a8d2256d8abe13c65549855037d2d9710e2a5793e6c187fe4edca",
+          "exactInputAndSpanParity": true,
+          "rows": 1610,
+          "observationPhysicsFrames": 95874
+        },
+        {
+          "source": "stretch_accelerando_reply",
+          "observationSha256": "9782eda13284cc578a07cca871cbdcc1a747e6b011577451b6aba1859d0e11cd",
+          "teacherSha256": "6890a458feaa2614c443fc22e193c692c11ad94f2d41513533d44db8f857ff6c",
+          "trackHash": "34884114175ee4c2af7f9589c03840138450b948c0eb1252ff039e5b8471a2ec",
+          "exactInputAndSpanParity": true,
+          "rows": 1572,
+          "observationPhysicsFrames": 91391
+        },
+        {
+          "source": "stretch_archipelago",
+          "observationSha256": "35fe88a119635dc5b20333a2261f0d633c764145fe52bb1e1ad7bedae360c95c",
+          "teacherSha256": "2cfe6974000441c2b54adf246385629e7b98074664b0d05e551c2eecdee4eb59",
+          "trackHash": "3be1c3f3a3d84eb8e14c435bc9f70b81f925e0cdf7b7b86486009b43cf129dc3",
+          "exactInputAndSpanParity": true,
+          "rows": 1187,
+          "observationPhysicsFrames": 86639
+        },
+        {
+          "source": "stretch_wide_arc_dialogue",
+          "observationSha256": "ee9363339c22f19082553222e4cc435d366db98a810391d9e1b440eba01a9954",
+          "teacherSha256": "6ef291c155f345d692561080ea2e8b254330d86eea134a2b8fbed3da4cf46944",
+          "trackHash": "7556be63b63bb6f70548e34455d8826ea21f8cb4ef96ffc91d9b614384c4cdd4",
+          "exactInputAndSpanParity": true,
+          "rows": 1077,
+          "observationPhysicsFrames": 84481
+        },
+        {
+          "source": "stretch_terraced_skies",
+          "observationSha256": "c5bbf04d3d1045a9e762335a11a66786328be6712fbe9b91c5c4133f14526c77",
+          "teacherSha256": "317b96d7f731546bb41ddb7e06893c06a92e6fc2f31d7bd4a5090d1549eefea3",
+          "trackHash": "158c19ab518eb2131a8796dcbe5ebaa4cbfea2fcac03d1bf819779b8c5d7c015",
+          "exactInputAndSpanParity": true,
+          "rows": 1096,
+          "observationPhysicsFrames": 99069
+        },
+        {
+          "source": "stretch_woven_pulse",
+          "observationSha256": "0186f3811ab0e188f9c1db810c8cbcf94c9bf0ba1a4de2bd720cb0ec073f6516",
+          "teacherSha256": "d42c83668120a38b9b023cc632af0bc4928e9c6de0ac62f9282a0cafb0089768",
+          "trackHash": "8a2e83c8348e8816d161fa66349b62b9b5af09373ef46fbc1ba31afbe9a0aa33",
+          "exactInputAndSpanParity": true,
+          "rows": 1713,
+          "observationPhysicsFrames": 95803
+        },
+        {
+          "source": "stretch_density_release",
+          "observationSha256": "5d349c9991756d303bcf91731f5fb3f5f6b46a586a22ca91f269a42bc4bc8eae",
+          "teacherSha256": "c024e5147621bafec7caed0ebe6915eb7110bc8f13f4e6fd8790f2c95ede13ed",
+          "trackHash": "9662994a973a4d35c54455be52d58a082b7d20963513e5fd9673625b73bac458",
+          "exactInputAndSpanParity": true,
+          "rows": 1591,
+          "observationPhysicsFrames": 86934
+        },
+        {
+          "source": "stretch_compact_dialogue",
+          "observationSha256": "76ac115f6fc0ef1fb91b857d5475ad5f8110d899d283c9419ee1309a98ed374b",
+          "teacherSha256": "bbf61db4766f7f863ad42ee31d0f60ebec571ad1c97b9925452c5054bc5bfd04",
+          "trackHash": "296c28a52b7615c8baa86145a14e92967ac927b348efcf23f9fb8d3ff40d67da",
+          "exactInputAndSpanParity": true,
+          "rows": 1614,
+          "observationPhysicsFrames": 89179
+        },
+        {
+          "source": "stretch_lifted_refrain",
+          "observationSha256": "105f629e33a7765f1e1320a961d48d67ffea7e91910f445ea74cdf0cea62da8f",
+          "teacherSha256": "55bd26cdb2de358ace22181693fdc06630ffbe64bdd9eecf629a2a056ae70b02",
+          "trackHash": "94d40494881954e7f81926f964efd31d41a045eb8f67d66652cee66ed3d435af",
+          "exactInputAndSpanParity": true,
+          "rows": 1523,
+          "observationPhysicsFrames": 94005
+        },
+        {
+          "source": "stretch_flight_and_return",
+          "observationSha256": "819acecdbdae57b56e4af417d0550b51d05350ccf2968057f14a63f09eb817c3",
+          "teacherSha256": "845938975438b874e911a08b08664629d0050c0d806f52210087fe73cadf3f48",
+          "trackHash": "d859c005fb4954477b24a08ae1a0c9beed347931627ee9748b278b99daee6c30",
+          "exactInputAndSpanParity": true,
+          "rows": 1466,
+          "observationPhysicsFrames": 86512
+        },
+        {
+          "source": "stretch_open_canopy",
+          "observationSha256": "c2ad2415fc35841ad1ee718e116943c93101efc76563427e1db71a76a2f46fe9",
+          "teacherSha256": "2f7813473424fd2dcdf6f98029b8a35968e4105f0374cc8c8c7e468812cb98f8",
+          "trackHash": "d64d9b4f4a2a5e8ff6d3a03c8fe71009d46072d2998978f5e6ccbf9ec66763c3",
+          "exactInputAndSpanParity": true,
+          "rows": 1438,
+          "observationPhysicsFrames": 88741
+        },
+        {
+          "source": "stretch_quiet_current",
+          "observationSha256": "a2a7e1f5c886400ae4b8551c915fb29552770193fc91a6f3cc6b7b490777f77e",
+          "teacherSha256": "80e00cb449e0c7e4f53589f527fd8f323f5b0adc6c3240d1b1d0764c78fe30ac",
+          "trackHash": "ba0c16d9bd7e0b0d4a81d85118fe1aab4a722bf04c497f77e7853b2eb847b5d0",
+          "exactInputAndSpanParity": true,
+          "rows": 1163,
+          "observationPhysicsFrames": 99827
+        },
+        {
+          "source": "stretch_support_then_lift",
+          "observationSha256": "68361733bd20346bee86de52a0351263bc5b7ac862412a6c1b68d7cff0bc0cdf",
+          "teacherSha256": "4b4f7703e0d901e5446e3521df6f8c1b0a069d7a0a8971f1f3656ff615c962f1",
+          "trackHash": "670ef8be17bd6ecad84cbccef9c7e83ed28aad32c8ed5ea02fc1dc9ff232a423",
+          "exactInputAndSpanParity": true,
+          "rows": 1122,
+          "observationPhysicsFrames": 91913
+        },
+        {
+          "source": "stretch_rest_and_return",
+          "observationSha256": "47ee6f77fa581704fa55a5e6d4fa061b33d2656c7d33ac1700328c531a17c9ab",
+          "teacherSha256": "0b0518bddde544c220e24b07f054acf506b2921869765b5b211b5357890fc394",
+          "trackHash": "dd0653736bd2454650b55b7d6f664b211be73527b0ecf3ceaec8d7ef378afd13",
+          "exactInputAndSpanParity": true,
+          "rows": 1106,
+          "observationPhysicsFrames": 95878
+        },
+        {
+          "source": "stretch_pickup_staircase",
+          "observationSha256": "06819dcc1c069678f3b0251da82f328e8f8b1ae7a27ed8fcacf9e56d6d1860ef",
+          "teacherSha256": "08332410280a5bb7f72894592eb67524dcff450c9d455303d7559c4f0692834a",
+          "trackHash": "efce0827ecfcc099671d98cafb18c680074154ddad0987277b6a33421be29c8f",
+          "exactInputAndSpanParity": true,
+          "rows": 1915,
+          "observationPhysicsFrames": 94794
+        },
+        {
+          "source": "stretch_pickup_interruptions",
+          "observationSha256": "a60c2de5957c7ba311cac6476d04103966570a0a7218afec5211d59ad08260b9",
+          "teacherSha256": "faa4b8c4885ff704e9d5ee5baedfc5a4d8d17072526bbb34f9885efb834d916b",
+          "trackHash": "5ded466005344e81a5677d12bf6254703f5c71fae3ceee62a2dd073db3c5d2e8",
+          "exactInputAndSpanParity": true,
+          "rows": 1687,
+          "observationPhysicsFrames": 88471
+        },
+        {
+          "source": "stretch_pickup_recovery",
+          "observationSha256": "f8fbd41c17b12e764e86c39a58bae4ab99cdac32fa1a8046edfb345bae2d1a93",
+          "teacherSha256": "3f38b8ac188bec144caf0312cf6b1cd3c12a030525f59ac554421d8853e86efe",
+          "trackHash": "d6cef9f3f7f299c388f54e444b887a4058840f6eade6a1705735008c3847b420",
+          "exactInputAndSpanParity": true,
+          "rows": 1758,
+          "observationPhysicsFrames": 92226
+        },
+        {
+          "source": "stretch_dense_short_then_long",
+          "observationSha256": "a5a730d1d8206e09437ae5599e975184d53f8d1bb068723b275e4cc5e81425ea",
+          "teacherSha256": "eb4301633f8e1f00515f880ea7cdc6bb1c354df9de2608515159147088c43a81",
+          "trackHash": "814a19556fa17b8d4c2cdedc6e8eb4f172ba44dbc781f687287622909bcdd9b7",
+          "exactInputAndSpanParity": true,
+          "rows": 1868,
+          "observationPhysicsFrames": 94003
+        },
+        {
+          "source": "stretch_interleaved_recovery",
+          "observationSha256": "ba59cb76b3b9f5e709648bee345cca5b978ad5ec9dd4d52d1abe3c1fd084d043",
+          "teacherSha256": "1790a7f49869599b320bb4eccee90e657534d8b663b9abc9de3c00943274c79e",
+          "trackHash": "ff75815f56ef826e78ef053927126591c04e9d328adb8a91f0229570f2b54371",
+          "exactInputAndSpanParity": true,
+          "rows": 1621,
+          "observationPhysicsFrames": 85088
+        },
+        {
+          "source": "stretch_three_note_returns",
+          "observationSha256": "1d5e7dcf7bb4b51e96fbd5702731b9e4b6109ef075c1fd80714f7c4ad314db66",
+          "teacherSha256": "88b3ea9b39bd25459c36966dd43999361cbba6f0760b204f6e710da8f870ced1",
+          "trackHash": "be408e6bd08b47e06e1006cfdecb7cc9dc40adff3d49193329c3eb8d72f2d880",
+          "exactInputAndSpanParity": true,
+          "rows": 1689,
+          "observationPhysicsFrames": 89681
+        },
+        {
+          "source": "stretch_supported_bridge",
+          "observationSha256": "33134a3a94d0d76514bb23661df0562ade7248023173bdc1a04ac2bac096d142",
+          "teacherSha256": "4baeb6e8fcaf2e6850a14e8ca9aae61721ff13d4c773a58e854325d76fbc5528",
+          "trackHash": "065612a67d519399e9502cc48d52c0996186897cb982756b9a41f3e967a40863",
+          "exactInputAndSpanParity": true,
+          "rows": 948,
+          "observationPhysicsFrames": 109372
+        },
+        {
+          "source": "stretch_supported_speed_change",
+          "observationSha256": "bdb6210559cbe1fb191b0922080e5769a6e8a41a7d5aaaae97f98c802de1183e",
+          "teacherSha256": "d2272acd62d1055e7e30cffc63f1be6c608f1771306a05ee454b3a33b5f29ae9",
+          "trackHash": "d5d952c1f05c2b090d7f0fb10546ce405ef4ce43f083f6c8e7b61d5d2e0f7877",
+          "exactInputAndSpanParity": true,
+          "rows": 969,
+          "observationPhysicsFrames": 133015
+        },
+        {
+          "source": "stretch_endurance_and_return",
+          "observationSha256": "2293e9d5784a54d998a2bcfd13d3f94e4007689fc42aac053dc976a7de480952",
+          "teacherSha256": "b0adaef97928f3a6e04731a372c28cbe5d98753ed528263e2525ae6d43e97c69",
+          "trackHash": "f74740e0339256a436f399d6ed1fac4c7f25609488505d1c6dd8eacb5ceaa9c9",
+          "exactInputAndSpanParity": true,
+          "rows": 977,
+          "observationPhysicsFrames": 108436
+        },
+        {
+          "source": "stretch_energy_weave",
+          "observationSha256": "bfebccbb7b0112af5597ffda3e2d64ed9c7da6485e723a60b26b8044f1385d6c",
+          "teacherSha256": "355fdf3753279fa7ebec152ed879dc0aeac09cf8e3cee35d5040f0652d6fd50c",
+          "trackHash": "2faf95e645167dab737c2ce56a664eeca148f196bc4bfbc50341867c9c06b29d",
+          "exactInputAndSpanParity": true,
+          "rows": 1575,
+          "observationPhysicsFrames": 94356
+        },
+        {
+          "source": "stretch_alternating_intentions",
+          "observationSha256": "49adfc63d8363ff347e5c3096f389eeb7ccc9e937bcddd9ce549e2b27439fef9",
+          "teacherSha256": "b7ea5ac90fec2b0aa6790da9d85baa7d3938c0310e51dd5ef702b50a56ff6339",
+          "trackHash": "39d32c173f214dcb34c92cef710ee3f791d30ec6b88012771bc43cd13f04057f",
+          "exactInputAndSpanParity": true,
+          "rows": 1492,
+          "observationPhysicsFrames": 87758
+        },
+        {
+          "source": "stretch_recovery_mosaic",
+          "observationSha256": "154493c49e7a86e40285b8769a1b48d964b6a74c1ba00c40bed88ed807a36302",
+          "teacherSha256": "436f558d642a876ed419cc10865365e298f9f71fc6d51148ebf9563a65fde3c3",
+          "trackHash": "91045c0eb82cfc9d74a4b7f024434656c376648eb75bb7d16a1f5cfa0ce04d72",
+          "exactInputAndSpanParity": true,
+          "rows": 1480,
+          "observationPhysicsFrames": 91422
+        },
+        {
+          "source": "stretch_amplitude_reply",
+          "observationSha256": "b52acaae675abdb4cf4dff3ad8c799f429829bd74d10adc487cac43eaac5d608",
+          "teacherSha256": "1bac71975a34a5420be2b7f79b9c699c06d873c9d35e894e3cf0f6a2dd7afaff",
+          "trackHash": "94ac4028cf0f4f50e3a920ee6bac9e4e1821ebca9816f038caa7535ae99e42a3",
+          "exactInputAndSpanParity": true,
+          "rows": 1206,
+          "observationPhysicsFrames": 93549
+        },
+        {
+          "source": "stretch_restrained_then_wide",
+          "observationSha256": "28d04b801adfbe3b5dfc3ff60dc143fde4994b6037af14eded4ed3d9cd4e82b3",
+          "teacherSha256": "a689e0694269969e700d704153a09681266664b234e92f07faa6957264f78b57",
+          "trackHash": "6c5df9483181d7ec895ccc9a426d0109be48ee6636be45d5dcba074f2cc62b2c",
+          "exactInputAndSpanParity": true,
+          "rows": 1058,
+          "observationPhysicsFrames": 85506
+        },
+        {
+          "source": "stretch_arches_at_new_tempos",
+          "observationSha256": "4ed3eedef569b5298940f508437083fd4bc2e3915888e2395e27a7c2b444c396",
+          "teacherSha256": "ba069b013f96cad752b36623784dbb1d7c23bb9fa6afbc709f497c53aad9fe8e",
+          "trackHash": "947e37aa311ad1d71e50140b5a0cff80518cbec8a58965e9d5470728e4d780ef",
+          "exactInputAndSpanParity": true,
+          "rows": 1090,
+          "observationPhysicsFrames": 87515
+        },
+        {
+          "source": "stretch_music_amor_na_praia_46s",
+          "observationSha256": "02d1698f85eb9c0ec895d07866ed043bc16fedd013babe39fa059ff0e5877b1f",
+          "teacherSha256": "df8ce9b19f932247642fb95a0361a19ed97461b2004e557f51ede5d8a51030c6",
+          "trackHash": "1eb4b5dd31b2c4923d7642288c7911f0aa9dfb55d446e9995196238634d1da2c",
+          "exactInputAndSpanParity": true,
+          "rows": 1330,
+          "observationPhysicsFrames": 64279
+        },
+        {
+          "source": "stretch_music_luna_bala_44s",
+          "observationSha256": "b0c3bae41f3acadd1ba845493a7da9cc819080615c958d2ba020193f48569b25",
+          "teacherSha256": "2f272ab739a99523b371b84096039397c86c92cb716e83364fa93a54ccaf61b7",
+          "trackHash": "072df60439397c8df215e03f323b5f9e7fac9d50e69989c79d795e370988335e",
+          "exactInputAndSpanParity": true,
+          "rows": 1248,
+          "observationPhysicsFrames": 60681
+        },
+        {
+          "source": "stretch_music_tiki_tiki_48s",
+          "observationSha256": "69fa8e6132f4d9b94e7cd5e8bd8d2930dfd2261ecb1346fd7a39c26329e8aee5",
+          "teacherSha256": "7db84acc95b24b22fcd7e1fcda4097eb5f23451fb4f78b38681519cea10f8835",
+          "trackHash": "93aafb62b3b69ef88595a3d42f23005daee86a81851d77f992ca58b5662e4aec",
+          "exactInputAndSpanParity": true,
+          "rows": 1021,
+          "observationPhysicsFrames": 66764
+        },
+        {
+          "source": "stretch_music_shelter_impact_sync_81s",
+          "observationSha256": "928b222ac76d7ca3ec119c9a4fe985cd80f29dceb34480f3862e9f33137c66fe",
+          "teacherSha256": "ba899a016bf62b9d38ac901c6cadf74e41e6ef14f92c87e0f7931294d9b3488b",
+          "trackHash": "1d3940f59dc713366ab5a01571a1a83a322add01969739d2746ab56dd09ff3ff",
+          "exactInputAndSpanParity": true,
+          "rows": 1793,
+          "observationPhysicsFrames": 111782
+        },
+        {
+          "source": "stretch_music_amour_de_ma_vie_short_44s",
+          "observationSha256": "eb4cad4b93c32734fc608d5221c779fd9173a4c8aa0c37b22d42574a38c9845f",
+          "teacherSha256": "588a7a9caee06880335c27a2038b78957cd2877a2993504a5085fb5f597f3801",
+          "trackHash": "0ff73524d875435f5e03851b6aac206e747e6c360658957ee4303453bfdec42b",
+          "exactInputAndSpanParity": true,
+          "rows": 1140,
+          "observationPhysicsFrames": 62133
+        }
+      ],
+      "validation": {
+        "rows": 256162,
+        "parents": 65,
+        "folds": [
+          {
+            "fold": 0,
+            "heldParents": [
+              "amplitude_reply",
+              "arches_at_new_tempos",
+              "bridge_amplitude_tides",
+              "bridge_countercurrent",
+              "bridge_frontier_low_air_endurance",
+              "bridge_offgrid_conversation",
+              "bridge_regression_amplitude_mosaic",
+              "bridge_rising_switch",
+              "compact_dialogue",
+              "crossing_lights",
+              "density_release",
+              "endurance_and_return",
+              "gear_changes",
+              "lifted_refrain",
+              "music_luna_bala_44s",
+              "offbeat_echoes",
+              "pickup_recovery",
+              "pickup_staircase",
+              "recovery_mosaic",
+              "support_then_lift",
+              "wide_arc_dialogue",
+              "woven_pulse"
+            ],
+            "train": 170109,
+            "test": 86053,
+            "controlRms": [
+              0.13412035613672493,
+              0.11064638828840406,
+              0.2037300057496054,
+              0.08056242788703005,
+              0.893294108248233,
+              0.8464065453991302,
+              0.1685548049881862,
+              0.10818891468965061,
+              0.2054010114791046,
+              0.38788079941866105
+            ]
+          },
+          {
+            "fold": 1,
+            "heldParents": [
+              "archipelago",
+              "bridge_believer_56_6s",
+              "bridge_believer_impact_56s",
+              "bridge_frontier_pickup_progression",
+              "bridge_high_air_drive",
+              "bridge_loose_pocket",
+              "bridge_pickup_lattice",
+              "bridge_split_signal",
+              "bridge_wide_breaths",
+              "flight_and_return",
+              "half_time_return",
+              "late_letters",
+              "music_amor_na_praia_46s",
+              "music_shelter_impact_sync_81s",
+              "music_tiki_tiki_48s",
+              "pickup_answers",
+              "pickup_interruptions",
+              "rest_and_return",
+              "supported_speed_change",
+              "terraced_skies",
+              "three_note_returns",
+              "woven_pickups"
+            ],
+            "train": 170131,
+            "test": 86031,
+            "controlRms": [
+              0.1323612855773462,
+              0.10470653920783196,
+              0.18809145635478533,
+              0.08222797860927895,
+              0.8964385208090973,
+              0.8171623465800326,
+              0.16592298966635158,
+              0.10312326747928766,
+              0.20783653287084955,
+              0.3860887903840922
+            ]
+          },
+          {
+            "fold": 2,
+            "heldParents": [
+              "accelerando_reply",
+              "afterglow_turn",
+              "alternating_intentions",
+              "bridge_dense_dialogue",
+              "bridge_frontier_dense_recovery",
+              "bridge_meter_exchange",
+              "bridge_open_hook",
+              "bridge_regression_transition_mosaic",
+              "bridge_river_reentry",
+              "bridge_sparse_lowline",
+              "broken_triplets",
+              "dense_short_then_long",
+              "energy_weave",
+              "harbor_return",
+              "interleaved_recovery",
+              "music_amour_de_ma_vie_short_44s",
+              "open_canopy",
+              "quiet_current",
+              "restrained_then_wide",
+              "supported_bridge",
+              "swing_exchange"
+            ],
+            "train": 172084,
+            "test": 84078,
+            "controlRms": [
+              0.13838870636680786,
+              0.11203800703923684,
+              0.2077130129333361,
+              0.07912919872609082,
+              0.9036882265827848,
+              0.8232437628865783,
+              0.17195540521383007,
+              0.10763139116189722,
+              0.20713525946884248,
+              0.3952992033960192
+            ]
+          }
+        ],
+        "controlRms": [
+          0.13495412094633885,
+          0.10915463515772351,
+          0.19996473634566667,
+          0.08066128520761638,
+          0.8977722073084926,
+          0.8290787914976534,
+          0.16880504585754685,
+          0.10632895788101548,
+          0.20679074112561052,
+          0.3897340904016618
+        ],
+        "note": "Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested."
+      },
+      "validationSha256": "79b60b487fda707f712c5c37fa1993cc302bc0ad8c405b843469493ac3273e89",
+      "inferenceParity": {
+        "schema": "line.arc-correction-parity.v1",
+        "modelPath": "generated/benchmark-v4/arc-940/models/context-correction/model.json",
+        "modelSha256": "98959b059bab0a917afe2c1abf6170a6ff3ab0e62de9a2af176693bdec4a8736",
+        "fixturePath": "generated/benchmark-v4/arc-940/models/context-correction/parity.json",
+        "fixtureSha256": "28baf2e4ee0a5c8f05dda864da23697e66b700b3f0fbb990b1bfb79133102ae9",
+        "fixtures": 24,
+        "maxError": 4.440892098500626e-16,
+        "runtimeSha256": "849c33e5300d9baaa21578e9811ef76accb937c22fc66f852ebbe2da8c472f3d",
+        "scriptSha256": "46d727ba647fb4b5c270b917e9f638a4b5228d72dbf185f306726af3103ffb5e"
+      },
+      "inferenceParitySha256": "8bc57c8c58b7792fe2249403a1c4c00131546e37414c8e398fe13f8ba85b00dd"
+    }
+  ],
+  "ablationRowsMatchExactlyWithoutMeasuredResiduals": true,
+  "scriptSha256": "44c7d314519c5a0c3f61dd128f74e4a3215a19d539970dcf125ff89b48213903",
+  "note": "Exposed V4 development training. Both datasets use the same fixed student prefixes and independently validated expert controls. All three folds hold out complete parent families. Prediction RMS and interpreter parity do not establish physical compiler improvement. The original source proofs remain authoritative for physical validation."
+}

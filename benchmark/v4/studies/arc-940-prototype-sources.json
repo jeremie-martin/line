@@ -61,6 +61,26 @@
       "tests": [
         "tests/arc_proposal_trace.test.ts"
       ]
+    },
+    {
+      "name": "measured-correction",
+      "base": "6a176c55c88175fb8f5fccf934d5b409d91df5fc",
+      "patch": "benchmark/v4/studies/prototypes/c2bd4e97b90a65bfe7ffe165460fc54a855c43785d257368ed190a97b205ead1.patch",
+      "sha256": "c2bd4e97b90a65bfe7ffe165460fc54a855c43785d257368ed190a97b205ead1",
+      "bytes": 12654,
+      "tests": [
+        "tests/arc_measured_correction.test.ts"
+      ]
+    },
+    {
+      "name": "bounded-response",
+      "base": "6a176c55c88175fb8f5fccf934d5b409d91df5fc",
+      "patch": "benchmark/v4/studies/prototypes/d5348b693f99f7f4fd54109bfa815d310c780ea4c4248b7c869ea846cdc2f173.patch",
+      "sha256": "d5348b693f99f7f4fd54109bfa815d310c780ea4c4248b7c869ea846cdc2f173",
+      "bytes": 8515,
+      "tests": [
+        "tests/arc_bounded_response.test.ts"
+      ]
     }
   ]
 }

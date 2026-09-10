@@ -232,3 +232,39 @@ while the independently validated 3M teacher supplies controls at the same
 incoming states. Its replay headline describes the fixed student, not a new
 compiler result. This experiment has not yet established a learned correction
 or a performance gain.
+
+
+## Stronger transfer and measured corrections
+
+The refreshed 937 correction reaches **929.6294** on all 176 cases at 750k.
+The expanded 79,810-example library reaches **931.3392**, all 176 valid, and is
+now the strongest complete research result. The public canonical baseline
+remains **926.9397**; the active 940 target is not yet achieved.
+
+The feedback collector matches 256,162 valid measured proposals at 15,962
+non-startup fixed student prefixes to independently verified teacher controls.
+It excludes 78,823 invalid probes and 217 duplicates. The matched ablation
+removes the four measured-error inputs and otherwise preserves every row and
+target. Three folds hold out entire parent families. Measured feedback improves
+nine of ten pooled control-prediction RMS values, generally slightly; that is
+not proof of useful physical corrections. Both runtime interpreters reproduce
+24 independent Python fixtures within 4.45e-16. The runtime proposes corrections
+within the existing guidance allowance and simulates every candidate before
+selection. Eight focused physical, inference and budget tests pass.
+
+At 750k the feedback pilot improves five of eight cases relative to the public
+reference; the context-only ablation improves four. Both are fully valid, and
+feedback beats the context-only variant on six of eight. The complete feedback
+panel is underway. These pilots do not establish a full headline improvement.
+See [matched transfer evidence](../benchmark/v4/studies/arc-940-feedback-transfer.json)
+and the complete research ledger for per-case outcomes.
+
+A separate response experiment measures actual finite-difference movement when
+geometry limits clip a probe. It tests unequal-step derivatives and one-sided
+fallbacks, without extra simulations, alongside an observation-only control.
+Seven focused tests pass, including exact measurement-only track/work parity.
+Its physical pilot improves five cases and regresses three, all valid. The
+observation-only panel exactly matches all eight reference tracks, scores and
+frame counts. Clipping affects 1.94% of valid probes in this panel; that
+frequency does not itself establish meaningful headline headroom. See
+[the bound measurements](../benchmark/v4/studies/arc-940-response-bounds.json).

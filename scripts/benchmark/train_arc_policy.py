@@ -16,7 +16,7 @@ assert args.trees>=2 and args.depth>0 and args.leaf>0 and (args.folds==0 or args
 p=Path(args.data);body=p.read_bytes();digest=hashlib.sha256(body).hexdigest();assert digest==Path(str(p)+'.sha256').read_text().strip()
 data=json.loads(body);out=Path(args.out);out.mkdir(parents=True,exist_ok=True)
 assert not (out/'model.json').exists()
-X=np.array([r['features'] for r in data['rows']]);y=np.array([r['target'] for r in data['rows']]);groups=np.array([r['parent'] for r in data['rows']]);assert X.shape[1]=={'line.arc-control-policy-features.v1':57,'line.arc-control-refinement-features.v1':71}[data['featureSchema']] and np.isfinite(X).all() and np.isfinite(y).all()
+X=np.array([r['features'] for r in data['rows']]);y=np.array([r['target'] for r in data['rows']]);groups=np.array([r['parent'] for r in data['rows']]);assert X.shape[1]=={'line.arc-control-policy-features.v1':57,'line.arc-control-refinement-features.v1':71,'line.arc-measured-control-correction-features.v1':77,'line.arc-context-control-correction-features.v1':73}[data['featureSchema']] and np.isfinite(X).all() and np.isfinite(y).all()
 def fitted(indices):
  weights=np.ones(10)
  if args.target_metric=='variance':weights=1/np.maximum(.05,np.std(y[indices],axis=0))

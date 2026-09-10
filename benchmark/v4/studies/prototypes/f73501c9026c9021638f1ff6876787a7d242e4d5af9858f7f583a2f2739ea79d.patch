@@ -1,0 +1,80 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..4a2204e5 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -13,7 +13,7 @@ import { scheduleNativeContacts } from './native_motion_schedule.ts';
+ import { trimUnusedArcGuides } from './arc_guidance.ts';
+ import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
+ import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
+-import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
++import { arcBoundedDifference,arcResponseStep, arcSecantUpdate } from './arc_response.ts';
+ import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
+ import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
+ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
+@@ -124,6 +124,8 @@ export type ArcMotionOptions= {
+   refineExpressive?:boolean;
+   responseSamples?:number;
+   responseDamping?:number;
++  responseBoundAware?:boolean;
++  collectResponseBounds?:boolean;
+   responseScale?:number;
+   refineFollowSamples?:number;
+   refineUseAlternatives?:boolean;
+@@ -146,6 +148,7 @@ export type ArcMotionOptions= {
+   valueSelection?:boolean};
+ 
+ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
++  const responseBounds={dimensions:0,validProbes:0,limitedProbes:0,stationaryProbes:0};
+   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
+   spec=normalizeCompilerTimeline(spec);
+   validateSpec(spec);
+@@ -532,7 +535,19 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           if(!reused)responseKeys.forEach((key,d)=>{
+             const step=scale[key as keyof typeof scale]*trust;
+             const a=evaluate({...origin.c,[key]:value(key)+step}),b=evaluate({...origin.c,[key]:value(key)-step});responseUsed+=2;
+-            for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
++            if(options.responseBoundAware||options.collectResponseBounds){
++              const positive=a?((a.c[key]??value(key))-value(key))/step:0;
++              const negative=b?((b.c[key]??value(key))-value(key))/step:0;
++              responseBounds.dimensions++;
++              for(const [candidate,actual,nominal] of [[a,positive,1],[b,negative,-1]] as const)if(candidate){
++                responseBounds.validProbes++;responseBounds.limitedProbes+=Number(Math.abs(actual-nominal)>1e-8);
++                responseBounds.stationaryProbes+=Number(Math.abs(actual)<1e-9);
++              }
++              if(options.responseBoundAware){
++                const column=arcBoundedDifference(origin.residuals,a?.residuals??null,b?.residuals??null,positive,negative);
++                for(let r=0;r<jac.length;r++)jac[r][d]=column[r];
++              }else for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
++            }else for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
+           });
+           if(!reused&&(options.memoryResponseSamples??0)>0){
+             controlMemory.rememberResponse({features:inputFeatures,incoming,span,
+@@ -796,6 +811,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,...(options.responseBoundAware||options.collectResponseBounds?{responseBounds}:{}),failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }
+diff --git a/scripts/v0/optimizer/arc_response.ts b/scripts/v0/optimizer/arc_response.ts
+index 9bbd95cc..7d906522 100644
+--- a/scripts/v0/optimizer/arc_response.ts
++++ b/scripts/v0/optimizer/arc_response.ts
+@@ -1,4 +1,16 @@
+ /** Damped local response step in normalized curve-control coordinates. */
++export function arcBoundedDifference(origin:number[],plus:number[]|null,minus:number[]|null,positiveStep:number,negativeStep:number):number[]{
++  const a=plus&&Math.abs(positiveStep)>1e-9?positiveStep:0;
++  const b=minus&&Math.abs(negativeStep)>1e-9?negativeStep:0;
++  return origin.map((value,r)=>{
++    if(a&&b&&Math.abs(a-b)>1e-9){
++      // Derivative at the origin of the quadratic through unequal probes.
++      return ((plus![r]-value)/a*(-b)+(minus![r]-value)/b*a)/(a-b);
++    }
++    return a?(plus![r]-value)/a:b?(minus![r]-value)/b:0;
++  });
++}
++
+ export function arcResponseStep(jacobian: number[][], residuals: number[], damping: number): number[] | null {
+   const n = jacobian[0]?.length ?? 0;
+   if (!n || jacobian.length !== residuals.length) return null;

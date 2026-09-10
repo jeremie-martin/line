@@ -1,0 +1,5303 @@
+{
+  "schema": "line.arc-v4-loss-diagnosis.v2",
+  "inputPath": "generated/benchmark-v4/arc-940/full/expanded-937/run.json.gz",
+  "inputSha256": "6333b1326a2436bc504f447e3bf49642e4d9bb4ca06ca496a0ab7bf3af139044",
+  "suiteFingerprint": "4acd7513aed8b03e1265fe7b07d4bd14c6e4f6fd93c5a4a38fd706b86270597d",
+  "seeds": [
+    16
+  ],
+  "scriptSha256": "f912c919cffd1418962614443d090f7aef40a6e490555bf1acfd267d485623cf",
+  "counterfactuals": [
+    {
+      "errorsSetToZero": "air",
+      "panels": {
+        "all": {
+          "before": 931.3392,
+          "hypothetical": 940.8953,
+          "potentialDifference": 9.5561
+        },
+        "v3": {
+          "before": 939.5089,
+          "hypothetical": 948.667,
+          "potentialDifference": 9.1581
+        },
+        "extension": {
+          "before": 923.2724,
+          "hypothetical": 933.2165,
+          "potentialDifference": 9.9441
+        }
+      }
+    },
+    {
+      "errorsSetToZero": "speed",
+      "panels": {
+        "all": {
+          "before": 931.3392,
+          "hypothetical": 942.2821,
+          "potentialDifference": 10.9429
+        },
+        "v3": {
+          "before": 939.5089,
+          "hypothetical": 950.1131,
+          "potentialDifference": 10.6042
+        },
+        "extension": {
+          "before": 923.2724,
+          "hypothetical": 934.55,
+          "potentialDifference": 11.2776
+        }
+      }
+    },
+    {
+      "errorsSetToZero": "impact",
+      "panels": {
+        "all": {
+          "before": 931.3392,
+          "hypothetical": 942.5212,
+          "potentialDifference": 11.182
+        },
+        "v3": {
+          "before": 939.5089,
+          "hypothetical": 948.2915,
+          "potentialDifference": 8.7826
+        },
+        "extension": {
+          "before": 923.2724,
+          "hypothetical": 936.8081,
+          "potentialDifference": 13.5357
+        }
+      }
+    },
+    {
+      "errorsSetToZero": "amplitude",
+      "panels": {
+        "all": {
+          "before": 931.3392,
+          "hypothetical": 938.5274,
+          "potentialDifference": 7.1882
+        },
+        "v3": {
+          "before": 939.5089,
+          "hypothetical": 945.2147,
+          "potentialDifference": 5.7058
+        },
+        "extension": {
+          "before": 923.2724,
+          "hypothetical": 931.9113,
+          "potentialDifference": 8.6389
+        }
+      }
+    },
+    {
+      "errorsSetToZero": "tail",
+      "panels": {
+        "all": {
+          "before": 931.3392,
+          "hypothetical": 934.0793,
+          "potentialDifference": 2.7401
+        },
+        "v3": {
+          "before": 939.5089,
+          "hypothetical": 941.8282,
+          "potentialDifference": 2.3193
+        },
+        "extension": {
+          "before": 923.2724,
+          "hypothetical": 926.4237,
+          "potentialDifference": 3.1513
+        }
+      }
+    }
+  ],
+  "note": "These optimistic frozen-score counterfactuals set selected observed errors to zero. They do not establish joint attainability or a compiler score, and potential differences cannot be added.",
+  "casePooledTailShare": 0.09021475301712414,
+  "poolingNote": "The pooled tail fraction is diagnostic, not the hierarchical headline weight.",
+  "byCase": [
+    {
+      "id": "bridge_river_reentry",
+      "score": 969.9581,
+      "squaredLoss": 0.000058149721933450854,
+      "tailSquaredLoss": 2.546367542260086e-20,
+      "tailShare": 4.3789848989721103e-16,
+      "components": {
+        "air": {
+          "observations": 89,
+          "weightSum": 2320,
+          "rmsError": 0.00829733604481662,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 89,
+          "weightSum": 2320,
+          "rmsError": 0.008387940042963655,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 88,
+          "weightSum": 88,
+          "rmsError": 0.005936820882878843,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 740014
+    },
+    {
+      "id": "bridge_countercurrent",
+      "score": 970.9185,
+      "squaredLoss": 0.0000544377465156891,
+      "tailSquaredLoss": 9.421642651717863e-17,
+      "tailShare": 1.7307187116943794e-12,
+      "components": {
+        "air": {
+          "observations": 80,
+          "weightSum": 2200,
+          "rmsError": 0.0050545040286079,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 80,
+          "weightSum": 2200,
+          "rmsError": 0.01024744028248171,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 79,
+          "weightSum": 79,
+          "rmsError": 0.005723215549743427,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 733361
+    },
+    {
+      "id": "bridge_split_signal",
+      "score": 855.6164,
+      "squaredLoss": 0.001519696021220715,
+      "tailSquaredLoss": 1.073660315241214e-7,
+      "tailShare": 0.00007064967600420397,
+      "components": {
+        "air": {
+          "observations": 93,
+          "weightSum": 2400,
+          "rmsError": 0.027881167942620046,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 93,
+          "weightSum": 2400,
+          "rmsError": 0.016378368917240906,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 93,
+          "weightSum": 2400,
+          "rmsError": 0.10480380241041323,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 92,
+          "weightSum": 92,
+          "rmsError": 0.018941064118511843,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749478
+    },
+    {
+      "id": "bridge_pickup_lattice",
+      "score": 912.934,
+      "squaredLoss": 0.0005186063859205167,
+      "tailSquaredLoss": 1.821238137804049e-10,
+      "tailShare": 3.511792733850327e-7,
+      "components": {
+        "air": {
+          "observations": 100,
+          "weightSum": 2320,
+          "rmsError": 0.011327059259096734,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 100,
+          "weightSum": 2320,
+          "rmsError": 0.037039255082692964,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 99,
+          "weightSum": 99,
+          "rmsError": 0.007457242735868563,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749824
+    },
+    {
+      "id": "bridge_loose_pocket",
+      "score": 970.8178,
+      "squaredLoss": 0.00005482112843790878,
+      "tailSquaredLoss": 1.503079033023027e-10,
+      "tailShare": 0.0000027417878395652443,
+      "components": {
+        "air": {
+          "observations": 105,
+          "weightSum": 2240,
+          "rmsError": 0.006229945526312022,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 105,
+          "weightSum": 2240,
+          "rmsError": 0.00970269500242055,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 104,
+          "weightSum": 104,
+          "rmsError": 0.005613276560344627,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 737460
+    },
+    {
+      "id": "bridge_offgrid_conversation",
+      "score": 975.9421,
+      "squaredLoss": 0.00003706369270374492,
+      "tailSquaredLoss": 6.4647258057442794e-9,
+      "tailShare": 0.00017442206467169105,
+      "components": {
+        "air": {
+          "observations": 88,
+          "weightSum": 2240,
+          "rmsError": 0.0037331455635990075,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 88,
+          "weightSum": 2240,
+          "rmsError": 0.008447073741084637,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 87,
+          "weightSum": 87,
+          "rmsError": 0.0050893661221112965,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 744475
+    },
+    {
+      "id": "bridge_rising_switch",
+      "score": 975.4873,
+      "squaredLoss": 0.0000384963203234763,
+      "tailSquaredLoss": 1.3803333854074242e-14,
+      "tailShare": 3.5856242202080087e-10,
+      "components": {
+        "air": {
+          "observations": 89,
+          "weightSum": 2320,
+          "rmsError": 0,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 89,
+          "weightSum": 2320,
+          "rmsError": 0.009050340299313392,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 88,
+          "weightSum": 88,
+          "rmsError": 0.005794851286879833,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746189
+    },
+    {
+      "id": "bridge_meter_exchange",
+      "score": 970.9808,
+      "squaredLoss": 0.00005420128591593478,
+      "tailSquaredLoss": 2.1259918518111095e-8,
+      "tailShare": 0.0003922401131051549,
+      "components": {
+        "air": {
+          "observations": 97,
+          "weightSum": 2400,
+          "rmsError": 0.005523595354407328,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 97,
+          "weightSum": 2400,
+          "rmsError": 0.009957543159351495,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 96,
+          "weightSum": 96,
+          "rmsError": 0.005739432579813649,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749111
+    },
+    {
+      "id": "bridge_wide_breaths",
+      "score": 895.5693,
+      "squaredLoss": 0.0007603206976801591,
+      "tailSquaredLoss": 1.3034801509703651e-11,
+      "tailShare": 1.7143820429293308e-8,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2480,
+          "rmsError": 0.018807356953528746,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2480,
+          "rmsError": 0.015162067871731561,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 83,
+          "weightSum": 2480,
+          "rmsError": 0.07282862589610349,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.013520149083419574,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749954
+    },
+    {
+      "id": "bridge_open_hook",
+      "score": 816.873,
+      "squaredLoss": 0.0025571126702378447,
+      "tailSquaredLoss": 0.0021339796622182328,
+      "tailShare": 0.8345270378796977,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2320,
+          "rmsError": 0.0629664281650531,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2320,
+          "rmsError": 0.055311374841681006,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 83,
+          "weightSum": 2320,
+          "rmsError": 0.061695540973572154,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.015192422871632664,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 728484
+    },
+    {
+      "id": "bridge_amplitude_tides",
+      "score": 873.0727,
+      "squaredLoss": 0.0011515233136912045,
+      "tailSquaredLoss": 0.00001544561309730868,
+      "tailShare": 0.01341320050898302,
+      "components": {
+        "air": {
+          "observations": 98,
+          "weightSum": 2480,
+          "rmsError": 0.021425189473905957,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 98,
+          "weightSum": 2480,
+          "rmsError": 0.025528942664150133,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 98,
+          "weightSum": 2480,
+          "rmsError": 0.08440614149945003,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 97,
+          "weightSum": 97,
+          "rmsError": 0.018784208274151976,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 746333
+    },
+    {
+      "id": "bridge_dense_dialogue",
+      "score": 944.7394,
+      "squaredLoss": 0.00020196781235720757,
+      "tailSquaredLoss": 8.517969157464697e-21,
+      "tailShare": 4.2174884492978067e-17,
+      "components": {
+        "air": {
+          "observations": 131,
+          "weightSum": 2320,
+          "rmsError": 0.017859960316705892,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 131,
+          "weightSum": 2320,
+          "rmsError": 0.012929540433276503,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 130,
+          "weightSum": 130,
+          "rmsError": 0.010943136604355329,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749916
+    },
+    {
+      "id": "bridge_high_air_drive",
+      "score": 905.0011,
+      "squaredLoss": 0.0006227407774250424,
+      "tailSquaredLoss": 3.776831831878197e-7,
+      "tailShare": 0.0006064853898752123,
+      "components": {
+        "air": {
+          "observations": 95,
+          "weightSum": 2400,
+          "rmsError": 0.0328388741051567,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 95,
+          "weightSum": 2400,
+          "rmsError": 0.021549937969183686,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 94,
+          "weightSum": 94,
+          "rmsError": 0.018039702140144425,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749939
+    },
+    {
+      "id": "bridge_sparse_lowline",
+      "score": 960.9588,
+      "squaredLoss": 0.000099120825999449,
+      "tailSquaredLoss": 1.2184935465438379e-9,
+      "tailShare": 0.000012293012434648308,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2400,
+          "rmsError": 0.009420846214324154,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2400,
+          "rmsError": 0.011847059278445187,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.008261798899598502,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749928
+    },
+    {
+      "id": "bridge_frontier_pickup_progression",
+      "score": 959.4279,
+      "squaredLoss": 0.00010721626752765889,
+      "tailSquaredLoss": 0.00000283369082637288,
+      "tailShare": 0.026429672396885713,
+      "components": {
+        "air": {
+          "observations": 111,
+          "weightSum": 2400,
+          "rmsError": 0.011683309062425264,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 111,
+          "weightSum": 2400,
+          "rmsError": 0.01141002878903912,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 110,
+          "weightSum": 110,
+          "rmsError": 0.007413523788869016,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749935
+    },
+    {
+      "id": "bridge_frontier_dense_recovery",
+      "score": 942.1883,
+      "squaredLoss": 0.00022163878255516593,
+      "tailSquaredLoss": 2.305299043714548e-12,
+      "tailShare": 1.0401153702153903e-8,
+      "components": {
+        "air": {
+          "observations": 124,
+          "weightSum": 2320,
+          "rmsError": 0.010370868728948286,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 124,
+          "weightSum": 2320,
+          "rmsError": 0.015796242187618208,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 123,
+          "weightSum": 123,
+          "rmsError": 0.01754537438251265,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749701
+    },
+    {
+      "id": "bridge_frontier_low_air_endurance",
+      "score": 931.0201,
+      "squaredLoss": 0.0003192870308613642,
+      "tailSquaredLoss": 0.000003399258441053507,
+      "tailShare": 0.010646403118482691,
+      "components": {
+        "air": {
+          "observations": 91,
+          "weightSum": 2480,
+          "rmsError": 0.023086537995592807,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 91,
+          "weightSum": 2480,
+          "rmsError": 0.013208537068148077,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 90,
+          "weightSum": 90,
+          "rmsError": 0.015824266317321017,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746696
+    },
+    {
+      "id": "bridge_regression_transition_mosaic",
+      "score": 961.2621,
+      "squaredLoss": 0.00009755578618409388,
+      "tailSquaredLoss": 9.15621391537355e-7,
+      "tailShare": 0.00938561849944523,
+      "components": {
+        "air": {
+          "observations": 92,
+          "weightSum": 2400,
+          "rmsError": 0.008131001982708268,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 92,
+          "weightSum": 2400,
+          "rmsError": 0.011258728484314307,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 91,
+          "weightSum": 91,
+          "rmsError": 0.009989754662951714,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749977
+    },
+    {
+      "id": "bridge_regression_amplitude_mosaic",
+      "score": 773.6715,
+      "squaredLoss": 0.004115474667483943,
+      "tailSquaredLoss": 1.3833143355619032e-10,
+      "tailShare": 3.361251003417336e-8,
+      "components": {
+        "air": {
+          "observations": 92,
+          "weightSum": 2400,
+          "rmsError": 0.03132825322764082,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 92,
+          "weightSum": 2400,
+          "rmsError": 0.037590479397171576,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 92,
+          "weightSum": 2400,
+          "rmsError": 0.17804624903944033,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 91,
+          "weightSum": 91,
+          "rmsError": 0.02751223426654597,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749972
+    },
+    {
+      "id": "bridge_believer_56_6s",
+      "score": 944.9848,
+      "squaredLoss": 0.00020012643943023942,
+      "tailSquaredLoss": 3.803193660034696e-10,
+      "tailShare": 0.0000019003954054558708,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2264,
+          "rmsError": 0.015184845559601793,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2264,
+          "rmsError": 0.015508170759618677,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.011370858512542848,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 743809
+    },
+    {
+      "id": "bridge_believer_impact_56s",
+      "score": 884.8939,
+      "squaredLoss": 0.0009346401225438914,
+      "tailSquaredLoss": 0.00003108688673151716,
+      "tailShare": 0.03326080914106841,
+      "components": {
+        "air": {
+          "observations": 50,
+          "weightSum": 2240,
+          "rmsError": 0.03071949526429934,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 50,
+          "weightSum": 2240,
+          "rmsError": 0.02230574894096028,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 50,
+          "weightSum": 2240,
+          "rmsError": 0.06300818178821256,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 49,
+          "weightSum": 49,
+          "rmsError": 0.01873204720838145,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 739417
+    },
+    {
+      "id": "bridge_river_reentry_tempo_fast_5",
+      "score": 971.2464,
+      "squaredLoss": 0.00005319917981904801,
+      "tailSquaredLoss": 4.2679854035196315e-20,
+      "tailShare": 8.022652638700035e-16,
+      "components": {
+        "air": {
+          "observations": 89,
+          "weightSum": 2204,
+          "rmsError": 0.006143172452979376,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 89,
+          "weightSum": 2204,
+          "rmsError": 0.009510337537553194,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 88,
+          "weightSum": 88,
+          "rmsError": 0.005604681221256568,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 729418
+    },
+    {
+      "id": "bridge_countercurrent_impact_contrast_12",
+      "score": 976.764,
+      "squaredLoss": 0.00003454553868460372,
+      "tailSquaredLoss": 1.6317760592444484e-12,
+      "tailShare": 4.723550772047157e-8,
+      "components": {
+        "air": {
+          "observations": 80,
+          "weightSum": 2200,
+          "rmsError": 0.004180406203051182,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 80,
+          "weightSum": 2200,
+          "rmsError": 0.00817530573789423,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 79,
+          "weightSum": 79,
+          "rmsError": 0.0043960432349166014,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 730060
+    },
+    {
+      "id": "bridge_split_signal_impact_relief_12",
+      "score": 850.5293,
+      "squaredLoss": 0.0016381529579804564,
+      "tailSquaredLoss": 0.0000014722336449890225,
+      "tailShare": 0.000898715616155904,
+      "components": {
+        "air": {
+          "observations": 93,
+          "weightSum": 2400,
+          "rmsError": 0.033668455688654765,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 93,
+          "weightSum": 2400,
+          "rmsError": 0.015888538411725328,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 93,
+          "weightSum": 2400,
+          "rmsError": 0.10726986839767928,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 92,
+          "weightSum": 92,
+          "rmsError": 0.015456101597640815,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749318
+    },
+    {
+      "id": "bridge_pickup_lattice_speed_minus_4",
+      "score": 901.9132,
+      "squaredLoss": 0.0006661178118847771,
+      "tailSquaredLoss": 1.2095898657323566e-7,
+      "tailShare": 0.000181587978004946,
+      "components": {
+        "air": {
+          "observations": 100,
+          "weightSum": 2320,
+          "rmsError": 0.017516352244754098,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 100,
+          "weightSum": 2320,
+          "rmsError": 0.04043297682802081,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 99,
+          "weightSum": 99,
+          "rmsError": 0.007530287147032431,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748615
+    },
+    {
+      "id": "bridge_loose_pocket_drag_later_20ms",
+      "score": 967.2244,
+      "squaredLoss": 0.00006940858670110073,
+      "tailSquaredLoss": 4.627593337374126e-10,
+      "tailShare": 0.0000066671770126976785,
+      "components": {
+        "air": {
+          "observations": 105,
+          "weightSum": 2240,
+          "rmsError": 0.007684947298218551,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 105,
+          "weightSum": 2240,
+          "rmsError": 0.010726255221682458,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 104,
+          "weightSum": 104,
+          "rmsError": 0.005840787108449972,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 738065
+    },
+    {
+      "id": "bridge_offgrid_conversation_answer_early_25ms",
+      "score": 975.6414,
+      "squaredLoss": 0.00003800775713934436,
+      "tailSquaredLoss": 4.469121294152828e-16,
+      "tailShare": 1.1758445197826585e-11,
+      "components": {
+        "air": {
+          "observations": 88,
+          "weightSum": 2240,
+          "rmsError": 0,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 88,
+          "weightSum": 2240,
+          "rmsError": 0.008712931276049439,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 87,
+          "weightSum": 87,
+          "rmsError": 0.006173175843670144,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 742246
+    },
+    {
+      "id": "bridge_rising_switch_tempo_fast_5",
+      "score": 972.9055,
+      "squaredLoss": 0.000047156798757288936,
+      "tailSquaredLoss": 1.3356191064059892e-12,
+      "tailShare": 2.8322938401316844e-8,
+      "components": {
+        "air": {
+          "observations": 89,
+          "weightSum": 2204,
+          "rmsError": 0.0057034113545507345,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 89,
+          "weightSum": 2204,
+          "rmsError": 0.008877578588978523,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 88,
+          "weightSum": 88,
+          "rmsError": 0.005489088593670052,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 732753
+    },
+    {
+      "id": "bridge_meter_exchange_speed_plus_4",
+      "score": 966.7846,
+      "squaredLoss": 0.00007131612407858671,
+      "tailSquaredLoss": 8.033034877515612e-11,
+      "tailShare": 0.0000011263981296380634,
+      "components": {
+        "air": {
+          "observations": 97,
+          "weightSum": 2400,
+          "rmsError": 0.008324131544439398,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 97,
+          "weightSum": 2400,
+          "rmsError": 0.009698488954091315,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 96,
+          "weightSum": 96,
+          "rmsError": 0.007113122962103062,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749964
+    },
+    {
+      "id": "bridge_wide_breaths_air_plus_5",
+      "score": 900.8735,
+      "squaredLoss": 0.0006810850949316876,
+      "tailSquaredLoss": 1.8426641253139977e-8,
+      "tailShare": 0.000027054829697878143,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2480,
+          "rmsError": 0.02311482443725233,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2480,
+          "rmsError": 0.017399469628491808,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 83,
+          "weightSum": 2480,
+          "rmsError": 0.06085121629282898,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.014105205524283116,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749932
+    },
+    {
+      "id": "bridge_open_hook_amplitude_plus_8",
+      "score": 813.4874,
+      "squaredLoss": 0.0026632019956951076,
+      "tailSquaredLoss": 0.0018919927607820481,
+      "tailShare": 0.7104203000149185,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2320,
+          "rmsError": 0.062158913766194146,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2320,
+          "rmsError": 0.057199577614172825,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 83,
+          "weightSum": 2320,
+          "rmsError": 0.06022846081768409,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.02307946955618744,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 727445
+    },
+    {
+      "id": "bridge_amplitude_tides_restrained_10",
+      "score": 873.1985,
+      "squaredLoss": 0.001149080611873643,
+      "tailSquaredLoss": 0.000009270962036136104,
+      "tailShare": 0.008068156350683926,
+      "components": {
+        "air": {
+          "observations": 98,
+          "weightSum": 2480,
+          "rmsError": 0.025701219764274388,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 98,
+          "weightSum": 2480,
+          "rmsError": 0.023838437010367412,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 98,
+          "weightSum": 2480,
+          "rmsError": 0.08211872083789501,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 97,
+          "weightSum": 97,
+          "rmsError": 0.01880470222469146,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749778
+    },
+    {
+      "id": "bridge_dense_dialogue_impact_contrast_10",
+      "score": 932.41,
+      "squaredLoss": 0.00030609783565740365,
+      "tailSquaredLoss": 1.388995842739257e-19,
+      "tailShare": 4.537751270786097e-16,
+      "components": {
+        "air": {
+          "observations": 131,
+          "weightSum": 2320,
+          "rmsError": 0.017805869796522805,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 131,
+          "weightSum": 2320,
+          "rmsError": 0.018043815452047855,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 130,
+          "weightSum": 130,
+          "rmsError": 0.01660316932678598,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 744013
+    },
+    {
+      "id": "bridge_high_air_drive_air_minus_5",
+      "score": 937.9114,
+      "squaredLoss": 0.0002567989695129412,
+      "tailSquaredLoss": 9.905112145616454e-10,
+      "tailShare": 0.000003857146375782981,
+      "components": {
+        "air": {
+          "observations": 95,
+          "weightSum": 2400,
+          "rmsError": 0.01966270521999466,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 95,
+          "weightSum": 2400,
+          "rmsError": 0.015422307941739547,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 94,
+          "weightSum": 94,
+          "rmsError": 0.012080039309562512,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748636
+    },
+    {
+      "id": "bridge_sparse_lowline_air_minus_4",
+      "score": 960.439,
+      "squaredLoss": 0.00010183258683834995,
+      "tailSquaredLoss": 2.2889314890977508e-11,
+      "tailShare": 2.247739707065699e-7,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2400,
+          "rmsError": 0.009351424021630923,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2400,
+          "rmsError": 0.012900746373960456,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.007184662293904987,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749020
+    },
+    {
+      "id": "bridge_frontier_pickup_progression_shifted",
+      "score": 958.1443,
+      "squaredLoss": 0.00011425958160506052,
+      "tailSquaredLoss": 0.000002834016625764693,
+      "tailShare": 0.024803317025617177,
+      "components": {
+        "air": {
+          "observations": 111,
+          "weightSum": 2400,
+          "rmsError": 0.010222509997458953,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 111,
+          "weightSum": 2400,
+          "rmsError": 0.012138390466425042,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 110,
+          "weightSum": 110,
+          "rmsError": 0.00953616857294558,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749132
+    },
+    {
+      "id": "bridge_frontier_dense_recovery_240ms_figures",
+      "score": 947.0167,
+      "squaredLoss": 0.00018522235578552671,
+      "tailSquaredLoss": 8.810240521945473e-12,
+      "tailShare": 4.7565751361822955e-8,
+      "components": {
+        "air": {
+          "observations": 124,
+          "weightSum": 2320,
+          "rmsError": 0.013618623807302157,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 124,
+          "weightSum": 2320,
+          "rmsError": 0.013251966013130534,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 123,
+          "weightSum": 123,
+          "rmsError": 0.013949392450518986,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749298
+    },
+    {
+      "id": "bridge_frontier_low_air_endurance_4s",
+      "score": 928.0579,
+      "squaredLoss": 0.00034839283304243516,
+      "tailSquaredLoss": 9.265596563033692e-11,
+      "tailShare": 2.659525594174642e-7,
+      "components": {
+        "air": {
+          "observations": 91,
+          "weightSum": 2440,
+          "rmsError": 0.025201703640080682,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 91,
+          "weightSum": 2440,
+          "rmsError": 0.016776761772557262,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 90,
+          "weightSum": 90,
+          "rmsError": 0.011339880827932487,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746576
+    },
+    {
+      "id": "bridge_frontier_low_air_endurance_6s",
+      "score": 901.3709,
+      "squaredLoss": 0.0006739021086374475,
+      "tailSquaredLoss": 0.0000034570770620001604,
+      "tailShare": 0.005129939523397503,
+      "components": {
+        "air": {
+          "observations": 91,
+          "weightSum": 2520,
+          "rmsError": 0.0401702093788629,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 91,
+          "weightSum": 2520,
+          "rmsError": 0.01314381466805235,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 90,
+          "weightSum": 90,
+          "rmsError": 0.015339515648890268,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747729
+    },
+    {
+      "id": "bridge_frontier_low_air_endurance_7s",
+      "score": 937.0283,
+      "squaredLoss": 0.000264402552619555,
+      "tailSquaredLoss": 3.842173472331247e-9,
+      "tailShare": 0.000014531529420821043,
+      "components": {
+        "air": {
+          "observations": 91,
+          "weightSum": 2560,
+          "rmsError": 0.022651005251388693,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 91,
+          "weightSum": 2560,
+          "rmsError": 0.013361455457628771,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 90,
+          "weightSum": 90,
+          "rmsError": 0.010080234472175188,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749892
+    },
+    {
+      "id": "bridge_regression_transition_mosaic_tempo_fast_5",
+      "score": 957.6009,
+      "squaredLoss": 0.0001173116549198869,
+      "tailSquaredLoss": 2.085089878082614e-7,
+      "tailShare": 0.0017773936268365995,
+      "components": {
+        "air": {
+          "observations": 92,
+          "weightSum": 2280,
+          "rmsError": 0.011055329922315678,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 92,
+          "weightSum": 2280,
+          "rmsError": 0.010935954829201724,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 91,
+          "weightSum": 91,
+          "rmsError": 0.010493785639228191,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749527
+    },
+    {
+      "id": "bridge_regression_amplitude_mosaic_contrast_10",
+      "score": 756.4596,
+      "squaredLoss": 0.0048687663960434654,
+      "tailSquaredLoss": 1.4158567036332334e-10,
+      "tailShare": 2.908039919072333e-8,
+      "components": {
+        "air": {
+          "observations": 92,
+          "weightSum": 2400,
+          "rmsError": 0.04610251455287826,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 92,
+          "weightSum": 2400,
+          "rmsError": 0.025607896474864684,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 92,
+          "weightSum": 2400,
+          "rmsError": 0.1930027241207845,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 91,
+          "weightSum": 91,
+          "rmsError": 0.03211434680685972,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749973
+    },
+    {
+      "id": "bridge_believer_56_6s_impact_relief",
+      "score": 950.5436,
+      "squaredLoss": 0.00016079027512187898,
+      "tailSquaredLoss": 4.762074184089806e-11,
+      "tailShare": 2.961668036502926e-7,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2264,
+          "rmsError": 0.013243173125956244,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2264,
+          "rmsError": 0.013608977605931764,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.011035620482910553,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 743959
+    },
+    {
+      "id": "bridge_believer_impact_56s_amplitude_plus_5",
+      "score": 898.445,
+      "squaredLoss": 0.0007167640328954846,
+      "tailSquaredLoss": 0.00004467438350585541,
+      "tailShare": 0.0623278812210847,
+      "components": {
+        "air": {
+          "observations": 50,
+          "weightSum": 2240,
+          "rmsError": 0.027241724799527946,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 50,
+          "weightSum": 2240,
+          "rmsError": 0.01909940020201833,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 50,
+          "weightSum": 2240,
+          "rmsError": 0.054725233667764606,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 49,
+          "weightSum": 49,
+          "rmsError": 0.016853220805661918,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 736698
+    },
+    {
+      "id": "harbor_return",
+      "score": 965.5452,
+      "squaredLoss": 0.00007683571189898062,
+      "tailSquaredLoss": 0.0000015654534519781972,
+      "tailShare": 0.020374034590014203,
+      "components": {
+        "air": {
+          "observations": 105,
+          "weightSum": 2500,
+          "rmsError": 0.009596208492752532,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 105,
+          "weightSum": 2500,
+          "rmsError": 0.01019609923617951,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 104,
+          "weightSum": 104,
+          "rmsError": 0.005870219640400657,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749110
+    },
+    {
+      "id": "crossing_lights",
+      "score": 965.4,
+      "squaredLoss": 0.00007749614466384556,
+      "tailSquaredLoss": 8.618274686170064e-10,
+      "tailShare": 0.000011120907657475721,
+      "components": {
+        "air": {
+          "observations": 97,
+          "weightSum": 2500,
+          "rmsError": 0.010222264654917684,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 97,
+          "weightSum": 2500,
+          "rmsError": 0.008413480293776294,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 96,
+          "weightSum": 96,
+          "rmsError": 0.0075635367826563295,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749664
+    },
+    {
+      "id": "afterglow_turn",
+      "score": 968.7801,
+      "squaredLoss": 0.00006287530324381944,
+      "tailSquaredLoss": 1.1845086859545469e-8,
+      "tailShare": 0.0001883901348930643,
+      "components": {
+        "air": {
+          "observations": 96,
+          "weightSum": 2660,
+          "rmsError": 0.009020118482762815,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 96,
+          "weightSum": 2660,
+          "rmsError": 0.008821390186859577,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 95,
+          "weightSum": 95,
+          "rmsError": 0.005426458095254819,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 744450
+    },
+    {
+      "id": "woven_pickups",
+      "score": 940.0453,
+      "squaredLoss": 0.0002389130323300458,
+      "tailSquaredLoss": 3.206605570689523e-11,
+      "tailShare": 1.3421643597322752e-7,
+      "components": {
+        "air": {
+          "observations": 109,
+          "weightSum": 2500,
+          "rmsError": 0.016546657646211486,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 109,
+          "weightSum": 2500,
+          "rmsError": 0.018233873806614457,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 108,
+          "weightSum": 108,
+          "rmsError": 0.010510616715191714,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749485
+    },
+    {
+      "id": "pickup_answers",
+      "score": 958.5087,
+      "squaredLoss": 0.00011223612501811946,
+      "tailSquaredLoss": 1.4818772457434431e-9,
+      "tailShare": 0.000013203211047282754,
+      "components": {
+        "air": {
+          "observations": 102,
+          "weightSum": 2500,
+          "rmsError": 0.010729758728004486,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 102,
+          "weightSum": 2500,
+          "rmsError": 0.01239585194442512,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 101,
+          "weightSum": 101,
+          "rmsError": 0.008241571892852831,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747643
+    },
+    {
+      "id": "broken_triplets",
+      "score": 957.6848,
+      "squaredLoss": 0.00011683764585030913,
+      "tailSquaredLoss": 4.614286172475509e-9,
+      "tailShare": 0.00003949314571424413,
+      "components": {
+        "air": {
+          "observations": 104,
+          "weightSum": 2660,
+          "rmsError": 0.011655734470989627,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 104,
+          "weightSum": 2660,
+          "rmsError": 0.011410634725340861,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 103,
+          "weightSum": 103,
+          "rmsError": 0.009189896988408344,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749768
+    },
+    {
+      "id": "late_letters",
+      "score": 975.4182,
+      "squaredLoss": 0.000038716325872816057,
+      "tailSquaredLoss": 0.0000011398269448704837,
+      "tailShare": 0.029440472957450538,
+      "components": {
+        "air": {
+          "observations": 103,
+          "weightSum": 2500,
+          "rmsError": 0.004478136892341048,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 103,
+          "weightSum": 2500,
+          "rmsError": 0.009076355658434395,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 102,
+          "weightSum": 102,
+          "rmsError": 0.0037033816375723633,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749973
+    },
+    {
+      "id": "swing_exchange",
+      "score": 973.7329,
+      "squaredLoss": 0.00004428302627721835,
+      "tailSquaredLoss": 7.981213329177227e-9,
+      "tailShare": 0.00018023188567135498,
+      "components": {
+        "air": {
+          "observations": 95,
+          "weightSum": 2500,
+          "rmsError": 0.0037770514915502107,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 95,
+          "weightSum": 2500,
+          "rmsError": 0.00860194442978794,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 94,
+          "weightSum": 94,
+          "rmsError": 0.006677537936146348,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749408
+    },
+    {
+      "id": "offbeat_echoes",
+      "score": 971.3074,
+      "squaredLoss": 0.00005297017394980934,
+      "tailSquaredLoss": 0.000005654134564804629,
+      "tailShare": 0.10674185382441963,
+      "components": {
+        "air": {
+          "observations": 95,
+          "weightSum": 2660,
+          "rmsError": 0.008329121719872087,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 95,
+          "weightSum": 2660,
+          "rmsError": 0.008036601502931855,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 94,
+          "weightSum": 94,
+          "rmsError": 0.00499492637664025,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 743376
+    },
+    {
+      "id": "gear_changes",
+      "score": 917.3258,
+      "squaredLoss": 0.0004654008595088878,
+      "tailSquaredLoss": 5.096057441644166e-8,
+      "tailShare": 0.00010949823872310331,
+      "components": {
+        "air": {
+          "observations": 105,
+          "weightSum": 2500,
+          "rmsError": 0.010394364654088705,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 105,
+          "weightSum": 2500,
+          "rmsError": 0.019980358478422004,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 104,
+          "weightSum": 104,
+          "rmsError": 0.029815181318218486,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746600
+    },
+    {
+      "id": "half_time_return",
+      "score": 961.8034,
+      "squaredLoss": 0.00009479543384056772,
+      "tailSquaredLoss": 2.9381521592400106e-7,
+      "tailShare": 0.003099465913286034,
+      "components": {
+        "air": {
+          "observations": 94,
+          "weightSum": 2500,
+          "rmsError": 0.008711849014925081,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 94,
+          "weightSum": 2500,
+          "rmsError": 0.011222367656300369,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 93,
+          "weightSum": 93,
+          "rmsError": 0.009085617890362517,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749087
+    },
+    {
+      "id": "accelerando_reply",
+      "score": 966.5181,
+      "squaredLoss": 0.0000724849367098189,
+      "tailSquaredLoss": 1.8401254064086892e-10,
+      "tailShare": 0.000002538631459078619,
+      "components": {
+        "air": {
+          "observations": 93,
+          "weightSum": 2660,
+          "rmsError": 0.00955752608203631,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 93,
+          "weightSum": 2660,
+          "rmsError": 0.00897417345138595,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 92,
+          "weightSum": 92,
+          "rmsError": 0.006750756712035468,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749937
+    },
+    {
+      "id": "archipelago",
+      "score": 945.2898,
+      "squaredLoss": 0.00019785054806997285,
+      "tailSquaredLoss": 0.0000021745848824077264,
+      "tailShare": 0.01099104805935969,
+      "components": {
+        "air": {
+          "observations": 67,
+          "weightSum": 2500,
+          "rmsError": 0.01448781182263305,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 67,
+          "weightSum": 2500,
+          "rmsError": 0.012476736461790277,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 67,
+          "weightSum": 2500,
+          "rmsError": 0.02724000845678161,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 66,
+          "weightSum": 66,
+          "rmsError": 0.0068261870161707965,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749124
+    },
+    {
+      "id": "wide_arc_dialogue",
+      "score": 939.2616,
+      "squaredLoss": 0.0002454020907787424,
+      "tailSquaredLoss": 8.957965017892636e-7,
+      "tailShare": 0.003650321392725724,
+      "components": {
+        "air": {
+          "observations": 62,
+          "weightSum": 2500,
+          "rmsError": 0.01552150357408334,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 62,
+          "weightSum": 2500,
+          "rmsError": 0.012227367662850071,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 62,
+          "weightSum": 2500,
+          "rmsError": 0.03307501212101078,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 61,
+          "weightSum": 61,
+          "rmsError": 0.007932794831038079,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 745241
+    },
+    {
+      "id": "terraced_skies",
+      "score": 922.399,
+      "squaredLoss": 0.00040781119344424007,
+      "tailSquaredLoss": 0.00016568417277716983,
+      "tailShare": 0.4062766678321295,
+      "components": {
+        "air": {
+          "observations": 63,
+          "weightSum": 2660,
+          "rmsError": 0.023673963374458745,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 63,
+          "weightSum": 2660,
+          "rmsError": 0.014790664570098342,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 63,
+          "weightSum": 2660,
+          "rmsError": 0.035772257001517274,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 62,
+          "weightSum": 62,
+          "rmsError": 0.012393501827149447,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 746537
+    },
+    {
+      "id": "woven_pulse",
+      "score": 945.899,
+      "squaredLoss": 0.00019334558273380065,
+      "tailSquaredLoss": 0.000003855848671411449,
+      "tailShare": 0.019942781298087398,
+      "components": {
+        "air": {
+          "observations": 117,
+          "weightSum": 2500,
+          "rmsError": 0.01577418617203804,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 117,
+          "weightSum": 2500,
+          "rmsError": 0.012150196369979372,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 116,
+          "weightSum": 116,
+          "rmsError": 0.013549336772780649,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746353
+    },
+    {
+      "id": "density_release",
+      "score": 952.805,
+      "squaredLoss": 0.0001460772521125244,
+      "tailSquaredLoss": 3.1362980557307625e-8,
+      "tailShare": 0.00021470133168406322,
+      "components": {
+        "air": {
+          "observations": 106,
+          "weightSum": 2500,
+          "rmsError": 0.012419832373858119,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 106,
+          "weightSum": 2500,
+          "rmsError": 0.013089715540285797,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 105,
+          "weightSum": 105,
+          "rmsError": 0.010613145962307285,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749866
+    },
+    {
+      "id": "compact_dialogue",
+      "score": 960.9389,
+      "squaredLoss": 0.00009922368337361691,
+      "tailSquaredLoss": 1.7243922256337688e-9,
+      "tailShare": 0.000017378837057890113,
+      "components": {
+        "air": {
+          "observations": 107,
+          "weightSum": 2660,
+          "rmsError": 0.010348487115417119,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 107,
+          "weightSum": 2660,
+          "rmsError": 0.008773521633025581,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 106,
+          "weightSum": 106,
+          "rmsError": 0.01065857320178122,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748147
+    },
+    {
+      "id": "lifted_refrain",
+      "score": 966.6907,
+      "squaredLoss": 0.00007172705732898124,
+      "tailSquaredLoss": 4.260410570293512e-7,
+      "tailShare": 0.005939753740004747,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2500,
+          "rmsError": 0.009710246572129065,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2500,
+          "rmsError": 0.009952628047645396,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.004673058788483367,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746930
+    },
+    {
+      "id": "flight_and_return",
+      "score": 965.5923,
+      "squaredLoss": 0.00007662187639078593,
+      "tailSquaredLoss": 2.7902393160440403e-10,
+      "tailShare": 0.0000036415700678136577,
+      "components": {
+        "air": {
+          "observations": 77,
+          "weightSum": 2500,
+          "rmsError": 0.007680313078553868,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 77,
+          "weightSum": 2500,
+          "rmsError": 0.011307271771603553,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 76,
+          "weightSum": 76,
+          "rmsError": 0.006559270178217214,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749932
+    },
+    {
+      "id": "open_canopy",
+      "score": 968.4592,
+      "squaredLoss": 0.0000641959842960322,
+      "tailSquaredLoss": 2.1304519252050198e-8,
+      "tailShare": 0.00033186685250913707,
+      "components": {
+        "air": {
+          "observations": 78,
+          "weightSum": 2660,
+          "rmsError": 0.007078032315326583,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 78,
+          "weightSum": 2660,
+          "rmsError": 0.010149004192440003,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 77,
+          "weightSum": 77,
+          "rmsError": 0.006283878208011709,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 745540
+    },
+    {
+      "id": "quiet_current",
+      "score": 951.3138,
+      "squaredLoss": 0.0001556959413666704,
+      "tailSquaredLoss": 0.000023593779894732425,
+      "tailShare": 0.1515375396919827,
+      "components": {
+        "air": {
+          "observations": 71,
+          "weightSum": 2500,
+          "rmsError": 0.01403282630745845,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 71,
+          "weightSum": 2500,
+          "rmsError": 0.01141664631754949,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 70,
+          "weightSum": 70,
+          "rmsError": 0.01182488041312456,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749935
+    },
+    {
+      "id": "support_then_lift",
+      "score": 925.6863,
+      "squaredLoss": 0.0003726813072674809,
+      "tailSquaredLoss": 0.0001280130355734706,
+      "tailShare": 0.34349196774066554,
+      "components": {
+        "air": {
+          "observations": 67,
+          "weightSum": 2500,
+          "rmsError": 0.02698206326345654,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 67,
+          "weightSum": 2500,
+          "rmsError": 0.015245966373264306,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 66,
+          "weightSum": 66,
+          "rmsError": 0.01255279623010609,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746035
+    },
+    {
+      "id": "rest_and_return",
+      "score": 949.6295,
+      "squaredLoss": 0.00016694828201651592,
+      "tailSquaredLoss": 5.555153544365677e-8,
+      "tailShare": 0.0003327469727311189,
+      "components": {
+        "air": {
+          "observations": 66,
+          "weightSum": 2660,
+          "rmsError": 0.015778813132095962,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 66,
+          "weightSum": 2660,
+          "rmsError": 0.012845258777787265,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 65,
+          "weightSum": 65,
+          "rmsError": 0.00932058094346178,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749791
+    },
+    {
+      "id": "pickup_staircase",
+      "score": 923.5418,
+      "squaredLoss": 0.0003954052731136381,
+      "tailSquaredLoss": 5.795092189260347e-7,
+      "tailShare": 0.0014656082210605364,
+      "components": {
+        "air": {
+          "observations": 123,
+          "weightSum": 2500,
+          "rmsError": 0.016844225194987773,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 123,
+          "weightSum": 2500,
+          "rmsError": 0.01980630700857858,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 122,
+          "weightSum": 122,
+          "rmsError": 0.0225875651543805,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749394
+    },
+    {
+      "id": "pickup_interruptions",
+      "score": 920.8673,
+      "squaredLoss": 0.00042476471050817215,
+      "tailSquaredLoss": 2.7627976294136586e-13,
+      "tailShare": 6.504301230929363e-10,
+      "components": {
+        "air": {
+          "observations": 112,
+          "weightSum": 2500,
+          "rmsError": 0.015321675473532232,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 112,
+          "weightSum": 2500,
+          "rmsError": 0.01668900464776523,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 111,
+          "weightSum": 111,
+          "rmsError": 0.02758654592505462,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748807
+    },
+    {
+      "id": "pickup_recovery",
+      "score": 904.8937,
+      "squaredLoss": 0.0006242222449046681,
+      "tailSquaredLoss": 1.4059098567011549e-14,
+      "tailShare": 2.2522584995603082e-11,
+      "components": {
+        "air": {
+          "observations": 114,
+          "weightSum": 2660,
+          "rmsError": 0.01414652249910341,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 114,
+          "weightSum": 2660,
+          "rmsError": 0.015635229562033177,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 113,
+          "weightSum": 113,
+          "rmsError": 0.037789975290265655,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748506
+    },
+    {
+      "id": "dense_short_then_long",
+      "score": 865.1929,
+      "squaredLoss": 0.0013104914546904893,
+      "tailSquaredLoss": 4.655894425651554e-7,
+      "tailShare": 0.00035527850326587434,
+      "components": {
+        "air": {
+          "observations": 117,
+          "weightSum": 2500,
+          "rmsError": 0.021294641860649537,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 117,
+          "weightSum": 2500,
+          "rmsError": 0.025305014706440542,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 116,
+          "weightSum": 116,
+          "rmsError": 0.05326977400745162,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748721
+    },
+    {
+      "id": "interleaved_recovery",
+      "score": 895.9054,
+      "squaredLoss": 0.0007551573669526482,
+      "tailSquaredLoss": 4.305950345984489e-12,
+      "tailShare": 5.70205699424037e-9,
+      "components": {
+        "air": {
+          "observations": 110,
+          "weightSum": 2500,
+          "rmsError": 0.01126694000048118,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 110,
+          "weightSum": 2500,
+          "rmsError": 0.020805805150226484,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 109,
+          "weightSum": 109,
+          "rmsError": 0.0412994750079745,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749947
+    },
+    {
+      "id": "three_note_returns",
+      "score": 864.1466,
+      "squaredLoss": 0.0013324849681543927,
+      "tailSquaredLoss": 2.7839211816508426e-11,
+      "tailShare": 2.089270234325281e-8,
+      "components": {
+        "air": {
+          "observations": 113,
+          "weightSum": 2660,
+          "rmsError": 0.013186769071508052,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 113,
+          "weightSum": 2660,
+          "rmsError": 0.018745619676596093,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 112,
+          "weightSum": 112,
+          "rmsError": 0.05892508607425457,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746575
+    },
+    {
+      "id": "supported_bridge",
+      "score": 931.6955,
+      "squaredLoss": 0.00031284085458507864,
+      "tailSquaredLoss": 0.00009112216579268637,
+      "tailShare": 0.29127322872692524,
+      "components": {
+        "air": {
+          "observations": 80,
+          "weightSum": 2500,
+          "rmsError": 0.02487829154195401,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 80,
+          "weightSum": 2500,
+          "rmsError": 0.01466828135205632,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 79,
+          "weightSum": 79,
+          "rmsError": 0.01021932952231663,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746597
+    },
+    {
+      "id": "supported_speed_change",
+      "score": 935.5295,
+      "squaredLoss": 0.0002775770359934041,
+      "tailSquaredLoss": 0.000001479790423526912,
+      "tailShare": 0.005331098151657169,
+      "components": {
+        "air": {
+          "observations": 71,
+          "weightSum": 2500,
+          "rmsError": 0.020615749062145167,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 71,
+          "weightSum": 2500,
+          "rmsError": 0.01728053324724151,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 70,
+          "weightSum": 70,
+          "rmsError": 0.010445341989511584,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 745985
+    },
+    {
+      "id": "endurance_and_return",
+      "score": 909.6885,
+      "squaredLoss": 0.0005599499378911668,
+      "tailSquaredLoss": 6.410727457659946e-7,
+      "tailShare": 0.001144875108264759,
+      "components": {
+        "air": {
+          "observations": 70,
+          "weightSum": 2660,
+          "rmsError": 0.017274099274666988,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 70,
+          "weightSum": 2660,
+          "rmsError": 0.028135748140411553,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 69,
+          "weightSum": 69,
+          "rmsError": 0.024286518575163823,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 742605
+    },
+    {
+      "id": "energy_weave",
+      "score": 966.1985,
+      "squaredLoss": 0.00007389974382831409,
+      "tailSquaredLoss": 0.000010642211260137973,
+      "tailShare": 0.14400877065098155,
+      "components": {
+        "air": {
+          "observations": 93,
+          "weightSum": 2500,
+          "rmsError": 0.0067552661816990415,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 93,
+          "weightSum": 2500,
+          "rmsError": 0.01170376923478276,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 92,
+          "weightSum": 92,
+          "rmsError": 0.006251991362621036,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749069
+    },
+    {
+      "id": "alternating_intentions",
+      "score": 963.3457,
+      "squaredLoss": 0.00008715591550481519,
+      "tailSquaredLoss": 7.211304498071116e-7,
+      "tailShare": 0.00827402759331087,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2500,
+          "rmsError": 0.010070379647139237,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2500,
+          "rmsError": 0.009491009130000493,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.008365162638656621,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 744885
+    },
+    {
+      "id": "recovery_mosaic",
+      "score": 972.0833,
+      "squaredLoss": 0.00005010421268738919,
+      "tailSquaredLoss": 4.974268116841491e-13,
+      "tailShare": 9.927844087436329e-9,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2660,
+          "rmsError": 0.008068361984722699,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2660,
+          "rmsError": 0.007545484182238121,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.0053178794083021,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747849
+    },
+    {
+      "id": "amplitude_reply",
+      "score": 946.9946,
+      "squaredLoss": 0.0001853808756761124,
+      "tailSquaredLoss": 0.0000014338887491135046,
+      "tailShare": 0.007734825633355615,
+      "components": {
+        "air": {
+          "observations": 69,
+          "weightSum": 2500,
+          "rmsError": 0.01294842902288884,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 69,
+          "weightSum": 2500,
+          "rmsError": 0.011718228436956437,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 69,
+          "weightSum": 2500,
+          "rmsError": 0.02845496212517103,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 68,
+          "weightSum": 68,
+          "rmsError": 0.006562210289014732,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 746638
+    },
+    {
+      "id": "restrained_then_wide",
+      "score": 927.0928,
+      "squaredLoss": 0.00035817135894996395,
+      "tailSquaredLoss": 0.00006801758131280086,
+      "tailShare": 0.18990234593912023,
+      "components": {
+        "air": {
+          "observations": 64,
+          "weightSum": 2500,
+          "rmsError": 0.016888591155534587,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 64,
+          "weightSum": 2500,
+          "rmsError": 0.018319831422425353,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 64,
+          "weightSum": 2500,
+          "rmsError": 0.03089392661613791,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 63,
+          "weightSum": 63,
+          "rmsError": 0.015966179714651755,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 746267
+    },
+    {
+      "id": "arches_at_new_tempos",
+      "score": 937.7078,
+      "squaredLoss": 0.00025854105626300645,
+      "tailSquaredLoss": 0.00001958443543028577,
+      "tailShare": 0.07574980822528658,
+      "components": {
+        "air": {
+          "observations": 66,
+          "weightSum": 2660,
+          "rmsError": 0.01590767634132293,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 66,
+          "weightSum": 2660,
+          "rmsError": 0.01470278713976135,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 66,
+          "weightSum": 2660,
+          "rmsError": 0.028243799390972796,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 65,
+          "weightSum": 65,
+          "rmsError": 0.011254924993386936,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 744116
+    },
+    {
+      "id": "music_amor_na_praia_46s",
+      "score": 957.1212,
+      "squaredLoss": 0.00012004098914376511,
+      "tailSquaredLoss": 2.685484554872344e-7,
+      "tailShare": 0.0022371396420735232,
+      "components": {
+        "air": {
+          "observations": 79,
+          "weightSum": 1840,
+          "rmsError": 0.009023619925931812,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 79,
+          "weightSum": 1840,
+          "rmsError": 0.012681527158507573,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 78,
+          "weightSum": 78,
+          "rmsError": 0.01085707694509238,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 720170
+    },
+    {
+      "id": "music_luna_bala_44s",
+      "score": 950.801,
+      "squaredLoss": 0.00015907822040642775,
+      "tailSquaredLoss": 2.3225238744521556e-14,
+      "tailShare": 1.4599885946161308e-10,
+      "components": {
+        "air": {
+          "observations": 76,
+          "weightSum": 1760,
+          "rmsError": 0.015001014804956468,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 76,
+          "weightSum": 1760,
+          "rmsError": 0.013852042799238472,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 75,
+          "weightSum": 75,
+          "rmsError": 0.007766925152776068,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 711173
+    },
+    {
+      "id": "music_tiki_tiki_48s",
+      "score": 908.9643,
+      "squaredLoss": 0.00056941218088337,
+      "tailSquaredLoss": 0.0000298292214481376,
+      "tailShare": 0.05238599111431264,
+      "components": {
+        "air": {
+          "observations": 78,
+          "weightSum": 1920,
+          "rmsError": 0.022969229925163814,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 78,
+          "weightSum": 1920,
+          "rmsError": 0.018411113951077984,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 78,
+          "weightSum": 1920,
+          "rmsError": 0.044953859079692,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 77,
+          "weightSum": 77,
+          "rmsError": 0.01891743853215012,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 729278
+    },
+    {
+      "id": "music_shelter_impact_sync_81s",
+      "score": 899.2895,
+      "squaredLoss": 0.0007042425457474623,
+      "tailSquaredLoss": 0.000013120598570005246,
+      "tailShare": 0.018630795099264314,
+      "components": {
+        "air": {
+          "observations": 114,
+          "weightSum": 3240,
+          "rmsError": 0.02241182594574298,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 114,
+          "weightSum": 3240,
+          "rmsError": 0.023581835156143684,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 114,
+          "weightSum": 3240,
+          "rmsError": 0.05357571790991105,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 113,
+          "weightSum": 113,
+          "rmsError": 0.018228999179428558,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 742931
+    },
+    {
+      "id": "music_amour_de_ma_vie_short_44s",
+      "score": 891.2153,
+      "squaredLoss": 0.0008289964964713697,
+      "tailSquaredLoss": 1.1439086383116104e-10,
+      "tailShare": 1.379871499072272e-7,
+      "components": {
+        "air": {
+          "observations": 86,
+          "weightSum": 1782,
+          "rmsError": 0.026399606550454917,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 86,
+          "weightSum": 1782,
+          "rmsError": 0.03488311086205825,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 85,
+          "weightSum": 85,
+          "rmsError": 0.02394198905648067,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 721404
+    },
+    {
+      "id": "stretch_bridge_river_reentry",
+      "score": 980.3961,
+      "squaredLoss": 0.000024499107781759406,
+      "tailSquaredLoss": 4.1639475399512767e-8,
+      "tailShare": 0.0016996323201008598,
+      "components": {
+        "air": {
+          "observations": 89,
+          "weightSum": 2211,
+          "rmsError": 0,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 89,
+          "weightSum": 2211,
+          "rmsError": 0.007260486031850368,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 88,
+          "weightSum": 88,
+          "rmsError": 0.004558800930791331,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 734969
+    },
+    {
+      "id": "stretch_bridge_countercurrent",
+      "score": 972.3102,
+      "squaredLoss": 0.00004928188365359821,
+      "tailSquaredLoss": 2.0296508605948633e-12,
+      "tailShare": 4.118452279262002e-8,
+      "components": {
+        "air": {
+          "observations": 80,
+          "weightSum": 2022,
+          "rmsError": 0.004430184265132431,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 80,
+          "weightSum": 2022,
+          "rmsError": 0.01031522676226468,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 79,
+          "weightSum": 79,
+          "rmsError": 0.004670676094616941,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 726999
+    },
+    {
+      "id": "stretch_bridge_split_signal",
+      "score": 830.9115,
+      "squaredLoss": 0.0021444298136807666,
+      "tailSquaredLoss": 3.777849578722099e-9,
+      "tailShare": 0.0000017617035328555144,
+      "components": {
+        "air": {
+          "observations": 93,
+          "weightSum": 2256,
+          "rmsError": 0.03161000993145082,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 93,
+          "weightSum": 2256,
+          "rmsError": 0.024927020367674222,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 93,
+          "weightSum": 2256,
+          "rmsError": 0.12007805667660504,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 92,
+          "weightSum": 92,
+          "rmsError": 0.02685709853246188,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 738435
+    },
+    {
+      "id": "stretch_bridge_pickup_lattice",
+      "score": 902.332,
+      "squaredLoss": 0.0006601404273392281,
+      "tailSquaredLoss": 2.6624406064231724e-8,
+      "tailShare": 0.00004033142792291097,
+      "components": {
+        "air": {
+          "observations": 100,
+          "weightSum": 2148,
+          "rmsError": 0.0134578684214842,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 100,
+          "weightSum": 2148,
+          "rmsError": 0.04009166449225778,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 99,
+          "weightSum": 99,
+          "rmsError": 0.013855161413998007,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 739242
+    },
+    {
+      "id": "stretch_bridge_loose_pocket",
+      "score": 964.7992,
+      "squaredLoss": 0.00008026026539438234,
+      "tailSquaredLoss": 2.329048297684862e-7,
+      "tailShare": 0.0029018696689331893,
+      "components": {
+        "air": {
+          "observations": 105,
+          "weightSum": 2135,
+          "rmsError": 0.004608894461865027,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 105,
+          "weightSum": 2135,
+          "rmsError": 0.012072068520347997,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 104,
+          "weightSum": 104,
+          "rmsError": 0.008590928335317423,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 736286
+    },
+    {
+      "id": "stretch_bridge_offgrid_conversation",
+      "score": 963.7577,
+      "squaredLoss": 0.00008517148529728294,
+      "tailSquaredLoss": 1.0043282944135597e-10,
+      "tailShare": 0.0000011791837266991972,
+      "components": {
+        "air": {
+          "observations": 88,
+          "weightSum": 2035,
+          "rmsError": 0.003979197888270427,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 88,
+          "weightSum": 2035,
+          "rmsError": 0.012721718135099626,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 87,
+          "weightSum": 87,
+          "rmsError": 0.008822603229711188,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 732458
+    },
+    {
+      "id": "stretch_bridge_rising_switch",
+      "score": 963.762,
+      "squaredLoss": 0.0000851510063507541,
+      "tailSquaredLoss": 9.007723879818127e-11,
+      "tailShare": 0.0000010578528975586623,
+      "components": {
+        "air": {
+          "observations": 89,
+          "weightSum": 2135,
+          "rmsError": 0.004087181935117572,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 89,
+          "weightSum": 2135,
+          "rmsError": 0.010895602616420206,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 88,
+          "weightSum": 88,
+          "rmsError": 0.0109559940902945,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 731854
+    },
+    {
+      "id": "stretch_bridge_meter_exchange",
+      "score": 954.179,
+      "squaredLoss": 0.00013749878030064477,
+      "tailSquaredLoss": 1.932849734127585e-15,
+      "tailShare": 1.4057213670560256e-11,
+      "components": {
+        "air": {
+          "observations": 97,
+          "weightSum": 2183,
+          "rmsError": 0.009728900929710177,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 97,
+          "weightSum": 2183,
+          "rmsError": 0.013487229839692565,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 96,
+          "weightSum": 96,
+          "rmsError": 0.011659307820497972,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 734556
+    },
+    {
+      "id": "stretch_bridge_wide_breaths",
+      "score": 888.0986,
+      "squaredLoss": 0.0008801972540030015,
+      "tailSquaredLoss": 3.101832763039717e-11,
+      "tailShare": 3.524020040886358e-8,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2309,
+          "rmsError": 0.020055212438042837,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2309,
+          "rmsError": 0.01970391574462471,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 83,
+          "weightSum": 2309,
+          "rmsError": 0.07465376398926557,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.016905822837572426,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 748307
+    },
+    {
+      "id": "stretch_bridge_open_hook",
+      "score": 841.6539,
+      "squaredLoss": 0.0018573157304599968,
+      "tailSquaredLoss": 0.0010294963505025749,
+      "tailShare": 0.5542925920557417,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2093,
+          "rmsError": 0.06013246131048162,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2093,
+          "rmsError": 0.03171768700588955,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 83,
+          "weightSum": 2093,
+          "rmsError": 0.057782529739153904,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.021358548989131053,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 700963
+    },
+    {
+      "id": "stretch_bridge_amplitude_tides",
+      "score": 838.8541,
+      "squaredLoss": 0.0019298110506731322,
+      "tailSquaredLoss": 0.000003656187053018776,
+      "tailShare": 0.0018945829187492066,
+      "components": {
+        "air": {
+          "observations": 98,
+          "weightSum": 2520,
+          "rmsError": 0.027541417812334275,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 98,
+          "weightSum": 2520,
+          "rmsError": 0.022464165837820023,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 98,
+          "weightSum": 2520,
+          "rmsError": 0.11754772016553487,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 97,
+          "weightSum": 97,
+          "rmsError": 0.02374263861290131,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 741978
+    },
+    {
+      "id": "stretch_bridge_dense_dialogue",
+      "score": 868.7442,
+      "squaredLoss": 0.0012373969572047083,
+      "tailSquaredLoss": 6.116466536063551e-10,
+      "tailShare": 4.943010810274424e-7,
+      "components": {
+        "air": {
+          "observations": 131,
+          "weightSum": 2163,
+          "rmsError": 0.020688926527214543,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 131,
+          "weightSum": 2163,
+          "rmsError": 0.03014166699025165,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 130,
+          "weightSum": 130,
+          "rmsError": 0.04874052832924995,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 737410
+    },
+    {
+      "id": "stretch_bridge_high_air_drive",
+      "score": 891.4079,
+      "squaredLoss": 0.0008258898481079816,
+      "tailSquaredLoss": 4.377563439551564e-9,
+      "tailShare": 0.000005300420449022418,
+      "components": {
+        "air": {
+          "observations": 95,
+          "weightSum": 2292,
+          "rmsError": 0.04319247674423292,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 95,
+          "weightSum": 2292,
+          "rmsError": 0.018454548888665427,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 94,
+          "weightSum": 94,
+          "rmsError": 0.016477533867017273,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 726346
+    },
+    {
+      "id": "stretch_bridge_sparse_lowline",
+      "score": 958.6595,
+      "squaredLoss": 0.0001114042659403569,
+      "tailSquaredLoss": 5.250320996013934e-7,
+      "tailShare": 0.00471285453182271,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2487,
+          "rmsError": 0.00840809594994966,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2487,
+          "rmsError": 0.012846955368441203,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.00992332898168707,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 738370
+    },
+    {
+      "id": "stretch_bridge_frontier_pickup_progression",
+      "score": 955.6454,
+      "squaredLoss": 0.00012864286518099517,
+      "tailSquaredLoss": 1.5373662950911302e-7,
+      "tailShare": 0.0011950653407230315,
+      "components": {
+        "air": {
+          "observations": 111,
+          "weightSum": 2294,
+          "rmsError": 0.009758247130248858,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 111,
+          "weightSum": 2294,
+          "rmsError": 0.014341142298700222,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 110,
+          "weightSum": 110,
+          "rmsError": 0.00922154249875837,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749021
+    },
+    {
+      "id": "stretch_bridge_frontier_dense_recovery",
+      "score": 899.1197,
+      "squaredLoss": 0.0007067503807805461,
+      "tailSquaredLoss": 2.117037263291605e-9,
+      "tailShare": 0.0000029954525966487857,
+      "components": {
+        "air": {
+          "observations": 124,
+          "weightSum": 2196,
+          "rmsError": 0.015128273297379792,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 124,
+          "weightSum": 2196,
+          "rmsError": 0.0224997293538244,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 123,
+          "weightSum": 123,
+          "rmsError": 0.037217585472274745,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746217
+    },
+    {
+      "id": "stretch_bridge_frontier_low_air_endurance",
+      "score": 919.7268,
+      "squaredLoss": 0.00043763182043982877,
+      "tailSquaredLoss": 8.401555806042275e-9,
+      "tailShare": 0.000019197771765313003,
+      "components": {
+        "air": {
+          "observations": 91,
+          "weightSum": 3104,
+          "rmsError": 0.02721286784522152,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 91,
+          "weightSum": 3104,
+          "rmsError": 0.017067425145205567,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 90,
+          "weightSum": 90,
+          "rmsError": 0.016764792986219655,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748121
+    },
+    {
+      "id": "stretch_bridge_regression_transition_mosaic",
+      "score": 955.9749,
+      "squaredLoss": 0.00012669562675003815,
+      "tailSquaredLoss": 4.0217785552685634e-8,
+      "tailShare": 0.00031743625714905367,
+      "components": {
+        "air": {
+          "observations": 92,
+          "weightSum": 2251,
+          "rmsError": 0.010181809211487274,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 92,
+          "weightSum": 2251,
+          "rmsError": 0.013783988512431292,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 91,
+          "weightSum": 91,
+          "rmsError": 0.009296198261663172,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748206
+    },
+    {
+      "id": "stretch_bridge_regression_amplitude_mosaic",
+      "score": 722.8436,
+      "squaredLoss": 0.006583799798318326,
+      "tailSquaredLoss": 1.0263464439022953e-8,
+      "tailShare": 0.0000015588968002405708,
+      "components": {
+        "air": {
+          "observations": 92,
+          "weightSum": 2249,
+          "rmsError": 0.042265397636612946,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 92,
+          "weightSum": 2249,
+          "rmsError": 0.03321692620387667,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 92,
+          "weightSum": 2249,
+          "rmsError": 0.23190754369207564,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 91,
+          "weightSum": 91,
+          "rmsError": 0.03360409246132037,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 733803
+    },
+    {
+      "id": "stretch_bridge_believer_56_6s",
+      "score": 934.4244,
+      "squaredLoss": 0.0002875109299002261,
+      "tailSquaredLoss": 1.5589784072017254e-16,
+      "tailShare": 5.422327449404209e-13,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2154,
+          "rmsError": 0.016622543868136535,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2154,
+          "rmsError": 0.016540479800820716,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.017681525754617348,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 734861
+    },
+    {
+      "id": "stretch_bridge_believer_impact_56s",
+      "score": 890.3497,
+      "squaredLoss": 0.0008430461079566145,
+      "tailSquaredLoss": 0.00003747883863387804,
+      "tailShare": 0.04445645176480289,
+      "components": {
+        "air": {
+          "observations": 50,
+          "weightSum": 2114,
+          "rmsError": 0.03302959938728435,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 50,
+          "weightSum": 2114,
+          "rmsError": 0.016559966919145783,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 50,
+          "weightSum": 2114,
+          "rmsError": 0.0606410534153504,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 49,
+          "weightSum": 49,
+          "rmsError": 0.014804986773602922,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 729821
+    },
+    {
+      "id": "stretch_bridge_river_reentry_tempo_fast_5",
+      "score": 930.8272,
+      "squaredLoss": 0.0003211409925603359,
+      "tailSquaredLoss": 0.00008939799690584333,
+      "tailShare": 0.278376161800793,
+      "components": {
+        "air": {
+          "observations": 89,
+          "weightSum": 2230,
+          "rmsError": 0.01979013474443865,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 89,
+          "weightSum": 2230,
+          "rmsError": 0.016235282150199728,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 89,
+          "weightSum": 2230,
+          "rmsError": 0.030783788201315495,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 88,
+          "weightSum": 88,
+          "rmsError": 0.009967728769735068,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 722774
+    },
+    {
+      "id": "stretch_bridge_countercurrent_impact_contrast_12",
+      "score": 969.8771,
+      "squaredLoss": 0.000058468722828530534,
+      "tailSquaredLoss": 1.4506212829472748e-10,
+      "tailShare": 0.0000024810209848459804,
+      "components": {
+        "air": {
+          "observations": 80,
+          "weightSum": 2100,
+          "rmsError": 0.007483270583397242,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 80,
+          "weightSum": 2100,
+          "rmsError": 0.008813266478938337,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 79,
+          "weightSum": 79,
+          "rmsError": 0.0064601210385313145,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 727600
+    },
+    {
+      "id": "stretch_bridge_split_signal_impact_relief_12",
+      "score": 801.7884,
+      "squaredLoss": 0.003050092595776617,
+      "tailSquaredLoss": 0.00004017715149899059,
+      "tailShare": 0.013172436651471773,
+      "components": {
+        "air": {
+          "observations": 93,
+          "weightSum": 2465,
+          "rmsError": 0.03861195622691427,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 93,
+          "weightSum": 2465,
+          "rmsError": 0.027363536893424707,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 93,
+          "weightSum": 2465,
+          "rmsError": 0.14380826152885604,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 92,
+          "weightSum": 92,
+          "rmsError": 0.032151572946764975,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 748647
+    },
+    {
+      "id": "stretch_bridge_pickup_lattice_speed_minus_4",
+      "score": 901.6019,
+      "squaredLoss": 0.0006705792719290047,
+      "tailSquaredLoss": 1.3882477376811756e-14,
+      "tailShare": 2.0702216662434378e-11,
+      "components": {
+        "air": {
+          "observations": 100,
+          "weightSum": 2150,
+          "rmsError": 0.015782291564904717,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 100,
+          "weightSum": 2150,
+          "rmsError": 0.040697798627331486,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 99,
+          "weightSum": 99,
+          "rmsError": 0.010312433060947698,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 741605
+    },
+    {
+      "id": "stretch_bridge_loose_pocket_drag_later_20ms",
+      "score": 956.8156,
+      "squaredLoss": 0.00012179656414110273,
+      "tailSquaredLoss": 2.4392951440257398e-8,
+      "tailShare": 0.00020027618687172392,
+      "components": {
+        "air": {
+          "observations": 105,
+          "weightSum": 2388,
+          "rmsError": 0.009040716236631517,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 105,
+          "weightSum": 2388,
+          "rmsError": 0.011365479272039182,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 104,
+          "weightSum": 104,
+          "rmsError": 0.01242903951513805,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 737220
+    },
+    {
+      "id": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+      "score": 965.2684,
+      "squaredLoss": 0.00007809721775942247,
+      "tailSquaredLoss": 7.755948027500767e-10,
+      "tailShare": 0.000009931145116325234,
+      "components": {
+        "air": {
+          "observations": 88,
+          "weightSum": 2110,
+          "rmsError": 0.009499549850294947,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 88,
+          "weightSum": 2110,
+          "rmsError": 0.009881210088684138,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 87,
+          "weightSum": 87,
+          "rmsError": 0.006812627474280057,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 734623
+    },
+    {
+      "id": "stretch_bridge_rising_switch_tempo_fast_5",
+      "score": 968.7749,
+      "squaredLoss": 0.00006289687400994921,
+      "tailSquaredLoss": 5.111204687281765e-9,
+      "tailShare": 0.00008126325461696648,
+      "components": {
+        "air": {
+          "observations": 89,
+          "weightSum": 2276,
+          "rmsError": 0.0046805460531217325,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 89,
+          "weightSum": 2276,
+          "rmsError": 0.010712811760848892,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 88,
+          "weightSum": 88,
+          "rmsError": 0.007212404235140447,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 734518
+    },
+    {
+      "id": "stretch_bridge_meter_exchange_speed_plus_4",
+      "score": 970.0113,
+      "squaredLoss": 0.00005794075164558706,
+      "tailSquaredLoss": 1.4786876810091054e-10,
+      "tailShare": 0.0000025520685165666585,
+      "components": {
+        "air": {
+          "observations": 97,
+          "weightSum": 2213,
+          "rmsError": 0,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 97,
+          "weightSum": 2213,
+          "rmsError": 0.011399769441357649,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 96,
+          "weightSum": 96,
+          "rmsError": 0.006623255364294019,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 735406
+    },
+    {
+      "id": "stretch_bridge_wide_breaths_air_plus_5",
+      "score": 883.1874,
+      "squaredLoss": 0.0009643804653345551,
+      "tailSquaredLoss": 1.6560368318192106e-9,
+      "tailShare": 0.00000171720279635145,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2309,
+          "rmsError": 0.02205387084357515,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2309,
+          "rmsError": 0.017050615372993606,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 83,
+          "weightSum": 2309,
+          "rmsError": 0.07937426728508849,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.018368816283331018,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 748026
+    },
+    {
+      "id": "stretch_bridge_open_hook_amplitude_plus_8",
+      "score": 803.7751,
+      "squaredLoss": 0.0029821383938522053,
+      "tailSquaredLoss": 0.0015967106546842032,
+      "tailShare": 0.5354247334650479,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2093,
+          "rmsError": 0.05344359804204501,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2093,
+          "rmsError": 0.06206415091510934,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 83,
+          "weightSum": 2093,
+          "rmsError": 0.07933540691563296,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.0336786091684992,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 712785
+    },
+    {
+      "id": "stretch_bridge_amplitude_tides_restrained_10",
+      "score": 833.1945,
+      "squaredLoss": 0.0020813717612757263,
+      "tailSquaredLoss": 0.000041493257325519255,
+      "tailShare": 0.019935533909659162,
+      "components": {
+        "air": {
+          "observations": 98,
+          "weightSum": 2560,
+          "rmsError": 0.031565233248209895,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 98,
+          "weightSum": 2560,
+          "rmsError": 0.022147694709928358,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 98,
+          "weightSum": 2560,
+          "rmsError": 0.1134050391607845,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 97,
+          "weightSum": 97,
+          "rmsError": 0.03411921117085379,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 742177
+    },
+    {
+      "id": "stretch_bridge_dense_dialogue_impact_contrast_10",
+      "score": 843.6972,
+      "squaredLoss": 0.0018054350775236715,
+      "tailSquaredLoss": 2.701819902943842e-12,
+      "tailShare": 1.4964924170242935e-9,
+      "components": {
+        "air": {
+          "observations": 131,
+          "weightSum": 2123,
+          "rmsError": 0.01753893267518064,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 131,
+          "weightSum": 2123,
+          "rmsError": 0.027497206222438206,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 130,
+          "weightSum": 130,
+          "rmsError": 0.06597419740434286,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 728271
+    },
+    {
+      "id": "stretch_bridge_high_air_drive_air_minus_5",
+      "score": 912.0853,
+      "squaredLoss": 0.0005292502759646351,
+      "tailSquaredLoss": 4.880621710689491e-10,
+      "tailShare": 9.221765074744368e-7,
+      "components": {
+        "air": {
+          "observations": 95,
+          "weightSum": 2195,
+          "rmsError": 0.03306703329902049,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 95,
+          "weightSum": 2195,
+          "rmsError": 0.017424162624014625,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 94,
+          "weightSum": 94,
+          "rmsError": 0.013810166311354375,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 725118
+    },
+    {
+      "id": "stretch_bridge_sparse_lowline_air_minus_4",
+      "score": 957.8055,
+      "squaredLoss": 0.00011615729879106546,
+      "tailSquaredLoss": 3.758951413196575e-7,
+      "tailShare": 0.003236087144173246,
+      "components": {
+        "air": {
+          "observations": 83,
+          "weightSum": 2480,
+          "rmsError": 0.010985342319805774,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 83,
+          "weightSum": 2480,
+          "rmsError": 0.012861656258125366,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 82,
+          "weightSum": 82,
+          "rmsError": 0.0078975913282282,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749837
+    },
+    {
+      "id": "stretch_bridge_frontier_pickup_progression_shifted",
+      "score": 945.5458,
+      "squaredLoss": 0.00019595046923019416,
+      "tailSquaredLoss": 0.000003369282706761626,
+      "tailShare": 0.017194563095450095,
+      "components": {
+        "air": {
+          "observations": 111,
+          "weightSum": 2202,
+          "rmsError": 0.012356030097495946,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 111,
+          "weightSum": 2202,
+          "rmsError": 0.017859782406985245,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 110,
+          "weightSum": 110,
+          "rmsError": 0.010779986099040064,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 744826
+    },
+    {
+      "id": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+      "score": 864.2379,
+      "squaredLoss": 0.0013305575017932816,
+      "tailSquaredLoss": 4.002916718484381e-13,
+      "tailShare": 3.0084507532289143e-10,
+      "components": {
+        "air": {
+          "observations": 124,
+          "weightSum": 2116,
+          "rmsError": 0.026965910414296825,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 124,
+          "weightSum": 2116,
+          "rmsError": 0.023682389451684153,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 123,
+          "weightSum": 123,
+          "rmsError": 0.05199669807561555,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 742417
+    },
+    {
+      "id": "stretch_bridge_frontier_low_air_endurance_4s",
+      "score": 903.8705,
+      "squaredLoss": 0.0006384361265191739,
+      "tailSquaredLoss": 0.0000048021424900883895,
+      "tailShare": 0.007521727375094224,
+      "components": {
+        "air": {
+          "observations": 91,
+          "weightSum": 3053,
+          "rmsError": 0.01690815153636135,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 91,
+          "weightSum": 3053,
+          "rmsError": 0.021216297585661157,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 90,
+          "weightSum": 90,
+          "rmsError": 0.034340814025553196,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 744148
+    },
+    {
+      "id": "stretch_bridge_frontier_low_air_endurance_6s",
+      "score": 928.9191,
+      "squaredLoss": 0.00033979091822601326,
+      "tailSquaredLoss": 5.737458061217883e-10,
+      "tailShare": 0.000001688526018050191,
+      "components": {
+        "air": {
+          "observations": 91,
+          "weightSum": 3869,
+          "rmsError": 0.014744456947212914,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 91,
+          "weightSum": 3869,
+          "rmsError": 0.013955926143737332,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 90,
+          "weightSum": 90,
+          "rmsError": 0.024641547627541036,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 734413
+    },
+    {
+      "id": "stretch_bridge_frontier_low_air_endurance_7s",
+      "score": 879.5036,
+      "squaredLoss": 0.0010303712201738167,
+      "tailSquaredLoss": 5.889740764071565e-16,
+      "tailShare": 5.716134776239194e-13,
+      "components": {
+        "air": {
+          "observations": 91,
+          "weightSum": 3104,
+          "rmsError": 0.026285550216695906,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 91,
+          "weightSum": 3104,
+          "rmsError": 0.039095223746691464,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 90,
+          "weightSum": 90,
+          "rmsError": 0.029525361818665982,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749870
+    },
+    {
+      "id": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+      "score": 949.1875,
+      "squaredLoss": 0.0001699693399336689,
+      "tailSquaredLoss": 1.0992726493986949e-7,
+      "tailShare": 0.0006467476133211376,
+      "components": {
+        "air": {
+          "observations": 92,
+          "weightSum": 2082,
+          "rmsError": 0.011326085619598233,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 92,
+          "weightSum": 2082,
+          "rmsError": 0.016577590307488066,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 91,
+          "weightSum": 91,
+          "rmsError": 0.010334955439459552,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 732977
+    },
+    {
+      "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "score": 715.5115,
+      "squaredLoss": 0.007003918796947815,
+      "tailSquaredLoss": 1.776345199796294e-10,
+      "tailShare": 2.5362161545482138e-8,
+      "components": {
+        "air": {
+          "observations": 92,
+          "weightSum": 2180,
+          "rmsError": 0.03993864691482318,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 92,
+          "weightSum": 2180,
+          "rmsError": 0.028389041655811936,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 92,
+          "weightSum": 2180,
+          "rmsError": 0.23621329663992505,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 91,
+          "weightSum": 91,
+          "rmsError": 0.048440227254524376,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 725202
+    },
+    {
+      "id": "stretch_bridge_believer_56_6s_impact_relief",
+      "score": 944.6741,
+      "squaredLoss": 0.0002024596085811031,
+      "tailSquaredLoss": 3.741882365095038e-18,
+      "tailShare": 1.8482117945990598e-14,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2147,
+          "rmsError": 0.014485568459362087,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2147,
+          "rmsError": 0.015032701240848965,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.013098283305678702,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 733794
+    },
+    {
+      "id": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+      "score": 875.7343,
+      "squaredLoss": 0.0011004574123307286,
+      "tailSquaredLoss": 0.00016689697738788515,
+      "tailShare": 0.1516614596056048,
+      "components": {
+        "air": {
+          "observations": 50,
+          "weightSum": 2136,
+          "rmsError": 0.03333936543146915,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 50,
+          "weightSum": 2136,
+          "rmsError": 0.019775437679140775,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 50,
+          "weightSum": 2136,
+          "rmsError": 0.07435876216001712,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 49,
+          "weightSum": 49,
+          "rmsError": 0.017959258939921317,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 729969
+    },
+    {
+      "id": "stretch_harbor_return",
+      "score": 947.1079,
+      "squaredLoss": 0.0001845672700463289,
+      "tailSquaredLoss": 0.0000014085287837165813,
+      "tailShare": 0.007631519842944101,
+      "components": {
+        "air": {
+          "observations": 105,
+          "weightSum": 2268,
+          "rmsError": 0.011560656473187079,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 105,
+          "weightSum": 2268,
+          "rmsError": 0.01344380258051847,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 104,
+          "weightSum": 104,
+          "rmsError": 0.015469880549764736,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 744352
+    },
+    {
+      "id": "stretch_crossing_lights",
+      "score": 902.1963,
+      "squaredLoss": 0.0006620729255096596,
+      "tailSquaredLoss": 0.00029548064143431645,
+      "tailShare": 0.44629621609561715,
+      "components": {
+        "air": {
+          "observations": 97,
+          "weightSum": 2562,
+          "rmsError": 0.01543314849845767,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 97,
+          "weightSum": 2562,
+          "rmsError": 0.023414538395800957,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 97,
+          "weightSum": 2562,
+          "rmsError": 0.057906821615271394,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 96,
+          "weightSum": 96,
+          "rmsError": 0.017399820142002267,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 740949
+    },
+    {
+      "id": "stretch_afterglow_turn",
+      "score": 966.2143,
+      "squaredLoss": 0.00007382927427991459,
+      "tailSquaredLoss": 1.8383785236486643e-13,
+      "tailShare": 2.4900400844774374e-9,
+      "components": {
+        "air": {
+          "observations": 96,
+          "weightSum": 2505,
+          "rmsError": 0.007722132355125082,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 96,
+          "weightSum": 2505,
+          "rmsError": 0.009184545335889718,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 95,
+          "weightSum": 95,
+          "rmsError": 0.008803443741097034,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749292
+    },
+    {
+      "id": "stretch_woven_pickups",
+      "score": 948.0434,
+      "squaredLoss": 0.00017792194365790742,
+      "tailSquaredLoss": 6.761418730840374e-11,
+      "tailShare": 3.8002163149929567e-7,
+      "components": {
+        "air": {
+          "observations": 109,
+          "weightSum": 2297,
+          "rmsError": 0.016140590226510935,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 109,
+          "weightSum": 2297,
+          "rmsError": 0.013740637100290215,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 108,
+          "weightSum": 108,
+          "rmsError": 0.00918923664902096,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749933
+    },
+    {
+      "id": "stretch_pickup_answers",
+      "score": 927.4014,
+      "squaredLoss": 0.0003550281623280388,
+      "tailSquaredLoss": 1.428454322825359e-15,
+      "tailShare": 4.0234958079339525e-12,
+      "components": {
+        "air": {
+          "observations": 102,
+          "weightSum": 2535,
+          "rmsError": 0.012629659508879678,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 102,
+          "weightSum": 2535,
+          "rmsError": 0.015168365970643954,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 101,
+          "weightSum": 101,
+          "rmsError": 0.025990322457685896,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746636
+    },
+    {
+      "id": "stretch_broken_triplets",
+      "score": 917.2726,
+      "squaredLoss": 0.00046602653244827224,
+      "tailSquaredLoss": 0.0000082107860314757,
+      "tailShare": 0.017618709364765783,
+      "components": {
+        "air": {
+          "observations": 104,
+          "weightSum": 2481,
+          "rmsError": 0.01517782370103824,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 104,
+          "weightSum": 2481,
+          "rmsError": 0.02006169366702756,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 103,
+          "weightSum": 103,
+          "rmsError": 0.02766300258929541,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748424
+    },
+    {
+      "id": "stretch_late_letters",
+      "score": 964.0928,
+      "squaredLoss": 0.00008357505049159558,
+      "tailSquaredLoss": 0.0000015742822389052832,
+      "tailShare": 0.01883674888193571,
+      "components": {
+        "air": {
+          "observations": 103,
+          "weightSum": 2280,
+          "rmsError": 0.007918386675236607,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 103,
+          "weightSum": 2280,
+          "rmsError": 0.01163536622716607,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 102,
+          "weightSum": 102,
+          "rmsError": 0.007255519050760274,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747296
+    },
+    {
+      "id": "stretch_swing_exchange",
+      "score": 971.8395,
+      "squaredLoss": 0.00005099588910522735,
+      "tailSquaredLoss": 1.203972974116387e-10,
+      "tailShare": 0.0000023609216257256575,
+      "components": {
+        "air": {
+          "observations": 95,
+          "weightSum": 2579,
+          "rmsError": 0.006865610050580786,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 95,
+          "weightSum": 2579,
+          "rmsError": 0.008994128766486871,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 94,
+          "weightSum": 94,
+          "rmsError": 0.004995669492760651,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747370
+    },
+    {
+      "id": "stretch_offbeat_echoes",
+      "score": 972.7939,
+      "squaredLoss": 0.0000475516165424614,
+      "tailSquaredLoss": 1.0641674804466285e-17,
+      "tailShare": 2.2379207224140868e-13,
+      "components": {
+        "air": {
+          "observations": 95,
+          "weightSum": 2499,
+          "rmsError": 0.006235225489146544,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 95,
+          "weightSum": 2499,
+          "rmsError": 0.008244146277066733,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 94,
+          "weightSum": 94,
+          "rmsError": 0.0059842179847669425,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747583
+    },
+    {
+      "id": "stretch_gear_changes",
+      "score": 907.0087,
+      "squaredLoss": 0.0005953997822951754,
+      "tailSquaredLoss": 0.000014009185566685311,
+      "tailShare": 0.023529040458634427,
+      "components": {
+        "air": {
+          "observations": 105,
+          "weightSum": 2258,
+          "rmsError": 0.018345108761076916,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 105,
+          "weightSum": 2258,
+          "rmsError": 0.025457092204806728,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 104,
+          "weightSum": 104,
+          "rmsError": 0.028312414024695132,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746877
+    },
+    {
+      "id": "stretch_half_time_return",
+      "score": 963.4195,
+      "squaredLoss": 0.0000867985691750893,
+      "tailSquaredLoss": 2.3990185883116927e-11,
+      "tailShare": 2.763891860328266e-7,
+      "components": {
+        "air": {
+          "observations": 94,
+          "weightSum": 2528,
+          "rmsError": 0.008242349826256252,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 94,
+          "weightSum": 2528,
+          "rmsError": 0.010895449329361607,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 93,
+          "weightSum": 93,
+          "rmsError": 0.008587698223516887,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747278
+    },
+    {
+      "id": "stretch_accelerando_reply",
+      "score": 965.022,
+      "squaredLoss": 0.00007922946914720506,
+      "tailSquaredLoss": 1.970590645689632e-13,
+      "tailShare": 2.487194054056271e-9,
+      "components": {
+        "air": {
+          "observations": 93,
+          "weightSum": 2470,
+          "rmsError": 0.005704273498248873,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 93,
+          "weightSum": 2470,
+          "rmsError": 0.012771040242100176,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 92,
+          "weightSum": 92,
+          "rmsError": 0.006484612743522053,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749791
+    },
+    {
+      "id": "stretch_archipelago",
+      "score": 939.1125,
+      "squaredLoss": 0.00024664680548958193,
+      "tailSquaredLoss": 9.661135619140479e-8,
+      "tailShare": 0.00039169919918336643,
+      "components": {
+        "air": {
+          "observations": 67,
+          "weightSum": 2354,
+          "rmsError": 0.015875269468711626,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 67,
+          "weightSum": 2354,
+          "rmsError": 0.012702295166745087,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 67,
+          "weightSum": 2354,
+          "rmsError": 0.031137085450207085,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 66,
+          "weightSum": 66,
+          "rmsError": 0.009252612512877149,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749520
+    },
+    {
+      "id": "stretch_wide_arc_dialogue",
+      "score": 924.9084,
+      "squaredLoss": 0.0003808407720743711,
+      "tailSquaredLoss": 7.323971393193004e-7,
+      "tailShare": 0.0019231059094068764,
+      "components": {
+        "air": {
+          "observations": 62,
+          "weightSum": 2284,
+          "rmsError": 0.016894352971922523,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 62,
+          "weightSum": 2284,
+          "rmsError": 0.016896728117331228,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 62,
+          "weightSum": 2284,
+          "rmsError": 0.03659260009171722,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 61,
+          "weightSum": 61,
+          "rmsError": 0.015881158532871698,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749111
+    },
+    {
+      "id": "stretch_terraced_skies",
+      "score": 934.3093,
+      "squaredLoss": 0.00028855593843504237,
+      "tailSquaredLoss": 0.000042085502272997886,
+      "tailShare": 0.14584867842694518,
+      "components": {
+        "air": {
+          "observations": 63,
+          "weightSum": 2733,
+          "rmsError": 0.01779686348309561,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 63,
+          "weightSum": 2733,
+          "rmsError": 0.013077730052891751,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 63,
+          "weightSum": 2733,
+          "rmsError": 0.030854175360183443,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 62,
+          "weightSum": 62,
+          "rmsError": 0.012520824356203839,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 747647
+    },
+    {
+      "id": "stretch_woven_pulse",
+      "score": 922.3236,
+      "squaredLoss": 0.000408637733003581,
+      "tailSquaredLoss": 4.996400748740886e-15,
+      "tailShare": 1.2226968645348032e-11,
+      "components": {
+        "air": {
+          "observations": 117,
+          "weightSum": 2571,
+          "rmsError": 0.01911365314875387,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 117,
+          "weightSum": 2571,
+          "rmsError": 0.016200471368774026,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 116,
+          "weightSum": 116,
+          "rmsError": 0.024456618526472688,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747170
+    },
+    {
+      "id": "stretch_density_release",
+      "score": 947.7368,
+      "squaredLoss": 0.00018008609146894509,
+      "tailSquaredLoss": 1.5116424467452409e-10,
+      "tailShare": 8.393998861405218e-7,
+      "components": {
+        "air": {
+          "observations": 106,
+          "weightSum": 2359,
+          "rmsError": 0.012257924886073124,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 106,
+          "weightSum": 2359,
+          "rmsError": 0.013813297357971668,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 105,
+          "weightSum": 105,
+          "rmsError": 0.014113623489185097,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749890
+    },
+    {
+      "id": "stretch_compact_dialogue",
+      "score": 937.8002,
+      "squaredLoss": 0.0002577500083339714,
+      "tailSquaredLoss": 2.50568975798219e-7,
+      "tailShare": 0.0009721395448940286,
+      "components": {
+        "air": {
+          "observations": 107,
+          "weightSum": 2416,
+          "rmsError": 0.015638037255223537,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 107,
+          "weightSum": 2416,
+          "rmsError": 0.014172417327920468,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 106,
+          "weightSum": 106,
+          "rmsError": 0.018106474060109394,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747537
+    },
+    {
+      "id": "stretch_lifted_refrain",
+      "score": 887.2025,
+      "squaredLoss": 0.0008952360457710041,
+      "tailSquaredLoss": 0.000014852174128883085,
+      "tailShare": 0.016590232485659075,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2587,
+          "rmsError": 0.02499171175672077,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2587,
+          "rmsError": 0.017994348077123325,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 85,
+          "weightSum": 2587,
+          "rmsError": 0.07102377994924795,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.01882229601364459,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 745718
+    },
+    {
+      "id": "stretch_flight_and_return",
+      "score": 965.8534,
+      "squaredLoss": 0.00007544323701401065,
+      "tailSquaredLoss": 7.036849207435867e-12,
+      "tailShare": 9.327342629968337e-8,
+      "components": {
+        "air": {
+          "observations": 77,
+          "weightSum": 2353,
+          "rmsError": 0.007634515128534406,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 77,
+          "weightSum": 2353,
+          "rmsError": 0.011535312045441698,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 76,
+          "weightSum": 76,
+          "rmsError": 0.0059144286121736965,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749930
+    },
+    {
+      "id": "stretch_open_canopy",
+      "score": 961.6021,
+      "squaredLoss": 0.00009581744208720505,
+      "tailSquaredLoss": 4.394050915966607e-13,
+      "tailShare": 4.585857042570086e-9,
+      "components": {
+        "air": {
+          "observations": 78,
+          "weightSum": 2416,
+          "rmsError": 0.007307688245274059,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 78,
+          "weightSum": 2416,
+          "rmsError": 0.013360082625891829,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 77,
+          "weightSum": 77,
+          "rmsError": 0.00745373805555587,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749820
+    },
+    {
+      "id": "stretch_quiet_current",
+      "score": 959.0553,
+      "squaredLoss": 0.00010923648374063183,
+      "tailSquaredLoss": 2.320647306459525e-8,
+      "tailShare": 0.00021244251251894994,
+      "components": {
+        "air": {
+          "observations": 71,
+          "weightSum": 2735,
+          "rmsError": 0.009689643477397253,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 71,
+          "weightSum": 2735,
+          "rmsError": 0.01254238428901763,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 70,
+          "weightSum": 70,
+          "rmsError": 0.008746934139996256,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749769
+    },
+    {
+      "id": "stretch_support_then_lift",
+      "score": 914.8562,
+      "squaredLoss": 0.0004949330951537832,
+      "tailSquaredLoss": 0.000014932033085860532,
+      "tailShare": 0.030169801195494762,
+      "components": {
+        "air": {
+          "observations": 67,
+          "weightSum": 2526,
+          "rmsError": 0.026449994230660065,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 67,
+          "weightSum": 2526,
+          "rmsError": 0.01831590244219425,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 66,
+          "weightSum": 66,
+          "rmsError": 0.021206716115123096,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 743534
+    },
+    {
+      "id": "stretch_rest_and_return",
+      "score": 854.1765,
+      "squaredLoss": 0.0015527034141791553,
+      "tailSquaredLoss": 0.0012985733214719622,
+      "tailShare": 0.8363305635921846,
+      "components": {
+        "air": {
+          "observations": 66,
+          "weightSum": 2614,
+          "rmsError": 0.06303147031012066,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 66,
+          "weightSum": 2614,
+          "rmsError": 0.022126184779541373,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 65,
+          "weightSum": 65,
+          "rmsError": 0.0139848468058622,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749881
+    },
+    {
+      "id": "stretch_pickup_staircase",
+      "score": 921.7954,
+      "squaredLoss": 0.00041444857801518215,
+      "tailSquaredLoss": 1.6529153966520676e-18,
+      "tailShare": 3.988227935460591e-15,
+      "components": {
+        "air": {
+          "observations": 123,
+          "weightSum": 2579,
+          "rmsError": 0.01729369094482173,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 123,
+          "weightSum": 2579,
+          "rmsError": 0.019526792117230067,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 122,
+          "weightSum": 122,
+          "rmsError": 0.023727165384028047,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747602
+    },
+    {
+      "id": "stretch_pickup_interruptions",
+      "score": 940.6907,
+      "squaredLoss": 0.00023363773720047078,
+      "tailSquaredLoss": 5.836518173073961e-8,
+      "tailShare": 0.00024981059322903767,
+      "components": {
+        "air": {
+          "observations": 112,
+          "weightSum": 2384,
+          "rmsError": 0.015303846814984867,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 112,
+          "weightSum": 2384,
+          "rmsError": 0.014084209076633082,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 111,
+          "weightSum": 111,
+          "rmsError": 0.01638110310542535,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746827
+    },
+    {
+      "id": "stretch_pickup_recovery",
+      "score": 879.9803,
+      "squaredLoss": 0.0010216925638323732,
+      "tailSquaredLoss": 0.0000068246477496735,
+      "tailShare": 0.0066797469133710995,
+      "components": {
+        "air": {
+          "observations": 114,
+          "weightSum": 2449,
+          "rmsError": 0.01977217107104799,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 114,
+          "weightSum": 2449,
+          "rmsError": 0.021098292891397235,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 113,
+          "weightSum": 113,
+          "rmsError": 0.04721229691196086,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748206
+    },
+    {
+      "id": "stretch_dense_short_then_long",
+      "score": 927.3145,
+      "squaredLoss": 0.00035591150979773223,
+      "tailSquaredLoss": 9.476569852763767e-12,
+      "tailShare": 2.6626196658122656e-8,
+      "components": {
+        "air": {
+          "observations": 117,
+          "weightSum": 2576,
+          "rmsError": 0.01950755146088533,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 117,
+          "weightSum": 2576,
+          "rmsError": 0.01444451697459755,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 116,
+          "weightSum": 116,
+          "rmsError": 0.02187569186939399,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749793
+    },
+    {
+      "id": "stretch_interleaved_recovery",
+      "score": 841.1916,
+      "squaredLoss": 0.0018691737940769004,
+      "tailSquaredLoss": 2.534004079410697e-7,
+      "tailShare": 0.00013556813643763533,
+      "components": {
+        "air": {
+          "observations": 110,
+          "weightSum": 2340,
+          "rmsError": 0.01958519737684861,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 110,
+          "weightSum": 2340,
+          "rmsError": 0.03595774169015374,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 109,
+          "weightSum": 109,
+          "rmsError": 0.06269754571340702,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749991
+    },
+    {
+      "id": "stretch_three_note_returns",
+      "score": 833.9074,
+      "squaredLoss": 0.0020619085387103293,
+      "tailSquaredLoss": 9.014229575662613e-7,
+      "tailShare": 0.00043717892459482137,
+      "components": {
+        "air": {
+          "observations": 113,
+          "weightSum": 2438,
+          "rmsError": 0.019115755013680884,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 113,
+          "weightSum": 2438,
+          "rmsError": 0.02290354983996076,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 112,
+          "weightSum": 112,
+          "rmsError": 0.07277184160866314,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 746731
+    },
+    {
+      "id": "stretch_supported_bridge",
+      "score": 878.9449,
+      "squaredLoss": 0.001040596523758515,
+      "tailSquaredLoss": 0.00010613943844082429,
+      "tailShare": 0.10199864790770283,
+      "components": {
+        "air": {
+          "observations": 80,
+          "weightSum": 2948,
+          "rmsError": 0.0209320648072879,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 80,
+          "weightSum": 2948,
+          "rmsError": 0.025109910755010057,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 79,
+          "weightSum": 79,
+          "rmsError": 0.04531148437266731,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 747376
+    },
+    {
+      "id": "stretch_supported_speed_change",
+      "score": 929.0337,
+      "squaredLoss": 0.0003386542735174934,
+      "tailSquaredLoss": 1.4959677886513415e-7,
+      "tailShare": 0.00044173893720968096,
+      "components": {
+        "air": {
+          "observations": 71,
+          "weightSum": 3707,
+          "rmsError": 0.015636505802342507,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 71,
+          "weightSum": 3707,
+          "rmsError": 0.021037332583982188,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 70,
+          "weightSum": 70,
+          "rmsError": 0.018135411343465867,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 737417
+    },
+    {
+      "id": "stretch_endurance_and_return",
+      "score": 949.6935,
+      "squaredLoss": 0.0001665127407378261,
+      "tailSquaredLoss": 1.307228700921667e-7,
+      "tailShare": 0.0007850622691868938,
+      "components": {
+        "air": {
+          "observations": 70,
+          "weightSum": 2988,
+          "rmsError": 0.015519338709949652,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 70,
+          "weightSum": 2988,
+          "rmsError": 0.011558708542085499,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 69,
+          "weightSum": 69,
+          "rmsError": 0.011184122900722085,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749789
+    },
+    {
+      "id": "stretch_energy_weave",
+      "score": 969.7789,
+      "squaredLoss": 0.000058856422081329333,
+      "tailSquaredLoss": 1.0993998239531104e-8,
+      "tailShare": 0.00018679351973416446,
+      "components": {
+        "air": {
+          "observations": 93,
+          "weightSum": 2566,
+          "rmsError": 0.005816777843467692,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 93,
+          "weightSum": 2566,
+          "rmsError": 0.00943214281462102,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 92,
+          "weightSum": 92,
+          "rmsError": 0.007332737803053126,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748240
+    },
+    {
+      "id": "stretch_alternating_intentions",
+      "score": 962.1566,
+      "squaredLoss": 0.00009301656777873587,
+      "tailSquaredLoss": 0.0000045292476490929645,
+      "tailShare": 0.0486929130718622,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2360,
+          "rmsError": 0.009496380453847347,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2360,
+          "rmsError": 0.010603244388667792,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.008742978328131588,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 748922
+    },
+    {
+      "id": "stretch_recovery_mosaic",
+      "score": 962.9619,
+      "squaredLoss": 0.00008902593065489372,
+      "tailSquaredLoss": 2.0447003498871964e-9,
+      "tailShare": 0.0000229674695321458,
+      "components": {
+        "air": {
+          "observations": 85,
+          "weightSum": 2425,
+          "rmsError": 0.008878496196211439,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 85,
+          "weightSum": 2425,
+          "rmsError": 0.012555120506056242,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 84,
+          "weightSum": 84,
+          "rmsError": 0.00553344796098655,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 749823
+    },
+    {
+      "id": "stretch_amplitude_reply",
+      "score": 937.9241,
+      "squaredLoss": 0.00025669077078502826,
+      "tailSquaredLoss": 0.00003250880958751256,
+      "tailShare": 0.12664580611173523,
+      "components": {
+        "air": {
+          "observations": 69,
+          "weightSum": 2575,
+          "rmsError": 0.01735068042246322,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 69,
+          "weightSum": 2575,
+          "rmsError": 0.013619918997190634,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 69,
+          "weightSum": 2575,
+          "rmsError": 0.026302488838762985,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 68,
+          "weightSum": 68,
+          "rmsError": 0.011767779100855334,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 744313
+    },
+    {
+      "id": "stretch_restrained_then_wide",
+      "score": 899.0831,
+      "squaredLoss": 0.0007072911693388915,
+      "tailSquaredLoss": 0.00002912592377799605,
+      "tailShare": 0.04117953827307103,
+      "components": {
+        "air": {
+          "observations": 64,
+          "weightSum": 2343,
+          "rmsError": 0.018026968355748126,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 64,
+          "weightSum": 2343,
+          "rmsError": 0.013359269542681492,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 64,
+          "weightSum": 2343,
+          "rmsError": 0.02975909702998601,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 63,
+          "weightSum": 63,
+          "rmsError": 0.03948410154694886,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749850
+    },
+    {
+      "id": "stretch_arches_at_new_tempos",
+      "score": 922.2413,
+      "squaredLoss": 0.0004095400956806326,
+      "tailSquaredLoss": 0.0000037067702640920877,
+      "tailShare": 0.009051055814038535,
+      "components": {
+        "air": {
+          "observations": 66,
+          "weightSum": 2419,
+          "rmsError": 0.02083165941069613,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 66,
+          "weightSum": 2419,
+          "rmsError": 0.013893210676096737,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 66,
+          "weightSum": 2419,
+          "rmsError": 0.03376486917159253,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 65,
+          "weightSum": 65,
+          "rmsError": 0.01892438071686546,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 749970
+    },
+    {
+      "id": "stretch_music_amor_na_praia_46s",
+      "score": 961.817,
+      "squaredLoss": 0.0000947268122709568,
+      "tailSquaredLoss": 1.380227166674488e-7,
+      "tailShare": 0.0014570607134192196,
+      "components": {
+        "air": {
+          "observations": 79,
+          "weightSum": 1758,
+          "rmsError": 0.011149641318371484,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 79,
+          "weightSum": 1758,
+          "rmsError": 0.009934229083460217,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 78,
+          "weightSum": 78,
+          "rmsError": 0.007821574509129663,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 711360
+    },
+    {
+      "id": "stretch_music_luna_bala_44s",
+      "score": 935.9485,
+      "squaredLoss": 0.0002738595955385404,
+      "tailSquaredLoss": 2.429468738403411e-9,
+      "tailShare": 0.000008871220063061514,
+      "components": {
+        "air": {
+          "observations": 76,
+          "weightSum": 1681,
+          "rmsError": 0.02120762746010681,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 76,
+          "weightSum": 1681,
+          "rmsError": 0.016845462754796554,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 75,
+          "weightSum": 75,
+          "rmsError": 0.009383267485567417,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 708851
+    },
+    {
+      "id": "stretch_music_tiki_tiki_48s",
+      "score": 854.0787,
+      "squaredLoss": 0.0015549608621509945,
+      "tailSquaredLoss": 0.00003079024730787348,
+      "tailShare": 0.019801300506869988,
+      "components": {
+        "air": {
+          "observations": 78,
+          "weightSum": 1843,
+          "rmsError": 0.03355174593201875,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 78,
+          "weightSum": 1843,
+          "rmsError": 0.023838402067396618,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 78,
+          "weightSum": 1843,
+          "rmsError": 0.09301593374753256,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 77,
+          "weightSum": 77,
+          "rmsError": 0.02460133794426494,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 724537
+    },
+    {
+      "id": "stretch_music_shelter_impact_sync_81s",
+      "score": 858.9049,
+      "squaredLoss": 0.0014458446518090219,
+      "tailSquaredLoss": 0.00004200942465112596,
+      "tailShare": 0.029055282390514307,
+      "components": {
+        "air": {
+          "observations": 114,
+          "weightSum": 3106,
+          "rmsError": 0.041753853701611686,
+          "weight": 0.3
+        },
+        "speed": {
+          "observations": 114,
+          "weightSum": 3106,
+          "rmsError": 0.024725355512838196,
+          "weight": 0.3
+        },
+        "amplitude": {
+          "observations": 114,
+          "weightSum": 3106,
+          "rmsError": 0.07885885097166886,
+          "weight": 0.1
+        },
+        "impact": {
+          "observations": 113,
+          "weightSum": 113,
+          "rmsError": 0.019795164636874047,
+          "weight": 0.3
+        }
+      },
+      "physicalFrames": 745659
+    },
+    {
+      "id": "stretch_music_amour_de_ma_vie_short_44s",
+      "score": 891.7375,
+      "squaredLoss": 0.0008205865361982656,
+      "tailSquaredLoss": 2.75820917558479e-10,
+      "tailShare": 3.361265453322484e-7,
+      "components": {
+        "air": {
+          "observations": 86,
+          "weightSum": 1702,
+          "rmsError": 0.02650579360116362,
+          "weight": 0.33333333333333337
+        },
+        "speed": {
+          "observations": 86,
+          "weightSum": 1702,
+          "rmsError": 0.03465135284296131,
+          "weight": 0.33333333333333337
+        },
+        "impact": {
+          "observations": 85,
+          "weightSum": 85,
+          "rmsError": 0.023632313901095412,
+          "weight": 0.33333333333333337
+        }
+      },
+      "physicalFrames": 720193
+    }
+  ]
+}

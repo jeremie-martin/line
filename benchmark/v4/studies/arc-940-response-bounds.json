@@ -1,0 +1,236 @@
+{
+  "schema": "line.arc-response-bound-observations.v1",
+  "panels": [
+    {
+      "name": "response-bound-observations",
+      "path": "generated/benchmark-v4/arc-940/pilots/response-bound-observations",
+      "runSha256": "501a243ba507c04a9fab3330a383b31787f996fdffe06730ad72ef56c211e58e",
+      "planSha256": "5cc123914a9b8b39be8cc75223d7ccc3658caf4c573ce722365e9ec76672c63c"
+    },
+    {
+      "name": "bounded-response",
+      "path": "generated/benchmark-v4/arc-940/pilots/bounded-response",
+      "runSha256": "61ade9248ae502dde533a7c257607206f1c90c4441aa3ef91fb7e94a0df7b1de",
+      "planSha256": "5e66eb9bb3f9cf6750f7499cde91f1e8f2971bc59d867236cdeab16d6a99b981"
+    }
+  ],
+  "rows": [
+    {
+      "panel": "response-bound-observations",
+      "id": "stretch_bridge_frontier_dense_recovery",
+      "score": 827.8317,
+      "valid": true,
+      "physicsFrames": 743035,
+      "bounds": {
+        "dimensions": 8680,
+        "validProbes": 13699,
+        "limitedProbes": 324,
+        "stationaryProbes": 245
+      }
+    },
+    {
+      "panel": "response-bound-observations",
+      "id": "stretch_three_note_returns",
+      "score": 814.5595,
+      "valid": true,
+      "physicsFrames": 746397,
+      "bounds": {
+        "dimensions": 7660,
+        "validProbes": 13633,
+        "limitedProbes": 297,
+        "stationaryProbes": 234
+      }
+    },
+    {
+      "panel": "response-bound-observations",
+      "id": "stretch_bridge_frontier_low_air_endurance_6s",
+      "score": 827.8141,
+      "valid": true,
+      "physicsFrames": 736996,
+      "bounds": {
+        "dimensions": 4960,
+        "validProbes": 8048,
+        "limitedProbes": 152,
+        "stationaryProbes": 108
+      }
+    },
+    {
+      "panel": "response-bound-observations",
+      "id": "stretch_supported_speed_change",
+      "score": 931.9244,
+      "valid": true,
+      "physicsFrames": 743950,
+      "bounds": {
+        "dimensions": 3980,
+        "validProbes": 6699,
+        "limitedProbes": 130,
+        "stationaryProbes": 80
+      }
+    },
+    {
+      "panel": "response-bound-observations",
+      "id": "stretch_bridge_amplitude_tides_restrained_10",
+      "score": 820.8574,
+      "valid": true,
+      "physicsFrames": 741214,
+      "bounds": {
+        "dimensions": 6580,
+        "validProbes": 10764,
+        "limitedProbes": 140,
+        "stationaryProbes": 113
+      }
+    },
+    {
+      "panel": "response-bound-observations",
+      "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "score": 694.6197,
+      "valid": true,
+      "physicsFrames": 721992,
+      "bounds": {
+        "dimensions": 6440,
+        "validProbes": 9872,
+        "limitedProbes": 225,
+        "stationaryProbes": 169
+      }
+    },
+    {
+      "panel": "response-bound-observations",
+      "id": "bridge_river_reentry",
+      "score": 968.7757,
+      "valid": true,
+      "physicsFrames": 738682,
+      "bounds": {
+        "dimensions": 6230,
+        "validProbes": 11457,
+        "limitedProbes": 150,
+        "stationaryProbes": 108
+      }
+    },
+    {
+      "panel": "response-bound-observations",
+      "id": "bridge_regression_amplitude_mosaic",
+      "score": 762.6322,
+      "valid": true,
+      "physicsFrames": 749292,
+      "bounds": {
+        "dimensions": 6400,
+        "validProbes": 9616,
+        "limitedProbes": 207,
+        "stationaryProbes": 159
+      }
+    },
+    {
+      "panel": "bounded-response",
+      "id": "stretch_bridge_frontier_dense_recovery",
+      "score": 869.8324,
+      "valid": true,
+      "physicsFrames": 746729,
+      "bounds": {
+        "dimensions": 8680,
+        "validProbes": 14174,
+        "limitedProbes": 275,
+        "stationaryProbes": 202
+      }
+    },
+    {
+      "panel": "bounded-response",
+      "id": "stretch_three_note_returns",
+      "score": 839.5541,
+      "valid": true,
+      "physicsFrames": 742410,
+      "bounds": {
+        "dimensions": 7620,
+        "validProbes": 13777,
+        "limitedProbes": 238,
+        "stationaryProbes": 193
+      }
+    },
+    {
+      "panel": "bounded-response",
+      "id": "stretch_bridge_frontier_low_air_endurance_6s",
+      "score": 834.174,
+      "valid": true,
+      "physicsFrames": 730765,
+      "bounds": {
+        "dimensions": 5010,
+        "validProbes": 8284,
+        "limitedProbes": 159,
+        "stationaryProbes": 102
+      }
+    },
+    {
+      "panel": "bounded-response",
+      "id": "stretch_supported_speed_change",
+      "score": 909.1313,
+      "valid": true,
+      "physicsFrames": 739554,
+      "bounds": {
+        "dimensions": 3920,
+        "validProbes": 6388,
+        "limitedProbes": 138,
+        "stationaryProbes": 94
+      }
+    },
+    {
+      "panel": "bounded-response",
+      "id": "stretch_bridge_amplitude_tides_restrained_10",
+      "score": 782.0905,
+      "valid": true,
+      "physicsFrames": 741704,
+      "bounds": {
+        "dimensions": 6610,
+        "validProbes": 10533,
+        "limitedProbes": 169,
+        "stationaryProbes": 125
+      }
+    },
+    {
+      "panel": "bounded-response",
+      "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "score": 701.8683,
+      "valid": true,
+      "physicsFrames": 727985,
+      "bounds": {
+        "dimensions": 6440,
+        "validProbes": 10104,
+        "limitedProbes": 244,
+        "stationaryProbes": 198
+      }
+    },
+    {
+      "panel": "bounded-response",
+      "id": "bridge_river_reentry",
+      "score": 972.3405,
+      "valid": true,
+      "physicsFrames": 735686,
+      "bounds": {
+        "dimensions": 6230,
+        "validProbes": 11703,
+        "limitedProbes": 170,
+        "stationaryProbes": 133
+      }
+    },
+    {
+      "panel": "bounded-response",
+      "id": "bridge_regression_amplitude_mosaic",
+      "score": 762.0641,
+      "valid": true,
+      "physicsFrames": 749939,
+      "bounds": {
+        "dimensions": 6393,
+        "validProbes": 9178,
+        "limitedProbes": 186,
+        "stationaryProbes": 138
+      }
+    }
+  ],
+  "totals": {
+    "dimensions": 50930,
+    "validProbes": 83788,
+    "limitedProbes": 1625,
+    "stationaryProbes": 1216
+  },
+  "limitedFraction": 0.019394185324867523,
+  "allEightObservationTracksScoresAndFramesMatchReference": true,
+  "note": "Eight-case diagnostic, no headline. Limited probes moved less than the requested normalized unit because of control bounds; invalid probes are counted separately. Corrected derivatives are physically tested under the same frame allowance. The observed frequency alone does not establish the cause of benchmark loss."
+}

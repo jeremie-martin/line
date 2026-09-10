@@ -121,6 +121,36 @@
       "tests": [
         "tests/arc_value_correction.test.ts"
       ]
+    },
+    {
+      "name": "forward-response",
+      "base": "b4609500cff2f1b44704bb4af70514ee91dd7e75",
+      "patch": "benchmark/v4/studies/prototypes/ffd59688edd2d2a0ee5993b9137c3c4c135a72edc40072d878606c40cab365a7.patch",
+      "sha256": "ffd59688edd2d2a0ee5993b9137c3c4c135a72edc40072d878606c40cab365a7",
+      "bytes": 9269,
+      "tests": [
+        "tests/arc_forward_response.test.ts"
+      ]
+    },
+    {
+      "name": "box-response",
+      "base": "b4609500cff2f1b44704bb4af70514ee91dd7e75",
+      "patch": "benchmark/v4/studies/prototypes/19848a6b3a812a62d8d37e06767f5455721f7c38ebd8c58d56e02e95ce235918.patch",
+      "sha256": "19848a6b3a812a62d8d37e06767f5455721f7c38ebd8c58d56e02e95ce235918",
+      "bytes": 12477,
+      "tests": [
+        "tests/arc_box_response.test.ts"
+      ]
+    },
+    {
+      "name": "startup-quota",
+      "base": "b4609500cff2f1b44704bb4af70514ee91dd7e75",
+      "patch": "benchmark/v4/studies/prototypes/8d5ab7902b28ec56125af5b2a9f4d28c8c8b514262d29a7c244dca21fb55ff7f.patch",
+      "sha256": "8d5ab7902b28ec56125af5b2a9f4d28c8c8b514262d29a7c244dca21fb55ff7f",
+      "bytes": 4675,
+      "tests": [
+        "tests/arc_startup_quota.test.ts"
+      ]
     }
   ]
 }

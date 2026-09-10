@@ -1,0 +1,132 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..31baa159 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -13,7 +13,7 @@ import { scheduleNativeContacts } from './native_motion_schedule.ts';
+ import { trimUnusedArcGuides } from './arc_guidance.ts';
+ import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
+ import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
+-import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
++import { arcResponseStep, arcSecantUpdate, arcBoxResponseStep } from './arc_response.ts';
+ import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
+ import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
+ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
+@@ -31,6 +31,7 @@ export type ArcMotionOptions= {
+   constructionBudget?:number;
+   /** Reuse measured response directions between complete finite differences. */
+   responseSecantSteps?:number;
++  boxResponse?:boolean;
+   wholeTrackRefinement?:boolean;
+   /** Rank already simulated complete alternatives by the full authored loss. */
+   terminalSelection?:boolean;
+@@ -200,6 +201,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
+   const planningDecisions:any[]=[];
+   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
++  const responseBoxStats={rounds:0,clippedRounds:0,changedSteps:0,quadraticImprovement:0};
+   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+   const controlMemory=new ArcControlMemory();
+   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
+@@ -543,7 +545,15 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+               scale:responseKeys.map(key=>scale[key as keyof typeof scale]*trust),
+               loss:origin.residuals.slice(0,4).reduce((sum:number,v:number)=>sum+v*v,0)});
+           }
+-          const delta=arcResponseStep(jac,origin.residuals,options.responseDamping??.0002);
++          const delta=(options.boxResponse?arcBoxResponseStep:arcResponseStep)(jac,origin.residuals,options.responseDamping??.0002);
++          if(options.boxResponse&&delta){
++            const damping=options.responseDamping??.0002,plain=arcResponseStep(jac,origin.residuals,damping)!;
++            const clipped=plain.map(v=>clamp(v,-3,3));
++            const loss=(x:number[])=>origin.residuals.reduce((sum:number,r:number,i:number)=>sum+(r+jac[i].reduce((s:number,v:number,k:number)=>s+v*x[k],0))**2,0)+damping*x.reduce((s,v)=>s+v*v,0);
++            responseBoxStats.rounds++;if(plain.some(v=>Math.abs(v)>3))responseBoxStats.clippedRounds++;
++            if(delta.some((v,d)=>Math.abs(v-clipped[d])>1e-8))responseBoxStats.changedSteps++;
++            responseBoxStats.quadraticImprovement+=loss(clipped)-loss(delta);
++          }
+           for(const fraction of [1,.5,.25]){
+             if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
+           }
+@@ -796,6 +806,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},responseBoxStats,rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }
+diff --git a/scripts/v0/optimizer/arc_response.ts b/scripts/v0/optimizer/arc_response.ts
+index 9bbd95cc..11b608b0 100644
+--- a/scripts/v0/optimizer/arc_response.ts
++++ b/scripts/v0/optimizer/arc_response.ts
+@@ -32,3 +32,49 @@ export function arcSecantUpdate(jacobian:number[][], step:number[], change:numbe
+   });
+   return updated.every(r=>r.every(Number.isFinite))?updated:null;
+ }
++
++/** Solve the same damped quadratic with a box on the joint step. The active-set
++ * iterations stay feasible and release a bound when its gradient points inward.
++ * Each accepted iterate improves the clipped unconstrained starting solution. */
++export function arcBoxResponseStep(jacobian:number[][],residuals:number[],damping:number,limit=3):number[]|null {
++  const initial=arcResponseStep(jacobian,residuals,damping);
++  if(!initial||!(damping>0)||!Number.isFinite(limit)||limit<=0)return null;
++  const n=initial.length,x=initial.map(v=>Math.max(-limit,Math.min(limit,v)));
++  const h=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>jacobian.reduce((s,row)=>s+row[i]*row[j],0)+(i===j?damping:0)));
++  const linear=Array.from({length:n},(_,i)=>jacobian.reduce((s,row,r)=>s+row[i]*residuals[r],0));
++  const active=x.map(v=>v===limit?1:v===-limit?-1:0);
++  const objective=(v:number[])=>v.reduce((s,a,i)=>s+linear[i]*a+.5*a*h[i].reduce((t,b,j)=>t+b*v[j],0),0);
++  let best=x.slice(),bestLoss=objective(x);
++  const solve=(a:number[][]):number[]|null=>{
++    const count=a.length;
++    for(let i=0;i<count;i++){
++      let pivot=i;for(let r=i+1;r<count;r++)if(Math.abs(a[r][i])>Math.abs(a[pivot][i]))pivot=r;
++      [a[i],a[pivot]]=[a[pivot],a[i]];const d=a[i][i];if(!Number.isFinite(d)||Math.abs(d)<1e-14)return null;
++      for(let c=i;c<=count;c++)a[i][c]/=d;
++      for(let r=0;r<count;r++)if(r!==i){const f=a[r][i];for(let c=i;c<=count;c++)a[r][c]-=f*a[i][c];}
++    }
++    const result=a.map(row=>row[count]);return result.every(Number.isFinite)?result:null;
++  };
++  for(let iteration=0;iteration<128;iteration++){
++    const gradient=linear.map((v,i)=>v+h[i].reduce((s,a,j)=>s+a*x[j],0));
++    const free=active.flatMap((v,i)=>v===0?[i]:[]);
++    const p=Array(n).fill(0),solved=solve(free.map(i=>[...free.map(j=>h[i][j]),-gradient[i]]));
++    if(!solved)return best;
++    free.forEach((i,k)=>p[i]=solved[k]);
++    if(Math.max(0,...p.map(Math.abs))<1e-10){
++      let release=-1,violation=1e-10;
++      for(let i=0;i<n;i++)if(active[i]&&gradient[i]*active[i]>violation){violation=gradient[i]*active[i];release=i;}
++      if(release<0)return x;
++      active[release]=0;continue;
++    }
++    let fraction=1,blocking=-1;
++    for(const i of free)if(Math.abs(p[i])>1e-14){
++      const allowed=((p[i]>0?limit:-limit)-x[i])/p[i];
++      if(allowed<fraction){fraction=Math.max(0,allowed);blocking=i;}
++    }
++    for(let i=0;i<n;i++)x[i]=Math.max(-limit,Math.min(limit,x[i]+fraction*p[i]));
++    if(blocking>=0){x[blocking]=p[blocking]>0?limit:-limit;active[blocking]=Math.sign(p[blocking]);}
++    const loss=objective(x);if(loss<bestLoss){bestLoss=loss;best=x.slice();}
++  }
++  return best;
++}
+diff --git a/scripts/v0/optimizer/arc_value.ts b/scripts/v0/optimizer/arc_value.ts
+index b35c7fb7..5a7756dc 100644
+--- a/scripts/v0/optimizer/arc_value.ts
++++ b/scripts/v0/optimizer/arc_value.ts
+@@ -15,6 +15,19 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
+ export function arcFutureValue(features: number[], artifact: any): number {
+   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
+       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
++  if(artifact.residualBase){
++    const strength=artifact.residualStrength??1;
++    if(!Number.isFinite(strength)||strength<0||strength>1||artifact.residualInput!=='features-plus-log1p-base')throw new Error('invalid arc future-value correction');
++    const base=arcFutureValue(features,artifact.residualBase);if(strength===0)return base;
++    const input=[...features,Math.log1p(100*base)],model=artifact.residualModel;
++    let correction=model.initial;
++    for(const tree of model.trees){
++      let node=0;
++      while(!tree.leaf[node])node=input[tree.feature[node]]<=tree.threshold[node]?tree.left[node]:tree.right[node];
++      correction+=tree.value[node];
++    }
++    return Math.max(0,Math.expm1(Math.log1p(100*base)+strength*correction)/100);
++  }
+   let value = artifact.model.initial;
+   for (const tree of artifact.model.trees) {
+     let node = 0;

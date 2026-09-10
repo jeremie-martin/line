@@ -1,0 +1,214 @@
+{
+  "schema": "line.arc-response-solver-evidence.v1",
+  "selected": false,
+  "experiments": [
+    {
+      "name": "forward-response",
+      "patch": "benchmark/v4/studies/prototypes/ffd59688edd2d2a0ee5993b9137c3c4c135a72edc40072d878606c40cab365a7.patch",
+      "planSha256": "590d5b44ad67b7d6567a94a57199c365813f9849594e2c6ab11bcd393fcbe885",
+      "runSha256": "733b2ccd7d5b65e5c4a2ca75dced4f26edac9c904e2deb31c53c73f300912846",
+      "tests": {
+        "passed": 12,
+        "files": [
+          "arc_forward_response.test.ts",
+          "arc_value.test.ts",
+          "arc_value_guidance.test.ts",
+          "arc_budget_interruptions.test.ts"
+        ]
+      },
+      "cases": [
+        {
+          "source": "stretch_bridge_frontier_dense_recovery",
+          "recordSha256": "d7e7778b9df40a32ba5a029f6faf579c5c138b275dc590ce5697bd0f4db920c2",
+          "score": 933.2041,
+          "statistics": {
+            "rounds": 1264,
+            "probes": 14307,
+            "fallbacks": 1667
+          }
+        },
+        {
+          "source": "stretch_three_note_returns",
+          "recordSha256": "6568fd5403275a65368466f4c84d98173c54ee7669bd78dbf439d4ab1ca3b1c2",
+          "score": 870.6543,
+          "statistics": {
+            "rounds": 1179,
+            "probes": 12805,
+            "fallbacks": 1013
+          }
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_6s",
+          "recordSha256": "6761b854a76416b8850fbbc4f75f5357994e8c240cda381056d3e487b0ff501f",
+          "score": 837.8553,
+          "statistics": {
+            "rounds": 761,
+            "probes": 8613,
+            "fallbacks": 1003
+          }
+        },
+        {
+          "source": "stretch_supported_speed_change",
+          "recordSha256": "5d2e6570b749801e50fa3bacb696c9df004c711a8efe57a326450fe741e623a0",
+          "score": 933.8209,
+          "statistics": {
+            "rounds": 607,
+            "probes": 6945,
+            "fallbacks": 875
+          }
+        },
+        {
+          "source": "stretch_bridge_amplitude_tides_restrained_10",
+          "recordSha256": "b6abcbe70d80861c5b2e7b11a277dae56b15e7ab34484f9a142acfad54621ebe",
+          "score": 830.7043,
+          "statistics": {
+            "rounds": 1016,
+            "probes": 11250,
+            "fallbacks": 1081
+          }
+        },
+        {
+          "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "recordSha256": "30753f645fbeb3806d1ef2f9dc37d19e2151f2d9e72885b59206d0562d48e83a",
+          "score": 713.3096,
+          "statistics": {
+            "rounds": 909,
+            "probes": 10661,
+            "fallbacks": 1571
+          }
+        },
+        {
+          "source": "bridge_river_reentry",
+          "recordSha256": "d0b5123aed9b9e534516253c7faa894f0fb2aefbfaf8535f6462a614b1fc66e6",
+          "score": 975.9479,
+          "statistics": {
+            "rounds": 965,
+            "probes": 9927,
+            "fallbacks": 277
+          }
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic",
+          "recordSha256": "990a53689c0e8381efdd083ff28debc7b37e5717a16ad11604584980d8169b48",
+          "score": 761.0637,
+          "statistics": {
+            "rounds": 906,
+            "probes": 10612,
+            "fallbacks": 1552
+          }
+        }
+      ]
+    },
+    {
+      "name": "box-response",
+      "patch": "benchmark/v4/studies/prototypes/19848a6b3a812a62d8d37e06767f5455721f7c38ebd8c58d56e02e95ce235918.patch",
+      "planSha256": "4ca93b8d6f3d1cae21515cafdd017ea1425aa974a5bc53c8a4efad213783d212",
+      "runSha256": "690b6ad1010333e6c82c24df849165aed05be8f84b83d8e7b61f9f972dd3660e",
+      "tests": {
+        "passed": 8,
+        "files": [
+          "arc_box_response.test.ts",
+          "arc_budget_interruptions.test.ts"
+        ]
+      },
+      "cases": [
+        {
+          "source": "stretch_bridge_frontier_dense_recovery",
+          "recordSha256": "1396bd45ec081cfdfae44bde60457d75241af38ff2bd3bb555f3151d5ca85c5f",
+          "score": 888.9532,
+          "statistics": {
+            "rounds": 877,
+            "clippedRounds": 95,
+            "changedSteps": 95,
+            "quadraticImprovement": 1.3142152075458695
+          }
+        },
+        {
+          "source": "stretch_three_note_returns",
+          "recordSha256": "c21a8fc742ccff1020558ffe155ea61c04b6af03b5896142181ffebf63133e6f",
+          "score": 838.0331,
+          "statistics": {
+            "rounds": 766,
+            "clippedRounds": 92,
+            "changedSteps": 92,
+            "quadraticImprovement": 0.25393891727828377
+          }
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_6s",
+          "recordSha256": "48c7707ddd6eba650fc6704845246f94b3215c3c798f8b2af633546a3841ea5f",
+          "score": 935.5807,
+          "statistics": {
+            "rounds": 500,
+            "clippedRounds": 4,
+            "changedSteps": 4,
+            "quadraticImprovement": 0.43452894832106337
+          }
+        },
+        {
+          "source": "stretch_supported_speed_change",
+          "recordSha256": "176bc14d010791bb2431da25c6be103fd2c4d7ad16c22a31a485ac454cecb6b8",
+          "score": 922.4485,
+          "statistics": {
+            "rounds": 393,
+            "clippedRounds": 12,
+            "changedSteps": 12,
+            "quadraticImprovement": 0.08594744438873302
+          }
+        },
+        {
+          "source": "stretch_bridge_amplitude_tides_restrained_10",
+          "recordSha256": "82f15253a04f9f6abb6e3f54f214ddf0c317af2ca1c0eb5a048d2593d7e811c7",
+          "score": 824.1233,
+          "statistics": {
+            "rounds": 666,
+            "clippedRounds": 95,
+            "changedSteps": 95,
+            "quadraticImprovement": 1.0425463024085935
+          }
+        },
+        {
+          "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "recordSha256": "42bcfac6119bd32d22bed65657d4ec9d18d377ad3feefbc3218447ae073358fd",
+          "score": 726.7324,
+          "statistics": {
+            "rounds": 644,
+            "clippedRounds": 220,
+            "changedSteps": 220,
+            "quadraticImprovement": 6.320389296093808
+          }
+        },
+        {
+          "source": "bridge_river_reentry",
+          "recordSha256": "1e17b22b6ac38f7ef5d8309458e2138e09c01989931ca2f31798fa4c2e6a9306",
+          "score": 975.3163,
+          "statistics": {
+            "rounds": 623,
+            "clippedRounds": 0,
+            "changedSteps": 0,
+            "quadraticImprovement": 0
+          }
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic",
+          "recordSha256": "acd3dd3524da3af9eaa6fce5cea4312a9ca1bfe90806c7bf0856ced776b7d914",
+          "score": 763.2997,
+          "statistics": {
+            "rounds": 641,
+            "clippedRounds": 165,
+            "changedSteps": 165,
+            "quadraticImprovement": 10.040980786280842
+          }
+        }
+      ]
+    }
+  ],
+  "note": "Both pilots are physically valid and mixed. Forward differences spend fewer measurements per response but substantially regress low-air endurance. Box-constrained steps satisfy numerical constrained optimality on 100 coupled systems and never worsen their damped quadratic relative to clipping; physical performance remains an empirical question. The full box-response panel reaches 933.6626, all 176 valid, below its 934.2402 starting compiler. The unchanged 750k budget includes all actual simulations. Neither mechanism is promoted.",
+  "fullBoxResponse750k": {
+    "headline": 933.6626,
+    "valid": 176,
+    "runs": 176,
+    "baseline": 934.2402,
+    "selected": false
+  }
+}

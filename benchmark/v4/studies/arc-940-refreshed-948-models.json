@@ -1,0 +1,323 @@
+{
+  "schema": "line.arc-teacher-model-evidence.v1",
+  "selected": false,
+  "models": [
+    {
+      "path": "generated/benchmark-v4/arc-940/models/banked-948/proximity.json",
+      "sha256": "263c1d60409e509b2ad75cfd17d85cad0d921af98f9db38af1cd5dc985c43ff5",
+      "bytes": 184280052,
+      "componentParity": {
+        "schema": "line.arc-policy-mean-parity.v1",
+        "modelPath": "generated/benchmark-v4/arc-940/models/refreshed-948-forest/model.json",
+        "modelSha256": "d010490f54878b48b0266a533796e941a9ffa714ab47a2a8a2b5b4260613713c",
+        "fixturePath": "generated/benchmark-v4/arc-940/models/refreshed-948-forest/parity.json",
+        "fixtureSha256": "900d2ced350e9fc6ec33afb02f47cd5ea7abd469f1f9fad950fd5babaef1b9ec",
+        "fixtures": 24,
+        "maxError": 4.440892098500626e-16,
+        "runtimeSha256": "70582a519bd3305f7d837e2c23c98544a3cc4443d8ec7fa5497259598319c195",
+        "scriptSha256": "366f0695ec015d5b4526b96c545f1b3ae84d2d75cfe170e94dc54a558353a101"
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/models/banked-948-correction/proximity.json",
+      "sha256": "b7565bbfe2c0f457df250470e13a59902e424473d8ce8798a1d996de98c19836",
+      "bytes": 200185295,
+      "componentParity": {
+        "schema": "line.arc-policy-mean-parity.v1",
+        "modelPath": "generated/benchmark-v4/arc-940/models/refreshed-948-correction/policy-1.json",
+        "modelSha256": "4c6b343d64e469525e5495055f5aadf596c1c4ab4fb5a519f501711d361c72c3",
+        "fixturePath": "generated/benchmark-v4/arc-940/models/refreshed-948-correction/parity-1.json",
+        "fixtureSha256": "d1680b63c9258ec30385053087945f29279207f0778bbae84ac8b6cc085361bf",
+        "fixtures": 24,
+        "maxError": 2.220446049250313e-16,
+        "runtimeSha256": "70582a519bd3305f7d837e2c23c98544a3cc4443d8ec7fa5497259598319c195",
+        "scriptSha256": "366f0695ec015d5b4526b96c545f1b3ae84d2d75cfe170e94dc54a558353a101"
+      }
+    }
+  ],
+  "validation": {
+    "refreshed-948-forest": {
+      "rows": 15962,
+      "parents": 65,
+      "folds": [
+        {
+          "fold": 0,
+          "heldParents": [
+            "afterglow_turn",
+            "archipelago",
+            "bridge_frontier_low_air_endurance",
+            "bridge_high_air_drive",
+            "bridge_offgrid_conversation",
+            "bridge_pickup_lattice",
+            "bridge_regression_transition_mosaic",
+            "bridge_sparse_lowline",
+            "compact_dialogue",
+            "endurance_and_return",
+            "half_time_return",
+            "harbor_return",
+            "lifted_refrain",
+            "music_amour_de_ma_vie_short_44s",
+            "music_luna_bala_44s",
+            "music_shelter_impact_sync_81s",
+            "music_tiki_tiki_48s",
+            "pickup_answers",
+            "pickup_interruptions",
+            "pickup_staircase",
+            "restrained_then_wide"
+          ],
+          "train": 10702,
+          "test": 5260,
+          "controlRms": [
+            0.15222905086128882,
+            0.12811485600070527,
+            0.2019403509687539,
+            0.07713545344782903,
+            0.923270461034105,
+            0.7979742964313514,
+            0.1583246688805838,
+            0.1010556203318903,
+            0.206827763948624,
+            0.3779539887148615
+          ]
+        },
+        {
+          "fold": 1,
+          "heldParents": [
+            "accelerando_reply",
+            "amplitude_reply",
+            "arches_at_new_tempos",
+            "bridge_believer_impact_56s",
+            "bridge_dense_dialogue",
+            "bridge_loose_pocket",
+            "bridge_meter_exchange",
+            "bridge_open_hook",
+            "bridge_rising_switch",
+            "bridge_split_signal",
+            "bridge_wide_breaths",
+            "dense_short_then_long",
+            "flight_and_return",
+            "gear_changes",
+            "late_letters",
+            "music_amor_na_praia_46s",
+            "quiet_current",
+            "recovery_mosaic",
+            "swing_exchange",
+            "three_note_returns",
+            "wide_arc_dialogue",
+            "woven_pickups"
+          ],
+          "train": 10610,
+          "test": 5352,
+          "controlRms": [
+            0.15076080871736353,
+            0.12741990838068176,
+            0.2245461275082604,
+            0.0780127070056529,
+            0.9197456728148378,
+            0.9075873622033983,
+            0.16278529148653598,
+            0.09802322207143334,
+            0.22800970206442986,
+            0.36636347490884685
+          ]
+        },
+        {
+          "fold": 2,
+          "heldParents": [
+            "alternating_intentions",
+            "bridge_amplitude_tides",
+            "bridge_believer_56_6s",
+            "bridge_countercurrent",
+            "bridge_frontier_dense_recovery",
+            "bridge_frontier_pickup_progression",
+            "bridge_regression_amplitude_mosaic",
+            "bridge_river_reentry",
+            "broken_triplets",
+            "crossing_lights",
+            "density_release",
+            "energy_weave",
+            "interleaved_recovery",
+            "offbeat_echoes",
+            "open_canopy",
+            "pickup_recovery",
+            "rest_and_return",
+            "support_then_lift",
+            "supported_bridge",
+            "supported_speed_change",
+            "terraced_skies",
+            "woven_pulse"
+          ],
+          "train": 10612,
+          "test": 5350,
+          "controlRms": [
+            0.1540937812184982,
+            0.1338035232989349,
+            0.23345029364036926,
+            0.07754939861577959,
+            0.9155446798660383,
+            0.8722221333365182,
+            0.1519856188075082,
+            0.10087720042557637,
+            0.20753603008673252,
+            0.3728308212623021
+          ]
+        }
+      ],
+      "controlRms": [
+        0.15236789701654307,
+        0.12982013296149303,
+        0.220478509352861,
+        0.07756916136368835,
+        0.9195045642197712,
+        0.8608201273278092,
+        0.15775822288331287,
+        0.09998874320093434,
+        0.21439310594462851,
+        0.3723807301939194
+      ],
+      "note": "Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested."
+    },
+    "refreshed-948-correction/forest": {
+      "rows": 15962,
+      "parents": 65,
+      "folds": [
+        {
+          "fold": 0,
+          "heldParents": [
+            "afterglow_turn",
+            "archipelago",
+            "bridge_frontier_low_air_endurance",
+            "bridge_high_air_drive",
+            "bridge_offgrid_conversation",
+            "bridge_pickup_lattice",
+            "bridge_regression_transition_mosaic",
+            "bridge_sparse_lowline",
+            "compact_dialogue",
+            "endurance_and_return",
+            "half_time_return",
+            "harbor_return",
+            "lifted_refrain",
+            "music_amour_de_ma_vie_short_44s",
+            "music_luna_bala_44s",
+            "music_shelter_impact_sync_81s",
+            "music_tiki_tiki_48s",
+            "pickup_answers",
+            "pickup_interruptions",
+            "pickup_staircase",
+            "restrained_then_wide"
+          ],
+          "train": 10702,
+          "test": 5260,
+          "controlRms": [
+            0.1384919583561248,
+            0.11047882869369076,
+            0.18563936398469744,
+            0.06352290567379162,
+            0.8839035012648266,
+            0.7783268762642079,
+            0.15264845722414064,
+            0.09749193571509673,
+            0.1950735460730791,
+            0.3556715481610521
+          ]
+        },
+        {
+          "fold": 1,
+          "heldParents": [
+            "accelerando_reply",
+            "amplitude_reply",
+            "arches_at_new_tempos",
+            "bridge_believer_impact_56s",
+            "bridge_dense_dialogue",
+            "bridge_loose_pocket",
+            "bridge_meter_exchange",
+            "bridge_open_hook",
+            "bridge_rising_switch",
+            "bridge_split_signal",
+            "bridge_wide_breaths",
+            "dense_short_then_long",
+            "flight_and_return",
+            "gear_changes",
+            "late_letters",
+            "music_amor_na_praia_46s",
+            "quiet_current",
+            "recovery_mosaic",
+            "swing_exchange",
+            "three_note_returns",
+            "wide_arc_dialogue",
+            "woven_pickups"
+          ],
+          "train": 10610,
+          "test": 5352,
+          "controlRms": [
+            0.13595512801159065,
+            0.10732740775542292,
+            0.19290866710761562,
+            0.06970874749727418,
+            0.8560789159440904,
+            0.8462201524209889,
+            0.1543509146855864,
+            0.09387807393229881,
+            0.2030443581361269,
+            0.34730983764669926
+          ]
+        },
+        {
+          "fold": 2,
+          "heldParents": [
+            "alternating_intentions",
+            "bridge_amplitude_tides",
+            "bridge_believer_56_6s",
+            "bridge_countercurrent",
+            "bridge_frontier_dense_recovery",
+            "bridge_frontier_pickup_progression",
+            "bridge_regression_amplitude_mosaic",
+            "bridge_river_reentry",
+            "broken_triplets",
+            "crossing_lights",
+            "density_release",
+            "energy_weave",
+            "interleaved_recovery",
+            "offbeat_echoes",
+            "open_canopy",
+            "pickup_recovery",
+            "rest_and_return",
+            "support_then_lift",
+            "supported_bridge",
+            "supported_speed_change",
+            "terraced_skies",
+            "woven_pulse"
+          ],
+          "train": 10612,
+          "test": 5350,
+          "controlRms": [
+            0.1448491993791267,
+            0.11770691924189287,
+            0.19529410387487398,
+            0.06197454807039971,
+            0.869569025228405,
+            0.8266845455597273,
+            0.14377003650524786,
+            0.09556325693020867,
+            0.19825836704888636,
+            0.3500877042755721
+          ]
+        }
+      ],
+      "controlRms": [
+        0.13982243551300882,
+        0.11192961135325544,
+        0.19135655693111517,
+        0.0651641408615534,
+        0.8698434947750371,
+        0.8177950105296975,
+        0.15031538919790902,
+        0.09564514429791024,
+        0.1988405338588676,
+        0.351013500073532
+      ],
+      "note": "Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested."
+    }
+  },
+  "note": "Verified teacher controls and relative physical features; group folds describe control prediction only, with a frozen prior trained on development data. Live compiler panels remain necessary."
+}

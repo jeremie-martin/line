@@ -1,0 +1,87 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..6de823f4 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -31,6 +31,8 @@ export type ArcMotionOptions= {
+   constructionBudget?:number;
+   /** Reuse measured response directions between complete finite differences. */
+   responseSecantSteps?:number;
++  /** Alternate one-sided response probes, using the other side only on failure. */
++  forwardResponse?:boolean;
+   wholeTrackRefinement?:boolean;
+   /** Rank already simulated complete alternatives by the full authored loss. */
+   terminalSelection?:boolean;
+@@ -200,6 +202,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
+   const planningDecisions:any[]=[];
+   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
++  const responseProbeStats={rounds:0,probes:0,fallbacks:0};
+   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+   const controlMemory=new ArcControlMemory();
+   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
+@@ -521,7 +524,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           }
+           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
+         }
+-        let responseUsed=0, trust=options.responseScale??1;
++        let responseUsed=0, responseIteration=0, trust=options.responseScale??1;
+         let secant:{jac:number[][];trust:number;uses:number}|null=null;
+         while(responseUsed+(secant?3:2*responseKeys.length+3)<=responseAllowance){
+           const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4};
+@@ -531,9 +534,22 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           if(reused)trust=secant!.trust;
+           if(!reused)responseKeys.forEach((key,d)=>{
+             const step=scale[key as keyof typeof scale]*trust;
+-            const a=evaluate({...origin.c,[key]:value(key)+step}),b=evaluate({...origin.c,[key]:value(key)-step});responseUsed+=2;
+-            for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
++            if(options.forwardResponse){
++              const sign=responseIteration%2===0?1:-1;
++              let candidate=evaluate({...origin.c,[key]:value(key)+sign*step});
++              responseUsed++;responseProbeStats.probes++;
++              let direction=sign;
++              if(!candidate){
++                candidate=evaluate({...origin.c,[key]:value(key)-sign*step});
++                responseUsed++;responseProbeStats.probes++;responseProbeStats.fallbacks++;direction=-sign;
++              }
++              for(let r=0;r<jac.length;r++)jac[r][d]=candidate?(candidate.residuals[r]-origin.residuals[r])*direction:0;
++            }else{
++              const a=evaluate({...origin.c,[key]:value(key)+step}),b=evaluate({...origin.c,[key]:value(key)-step});responseUsed+=2;
++              for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
++            }
+           });
++          if(options.forwardResponse){responseProbeStats.rounds++;responseIteration++;}
+           if(!reused&&(options.memoryResponseSamples??0)>0){
+             controlMemory.rememberResponse({features:inputFeatures,incoming,span,
+               control:{...origin.c,...Object.fromEntries(responseKeys.map(key=>[key,value(key)]))},
+@@ -796,6 +812,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},responseProbeStats,rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }
+diff --git a/scripts/v0/optimizer/arc_value.ts b/scripts/v0/optimizer/arc_value.ts
+index b35c7fb7..5a7756dc 100644
+--- a/scripts/v0/optimizer/arc_value.ts
++++ b/scripts/v0/optimizer/arc_value.ts
+@@ -15,6 +15,19 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
+ export function arcFutureValue(features: number[], artifact: any): number {
+   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
+       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
++  if(artifact.residualBase){
++    const strength=artifact.residualStrength??1;
++    if(!Number.isFinite(strength)||strength<0||strength>1||artifact.residualInput!=='features-plus-log1p-base')throw new Error('invalid arc future-value correction');
++    const base=arcFutureValue(features,artifact.residualBase);if(strength===0)return base;
++    const input=[...features,Math.log1p(100*base)],model=artifact.residualModel;
++    let correction=model.initial;
++    for(const tree of model.trees){
++      let node=0;
++      while(!tree.leaf[node])node=input[tree.feature[node]]<=tree.threshold[node]?tree.left[node]:tree.right[node];
++      correction+=tree.value[node];
++    }
++    return Math.max(0,Math.expm1(Math.log1p(100*base)+strength*correction)/100);
++  }
+   let value = artifact.model.initial;
+   for (const tree of artifact.model.trees) {
+     let node = 0;

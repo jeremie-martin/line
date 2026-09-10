@@ -1,0 +1,304 @@
+{
+  "schema": "line.arc-startup-transfer-evidence.v1",
+  "selected": false,
+  "dataset": {
+    "path": "generated/benchmark-v4/arc-940/data/startup-945/data.json",
+    "sha256": "53f7e6c29d1998556cc06ee29abac9ecf962c47236c40a09a38515be640bc721",
+    "rows": 176,
+    "featureCount": 57,
+    "controlCount": 10,
+    "extraction": {
+      "sourceSha256": "18b93ecf02f113bc973aaaeb4cc47ba5bbff3d160d56fb7d6ec2c6408c2fce2d",
+      "catchReferenceSha256": "f8cd1f6e25f6e32c3e1f9345bf9979514626c9ad5180024a5447e87e28a92cc2",
+      "allNonStartupRowsMatched": true
+    }
+  },
+  "geometryProofs": [
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/fd26bd95bb83478c53f5c242f0b0c46c9fe360e1305a906a8e8ef59452aa07b2.json",
+      "sha256": "fd26bd95bb83478c53f5c242f0b0c46c9fe360e1305a906a8e8ef59452aa07b2",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/e8f9107973ceb9d9c45e09e7e072e96a6e2f032e72bab6f24615ed7e00a4a99c.json",
+      "sha256": "e8f9107973ceb9d9c45e09e7e072e96a6e2f032e72bab6f24615ed7e00a4a99c",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/ec2d12e9ee7e401661112411d5eb34093fdf72521b11a999cf39274c57c550e5.json",
+      "sha256": "ec2d12e9ee7e401661112411d5eb34093fdf72521b11a999cf39274c57c550e5",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/e647796571aef2c9845057e795cc519a837c0ebf224f16f35c78929d4666375d.json",
+      "sha256": "e647796571aef2c9845057e795cc519a837c0ebf224f16f35c78929d4666375d",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    }
+  ],
+  "all176OpeningControlsReconstructed": true,
+  "model": {
+    "path": "generated/benchmark-v4/arc-940/models/startup-945-policy.json",
+    "sha256": "93803f6114af8462bc32adea3b836e116fe376a8a064b38030c95ad6e120267b"
+  },
+  "validation": {
+    "rows": 176,
+    "parents": 65,
+    "folds": [
+      {
+        "fold": 0,
+        "heldParents": [
+          "accelerando_reply",
+          "amplitude_reply",
+          "bridge_believer_56_6s",
+          "bridge_countercurrent",
+          "bridge_frontier_dense_recovery",
+          "bridge_frontier_low_air_endurance",
+          "bridge_frontier_pickup_progression",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_regression_transition_mosaic",
+          "crossing_lights",
+          "dense_short_then_long",
+          "energy_weave",
+          "half_time_return",
+          "late_letters",
+          "music_amour_de_ma_vie_short_44s",
+          "music_tiki_tiki_48s",
+          "pickup_answers",
+          "pickup_staircase",
+          "restrained_then_wide",
+          "supported_bridge",
+          "terraced_skies"
+        ],
+        "train": 116,
+        "test": 60,
+        "controlRms": [
+          0.11093516203296469,
+          0.12208417695647085,
+          0.17065359172859637,
+          0.07949710082607606,
+          0.7374234496428871,
+          0.7828971940501813,
+          0.10845647669196282,
+          0.11387444763076487,
+          0.06671454010760633,
+          0.18224796582264108
+        ]
+      },
+      {
+        "fold": 1,
+        "heldParents": [
+          "alternating_intentions",
+          "archipelago",
+          "bridge_amplitude_tides",
+          "bridge_dense_dialogue",
+          "bridge_high_air_drive",
+          "bridge_meter_exchange",
+          "bridge_pickup_lattice",
+          "bridge_sparse_lowline",
+          "bridge_wide_breaths",
+          "density_release",
+          "flight_and_return",
+          "harbor_return",
+          "lifted_refrain",
+          "music_luna_bala_44s",
+          "offbeat_echoes",
+          "pickup_interruptions",
+          "quiet_current",
+          "rest_and_return",
+          "support_then_lift",
+          "swing_exchange",
+          "three_note_returns",
+          "woven_pulse"
+        ],
+        "train": 118,
+        "test": 58,
+        "controlRms": [
+          0.1285311535427147,
+          0.110916719409513,
+          0.14214648114026826,
+          0.09806692534626059,
+          0.963454829959256,
+          0.7654782800505108,
+          0.18839041813563437,
+          0.14962235163955687,
+          0.10211607894003553,
+          0.3405719227022428
+        ]
+      },
+      {
+        "fold": 2,
+        "heldParents": [
+          "afterglow_turn",
+          "arches_at_new_tempos",
+          "bridge_believer_impact_56s",
+          "bridge_loose_pocket",
+          "bridge_offgrid_conversation",
+          "bridge_open_hook",
+          "bridge_rising_switch",
+          "bridge_river_reentry",
+          "bridge_split_signal",
+          "broken_triplets",
+          "compact_dialogue",
+          "endurance_and_return",
+          "gear_changes",
+          "interleaved_recovery",
+          "music_amor_na_praia_46s",
+          "music_shelter_impact_sync_81s",
+          "open_canopy",
+          "pickup_recovery",
+          "recovery_mosaic",
+          "supported_speed_change",
+          "wide_arc_dialogue",
+          "woven_pickups"
+        ],
+        "train": 118,
+        "test": 58,
+        "controlRms": [
+          0.13035618448542308,
+          0.13457256702799889,
+          0.16404655572530827,
+          0.09943305414481053,
+          1.026705038412716,
+          1.2179364923997547,
+          0.21360686359679115,
+          0.13802327917188636,
+          0.13105240583197322,
+          0.28851799936841277
+        ]
+      }
+    ],
+    "controlRms": [
+      0.12344832747368159,
+      0.12289560086647959,
+      0.15954727829247242,
+      0.09263879269115126,
+      0.915786331492324,
+      0.9438695926588381,
+      0.17533508934522304,
+      0.1344476339466154,
+      0.10302224322786493,
+      0.2774509349679046
+    ],
+    "note": "Offline control prediction, not feasibility or a live compiler score. Complete parent families are held out together when folds are requested."
+  },
+  "parity": {
+    "schema": "line.arc-policy-mean-parity.v1",
+    "modelPath": "generated/benchmark-v4/arc-940/models/startup-945-forest/model.json",
+    "modelSha256": "81ff91bca0d3544ddcc934f4e18f70f3f26c7d2e807fb74f1736bac9ea9a0e78",
+    "fixturePath": "generated/benchmark-v4/arc-940/models/startup-945-forest/parity.json",
+    "fixtureSha256": "cf5cddfdae51a4570f69e746b4cec253f05e3cd473acc85ff46354bd93c9391d",
+    "fixtures": 24,
+    "maxError": 2.220446049250313e-16,
+    "runtimeSha256": "70582a519bd3305f7d837e2c23c98544a3cc4443d8ec7fa5497259598319c195",
+    "scriptSha256": "366f0695ec015d5b4526b96c545f1b3ae84d2d75cfe170e94dc54a558353a101"
+  },
+  "tests": {
+    "passed": 9,
+    "files": [
+      "arc_startup_quota.test.ts",
+      "arc_budget_interruptions.test.ts",
+      "arc_value_guidance.test.ts"
+    ]
+  },
+  "sourcePatch": "benchmark/v4/studies/prototypes/8d5ab7902b28ec56125af5b2a9f4d28c8c8b514262d29a7c244dca21fb55ff7f.patch",
+  "pilot4": {
+    "pilot": true,
+    "cases": [
+      {
+        "id": "stretch_bridge_frontier_dense_recovery",
+        "score": 908.0699,
+        "valid": true
+      },
+      {
+        "id": "stretch_three_note_returns",
+        "score": 844.5014,
+        "valid": true
+      },
+      {
+        "id": "stretch_bridge_frontier_low_air_endurance_6s",
+        "score": 933.4072,
+        "valid": true
+      },
+      {
+        "id": "stretch_supported_speed_change",
+        "score": 947.2982,
+        "valid": true
+      },
+      {
+        "id": "stretch_bridge_amplitude_tides_restrained_10",
+        "score": 845.2676,
+        "valid": true
+      },
+      {
+        "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+        "score": 724.4498,
+        "valid": true
+      },
+      {
+        "id": "bridge_river_reentry",
+        "score": 974.12,
+        "valid": true
+      },
+      {
+        "id": "bridge_regression_amplitude_mosaic",
+        "score": 778.3045,
+        "valid": true
+      }
+    ]
+  },
+  "pilot8": {
+    "pilot": true,
+    "cases": [
+      {
+        "id": "stretch_bridge_frontier_dense_recovery",
+        "score": 908.0699,
+        "valid": true
+      },
+      {
+        "id": "stretch_three_note_returns",
+        "score": 844.5014,
+        "valid": true
+      },
+      {
+        "id": "stretch_bridge_frontier_low_air_endurance_6s",
+        "score": 933.4072,
+        "valid": true
+      },
+      {
+        "id": "stretch_supported_speed_change",
+        "score": 947.2982,
+        "valid": true
+      },
+      {
+        "id": "stretch_bridge_amplitude_tides_restrained_10",
+        "score": 845.2676,
+        "valid": true
+      },
+      {
+        "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+        "score": 724.4498,
+        "valid": true
+      },
+      {
+        "id": "bridge_river_reentry",
+        "score": 974.12,
+        "valid": true
+      },
+      {
+        "id": "bridge_regression_amplitude_mosaic",
+        "score": 778.3045,
+        "valid": true
+      }
+    ]
+  },
+  "all8PilotTracksAndScoresMatchAcrossQuotas": true,
+  "note": "Four and eight startup proposals have identical pilot tracks and scores, but different work counts. Four is chosen for full-suite evaluation. The opening library is separate from the unchanged catch policy. Training and pilot specifications are exposed development cases. No canonical promotion is claimed."
+}

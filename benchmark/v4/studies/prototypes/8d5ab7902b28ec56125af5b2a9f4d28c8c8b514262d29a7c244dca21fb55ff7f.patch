@@ -1,0 +1,66 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..56ba81db 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -135,6 +135,8 @@ export type ArcMotionOptions= {
+   reuseEvaluations?:boolean;
+   controlPolicy?:any;
+   policySamples?:number;
++  /** Separately limit learned proposals for the single opening curve. */
++  startupPolicySamples?:number;
+   /** Reduce local work if observed construction cost outgrows remaining capacity. */
+   budgetAdaptiveLocal?:boolean;
+   futureValueModel?:any;
+@@ -445,7 +447,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       // Startup has a different physical-state distribution from a later catch.
+       // Its optional learned proposals still pass the ordinary interval search.
+       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
+-      const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];
++      const requested=[proposalModel?(i===0?options.startupPolicySamples??options.policySamples??8:options.policySamples??8):0,remembered.length,responses.length];
+       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
+       const policy=counts[0]?arcControlProposals(inputFeatures,incoming,span,proposalModel,counts[0]):[];
+       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
+diff --git a/scripts/v0/optimizer/arc_value.ts b/scripts/v0/optimizer/arc_value.ts
+index b35c7fb7..5a7756dc 100644
+--- a/scripts/v0/optimizer/arc_value.ts
++++ b/scripts/v0/optimizer/arc_value.ts
+@@ -15,6 +15,19 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
+ export function arcFutureValue(features: number[], artifact: any): number {
+   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
+       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
++  if(artifact.residualBase){
++    const strength=artifact.residualStrength??1;
++    if(!Number.isFinite(strength)||strength<0||strength>1||artifact.residualInput!=='features-plus-log1p-base')throw new Error('invalid arc future-value correction');
++    const base=arcFutureValue(features,artifact.residualBase);if(strength===0)return base;
++    const input=[...features,Math.log1p(100*base)],model=artifact.residualModel;
++    let correction=model.initial;
++    for(const tree of model.trees){
++      let node=0;
++      while(!tree.leaf[node])node=input[tree.feature[node]]<=tree.threshold[node]?tree.left[node]:tree.right[node];
++      correction+=tree.value[node];
++    }
++    return Math.max(0,Math.expm1(Math.log1p(100*base)+strength*correction)/100);
++  }
+   let value = artifact.model.initial;
+   for (const tree of artifact.model.trees) {
+     let node = 0;
+diff --git a/tests/arc_startup_quota.test.ts b/tests/arc_startup_quota.test.ts
+new file mode 100644
+--- /dev/null
++++ b/tests/arc_startup_quota.test.ts
+@@ -0,0 +1,15 @@
++import {expect,it} from 'vitest';
++import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
++import {ARC_POLICY_SCHEMA} from '../scripts/v0/optimizer/arc_control_policy.ts';
++import type {Spec} from '../scripts/v0/types.ts';
++const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
++const options={budget:40000,samples:40,channel:12,radius:24,bidirectional:true,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,guidance:'clearance' as const,guidanceJoint:true,guidanceSamples:92,responseSamples:92,expressive:true,completeBoundary:true};
++const model={featureSchema:ARC_POLICY_SCHEMA,featureCount:57,exemplars:[],startupModel:{featureSchema:ARC_POLICY_SCHEMA,featureCount:57,exemplars:[{features:Array(57).fill(0),target:[-.01,-.2,-.3,.5,0,.1,1,.4,0,0]}]}};
++it('preserves physical work and output with a zero startup quota',()=>{
++  const a=compileArcMotion(spec,17,options),b=compileArcMotion(spec,17,{...options,controlPolicy:model,startupPolicySamples:0});
++  expect(b.track).toEqual(a.track);expect(b.stats).toEqual(a.stats);
++});
++it('physically validates opening proposals within the same hard budget',()=>{
++  const r=compileArcMotion(spec,17,{...options,controlPolicy:model,startupPolicySamples:4});
++  expect(r.failure).toBeNull();expect(r.report.contacts.every(c=>c.status==='hit')).toBe(true);expect(r.track.lines.every(l=>l.type===0)).toBe(true);expect(r.stats.sim_frames).toBeLessThanOrEqual(options.budget);
++});

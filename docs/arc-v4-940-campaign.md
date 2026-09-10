@@ -375,3 +375,46 @@ prefixes while asking the stronger search for counterfactual controls. Its
 replayed score is fixed by construction; useful evidence will come from
 independently validated controls and subsequent live student evaluations.
 The public canonical baseline remains **926.9397**, and the 940 goal is active.
+
+
+## Measured solver limits and a 948-point teacher
+
+Greater guidance weight for the half-strength future-value correction reaches
+**932.1008**, all 176 valid, below 934.2402. The correction's default guidance
+weight remains the stronger execution.
+
+Alternating one-sided response probes reduces measurements per adjustment but
+produces a mixed pilot, including a substantial low-air regression. Twelve
+focused tests pass. A separate active-set solver minimizes the existing damped
+quadratic inside the same three-unit control bounds. It satisfies constrained
+optimality on 100 coupled numerical systems and never worsens their quadratic
+relative to independently clipped steps. Eight focused tests pass. Its complete
+physical panel nevertheless reaches **933.6626**, all 176 valid, below 934.2402.
+Both mechanisms remain unselected; numerical correctness alone does not establish
+a compiler gain. See [solver evidence](../benchmark/v4/studies/arc-940-response-solvers.json).
+
+The stronger separate-library teacher reaches **948.1268**, all 176 valid at a
+6M ceiling. Actual work ranges from 4,445,186 to 5,907,903 frames, with median
+5,478,200.5. Independent reconstruction verifies all 16,138 controls. The new
+15,962-row selected dataset uses 108 trajectories from this teacher, 55 from the
+945 teacher, four each from the older 6M teacher and 931 student, three from the
+934.2402 student, and two from the 3M teacher. Every selected prefix is checked.
+See [transfer provenance](../benchmark/v4/studies/arc-940-refreshed-948-transfer.json).
+The refreshed library and residual mean pass 24 independent prediction fixtures
+within 4.45e-16 and 2.23e-16 respectively. Their live evaluations are separate;
+see [model evidence](../benchmark/v4/studies/arc-940-refreshed-948-models.json).
+
+The opening curve has a different state distribution from later catches, and
+no learned opening policy is currently public. A refreshed 176-example startup
+library is independently reconstructed from the earlier 945 teaching dataset;
+all non-startup rows exactly match its verified reference. Nine focused tests
+pass, including physical and work parity at zero startup quota. Four and eight
+opening proposals produce identical tracks and scores in the eight-case pilot,
+with different work counts. They improve six cases and regress two relative to
+934.2402. The four-proposal version is undergoing complete evaluation. See
+[opening evidence](../benchmark/v4/studies/arc-940-startup-945.json).
+
+A 12M pilot tests more accurate, deeper teaching. The fixed-prefix 6M query study
+continues. These are research outside the qualification allowance. The public
+canonical score is still 926.9397, the best complete 750k research score is
+934.2402, and the 940 goal remains active.

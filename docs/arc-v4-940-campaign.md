@@ -11,12 +11,11 @@ fixed. The approved primitive remains substantial coherent normal type-0 arcs.
 Research results require public canonical confirmation; higher-budget teachers
 and hypothetical loss reductions are diagnostics, not qualifying scores.
 
-First establish the remaining loss distribution for the selected compiler and
-inspect where its search spends work. The current combined example policy has
-not yet been evaluated as a higher-budget teacher: the previous 931.6814 teacher
-started from a weaker policy. Test that opportunity alongside analysis of search
-and geometry limitations, retaining adverse evidence and avoiding conclusions
-from small favorable panels.
+The complete research candidate now reaches **952.4115**, all 176 valid, with a
+maximum of **749,997** actual physics frames. Public qualification of runtime
+`97d2af4d` is underway across both canonical seeds, together with a separate
+2% target-jitter diagnostic. The last confirmed canonical result remains
+926.9397 until that validation finishes.
 
 Code, required runtime models and compact evidence will be pushed. Large raw
 tracks, datasets, unselected models and videos stay local.
@@ -503,7 +502,7 @@ and leaves three unchanged. Extending this to the older libraries is mixed;
 counterfactual fixed-prefix examples are explicitly excluded from trajectory
 annotations. These pilots do not establish a headline improvement. The newest
 library's complete panel reaches **932.9943**, below 935.1349 despite its favorable
-pilot. The two-library version is still undergoing complete evaluation.
+pilot. The two-library version reaches **933.6007**, also below the reference.
 
 The twelve-million-frame, depth-three teacher finishes at **949.1681**, all 176
 valid. Independent reconstruction checks all 16,138 controls. Its refreshed
@@ -516,3 +515,138 @@ changing its target. This higher-budget score does not qualify for the goal.
 The public canonical compiler remains **926.9397**. The best complete 750k
 research score is **935.1349**, and the 940 goal remains active. Raw datasets,
 unselected models, and full study artifacts remain local.
+
+
+The 949 teacher transfer reaches **933.8151**, all 176 valid, below the retained
+948 bank with the same value correction. A separate fixed-prefix residual now
+replaces only the exact existing mean proposal; all three example libraries and
+weights are verified unchanged. Its full study is running.
+
+A 57-input, two-layer tanh network fits the same 193,313 two-interval value
+examples as the three-panel correction. One predeclared group fold has 154,707
+training and 38,606 held rows. Held ranking regret is 0.001586 versus 0.001618
+for the original prior. This is one fold, not a pooled five-fold claim, and both
+fits reach 120 epochs without convergence. Runtime prediction error is below
+6.94e-17 on 32 independent fixtures. Six focused tests pass. Separate complete
+panels test smooth geometry guidance with unchanged ranking predictions and
+replacement of all value predictions. No benefit is claimed before those runs.
+
+The earlier coupled two-arc optimizer is also restored against the 935.1349
+compiler. A matched variant expresses the second curve's entry and exit angles
+relative to the actual new arrival heading when the preceding curve changes.
+Three focused tests pass across disabled parity and physically validated
+absolute/relative corrections. Both versions receive one correction round,
+the same candidate controls, and the same fixed total frame budget in full
+panels. These remain isolated research prototypes.
+
+
+The mean-proposal correction completes at **933.2516**. The first smooth-value
+fit reaches **927.9770** for geometry-only guidance and **908.5939** when it
+also ranks futures. All cases are valid. A longer fit with the same architecture
+and a 480-epoch ceiling stops at 189 held-fit epochs and 173 full-fit epochs;
+held ranking regret improves to 0.001464. Its geometry-guidance panel is running.
+
+The coupled pair panels complete at **928.4570** for absolute angles and
+**926.6122** for relative angles, all 176 valid in each. Neither is promoted.
+A related whole-track experiment records measured incoming angles so accepted
+reflows can reuse each later curve relative to its new arrival heading. Eleven
+focused tests pass, including accepted complete reflows and the shared hard
+budget. Matched full panels reserve 600k for construction and 150k for complete
+track refinement; they are still running.
+
+A separate experiment offers a complete track through a learned policy before
+spending work on local adjustment. A 67-input library includes 176 opening
+examples and 15,962 later curves from independently reconstructed selected
+teacher trajectories. Every accepted curve passes the ordinary physical
+interval checks; a rejected proposal triggers normal search. Inputs contain
+physical state and four upcoming authored intervals, without case or seed IDs.
+Nine focused tests pass. Twenty-four forest fixtures match within 3.34e-16.
+The standalone library builder reproduces its 28,756,260-byte artifact exactly.
+Its full study measures score, completion, and physical work; no teacher replay
+or headline gain is assumed. The best completed qualifying-budget research
+score remains **935.1349**, with the canonical compiler unchanged at 926.9397.
+
+
+The complete reflow panels reach **924.5877** for absolute reuse and **924.5071**
+for relative reuse. The longer smooth geometry guide reaches **927.6315**.
+All three panels are valid throughout and remain unselected. The complete
+learned-policy rollout reaches **682.3165**, with 174/176 valid tracks. Physical
+validity alone does not preserve the quality of the demonstrated trajectories.
+
+A matched control-preservation study keeps the 67 input features, normalized
+training targets, supervised partitions, and example order unchanged. It stores
+the original control object plus the measured incoming heading and integer
+span, then applies relative changes only when the query differs. This avoids
+normalization round trips and preserves omitted geometry parameters at an
+exact repeated state. The original dataset has 626 turn, 1,339 clearance, and
+610 bend values whose normalization round trips change a double; 60 controls
+omit turn timing. These are data observations, not evidence of a headline
+benefit. The collector independently replays all 16,138 controls while adding
+the reference heading/span. Eleven focused tests pass. The matched full
+rollout experiment is being prepared.
+
+## Exact demonstrated geometry and complete-track proposals
+
+The strongest general search reached 935.1349 after retaining older teaching
+libraries and correcting the learned continuation value. Further independent
+experiments with pair optimization, reflow, smooth value guidance and refreshed
+libraries did not improve that result; their complete adverse panels remain in
+the research ledger.
+
+A different transfer experiment exposed a representation problem. The learned
+library already contains physically validated expert arc controls, but it
+normally reconstructs them from normalized values. This reconstruction can
+change floating-point values and replace omitted geometry parameters with
+explicit defaults. Small geometry changes can compound into a different
+collision history over a complete track.
+
+The new reference decoder stores each original control alongside its measured
+incoming angle and interval length. It preserves the original control exactly
+at the demonstrated state; at other states it rotates the entry/exit angles and
+scales support relative to the new interval. Retrieval still uses the rider's
+physical arrival state and four upcoming authored intervals, with no case or
+seed identifier. All 16,138 controls were independently reconstructed and
+validated. Removing the reference annotations reproduces the original learned
+library exactly, including its features, targets, partitions and ordering.
+
+| Complete 750k research panel | V4 headline | Valid |
+| --- | ---: | ---: |
+| Normalized single-proposal rollout | 682.3165 | 174/176 |
+| Same retrieval with exact reference controls | 949.0036 | 176/176 |
+| Exact complete-track proposal plus general search | **952.4115** | **176/176** |
+
+This experiment changes both numeric reconstruction and preservation of omitted
+fields; it does not isolate their individual contributions. The standalone
+exact rollout is also inadequate away from the demonstrated states: its
+separate 2% target-jitter panel scored 752.4384 on the reused V2 development
+cases, with one invalid run. That diagnostic is neither a V4 headline nor a
+held-out family test.
+
+The selected integration therefore attempts a strict complete-track proposal
+within at most 5% of the existing budget, then retains the full general search
+against the same running physics counter. Failed proposals stop early. Both
+attempts, their cold replays and discarded work count toward the original
+750,000-frame ceiling. The existing complete-trajectory objective selects the
+finished track, with general search winning ties. Prescribed research replay
+and direct-control studies bypass this optional competition.
+
+In the complete research panel the proposal wins on 170 specifications and
+search wins on six. Proposal work totals 1,300,148 frames, at most 11,848 per
+specification; combined work totals 130,674,351 frames. This is an executable
+selection procedure, with no benchmark-score lookup or retrospective oracle.
+These are exposed development demonstrations, so the result does not establish
+independent generalization.
+
+The deployed general policy and reference policy are stored losslessly in a
+102,442,793-byte gzip payload. A small manifest commits both compressed and
+uncompressed SHA-256 hashes, which the runtime verifies before loading. The
+canonical execution manifest now records this required payload as a compiler
+asset; the frozen catalog, scoring files, detector and physics are unchanged.
+The decoded model matches the research artifact byte for byte. Old independent
+model-prediction tests retain their original expected values in a reduced,
+explicitly historical fixture; new tests cover independently reconstructed
+reference controls and the updated value model.
+
+See [exact-transfer and selection evidence](../benchmark/v4/studies/arc-940-exact-preview.json),
+[production configuration parity](../benchmark/v4/studies/arc-940-production-allocation.json),
+and [the complete research ledger](../benchmark/v4/studies/arc-940-research.json).

@@ -1,0 +1,56 @@
+{
+  "schema": "line.arc-smooth-future-value-evidence.v1",
+  "selected": false,
+  "sourcePatch": "benchmark/v4/studies/prototypes/6853abdb4e96755f4ea8c4b22135c9f5ad38b6fb5a1fc56916e2813c93a5bfc0.patch",
+  "validation": {
+    "train": 154707,
+    "test": 38606,
+    "heldGroups": [
+      "high_air_energy",
+      "irregular_microtimed",
+      "legacy_transition_regression"
+    ],
+    "baseRanking": {
+      "contexts": 8697,
+      "meanRegret": 0.0016182081028862242
+    },
+    "networkRanking": {
+      "contexts": 8697,
+      "meanRegret": 0.0014644889450837286
+    },
+    "logCostRms": 0.33134197043325087,
+    "teacherPanels": [
+      {
+        "path": "generated/benchmark-v4/arc-940/teachers/continuation-6m",
+        "planSha256": "ceaf9c0ecb3e2da25b71aa8f475ab6633d8b343344defef574994218652eac5e",
+        "runSha256": "de705e141098c1bb6f6f04e5c021b7aad40b4497e7537faea66977cf97718d86"
+      },
+      {
+        "path": "generated/benchmark-v4/arc-940/teachers/banked-6m",
+        "planSha256": "5677ad7ea22f39fec28691faf11d1203bd160f2db752f4e613f59c99a2e86f6a",
+        "runSha256": "583b2bf43d81b5d59a8f41b36c91294f243ec0b733936286b41cddaf8f8d9323"
+      },
+      {
+        "path": "generated/benchmark-v4/arc-940/teachers/replay-934-6m",
+        "planSha256": "77f3b6d56d01c0358589de7c3f819c169151ec97ea96df58d957de96ae7732b9",
+        "runSha256": "d3e2ebb33d1b44488f058c24f86ae22c4398424b699467e329471c732d7fe08c"
+      }
+    ],
+    "epochs": 189,
+    "note": "One declared fold holds complete catalog groups out across all teacher panels. Physical decision contexts retain plan identity. Labels include terminal priors. This diagnostic does not establish a compiler headline or physical feasibility."
+  },
+  "parity": {
+    "schema": "line.arc-future-value-parity.v1",
+    "modelPath": "generated/benchmark-v4/arc-940/models/smooth-teachers-replay-value-long/model.json",
+    "modelSha256": "15fa90b541161d99a936e1b44b7a38b7e95b095b01094e8534041daf91e1e96b",
+    "fixturePath": "generated/benchmark-v4/arc-940/models/smooth-teachers-replay-value-long/parity.json",
+    "fixtureSha256": "7c02a2fe6b68b3a9e50177c059e8261107f922912ec43f58ce9636c802a360d5",
+    "fixtures": 32,
+    "maxError": 6.245004513516506e-17,
+    "runtimeSha256": "806288f4e3169b2ddd020d3b546355313188b0e62b86ba1114b43b6f78f485e9",
+    "scriptSha256": "ed9bd93aa38180f404ac24f2bc88a7540e1babc199ecb5337a080126bd5fa876"
+  },
+  "modelSha256": "15fa90b541161d99a936e1b44b7a38b7e95b095b01094e8534041daf91e1e96b",
+  "guidanceModelSha256": "f170e4b50f313d6cf44872b80a63ae4eff4f75fc6a7b4df829bd9ee1021c393d",
+  "note": "Same declared held-group fold with a 480-epoch ceiling. Early stopping ends the held fit at 189 epochs and the full-data fit at 173. Live geometry-guidance testing remains separate from held-group prediction ranking."
+}

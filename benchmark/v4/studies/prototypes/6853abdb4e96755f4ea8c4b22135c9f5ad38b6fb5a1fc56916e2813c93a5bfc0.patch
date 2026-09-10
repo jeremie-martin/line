@@ -1,0 +1,104 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..393aba9a 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -90,6 +90,8 @@ export type ArcMotionOptions= {
+   /** Explicit local correction allowance for simulated continuation probes. */
+   continuationGuidanceSamples?:number;
+   continuationResponseSamples?:number;
++  /** Use a separately fitted smooth prior for geometry adjustments only. */
++  smoothValueGuidance?:boolean;
+   lookaheadWeight?:number;
+   lookaheadWarmStart?:boolean;
+   warmStart?:ArcMotionControl;
+@@ -268,7 +270,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       const prefix=prefixes.get(engine);
+       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
+         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,
+-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
++          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.smoothValueGuidance]);
+         const saved=memoContexts.get(context);
+         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
+         memoContexts.set(context,memo!);
+@@ -409,7 +411,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         viableCandidates++;
+         const valueFeatures=options.collectValue||options.futureValueModel?futureFeatures(arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(release??frame)),i):undefined;
+         const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
+-        const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
++        const guidancePrediction=options.smoothValueGuidance&&options.futureValueModel?.guidanceModel
++          ?arcFutureValue(valueFeatures!,options.futureValueModel.guidanceModel):predictedFuture;
++        const guided=arcValueGuidance(cost,localCost,residuals,priorStart,guidancePrediction,
+           i<contacts.length-1?options.valueGuidanceWeight??0:0);
+         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
+           achieved,actualImpact,terminalLoss,release};
+diff --git a/scripts/v0/optimizer/arc_value.ts b/scripts/v0/optimizer/arc_value.ts
+index b35c7fb7..1256bd5c 100644
+--- a/scripts/v0/optimizer/arc_value.ts
++++ b/scripts/v0/optimizer/arc_value.ts
+@@ -15,6 +15,33 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
+ export function arcFutureValue(features: number[], artifact: any): number {
+   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
+       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
++  if(artifact.network){
++    const network=artifact.network;
++    if(network.activation!=='tanh')throw new Error('unsupported arc value activation');
++    let values=features.map((v,i)=>(v-network.inputMean[i])/network.inputScale[i]);
++    for(let layer=0;layer<network.layers.length;layer++){
++      const {weights,bias}=network.layers[layer];
++      values=bias.map((b:number,j:number)=>{
++        let v=b;for(let i=0;i<values.length;i++)v+=values[i]*weights[i][j];
++        return layer+1<network.layers.length?Math.tanh(v):v;
++      });
++    }
++    if(values.length!==1)throw new Error('invalid arc value output');
++    return Math.max(0,Math.expm1(values[0]*network.outputScale+network.outputMean)/100);
++  }
++  if(artifact.residualBase){
++    const strength=artifact.residualStrength??1;
++    if(!Number.isFinite(strength)||strength<0||strength>1||artifact.residualInput!=='features-plus-log1p-base')throw new Error('invalid arc future-value correction');
++    const base=arcFutureValue(features,artifact.residualBase);if(strength===0)return base;
++    const input=[...features,Math.log1p(100*base)],model=artifact.residualModel;
++    let correction=model.initial;
++    for(const tree of model.trees){
++      let node=0;
++      while(!tree.leaf[node])node=input[tree.feature[node]]<=tree.threshold[node]?tree.left[node]:tree.right[node];
++      correction+=tree.value[node];
++    }
++    return Math.max(0,Math.expm1(Math.log1p(100*base)+strength*correction)/100);
++  }
+   let value = artifact.model.initial;
+   for (const tree of artifact.model.trees) {
+     let node = 0;
+diff --git a/tests/arc_smooth_value.test.ts b/tests/arc_smooth_value.test.ts
+new file mode 100644
+index 00000000..f419a61a
+--- /dev/null
++++ b/tests/arc_smooth_value.test.ts
+@@ -0,0 +1,27 @@
++import {expect,it} from 'vitest';
++import {arcFutureValue,ARC_VALUE_FEATURE_SCHEMA} from '../scripts/v0/optimizer/arc_value.ts';
++import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
++import type {Spec} from '../scripts/v0/types.ts';
++const network={featureSchema:ARC_VALUE_FEATURE_SCHEMA,featureCount:57,network:{activation:'tanh',
++  inputMean:Array(57).fill(0),inputScale:Array(57).fill(1),outputMean:.1,outputScale:2,
++  layers:[{weights:Array.from({length:57},(_,i)=>[i===0?1:0]),bias:[0]},{weights:[[1]],bias:[0]}]}};
++it('evaluates the smooth log-value model with independent normalization and output decoding',()=>{
++  const features=Array(57).fill(0);features[0]=.5;
++  expect(arcFutureValue(features,network)).toBeCloseTo(Math.expm1(2*Math.tanh(.5)+.1)/100,14);
++  features[0]=-1;expect(arcFutureValue(features,network)).toBe(0);
++  expect(()=>arcFutureValue(features,{...network,network:{...network.network,activation:'relu'}})).toThrow('activation');
++});
++it('keeps ranking predictions and disabled physical work unchanged when a smooth guidance model is attached',()=>{
++  const base={featureSchema:ARC_VALUE_FEATURE_SCHEMA,featureCount:57,model:{initial:.5,trees:[]}};
++  const annotated={...base,guidanceModel:network};
++  expect(arcFutureValue(Array(57).fill(0),annotated)).toBe(arcFutureValue(Array(57).fill(0),base));
++  const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
++  const options={budget:40000,samples:32,channel:12,radius:24,bidirectional:true,impactWeight:1,amplitudeWeight:1/3,
++    arrivalWeight:.3,headingWeight:.3,guidance:'clearance' as const,guidanceJoint:true,guidanceSamples:48,responseSamples:46,
++    expressive:true,completeBoundary:true,valueGuidanceWeight:.25,futureValueModel:base};
++  const plain=compileArcMotion(spec,17,options),disabled=compileArcMotion(spec,17,{...options,futureValueModel:annotated,smoothValueGuidance:false});
++  expect(disabled.track).toEqual(plain.track);expect(disabled.stats).toEqual(plain.stats);
++  const enabled=compileArcMotion(spec,17,{...options,futureValueModel:annotated,smoothValueGuidance:true});
++  expect(enabled.failure).toBeNull();expect(enabled.report.contacts.every(c=>c.status==='hit')).toBe(true);
++  expect(enabled.stats.sim_frames).toBeLessThanOrEqual(options.budget);expect(enabled.track.lines.every(l=>l.type===0)).toBe(true);
++});

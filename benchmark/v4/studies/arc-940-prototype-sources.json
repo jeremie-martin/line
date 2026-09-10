@@ -1,6 +1,6 @@
 {
   "schema": "line.arc-research-source-snapshots.v1",
-  "note": "Unselected research source and its test fixtures, captured without modifying active compiler checkouts. These patches do not establish a performance gain.",
+  "note": "Research source and its test fixtures, captured without modifying compiler checkouts. Source snapshots alone do not establish a performance gain.",
   "prototypes": [
     {
       "name": "proposal-observations",
@@ -180,6 +180,67 @@
       "bytes": 15764,
       "tests": [
         "tests/arc_continuation_hints.test.ts"
+      ]
+    },
+    {
+      "name": "smooth-value",
+      "base": "1b07b6190a1959948103157bf9b6f87314c92d78",
+      "patch": "benchmark/v4/studies/prototypes/6853abdb4e96755f4ea8c4b22135c9f5ad38b6fb5a1fc56916e2813c93a5bfc0.patch",
+      "sha256": "6853abdb4e96755f4ea8c4b22135c9f5ad38b6fb5a1fc56916e2813c93a5bfc0",
+      "bytes": 7792,
+      "tests": [
+        "tests/arc_smooth_value.test.ts"
+      ]
+    },
+    {
+      "name": "relative-pair",
+      "base": "6ae586f94995a3f4e7316fd5d3eac2653aa1a0bf",
+      "patch": "benchmark/v4/studies/prototypes/76c09cbb61f716ac59c226af0532a2635af678ca0adbd3d5bf51ccc8bbcffaa8.patch",
+      "sha256": "76c09cbb61f716ac59c226af0532a2635af678ca0adbd3d5bf51ccc8bbcffaa8",
+      "bytes": 14751,
+      "tests": [
+        "tests/arc_relative_pair.test.ts"
+      ]
+    },
+    {
+      "name": "relative-reflow",
+      "base": "6ae586f94995a3f4e7316fd5d3eac2653aa1a0bf",
+      "patch": "benchmark/v4/studies/prototypes/826ac64167a4d157597f66883dfbbc19f89953bf241291fd6afc4bc65afbf350.patch",
+      "sha256": "826ac64167a4d157597f66883dfbbc19f89953bf241291fd6afc4bc65afbf350",
+      "bytes": 9183,
+      "tests": [
+        "tests/arc_relative_reflow.test.ts"
+      ]
+    },
+    {
+      "name": "policy-rollout",
+      "base": "6ae586f94995a3f4e7316fd5d3eac2653aa1a0bf",
+      "patch": "benchmark/v4/studies/prototypes/e10b67079d4b9e85f286e68c070afc890ad95b3e0040040707bafbf20e995b92.patch",
+      "sha256": "e10b67079d4b9e85f286e68c070afc890ad95b3e0040040707bafbf20e995b92",
+      "bytes": 12731,
+      "tests": [
+        "tests/arc_policy_rollout.test.ts"
+      ]
+    },
+    {
+      "name": "reference-proposals",
+      "base": "6ae586f94995a3f4e7316fd5d3eac2653aa1a0bf",
+      "patch": "benchmark/v4/studies/prototypes/fedf629adb995095bdc1f042220c692a80740bd495f751f583ac7e0035156380.patch",
+      "sha256": "fedf629adb995095bdc1f042220c692a80740bd495f751f583ac7e0035156380",
+      "bytes": 17107,
+      "tests": [
+        "tests/arc_control_reference.test.ts",
+        "tests/arc_policy_rollout.test.ts"
+      ]
+    },
+    {
+      "name": "policy-preview",
+      "base": "6ae586f94995a3f4e7316fd5d3eac2653aa1a0bf",
+      "patch": "benchmark/v4/studies/prototypes/e28df3c920fb8bbc3680a8ad2e831c1de5ae349859d6a8f003a846c05e04fac9.patch",
+      "sha256": "e28df3c920fb8bbc3680a8ad2e831c1de5ae349859d6a8f003a846c05e04fac9",
+      "bytes": 20347,
+      "tests": [
+        "tests/arc_policy_preview.test.ts"
       ]
     }
   ]

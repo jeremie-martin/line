@@ -1,0 +1,1433 @@
+{
+  "schema": "line.arc-v4-production-allocation-parity.v2",
+  "cases": 176,
+  "exactNonModelOptions": true,
+  "modelSha256": "44d6cb631ce8c97ebcda5ab76caed9a7d507c59707ab925d47b5929e5059d854",
+  "storedModelSha256": "9ba4bcd290e35930ca1a23ace7bd7756108da66e675fb96b33f36315acd47afe",
+  "valueSha256": "b035052ca1817d608395109968fdd4aafa82f6d9eff74e7c6485241145bea144",
+  "planPath": "/home/wyss/line/generated/benchmark-v4/arc-940/full/policy-preview-949/plan.json",
+  "planSha256": "26607f177ba2596aff5e7a68c81d3fd4132e7b31630492852e5cc069d879db58",
+  "sameSources": {
+    "scripts/v0/optimizer/arc_geometry.ts": "71fee3bc89b38b81851f99164df7a88ef4d52dcff87bed75532c450882e0e1f6",
+    "scripts/v0/optimizer/arc_control_policy.ts": "58e63cbe1a57d4e171aaeb76f8a378597f09356d1d8dfbc881c3a959caa0d363",
+    "scripts/v0/optimizer/arc_value.ts": "21f021af5b3ff57233daa10c068411ca9dee378fafbb3029d2f1b2ae941de8ca"
+  },
+  "motionSources": {
+    "production": "13798495762e0e3828cde0be4915339a08898d0498525abe05725eae7eadc69a",
+    "research": "b954352bc75193deb22be672f3cfaad543f64ff10fd0d6adf695338871f6bdc5",
+    "onlyDifference": "bypass preview for explicit replayControls/directControls"
+  },
+  "productionCodeSha256": "77f5c01f261cd421bcdce7748e636fadfb2b483dbfd5997c5a9d3b34168ac902",
+  "scriptSha256": "2cab4258223b2189ef821f291fed0b89d3eb79d7caf55e3a9c9fa57ab89100c9",
+  "note": "Configuration and model/source parity with the declared research candidate. Complete track, score and work parity still requires canonical validation.",
+  "rows": [
+    {
+      "source": "bridge_river_reentry",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_countercurrent",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_split_signal",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_pickup_lattice",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_loose_pocket",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_offgrid_conversation",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_rising_switch",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_meter_exchange",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_wide_breaths",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_open_hook",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_amplitude_tides",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_dense_dialogue",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_high_air_drive",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_sparse_lowline",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_frontier_pickup_progression",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_frontier_dense_recovery",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_regression_transition_mosaic",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_believer_56_6s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_believer_impact_56s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_river_reentry_tempo_fast_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_countercurrent_impact_contrast_12",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_split_signal_impact_relief_12",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_pickup_lattice_speed_minus_4",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_loose_pocket_drag_later_20ms",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_offgrid_conversation_answer_early_25ms",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_rising_switch_tempo_fast_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_meter_exchange_speed_plus_4",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_wide_breaths_air_plus_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_open_hook_amplitude_plus_8",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_amplitude_tides_restrained_10",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_dense_dialogue_impact_contrast_10",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_high_air_drive_air_minus_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_sparse_lowline_air_minus_4",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_frontier_pickup_progression_shifted",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_frontier_dense_recovery_240ms_figures",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_4s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_6s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_7s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic_contrast_10",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_believer_56_6s_impact_relief",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "bridge_believer_impact_56s_amplitude_plus_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "harbor_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "crossing_lights",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "afterglow_turn",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "woven_pickups",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "pickup_answers",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "broken_triplets",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "late_letters",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "swing_exchange",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "offbeat_echoes",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "gear_changes",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "half_time_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "accelerando_reply",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "archipelago",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "wide_arc_dialogue",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "terraced_skies",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "woven_pulse",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "density_release",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "compact_dialogue",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "lifted_refrain",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "flight_and_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "open_canopy",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "quiet_current",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "support_then_lift",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "rest_and_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "pickup_staircase",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "pickup_interruptions",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "pickup_recovery",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "dense_short_then_long",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "interleaved_recovery",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "three_note_returns",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "supported_bridge",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "supported_speed_change",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "endurance_and_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "energy_weave",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "alternating_intentions",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "recovery_mosaic",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "amplitude_reply",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "restrained_then_wide",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "arches_at_new_tempos",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "music_amor_na_praia_46s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "music_luna_bala_44s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "music_tiki_tiki_48s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "music_shelter_impact_sync_81s",
+      "policySamples": 32,
+      "lookaheadSamples": 29,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "music_amour_de_ma_vie_short_44s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_river_reentry",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_countercurrent",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_split_signal",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_pickup_lattice",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_loose_pocket",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_offgrid_conversation",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_rising_switch",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_meter_exchange",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_wide_breaths",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_open_hook",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_dense_dialogue",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_high_air_drive",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_sparse_lowline",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_frontier_pickup_progression",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance",
+      "policySamples": 32,
+      "lookaheadSamples": 30,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_regression_transition_mosaic",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_believer_56_6s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_believer_impact_56s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_river_reentry_tempo_fast_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_countercurrent_impact_contrast_12",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_split_signal_impact_relief_12",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_pickup_lattice_speed_minus_4",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_loose_pocket_drag_later_20ms",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_rising_switch_tempo_fast_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_meter_exchange_speed_plus_4",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_wide_breaths_air_plus_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_open_hook_amplitude_plus_8",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides_restrained_10",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_dense_dialogue_impact_contrast_10",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_high_air_drive_air_minus_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_sparse_lowline_air_minus_4",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_frontier_pickup_progression_shifted",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_4s",
+      "policySamples": 32,
+      "lookaheadSamples": 30,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_6s",
+      "policySamples": 24,
+      "lookaheadSamples": 24,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_7s",
+      "policySamples": 32,
+      "lookaheadSamples": 30,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_believer_56_6s_impact_relief",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_harbor_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_crossing_lights",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_afterglow_turn",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_woven_pickups",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_pickup_answers",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_broken_triplets",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_late_letters",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_swing_exchange",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_offbeat_echoes",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_gear_changes",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_half_time_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_accelerando_reply",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_archipelago",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_wide_arc_dialogue",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_terraced_skies",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_woven_pulse",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_density_release",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_compact_dialogue",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_lifted_refrain",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_flight_and_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_open_canopy",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_quiet_current",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_support_then_lift",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_rest_and_return",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_pickup_staircase",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_pickup_interruptions",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_pickup_recovery",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_dense_short_then_long",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_interleaved_recovery",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_three_note_returns",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_supported_bridge",
+      "policySamples": 32,
+      "lookaheadSamples": 31,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_supported_speed_change",
+      "policySamples": 27,
+      "lookaheadSamples": 25,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_endurance_and_return",
+      "policySamples": 32,
+      "lookaheadSamples": 31,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_energy_weave",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_alternating_intentions",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_recovery_mosaic",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_amplitude_reply",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_restrained_then_wide",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_arches_at_new_tempos",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_music_amor_na_praia_46s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_music_luna_bala_44s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_music_tiki_tiki_48s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_music_shelter_impact_sync_81s",
+      "policySamples": 32,
+      "lookaheadSamples": 30,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    },
+    {
+      "source": "stretch_music_amour_de_ma_vie_short_44s",
+      "policySamples": 32,
+      "lookaheadSamples": 32,
+      "samples": 80,
+      "guidanceSamples": 176,
+      "responseSamples": 161
+    }
+  ]
+}

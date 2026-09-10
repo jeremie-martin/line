@@ -9,7 +9,8 @@ import numpy as np
 from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import GroupKFold
 from train_physical_planner import write
-p=argparse.ArgumentParser();p.add_argument('--inputs',required=True);p.add_argument('--base',required=True);p.add_argument('--out',required=True);args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--inputs',required=True);p.add_argument('--base',required=True);p.add_argument('--out',required=True);p.add_argument('--epochs',type=int,default=120);args=p.parse_args()
+assert args.epochs>0
 roots=[Path(name) for name in args.inputs.split(',')];out=Path(args.out);out.mkdir(parents=True,exist_ok=True);assert not (out/'model.json').exists()
 def checked(path):
     b=path.read_bytes();assert hashlib.sha256(b).hexdigest()==Path(str(path)+'.sha256').read_text().split()[0]
@@ -55,18 +56,18 @@ def fit(indices):
     penalty=max(1,float(np.quantile(finite_train,.99))*2)
     y=np.log1p(100*costs(indices,penalty));ym=float(y.mean());ys=max(.01,float(y.std()))
     model=MLPRegressor(hidden_layer_sizes=(96,96),activation='tanh',solver='adam',alpha=.01,
-        batch_size=1024,learning_rate_init=.001,max_iter=120,early_stopping=True,
+        batch_size=1024,learning_rate_init=.001,max_iter=args.epochs,early_stopping=True,
         validation_fraction=.1,n_iter_no_change=12,tol=1e-5,random_state=260910)
     model.fit((X[indices]-xm)/xs,(y-ym)/ys)
     return model,xm,xs,ym,ys,penalty
 def predict(bundle,indices):
     m,xm,xs,ym,ys,_=bundle;return np.maximum(0,np.expm1(m.predict((X[indices]-xm)/xs)*ys+ym)/100)
-def artifact(bundle):
+def artifact(bundle,fitted_rows):
     m,xm,xs,ym,ys,_=bundle
     return dict(schema='line.arc-smooth-future-value.v1',featureSchema=base['featureSchema'],featureCount=57,
         network=dict(activation='tanh',inputMean=xm.tolist(),inputScale=xs.tolist(),outputMean=ym,outputScale=ys,
             layers=[dict(weights=w.tolist(),bias=b.tolist()) for w,b in zip(m.coefs_,m.intercepts_)]),
-        provenance=dict(teacherPanels=panels,rows=len(rows),trainerSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        provenance=dict(teacherPanels=panels,datasetRows=len(rows),fittedRows=fitted_rows,trainerSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             epochs=m.n_iter_,target='log1p(100 * nonnegative two-interval search value including terminal prior)'))
 contexts={}
 for i,r in enumerate(rows):contexts.setdefault(r['context'],[]).append(i)
@@ -87,8 +88,8 @@ validation=dict(train=len(train),test=len(test),heldGroups=sorted(set(groups[tes
     logCostRms=float(np.sqrt(np.mean((np.log1p(100*predictions)-np.log1p(100*costs(test,held[-1])))**2))),
     teacherPanels=panels,epochs=held[0].n_iter_,
     note='One declared fold holds complete catalog groups out across all teacher panels. Physical decision contexts retain plan identity. Labels include terminal priors. This diagnostic does not establish a compiler headline or physical feasibility.')
-write(out/'validation.json',validation);write(out/'held-model.json',artifact(held));print(json.dumps(validation),flush=True)
-final=fit(np.arange(len(X)));write(out/'model.json',artifact(final))
+write(out/'validation.json',validation);write(out/'held-model.json',artifact(held,len(train)));print(json.dumps(validation),flush=True)
+final=fit(np.arange(len(X)));write(out/'model.json',artifact(final,len(X)))
 indices=np.linspace(0,len(X)-1,32,dtype=int);predictions=predict(final,indices)
 write(out/'parity.json',[dict(features=X[i].tolist(),prediction=float(v)) for i,v in zip(indices,predictions)])
 print(json.dumps(dict(out=str(out),epochs=final[0].n_iter_,rows=len(rows))),flush=True)

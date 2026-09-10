@@ -1,0 +1,94 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..e60ff419 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -93,6 +93,7 @@ export type ArcMotionOptions= {
+   lookaheadWeight?:number;
+   lookaheadWarmStart?:boolean;
+   warmStart?:ArcMotionControl;
++  warmStartIncoming?:number;
+   pruneGuidance?:boolean;
+   lookaheadDepth?:number;
+   lookaheadBranching?:number;
+@@ -127,6 +128,7 @@ export type ArcMotionOptions= {
+   responseScale?:number;
+   refineFollowSamples?:number;
+   refineUseAlternatives?:boolean;
++  refineRelativeControls?:boolean;
+   collectValue?:boolean;
+   cachePrefixReads?:boolean;
+   /** Reuse completed evaluations only within the same physical search prefix. */
+@@ -449,7 +451,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
+       const policy=counts[0]?arcControlProposals(inputFeatures,incoming,span,proposalModel,counts[0]):[];
+       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
+-      if(options.warmStart)evaluate(options.warmStart);
++      if(options.warmStart){
++        const c=options.warmStart,reference=options.warmStartIncoming;
++        evaluate(reference===undefined?c:{...c,entry:incoming+(c.entry-reference),exit:incoming+(c.exit-reference)});
++      }
+       for(let k=0;k<initial;k++){
+         const frac=(n:number)=>((k+1)*n)%1;
+         evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:{entry:incoming-((options.flow||options.channel)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
+@@ -773,7 +778,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       // can invalidate cached prefix frames even for a validated child.
+       if(terminalChildLines)best.child=addArc(engine,terminalChildLines);
+       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);
+-      rows.push({frame,next,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});
++      rows.push({frame,next,incoming,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});
+       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\n');
+     }
+     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){
+diff --git a/scripts/v0/optimizer/arc_refinement.ts b/scripts/v0/optimizer/arc_refinement.ts
+index 932e3b96..ebad4503 100644
+--- a/scripts/v0/optimizer/arc_refinement.ts
++++ b/scripts/v0/optimizer/arc_refinement.ts
+@@ -123,17 +123,20 @@ export function refineArcTrack(input: ArcRefinementInput) {
+         evaluated++; counts.proposals++;
+         let child = base.addLine(candidate.lines), proposed = [...prefix, ...candidate.lines];
+         const proposedRows = sourceRows.slice();
+-        proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost,
++        proposedRows[i] = {...sourceRows[i], incoming:searchResult.incoming,control: candidate.c, cost: candidate.cost,
+           ...candidate.meta, lookahead: null, spent: getPhysicsFrameCount()};
+         let completed = true;
+         if (options.refineMode === 'reflow') {
+           for (let j = i + 1; j < contacts.length; j++) {
+             const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
+-            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control}, [incumbent, base]);
+-            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control},[incumbent,base]);
++            const reference=options.refineRelativeControls?sourceRows[j].incoming:undefined;
++            if(options.refineRelativeControls&&!Number.isFinite(reference))throw new Error('relative arc reflow requires a measured incoming angle');
++            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined,
++              warmStart: planned ?? sourceRows[j].control,warmStartIncoming:planned?undefined:reference}, [incumbent, base]);
++            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control,warmStartIncoming:reference},[incumbent,base]);
+             if (!next?.best) {completed = false; break;}
+             proposed.push(...next.best.lines); child = next.best.child.detach();
+-            proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
++            proposedRows[j] = {...sourceRows[j], incoming:next.incoming,control: next.best.c, cost: next.best.cost,
+               achieved: next.best.achieved, impact: next.best.actualImpact,
+               release: next.best.release, lines: next.best.lines.length,
+               failures: next.failures, lookahead: null, spent: getPhysicsFrameCount()};
+diff --git a/scripts/v0/optimizer/arc_value.ts b/scripts/v0/optimizer/arc_value.ts
+index b35c7fb7..5a7756dc 100644
+--- a/scripts/v0/optimizer/arc_value.ts
++++ b/scripts/v0/optimizer/arc_value.ts
+@@ -15,6 +15,19 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
+ export function arcFutureValue(features: number[], artifact: any): number {
+   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
+       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
++  if(artifact.residualBase){
++    const strength=artifact.residualStrength??1;
++    if(!Number.isFinite(strength)||strength<0||strength>1||artifact.residualInput!=='features-plus-log1p-base')throw new Error('invalid arc future-value correction');
++    const base=arcFutureValue(features,artifact.residualBase);if(strength===0)return base;
++    const input=[...features,Math.log1p(100*base)],model=artifact.residualModel;
++    let correction=model.initial;
++    for(const tree of model.trees){
++      let node=0;
++      while(!tree.leaf[node])node=input[tree.feature[node]]<=tree.threshold[node]?tree.left[node]:tree.right[node];
++      correction+=tree.value[node];
++    }
++    return Math.max(0,Math.expm1(Math.log1p(100*base)+strength*correction)/100);
++  }
+   let value = artifact.model.initial;
+   for (const tree of artifact.model.trees) {
+     let node = 0;

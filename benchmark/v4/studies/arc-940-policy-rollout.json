@@ -1,0 +1,31 @@
+{
+  "schema": "line.arc-policy-rollout-evidence.v1",
+  "selected": false,
+  "sourcePatch": "benchmark/v4/studies/prototypes/e10b67079d4b9e85f286e68c070afc890ad95b3e0040040707bafbf20e995b92.patch",
+  "model": {
+    "path": "generated/benchmark-v4/arc-940/models/rollout-949/policy.json",
+    "sha256": "d213342200e72df6401c174d47e7636e4acf174235fbf7028f53eaa1a5e7bf28",
+    "bytes": 28756260,
+    "featureCount": 67,
+    "openingExamples": 176,
+    "catchExamples": 15962
+  },
+  "dataSha256": "00d6d5dd6ad4381258f20ea51be205b8e14fb7b12e3d6851c1da3f6ac143567d",
+  "exactAllEncodedExamples": true,
+  "parity": {
+    "schema": "line.arc-policy-mean-parity.v1",
+    "modelPath": "generated/benchmark-v4/arc-940/models/rollout-949-forest/model.json",
+    "modelSha256": "fd081460093137fe36276af30719b1f5accf86ec6189784375afa5a66a568235",
+    "fixturePath": "generated/benchmark-v4/arc-940/models/rollout-949-forest/parity.json",
+    "fixtureSha256": "2bddd5d7c325cccf8c9036a5f89f685c6c8719eab9875f34345f374cff22237c",
+    "fixtures": 24,
+    "maxError": 3.3306690738754696e-16,
+    "runtimeSha256": "bd29b014e11894d4bd1ba96caf1dc6606e347743e00bb8c9b99bbd04d357b8f3",
+    "scriptSha256": "366f0695ec015d5b4526b96c545f1b3ae84d2d75cfe170e94dc54a558353a101"
+  },
+  "tests": {
+    "files": 2,
+    "passed": 9
+  },
+  "note": "Nearest measured controls use physical arrival and four upcoming authored intervals, never case or seed identity. Each offered curve is physically validated; rejection falls back to ordinary interval search. Full rollout quality and work are measured separately, without claiming teacher replay or promotion."
+}

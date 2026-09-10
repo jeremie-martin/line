@@ -1,0 +1,28 @@
+{
+  "schema": "line.arc-policy-mean-replacement-evidence.v1",
+  "selected": false,
+  "baseSha256": "4e5d0c66da1e52c9e21d86e7f0164a8ad0f2ab65a1aad6fadb6bec24e3be6844",
+  "model": {
+    "path": "generated/benchmark-v4/arc-940/models/banked-replay-934-correction/proximity.json",
+    "sha256": "586071c65138e91de9536e277a1866e7d87b80aba0a89e2cb6813e968bc6b9f8"
+  },
+  "replacement": {
+    "path": "generated/benchmark-v4/arc-940/models/replay-934-correction/policy-1.json",
+    "sha256": "e4f3a739e7eaa04b87a90a6f6158c4e89c41fa6e4e198c9bb7b9cda720ed4c61",
+    "component": "0,0,0",
+    "note": "Only the original mean proposal is replaced by its counterfactual teacher correction. All example libraries and proposal weights are retained exactly."
+  },
+  "exactAllOtherComponentsAndWeightsParity": true,
+  "parity": {
+    "schema": "line.arc-policy-mean-parity.v1",
+    "modelPath": "generated/benchmark-v4/arc-940/models/replay-934-correction/policy-1.json",
+    "modelSha256": "e4f3a739e7eaa04b87a90a6f6158c4e89c41fa6e4e198c9bb7b9cda720ed4c61",
+    "fixturePath": "generated/benchmark-v4/arc-940/models/replay-934-correction/parity-1.json",
+    "fixtureSha256": "f49cf831836ac62f19f34c0990e2b4ff53c371b9bfd4abeed0cf189db3c790b1",
+    "fixtures": 24,
+    "maxError": 2.220446049250313e-16,
+    "runtimeSha256": "70582a519bd3305f7d837e2c23c98544a3cc4443d8ec7fa5497259598319c195",
+    "scriptSha256": "366f0695ec015d5b4526b96c545f1b3ae84d2d75cfe170e94dc54a558353a101"
+  },
+  "note": "The counterfactual correction wraps the exact deployed mean proposal. Existing example libraries and their weights remain unchanged. Full physical evaluation is separate."
+}

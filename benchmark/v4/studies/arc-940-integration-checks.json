@@ -1,0 +1,64 @@
+{
+  "schema": "line.arc-940-integration-checks.v1",
+  "runtimeCommit": "97d2af4d",
+  "tests": {
+    "focused": {
+      "files": 10,
+      "passed": 25
+    },
+    "broad": {
+      "files": 34,
+      "passedBeforeFix": 128,
+      "failedBeforeFix": 1,
+      "failure": "Explicit research replay entered strict proposal mode.",
+      "fix": "Bypass preview for replayControls/directControls.",
+      "regressionAfterFix": {
+        "files": 3,
+        "passed": 7
+      },
+      "all129CoveredAfterFix": true
+    },
+    "final": {
+      "files": 34,
+      "passed": 129,
+      "failed": 0
+    }
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit --allowImportingTsExtensions --pretty false",
+    "baselineErrors": 251,
+    "candidateErrors": 251,
+    "newErrors": 0,
+    "normalization": "Ignore source line/column shifts and absolute worktree roots; retain paths, codes, messages and multiplicity."
+  },
+  "logs": {
+    "integration-tests.log": {
+      "path": "generated/benchmark-v4/arc-940/integration-tests.log",
+      "sha256": "2f5cfd1526b835340d220ce444a6b8c36a02f0045090bc50893caa4b3f6f3147"
+    },
+    "integration-arc-suite.log": {
+      "path": "generated/benchmark-v4/arc-940/integration-arc-suite.log",
+      "sha256": "4be513afff7befcdae2f9668516455823327ec8cace79e9544dd6fc20759a434"
+    },
+    "integration-replay-fix.log": {
+      "path": "generated/benchmark-v4/arc-940/integration-replay-fix.log",
+      "sha256": "f6c619ef108c09845b875ff6c2b1c30cba122caabdc940fb8da058710f8f4370"
+    },
+    "integration-replay-regression.log": {
+      "path": "generated/benchmark-v4/arc-940/integration-replay-regression.log",
+      "sha256": "f9165e8b5d7e6a6591cf6a72596907468af178d87dca5a3ac855acfde026df85"
+    },
+    "baseline-tsc-supported.log": {
+      "path": "generated/benchmark-v4/arc-940/baseline-tsc-supported.log",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "integration-tsc-supported.log": {
+      "path": "generated/benchmark-v4/arc-940/integration-tsc-supported.log",
+      "sha256": "91fa49f9659d124f174b98929ffd240c677a71d3cbebf914fff74d113dd011c6"
+    },
+    "integration-final-arc-suite.log": {
+      "path": "generated/benchmark-v4/arc-940/integration-final-arc-suite.log",
+      "sha256": "e061bb581b8172ca24b2dd0aea6cef176d16411eab4e6f477498aa181c3db6b5"
+    }
+  }
+}

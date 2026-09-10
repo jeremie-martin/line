@@ -18,6 +18,7 @@ import {makeRng} from '../lib/rng.ts';
 import {CALIB} from '../v0/types.ts';
 const arg=(name:string)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
 const contextual=arg('context')==='true',horizon=arg('horizon')==='true';
+const preserveControlReference=arg('preserve-control-reference')==='true';
 assert.ok(!(contextual&&horizon),'choose one feature extension per study');
 const read=(p:string)=>{const b=readFileSync(p);assert.equal(sha(b),readFileSync(p+'.sha256','utf8').trim());return JSON.parse((p.endsWith('.gz')?gunzipSync(b):b).toString());};
 const paths=arg('inputs')!.split(','),panels=paths.map(p=>({path:p,run:read(resolve(p,'run.json.gz'))}));
@@ -97,7 +98,8 @@ for(const c of cases){
             ...['air','speed','amplitude'].map(key=>priorAxes?.[key]??-1));
           if(record.proposalContexts)assert.deepEqual(features,record.proposalContexts.find((x:any)=>x.index===i)?.features,'independent measured context mismatch');
         }
-        all.push({source:c.id,parent:c.parentId,group:c.group,index:i,features,target,control});
+        all.push({source:c.id,parent:c.parentId,group:c.group,index:i,features,target,control,
+          ...(preserveControlReference?{incoming,span}:{})});
       }
       const geometry=record.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)===i);assert.ok(geometry.length);
       engine=engine.addLine(geometry).detach();Engine.retainOnly([engine,reference]);

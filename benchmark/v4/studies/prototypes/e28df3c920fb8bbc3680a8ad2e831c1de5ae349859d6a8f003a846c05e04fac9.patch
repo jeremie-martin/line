@@ -1,0 +1,246 @@
+diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts
+index ff74d8ca..66202d1c 100644
+--- a/scripts/v0/optimizer/arc_control_policy.ts
++++ b/scripts/v0/optimizer/arc_control_policy.ts
+@@ -2,6 +2,14 @@
+ import {arcArrivalFeatures} from './arc_value.ts';
+ import type {ArcMotionControl} from './arc_geometry.ts';
+ export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';
++/** Preserve the exact demonstrated geometry when its incoming state is repeated. */
++export function arcReferencedControl(reference:{control:ArcMotionControl;incoming:number;span:number},incoming:number,span:number):ArcMotionControl{
++  if(!Number.isFinite(reference.incoming)||!Number.isFinite(reference.span)||reference.span<=0)throw new Error('invalid arc control reference');
++  const c=reference.control,angle=incoming-reference.incoming;
++  return {...c,entry:angle===0?c.entry:c.entry+angle,exit:angle===0?c.exit:c.exit+angle,
++    support:span===reference.span?c.support:c.support*(span/reference.span)};
++}
++export const ARC_HORIZON_POLICY_SCHEMA='line.arc-horizon-control-policy-features.v1';
+ // Loaded model artifacts stay immutable during compilation. Index their leaf
+ // memberships once; replacing either source array rebuilds the index.
+ const partitionIndices=new WeakMap<object,{exemplars:any[];trees:any[];buckets:Map<number,number[]>[]}>();
+@@ -30,7 +38,9 @@ export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[
+     Math.hypot(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);
+ }
+ export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number):ArcMotionControl[]{
+-  if(model.featureSchema!==ARC_POLICY_SCHEMA||features.length!==model.featureCount||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');
++  const expected=model.featureSchema===ARC_POLICY_SCHEMA?57:model.featureSchema===ARC_HORIZON_POLICY_SCHEMA?67:0;
++  if(!expected||model.featureCount!==expected||![57,67].includes(features.length)||features.length<expected||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');
++  if(features.length!==expected)features=features.slice(0,expected);
+   if(!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc policy count');
+   if(count===0)return [];
+   if(model.residualBase){
+@@ -55,7 +65,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
+     });
+     const weights:number[]|undefined=model.featureWeights;
+     if(weights&&(weights.length!==features.length||weights.some(w=>!Number.isFinite(w)||w<0)))throw new Error('arc policy distance weights mismatch');
+-    const nearest:Array<{distance:number;value:number[]}>=[],limit=Math.max(24,count*8);
++    const nearest:Array<{distance:number;value:number[];reference?:{control:ArcMotionControl;incoming:number;span:number}}>=[],limit=Math.max(24,count*8);
+     const matches=queryLeaves?partitionMatches(model,queryLeaves):undefined;
+     for(let index=0;index<model.exemplars.length;index++){
+       const row=model.exemplars[index];
+@@ -73,11 +83,11 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
+         distance=partitionDistance+distance/(1+distance);
+       }
+       if(nearest.length===limit&&distance>=nearest[nearest.length-1].distance)continue;
+-      nearest.push({distance,value:row.target});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
++      nearest.push({distance,value:row.target,reference:row.controlReference});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
+     }
+     const selected:ArcMotionControl[]=[];
+-    for(const {value:v} of nearest){
+-      const c={entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};
++    for(const {value:v,reference} of nearest){
++      const c=reference?arcReferencedControl(reference,incoming,span):{entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};
+       if(selected.some(p=>Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;
+       selected.push(c);if(selected.length>=count)break;
+     }
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..e7b6928b 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -90,6 +90,11 @@ export type ArcMotionOptions= {
+   /** Explicit local correction allowance for simulated continuation probes. */
+   continuationGuidanceSamples?:number;
+   continuationResponseSamples?:number;
++  /** Propose one demonstrated curve and search only when its physical replay fails. */
++  policyRollout?:boolean;
++  policyRolloutStrict?:boolean;
++  policyPreview?:boolean;
++  collectTrajectoryLoss?:boolean;
+   lookaheadWeight?:number;
+   lookaheadWarmStart?:boolean;
+   warmStart?:ArcMotionControl;
+@@ -145,11 +150,42 @@ export type ArcMotionOptions= {
+   valueGuidanceWeight?:number;
+   valueSelection?:boolean};
+ 
+-export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
++export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions):ReturnType<typeof compileArcMotionOnce>&{policyPreviewStats?:any;engineRebuilds?:number}{
++  if(!options.policyPreview)return compileArcMotionOnce(spec,seed,options);
++  if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
++  spec=normalizeCompilerTimeline(spec);validateSpec(spec);
++  const model=typeof options.controlPolicy==='function'?options.controlPolicy():options.controlPolicy;
++  const end=Math.round(spec.duration*40)+20,allowance=Math.floor(options.budget*.05);
++  if(!model?.rolloutPolicy||allowance<=4*(end+1)||options.constructionBudget!==undefined)
++    return compileArcMotionOnce(spec,seed,{...options,controlPolicy:model});
++  const preview=compileArcMotionOnce(spec,seed,{...options,budget:allowance,controlPolicy:model.rolloutPolicy,
++    policyPreview:false,policyRollout:true,policyRolloutStrict:true,lookaheadWidth:0,qualityRetries:0,refineAttempts:0,collectTrajectoryLoss:true});
++  const previewFrames=getPhysicsFrameCount();
++  // Keep the real counter running. The second search sees the first proposal's
++  // work against the same absolute ceiling, including both of its cold replays.
++  const searched=compileArcMotionOnce(spec,seed,{...options,controlPolicy:model,policyPreview:false,
++    policyRollout:false,policyRolloutStrict:false,collectTrajectoryLoss:true},true);
++  const total=getPhysicsFrameCount(),chosen=(preview.trajectoryLoss??Infinity)<(searched.trajectoryLoss??Infinity)?preview:searched;
++  const backtracks=preview.backtracks+searched.backtracks;
++  const qualityRetries={...preview.qualityRetries};
++  for(const [index,count] of Object.entries(searched.qualityRetries))qualityRetries[index]=(qualityRetries[index]??0)+count;
++  return {...chosen,budget:options.budget,constructionFrames:searched.constructionFrames,
++    samples:preview.samples+searched.samples,backtracks,engineRebuilds:backtracks+4,qualityRetries,
++    searchBudgetExhausted:preview.searchBudgetExhausted||searched.searchBudgetExhausted,
++    budgetInterruptions:[...preview.budgetInterruptions.map(r=>({...r,attempt:'preview'})),...searched.budgetInterruptions.map(r=>({...r,attempt:'search'}))],
++    candidateMemo:{hits:preview.candidateMemo.hits+searched.candidateMemo.hits,rejectedHits:preview.candidateMemo.rejectedHits+searched.candidateMemo.rejectedHits},
++    lookaheadStats:searched.lookaheadStats,planningDecisions:searched.planningDecisions,
++    stats:{...chosen.stats,sim_frames:total,viable_candidate_samples:preview.stats.viable_candidate_samples+searched.stats.viable_candidate_samples},
++    policyPreviewStats:{previewFrames,searchFrames:total-previewFrames,totalFrames:total,
++      previewLoss:preview.trajectoryLoss,searchLoss:searched.trajectoryLoss,selected:chosen===preview?'preview':'search',
++      previewComplete:preview.failure===null,searchComplete:searched.failure===null}};
++}
++
++function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
+   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
+   spec=normalizeCompilerTimeline(spec);
+   validateSpec(spec);
+-  resetFrameCount();const finalBudget=options.budget,budget=options.constructionBudget??finalBudget,duration=Math.round(spec.duration*40),end=duration+20;
++  if(!continueMeter)resetFrameCount();const finalBudget=options.budget,budget=options.constructionBudget??finalBudget,duration=Math.round(spec.duration*40),end=duration+20;
+   if(!Number.isSafeInteger(budget)||budget>finalBudget)throw new Error('invalid arc construction budget');
+   if(duration<1)throw new Error('arc duration must cover at least one frame');
+   if(budget<=2*(end+1))throw new Error('arc budget must cover two complete replays and construction work');
+@@ -201,6 +237,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   const planningDecisions:any[]=[];
+   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
+   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
++  const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
+   const controlMemory=new ArcControlMemory();
+   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
+   let deepestPrefix={lines:[] as TrackLine[],rows:[] as any[]};
+@@ -225,9 +262,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   if(options.replayControls&&options.replayControls.length!==contacts.length)throw new Error('replay controls do not cover the complete timeline');
+   try{
+     const compileOptions=options;
+-    const futureFeatures=(arrival:number[],i:number)=>{
++    const futureFeatures=(arrival:number[],i:number,count=2)=>{
+       const features=[...arrival];
+-      for(let k=1;k<=2;k++){
++      for(let k=1;k<=count;k++){
+         const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===contact.frame)?.targets:undefined;
+         features.push(contact?((contacts[i+k+1]?.frame??end+1)-contact.frame)/40:0,contact?(gaps[contact.gap]?.targets.impact??-1):-1,target?.air??-1,target?.speed??-1,target?.amplitude??-1);
+       }
+@@ -422,7 +459,10 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       };
+       // These describe the immutable incoming prefix already measured above.
+       // Reusing them avoids a new physics read after committing the search budget.
+-      const inputFeatures=futureFeatures(arcPolicyArrival(beforeState,velocity),i-1);
++      const arrivalFeatures=arcPolicyArrival(beforeState,velocity),inputFeatures=futureFeatures(arrivalFeatures,i-1);
++      // Only the learned proposal receives the longer authored window. Keep
++      // response-memory and future-value inputs in their original units.
++      const policyInputFeatures=options.controlPolicy?.featureCount===67?futureFeatures(arrivalFeatures,i-1,4):inputFeatures;
+       let center:ArcMotionControl|undefined;
+       const selectBounded=()=>{
+         if(!options.boundedSelection||!best)return;
+@@ -434,6 +474,21 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       };
+       try {
+       if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};}
++      if(options.policyRollout){
++        const model=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
++        const began=getPhysicsFrameCount();
++        try{
++          if(model)for(const control of arcControlProposals(policyInputFeatures,incoming,span,model,1)){
++            policyRolloutStats.proposals++;
++            if(evaluate(control)){
++              policyRolloutStats.accepted++;
++              return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};
++            }
++          }
++        }finally{policyRolloutStats.physicsFrames+=getPhysicsFrameCount()-began;}
++        policyRolloutStats.fallbacks++;
++        if(options.policyRolloutStrict)return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};
++      }
+       center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
+       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
+       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
+@@ -447,7 +502,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
+       const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];
+       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
+-      const policy=counts[0]?arcControlProposals(inputFeatures,incoming,span,proposalModel,counts[0]):[];
++      const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0]):[];
+       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
+       if(options.warmStart)evaluate(options.warmStart);
+       for(let k=0;k<initial;k++){
+@@ -796,6 +851,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  const trajectoryLoss=options.collectTrajectoryLoss?arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight).loss:undefined;
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }
+diff --git a/scripts/v0/optimizer/arc_value.ts b/scripts/v0/optimizer/arc_value.ts
+index b35c7fb7..5a7756dc 100644
+--- a/scripts/v0/optimizer/arc_value.ts
++++ b/scripts/v0/optimizer/arc_value.ts
+@@ -15,6 +15,19 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
+ export function arcFutureValue(features: number[], artifact: any): number {
+   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
+       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
++  if(artifact.residualBase){
++    const strength=artifact.residualStrength??1;
++    if(!Number.isFinite(strength)||strength<0||strength>1||artifact.residualInput!=='features-plus-log1p-base')throw new Error('invalid arc future-value correction');
++    const base=arcFutureValue(features,artifact.residualBase);if(strength===0)return base;
++    const input=[...features,Math.log1p(100*base)],model=artifact.residualModel;
++    let correction=model.initial;
++    for(const tree of model.trees){
++      let node=0;
++      while(!tree.leaf[node])node=input[tree.feature[node]]<=tree.threshold[node]?tree.left[node]:tree.right[node];
++      correction+=tree.value[node];
++    }
++    return Math.max(0,Math.expm1(Math.log1p(100*base)+strength*correction)/100);
++  }
+   let value = artifact.model.initial;
+   for (const tree of artifact.model.trees) {
+     let node = 0;
+diff --git a/tests/arc_policy_preview.test.ts b/tests/arc_policy_preview.test.ts
+new file mode 100644
+index 00000000..8a3dcec1
+--- /dev/null
++++ b/tests/arc_policy_preview.test.ts
+@@ -0,0 +1,29 @@
++import {expect,it} from 'vitest';
++import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
++import {getPhysicsFrameCount} from '../scripts/lib/detector.ts';
++import {connectedArcOptions} from '../scripts/v0/optimizer/connected_arcs.ts';
++import type {Spec} from '../scripts/v0/types.ts';
++const target=[0,-.2,-.3,.5,0,.1,1,.4,0,0],tree={left:[-1],right:[-1],feature:[0],threshold:[0],value:[target]};
++const model={featureSchema:'line.arc-control-policy-features.v1',featureCount:57,trees:[tree,tree]};
++const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
++const options={...connectedArcOptions(spec,75000),controlPolicy:{...model,rolloutPolicy:{...model,startupModel:model}}};
++it('preserves ordinary compilation when complete-track proposals are disabled',()=>{
++  const plain=compileArcMotion(spec,17,options),disabled=compileArcMotion(spec,17,{...options,policyPreview:false});
++  expect(disabled.track).toEqual(plain.track);expect(disabled.stats).toEqual(plain.stats);
++});
++it('charges both complete attempts and their cold replays to one actual physics counter',()=>{
++  const result=compileArcMotion(spec,17,{...options,policyPreview:true}),proof=result.policyPreviewStats;
++  expect(proof.previewFrames).toBeGreaterThan(0);expect(proof.searchFrames).toBeGreaterThan(0);
++  expect(proof.previewFrames+proof.searchFrames).toBe(getPhysicsFrameCount());
++  expect(result.stats.sim_frames).toBe(getPhysicsFrameCount());expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
++  expect(result.trajectoryLoss).toBe(Math.min(proof.previewLoss,proof.searchLoss));
++  expect(result.failure).toBeNull();expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
++  expect(result.track.lines.every(l=>l.type===0)).toBe(true);
++});
++it('retains general search after a strict proposal fails without resetting or refunding its work',()=>{
++  const badTree={...tree,value:[[2,2,2,.99,2,3,.5,.85,2,2]]},bad={...model,trees:[badTree,badTree]};
++  const result=compileArcMotion(spec,17,{...options,policyPreview:true,controlPolicy:{...model,rolloutPolicy:{...bad,startupModel:bad}}});
++  expect(result.policyPreviewStats.previewComplete).toBe(false);expect(result.policyPreviewStats.selected).toBe('search');
++  expect(result.policyPreviewStats.previewFrames).toBeGreaterThan(0);expect(result.stats.sim_frames).toBe(getPhysicsFrameCount());
++  expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);expect(result.failure).toBeNull();
++});

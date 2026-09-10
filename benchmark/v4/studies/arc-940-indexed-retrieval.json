@@ -1,0 +1,31 @@
+{
+  "schema": "line.arc-retrieval-parity.v1",
+  "queries": 512,
+  "comparisons": 2048,
+  "exactProposalParity": true,
+  "candidateRoot": "/tmp/line-v4-940-indexed",
+  "referenceRoot": "/tmp/line-v4-candidate",
+  "candidateCodeSha256": "70582a519bd3305f7d837e2c23c98544a3cc4443d8ec7fa5497259598319c195",
+  "referenceCodeSha256": "d35bff3a20a72c8e7b152c27bf81fd306f3fb4131e45da24323492c1c5de70aa",
+  "modelPath": "/tmp/line-v4-940-indexed/scripts/v0/optimizer/arc_control_policy_model.json",
+  "modelSha256": "b26c5a2f99bf7fb87a722c6310554263c6ed5b2de63aabd34d49adbb41fbcad4",
+  "dataPath": "generated/benchmark-v4/recovery-data/combined-teaching/data.json",
+  "dataSha256": "3dcd8eff877817877d57f3168e5fbc0693b23b6b20b4f712d8f5fc25fe53eafc",
+  "scriptSha256": "1613700f56784487575f6c326a15f0c0026679b06e4574a9afa38d7cd2152982",
+  "queryRecipe": "256 evenly spaced measured records and deterministic +/-0.013 feature perturbations; proposal counts 1,8,16,24,32,48; four interleaved comparisons.",
+  "timingsMs": {
+    "reference": [
+      4929.841042,
+      4764.060578999999,
+      4815.611457000003,
+      4955.164471
+    ],
+    "candidate": [
+      2714.0267429999994,
+      2634.3703000000005,
+      2560.6202150000026,
+      2539.427345
+    ]
+  },
+  "note": "Local query microbenchmark, possibly alongside other work; not an end-to-end compiler speed claim."
+}

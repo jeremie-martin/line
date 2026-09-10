@@ -1,0 +1,142 @@
+{
+  "schema": "line.arc-v4-teacher-transfer.v1",
+  "dataset": {
+    "path": "generated/benchmark-v4/arc-940/data/refreshed-934/data.json",
+    "sha256": "4c81776c2f050a6ed722b3f821abe3bdd556aecf09994def33f0b6dd2f5e5a11",
+    "rows": 15962,
+    "sources": 176,
+    "parents": 65,
+    "featureCount": 57,
+    "controlCount": 10
+  },
+  "panels": [
+    {
+      "path": "generated/benchmark-v4/arc-940/teachers/combined-3m/run.json.gz",
+      "sha256": "c67fe434e181db03b076420eaaee1a8c23b066f5aa5b08d5492d08b5bbaf385e",
+      "budget": 3000000,
+      "seed": 16,
+      "cases": 176,
+      "valid": 176,
+      "headline": 934.2764,
+      "compiler": "5bccdc966622010f268fb5bc4fa2577ea8fec7d4867856bf7dee8bf7717f75c6",
+      "options": {
+        "samples": 216,
+        "guidanceSamples": 360,
+        "responseSamples": 322,
+        "collectValue": true
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/full/expanded-teaching/run.json.gz",
+      "sha256": "f5ec193ce00dfc628f18022211da4c12b88b0aa9378cb850330c3321f29d53e6",
+      "budget": 750000,
+      "seed": 16,
+      "cases": 176,
+      "valid": 176,
+      "headline": 928.0792,
+      "compiler": "5bccdc966622010f268fb5bc4fa2577ea8fec7d4867856bf7dee8bf7717f75c6",
+      "options": {
+        "controlPolicyPath": "/home/wyss/line/generated/benchmark-v4/arc-940/models/expanded-teaching/proximity.json"
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/full/proposal-breadth/run.json.gz",
+      "sha256": "bdb7b8b3a26cd41341327d4a11e31551516c24351a49c9ecb9d1326eda5dd95b",
+      "budget": 750000,
+      "seed": 16,
+      "cases": 176,
+      "valid": 176,
+      "headline": 925.1309,
+      "compiler": "5bccdc966622010f268fb5bc4fa2577ea8fec7d4867856bf7dee8bf7717f75c6",
+      "options": {
+        "samples": 112,
+        "guidanceSamples": 144,
+        "responseSamples": 138,
+        "policySamples": 48
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/pilots/teacher-continuation-response/run.json.gz",
+      "sha256": "8b56f9fbe86a90730918b9ca2b6009ceeeb2538bad5e7c4c448b87acd4992e35",
+      "budget": 3000000,
+      "seed": 16,
+      "cases": 8,
+      "valid": null,
+      "headline": null,
+      "compiler": "5bccdc966622010f268fb5bc4fa2577ea8fec7d4867856bf7dee8bf7717f75c6",
+      "options": {
+        "samples": 216,
+        "guidanceSamples": 360,
+        "responseSamples": 322,
+        "continuationGuidanceSamples": 46,
+        "continuationResponseSamples": 46,
+        "collectValue": true
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/pilots/teacher-pair-response/run.json.gz",
+      "sha256": "b6bf3f7fa21d0778dc09c2f07d5db2dd9cf4971a0f93a3195bb7b6ccfcba84eb",
+      "budget": 3000000,
+      "seed": 16,
+      "cases": 8,
+      "valid": null,
+      "headline": null,
+      "compiler": "3353aa4398fd25bad65297014b23c7cc51c1d078224ae0899f5422188b477cd5",
+      "options": {
+        "samples": 216,
+        "guidanceSamples": 360,
+        "responseSamples": 322,
+        "pairResponseRounds": 2,
+        "collectValue": true
+      }
+    }
+  ],
+  "geometryProofs": [
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/ec2d12e9ee7e401661112411d5eb34093fdf72521b11a999cf39274c57c550e5.json",
+      "sha256": "ec2d12e9ee7e401661112411d5eb34093fdf72521b11a999cf39274c57c550e5",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/b0c6be1daf4908a070147ea42de061421a33d2a5aac55ec91de6442d79648722.json",
+      "sha256": "b0c6be1daf4908a070147ea42de061421a33d2a5aac55ec91de6442d79648722",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/36f893301eab3b42c3ec24a7f773544fbc53e6d8cc1e26c5549d516fa57b735c.json",
+      "sha256": "36f893301eab3b42c3ec24a7f773544fbc53e6d8cc1e26c5549d516fa57b735c",
+      "cases": 176,
+      "controls": 16138,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/5e5e9c6120aa5b1a3ada95d2c4d13ebcd9dd721f7242f990ed3392fc672bda5f.json",
+      "sha256": "5e5e9c6120aa5b1a3ada95d2c4d13ebcd9dd721f7242f990ed3392fc672bda5f",
+      "cases": 8,
+      "controls": 770,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    },
+    {
+      "path": "benchmark/v4/studies/geometry-proofs/27826c25f352ff70a89fda541ce22dd07cf5fde8c31cecfda471519e672c5d3c.json",
+      "sha256": "27826c25f352ff70a89fda541ce22dd07cf5fde8c31cecfda471519e672c5d3c",
+      "cases": 8,
+      "controls": 770,
+      "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138"
+    }
+  ],
+  "selectedTrajectoryCounts": {
+    "/home/wyss/line/generated/benchmark-v4/arc-940/pilots/teacher-continuation-response": 3,
+    "/home/wyss/line/generated/benchmark-v4/arc-940/full/proposal-breadth": 22,
+    "/home/wyss/line/generated/benchmark-v4/arc-940/teachers/combined-3m": 120,
+    "/home/wyss/line/generated/benchmark-v4/arc-940/full/expanded-teaching": 29,
+    "/home/wyss/line/generated/benchmark-v4/arc-940/pilots/teacher-pair-response": 2
+  },
+  "verifiedSelectedPrefixes": 176,
+  "selectedReplayPhysicsFrames": 863763,
+  "scriptSha256": "21e45b7ecc1ddab76f9b4449beafb12a457dc11c51531974cd49f37cabf7ff08",
+  "note": "Exposed development training. The best valid complete trajectory per case supplies training actions; this selection is not a compiler run or score. Higher teacher budgets do not qualify for the 750k goal. Runtime inputs are physical state and upcoming targets, without source, seed or absolute-position identifiers."
+}

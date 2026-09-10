@@ -18,22 +18,35 @@ import {CALIB} from '../v0/types.ts';
 const arg=(name:string)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
 const read=(p:string)=>{const b=readFileSync(p);assert.equal(sha(b),readFileSync(p+'.sha256','utf8').trim());return JSON.parse((p.endsWith('.gz')?gunzipSync(b):b).toString());};
 const paths=arg('inputs')!.split(','),panels=paths.map(p=>({path:p,run:read(resolve(p,'run.json.gz'))}));
-const compilerRoot=arg('compiler-root')?resolve(arg('compiler-root')!):null;
-let defaults:typeof import('../v0/optimizer/connected_arcs.ts').connectedArcOptions|undefined;
-if(compilerRoot){
+assert.ok(!(arg('compiler-root')&&arg('compiler-roots')),'choose one compiler-root argument');
+const roots=arg('compiler-roots')?.split(',')??(arg('compiler-root')?[arg('compiler-root')!]:[]);
+const defaultsByCompiler=new Map<string,typeof import('../v0/optimizer/connected_arcs.ts').connectedArcOptions>();
+const compilerIdentities:Array<{root:string;fingerprint:string}>=[];
+for(const root of roots){
+  const compilerRoot=resolve(root);
   const fingerprint=execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',
     'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; console.log(compilerCandidateIdentity("wasm").candidateFingerprint);'],{cwd:compilerRoot,encoding:'utf8'}).trim();
-  for(const p of panels)assert.equal(p.run.plan.compiler.candidateFingerprint,fingerprint,'teacher compiler root mismatch');
-  defaults=(await import(pathToFileURL(resolve(compilerRoot,'scripts/v0/optimizer/connected_arcs.ts')).href)).connectedArcOptions;
+  defaultsByCompiler.set(fingerprint,(await import(pathToFileURL(resolve(compilerRoot,'scripts/v0/optimizer/connected_arcs.ts')).href)).connectedArcOptions);
+  compilerIdentities.push({root:compilerRoot,fingerprint});
 }
 const suite=requestedArcSuite(),cases=loadArcCases(suite),all:any[]=[],provenance:any[]=[];
+const frozen=suite==='v4'?(await import('../../benchmark/v4/contract.ts')).verifyFrozen():undefined;
+for(const panel of panels){
+  const plan=read(resolve(panel.path,'plan.json'));assert.deepEqual(panel.run.plan,plan);
+  assert.equal(plan.suite??'v3',suite);
+  if(frozen)assert.deepEqual(plan.judge,frozen,'teacher judge mismatch');
+  if(roots.length)assert.ok(defaultsByCompiler.has(plan.compiler.candidateFingerprint),'teacher compiler root mismatch');
+}
 for(const c of cases){
   const candidates=panels.map(p=>({panel:p,row:p.run.rows.find((r:any)=>r.sourceId===c.id)})).filter(p=>p.row?.score.valid);
   assert.ok(candidates.length,'no valid teacher '+c.id);
   candidates.sort((a,b)=>b.row.score.score-a.row.score.score);
   const teacher=candidates[0],path=resolve(teacher.panel.path,c.id+'.json.gz'),record=read(path),plan=teacher.panel.run.plan;
+  assert.equal(record.planSha256,sha(readFileSync(resolve(teacher.panel.path,'plan.json'))));
+  assert.equal(record.sourceId,c.id);assert.deepEqual(record.score,teacher.row.score);
   assert.equal(record.trackHash,sha(JSON.stringify(record.track)));assert.equal(record.seed,plan.seed);
   const spec=normalizeCompilerTimeline(caseSpec(c)),duration=Math.round(spec.duration*40),end=duration+20;
+  const defaults=defaultsByCompiler.get(plan.compiler.candidateFingerprint);
   const authoredHorizon=plan.options.authoredHorizon??defaults?.(spec,plan.budget).authoredHorizon??false;
   const gaps=sliceTimeline(spec.contacts.map(x=>Math.round(x.t*40)),duration);
   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
@@ -70,7 +83,13 @@ for(const c of cases){
   if(provenance.length%8===0)console.log(JSON.stringify({sources:provenance.length,rows:all.length}));
 }
 const out=resolve(arg('out')!);mkdirSync(out,{recursive:true});
+for(const identity of compilerIdentities){
+  const current=execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',
+    'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; console.log(compilerCandidateIdentity("wasm").candidateFingerprint);'],{cwd:identity.root,encoding:'utf8'}).trim();
+  assert.equal(current,identity.fingerprint,'teacher compiler changed during collection');
+}
 const body=JSON.stringify({schema:'line.arc-control-policy-data.v1',featureSchema:ARC_POLICY_SCHEMA,
+  compilerIdentities,scriptSha256:sha(readFileSync(import.meta.filename)),
   note:`Exposed ${suite.toUpperCase()} development training. Best valid complete trajectory per case among declared panels; this teacher selection is not a compiler score. Runtime features contain physical state and upcoming targets, with no source/seed/index/absolute-position identifiers.`,
   panels:panels.map(p=>({path:p.path,sha256:sha(readFileSync(resolve(p.path,'run.json.gz')))})),provenance,rows:all})+'\n';
 writeFileSync(resolve(out,'data.json'),body);writeFileSync(resolve(out,'data.json.sha256'),sha(body)+'\n');

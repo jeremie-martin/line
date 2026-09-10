@@ -2,6 +2,27 @@
 import {arcArrivalFeatures} from './arc_value.ts';
 import type {ArcMotionControl} from './arc_geometry.ts';
 export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';
+// Loaded model artifacts stay immutable during compilation. Index their leaf
+// memberships once; replacing either source array rebuilds the index.
+const partitionIndices=new WeakMap<object,{exemplars:any[];trees:any[];buckets:Map<number,number[]>[]}>();
+function partitionMatches(model:any,leaves:number[]):Uint32Array{
+  let index=partitionIndices.get(model);
+  if(!index||index.exemplars!==model.exemplars||index.trees!==model.proximityTrees){
+    const buckets=leaves.map(()=>new Map<number,number[]>());
+    for(let row=0;row<model.exemplars.length;row++){
+      const memberships=model.exemplars[row].proximityLeaves;
+      if(memberships?.length!==leaves.length)throw new Error('arc policy proximity mismatch');
+      for(let tree=0;tree<leaves.length;tree++){
+        const leaf=memberships[tree],members=buckets[tree].get(leaf);
+        if(members)members.push(row);else buckets[tree].set(leaf,[row]);
+      }
+    }
+    index={exemplars:model.exemplars,trees:model.proximityTrees,buckets};partitionIndices.set(model,index);
+  }
+  const counts=new Uint32Array(model.exemplars.length);
+  for(let tree=0;tree<leaves.length;tree++)for(const row of index.buckets[tree].get(leaves[tree])??[])counts[row]++;
+  return counts;
+}
 export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[]{
   const tail=state.points.TAIL,nose=state.points.NOSE,dx=nose.x-tail.x,dy=nose.y-tail.y;
   const angular=(dx*(nose.vy-tail.vy)-dy*(nose.vx-tail.vx))/Math.max(1,dx*dx+dy*dy);
@@ -35,11 +56,12 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
     const weights:number[]|undefined=model.featureWeights;
     if(weights&&(weights.length!==features.length||weights.some(w=>!Number.isFinite(w)||w<0)))throw new Error('arc policy distance weights mismatch');
     const nearest:Array<{distance:number;value:number[]}>=[],limit=Math.max(24,count*8);
-    for(const row of model.exemplars){
+    const matches=queryLeaves?partitionMatches(model,queryLeaves):undefined;
+    for(let index=0;index<model.exemplars.length;index++){
+      const row=model.exemplars[index];
       let partitionDistance=0;
       if(queryLeaves){
-        if(row.proximityLeaves?.length!==queryLeaves.length)throw new Error('arc policy proximity mismatch');
-        partitionDistance=queryLeaves.reduce((n:number,leaf:number,k:number)=>n+(leaf!==row.proximityLeaves[k]?1:0),0);
+        partitionDistance=queryLeaves.length-matches![index];
         // Physical distance adds a nonnegative tie-breaker. A partition lower
         // bound already beyond the retained neighborhood cannot enter it.
         if(nearest.length===limit&&partitionDistance>nearest[nearest.length-1].distance)continue;

@@ -1,0 +1,116 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 7897bac8..2426dcb8 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -123,6 +123,9 @@ export type ArcMotionOptions= {
+   refineRebuildSamples?:number;
+   refineExpressive?:boolean;
+   responseSamples?:number;
++  /** Jointly correct a physically validated pair of adjacent arcs. */
++  pairResponseRounds?:number;
++  pairResponseScale?:number;
+   responseDamping?:number;
+   responseScale?:number;
+   refineFollowSamples?:number;
+@@ -196,7 +199,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   let samples=0,viableCandidates=0,memoHits=0,memoRejectedHits=0;const qualityRetries=new Map<number,number>();
+   let refinementStats:any=null, terminalSelectionStats:any=null, observedConstructionRate=0;
+   let searchBudgetExhausted=false;
+-  const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
++  const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation'|'pair';index:number;frame:number;viable:number;retained:boolean}>=[];
++  const pairRefinements:any[]=[];
+   const planningDecisions:any[]=[];
+   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
+   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+@@ -410,7 +414,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
+         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
+           i<contacts.length-1?options.valueGuidanceWeight??0:0);
+-        const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
++        const result={child,lines:added,c,cost,localCost,localResiduals:residuals.slice(0,priorStart),residuals:guided.residuals,optimizationCost:guided.cost,
+           achieved,actualImpact,terminalLoss,release};
+         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
+           searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+@@ -720,6 +724,74 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         lookaheadStats.physicsFrames+=getPhysicsFrameCount()-startFrames;
+         lookahead={probes,selected:winner?.candidate.c??original.c};
+       }
++      if(best&&(options.pairResponseRounds??0)>0&&i+1<contacts.length&&options.completeBoundary){
++        const began=getPhysicsFrameCount(),original=best;
++        const reserve=(end-frame)*Math.max((options.samples??160)+(options.guidanceSamples??0),observedConstructionRate)*(options.reserveFactor??1.1);
++        const remaining=budget-2*(end+1)-began-Math.ceil(reserve);
++        const nextHorizon=(contacts[i+2]?.frame??end+1)-1;
++        const spanFrames=nextHorizon-frame+1;
++        // Joint work gets only capacity left after reserving the remaining
++        // construction. Its local ceiling never refunds actual physics work.
++        if(remaining>=spanFrames*45){
++          const limit=began+Math.min(remaining,Math.ceil(spanFrames*(45*options.pairResponseRounds!+4)));
++          setPhysicsFrameLimit(limit);
++          let pair:any=null,initialLoss:number|undefined,evaluated=0,interrupted=false;
++          const protectedEngines=[engine,original.child];
++          const evaluatePair=(firstControl:ArcMotionControl,secondControl?:ArcMotionControl)=>{
++            try{
++              const first=searchInterval(engine,i,{directControls:[firstControl]},protectedEngines)?.best;
++              if(!first)return null;
++              const second=searchInterval(first.child,i+1,secondControl?{directControls:[secondControl]}:
++                {samples:options.lookaheadSamples??32,guidanceSamples:12,responseSamples:0},[...protectedEngines,first.child])?.best;
++              evaluated++;
++              if(!second)return null;
++              // The second arc measures the first arc's completed outgoing
++              // span. Exclude its truncated counterpart and the first arrival
++              // prior; retain both impacts and the preceding completed span.
++              const residuals=[...first.localResiduals.slice(3),...second.residuals];
++              const loss=residuals.reduce((sum:number,r:number)=>sum+r*r,0);
++              const value={first:{...first,child:undefined},controls:[first.c,second.c],residuals,loss};
++              if(!pair||value.loss<pair.loss)pair=value;
++              return value;
++            }finally{Engine.retainOnly(protectedEngines);}
++          };
++          try{
++            evaluatePair(original.c,pendingControl?.index===i+1?pendingControl.control:undefined);
++            if(pair){
++              initialLoss=pair.loss;
++              const keys=['entry','turn','exit','support','bias','offset','clearance','turnFraction','bend','guideFlare'] as const;
++              let trust=options.pairResponseScale??1;
++              for(let round=0;round<options.pairResponseRounds!;round++){
++                const anchor=pair;
++                const values=(c:ArcMotionControl)=>keys.map(key=>c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,c.support*.5)/c.support:0));
++                const coordinates=anchor.controls.flatMap(values);
++                const scales=anchor.controls.flatMap((c:ArcMotionControl)=>[2,5,6,Math.max(.6,c.support*.1),.25,.2,1.5,.08,7,2.5].map(v=>v*trust));
++                const sample=(coordinates:number[])=>evaluatePair(...anchor.controls.map((c:ArcMotionControl,k:number)=>
++                  ({...c,...Object.fromEntries(keys.map((key,j)=>[key,coordinates[k*keys.length+j]]))})) as [ArcMotionControl,ArcMotionControl]);
++                const jac=anchor.residuals.map(()=>Array(coordinates.length).fill(0));
++                for(let d=0;d<coordinates.length;d++){
++                  const plus=coordinates.slice(),minus=coordinates.slice();plus[d]+=scales[d];minus[d]-=scales[d];
++                  const a=sample(plus),b=sample(minus);
++                  for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:
++                    a?a.residuals[r]-anchor.residuals[r]:b?anchor.residuals[r]-b.residuals[r]:0;
++                }
++                const delta=arcResponseStep(jac,anchor.residuals,options.responseDamping??.0002);
++                if(delta)for(const fraction of [1,.5,.25])sample(coordinates.map((v:number,d:number)=>v+fraction*scales[d]*clamp(delta[d],-3,3)));
++                if(pair.loss>=anchor.loss-1e-12)trust*=.5;
++              }
++            }
++          }catch(error){
++            if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
++            interrupted=true;searchBudgetExhausted=true;
++            budgetInterruptions.push({phase:'pair',index:i,frame,viable:evaluated,retained:!!pair});
++          }finally{
++            setPhysicsFrameLimit(budget-2*(end+1));Engine.retainOnly(protectedEngines);
++          }
++          if(pair){best={...pair.first,child:addArc(engine,pair.first.lines)};pendingControl={index:i+1,control:pair.controls[1]};}
++          pairRefinements.push({index:i,frame,initialLoss,finalLoss:pair?.loss,evaluated,interrupted,
++            controls:pair?.controls,changed:!!pair&&JSON.stringify(pair.controls[0])!==JSON.stringify(original.c),physicalFrames:getPhysicsFrameCount()-began});
++        }
++      }
+       // A quality retry resumes at an earlier fork and rebuilds its engine.
+       // Estimate from that boundary, including its cold prefix, rather than
+       // granting a retry using only the shorter suffix at the current contact.
+@@ -795,6 +867,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,pairRefinements};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }

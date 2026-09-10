@@ -1,0 +1,83 @@
+{
+  "schema": "line.arc-teacher-control-reconstruction.v1",
+  "input": "/home/wyss/line/generated/benchmark-v4/arc-940/pilots/teacher-continuation-response",
+  "runSha256": "8b56f9fbe86a90730918b9ca2b6009ceeeb2538bad5e7c4c448b87acd4992e35",
+  "geometrySha256": "71fee3bc89b38b81851f99164df7a88ef4d52dcff87bed75532c450882e0e1f6",
+  "scriptSha256": "faf3871c74cb4c9407b5120ce7790fed338a52769bedb60e9aa098f06a57d138",
+  "cases": 8,
+  "controls": 770,
+  "rows": [
+    {
+      "source": "bridge_river_reentry",
+      "recordSha256": "85ed143dc0bbcc0cfe87dbdd044e107e39582143e7aa7f7c0578d151d113fa18",
+      "controls": 89,
+      "retainedLines": 6545,
+      "physicsFrames": 4787,
+      "exactRetainedGeometry": true,
+      "exactPrefixAndTerminalStates": true
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic",
+      "recordSha256": "2043c3eb1ba1902517ba624c808d0c0ec773874438599d73d456df114ae24c60",
+      "controls": 92,
+      "retainedLines": 6852,
+      "physicsFrames": 5018,
+      "exactRetainedGeometry": true,
+      "exactPrefixAndTerminalStates": true
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery",
+      "recordSha256": "e72ed12cba6865830b0f497253d9b264ee7b3bb25fc4a65db6181667af6d3d42",
+      "controls": 124,
+      "retainedLines": 8331,
+      "physicsFrames": 4679,
+      "exactRetainedGeometry": true,
+      "exactPrefixAndTerminalStates": true
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides_restrained_10",
+      "recordSha256": "5762643abd1282168fc102b843f551b799322b5b32cc8235d8d3bcf0154ea62d",
+      "controls": 98,
+      "retainedLines": 7394,
+      "physicsFrames": 5319,
+      "exactRetainedGeometry": true,
+      "exactPrefixAndTerminalStates": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_6s",
+      "recordSha256": "9104aaf2b3f5b3e5cf73a6b15b48fac1148821cf8ba0f5d1368f4d5f7f3b188a",
+      "controls": 91,
+      "retainedLines": 16612,
+      "physicsFrames": 7959,
+      "exactRetainedGeometry": true,
+      "exactPrefixAndTerminalStates": true
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "recordSha256": "3e2994ced552222136e311a871dbc65fd7547a10a1f353312a7efd313951f73d",
+      "controls": 92,
+      "retainedLines": 6401,
+      "physicsFrames": 4575,
+      "exactRetainedGeometry": true,
+      "exactPrefixAndTerminalStates": true
+    },
+    {
+      "source": "stretch_three_note_returns",
+      "recordSha256": "8b99c7f17793972b30ccc4d36d947ebe63dfe83e70ac7cd04e070358e50450ae",
+      "controls": 113,
+      "retainedLines": 6648,
+      "physicsFrames": 5091,
+      "exactRetainedGeometry": true,
+      "exactPrefixAndTerminalStates": true
+    },
+    {
+      "source": "stretch_supported_speed_change",
+      "recordSha256": "b8a400cafc7e1b591b13cbfc856b34ea7580992869adc60460678b9d70e17ea2",
+      "controls": 71,
+      "retainedLines": 17294,
+      "physicsFrames": 7596,
+      "exactRetainedGeometry": true,
+      "exactPrefixAndTerminalStates": true
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "line.arc-indexed-reference-parity.v1",
+  "canonicalReference": {
+    "path": "benchmark/v4/runs/recovery.json.gz",
+    "sha256": "f15a7914b0d00b629e2dbfe7bff1c8beb68d6ab259ca6e809a5cc2c51cf25e24",
+    "runs": 352
+  },
+  "research": {
+    "path": "generated/benchmark-v4/arc-940/full/indexed-reference/run.json.gz",
+    "sha256": "837fa8e1bfa0a4e8b16850cd336723a865b5bc2f43e7115d2068a7a949866a47",
+    "runs": 176
+  },
+  "headline": 926.9397,
+  "matchingReferenceRows": 352,
+  "exactTracks": true,
+  "exactScores": true,
+  "exactPhysicsFrames": true,
+  "note": "176 new seed-16 research compilations match both preserved canonical seeds. This is not a new 352-run public compilation or a headline gain."
+}

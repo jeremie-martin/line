@@ -31,7 +31,7 @@ No single axis's hypothetical perfection reaches 940. Endings account for
 See [baseline loss evidence](../benchmark/v4/studies/arc-940-baseline-loss.json).
 
 An inspection of the retained research cells finds average planning work of
-34.01% of the compile allowance. Of 176 cases, 152 reach only depth one,
+34.01% of measured compilation work. Of 176 cases, 152 reach only depth one,
 22 reach depth two and two run no continuation probes. This describes work
 allocation, without claiming the work is wasted.
 
@@ -72,3 +72,44 @@ The canonical public baseline remains **926.9397** until a stronger result is
 selected and confirmed. Validation now accepts an explicit target and comparison
 baseline; checking the existing result against 940 correctly reports failure to
 reach the target, while reproducing the historical recovery evidence unchanged.
+
+## First complete transfer and retrieval indexing
+
+The expanded teaching model reaches **928.0792**, all 176 cases valid at 750k.
+This is a research result, not yet a public canonical promotion. The wider
+proposal mix reaches 925.1309, and reducing the arrival/heading priors from .3
+to .1 reaches 926.0847; neither improves the baseline on the full suite.
+
+The preserved compiler's complete 3M teacher reaches **934.2764**, all valid.
+Independent geometry and prefix reconstruction checks its 16,138 controls, the
+expanded-example and wider-proposal full panels, and both eight-case teacher
+pilots. A refreshed 15,962-row dataset selects 120 trajectories from the 3M
+teacher, 29 from expanded teaching, 22 from wider proposals, three from refined
+continuation probes and two from joint-pair teaching. This selection supplies
+training actions; it is not a compiler headline. See
+[transfer evidence](../benchmark/v4/studies/arc-940-refreshed-934-transfer.json).
+
+The collector now accepts explicitly supplied compiler roots for these different
+implementations, verifies each panel's fingerprint and frozen judge, checks raw
+record/plan/score correspondence and rechecks compiler identities at completion.
+It still independently reconstructs every selected physical prefix. New full
+panels test the refreshed examples and learned corrections; a fixed-prefix 3M
+teacher queries the exact preserved 926.9397 student tracks.
+
+An inverted index counts shared supervised tree leaves without rescanning all
+tree memberships on every query. Row order, physical distance, tie behavior and
+proposal selection stay unchanged. All 2,048 measured/perturbed proposal
+comparisons match exactly; local query time falls to roughly 54% of the reference
+under concurrent work. This is not an end-to-end speed claim. The complete
+176-case research panel reproduces **926.9397**, matching all 352 preserved
+canonical reference rows in track, score and actual physics frames. Eleven
+focused tests pass. The index is integrated into the public compiler; the model
+and geometry are unchanged. See [query checks](../benchmark/v4/studies/arc-940-indexed-retrieval.json)
+and [complete parity](../benchmark/v4/studies/arc-940-indexed-reference-parity.json).
+
+The first 750k joint-pair pilot mostly regresses, spending approximately
+150k–190k frames on joint work in affected cases. Its larger-budget pilot has
+useful trajectories but mixed results. A 12M diagnostic reserves the first 3M
+for unchanged construction and then revisits complete tracks, accepting only
+full-trajectory improvements. It remains an ongoing teacher experiment, outside
+the qualification allowance.

@@ -81,6 +81,36 @@
       "tests": [
         "tests/arc_bounded_response.test.ts"
       ]
+    },
+    {
+      "name": "context-policy",
+      "base": "f6c2c5ee5e1c9f22509973d490ef7cc1a20089f7",
+      "patch": "benchmark/v4/studies/prototypes/c50a4a3ea8132a1d631868d180cd7be67baec861b0e00d0ec5fa6f4e469b1e53.patch",
+      "sha256": "c50a4a3ea8132a1d631868d180cd7be67baec861b0e00d0ec5fa6f4e469b1e53",
+      "bytes": 5988,
+      "tests": [
+        "tests/arc_context_policy.test.ts"
+      ]
+    },
+    {
+      "name": "response-network",
+      "base": "f6c2c5ee5e1c9f22509973d490ef7cc1a20089f7",
+      "patch": "benchmark/v4/studies/prototypes/0d6e15ee3defbf13dc8455c071903d166189254fefb587e7feab2e3fd3e791fe.patch",
+      "sha256": "0d6e15ee3defbf13dc8455c071903d166189254fefb587e7feab2e3fd3e791fe",
+      "bytes": 15234,
+      "tests": [
+        "tests/arc_response_network.test.ts"
+      ]
+    },
+    {
+      "name": "response-network-main",
+      "base": "f6c2c5ee5e1c9f22509973d490ef7cc1a20089f7",
+      "patch": "benchmark/v4/studies/prototypes/a875280a95817e6652fb0be302d632826985f67c8c2d62fb419aeb82df21cd7e.patch",
+      "sha256": "a875280a95817e6652fb0be302d632826985f67c8c2d62fb419aeb82df21cd7e",
+      "bytes": 15320,
+      "tests": [
+        "tests/arc_response_network.test.ts"
+      ]
     }
   ]
 }

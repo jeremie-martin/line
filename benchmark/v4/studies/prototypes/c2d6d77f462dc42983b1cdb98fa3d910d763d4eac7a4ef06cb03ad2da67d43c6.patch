@@ -1,0 +1,144 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..7b7061a7 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -14,6 +14,7 @@ import { trimUnusedArcGuides } from './arc_guidance.ts';
+ import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
+ import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
+ import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
++import { arcNetworkCorrections } from './arc_response_network.ts';
+ import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
+ import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
+ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
+@@ -124,6 +125,7 @@ export type ArcMotionOptions= {
+   refineExpressive?:boolean;
+   responseSamples?:number;
+   responseDamping?:number;
++  networkCorrectionSamples?:number;
+   responseScale?:number;
+   refineFollowSamples?:number;
+   refineUseAlternatives?:boolean;
+@@ -146,6 +148,7 @@ export type ArcMotionOptions= {
+   valueSelection?:boolean};
+ 
+ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
++  const networkStats={queries:0,proposals:0,valid:0,improvements:0,physicsFrames:0};
+   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
+   spec=normalizeCompilerTimeline(spec);
+   validateSpec(spec);
+@@ -489,15 +492,30 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         }
+       }
+       if(best&&options.guidance){
++        let networkUsed=0;
++        const networkQuota=i>0?Math.min(options.guidanceSamples??48,options.networkCorrectionSamples??0):0;
++        if(networkQuota>0){
++          const model=options.controlPolicy?.responseNetwork;if(!model)throw new Error('arc response network model required');
++          const context=[...inputFeatures,...['air','speed','amplitude'].map(key=>(priorGap?.targets as any)?.[key]??-1),
++            ...['air','speed','amplitude'].map(key=>(priorAxes as any)?.[key]??-1)];
++          const controls=arcNetworkCorrections(context,best.c,best.residuals.slice(0,4),incoming,span,model,networkQuota,options);
++          networkStats.queries++;const began=getPhysicsFrameCount();
++          try{for(const control of controls){
++            const previous=best.optimizationCost;networkUsed++;networkStats.proposals++;
++            const candidate=evaluate(control);networkStats.valid+=Number(!!candidate);networkStats.improvements+=Number(best.optimizationCost<previous-1e-12);
++            Engine.retainOnly([...protectedEngines,engine,best.child]);
++          }}finally{networkStats.physicsFrames+=getPhysicsFrameCount()-began;}
++        }
++        const guidanceAllowance=(options.guidanceSamples??48)-networkUsed;
+         const origin=best;
+         const exitEnabled=options.independentExit&&best.c.support>=(options.minExitSupport??0);
+         const responseKeys:(keyof ArcMotionControl)[]=['entry','turn','exit','support','bias','offset','clearance'];
+         if(options.expressive)responseKeys.push('turnFraction','bend','guideFlare');
+         if(exitEnabled)responseKeys.push('exitBias');
+-        const wantedResponse=Math.min(options.guidanceSamples??48,options.responseSamples??0);
++        const wantedResponse=Math.min(guidanceAllowance,options.responseSamples??0);
+         const responseRound=2*responseKeys.length+3;
+         const responseAllowance=options.completeGuidanceBudget?Math.floor(wantedResponse/responseRound)*responseRound:wantedResponse>=responseRound?wantedResponse:0;
+-        const count=(options.guidanceSamples??48)-responseAllowance;
++        const count=guidanceAllowance-responseAllowance;
+         const keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
+         if(options.guidanceJoint)keys.push('entry','turn','exit','support','bias','offset');
+         if(options.expressive)keys.push('turnFraction','bend','guideFlare');
+@@ -796,6 +814,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,...(options.networkCorrectionSamples?{networkStats}:{}),failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }
+diff --git a/scripts/v0/optimizer/arc_response_network.ts b/scripts/v0/optimizer/arc_response_network.ts
+new file mode 100644
+index 00000000..67665e33
+--- /dev/null
++++ b/scripts/v0/optimizer/arc_response_network.ts
+@@ -0,0 +1,69 @@
++/** A learned local response proposes curves; only the real engine accepts them. */
++import {normalizeArcTurnFraction,type ArcMotionControl} from './arc_geometry.ts';
++import {arcResponseStep} from './arc_response.ts';
++const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
++export function arcNetworkControlVector(c:ArcMotionControl,incoming:number,span:number,channel=12){
++  return [(c.entry-incoming)/30,c.turn/60,(c.exit-incoming)/60,c.support/span,c.bias,c.offset,
++    (c.clearance??channel)/12,c.turnFraction??Math.min(5,c.support*.5)/c.support,(c.bend??0)/30,(c.guideFlare??0)/8];
++}
++export function arcNetworkPrediction(features:number[],model:any,derivatives=true){
++  if(model.featureSchema!=='line.arc-response-network-features.v1'||model.featureCount!==73||features.length!==73||features.some(v=>!Number.isFinite(v)))throw new Error('arc response network feature mismatch');
++  const activations:number[][]=[features.map((v,i)=>(v-model.inputMean[i])/model.inputScale[i])];
++  for(let l=0;l<model.layers.length;l++){
++    const layer=model.layers[l],prior=activations.at(-1)!;
++    const values=layer.bias.map((b:number,j:number)=>prior.reduce((sum,v,i)=>sum+v*layer.weights[i][j],b));
++    activations.push(l+1===model.layers.length?values:values.map(Math.tanh));
++  }
++  const residuals=activations.at(-1)!.map((v,r)=>v*model.outputScale[r]+model.outputMean[r]);
++  const jacobian=derivatives?residuals.map((_,r)=>{
++    let gradient=residuals.map((_,j)=>j===r?model.outputScale[r]:0);
++    for(let l=model.layers.length-1;l>=0;l--){
++      const weights=model.layers[l].weights;
++      gradient=weights.map((row:number[],i:number)=>row.reduce((sum,v,j)=>sum+v*gradient[j],0)*(l?1-activations[l][i]**2:1));
++    }
++    return gradient.slice(63).map((v,j)=>v/model.inputScale[63+j]);
++  }):[];
++  if(residuals.length!==4||residuals.some(v=>!Number.isFinite(v))||jacobian.some(row=>row.length!==10||row.some(v=>!Number.isFinite(v))))throw new Error('invalid arc network response');
++  return {residuals,jacobian};
++}
++export function arcNetworkCorrections(context:number[],control:ArcMotionControl,residuals:number[],incoming:number,span:number,model:any,count:number,
++  options:{channel?:number;bidirectional?:boolean;preserveTurnTiming?:boolean}={}){
++  if(context.length!==63||residuals.length!==4||residuals.some(v=>!Number.isFinite(v))||!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc network correction request');
++  if(!count)return [];
++  const start=arcNetworkControlVector(control,incoming,span,options.channel),
++    units=[2/30,5/60,6/60,Math.max(.6,control.support*.1)/span,.25,.2,1.5/12,.08,7/30,2.5/8];
++  const decode=(v:number[]):ArcMotionControl=>({...control,entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],
++    bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]});
++  const project=(values:number[])=>{
++    const c=decode(values.map((v,j)=>clamp(v,start[j]-2*units[j],start[j]+2*units[j])));
++    c.entry=clamp(c.entry,-75,85);c.turn=clamp(c.turn,-120,options.bidirectional?120:15);c.exit=clamp(c.exit,-80,85);
++    c.support=clamp(c.support,2,Math.max(2,span-4));c.bias=clamp(c.bias,-2,2);c.offset=clamp(c.offset,-2,3);
++    c.clearance=clamp(c.clearance!,6,30);c.turnFraction=normalizeArcTurnFraction(c.turnFraction!,c.support,options.preserveTurnTiming);
++    c.bend=clamp(c.bend!,-60,60);c.guideFlare=clamp(c.guideFlare!,-16,16);
++    return arcNetworkControlVector(c,incoming,span,options.channel);
++  };
++  const anchor=arcNetworkPrediction([...context,...start],model,false),mask=[49,50,51,48].map(i=>Number(context[i]>=0));
++  const observe=(v:number[],derivatives=false)=>{
++    const prediction=arcNetworkPrediction([...context,...v],model,derivatives),steps=v.map((x,j)=>(x-start[j])/units[j]);
++    const errors=residuals.map((x,r)=>mask[r]*(x+prediction.residuals[r]-anchor.residuals[r]));
++    const jac=prediction.jacobian.map((row,r)=>row.map((x,j)=>mask[r]*x*units[j]));
++    // Penalize movement away from the measured anchor, not unvalidated certainty.
++    for(let j=0;j<10;j++){errors.push(Math.sqrt(.0002)*steps[j]);jac.push(units.map((_,k)=>j===k?Math.sqrt(.0002):0));}
++    return {v,errors,jac,cost:errors.reduce((sum,x)=>sum+x*x,0)};
++  };
++  let best=observe(start);const history:number[][]=[];
++  for(let round=0;round<8;round++){
++    const origin=best,response=observe(origin.v,true),delta=arcResponseStep(response.jac,response.errors,.00001);if(!delta)break;
++    for(const fraction of [1,.5,.25]){
++      const candidate=observe(project(origin.v.map((v,j)=>v+fraction*units[j]*clamp(delta[j],-2,2))));
++      if(candidate.cost<best.cost-1e-12)best=candidate;
++    }
++    if(best===origin)break;history.push(best.v);
++  }
++  const proposals:ArcMotionControl[]=[],seen=new Set([JSON.stringify(control)]);
++  for(const v of history.reverse())for(const fraction of [1,.5]){
++    const c=decode(project(v.map((x,j)=>start[j]+fraction*(x-start[j])))),key=JSON.stringify(c);
++    if(seen.has(key))continue;seen.add(key);proposals.push(c);if(proposals.length>=count)return proposals;
++  }
++  return proposals;
++}

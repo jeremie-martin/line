@@ -1,0 +1,88 @@
+{
+  "schema": "line.arc-value-refresh-evidence.v1",
+  "selected": false,
+  "model": {
+    "path": "generated/benchmark-v4/arc-940/models/teacher-945-value/model.json",
+    "sha256": "3d81e997fd420f66a7caa3a1376840d5434ee70f292683c505abecad05274d1a"
+  },
+  "validationSha256": "8fb9e95c530665e034933f383bfc40c3674dacad6538ec0b5253abaa37d4f9c8",
+  "validation": {
+    "rows": 64464,
+    "groups": 19,
+    "folds": [
+      {
+        "fold": 0,
+        "heldGroups": [
+          "high_air_energy",
+          "irregular_microtimed",
+          "legacy_transition_regression"
+        ],
+        "train": 51583,
+        "test": 12881,
+        "mae": 0.004925441845089322
+      },
+      {
+        "fold": 1,
+        "heldGroups": [
+          "legacy_amplitude_regression",
+          "low_air_frontier",
+          "spacious_amplitude"
+        ],
+        "train": 51549,
+        "test": 12915,
+        "mae": 0.018155820458901732
+      },
+      {
+        "fold": 2,
+        "heldGroups": [
+          "believer",
+          "cadence_transition",
+          "rapid_pickup_frontier",
+          "shelter"
+        ],
+        "train": 51500,
+        "test": 12964,
+        "mae": 0.01084317247452999
+      },
+      {
+        "fold": 3,
+        "heldGroups": [
+          "dense_recovery_frontier",
+          "regular_exceptions",
+          "sparse_transition"
+        ],
+        "train": 51835,
+        "test": 12629,
+        "mae": 0.012310898434269352
+      },
+      {
+        "fold": 4,
+        "heldGroups": [
+          "amor_na_praia",
+          "amour_de_ma_vie",
+          "dense_musical",
+          "luna_bala",
+          "subdivision_pickup",
+          "tiki_tiki"
+        ],
+        "train": 51389,
+        "test": 13075,
+        "mae": 0.012970056858347692
+      }
+    ],
+    "comparedContexts": 14457,
+    "newMeanRegret": 0.0041761742099684866,
+    "oldMeanRegret": 0.0040095216981554166
+  },
+  "parity": {
+    "schema": "line.arc-future-value-parity.v1",
+    "modelSha256": "3d81e997fd420f66a7caa3a1376840d5434ee70f292683c505abecad05274d1a",
+    "fixtureSha256": "e17bc908c94e084f9dfa1c34bc9fbe8bb1b97d90bad29be12bb7436f8cdef42c",
+    "runtimeSha256": "36ebca439e9b6a46a060de3b98cd274e3be1508435f1bcecf30bb44060f55d36",
+    "fixtures": 32,
+    "maxError": 0
+  },
+  "paritySha256": "7bbcb689aee6729960631ec971788adc5b99859d4c2501558d2db698bfb50317",
+  "trainerSha256": "0c451ac71c02f85907694610ded280df82364f5040448dcacc3fc24f15a706d5",
+  "note": "Bootstrapped teacher search values include the terminal prior. Held-out-group ranking regret slightly worsens, and the live pilot is mixed; unselected research."
+}

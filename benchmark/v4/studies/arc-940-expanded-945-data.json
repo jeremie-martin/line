@@ -1,0 +1,27 @@
+{
+  "schema": "line.arc-policy-expanded-data.v1",
+  "dataset": {
+    "path": "generated/benchmark-v4/arc-940/data/expanded-945/data.json",
+    "sha256": "3a63aa3141f35150965e7e2504c0593d54c1f78c8c2359a7397a287a46324fd4",
+    "rows": 95772
+  },
+  "inputs": [
+    {
+      "path": "generated/benchmark-v4/arc-940/data/expanded-937/data.json",
+      "sha256": "5970e090487a3ef3afb4b47ec8d39bd9aa8812d41961200c7abe581e70e4913a",
+      "rows": 79810,
+      "sources": 176
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/data/refreshed-945/data.json",
+      "sha256": "f8cd1f6e25f6e32c3e1f9345bf9979514626c9ad5180024a5447e87e28a92cc2",
+      "rows": 15962,
+      "sources": 176
+    }
+  ],
+  "contextTransferProofSha256": "34b004500c92f881f1db037be9af8a23435d9cad7c499ddabe5fff7610af8cdc",
+  "projectedDataSha256": "f8cd1f6e25f6e32c3e1f9345bf9979514626c9ad5180024a5447e87e28a92cc2",
+  "contextDataSha256": "8ce6a0720ae3d64a5f0317c1e6919a62fed198bdb0cf293795be870a4d5886ca",
+  "featureProjectionMatchesExactly": true,
+  "note": "95,772 measured examples. The new 15,962 actions are projected from the independently validated 63-feature teacher dataset without changing controls; the previous 79,810 examples remain unchanged. This merge claims no new physical validation."
+}

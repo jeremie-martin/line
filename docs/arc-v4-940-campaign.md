@@ -268,3 +268,81 @@ observation-only panel exactly matches all eight reference tracks, scores and
 frame counts. Clipping affects 1.94% of valid probes in this panel; that
 frequency does not itself establish meaningful headline headroom. See
 [the bound measurements](../benchmark/v4/studies/arc-940-response-bounds.json).
+
+
+## Accurate continuation teaching
+
+The six-million-frame continuation teacher reaches **945.3331**, all 176 cases
+valid, compared with 937.3744 for the same teacher allocation with cheaper
+continuation probes. Median actual work rises to 5,492,165.5 frames; the range
+is 4,476,417–5,911,200. Mean planning share rises from 44.56% to 61.46%.
+Both panels reach two-interval planning depth. This is evidence of useful
+compiler headroom, not qualification at the required 750k budget.
+
+Independent reconstruction validates all 16,138 controls of that teacher and
+of the best 931.3392 student. The new selected trajectory dataset contains
+148 cases from the accurate-continuation teacher, 16 from the previous 6M
+teacher, six from the 3M teacher and six from the best student. It adds the
+preceding span's three targets and three measured axes to the physical inputs.
+A separate replay of the fixed student independently matches all 15,962
+recorded non-startup contexts. The matched 57-feature ablation removes only
+those six inputs and keeps the same measured controls. Fifteen focused tests
+pass, and both forests match 24 independent prediction fixtures within 4.45e-16.
+See [teacher provenance](../benchmark/v4/studies/arc-940-context-945-transfer.json)
+and [the model comparison](../benchmark/v4/studies/arc-940-context-945-models.json).
+
+The teacher also supplies a larger 95,772-example union and a refreshed mean
+correction. Their full 750k evaluations are underway. A direct reallocation
+toward more accurate continuation search has a mixed eight-case pilot,
+including a large low-air regression. A refreshed future-value predictor
+slightly worsens held-out-group ranking regret (0.004176 versus 0.004010), and
+its live pilot is mixed; it remains unselected. Predictions match 32 independent
+fixtures exactly. See [value evidence](../benchmark/v4/studies/arc-940-value-945-refresh.json).
+
+Additional complete 750k results are **925.3888** for measured feedback
+corrections, **924.7098** for bounded finite differences, **929.2365** for
+search-step-scaled library partitions, and **931.1926** for the combined
+937 correction/library. All 176 cases are valid in every panel; none improves
+the best complete research result of **931.3392**. The canonical public baseline
+remains **926.9397** and the 940 target remains active.
+
+Temporary compiler checkouts were cleared between sessions after those studies
+completed. All completed run artifacts remain intact. Required compiler source
+is now restored in a persistent local worktree directory; the restored teacher
+compiler's fingerprint exactly matches its recorded identity. Context runtime
+source and tests are preserved in the prototype archive. A new local-response
+network experiment trains only on measured probe residuals and checks a held
+parent fold before any physical performance claim.
+
+
+## Separate teaching libraries and a learned local response
+
+The expanded 95,772-example library reaches **932.2678** on the complete 750k
+panel. The refreshed teacher mean reaches 929.9329. Keeping the new teacher's
+15,962 examples in a separate supervised library, alongside the older complete
+policy, reaches **934.0704**, all 176 valid. Its contextual counterpart reaches
+930.1154. The extra inputs do not earn a gain in this execution; the useful
+result is the separately allocated new teacher library. Complete studies now
+test equal and stronger proposal shares for that library without changing its
+examples or the physical work allowance.
+
+A small response network predicts the four measured arc residuals from physical
+context and proposed controls. On one declared held-parent fold, nearby-change
+RMS improves modestly on every axis. Both fits reach the declared 80-epoch limit
+without convergence. All 32 independent Python predictions agree within
+7.64e-16; 160 analytic control derivatives agree with central differences within
+5.10e-10. Eight physical, derivative and budget tests pass. The first eight-case
+pilot is valid but mixed, with large gains on dense recovery and supported speed
+change and substantial regressions elsewhere. Its full panel reaches **931.2572**, all 176 valid, below its 932.2678
+starting policy. A separate pilot restricts network proposals to main construction because
+continuation probes have much smaller guidance allowances. That pilot remains
+mixed; every case records exactly one network query per non-startup committed
+arc. The mechanism is
+unselected. See [response evidence](../benchmark/v4/studies/arc-940-response-network.json).
+
+The public canonical baseline is still 926.9397. The strongest complete research
+score is now 934.0704; neither the 750k target nor canonical promotion is claimed.
+
+A further 6M teacher now uses the stronger separate-library policy with the
+same accurate continuation allocation. It remains a diagnostic outside the
+qualification budget.

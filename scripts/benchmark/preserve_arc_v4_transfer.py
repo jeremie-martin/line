@@ -24,13 +24,15 @@ for path in args.proofs.split(','):
         assert row['exactRetainedGeometry'] and row['exactPrefixAndTerminalStates']
         verified[row['recordSha256']]=row
     preserved=out.parent/'geometry-proofs'/(digest+'.json');preserved.parent.mkdir(parents=True,exist_ok=True)
-    shutil.copyfile(path,preserved);shutil.copyfile(path+'.sha256',str(preserved)+'.sha256')
+    if Path(path).resolve()!=preserved.resolve():
+        shutil.copyfile(path,preserved);shutil.copyfile(path+'.sha256',str(preserved)+'.sha256')
     proofs.append(dict(path=str(preserved),sha256=digest,cases=proof['cases'],controls=proof['controls'],scriptSha256=proof['scriptSha256']))
 for row in data['provenance']:
     assert row['prefixesMatchedFullTrack'] and row['sha256'] in verified
     assert verified[row['sha256']]['source']==row['source']
+feature_count={'line.arc-control-policy-features.v1':57,'line.arc-context-control-policy-features.v1':63}[data['featureSchema']]
 for row in data['rows']:
-    assert len(row['features'])==57 and len(row['target'])==10
+    assert len(row['features'])==feature_count and len(row['target'])==10
     assert all(math.isfinite(x) for x in row['features']+row['target'])
 panels=[]
 for panel in data['panels']:
@@ -39,7 +41,7 @@ for panel in data['panels']:
                        cases=len(run['rows']),valid=run['summary'].get('valid'),headline=run['summary'].get('headline'),
                        compiler=run['plan']['compiler']['candidateFingerprint'],options=run['plan']['options']))
 record=dict(schema='line.arc-v4-teacher-transfer.v1',dataset=dict(path=args.data,sha256=data_sha,rows=len(data['rows']),sources=176,
-            parents=len({r['parent'] for r in data['rows']}),featureCount=57,controlCount=10),panels=panels,geometryProofs=proofs,
+            parents=len({r['parent'] for r in data['rows']}),featureCount=feature_count,controlCount=10),panels=panels,geometryProofs=proofs,
             selectedTrajectoryCounts=dict(Counter(str(Path(r['path']).parent) for r in data['provenance'])),
             verifiedSelectedPrefixes=176,selectedReplayPhysicsFrames=sum(r['replayFrames'] for r in data['provenance']),
             scriptSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),

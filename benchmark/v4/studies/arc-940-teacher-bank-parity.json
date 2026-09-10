@@ -1,0 +1,8 @@
+{
+  "schema": "line.arc-policy-runtime-parity.v1",
+  "referenceSha256": "d62245a4d97c7c2bd690c69850ce1f7327664c3f4768125f9b59d54c5b3cca1c",
+  "candidateSha256": "232e394f25c9834ec5732898ba53c69497c1caf809d5b55e93e96ed90378a39b",
+  "cases": 8,
+  "trackScoreAndPhysicsFramesMatchExactly": true,
+  "note": "The 57-feature separate teaching library works unchanged under the established runtime; it does not require contextual input support. Eight physical cases, not full canonical qualification."
+}

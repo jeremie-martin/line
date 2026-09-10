@@ -14,8 +14,10 @@ def checked(path):
     assert digest==Path(str(path)+'.sha256').read_text().split()[0],path
     return json.loads(body),digest
 policy,policy_sha=checked(args.policy);forest,forest_sha=checked(args.forest)
-assert policy['featureSchema']==forest['featureSchema'] and forest['featureCount']==57
+assert policy['featureSchema']==forest['featureSchema'] and forest['featureCount']==policy['featureCount']
+assert forest['featureCount'] in (57,63)
 examples=policy['models'][1];assert 'exemplars' in examples and 'trees' in forest
+assert examples['featureCount']==forest['featureCount']
 features=np.asarray([r['features'] for r in examples['exemplars']],dtype=np.float32)
 leaves=[];trees=[];means=np.zeros((len(features),10))
 for tree in forest['trees']:

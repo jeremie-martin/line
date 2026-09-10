@@ -1,0 +1,82 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 7897bac8..fa58938e 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -32,6 +32,8 @@ export type ArcMotionOptions= {
+   /** Reuse measured response directions between complete finite differences. */
+   responseSecantSteps?:number;
+   wholeTrackRefinement?:boolean;
++  /** Research: align refinement proposals with the complete authored objective. */
++  refineTimeObjective?:boolean;
+   /** Rank already simulated complete alternatives by the full authored loss. */
+   terminalSelection?:boolean;
+   /** Refine completed trajectories using time-weighted, bounded physical loss. */
+@@ -154,6 +156,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   if(duration<1)throw new Error('arc duration must cover at least one frame');
+   if(budget<=2*(end+1))throw new Error('arc budget must cover two complete replays and construction work');
+   try{
++  if(typeof options.controlPolicy==='function')options={...options,controlPolicy:options.controlPolicy()};
+   const frames=spec.contacts.map(c=>Math.round(c.t*40));
+   const gaps=sliceTimeline(frames,duration);
+   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
+diff --git a/scripts/v0/optimizer/arc_refinement.ts b/scripts/v0/optimizer/arc_refinement.ts
+index 932e3b96..1c24c995 100644
+--- a/scripts/v0/optimizer/arc_refinement.ts
++++ b/scripts/v0/optimizer/arc_refinement.ts
+@@ -67,6 +67,11 @@ export function refineArcTrack(input: ArcRefinementInput) {
+   const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes).map(([axis, value]) => [axis, value?.target])));
+   const expectedObservations = observationContract(incumbentReport);
+   const initialLoss = loss, tries = contacts.map(() => 0), records: any[] = [];
++  const refinementObjective = options.refineTimeObjective ? {
++    timeObjective:true,rescaleMemoryWeights:true,authoredHorizon:true,
++    completeBoundary:true,amplitudeOverflow:undefined,predictAirBoundary:false,
++    valueGuidanceWeight:0
++  } : {};
+   const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0};
+   const indexOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
+   if (!Number.isFinite(loss)) return {lines, rows, engine: incumbent, stats: {initialLoss, finalLoss: loss, frames: getPhysicsFrameCount() - began, counts, records}};
+@@ -111,7 +116,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
+         exitRefinementOnly:options.refineIndependentExit?true:options.exitRefinementOnly,
+         minExitSupport:options.refineIndependentExit?12:options.minExitSupport,
+         completeGuidanceBudget:input.objective?true:options.completeGuidanceBudget,
+-        boundaryWeight: options.refineBoundaryWeight ?? 1}, [incumbent]);
++        boundaryWeight: options.refineBoundaryWeight ?? 1,...refinementObjective}, [incumbent]);
+       if (!searchResult) {Engine.retainOnly([incumbent]); continue;}
+       const candidates = searchResult.candidates.slice().sort((a: any, b: any) => a.cost - b.cost);
+       const offered = new Set<string>(); let evaluated = 0;
+@@ -129,8 +134,8 @@ export function refineArcTrack(input: ArcRefinementInput) {
+         if (options.refineMode === 'reflow') {
+           for (let j = i + 1; j < contacts.length; j++) {
+             const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
+-            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control}, [incumbent, base]);
+-            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control},[incumbent,base]);
++            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,...refinementObjective}, [incumbent, base]);
++            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control,...refinementObjective},[incumbent,base]);
+             if (!next?.best) {completed = false; break;}
+             proposed.push(...next.best.lines); child = next.best.child.detach();
+             proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
+diff --git a/scripts/v0/optimizer/connected_arcs.ts b/scripts/v0/optimizer/connected_arcs.ts
+index 6024c249..3c7718c0 100644
+--- a/scripts/v0/optimizer/connected_arcs.ts
++++ b/scripts/v0/optimizer/connected_arcs.ts
+@@ -11,7 +11,8 @@ import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler
+ 
+ // This is a data artifact; reading it directly also avoids expanding the large
+ // model into generated JavaScript and source maps in development tooling.
+-const controlPolicy = JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
++let controlPolicy: any;
++const loadControlPolicy = () => controlPolicy ??= JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
+ 
+ /** Production allocation from ride length and frame budget. Research can spread
+  * this configuration and override a mechanism without duplicating shipped defaults. */
+@@ -49,7 +50,9 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
+     completeBoundary: guidanceSamples > 0,
+     memorySamples: Math.round(4 * planningGuidanceSamples / 96),
+     memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
+-    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
++    // Resolve only the selected policy. Research can replace this factory with
++    // another artifact without retaining an unused copy of the default model.
++    controlPolicy: guidanceSamples ? loadControlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
+     futureValueModel: guidanceSamples ? futureValueModel : undefined,
+     // Rank unprobed arrivals with the model, then use its value at the
+     // simulated continuation boundary. Do not blend it into the root twice.

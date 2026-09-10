@@ -154,3 +154,81 @@ future proposal ranker need not infer hidden boundary targets. Six focused
 trace/budget tests pass with exact track, report and physics-work parity. Its
 complete data-collection panel is underway. This is preparation for a learned
 proposal-ordering experiment; no live improvement is claimed.
+
+
+## Measured limits and the next solver experiments
+
+Further complete 750k panels yield:
+
+| Variant | Headline | Valid |
+| --- | ---: | ---: |
+| Expanded 63,848-example library | 928.8773 | 176/176 |
+| Refreshed correction with the 47,886-example library | 928.6631 | 176/176 |
+| Half-strength refreshed correction with that library | 926.9116 | 176/176 |
+| New fixed-prefix correction with that library | 926.9245 | 176/176 |
+| Half-strength fixed-prefix correction | 923.8188 | 176/176 |
+| Guarded response reuse | 925.9842 | 176/176 |
+
+The guarded response pilot improved six of eight cases, including two large
+recovery gains, but its full-suite result regresses. It is not promoted. The
+best research model remains 928.8773, without new canonical qualification.
+An eleven-panel hindsight portfolio reaches 938.4213. That uses known outcomes
+to choose each case's winner and is not an executable compiler or score claim;
+see [the diagnostic](../benchmark/v4/studies/arc-940-portfolio-oracle.json).
+
+The complete proposal trace reproduces every reference track, score and charged
+frame count. The new training set contains 659,750 initial/refined measurements
+at 15,963 non-startup search contexts. Its first forward ranker is worse than the
+existing ordering under three folds holding out complete parent families. With
+16 candidates, mean best clipped root loss is 0.10505 for the existing order,
+0.12005 for the ranker and 0.10337 for the hindsight best in the initial pool.
+These are equal-context local diagnostics, not benchmark units. Existing
+teacher-trained proposals are a strong comparator; this is not an independent
+end-to-end generalization test. All 64 independent prediction fixtures agree
+within 4.45e-16. The model remains unselected; see
+[the measurements](../benchmark/v4/studies/arc-940-proposal-ranker.json).
+
+A continuation predictor refreshed from 74,079 stronger-teacher probes also
+slightly worsens held-out-group ranking regret (0.006137 versus 0.005850), and
+its live eight-case pilot mostly regresses. It remains unselected. Its labels
+include the teacher's terminal prior, and are not pure observed benchmark loss;
+see [the value refresh](../benchmark/v4/studies/arc-940-value-refresh.json).
+
+The stronger expanded-library teacher reaches **937.3744**, all 176 valid, with
+a six-million-frame ceiling. Median actual work is 3,798,671 frames, and every
+case reaches the configured maximum two-interval planning depth. New pilots test
+three-interval planning and more accurate continuation search within that same
+ceiling. Higher-budget scores do not qualify for the 750k goal.
+
+Independent exit easing is mixed at 750k and supplies interesting 3M pilot
+trajectories. These controls carry an additional exit-bias field; they must not
+be distilled through an exporter that silently drops it. They are currently
+excluded from the ten-control teaching datasets.
+
+A separate solver experiment keeps regularization in fixed control units as
+finite-difference probes shrink. A coordinate-change test verifies the physical
+memory correction, and twelve focused tests pass. The local-only pilot improves
+five of eight cases; applying the same rule to response memory improves six.
+The complete local-plus-memory panel reaches **925.8079**, all 176 valid, so it is not promoted. The 3M pilot is mixed. Refinement-objective
+alignment remains mixed and unselected. Research source and tests are preserved
+as [reconstructable patches](../benchmark/v4/studies/arc-940-prototype-sources.json),
+all checked against their declared base commits.
+
+
+The refreshed 937 teacher dataset is independently reconstructed from all 176
+selected trajectories: 84 from the 6M teacher, 57 from the 3M teacher, 26 from
+the expanded 750k library, eight from the unselected response-reuse panel, and
+one from its 3M pilot. It contains 15,962 non-startup controls, with no additional
+exit-bias parameter. See [the transfer proof](../benchmark/v4/studies/arc-940-refreshed-937-transfer.json).
+A 79,810-row union retains the earlier validated examples unchanged; its
+[provenance](../benchmark/v4/studies/arc-940-expanded-937-data.json) claims no new
+physical validation. Separate complete panels test that union and a refreshed
+mean correction before considering composition.
+
+The next learning experiment conditions corrections on measured errors from an
+already tested arc. A new measurement-only trace includes the four physical
+axis residuals. A cheap fixed-student replay will collect those observations,
+while the independently validated 3M teacher supplies controls at the same
+incoming states. Its replay headline describes the fixed student, not a new
+compiler result. This experiment has not yet established a learned correction
+or a performance gain.

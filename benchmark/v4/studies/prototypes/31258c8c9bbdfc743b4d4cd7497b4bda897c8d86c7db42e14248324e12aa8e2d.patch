@@ -1,0 +1,136 @@
+diff --git a/scripts/v0/optimizer/arc_memory.ts b/scripts/v0/optimizer/arc_memory.ts
+index 9842ab1d..4c971abb 100644
+--- a/scripts/v0/optimizer/arc_memory.ts
++++ b/scripts/v0/optimizer/arc_memory.ts
+@@ -22,6 +22,7 @@ export type ArcResponseExample = ArcControlExample & {
+   jac: number[][]; residuals: number[]; scale: number[]; loss: number;
+   /** Squared residual weights, when a caller varies them between intervals. */
+   axisWeights?: number[];
++  trust?: number;
+ };
+ 
+ export function arcControlSimilar(a: ArcMotionControl, b: ArcMotionControl): boolean {
+@@ -65,7 +66,7 @@ export class ArcControlMemory {
+ 
+   proposeResponses(features: number[], incoming: number, span: number,
+     wanted: Array<number | undefined>, count: number,
+-    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]}): ArcMotionControl[] {
++    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]; physicalDamping?:boolean}): ArcMotionControl[] {
+     if (count <= 0) return [];
+     const nearest = this.responses.map(m => ({m, distance: distance(m.features, features)}))
+       .sort((a, b) => a.distance - b.distance || a.m.loss - b.m.loss);
+@@ -84,7 +85,7 @@ export class ArcControlMemory {
+           Math.sqrt(j === 2 ? weights.amplitude : j === 3 ? weights.impact : 1);
+       });
+       const jac=weights.axisWeights||m.axisWeights?m.jac.map((row,j)=>row.map(v=>wanted[j]===undefined||m.targets[j]===undefined||storedWeights[j]<=0?0:v*Math.sqrt(currentWeights[j]/storedWeights[j]))):m.jac;
+-      const delta = arcResponseStep(jac, residuals, weights.damping);
++      const delta = arcResponseStep(jac, residuals, weights.damping * (weights.physicalDamping ? (m.trust ?? 1) ** 2 : 1));
+       if (!delta) continue;
+       m.keys.forEach((key, d) => {
+         control[key] = (control[key] as number) + m.scale[d] *
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..6ce8f0c6 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -124,6 +124,9 @@ export type ArcMotionOptions= {
+   refineExpressive?:boolean;
+   responseSamples?:number;
+   responseDamping?:number;
++  /** Keep regularization in fixed control units as finite-difference probes shrink. */
++  physicalResponseDamping?:boolean;
++  physicalMemoryDamping?:boolean;
+   responseScale?:number;
+   refineFollowSamples?:number;
+   refineUseAlternatives?:boolean;
+@@ -199,6 +202,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   let searchBudgetExhausted=false;
+   const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
+   const planningDecisions:any[]=[];
++  const responseDampingDiagnostics={rounds:0,smallerRounds:0,smallerImprovements:0,nullSteps:0,minimumTrust:1};
+   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
+   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+   const controlMemory=new ArcControlMemory();
+@@ -441,7 +445,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0);
+       const responses=controlMemory.proposeResponses(inputFeatures,incoming,span,
+         [targets.air,targets.speed,targets.amplitude,impact],options.memoryResponseSamples??0,
+-        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights});
++        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights,physicalDamping:options.physicalMemoryDamping});
+       // Startup has a different physical-state distribution from a later catch.
+       // Its optional learned proposals still pass the ordinary interval search.
+       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
+@@ -539,15 +543,21 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+               control:{...origin.c,...Object.fromEntries(responseKeys.map(key=>[key,value(key)]))},
+               targets:[targets.air,targets.speed,targets.amplitude,impact],keys:responseKeys.slice(),
+               jac:jac.slice(0,4),residuals:origin.residuals.slice(0,4),
+-              axisWeights:responseAxisWeights,
++              axisWeights:responseAxisWeights,trust,
+               scale:responseKeys.map(key=>scale[key as keyof typeof scale]*trust),
+               loss:origin.residuals.slice(0,4).reduce((sum:number,v:number)=>sum+v*v,0)});
+           }
+-          const delta=arcResponseStep(jac,origin.residuals,options.responseDamping??.0002);
++          const delta=arcResponseStep(jac,origin.residuals,(options.responseDamping??.0002)*(options.physicalResponseDamping?trust*trust:1));
++          if(options.physicalResponseDamping){
++            responseDampingDiagnostics.rounds++;responseDampingDiagnostics.smallerRounds+=Number(trust<1);
++            responseDampingDiagnostics.minimumTrust=Math.min(responseDampingDiagnostics.minimumTrust,trust);
++            responseDampingDiagnostics.nullSteps+=Number(!delta);
++          }
+           for(const fraction of [1,.5,.25]){
+             if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
+           }
+           const improving=best.optimizationCost<origin.optimizationCost-1e-12;
++          if(options.physicalResponseDamping&&trust<1&&improving)responseDampingDiagnostics.smallerImprovements++;
+           const previousUses:number=secant?.uses??0;
+           if(improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
+             const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale[key as keyof typeof scale]*trust));
+@@ -796,6 +806,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,...(options.physicalResponseDamping?{responseDampingDiagnostics}:{}),failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }
+diff --git a/tests/arc_physical_damping.test.ts b/tests/arc_physical_damping.test.ts
+new file mode 100644
+--- /dev/null
++++ b/tests/arc_physical_damping.test.ts
+@@ -0,0 +1,38 @@
++import {expect,it} from 'vitest';
++import {ArcControlMemory} from '../scripts/v0/optimizer/arc_memory.ts';
++import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
++import type {Spec} from '../scripts/v0/types.ts';
++
++it('keeps the same physical memory correction when only response coordinates change',()=>{
++  const features=Array(57).fill(0),control={entry:0,turn:0,exit:0,support:12,bias:0,offset:0};
++  const proposal=(trust:number,physicalDamping:boolean)=>{
++    const memory=new ArcControlMemory();
++    memory.rememberResponse({features,incoming:0,span:30,control,targets:[.5,.5,undefined,undefined],
++      keys:['entry','turn'],jac:[[2*trust,trust],[trust,3*trust],[0,0],[0,0]],
++      residuals:[.2,.15,0,0],scale:[2*trust,5*trust],loss:.0625,trust});
++    return memory.proposeResponses(features,0,30,[.5,.5,undefined,undefined],1,
++      {amplitude:1/3,impact:1,damping:.002,physicalDamping})[0];
++  };
++  const reference=proposal(1,true);
++  for(const trust of [.5,.25,.125]){
++    const actual=proposal(trust,true);
++    expect(actual.entry).toBeCloseTo(reference.entry,12);
++    expect(actual.turn).toBeCloseTo(reference.turn,12);
++  }
++  expect(Math.abs(proposal(.125,false).entry-reference.entry)).toBeGreaterThan(.0001);
++});
++
++it('preserves disabled behavior and validates fine corrections within the actual work limit',()=>{
++  const spec:Spec={duration:5,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6,4.2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5,amplitude:()=>.2}};
++  const options={budget:100000,samples:80,channel:12,radius:24,bidirectional:true,
++    impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,authoredHorizon:true,
++    guidance:'clearance' as const,guidanceJoint:true,guidanceSamples:176,responseSamples:161,expressive:true,memoryResponseSamples:4};
++  const original=compileArcMotion(spec,17,options);
++  const disabled=compileArcMotion(spec,17,{...options,physicalResponseDamping:false,physicalMemoryDamping:false});
++  expect(disabled.track).toEqual(original.track);expect(disabled.stats).toEqual(original.stats);
++  const result=compileArcMotion(spec,17,{...options,physicalResponseDamping:true,physicalMemoryDamping:true});
++  expect(result.failure).toBeNull();expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
++  expect(result.report.off_beat_landings).toEqual([]);expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
++  expect(result.responseDampingDiagnostics!.smallerRounds).toBeGreaterThan(0);
++  expect(result.responseDampingDiagnostics!.smallerImprovements).toBeGreaterThan(0);
++});

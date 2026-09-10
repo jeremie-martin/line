@@ -1,0 +1,84 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..fc4b081b 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -13,7 +13,7 @@ import { scheduleNativeContacts } from './native_motion_schedule.ts';
+ import { trimUnusedArcGuides } from './arc_guidance.ts';
+ import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
+ import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
+-import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
++import { arcResponseStep, arcSecantUpdate, arcSecantReliable } from './arc_response.ts';
+ import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
+ import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
+ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
+@@ -31,6 +31,8 @@ export type ArcMotionOptions= {
+   constructionBudget?:number;
+   /** Reuse measured response directions between complete finite differences. */
+   responseSecantSteps?:number;
++  /** Reuse responses only after accurate prediction and unchanged contact timing. */
++  responseSecantStable?:boolean;
+   wholeTrackRefinement?:boolean;
+   /** Rank already simulated complete alternatives by the full authored loss. */
+   terminalSelection?:boolean;
+@@ -199,6 +201,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   let searchBudgetExhausted=false;
+   const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
+   const planningDecisions:any[]=[];
++  const secantDiagnostics={considered:0,accepted:0,changedContactTiming:0,inaccurate:0};
+   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
+   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+   const controlMemory=new ArcControlMemory();
+@@ -412,7 +415,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
+           i<contacts.length-1?options.valueGuidanceWeight??0:0);
+         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
+-          achieved,actualImpact,terminalLoss,release};
++          achieved,actualImpact,terminalLoss,release,
++          ...(options.responseSecantStable?{contactTiming:raw.frames.slice(frame,horizon+1).map(f=>f.sledContacts.length?1:0).join('')}:{})};
+         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
+           searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+         // Interrupted evaluations never reach this cache insertion.
+@@ -551,7 +555,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+           const previousUses:number=secant?.uses??0;
+           if(improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
+             const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale[key as keyof typeof scale]*trust));
+-            const updated=arcSecantUpdate(jac,displacement,best.residuals.map((v:number,r:number)=>v-origin.residuals[r]));
++            let reliable=true;
++            if(options.responseSecantStable){
++              secantDiagnostics.considered++;
++              if(best.contactTiming!==origin.contactTiming){reliable=false;secantDiagnostics.changedContactTiming++;}
++              else if(!arcSecantReliable(jac,displacement,origin.residuals,best.residuals)){reliable=false;secantDiagnostics.inaccurate++;}
++              else secantDiagnostics.accepted++;
++            }
++            const updated=reliable?arcSecantUpdate(jac,displacement,best.residuals.map((v:number,r:number)=>v-origin.residuals[r])):null;
+             secant=updated?{jac:updated,trust,uses:previousUses+1}:null;
+           }else secant=null;
+           if(!improving)trust*=.5;
+@@ -796,6 +807,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,...(options.responseSecantStable?{secantDiagnostics}:{}),failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }
+diff --git a/scripts/v0/optimizer/arc_response.ts b/scripts/v0/optimizer/arc_response.ts
+index 9bbd95cc..81b31384 100644
+--- a/scripts/v0/optimizer/arc_response.ts
++++ b/scripts/v0/optimizer/arc_response.ts
+@@ -32,3 +32,15 @@ export function arcSecantUpdate(jacobian:number[][], step:number[], change:numbe
+   });
+   return updated.every(r=>r.every(Number.isFinite))?updated:null;
+ }
++
++/** Reuse only a response that predicted the just-measured physical change. */
++export function arcSecantReliable(jacobian:number[][],step:number[],before:number[],after:number[]):boolean{
++  if(jacobian.length!==before.length||after.length!==before.length||jacobian.some(row=>row.length!==step.length))return false;
++  const predicted=jacobian.map(row=>row.reduce((s,v,k)=>s+v*step[k],0));
++  const change=after.map((v,i)=>v-before[i]);
++  const squared=(values:number[])=>values.reduce((s,v)=>s+v*v,0);
++  const old=squared(before),actualDrop=old-squared(after),predictedDrop=old-squared(before.map((v,i)=>v+predicted[i]));
++  if(!Number.isFinite(actualDrop)||!Number.isFinite(predictedDrop)||actualDrop<=1e-12||predictedDrop<=1e-12)return false;
++  const ratio=actualDrop/predictedDrop;
++  return ratio>=.25&&ratio<=4&&squared(change.map((v,i)=>v-predicted[i]))<=.25*Math.max(squared(change),squared(predicted),1e-12);
++}

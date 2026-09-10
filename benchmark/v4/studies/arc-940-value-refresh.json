@@ -1,0 +1,802 @@
+{
+  "schema": "line.arc-v4-value-refresh-study.v1",
+  "selected": false,
+  "model": {
+    "path": "generated/benchmark-v4/arc-940/models/teacher-934-value/model.json",
+    "sha256": "50331c4352bc69d2bc631cbeebe7a0f1507605141043325b85bbd1773beb62b6"
+  },
+  "validationSha256": "0b6fc3b911ff5674ec3e800e8484eccb202177ad206642289b6934ee15c03b77",
+  "validation": {
+    "rows": 74079,
+    "groups": 19,
+    "folds": [
+      {
+        "fold": 0,
+        "heldGroups": [
+          "high_air_energy",
+          "legacy_transition_regression",
+          "spacious_amplitude"
+        ],
+        "train": 59186,
+        "test": 14893,
+        "mae": 0.009788405366257299
+      },
+      {
+        "fold": 1,
+        "heldGroups": [
+          "irregular_microtimed",
+          "legacy_amplitude_regression",
+          "low_air_frontier"
+        ],
+        "train": 59074,
+        "test": 15005,
+        "mae": 0.011634141020426866
+      },
+      {
+        "fold": 2,
+        "heldGroups": [
+          "believer",
+          "cadence_transition",
+          "luna_bala",
+          "rapid_pickup_frontier"
+        ],
+        "train": 59328,
+        "test": 14751,
+        "mae": 0.013791511303007526
+      },
+      {
+        "fold": 3,
+        "heldGroups": [
+          "dense_recovery_frontier",
+          "sparse_transition",
+          "subdivision_pickup"
+        ],
+        "train": 59298,
+        "test": 14781,
+        "mae": 0.018282629776107315
+      },
+      {
+        "fold": 4,
+        "heldGroups": [
+          "amor_na_praia",
+          "amour_de_ma_vie",
+          "dense_musical",
+          "regular_exceptions",
+          "shelter",
+          "tiki_tiki"
+        ],
+        "train": 59430,
+        "test": 14649,
+        "mae": 0.01292295557350325
+      }
+    ],
+    "comparedContexts": 15439,
+    "newMeanRegret": 0.00613710430044045,
+    "oldMeanRegret": 0.005849958656345779,
+    "provenance": {
+      "teacherPlanSha256": "9875e6d28bc9df53060d54971ed6f03ef300f4b429579f2c3653673ad18c29e6",
+      "records": [
+        {
+          "source": "bridge_river_reentry",
+          "sha256": "466fb726705946a54097effbec2ce977b053a56ebf781851b38e857d66678cc1"
+        },
+        {
+          "source": "bridge_countercurrent",
+          "sha256": "809f0e1ca9e18e2e433ee491951a08a006742acde13615f4be285aad14d5bd65"
+        },
+        {
+          "source": "bridge_split_signal",
+          "sha256": "05dbc79020b0f68af7d61c95cd83e41d4cb10cba6b4411078f7c1102c6de79a1"
+        },
+        {
+          "source": "bridge_pickup_lattice",
+          "sha256": "41a06124cd8a27fcfa81b725b6c577ac9d46a08ab95188764eff6406466ccd6c"
+        },
+        {
+          "source": "bridge_loose_pocket",
+          "sha256": "dacb86849e42ac07e55d00d407081068603a9ed52f2406588d39215c46685083"
+        },
+        {
+          "source": "bridge_offgrid_conversation",
+          "sha256": "36398429e5c30d2845dcc33f5b8039e944cfa5512b38e372e2af6ff0cdd5964e"
+        },
+        {
+          "source": "bridge_rising_switch",
+          "sha256": "d058a39bb5bcbea8e2260cad7ef1f5ec98b6ada5b7fa23ba66b7936556b4a83c"
+        },
+        {
+          "source": "bridge_meter_exchange",
+          "sha256": "46d9478e487e01677b3ce86412553de5ef47cf5008cab704c1c3d1e7640843c6"
+        },
+        {
+          "source": "bridge_wide_breaths",
+          "sha256": "c9f78f764691a6f8520acbbd8fa0daec6b449f99ebcb1e2a3544d949c57b82f8"
+        },
+        {
+          "source": "bridge_open_hook",
+          "sha256": "dc403ffcdef1873ad74f3825322be069dc36dca7652db0d67018a60ecf6cb278"
+        },
+        {
+          "source": "bridge_amplitude_tides",
+          "sha256": "f2e108dc106cb3ac7225288c8702e13bc1f73c6877d5c6e5b0bce8a10eee91ea"
+        },
+        {
+          "source": "bridge_dense_dialogue",
+          "sha256": "b0342e74cdacd6241f9dd491b6154a06efda65cb57d3037dcdf4ce81ea182caf"
+        },
+        {
+          "source": "bridge_high_air_drive",
+          "sha256": "163ac16b438beeaee966cf68dc3071dc8856f5dfb9803296d033a861b1f54196"
+        },
+        {
+          "source": "bridge_sparse_lowline",
+          "sha256": "3b7a297bc473c2ef78abab758df085d9dde6a91b295c1785b95d4398bd0b41de"
+        },
+        {
+          "source": "bridge_frontier_pickup_progression",
+          "sha256": "ba3843dbc8726e2a4b6b53fd8d3a1fb60dfa9036bebae11c620a2332aabd5cb6"
+        },
+        {
+          "source": "bridge_frontier_dense_recovery",
+          "sha256": "3bdf2a770c4d326af3d403394971ca677c5698cecf27857e1927851ee1aeb8f7"
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance",
+          "sha256": "f0c8bd0076c0973b7f4ae74881a0209a2cd51dc29901ab746c00d61f81ddf749"
+        },
+        {
+          "source": "bridge_regression_transition_mosaic",
+          "sha256": "27960aac898af0dc18dcb84c9177d07ffe852ac5193890465a8a142a805fce61"
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic",
+          "sha256": "7e70ef3dbe2a445efec3472ad205216e5fc310ef48395125f747fb25f53ae553"
+        },
+        {
+          "source": "bridge_believer_56_6s",
+          "sha256": "e81910a04968d691a184c4378d46e2997593afcbd1a698f89e595e8607ac2f6c"
+        },
+        {
+          "source": "bridge_believer_impact_56s",
+          "sha256": "086b319e9ec77fd3d2fbfcbad3cde45111424f424fc02b447d38fbbd809693ae"
+        },
+        {
+          "source": "bridge_river_reentry_tempo_fast_5",
+          "sha256": "3c477e0eede9b91f2599d1d49df9a2ef983b68b11218fac85947097aac8970e8"
+        },
+        {
+          "source": "bridge_countercurrent_impact_contrast_12",
+          "sha256": "e4614b675573c02417cdd6a14b6048cd3bd9681c7a0ce798da667d15053903f1"
+        },
+        {
+          "source": "bridge_split_signal_impact_relief_12",
+          "sha256": "c3c62e3c3e1e3ea817a006d6e377d9c370b7ce92b2d50a23bd9c3e3ec4787d7b"
+        },
+        {
+          "source": "bridge_pickup_lattice_speed_minus_4",
+          "sha256": "45e2ea16ba4d3e3a72bcee5ac8668a200d364b314c5fcba43663655974180deb"
+        },
+        {
+          "source": "bridge_loose_pocket_drag_later_20ms",
+          "sha256": "745514d57e077e1ce70690d888c0f80e95577ddc0a7b45eb0717152c8314740d"
+        },
+        {
+          "source": "bridge_offgrid_conversation_answer_early_25ms",
+          "sha256": "cc52dd051348846f43616490542effd13ac6a07e29f798c4a75a7791ca6aaff2"
+        },
+        {
+          "source": "bridge_rising_switch_tempo_fast_5",
+          "sha256": "6ffb72398d40b1255ae68c0dff07df27900c74e5b7c0400fd2beaa37d56a2712"
+        },
+        {
+          "source": "bridge_meter_exchange_speed_plus_4",
+          "sha256": "010558c50772928ff41c052596d342b39fe057b5c024a0fec690b40fec4b1748"
+        },
+        {
+          "source": "bridge_wide_breaths_air_plus_5",
+          "sha256": "f25a4a7b0704c08b9b80a5bc4f377aaf3f861ce8a6a19b47acc387a38898c5bb"
+        },
+        {
+          "source": "bridge_open_hook_amplitude_plus_8",
+          "sha256": "c71e6cf74aab19b0e11da551aa2c575c79e326e10f34d961ba3caa38117c510b"
+        },
+        {
+          "source": "bridge_amplitude_tides_restrained_10",
+          "sha256": "f9568907d8aee4fa68d9b46af86e2e70985462509018cf57e19fae138c3e4a21"
+        },
+        {
+          "source": "bridge_dense_dialogue_impact_contrast_10",
+          "sha256": "4b4c617b0cebcaf43a0861bd8871c46443b35cc8b4c98a857b3a312fa97366da"
+        },
+        {
+          "source": "bridge_high_air_drive_air_minus_5",
+          "sha256": "f215432c95f0d5ad3d0770404e42377cb35f34c0d2a7a3dd18f593017bb70dc2"
+        },
+        {
+          "source": "bridge_sparse_lowline_air_minus_4",
+          "sha256": "22a3762dd5bb82cd17528a4be5ede6bfcc6e8e0252efc3ad98b5007ce43b0b5e"
+        },
+        {
+          "source": "bridge_frontier_pickup_progression_shifted",
+          "sha256": "c5450fe30f05f4ca3f95c0f13b36d0f9bc62dcb4f71c9c1eaf2fd4f7ac0d0b60"
+        },
+        {
+          "source": "bridge_frontier_dense_recovery_240ms_figures",
+          "sha256": "1e9bfffbafbc691f2a35f7c9c6dab8008959eb5348dbea38373a8df5b1ebeae3"
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_4s",
+          "sha256": "96e10105c33a42875ce787e1e7f917e788aa25ff0dd446571a27d0e08454d067"
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_6s",
+          "sha256": "2f6e3240d4770dff03276633f7bfb852d0f83f1797d3e3d876e3318877ff668b"
+        },
+        {
+          "source": "bridge_frontier_low_air_endurance_7s",
+          "sha256": "f53321434c382c54326a847b712877812942f58642ef947252af13b5ba8a9162"
+        },
+        {
+          "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+          "sha256": "bdc5bf3421778432e9a3c72db9b35ac83c391455dbb7083a2ef1e15f319b9fcb"
+        },
+        {
+          "source": "bridge_regression_amplitude_mosaic_contrast_10",
+          "sha256": "a24e58438f3c52ecc38abb279e64c10cebd022511a627aca506403de143bdf58"
+        },
+        {
+          "source": "bridge_believer_56_6s_impact_relief",
+          "sha256": "03a3f4a8d995bdc9ddd7f04b6915edc8c34be153822e914c08dc775e1477161a"
+        },
+        {
+          "source": "bridge_believer_impact_56s_amplitude_plus_5",
+          "sha256": "b8234ee90be20c6d4a1f9c2065498ca212a83c941ba0de68135ec1c90d1c9dd6"
+        },
+        {
+          "source": "harbor_return",
+          "sha256": "3ba3580a2a9ccdf30bf79f7dccf4c31e3e7fe02b3ba00c478ea0c80b624ae339"
+        },
+        {
+          "source": "crossing_lights",
+          "sha256": "e887bef40f1b31dfe057c00e1d5f4ee999c5f0e9eb44e84956b77ef204f03043"
+        },
+        {
+          "source": "afterglow_turn",
+          "sha256": "a101172540eaa8b49cc72a6cccae1b2fd7f0301520c2ef0296790fa5492004b6"
+        },
+        {
+          "source": "woven_pickups",
+          "sha256": "62027f93f2241dd81756dd81c9595bd45779ce549b88be04a884e20d5e463d19"
+        },
+        {
+          "source": "pickup_answers",
+          "sha256": "3c8d806b1c9433b995009cc502b4cdc0eb53781cc0eb74bd0673cb57465fd72e"
+        },
+        {
+          "source": "broken_triplets",
+          "sha256": "af9b8525b57a2ef458b992aade8ad962e01d89ddf7440fff4e97c311e2e37816"
+        },
+        {
+          "source": "late_letters",
+          "sha256": "371982d75ad5cb7cea721dcd08202e3ff3bfb61db07f69025f0fa210d93d724e"
+        },
+        {
+          "source": "swing_exchange",
+          "sha256": "0abb5af7f96bcb871de2b21e38dea5198795c3e7822a866645b33fd6602bef59"
+        },
+        {
+          "source": "offbeat_echoes",
+          "sha256": "0273bf7cab56ecbe95d4350b6ecd09e484f3f07f28fd0819e7ee288fdea44590"
+        },
+        {
+          "source": "gear_changes",
+          "sha256": "1e6f062843b85d5656a0e1539c84a8e88c27d76aea05ca6c92a2426e5c0acec8"
+        },
+        {
+          "source": "half_time_return",
+          "sha256": "0334fa8b6f1bbb2d02a73361c1313a609cdc30c12f7d97df451edb59b0393f60"
+        },
+        {
+          "source": "accelerando_reply",
+          "sha256": "dc241a5a8abb8578043c17c94c4d879d0b37c7356cbea6364256ffde73b23cee"
+        },
+        {
+          "source": "archipelago",
+          "sha256": "a747470000a5ce0d698a6cc6e51352bfcc76231cc454e3efbee9237075a76396"
+        },
+        {
+          "source": "wide_arc_dialogue",
+          "sha256": "30dd69364ab0dd12a48e035f6152ad82089e0deb983c499f79b78703fb6123aa"
+        },
+        {
+          "source": "terraced_skies",
+          "sha256": "4a79a00bb5cd0b2b1502978121c5683f536b4c6311d20b05cb18cba804b95977"
+        },
+        {
+          "source": "woven_pulse",
+          "sha256": "777a40730253c334fc02630d5dd9463ce8839879a5f23046af6ef4c75a6a5d0b"
+        },
+        {
+          "source": "density_release",
+          "sha256": "5e7537512f8384f718064532e15fbf6a9f595745fcc12bdd8433ec17a95ad047"
+        },
+        {
+          "source": "compact_dialogue",
+          "sha256": "60e10489d6d9370f13c60635561f27162de9ffaca3b40162ff33b6cabe9ddbb4"
+        },
+        {
+          "source": "lifted_refrain",
+          "sha256": "e4b1fde025cec024462d96b10cfbc3bb367ea655cdba9d8a465fa16123d44f25"
+        },
+        {
+          "source": "flight_and_return",
+          "sha256": "e837f785e0b43025f35469c74bdcc016599895fb1209f2885886a9143afb48de"
+        },
+        {
+          "source": "open_canopy",
+          "sha256": "f05c0ee8500a35575b1a772178580d037d404c961704ac5ff55f0125485b8e49"
+        },
+        {
+          "source": "quiet_current",
+          "sha256": "23580c5ebf4eb3811f0492163f2648e7d00f8283123b78cb6ddf4a25a4a8e377"
+        },
+        {
+          "source": "support_then_lift",
+          "sha256": "df64dd9b565d36842911d75aef90e5458c4d0a1331c6cf215db8e57df247d050"
+        },
+        {
+          "source": "rest_and_return",
+          "sha256": "ead97a6df36a86b139e4dc6705c902abb874ed9a49614fea0fd0c146756e73fa"
+        },
+        {
+          "source": "pickup_staircase",
+          "sha256": "6aa33ee1ab7c03eae915fcce56873e8d340f6e2b12b0f35cd7488b6a5ff90a6b"
+        },
+        {
+          "source": "pickup_interruptions",
+          "sha256": "2411b4c5bc0fc2cfdbf9529e1d376c65e075ea0da7dd6c4c16a7dd7e05557a48"
+        },
+        {
+          "source": "pickup_recovery",
+          "sha256": "f0d76590f52dfdcc2b9c2454c80777d01fd7d97d0ab6bfd1bf749d4a3c95bd43"
+        },
+        {
+          "source": "dense_short_then_long",
+          "sha256": "7e56ad316761943c445f12af72452fa6e41dbe44042c751b9a33e9c14246781b"
+        },
+        {
+          "source": "interleaved_recovery",
+          "sha256": "d8a06c9001b515945efebbe4518abc802325cff46dc4d37961180b861cb5e4ba"
+        },
+        {
+          "source": "three_note_returns",
+          "sha256": "09a1682be94f033a342a87f80497a45200b8621ecd95f56a101a9f446fd0d514"
+        },
+        {
+          "source": "supported_bridge",
+          "sha256": "3a5ad4a044f0f522d802b38a8e5c4458cf72ceafdb08ad2b0e91e86919b15fc1"
+        },
+        {
+          "source": "supported_speed_change",
+          "sha256": "ae2ae4737c37f302f85d172ce6a231ffd8df033032b3e9dbeb360f975fb2eeba"
+        },
+        {
+          "source": "endurance_and_return",
+          "sha256": "49a2ce082f02bc741813645dfcec59c968f4646d2b1d398152ac0ecd97c5aa31"
+        },
+        {
+          "source": "energy_weave",
+          "sha256": "02f149db2662a967d941d77f3f66ef6f13948b04cd237379f44359fd693757db"
+        },
+        {
+          "source": "alternating_intentions",
+          "sha256": "746763168ffd41ae1051c181b4cfda6044becec6665c26b73ae14a5107239f6a"
+        },
+        {
+          "source": "recovery_mosaic",
+          "sha256": "a0e522460d5ca4a060a7ea3a19afdd2ebaca0b81176f4d13542f6241e5445887"
+        },
+        {
+          "source": "amplitude_reply",
+          "sha256": "fce1eab48617ece9b37db62bb6e3fa6564faa46d921407cb7db2294b88789bce"
+        },
+        {
+          "source": "restrained_then_wide",
+          "sha256": "5f30ccc0e2882246b228f321e78dbf39af2c3fff9da547fcbe70d9812491a24c"
+        },
+        {
+          "source": "arches_at_new_tempos",
+          "sha256": "6e8f5861dc91f6d5973fe7f622ff2eb9f46b00eca566f4c47ffe29738e0ccd9e"
+        },
+        {
+          "source": "music_amor_na_praia_46s",
+          "sha256": "a9701acc963345e13237443a5471fe02a328acf3168ec3d8c71f6fc98d2ef27c"
+        },
+        {
+          "source": "music_luna_bala_44s",
+          "sha256": "b35a6900849972412965ac6f177219dc626a6eacff2888702060ab8ae925c704"
+        },
+        {
+          "source": "music_tiki_tiki_48s",
+          "sha256": "bc8c870f354a96d214da5c53e3a25e6badbb814324bda43684544922fdd9ef9a"
+        },
+        {
+          "source": "music_shelter_impact_sync_81s",
+          "sha256": "a4211394fc9370398c5e2efbd0bda6d6cceb1f42a039fa95596d019a8a41dbc8"
+        },
+        {
+          "source": "music_amour_de_ma_vie_short_44s",
+          "sha256": "0fb873689eb2c8292d6d6e639827d99a5e1dfb6584e456491f28fc799807a3cd"
+        },
+        {
+          "source": "stretch_bridge_river_reentry",
+          "sha256": "ea953fca999f47880d43507cda67ad034b1768adb200cfe9510a17a9a3bcba2f"
+        },
+        {
+          "source": "stretch_bridge_countercurrent",
+          "sha256": "b4164d19e1f1155b8c3d5a667a43ee7ea67f91b9789b241bd60fb47df6f46ba7"
+        },
+        {
+          "source": "stretch_bridge_split_signal",
+          "sha256": "9f8f4605674716868a229f1f15df83959b935c56594dd33423ac98b588711cd3"
+        },
+        {
+          "source": "stretch_bridge_pickup_lattice",
+          "sha256": "20d979f076ca6843b1bb6375df0396203903fa93841a2eb41771d5084d9f3d0a"
+        },
+        {
+          "source": "stretch_bridge_loose_pocket",
+          "sha256": "2d2d461fefa60efd9d08a82db8885e957b37c3de032ec521016efa12863c5ee3"
+        },
+        {
+          "source": "stretch_bridge_offgrid_conversation",
+          "sha256": "faeb46ef77e56ca09dd9fdbb35e0ce485f01af8b26de9862aa97d5678392d93c"
+        },
+        {
+          "source": "stretch_bridge_rising_switch",
+          "sha256": "d4899371f2bab3da2686e7baad27b14bb918d6f8d738aa23647cd053fdccd6f8"
+        },
+        {
+          "source": "stretch_bridge_meter_exchange",
+          "sha256": "e24dd18617a860dbace34f92a623084704159521a9aa2c4e041517187df36327"
+        },
+        {
+          "source": "stretch_bridge_wide_breaths",
+          "sha256": "e58e465f2268ed57f4aead386bf425ae1b29cae7335abdd275ad6c4971bad18b"
+        },
+        {
+          "source": "stretch_bridge_open_hook",
+          "sha256": "16195cd9a5de883dfa9098f8fbccd1821cc78210411f1d0f0f7855dc679c098b"
+        },
+        {
+          "source": "stretch_bridge_amplitude_tides",
+          "sha256": "398152ede25fc9bcaaade0c00b055b2d3598f3b307175054629c9b26b8a6be17"
+        },
+        {
+          "source": "stretch_bridge_dense_dialogue",
+          "sha256": "ba99fb2c2da40366b8d548eda3ace58466797349ec9e19531a32d55d4cada2c6"
+        },
+        {
+          "source": "stretch_bridge_high_air_drive",
+          "sha256": "3475176a54de228be080dd66f4e301b3d82c82d9665c516927a978aa655d1ed2"
+        },
+        {
+          "source": "stretch_bridge_sparse_lowline",
+          "sha256": "769eeab52ad05ee0192216554edf0edde4e479d0386ff7eb4e0b32a9fe11bbd6"
+        },
+        {
+          "source": "stretch_bridge_frontier_pickup_progression",
+          "sha256": "00bb7925bf2495709382ae17b6b5f5bcf6a426eb63855551d71abbd7d628b812"
+        },
+        {
+          "source": "stretch_bridge_frontier_dense_recovery",
+          "sha256": "33dd64ce43dec284f06e7916c280d1341f2b425add0446d0320e866df309c5e4"
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance",
+          "sha256": "5bcba9796c870179251cb476e0396de67df43a1af9d7399e6387f23bd01e37b4"
+        },
+        {
+          "source": "stretch_bridge_regression_transition_mosaic",
+          "sha256": "ccafc2d25f13362db60e85fd59ee58647a8320c5aeb61d616c17a3748ebf0aed"
+        },
+        {
+          "source": "stretch_bridge_regression_amplitude_mosaic",
+          "sha256": "d2852b329950ca7371bfc02ff6d5bf33e5c28e2c2de597cb8ff8973a0502bd98"
+        },
+        {
+          "source": "stretch_bridge_believer_56_6s",
+          "sha256": "025712ffc62c9e2cab23ee84f709f47a54cf2b196cf2e0e96c4ea3b74bd35252"
+        },
+        {
+          "source": "stretch_bridge_believer_impact_56s",
+          "sha256": "eb239352935c15cfb47c79318e36f946bd3db6057e87ca0694b05591916c5c74"
+        },
+        {
+          "source": "stretch_bridge_river_reentry_tempo_fast_5",
+          "sha256": "3cd8ca5884a3f50db22fda29c0ec7361b278e2bd5b7b7bb9f0510f610e3fbd5a"
+        },
+        {
+          "source": "stretch_bridge_countercurrent_impact_contrast_12",
+          "sha256": "f0b7a81be1eaaea212d154994027b91538bc06e5855df62333cc290bf22695fc"
+        },
+        {
+          "source": "stretch_bridge_split_signal_impact_relief_12",
+          "sha256": "7aa723c996308ba1e25e190874e718132e500dc888518e32cff015300115fa23"
+        },
+        {
+          "source": "stretch_bridge_pickup_lattice_speed_minus_4",
+          "sha256": "00493f7dcf0cbea38ce430c25233b7b444e68ddd1d269415c1f74ba6f188ab0b"
+        },
+        {
+          "source": "stretch_bridge_loose_pocket_drag_later_20ms",
+          "sha256": "456bbb53af79563f9e8990049747bca60895b76767de4a709012cf39c8942b1b"
+        },
+        {
+          "source": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+          "sha256": "c9938cf712714026a4f22e7e795577439337a1dc55ded78cdf3c0368580e5c3f"
+        },
+        {
+          "source": "stretch_bridge_rising_switch_tempo_fast_5",
+          "sha256": "e0a4bfa239ae2cb29be553ac07ee6499cc9c9a0032e7fde11549058a24f395fb"
+        },
+        {
+          "source": "stretch_bridge_meter_exchange_speed_plus_4",
+          "sha256": "44e0ed30ee7a230252d5eb7445638512a8abdd0c38ef3885a131c9974444035e"
+        },
+        {
+          "source": "stretch_bridge_wide_breaths_air_plus_5",
+          "sha256": "cbb6fc0cdba5d23eab5a7d5e451cc3f9bd110b4afe3cc6aad0445a4605656837"
+        },
+        {
+          "source": "stretch_bridge_open_hook_amplitude_plus_8",
+          "sha256": "3239c7c0b0e69afb5e21e57900f1ee0dcadc849ec66ac8e97e2e13d60ac50bb5"
+        },
+        {
+          "source": "stretch_bridge_amplitude_tides_restrained_10",
+          "sha256": "0354fc568f6a3dc239b3932a2e1293f4e489d9b1878c238c0d8c13dc96a15d28"
+        },
+        {
+          "source": "stretch_bridge_dense_dialogue_impact_contrast_10",
+          "sha256": "865aecc6650f2b94a8e13236077e8b0eaba26f105b51394f36135ffa307d99e0"
+        },
+        {
+          "source": "stretch_bridge_high_air_drive_air_minus_5",
+          "sha256": "33b133fc4c427629785b612ad86f00bb497646a0489fe237646f1efebbfeb05a"
+        },
+        {
+          "source": "stretch_bridge_sparse_lowline_air_minus_4",
+          "sha256": "464bc761e97d06a1e37653dca2adc2af3196e7d1a4da48fcac5a5341162b63bd"
+        },
+        {
+          "source": "stretch_bridge_frontier_pickup_progression_shifted",
+          "sha256": "d8ec4a2d3926dbb5b199c13cda3cd2cddc4b8ddaf3cccc9f0c214db3f2fc49b2"
+        },
+        {
+          "source": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+          "sha256": "7189ea5dfa30f59a4d7aed5ad03cc8f5283aebf29f1594d470d331c4dbbc2e01"
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_4s",
+          "sha256": "79e7b3e45269be60385b4f96fdc0d7b02aef92cfead9bc888d26bfd6f2b53e17"
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_6s",
+          "sha256": "b8e0ccfdf7e0bc8d73dbcdde6a69ee3b67c31a1a6de4487a48129f72cf825c94"
+        },
+        {
+          "source": "stretch_bridge_frontier_low_air_endurance_7s",
+          "sha256": "b7d054d7008a560636f20055a3af57826e2bc682a89b2ac789819133218b9b98"
+        },
+        {
+          "source": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+          "sha256": "2a4e0b170877303de76d8e62a7d016e484270fe5b617a57fe26eade83d5c03fe"
+        },
+        {
+          "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "sha256": "7af5c739846bf2a77d418ecec6022f50dfe2cd46912ac6b47b5a4d70f0394e74"
+        },
+        {
+          "source": "stretch_bridge_believer_56_6s_impact_relief",
+          "sha256": "b2a4f30e4eaf9206142cb404779e910a2c709a213069d84f308976f64dd1fcd5"
+        },
+        {
+          "source": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+          "sha256": "f55814ea5f210325292abd226701a664374d22bd112963704b2cf56ce24be975"
+        },
+        {
+          "source": "stretch_harbor_return",
+          "sha256": "ccbec66331b9e4022b8592ca0716b4af48c8036470b01e6302193a57ab58b6b4"
+        },
+        {
+          "source": "stretch_crossing_lights",
+          "sha256": "abd92e4b0f5dac1b76b5e098ef8d81be5a8b9a0a92f70b5611f5b66136fa63f5"
+        },
+        {
+          "source": "stretch_afterglow_turn",
+          "sha256": "a74bdd7858748b61e162b9e2e76fb63308223b8e11f42ef6a76117a41205d2a9"
+        },
+        {
+          "source": "stretch_woven_pickups",
+          "sha256": "a160c1761b8e074071a2ba5a7d57e01d6574849ba8e7f3856e791652305d43b5"
+        },
+        {
+          "source": "stretch_pickup_answers",
+          "sha256": "b345331a9bc78b12f3b5fb747a6dcdb01d9c550b9c53f0a6b99d33db8298b671"
+        },
+        {
+          "source": "stretch_broken_triplets",
+          "sha256": "7c0e6eb2ffca50c1319c96554fde998b3131b25bb2fe20e68ff54a23420cebd3"
+        },
+        {
+          "source": "stretch_late_letters",
+          "sha256": "e2a508ebe7df6ee9def75a7e9c58cfcdb4eec633cf30ab8269cdf5a7ad66fb9f"
+        },
+        {
+          "source": "stretch_swing_exchange",
+          "sha256": "02ad8d52734795ed0b0e8b5ba724c022f67167bb08d755d14a21654251a04b0f"
+        },
+        {
+          "source": "stretch_offbeat_echoes",
+          "sha256": "b853379b653c2ebc28ee12421a6e9018f2af9ca8b6ae6685dfdf0dac7e552d10"
+        },
+        {
+          "source": "stretch_gear_changes",
+          "sha256": "690949767a5a32338666949f0752019a4c6bab176e41812c40adf09976b53378"
+        },
+        {
+          "source": "stretch_half_time_return",
+          "sha256": "afa763e677f0ad4298c4972a85b0b8a5fe8479044504aa7d11a3f321ca36e7cd"
+        },
+        {
+          "source": "stretch_accelerando_reply",
+          "sha256": "ec9bac90d765d6589f7dd6911917ac2dbe1f8bcd7c79a81d5c5e1769a3754938"
+        },
+        {
+          "source": "stretch_archipelago",
+          "sha256": "a8ee4a75a61affd7be563fb9adc6ec2313d281f43229ea93cb6d5330ff89c1c3"
+        },
+        {
+          "source": "stretch_wide_arc_dialogue",
+          "sha256": "261bf54c06131b9d35fc5d22f0004937ef42ef556a901a8c0949729640b6576a"
+        },
+        {
+          "source": "stretch_terraced_skies",
+          "sha256": "850df987ebf10bd35f8be3b53410f9bca7a8639512855b5d2bc618b2dccb1fc8"
+        },
+        {
+          "source": "stretch_woven_pulse",
+          "sha256": "fbefceb8e2791d53034618eaaadf5079d84819bad19b39ce2a93342c7800afef"
+        },
+        {
+          "source": "stretch_density_release",
+          "sha256": "f2d0e52b641c5cedb809886f7d67475bf12278628122f86f5c2cad521ce13946"
+        },
+        {
+          "source": "stretch_compact_dialogue",
+          "sha256": "eeb5370a9f75fe64496d9c1ceab2aac7a0edecc7b7837322d8b365e90ab29346"
+        },
+        {
+          "source": "stretch_lifted_refrain",
+          "sha256": "50e316884f9d4afb788d1bd3e49daf6897eff44d7a6841584932687634132657"
+        },
+        {
+          "source": "stretch_flight_and_return",
+          "sha256": "87cabbd4b1101ed5cc3dde60e7738a029f3f30424a9b5d2c5ab92f4a38fa8095"
+        },
+        {
+          "source": "stretch_open_canopy",
+          "sha256": "8a26d5e79bf5e8590652a57b0456f63ae251ec3022a972f33b6f56ca8b67ebe0"
+        },
+        {
+          "source": "stretch_quiet_current",
+          "sha256": "c2407a7c1f0206794845a531919070774417986f1ebef0fa906e0bb8ffd72e8a"
+        },
+        {
+          "source": "stretch_support_then_lift",
+          "sha256": "d598470c2ac4f17174a22f5dfa7d4cc7f106c63cc5d1f587e5dcb8b4ee88d095"
+        },
+        {
+          "source": "stretch_rest_and_return",
+          "sha256": "8e0f71b77509146a9e6003ba46f14cbebbfca5107a48f6fa977ab29cbf7cd92a"
+        },
+        {
+          "source": "stretch_pickup_staircase",
+          "sha256": "24666f28f3236106f59b4c2d0e8d18acf2918a791e03642b0408c9182f02804d"
+        },
+        {
+          "source": "stretch_pickup_interruptions",
+          "sha256": "e515566d900814bea5d5c3775e8963db83cb1aed49974f3417e66265db8769c8"
+        },
+        {
+          "source": "stretch_pickup_recovery",
+          "sha256": "cfc2337fb2d470eed81e868fb5ec5dd0e95d488d48dbc329fc65969c3bacf90a"
+        },
+        {
+          "source": "stretch_dense_short_then_long",
+          "sha256": "a5470ddceb3e6d8d72ce8498f9c251303f1154ede7401c0be713fa11306ab777"
+        },
+        {
+          "source": "stretch_interleaved_recovery",
+          "sha256": "22e98cba9a14cda3aa4293b2fb1645f9470a9c25f3c999c5950d516bec50d17f"
+        },
+        {
+          "source": "stretch_three_note_returns",
+          "sha256": "f1180541a6b83ddd5fa397173e5229680aefc378948d376abcaebdca577196bf"
+        },
+        {
+          "source": "stretch_supported_bridge",
+          "sha256": "7c9d3ae8adefdc378bb9dee6e4ad111d5a38b0b68ea2419a7e047e08e00e13ac"
+        },
+        {
+          "source": "stretch_supported_speed_change",
+          "sha256": "adb67c487ce4de7412edd7e464625fac8d0a178323f11abb88b585582ea5aa4a"
+        },
+        {
+          "source": "stretch_endurance_and_return",
+          "sha256": "3327e0f6e30bad6967f96385d9aaa368cc2d17a3cdcdf78b8c425081ed9519fc"
+        },
+        {
+          "source": "stretch_energy_weave",
+          "sha256": "77537d10eb243db6bf77de6014c3a0688902e7204841fd750033eed3bfc4bd70"
+        },
+        {
+          "source": "stretch_alternating_intentions",
+          "sha256": "e335c0b3a138f09a6a7ad77e61ca94c658150f208456d482df3e5f1ee04a6107"
+        },
+        {
+          "source": "stretch_recovery_mosaic",
+          "sha256": "60e802a54e0ae212ca1d797a5a525bc7c706978d2f6fd764f83e9356b04dc065"
+        },
+        {
+          "source": "stretch_amplitude_reply",
+          "sha256": "52c50c3d1eebe201f2232589c57aba6332edfae90c3c806bc99a10cebe8c9bda"
+        },
+        {
+          "source": "stretch_restrained_then_wide",
+          "sha256": "c10e7eab01ff2d85b565160f5142087cafe730a833de6308e220cbf0dbbf7cbb"
+        },
+        {
+          "source": "stretch_arches_at_new_tempos",
+          "sha256": "9f2e1bd73d8cb77c9529d81800aeed70066176ac1094a235bcc8f8e6c5d71ce0"
+        },
+        {
+          "source": "stretch_music_amor_na_praia_46s",
+          "sha256": "aded1f55f0e0edc4c19af3ed3d93a9552830f723979d40ac2e9c4cc681261ae2"
+        },
+        {
+          "source": "stretch_music_luna_bala_44s",
+          "sha256": "9096ced7b2489bc39fd57935a3ef291503990ad7072a913dbbef6cc836fe89bf"
+        },
+        {
+          "source": "stretch_music_tiki_tiki_48s",
+          "sha256": "10b24658ea2316eb87172b5690552649bec491bb812b98d87e609fd84b84d28d"
+        },
+        {
+          "source": "stretch_music_shelter_impact_sync_81s",
+          "sha256": "4e4f4e78a42a3654aa3e853cf77b4d61c9c7492223d63562199739d07489dc57"
+        },
+        {
+          "source": "stretch_music_amour_de_ma_vie_short_44s",
+          "sha256": "4226c11f27eb25df494d6afee5d8708044cbd43eba3c29691c6bf785a5a7421e"
+        }
+      ],
+      "rows": 74079,
+      "groups": 19,
+      "negativeBoundaryCorrectionsClipped": 167,
+      "omittedShorterNonterminalHorizons": 2528,
+      "note": "Exposed V4 development training. Labels include the teacher terminal prior, not just measured interval loss. Family-disjoint checks concern this predictor only; the teacher compiler already contains development-trained models. No independent end-to-end generalization claim."
+    }
+  },
+  "parity": {
+    "schema": "line.arc-future-value-parity.v1",
+    "modelSha256": "50331c4352bc69d2bc631cbeebe7a0f1507605141043325b85bbd1773beb62b6",
+    "fixtureSha256": "365d91acbb250d5c91f280024f89f05d37156ebe503d936368769a3c50ad926e",
+    "runtimeSha256": "36ebca439e9b6a46a060de3b98cd274e3be1508435f1bcecf30bb44060f55d36",
+    "fixtures": 32,
+    "maxError": 3.469446951953614e-18
+  },
+  "paritySha256": "dce0776a3218fc02d88e8a84ae7ebd134594934a16db74309dae243839453216",
+  "trainerSha256": "0c451ac71c02f85907694610ded280df82364f5040448dcacc3fc24f15a706d5",
+  "note": "Bootstrapped continuation search values include a terminal prior. Held-out groups show slightly higher ranking regret than the deployed predictor; its eight-case live pilot is mixed and mostly regresses. Not promoted."
+}

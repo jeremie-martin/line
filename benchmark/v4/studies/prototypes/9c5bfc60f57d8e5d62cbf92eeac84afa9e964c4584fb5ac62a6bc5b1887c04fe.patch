@@ -1,0 +1,141 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 7897bac8..1dbc22c9 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -128,6 +128,8 @@ export type ArcMotionOptions= {
+   refineFollowSamples?:number;
+   refineUseAlternatives?:boolean;
+   collectValue?:boolean;
++  /** Research-only measurements of initial proposals at ordinary search prefixes. */
++  collectProposals?:boolean;
+   cachePrefixReads?:boolean;
+   /** Reuse completed evaluations only within the same physical search prefix. */
+   memoCandidates?:boolean;
+@@ -154,6 +156,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   if(duration<1)throw new Error('arc duration must cover at least one frame');
+   if(budget<=2*(end+1))throw new Error('arc budget must cover two complete replays and construction work');
+   try{
++  if(typeof options.controlPolicy==='function')options={...options,controlPolicy:options.controlPolicy()};
+   const frames=spec.contacts.map(c=>Math.round(c.t*40));
+   const gaps=sliceTimeline(frames,duration);
+   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
+@@ -198,6 +201,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   let searchBudgetExhausted=false;
+   const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
+   const planningDecisions:any[]=[];
++  const proposalContexts:any[]=[];
+   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
+   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+   const controlMemory=new ArcControlMemory();
+@@ -297,6 +301,12 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         return value===undefined||target===undefined||value<=1?0:
+           ((value-target)**2-(1-target)**2)*(options.amplitudeWeight??1)*spanWeight(g,'amplitude');
+       };
++      let proposalContext:any=null, captureProposals=false;
++      const recordProposal=(c:ArcMotionControl,result:any,reason?:string)=>{
++        if(!captureProposals||!proposalContext)return;
++        proposalContext.proposals.push({control:{...c},reason:reason??null,
++          loss:result?result.optimizationCost+priorLoss:null});
++      };
+       const evaluate=(c:ArcMotionControl)=>{
+         c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
+         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
+@@ -321,19 +331,20 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         const saved=memo?.get(key);
+         if(saved){
+           memoHits++;
+-          if(saved.reason){memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
++          if(saved.reason){memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;recordProposal(c,null,saved.reason);return null;}
+           viableCandidates++;candidates.push({...saved.candidate,c});
+           // Never reuse saved wrappers: retainOnly may already have freed them.
+           // Rebuild from validated geometry; subsequent simulations stay metered.
+           // A measurement from an earlier search must compete in this search.
+           const result={...saved.result,c,child:addArc(engine,saved.result.lines)};
++          recordProposal(c,result);
+           if(!best||result.optimizationCost<best.optimizationCost)best=result;
+           return result;
+         }
+         const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=addArc(engine,added);
+         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
+         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
+-        const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;return null;};
++        const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;recordProposal(c,null,reason);return null;};
+         if(JSON.stringify(getRiderMetered(child,frame-1).ballisticState())!==before)return reject('prefix');
+         const state=getRiderMetered(child,horizon).ballisticState();
+         if(!state.riderMounted||!state.sledIntact)return reject('binding');
+@@ -417,11 +428,19 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         // Interrupted evaluations never reach this cache insertion.
+         if(memo){const {child:_child,...measurement}=result;memo.set(key,{result:measurement,candidate:{...candidates.at(-1)}});}
+         if(!best||guided.cost<best.optimizationCost)best=result;
++        recordProposal(c,result);
+         return result;
+       };
+       // These describe the immutable incoming prefix already measured above.
+       // Reusing them avoids a new physics read after committing the search budget.
+       const inputFeatures=futureFeatures(arcPolicyArrival(beforeState,velocity),i-1);
++      if(options.collectProposals&&protectedEngines.length===0){
++        proposalContext={index:i,features:[...inputFeatures,
++          ...['air','speed','amplitude'].map(key=>(priorGap?.targets as any)?.[key]??-1),
++          ...['air','speed','amplitude'].map(key=>(priorAxes as any)?.[key]??-1)],
++          incoming,span,proposals:[]};
++        proposalContexts.push(proposalContext);
++      }
+       let center:ArcMotionControl|undefined;
+       const selectBounded=()=>{
+         if(!options.boundedSelection||!best)return;
+@@ -448,12 +467,14 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
+       const policy=counts[0]?arcControlProposals(inputFeatures,incoming,span,proposalModel,counts[0]):[];
+       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
++      captureProposals=true;
+       if(options.warmStart)evaluate(options.warmStart);
+       for(let k=0;k<initial;k++){
+         const frac=(n:number)=>((k+1)*n)%1;
+         evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:{entry:incoming-((options.flow||options.channel)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
+         if(k%10===9)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
+       }
++      captureProposals=false;
+       if(best){
+         const keys=['entry','turn','exit','support','bias','offset'] as const;
+         let local=initial;
+@@ -581,6 +602,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+         if(!best)throw error;
+       }
+       selectBounded();
++      if(proposalContext&&best)proposalContext.refined={control:{...best.c},loss:best.optimizationCost+priorLoss};
+       return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,inputFeatures};
+     };
+     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);
+@@ -795,6 +817,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+   disposeSearch();
+   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+   const report=reportFor(raw,lines);
+-  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
++  return{track:buildTrackJson(lines,end,start),report,stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,...(options.collectProposals?{proposalContexts}:{}),failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
+ }
+diff --git a/scripts/v0/optimizer/connected_arcs.ts b/scripts/v0/optimizer/connected_arcs.ts
+index 6024c249..3c7718c0 100644
+--- a/scripts/v0/optimizer/connected_arcs.ts
++++ b/scripts/v0/optimizer/connected_arcs.ts
+@@ -11,7 +11,8 @@ import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler
+ 
+ // This is a data artifact; reading it directly also avoids expanding the large
+ // model into generated JavaScript and source maps in development tooling.
+-const controlPolicy = JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
++let controlPolicy: any;
++const loadControlPolicy = () => controlPolicy ??= JSON.parse(readFileSync(new URL("./arc_control_policy_model.json", import.meta.url), "utf8"));
+ 
+ /** Production allocation from ride length and frame budget. Research can spread
+  * this configuration and override a mechanism without duplicating shipped defaults. */
+@@ -49,7 +50,9 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
+     completeBoundary: guidanceSamples > 0,
+     memorySamples: Math.round(4 * planningGuidanceSamples / 96),
+     memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
+-    controlPolicy: guidanceSamples ? controlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
++    // Resolve only the selected policy. Research can replace this factory with
++    // another artifact without retaining an unused copy of the default model.
++    controlPolicy: guidanceSamples ? loadControlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
+     futureValueModel: guidanceSamples ? futureValueModel : undefined,
+     // Rank unprobed arrivals with the model, then use its value at the
+     // simulated continuation boundary. Do not blend it into the root twice.

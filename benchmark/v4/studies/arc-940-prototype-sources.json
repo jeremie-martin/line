@@ -1,0 +1,66 @@
+{
+  "schema": "line.arc-research-source-snapshots.v1",
+  "note": "Unselected research source and its test fixtures, captured without modifying active compiler checkouts. These patches do not establish a performance gain.",
+  "prototypes": [
+    {
+      "name": "proposal-observations",
+      "base": "cd82a9a9b3f73008691f6836d8e0c51afd6680cd",
+      "patch": "benchmark/v4/studies/prototypes/e0a81d18ee72447aaa3f24539a387cecf151674a92f8dccbfe4c5831c30be3e7.patch",
+      "sha256": "e0a81d18ee72447aaa3f24539a387cecf151674a92f8dccbfe4c5831c30be3e7",
+      "bytes": 14167,
+      "tests": [
+        "tests/arc_proposal_trace.test.ts"
+      ]
+    },
+    {
+      "name": "proposal-ranking",
+      "base": "3b1c7712bafce3f02f42c44a5a41930480780edf",
+      "patch": "benchmark/v4/studies/prototypes/54ed437e7d3e8005b786507b5dc78bcf1b6cebabf5cf8670bcf80c0598608ffa.patch",
+      "sha256": "54ed437e7d3e8005b786507b5dc78bcf1b6cebabf5cf8670bcf80c0598608ffa",
+      "bytes": 8817,
+      "tests": [
+        "tests/arc_proposal_ranker.test.ts"
+      ]
+    },
+    {
+      "name": "refinement-objective",
+      "base": "cd82a9a9b3f73008691f6836d8e0c51afd6680cd",
+      "patch": "benchmark/v4/studies/prototypes/a2fd949c5459f6b6291c26052202fe3ea4bad9cbf00bdf3466529159a17346fd.patch",
+      "sha256": "a2fd949c5459f6b6291c26052202fe3ea4bad9cbf00bdf3466529159a17346fd",
+      "bytes": 8480,
+      "tests": [
+        "tests/arc_refinement_objective.test.ts"
+      ]
+    },
+    {
+      "name": "stable-response",
+      "base": "3b1c7712bafce3f02f42c44a5a41930480780edf",
+      "patch": "benchmark/v4/studies/prototypes/53e17c17e497655e78321dc8afcb97c6ca5d0815cb07212b4c0fa6086c02b2b6.patch",
+      "sha256": "53e17c17e497655e78321dc8afcb97c6ca5d0815cb07212b4c0fa6086c02b2b6",
+      "bytes": 9611,
+      "tests": [
+        "tests/arc_stable_response.test.ts"
+      ]
+    },
+    {
+      "name": "physical-damping",
+      "base": "3b1c7712bafce3f02f42c44a5a41930480780edf",
+      "patch": "benchmark/v4/studies/prototypes/31258c8c9bbdfc743b4d4cd7497b4bda897c8d86c7db42e14248324e12aa8e2d.patch",
+      "sha256": "31258c8c9bbdfc743b4d4cd7497b4bda897c8d86c7db42e14248324e12aa8e2d",
+      "bytes": 10800,
+      "tests": [
+        "tests/arc_physical_damping.test.ts"
+      ]
+    },
+    {
+      "name": "feedback-observations",
+      "base": "cd82a9a9b3f73008691f6836d8e0c51afd6680cd",
+      "patch": "benchmark/v4/studies/prototypes/befd57cc55124e5ec52744e005ff92b24b86bbf7631fded1e59856a21ca8b60c.patch",
+      "sha256": "befd57cc55124e5ec52744e005ff92b24b86bbf7631fded1e59856a21ca8b60c",
+      "bytes": 14358,
+      "tests": [
+        "tests/arc_proposal_trace.test.ts"
+      ]
+    }
+  ]
+}

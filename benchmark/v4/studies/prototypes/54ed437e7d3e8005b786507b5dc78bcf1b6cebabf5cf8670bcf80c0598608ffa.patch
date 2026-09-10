@@ -1,0 +1,131 @@
+diff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts
+index 23a939f9..ae6c6dfa 100644
+--- a/scripts/v0/optimizer/arc_motion.ts
++++ b/scripts/v0/optimizer/arc_motion.ts
+@@ -13,6 +13,7 @@ import { scheduleNativeContacts } from './native_motion_schedule.ts';
+ import { trimUnusedArcGuides } from './arc_guidance.ts';
+ import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
+ import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
++import { rankArcControlProposals } from './arc_proposal_ranker.ts';
+ import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
+ import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
+ import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
+@@ -135,6 +136,9 @@ export type ArcMotionOptions= {
+   reuseEvaluations?:boolean;
+   controlPolicy?:any;
+   policySamples?:number;
++  /** Research: select physically evaluated proposals from a larger learned pool. */
++  rankedPolicyPool?:number;
++  rankedPolicyKeep?:number;
+   /** Reduce local work if observed construction cost outgrows remaining capacity. */
+   budgetAdaptiveLocal?:boolean;
+   futureValueModel?:any;
+@@ -447,7 +451,16 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
+       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
+       const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];
+       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
+-      const policy=counts[0]?arcControlProposals(inputFeatures,incoming,span,proposalModel,counts[0]):[];
++      let policy=counts[0]?arcControlProposals(inputFeatures,incoming,span,proposalModel,counts[0]):[];
++      if(i>0&&counts[0]&&(options.rankedPolicyPool??0)>0){
++        const model=proposalModel.proposalRanker;
++        if(!model)throw new Error('ranked arc proposals require a declared model');
++        const pool=arcControlProposals(inputFeatures,incoming,span,proposalModel,Math.max(counts[0],options.rankedPolicyPool!));
++        const context=[...inputFeatures,
++          ...['air','speed','amplitude'].map(key=>(priorGap?.targets as any)?.[key]??-1),
++          ...['air','speed','amplitude'].map(key=>(priorAxes as any)?.[key]??-1)];
++        policy=rankArcControlProposals(context,incoming,span,[...policy,...pool],counts[0],model,options,options.rankedPolicyKeep??0);
++      }
+       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
+       if(options.warmStart)evaluate(options.warmStart);
+       for(let k=0;k<initial;k++){
+diff --git a/scripts/v0/optimizer/arc_proposal_ranker.ts b/scripts/v0/optimizer/arc_proposal_ranker.ts
+new file mode 100644
+index 00000000..5cff76c4
+--- /dev/null
++++ b/scripts/v0/optimizer/arc_proposal_ranker.ts
+@@ -0,0 +1,41 @@
++/** Rank proposed controls; feasibility and selection remain physical searches. */
++import {normalizeArcTurnFraction,type ArcMotionControl} from './arc_geometry.ts';
++const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
++export const ARC_PROPOSAL_FEATURE_SCHEMA='line.arc-proposal-features.v1';
++
++/** Match the construction search's bounds before predicting its measurement. */
++export function arcProposalControlFeatures(control:ArcMotionControl,incoming:number,span:number,
++  options:{bidirectional?:boolean;preserveTurnTiming?:boolean;channel?:number}):number[]{
++  const c={...control,entry:clamp(control.entry,-75,85),turn:clamp(control.turn,-120,options.bidirectional?120:15),
++    exit:clamp(control.exit,-80,85),support:clamp(control.support,2,Math.max(2,span-4)),
++    bias:clamp(control.bias,-2,2),offset:clamp(control.offset,-2,3)};
++  const fraction=c.turnFraction===undefined?Math.min(5,c.support*.5)/c.support:
++    normalizeArcTurnFraction(c.turnFraction,c.support,options.preserveTurnTiming);
++  return [(c.entry-incoming)/30,c.turn/60,(c.exit-incoming)/60,c.support/span,c.bias,c.offset,
++    (c.clearance===undefined?options.channel??12:clamp(c.clearance,6,30))/12,
++    fraction,clamp(c.bend??0,-60,60)/30,clamp(c.guideFlare??0,-16,16)/8];
++}
++
++export function arcProposalQuality(features:number[],model:any):number{
++  if(model.featureSchema!==ARC_PROPOSAL_FEATURE_SCHEMA||model.featureCount!==73||features.length!==73||features.some(v=>!Number.isFinite(v)))throw new Error('arc proposal feature mismatch');
++  const input=features.map(Math.fround);let value=0;
++  for(const tree of model.trees){
++    let n=0;while(tree.left[n]>=0)n=input[tree.feature[n]]<=tree.threshold[n]?tree.left[n]:tree.right[n];
++    value+=tree.value[n];
++  }
++  return value/model.trees.length;
++}
++
++export function rankArcControlProposals(context:number[],incoming:number,span:number,
++  controls:ArcMotionControl[],count:number,model:any,options:any,keep=0):ArcMotionControl[]{
++  if(context.length!==63||!Number.isSafeInteger(count)||count<0||!Number.isSafeInteger(keep)||keep<0)throw new Error('invalid arc proposal ranking request');
++  const retained:ArcMotionControl[]=[],scored:Array<{control:ArcMotionControl;value:number}>=[],seen=new Set<string>();
++  for(let i=0;i<controls.length;i++){
++    const control=controls[i],encoded=arcProposalControlFeatures(control,incoming,span,options),key=JSON.stringify(encoded);
++    if(seen.has(key))continue;seen.add(key);
++    if(i<Math.min(keep,count))retained.push(control);
++    else scored.push({control,value:arcProposalQuality([...context,...encoded],model)});
++  }
++  scored.sort((a,b)=>a.value-b.value);
++  return [...retained,...scored.slice(0,Math.max(0,count-retained.length)).map(row=>row.control)];
++}
+diff --git a/tests/arc_proposal_ranker.test.ts b/tests/arc_proposal_ranker.test.ts
+new file mode 100644
+--- /dev/null
++++ b/tests/arc_proposal_ranker.test.ts
+@@ -0,0 +1,39 @@
++import {expect,it} from 'vitest';
++import {arcProposalControlFeatures,arcProposalQuality,rankArcControlProposals,ARC_PROPOSAL_FEATURE_SCHEMA} from '../scripts/v0/optimizer/arc_proposal_ranker.ts';
++import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
++import {ARC_POLICY_SCHEMA} from '../scripts/v0/optimizer/arc_control_policy.ts';
++import type {Spec} from '../scripts/v0/types.ts';
++
++const ranker={featureSchema:ARC_PROPOSAL_FEATURE_SCHEMA,featureCount:73,
++  trees:[{left:[1,-1,-1],right:[2,-1,-1],feature:[63,-2,-2],threshold:[0,-2,-2],value:[0,.1,1]}]};
++const base={entry:0,turn:0,exit:0,support:12,bias:0,offset:0};
++it('ranks larger proposal pools with stable ties and optional retained incumbents',()=>{
++  const controls=[{...base,entry:10},{...base,entry:-5},{...base,entry:-10},{...base,entry:-5}];
++  const context=Array(63).fill(0);
++  expect(rankArcControlProposals(context,0,30,controls,2,ranker,{})).toEqual([controls[1],controls[2]]);
++  expect(rankArcControlProposals(context,0,30,controls,2,ranker,{},1)).toEqual([controls[0],controls[1]]);
++  expect(()=>arcProposalQuality(Array(72).fill(0),ranker)).toThrow('feature mismatch');
++});
++
++it('uses the actual bounded long-arc turn timing and float32 traversal',()=>{
++  const encoded=arcProposalControlFeatures({...base,support:100,turnFraction:.02},0,100,{preserveTurnTiming:true});
++  expect(encoded[3]).toBe(.96);expect(encoded[7]).toBe(5/96);
++  const features=Array(73).fill(0);features[63]=1e-50;
++  expect(arcProposalQuality(features,ranker)).toBe(.1);
++});
++
++it('preserves disabled search and validates enabled proposals in the real engine',()=>{
++  const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
++  const tree={left:[-1],right:[-1],feature:[-2],threshold:[-2],value:[[0,0,0,.5,0,0,1,.4,0,0]]};
++  const policy={featureSchema:ARC_POLICY_SCHEMA,featureCount:57,trees:[tree,tree],proposalRanker:ranker};
++  const options={budget:40000,samples:32,channel:12,radius:24,bidirectional:true,
++    impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,
++    guidance:'clearance' as const,guidanceJoint:true,guidanceSamples:48,responseSamples:46,
++    expressive:true,policySamples:8,controlPolicy:policy};
++  const plain=compileArcMotion(spec,17,options),disabled=compileArcMotion(spec,17,{...options,rankedPolicyPool:0});
++  expect(disabled.track).toEqual(plain.track);expect(disabled.stats).toEqual(plain.stats);
++  const ranked=compileArcMotion(spec,17,{...options,rankedPolicyPool:16});
++  expect(ranked.failure).toBeNull();expect(ranked.report.contacts.every(c=>c.status==='hit')).toBe(true);
++  expect(ranked.report.off_beat_landings).toEqual([]);expect(ranked.stats.sim_frames).toBeLessThanOrEqual(options.budget);
++  expect(ranked.track.lines.every(l=>l.type===0)).toBe(true);
++});

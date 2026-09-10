@@ -10,26 +10,32 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import GroupKFold
 from train_physical_planner import export,write
 p=argparse.ArgumentParser();p.add_argument('--inputs',required=True);p.add_argument('--base',required=True);p.add_argument('--out',required=True);args=p.parse_args()
-root,out=Path(args.inputs),Path(args.out);out.mkdir(parents=True,exist_ok=True);assert not (out/'policy-1.json').exists()
+roots=[Path(name) for name in args.inputs.split(',')];out=Path(args.out);out.mkdir(parents=True,exist_ok=True);assert not (out/'policy-1.json').exists()
 def checked(path):
     b=path.read_bytes();assert hashlib.sha256(b).hexdigest()==Path(str(path)+'.sha256').read_text().split()[0]
     return json.loads(gzip.decompress(b) if path.suffix=='.gz' else b)
-plan=checked(root/'plan.json');run=checked(root/'run.json.gz');assert run['plan']==plan and plan['suite']=='v4' and plan['options']['collectValue']
 catalog=Path('benchmark/v4');lock=checked(catalog/'catalog.lock.json');raw=gzip.decompress((catalog/'specifications.json.gz').read_bytes())
 assert hashlib.sha256(raw).hexdigest()==lock['specificationsSha256'];cases=json.loads(raw)
-assert plan['sources']==[c['id'] for c in cases] and run['summary']['valid']==len(cases)==176
-byid={c['id']:c for c in cases};rows=[];records=[];omitted=0
-for source in plan['sources']:
-    path=root/(source+'.json.gz');record=checked(path);assert record['planSha256']==hashlib.sha256((root/'plan.json').read_bytes()).hexdigest()
-    records.append(dict(source=source,sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
-    for index,row in enumerate(record['rows']):
-        for probe in (row.get('lookahead') or {}).get('probes',[]):
-            features=probe.get('valueFeatures')
-            if features is None:continue
-            if probe['futureCost'] is not None and probe['depth']<2 and features[52]>0:omitted+=1;continue
-            assert len(features)==57 and np.isfinite(features).all()
-            rows.append(dict(source=source,group=byid[source]['group'],context=f'{source}:{index}',features=features,
-                future=probe['futureCost'],local=probe['localCost'],old=probe['predictedFuture']))
+byid={c['id']:c for c in cases};rows=[];records=[];omitted=0;panels=[]
+for root in roots:
+    plan=checked(root/'plan.json');run=checked(root/'run.json.gz');assert run['plan']==plan and plan['suite']=='v4' and plan['options']['collectValue']
+    assert plan['sources']==[c['id'] for c in cases] and run['summary']['valid']==len(cases)==176
+    plan_sha=hashlib.sha256((root/'plan.json').read_bytes()).hexdigest()
+    assert plan_sha not in {p['planSha256'] for p in panels}, 'duplicate teacher panel'
+    panels.append(dict(path=str(root),planSha256=plan_sha,runSha256=hashlib.sha256((root/'run.json.gz').read_bytes()).hexdigest()))
+    for source in plan['sources']:
+        path=root/(source+'.json.gz');record=checked(path);assert record['planSha256']==plan_sha
+        records.append(dict(source=source,planSha256=plan_sha,sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+        for index,row in enumerate(record['rows']):
+            for probe in (row.get('lookahead') or {}).get('probes',[]):
+                features=probe.get('valueFeatures')
+                if features is None:continue
+                if probe['futureCost'] is not None and probe['depth']<2 and features[52]>0:omitted+=1;continue
+                assert len(features)==57 and np.isfinite(features).all()
+                # The same source/index can have different physical prefixes in
+                # different panels. Never rank those as one decision context.
+                rows.append(dict(source=source,group=byid[source]['group'],context=f'{plan_sha}:{source}:{index}',features=features,
+                    future=probe['futureCost'],local=probe['localCost'],old=probe['predictedFuture']))
 features=np.asarray([r['features'] for r in rows]);old=np.asarray([r['old'] for r in rows]);groups=np.asarray([r['group'] for r in rows])
 base_path=Path(args.base);base_bytes=base_path.read_bytes();base=json.loads(base_bytes)
 assert base['featureCount']==57 and base['featureSchema']=='line.arc-future-value-features.v1'
@@ -62,7 +68,7 @@ for strength in [0,.5,1]:
         selected=int(np.argmin([rows[i]['local']+estimates[i] for i in indices]));regrets.append(float(truth[selected]-min(truth)))
     ranking.append(dict(strength=strength,contexts=len(regrets),meanRegret=float(np.mean(regrets))))
 provenance=dict(basePath=str(base_path),baseSha256=hashlib.sha256(base_bytes).hexdigest(),allRecordedBasePredictionsMatched=True,maxBasePredictionError=base_error,
-    teacherPlanSha256=hashlib.sha256((root/'plan.json').read_bytes()).hexdigest(),teacherRunSha256=hashlib.sha256((root/'run.json.gz').read_bytes()).hexdigest(),records=records,rows=len(rows),omittedShorterNonterminalHorizons=omitted,
+    teacherPanels=panels,records=records,rows=len(rows),omittedShorterNonterminalHorizons=omitted,
     trainerSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
 penalty=max(1,float(np.quantile(finite,.99))*2);fitted=model().fit(X,np.log1p(100*costs(range(len(rows)),penalty))-log_old)
 indices=np.linspace(0,len(X)-1,32,dtype=int);residuals=fitted.predict(X[indices])
@@ -70,5 +76,5 @@ for strength in [.5,1]:
     deployed=artifact(fitted,strength);deployed['provenance']=provenance;write(out/f'policy-{strength:g}.json',deployed)
     expected=np.maximum(0,np.expm1(log_old[indices]+strength*residuals)/100)
     write(out/f'parity-{strength:g}.json',[dict(features=features[i].tolist(),prediction=float(value)) for i,value in zip(indices,expected)])
-validation=dict(provenance=provenance,folds=folds,ranking=ranking,note='Five folds hold out complete catalog groups. The frozen prior remains development-trained. Labels include terminal priors; this is predictor validation, not independent compiler qualification. The extra input is the frozen prior prediction, derived only from physical features.')
+validation=dict(provenance=provenance,folds=folds,ranking=ranking,note='Five folds hold out complete catalog groups across every declared panel. Physical decision contexts are separated by panel. The frozen prior remains development-trained. Labels include terminal priors; this is predictor validation, not independent compiler qualification. The extra input is the frozen prior prediction, derived only from physical features.')
 write(out/'validation.json',validation);print(json.dumps(dict(out=str(out),ranking=ranking,rows=len(rows))),flush=True)

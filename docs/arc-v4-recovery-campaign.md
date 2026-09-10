@@ -1,9 +1,20 @@
 # V4 expansion and compiler recovery
 
-Current target: **926.5382**, starting from the corrected V4 baseline
-**915.6860**. All 352 baseline runs are valid. The real V3-to-V4 drop is
-**14.4696** points, and the target recovers 75% of it. Corrected freeze:
-`98936eeb`; [canonical baseline](../benchmark/v4/baseline.json).
+The campaign is complete at **926.9397**, above the **926.5382** target. All
+**352/352** canonical runs are valid and reproduce the selected research tracks,
+scores and actual work exactly. The gain is **11.2537** over the corrected
+**915.6860** baseline: **77.7748%** of the measured **14.4696** V3-to-V4 drop.
+Compiler `4642c875` uses at most **749,998** frames per run. Corrected freeze:
+`98936eeb`; [canonical baseline](../benchmark/v4/baseline.json) and
+[final validation](../benchmark/v4/studies/recovery-validation.json).
+
+The unchanged V3 subset scores **936.0838** and the new companions **917.9464**.
+Across the complete suite, 140 specifications improve and 36 regress; the frozen
+headline governs selection. The separate 2% target-jitter diagnostic passes
+**176/176** distinct tracks on 44 reused V2 development cases × seeds 101–104,
+also within 750k. All 121 focused tests pass; TypeScript retains the exact same
+251 inherited diagnostic headlines. See [jitter validation](../benchmark/v4/studies/recovery-jitter.json)
+and [check evidence](../benchmark/v4/studies/candidate-checks.json).
 
 The frozen V4 catalog contains all 88 V3 specifications unchanged plus 88 matched
 companions. The design was committed and pushed at `a1837655` before the first
@@ -14,7 +25,7 @@ weights and 750,000 actual-frame budget remain fixed. See the
 The initial draft with compiler `3420e481` scored **900.0351** over 176 specifications ×
 seeds 16/17, with 350/352 valid runs and 176 distinct tracks. Its V3 subset scores
 **930.1556**, reproducing all 176 archived tracks, scores and frame counts exactly.
-The extension-only score is **876.2727**. The actual overall drop is **30.1205**;
+The extension-only score is **876.2727**. That draft's apparent drop is **30.1205**;
 the expected 50–100-point drop was not a design target. The predeclared 75%
 recovery formula gives **922.6255**, rounded upward to four decimals. See the
 [superseded baseline evidence](../benchmark/v4/provisional/baseline.json).
@@ -130,8 +141,7 @@ resolve the tradeoff on the diagnostic panel. These are rejected executions,
 not evidence that expressive geometry has no further potential. Their exact
 patches and paired changes are preserved in the research summary.
 
-The selected research result is now 926.9397, above the 926.5382 target;
-canonical confirmation remains outstanding.
+The selected research result of 926.9397 is confirmed by the public canonical run.
 The 80/176 allocation retains a nominal total of 256 evaluations but directs
 more work to joint arc refinement. These research overrides also raise smaller
 duration-dependent allocations and need a production budget formula if selected.
@@ -187,6 +197,14 @@ training controls, not a new rollout or headline. New complete panels test its
 measured examples and a newly fitted correction to the original mean predictor.
 Higher-budget teachers cannot qualify for the public target. All selected
 changes require the complete 176-case suite at 750k and canonical public confirmation.
+
+The final model combines the initial complete-trajectory and student-query
+datasets. The later 931.6814 teacher produced useful research evidence but its
+refreshed candidates scored below the selected combined library. The incoming
+feature-cache fix is retained despite a 0.2560-point difference from the unfixed
+combined candidate, and the fixed compiler exceeds the recovery target. All
+adverse results remain in the research ledger. Unselected curvature/offset code
+is also preserved on `archive/arc-v4-curvature-study`; raw artifacts stay local.
 
 The compiler must retain substantial coherent normal type-0 arcs. Runtime learned
 features may describe physical state and upcoming targets, without benchmark case

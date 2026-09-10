@@ -1,4 +1,21 @@
-# Active work: V4 expansion and recovery
+# Achieved: V4 expansion and 77.77% recovery
+
+V4 contains **176 specifications**, including all 88 V3 cases unchanged. The
+selected compiler reaches **926.9397** through the public canonical entry point:
+**352/352 valid runs**, with exact research track, score and physics-frame parity.
+It recovers **77.7748%** of the measured drop from V3, exceeding the 75% objective
+and its **926.5382** target. Maximum work is **749,998** frames per run.
+
+Compiler `4642c875` retains substantial coherent normal type-0 arcs. The frozen
+scorer, detector, physics, catalog and 750k allowance are unchanged. Separate 2%
+target jitter passes **176/176** distinct tracks on 44 reused V2 development
+cases and four seeds. All **121 focused tests** pass. Code, the runtime model and
+compact evidence are pushed; large raw artifacts remain local. This campaign is
+complete. See [canonical evidence](benchmark/v4/studies/recovery-validation.json),
+[stress evidence](benchmark/v4/studies/recovery-jitter.json), and the
+[campaign ledger](docs/arc-v4-recovery-campaign.md).
+
+## Original V4 objective and measured baseline
 
 Build a 176-specification V4 superset: retain all 88 V3 cases exactly and add 88
 musically related companions stretching timing, contrast, axis combinations,
@@ -13,9 +30,8 @@ local. See [V4 design](benchmark/v4/README.md).
 The corrected V4 freeze is `98936eeb`. Its complete baseline is **915.6860**,
 with **352/352 valid runs** and exact reproduction of the **930.1556** V3 subset.
 The real drop is **14.4696** points; recover at least 75% by reaching **926.5382**.
-The selected compiler reaches **926.9397** on the complete 750k research panel,
-with all 176 cases valid. This exceeds the recovery target; public canonical
-confirmation and final preservation remain active. The selected model combines
+The selected compiler reaches **926.9397** on both the complete research and public
+canonical panels. The selected model combines
 validated complete-trajectory and fixed-prefix teacher examples and includes
 the incoming-feature cache fix.
 
@@ -24,7 +40,7 @@ timing-feasibility erratum: one companion had three impossible consecutive
 8-frame landing intervals. All draft evidence is preserved. A minimum one-frame
 contact adjustment corrects that single case; the scorer and every V3 case stay
 unchanged. The corrected catalog was frozen before its new baseline.
-Work is active; see the
+Work is complete; see the
 [campaign ledger](docs/arc-v4-recovery-campaign.md).
 
 # Achieved campaign: 930.1556 on frozen Benchmark V3

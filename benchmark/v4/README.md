@@ -47,6 +47,16 @@ The corrected freeze is `98936eeb`. Its complete baseline is **915.6860**, with
 the extension-only panel is **901.5040**. The real drop is **14.4696** points and
 the recovery target is **926.5382**. See [baseline evidence](baseline.json).
 
+The recovery campaign is complete at **926.9397**, up **11.2537** points from
+baseline and recovering **77.7748%** of the drop. All **352/352** canonical runs
+are valid and match the selected research tracks, scores and work exactly.
+Compiler `4642c875` uses at most **749,998** physics frames per run. Its V3 subset
+scores **936.0838**, and the extension-only panel scores **917.9464**. Separate
+target jitter passes 176/176 runs on 44 reused V2 development cases × four seeds.
+See [canonical evidence](studies/recovery-validation.json),
+[jitter evidence](studies/recovery-jitter.json), and the
+[campaign ledger](../../docs/arc-v4-recovery-campaign.md).
+
 The initial compiler is the preserved V3 930.1556 compiler, `3420e481`.
 Let its complete V4 headline be H. The recovery target is fixed as
 **H + 0.75 × max(0, 930.1556 − H)**, rounded upward to four decimals. A 50–100

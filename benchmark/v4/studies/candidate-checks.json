@@ -1,0 +1,68 @@
+{
+  "schema": "line.arc-v4-candidate-checks.v1",
+  "compilerCommit": "4642c8759049a37025c6a459180424ff1d954753",
+  "focused": {
+    "files": 29,
+    "tests": 121,
+    "paths": [
+      "tests/arc_authored_objective.test.ts",
+      "tests/arc_boundary_memory.test.ts",
+      "tests/arc_budget_interruptions.test.ts",
+      "tests/arc_candidate_memo.test.ts",
+      "tests/arc_continuation_boundary.test.ts",
+      "tests/arc_control_policy.test.ts",
+      "tests/arc_control_registry.test.ts",
+      "tests/arc_engine_ownership.test.ts",
+      "tests/arc_guidance_planning.test.ts",
+      "tests/arc_integrity.test.ts",
+      "tests/arc_model.test.ts",
+      "tests/arc_probe_base_fit.test.ts",
+      "tests/arc_refinement.test.ts",
+      "tests/arc_replay_teacher.test.ts",
+      "tests/arc_residual_policy.test.ts",
+      "tests/arc_retry_budget.test.ts",
+      "tests/arc_reuse_evaluations.test.ts",
+      "tests/arc_secant_response.test.ts",
+      "tests/arc_terminal_optimization.test.ts",
+      "tests/arc_terminal_selection.test.ts",
+      "tests/arc_turn_timing.test.ts",
+      "tests/arc_value.test.ts",
+      "tests/arc_value_guidance.test.ts",
+      "tests/arc_whole_refinement.test.ts",
+      "tests/connected_arcs_compiler.test.ts",
+      "tests/benchmark_v4.test.ts",
+      "tests/benchmark_v3.test.ts",
+      "tests/benchmark_v3_cli.test.ts",
+      "tests/persistent_contact_timing.test.ts"
+    ],
+    "initialRun": {
+      "passedFiles": 21,
+      "passedTests": 101,
+      "collectionFailures": [
+        "tests/arc_budget_interruptions.test.ts",
+        "tests/arc_continuation_boundary.test.ts",
+        "tests/arc_control_policy.test.ts",
+        "tests/arc_replay_teacher.test.ts",
+        "tests/arc_retry_budget.test.ts",
+        "tests/arc_terminal_optimization.test.ts",
+        "tests/arc_terminal_selection.test.ts",
+        "tests/connected_arcs_compiler.test.ts"
+      ],
+      "logSha256": "0781e10aca6cf86f83ea77a8a90a64da7914b6b8d12a81ec71e6b6c45d7ec2a0"
+    },
+    "affectedSuitesRerun": {
+      "passedFiles": 8,
+      "passedTests": 20,
+      "logSha256": "d9e6d944d741e7113d5b603ca47854eb5fd12e82a7639ccc0e7b74d4b38e44e2"
+    },
+    "note": "The 87 MiB policy hit a JSON-to-code transformation failure in eight test suites. Loading the model directly as JSON data resolves collection; all eight affected suites were rerun. The other 21 suites passed in the first batch."
+  },
+  "typecheck": {
+    "inheritedDiagnostics": 251,
+    "exactDiagnosticHeadlinesMatchPriorCheck": true,
+    "referenceLogSha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc",
+    "candidateLogSha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+  },
+  "modelSha256": "b26c5a2f99bf7fb87a722c6310554263c6ed5b2de63aabd34d49adbb41fbcad4",
+  "fixturesSha256": "40f876c936041859e1a19173953ac89e8587cf735bc1dd3345ff71db0c07a4cc"
+}

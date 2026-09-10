@@ -11,10 +11,12 @@ Nobody has published an automated pipeline; that's the gap this project fills.
 
 Status: the spec-to-track compiler and full vertical video pipeline are working.
 The current compiler uses coherent normal-line arcs with measured trajectory
-shaping and adaptive continuation planning. The accepted V2 milestone is
-**777.8193 at 750k simulated frames**, with the benchmark and scorer fixed.
+shaping and adaptive continuation planning. The current development benchmark is
+[V4](benchmark/v4/README.md): 176 specifications, retaining all 88 V3 cases,
+with two canonical seeds and a 750,000-frame allowance per run.
+The current canonical score is **926.9397**, with **352/352 valid runs**.
 The compiler also preserves validated curves when further search exhausts its budget.
-See [the current evidence](docs/compiler-integrity-audit.md) and
+See [the V4 campaign and evidence](docs/arc-v4-recovery-campaign.md) and
 [the compiler map](scripts/v0/optimizer/README.md).
 
 > **Working on the compiler?** Start at [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md)
@@ -46,7 +48,11 @@ npx tsx scripts/stress.ts
 # verify lr-core (Node-native physics) still matches the bundle exactly
 npm run parity
 
-# Benchmark V2 is the default compiler benchmark.
+# Current frozen V4 benchmark (run eval from a clean compiler checkout).
+npm run benchmark:v4 -- status
+npm run benchmark:v4 -- eval --compiler-root=. --out=generated/benchmark-v4/my-run --jobs=16
+
+# The historical "benchmark" command retains its V2 compatibility interface.
 npm run benchmark -- status
 npm run benchmark -- eval --seeds=48 --jobs=48
 

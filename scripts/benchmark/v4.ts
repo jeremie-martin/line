@@ -24,7 +24,8 @@ const verified = (path: string) => { const b = readFileSync(path); assert.equal(
 const cases = loadCases(), lock = read('benchmark/v4/catalog.lock.json');
 const judge = verifyFrozen;
 function compilerIdentity(root: string) {
-  const paths: string[] = read('benchmark/v2/campaign-baseline.json').compiler_source_files;
+  const paths: string[] = [...read('benchmark/v2/campaign-baseline.json').compiler_source_files,
+    'scripts/v0/optimizer/arc_control_policy_model.json.gz'];
   const files = Object.fromEntries(paths.filter(p => existsSync(resolve(root, p))).map(p => [p, sha(readFileSync(resolve(root, p)))]));
   return { commit: execFileSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
     dirty: execFileSync('git', ['-C', root, 'status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' }).trim(),

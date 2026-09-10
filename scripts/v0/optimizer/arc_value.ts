@@ -15,6 +15,19 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
 export function arcFutureValue(features: number[], artifact: any): number {
   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
+  if(artifact.residualBase){
+    const strength=artifact.residualStrength??1;
+    if(!Number.isFinite(strength)||strength<0||strength>1||artifact.residualInput!=='features-plus-log1p-base')throw new Error('invalid arc future-value correction');
+    const base=arcFutureValue(features,artifact.residualBase);if(strength===0)return base;
+    const input=[...features,Math.log1p(100*base)],model=artifact.residualModel;
+    let correction=model.initial;
+    for(const tree of model.trees){
+      let node=0;
+      while(!tree.leaf[node])node=input[tree.feature[node]]<=tree.threshold[node]?tree.left[node]:tree.right[node];
+      correction+=tree.value[node];
+    }
+    return Math.max(0,Math.expm1(Math.log1p(100*base)+strength*correction)/100);
+  }
   let value = artifact.model.initial;
   for (const tree of artifact.model.trees) {
     let node = 0;

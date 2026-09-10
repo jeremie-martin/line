@@ -2,6 +2,14 @@
 import {arcArrivalFeatures} from './arc_value.ts';
 import type {ArcMotionControl} from './arc_geometry.ts';
 export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';
+/** Preserve the exact demonstrated geometry when its incoming state is repeated. */
+export function arcReferencedControl(reference:{control:ArcMotionControl;incoming:number;span:number},incoming:number,span:number):ArcMotionControl{
+  if(!Number.isFinite(reference.incoming)||!Number.isFinite(reference.span)||reference.span<=0)throw new Error('invalid arc control reference');
+  const c=reference.control,angle=incoming-reference.incoming;
+  return {...c,entry:angle===0?c.entry:c.entry+angle,exit:angle===0?c.exit:c.exit+angle,
+    support:span===reference.span?c.support:c.support*(span/reference.span)};
+}
+export const ARC_HORIZON_POLICY_SCHEMA='line.arc-horizon-control-policy-features.v1';
 // Loaded model artifacts stay immutable during compilation. Index their leaf
 // memberships once; replacing either source array rebuilds the index.
 const partitionIndices=new WeakMap<object,{exemplars:any[];trees:any[];buckets:Map<number,number[]>[]}>();
@@ -30,7 +38,9 @@ export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[
     Math.hypot(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);
 }
 export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number):ArcMotionControl[]{
-  if(model.featureSchema!==ARC_POLICY_SCHEMA||features.length!==model.featureCount||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');
+  const expected=model.featureSchema===ARC_POLICY_SCHEMA?57:model.featureSchema===ARC_HORIZON_POLICY_SCHEMA?67:0;
+  if(!expected||model.featureCount!==expected||![57,67].includes(features.length)||features.length<expected||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');
+  if(features.length!==expected)features=features.slice(0,expected);
   if(!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc policy count');
   if(count===0)return [];
   if(model.residualBase){
@@ -55,7 +65,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
     });
     const weights:number[]|undefined=model.featureWeights;
     if(weights&&(weights.length!==features.length||weights.some(w=>!Number.isFinite(w)||w<0)))throw new Error('arc policy distance weights mismatch');
-    const nearest:Array<{distance:number;value:number[]}>=[],limit=Math.max(24,count*8);
+    const nearest:Array<{distance:number;value:number[];reference?:{control:ArcMotionControl;incoming:number;span:number}}>=[],limit=Math.max(24,count*8);
     const matches=queryLeaves?partitionMatches(model,queryLeaves):undefined;
     for(let index=0;index<model.exemplars.length;index++){
       const row=model.exemplars[index];
@@ -73,11 +83,11 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
         distance=partitionDistance+distance/(1+distance);
       }
       if(nearest.length===limit&&distance>=nearest[nearest.length-1].distance)continue;
-      nearest.push({distance,value:row.target});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
+      nearest.push({distance,value:row.target,reference:row.controlReference});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
     }
     const selected:ArcMotionControl[]=[];
-    for(const {value:v} of nearest){
-      const c={entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};
+    for(const {value:v,reference} of nearest){
+      const c=reference?arcReferencedControl(reference,incoming,span):{entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};
       if(selected.some(p=>Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;
       selected.push(c);if(selected.length>=count)break;
     }

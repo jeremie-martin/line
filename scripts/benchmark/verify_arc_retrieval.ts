@@ -11,7 +11,11 @@ const {arcControlProposals:candidate}=await import(pathToFileURL(resolve(candida
 const {arcControlProposals:reference}=await import(pathToFileURL(resolve(referenceRoot,code)).href);
 const checked=(path:string)=>{const body=readFileSync(path);assert.equal(sha(body),readFileSync(path+'.sha256','utf8').trim());return JSON.parse(body.toString());};
 const modelPath=arg('model')??resolve(candidateRoot,'scripts/v0/optimizer/arc_control_policy_model.json');
-const model=checked(modelPath),dataPath=arg('data')!,data=checked(dataPath);
+const modelBytes=readFileSync(modelPath),artifact=JSON.parse(modelBytes.toString());
+const {parseArcPolicyArtifact}=artifact.schema==='line.arc-compressed-policy.v1'?
+  await import(pathToFileURL(resolve(candidateRoot,'scripts/v0/optimizer/connected_arcs.ts')).href):{};
+const model=parseArcPolicyArtifact?parseArcPolicyArtifact(modelBytes,pathToFileURL(resolve(modelPath))):checked(modelPath);
+const dataPath=arg('data')!,data=checked(dataPath);
 const records=Array.from({length:256},(_,i)=>data.rows[Math.floor(i*(data.rows.length-1)/255)]);
 const queries=records.flatMap((r:any,i:number)=>[r.features,r.features.map((x:number,k:number)=>x+.013*Math.sin(i*7+k*3))]);
 const timings:{reference:number[];candidate:number[]}={reference:[],candidate:[]};let matches=0;

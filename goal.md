@@ -24,6 +24,9 @@ large raw tracks, datasets, unselected models and videos remain local. Training
 uses exposed development specifications, so this result does not establish
 held-out generalization. No new owner audiovisual approval is claimed.
 
+Subsequent [review fixes](docs/compiler-review-fixes-2026-09-11.md) at `476424cb`
+preserve all 352 canonical tracks, scores, geometry and physics-frame counts.
+
 See [canonical evidence](benchmark/v4/studies/arc-940-validation.json),
 [target-jitter evidence](benchmark/v4/studies/arc-940-jitter.json),
 [paired diagnostic results](benchmark/v4/studies/arc-940-jitter-comparison.json),

@@ -29,6 +29,7 @@ historical record, not live guidance.
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`../scripts/v0/optimizer/README.md`](../scripts/v0/optimizer/README.md) | LIVE | Current arc compiler and retained fallback map. |
+| [`compiler-review-fixes-2026-09-11.md`](compiler-review-fixes-2026-09-11.md) | LIVE | Engine ownership, reference imports, legacy diagnostics, review cache and baseline-test corrections; exact 952.4115 V4 parity. |
 | [`compiler-integrity-audit.md`](compiler-integrity-audit.md) | LIVE | Accepted 777.82 compiler: implementation audit, measured inefficiencies, corrections and validation. |
 | [`arc-planning-continuity.md`](arc-planning-continuity.md) | REFERENCE | Preserved 771 compiler and first budget-interruption correction. |
 | [`compiler-foundations.md`](compiler-foundations.md) | REFERENCE | Cleanup audit, exact parity and research follow-up. |
@@ -41,8 +42,9 @@ historical record, not live guidance.
 
 ## Campaigns
 
-The current result is the [compiler integrity audit](compiler-integrity-audit.md). Earlier
-framework-specific campaign layouts remain historical references.
+The current performance result is [952.4115 on frozen V4](arc-v4-940-campaign.md),
+with [subsequent review fixes](compiler-review-fixes-2026-09-11.md) preserving every
+canonical track and score. Earlier framework-specific campaigns remain historical references.
 
 | Doc | Tag | What |
 |---|---|---|

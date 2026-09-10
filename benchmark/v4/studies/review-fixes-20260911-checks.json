@@ -1,0 +1,176 @@
+{
+  "schema": "line.compiler-review-fixes-validation.v1",
+  "referenceCommit": "549013dfaa68168294180edabb120747feaaac7d",
+  "compilerCommit": "476424cb4938b681865205c87f8a51e96c157588",
+  "changes": [
+    "scripts/benchmark/impact_continuation_capture.ts",
+    "scripts/benchmark/impact_gap_capture.ts",
+    "scripts/produce/arc_review.ts",
+    "scripts/produce/arc_review_cache.ts",
+    "scripts/v0/impact_frontier_probe.ts",
+    "scripts/v0/optimizer/README.md",
+    "scripts/v0/optimizer/arc_motion.ts",
+    "scripts/v0/optimizer/handoff.ts",
+    "scripts/v0/study_air_pool_coverage.ts",
+    "scripts/v0/study_axis_specialist_deficit.ts",
+    "scripts/v0/study_body_point_collision_audit.ts",
+    "scripts/v0/study_branch_width_panel.ts",
+    "scripts/v0/study_candidate_breadth_saturation.ts",
+    "scripts/v0/study_candidate_pool_coverage.ts",
+    "scripts/v0/study_collision_side_normal_pool.ts",
+    "scripts/v0/study_contact_point_normal_frame.ts",
+    "scripts/v0/study_continuation_filter.ts",
+    "scripts/v0/study_current_pool_path_oracle.ts",
+    "scripts/v0/study_expansion_regret.ts",
+    "scripts/v0/study_impact_multicontact_geometry.ts",
+    "scripts/v0/study_impact_multicontact_response_evolution.ts",
+    "scripts/v0/study_impact_pool_coverage_v2.ts",
+    "scripts/v0/study_impact_readiness_pareto.ts",
+    "scripts/v0/study_impact_release_deficit.ts",
+    "scripts/v0/study_native_capture_impulse_suffix.ts",
+    "scripts/v0/study_normal_pool_basis.ts",
+    "scripts/v0/study_normal_post_curve_resolution.ts",
+    "scripts/v0/study_predecessor_coverage.ts",
+    "scripts/v0/study_readiness.ts",
+    "scripts/v0/study_rollout_economics.ts",
+    "scripts/v0/study_support_geometry.ts",
+    "scripts/v0/study_support_response.ts",
+    "scripts/v0/study_velocity_leading_anchor_normal_pool.ts",
+    "tests/arc_engine_ownership.test.ts",
+    "tests/arc_review_cache.test.ts",
+    "tests/benchmark_v2_baseline_cache.test.ts",
+    "tests/budget_telemetry.test.ts",
+    "tests/forward_eval_base_override.test.ts",
+    "tests/handoff_reference_import.test.ts",
+    "tests/handoff_rollout_probe.test.ts",
+    "tests/impact_multicontact_geometry.test.ts"
+  ],
+  "hookConsumerMigration": [
+    "scripts/benchmark/impact_continuation_capture.ts",
+    "scripts/benchmark/impact_gap_capture.ts",
+    "scripts/v0/impact_frontier_probe.ts",
+    "scripts/v0/study_air_pool_coverage.ts",
+    "scripts/v0/study_axis_specialist_deficit.ts",
+    "scripts/v0/study_body_point_collision_audit.ts",
+    "scripts/v0/study_branch_width_panel.ts",
+    "scripts/v0/study_candidate_breadth_saturation.ts",
+    "scripts/v0/study_candidate_pool_coverage.ts",
+    "scripts/v0/study_collision_side_normal_pool.ts",
+    "scripts/v0/study_contact_point_normal_frame.ts",
+    "scripts/v0/study_continuation_filter.ts",
+    "scripts/v0/study_current_pool_path_oracle.ts",
+    "scripts/v0/study_expansion_regret.ts",
+    "scripts/v0/study_impact_multicontact_geometry.ts",
+    "scripts/v0/study_impact_multicontact_response_evolution.ts",
+    "scripts/v0/study_impact_pool_coverage_v2.ts",
+    "scripts/v0/study_impact_readiness_pareto.ts",
+    "scripts/v0/study_impact_release_deficit.ts",
+    "scripts/v0/study_native_capture_impulse_suffix.ts",
+    "scripts/v0/study_normal_pool_basis.ts",
+    "scripts/v0/study_normal_post_curve_resolution.ts",
+    "scripts/v0/study_predecessor_coverage.ts",
+    "scripts/v0/study_readiness.ts",
+    "scripts/v0/study_rollout_economics.ts",
+    "scripts/v0/study_support_geometry.ts",
+    "scripts/v0/study_support_response.ts",
+    "scripts/v0/study_velocity_leading_anchor_normal_pool.ts",
+    "tests/budget_telemetry.test.ts",
+    "tests/forward_eval_base_override.test.ts",
+    "tests/handoff_reference_import.test.ts",
+    "tests/handoff_rollout_probe.test.ts",
+    "tests/impact_multicontact_geometry.test.ts"
+  ],
+  "frozenJudgeSourceDiff": "",
+  "addressedFindings": [
+    "caller-owned judge-engine disposal",
+    "build-free reference-engine fallback imports",
+    "legacy-hook consumer routing",
+    "cached video-review input identity",
+    "active fixed-N baseline assertion"
+  ],
+  "tests": {
+    "files": 42,
+    "passed": 198,
+    "failed": 0,
+    "broad": {
+      "files": 41,
+      "passed": 194
+    },
+    "routing": {
+      "files": 1,
+      "passed": 4
+    },
+    "note": "Focused compiler, legacy diagnostics/telemetry, cache and routing suites; not the entire repository test suite."
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit --allowImportingTsExtensions --pretty false",
+    "baselineDiagnostics": 251,
+    "currentDiagnostics": 251,
+    "added": 0,
+    "removed": 0,
+    "baselineLogSha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+  },
+  "canonical": {
+    "headline": 952.4115,
+    "valid": 352,
+    "runs": 352,
+    "specifications": 176,
+    "seeds": [
+      16,
+      17
+    ],
+    "distinctTracks": 176,
+    "sameTrackScoreGeometryCompilerStatsAndPhysicsFrames": 352,
+    "maximumPhysicsFrames": 749997,
+    "suiteFingerprint": "4acd7513aed8b03e1265fe7b07d4bd14c6e4f6fd93c5a4a38fd706b86270597d",
+    "archive": {
+      "path": "benchmark/v4/runs/review-fixes-20260911.json.gz",
+      "sha256": "9c3954a047b19338c6f03cb5a0bd8b12d42465433371aa757dd70b5c9e391762"
+    },
+    "baselineArchive": {
+      "path": "benchmark/v4/runs/arc-940.json.gz",
+      "sha256": "dcb3caa429201a8f159846294a7269a485acbba982d9d5aabfb62921b949318e"
+    }
+  },
+  "legacyHookStudy": {
+    "source": "sparse_lowline",
+    "seed": 0,
+    "requestedBudget": 150000,
+    "actualFrames": 159286,
+    "observedRollouts": 856,
+    "expandedNodes": 87,
+    "exactInstrumentedAndBareTrackScoreAndWork": true,
+    "rawSha256": "af03fbe835035f73669e70365ca4a2ae3fdbf942d6050124f9ff71f7208c1545",
+    "note": "Retains the known legacy expansion-boundary budget overrun. This diagnostic is not a V4 qualification."
+  },
+  "logs": {
+    "focused.log": {
+      "localPath": "generated/review-fixes-2026-09-11/focused.log",
+      "sha256": "92b69e8f9747f1da1d7cb6aee6d4731f6c6e1009fcaab1907ad0eb891ba70cd8"
+    },
+    "regressions.log": {
+      "localPath": "generated/review-fixes-2026-09-11/regressions.log",
+      "sha256": "18a33dc2110c349955ca96edd2071ff652d07336f466d83bf8fc7df7e2526655"
+    },
+    "routing.log": {
+      "localPath": "generated/review-fixes-2026-09-11/routing.log",
+      "sha256": "a8b89200e9da329ae084e40c8bedaf51cfa96fcec4a4c43ec39d3b330fbecc75"
+    },
+    "typescript.log": {
+      "localPath": "generated/review-fixes-2026-09-11/typescript.log",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "rollout-economics.log": {
+      "localPath": "generated/review-fixes-2026-09-11/rollout-economics.log",
+      "sha256": "8f38f3150da9b534448fe5b788a7abbb32aa9c958aa8529f0247f23d2b016530"
+    },
+    "preservation.log": {
+      "localPath": "generated/review-fixes-2026-09-11/preservation.log",
+      "sha256": "b64eba94a60497dc38936a099f1198de828da47e456d3db54732c9123778f1bb"
+    },
+    "canonical.log": {
+      "localPath": "generated/review-fixes-2026-09-11/canonical.log",
+      "sha256": "d3dc3b21b6aafd6b854787068de6bfa892aaa64a01a9ec9f553b301f5ee93f91"
+    }
+  }
+}

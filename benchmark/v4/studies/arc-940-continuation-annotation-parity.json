@@ -1,0 +1,20 @@
+{
+  "schema": "line.arc-continuation-annotation-parity.v1",
+  "basePath": "generated/benchmark-v4/arc-940/models/banked-945-plus-948/proximity.json",
+  "modelPath": "generated/benchmark-v4/arc-940/models/continuation-hints-all/proximity.json",
+  "baseSha256": "4e5d0c66da1e52c9e21d86e7f0164a8ad0f2ab65a1aad6fadb6bec24e3be6844",
+  "modelSha256": "382a040d4d25b812d3c3b57ec8a64498d5b4efc252f2fecbd42f4c61cac82cb0",
+  "annotatedExamples": 94716,
+  "proposalChecks": 48,
+  "exactProposalParity": true,
+  "disabledPhysicalTrackAndWorkParity": true,
+  "disabledPhysicalFrames": 62784,
+  "enabledHintStats": {
+    "queries": 19,
+    "valid": 14,
+    "improvements": 0,
+    "physicsFrames": 492
+  },
+  "enabledPhysicalFrames": 63119,
+  "scriptSha256": "12eb25135a7a309eccf82ac71694841b05ef27f763294039d0e4649a6efc2680"
+}

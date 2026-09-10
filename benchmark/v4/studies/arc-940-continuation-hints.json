@@ -1,0 +1,126 @@
+{
+  "schema": "line.arc-continuation-hints-evidence.v1",
+  "selected": false,
+  "models": [
+    {
+      "path": "generated/benchmark-v4/arc-940/models/continuation-hints/proximity.json",
+      "sha256": "20ba8e0db1c6420aaf25d0cd07886eb54bfdeb075e0bc526273ea420d29a6c44",
+      "bytes": 215253219,
+      "annotations": {
+        "continuationTemplates": {
+          "policySha256": "4e5d0c66da1e52c9e21d86e7f0164a8ad0f2ab65a1aad6fadb6bec24e3be6844",
+          "dataSha256": "5ee446d12be70891badb653823cb2e97f607dc1a26ca622d97148c1db2b19de8",
+          "countByDepth": [
+            176,
+            176,
+            15610
+          ],
+          "scriptSha256": "a8b5d29e5fe17f68d29df43dcda5eb0f1b9793fc5e23687a471aec19137619b5",
+          "note": "Only the numeric next two controls from each verified whole teacher trajectory. Existing proposals, partitions and weights are unchanged; no case identity is consumed at runtime."
+        }
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/models/continuation-hints-both/proximity.json",
+      "sha256": "db39d6aeddc2073a8e515933e758aee571eedb12c93acdc5653d3a5b2ae0c59f",
+      "bytes": 221850431,
+      "annotations": {
+        "continuationTemplates": {
+          "policySha256": "4e5d0c66da1e52c9e21d86e7f0164a8ad0f2ab65a1aad6fadb6bec24e3be6844",
+          "dataSha256": "5ee446d12be70891badb653823cb2e97f607dc1a26ca622d97148c1db2b19de8",
+          "countByDepth": [
+            176,
+            176,
+            15610
+          ],
+          "scriptSha256": "a8b5d29e5fe17f68d29df43dcda5eb0f1b9793fc5e23687a471aec19137619b5",
+          "note": "Only the numeric next two controls from each verified whole teacher trajectory. Existing proposals, partitions and weights are unchanged; no case identity is consumed at runtime."
+        },
+        "continuationAnnotations": [
+          {
+            "policySha256": "20ba8e0db1c6420aaf25d0cd07886eb54bfdeb075e0bc526273ea420d29a6c44",
+            "dataSha256": "f8cd1f6e25f6e32c3e1f9345bf9979514626c9ad5180024a5447e87e28a92cc2",
+            "component": "0,1",
+            "countByDepth": [
+              176,
+              176,
+              15610
+            ],
+            "scriptSha256": "6d5bb6803d6b5732ce8a78f4982a999ef559840d9de3566608f47415a85a9c55",
+            "note": "Only the numeric next two controls from each verified whole teacher trajectory. Existing proposals, partitions and weights are unchanged; no case identity is consumed at runtime."
+          }
+        ]
+      }
+    },
+    {
+      "path": "generated/benchmark-v4/arc-940/models/continuation-hints-all/proximity.json",
+      "sha256": "382a040d4d25b812d3c3b57ec8a64498d5b4efc252f2fecbd42f4c61cac82cb0",
+      "bytes": 248068135,
+      "annotations": {
+        "continuationTemplates": {
+          "policySha256": "4e5d0c66da1e52c9e21d86e7f0164a8ad0f2ab65a1aad6fadb6bec24e3be6844",
+          "dataSha256": "5ee446d12be70891badb653823cb2e97f607dc1a26ca622d97148c1db2b19de8",
+          "countByDepth": [
+            176,
+            176,
+            15610
+          ],
+          "scriptSha256": "a8b5d29e5fe17f68d29df43dcda5eb0f1b9793fc5e23687a471aec19137619b5",
+          "note": "Only the numeric next two controls from each verified whole teacher trajectory. Existing proposals, partitions and weights are unchanged; no case identity is consumed at runtime."
+        },
+        "continuationAnnotations": [
+          {
+            "policySha256": "20ba8e0db1c6420aaf25d0cd07886eb54bfdeb075e0bc526273ea420d29a6c44",
+            "dataSha256": "f8cd1f6e25f6e32c3e1f9345bf9979514626c9ad5180024a5447e87e28a92cc2",
+            "component": "0,1",
+            "countByDepth": [
+              176,
+              176,
+              15610
+            ],
+            "scriptSha256": "6d5bb6803d6b5732ce8a78f4982a999ef559840d9de3566608f47415a85a9c55",
+            "note": "Only the numeric next two controls from each verified whole teacher trajectory. Existing proposals, partitions and weights are unchanged; no case identity is consumed at runtime."
+          },
+          {
+            "policySha256": "db39d6aeddc2073a8e515933e758aee571eedb12c93acdc5653d3a5b2ae0c59f",
+            "dataSha256": "5970e090487a3ef3afb4b47ec8d39bd9aa8812d41961200c7abe581e70e4913a",
+            "component": "0,0,1",
+            "countByDepth": [
+              16666,
+              704,
+              62440
+            ],
+            "scriptSha256": "b44f9738c64e613c07c18bff9fb3d233a882a2bae6f4f9b559521e5b8361a06d",
+            "note": "Only the numeric next two controls from each verified whole teacher trajectory. Existing proposals, partitions and weights are unchanged; no case identity is consumed at runtime."
+          }
+        ]
+      }
+    }
+  ],
+  "sourcePatch": "benchmark/v4/studies/prototypes/750cbedf00b83360c2eb70b8b185fa60e0e6792ccf1fa366eceffb0dbc724b20.patch",
+  "tests": {
+    "files": 3,
+    "passed": 10
+  },
+  "parity": {
+    "schema": "line.arc-continuation-annotation-parity.v1",
+    "basePath": "generated/benchmark-v4/arc-940/models/banked-945-plus-948/proximity.json",
+    "modelPath": "generated/benchmark-v4/arc-940/models/continuation-hints-all/proximity.json",
+    "baseSha256": "4e5d0c66da1e52c9e21d86e7f0164a8ad0f2ab65a1aad6fadb6bec24e3be6844",
+    "modelSha256": "382a040d4d25b812d3c3b57ec8a64498d5b4efc252f2fecbd42f4c61cac82cb0",
+    "annotatedExamples": 94716,
+    "proposalChecks": 48,
+    "exactProposalParity": true,
+    "disabledPhysicalTrackAndWorkParity": true,
+    "disabledPhysicalFrames": 62784,
+    "enabledHintStats": {
+      "queries": 19,
+      "valid": 14,
+      "improvements": 0,
+      "physicsFrames": 492
+    },
+    "enabledPhysicalFrames": 63119,
+    "scriptSha256": "12eb25135a7a309eccf82ac71694841b05ef27f763294039d0e4649a6efc2680"
+  },
+  "note": "The library proposal controls are unchanged. Only relative following controls from coherent recorded trajectories are annotated. Fixed-prefix query examples have no coherent following action and receive no annotations. Physical lookahead measures every used hint within the fixed frame ceiling. Full evaluation is separate from prediction and disabled-path parity."
+}

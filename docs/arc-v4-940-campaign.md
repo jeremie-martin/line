@@ -466,3 +466,53 @@ completed runs before increasing concurrency. A separate one-response continuati
 The fixed-prefix 6M query study continues. The best complete 750k research score
 is **934.8092**; the public canonical score remains **926.9397**, and the 940 goal
 is active.
+
+## Sharing demonstrated continuations
+
+Combining the two accurate six-million-frame teacher panels in a future-value
+correction reaches **935.1349**, all 176 valid at 750k. The physical decision
+context includes the teacher plan hash; identical case/index labels from
+different trajectories are never ranked together. Adding fixed-prefix queries
+to that fit improves held-group ranking against the original prior but reaches
+**933.9003** in the complete live panel. The independent fixed-prefix proposal
+library reaches **932.8007**. Both remain unselected. Every one of its 15,962
+counterfactual controls is independently checked at the exact student prefix;
+the replayed 934.0704 track score is not a teacher rollout score.
+
+The longer-window policy reaches **934.5671**, above its matched 933.8446
+counterpart. Combined with retained older examples it reaches **933.7650**,
+below that configuration's 934.8092 reference. A merged 31,924-example teacher
+library reaches **934.0800**. These complete-panel results prevent attributing
+independent gains to their combinations.
+
+A new prototype attaches up to two relative following-curve controls to each
+retrieved example from a verified whole trajectory. Numeric root proposals,
+retrieval partitions, quotas, and geometry remain unchanged. At lookahead, the
+next control is decoded against the actual incoming state and interval length,
+then passes the ordinary metered physical search. Failed proposals fall back
+to the regular search. Symbol metadata survives local control copies without
+entering serialized geometry or numeric parameter keys. The source and its
+tests are preserved in the prototype manifest.
+
+Ten focused tests pass. An additional artifact check covers 94,716 annotated
+examples, verifies 48 exact proposal comparisons, and reproduces the physical
+track, report, and frame accounting when hints are disabled. Relative to
+935.1349, annotating the newest teacher library improves three pilot cases and
+leaves five unchanged. Annotating both recent teacher libraries improves five
+and leaves three unchanged. Extending this to the older libraries is mixed;
+counterfactual fixed-prefix examples are explicitly excluded from trajectory
+annotations. These pilots do not establish a headline improvement. The newest
+library's complete panel reaches **932.9943**, below 935.1349 despite its favorable
+pilot. The two-library version is still undergoing complete evaluation.
+
+The twelve-million-frame, depth-three teacher finishes at **949.1681**, all 176
+valid. Independent reconstruction checks all 16,138 controls. Its refreshed
+15,962-row teaching dataset selects 93 of these trajectories, 54 from the 948
+teacher, 22 from the 945 teacher, and seven from three older/student panels.
+Every selected prefix is independently checked. Three-interval value labels
+are rejected by the two-interval correction trainer rather than silently
+changing its target. This higher-budget score does not qualify for the goal.
+
+The public canonical compiler remains **926.9397**. The best complete 750k
+research score is **935.1349**, and the 940 goal remains active. Raw datasets,
+unselected models, and full study artifacts remain local.

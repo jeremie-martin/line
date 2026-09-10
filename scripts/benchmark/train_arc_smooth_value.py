@@ -2,15 +2,15 @@
 # requires-python = ">=3.12"
 # dependencies = ["numpy==2.5.1", "scikit-learn==1.7.2"]
 # ///
-"""Learn corrections to a frozen future-value prior from accurate continuations."""
+"""Fit a smooth physical-state future-value model for geometry search."""
 import argparse,gzip,hashlib,json
 from pathlib import Path
 import numpy as np
-from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import GroupKFold
-from train_physical_planner import export,write
+from train_physical_planner import write
 p=argparse.ArgumentParser();p.add_argument('--inputs',required=True);p.add_argument('--base',required=True);p.add_argument('--out',required=True);args=p.parse_args()
-roots=[Path(name) for name in args.inputs.split(',')];out=Path(args.out);out.mkdir(parents=True,exist_ok=True);assert not (out/'policy-1.json').exists()
+roots=[Path(name) for name in args.inputs.split(',')];out=Path(args.out);out.mkdir(parents=True,exist_ok=True);assert not (out/'model.json').exists()
 def checked(path):
     b=path.read_bytes();assert hashlib.sha256(b).hexdigest()==Path(str(path)+'.sha256').read_text().split()[0]
     return json.loads(gzip.decompress(b) if path.suffix=='.gz' else b)
@@ -47,35 +47,48 @@ for tree in base['model']['trees']:
         selected=np.flatnonzero(~leaf[nodes]);n=nodes[selected];nodes[selected]=np.where(features[selected,feature[n]]<=threshold[n],left[n],right[n])
     pred+=value[nodes]
 pred=np.maximum(0,np.expm1(pred)/100);base_error=float(np.max(np.abs(pred-old)));assert base_error<1e-12
-log_old=np.log1p(100*old);X=np.column_stack([features,log_old]);finite=np.asarray([r['future'] for r in rows if r['future'] is not None])
+log_old=np.log1p(100*old);X=features;finite=np.asarray([r['future'] for r in rows if r['future'] is not None])
 def costs(indices,penalty):return np.asarray([max(0,rows[i]['future']) if rows[i]['future'] is not None else penalty for i in indices])
-def model():return HistGradientBoostingRegressor(max_iter=180,max_leaf_nodes=31,min_samples_leaf=40,learning_rate=.06,l2_regularization=1,early_stopping=False,random_state=260910)
-def artifact(fitted,strength):return dict(schema='line.arc-future-value-correction.v1',featureSchema=base['featureSchema'],featureCount=57,
-    residualBase=base,residualModel=export(fitted,'identity'),residualStrength=strength,residualInput='features-plus-log1p-base',
-    target='correction to log1p(100 * nonnegative two-interval search value including terminal prior)')
-residual_prediction=np.zeros(len(rows));validation_cost=np.zeros(len(rows));folds=[]
-for fold,(train,test) in enumerate(GroupKFold(5).split(X,groups=groups)):
-    train_finite=[rows[i]['future'] for i in train if rows[i]['future'] is not None];penalty=max(1,float(np.quantile(train_finite,.99))*2)
-    fitted=model().fit(X[train],np.log1p(100*costs(train,penalty))-log_old[train]);residual_prediction[test]=fitted.predict(X[test]);validation_cost[test]=costs(test,penalty)
-    write(out/f'fold-{fold}.json',artifact(fitted,1));folds.append(dict(fold=fold,heldGroups=sorted(set(groups[test])),train=len(train),test=len(test)));print(json.dumps(folds[-1]),flush=True)
+def fit(indices):
+    xm=X[indices].mean(axis=0);xs=np.maximum(X[indices].std(axis=0),1e-6)
+    finite_train=[rows[i]['future'] for i in indices if rows[i]['future'] is not None]
+    penalty=max(1,float(np.quantile(finite_train,.99))*2)
+    y=np.log1p(100*costs(indices,penalty));ym=float(y.mean());ys=max(.01,float(y.std()))
+    model=MLPRegressor(hidden_layer_sizes=(96,96),activation='tanh',solver='adam',alpha=.01,
+        batch_size=1024,learning_rate_init=.001,max_iter=120,early_stopping=True,
+        validation_fraction=.1,n_iter_no_change=12,tol=1e-5,random_state=260910)
+    model.fit((X[indices]-xm)/xs,(y-ym)/ys)
+    return model,xm,xs,ym,ys,penalty
+def predict(bundle,indices):
+    m,xm,xs,ym,ys,_=bundle;return np.maximum(0,np.expm1(m.predict((X[indices]-xm)/xs)*ys+ym)/100)
+def artifact(bundle):
+    m,xm,xs,ym,ys,_=bundle
+    return dict(schema='line.arc-smooth-future-value.v1',featureSchema=base['featureSchema'],featureCount=57,
+        network=dict(activation='tanh',inputMean=xm.tolist(),inputScale=xs.tolist(),outputMean=ym,outputScale=ys,
+            layers=[dict(weights=w.tolist(),bias=b.tolist()) for w,b in zip(m.coefs_,m.intercepts_)]),
+        provenance=dict(teacherPanels=panels,rows=len(rows),trainerSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            epochs=m.n_iter_,target='log1p(100 * nonnegative two-interval search value including terminal prior)'))
 contexts={}
 for i,r in enumerate(rows):contexts.setdefault(r['context'],[]).append(i)
-ranking=[]
-for strength in [0,.5,1]:
-    estimates=old if strength==0 else np.maximum(0,np.expm1(log_old+strength*residual_prediction)/100);regrets=[]
-    for indices in contexts.values():
-        truth=np.asarray([rows[i]['local']+validation_cost[i] for i in indices])
-        if len(indices)<2 or np.ptp(truth)<1e-8:continue
-        selected=int(np.argmin([rows[i]['local']+estimates[i] for i in indices]));regrets.append(float(truth[selected]-min(truth)))
-    ranking.append(dict(strength=strength,contexts=len(regrets),meanRegret=float(np.mean(regrets))))
-provenance=dict(basePath=str(base_path),baseSha256=hashlib.sha256(base_bytes).hexdigest(),allRecordedBasePredictionsMatched=True,maxBasePredictionError=base_error,
-    teacherPanels=panels,records=records,rows=len(rows),omittedShorterNonterminalHorizons=omitted,
-    trainerSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
-penalty=max(1,float(np.quantile(finite,.99))*2);fitted=model().fit(X,np.log1p(100*costs(range(len(rows)),penalty))-log_old)
-indices=np.linspace(0,len(X)-1,32,dtype=int);residuals=fitted.predict(X[indices])
-for strength in [.5,1]:
-    deployed=artifact(fitted,strength);deployed['provenance']=provenance;write(out/f'policy-{strength:g}.json',deployed)
-    expected=np.maximum(0,np.expm1(log_old[indices]+strength*residuals)/100)
-    write(out/f'parity-{strength:g}.json',[dict(features=features[i].tolist(),prediction=float(value)) for i,value in zip(indices,expected)])
-validation=dict(provenance=provenance,folds=folds,ranking=ranking,note='Five folds hold out complete catalog groups across every declared panel. Physical decision contexts are separated by panel. The frozen prior remains development-trained. Labels include terminal priors; this is predictor validation, not independent compiler qualification. The extra input is the frozen prior prediction, derived only from physical features.')
-write(out/'validation.json',validation);print(json.dumps(dict(out=str(out),ranking=ranking,rows=len(rows))),flush=True)
+def ranking(indices,estimates,penalty):
+    positions={int(index):j for j,index in enumerate(indices)};regrets=[]
+    for values in contexts.values():
+        if values[0] not in positions or len(values)<2:continue
+        assert all(i in positions for i in values)
+        local=np.asarray([rows[i]['local'] for i in values]);truth=local+costs(values,penalty)
+        if np.ptp(truth)<1e-8:continue
+        choice=int(np.argmin(local+np.asarray([estimates[positions[i]] for i in values])))
+        regrets.append(float(truth[choice]-min(truth)))
+    return dict(contexts=len(regrets),meanRegret=float(np.mean(regrets)))
+# The first predeclared group fold is a screening study, not a pooled five-fold claim.
+train,test=next(GroupKFold(5).split(X,groups=groups));held=fit(train);predictions=predict(held,test)
+validation=dict(train=len(train),test=len(test),heldGroups=sorted(set(groups[test])),
+    baseRanking=ranking(test,old[test],held[-1]),networkRanking=ranking(test,predictions,held[-1]),
+    logCostRms=float(np.sqrt(np.mean((np.log1p(100*predictions)-np.log1p(100*costs(test,held[-1])))**2))),
+    teacherPanels=panels,epochs=held[0].n_iter_,
+    note='One declared fold holds complete catalog groups out across all teacher panels. Physical decision contexts retain plan identity. Labels include terminal priors. This diagnostic does not establish a compiler headline or physical feasibility.')
+write(out/'validation.json',validation);write(out/'held-model.json',artifact(held));print(json.dumps(validation),flush=True)
+final=fit(np.arange(len(X)));write(out/'model.json',artifact(final))
+indices=np.linspace(0,len(X)-1,32,dtype=int);predictions=predict(final,indices)
+write(out/'parity.json',[dict(features=X[i].tolist(),prediction=float(v)) for i,v in zip(indices,predictions)])
+print(json.dumps(dict(out=str(out),epochs=final[0].n_iter_,rows=len(rows))),flush=True)

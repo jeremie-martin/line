@@ -6,7 +6,7 @@ const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
-  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number};
+  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number; radius?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
 export function normalizeArcTurnFraction(fraction:number,support:number,preserveImplicit=false):number{
@@ -15,7 +15,8 @@ export function normalizeArcTurnFraction(fraction:number,support:number,preserve
 
 /** Integrate a smooth tangent schedule into one contiguous polyline. All
  * subdivisions approximate the same physical curve; none isolates a point. */
-export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0):TrackLine[]{
+export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0, diagnostics?:{curvatureActive:boolean}):TrackLine[]{
+  radius=c.radius??radius;
   const entry=rad(c.entry), n={x:Math.sin(entry),y:-Math.cos(entry)}, t={x:Math.cos(entry),y:Math.sin(entry)};
   const point=points.reduce((a,b)=>a.x*n.x+a.y*n.y<b.x*n.x+b.y*n.y?a:b);
   const speed=Math.hypot(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
@@ -31,7 +32,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     const easing=(z:number,bias=c.bias)=>bias>=0?Math.pow(z,1+bias):1-Math.pow(1-z,1-bias);
     let a=rad(time<first?c.entry+c.turn*(wave?Math.sin(Math.PI*u):easing(u)):lerp(c.entry+(wave?0:c.turn),c.exit,easing(w,c.exitBias??c.bias)));
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
-    if(radius>0)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
+    if(radius>0){const bounded=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);if(diagnostics&&bounded!==a)diagnostics.curvatureActive=true;a=bounded;}
     if(flow){
       // A passive supporting surface cannot turn downward faster than free
       // fall without releasing. Limit the opposite turn to a finite load.

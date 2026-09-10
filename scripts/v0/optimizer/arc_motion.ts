@@ -122,6 +122,9 @@ export type ArcMotionOptions= {
   refineDirect?:boolean;
   refineRebuildSamples?:number;
   refineExpressive?:boolean;
+  adaptiveCurvature?:boolean;
+  maximumOffset?:number;
+  extraOffsetWeight?:number;
   responseSamples?:number;
   responseDamping?:number;
   responseScale?:number;
@@ -267,7 +270,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.extraOffsetWeight]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -298,8 +301,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           ((value-target)**2-(1-target)**2)*(options.amplitudeWeight??1)*spanWeight(g,'amplitude');
       };
       const evaluate=(c:ArcMotionControl)=>{
-        c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
+        c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,options.maximumOffset??3)};
         if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
+        if(c.radius!==undefined)c.radius=clamp(c.radius,16,48);
         if(c.guideStart!==undefined)c.guideStart=clamp(c.guideStart,0,1);
         if(c.guideEnd!==undefined)c.guideEnd=clamp(c.guideEnd,0,1);
         if(c.turnFraction!==undefined)c.turnFraction=normalizeArcTurnFraction(c.turnFraction,c.support,options.preserveTurnTiming);
@@ -314,7 +318,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         // Preserve absence (explicit full-span guides have a length floor) and
         // signed zero. The implicit clearance equals the fixed channel exactly.
         const key=memo?JSON.stringify([c.entry,c.turn,c.exit,c.support,c.bias,c.offset,
-          c.clearance??options.channel??0,c.guideStart,c.guideEnd,c.turnFraction,c.bend,c.guideFlare,c.exitBias]
+          c.clearance??options.channel??0,c.guideStart,c.guideEnd,c.turnFraction,c.bend,c.guideFlare,c.exitBias,c.radius]
           .map(value=>value===undefined?'absent':Object.is(value,-0)?'-0':
             Number.isFinite(value)?value:String(value))):'';
         samples++;
@@ -330,7 +334,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           if(!best||result.optimizationCost<best.optimizationCost)best=result;
           return result;
         }
-        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=addArc(engine,added);
+        const geometryDiagnostics={curvatureActive:false};
+        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.adaptiveCurvature?geometryDiagnostics:undefined),child=addArc(engine,added);
         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
         const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;return null;};
@@ -367,6 +372,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
           }
         }
         const localCost=cost,priorStart=residuals.length;
+        if((options.extraOffsetWeight??0)>0){const r=Math.sqrt(options.extraOffsetWeight!)*Math.max(0,c.offset-3)/3;residuals.push(r);cost+=r*r;}
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
         // Keep future catches physically accessible; this is an optimizer prior,
@@ -410,7 +416,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
           i<contacts.length-1?options.valueGuidanceWeight??0:0);
-        const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
+        const result={child,lines:added,c,curvatureActive:geometryDiagnostics.curvatureActive,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
           achieved,actualImpact,terminalLoss,release};
         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
           searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
@@ -491,14 +497,17 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
         const responseKeys:(keyof ArcMotionControl)[]=['entry','turn','exit','support','bias','offset','clearance'];
         if(options.expressive)responseKeys.push('turnFraction','bend','guideFlare');
         if(exitEnabled)responseKeys.push('exitBias');
+        const curvatureEnabled=options.adaptiveCurvature&&best.curvatureActive;
+        if(curvatureEnabled)responseKeys.push('radius');
         const wantedResponse=Math.min(options.guidanceSamples??48,options.responseSamples??0);
         const responseRound=2*responseKeys.length+3;
-        const responseAllowance=options.completeGuidanceBudget?Math.floor(wantedResponse/responseRound)*responseRound:wantedResponse>=responseRound?wantedResponse:0;
+        const responseAllowance=options.completeGuidanceBudget||curvatureEnabled?Math.floor(wantedResponse/responseRound)*responseRound:wantedResponse>=responseRound?wantedResponse:0;
         const count=(options.guidanceSamples??48)-responseAllowance;
         const keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
         if(options.guidanceJoint)keys.push('entry','turn','exit','support','bias','offset');
         if(options.expressive)keys.push('turnFraction','bend','guideFlare');
         if(exitEnabled)keys.push('exitBias');
+        if(curvatureEnabled)keys.push('radius');
         const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
         for(let k=0;k<count;k++){
           const frac=(n:number)=>((k+1)*n)%1;
@@ -513,16 +522,16 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
               c.guideEnd=k===0?0:k%3===1?1:Math.max(c.guideStart,frac(.73205080757));
             }
           }else{
-            const key=keys[Math.floor(k/2)%keys.length],step={clearance:2,guideStart:.15,guideEnd:.15,entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4,turnFraction:.12,bend:10,guideFlare:4,exitBias:.5}[key];
-            c={...best.c,...(exitEnabled?{exitBias:best.c.exitBias??best.c.bias}:{}),[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:key==='turnFraction'?Math.min(5,best.c.support*.5)/best.c.support:key==='exitBias'?best.c.bias:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
+            const key=keys[Math.floor(k/2)%keys.length],step={clearance:2,guideStart:.15,guideEnd:.15,entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4,turnFraction:.12,bend:10,guideFlare:4,exitBias:.5,radius:4}[key];
+            c={...best.c,...(exitEnabled?{exitBias:best.c.exitBias??best.c.bias}:{}),[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:key==='turnFraction'?Math.min(5,best.c.support*.5)/best.c.support:key==='exitBias'?best.c.bias:key==='radius'?options.radius??24:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
         let responseUsed=0, trust=options.responseScale??1;
         let secant:{jac:number[][];trust:number;uses:number}|null=null;
         while(responseUsed+(secant?3:2*responseKeys.length+3)<=responseAllowance){
-          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4};
-          const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:key==='exitBias'?origin.c.bias:0);
+          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4,radius:4};
+          const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:key==='exitBias'?origin.c.bias:key==='radius'?options.radius??24:0);
           const reused=secant!==null;
           const jac=reused?secant!.jac:origin.residuals.map(()=>Array(responseKeys.length).fill(0));
           if(reused)trust=secant!.trust;

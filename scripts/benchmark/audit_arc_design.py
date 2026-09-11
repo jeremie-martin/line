@@ -58,7 +58,8 @@ def audit(root):
         completeGeneralSearches=sum(r['searchComplete'] for r in previews),
         memoHits=sum(r['candidateMemo']['hits'] for r in run['rows']),
         candidateRequests=sum(r['samples'] for r in run['rows']),
-        planningFrames=sum(r['lookaheadStats']['physicsFrames'] for r in run['rows']),
+        planningFrames=sum(sum(a['lookahead']['physicsFrames'] for a in r['attempts'])
+                           if 'attempts' in r else r['lookaheadStats']['physicsFrames'] for r in run['rows']),
         medianCompileMs=statistics.median(r['compileMs'] for r in run['rows']),
         selectedGeometry=dict(intervals=intervals, guides=dict(guides), controlFields=dict(controls)),
     )

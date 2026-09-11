@@ -1,0 +1,196 @@
+{
+  "schema": "line.arc-design-profile.v1",
+  "note": "One Node process sampled during other benchmark work. Includes module/model loading, compilation and cold grading. Self-sample durations describe this workload, not a speedup estimate or independent timing trial.",
+  "compilerCommit": "3a640fe4",
+  "sourceId": "stretch_music_shelter_impact_sync_81s",
+  "seed": 16,
+  "trackHash": "4557048eae08750c736547b1c62d8c2c09f5413305a36103b4d686b6e467e2da",
+  "physicalFrames": 743954,
+  "compileMs": 36854.923257,
+  "profilePath": "/home/wyss/line/generated/compiler-design-audit-20260911/profile/long-track.cpuprofile",
+  "profileSha256": "5d55ed542eeb6687f2fef5ca9835c005eccaa7ae21fb7d35e6bb215073c19cce",
+  "cellSha256": "ecef27b21f3d7611cd5a2e23a1e6de5adec398b0becd5b9e7da5904b2c5be34a",
+  "totalSampledMicroseconds": 37685736,
+  "selfSamples": [
+    {
+      "function": "wasm-function[42]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 4065182,
+      "fraction": 0.10787057469170828
+    },
+    {
+      "function": "arcControlProposals",
+      "location": "scripts/v0/optimizer/arc_control_policy.ts",
+      "microseconds": 3233070,
+      "fraction": 0.08579028415419564
+    },
+    {
+      "function": "",
+      "location": "scripts/v0/optimizer/arc_motion.ts",
+      "microseconds": 3208894,
+      "fraction": 0.08514876822360587
+    },
+    {
+      "function": "detect",
+      "location": "scripts/lib/detector.ts",
+      "microseconds": 3017421,
+      "fraction": 0.08006798646575458
+    },
+    {
+      "function": "(garbage collector)",
+      "location": "",
+      "microseconds": 2860654,
+      "fraction": 0.07590813670190759
+    },
+    {
+      "function": "wasm-function[36]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 2460935,
+      "fraction": 0.06530149762764352
+    },
+    {
+      "function": "wasm-function[32]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 2283952,
+      "fraction": 0.0606052114784225
+    },
+    {
+      "function": "parseArcPolicyArtifact",
+      "location": "scripts/v0/optimizer/connected_arcs.ts",
+      "microseconds": 1506189,
+      "fraction": 0.039967084628518335
+    },
+    {
+      "function": "arcFutureValue",
+      "location": "scripts/v0/optimizer/arc_value.ts",
+      "microseconds": 1413664,
+      "fraction": 0.03751191166864832
+    },
+    {
+      "function": "motionArc",
+      "location": "scripts/v0/optimizer/arc_geometry.ts",
+      "microseconds": 1412286,
+      "fraction": 0.03747534610973234
+    },
+    {
+      "function": "processChunkSync",
+      "location": "node:zlib",
+      "microseconds": 1190561,
+      "fraction": 0.031591820311005735
+    },
+    {
+      "function": "toString",
+      "location": "node:buffer",
+      "microseconds": 887689,
+      "fraction": 0.023555039498233496
+    },
+    {
+      "function": "partitionMatches",
+      "location": "scripts/v0/optimizer/arc_control_policy.ts",
+      "microseconds": 843958,
+      "fraction": 0.02239462697504435
+    },
+    {
+      "function": "wasm-function[39]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 779452,
+      "fraction": 0.020682944868052996
+    },
+    {
+      "function": "measureGapAxes",
+      "location": "scripts/v0/core/measure.ts",
+      "microseconds": 683106,
+      "fraction": 0.018126380761145276
+    },
+    {
+      "function": "set TextDecoder",
+      "location": "",
+      "microseconds": 559619,
+      "fraction": 0.01484962374092946
+    },
+    {
+      "function": "signedAngleDeg",
+      "location": "scripts/lib/detector.ts",
+      "microseconds": 549705,
+      "fraction": 0.014586553384548466
+    },
+    {
+      "function": "wasm-function[50]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 434462,
+      "fraction": 0.011528552872099937
+    },
+    {
+      "function": "computeSummary",
+      "location": "scripts/lib/detector.ts",
+      "microseconds": 434323,
+      "fraction": 0.01152486447392191
+    },
+    {
+      "function": "__name",
+      "location": "scripts/v0/optimizer/arc_geometry.ts",
+      "microseconds": 399475,
+      "fraction": 0.0106001644760235
+    },
+    {
+      "function": "wasm-function[20]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 365066,
+      "fraction": 0.009687113447910371
+    },
+    {
+      "function": "_copyActual",
+      "location": "node:buffer",
+      "microseconds": 338447,
+      "fraction": 0.008980771929198888
+    },
+    {
+      "function": "",
+      "location": "scripts/v0/optimizer/arc_geometry.ts",
+      "microseconds": 283138,
+      "fraction": 0.007513134412447192
+    },
+    {
+      "function": "",
+      "location": "scripts/v0/optimizer/arc_control_policy.ts",
+      "microseconds": 261255,
+      "fraction": 0.00693246378417553
+    },
+    {
+      "function": "getRawFrameAtFrame",
+      "location": "scripts/lib/native_motion/engine.ts",
+      "microseconds": 259913,
+      "fraction": 0.006896853493852422
+    },
+    {
+      "function": "update",
+      "location": "node:internal/crypto/hash",
+      "microseconds": 220474,
+      "fraction": 0.0058503302151243644
+    },
+    {
+      "function": "wasm-function[46]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 217827,
+      "fraction": 0.00578009143830971
+    },
+    {
+      "function": "wasm-function[1]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 216998,
+      "fraction": 0.005758093725435003
+    },
+    {
+      "function": "wasm-function[19]",
+      "location": "wasm://wasm/00066132",
+      "microseconds": 211431,
+      "fraction": 0.005610372051643094
+    },
+    {
+      "function": "",
+      "location": "scripts/v0/core/measure.ts",
+      "microseconds": 149558,
+      "fraction": 0.003968557228124721
+    }
+  ]
+}

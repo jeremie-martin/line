@@ -24,8 +24,11 @@ const verified = (path: string) => { const b = readFileSync(path); assert.equal(
 const cases = loadCases(), lock = read('benchmark/v4/catalog.lock.json');
 const judge = verifyFrozen;
 function compilerIdentity(root: string) {
-  const paths: string[] = [...read('benchmark/v2/campaign-baseline.json').compiler_source_files,
-    'scripts/v0/optimizer/arc_control_policy_model.json.gz'];
+  // Discover compiler dependencies from the shared inventory instead of a
+  // historical baseline's fixed file list, which cannot include new modules.
+  const paths: string[] = JSON.parse(execFileSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e',
+    'import {materializedCompilerSourceFiles} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; console.log(JSON.stringify(materializedCompilerSourceFiles()));'],
+    {cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024}));
   const files = Object.fromEntries(paths.filter(p => existsSync(resolve(root, p))).map(p => [p, sha(readFileSync(resolve(root, p)))]));
   return { commit: execFileSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
     dirty: execFileSync('git', ['-C', root, 'status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' }).trim(),

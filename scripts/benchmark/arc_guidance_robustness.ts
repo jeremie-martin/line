@@ -30,7 +30,7 @@ if(arg('source')){
   // Use the shared compiler dependency inventory. New compiler modules must not
   // silently fall outside this study's identity as the architecture evolves.
   const identity=()=>JSON.parse(execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',
-    'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; console.log(JSON.stringify(compilerCandidateIdentity("wasm")));'],
+    'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; const {trackedChanges,...identity}=compilerCandidateIdentity("wasm"); console.log(JSON.stringify(identity));'],
     {cwd:compilerRoot,encoding:'utf8',maxBuffer:16*1024*1024}));
   const compiler=identity(),files=compiler.compilerSourceFiles as string[];
   const implementation=Object.fromEntries(files.map(p=>[p,hash(readFileSync(resolve(compilerRoot,p)))]));

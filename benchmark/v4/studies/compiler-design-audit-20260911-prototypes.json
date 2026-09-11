@@ -1,0 +1,3188 @@
+{
+  "schema": "line.arc-design-prototypes.v1",
+  "note": "The first two studies are 12-case diagnostic pilots, not headline estimates. Complete source patches include new modules omitted from a plain unstaged git diff.",
+  "pilotSourceProof": {
+    "compiler": {
+      "head": "d7f04ee473f4fa4423cfb771d61eb07f003ed86b",
+      "compilerDiffSha256": "a5506f3e2cbe75cf46346f65044cba460db5005341efb84ab0bbd12319f0c1ba",
+      "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+      "compilerSourceFingerprint": "dfeb3e7c961d17dd31251cdbc5c83e0cb380df7495180efc9bbd1050328928d7",
+      "compilerSourceFiles": [
+        "engine-rs/.gitignore",
+        "engine-rs/Cargo.lock",
+        "engine-rs/Cargo.toml",
+        "engine-rs/README.md",
+        "engine-rs/src/abi.rs",
+        "engine-rs/src/engine.rs",
+        "engine-rs/src/frame.rs",
+        "engine-rs/src/grid.rs",
+        "engine-rs/src/kernel.rs",
+        "engine-rs/src/lib.rs",
+        "engine-rs/src/line.rs",
+        "package-lock.json",
+        "package.json",
+        "scripts/lib/_lr_engine.ts",
+        "scripts/lib/_lr_engine_record.ts",
+        "scripts/lib/_lr_engine_wasm.ts",
+        "scripts/lib/adapt.ts",
+        "scripts/lib/arc.ts",
+        "scripts/lib/arcLines.ts",
+        "scripts/lib/beam_prune.ts",
+        "scripts/lib/beam_search.ts",
+        "scripts/lib/detector.ts",
+        "scripts/lib/export.ts",
+        "scripts/lib/metrics.ts",
+        "scripts/lib/moves.ts",
+        "scripts/lib/native_motion/Cargo.lock",
+        "scripts/lib/native_motion/Cargo.toml",
+        "scripts/lib/native_motion/README.md",
+        "scripts/lib/native_motion/engine.ts",
+        "scripts/lib/native_motion/engine.wasm",
+        "scripts/lib/native_motion/manifest.json",
+        "scripts/lib/native_motion/manifest.json.sha256",
+        "scripts/lib/native_motion/src/abi.rs",
+        "scripts/lib/native_motion/src/engine.rs",
+        "scripts/lib/native_motion/src/frame.rs",
+        "scripts/lib/native_motion/src/grid.rs",
+        "scripts/lib/native_motion/src/kernel.rs",
+        "scripts/lib/native_motion/src/lib.rs",
+        "scripts/lib/native_motion/src/line.rs",
+        "scripts/lib/precise_landings.ts",
+        "scripts/lib/primitive.ts",
+        "scripts/lib/primitive_search.ts",
+        "scripts/lib/ride.ts",
+        "scripts/lib/rng.ts",
+        "scripts/lib/rotation.ts",
+        "scripts/lib/route.ts",
+        "scripts/lib/search.ts",
+        "scripts/lib/tune.ts",
+        "scripts/lib/update_types.ts",
+        "scripts/v0/arc.ts",
+        "scripts/v0/arc_placement.ts",
+        "scripts/v0/core/ballistic_launch.ts",
+        "scripts/v0/core/ballistic_micro_sim.ts",
+        "scripts/v0/core/ballistic_projection.ts",
+        "scripts/v0/core/ballistic_trace.ts",
+        "scripts/v0/core/beats.ts",
+        "scripts/v0/core/camera.ts",
+        "scripts/v0/core/candidate.ts",
+        "scripts/v0/core/compile_lifecycle.ts",
+        "scripts/v0/core/curves.ts",
+        "scripts/v0/core/exit_read.ts",
+        "scripts/v0/core/measure.ts",
+        "scripts/v0/core/polish.ts",
+        "scripts/v0/core/substrate.ts",
+        "scripts/v0/core/support_geometry.ts",
+        "scripts/v0/core/trace.ts",
+        "scripts/v0/optimizer/README.md",
+        "scripts/v0/optimizer/aim.ts",
+        "scripts/v0/optimizer/aim_impact_model.json",
+        "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+        "scripts/v0/optimizer/air_policy.ts",
+        "scripts/v0/optimizer/arc_actuator.ts",
+        "scripts/v0/optimizer/arc_boundary.ts",
+        "scripts/v0/optimizer/arc_control.ts",
+        "scripts/v0/optimizer/arc_control_policy.ts",
+        "scripts/v0/optimizer/arc_control_policy_model.json",
+        "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+        "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+        "scripts/v0/optimizer/arc_engine.ts",
+        "scripts/v0/optimizer/arc_geometry.ts",
+        "scripts/v0/optimizer/arc_guidance.ts",
+        "scripts/v0/optimizer/arc_memory.ts",
+        "scripts/v0/optimizer/arc_model.ts",
+        "scripts/v0/optimizer/arc_motion.ts",
+        "scripts/v0/optimizer/arc_motion_control.ts",
+        "scripts/v0/optimizer/arc_probe.ts",
+        "scripts/v0/optimizer/arc_proposal.ts",
+        "scripts/v0/optimizer/arc_refinement.ts",
+        "scripts/v0/optimizer/arc_response.ts",
+        "scripts/v0/optimizer/arc_value.ts",
+        "scripts/v0/optimizer/arc_value_model.json",
+        "scripts/v0/optimizer/arc_value_model.json.sha256",
+        "scripts/v0/optimizer/arc_vector_model.ts",
+        "scripts/v0/optimizer/budget_estimator.ts",
+        "scripts/v0/optimizer/budget_estimator_model.json",
+        "scripts/v0/optimizer/budget_model.ts",
+        "scripts/v0/optimizer/budget_telemetry.ts",
+        "scripts/v0/optimizer/compiler_input.ts",
+        "scripts/v0/optimizer/connected_arcs.ts",
+        "scripts/v0/optimizer/contact_phase.ts",
+        "scripts/v0/optimizer/contact_transition.ts",
+        "scripts/v0/optimizer/deadline.ts",
+        "scripts/v0/optimizer/handoff.ts",
+        "scripts/v0/optimizer/impact_policy.ts",
+        "scripts/v0/optimizer/impact_response_model.ts",
+        "scripts/v0/optimizer/kinematic_support.ts",
+        "scripts/v0/optimizer/legacy_handoff.ts",
+        "scripts/v0/optimizer/native_motion.ts",
+        "scripts/v0/optimizer/native_motion_schedule.ts",
+        "scripts/v0/optimizer/native_pointwise_energy.ts",
+        "scripts/v0/optimizer/node.ts",
+        "scripts/v0/optimizer/normal_motion.ts",
+        "scripts/v0/optimizer/normal_pointwise_projection.ts",
+        "scripts/v0/optimizer/objective.ts",
+        "scripts/v0/optimizer/objective_control.ts",
+        "scripts/v0/optimizer/polish.ts",
+        "scripts/v0/optimizer/readiness.ts",
+        "scripts/v0/optimizer/readiness_base_features.ts",
+        "scripts/v0/optimizer/readiness_features.ts",
+        "scripts/v0/optimizer/readiness_model.json",
+        "scripts/v0/optimizer/readiness_model_artifact.ts",
+        "scripts/v0/optimizer/readiness_scoring.ts",
+        "scripts/v0/optimizer/register.ts",
+        "scripts/v0/optimizer/repair_branch_bound.ts",
+        "scripts/v0/optimizer/sample.ts",
+        "scripts/v0/optimizer/selective_backtracking.ts",
+        "scripts/v0/optimizer/sim_frames.ts",
+        "scripts/v0/optimizer/solver.ts",
+        "scripts/v0/optimizer/types.ts",
+        "scripts/v0/score.ts",
+        "scripts/v0/trajectory/curve_resolution.ts",
+        "scripts/v0/trajectory/native_catch_history.ts",
+        "scripts/v0/trajectory/precontact_multicontact_history.ts",
+        "scripts/v0/types.ts",
+        "tsconfig.json"
+      ],
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "419fa21dfa6df9def8e6aa241e1fa43bea1fd52feac70f64a317495926ec1583",
+      "trackedChanges": [
+        " M scripts/v0/optimizer/arc_control_policy.ts",
+        " M scripts/v0/optimizer/arc_motion.ts",
+        "?? scripts/v0/optimizer/arc_motion_control.ts"
+      ]
+    },
+    "expected": "419fa21dfa6df9def8e6aa241e1fa43bea1fd52feac70f64a317495926ec1583",
+    "exact": true
+  },
+  "studies": [
+    {
+      "name": "warm",
+      "plan": {
+        "schema": "line.arc-study.plan.v2",
+        "researchOnly": true,
+        "suite": "v4",
+        "compilerRoot": "/home/wyss/line-worktrees/compiler-design-audit",
+        "compiler": {
+          "head": "d7f04ee473f4fa4423cfb771d61eb07f003ed86b",
+          "compilerDiffSha256": "a5506f3e2cbe75cf46346f65044cba460db5005341efb84ab0bbd12319f0c1ba",
+          "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+          "compilerSourceFingerprint": "dfeb3e7c961d17dd31251cdbc5c83e0cb380df7495180efc9bbd1050328928d7",
+          "compilerSourceFiles": [
+            "engine-rs/.gitignore",
+            "engine-rs/Cargo.lock",
+            "engine-rs/Cargo.toml",
+            "engine-rs/README.md",
+            "engine-rs/src/abi.rs",
+            "engine-rs/src/engine.rs",
+            "engine-rs/src/frame.rs",
+            "engine-rs/src/grid.rs",
+            "engine-rs/src/kernel.rs",
+            "engine-rs/src/lib.rs",
+            "engine-rs/src/line.rs",
+            "package-lock.json",
+            "package.json",
+            "scripts/lib/_lr_engine.ts",
+            "scripts/lib/_lr_engine_record.ts",
+            "scripts/lib/_lr_engine_wasm.ts",
+            "scripts/lib/adapt.ts",
+            "scripts/lib/arc.ts",
+            "scripts/lib/arcLines.ts",
+            "scripts/lib/beam_prune.ts",
+            "scripts/lib/beam_search.ts",
+            "scripts/lib/detector.ts",
+            "scripts/lib/export.ts",
+            "scripts/lib/metrics.ts",
+            "scripts/lib/moves.ts",
+            "scripts/lib/native_motion/Cargo.lock",
+            "scripts/lib/native_motion/Cargo.toml",
+            "scripts/lib/native_motion/README.md",
+            "scripts/lib/native_motion/engine.ts",
+            "scripts/lib/native_motion/engine.wasm",
+            "scripts/lib/native_motion/manifest.json",
+            "scripts/lib/native_motion/manifest.json.sha256",
+            "scripts/lib/native_motion/src/abi.rs",
+            "scripts/lib/native_motion/src/engine.rs",
+            "scripts/lib/native_motion/src/frame.rs",
+            "scripts/lib/native_motion/src/grid.rs",
+            "scripts/lib/native_motion/src/kernel.rs",
+            "scripts/lib/native_motion/src/lib.rs",
+            "scripts/lib/native_motion/src/line.rs",
+            "scripts/lib/precise_landings.ts",
+            "scripts/lib/primitive.ts",
+            "scripts/lib/primitive_search.ts",
+            "scripts/lib/ride.ts",
+            "scripts/lib/rng.ts",
+            "scripts/lib/rotation.ts",
+            "scripts/lib/route.ts",
+            "scripts/lib/search.ts",
+            "scripts/lib/tune.ts",
+            "scripts/lib/update_types.ts",
+            "scripts/v0/arc.ts",
+            "scripts/v0/arc_placement.ts",
+            "scripts/v0/core/ballistic_launch.ts",
+            "scripts/v0/core/ballistic_micro_sim.ts",
+            "scripts/v0/core/ballistic_projection.ts",
+            "scripts/v0/core/ballistic_trace.ts",
+            "scripts/v0/core/beats.ts",
+            "scripts/v0/core/camera.ts",
+            "scripts/v0/core/candidate.ts",
+            "scripts/v0/core/compile_lifecycle.ts",
+            "scripts/v0/core/curves.ts",
+            "scripts/v0/core/exit_read.ts",
+            "scripts/v0/core/measure.ts",
+            "scripts/v0/core/polish.ts",
+            "scripts/v0/core/substrate.ts",
+            "scripts/v0/core/support_geometry.ts",
+            "scripts/v0/core/trace.ts",
+            "scripts/v0/optimizer/README.md",
+            "scripts/v0/optimizer/aim.ts",
+            "scripts/v0/optimizer/aim_impact_model.json",
+            "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+            "scripts/v0/optimizer/air_policy.ts",
+            "scripts/v0/optimizer/arc_actuator.ts",
+            "scripts/v0/optimizer/arc_boundary.ts",
+            "scripts/v0/optimizer/arc_control.ts",
+            "scripts/v0/optimizer/arc_control_policy.ts",
+            "scripts/v0/optimizer/arc_control_policy_model.json",
+            "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+            "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+            "scripts/v0/optimizer/arc_engine.ts",
+            "scripts/v0/optimizer/arc_geometry.ts",
+            "scripts/v0/optimizer/arc_guidance.ts",
+            "scripts/v0/optimizer/arc_memory.ts",
+            "scripts/v0/optimizer/arc_model.ts",
+            "scripts/v0/optimizer/arc_motion.ts",
+            "scripts/v0/optimizer/arc_motion_control.ts",
+            "scripts/v0/optimizer/arc_probe.ts",
+            "scripts/v0/optimizer/arc_proposal.ts",
+            "scripts/v0/optimizer/arc_refinement.ts",
+            "scripts/v0/optimizer/arc_response.ts",
+            "scripts/v0/optimizer/arc_value.ts",
+            "scripts/v0/optimizer/arc_value_model.json",
+            "scripts/v0/optimizer/arc_value_model.json.sha256",
+            "scripts/v0/optimizer/arc_vector_model.ts",
+            "scripts/v0/optimizer/budget_estimator.ts",
+            "scripts/v0/optimizer/budget_estimator_model.json",
+            "scripts/v0/optimizer/budget_model.ts",
+            "scripts/v0/optimizer/budget_telemetry.ts",
+            "scripts/v0/optimizer/compiler_input.ts",
+            "scripts/v0/optimizer/connected_arcs.ts",
+            "scripts/v0/optimizer/contact_phase.ts",
+            "scripts/v0/optimizer/contact_transition.ts",
+            "scripts/v0/optimizer/deadline.ts",
+            "scripts/v0/optimizer/handoff.ts",
+            "scripts/v0/optimizer/impact_policy.ts",
+            "scripts/v0/optimizer/impact_response_model.ts",
+            "scripts/v0/optimizer/kinematic_support.ts",
+            "scripts/v0/optimizer/legacy_handoff.ts",
+            "scripts/v0/optimizer/native_motion.ts",
+            "scripts/v0/optimizer/native_motion_schedule.ts",
+            "scripts/v0/optimizer/native_pointwise_energy.ts",
+            "scripts/v0/optimizer/node.ts",
+            "scripts/v0/optimizer/normal_motion.ts",
+            "scripts/v0/optimizer/normal_pointwise_projection.ts",
+            "scripts/v0/optimizer/objective.ts",
+            "scripts/v0/optimizer/objective_control.ts",
+            "scripts/v0/optimizer/polish.ts",
+            "scripts/v0/optimizer/readiness.ts",
+            "scripts/v0/optimizer/readiness_base_features.ts",
+            "scripts/v0/optimizer/readiness_features.ts",
+            "scripts/v0/optimizer/readiness_model.json",
+            "scripts/v0/optimizer/readiness_model_artifact.ts",
+            "scripts/v0/optimizer/readiness_scoring.ts",
+            "scripts/v0/optimizer/register.ts",
+            "scripts/v0/optimizer/repair_branch_bound.ts",
+            "scripts/v0/optimizer/sample.ts",
+            "scripts/v0/optimizer/selective_backtracking.ts",
+            "scripts/v0/optimizer/sim_frames.ts",
+            "scripts/v0/optimizer/solver.ts",
+            "scripts/v0/optimizer/types.ts",
+            "scripts/v0/score.ts",
+            "scripts/v0/trajectory/curve_resolution.ts",
+            "scripts/v0/trajectory/native_catch_history.ts",
+            "scripts/v0/trajectory/precontact_multicontact_history.ts",
+            "scripts/v0/types.ts",
+            "tsconfig.json"
+          ],
+          "compilerEnvironment": {},
+          "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "419fa21dfa6df9def8e6aa241e1fa43bea1fd52feac70f64a317495926ec1583"
+        },
+        "sources": [
+          "bridge_loose_pocket_drag_later_20ms",
+          "bridge_offgrid_conversation_answer_early_25ms",
+          "bridge_frontier_dense_recovery_240ms_figures",
+          "bridge_frontier_low_air_endurance_4s",
+          "bridge_frontier_low_air_endurance_6s",
+          "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "stretch_bridge_regression_amplitude_mosaic",
+          "bridge_regression_amplitude_mosaic_contrast_10",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_river_reentry",
+          "density_release",
+          "stretch_bridge_high_air_drive"
+        ],
+        "seed": 16,
+        "budget": 750000,
+        "options": {
+          "previewWarmStart": true
+        },
+        "judge": {
+          "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "files": {
+            "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+            "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+            "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+            "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+            "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+            "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+            "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+            "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+            "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+            "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+            "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+            "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+            "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+            "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+            "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+            "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+            "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+            "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+            "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+          }
+        },
+        "scriptSha256": "bf5de4e5a0f457a80660233ac275f4341844b1453734204ee3a7c66dcac05629",
+        "suiteAdapterSha256": "01a713efc7e6304f0eae5c6f5a799b487c3571c29d55bd65987f1ca0fdaa83ba"
+      },
+      "runSha256": "3d49c4e314cf9da45ac6c49adac6a8304218bedf6407ffa88270775926c5c947",
+      "summary": {
+        "pilot": true,
+        "cases": [
+          {
+            "id": "bridge_loose_pocket_drag_later_20ms",
+            "score": 975.9068,
+            "valid": true
+          },
+          {
+            "id": "bridge_offgrid_conversation_answer_early_25ms",
+            "score": 973.8117,
+            "valid": true
+          },
+          {
+            "id": "bridge_frontier_dense_recovery_240ms_figures",
+            "score": 952.2186,
+            "valid": true
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance_4s",
+            "score": 916.3086,
+            "valid": true
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance_6s",
+            "score": 918.2772,
+            "valid": true
+          },
+          {
+            "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+            "score": 731.9277,
+            "valid": true
+          },
+          {
+            "id": "stretch_bridge_regression_amplitude_mosaic",
+            "score": 742.8146,
+            "valid": true
+          },
+          {
+            "id": "bridge_regression_amplitude_mosaic_contrast_10",
+            "score": 776.5994,
+            "valid": true
+          },
+          {
+            "id": "bridge_regression_amplitude_mosaic",
+            "score": 782.6117,
+            "valid": true
+          },
+          {
+            "id": "bridge_river_reentry",
+            "score": 985.1453,
+            "valid": true
+          },
+          {
+            "id": "density_release",
+            "score": 975.5688,
+            "valid": true
+          },
+          {
+            "id": "stretch_bridge_high_air_drive",
+            "score": 909.6715,
+            "valid": true
+          }
+        ]
+      },
+      "sourceBase": "d7f04ee4",
+      "sourcePatch": "diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts\nindex 66202d1c..9bc219ea 100644\n--- a/scripts/v0/optimizer/arc_control_policy.ts\n+++ b/scripts/v0/optimizer/arc_control_policy.ts\n@@ -2,13 +2,8 @@\n import {arcArrivalFeatures} from './arc_value.ts';\n import type {ArcMotionControl} from './arc_geometry.ts';\n export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';\n-/** Preserve the exact demonstrated geometry when its incoming state is repeated. */\n-export function arcReferencedControl(reference:{control:ArcMotionControl;incoming:number;span:number},incoming:number,span:number):ArcMotionControl{\n-  if(!Number.isFinite(reference.incoming)||!Number.isFinite(reference.span)||reference.span<=0)throw new Error('invalid arc control reference');\n-  const c=reference.control,angle=incoming-reference.incoming;\n-  return {...c,entry:angle===0?c.entry:c.entry+angle,exit:angle===0?c.exit:c.exit+angle,\n-    support:span===reference.span?c.support:c.support*(span/reference.span)};\n-}\n+import {arcReferencedControl, arcControlsSimilar} from './arc_motion_control.ts';\n+export {arcReferencedControl} from './arc_motion_control.ts';\n export const ARC_HORIZON_POLICY_SCHEMA='line.arc-horizon-control-policy-features.v1';\n // Loaded model artifacts stay immutable during compilation. Index their leaf\n // memberships once; replacing either source array rebuilds the index.\n@@ -37,15 +32,15 @@ export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[\n   return arcArrivalFeatures(state,Math.atan2(velocity.y,velocity.x)*180/Math.PI,\n     Math.hypot(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);\n }\n-export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number):ArcMotionControl[]{\n+export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number,diversity: 'inherited' | 'geometry' = 'inherited'):ArcMotionControl[]{\n   const expected=model.featureSchema===ARC_POLICY_SCHEMA?57:model.featureSchema===ARC_HORIZON_POLICY_SCHEMA?67:0;\n   if(!expected||model.featureCount!==expected||![57,67].includes(features.length)||features.length<expected||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');\n   if(features.length!==expected)features=features.slice(0,expected);\n   if(!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc policy count');\n   if(count===0)return [];\n   if(model.residualBase){\n-    const base=arcControlProposals(features,incoming,span,model.residualBase,1)[0];\n-    const residual=arcControlProposals(features,0,span,model.residualModel,count);\n+    const base=arcControlProposals(features,incoming,span,model.residualBase,1,diversity)[0];\n+    const residual=arcControlProposals(features,0,span,model.residualModel,count,diversity);\n     const strength=model.residualStrength??1;\n     if(!Number.isFinite(strength)||strength<0)throw new Error('invalid residual policy strength');\n     return residual.map(delta=>Object.fromEntries(Object.keys(base).map(key=>[key,\n@@ -55,7 +50,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe\n     const weights=model.proposalWeights??model.models.map(()=>1),sum=weights.reduce((a:number,b:number)=>a+b,0);\n     const counts=weights.map((w:number)=>Math.floor(count*w/sum));\n     for(let j=0;counts.reduce((a:number,b:number)=>a+b,0)<count;j++)counts[j%counts.length]++;\n-    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);\n+    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j],diversity):[]);\n   }\n   if(model.exemplars){\n     const input=model.proximityTrees?features.map(Math.fround):undefined;\n@@ -88,7 +83,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe\n     const selected:ArcMotionControl[]=[];\n     for(const {value:v,reference} of nearest){\n       const c=reference?arcReferencedControl(reference,incoming,span):{entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};\n-      if(selected.some(p=>Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;\n+      if(selected.some(p=>diversity==='geometry'?arcControlsSimilar(c,p):Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;\n       selected.push(c);if(selected.length>=count)break;\n     }\n     return selected;\ndiff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts\nindex 8f9f890b..73a7ade0 100644\n--- a/scripts/v0/optimizer/arc_motion.ts\n+++ b/scripts/v0/optimizer/arc_motion.ts\n@@ -11,6 +11,7 @@ export { motionArc, type ArcMotionControl } from './arc_geometry.ts';\n import { scheduleNativeContacts } from './native_motion_schedule.ts';\n import { trimUnusedArcGuides } from './arc_guidance.ts';\n import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';\n+import { arcReferencedControl, type ArcControlReference } from './arc_motion_control.ts';\n import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';\n import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';\n import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';\n@@ -32,6 +33,12 @@ const rad=(x:number)=>x*Math.PI/180;\n const deg=(x:number)=>x*180/Math.PI;\n export type ArcMotionOptions= {\n   budget:number;\n+  /** Reuse the preliminary track as measured controls in general search. */\n+  previewWarmStart?:boolean;\n+  /** Complete or partial trajectory controls, adapted to each measured boundary. */\n+  trajectoryControls?:ArcControlReference[];\n+  /** Preserve distinct expressive geometry in learned and memory proposals. */\n+  controlDiversity?:'inherited'|'geometry';\n   /** Reserve work for improving a completed track inside the same hard limit. */\n   constructionBudget?:number;\n   /** Reuse measured response directions between complete finite differences. */\n@@ -171,7 +178,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)\n   // Keep the real counter running. The second search sees the first proposal's\n   // work against the same absolute ceiling, including both of its cold replays.\n   const searched=compileArcMotionOnce(spec,seed,{...options,controlPolicy:model,policyPreview:false,\n-    policyRollout:false,policyRolloutStrict:false,collectTrajectoryLoss:true},true);\n+    policyRollout:false,policyRolloutStrict:false,collectTrajectoryLoss:true,\n+    trajectoryControls:options.previewWarmStart?preview.rows.map(r=>({control:r.control,incoming:r.incoming,span:r.span})):options.trajectoryControls},true);\n   const total=getPhysicsFrameCount(),chosen=(preview.trajectoryLoss??Infinity)<(searched.trajectoryLoss??Infinity)?preview:searched;\n   const backtracks=preview.backtracks+searched.backtracks;\n   const qualityRetries={...preview.qualityRetries};\n@@ -480,21 +488,21 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n           actualImpact:selected.meta.impact,release:selected.meta.release};\n       };\n       try {\n-      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};}\n+      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};}\n       if(options.policyRollout){\n         const model=i===0?options.controlPolicy?.startupModel:options.controlPolicy;\n         const began=getPhysicsFrameCount();\n         try{\n-          if(model)for(const control of arcControlProposals(policyInputFeatures,incoming,span,model,1)){\n+          if(model)for(const control of arcControlProposals(policyInputFeatures,incoming,span,model,1,options.controlDiversity)){\n             policyRolloutStats.proposals++;\n             if(evaluate(control)){\n               policyRolloutStats.accepted++;\n-              return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};\n+              return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};\n             }\n           }\n         }finally{policyRolloutStats.physicsFrames+=getPhysicsFrameCount()-began;}\n         policyRolloutStats.fallbacks++;\n-        if(options.policyRolloutStrict)return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};\n+        if(options.policyRolloutStrict)return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};\n       }\n       center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};\n       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}\n@@ -509,8 +517,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;\n       const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];\n       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;\n-      const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0]):[];\n+      const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0],options.controlDiversity):[];\n       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));\n+      if(options.trajectoryControls?.[i])evaluate(arcReferencedControl(options.trajectoryControls[i],incoming,span));\n       if(options.warmStart)evaluate(options.warmStart);\n       for(let k=0;k<initial;k++){\n         const frac=(n:number)=>((k+1)*n)%1;\n@@ -644,7 +653,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n         if(!best)throw error;\n       }\n       selectBounded();\n-      return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,inputFeatures};\n+      return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,span,inputFeatures};\n     };\n     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);\n     const distinct=(candidates:any[],width:number)=>{\n@@ -835,7 +844,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n       // can invalidate cached prefix frames even for a validated child.\n       if(terminalChildLines)best.child=addArc(engine,terminalChildLines);\n       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);\n-      rows.push({frame,next,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});\n+      rows.push({frame,next,incoming,span:interval.span,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});\n       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\\n');\n     }\n     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){\ndiff --git a/scripts/v0/optimizer/arc_motion_control.ts b/scripts/v0/optimizer/arc_motion_control.ts\nnew file mode 100644\nindex 00000000..2e1a4fe1\n--- /dev/null\n+++ b/scripts/v0/optimizer/arc_motion_control.ts\n@@ -0,0 +1,31 @@\n+/** Control operations shared by learned proposals, local memory and search.\n+ * Omitted fields are intentional geometry choices, not missing numeric zeros. */\n+import type { ArcMotionControl } from './arc_geometry.ts';\n+\n+export type ArcControlReference = {control: ArcMotionControl; incoming: number; span: number};\n+\n+/** Preserve demonstrated doubles and field absence at the original boundary. */\n+export function arcReferencedControl(reference: ArcControlReference, incoming: number, span: number): ArcMotionControl {\n+  if (!Number.isFinite(reference.incoming) || !Number.isFinite(reference.span) || reference.span <= 0)\n+    throw new Error('invalid arc control reference');\n+  const c = reference.control, angle = incoming - reference.incoming;\n+  return {...c, entry: angle === 0 ? c.entry : c.entry + angle,\n+    exit: angle === 0 ? c.exit : c.exit + angle,\n+    support: span === reference.span ? c.support : c.support * (span / reference.span)};\n+}\n+\n+/** A neighborhood in authored control space, not a physical-equivalence claim.\n+ * Keep distinct expressive shapes available to the real-engine evaluator.\n+ * Conservatively distinguish omitted optional fields: their defaults can depend\n+ * on channel/wave settings and explicit guide endpoints have a length floor. */\n+export function arcControlsSimilar(a: ArcMotionControl, b: ArcMotionControl): boolean {\n+  const tolerance: Record<keyof ArcMotionControl, number> = {\n+    entry: 2, turn: 4, exit: 4, support: 1, bias: .3, offset: .2,\n+    clearance: 1, guideStart: .08, guideEnd: .08, turnFraction: .06,\n+    bend: 5, guideFlare: 2, exitBias: .3,\n+  };\n+  return (Object.keys(tolerance) as Array<keyof ArcMotionControl>).every(key => {\n+    const x = a[key], y = b[key];\n+    return x === undefined || y === undefined ? x === y : Math.abs(x - y) < tolerance[key];\n+  });\n+}\n",
+      "sourcePatchSha256": "15ada59e18d1c765c09cfd9d7321864b9e0cf6000ce059fc44f5410fe30aa55a"
+    },
+    {
+      "name": "diversity",
+      "plan": {
+        "schema": "line.arc-study.plan.v2",
+        "researchOnly": true,
+        "suite": "v4",
+        "compilerRoot": "/home/wyss/line-worktrees/compiler-design-audit",
+        "compiler": {
+          "head": "d7f04ee473f4fa4423cfb771d61eb07f003ed86b",
+          "compilerDiffSha256": "a5506f3e2cbe75cf46346f65044cba460db5005341efb84ab0bbd12319f0c1ba",
+          "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+          "compilerSourceFingerprint": "dfeb3e7c961d17dd31251cdbc5c83e0cb380df7495180efc9bbd1050328928d7",
+          "compilerSourceFiles": [
+            "engine-rs/.gitignore",
+            "engine-rs/Cargo.lock",
+            "engine-rs/Cargo.toml",
+            "engine-rs/README.md",
+            "engine-rs/src/abi.rs",
+            "engine-rs/src/engine.rs",
+            "engine-rs/src/frame.rs",
+            "engine-rs/src/grid.rs",
+            "engine-rs/src/kernel.rs",
+            "engine-rs/src/lib.rs",
+            "engine-rs/src/line.rs",
+            "package-lock.json",
+            "package.json",
+            "scripts/lib/_lr_engine.ts",
+            "scripts/lib/_lr_engine_record.ts",
+            "scripts/lib/_lr_engine_wasm.ts",
+            "scripts/lib/adapt.ts",
+            "scripts/lib/arc.ts",
+            "scripts/lib/arcLines.ts",
+            "scripts/lib/beam_prune.ts",
+            "scripts/lib/beam_search.ts",
+            "scripts/lib/detector.ts",
+            "scripts/lib/export.ts",
+            "scripts/lib/metrics.ts",
+            "scripts/lib/moves.ts",
+            "scripts/lib/native_motion/Cargo.lock",
+            "scripts/lib/native_motion/Cargo.toml",
+            "scripts/lib/native_motion/README.md",
+            "scripts/lib/native_motion/engine.ts",
+            "scripts/lib/native_motion/engine.wasm",
+            "scripts/lib/native_motion/manifest.json",
+            "scripts/lib/native_motion/manifest.json.sha256",
+            "scripts/lib/native_motion/src/abi.rs",
+            "scripts/lib/native_motion/src/engine.rs",
+            "scripts/lib/native_motion/src/frame.rs",
+            "scripts/lib/native_motion/src/grid.rs",
+            "scripts/lib/native_motion/src/kernel.rs",
+            "scripts/lib/native_motion/src/lib.rs",
+            "scripts/lib/native_motion/src/line.rs",
+            "scripts/lib/precise_landings.ts",
+            "scripts/lib/primitive.ts",
+            "scripts/lib/primitive_search.ts",
+            "scripts/lib/ride.ts",
+            "scripts/lib/rng.ts",
+            "scripts/lib/rotation.ts",
+            "scripts/lib/route.ts",
+            "scripts/lib/search.ts",
+            "scripts/lib/tune.ts",
+            "scripts/lib/update_types.ts",
+            "scripts/v0/arc.ts",
+            "scripts/v0/arc_placement.ts",
+            "scripts/v0/core/ballistic_launch.ts",
+            "scripts/v0/core/ballistic_micro_sim.ts",
+            "scripts/v0/core/ballistic_projection.ts",
+            "scripts/v0/core/ballistic_trace.ts",
+            "scripts/v0/core/beats.ts",
+            "scripts/v0/core/camera.ts",
+            "scripts/v0/core/candidate.ts",
+            "scripts/v0/core/compile_lifecycle.ts",
+            "scripts/v0/core/curves.ts",
+            "scripts/v0/core/exit_read.ts",
+            "scripts/v0/core/measure.ts",
+            "scripts/v0/core/polish.ts",
+            "scripts/v0/core/substrate.ts",
+            "scripts/v0/core/support_geometry.ts",
+            "scripts/v0/core/trace.ts",
+            "scripts/v0/optimizer/README.md",
+            "scripts/v0/optimizer/aim.ts",
+            "scripts/v0/optimizer/aim_impact_model.json",
+            "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+            "scripts/v0/optimizer/air_policy.ts",
+            "scripts/v0/optimizer/arc_actuator.ts",
+            "scripts/v0/optimizer/arc_boundary.ts",
+            "scripts/v0/optimizer/arc_control.ts",
+            "scripts/v0/optimizer/arc_control_policy.ts",
+            "scripts/v0/optimizer/arc_control_policy_model.json",
+            "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+            "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+            "scripts/v0/optimizer/arc_engine.ts",
+            "scripts/v0/optimizer/arc_geometry.ts",
+            "scripts/v0/optimizer/arc_guidance.ts",
+            "scripts/v0/optimizer/arc_memory.ts",
+            "scripts/v0/optimizer/arc_model.ts",
+            "scripts/v0/optimizer/arc_motion.ts",
+            "scripts/v0/optimizer/arc_motion_control.ts",
+            "scripts/v0/optimizer/arc_probe.ts",
+            "scripts/v0/optimizer/arc_proposal.ts",
+            "scripts/v0/optimizer/arc_refinement.ts",
+            "scripts/v0/optimizer/arc_response.ts",
+            "scripts/v0/optimizer/arc_value.ts",
+            "scripts/v0/optimizer/arc_value_model.json",
+            "scripts/v0/optimizer/arc_value_model.json.sha256",
+            "scripts/v0/optimizer/arc_vector_model.ts",
+            "scripts/v0/optimizer/budget_estimator.ts",
+            "scripts/v0/optimizer/budget_estimator_model.json",
+            "scripts/v0/optimizer/budget_model.ts",
+            "scripts/v0/optimizer/budget_telemetry.ts",
+            "scripts/v0/optimizer/compiler_input.ts",
+            "scripts/v0/optimizer/connected_arcs.ts",
+            "scripts/v0/optimizer/contact_phase.ts",
+            "scripts/v0/optimizer/contact_transition.ts",
+            "scripts/v0/optimizer/deadline.ts",
+            "scripts/v0/optimizer/handoff.ts",
+            "scripts/v0/optimizer/impact_policy.ts",
+            "scripts/v0/optimizer/impact_response_model.ts",
+            "scripts/v0/optimizer/kinematic_support.ts",
+            "scripts/v0/optimizer/legacy_handoff.ts",
+            "scripts/v0/optimizer/native_motion.ts",
+            "scripts/v0/optimizer/native_motion_schedule.ts",
+            "scripts/v0/optimizer/native_pointwise_energy.ts",
+            "scripts/v0/optimizer/node.ts",
+            "scripts/v0/optimizer/normal_motion.ts",
+            "scripts/v0/optimizer/normal_pointwise_projection.ts",
+            "scripts/v0/optimizer/objective.ts",
+            "scripts/v0/optimizer/objective_control.ts",
+            "scripts/v0/optimizer/polish.ts",
+            "scripts/v0/optimizer/readiness.ts",
+            "scripts/v0/optimizer/readiness_base_features.ts",
+            "scripts/v0/optimizer/readiness_features.ts",
+            "scripts/v0/optimizer/readiness_model.json",
+            "scripts/v0/optimizer/readiness_model_artifact.ts",
+            "scripts/v0/optimizer/readiness_scoring.ts",
+            "scripts/v0/optimizer/register.ts",
+            "scripts/v0/optimizer/repair_branch_bound.ts",
+            "scripts/v0/optimizer/sample.ts",
+            "scripts/v0/optimizer/selective_backtracking.ts",
+            "scripts/v0/optimizer/sim_frames.ts",
+            "scripts/v0/optimizer/solver.ts",
+            "scripts/v0/optimizer/types.ts",
+            "scripts/v0/score.ts",
+            "scripts/v0/trajectory/curve_resolution.ts",
+            "scripts/v0/trajectory/native_catch_history.ts",
+            "scripts/v0/trajectory/precontact_multicontact_history.ts",
+            "scripts/v0/types.ts",
+            "tsconfig.json"
+          ],
+          "compilerEnvironment": {},
+          "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "419fa21dfa6df9def8e6aa241e1fa43bea1fd52feac70f64a317495926ec1583"
+        },
+        "sources": [
+          "bridge_loose_pocket_drag_later_20ms",
+          "bridge_offgrid_conversation_answer_early_25ms",
+          "bridge_frontier_dense_recovery_240ms_figures",
+          "bridge_frontier_low_air_endurance_4s",
+          "bridge_frontier_low_air_endurance_6s",
+          "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "stretch_bridge_regression_amplitude_mosaic",
+          "bridge_regression_amplitude_mosaic_contrast_10",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_river_reentry",
+          "density_release",
+          "stretch_bridge_high_air_drive"
+        ],
+        "seed": 16,
+        "budget": 750000,
+        "options": {
+          "controlDiversity": "geometry"
+        },
+        "judge": {
+          "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "files": {
+            "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+            "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+            "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+            "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+            "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+            "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+            "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+            "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+            "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+            "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+            "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+            "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+            "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+            "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+            "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+            "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+            "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+            "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+            "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+          }
+        },
+        "scriptSha256": "bf5de4e5a0f457a80660233ac275f4341844b1453734204ee3a7c66dcac05629",
+        "suiteAdapterSha256": "01a713efc7e6304f0eae5c6f5a799b487c3571c29d55bd65987f1ca0fdaa83ba"
+      },
+      "runSha256": "7bfc0fc9776f9153988da42efd035627968f05099d59711dec4dfd7882704b32",
+      "summary": {
+        "pilot": true,
+        "cases": [
+          {
+            "id": "bridge_loose_pocket_drag_later_20ms",
+            "score": 971.911,
+            "valid": true
+          },
+          {
+            "id": "bridge_offgrid_conversation_answer_early_25ms",
+            "score": 972.0264,
+            "valid": true
+          },
+          {
+            "id": "bridge_frontier_dense_recovery_240ms_figures",
+            "score": 949.5938,
+            "valid": true
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance_4s",
+            "score": 923.0407,
+            "valid": true
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance_6s",
+            "score": 924.8137,
+            "valid": true
+          },
+          {
+            "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+            "score": 731.9277,
+            "valid": true
+          },
+          {
+            "id": "stretch_bridge_regression_amplitude_mosaic",
+            "score": 742.8146,
+            "valid": true
+          },
+          {
+            "id": "bridge_regression_amplitude_mosaic_contrast_10",
+            "score": 776.5994,
+            "valid": true
+          },
+          {
+            "id": "bridge_regression_amplitude_mosaic",
+            "score": 782.6117,
+            "valid": true
+          },
+          {
+            "id": "bridge_river_reentry",
+            "score": 985.1453,
+            "valid": true
+          },
+          {
+            "id": "density_release",
+            "score": 975.5688,
+            "valid": true
+          },
+          {
+            "id": "stretch_bridge_high_air_drive",
+            "score": 909.6715,
+            "valid": true
+          }
+        ]
+      },
+      "sourceBase": "d7f04ee4",
+      "sourcePatch": "diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts\nindex 66202d1c..9bc219ea 100644\n--- a/scripts/v0/optimizer/arc_control_policy.ts\n+++ b/scripts/v0/optimizer/arc_control_policy.ts\n@@ -2,13 +2,8 @@\n import {arcArrivalFeatures} from './arc_value.ts';\n import type {ArcMotionControl} from './arc_geometry.ts';\n export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';\n-/** Preserve the exact demonstrated geometry when its incoming state is repeated. */\n-export function arcReferencedControl(reference:{control:ArcMotionControl;incoming:number;span:number},incoming:number,span:number):ArcMotionControl{\n-  if(!Number.isFinite(reference.incoming)||!Number.isFinite(reference.span)||reference.span<=0)throw new Error('invalid arc control reference');\n-  const c=reference.control,angle=incoming-reference.incoming;\n-  return {...c,entry:angle===0?c.entry:c.entry+angle,exit:angle===0?c.exit:c.exit+angle,\n-    support:span===reference.span?c.support:c.support*(span/reference.span)};\n-}\n+import {arcReferencedControl, arcControlsSimilar} from './arc_motion_control.ts';\n+export {arcReferencedControl} from './arc_motion_control.ts';\n export const ARC_HORIZON_POLICY_SCHEMA='line.arc-horizon-control-policy-features.v1';\n // Loaded model artifacts stay immutable during compilation. Index their leaf\n // memberships once; replacing either source array rebuilds the index.\n@@ -37,15 +32,15 @@ export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[\n   return arcArrivalFeatures(state,Math.atan2(velocity.y,velocity.x)*180/Math.PI,\n     Math.hypot(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);\n }\n-export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number):ArcMotionControl[]{\n+export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number,diversity: 'inherited' | 'geometry' = 'inherited'):ArcMotionControl[]{\n   const expected=model.featureSchema===ARC_POLICY_SCHEMA?57:model.featureSchema===ARC_HORIZON_POLICY_SCHEMA?67:0;\n   if(!expected||model.featureCount!==expected||![57,67].includes(features.length)||features.length<expected||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');\n   if(features.length!==expected)features=features.slice(0,expected);\n   if(!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc policy count');\n   if(count===0)return [];\n   if(model.residualBase){\n-    const base=arcControlProposals(features,incoming,span,model.residualBase,1)[0];\n-    const residual=arcControlProposals(features,0,span,model.residualModel,count);\n+    const base=arcControlProposals(features,incoming,span,model.residualBase,1,diversity)[0];\n+    const residual=arcControlProposals(features,0,span,model.residualModel,count,diversity);\n     const strength=model.residualStrength??1;\n     if(!Number.isFinite(strength)||strength<0)throw new Error('invalid residual policy strength');\n     return residual.map(delta=>Object.fromEntries(Object.keys(base).map(key=>[key,\n@@ -55,7 +50,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe\n     const weights=model.proposalWeights??model.models.map(()=>1),sum=weights.reduce((a:number,b:number)=>a+b,0);\n     const counts=weights.map((w:number)=>Math.floor(count*w/sum));\n     for(let j=0;counts.reduce((a:number,b:number)=>a+b,0)<count;j++)counts[j%counts.length]++;\n-    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);\n+    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j],diversity):[]);\n   }\n   if(model.exemplars){\n     const input=model.proximityTrees?features.map(Math.fround):undefined;\n@@ -88,7 +83,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe\n     const selected:ArcMotionControl[]=[];\n     for(const {value:v,reference} of nearest){\n       const c=reference?arcReferencedControl(reference,incoming,span):{entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};\n-      if(selected.some(p=>Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;\n+      if(selected.some(p=>diversity==='geometry'?arcControlsSimilar(c,p):Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;\n       selected.push(c);if(selected.length>=count)break;\n     }\n     return selected;\ndiff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts\nindex 8f9f890b..73a7ade0 100644\n--- a/scripts/v0/optimizer/arc_motion.ts\n+++ b/scripts/v0/optimizer/arc_motion.ts\n@@ -11,6 +11,7 @@ export { motionArc, type ArcMotionControl } from './arc_geometry.ts';\n import { scheduleNativeContacts } from './native_motion_schedule.ts';\n import { trimUnusedArcGuides } from './arc_guidance.ts';\n import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';\n+import { arcReferencedControl, type ArcControlReference } from './arc_motion_control.ts';\n import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';\n import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';\n import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';\n@@ -32,6 +33,12 @@ const rad=(x:number)=>x*Math.PI/180;\n const deg=(x:number)=>x*180/Math.PI;\n export type ArcMotionOptions= {\n   budget:number;\n+  /** Reuse the preliminary track as measured controls in general search. */\n+  previewWarmStart?:boolean;\n+  /** Complete or partial trajectory controls, adapted to each measured boundary. */\n+  trajectoryControls?:ArcControlReference[];\n+  /** Preserve distinct expressive geometry in learned and memory proposals. */\n+  controlDiversity?:'inherited'|'geometry';\n   /** Reserve work for improving a completed track inside the same hard limit. */\n   constructionBudget?:number;\n   /** Reuse measured response directions between complete finite differences. */\n@@ -171,7 +178,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)\n   // Keep the real counter running. The second search sees the first proposal's\n   // work against the same absolute ceiling, including both of its cold replays.\n   const searched=compileArcMotionOnce(spec,seed,{...options,controlPolicy:model,policyPreview:false,\n-    policyRollout:false,policyRolloutStrict:false,collectTrajectoryLoss:true},true);\n+    policyRollout:false,policyRolloutStrict:false,collectTrajectoryLoss:true,\n+    trajectoryControls:options.previewWarmStart?preview.rows.map(r=>({control:r.control,incoming:r.incoming,span:r.span})):options.trajectoryControls},true);\n   const total=getPhysicsFrameCount(),chosen=(preview.trajectoryLoss??Infinity)<(searched.trajectoryLoss??Infinity)?preview:searched;\n   const backtracks=preview.backtracks+searched.backtracks;\n   const qualityRetries={...preview.qualityRetries};\n@@ -480,21 +488,21 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n           actualImpact:selected.meta.impact,release:selected.meta.release};\n       };\n       try {\n-      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};}\n+      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};}\n       if(options.policyRollout){\n         const model=i===0?options.controlPolicy?.startupModel:options.controlPolicy;\n         const began=getPhysicsFrameCount();\n         try{\n-          if(model)for(const control of arcControlProposals(policyInputFeatures,incoming,span,model,1)){\n+          if(model)for(const control of arcControlProposals(policyInputFeatures,incoming,span,model,1,options.controlDiversity)){\n             policyRolloutStats.proposals++;\n             if(evaluate(control)){\n               policyRolloutStats.accepted++;\n-              return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};\n+              return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};\n             }\n           }\n         }finally{policyRolloutStats.physicsFrames+=getPhysicsFrameCount()-began;}\n         policyRolloutStats.fallbacks++;\n-        if(options.policyRolloutStrict)return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};\n+        if(options.policyRolloutStrict)return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};\n       }\n       center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};\n       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}\n@@ -509,8 +517,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;\n       const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];\n       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;\n-      const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0]):[];\n+      const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0],options.controlDiversity):[];\n       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));\n+      if(options.trajectoryControls?.[i])evaluate(arcReferencedControl(options.trajectoryControls[i],incoming,span));\n       if(options.warmStart)evaluate(options.warmStart);\n       for(let k=0;k<initial;k++){\n         const frac=(n:number)=>((k+1)*n)%1;\n@@ -644,7 +653,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n         if(!best)throw error;\n       }\n       selectBounded();\n-      return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,inputFeatures};\n+      return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,span,inputFeatures};\n     };\n     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);\n     const distinct=(candidates:any[],width:number)=>{\n@@ -835,7 +844,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n       // can invalidate cached prefix frames even for a validated child.\n       if(terminalChildLines)best.child=addArc(engine,terminalChildLines);\n       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);\n-      rows.push({frame,next,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});\n+      rows.push({frame,next,incoming,span:interval.span,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});\n       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\\n');\n     }\n     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){\ndiff --git a/scripts/v0/optimizer/arc_motion_control.ts b/scripts/v0/optimizer/arc_motion_control.ts\nnew file mode 100644\nindex 00000000..2e1a4fe1\n--- /dev/null\n+++ b/scripts/v0/optimizer/arc_motion_control.ts\n@@ -0,0 +1,31 @@\n+/** Control operations shared by learned proposals, local memory and search.\n+ * Omitted fields are intentional geometry choices, not missing numeric zeros. */\n+import type { ArcMotionControl } from './arc_geometry.ts';\n+\n+export type ArcControlReference = {control: ArcMotionControl; incoming: number; span: number};\n+\n+/** Preserve demonstrated doubles and field absence at the original boundary. */\n+export function arcReferencedControl(reference: ArcControlReference, incoming: number, span: number): ArcMotionControl {\n+  if (!Number.isFinite(reference.incoming) || !Number.isFinite(reference.span) || reference.span <= 0)\n+    throw new Error('invalid arc control reference');\n+  const c = reference.control, angle = incoming - reference.incoming;\n+  return {...c, entry: angle === 0 ? c.entry : c.entry + angle,\n+    exit: angle === 0 ? c.exit : c.exit + angle,\n+    support: span === reference.span ? c.support : c.support * (span / reference.span)};\n+}\n+\n+/** A neighborhood in authored control space, not a physical-equivalence claim.\n+ * Keep distinct expressive shapes available to the real-engine evaluator.\n+ * Conservatively distinguish omitted optional fields: their defaults can depend\n+ * on channel/wave settings and explicit guide endpoints have a length floor. */\n+export function arcControlsSimilar(a: ArcMotionControl, b: ArcMotionControl): boolean {\n+  const tolerance: Record<keyof ArcMotionControl, number> = {\n+    entry: 2, turn: 4, exit: 4, support: 1, bias: .3, offset: .2,\n+    clearance: 1, guideStart: .08, guideEnd: .08, turnFraction: .06,\n+    bend: 5, guideFlare: 2, exitBias: .3,\n+  };\n+  return (Object.keys(tolerance) as Array<keyof ArcMotionControl>).every(key => {\n+    const x = a[key], y = b[key];\n+    return x === undefined || y === undefined ? x === y : Math.abs(x - y) < tolerance[key];\n+  });\n+}\n",
+      "sourcePatchSha256": "15ada59e18d1c765c09cfd9d7321864b9e0cf6000ce059fc44f5410fe30aa55a"
+    },
+    {
+      "name": "combined",
+      "plan": {
+        "schema": "line.arc-study.plan.v2",
+        "researchOnly": true,
+        "suite": "v4",
+        "compilerRoot": "/home/wyss/line-worktrees/compiler-design-audit",
+        "compiler": {
+          "head": "d7f04ee473f4fa4423cfb771d61eb07f003ed86b",
+          "compilerDiffSha256": "9a3035b86dc568067f1a4c1d98db83b5cf68f7d12951eb340f856915593cb913",
+          "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+          "compilerSourceFingerprint": "ef502f6a1470cd8001544218f4137e8a1302aa6370460557f2255ac85d7ff397",
+          "compilerSourceFiles": [
+            "engine-rs/.gitignore",
+            "engine-rs/Cargo.lock",
+            "engine-rs/Cargo.toml",
+            "engine-rs/README.md",
+            "engine-rs/src/abi.rs",
+            "engine-rs/src/engine.rs",
+            "engine-rs/src/frame.rs",
+            "engine-rs/src/grid.rs",
+            "engine-rs/src/kernel.rs",
+            "engine-rs/src/lib.rs",
+            "engine-rs/src/line.rs",
+            "package-lock.json",
+            "package.json",
+            "scripts/lib/_lr_engine.ts",
+            "scripts/lib/_lr_engine_record.ts",
+            "scripts/lib/_lr_engine_wasm.ts",
+            "scripts/lib/adapt.ts",
+            "scripts/lib/arc.ts",
+            "scripts/lib/arcLines.ts",
+            "scripts/lib/beam_prune.ts",
+            "scripts/lib/beam_search.ts",
+            "scripts/lib/detector.ts",
+            "scripts/lib/export.ts",
+            "scripts/lib/metrics.ts",
+            "scripts/lib/moves.ts",
+            "scripts/lib/native_motion/Cargo.lock",
+            "scripts/lib/native_motion/Cargo.toml",
+            "scripts/lib/native_motion/README.md",
+            "scripts/lib/native_motion/engine.ts",
+            "scripts/lib/native_motion/engine.wasm",
+            "scripts/lib/native_motion/manifest.json",
+            "scripts/lib/native_motion/manifest.json.sha256",
+            "scripts/lib/native_motion/src/abi.rs",
+            "scripts/lib/native_motion/src/engine.rs",
+            "scripts/lib/native_motion/src/frame.rs",
+            "scripts/lib/native_motion/src/grid.rs",
+            "scripts/lib/native_motion/src/kernel.rs",
+            "scripts/lib/native_motion/src/lib.rs",
+            "scripts/lib/native_motion/src/line.rs",
+            "scripts/lib/precise_landings.ts",
+            "scripts/lib/primitive.ts",
+            "scripts/lib/primitive_search.ts",
+            "scripts/lib/ride.ts",
+            "scripts/lib/rng.ts",
+            "scripts/lib/rotation.ts",
+            "scripts/lib/route.ts",
+            "scripts/lib/search.ts",
+            "scripts/lib/tune.ts",
+            "scripts/lib/update_types.ts",
+            "scripts/v0/arc.ts",
+            "scripts/v0/arc_placement.ts",
+            "scripts/v0/core/ballistic_launch.ts",
+            "scripts/v0/core/ballistic_micro_sim.ts",
+            "scripts/v0/core/ballistic_projection.ts",
+            "scripts/v0/core/ballistic_trace.ts",
+            "scripts/v0/core/beats.ts",
+            "scripts/v0/core/camera.ts",
+            "scripts/v0/core/candidate.ts",
+            "scripts/v0/core/compile_lifecycle.ts",
+            "scripts/v0/core/curves.ts",
+            "scripts/v0/core/exit_read.ts",
+            "scripts/v0/core/measure.ts",
+            "scripts/v0/core/polish.ts",
+            "scripts/v0/core/substrate.ts",
+            "scripts/v0/core/support_geometry.ts",
+            "scripts/v0/core/trace.ts",
+            "scripts/v0/optimizer/README.md",
+            "scripts/v0/optimizer/aim.ts",
+            "scripts/v0/optimizer/aim_impact_model.json",
+            "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+            "scripts/v0/optimizer/air_policy.ts",
+            "scripts/v0/optimizer/arc_actuator.ts",
+            "scripts/v0/optimizer/arc_boundary.ts",
+            "scripts/v0/optimizer/arc_control.ts",
+            "scripts/v0/optimizer/arc_control_policy.ts",
+            "scripts/v0/optimizer/arc_control_policy_model.json",
+            "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+            "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+            "scripts/v0/optimizer/arc_engine.ts",
+            "scripts/v0/optimizer/arc_geometry.ts",
+            "scripts/v0/optimizer/arc_guidance.ts",
+            "scripts/v0/optimizer/arc_memory.ts",
+            "scripts/v0/optimizer/arc_model.ts",
+            "scripts/v0/optimizer/arc_motion.ts",
+            "scripts/v0/optimizer/arc_motion_control.ts",
+            "scripts/v0/optimizer/arc_probe.ts",
+            "scripts/v0/optimizer/arc_proposal.ts",
+            "scripts/v0/optimizer/arc_refinement.ts",
+            "scripts/v0/optimizer/arc_response.ts",
+            "scripts/v0/optimizer/arc_value.ts",
+            "scripts/v0/optimizer/arc_value_model.json",
+            "scripts/v0/optimizer/arc_value_model.json.sha256",
+            "scripts/v0/optimizer/arc_vector_model.ts",
+            "scripts/v0/optimizer/budget_estimator.ts",
+            "scripts/v0/optimizer/budget_estimator_model.json",
+            "scripts/v0/optimizer/budget_model.ts",
+            "scripts/v0/optimizer/budget_telemetry.ts",
+            "scripts/v0/optimizer/compiler_input.ts",
+            "scripts/v0/optimizer/connected_arcs.ts",
+            "scripts/v0/optimizer/contact_phase.ts",
+            "scripts/v0/optimizer/contact_transition.ts",
+            "scripts/v0/optimizer/deadline.ts",
+            "scripts/v0/optimizer/handoff.ts",
+            "scripts/v0/optimizer/impact_policy.ts",
+            "scripts/v0/optimizer/impact_response_model.ts",
+            "scripts/v0/optimizer/kinematic_support.ts",
+            "scripts/v0/optimizer/legacy_handoff.ts",
+            "scripts/v0/optimizer/native_motion.ts",
+            "scripts/v0/optimizer/native_motion_schedule.ts",
+            "scripts/v0/optimizer/native_pointwise_energy.ts",
+            "scripts/v0/optimizer/node.ts",
+            "scripts/v0/optimizer/normal_motion.ts",
+            "scripts/v0/optimizer/normal_pointwise_projection.ts",
+            "scripts/v0/optimizer/objective.ts",
+            "scripts/v0/optimizer/objective_control.ts",
+            "scripts/v0/optimizer/polish.ts",
+            "scripts/v0/optimizer/readiness.ts",
+            "scripts/v0/optimizer/readiness_base_features.ts",
+            "scripts/v0/optimizer/readiness_features.ts",
+            "scripts/v0/optimizer/readiness_model.json",
+            "scripts/v0/optimizer/readiness_model_artifact.ts",
+            "scripts/v0/optimizer/readiness_scoring.ts",
+            "scripts/v0/optimizer/register.ts",
+            "scripts/v0/optimizer/repair_branch_bound.ts",
+            "scripts/v0/optimizer/sample.ts",
+            "scripts/v0/optimizer/selective_backtracking.ts",
+            "scripts/v0/optimizer/sim_frames.ts",
+            "scripts/v0/optimizer/solver.ts",
+            "scripts/v0/optimizer/types.ts",
+            "scripts/v0/score.ts",
+            "scripts/v0/trajectory/curve_resolution.ts",
+            "scripts/v0/trajectory/native_catch_history.ts",
+            "scripts/v0/trajectory/precontact_multicontact_history.ts",
+            "scripts/v0/types.ts",
+            "tsconfig.json"
+          ],
+          "compilerEnvironment": {},
+          "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "9f302d4858d8c64269852d5dcf192ff30e52c306345fe3c9c8bc87d6b949fdfa"
+        },
+        "sources": [
+          "bridge_river_reentry",
+          "bridge_countercurrent",
+          "bridge_split_signal",
+          "bridge_pickup_lattice",
+          "bridge_loose_pocket",
+          "bridge_offgrid_conversation",
+          "bridge_rising_switch",
+          "bridge_meter_exchange",
+          "bridge_wide_breaths",
+          "bridge_open_hook",
+          "bridge_amplitude_tides",
+          "bridge_dense_dialogue",
+          "bridge_high_air_drive",
+          "bridge_sparse_lowline",
+          "bridge_frontier_pickup_progression",
+          "bridge_frontier_dense_recovery",
+          "bridge_frontier_low_air_endurance",
+          "bridge_regression_transition_mosaic",
+          "bridge_regression_amplitude_mosaic",
+          "bridge_believer_56_6s",
+          "bridge_believer_impact_56s",
+          "bridge_river_reentry_tempo_fast_5",
+          "bridge_countercurrent_impact_contrast_12",
+          "bridge_split_signal_impact_relief_12",
+          "bridge_pickup_lattice_speed_minus_4",
+          "bridge_loose_pocket_drag_later_20ms",
+          "bridge_offgrid_conversation_answer_early_25ms",
+          "bridge_rising_switch_tempo_fast_5",
+          "bridge_meter_exchange_speed_plus_4",
+          "bridge_wide_breaths_air_plus_5",
+          "bridge_open_hook_amplitude_plus_8",
+          "bridge_amplitude_tides_restrained_10",
+          "bridge_dense_dialogue_impact_contrast_10",
+          "bridge_high_air_drive_air_minus_5",
+          "bridge_sparse_lowline_air_minus_4",
+          "bridge_frontier_pickup_progression_shifted",
+          "bridge_frontier_dense_recovery_240ms_figures",
+          "bridge_frontier_low_air_endurance_4s",
+          "bridge_frontier_low_air_endurance_6s",
+          "bridge_frontier_low_air_endurance_7s",
+          "bridge_regression_transition_mosaic_tempo_fast_5",
+          "bridge_regression_amplitude_mosaic_contrast_10",
+          "bridge_believer_56_6s_impact_relief",
+          "bridge_believer_impact_56s_amplitude_plus_5",
+          "harbor_return",
+          "crossing_lights",
+          "afterglow_turn",
+          "woven_pickups",
+          "pickup_answers",
+          "broken_triplets",
+          "late_letters",
+          "swing_exchange",
+          "offbeat_echoes",
+          "gear_changes",
+          "half_time_return",
+          "accelerando_reply",
+          "archipelago",
+          "wide_arc_dialogue",
+          "terraced_skies",
+          "woven_pulse",
+          "density_release",
+          "compact_dialogue",
+          "lifted_refrain",
+          "flight_and_return",
+          "open_canopy",
+          "quiet_current",
+          "support_then_lift",
+          "rest_and_return",
+          "pickup_staircase",
+          "pickup_interruptions",
+          "pickup_recovery",
+          "dense_short_then_long",
+          "interleaved_recovery",
+          "three_note_returns",
+          "supported_bridge",
+          "supported_speed_change",
+          "endurance_and_return",
+          "energy_weave",
+          "alternating_intentions",
+          "recovery_mosaic",
+          "amplitude_reply",
+          "restrained_then_wide",
+          "arches_at_new_tempos",
+          "music_amor_na_praia_46s",
+          "music_luna_bala_44s",
+          "music_tiki_tiki_48s",
+          "music_shelter_impact_sync_81s",
+          "music_amour_de_ma_vie_short_44s",
+          "stretch_bridge_river_reentry",
+          "stretch_bridge_countercurrent",
+          "stretch_bridge_split_signal",
+          "stretch_bridge_pickup_lattice",
+          "stretch_bridge_loose_pocket",
+          "stretch_bridge_offgrid_conversation",
+          "stretch_bridge_rising_switch",
+          "stretch_bridge_meter_exchange",
+          "stretch_bridge_wide_breaths",
+          "stretch_bridge_open_hook",
+          "stretch_bridge_amplitude_tides",
+          "stretch_bridge_dense_dialogue",
+          "stretch_bridge_high_air_drive",
+          "stretch_bridge_sparse_lowline",
+          "stretch_bridge_frontier_pickup_progression",
+          "stretch_bridge_frontier_dense_recovery",
+          "stretch_bridge_frontier_low_air_endurance",
+          "stretch_bridge_regression_transition_mosaic",
+          "stretch_bridge_regression_amplitude_mosaic",
+          "stretch_bridge_believer_56_6s",
+          "stretch_bridge_believer_impact_56s",
+          "stretch_bridge_river_reentry_tempo_fast_5",
+          "stretch_bridge_countercurrent_impact_contrast_12",
+          "stretch_bridge_split_signal_impact_relief_12",
+          "stretch_bridge_pickup_lattice_speed_minus_4",
+          "stretch_bridge_loose_pocket_drag_later_20ms",
+          "stretch_bridge_offgrid_conversation_answer_early_25ms",
+          "stretch_bridge_rising_switch_tempo_fast_5",
+          "stretch_bridge_meter_exchange_speed_plus_4",
+          "stretch_bridge_wide_breaths_air_plus_5",
+          "stretch_bridge_open_hook_amplitude_plus_8",
+          "stretch_bridge_amplitude_tides_restrained_10",
+          "stretch_bridge_dense_dialogue_impact_contrast_10",
+          "stretch_bridge_high_air_drive_air_minus_5",
+          "stretch_bridge_sparse_lowline_air_minus_4",
+          "stretch_bridge_frontier_pickup_progression_shifted",
+          "stretch_bridge_frontier_dense_recovery_240ms_figures",
+          "stretch_bridge_frontier_low_air_endurance_4s",
+          "stretch_bridge_frontier_low_air_endurance_6s",
+          "stretch_bridge_frontier_low_air_endurance_7s",
+          "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+          "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+          "stretch_bridge_believer_56_6s_impact_relief",
+          "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+          "stretch_harbor_return",
+          "stretch_crossing_lights",
+          "stretch_afterglow_turn",
+          "stretch_woven_pickups",
+          "stretch_pickup_answers",
+          "stretch_broken_triplets",
+          "stretch_late_letters",
+          "stretch_swing_exchange",
+          "stretch_offbeat_echoes",
+          "stretch_gear_changes",
+          "stretch_half_time_return",
+          "stretch_accelerando_reply",
+          "stretch_archipelago",
+          "stretch_wide_arc_dialogue",
+          "stretch_terraced_skies",
+          "stretch_woven_pulse",
+          "stretch_density_release",
+          "stretch_compact_dialogue",
+          "stretch_lifted_refrain",
+          "stretch_flight_and_return",
+          "stretch_open_canopy",
+          "stretch_quiet_current",
+          "stretch_support_then_lift",
+          "stretch_rest_and_return",
+          "stretch_pickup_staircase",
+          "stretch_pickup_interruptions",
+          "stretch_pickup_recovery",
+          "stretch_dense_short_then_long",
+          "stretch_interleaved_recovery",
+          "stretch_three_note_returns",
+          "stretch_supported_bridge",
+          "stretch_supported_speed_change",
+          "stretch_endurance_and_return",
+          "stretch_energy_weave",
+          "stretch_alternating_intentions",
+          "stretch_recovery_mosaic",
+          "stretch_amplitude_reply",
+          "stretch_restrained_then_wide",
+          "stretch_arches_at_new_tempos",
+          "stretch_music_amor_na_praia_46s",
+          "stretch_music_luna_bala_44s",
+          "stretch_music_tiki_tiki_48s",
+          "stretch_music_shelter_impact_sync_81s",
+          "stretch_music_amour_de_ma_vie_short_44s"
+        ],
+        "seed": 16,
+        "budget": 750000,
+        "options": {
+          "previewWarmStart": true,
+          "controlDiversity": "geometry"
+        },
+        "judge": {
+          "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "files": {
+            "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+            "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+            "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+            "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+            "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+            "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+            "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+            "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+            "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+            "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+            "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+            "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+            "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+            "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+            "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+            "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+            "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+            "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+            "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+          }
+        },
+        "scriptSha256": "bf5de4e5a0f457a80660233ac275f4341844b1453734204ee3a7c66dcac05629",
+        "suiteAdapterSha256": "01a713efc7e6304f0eae5c6f5a799b487c3571c29d55bd65987f1ca0fdaa83ba"
+      },
+      "runSha256": "77ea65036d39a66bc0bc32a00979debbb31993ad3d76c3d3f32b40a93e5c47f8",
+      "summary": {
+        "headline": 952.5436,
+        "valid": 176,
+        "runs": 176,
+        "distinctTracks": 176,
+        "seeds": [
+          16
+        ],
+        "specifications": [
+          {
+            "id": "bridge_river_reentry",
+            "score": 985.1453,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_countercurrent",
+            "score": 984.5061,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_split_signal",
+            "score": 863.1216,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_pickup_lattice",
+            "score": 905.6304,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_loose_pocket",
+            "score": 978.3399,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_offgrid_conversation",
+            "score": 983.4384,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_rising_switch",
+            "score": 984.8099,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_meter_exchange",
+            "score": 981.5013,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_wide_breaths",
+            "score": 923.8279,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_open_hook",
+            "score": 863.4928,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_amplitude_tides",
+            "score": 888.5398,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_dense_dialogue",
+            "score": 967.3465,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_high_air_drive",
+            "score": 929.7413,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_sparse_lowline",
+            "score": 974.5311,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_frontier_pickup_progression",
+            "score": 972.6426,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_frontier_dense_recovery",
+            "score": 959.677,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance",
+            "score": 944.8831,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_regression_transition_mosaic",
+            "score": 978.2105,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_regression_amplitude_mosaic",
+            "score": 782.6117,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_believer_56_6s",
+            "score": 962.2281,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_believer_impact_56s",
+            "score": 909.0368,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_river_reentry_tempo_fast_5",
+            "score": 984.3817,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_countercurrent_impact_contrast_12",
+            "score": 984.0501,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_split_signal_impact_relief_12",
+            "score": 862.5821,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_pickup_lattice_speed_minus_4",
+            "score": 915.2094,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_loose_pocket_drag_later_20ms",
+            "score": 977.5741,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_offgrid_conversation_answer_early_25ms",
+            "score": 976.8498,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_rising_switch_tempo_fast_5",
+            "score": 981.8673,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_meter_exchange_speed_plus_4",
+            "score": 983.6117,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_wide_breaths_air_plus_5",
+            "score": 915.6527,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_open_hook_amplitude_plus_8",
+            "score": 833.0714,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_amplitude_tides_restrained_10",
+            "score": 887.3982,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_dense_dialogue_impact_contrast_10",
+            "score": 962.3625,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_high_air_drive_air_minus_5",
+            "score": 963.4577,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_sparse_lowline_air_minus_4",
+            "score": 970.748,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_frontier_pickup_progression_shifted",
+            "score": 966.7777,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_frontier_dense_recovery_240ms_figures",
+            "score": 937.6744,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance_4s",
+            "score": 941.6519,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance_6s",
+            "score": 941.5125,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance_7s",
+            "score": 940.4135,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_regression_transition_mosaic_tempo_fast_5",
+            "score": 975.6846,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_regression_amplitude_mosaic_contrast_10",
+            "score": 776.5994,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_believer_56_6s_impact_relief",
+            "score": 967.1012,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "bridge_believer_impact_56s_amplitude_plus_5",
+            "score": 905.5844,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "harbor_return",
+            "score": 975.3992,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "crossing_lights",
+            "score": 980.6644,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "afterglow_turn",
+            "score": 982.0314,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "woven_pickups",
+            "score": 973.8081,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "pickup_answers",
+            "score": 977.1507,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "broken_triplets",
+            "score": 981.8366,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "late_letters",
+            "score": 979.1935,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "swing_exchange",
+            "score": 979.8526,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "offbeat_echoes",
+            "score": 982.8705,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "gear_changes",
+            "score": 960.5395,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "half_time_return",
+            "score": 976.268,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "accelerando_reply",
+            "score": 981.4255,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "archipelago",
+            "score": 954.0276,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "wide_arc_dialogue",
+            "score": 955.78,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "terraced_skies",
+            "score": 952.9393,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "woven_pulse",
+            "score": 972.6446,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "density_release",
+            "score": 975.5688,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "compact_dialogue",
+            "score": 973.747,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "lifted_refrain",
+            "score": 975.2459,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "flight_and_return",
+            "score": 978.6786,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "open_canopy",
+            "score": 978.9706,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "quiet_current",
+            "score": 973.5026,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "support_then_lift",
+            "score": 965.9604,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "rest_and_return",
+            "score": 968.2412,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "pickup_staircase",
+            "score": 950.628,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "pickup_interruptions",
+            "score": 963.6664,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "pickup_recovery",
+            "score": 932.4026,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "dense_short_then_long",
+            "score": 927.6055,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "interleaved_recovery",
+            "score": 932.6194,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "three_note_returns",
+            "score": 927.2885,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "supported_bridge",
+            "score": 950.4938,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "supported_speed_change",
+            "score": 960.7718,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "endurance_and_return",
+            "score": 951.8764,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "energy_weave",
+            "score": 978.7261,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "alternating_intentions",
+            "score": 979.7321,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "recovery_mosaic",
+            "score": 981.8915,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "amplitude_reply",
+            "score": 959.4267,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "restrained_then_wide",
+            "score": 949.844,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "arches_at_new_tempos",
+            "score": 954.9983,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "music_amor_na_praia_46s",
+            "score": 977.0443,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "music_luna_bala_44s",
+            "score": 958.8218,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "music_tiki_tiki_48s",
+            "score": 930.1503,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "music_shelter_impact_sync_81s",
+            "score": 920.6355,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "music_amour_de_ma_vie_short_44s",
+            "score": 920.515,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_river_reentry",
+            "score": 981.5083,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_countercurrent",
+            "score": 981.6571,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_split_signal",
+            "score": 843.7551,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_pickup_lattice",
+            "score": 911.6008,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_loose_pocket",
+            "score": 978.4009,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_offgrid_conversation",
+            "score": 977.3264,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_rising_switch",
+            "score": 979.912,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_meter_exchange",
+            "score": 974.9985,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_wide_breaths",
+            "score": 898.5992,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_open_hook",
+            "score": 876.4656,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_amplitude_tides",
+            "score": 852.9714,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_dense_dialogue",
+            "score": 906.9168,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_high_air_drive",
+            "score": 909.6715,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_sparse_lowline",
+            "score": 974.8069,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_frontier_pickup_progression",
+            "score": 965.4075,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_frontier_dense_recovery",
+            "score": 947.1062,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_frontier_low_air_endurance",
+            "score": 952.2775,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_regression_transition_mosaic",
+            "score": 972.2876,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_regression_amplitude_mosaic",
+            "score": 742.8146,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_believer_56_6s",
+            "score": 954.9074,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_believer_impact_56s",
+            "score": 904.5466,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_river_reentry_tempo_fast_5",
+            "score": 958.7774,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_countercurrent_impact_contrast_12",
+            "score": 980.1702,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_split_signal_impact_relief_12",
+            "score": 827.3105,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_pickup_lattice_speed_minus_4",
+            "score": 909.1464,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_loose_pocket_drag_later_20ms",
+            "score": 976.735,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+            "score": 978.4416,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_rising_switch_tempo_fast_5",
+            "score": 980.6733,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_meter_exchange_speed_plus_4",
+            "score": 974.071,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_wide_breaths_air_plus_5",
+            "score": 893.0666,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_open_hook_amplitude_plus_8",
+            "score": 841.6454,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_amplitude_tides_restrained_10",
+            "score": 850.2697,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_dense_dialogue_impact_contrast_10",
+            "score": 883.0639,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_high_air_drive_air_minus_5",
+            "score": 934.5365,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_sparse_lowline_air_minus_4",
+            "score": 972.9516,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_frontier_pickup_progression_shifted",
+            "score": 959.1892,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+            "score": 947.8121,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_frontier_low_air_endurance_4s",
+            "score": 960.7244,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_frontier_low_air_endurance_6s",
+            "score": 973.5111,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_frontier_low_air_endurance_7s",
+            "score": 956.3282,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+            "score": 967.5894,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+            "score": 731.9277,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_believer_56_6s_impact_relief",
+            "score": 962.0864,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+            "score": 890.4299,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_harbor_return",
+            "score": 971.1723,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_crossing_lights",
+            "score": 947.59,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_afterglow_turn",
+            "score": 977.7212,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_woven_pickups",
+            "score": 968.3383,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_pickup_answers",
+            "score": 960.4123,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_broken_triplets",
+            "score": 956.7337,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_late_letters",
+            "score": 979.5857,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_swing_exchange",
+            "score": 981.4801,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_offbeat_echoes",
+            "score": 982.4455,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_gear_changes",
+            "score": 920.0246,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_half_time_return",
+            "score": 973.9591,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_accelerando_reply",
+            "score": 978.6489,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_archipelago",
+            "score": 953.4866,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_wide_arc_dialogue",
+            "score": 950.2684,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_terraced_skies",
+            "score": 942.7022,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_woven_pulse",
+            "score": 965.73,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_density_release",
+            "score": 965.6305,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_compact_dialogue",
+            "score": 961.2104,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_lifted_refrain",
+            "score": 909.804,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_flight_and_return",
+            "score": 976.9186,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_open_canopy",
+            "score": 973.2657,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_quiet_current",
+            "score": 974.3619,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_support_then_lift",
+            "score": 961.3169,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_rest_and_return",
+            "score": 969.2631,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_pickup_staircase",
+            "score": 954.3076,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_pickup_interruptions",
+            "score": 947.7144,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_pickup_recovery",
+            "score": 925.3811,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_dense_short_then_long",
+            "score": 961.7637,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_interleaved_recovery",
+            "score": 883.8414,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_three_note_returns",
+            "score": 863.937,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_supported_bridge",
+            "score": 952.8588,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_supported_speed_change",
+            "score": 963.4963,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_endurance_and_return",
+            "score": 957.0041,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_energy_weave",
+            "score": 977.9663,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_alternating_intentions",
+            "score": 976.5109,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_recovery_mosaic",
+            "score": 978.3558,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_amplitude_reply",
+            "score": 958.9947,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_restrained_then_wide",
+            "score": 952.0481,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_arches_at_new_tempos",
+            "score": 946.7645,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_music_amor_na_praia_46s",
+            "score": 972.0574,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_music_luna_bala_44s",
+            "score": 962.5727,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_music_tiki_tiki_48s",
+            "score": 872.4897,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_music_shelter_impact_sync_81s",
+            "score": 894.7508,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          },
+          {
+            "id": "stretch_music_amour_de_ma_vie_short_44s",
+            "score": 921.9881,
+            "valid": 1,
+            "runs": 1,
+            "distinctTracks": 1
+          }
+        ],
+        "parents": [
+          {
+            "id": "bridge_river_reentry",
+            "group": "regular_exceptions",
+            "score": 977.3923,
+            "members": [
+              "bridge_river_reentry",
+              "bridge_river_reentry_tempo_fast_5",
+              "stretch_bridge_river_reentry",
+              "stretch_bridge_river_reentry_tempo_fast_5"
+            ]
+          },
+          {
+            "id": "bridge_countercurrent",
+            "group": "regular_exceptions",
+            "score": 982.5943,
+            "members": [
+              "bridge_countercurrent",
+              "bridge_countercurrent_impact_contrast_12",
+              "stretch_bridge_countercurrent",
+              "stretch_bridge_countercurrent_impact_contrast_12"
+            ]
+          },
+          {
+            "id": "bridge_split_signal",
+            "group": "subdivision_pickup",
+            "score": 849.062,
+            "members": [
+              "bridge_split_signal",
+              "bridge_split_signal_impact_relief_12",
+              "stretch_bridge_split_signal",
+              "stretch_bridge_split_signal_impact_relief_12"
+            ]
+          },
+          {
+            "id": "bridge_pickup_lattice",
+            "group": "subdivision_pickup",
+            "score": 910.39,
+            "members": [
+              "bridge_pickup_lattice",
+              "bridge_pickup_lattice_speed_minus_4",
+              "stretch_bridge_pickup_lattice",
+              "stretch_bridge_pickup_lattice_speed_minus_4"
+            ]
+          },
+          {
+            "id": "bridge_loose_pocket",
+            "group": "irregular_microtimed",
+            "score": 977.7622,
+            "members": [
+              "bridge_loose_pocket",
+              "bridge_loose_pocket_drag_later_20ms",
+              "stretch_bridge_loose_pocket",
+              "stretch_bridge_loose_pocket_drag_later_20ms"
+            ]
+          },
+          {
+            "id": "bridge_offgrid_conversation",
+            "group": "irregular_microtimed",
+            "score": 979.0106,
+            "members": [
+              "bridge_offgrid_conversation",
+              "bridge_offgrid_conversation_answer_early_25ms",
+              "stretch_bridge_offgrid_conversation",
+              "stretch_bridge_offgrid_conversation_answer_early_25ms"
+            ]
+          },
+          {
+            "id": "bridge_rising_switch",
+            "group": "cadence_transition",
+            "score": 981.8139,
+            "members": [
+              "bridge_rising_switch",
+              "bridge_rising_switch_tempo_fast_5",
+              "stretch_bridge_rising_switch",
+              "stretch_bridge_rising_switch_tempo_fast_5"
+            ]
+          },
+          {
+            "id": "bridge_meter_exchange",
+            "group": "cadence_transition",
+            "score": 978.5371,
+            "members": [
+              "bridge_meter_exchange",
+              "bridge_meter_exchange_speed_plus_4",
+              "stretch_bridge_meter_exchange",
+              "stretch_bridge_meter_exchange_speed_plus_4"
+            ]
+          },
+          {
+            "id": "bridge_wide_breaths",
+            "group": "spacious_amplitude",
+            "score": 907.7013,
+            "members": [
+              "bridge_wide_breaths",
+              "bridge_wide_breaths_air_plus_5",
+              "stretch_bridge_wide_breaths",
+              "stretch_bridge_wide_breaths_air_plus_5"
+            ]
+          },
+          {
+            "id": "bridge_open_hook",
+            "group": "spacious_amplitude",
+            "score": 853.4957,
+            "members": [
+              "bridge_open_hook",
+              "bridge_open_hook_amplitude_plus_8",
+              "stretch_bridge_open_hook",
+              "stretch_bridge_open_hook_amplitude_plus_8"
+            ]
+          },
+          {
+            "id": "bridge_amplitude_tides",
+            "group": "spacious_amplitude",
+            "score": 869.6045,
+            "members": [
+              "bridge_amplitude_tides",
+              "bridge_amplitude_tides_restrained_10",
+              "stretch_bridge_amplitude_tides",
+              "stretch_bridge_amplitude_tides_restrained_10"
+            ]
+          },
+          {
+            "id": "bridge_dense_dialogue",
+            "group": "dense_musical",
+            "score": 929.224,
+            "members": [
+              "bridge_dense_dialogue",
+              "bridge_dense_dialogue_impact_contrast_10",
+              "stretch_bridge_dense_dialogue",
+              "stretch_bridge_dense_dialogue_impact_contrast_10"
+            ]
+          },
+          {
+            "id": "bridge_high_air_drive",
+            "group": "high_air_energy",
+            "score": 934.1551,
+            "members": [
+              "bridge_high_air_drive",
+              "bridge_high_air_drive_air_minus_5",
+              "stretch_bridge_high_air_drive",
+              "stretch_bridge_high_air_drive_air_minus_5"
+            ]
+          },
+          {
+            "id": "bridge_sparse_lowline",
+            "group": "sparse_transition",
+            "score": 973.2581,
+            "members": [
+              "bridge_sparse_lowline",
+              "bridge_sparse_lowline_air_minus_4",
+              "stretch_bridge_sparse_lowline",
+              "stretch_bridge_sparse_lowline_air_minus_4"
+            ]
+          },
+          {
+            "id": "bridge_frontier_pickup_progression",
+            "group": "rapid_pickup_frontier",
+            "score": 965.9924,
+            "members": [
+              "bridge_frontier_pickup_progression",
+              "bridge_frontier_pickup_progression_shifted",
+              "stretch_bridge_frontier_pickup_progression",
+              "stretch_bridge_frontier_pickup_progression_shifted"
+            ]
+          },
+          {
+            "id": "bridge_frontier_dense_recovery",
+            "group": "dense_recovery_frontier",
+            "score": 948.0354,
+            "members": [
+              "bridge_frontier_dense_recovery",
+              "bridge_frontier_dense_recovery_240ms_figures",
+              "stretch_bridge_frontier_dense_recovery",
+              "stretch_bridge_frontier_dense_recovery_240ms_figures"
+            ]
+          },
+          {
+            "id": "bridge_frontier_low_air_endurance",
+            "group": "low_air_frontier",
+            "score": 951.3504,
+            "members": [
+              "bridge_frontier_low_air_endurance",
+              "bridge_frontier_low_air_endurance_4s",
+              "bridge_frontier_low_air_endurance_6s",
+              "bridge_frontier_low_air_endurance_7s",
+              "stretch_bridge_frontier_low_air_endurance",
+              "stretch_bridge_frontier_low_air_endurance_4s",
+              "stretch_bridge_frontier_low_air_endurance_6s",
+              "stretch_bridge_frontier_low_air_endurance_7s"
+            ]
+          },
+          {
+            "id": "bridge_regression_transition_mosaic",
+            "group": "legacy_transition_regression",
+            "score": 973.4349,
+            "members": [
+              "bridge_regression_transition_mosaic",
+              "bridge_regression_transition_mosaic_tempo_fast_5",
+              "stretch_bridge_regression_transition_mosaic",
+              "stretch_bridge_regression_transition_mosaic_tempo_fast_5"
+            ]
+          },
+          {
+            "id": "bridge_regression_amplitude_mosaic",
+            "group": "legacy_amplitude_regression",
+            "score": 758.1816,
+            "members": [
+              "bridge_regression_amplitude_mosaic",
+              "bridge_regression_amplitude_mosaic_contrast_10",
+              "stretch_bridge_regression_amplitude_mosaic",
+              "stretch_bridge_regression_amplitude_mosaic_contrast_10"
+            ]
+          },
+          {
+            "id": "bridge_believer_56_6s",
+            "group": "believer",
+            "score": 961.5709,
+            "members": [
+              "bridge_believer_56_6s",
+              "bridge_believer_56_6s_impact_relief",
+              "stretch_bridge_believer_56_6s",
+              "stretch_bridge_believer_56_6s_impact_relief"
+            ]
+          },
+          {
+            "id": "bridge_believer_impact_56s",
+            "group": "believer",
+            "score": 902.3713,
+            "members": [
+              "bridge_believer_impact_56s",
+              "bridge_believer_impact_56s_amplitude_plus_5",
+              "stretch_bridge_believer_impact_56s",
+              "stretch_bridge_believer_impact_56s_amplitude_plus_5"
+            ]
+          },
+          {
+            "id": "harbor_return",
+            "group": "regular_exceptions",
+            "score": 973.2835,
+            "members": [
+              "harbor_return",
+              "stretch_harbor_return"
+            ]
+          },
+          {
+            "id": "crossing_lights",
+            "group": "regular_exceptions",
+            "score": 963.9855,
+            "members": [
+              "crossing_lights",
+              "stretch_crossing_lights"
+            ]
+          },
+          {
+            "id": "afterglow_turn",
+            "group": "regular_exceptions",
+            "score": 979.8739,
+            "members": [
+              "afterglow_turn",
+              "stretch_afterglow_turn"
+            ]
+          },
+          {
+            "id": "woven_pickups",
+            "group": "subdivision_pickup",
+            "score": 971.0694,
+            "members": [
+              "woven_pickups",
+              "stretch_woven_pickups"
+            ]
+          },
+          {
+            "id": "pickup_answers",
+            "group": "subdivision_pickup",
+            "score": 968.7454,
+            "members": [
+              "pickup_answers",
+              "stretch_pickup_answers"
+            ]
+          },
+          {
+            "id": "broken_triplets",
+            "group": "subdivision_pickup",
+            "score": 969.204,
+            "members": [
+              "broken_triplets",
+              "stretch_broken_triplets"
+            ]
+          },
+          {
+            "id": "late_letters",
+            "group": "irregular_microtimed",
+            "score": 979.3896,
+            "members": [
+              "late_letters",
+              "stretch_late_letters"
+            ]
+          },
+          {
+            "id": "swing_exchange",
+            "group": "irregular_microtimed",
+            "score": 980.666,
+            "members": [
+              "swing_exchange",
+              "stretch_swing_exchange"
+            ]
+          },
+          {
+            "id": "offbeat_echoes",
+            "group": "irregular_microtimed",
+            "score": 982.658,
+            "members": [
+              "offbeat_echoes",
+              "stretch_offbeat_echoes"
+            ]
+          },
+          {
+            "id": "gear_changes",
+            "group": "cadence_transition",
+            "score": 940.064,
+            "members": [
+              "gear_changes",
+              "stretch_gear_changes"
+            ]
+          },
+          {
+            "id": "half_time_return",
+            "group": "cadence_transition",
+            "score": 975.1129,
+            "members": [
+              "half_time_return",
+              "stretch_half_time_return"
+            ]
+          },
+          {
+            "id": "accelerando_reply",
+            "group": "cadence_transition",
+            "score": 980.0362,
+            "members": [
+              "accelerando_reply",
+              "stretch_accelerando_reply"
+            ]
+          },
+          {
+            "id": "archipelago",
+            "group": "spacious_amplitude",
+            "score": 953.7571,
+            "members": [
+              "archipelago",
+              "stretch_archipelago"
+            ]
+          },
+          {
+            "id": "wide_arc_dialogue",
+            "group": "spacious_amplitude",
+            "score": 953.0202,
+            "members": [
+              "wide_arc_dialogue",
+              "stretch_wide_arc_dialogue"
+            ]
+          },
+          {
+            "id": "terraced_skies",
+            "group": "spacious_amplitude",
+            "score": 947.8069,
+            "members": [
+              "terraced_skies",
+              "stretch_terraced_skies"
+            ]
+          },
+          {
+            "id": "woven_pulse",
+            "group": "dense_musical",
+            "score": 969.1811,
+            "members": [
+              "woven_pulse",
+              "stretch_woven_pulse"
+            ]
+          },
+          {
+            "id": "density_release",
+            "group": "dense_musical",
+            "score": 970.5869,
+            "members": [
+              "density_release",
+              "stretch_density_release"
+            ]
+          },
+          {
+            "id": "compact_dialogue",
+            "group": "dense_musical",
+            "score": 967.4584,
+            "members": [
+              "compact_dialogue",
+              "stretch_compact_dialogue"
+            ]
+          },
+          {
+            "id": "lifted_refrain",
+            "group": "high_air_energy",
+            "score": 941.9574,
+            "members": [
+              "lifted_refrain",
+              "stretch_lifted_refrain"
+            ]
+          },
+          {
+            "id": "flight_and_return",
+            "group": "high_air_energy",
+            "score": 977.7982,
+            "members": [
+              "flight_and_return",
+              "stretch_flight_and_return"
+            ]
+          },
+          {
+            "id": "open_canopy",
+            "group": "high_air_energy",
+            "score": 976.114,
+            "members": [
+              "open_canopy",
+              "stretch_open_canopy"
+            ]
+          },
+          {
+            "id": "quiet_current",
+            "group": "sparse_transition",
+            "score": 973.9322,
+            "members": [
+              "quiet_current",
+              "stretch_quiet_current"
+            ]
+          },
+          {
+            "id": "support_then_lift",
+            "group": "sparse_transition",
+            "score": 963.6359,
+            "members": [
+              "support_then_lift",
+              "stretch_support_then_lift"
+            ]
+          },
+          {
+            "id": "rest_and_return",
+            "group": "sparse_transition",
+            "score": 968.752,
+            "members": [
+              "rest_and_return",
+              "stretch_rest_and_return"
+            ]
+          },
+          {
+            "id": "pickup_staircase",
+            "group": "rapid_pickup_frontier",
+            "score": 952.466,
+            "members": [
+              "pickup_staircase",
+              "stretch_pickup_staircase"
+            ]
+          },
+          {
+            "id": "pickup_interruptions",
+            "group": "rapid_pickup_frontier",
+            "score": 955.6572,
+            "members": [
+              "pickup_interruptions",
+              "stretch_pickup_interruptions"
+            ]
+          },
+          {
+            "id": "pickup_recovery",
+            "group": "rapid_pickup_frontier",
+            "score": 928.8852,
+            "members": [
+              "pickup_recovery",
+              "stretch_pickup_recovery"
+            ]
+          },
+          {
+            "id": "dense_short_then_long",
+            "group": "dense_recovery_frontier",
+            "score": 944.5304,
+            "members": [
+              "dense_short_then_long",
+              "stretch_dense_short_then_long"
+            ]
+          },
+          {
+            "id": "interleaved_recovery",
+            "group": "dense_recovery_frontier",
+            "score": 907.9032,
+            "members": [
+              "interleaved_recovery",
+              "stretch_interleaved_recovery"
+            ]
+          },
+          {
+            "id": "three_note_returns",
+            "group": "dense_recovery_frontier",
+            "score": 895.0531,
+            "members": [
+              "three_note_returns",
+              "stretch_three_note_returns"
+            ]
+          },
+          {
+            "id": "supported_bridge",
+            "group": "low_air_frontier",
+            "score": 951.6756,
+            "members": [
+              "supported_bridge",
+              "stretch_supported_bridge"
+            ]
+          },
+          {
+            "id": "supported_speed_change",
+            "group": "low_air_frontier",
+            "score": 962.1331,
+            "members": [
+              "supported_speed_change",
+              "stretch_supported_speed_change"
+            ]
+          },
+          {
+            "id": "endurance_and_return",
+            "group": "low_air_frontier",
+            "score": 954.4368,
+            "members": [
+              "endurance_and_return",
+              "stretch_endurance_and_return"
+            ]
+          },
+          {
+            "id": "energy_weave",
+            "group": "legacy_transition_regression",
+            "score": 978.3461,
+            "members": [
+              "energy_weave",
+              "stretch_energy_weave"
+            ]
+          },
+          {
+            "id": "alternating_intentions",
+            "group": "legacy_transition_regression",
+            "score": 978.1202,
+            "members": [
+              "alternating_intentions",
+              "stretch_alternating_intentions"
+            ]
+          },
+          {
+            "id": "recovery_mosaic",
+            "group": "legacy_transition_regression",
+            "score": 980.1221,
+            "members": [
+              "recovery_mosaic",
+              "stretch_recovery_mosaic"
+            ]
+          },
+          {
+            "id": "amplitude_reply",
+            "group": "legacy_amplitude_regression",
+            "score": 959.2107,
+            "members": [
+              "amplitude_reply",
+              "stretch_amplitude_reply"
+            ]
+          },
+          {
+            "id": "restrained_then_wide",
+            "group": "legacy_amplitude_regression",
+            "score": 950.9454,
+            "members": [
+              "restrained_then_wide",
+              "stretch_restrained_then_wide"
+            ]
+          },
+          {
+            "id": "arches_at_new_tempos",
+            "group": "legacy_amplitude_regression",
+            "score": 950.8725,
+            "members": [
+              "arches_at_new_tempos",
+              "stretch_arches_at_new_tempos"
+            ]
+          },
+          {
+            "id": "music_amor_na_praia_46s",
+            "group": "amor_na_praia",
+            "score": 974.5477,
+            "members": [
+              "music_amor_na_praia_46s",
+              "stretch_music_amor_na_praia_46s"
+            ]
+          },
+          {
+            "id": "music_luna_bala_44s",
+            "group": "luna_bala",
+            "score": 960.6954,
+            "members": [
+              "music_luna_bala_44s",
+              "stretch_music_luna_bala_44s"
+            ]
+          },
+          {
+            "id": "music_tiki_tiki_48s",
+            "group": "tiki_tiki",
+            "score": 900.8593,
+            "members": [
+              "music_tiki_tiki_48s",
+              "stretch_music_tiki_tiki_48s"
+            ]
+          },
+          {
+            "id": "music_shelter_impact_sync_81s",
+            "group": "shelter",
+            "score": 907.601,
+            "members": [
+              "music_shelter_impact_sync_81s",
+              "stretch_music_shelter_impact_sync_81s"
+            ]
+          },
+          {
+            "id": "music_amour_de_ma_vie_short_44s",
+            "group": "amour_de_ma_vie",
+            "score": 921.2513,
+            "members": [
+              "music_amour_de_ma_vie_short_44s",
+              "stretch_music_amour_de_ma_vie_short_44s"
+            ]
+          }
+        ],
+        "groups": [
+          {
+            "id": "regular_exceptions",
+            "stratum": "representative",
+            "weight": 0.2,
+            "score": 975.4043,
+            "parents": [
+              "bridge_river_reentry",
+              "bridge_countercurrent",
+              "harbor_return",
+              "crossing_lights",
+              "afterglow_turn"
+            ]
+          },
+          {
+            "id": "subdivision_pickup",
+            "stratum": "representative",
+            "weight": 0.15,
+            "score": 932.4146,
+            "parents": [
+              "bridge_split_signal",
+              "bridge_pickup_lattice",
+              "woven_pickups",
+              "pickup_answers",
+              "broken_triplets"
+            ]
+          },
+          {
+            "id": "irregular_microtimed",
+            "stratum": "representative",
+            "weight": 0.15,
+            "score": 979.8959,
+            "parents": [
+              "bridge_loose_pocket",
+              "bridge_offgrid_conversation",
+              "late_letters",
+              "swing_exchange",
+              "offbeat_echoes"
+            ]
+          },
+          {
+            "id": "cadence_transition",
+            "stratum": "representative",
+            "weight": 0.12,
+            "score": 970.9844,
+            "parents": [
+              "bridge_rising_switch",
+              "bridge_meter_exchange",
+              "gear_changes",
+              "half_time_return",
+              "accelerando_reply"
+            ]
+          },
+          {
+            "id": "spacious_amplitude",
+            "stratum": "representative",
+            "weight": 0.13,
+            "score": 913.3168,
+            "parents": [
+              "bridge_wide_breaths",
+              "bridge_open_hook",
+              "bridge_amplitude_tides",
+              "archipelago",
+              "wide_arc_dialogue",
+              "terraced_skies"
+            ]
+          },
+          {
+            "id": "dense_musical",
+            "stratum": "representative",
+            "weight": 0.1,
+            "score": 958.9547,
+            "parents": [
+              "bridge_dense_dialogue",
+              "woven_pulse",
+              "density_release",
+              "compact_dialogue"
+            ]
+          },
+          {
+            "id": "high_air_energy",
+            "stratum": "representative",
+            "weight": 0.08,
+            "score": 957.3045,
+            "parents": [
+              "bridge_high_air_drive",
+              "lifted_refrain",
+              "flight_and_return",
+              "open_canopy"
+            ]
+          },
+          {
+            "id": "sparse_transition",
+            "stratum": "representative",
+            "weight": 0.07,
+            "score": 969.8858,
+            "parents": [
+              "bridge_sparse_lowline",
+              "quiet_current",
+              "support_then_lift",
+              "rest_and_return"
+            ]
+          },
+          {
+            "id": "rapid_pickup_frontier",
+            "stratum": "capability",
+            "weight": 0.4,
+            "score": 950.6527,
+            "parents": [
+              "bridge_frontier_pickup_progression",
+              "pickup_staircase",
+              "pickup_interruptions",
+              "pickup_recovery"
+            ]
+          },
+          {
+            "id": "dense_recovery_frontier",
+            "stratum": "capability",
+            "weight": 0.35,
+            "score": 923.5967,
+            "parents": [
+              "bridge_frontier_dense_recovery",
+              "dense_short_then_long",
+              "interleaved_recovery",
+              "three_note_returns"
+            ]
+          },
+          {
+            "id": "low_air_frontier",
+            "stratum": "capability",
+            "weight": 0.25,
+            "score": 954.8891,
+            "parents": [
+              "bridge_frontier_low_air_endurance",
+              "supported_bridge",
+              "supported_speed_change",
+              "endurance_and_return"
+            ]
+          },
+          {
+            "id": "legacy_transition_regression",
+            "stratum": "legacy_regression",
+            "weight": 0.55,
+            "score": 977.5027,
+            "parents": [
+              "bridge_regression_transition_mosaic",
+              "energy_weave",
+              "alternating_intentions",
+              "recovery_mosaic"
+            ]
+          },
+          {
+            "id": "legacy_amplitude_regression",
+            "stratum": "legacy_regression",
+            "weight": 0.45,
+            "score": 900.5208,
+            "parents": [
+              "bridge_regression_amplitude_mosaic",
+              "amplitude_reply",
+              "restrained_then_wide",
+              "arches_at_new_tempos"
+            ]
+          },
+          {
+            "id": "believer",
+            "stratum": "development_music",
+            "weight": 0.16666666666666666,
+            "score": 931.5014,
+            "parents": [
+              "bridge_believer_56_6s",
+              "bridge_believer_impact_56s"
+            ]
+          },
+          {
+            "id": "amor_na_praia",
+            "stratum": "development_music",
+            "weight": 0.16666666666666666,
+            "score": 974.5477,
+            "parents": [
+              "music_amor_na_praia_46s"
+            ]
+          },
+          {
+            "id": "luna_bala",
+            "stratum": "development_music",
+            "weight": 0.16666666666666666,
+            "score": 960.6954,
+            "parents": [
+              "music_luna_bala_44s"
+            ]
+          },
+          {
+            "id": "tiki_tiki",
+            "stratum": "development_music",
+            "weight": 0.16666666666666666,
+            "score": 900.8593,
+            "parents": [
+              "music_tiki_tiki_48s"
+            ]
+          },
+          {
+            "id": "shelter",
+            "stratum": "development_music",
+            "weight": 0.16666666666666666,
+            "score": 907.601,
+            "parents": [
+              "music_shelter_impact_sync_81s"
+            ]
+          },
+          {
+            "id": "amour_de_ma_vie",
+            "stratum": "development_music",
+            "weight": 0.16666666666666666,
+            "score": 921.2513,
+            "parents": [
+              "music_amour_de_ma_vie_short_44s"
+            ]
+          }
+        ],
+        "strata": [
+          {
+            "id": "representative",
+            "weight": 0.7,
+            "score": 957.5486
+          },
+          {
+            "id": "capability",
+            "weight": 0.15,
+            "score": 942.2422
+          },
+          {
+            "id": "legacy_regression",
+            "weight": 0.1,
+            "score": 942.8608
+          },
+          {
+            "id": "development_music",
+            "weight": 0.05,
+            "score": 932.7427
+          }
+        ]
+      },
+      "sourceBase": "d7f04ee4",
+      "sourcePatch": "diff --git a/scripts/v0/optimizer/arc_control_policy.ts b/scripts/v0/optimizer/arc_control_policy.ts\nindex 66202d1c..9bc219ea 100644\n--- a/scripts/v0/optimizer/arc_control_policy.ts\n+++ b/scripts/v0/optimizer/arc_control_policy.ts\n@@ -2,13 +2,8 @@\n import {arcArrivalFeatures} from './arc_value.ts';\n import type {ArcMotionControl} from './arc_geometry.ts';\n export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';\n-/** Preserve the exact demonstrated geometry when its incoming state is repeated. */\n-export function arcReferencedControl(reference:{control:ArcMotionControl;incoming:number;span:number},incoming:number,span:number):ArcMotionControl{\n-  if(!Number.isFinite(reference.incoming)||!Number.isFinite(reference.span)||reference.span<=0)throw new Error('invalid arc control reference');\n-  const c=reference.control,angle=incoming-reference.incoming;\n-  return {...c,entry:angle===0?c.entry:c.entry+angle,exit:angle===0?c.exit:c.exit+angle,\n-    support:span===reference.span?c.support:c.support*(span/reference.span)};\n-}\n+import {arcReferencedControl, arcControlsSimilar} from './arc_motion_control.ts';\n+export {arcReferencedControl} from './arc_motion_control.ts';\n export const ARC_HORIZON_POLICY_SCHEMA='line.arc-horizon-control-policy-features.v1';\n // Loaded model artifacts stay immutable during compilation. Index their leaf\n // memberships once; replacing either source array rebuilds the index.\n@@ -37,15 +32,15 @@ export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[\n   return arcArrivalFeatures(state,Math.atan2(velocity.y,velocity.x)*180/Math.PI,\n     Math.hypot(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);\n }\n-export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number):ArcMotionControl[]{\n+export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number,diversity: 'inherited' | 'geometry' = 'inherited'):ArcMotionControl[]{\n   const expected=model.featureSchema===ARC_POLICY_SCHEMA?57:model.featureSchema===ARC_HORIZON_POLICY_SCHEMA?67:0;\n   if(!expected||model.featureCount!==expected||![57,67].includes(features.length)||features.length<expected||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');\n   if(features.length!==expected)features=features.slice(0,expected);\n   if(!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc policy count');\n   if(count===0)return [];\n   if(model.residualBase){\n-    const base=arcControlProposals(features,incoming,span,model.residualBase,1)[0];\n-    const residual=arcControlProposals(features,0,span,model.residualModel,count);\n+    const base=arcControlProposals(features,incoming,span,model.residualBase,1,diversity)[0];\n+    const residual=arcControlProposals(features,0,span,model.residualModel,count,diversity);\n     const strength=model.residualStrength??1;\n     if(!Number.isFinite(strength)||strength<0)throw new Error('invalid residual policy strength');\n     return residual.map(delta=>Object.fromEntries(Object.keys(base).map(key=>[key,\n@@ -55,7 +50,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe\n     const weights=model.proposalWeights??model.models.map(()=>1),sum=weights.reduce((a:number,b:number)=>a+b,0);\n     const counts=weights.map((w:number)=>Math.floor(count*w/sum));\n     for(let j=0;counts.reduce((a:number,b:number)=>a+b,0)<count;j++)counts[j%counts.length]++;\n-    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);\n+    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j],diversity):[]);\n   }\n   if(model.exemplars){\n     const input=model.proximityTrees?features.map(Math.fround):undefined;\n@@ -88,7 +83,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe\n     const selected:ArcMotionControl[]=[];\n     for(const {value:v,reference} of nearest){\n       const c=reference?arcReferencedControl(reference,incoming,span):{entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};\n-      if(selected.some(p=>Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;\n+      if(selected.some(p=>diversity==='geometry'?arcControlsSimilar(c,p):Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;\n       selected.push(c);if(selected.length>=count)break;\n     }\n     return selected;\ndiff --git a/scripts/v0/optimizer/arc_memory.ts b/scripts/v0/optimizer/arc_memory.ts\nindex 9842ab1d..ae99375a 100644\n--- a/scripts/v0/optimizer/arc_memory.ts\n+++ b/scripts/v0/optimizer/arc_memory.ts\n@@ -1,5 +1,6 @@\n /** Reuse measured controls and local responses as proposals, never as validation. */\n import type { ArcMotionControl } from './arc_geometry.ts';\n+import {arcControlsSimilar} from './arc_motion_control.ts';\n import { arcResponseStep } from './arc_response.ts';\n \n /** Largest-remainder apportionment keeps a short probe's proposal mix intact. */\n@@ -49,14 +50,14 @@ export class ArcControlMemory {\n     if (this.responses.length > 384) this.responses.shift();\n   }\n \n-  proposeControls(features: number[], incoming: number, span: number, count: number): ArcMotionControl[] {\n+  proposeControls(features: number[], incoming: number, span: number, count: number, diversity: 'inherited' | 'geometry' = 'inherited'): ArcMotionControl[] {\n     if (count <= 0) return [];\n     const nearest = this.controls.map(m => ({m, distance: distance(m.features, features)}))\n       .sort((a, b) => a.distance - b.distance);\n     const selected: ArcMotionControl[] = [];\n     for (const {m} of nearest) {\n       const control = adapted(m, incoming, span);\n-      if (selected.some(p => arcControlSimilar(control, p))) continue;\n+      if (selected.some(p => diversity === 'geometry' ? arcControlsSimilar(control, p) : arcControlSimilar(control, p))) continue;\n       selected.push(control);\n       if (selected.length >= count) break;\n     }\n@@ -65,7 +66,7 @@ export class ArcControlMemory {\n \n   proposeResponses(features: number[], incoming: number, span: number,\n     wanted: Array<number | undefined>, count: number,\n-    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]}): ArcMotionControl[] {\n+    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]}, diversity: 'inherited' | 'geometry' = 'inherited'): ArcMotionControl[] {\n     if (count <= 0) return [];\n     const nearest = this.responses.map(m => ({m, distance: distance(m.features, features)}))\n       .sort((a, b) => a.distance - b.distance || a.m.loss - b.m.loss);\n@@ -90,7 +91,7 @@ export class ArcControlMemory {\n         control[key] = (control[key] as number) + m.scale[d] *\n           (key === 'support' ? span / m.span : 1) * clamp(delta[d]);\n       });\n-      if (selected.some(p => arcControlSimilar(control, p))) continue;\n+      if (selected.some(p => diversity === 'geometry' ? arcControlsSimilar(control, p) : arcControlSimilar(control, p))) continue;\n       selected.push(control);\n       if (selected.length >= count) break;\n     }\ndiff --git a/scripts/v0/optimizer/arc_motion.ts b/scripts/v0/optimizer/arc_motion.ts\nindex 8f9f890b..438eada1 100644\n--- a/scripts/v0/optimizer/arc_motion.ts\n+++ b/scripts/v0/optimizer/arc_motion.ts\n@@ -11,6 +11,7 @@ export { motionArc, type ArcMotionControl } from './arc_geometry.ts';\n import { scheduleNativeContacts } from './native_motion_schedule.ts';\n import { trimUnusedArcGuides } from './arc_guidance.ts';\n import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';\n+import { arcReferencedControl, type ArcControlReference } from './arc_motion_control.ts';\n import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';\n import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';\n import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';\n@@ -32,6 +33,12 @@ const rad=(x:number)=>x*Math.PI/180;\n const deg=(x:number)=>x*180/Math.PI;\n export type ArcMotionOptions= {\n   budget:number;\n+  /** Reuse the preliminary track as measured controls in general search. */\n+  previewWarmStart?:boolean;\n+  /** Complete or partial trajectory controls, adapted to each measured boundary. */\n+  trajectoryControls?:ArcControlReference[];\n+  /** Preserve distinct expressive geometry in learned and memory proposals. */\n+  controlDiversity?:'inherited'|'geometry';\n   /** Reserve work for improving a completed track inside the same hard limit. */\n   constructionBudget?:number;\n   /** Reuse measured response directions between complete finite differences. */\n@@ -171,7 +178,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)\n   // Keep the real counter running. The second search sees the first proposal's\n   // work against the same absolute ceiling, including both of its cold replays.\n   const searched=compileArcMotionOnce(spec,seed,{...options,controlPolicy:model,policyPreview:false,\n-    policyRollout:false,policyRolloutStrict:false,collectTrajectoryLoss:true},true);\n+    policyRollout:false,policyRolloutStrict:false,collectTrajectoryLoss:true,\n+    trajectoryControls:options.previewWarmStart?preview.rows.map(r=>({control:r.control,incoming:r.incoming,span:r.span})):options.trajectoryControls},true);\n   const total=getPhysicsFrameCount(),chosen=(preview.trajectoryLoss??Infinity)<(searched.trajectoryLoss??Infinity)?preview:searched;\n   const backtracks=preview.backtracks+searched.backtracks;\n   const qualityRetries={...preview.qualityRetries};\n@@ -480,37 +488,38 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n           actualImpact:selected.meta.impact,release:selected.meta.release};\n       };\n       try {\n-      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};}\n+      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};}\n       if(options.policyRollout){\n         const model=i===0?options.controlPolicy?.startupModel:options.controlPolicy;\n         const began=getPhysicsFrameCount();\n         try{\n-          if(model)for(const control of arcControlProposals(policyInputFeatures,incoming,span,model,1)){\n+          if(model)for(const control of arcControlProposals(policyInputFeatures,incoming,span,model,1,options.controlDiversity)){\n             policyRolloutStats.proposals++;\n             if(evaluate(control)){\n               policyRolloutStats.accepted++;\n-              return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};\n+              return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};\n             }\n           }\n         }finally{policyRolloutStats.physicsFrames+=getPhysicsFrameCount()-began;}\n         policyRolloutStats.fallbacks++;\n-        if(options.policyRolloutStrict)return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,inputFeatures};\n+        if(options.policyRolloutStrict)return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};\n       }\n       center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};\n       if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}\n       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));\n       const responseAxisWeights=options.rescaleMemoryWeights?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;\n-      const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0);\n+      const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0,options.controlDiversity);\n       const responses=controlMemory.proposeResponses(inputFeatures,incoming,span,\n         [targets.air,targets.speed,targets.amplitude,impact],options.memoryResponseSamples??0,\n-        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights});\n+        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights},options.controlDiversity);\n       // Startup has a different physical-state distribution from a later catch.\n       // Its optional learned proposals still pass the ordinary interval search.\n       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;\n       const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];\n       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;\n-      const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0]):[];\n+      const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0],options.controlDiversity):[];\n       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));\n+      if(options.trajectoryControls?.[i])evaluate(arcReferencedControl(options.trajectoryControls[i],incoming,span));\n       if(options.warmStart)evaluate(options.warmStart);\n       for(let k=0;k<initial;k++){\n         const frac=(n:number)=>((k+1)*n)%1;\n@@ -644,7 +653,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n         if(!best)throw error;\n       }\n       selectBounded();\n-      return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,inputFeatures};\n+      return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,span,inputFeatures};\n     };\n     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);\n     const distinct=(candidates:any[],width:number)=>{\n@@ -835,7 +844,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con\n       // can invalidate cached prefix frames even for a validated child.\n       if(terminalChildLines)best.child=addArc(engine,terminalChildLines);\n       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);\n-      rows.push({frame,next,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});\n+      rows.push({frame,next,incoming,span:interval.span,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});\n       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\\n');\n     }\n     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){\ndiff --git a/scripts/v0/optimizer/arc_motion_control.ts b/scripts/v0/optimizer/arc_motion_control.ts\nnew file mode 100644\nindex 00000000..072bd421\n--- /dev/null\n+++ b/scripts/v0/optimizer/arc_motion_control.ts\n@@ -0,0 +1,33 @@\n+/** Control operations shared by learned proposals, local memory and search.\n+ * Omitted fields are intentional geometry choices, not missing numeric zeros. */\n+import type { ArcMotionControl } from './arc_geometry.ts';\n+\n+export type ArcControlReference = {control: ArcMotionControl; incoming: number; span: number};\n+\n+/** Preserve demonstrated doubles and field absence at the original boundary. */\n+export function arcReferencedControl(reference: ArcControlReference, incoming: number, span: number): ArcMotionControl {\n+  if (!Number.isFinite(reference.incoming) || !Number.isFinite(reference.span) || reference.span <= 0)\n+    throw new Error('invalid arc control reference');\n+  const c = reference.control, angle = incoming - reference.incoming;\n+  return {...c, entry: angle === 0 ? c.entry : c.entry + angle,\n+    exit: angle === 0 ? c.exit : c.exit + angle,\n+    support: span === reference.span ? c.support : c.support * (span / reference.span)};\n+}\n+\n+const tolerance: Record<keyof ArcMotionControl, number> = {\n+    entry: 2, turn: 4, exit: 4, support: 1, bias: .3, offset: .2,\n+    clearance: 1, guideStart: .08, guideEnd: .08, turnFraction: .06,\n+    bend: 5, guideFlare: 2, exitBias: .3,\n+};\n+\n+\n+/** A neighborhood in authored control space, not a physical-equivalence claim.\n+ * Keep distinct expressive shapes available to the real-engine evaluator.\n+ * Conservatively distinguish omitted optional fields: their defaults can depend\n+ * on channel/wave settings and explicit guide endpoints have a length floor. */\n+export function arcControlsSimilar(a: ArcMotionControl, b: ArcMotionControl): boolean {\n+  return (Object.keys(tolerance) as Array<keyof ArcMotionControl>).every(key => {\n+    const x = a[key], y = b[key];\n+    return x === undefined || y === undefined ? x === y : Math.abs(x - y) < tolerance[key];\n+  });\n+}\n",
+      "sourcePatchSha256": "6872a2ea0af1d754075bdc386046e07e2b763ac77fb93684d7cb60be9653c91c"
+    }
+  ]
+}

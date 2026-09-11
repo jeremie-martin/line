@@ -231,6 +231,50 @@ collection, alongside substantial WASM physics. The process ran alongside
 other work. Neither these samples nor differently scheduled panel timings are
 a controlled wall-clock speedup claim.
 
+## Follow-up: the 99% finding is an immediate scheduling problem
+
+The owner challenged the work-share interpretation. Rechecking both the shared
+frame counter and every attempt's start/end confirms that general search uses
+**99.005%** of measured simulated physics work on the prior full V4 research
+panel, and **99.0048%** after this audit. These are simulation-work shares, not
+elapsed-time shares or an assertion that every one of those frames is useless.
+
+The stronger finding is the counterfactual below. Keep the existing preliminary
+attempt, return it when physically complete, and run the current general search
+only when it fails. On the recorded complete 176-specification, seed-16 panel:
+
+| Policy | Frozen V4 score | Valid | Simulated physics frames |
+|---|---:|---:|---:|
+| Current unconditional second attempt | 952.5191 | 176/176 | 130,638,842 |
+| Accept complete preliminary tracks; retain failure fallback | 952.4696 | 176/176 | 4,995,415 |
+
+That is **96.1762% less simulated work for a 0.0495-point score reduction**.
+The three preliminary tracks displaced by general search were regenerated and
+cold-graded with the unchanged judge; their exact hashes, losses and physical
+work match the original attempt records. The other results reuse the already
+verified selected preliminary tracks and unchanged five failure recoveries.
+This is a checked retrospective counterfactual, not a deployed compiler change,
+a new 352-run canonical qualification, or a measured 26.15-fold wall-clock gain.
+See [the complete counterfactual and verification script](../benchmark/v4/studies/compiler-design-work-counterfactual-20260911.json).
+
+The cheap pass uses learned demonstrations from exposed development inputs,
+including these benchmark specifications. It can reproduce strong demonstrated
+trajectories cheaply. This explains why a full general search has little marginal
+value on that panel; it does not establish that general search is dispensable.
+On the separate 44-case target-jitter panel, only **43/176** runs complete in the
+preliminary attempt; the other **133/176** complete through general search.
+These are different inputs, so this comparison is not a controlled estimate of
+the effect of adding jitter to the full V4 suite.
+
+The initial audit underemphasized the scheduling consequence. State-memory
+transfer is a useful simplification, but it leaves the unconditional second
+attempt in place and barely changes its total cost. The immediate architectural
+priority is an explicit policy for accepting or improving a completed incumbent,
+while preserving general search for failed proposals. Optional further work
+should be justified by measured improvement, rather than performed merely
+because unused budget remains. The production policy is unchanged by this
+read-only follow-up.
+
 ## Further work supported by the evidence
 
 1. **Improve a complete incumbent deliberately.** Most search budget still fails

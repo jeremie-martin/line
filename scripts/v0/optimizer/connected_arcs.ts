@@ -56,7 +56,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
-    policyPreview: true, lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
+    policyPreview: true, previewWarmStart: true, controlDiversity: "geometry", lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
     reserveFactor: .7 + .7 * (1 - planningGuidanceSamples / 96), reuseContinuations: true, pruneGuidance: true,
     guidanceJoint: true, expressive: true, preserveTurnTiming: true, responseSamples,
     adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true, reuseEvaluations: true,
@@ -95,29 +95,27 @@ export function compileConnectedArcs(spec: Spec, seed: number,
   const exhausted = result.searchBudgetExhausted || result.failure?.reason === "budget";
   const recorder = new CompileBudgetTelemetryRecorder({ level: options.budgetTelemetry ?? "summary",
     gaps, durationFrames: duration, hardBudgetFrames: options.budget, policyBudgetFrames: options.budget,
-    model: { name: "connected-arcs/v5", source: "arc_motion.ts learned and measured curve proposals, complete boundaries and adaptive construction",
+    model: { name: "connected-arcs/v6", source: "arc_motion.ts learned and measured curve proposals, complete boundaries and adaptive construction",
       interceptFrames: 0, contactFrames: 0, durationFrameScale: samples } });
-  const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
-    anchorGapIndex: 0, startTotalSpentFrames: 0, ceilingTotalSpentFrames: options.budget, includeStartup: false });
-  recorder.setActiveCandidateWork({ actualCandidateSamples: result.samples, viableCandidates: result.stats.viable_candidate_samples,
-    candidateSamplesByStream: { normal: result.samples } });
-  for (const [index, row] of result.rows.entries()) {
-    // Interval zero is startup; committing interval i reaches authored contact i.
-    // Use that identity, since scheduling can shift its frame by one in either direction.
-    recorder.observeActiveEpisode(Math.min(index, gaps.length), row.spent);
+  for (const [index, attempt] of result.attempts.entries()) {
+    const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
+      anchorGapIndex: 0, startTotalSpentFrames: attempt.start, ceilingTotalSpentFrames: options.budget, includeStartup: false });
+    recorder.setActiveCandidateWork({ actualCandidateSamples: attempt.samples, viableCandidates: attempt.viableCandidates,
+      candidateSamplesByStream: { normal: attempt.samples } });
+    for (const commit of attempt.commits) recorder.observeActiveEpisode(Math.min(commit.index, gaps.length), commit.spent);
+    recorder.recordEvaluation({ totalSpentFrames: attempt.end, gapIndex: attempt.complete ? gaps.length : attempt.gapCommits,
+      terminal: attempt.complete, origin: "frontier", firstTimeSearchNode: true,
+      terminalTrackKey: attempt.trackHash, registerImproved: attempt.complete && (index === 0 || attempt.selected) });
+    recorder.endEpisode(attempt.end, attempt.exhausted ? "budget_capture" : "compile_finished");
+    recorder.recordSegment("initial_search", attempt.start, attempt.constructionEnd, attempt.name + "_construction_complete", episode);
+    recorder.recordSegment("finalization", attempt.constructionEnd, attempt.end, "cold_replay_complete", episode);
   }
-  recorder.recordEvaluation({ totalSpentFrames: total, gapIndex: valid ? gaps.length : result.stats.gap_commits,
-    terminal: valid, origin: "frontier", firstTimeSearchNode: true,
-    terminalTrackKey: createHash("sha256").update(JSON.stringify(track)).digest("hex"), registerImproved: valid });
-  recorder.endEpisode(total, exhausted ? "budget_capture" : "compile_finished");
-  recorder.recordSegment("initial_search", 0, result.constructionFrames, "construction_complete", episode);
-  recorder.recordSegment("finalization", result.constructionFrames, total, "cold_replay_complete", episode);
   const costs = report.gaps.map(g => Object.values(g.axes).reduce((s, a) => s + (a?.error ?? 0) ** 2, 0));
   return { budget: options.budget, track, report,
-    budgetTelemetry: recorder.snapshot(total, exhausted, valid ? total : null, valid ? total : null),
+    budgetTelemetry: recorder.snapshot(total, exhausted, result.firstCompletionFrame, result.firstCompletionFrame),
     stats: { actual_candidate_samples: result.samples, viable_candidate_samples: result.stats.viable_candidate_samples, engine_rebuilds: result.engineRebuilds ?? result.backtracks + 2,
       gap_commits: result.stats.gap_commits, gap_backtracks: result.backtracks,
       validation_retries: 0, polish_iterations: 0, total_committed_cost: costs.reduce((s, c) => s + c, 0),
       committed_costs_per_gap: costs, sim_frames: total, ballistic_micro_sim_frames: 0,
-      budget_exhausted: exhausted, first_completion_frame: valid ? total : null } };
+      budget_exhausted: exhausted, first_completion_frame: result.firstCompletionFrame } };
 }

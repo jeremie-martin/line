@@ -20,6 +20,8 @@ it('sorts contacts with their impact targets without mutating the authored input
   expect(result.track).toEqual(normal.track);expect(result.report).toEqual(normal.report);
   expect(result.stats).toEqual(normal.stats);expect(reversed.contacts).toEqual(saved);
   expect(normalizeCompilerTimeline(spec)).toBe(spec);
+  expect(normal.budgetTelemetry!.compile.first_terminal_total_spent_frames).toBe(normal.stats.first_completion_frame);
+  expect(normal.budgetTelemetry!.compile.first_improving_terminal_total_spent_frames).toBe(normal.stats.first_completion_frame);
 });
 it('validates telemetry consistently before doing physical search',()=>{
   const options={budget:30000,budgetTelemetry:'invalid' as any};

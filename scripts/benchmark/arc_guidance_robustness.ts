@@ -1,4 +1,5 @@
 /** Separate jitter stress study; does not modify the canonical benchmark. */
+import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, openSync, closeSync } from 'node:fs';
@@ -26,9 +27,15 @@ if(arg('source')){
 }else{
   const seeds=(arg('seeds')??'101,102,103,104').split(',').map(Number),jobs=Number(arg('jobs')??16);
   const sources=arg('sources')?.split(',')??developmentCases.map(e=>e.case.metadata.id).sort();
-  const files=['scripts/v0/optimizer/connected_arcs.ts','scripts/v0/optimizer/arc_motion.ts','scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/arc_boundary.ts','scripts/v0/optimizer/arc_memory.ts','scripts/v0/optimizer/arc_engine.ts','scripts/v0/optimizer/compiler_input.ts','scripts/v0/optimizer/arc_control_policy.ts','scripts/v0/optimizer/arc_control_policy_model.json','scripts/v0/optimizer/arc_control_policy_model.json.gz','scripts/v0/optimizer/arc_guidance.ts','scripts/v0/optimizer/arc_refinement.ts','scripts/v0/optimizer/arc_response.ts','scripts/v0/optimizer/arc_value.ts','scripts/v0/optimizer/arc_value_model.json'].filter(p=>existsSync(resolve(compilerRoot,p)));
+  // Use the shared compiler dependency inventory. New compiler modules must not
+  // silently fall outside this study's identity as the architecture evolves.
+  const identity=()=>JSON.parse(execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',
+    'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; console.log(JSON.stringify(compilerCandidateIdentity("wasm")));'],
+    {cwd:compilerRoot,encoding:'utf8',maxBuffer:16*1024*1024}));
+  const compiler=identity(),files=compiler.compilerSourceFiles as string[];
   const implementation=Object.fromEntries(files.map(p=>[p,hash(readFileSync(resolve(compilerRoot,p)))]));
-  const plan={schema:'line.arc-guidance-jitter-plan.v1',researchOnly:true,compilerRoot,head:execFileSync('git',['-C',compilerRoot,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),implementation,jitter,budget,seeds,sources,note:'Search-target jitter stress, evaluated against the unchanged authored targets; never a canonical headline.'};
+  const harnessSha256=hash(readFileSync(import.meta.filename));
+  const plan={schema:'line.arc-guidance-jitter-plan.v1',researchOnly:true,compilerRoot,head:compiler.head,compiler,harnessSha256,implementation,jitter,budget,seeds,sources,note:'Search-target jitter stress, evaluated against the unchanged authored targets; never a canonical headline.'};
   const planPath=resolve(out,'plan.json');
   if(existsSync(planPath)){if(JSON.stringify(JSON.parse(readFileSync(planPath,'utf8')))!==JSON.stringify(plan))throw new Error('stress plan changed');}else write(planPath,plan);
   const cells=sources.flatMap(source=>seeds.map(seed=>({source,seed}))),queue=cells.slice(),failed:string[]=[];
@@ -36,7 +43,6 @@ if(arg('source')){
     while(queue.length){
       const {source,seed}=queue.shift()!,key=`${source}-${seed}`,path=resolve(out,key+'.json');
       if(existsSync(path))continue;
-      if(files.some(p=>hash(readFileSync(resolve(compilerRoot,p)))!==implementation[p]))throw new Error('compiler changed during stress study');
       const log=openSync(resolve(out,key+'.log'),'w');
       try{
         const code=await new Promise<number|null>((done,reject)=>{const p=spawn(process.execPath,['--import','tsx',import.meta.filename,`--source=${source}`,`--seed=${seed}`,`--jitter=${jitter}`,`--budget=${budget}`,`--compiler-root=${compilerRoot}`,`--out=${out}`],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore',log,log]});p.on('error',reject);p.on('exit',done);});
@@ -44,6 +50,8 @@ if(arg('source')){
       }finally{closeSync(log);}
     }
   }));
+  assert.deepEqual(identity(),compiler,'compiler changed during stress study');
+  assert.equal(hash(readFileSync(import.meta.filename)),harnessSha256,'stress harness changed');
   if(failed.length)throw new Error('stress worker failures '+failed.join(','));
   const rows=cells.map(({source,seed})=>{const p=resolve(out,`${source}-${seed}.json`),b=readFileSync(p);if(hash(b)!==readFileSync(p+'.sha256','utf8').trim())throw new Error('checksum');return JSON.parse(b.toString());});
   const summary={schema:'line.arc-guidance-jitter-summary.v1',researchOnly:true,cells:rows.length,valid:rows.filter(r=>r.score.valid).length,distinctTracks:new Set(rows.map(r=>r.trackSha256)).size,meanCellScore:rows.reduce((s,r)=>s+r.score.score,0)/rows.length,maxFrames:Math.max(...rows.map(r=>r.stats.sim_frames)),totalFrames:rows.reduce((s,r)=>s+r.stats.sim_frames,0),failures:rows.filter(r=>!r.score.valid).map(r=>({source:r.source,seed:r.seed,score:r.score}))};

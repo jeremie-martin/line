@@ -2,13 +2,8 @@
 import {arcArrivalFeatures} from './arc_value.ts';
 import type {ArcMotionControl} from './arc_geometry.ts';
 export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';
-/** Preserve the exact demonstrated geometry when its incoming state is repeated. */
-export function arcReferencedControl(reference:{control:ArcMotionControl;incoming:number;span:number},incoming:number,span:number):ArcMotionControl{
-  if(!Number.isFinite(reference.incoming)||!Number.isFinite(reference.span)||reference.span<=0)throw new Error('invalid arc control reference');
-  const c=reference.control,angle=incoming-reference.incoming;
-  return {...c,entry:angle===0?c.entry:c.entry+angle,exit:angle===0?c.exit:c.exit+angle,
-    support:span===reference.span?c.support:c.support*(span/reference.span)};
-}
+import {arcReferencedControl, arcControlsSimilar} from './arc_motion_control.ts';
+export {arcReferencedControl} from './arc_motion_control.ts';
 export const ARC_HORIZON_POLICY_SCHEMA='line.arc-horizon-control-policy-features.v1';
 // Loaded model artifacts stay immutable during compilation. Index their leaf
 // memberships once; replacing either source array rebuilds the index.
@@ -37,15 +32,17 @@ export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[
   return arcArrivalFeatures(state,Math.atan2(velocity.y,velocity.x)*180/Math.PI,
     Math.hypot(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);
 }
-export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number):ArcMotionControl[]{
+export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number,diversity: 'inherited' | 'geometry' = 'inherited'):ArcMotionControl[]{
   const expected=model.featureSchema===ARC_POLICY_SCHEMA?57:model.featureSchema===ARC_HORIZON_POLICY_SCHEMA?67:0;
   if(!expected||model.featureCount!==expected||![57,67].includes(features.length)||features.length<expected||features.some(v=>!Number.isFinite(v)))throw new Error('arc policy feature mismatch');
   if(features.length!==expected)features=features.slice(0,expected);
   if(!Number.isSafeInteger(count)||count<0)throw new Error('invalid arc policy count');
   if(count===0)return [];
+  if(model.proximityCorrection)throw new Error('proximityCorrection requires the archived analogy runtime; unsupported by this compiler');
+  if(model.models && (!model.models.length || model.proposalWeights && (model.proposalWeights.length!==model.models.length || model.proposalWeights.some((w:number)=>!Number.isFinite(w)||w<0) || !model.proposalWeights.some((w:number)=>w>0))))throw new Error('invalid arc policy mixture weights');
   if(model.residualBase){
-    const base=arcControlProposals(features,incoming,span,model.residualBase,1)[0];
-    const residual=arcControlProposals(features,0,span,model.residualModel,count);
+    const base=arcControlProposals(features,incoming,span,model.residualBase,1,diversity)[0];
+    const residual=arcControlProposals(features,0,span,model.residualModel,count,diversity);
     const strength=model.residualStrength??1;
     if(!Number.isFinite(strength)||strength<0)throw new Error('invalid residual policy strength');
     return residual.map(delta=>Object.fromEntries(Object.keys(base).map(key=>[key,
@@ -55,7 +52,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
     const weights=model.proposalWeights??model.models.map(()=>1),sum=weights.reduce((a:number,b:number)=>a+b,0);
     const counts=weights.map((w:number)=>Math.floor(count*w/sum));
     for(let j=0;counts.reduce((a:number,b:number)=>a+b,0)<count;j++)counts[j%counts.length]++;
-    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);
+    return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j],diversity):[]);
   }
   if(model.exemplars){
     const input=model.proximityTrees?features.map(Math.fround):undefined;
@@ -88,18 +85,19 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
     const selected:ArcMotionControl[]=[];
     for(const {value:v,reference} of nearest){
       const c=reference?arcReferencedControl(reference,incoming,span):{entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};
-      if(selected.some(p=>Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;
+      if(selected.some(p=>diversity==='geometry'?arcControlsSimilar(c,p):Math.abs(c.turn-p.turn)<4&&Math.abs(c.entry-p.entry)<2&&Math.abs(c.exit-p.exit)<4&&Math.abs(c.support-p.support)<1))continue;
       selected.push(c);if(selected.length>=count)break;
     }
     return selected;
   }
+  if(!model.trees?.length)throw new Error('arc policy forest must contain a tree');
   // ExtraTrees validates prediction inputs as float32 before tree traversal.
   const input=features.map(Math.fround);
   const leaves=model.trees.map((tree:any)=>{
     let n=0;while(tree.left[n]>=0)n=input[tree.feature[n]]<=tree.threshold[n]?tree.left[n]:tree.right[n];
     return tree.value[n] as number[];
   });
-  const mean=(rows:number[][])=>rows[0].map((_,j)=>rows.reduce((sum,row)=>sum+row[j],0)/rows.length);
+  const mean=(rows:number[][])=>{if(!rows.length)rows=leaves;return rows[0].map((_,j)=>rows.reduce((sum,row)=>sum+row[j],0)/rows.length);};
   const vectors=[mean(leaves),mean(leaves.filter((_:any,i:number)=>i%2===0)),mean(leaves.filter((_:any,i:number)=>i%2===1)),...leaves];
   return vectors.slice(0,count).map(v=>({entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],
     support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]}));

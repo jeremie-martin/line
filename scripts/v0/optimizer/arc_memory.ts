@@ -1,5 +1,6 @@
 /** Reuse measured controls and local responses as proposals, never as validation. */
 import type { ArcMotionControl } from './arc_geometry.ts';
+import {arcControlsSimilar, arcReferencedControl} from './arc_motion_control.ts';
 import { arcResponseStep } from './arc_response.ts';
 
 /** Largest-remainder apportionment keeps a short probe's proposal mix intact. */
@@ -32,9 +33,7 @@ export function arcControlSimilar(a: ArcMotionControl, b: ArcMotionControl): boo
 
 const distance = (a: number[], b: number[]) => a.reduce((sum, value, k) =>
   sum + (value - b[k]) ** 2 * (k >= 47 ? 4 : k < 7 ? 2 : 1), 0);
-const adapted = (m: ArcControlExample, incoming: number, span: number): ArcMotionControl =>
-  ({...m.control, entry: incoming + m.control.entry - m.incoming,
-    exit: incoming + m.control.exit - m.incoming, support: span * m.control.support / m.span});
+const adapted = arcReferencedControl;
 const clamp = (value: number) => Math.max(-3, Math.min(3, value));
 
 /** One instance belongs to one compile. Stored examples contain no live engines. */
@@ -49,14 +48,14 @@ export class ArcControlMemory {
     if (this.responses.length > 384) this.responses.shift();
   }
 
-  proposeControls(features: number[], incoming: number, span: number, count: number): ArcMotionControl[] {
+  proposeControls(features: number[], incoming: number, span: number, count: number, diversity: 'inherited' | 'geometry' = 'inherited'): ArcMotionControl[] {
     if (count <= 0) return [];
     const nearest = this.controls.map(m => ({m, distance: distance(m.features, features)}))
       .sort((a, b) => a.distance - b.distance);
     const selected: ArcMotionControl[] = [];
     for (const {m} of nearest) {
       const control = adapted(m, incoming, span);
-      if (selected.some(p => arcControlSimilar(control, p))) continue;
+      if (selected.some(p => diversity === 'geometry' ? arcControlsSimilar(control, p) : arcControlSimilar(control, p))) continue;
       selected.push(control);
       if (selected.length >= count) break;
     }
@@ -65,7 +64,7 @@ export class ArcControlMemory {
 
   proposeResponses(features: number[], incoming: number, span: number,
     wanted: Array<number | undefined>, count: number,
-    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]}): ArcMotionControl[] {
+    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]}, diversity: 'inherited' | 'geometry' = 'inherited'): ArcMotionControl[] {
     if (count <= 0) return [];
     const nearest = this.responses.map(m => ({m, distance: distance(m.features, features)}))
       .sort((a, b) => a.distance - b.distance || a.m.loss - b.m.loss);
@@ -90,7 +89,7 @@ export class ArcControlMemory {
         control[key] = (control[key] as number) + m.scale[d] *
           (key === 'support' ? span / m.span : 1) * clamp(delta[d]);
       });
-      if (selected.some(p => arcControlSimilar(control, p))) continue;
+      if (selected.some(p => diversity === 'geometry' ? arcControlsSimilar(control, p) : arcControlSimilar(control, p))) continue;
       selected.push(control);
       if (selected.length >= count) break;
     }

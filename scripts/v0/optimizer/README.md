@@ -16,6 +16,8 @@ checkouts can import and run the legacy backend without Rust or arc assets.
 | `compiler_input.ts` | Validate finite timeline values and order contacts with their authored targets. |
 | `arc_engine.ts` | Construct owned engine wrappers without empty-batch handle aliases. |
 | `arc_geometry.ts` | Pure coherent-curve construction: tangent schedule, turn timing, bend and guide separation. |
+| `arc_attempts.ts` | Complete-trajectory competition, incumbent-control transfer, and separate work/completion records for each attempt. |
+| `arc_motion_control.ts` | Exact control adaptation and expressive control-space diversity shared by learned examples and local memory. |
 | `arc_motion.ts` | Measured candidate search, continuation planning, backtracking and final replays. |
 | `arc_boundary.ts` | Replace a truncated planning estimate with the preceding span's actual measurement once the next contact completes it. |
 | `arc_memory.ts` | Reuse successful controls and measured local response matrices within one compile; every resulting proposal is physically evaluated. |
@@ -82,10 +84,30 @@ and omitted geometry fields are preserved exactly at demonstrated states;
 otherwise entry/exit angles and support adapt to the measured incoming direction
 and interval. The proposal is physically validated and stops early on rejection.
 General search then continues against the same absolute frame ceiling, without
-resetting or refunding any proposal work. The existing complete-trajectory
+resetting or refunding any proposal work. It also offers the preliminary track's
+controls, including a useful partial prefix, at each corresponding boundary.
+Those controls adapt to the measured incoming heading and interval length and
+compete through ordinary physical evaluation; they never force the next arc. The existing complete-trajectory
 objective chooses between the two finished tracks; general search wins ties.
 Explicit replay/direct-control studies bypass this competition. Disable
-`policyPreview` to study general search alone.
+`policyPreview` to study general search alone; disable `previewWarmStart` to
+measure the contribution of transferring the preliminary controls. Explicit
+`trajectoryControls` can offer other measured trajectories through the same path.
+
+Proposal diversity includes all supported curve controls: guide coverage and
+separation, bend, turn timing, easing, and contact offset as well as the original
+entry/turn/exit/support coordinates. Optional-field absence is retained rather
+than guessed away. Production uses `controlDiversity: "geometry"`; `"inherited"`
+retains the old proposal filtering for controlled comparisons. Planning and
+backtracking share one measured-arrival diversity rule, including the configured
+release-frame separation.
+
+Each attempt records its own construction, replay, commits, planning and completion.
+The returned interval rows and planning diagnostics belong to the selected track;
+aggregate candidate/work totals include both attempts. Public budget telemetry
+records both episodes and reports the first physically validated completion,
+which can precede the end of the compile. Later research should use `attempts`
+for work attribution instead of combining the winner's rows with aggregate totals.
 
 The policy JSON is a small manifest for a lossless gzip payload. The loader checks
 both compressed and decoded SHA-256 hashes and decoded length. The runtime uses
@@ -116,7 +138,7 @@ because their physical-control ideas and evidence may remain useful.
 
 ## Work and evidence
 
-Use [HOW_TO_WORK](../../../docs/HOW_TO_WORK.md) for the fixed V2 evaluation
+Use [HOW_TO_WORK](../../../docs/HOW_TO_WORK.md) for the current fixed V4 evaluation
 contract and [the foundations audit](../../../docs/compiler-foundations.md)
 for cleanup evidence and follow-up ideas. Research can start from shipped settings:
 

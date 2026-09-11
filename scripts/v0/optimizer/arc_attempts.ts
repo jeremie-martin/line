@@ -32,9 +32,9 @@ export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, opti
         policyPreview: false, policyRollout: true, policyRolloutStrict: true,
         lookaheadWidth: 0, qualityRetries: 0, refineAttempts: 0, collectTrajectoryLoss: true});
       run('search', {...options, policyPreview: false, policyRollout: false, policyRolloutStrict: false,
-        collectTrajectoryLoss: true, trajectoryControls: options.previewWarmStart
-          ? preview.rows.map(r => ({control: r.control, incoming: r.incoming, span: r.span}))
-          : options.trajectoryControls});
+        collectTrajectoryLoss: true, controlExamples: [
+          ...(options.controlExamples ?? []),
+          ...(options.previewMemory ? preview.rows.map(r => ({control: r.control, incoming: r.incoming, span: r.span, features: r.features})) : [])]});
     }
   }
   if (!results.length) run('search', options);

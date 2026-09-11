@@ -4,14 +4,14 @@ import type {Spec} from '../scripts/v0/types.ts';
 
 const spec: Spec = {duration: 4, jitter: 0, contacts: [{t: 1}], axes: {air: () => .5}};
 it('retains a completed incumbent, reuses its controls, and records each attempt on the shared clock', () => {
-  const reference = {control: {entry: 0, turn: 0, exit: 0, support: 8, bias: 0, offset: .1}, incoming: 3, span: 40};
+  const reference = {control: {entry: 0, turn: 0, exit: 0, support: 8, bias: 0, offset: .1}, incoming: 3, span: 40, features: Array(57).fill(0)};
   let calls = 0;
-  const result = runArcAttempts(spec, 17, {budget: 75000, policyPreview: true, previewWarmStart: true,
+  const result = runArcAttempts(spec, 17, {budget: 75000, policyPreview: true, previewMemory: true,
     controlPolicy: {rolloutPolicy: {}}}, (_spec, _seed, options, continueMeter) => {
     const first = calls++ === 0;
     expect(continueMeter).toBe(!first);
     expect(options.budget).toBe(first ? 3750 : 75000);
-    if (!first) expect(options.trajectoryControls).toEqual([reference]);
+    if (!first) expect(options.controlExamples).toEqual([reference]);
     return {track: {lines: [first ? 1 : 2]}, report: {terminus: {reason: 'endOfSpec'}, off_beat_landings: [], contacts: [{status: 'hit'}]} as any,
       rows: [{...reference, frame: 1, spent: first ? 60 : 900}], failure: null,
       trajectoryLoss: first ? .1 : .2, constructionFrames: first ? 60 : 900,

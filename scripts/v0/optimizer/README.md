@@ -84,15 +84,17 @@ and omitted geometry fields are preserved exactly at demonstrated states;
 otherwise entry/exit angles and support adapt to the measured incoming direction
 and interval. The proposal is physically validated and stops early on rejection.
 General search then continues against the same absolute frame ceiling, without
-resetting or refunding any proposal work. It also offers the preliminary track's
-controls, including a useful partial prefix, at each corresponding boundary.
-Those controls adapt to the measured incoming heading and interval length and
-compete through ordinary physical evaluation; they never force the next arc. The existing complete-trajectory
+resetting or refunding any proposal work. It adds the preliminary track's
+measured controls, including useful partial prefixes, to the existing physical-state
+memory. Retrieval matches the full relative rider state and upcoming targets,
+then adapts heading and interval length. These proposals share the established
+local-memory allocation and compete through ordinary physical evaluation. The existing complete-trajectory
 objective chooses between the two finished tracks; general search wins ties.
 Explicit replay/direct-control studies bypass this competition. Disable
-`policyPreview` to study general search alone; disable `previewWarmStart` to
+`policyPreview` to study general search alone; disable `previewMemory` to
 measure the contribution of transferring the preliminary controls. Explicit
-`trajectoryControls` can offer other measured trajectories through the same path.
+`controlExamples` can offer other measured trajectories through the same memory
+interface. Each example includes its incoming physical/target feature vector.
 
 Proposal diversity includes all supported curve controls: guide coverage and
 separation, bend, turn timing, easing, and contact offset as well as the original

@@ -1,0 +1,403 @@
+{
+  "schema": "line.arc-design-transfer-probe.v1",
+  "note": "One development validity failure used to investigate direct interval transfer. The memory prototype predates its commit; score and physical frames are confirmed by the full committed 489e2550 panel. This case influenced design and is not held-out evidence.",
+  "rows": [
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 104,
+      "jitter": 0.02,
+      "compilerCommit": "3a640fe4",
+      "compilerBase": null,
+      "prototype": null,
+      "overrides": {},
+      "score": {
+        "schema": "line.benchmark-v2.run-score.v2",
+        "score": 0,
+        "valid": false,
+        "scoringMode": "axis_quality",
+        "hardFailures": [
+          "missing:3",
+          "missing_measurement:impact:3[107..109]"
+        ],
+        "contacts": {
+          "authored": 110,
+          "reported": 110,
+          "hit": 107,
+          "drift": 0,
+          "missing": 3
+        },
+        "offBeatLandings": 0,
+        "terminus": {
+          "frame": 2420,
+          "reason": "endOfSpec"
+        },
+        "weightedAxisRms": 0.1074,
+        "expectedObservations": {
+          "air": 110,
+          "impact": 110,
+          "speed": 110
+        },
+        "components": {
+          "air": {
+            "observations": 110,
+            "rmsError": 0.178,
+            "quality": 0.4907,
+            "weight": 0.3333
+          },
+          "speed": {
+            "observations": 110,
+            "rmsError": 0.0539,
+            "quality": 0.806,
+            "weight": 0.3333
+          }
+        },
+        "diagnostics": {}
+      },
+      "failure": {
+        "reason": "budget"
+      },
+      "stats": {
+        "viable_candidate_samples": 31338,
+        "sim_frames": 748518,
+        "gap_commits": 107
+      },
+      "policyPreviewStats": {
+        "previewFrames": 5048,
+        "searchFrames": 743470,
+        "totalFrames": 748518,
+        "previewLoss": null,
+        "searchLoss": null,
+        "selected": "search",
+        "previewComplete": false,
+        "searchComplete": false
+      },
+      "name": "default",
+      "rawPath": "/home/wyss/line/generated/compiler-design-audit-20260911/probe-default.json.gz",
+      "sha256": "79ed9f1d93d46ceeb621db6852a25770027dd7fad767b3c6c3176074b8feac30",
+      "contacts": 110,
+      "hits": 107
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 104,
+      "jitter": 0.02,
+      "compilerCommit": "3a640fe4",
+      "compilerBase": null,
+      "prototype": null,
+      "overrides": {
+        "previewWarmStart": false
+      },
+      "score": {
+        "schema": "line.benchmark-v2.run-score.v2",
+        "score": 704.7211,
+        "valid": true,
+        "scoringMode": "axis_quality",
+        "hardFailures": [],
+        "contacts": {
+          "authored": 110,
+          "reported": 110,
+          "hit": 110,
+          "drift": 0,
+          "missing": 0
+        },
+        "offBeatLandings": 0,
+        "terminus": {
+          "frame": 2420,
+          "reason": "endOfSpec"
+        },
+        "weightedAxisRms": 0.0875,
+        "expectedObservations": {
+          "air": 110,
+          "impact": 110,
+          "speed": 110
+        },
+        "components": {
+          "air": {
+            "observations": 110,
+            "rmsError": 0.1484,
+            "quality": 0.5524,
+            "weight": 0.3333
+          },
+          "impact": {
+            "observations": 110,
+            "rmsError": 0.0205,
+            "quality": 0.9213,
+            "weight": 0.3333
+          },
+          "speed": {
+            "observations": 110,
+            "rmsError": 0.0229,
+            "quality": 0.9124,
+            "weight": 0.3333
+          }
+        },
+        "diagnostics": {}
+      },
+      "failure": null,
+      "stats": {
+        "viable_candidate_samples": 31803,
+        "sim_frames": 749956,
+        "gap_commits": 110
+      },
+      "policyPreviewStats": {
+        "previewFrames": 5048,
+        "searchFrames": 744908,
+        "totalFrames": 749956,
+        "previewLoss": null,
+        "searchLoss": 0.003951525707795791,
+        "selected": "search",
+        "previewComplete": false,
+        "searchComplete": true
+      },
+      "name": "without-transfer",
+      "rawPath": "/home/wyss/line/generated/compiler-design-audit-20260911/probe-without-transfer.json.gz",
+      "sha256": "fca327351d8d47c300f5a052c198a143bd83a63ecd8faa1a8c3553ec53b7534b",
+      "contacts": 110,
+      "hits": 110
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 104,
+      "jitter": 0.02,
+      "compilerCommit": "3a640fe4",
+      "compilerBase": null,
+      "prototype": null,
+      "overrides": {
+        "controlDiversity": "inherited"
+      },
+      "score": {
+        "schema": "line.benchmark-v2.run-score.v2",
+        "score": 687.1633,
+        "valid": true,
+        "scoringMode": "axis_quality",
+        "hardFailures": [],
+        "contacts": {
+          "authored": 110,
+          "reported": 110,
+          "hit": 110,
+          "drift": 0,
+          "missing": 0
+        },
+        "offBeatLandings": 0,
+        "terminus": {
+          "frame": 2420,
+          "reason": "endOfSpec"
+        },
+        "weightedAxisRms": 0.0938,
+        "expectedObservations": {
+          "air": 110,
+          "impact": 110,
+          "speed": 110
+        },
+        "components": {
+          "air": {
+            "observations": 110,
+            "rmsError": 0.1543,
+            "quality": 0.5394,
+            "weight": 0.3333
+          },
+          "impact": {
+            "observations": 110,
+            "rmsError": 0.0224,
+            "quality": 0.9142,
+            "weight": 0.3333
+          },
+          "speed": {
+            "observations": 110,
+            "rmsError": 0.0456,
+            "quality": 0.8332,
+            "weight": 0.3333
+          }
+        },
+        "diagnostics": {}
+      },
+      "failure": null,
+      "stats": {
+        "viable_candidate_samples": 29777,
+        "sim_frames": 747847,
+        "gap_commits": 110
+      },
+      "policyPreviewStats": {
+        "previewFrames": 5048,
+        "searchFrames": 742799,
+        "totalFrames": 747847,
+        "previewLoss": null,
+        "searchLoss": 0.004731473836299643,
+        "selected": "search",
+        "previewComplete": false,
+        "searchComplete": true
+      },
+      "name": "old-diversity",
+      "rawPath": "/home/wyss/line/generated/compiler-design-audit-20260911/probe-old-diversity.json.gz",
+      "sha256": "8324864e91ba54ba5da3fcd5637095773ea01c2518a87a3153bb4446310ce5f0",
+      "contacts": 110,
+      "hits": 110
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 104,
+      "jitter": 0.02,
+      "compilerCommit": "3a640fe4",
+      "compilerBase": null,
+      "prototype": null,
+      "overrides": {
+        "previewWarmStart": false,
+        "controlDiversity": "inherited"
+      },
+      "score": {
+        "schema": "line.benchmark-v2.run-score.v2",
+        "score": 690.8504,
+        "valid": true,
+        "scoringMode": "axis_quality",
+        "hardFailures": [],
+        "contacts": {
+          "authored": 110,
+          "reported": 110,
+          "hit": 110,
+          "drift": 0,
+          "missing": 0
+        },
+        "offBeatLandings": 0,
+        "terminus": {
+          "frame": 2420,
+          "reason": "endOfSpec"
+        },
+        "weightedAxisRms": 0.0925,
+        "expectedObservations": {
+          "air": 110,
+          "impact": 110,
+          "speed": 110
+        },
+        "components": {
+          "air": {
+            "observations": 110,
+            "rmsError": 0.1542,
+            "quality": 0.5396,
+            "weight": 0.3333
+          },
+          "impact": {
+            "observations": 110,
+            "rmsError": 0.0286,
+            "quality": 0.8918,
+            "weight": 0.3333
+          },
+          "speed": {
+            "observations": 110,
+            "rmsError": 0.0323,
+            "quality": 0.8789,
+            "weight": 0.3333
+          }
+        },
+        "diagnostics": {}
+      },
+      "failure": null,
+      "stats": {
+        "viable_candidate_samples": 30339,
+        "sim_frames": 749222,
+        "gap_commits": 110
+      },
+      "policyPreviewStats": {
+        "previewFrames": 5048,
+        "searchFrames": 744174,
+        "totalFrames": 749222,
+        "previewLoss": null,
+        "searchLoss": 0.004551003638890972,
+        "selected": "search",
+        "previewComplete": false,
+        "searchComplete": true
+      },
+      "name": "old-selection",
+      "rawPath": "/home/wyss/line/generated/compiler-design-audit-20260911/probe-old-selection.json.gz",
+      "sha256": "4e28cc5cd2d91a37c31ef6be44c41be78ee4d48e6a6f1f6440559b7ddca52683",
+      "contacts": 110,
+      "hits": 110
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 104,
+      "jitter": 0.02,
+      "compilerCommit": null,
+      "compilerBase": "3a640fe4",
+      "prototype": "physical-state-memory",
+      "overrides": {},
+      "score": {
+        "schema": "line.benchmark-v2.run-score.v2",
+        "score": 694.7028,
+        "valid": true,
+        "scoringMode": "axis_quality",
+        "hardFailures": [],
+        "contacts": {
+          "authored": 110,
+          "reported": 110,
+          "hit": 110,
+          "drift": 0,
+          "missing": 0
+        },
+        "offBeatLandings": 0,
+        "terminus": {
+          "frame": 2420,
+          "reason": "endOfSpec"
+        },
+        "weightedAxisRms": 0.0911,
+        "expectedObservations": {
+          "air": 110,
+          "impact": 110,
+          "speed": 110
+        },
+        "components": {
+          "air": {
+            "observations": 110,
+            "rmsError": 0.1512,
+            "quality": 0.5463,
+            "weight": 0.3333
+          },
+          "impact": {
+            "observations": 110,
+            "rmsError": 0.0366,
+            "quality": 0.8638,
+            "weight": 0.3333
+          },
+          "speed": {
+            "observations": 110,
+            "rmsError": 0.0264,
+            "quality": 0.9,
+            "weight": 0.3333
+          }
+        },
+        "diagnostics": {}
+      },
+      "failure": null,
+      "stats": {
+        "viable_candidate_samples": 31332,
+        "sim_frames": 749830,
+        "gap_commits": 110
+      },
+      "policyPreviewStats": {
+        "previewFrames": 5048,
+        "searchFrames": 744782,
+        "totalFrames": 749830,
+        "previewLoss": null,
+        "searchLoss": 0.004465955214688467,
+        "selected": "search",
+        "previewComplete": false,
+        "searchComplete": true
+      },
+      "name": "physical-memory",
+      "rawPath": "/home/wyss/line/generated/compiler-design-audit-20260911/probe-physical-memory.json.gz",
+      "sha256": "1ef0250eb2c4835783ec8454c4e5c83ee0b8aabbf11a791f7ee39754a466f6bf",
+      "contacts": 110,
+      "hits": 110,
+      "confirmedByCommittedMemoryPanel": true
+    }
+  ],
+  "reproductionScripts": {
+    "probe-jitter.mjs": {
+      "sha256": "b3d47cd5942ea7f0b9b9af8595194985ea096ad529cadb9f25391b93c57e194c",
+      "source": "import {readFileSync,writeFileSync} from 'node:fs';\nimport {gzipSync} from 'node:zlib';\nimport {createHash} from 'node:crypto';\nconst root='/home/wyss/line-worktrees/compiler-design-validation';\nconst {developmentCases}=await import(root+'/benchmark/v2/catalog.ts');\nconst {benchmarkPolicy}=await import(root+'/benchmark/v2/policy.ts');\nconst {applyJolt}=await import(root+'/scripts/produce/seed.ts');\nconst {compileArcMotion}=await import(root+'/scripts/v0/optimizer/arc_motion.ts');\nconst {connectedArcOptions}=await import(root+'/scripts/v0/optimizer/connected_arcs.ts');\nconst {buildAxisContract,scoreV2Report}=await import(root+'/scripts/v0/benchmark_v2/evaluator.ts');\nconst source='frontier_pickup_progression_shifted',seed=104;\nconst entry=developmentCases.find(e=>e.case.metadata.id===source);\nconst spec={...applyJolt(entry.case.spec,benchmarkPolicy.transform.joltMs),jitter:.02};\nconst suite=JSON.parse(readFileSync(root+'/benchmark/v2/compat/suite-manifest.json','utf8'));\nfor(const [name,overrides] of [['default',{}],['without-transfer',{previewWarmStart:false}],['old-diversity',{controlDiversity:'inherited'}],['old-selection',{previewWarmStart:false,controlDiversity:'inherited'}]]){\n const result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,750000),...overrides});\n const score=scoreV2Report(result.report,spec.contacts.length,buildAxisContract(spec,Object.keys(benchmarkPolicy.componentWeights)),suite);\n const body=gzipSync(JSON.stringify({source,seed,jitter:.02,compilerCommit:'3a640fe4',overrides,score,...result}));\n const out='/home/wyss/line/generated/compiler-design-audit-20260911/probe-'+name+'.json.gz';\n writeFileSync(out,body);writeFileSync(out+'.sha256',createHash('sha256').update(body).digest('hex')+'\\n');\n console.log(JSON.stringify({name,score:score.score,valid:score.valid,failure:result.failure,preview:result.policyPreviewStats,frames:result.stats.sim_frames}));\n}\n"
+    },
+    "probe-memory.mjs": {
+      "sha256": "1d625b9c2dbfa58b880b856892f7d9e9bf5bf5c4da572bfc951a44344c18657c",
+      "source": "import {readFileSync,writeFileSync} from 'node:fs';\nimport {gzipSync} from 'node:zlib';\nimport {createHash} from 'node:crypto';\nconst root='/home/wyss/line-worktrees/compiler-design-memory';\nconst {developmentCases}=await import(root+'/benchmark/v2/catalog.ts');\nconst {benchmarkPolicy}=await import(root+'/benchmark/v2/policy.ts');\nconst {applyJolt}=await import(root+'/scripts/produce/seed.ts');\nconst {compileArcMotion}=await import(root+'/scripts/v0/optimizer/arc_motion.ts');\nconst {connectedArcOptions}=await import(root+'/scripts/v0/optimizer/connected_arcs.ts');\nconst {buildAxisContract,scoreV2Report}=await import(root+'/scripts/v0/benchmark_v2/evaluator.ts');\nconst source='frontier_pickup_progression_shifted',seed=104;\nconst entry=developmentCases.find(e=>e.case.metadata.id===source);\nconst spec={...applyJolt(entry.case.spec,benchmarkPolicy.transform.joltMs),jitter:.02};\nconst suite=JSON.parse(readFileSync(root+'/benchmark/v2/compat/suite-manifest.json','utf8'));\nfor(const [name,overrides] of [['physical-memory',{}]]){\n const result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,750000),...overrides});\n const score=scoreV2Report(result.report,spec.contacts.length,buildAxisContract(spec,Object.keys(benchmarkPolicy.componentWeights)),suite);\n const body=gzipSync(JSON.stringify({source,seed,jitter:.02,compilerBase:'3a640fe4',prototype:'physical-state-memory',overrides,score,...result}));\n const out='/home/wyss/line/generated/compiler-design-audit-20260911/probe-'+name+'.json.gz';\n writeFileSync(out,body);writeFileSync(out+'.sha256',createHash('sha256').update(body).digest('hex')+'\\n');\n console.log(JSON.stringify({name,score:score.score,valid:score.valid,failure:result.failure,preview:result.policyPreviewStats,frames:result.stats.sim_frames}));\n}\n"
+    }
+  }
+}

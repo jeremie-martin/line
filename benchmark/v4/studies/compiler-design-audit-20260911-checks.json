@@ -1,0 +1,312 @@
+{
+  "schema": "line.arc-design-checks.v1",
+  "compilerCommit": "e374c022b6a3e7d130c3e20fa480783ee47a55cb",
+  "tests": {
+    "command": "LR_ENGINE=wasm npx vitest run tests/arc_*.test.ts tests/compiler_input.test.ts tests/handoff_routing.test.ts tests/handoff_reference_import.test.ts tests/benchmark_v2_baseline_cache.test.ts --maxWorkers=4",
+    "log": "\n RUN  v4.1.7 /home/wyss/line-worktrees/compiler-design-audit\n\n\n Test Files  42 passed (42)\n      Tests  165 passed (165)\n   Start at  07:30:59\n   Duration  107.46s (transform 2.67s, setup 0ms, import 8.95s, tests 94.10s, environment 4ms)\n\n",
+    "sha256": "874bd0c7142dfdfe3cd455ee9b5ab490fee69897d82a922b06a145239d4134a5"
+  },
+  "typescript": {
+    "baselineFile": "/home/wyss/line/generated/compiler-design-audit-20260911/typescript-final.log",
+    "candidateFile": "/home/wyss/line/generated/compiler-design-audit-20260911/typescript-registry.log",
+    "baselineErrors": 251,
+    "candidateErrors": 251,
+    "added": [],
+    "removed": [],
+    "baselineSha256": "8c797146f6913f6c24b2fd5010808607d4bd17d70da33077f380df1837977fb9",
+    "candidateSha256": "8c797146f6913f6c24b2fd5010808607d4bd17d70da33077f380df1837977fb9"
+  },
+  "newtonRegistryParity": {
+    "beforeCompiler": "489e2550",
+    "afterCompiler": "e374c022b6a3e7d130c3e20fa480783ee47a55cb",
+    "exactMatch": true,
+    "sha256": "52959e8fd0074611f8f3ba91e0b863982484d1a78d2a11276f4d8cfb33f545f1",
+    "result": {
+      "spec": {
+        "duration": 4,
+        "preroll": 5,
+        "jitter": 0,
+        "contacts": [
+          {
+            "t": 0.6,
+            "impact": 0.4
+          },
+          {
+            "t": 1.2,
+            "impact": 0.4
+          },
+          {
+            "t": 1.8,
+            "impact": 0.4
+          },
+          {
+            "t": 2.4,
+            "impact": 0.4
+          },
+          {
+            "t": 3,
+            "impact": 0.4
+          },
+          {
+            "t": 3.6,
+            "impact": 0.4
+          }
+        ],
+        "axes": {
+          "air": 0.5,
+          "speed": 0.5
+        }
+      },
+      "seed": 17,
+      "options": {
+        "budget": 200000,
+        "samples": 100,
+        "channel": 12,
+        "radius": 24,
+        "bidirectional": true,
+        "impactWeight": 1,
+        "amplitudeWeight": 0.3333333333333333,
+        "arrivalMode": "speed",
+        "arrivalWeight": 0.3,
+        "headingWeight": 0.3,
+        "solver": "newton"
+      },
+      "trackHash": "707cebea6384abc486a29f712ab8e3f5c5f92da3a083c4efabef7e7af017162f",
+      "report": {
+        "contacts": [
+          {
+            "t_target": 0.6,
+            "t_actual": 0.625,
+            "frame_error": 1,
+            "status": "hit"
+          },
+          {
+            "t_target": 1.2,
+            "t_actual": 1.2,
+            "frame_error": 0,
+            "status": "hit"
+          },
+          {
+            "t_target": 1.8,
+            "t_actual": 1.8,
+            "frame_error": 0,
+            "status": "hit"
+          },
+          {
+            "t_target": 2.4,
+            "t_actual": 2.4,
+            "frame_error": 0,
+            "status": "hit"
+          },
+          {
+            "t_target": 3,
+            "t_actual": 3.025,
+            "frame_error": 1,
+            "status": "hit"
+          },
+          {
+            "t_target": 3.6,
+            "t_actual": 3.625,
+            "frame_error": 1,
+            "status": "hit"
+          }
+        ],
+        "gaps": [
+          {
+            "gap_index": 0,
+            "t_end": 0.6,
+            "survived": true,
+            "axes": {
+              "air": {
+                "target": 0.5,
+                "achieved": 0.52,
+                "error": 0.020000000000000018
+              },
+              "speed": {
+                "target": 0.5,
+                "achieved": 0.5150771297043395,
+                "error": 0.015077129704339498,
+                "raw": {
+                  "unit": "px/frame",
+                  "target": 9,
+                  "achieved": 9.108555333871244,
+                  "error": 0.10855533387124439
+                }
+              },
+              "impact": {
+                "target": 0.4,
+                "achieved": 0.34677265850140665,
+                "error": 0.05322734149859337,
+                "feasibility_bound": 0.5465132184087307,
+                "ceiling": 1
+              }
+            }
+          },
+          {
+            "gap_index": 1,
+            "t_end": 1.2,
+            "survived": true,
+            "axes": {
+              "air": {
+                "target": 0.5,
+                "achieved": 0.48,
+                "error": 0.020000000000000018
+              },
+              "speed": {
+                "target": 0.5,
+                "achieved": 0.4328317512820911,
+                "error": 0.06716824871790888,
+                "raw": {
+                  "unit": "px/frame",
+                  "target": 9,
+                  "achieved": 8.516388609231056,
+                  "error": 0.4836113907689441
+                }
+              },
+              "impact": {
+                "target": 0.4,
+                "achieved": 0.3980293182629037,
+                "error": 0.0019706817370963026,
+                "feasibility_bound": 0.5465132184087307,
+                "ceiling": 1
+              }
+            }
+          },
+          {
+            "gap_index": 2,
+            "t_end": 1.8,
+            "survived": true,
+            "axes": {
+              "air": {
+                "target": 0.5,
+                "achieved": 0.48,
+                "error": 0.020000000000000018
+              },
+              "speed": {
+                "target": 0.5,
+                "achieved": 0.5110608855718973,
+                "error": 0.011060885571897328,
+                "raw": {
+                  "unit": "px/frame",
+                  "target": 9,
+                  "achieved": 9.07963837611766,
+                  "error": 0.07963837611766067
+                }
+              },
+              "impact": {
+                "target": 0.4,
+                "achieved": 0.3876028144843192,
+                "error": 0.012397185515680809,
+                "feasibility_bound": 0.5465132184087307,
+                "ceiling": 1
+              }
+            }
+          },
+          {
+            "gap_index": 3,
+            "t_end": 2.4,
+            "survived": true,
+            "axes": {
+              "air": {
+                "target": 0.5,
+                "achieved": 0.48,
+                "error": 0.020000000000000018
+              },
+              "speed": {
+                "target": 0.5,
+                "achieved": 0.4529306501615511,
+                "error": 0.047069349838448904,
+                "raw": {
+                  "unit": "px/frame",
+                  "target": 9,
+                  "achieved": 8.661100681163168,
+                  "error": 0.3388993188368321
+                }
+              },
+              "impact": {
+                "target": 0.4,
+                "achieved": 0.39435169605037484,
+                "error": 0.0056483039496251775,
+                "feasibility_bound": 0.5465132184087307,
+                "ceiling": 1
+              }
+            }
+          },
+          {
+            "gap_index": 4,
+            "t_end": 3,
+            "survived": true,
+            "axes": {
+              "air": {
+                "target": 0.5,
+                "achieved": 0.52,
+                "error": 0.020000000000000018
+              },
+              "speed": {
+                "target": 0.5,
+                "achieved": 0.4841702051579917,
+                "error": 0.015829794842008305,
+                "raw": {
+                  "unit": "px/frame",
+                  "target": 9,
+                  "achieved": 8.88602547713754,
+                  "error": 0.11397452286245979
+                }
+              },
+              "impact": {
+                "target": 0.4,
+                "achieved": 0.41673314744319323,
+                "error": 0.016733147443193208,
+                "feasibility_bound": 0.5465132184087307,
+                "ceiling": 1
+              }
+            }
+          },
+          {
+            "gap_index": 5,
+            "t_end": 3.6,
+            "survived": true,
+            "axes": {
+              "air": {
+                "target": 0.5,
+                "achieved": 0.6,
+                "error": 0.09999999999999998
+              },
+              "speed": {
+                "target": 0.5,
+                "achieved": 0.4554265322924124,
+                "error": 0.04457346770758758,
+                "raw": {
+                  "unit": "px/frame",
+                  "target": 9,
+                  "achieved": 8.67907103250537,
+                  "error": 0.3209289674946305
+                }
+              },
+              "impact": {
+                "target": 0.4,
+                "achieved": 0.3845756765711575,
+                "error": 0.015424323428842535,
+                "feasibility_bound": 0.9027493291828073,
+                "ceiling": 1
+              }
+            }
+          }
+        ],
+        "off_beat_landings": [],
+        "terminus": {
+          "frame": 180,
+          "reason": "endOfSpec"
+        }
+      },
+      "stats": {
+        "viable_candidate_samples": 418,
+        "sim_frames": 17154,
+        "gap_commits": 6
+      },
+      "failure": null
+    },
+    "reproductionScript": "import {createHash} from 'node:crypto';\nconst {compileArcMotion}=await import(process.argv[2]+'/scripts/v0/optimizer/arc_motion.ts');\nconst spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};\nconst options={budget:200000,samples:100,channel:12,radius:24,bidirectional:true,impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,solver:'newton'};\nconst r=compileArcMotion(spec,17,options);\nconsole.log(JSON.stringify({spec:{...spec,axes:{air:.5,speed:.5}},seed:17,options,trackHash:createHash('sha256').update(JSON.stringify(r.track)).digest('hex'),report:r.report,stats:r.stats,failure:r.failure}));\n"
+  },
+  "reproductionScript": "from pathlib import Path\nimport gzip, hashlib, json, statistics\n\nraw=Path('/home/wyss/line/generated/compiler-design-audit-20260911')\nrepo=Path('/home/wyss/line-worktrees/compiler-design-audit')\nbaseline=Path('/home/wyss/line/generated/benchmark-v4/arc-940/jitter/policy-preview-949')\nsha=lambda b:hashlib.sha256(b).hexdigest()\ndef read(p):\n b=p.read_bytes();assert sha(b)==Path(str(p)+'.sha256').read_text().strip(),p\n return json.loads(gzip.decompress(b) if p.suffix=='.gz' else b)\ndef write(p,r):\n b=(json.dumps(r,indent=2)+'\\n').encode();p.write_bytes(b);Path(str(p)+'.sha256').write_text(sha(b)+'\\n')\n\nbefore,after=read(baseline/'plan.json'),read(raw/'final-jitter/plan.json')\nfor key in ['sources','seeds','budget','jitter']:assert before[key]==after[key],key\nold_contract=json.loads((repo/'benchmark/v4/studies/arc-940-jitter-comparison.json').read_text())['unchangedInputAndScoringSources']\nfor name,digest in old_contract.items():assert sha((repo/name).read_bytes())==digest,name\nrows=[]\nfor source in after['sources']:\n for seed in after['seeds']:\n  old=read(baseline/f'{source}-{seed}.json'); new=read(raw/f'final-jitter/{source}-{seed}.json'); prior=read(raw/f'memory-jitter/{source}-{seed}.json')\n  for key in ['source','seed','jitter','budget']:assert old[key]==new[key]\n  for key in ['trackSha256','score','stats']:assert new[key]==prior[key],(source,seed,key)\n  assert new['stats']['sim_frames']<=after['budget']\n  rows.append(dict(source=source,seed=seed,before=old['score']['score'],after=new['score']['score'],delta=new['score']['score']-old['score']['score'],beforeValid=old['score']['valid'],afterValid=new['score']['valid'],changedTrack=old['trackSha256']!=new['trackSha256']))\nby_source=[dict(source=s,meanDelta=statistics.mean(r['delta'] for r in rows if r['source']==s)) for s in after['sources']]\nrecord=dict(schema='line.arc-design-jitter-comparison.v1',note='Paired descriptive 2% search-target jitter on reused V2 development inputs; not a V4 headline, independent families or a significance claim. The direct-transfer failure informed this design.',compilerCommit=after['head'],baselineSummary=read(baseline/'summary.json'),candidateSummary=read(raw/'final-jitter/summary.json'),meanCellDelta=statistics.mean(r['delta'] for r in rows),improved=sum(r['delta']>0 for r in rows),regressed=sum(r['delta']<0 for r in rows),unchanged=sum(r['delta']==0 for r in rows),unchangedInputAndScoringSources=old_contract,rows=rows,sources=by_source,registryParity=dict(beforePlanSha256=sha((raw/'memory-jitter/plan.json').read_bytes()),afterPlanSha256=sha((raw/'final-jitter/plan.json').read_bytes()),matches=len(rows),fields=['trackSha256','score','stats']))\nwrite(repo/'benchmark/v4/studies/compiler-design-audit-20260911-jitter-comparison.json',record)\n\nold=(raw/'newton-registry-before.json').read_bytes();new=(raw/'newton-registry-after.json').read_bytes();assert old==new\nchecks=dict(schema='line.arc-design-checks.v1',compilerCommit=after['head'],tests=dict(command='LR_ENGINE=wasm npx vitest run tests/arc_*.test.ts tests/compiler_input.test.ts tests/handoff_routing.test.ts tests/handoff_reference_import.test.ts tests/benchmark_v2_baseline_cache.test.ts --maxWorkers=4',log=(raw/'registry-tests.log').read_text(),sha256=sha((raw/'registry-tests.log').read_bytes())),typescript=json.loads((raw/'typescript-registry-comparison.json').read_text()),newtonRegistryParity=dict(beforeCompiler='489e2550',afterCompiler=after['head'],exactMatch=True,sha256=sha(new),result=json.loads(new),reproductionScript=(raw/'newton-contract.mjs').read_text()),reproductionScript=Path(__file__).read_text())\nassert '165 passed' in checks['tests']['log']; assert checks['typescript']['added']==checks['typescript']['removed']==[]\nwrite(repo/'benchmark/v4/studies/compiler-design-audit-20260911-checks.json',checks)\nprint(json.dumps(dict(jitter=record['candidateSummary'],delta=record['meanCellDelta'],improved=record['improved'],regressed=record['regressed'],unchanged=record['unchanged'],registryParity=len(rows))))\n"
+}

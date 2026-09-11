@@ -1,0 +1,1988 @@
+{
+  "schema": "line.arc-design-jitter-comparison.v1",
+  "note": "Paired descriptive 2% search-target jitter on reused V2 development inputs; not a V4 headline, independent families or a significance claim. The direct-transfer failure informed this design.",
+  "compilerCommit": "e374c022b6a3e7d130c3e20fa480783ee47a55cb",
+  "baselineSummary": {
+    "schema": "line.arc-guidance-jitter-summary.v1",
+    "researchOnly": true,
+    "cells": 176,
+    "valid": 176,
+    "distinctTracks": 148,
+    "meanCellScore": 874.7027136363643,
+    "maxFrames": 749998,
+    "totalFrames": 131232073,
+    "failures": []
+  },
+  "candidateSummary": {
+    "schema": "line.arc-guidance-jitter-summary.v1",
+    "researchOnly": true,
+    "cells": 176,
+    "valid": 176,
+    "distinctTracks": 148,
+    "meanCellScore": 874.0737568181822,
+    "maxFrames": 749998,
+    "totalFrames": 131144711,
+    "failures": []
+  },
+  "meanCellDelta": -0.6289568181818165,
+  "improved": 61,
+  "regressed": 72,
+  "unchanged": 43,
+  "unchangedInputAndScoringSources": {
+    "benchmark/v2/catalog.ts": "2f9154345f697d20395def315bd96238299e4ebdc02712f02cb62b0c936843c8",
+    "benchmark/v2/policy.ts": "4910e552d78bd3401a1217eb5fe44748f3970e78c0dc3fcb25ecd4ebd408e536",
+    "scripts/produce/seed.ts": "3f4886acb59c2d16b64b2e32d1dfac6b388fa11f152b9c8d0b1486710eaabbd4",
+    "scripts/v0/benchmark_v2/evaluator.ts": "4e2d22af3fea901ba32b266dfa85d279e96b0631fd8a90c51a222f38afa63209",
+    "benchmark/v2/compat/suite-manifest.json": "9116b08c364868256c90fe1dc867a4d52199551b8a26c7db296a44dcceab0ffc"
+  },
+  "rows": [
+    {
+      "source": "amplitude_tides",
+      "seed": 101,
+      "before": 881.5685,
+      "after": 881.5685,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "amplitude_tides",
+      "seed": 102,
+      "before": 881.5685,
+      "after": 881.5685,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "amplitude_tides",
+      "seed": 103,
+      "before": 881.5685,
+      "after": 881.5685,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "amplitude_tides",
+      "seed": 104,
+      "before": 881.5685,
+      "after": 881.5685,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "amplitude_tides_restrained_10",
+      "seed": 101,
+      "before": 863.2038,
+      "after": 863.0423,
+      "delta": -0.16150000000004638,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "amplitude_tides_restrained_10",
+      "seed": 102,
+      "before": 863.2465,
+      "after": 859.3809,
+      "delta": -3.865599999999972,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "amplitude_tides_restrained_10",
+      "seed": 103,
+      "before": 859.9042,
+      "after": 853.429,
+      "delta": -6.4751999999999725,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "amplitude_tides_restrained_10",
+      "seed": 104,
+      "before": 877.3425,
+      "after": 877.3425,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "believer_56_6s",
+      "seed": 101,
+      "before": 919.8724,
+      "after": 925.183,
+      "delta": 5.310600000000022,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_56_6s",
+      "seed": 102,
+      "before": 935.693,
+      "after": 932.0215,
+      "delta": -3.6715000000000373,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_56_6s",
+      "seed": 103,
+      "before": 932.363,
+      "after": 932.3357,
+      "delta": -0.027300000000082036,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_56_6s",
+      "seed": 104,
+      "before": 924.8106,
+      "after": 921.6408,
+      "delta": -3.1698000000000093,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_56_6s_impact_relief",
+      "seed": 101,
+      "before": 925.8552,
+      "after": 929.1397,
+      "delta": 3.28449999999998,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_56_6s_impact_relief",
+      "seed": 102,
+      "before": 932.0147,
+      "after": 930.0768,
+      "delta": -1.9378999999998996,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_56_6s_impact_relief",
+      "seed": 103,
+      "before": 928.471,
+      "after": 936.9707,
+      "delta": 8.499699999999962,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_56_6s_impact_relief",
+      "seed": 104,
+      "before": 930.3855,
+      "after": 930.7484,
+      "delta": 0.3628999999999678,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_impact_56s",
+      "seed": 101,
+      "before": 905.5893,
+      "after": 905.5893,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "believer_impact_56s",
+      "seed": 102,
+      "before": 905.5893,
+      "after": 905.5893,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "believer_impact_56s",
+      "seed": 103,
+      "before": 905.5893,
+      "after": 905.5893,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "believer_impact_56s",
+      "seed": 104,
+      "before": 905.5893,
+      "after": 905.5893,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "believer_impact_56s_amplitude_plus_5",
+      "seed": 101,
+      "before": 877.5869,
+      "after": 877.7584,
+      "delta": 0.1715000000000373,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_impact_56s_amplitude_plus_5",
+      "seed": 102,
+      "before": 878.0187,
+      "after": 872.1616,
+      "delta": -5.857099999999946,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "believer_impact_56s_amplitude_plus_5",
+      "seed": 103,
+      "before": 902.4296,
+      "after": 902.4296,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "believer_impact_56s_amplitude_plus_5",
+      "seed": 104,
+      "before": 902.4296,
+      "after": 902.4296,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "countercurrent",
+      "seed": 101,
+      "before": 939.4951,
+      "after": 939.0791,
+      "delta": -0.41599999999994,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "countercurrent",
+      "seed": 102,
+      "before": 934.7416,
+      "after": 940.2086,
+      "delta": 5.467000000000098,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "countercurrent",
+      "seed": 103,
+      "before": 941.8875,
+      "after": 946.8601,
+      "delta": 4.972599999999943,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "countercurrent",
+      "seed": 104,
+      "before": 939.6056,
+      "after": 939.2737,
+      "delta": -0.33190000000001874,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "countercurrent_impact_contrast_12",
+      "seed": 101,
+      "before": 937.0569,
+      "after": 936.74,
+      "delta": -0.3169000000000324,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "countercurrent_impact_contrast_12",
+      "seed": 102,
+      "before": 934.8896,
+      "after": 939.2785,
+      "delta": 4.388900000000035,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "countercurrent_impact_contrast_12",
+      "seed": 103,
+      "before": 938.8823,
+      "after": 942.5131,
+      "delta": 3.630800000000022,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "countercurrent_impact_contrast_12",
+      "seed": 104,
+      "before": 934.2234,
+      "after": 929.7938,
+      "delta": -4.429599999999937,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "dense_dialogue",
+      "seed": 101,
+      "before": 913.0572,
+      "after": 910.3713,
+      "delta": -2.685899999999947,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "dense_dialogue",
+      "seed": 102,
+      "before": 913.9985,
+      "after": 918.754,
+      "delta": 4.755499999999984,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "dense_dialogue",
+      "seed": 103,
+      "before": 910.9565,
+      "after": 920.4724,
+      "delta": 9.515899999999988,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "dense_dialogue",
+      "seed": 104,
+      "before": 915.2898,
+      "after": 903.1218,
+      "delta": -12.168000000000006,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "dense_dialogue_impact_contrast_10",
+      "seed": 101,
+      "before": 915.8332,
+      "after": 912.8975,
+      "delta": -2.935699999999997,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "dense_dialogue_impact_contrast_10",
+      "seed": 102,
+      "before": 913.8788,
+      "after": 909.7168,
+      "delta": -4.161999999999921,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "dense_dialogue_impact_contrast_10",
+      "seed": 103,
+      "before": 904.3469,
+      "after": 909.1935,
+      "delta": 4.846599999999967,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "dense_dialogue_impact_contrast_10",
+      "seed": 104,
+      "before": 912.8657,
+      "after": 907.6293,
+      "delta": -5.236400000000003,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_dense_recovery",
+      "seed": 101,
+      "before": 638.3922,
+      "after": 622.9243,
+      "delta": -15.467899999999986,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_dense_recovery",
+      "seed": 102,
+      "before": 637.4133,
+      "after": 613.9234,
+      "delta": -23.489900000000034,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_dense_recovery",
+      "seed": 103,
+      "before": 639.2694,
+      "after": 629.3828,
+      "delta": -9.886600000000044,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_dense_recovery",
+      "seed": 104,
+      "before": 631.6805,
+      "after": 632.6717,
+      "delta": 0.9911999999999352,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_dense_recovery_240ms_figures",
+      "seed": 101,
+      "before": 632.4179,
+      "after": 645.859,
+      "delta": 13.441100000000006,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_dense_recovery_240ms_figures",
+      "seed": 102,
+      "before": 638.1306,
+      "after": 636,
+      "delta": -2.1305999999999585,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_dense_recovery_240ms_figures",
+      "seed": 103,
+      "before": 642.0197,
+      "after": 550.506,
+      "delta": -91.51369999999997,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_dense_recovery_240ms_figures",
+      "seed": 104,
+      "before": 641.0348,
+      "after": 634.4363,
+      "delta": -6.598500000000058,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance",
+      "seed": 101,
+      "before": 810.397,
+      "after": 814.9614,
+      "delta": 4.564399999999978,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance",
+      "seed": 102,
+      "before": 809.6556,
+      "after": 808.6212,
+      "delta": -1.034400000000005,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance",
+      "seed": 103,
+      "before": 813.9327,
+      "after": 813.9327,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "frontier_low_air_endurance",
+      "seed": 104,
+      "before": 811.4651,
+      "after": 805.8783,
+      "delta": -5.586800000000039,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_4s",
+      "seed": 101,
+      "before": 796.4307,
+      "after": 813.7785,
+      "delta": 17.347800000000007,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_4s",
+      "seed": 102,
+      "before": 810.067,
+      "after": 811.7456,
+      "delta": 1.6785999999999603,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_4s",
+      "seed": 103,
+      "before": 812.9105,
+      "after": 812.5699,
+      "delta": -0.3405999999999949,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_4s",
+      "seed": 104,
+      "before": 810.0791,
+      "after": 804.2833,
+      "delta": -5.795799999999986,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_6s",
+      "seed": 101,
+      "before": 806.3649,
+      "after": 811.4061,
+      "delta": 5.0412000000000035,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_6s",
+      "seed": 102,
+      "before": 806.526,
+      "after": 810.5322,
+      "delta": 4.006200000000035,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_6s",
+      "seed": 103,
+      "before": 813.1019,
+      "after": 809.1679,
+      "delta": -3.933999999999969,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_6s",
+      "seed": 104,
+      "before": 811.739,
+      "after": 804.9435,
+      "delta": -6.795500000000061,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_7s",
+      "seed": 101,
+      "before": 813.8741,
+      "after": 813.8741,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "frontier_low_air_endurance_7s",
+      "seed": 102,
+      "before": 813.8741,
+      "after": 813.8741,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "frontier_low_air_endurance_7s",
+      "seed": 103,
+      "before": 814.9446,
+      "after": 813.8092,
+      "delta": -1.1354000000000042,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_low_air_endurance_7s",
+      "seed": 104,
+      "before": 809.0798,
+      "after": 811.0536,
+      "delta": 1.973799999999983,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_pickup_progression",
+      "seed": 101,
+      "before": 697.7587,
+      "after": 707.38,
+      "delta": 9.62130000000002,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_pickup_progression",
+      "seed": 102,
+      "before": 707.5159,
+      "after": 700.0822,
+      "delta": -7.433700000000044,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_pickup_progression",
+      "seed": 103,
+      "before": 711.0803,
+      "after": 705.8992,
+      "delta": -5.181100000000015,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_pickup_progression",
+      "seed": 104,
+      "before": 708.1924,
+      "after": 698.7005,
+      "delta": -9.491899999999987,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 101,
+      "before": 704.0417,
+      "after": 699.0625,
+      "delta": -4.979199999999992,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 102,
+      "before": 703.5668,
+      "after": 687.1526,
+      "delta": -16.414199999999937,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 103,
+      "before": 704.12,
+      "after": 708.6882,
+      "delta": 4.568200000000047,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "seed": 104,
+      "before": 702.9667,
+      "after": 694.7028,
+      "delta": -8.263899999999921,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "high_air_drive",
+      "seed": 101,
+      "before": 901.2601,
+      "after": 905.0971,
+      "delta": 3.836999999999989,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "high_air_drive",
+      "seed": 102,
+      "before": 899.7798,
+      "after": 902.6108,
+      "delta": 2.8310000000000173,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "high_air_drive",
+      "seed": 103,
+      "before": 902.5223,
+      "after": 908.6568,
+      "delta": 6.134500000000003,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "high_air_drive",
+      "seed": 104,
+      "before": 907.7131,
+      "after": 899.2964,
+      "delta": -8.416700000000105,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "high_air_drive_air_minus_5",
+      "seed": 101,
+      "before": 927.7656,
+      "after": 925.4347,
+      "delta": -2.3308999999999287,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "high_air_drive_air_minus_5",
+      "seed": 102,
+      "before": 925.7623,
+      "after": 920.9517,
+      "delta": -4.810600000000022,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "high_air_drive_air_minus_5",
+      "seed": 103,
+      "before": 921.1091,
+      "after": 926.3977,
+      "delta": 5.288599999999974,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "high_air_drive_air_minus_5",
+      "seed": 104,
+      "before": 920.1599,
+      "after": 917.6427,
+      "delta": -2.5172000000000025,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "loose_pocket",
+      "seed": 101,
+      "before": 937.0727,
+      "after": 937.8269,
+      "delta": 0.7541999999999689,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "loose_pocket",
+      "seed": 102,
+      "before": 937.8525,
+      "after": 940.2732,
+      "delta": 2.4207000000000107,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "loose_pocket",
+      "seed": 103,
+      "before": 938.1552,
+      "after": 943.8509,
+      "delta": 5.695699999999988,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "loose_pocket",
+      "seed": 104,
+      "before": 935.7243,
+      "after": 936.5671,
+      "delta": 0.8428000000000111,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "loose_pocket_drag_later_20ms",
+      "seed": 101,
+      "before": 940.7179,
+      "after": 936.2477,
+      "delta": -4.470199999999977,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "loose_pocket_drag_later_20ms",
+      "seed": 102,
+      "before": 936.1563,
+      "after": 937.2556,
+      "delta": 1.099299999999971,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "loose_pocket_drag_later_20ms",
+      "seed": 103,
+      "before": 940.1401,
+      "after": 944.6462,
+      "delta": 4.50610000000006,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "loose_pocket_drag_later_20ms",
+      "seed": 104,
+      "before": 933.3635,
+      "after": 938.7012,
+      "delta": 5.337699999999927,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "meter_exchange",
+      "seed": 101,
+      "before": 939.4174,
+      "after": 935.2293,
+      "delta": -4.188100000000077,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "meter_exchange",
+      "seed": 102,
+      "before": 937.5959,
+      "after": 937.191,
+      "delta": -0.4048999999999978,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "meter_exchange",
+      "seed": 103,
+      "before": 940.1626,
+      "after": 942.8147,
+      "delta": 2.6521000000000186,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "meter_exchange",
+      "seed": 104,
+      "before": 939.1257,
+      "after": 936.718,
+      "delta": -2.4077000000000908,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "meter_exchange_speed_plus_4",
+      "seed": 101,
+      "before": 943.2443,
+      "after": 939.0621,
+      "delta": -4.182199999999966,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "meter_exchange_speed_plus_4",
+      "seed": 102,
+      "before": 930.5568,
+      "after": 936.9541,
+      "delta": 6.397300000000087,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "meter_exchange_speed_plus_4",
+      "seed": 103,
+      "before": 933.3955,
+      "after": 940.9892,
+      "delta": 7.5937000000000126,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "meter_exchange_speed_plus_4",
+      "seed": 104,
+      "before": 935.1308,
+      "after": 932.7372,
+      "delta": -2.393599999999992,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "offgrid_conversation",
+      "seed": 101,
+      "before": 941.6535,
+      "after": 943.8918,
+      "delta": 2.238299999999981,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "offgrid_conversation",
+      "seed": 102,
+      "before": 941.7193,
+      "after": 940.9378,
+      "delta": -0.7814999999999372,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "offgrid_conversation",
+      "seed": 103,
+      "before": 941.5327,
+      "after": 943.4659,
+      "delta": 1.9332000000000562,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "offgrid_conversation",
+      "seed": 104,
+      "before": 939.6702,
+      "after": 937.3672,
+      "delta": -2.3029999999999973,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "offgrid_conversation_answer_early_25ms",
+      "seed": 101,
+      "before": 942.4685,
+      "after": 942.7455,
+      "delta": 0.27700000000004366,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "offgrid_conversation_answer_early_25ms",
+      "seed": 102,
+      "before": 937.7457,
+      "after": 943.1451,
+      "delta": 5.3993999999999005,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "offgrid_conversation_answer_early_25ms",
+      "seed": 103,
+      "before": 944.4719,
+      "after": 943.5516,
+      "delta": -0.9202999999999975,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "offgrid_conversation_answer_early_25ms",
+      "seed": 104,
+      "before": 931.4669,
+      "after": 937.1589,
+      "delta": 5.692000000000007,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "open_hook",
+      "seed": 101,
+      "before": 913.4031,
+      "after": 913.4031,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "open_hook",
+      "seed": 102,
+      "before": 913.4031,
+      "after": 913.4031,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "open_hook",
+      "seed": 103,
+      "before": 913.4031,
+      "after": 913.4031,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "open_hook",
+      "seed": 104,
+      "before": 913.4031,
+      "after": 913.4031,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "open_hook_amplitude_plus_8",
+      "seed": 101,
+      "before": 891.5706,
+      "after": 893.4779,
+      "delta": 1.9072999999999638,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "open_hook_amplitude_plus_8",
+      "seed": 102,
+      "before": 902.488,
+      "after": 902.488,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "open_hook_amplitude_plus_8",
+      "seed": 103,
+      "before": 902.488,
+      "after": 902.488,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "open_hook_amplitude_plus_8",
+      "seed": 104,
+      "before": 902.488,
+      "after": 902.488,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "pickup_lattice",
+      "seed": 101,
+      "before": 892.6202,
+      "after": 901.6001,
+      "delta": 8.979900000000043,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "pickup_lattice",
+      "seed": 102,
+      "before": 874.6854,
+      "after": 898.2747,
+      "delta": 23.589300000000094,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "pickup_lattice",
+      "seed": 103,
+      "before": 905.3457,
+      "after": 893.6929,
+      "delta": -11.652799999999957,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "pickup_lattice",
+      "seed": 104,
+      "before": 880.6984,
+      "after": 890.6148,
+      "delta": 9.916399999999953,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "pickup_lattice_speed_minus_4",
+      "seed": 101,
+      "before": 898.7349,
+      "after": 897.4839,
+      "delta": -1.25100000000009,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "pickup_lattice_speed_minus_4",
+      "seed": 102,
+      "before": 889.5175,
+      "after": 900.7743,
+      "delta": 11.256799999999998,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "pickup_lattice_speed_minus_4",
+      "seed": 103,
+      "before": 908.7895,
+      "after": 898.6468,
+      "delta": -10.14269999999999,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "pickup_lattice_speed_minus_4",
+      "seed": 104,
+      "before": 888.9021,
+      "after": 899.2184,
+      "delta": 10.316299999999956,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "regression_amplitude_mosaic",
+      "seed": 101,
+      "before": 781.009,
+      "after": 781.009,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "regression_amplitude_mosaic",
+      "seed": 102,
+      "before": 781.009,
+      "after": 781.009,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "regression_amplitude_mosaic",
+      "seed": 103,
+      "before": 778.1401,
+      "after": 778.1401,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "regression_amplitude_mosaic",
+      "seed": 104,
+      "before": 778.1401,
+      "after": 778.1401,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "regression_amplitude_mosaic_contrast_10",
+      "seed": 101,
+      "before": 772.9301,
+      "after": 772.9301,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "regression_amplitude_mosaic_contrast_10",
+      "seed": 102,
+      "before": 772.9301,
+      "after": 772.9301,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "regression_amplitude_mosaic_contrast_10",
+      "seed": 103,
+      "before": 772.9301,
+      "after": 772.9301,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "regression_amplitude_mosaic_contrast_10",
+      "seed": 104,
+      "before": 768.9433,
+      "after": 768.9433,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "regression_transition_mosaic",
+      "seed": 101,
+      "before": 931.8743,
+      "after": 934.025,
+      "delta": 2.150700000000029,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "regression_transition_mosaic",
+      "seed": 102,
+      "before": 929.7087,
+      "after": 927.6876,
+      "delta": -2.0211000000000467,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "regression_transition_mosaic",
+      "seed": 103,
+      "before": 935.6069,
+      "after": 926.0542,
+      "delta": -9.552699999999959,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "regression_transition_mosaic",
+      "seed": 104,
+      "before": 931.1531,
+      "after": 929.5405,
+      "delta": -1.612600000000043,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "regression_transition_mosaic_tempo_fast_5",
+      "seed": 101,
+      "before": 932.3708,
+      "after": 934.4156,
+      "delta": 2.0448000000000093,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "regression_transition_mosaic_tempo_fast_5",
+      "seed": 102,
+      "before": 925.3863,
+      "after": 931.9606,
+      "delta": 6.574299999999994,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "regression_transition_mosaic_tempo_fast_5",
+      "seed": 103,
+      "before": 931.1741,
+      "after": 943.2943,
+      "delta": 12.120200000000068,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "regression_transition_mosaic_tempo_fast_5",
+      "seed": 104,
+      "before": 931.6154,
+      "after": 930.3163,
+      "delta": -1.2991000000000668,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "rising_switch",
+      "seed": 101,
+      "before": 935.0214,
+      "after": 942.0394,
+      "delta": 7.018000000000029,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "rising_switch",
+      "seed": 102,
+      "before": 939.7655,
+      "after": 938.1264,
+      "delta": -1.639099999999985,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "rising_switch",
+      "seed": 103,
+      "before": 944.3859,
+      "after": 940.6671,
+      "delta": -3.7187999999999874,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "rising_switch",
+      "seed": 104,
+      "before": 936.2277,
+      "after": 931.8688,
+      "delta": -4.358900000000062,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "rising_switch_tempo_fast_5",
+      "seed": 101,
+      "before": 938.1303,
+      "after": 939.1312,
+      "delta": 1.0009000000000015,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "rising_switch_tempo_fast_5",
+      "seed": 102,
+      "before": 935.6627,
+      "after": 935.067,
+      "delta": -0.5956999999999653,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "rising_switch_tempo_fast_5",
+      "seed": 103,
+      "before": 938.141,
+      "after": 943.391,
+      "delta": 5.25,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "rising_switch_tempo_fast_5",
+      "seed": 104,
+      "before": 928.9575,
+      "after": 930.3398,
+      "delta": 1.3822999999999865,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "river_reentry",
+      "seed": 101,
+      "before": 937.588,
+      "after": 936.5279,
+      "delta": -1.0600999999999203,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "river_reentry",
+      "seed": 102,
+      "before": 941.6819,
+      "after": 939.6278,
+      "delta": -2.054100000000062,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "river_reentry",
+      "seed": 103,
+      "before": 947.1269,
+      "after": 933.5176,
+      "delta": -13.609299999999962,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "river_reentry",
+      "seed": 104,
+      "before": 943.1228,
+      "after": 938.3811,
+      "delta": -4.741700000000037,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "river_reentry_tempo_fast_5",
+      "seed": 101,
+      "before": 935.1591,
+      "after": 941.3125,
+      "delta": 6.153400000000033,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "river_reentry_tempo_fast_5",
+      "seed": 102,
+      "before": 934.8548,
+      "after": 934.25,
+      "delta": -0.6047999999999547,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "river_reentry_tempo_fast_5",
+      "seed": 103,
+      "before": 942.7402,
+      "after": 938.5471,
+      "delta": -4.1930999999999585,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "river_reentry_tempo_fast_5",
+      "seed": 104,
+      "before": 938.345,
+      "after": 935.7768,
+      "delta": -2.568200000000047,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "sparse_lowline",
+      "seed": 101,
+      "before": 920.7178,
+      "after": 920.7178,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "sparse_lowline",
+      "seed": 102,
+      "before": 920.7178,
+      "after": 920.7178,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "sparse_lowline",
+      "seed": 103,
+      "before": 920.7178,
+      "after": 920.7178,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "sparse_lowline",
+      "seed": 104,
+      "before": 920.7178,
+      "after": 920.7178,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "sparse_lowline_air_minus_4",
+      "seed": 101,
+      "before": 883.874,
+      "after": 883.874,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "sparse_lowline_air_minus_4",
+      "seed": 102,
+      "before": 883.874,
+      "after": 883.874,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "sparse_lowline_air_minus_4",
+      "seed": 103,
+      "before": 883.874,
+      "after": 883.874,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "sparse_lowline_air_minus_4",
+      "seed": 104,
+      "before": 883.874,
+      "after": 883.874,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "split_signal",
+      "seed": 101,
+      "before": 833.9756,
+      "after": 833.9756,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "split_signal",
+      "seed": 102,
+      "before": 816.8722,
+      "after": 823.5767,
+      "delta": 6.704499999999939,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "split_signal",
+      "seed": 103,
+      "before": 833.9756,
+      "after": 833.9756,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "split_signal",
+      "seed": 104,
+      "before": 821.3991,
+      "after": 811.2628,
+      "delta": -10.136300000000006,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "split_signal_impact_relief_12",
+      "seed": 101,
+      "before": 834.6805,
+      "after": 834.6805,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "split_signal_impact_relief_12",
+      "seed": 102,
+      "before": 822.6785,
+      "after": 825.4828,
+      "delta": 2.804300000000012,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "split_signal_impact_relief_12",
+      "seed": 103,
+      "before": 834.6805,
+      "after": 834.6805,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "split_signal_impact_relief_12",
+      "seed": 104,
+      "before": 822.1713,
+      "after": 821.3605,
+      "delta": -0.810799999999972,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "wide_breaths",
+      "seed": 101,
+      "before": 889.1199,
+      "after": 873.8218,
+      "delta": -15.298099999999977,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "wide_breaths",
+      "seed": 102,
+      "before": 876.0246,
+      "after": 882.4973,
+      "delta": 6.472700000000032,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "wide_breaths",
+      "seed": 103,
+      "before": 888.5161,
+      "after": 873.3383,
+      "delta": -15.177800000000047,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "wide_breaths",
+      "seed": 104,
+      "before": 885.8496,
+      "after": 877.8722,
+      "delta": -7.977399999999989,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "wide_breaths_air_plus_5",
+      "seed": 101,
+      "before": 909.7625,
+      "after": 909.7625,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "wide_breaths_air_plus_5",
+      "seed": 102,
+      "before": 909.7625,
+      "after": 909.7625,
+      "delta": 0.0,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": false
+    },
+    {
+      "source": "wide_breaths_air_plus_5",
+      "seed": 103,
+      "before": 870.6166,
+      "after": 888.5942,
+      "delta": 17.977600000000052,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    },
+    {
+      "source": "wide_breaths_air_plus_5",
+      "seed": 104,
+      "before": 883.5301,
+      "after": 889.3682,
+      "delta": 5.838100000000054,
+      "beforeValid": true,
+      "afterValid": true,
+      "changedTrack": true
+    }
+  ],
+  "sources": [
+    {
+      "source": "amplitude_tides",
+      "meanDelta": 0.0
+    },
+    {
+      "source": "amplitude_tides_restrained_10",
+      "meanDelta": -2.6255749999999978
+    },
+    {
+      "source": "believer_56_6s",
+      "meanDelta": -0.3895000000000266
+    },
+    {
+      "source": "believer_56_6s_impact_relief",
+      "meanDelta": 2.5523000000000025
+    },
+    {
+      "source": "believer_impact_56s",
+      "meanDelta": 0.0
+    },
+    {
+      "source": "believer_impact_56s_amplitude_plus_5",
+      "meanDelta": -1.4213999999999771
+    },
+    {
+      "source": "countercurrent",
+      "meanDelta": 2.4229250000000206
+    },
+    {
+      "source": "countercurrent_impact_contrast_12",
+      "meanDelta": 0.818300000000022
+    },
+    {
+      "source": "dense_dialogue",
+      "meanDelta": -0.14562499999999545
+    },
+    {
+      "source": "dense_dialogue_impact_contrast_10",
+      "meanDelta": -1.8718749999999886
+    },
+    {
+      "source": "frontier_dense_recovery",
+      "meanDelta": -11.963300000000032
+    },
+    {
+      "source": "frontier_dense_recovery_240ms_figures",
+      "meanDelta": -21.700424999999996
+    },
+    {
+      "source": "frontier_low_air_endurance",
+      "meanDelta": -0.5142000000000166
+    },
+    {
+      "source": "frontier_low_air_endurance_4s",
+      "meanDelta": 3.2224999999999966
+    },
+    {
+      "source": "frontier_low_air_endurance_6s",
+      "meanDelta": -0.4205249999999978
+    },
+    {
+      "source": "frontier_low_air_endurance_7s",
+      "meanDelta": 0.20959999999999468
+    },
+    {
+      "source": "frontier_pickup_progression",
+      "meanDelta": -3.1213500000000067
+    },
+    {
+      "source": "frontier_pickup_progression_shifted",
+      "meanDelta": -6.272274999999951
+    },
+    {
+      "source": "high_air_drive",
+      "meanDelta": 1.096449999999976
+    },
+    {
+      "source": "high_air_drive_air_minus_5",
+      "meanDelta": -1.0925249999999949
+    },
+    {
+      "source": "loose_pocket",
+      "meanDelta": 2.4283499999999947
+    },
+    {
+      "source": "loose_pocket_drag_later_20ms",
+      "meanDelta": 1.6182249999999954
+    },
+    {
+      "source": "meter_exchange",
+      "meanDelta": -1.0871500000000367
+    },
+    {
+      "source": "meter_exchange_speed_plus_4",
+      "meanDelta": 1.8538000000000352
+    },
+    {
+      "source": "offgrid_conversation",
+      "meanDelta": 0.2717500000000257
+    },
+    {
+      "source": "offgrid_conversation_answer_early_25ms",
+      "meanDelta": 2.6120249999999885
+    },
+    {
+      "source": "open_hook",
+      "meanDelta": 0.0
+    },
+    {
+      "source": "open_hook_amplitude_plus_8",
+      "meanDelta": 0.47682499999999095
+    },
+    {
+      "source": "pickup_lattice",
+      "meanDelta": 7.7082000000000335
+    },
+    {
+      "source": "pickup_lattice_speed_minus_4",
+      "meanDelta": 2.5448499999999683
+    },
+    {
+      "source": "regression_amplitude_mosaic",
+      "meanDelta": 0.0
+    },
+    {
+      "source": "regression_amplitude_mosaic_contrast_10",
+      "meanDelta": 0.0
+    },
+    {
+      "source": "regression_transition_mosaic",
+      "meanDelta": -2.758925000000005
+    },
+    {
+      "source": "regression_transition_mosaic_tempo_fast_5",
+      "meanDelta": 4.860050000000001
+    },
+    {
+      "source": "rising_switch",
+      "meanDelta": -0.6747000000000014
+    },
+    {
+      "source": "rising_switch_tempo_fast_5",
+      "meanDelta": 1.7593750000000057
+    },
+    {
+      "source": "river_reentry",
+      "meanDelta": -5.366299999999995
+    },
+    {
+      "source": "river_reentry_tempo_fast_5",
+      "meanDelta": -0.30317499999998176
+    },
+    {
+      "source": "sparse_lowline",
+      "meanDelta": 0.0
+    },
+    {
+      "source": "sparse_lowline_air_minus_4",
+      "meanDelta": 0.0
+    },
+    {
+      "source": "split_signal",
+      "meanDelta": -0.8579500000000166
+    },
+    {
+      "source": "split_signal_impact_relief_12",
+      "meanDelta": 0.49837500000001
+    },
+    {
+      "source": "wide_breaths",
+      "meanDelta": -7.995149999999995
+    },
+    {
+      "source": "wide_breaths_air_plus_5",
+      "meanDelta": 5.953925000000027
+    }
+  ],
+  "registryParity": {
+    "beforePlanSha256": "b1969b0cfceb7b6e180bcfd4f15c1d62f0b2a0b75d814bfa5c2505604ae9cd73",
+    "afterPlanSha256": "ca28d23c07a183b2e68697e89226899cd7ea90d335bf40db6373b4b23b42d440",
+    "matches": 176,
+    "fields": [
+      "trackSha256",
+      "score",
+      "stats"
+    ]
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "schema": "line.arc-policy-inventory.v1",
+  "note": "Exact duplicate top-level arrays within model nodes, serialized with sorted keys. Canonical JSON sizes are not gzip savings, heap sizes or evidence that distinct libraries are dispensable.",
+  "manifestSha256": "9ba4bcd290e35930ca1a23ace7bd7756108da66e675fb96b33f36315acd47afe",
+  "compressedSha256": "0957c983e5fbb8da2200e344eca5f0042b414028c9a05b07c8e35140529bb010",
+  "decodedSha256": "44d6cb631ce8c97ebcda5ab76caed9a7d507c59707ab925d47b5929e5059d854",
+  "compressedBytes": 102442793,
+  "decodedBytes": 243143468,
+  "nodes": [
+    {
+      "path": "root",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57
+    },
+    {
+      "path": "root.rolloutPolicy",
+      "schema": "line.arc-horizon-control-policy-features.v1",
+      "featureCount": 67,
+      "proximityTrees": 32,
+      "exemplars": 15962,
+      "referencedControls": 15962,
+      "featureWidths": [
+        67
+      ]
+    },
+    {
+      "path": "root.rolloutPolicy.startupModel",
+      "schema": "line.arc-horizon-control-policy-features.v1",
+      "featureCount": 67,
+      "proximityTrees": 32,
+      "exemplars": 176,
+      "referencedControls": 176,
+      "featureWidths": [
+        67
+      ]
+    },
+    {
+      "path": "root.models[0]",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57
+    },
+    {
+      "path": "root.models[0].models[0]",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57
+    },
+    {
+      "path": "root.models[0].models[0].models[0]",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57
+    },
+    {
+      "path": "root.models[0].models[0].models[0].residualBase",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57
+    },
+    {
+      "path": "root.models[0].models[0].models[0].residualBase.residualBase",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57,
+      "trees": 32
+    },
+    {
+      "path": "root.models[0].models[0].models[0].residualBase.residualModel",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57,
+      "trees": 32
+    },
+    {
+      "path": "root.models[0].models[0].models[0].residualModel",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57,
+      "trees": 32
+    },
+    {
+      "path": "root.models[0].models[0].models[1]",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57,
+      "proximityTrees": 32,
+      "exemplars": 79810,
+      "referencedControls": 0,
+      "featureWidths": [
+        57
+      ]
+    },
+    {
+      "path": "root.models[0].models[1]",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57,
+      "proximityTrees": 32,
+      "exemplars": 15962,
+      "referencedControls": 0,
+      "featureWidths": [
+        57
+      ]
+    },
+    {
+      "path": "root.models[1]",
+      "schema": "line.arc-control-policy-features.v1",
+      "featureCount": 57,
+      "proximityTrees": 32,
+      "exemplars": 15962,
+      "referencedControls": 0,
+      "featureWidths": [
+        57
+      ]
+    }
+  ],
+  "arrays": [
+    {
+      "path": "root.rolloutPolicy.proximityTrees",
+      "count": 32,
+      "canonicalJsonBytes": 2303078,
+      "sha256": "aa46d49c5c5694fbac4dbbdd6f192a568db73f8628debe8ad50a6c2fe10061c5"
+    },
+    {
+      "path": "root.rolloutPolicy.exemplars",
+      "count": 15962,
+      "canonicalJsonBytes": 29596444,
+      "sha256": "0a0b81f3d0996fc6b814adf56f3e9dfdc9e59c7167fb3bb81a3aebeff6283ec8"
+    },
+    {
+      "path": "root.rolloutPolicy.startupModel.proximityTrees",
+      "count": 32,
+      "canonicalJsonBytes": 2303078,
+      "sha256": "aa46d49c5c5694fbac4dbbdd6f192a568db73f8628debe8ad50a6c2fe10061c5"
+    },
+    {
+      "path": "root.rolloutPolicy.startupModel.exemplars",
+      "count": 176,
+      "canonicalJsonBytes": 280476,
+      "sha256": "4d65475fe894807bbed9102416bbff5f41d74b12860263364e445562980f39d7"
+    },
+    {
+      "path": "root.models[0].models[0].models[0].residualBase.residualBase.trees",
+      "count": 32,
+      "canonicalJsonBytes": 15012883,
+      "sha256": "67596d8851012461bb1062fd95b455252a5df3d9134b20cf95bff021554cf516"
+    },
+    {
+      "path": "root.models[0].models[0].models[0].residualBase.residualModel.trees",
+      "count": 32,
+      "canonicalJsonBytes": 10363150,
+      "sha256": "5544ab95dcce1d2b8aebf6c479df709055d79f1eacb34c6fd3b7db4a949fbd3d"
+    },
+    {
+      "path": "root.models[0].models[0].models[0].residualModel.trees",
+      "count": 32,
+      "canonicalJsonBytes": 18210001,
+      "sha256": "45374b76899d41d0212c281f3498680d4584833ad9ca7d48034cafcf78d34d09"
+    },
+    {
+      "path": "root.models[0].models[0].models[1].proximityTrees",
+      "count": 32,
+      "canonicalJsonBytes": 5797819,
+      "sha256": "decd666b08c92587059eecedc87a46c478600b84c4857a71087e7838bb4dc2f5"
+    },
+    {
+      "path": "root.models[0].models[0].models[1].exemplars",
+      "count": 79810,
+      "canonicalJsonBytes": 110487530,
+      "sha256": "fce01318b29229971e081133070d8ec3f0fd90fa8866c60e06093e4bea41c235"
+    },
+    {
+      "path": "root.models[0].models[1].proximityTrees",
+      "count": 32,
+      "canonicalJsonBytes": 2334694,
+      "sha256": "6aeee6e4f5e1779740375e2d94edbe07de89f48200d2285ba5016611f3289ae6"
+    },
+    {
+      "path": "root.models[0].models[1].exemplars",
+      "count": 15962,
+      "canonicalJsonBytes": 22038858,
+      "sha256": "566dccddfe04c7f31cdc4c7f958a63c38ed4dd4ff4559c0f3f5a6eb39a5f6e70"
+    },
+    {
+      "path": "root.models[1].proximityTrees",
+      "count": 32,
+      "canonicalJsonBytes": 2358216,
+      "sha256": "5bb6511f70710eb26ce1a4d570b9b50efbda930f6a6003536a06fe88b3b7e2a9"
+    },
+    {
+      "path": "root.models[1].exemplars",
+      "count": 15962,
+      "canonicalJsonBytes": 22035050,
+      "sha256": "16fe9814806e8d53229533cb1d6b4526ebe2d11d35b511279cf662b64ea62307"
+    }
+  ],
+  "duplicates": [
+    {
+      "paths": [
+        "root.rolloutPolicy.proximityTrees",
+        "root.rolloutPolicy.startupModel.proximityTrees"
+      ],
+      "canonicalJsonBytes": 2303078,
+      "repeatedBytes": 2303078,
+      "sha256": "aa46d49c5c5694fbac4dbbdd6f192a568db73f8628debe8ad50a6c2fe10061c5"
+    }
+  ],
+  "repeatedCanonicalJsonBytes": 2303078
+}

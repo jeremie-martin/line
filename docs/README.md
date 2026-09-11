@@ -14,23 +14,25 @@ historical record, not live guidance.
 
 | Doc | Tag | What |
 |---|---|---|
-| [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | The entry point for the Benchmark V2 compiler workflow. |
-| [`benchmark-v2-context.md`](benchmark-v2-context.md) | LIVE | Product distribution, scoring, holdout, compute, and governance contract. |
-| [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | LIVE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
-| [`benchmark-v2.md`](benchmark-v2.md) | LIVE | Benchmark V2 commands and operations. |
+| [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | Current frozen V4 workflow, product constraints and design/performance tradeoffs. |
+| [`benchmark-v2-context.md`](benchmark-v2-context.md) | REFERENCE | Product distribution, scoring, holdout, compute, and governance contract. |
+| [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | REFERENCE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
+| [`benchmark-v2.md`](benchmark-v2.md) | REFERENCE | Benchmark V2 commands and operations. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
-| [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | LIVE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
+| [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | REFERENCE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
 | [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | REFERENCE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |
-| [`benchmark-v2-baseline.md`](benchmark-v2-baseline.md) | LIVE | Generated summary of the currently accepted baseline. |
-| [`benchmark-v2-multi-budget.md`](benchmark-v2-multi-budget.md) | LIVE | Frozen compact multi-budget profile, paired scale decision, and execution workflow. |
+| [`benchmark-v2-baseline.md`](benchmark-v2-baseline.md) | REFERENCE | Generated summary of the currently accepted baseline. |
+| [`benchmark-v2-multi-budget.md`](benchmark-v2-multi-budget.md) | REFERENCE | Frozen compact multi-budget profile, paired scale decision, and execution workflow. |
 | [`compiler-telemetry-foundation.md`](compiler-telemetry-foundation.md) | LIVE | Strict compile telemetry semantics, identities, invariants, and trust boundary. |
-| [`benchmark-v2-audit.md`](benchmark-v2-audit.md) | LIVE | Suite audit and case provenance. |
-| [`REBASELINE.md`](REBASELINE.md) | LIVE | Accepted-attempt rebaseline and initial/suite-rollover bootstrap semantics. |
+| [`benchmark-v2-audit.md`](benchmark-v2-audit.md) | REFERENCE | Suite audit and case provenance. |
+| [`REBASELINE.md`](REBASELINE.md) | REFERENCE | Accepted-attempt rebaseline and initial/suite-rollover bootstrap semantics. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`../scripts/v0/optimizer/README.md`](../scripts/v0/optimizer/README.md) | LIVE | Current arc compiler and retained fallback map. |
+| [`compiler-design-audit-2026-09-11.md`](compiler-design-audit-2026-09-11.md) | LIVE | Behavioral audit, shared arc controls, physical-state transfer and measured tradeoffs. |
+| [`compiler-v2-workflow.md`](compiler-v2-workflow.md) | ARCHIVE | Superseded V2 workflow and sequential-promotion instructions. |
 | [`compiler-review-fixes-2026-09-11.md`](compiler-review-fixes-2026-09-11.md) | LIVE | Engine ownership, reference imports, legacy diagnostics, review cache and baseline-test corrections; exact 952.4115 V4 parity. |
-| [`compiler-integrity-audit.md`](compiler-integrity-audit.md) | LIVE | Accepted 777.82 compiler: implementation audit, measured inefficiencies, corrections and validation. |
+| [`compiler-integrity-audit.md`](compiler-integrity-audit.md) | REFERENCE | Earlier 777.82 compiler: implementation audit, measured inefficiencies, corrections and validation. |
 | [`arc-planning-continuity.md`](arc-planning-continuity.md) | REFERENCE | Preserved 771 compiler and first budget-interruption correction. |
 | [`compiler-foundations.md`](compiler-foundations.md) | REFERENCE | Cleanup audit, exact parity and research follow-up. |
 | [`arc-continuation-boundary-study.md`](arc-continuation-boundary-study.md) | REFERENCE | Adopted continuation-value research, higher-budget gains and the initially observed qualification regression. |
@@ -42,14 +44,14 @@ historical record, not live guidance.
 
 ## Campaigns
 
-The current performance result is [952.4115 on frozen V4](arc-v4-940-campaign.md),
-with [subsequent review fixes](compiler-review-fixes-2026-09-11.md) preserving every
-canonical track and score. Earlier framework-specific campaigns remain historical references.
+The current result is [952.5191 on frozen V4](compiler-design-audit-2026-09-11.md),
+following the 940 campaign and subsequent integrity and design audits.
+Earlier framework-specific campaigns remain historical references.
 
 | Doc | Tag | What |
 |---|---|---|
 | [`arc-refinement-campaign.md`](arc-refinement-campaign.md) | REFERENCE | Accepted 767 milestone, higher-budget results and full evidence. |
-| [`../goal.md`](../goal.md) | LIVE | The active compiler-improvement goal and strict sequential promotion discipline. |
+| [`../goal.md`](../goal.md) | LIVE | Current compiler result, goal status and retained campaign history. |
 | [`impact-delivery-650-campaign.md`](impact-delivery-650-campaign.md) | ARCHIVE | Frozen-evaluator campaign contract for passive contact-transition geometry, the 620 checkpoint, and the >650 target. |
 | [`impact-delivery-650-baseline-atlas.md`](impact-delivery-650-baseline-atlas.md) | ARCHIVE | Exact current-baseline impact loss slices and counterfactual ceilings used to aim the 650 campaign. |
 | [`shelter-budget-sweep-four-priority-implementation.md`](shelter-budget-sweep-four-priority-implementation.md) | ARCHIVE | Evidence and implementation record for budget identity, breadth, repair, persistent gaps, and the accepted outgoing-amplitude response law. |

@@ -26,31 +26,29 @@ The compiler work does not change:
 - `Spec` and `DriftReport` shapes
 - `lr-core` physics
 - detector semantics
-- Benchmark V2 evaluator and suite fingerprint within a comparison
+- frozen V4 catalog, evaluator and suite fingerprint within a comparison
 - axis definitions and normalization
-- frozen Benchmark V2 development cases and qualification references
+- historical benchmark cases and qualification references when running their diagnostics
 - contact/off-beat/survival hard-contract semantics
 
-(The V2 decision rule has its own fingerprint and explicit execution protocol. Its
-contract is `benchmark-v2-decisions.md`.)
+The current evaluation contract is [Benchmark V4](../benchmark/v4/README.md).
+Historical V2 sequential decisions remain reproducible under their own protocol.
 
-## Acceptance
+## Evaluation and design decisions
 
-- `tests/optimizer_handoff.test.ts` checks the budget-search contract and
-  handoff-specific diagnostics.
-- `tests/v0_determinism.test.ts` checks byte-identical output for representative
-  specs at a fixed budget.
-- `npm run benchmark -- eval --seeds=48 --jobs=48` compares the current compiler
-  on the 44 development cases at 750k with the exact immutable active cache.
-  It runs strict N=8/16/32/48 waves, so it compiles 352, 704, 1,408, or at most
-  2,112 candidate cells. Each wave covers every case and is decided before the
-  next wave enters the queue. Arbitrary active-campaign depths are disabled.
-- Improvement and simplification outcomes live in the standalone comparison
-  artifact. Active improvements use the calibrated sequential rule;
-  simplification and explicit deep/historical work remain fixed-N. After an
-  acceptance, `rebaseline --from=COMPARISON
-  --label=LABEL` explicitly promotes that measured compiler snapshot.
+Use [HOW_TO_WORK](HOW_TO_WORK.md) for current commands and
+[goal.md](../goal.md) for the accepted result. Canonical V4 covers the complete
+176-specification panel at seeds 16/17 and 750,000 physics frames per run.
+Report headline movement, validity, significant case/group changes, distinct
+tracks and actual work. Separate jitter and other diagnostic studies from the
+canonical result. Identical zero-jitter seed replicas are not independent samples.
 
-Any compiler change should preserve these tests and report its impact through the
-V2 breakdown: headline, budgets, strata, groups, parents, cases, validity flips,
-checkpoint hashes, weak contacts/axes, phases, and compiler statistics.
+The owner values maintainability and extensibility alongside performance.
+A material simplification can justify a small measured score tradeoff after
+investigation; individual regressions do not create an additional perfection
+veto. Keep coherent normal type-0 arcs and use video review for visual changes.
+
+Focused tests cover the changed compiler paths, determinism, physical validity
+and budget accounting. Legacy handoff tests remain relevant to the retained
+fallback, rather than defining the arc planner's architecture. Preserve compact
+reproducible evidence and document material limitations.

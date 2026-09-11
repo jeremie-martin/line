@@ -1,3 +1,28 @@
+# Current: 952.5191 on frozen Benchmark V4
+
+The [design and behavior audit](docs/compiler-design-audit-2026-09-11.md) preserves
+the completed 940 goal and improves the canonical headline from **952.4115 to
+952.5191**. Compiler `e374c022` passes **352/352 runs** across all **176
+specifications × seeds 16/17**, with **176 distinct tracks** and a maximum of
+**749,995 actual physics frames**. The catalog, scorer, detector, physics and
+normal coherent-arc constraint remain unchanged.
+
+This is a foundations improvement: one shared arc-control contract, measured
+trajectory transfer through physical-state memory, consistent attempt accounting,
+and current workflow documentation. The owner values material simplification
+and extensibility alongside performance; small score regressions are investigated
+rather than automatically vetoing a better design. The separate jitter panel
+has **176/176 valid runs** and a mean of **874.0738**, a disclosed **0.6290-point
+reduction** on reused development inputs. No independent generalization or new
+owner audiovisual approval is claimed.
+
+All **165 focused tests** pass; TypeScript retains exactly its **251 inherited
+diagnostics**. Code and compact evidence are committed and pushed on
+`codex/arc-v4-940` and `codex/compiler-design-audit`; large archives remain local.
+See [canonical evidence](benchmark/v4/studies/compiler-design-audit-20260911-validation.json)
+and the audit for complete tradeoffs and follow-up opportunities. The performance
+goal remains complete; this audit does not open a new target.
+
 # Achieved: 952.4115 on frozen Benchmark V4
 
 The **940 target is exceeded** at **952.4115**, up **25.4718** from 926.9397.

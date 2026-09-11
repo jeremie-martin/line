@@ -82,3 +82,14 @@ lines. Report the entire panel, per-case gains and regressions, actual work,
 distinct tracks and separate jitter diagnostics. Two deterministic seeds do not
 establish independent generalization. Code and compact evidence are pushed;
 raw tracks, research datasets, unselected models and videos remain local.
+
+
+The subsequent design audit qualifies compiler `e374c022` at **952.5191**,
+**352/352 valid runs**, 176 distinct tracks and at most 749,995 physics frames.
+Its V3 subset scores 958.0530 and its extension scores 947.0434. The shared
+control registry preserves the preceding memory version's complete research
+tracks, scores and work exactly. Separate target jitter remains 176/176 valid,
+with mean 874.0738 versus 874.7027 before the audit. This small diagnostic
+tradeoff is disclosed alongside the design improvements, not treated as a new
+benchmark score. See [canonical validation](studies/compiler-design-audit-20260911-validation.json)
+and the [design audit](../../docs/compiler-design-audit-2026-09-11.md).

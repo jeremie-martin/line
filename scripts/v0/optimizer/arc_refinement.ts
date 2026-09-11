@@ -4,6 +4,7 @@ import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFra
 import type { DriftReport, TrackLine, Gap } from '../types.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { createArcEngine } from './arc_engine.ts';
+import { arcMethodKeys, arcControlStep, arcControlValue } from './arc_motion_control.ts';
 
 export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3): number {
   if (report.terminus.reason !== 'endOfSpec' || report.off_beat_landings.length ||
@@ -98,11 +99,10 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const boundary = getRiderMetered(incumbent, horizon);
       const reference = {position: boundary.position, velocity: boundary.velocity, state: boundary.ballisticState()};
       const control = sourceRows[i].control;
-      const directSteps: Record<string, number> = {entry: 1, turn: 3, exit: 3, support: Math.max(.5, control.support * .06), bias: .2, offset: .1, clearance: 1};
-      if(options.expressive||options.refineExpressive)Object.assign(directSteps,{turnFraction: .06, bend: 5, guideFlare: 2});
+      const directKeys=arcMethodKeys('repair',!!(options.expressive||options.refineExpressive));
       const scale = Math.pow(.5, Math.floor((tries[i] - 1) / 2));
-      const directControls = Object.entries(directSteps).flatMap(([key, step]) => [-1, 1].map(sign => ({...control,
-        [key]: (control[key] ?? (key === 'clearance' ? options.channel ?? 12 : key === 'turnFraction' ? Math.min(5, control.support * .5) / control.support : 0)) + sign * step * scale})));
+      const directControls = directKeys.flatMap(key => [-1, 1].map(sign => ({...control,
+        [key]: arcControlValue(control,key,options.channel) + sign * arcControlStep(key,'repair',control.support) * scale})));
       const retainedControls = options.refineUseAlternatives ? input.alternatives?.[i]?.map(a => a.c) : undefined;
       const searchResult = search(base, i, {directControls: retainedControls?.length ? retainedControls : options.refineDirect ? directControls : undefined, warmStart: sourceRows[i].control, localOnly: true,
         samples, guidanceSamples: options.refineGuidanceSamples ?? 24,

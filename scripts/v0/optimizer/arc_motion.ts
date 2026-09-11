@@ -6,7 +6,7 @@ import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSear
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
-import { motionArc, normalizeArcTurnFraction, type ArcMotionControl } from './arc_geometry.ts';
+import { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
@@ -19,6 +19,7 @@ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_valu
 import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { createArcEngine } from './arc_engine.ts';
 import { runArcAttempts } from './arc_attempts.ts';
+import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemoKey, arcControlValue, arcControlStep, arcMethodKeys } from './arc_motion_control.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -338,26 +339,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         return value===undefined||target===undefined||value<=1?0:
           ((value-target)**2-(1-target)**2)*(options.amplitudeWeight??1)*spanWeight(g,'amplitude');
       };
+      const controlContext={...options,span};
       const evaluate=(c:ArcMotionControl)=>{
-        c={...c,entry:clamp(c.entry,-75,85),turn:clamp(c.turn,-120,options.bidirectional?120:15),exit:clamp(c.exit,-80,85),support:clamp(c.support,2,Math.max(2,span-4)),bias:clamp(c.bias,-2,2),offset:clamp(c.offset,-2,3)};
-        if(c.clearance!==undefined)c.clearance=clamp(c.clearance,6,30);
-        if(c.guideStart!==undefined)c.guideStart=clamp(c.guideStart,0,1);
-        if(c.guideEnd!==undefined)c.guideEnd=clamp(c.guideEnd,0,1);
-        if(c.turnFraction!==undefined)c.turnFraction=normalizeArcTurnFraction(c.turnFraction,c.support,options.preserveTurnTiming);
-        if(c.bend!==undefined)c.bend=clamp(c.bend,-60,60);
-        if(c.guideFlare!==undefined)c.guideFlare=clamp(c.guideFlare,-16,16);
-        // Materialize the inherited value before finite differences. Otherwise
-        // changing entry bias would also move late bias during probing, while
-        // the joint step explicitly assigns them independently.
-        if(options.independentExit&&!options.exitRefinementOnly&&c.exitBias===undefined)c.exitBias=c.bias;
-        if(c.exitBias!==undefined)c.exitBias=clamp(c.exitBias,-3,3);
-        // All geometry inputs besides these controls are fixed for this search.
-        // Preserve absence (explicit full-span guides have a length floor) and
-        // signed zero. The implicit clearance equals the fixed channel exactly.
-        const key=memo?JSON.stringify([c.entry,c.turn,c.exit,c.support,c.bias,c.offset,
-          c.clearance??options.channel??0,c.guideStart,c.guideEnd,c.turnFraction,c.bend,c.guideFlare,c.exitBias]
-          .map(value=>value===undefined?'absent':Object.is(value,-0)?'-0':
-            Number.isFinite(value)?value:String(value))):'';
+        c=normalizeArcControl(c,controlContext);
+        const key=memo?arcControlMemoKey(c,options.channel):'';
         samples++;
         const saved=memo?.get(key);
         if(saved){
@@ -514,27 +499,26 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(k%10===9)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
       }
       if(best){
-        const keys=['entry','turn','exit','support','bias','offset'] as const;
+        const keys=ARC_CORE_KEYS;
         let local=initial;
         if(options.solver==='newton'){
-          for(let iteration=0;iteration<4&&local+15<max;iteration++){
-            const origin=best, scale=[2,5,6,Math.max(1,support*.1),.25,.2];
-            const jac=origin.residuals.map(()=>Array(6).fill(0));
-            for(let d=0;d<6;d++){
+          for(let iteration=0;iteration<4&&local+2*keys.length+3<max;iteration++){
+            const origin=best, scale=keys.map(key=>arcControlStep(key,'newton',support));
+            const jac=origin.residuals.map(()=>Array(keys.length).fill(0));
+            for(let d=0;d<keys.length;d++){
               const key=keys[d], a=evaluate({...origin.c,[key]:origin.c[key]+scale[d]}),b=evaluate({...origin.c,[key]:origin.c[key]-scale[d]});local+=2;
               for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
             }
             const delta=arcResponseStep(jac,origin.residuals,.002);
             for(const damping of [1,.5,.25]){
-              if(delta){const c={...origin.c};keys.forEach((key,d)=>c[key]+=damping*scale[d]*clamp(delta[d],-4,4));evaluate(c);}local++;
+              if(delta){const c={...origin.c};keys.forEach((key,d)=>c[key]=arcControlValue(c,key,options.channel)+damping*scale[d]*clamp(delta[d],-4,4));evaluate(c);}local++;
             }
             Engine.retainOnly([...protectedEngines,engine,best.child]);
           }
         }
         for(let k=local;k<max;k++){
-          const key=keys[Math.floor((k-initial)/2)%keys.length],round=Math.floor((k-initial)/12),sign=k%2===0?-1:1;
-          const steps={entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4};
-          const candidate={...best.c,[key]:best.c[key]+sign*steps[key]*Math.pow(.65,Math.floor(round/2))};
+          const key=keys[Math.floor((k-initial)/2)%keys.length],round=Math.floor((k-initial)/(2*keys.length)),sign=k%2===0?-1:1;
+          const candidate={...best.c,[key]:best.c[key]+sign*arcControlStep(key,'coordinate',support)*Math.pow(.65,Math.floor(round/2))};
           evaluate(candidate);
           if(k%10===9)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
@@ -542,16 +526,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(best&&options.guidance){
         const origin=best;
         const exitEnabled=options.independentExit&&best.c.support>=(options.minExitSupport??0);
-        const responseKeys:(keyof ArcMotionControl)[]=['entry','turn','exit','support','bias','offset','clearance'];
-        if(options.expressive)responseKeys.push('turnFraction','bend','guideFlare');
-        if(exitEnabled)responseKeys.push('exitBias');
+        const responseKeys=arcMethodKeys('response',!!options.expressive,!!exitEnabled);
         const wantedResponse=Math.min(options.guidanceSamples??48,options.responseSamples??0);
         const responseRound=2*responseKeys.length+3;
         const responseAllowance=options.completeGuidanceBudget?Math.floor(wantedResponse/responseRound)*responseRound:wantedResponse>=responseRound?wantedResponse:0;
         const count=(options.guidanceSamples??48)-responseAllowance;
         const keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
-        if(options.guidanceJoint)keys.push('entry','turn','exit','support','bias','offset');
-        if(options.expressive)keys.push('turnFraction','bend','guideFlare');
+        if(options.guidanceJoint)keys.push(...ARC_CORE_KEYS);
+        if(options.expressive)keys.push(...ARC_EXPRESSIVE_KEYS);
         if(exitEnabled)keys.push('exitBias');
         const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
         for(let k=0;k<count;k++){
@@ -567,21 +549,21 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
               c.guideEnd=k===0?0:k%3===1?1:Math.max(c.guideStart,frac(.73205080757));
             }
           }else{
-            const key=keys[Math.floor(k/2)%keys.length],step={clearance:2,guideStart:.15,guideEnd:.15,entry:3,turn:8,exit:10,support:Math.max(1,support*.18),bias:.5,offset:.4,turnFraction:.12,bend:10,guideFlare:4,exitBias:.5}[key];
-            c={...best.c,...(exitEnabled?{exitBias:best.c.exitBias??best.c.bias}:{}),[key]:(best.c[key]??(key==='clearance'?options.channel??12:key==='guideEnd'?1:key==='turnFraction'?Math.min(5,best.c.support*.5)/best.c.support:key==='exitBias'?best.c.bias:0))+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
+            const key=keys[Math.floor(k/2)%keys.length],step=arcControlStep(key,'coordinate',support);
+            c={...best.c,...(exitEnabled?{exitBias:best.c.exitBias??best.c.bias}:{}),[key]:arcControlValue(best.c,key,options.channel)+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
         let responseUsed=0, trust=options.responseScale??1;
         let secant:{jac:number[][];trust:number;uses:number}|null=null;
         while(responseUsed+(secant?3:2*responseKeys.length+3)<=responseAllowance){
-          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale={entry:2,turn:5,exit:6,support:Math.max(.6,support*.1),bias:.25,offset:.2,clearance:1.5,turnFraction:.08,bend:7,guideFlare:2.5,exitBias:.4};
-          const value=(key:keyof ArcMotionControl)=>origin.c[key]??(key==='clearance'?options.channel??12:key==='turnFraction'?Math.min(5,origin.c.support*.5)/origin.c.support:key==='exitBias'?origin.c.bias:0);
+          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale=(key:keyof ArcMotionControl)=>arcControlStep(key,'response',support);
+          const value=(key:keyof ArcMotionControl)=>arcControlValue(origin.c,key,options.channel);
           const reused=secant!==null;
           const jac=reused?secant!.jac:origin.residuals.map(()=>Array(responseKeys.length).fill(0));
           if(reused)trust=secant!.trust;
           if(!reused)responseKeys.forEach((key,d)=>{
-            const step=scale[key as keyof typeof scale]*trust;
+            const step=scale(key)*trust;
             const a=evaluate({...origin.c,[key]:value(key)+step}),b=evaluate({...origin.c,[key]:value(key)-step});responseUsed+=2;
             for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
           });
@@ -591,17 +573,17 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
               targets:[targets.air,targets.speed,targets.amplitude,impact],keys:responseKeys.slice(),
               jac:jac.slice(0,4),residuals:origin.residuals.slice(0,4),
               axisWeights:responseAxisWeights,
-              scale:responseKeys.map(key=>scale[key as keyof typeof scale]*trust),
+              scale:responseKeys.map(key=>scale(key)*trust),
               loss:origin.residuals.slice(0,4).reduce((sum:number,v:number)=>sum+v*v,0)});
           }
           const delta=arcResponseStep(jac,origin.residuals,options.responseDamping??.0002);
           for(const fraction of [1,.5,.25]){
-            if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale[key as keyof typeof scale]*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
+            if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale(key)*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
           }
           const improving=best.optimizationCost<origin.optimizationCost-1e-12;
           const previousUses:number=secant?.uses??0;
           if(improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
-            const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale[key as keyof typeof scale]*trust));
+            const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale(key)*trust));
             const updated=arcSecantUpdate(jac,displacement,best.residuals.map((v:number,r:number)=>v-origin.residuals[r]));
             secant=updated?{jac:updated,trust,uses:previousUses+1}:null;
           }else secant=null;

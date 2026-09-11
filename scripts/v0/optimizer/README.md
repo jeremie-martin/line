@@ -17,7 +17,7 @@ checkouts can import and run the legacy backend without Rust or arc assets.
 | `arc_engine.ts` | Construct owned engine wrappers without empty-batch handle aliases. |
 | `arc_geometry.ts` | Pure coherent-curve construction: tangent schedule, turn timing, bend and guide separation. |
 | `arc_attempts.ts` | Complete-trajectory competition, incumbent-control transfer, and separate work/completion records for each attempt. |
-| `arc_motion_control.ts` | Exact control adaptation and expressive control-space diversity shared by learned examples and local memory. |
+| `arc_motion_control.ts` | Shared control registry: bounds, search defaults and steps, cache identity, expressive diversity, and exact adaptation of measured examples. |
 | `arc_motion.ts` | Measured candidate search, continuation planning, backtracking and final replays. |
 | `arc_boundary.ts` | Replace a truncated planning estimate with the preceding span's actual measurement once the next contact completes it. |
 | `arc_memory.ts` | Reuse successful controls and measured local response matrices within one compile; every resulting proposal is physically evaluated. |
@@ -103,6 +103,14 @@ than guessed away. Production uses `controlDiversity: "geometry"`; `"inherited"`
 retains the old proposal filtering for controlled comparisons. Planning and
 backtracking share one measured-arrival diversity rule, including the configured
 release-frame separation.
+
+New curve dimensions belong in `ArcMotionControl`, the pure geometry builder,
+and the control registry. The registry requires a definition for every control;
+normalization, memo identity, similarity, and solver dimensions derive from it.
+Construction and completed-track repair share defaults and step definitions.
+Omitted geometry remains omitted: a search default is not permission to change
+an inherited curve. Learned model feature/output contracts are separate, versioned
+interfaces and require training/export changes when extended.
 
 Each attempt records its own construction, replay, commits, planning and completion.
 The returned interval rows and planning diagnostics belong to the selected track;

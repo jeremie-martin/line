@@ -32,12 +32,12 @@ it('reuses a measured trajectory without forcing a demonstration or losing field
     arrivalMode: 'speed', arrivalWeight: .3, headingWeight: .3, pruneGuidance: true};
   const original = compileArcMotion(spec, 17, options);
   expect(original.failure).toBeNull();
-  const replay = compileArcMotion(spec, 17, {...options, localOnly: true, samples: 0,
-    trajectoryControls: original.rows.map(r => ({control: r.control, incoming: r.incoming, span: r.span}))});
-  expect(replay.track).toEqual(original.track);
-  expect(replay.report).toEqual(original.report);
+  const replay = compileArcMotion(spec, 17, {...options, samples: 8, memorySamples: 2,
+    controlExamples: original.rows.map(r => ({control: r.control, incoming: r.incoming, span: r.span, features: r.features}))});
+  expect(replay.failure).toBeNull();
+  expect(replay.report.contacts.every(c => c.status === "hit")).toBe(true);
   expect(replay.stats.sim_frames).toBeLessThan(original.stats.sim_frames);
-  expect(replay.samples).toBe(original.rows.length);
+
   expect(replay.track.lines.every(l => l.type === 0)).toBe(true);
 });
 

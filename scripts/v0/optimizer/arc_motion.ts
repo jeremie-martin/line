@@ -11,10 +11,9 @@ export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
 import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
-import { arcReferencedControl, type ArcControlReference } from './arc_motion_control.ts';
 import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
 import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
-import { ArcControlMemory, allocateArcProposalSlots } from './arc_memory.ts';
+import { ArcControlMemory, allocateArcProposalSlots, type ArcControlExample } from './arc_memory.ts';
 import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
@@ -35,9 +34,9 @@ const deg=(x:number)=>x*180/Math.PI;
 export type ArcMotionOptions= {
   budget:number;
   /** Reuse the preliminary track as measured controls in general search. */
-  previewWarmStart?:boolean;
-  /** Complete or partial trajectory controls, adapted to each measured boundary. */
-  trajectoryControls?:ArcControlReference[];
+  previewMemory?:boolean;
+  /** Measured controls retrieved by physical state and authored targets. */
+  controlExamples?:ArcControlExample[];
   /** Preserve distinct expressive geometry in learned and memory proposals. */
   controlDiversity?:'inherited'|'geometry';
   /** Reserve work for improving a completed track inside the same hard limit. */
@@ -242,6 +241,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
   const controlMemory=new ArcControlMemory();
+  for(const example of options.controlExamples??[])controlMemory.rememberControl(example);
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
   let deepestPrefix={lines:[] as TrackLine[],rows:[] as any[]};
   const backtrack=()=>{
@@ -507,7 +507,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
       const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0],options.controlDiversity):[];
       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
-      if(options.trajectoryControls?.[i])evaluate(arcReferencedControl(options.trajectoryControls[i],incoming,span));
       if(options.warmStart)evaluate(options.warmStart);
       for(let k=0;k<initial;k++){
         const frac=(n:number)=>((k+1)*n)%1;
@@ -827,7 +826,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       // can invalidate cached prefix frames even for a validated child.
       if(terminalChildLines)best.child=addArc(engine,terminalChildLines);
       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);
-      rows.push({frame,next,incoming,span:interval.span,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});
+      rows.push({frame,next,incoming,span:interval.span,features:interval.inputFeatures,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});
       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\n');
     }
     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){

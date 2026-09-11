@@ -1,6 +1,6 @@
 /** Reuse measured controls and local responses as proposals, never as validation. */
 import type { ArcMotionControl } from './arc_geometry.ts';
-import {arcControlsSimilar, arcReferencedControl} from './arc_motion_control.ts';
+import {arcControlsSimilar, arcReferencedControl, type ArcControlReference} from './arc_motion_control.ts';
 import { arcResponseStep } from './arc_response.ts';
 
 /** Largest-remainder apportionment keeps a short probe's proposal mix intact. */
@@ -15,9 +15,7 @@ export function allocateArcProposalSlots(requested: readonly number[], slots: nu
   return counts;
 }
 
-export type ArcControlExample = {
-  features: number[]; incoming: number; span: number; control: ArcMotionControl;
-};
+export type ArcControlExample = ArcControlReference & { features: number[]; };
 export type ArcResponseExample = ArcControlExample & {
   targets: Array<number | undefined>; keys: Array<keyof ArcMotionControl>;
   jac: number[][]; residuals: number[]; scale: number[]; loss: number;

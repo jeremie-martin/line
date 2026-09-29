@@ -5,24 +5,19 @@ import {mkdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {resolve, relative} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {galleryCases} from './cases.ts';
+import {galleryMethods, galleryMethodDetails, galleryArcOptions, type GalleryMethod} from './methods.ts';
 import {caseSpec, sha} from '../../benchmark/v3/model.ts';
 import {evaluateDetection} from '../../benchmark/v4/evaluator.ts';
 import {verifyFrozen} from '../../benchmark/v4/contract.ts';
 import {detect, extractRawTrajectory} from '../lib/detector.ts';
 
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
-const out = resolve(arg('out') ?? 'generated/motion-gallery/20260929-repertoire');
+const out = resolve(arg('out') ?? 'generated/motion-gallery/20260930-ten-shapes');
 const compilerRoot = resolve(arg('compiler-root') ?? '.');
-const budgets = (arg('budgets') ?? '25000,100000,750000').split(',').map(Number);
-const seeds = (arg('seeds') ?? '101,102').split(',').map(Number);
-const methodDetails = {
-  arcs: {title: 'Arcs and guides', description: 'Smooth connected support curves with optional guides.'},
-  segments: {title: 'Scattered · original', description: 'The original velocity-feedback controller.'},
-  scattered: {title: 'Scattered · improved', description: 'Keeps the original scattered ride, then tests fragments of a measured reference ride using the remaining allowance.'},
-  waves: {title: 'Wave curves', description: 'A returning bend followed by an independently shaped exit. Revives the existing wave geometry in measured search.'},
-  facets: {title: 'Faceted curves', description: 'Long straight faces, searched and replayed with their actual angular geometry.'},
-};
-const methods = (arg('methods') ?? 'arcs,segments,scattered,waves,facets').split(',') as Array<keyof typeof methodDetails>;
+const budgets = (arg('budgets') ?? '100000,250000').split(',').map(Number);
+const seeds = (arg('seeds') ?? '201,202').split(',').map(Number);
+const methodDetails = galleryMethodDetails;
+const methods = (arg('methods') ?? Object.keys(galleryMethods).join(',')).split(',') as GalleryMethod[];
 assert.ok(methods.length > 0 && new Set(methods).size === methods.length && methods.every(m => m in methodDetails));
 const jitter = Number(arg('jitter') ?? .02);
 assert.ok(budgets.every(b => Number.isSafeInteger(b) && b > 1000) && seeds.every(Number.isSafeInteger));
@@ -31,10 +26,10 @@ assert.ok(Number.isFinite(jitter) && jitter >= 0 && jitter < 1);
 const identity = () => JSON.parse(execFileSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e',
   'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; const {trackedChanges,...identity}=compilerCandidateIdentity("wasm"); console.log(JSON.stringify(identity));'],
   {cwd: compilerRoot, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024}));
-const harness = () => Object.fromEntries(['scripts/gallery/build.ts', 'scripts/gallery/cases.ts'].map(p => [p, sha(readFileSync(p))]));
+const harness = () => Object.fromEntries(['scripts/gallery/build.ts', 'scripts/gallery/cases.ts', 'scripts/gallery/methods.ts'].map(p => [p, sha(readFileSync(p))]));
 const plan = {schema: 'line.motion-gallery-plan.v1', researchOnly: true, compilerRoot, compiler: identity(),
   judge: verifyFrozen(), harness: harness(), cases: galleryCases, budgets, seeds, jitter,
-  methods, methodDetails, observer: Object.fromEntries(execFileSync('git', ['ls-files', 'vendor/lr-core'], {cwd: compilerRoot, encoding: 'utf8'}).trim().split('\n').map(p => [p, sha(readFileSync(resolve(compilerRoot,p)))])), note: 'Matched short passages, not a benchmark headline. Improved scattered construction compares two normal-segment methods; its choice and all work are recorded. No arc track is substituted for scattered geometry. Wall times include lazy model loading; first cell is cold, later cells reuse the process.'};
+  methods, methodDetails, observer: Object.fromEntries(execFileSync('git', ['ls-files', 'vendor/lr-core'], {cwd: compilerRoot, encoding: 'utf8'}).trim().split('\n').map(p => [p, sha(readFileSync(resolve(compilerRoot,p)))])), note: 'Ten geometry choices plus the original scattered controller for comparison. Shapes are constructed before physics search; ribbon, teeth and petals retain a supporting rail and add physical material-side contours. Matched short passages, not a benchmark headline. Improved scattered construction compares two normal-segment methods; its choice and all work are recorded. No arc track is substituted for scattered geometry. Wall times include lazy model loading; first cell is cold, later cells reuse the process.'};
 mkdirSync(out, {recursive: true});
 const write = (name: string, value: unknown) => {
   const body = JSON.stringify(value) + '\n'; writeFileSync(resolve(out, name), body);
@@ -59,9 +54,8 @@ for (const c of galleryCases) for (const budget of budgets) for (const seed of s
   // with a differently warmed process while claiming one matched timing study.
   const spec = {...caseSpec(c), jitter};
   const started = performance.now();
-  const options = ['arcs','waves','facets'].includes(method) ? {...connectedArcOptions(spec, budget),
-    ...(method === 'waves' ? {wave: true, policyPreview: false} : {}),
-    ...(method === 'facets' ? {subdivisions: .5, policyPreview: false} : {})} : undefined;
+  const overrides = galleryArcOptions(method);
+  const options = overrides ? {...connectedArcOptions(spec, budget), ...overrides} : undefined;
   const result = options ? compileArcMotion(spec, seed, options) : method === 'scattered' ? compileScatteredMotion(spec, seed, {budget}) : compileNormalMotion(spec, seed, {budget});
   const compileMs = performance.now() - started, physicalFrames = result.stats.sim_frames;
   if (result.work) {

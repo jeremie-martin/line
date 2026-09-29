@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const number = n => n.toLocaleString(undefined, {maximumFractionDigits: 1});
 const title = method => manifest?.plan.methodDetails?.[method]?.title ?? ({arcs:'Arcs and guides',segments:'Scattered · original'}[method] ?? method);
-const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260929-repertoire/manifest.json', location.href);
+const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260930-ten-shapes/manifest.json', location.href);
 let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0;
 const cache = new Map();
 const hex = bytes => [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -39,17 +39,44 @@ function cellCard(record) {
   record.bounds = coords.reduce((b, [x,y]) => [Math.min(b[0],x), Math.min(b[1],y), Math.max(b[2],x), Math.max(b[3],y)], [Infinity, Infinity, -Infinity, -Infinity]);
   return card;
 }
+async function loadCell(cell) {
+  if (!cache.has(cell.id)) cache.set(cell.id, read(new URL(cell.path, manifestUrl), cell.sha256));
+  const raw = await cache.get(cell.id);
+  if (raw.planSha256 !== manifest.planSha256 || raw.id !== cell.id || raw.trackHash !== cell.trackHash) throw new Error('Replay identity mismatch');
+  return {...raw, path: cell.path};
+}
+async function showPalette(token) {
+  $('palette').replaceChildren(); $('palette-status').textContent='Loading shape previews…';
+  try {
+    const cells=manifest.plan.methods.map(method=>manifest.cells.find(c=>c.method===method && c.caseId===$('passage').value && c.budget===+$('budget').value && c.seed===+$('seed').value));
+    if(cells.some(c=>!c))throw new Error('The shape comparison is incomplete.');
+    const previews=await Promise.all(cells.map(loadCell));
+    if(token!==generation)return;
+    const ns='http://www.w3.org/2000/svg';
+    $('palette').replaceChildren(...previews.map(r=>{
+      const button=document.createElement('button'); button.className='shape-choice';
+      button.setAttribute('aria-pressed',String(r.method===$('right-method').value)); button.dataset.method=r.method;
+      const label=document.createElement('strong'); label.textContent=title(r.method);
+      const svg=document.createElementNS(ns,'svg');
+      const beat=r.case.contacts[Math.min(1,r.case.contacts.length-1)], frame=r.trace.frames[Math.min(beat.frame+4,r.trace.frames.length-1)];
+      const [x,y]=frame, bounds=[x-65,y-70,x+155,y+70];
+      svg.setAttribute('viewBox',`${bounds[0]} ${bounds[1]} 220 140`); svg.setAttribute('aria-hidden','true');
+      const path=document.createElementNS(ns,'path');
+      path.setAttribute('d',r.track.lines.filter(l=>Math.max(l.x1,l.x2)>=bounds[0] && Math.min(l.x1,l.x2)<=bounds[2] && Math.max(l.y1,l.y2)>=bounds[1] && Math.min(l.y1,l.y2)<=bounds[3]).map(l=>`M${l.x1},${l.y1}L${l.x2},${l.y2}`).join(''));
+      path.setAttribute('vector-effect','non-scaling-stroke'); svg.append(path);
+      const note=document.createElement('span'); note.textContent=`${r.score.valid?'Pass':'Failed contract'} · ${number(r.score.score)} / 1000`; note.className=r.score.valid?'':'failure';
+      button.append(svg,label,note); button.title=manifest.plan.methodDetails?.[r.method]?.description ?? title(r.method);
+      button.onclick=()=>{$('right-method').value=r.method;select();}; return button;
+    }));
+    $('palette-status').textContent='';
+  } catch(error) {if(token===generation){$('palette').replaceChildren();$('palette-status').textContent=`Cannot show previews: ${error.message}`;}}
+}
 async function select() {
-  const token = ++generation; pause(); $('play').disabled = true; $('status').textContent = 'Loading matching replays…';
+  const token = ++generation; showPalette(token); pause(); $('play').disabled = true; $('status').textContent = 'Loading matching replays…';
   const selected = ['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value && c.method === $(id).value));
   try {
     if(selected.some(c=>!c))throw new Error('The comparison is incomplete.');
-    const loaded = await Promise.all(selected.map(async cell => {
-      if (!cache.has(cell.id)) cache.set(cell.id, read(new URL(cell.path, manifestUrl), cell.sha256));
-      const raw = await cache.get(cell.id);
-      if (raw.planSha256 !== manifest.planSha256 || raw.id !== cell.id || raw.trackHash !== cell.trackHash) throw new Error('Replay identity mismatch');
-      return {...raw, path: cell.path};
-    }));
+    const loaded = await Promise.all(selected.map(loadCell));
     if (token !== generation) return;
     if (loaded.length !== 2) throw new Error('The comparison is incomplete.');
     records = loaded; seconds = 0; $('seek').value = '0'; $('seek').max = String(records[0].case.durationFrames / 40);
@@ -110,9 +137,9 @@ try {
   manifest = await read(manifestUrl, await checksum.text());
   if(manifest.schema !== 'line.motion-gallery.v1')throw new Error('Unsupported study format.');
   for(const id of ['left-method','right-method'])options(id,manifest.plan.methods,title);
-  $('right-method').value=manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);
+  $('right-method').value=manifest.plan.methods.includes('teeth')?'teeth':manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);
   options('passage', manifest.plan.cases.map(c=>c.id), id=>manifest.plan.cases.find(c=>c.id===id).title);
-  options('budget', manifest.plan.budgets, b=>`${number(b)} frames`); $('budget').value=String(manifest.plan.budgets.at(-1)); options('seed',manifest.plan.seeds);
+  options('budget', manifest.plan.budgets, b=>`${number(b)} frames`); $('budget').value=String(manifest.plan.budgets.includes(100000)?100000:manifest.plan.budgets.at(-1)); options('seed',manifest.plan.seeds);
   $('study-note').textContent=manifest.plan.note; $('manifest-link').href=manifestUrl;
   $('identity').textContent=`Compiler ${manifest.plan.compiler.head.slice(0,8)} · ${manifest.cells.length} recorded runs`;
   for(const row of manifest.summary){const tr=document.createElement('tr');for(const value of [title(row.method),number(row.budget),`${row.valid}/${row.runs}`,number(row.meanScore),number(row.totalPhysicalFrames),`${(row.totalCompileMs/1000).toFixed(1)} s`]){const td=document.createElement('td');td.textContent=value;tr.append(td);}$('summary').append(tr);}

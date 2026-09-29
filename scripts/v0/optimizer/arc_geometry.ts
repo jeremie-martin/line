@@ -1,10 +1,13 @@
 /** Coherent normal-line geometry shared by construction and refinement studies.
  * This module only builds curves; it does not simulate or select candidates. */
+import {railContours, type RailContour} from './rail_contours.ts';
+import {profileHeading, type MotionProfile} from './motion_profiles.ts';
 import { makeSolidLine } from '../arc.ts';
 import type { TrackLine } from '../types.ts';
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
+export type ArcGeometryStyle={profile?:MotionProfile;contour?:RailContour};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number};
 
@@ -15,7 +18,8 @@ export function normalizeArcTurnFraction(fraction:number,support:number,preserve
 
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
  * make angular facets; their actual geometry must be searched and replayed. */
-export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0, subdivisions=4):TrackLine[]{
+export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0, subdivisions=4,style?:ArcGeometryStyle):TrackLine[]{
+  const {profile,contour}=style??{};
   if(!Number.isFinite(subdivisions)||subdivisions<=0||subdivisions>4)throw new Error('arc subdivisions must be in (0, 4]');
   const entry=rad(c.entry), n={x:Math.sin(entry),y:-Math.cos(entry)}, t={x:Math.cos(entry),y:Math.sin(entry)};
   const point=points.reduce((a,b)=>a.x*n.x+a.y*n.y<b.x*n.x+b.y*n.y?a:b);
@@ -32,6 +36,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     const easing=(z:number,bias=c.bias)=>bias>=0?Math.pow(z,1+bias):1-Math.pow(1-z,1-bias);
     let a=rad(time<first?c.entry+c.turn*(wave?Math.sin(Math.PI*u):easing(u)):lerp(c.entry+(wave?0:c.turn),c.exit,easing(w,c.exitBias??c.bias)));
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
+    if(profile&&time>=first)a=profileHeading(profile,a,w);
     if(radius>0)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
     if(flow){
       // A passive supporting surface cannot turn downward faster than free
@@ -65,5 +70,5 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
       for(let i=1;i<clipped.length;i++)lines.push(makeSolidLine(id++,clipped[i-1].x,clipped[i-1].y,clipped[i].x,clipped[i].y));
     }
   }
-  return lines;
+  return contour?railContours(lines,contour,id):lines;
 }

@@ -6,7 +6,7 @@ import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSear
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
-import { motionArc, type ArcMotionControl } from './arc_geometry.ts';
+import { motionArc, type ArcMotionControl, type ArcGeometryStyle } from './arc_geometry.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides } from './arc_guidance.ts';
@@ -32,7 +32,7 @@ const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:disposeJudge} =
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const deg=(x:number)=>x*180/Math.PI;
-export type ArcMotionOptions= {
+export type ArcMotionOptions= ArcGeometryStyle & {
   budget:number;
   /** Reuse the preliminary track as measured controls in general search. */
   previewMemory?:boolean;
@@ -320,7 +320,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
-        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.profile,options.contour,
           options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
@@ -368,7 +368,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           if(!best||result.optimizationCost<best.optimizationCost)best=result;
           return result;
         }
-        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions),child=addArc(engine,added);
+        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options),child=addArc(engine,added);
         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
         const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;return null;};
@@ -838,7 +838,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   setPhysicsFrameLimit(finalBudget);
   const coldEngine=createArcEngine(start,lines);
   raw=extractRawTrajectory(coldEngine,end);
-  const guidanceReduction=options.pruneGuidance?trimUnusedArcGuides(lines,coldEngine,end):null;
+  // Structured rails are indivisible: guide-only pruning would tear their contours.
+  const guidanceReduction=options.pruneGuidance&&!options.contour?trimUnusedArcGuides(lines,coldEngine,end):null;
   if(guidanceReduction)lines.splice(0,lines.length,...guidanceReduction.lines);
   disposeSearch();
   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}

@@ -20,7 +20,7 @@ const rows: any[] = [], ids = new Set<string>();
 let normalLines = 0;
 for (const {path, manifest} of studies) {
   assert.equal(manifest.schema, 'line.motion-gallery.v1');
-  for (const key of ['compiler', 'judge', 'harness', 'observer', 'cases', 'jitter', 'methods'])
+  for (const key of ['compiler', 'judge', 'harness', 'observer', 'cases', 'jitter', 'methods', 'methodDetails'])
     assert.deepEqual(manifest.plan[key], first.plan[key], `unmatched ${key}`);
   const plan = read(resolve(dirname(path), 'plan.json'), manifest.planSha256);
   assert.deepEqual(plan, manifest.plan);
@@ -64,6 +64,7 @@ const pairs = rows.filter(r=>r.method==='scattered').map(r=>{
   assert.equal(baseline.physicalFrames,r.work.feedback);
   return {caseId:r.caseId,budget:r.budget,seed:r.seed,before:baseline.score.score,after:r.score.score,delta:r.score.score-baseline.score.score};
 });
+const interpretation=args.find(a=>a.startsWith('--interpretation='))?.slice('--interpretation='.length) ?? 'Research passages, not a canonical headline. Development inputs and evaluation inputs are identified in the accompanying study report. No broad generalization or visual approval claim. Wall times include shared-host contention and model loading.';
 const evidence = {schema:'line.motion-gallery-expansion.v1',
   plans:studies.map(({path,manifest})=>({manifest:relative(process.cwd(),path),sha256:hash(readFileSync(path)),planSha256:manifest.planSha256,plan:manifest.plan})),
   checks:{runs:rows.length,normalLines,nonNormalLines:0,allChecksumsAndWorkVerified:true}, summary,pairs,
@@ -71,7 +72,7 @@ const evidence = {schema:'line.motion-gallery-expansion.v1',
     score:r.score.score,valid:r.score.valid,hardFailures:r.score.hardFailures,physicalFrames:r.physicalFrames,
     compileMs:r.compileMs,lines:r.lines,trackHash:r.trackHash,artifactSha256:r.sha256,study:r.study,
     work:r.work,construction:r.construction})),
-  interpretation:'Research passages, not a canonical headline. First four passages/seeds 101–102 informed development. Remaining seeds and final two passages extend evaluation. No broad generalization or visual approval claim. Wall times include shared-host contention and model loading.'};
+  interpretation};
 const out=resolve(output),body=JSON.stringify(evidence,null,2)+'\n';
 mkdirSync(dirname(out),{recursive:true});writeFileSync(out,body);writeFileSync(out+'.sha256',hash(body)+'\n');
 console.log(JSON.stringify({checks:evidence.checks,summary}));

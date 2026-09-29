@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const number = n => n.toLocaleString(undefined, {maximumFractionDigits: 1});
 const title = method => manifest?.plan.methodDetails?.[method]?.title ?? ({arcs:'Arcs and guides',segments:'Scattered · original'}[method] ?? method);
 const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260930-ten-shapes/manifest.json', location.href);
-let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0;
+let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0, activeInput;
 const cache = new Map();
 const hex = bytes => [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, '0')).join('');
 async function read(url, expected) {
@@ -46,6 +46,7 @@ async function loadCell(cell) {
   return {...raw, path: cell.path};
 }
 async function showPalette(token) {
+  const scrollLeft=$('palette').scrollLeft;
   $('palette').replaceChildren(); $('palette-status').textContent='Loading shape previews…';
   try {
     const cells=manifest.plan.methods.map(method=>manifest.cells.find(c=>c.method===method && c.caseId===$('passage').value && c.budget===+$('budget').value && c.seed===+$('seed').value));
@@ -68,10 +69,13 @@ async function showPalette(token) {
       button.append(svg,label,note); button.title=manifest.plan.methodDetails?.[r.method]?.description ?? title(r.method);
       button.onclick=()=>{$('right-method').value=r.method;select();}; return button;
     }));
+    $('palette').scrollLeft=scrollLeft;
     $('palette-status').textContent='';
   } catch(error) {if(token===generation){$('palette').replaceChildren();$('palette-status').textContent=`Cannot show previews: ${error.message}`;}}
 }
 async function select() {
+  const input=[$('passage').value,$('budget').value,$('seed').value].join('|');
+  const startTime=input===activeInput?seconds:0;
   const token = ++generation; showPalette(token); pause(); $('play').disabled = true; $('status').textContent = 'Loading matching replays…';
   const selected = ['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value && c.method === $(id).value));
   try {
@@ -79,7 +83,7 @@ async function select() {
     const loaded = await Promise.all(selected.map(loadCell));
     if (token !== generation) return;
     if (loaded.length !== 2) throw new Error('The comparison is incomplete.');
-    records = loaded; seconds = 0; $('seek').value = '0'; $('seek').max = String(records[0].case.durationFrames / 40);
+    records = loaded; activeInput=input; seconds = Math.min(startTime, records[0].case.durationFrames / 40); $('seek').value = String(seconds); $('seek').max = String(records[0].case.durationFrames / 40);
     $('beats').replaceChildren(...records[0].case.contacts.map((c, i) => {
       const beat = document.createElement('button'); beat.textContent = String(i+1);
       beat.style.left = `${100*c.frame/records[0].case.durationFrames}%`;

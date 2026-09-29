@@ -1,3 +1,22 @@
+# Current engineering work — 2026-09-30
+
+The [gallery now offers ten geometry choices](docs/motion-gallery-six-shapes-2026-09-30.md).
+Six new choices—serpentine rails, terraces, ripples, ribbed ribbons, crystal teeth
+and petal chains—join arcs/guides, improved scattered segments, waves and facets.
+The original scattered controller remains an additional comparison. All geometry
+uses normal lines and is constructed before physical search and replay.
+
+The matched study contains **528 rides, 528 passing timing and survival**,
+including 288 rides using the new styles, across six passages and two
+allowances. Six seeds characterize the central 100,000-frame allowance. The
+gallery has actual-geometry previews, synchronized playback and mobile controls.
+Target adherence varies by style; measurements preserve the full results.
+
+Production remains **952.4726 on frozen V4**, with all **352 tracks, scores and
+physical-work counts exactly unchanged**. The completed 940 goal stays complete.
+All **195 focused tests pass**, and no new TypeScript diagnostics were introduced.
+Code and compact evidence are versioned; large archives and playbacks stay local.
+
 # Current engineering work — 2026-09-29
 
 The [motion gallery](docs/motion-gallery-expansion-2026-09-29.md) now compares

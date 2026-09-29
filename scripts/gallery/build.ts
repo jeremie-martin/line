@@ -18,7 +18,7 @@ const budgets = (arg('budgets') ?? '100000,250000').split(',').map(Number);
 const seeds = (arg('seeds') ?? '201,202').split(',').map(Number);
 const methodDetails = galleryMethodDetails;
 const methods = (arg('methods') ?? Object.keys(galleryMethods).join(',')).split(',') as GalleryMethod[];
-assert.ok(methods.length > 0 && new Set(methods).size === methods.length && methods.every(m => m in methodDetails));
+assert.ok(methods.length > 0 && new Set(methods).size === methods.length && methods.every(m => Object.hasOwn(methodDetails,m)));
 const jitter = Number(arg('jitter') ?? .02);
 assert.ok(budgets.every(b => Number.isSafeInteger(b) && b > 1000) && seeds.every(Number.isSafeInteger));
 assert.ok(new Set(budgets).size === budgets.length && new Set(seeds).size === seeds.length);

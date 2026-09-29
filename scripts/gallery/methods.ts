@@ -1,7 +1,8 @@
 /** Concrete gallery choices, not a new specification language. The same search
  * evaluates every arc variant's emitted collision geometry. */
 import type {ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
-type Method = {title:string;description:string;arc?:Partial<ArcMotionOptions>};
+type GeometryOptions=Pick<ArcMotionOptions,'profile'|'contour'|'wave'|'subdivisions'|'policyPreview'>;
+type Method = {title:string;description:string;arc?:GeometryOptions};
 export const galleryMethods = {
   arcs: {title:'Arcs and guides',description:'Smooth connected support curves with optional guides.',arc:{}},
   segments: {title:'Scattered · original',description:'The original velocity-feedback controller, retained as a comparison.'},
@@ -17,8 +18,8 @@ export const galleryMethods = {
 } satisfies Record<string,Method>;
 export type GalleryMethod=keyof typeof galleryMethods;
 export const galleryMethodDetails=Object.fromEntries(Object.entries(galleryMethods).map(([id,{title,description}])=>[id,{title,description}]));
-export function galleryArcOptions(method:GalleryMethod):Partial<ArcMotionOptions>|undefined {
+export function galleryArcOptions(method:GalleryMethod):GeometryOptions|undefined {
+  if(!Object.hasOwn(galleryMethods,method))throw new Error(`unknown gallery method: ${method}`);
   const definition:Method=galleryMethods[method];
-  if(!definition)throw new Error(`unknown gallery method: ${method}`);
   return definition.arc;
 }

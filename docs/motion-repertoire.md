@@ -7,12 +7,14 @@ plug-in framework, motion motifs, style quotas, or new specification controls.
 
 ## Current gallery expansion
 
-The gallery now includes improved scattered construction, wave curves and angular
-facets alongside the original arcs and scattered controller. Left and right
-selectors allow direct comparisons. See [the implementation and evaluation
-report](motion-gallery-expansion-2026-09-29.md) for the measured results, budget
-accounting, reconstruction limitations and reproduction commands. Normal lines
-remain mandatory; the production compiler still defaults to coherent arcs.
+The gallery now has ten geometry choices: arcs/guides, improved scattered
+segments, waves, facets, serpentine rails, terraces, ripples, ribbed ribbons,
+crystal teeth and petal chains. The original scattered controller remains an
+additional comparison. Visual selectors and synchronized left/right playback
+show actual measured geometry. See [the six-shape report](motion-gallery-six-shapes-2026-09-30.md)
+for the latest implementation and evaluation; [the preceding report](motion-gallery-expansion-2026-09-29.md)
+preserves the scattered reconstruction studies. Normal lines remain mandatory;
+the production compiler still defaults to coherent arcs.
 
 The sections below preserve the first gallery's findings and the efficiency work
 that preceded this expansion. Its local 48-run dataset remains available through
@@ -61,8 +63,8 @@ LR_ENGINE=wasm node --import tsx scripts/gallery/build.ts \
 Then open `/motion-gallery/?data=/generated/motion-gallery/my-study/manifest.json`.
 Use a new output directory after changing compiler, inputs or study code. The
 script records the full compiler inventory and frozen judge identity, verifies
-all construction work against its allowance, and independently replays both
-implementations using the fixed engine. Raw tracks and traces are local;
+all construction work against its allowance, and independently replays each
+implementation using the fixed engine. Raw tracks and traces are local;
 compact measurements are versioned under `docs/evidence/`.
 
 The score uses the unchanged V4 evaluator on these research passages. It is
@@ -113,7 +115,7 @@ working transitions and an actual usage constraint. Introducing probabilities,
 preferences or new specification syntax before that experiment would suggest
 control we have not demonstrated.
 
-The expansion above addresses scattered adherence and adds two curve variants.
-A transition between scattered geometry and an arc remains a future experiment. Keep the good arc path available while
-those experiments earn their place. Further geometry should arrive with real
-examples and measured limitations, rather than a large abstract taxonomy.
+The first expansion improved scattered adherence and added waves and facets.
+The six-shape study extends the concrete repertoire. Transitions and mixed styles
+remain future experiments; production keeps its qualified arc path. Further
+geometry should arrive with real examples and measured limitations.

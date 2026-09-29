@@ -23,4 +23,4 @@ canvas {width:100%;height:390px;display:block;background:#f8faf7;border-block:1p
 .shape-choice svg {display:block;width:100%;height:110px;background:#f8faf7;border-bottom:1px solid #e5e8e0}
 .shape-choice path {fill:none;stroke:#38473f;stroke-width:1.3;stroke-linecap:round}
 .shape-choice strong,.shape-choice span {display:block;margin:8px 12px 0}.shape-choice strong{font-size:13px}.shape-choice span{font-size:11px;color:var(--muted)}
-@media(max-width:480px){.palette{grid-template-columns:repeat(2,minmax(0,1fr))}.shape-choice strong{font-size:12px}}
+@media(max-width:480px){.palette{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding:3px}.shape-choice{flex:0 0 155px;scroll-snap-align:start}.shape-choice strong{font-size:12px}}

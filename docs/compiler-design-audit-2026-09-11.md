@@ -1,5 +1,9 @@
 # Compiler design and behavior audit — 2026-09-11
 
+Update: the [2026-09-29 follow-up](compiler-efficiency-2026-09-29.md) implements
+and qualifies selective stopping after successful preliminary construction.
+The measurements below describe the earlier compiler.
+
 This audit turns the recent arc compiler into a more consistent foundation for
 further geometry and search work. It introduces a shared control contract,
 transfers preliminary trajectories through existing physical-state memory,

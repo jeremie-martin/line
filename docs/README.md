@@ -19,7 +19,8 @@ historical record, not live guidance.
 | [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | REFERENCE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
 | [`benchmark-v2.md`](benchmark-v2.md) | REFERENCE | Benchmark V2 commands and operations. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
-| [`motion-repertoire.md`](motion-repertoire.md) | LIVE | Owner's broader visual direction, current extension boundaries and proposed playable gallery. |
+| [`compiler-efficiency-2026-09-29.md`](compiler-efficiency-2026-09-29.md) | REFERENCE | Qualified stopping policy, measured work and timing, and first gallery findings. |
+| [`motion-repertoire.md`](motion-repertoire.md) | LIVE | Playable motion gallery, measured geometry comparison and compiler stopping policy. |
 | [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | REFERENCE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
 | [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | REFERENCE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |
 | [`benchmark-v2-baseline.md`](benchmark-v2-baseline.md) | REFERENCE | Generated summary of the currently accepted baseline. |

@@ -6,6 +6,7 @@
   const LINKS = [
     { href: "/dashboard/", label: "Runs", match: /^\/dashboard\// },
     { href: "/spec-dashboard/", label: "Specs", match: /^\/spec-dashboard\// },
+    { href: "/motion-gallery/", label: "Motion", match: /^\/motion-gallery\// },
     { href: "/impact/index.html", label: "Impact", match: /^\/impact\// },
   ];
   const here = location.pathname;

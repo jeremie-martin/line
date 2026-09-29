@@ -1,0 +1,4316 @@
+{
+  "schema": "line.preview-acceptance-evidence.v1",
+  "compilerCommit": "2e2dd1f73e956ef333a33ec85c78301a7094374e",
+  "baseline": "benchmark/v4/runs/compiler-design-audit-20260911.json.gz",
+  "candidate": "benchmark/v4/runs/preview-quality-20260929.json.gz",
+  "sourceHashes": {
+    "benchmark/v4/runs/compiler-design-audit-20260911.json.gz": "26bd34e79936fb6fc590a70c49e587097cd04dc683c32d84478bbe447ff0cc84",
+    "benchmark/v4/runs/preview-quality-20260929.json.gz": "7d0fd93e4354a4cad26f5b32256bf370b86bf5d0bdc5e472b35f5c9cbad1d4e0",
+    "generated/preview-quality-20260929/research/run.json.gz": "6b7af4ac4f782cd091f4abe7ef1a5d4f2f360e812f27d0c103a08f2904801e72",
+    "generated/preview-acceptance-20260929/canonical/run.json": "106c3d37b5d07f3e077c0483a5ddbec509b7f3fa609a8bf7205e6960ee792a66",
+    "generated/compiler-design-audit-20260911/memory-study/run.json.gz": "1edda02ed891b6830759103835207cb67c839a7f34c4a921527045ca38f630aa"
+  },
+  "canonical": {
+    "before": 952.5191,
+    "after": 952.4726,
+    "delta": -0.0464999999999236,
+    "valid": 352,
+    "runs": 352,
+    "distinctTracks": 176,
+    "beforeFrames": 261277684,
+    "afterFrames": 46454822,
+    "savedFraction": 0.8222013403946125
+  },
+  "reasons": {
+    "accepted": 146,
+    "above-error-limit": 25,
+    "invalid": 5
+  },
+  "validityOnlyExperiment": {
+    "compiler": "3c0f4cced028c2b1e3392fa0d8c81ad2a2bc6407",
+    "headline": 952.4696,
+    "valid": 352,
+    "runs": 352,
+    "physicsFrames": 9990830,
+    "note": "Full experiment verified against all 352 public cells and 176 research cells; rejected as a general stopping rule after the unfamiliar-gallery counterexample."
+  },
+  "retrospectiveWorkSweep": [
+    {
+      "rmsLimit": 0.015,
+      "accepted": 121,
+      "physicsFrames": 41554918,
+      "savedFraction": 0.681909933035077
+    },
+    {
+      "rmsLimit": 0.02,
+      "accepted": 132,
+      "physicsFrames": 33449660,
+      "savedFraction": 0.7439531804790492
+    },
+    {
+      "rmsLimit": 0.025,
+      "accepted": 146,
+      "physicsFrames": 23227411,
+      "savedFraction": 0.8222013403946125
+    },
+    {
+      "rmsLimit": 0.03,
+      "accepted": 153,
+      "physicsFrames": 18106318,
+      "savedFraction": 0.8614017261420612
+    },
+    {
+      "rmsLimit": 0.04,
+      "accepted": 162,
+      "physicsFrames": 11542809,
+      "savedFraction": 0.9116433610150954
+    },
+    {
+      "rmsLimit": 0.05,
+      "accepted": 167,
+      "physicsFrames": 7918411,
+      "savedFraction": 0.9393870086509187
+    },
+    {
+      "rmsLimit": null,
+      "accepted": 171,
+      "physicsFrames": 4995415,
+      "savedFraction": 0.9617616405387305
+    }
+  ],
+  "sweepNote": "Work-only counterfactual using the prior complete panel, one seed. This is not new measurement at every limit and does not measure wall time. The 0.025 choice was subsequently compiled and qualified in full.",
+  "paired": [
+    {
+      "source": "bridge_river_reentry",
+      "seed": 16,
+      "beforeScore": 985.1453,
+      "afterScore": 985.1453,
+      "beforeFrames": 738919,
+      "afterFrames": 7127,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_river_reentry",
+      "seed": 17,
+      "beforeScore": 985.1453,
+      "afterScore": 985.1453,
+      "beforeFrames": 738919,
+      "afterFrames": 7127,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_countercurrent",
+      "seed": 16,
+      "beforeScore": 984.5061,
+      "afterScore": 984.5061,
+      "beforeFrames": 726477,
+      "afterFrames": 6752,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_countercurrent",
+      "seed": 17,
+      "beforeScore": 984.5061,
+      "afterScore": 984.5061,
+      "beforeFrames": 726477,
+      "afterFrames": 6752,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_split_signal",
+      "seed": 16,
+      "beforeScore": 863.1216,
+      "afterScore": 863.1216,
+      "beforeFrames": 747356,
+      "afterFrames": 747356,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_split_signal",
+      "seed": 17,
+      "beforeScore": 863.1216,
+      "afterScore": 863.1216,
+      "beforeFrames": 747356,
+      "afterFrames": 747356,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_pickup_lattice",
+      "seed": 16,
+      "beforeScore": 905.6304,
+      "afterScore": 905.6304,
+      "beforeFrames": 749942,
+      "afterFrames": 7160,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_pickup_lattice",
+      "seed": 17,
+      "beforeScore": 905.6304,
+      "afterScore": 905.6304,
+      "beforeFrames": 749942,
+      "afterFrames": 7160,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_loose_pocket",
+      "seed": 16,
+      "beforeScore": 978.3399,
+      "afterScore": 978.3399,
+      "beforeFrames": 738559,
+      "afterFrames": 6906,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_loose_pocket",
+      "seed": 17,
+      "beforeScore": 978.3399,
+      "afterScore": 978.3399,
+      "beforeFrames": 738559,
+      "afterFrames": 6906,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_offgrid_conversation",
+      "seed": 16,
+      "beforeScore": 983.4384,
+      "afterScore": 983.4384,
+      "beforeFrames": 742584,
+      "afterFrames": 6885,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_offgrid_conversation",
+      "seed": 17,
+      "beforeScore": 983.4384,
+      "afterScore": 983.4384,
+      "beforeFrames": 742584,
+      "afterFrames": 6885,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_rising_switch",
+      "seed": 16,
+      "beforeScore": 984.8099,
+      "afterScore": 984.8099,
+      "beforeFrames": 743226,
+      "afterFrames": 7118,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_rising_switch",
+      "seed": 17,
+      "beforeScore": 984.8099,
+      "afterScore": 984.8099,
+      "beforeFrames": 743226,
+      "afterFrames": 7118,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_meter_exchange",
+      "seed": 16,
+      "beforeScore": 981.5013,
+      "afterScore": 981.5013,
+      "beforeFrames": 747344,
+      "afterFrames": 7372,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_meter_exchange",
+      "seed": 17,
+      "beforeScore": 981.5013,
+      "afterScore": 981.5013,
+      "beforeFrames": 747344,
+      "afterFrames": 7372,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_wide_breaths",
+      "seed": 16,
+      "beforeScore": 923.8279,
+      "afterScore": 923.8279,
+      "beforeFrames": 748497,
+      "afterFrames": 7629,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_wide_breaths",
+      "seed": 17,
+      "beforeScore": 923.8279,
+      "afterScore": 923.8279,
+      "beforeFrames": 748497,
+      "afterFrames": 7629,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_open_hook",
+      "seed": 16,
+      "beforeScore": 863.4928,
+      "afterScore": 863.4928,
+      "beforeFrames": 723832,
+      "afterFrames": 723832,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_open_hook",
+      "seed": 17,
+      "beforeScore": 863.4928,
+      "afterScore": 863.4928,
+      "beforeFrames": 723832,
+      "afterFrames": 723832,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_amplitude_tides",
+      "seed": 16,
+      "beforeScore": 888.5398,
+      "afterScore": 888.5398,
+      "beforeFrames": 748179,
+      "afterFrames": 748179,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_amplitude_tides",
+      "seed": 17,
+      "beforeScore": 888.5398,
+      "afterScore": 888.5398,
+      "beforeFrames": 748179,
+      "afterFrames": 748179,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_dense_dialogue",
+      "seed": 16,
+      "beforeScore": 967.3465,
+      "afterScore": 967.3465,
+      "beforeFrames": 747580,
+      "afterFrames": 7234,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_dense_dialogue",
+      "seed": 17,
+      "beforeScore": 967.3465,
+      "afterScore": 967.3465,
+      "beforeFrames": 747580,
+      "afterFrames": 7234,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_high_air_drive",
+      "seed": 16,
+      "beforeScore": 929.7413,
+      "afterScore": 929.7413,
+      "beforeFrames": 741324,
+      "afterFrames": 7356,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_high_air_drive",
+      "seed": 17,
+      "beforeScore": 929.7413,
+      "afterScore": 929.7413,
+      "beforeFrames": 741324,
+      "afterFrames": 7356,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_sparse_lowline",
+      "seed": 16,
+      "beforeScore": 974.5311,
+      "afterScore": 974.5311,
+      "beforeFrames": 748470,
+      "afterFrames": 7426,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_sparse_lowline",
+      "seed": 17,
+      "beforeScore": 974.5311,
+      "afterScore": 974.5311,
+      "beforeFrames": 748470,
+      "afterFrames": 7426,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_pickup_progression",
+      "seed": 16,
+      "beforeScore": 972.6426,
+      "afterScore": 972.6426,
+      "beforeFrames": 749193,
+      "afterFrames": 7482,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_pickup_progression",
+      "seed": 17,
+      "beforeScore": 972.6426,
+      "afterScore": 972.6426,
+      "beforeFrames": 749193,
+      "afterFrames": 7482,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_dense_recovery",
+      "seed": 16,
+      "beforeScore": 959.677,
+      "afterScore": 959.677,
+      "beforeFrames": 749995,
+      "afterFrames": 7268,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_dense_recovery",
+      "seed": 17,
+      "beforeScore": 959.677,
+      "afterScore": 959.677,
+      "beforeFrames": 749995,
+      "afterFrames": 7268,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance",
+      "seed": 16,
+      "beforeScore": 941.6484,
+      "afterScore": 941.6484,
+      "beforeFrames": 745713,
+      "afterFrames": 7682,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance",
+      "seed": 17,
+      "beforeScore": 941.6484,
+      "afterScore": 941.6484,
+      "beforeFrames": 745713,
+      "afterFrames": 7682,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_regression_transition_mosaic",
+      "seed": 16,
+      "beforeScore": 978.2105,
+      "afterScore": 978.2105,
+      "beforeFrames": 749712,
+      "afterFrames": 7395,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_regression_transition_mosaic",
+      "seed": 17,
+      "beforeScore": 978.2105,
+      "afterScore": 978.2105,
+      "beforeFrames": 749712,
+      "afterFrames": 7395,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic",
+      "seed": 16,
+      "beforeScore": 782.6117,
+      "afterScore": 782.6117,
+      "beforeFrames": 749131,
+      "afterFrames": 749131,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic",
+      "seed": 17,
+      "beforeScore": 782.6117,
+      "afterScore": 782.6117,
+      "beforeFrames": 749131,
+      "afterFrames": 749131,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_believer_56_6s",
+      "seed": 16,
+      "beforeScore": 962.2281,
+      "afterScore": 962.2281,
+      "beforeFrames": 739304,
+      "afterFrames": 6956,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_believer_56_6s",
+      "seed": 17,
+      "beforeScore": 962.2281,
+      "afterScore": 962.2281,
+      "beforeFrames": 739304,
+      "afterFrames": 6956,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_believer_impact_56s",
+      "seed": 16,
+      "beforeScore": 909.0368,
+      "afterScore": 909.0368,
+      "beforeFrames": 737911,
+      "afterFrames": 6850,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_believer_impact_56s",
+      "seed": 17,
+      "beforeScore": 909.0368,
+      "afterScore": 909.0368,
+      "beforeFrames": 737911,
+      "afterFrames": 6850,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_river_reentry_tempo_fast_5",
+      "seed": 16,
+      "beforeScore": 984.3817,
+      "afterScore": 984.3817,
+      "beforeFrames": 727916,
+      "afterFrames": 6777,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_river_reentry_tempo_fast_5",
+      "seed": 17,
+      "beforeScore": 984.3817,
+      "afterScore": 984.3817,
+      "beforeFrames": 727916,
+      "afterFrames": 6777,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_countercurrent_impact_contrast_12",
+      "seed": 16,
+      "beforeScore": 984.0501,
+      "afterScore": 984.0501,
+      "beforeFrames": 730183,
+      "afterFrames": 6755,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_countercurrent_impact_contrast_12",
+      "seed": 17,
+      "beforeScore": 984.0501,
+      "afterScore": 984.0501,
+      "beforeFrames": 730183,
+      "afterFrames": 6755,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_split_signal_impact_relief_12",
+      "seed": 16,
+      "beforeScore": 862.5821,
+      "afterScore": 862.5821,
+      "beforeFrames": 748388,
+      "afterFrames": 748388,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_split_signal_impact_relief_12",
+      "seed": 17,
+      "beforeScore": 862.5821,
+      "afterScore": 862.5821,
+      "beforeFrames": 748388,
+      "afterFrames": 748388,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_pickup_lattice_speed_minus_4",
+      "seed": 16,
+      "beforeScore": 914.4628,
+      "afterScore": 914.3779,
+      "beforeFrames": 749971,
+      "afterFrames": 7159,
+      "sameTrack": false
+    },
+    {
+      "source": "bridge_pickup_lattice_speed_minus_4",
+      "seed": 17,
+      "beforeScore": 914.4628,
+      "afterScore": 914.3779,
+      "beforeFrames": 749971,
+      "afterFrames": 7159,
+      "sameTrack": false
+    },
+    {
+      "source": "bridge_loose_pocket_drag_later_20ms",
+      "seed": 16,
+      "beforeScore": 973.1349,
+      "afterScore": 973.1349,
+      "beforeFrames": 738639,
+      "afterFrames": 738639,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_loose_pocket_drag_later_20ms",
+      "seed": 17,
+      "beforeScore": 973.1349,
+      "afterScore": 973.1349,
+      "beforeFrames": 738639,
+      "afterFrames": 738639,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_offgrid_conversation_answer_early_25ms",
+      "seed": 16,
+      "beforeScore": 972.0264,
+      "afterScore": 972.0264,
+      "beforeFrames": 740535,
+      "afterFrames": 740535,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_offgrid_conversation_answer_early_25ms",
+      "seed": 17,
+      "beforeScore": 972.0264,
+      "afterScore": 972.0264,
+      "beforeFrames": 740535,
+      "afterFrames": 740535,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_rising_switch_tempo_fast_5",
+      "seed": 16,
+      "beforeScore": 981.8673,
+      "afterScore": 981.8673,
+      "beforeFrames": 732657,
+      "afterFrames": 6773,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_rising_switch_tempo_fast_5",
+      "seed": 17,
+      "beforeScore": 981.8673,
+      "afterScore": 981.8673,
+      "beforeFrames": 732657,
+      "afterFrames": 6773,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_meter_exchange_speed_plus_4",
+      "seed": 16,
+      "beforeScore": 983.6117,
+      "afterScore": 983.6117,
+      "beforeFrames": 749403,
+      "afterFrames": 7372,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_meter_exchange_speed_plus_4",
+      "seed": 17,
+      "beforeScore": 983.6117,
+      "afterScore": 983.6117,
+      "beforeFrames": 749403,
+      "afterFrames": 7372,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_wide_breaths_air_plus_5",
+      "seed": 16,
+      "beforeScore": 915.6527,
+      "afterScore": 915.6527,
+      "beforeFrames": 749254,
+      "afterFrames": 7625,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_wide_breaths_air_plus_5",
+      "seed": 17,
+      "beforeScore": 915.6527,
+      "afterScore": 915.6527,
+      "beforeFrames": 749254,
+      "afterFrames": 7625,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_open_hook_amplitude_plus_8",
+      "seed": 16,
+      "beforeScore": 833.0714,
+      "afterScore": 833.0714,
+      "beforeFrames": 731753,
+      "afterFrames": 731753,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_open_hook_amplitude_plus_8",
+      "seed": 17,
+      "beforeScore": 833.0714,
+      "afterScore": 833.0714,
+      "beforeFrames": 731753,
+      "afterFrames": 731753,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_amplitude_tides_restrained_10",
+      "seed": 16,
+      "beforeScore": 887.3982,
+      "afterScore": 887.3982,
+      "beforeFrames": 748056,
+      "afterFrames": 748056,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_amplitude_tides_restrained_10",
+      "seed": 17,
+      "beforeScore": 887.3982,
+      "afterScore": 887.3982,
+      "beforeFrames": 748056,
+      "afterFrames": 748056,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_dense_dialogue_impact_contrast_10",
+      "seed": 16,
+      "beforeScore": 962.3625,
+      "afterScore": 962.3625,
+      "beforeFrames": 741825,
+      "afterFrames": 7245,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_dense_dialogue_impact_contrast_10",
+      "seed": 17,
+      "beforeScore": 962.3625,
+      "afterScore": 962.3625,
+      "beforeFrames": 741825,
+      "afterFrames": 7245,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_high_air_drive_air_minus_5",
+      "seed": 16,
+      "beforeScore": 963.4577,
+      "afterScore": 963.4577,
+      "beforeFrames": 749888,
+      "afterFrames": 7356,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_high_air_drive_air_minus_5",
+      "seed": 17,
+      "beforeScore": 963.4577,
+      "afterScore": 963.4577,
+      "beforeFrames": 749888,
+      "afterFrames": 7356,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_sparse_lowline_air_minus_4",
+      "seed": 16,
+      "beforeScore": 970.748,
+      "afterScore": 970.748,
+      "beforeFrames": 749922,
+      "afterFrames": 7426,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_sparse_lowline_air_minus_4",
+      "seed": 17,
+      "beforeScore": 970.748,
+      "afterScore": 970.748,
+      "beforeFrames": 749922,
+      "afterFrames": 7426,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_pickup_progression_shifted",
+      "seed": 16,
+      "beforeScore": 966.7777,
+      "afterScore": 966.7777,
+      "beforeFrames": 749941,
+      "afterFrames": 7482,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_pickup_progression_shifted",
+      "seed": 17,
+      "beforeScore": 966.7777,
+      "afterScore": 966.7777,
+      "beforeFrames": 749941,
+      "afterFrames": 7482,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_dense_recovery_240ms_figures",
+      "seed": 16,
+      "beforeScore": 948.1149,
+      "afterScore": 948.1149,
+      "beforeFrames": 749354,
+      "afterFrames": 749354,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_dense_recovery_240ms_figures",
+      "seed": 17,
+      "beforeScore": 948.1149,
+      "afterScore": 948.1149,
+      "beforeFrames": 749354,
+      "afterFrames": 749354,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_4s",
+      "seed": 16,
+      "beforeScore": 925.4293,
+      "afterScore": 925.4293,
+      "beforeFrames": 748138,
+      "afterFrames": 748138,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_4s",
+      "seed": 17,
+      "beforeScore": 925.4293,
+      "afterScore": 925.4293,
+      "beforeFrames": 748138,
+      "afterFrames": 748138,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_6s",
+      "seed": 16,
+      "beforeScore": 915.7846,
+      "afterScore": 915.7846,
+      "beforeFrames": 748015,
+      "afterFrames": 748015,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_6s",
+      "seed": 17,
+      "beforeScore": 915.7846,
+      "afterScore": 915.7846,
+      "beforeFrames": 748015,
+      "afterFrames": 748015,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_7s",
+      "seed": 16,
+      "beforeScore": 940.4135,
+      "afterScore": 940.4135,
+      "beforeFrames": 749908,
+      "afterFrames": 7919,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_7s",
+      "seed": 17,
+      "beforeScore": 940.4135,
+      "afterScore": 940.4135,
+      "beforeFrames": 749908,
+      "afterFrames": 7919,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+      "seed": 16,
+      "beforeScore": 975.6846,
+      "afterScore": 975.6846,
+      "beforeFrames": 748266,
+      "afterFrames": 7036,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+      "seed": 17,
+      "beforeScore": 975.6846,
+      "afterScore": 975.6846,
+      "beforeFrames": 748266,
+      "afterFrames": 7036,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic_contrast_10",
+      "seed": 16,
+      "beforeScore": 776.5994,
+      "afterScore": 776.5994,
+      "beforeFrames": 749981,
+      "afterFrames": 749981,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic_contrast_10",
+      "seed": 17,
+      "beforeScore": 776.5994,
+      "afterScore": 776.5994,
+      "beforeFrames": 749981,
+      "afterFrames": 749981,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_believer_56_6s_impact_relief",
+      "seed": 16,
+      "beforeScore": 967.1012,
+      "afterScore": 967.1012,
+      "beforeFrames": 743564,
+      "afterFrames": 6955,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_believer_56_6s_impact_relief",
+      "seed": 17,
+      "beforeScore": 967.1012,
+      "afterScore": 967.1012,
+      "beforeFrames": 743564,
+      "afterFrames": 6955,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_believer_impact_56s_amplitude_plus_5",
+      "seed": 16,
+      "beforeScore": 905.5844,
+      "afterScore": 905.5844,
+      "beforeFrames": 730339,
+      "afterFrames": 6853,
+      "sameTrack": true
+    },
+    {
+      "source": "bridge_believer_impact_56s_amplitude_plus_5",
+      "seed": 17,
+      "beforeScore": 905.5844,
+      "afterScore": 905.5844,
+      "beforeFrames": 730339,
+      "afterFrames": 6853,
+      "sameTrack": true
+    },
+    {
+      "source": "harbor_return",
+      "seed": 16,
+      "beforeScore": 975.3992,
+      "afterScore": 975.3992,
+      "beforeFrames": 746457,
+      "afterFrames": 7731,
+      "sameTrack": true
+    },
+    {
+      "source": "harbor_return",
+      "seed": 17,
+      "beforeScore": 975.3992,
+      "afterScore": 975.3992,
+      "beforeFrames": 746457,
+      "afterFrames": 7731,
+      "sameTrack": true
+    },
+    {
+      "source": "crossing_lights",
+      "seed": 16,
+      "beforeScore": 980.6644,
+      "afterScore": 980.6644,
+      "beforeFrames": 749884,
+      "afterFrames": 7727,
+      "sameTrack": true
+    },
+    {
+      "source": "crossing_lights",
+      "seed": 17,
+      "beforeScore": 980.6644,
+      "afterScore": 980.6644,
+      "beforeFrames": 749884,
+      "afterFrames": 7727,
+      "sameTrack": true
+    },
+    {
+      "source": "afterglow_turn",
+      "seed": 16,
+      "beforeScore": 982.0314,
+      "afterScore": 982.0314,
+      "beforeFrames": 745434,
+      "afterFrames": 8188,
+      "sameTrack": true
+    },
+    {
+      "source": "afterglow_turn",
+      "seed": 17,
+      "beforeScore": 982.0314,
+      "afterScore": 982.0314,
+      "beforeFrames": 745434,
+      "afterFrames": 8188,
+      "sameTrack": true
+    },
+    {
+      "source": "woven_pickups",
+      "seed": 16,
+      "beforeScore": 973.8081,
+      "afterScore": 973.8081,
+      "beforeFrames": 748992,
+      "afterFrames": 7753,
+      "sameTrack": true
+    },
+    {
+      "source": "woven_pickups",
+      "seed": 17,
+      "beforeScore": 973.8081,
+      "afterScore": 973.8081,
+      "beforeFrames": 748992,
+      "afterFrames": 7753,
+      "sameTrack": true
+    },
+    {
+      "source": "pickup_answers",
+      "seed": 16,
+      "beforeScore": 977.1507,
+      "afterScore": 977.1507,
+      "beforeFrames": 746391,
+      "afterFrames": 7748,
+      "sameTrack": true
+    },
+    {
+      "source": "pickup_answers",
+      "seed": 17,
+      "beforeScore": 977.1507,
+      "afterScore": 977.1507,
+      "beforeFrames": 746391,
+      "afterFrames": 7748,
+      "sameTrack": true
+    },
+    {
+      "source": "broken_triplets",
+      "seed": 16,
+      "beforeScore": 981.8366,
+      "afterScore": 981.8366,
+      "beforeFrames": 749784,
+      "afterFrames": 8208,
+      "sameTrack": true
+    },
+    {
+      "source": "broken_triplets",
+      "seed": 17,
+      "beforeScore": 981.8366,
+      "afterScore": 981.8366,
+      "beforeFrames": 749784,
+      "afterFrames": 8208,
+      "sameTrack": true
+    },
+    {
+      "source": "late_letters",
+      "seed": 16,
+      "beforeScore": 979.1935,
+      "afterScore": 979.1935,
+      "beforeFrames": 749931,
+      "afterFrames": 7707,
+      "sameTrack": true
+    },
+    {
+      "source": "late_letters",
+      "seed": 17,
+      "beforeScore": 979.1935,
+      "afterScore": 979.1935,
+      "beforeFrames": 749931,
+      "afterFrames": 7707,
+      "sameTrack": true
+    },
+    {
+      "source": "swing_exchange",
+      "seed": 16,
+      "beforeScore": 979.8526,
+      "afterScore": 979.8526,
+      "beforeFrames": 747806,
+      "afterFrames": 7716,
+      "sameTrack": true
+    },
+    {
+      "source": "swing_exchange",
+      "seed": 17,
+      "beforeScore": 979.8526,
+      "afterScore": 979.8526,
+      "beforeFrames": 747806,
+      "afterFrames": 7716,
+      "sameTrack": true
+    },
+    {
+      "source": "offbeat_echoes",
+      "seed": 16,
+      "beforeScore": 982.8705,
+      "afterScore": 982.8705,
+      "beforeFrames": 749827,
+      "afterFrames": 8174,
+      "sameTrack": true
+    },
+    {
+      "source": "offbeat_echoes",
+      "seed": 17,
+      "beforeScore": 982.8705,
+      "afterScore": 982.8705,
+      "beforeFrames": 749827,
+      "afterFrames": 8174,
+      "sameTrack": true
+    },
+    {
+      "source": "gear_changes",
+      "seed": 16,
+      "beforeScore": 960.5395,
+      "afterScore": 960.5395,
+      "beforeFrames": 745331,
+      "afterFrames": 7727,
+      "sameTrack": true
+    },
+    {
+      "source": "gear_changes",
+      "seed": 17,
+      "beforeScore": 960.5395,
+      "afterScore": 960.5395,
+      "beforeFrames": 745331,
+      "afterFrames": 7727,
+      "sameTrack": true
+    },
+    {
+      "source": "half_time_return",
+      "seed": 16,
+      "beforeScore": 976.268,
+      "afterScore": 976.268,
+      "beforeFrames": 749379,
+      "afterFrames": 7726,
+      "sameTrack": true
+    },
+    {
+      "source": "half_time_return",
+      "seed": 17,
+      "beforeScore": 976.268,
+      "afterScore": 976.268,
+      "beforeFrames": 749379,
+      "afterFrames": 7726,
+      "sameTrack": true
+    },
+    {
+      "source": "accelerando_reply",
+      "seed": 16,
+      "beforeScore": 981.4255,
+      "afterScore": 981.4255,
+      "beforeFrames": 749992,
+      "afterFrames": 8187,
+      "sameTrack": true
+    },
+    {
+      "source": "accelerando_reply",
+      "seed": 17,
+      "beforeScore": 981.4255,
+      "afterScore": 981.4255,
+      "beforeFrames": 749992,
+      "afterFrames": 8187,
+      "sameTrack": true
+    },
+    {
+      "source": "archipelago",
+      "seed": 16,
+      "beforeScore": 954.0276,
+      "afterScore": 954.0276,
+      "beforeFrames": 748437,
+      "afterFrames": 7656,
+      "sameTrack": true
+    },
+    {
+      "source": "archipelago",
+      "seed": 17,
+      "beforeScore": 954.0276,
+      "afterScore": 954.0276,
+      "beforeFrames": 748437,
+      "afterFrames": 7656,
+      "sameTrack": true
+    },
+    {
+      "source": "wide_arc_dialogue",
+      "seed": 16,
+      "beforeScore": 955.78,
+      "afterScore": 955.78,
+      "beforeFrames": 749984,
+      "afterFrames": 7647,
+      "sameTrack": true
+    },
+    {
+      "source": "wide_arc_dialogue",
+      "seed": 17,
+      "beforeScore": 955.78,
+      "afterScore": 955.78,
+      "beforeFrames": 749984,
+      "afterFrames": 7647,
+      "sameTrack": true
+    },
+    {
+      "source": "terraced_skies",
+      "seed": 16,
+      "beforeScore": 952.9393,
+      "afterScore": 952.9393,
+      "beforeFrames": 749245,
+      "afterFrames": 8135,
+      "sameTrack": true
+    },
+    {
+      "source": "terraced_skies",
+      "seed": 17,
+      "beforeScore": 952.9393,
+      "afterScore": 952.9393,
+      "beforeFrames": 749245,
+      "afterFrames": 8135,
+      "sameTrack": true
+    },
+    {
+      "source": "woven_pulse",
+      "seed": 16,
+      "beforeScore": 972.6446,
+      "afterScore": 972.6446,
+      "beforeFrames": 745592,
+      "afterFrames": 7748,
+      "sameTrack": true
+    },
+    {
+      "source": "woven_pulse",
+      "seed": 17,
+      "beforeScore": 972.6446,
+      "afterScore": 972.6446,
+      "beforeFrames": 745592,
+      "afterFrames": 7748,
+      "sameTrack": true
+    },
+    {
+      "source": "density_release",
+      "seed": 16,
+      "beforeScore": 975.5688,
+      "afterScore": 975.5688,
+      "beforeFrames": 749158,
+      "afterFrames": 7743,
+      "sameTrack": true
+    },
+    {
+      "source": "density_release",
+      "seed": 17,
+      "beforeScore": 975.5688,
+      "afterScore": 975.5688,
+      "beforeFrames": 749158,
+      "afterFrames": 7743,
+      "sameTrack": true
+    },
+    {
+      "source": "compact_dialogue",
+      "seed": 16,
+      "beforeScore": 973.747,
+      "afterScore": 973.747,
+      "beforeFrames": 747832,
+      "afterFrames": 8199,
+      "sameTrack": true
+    },
+    {
+      "source": "compact_dialogue",
+      "seed": 17,
+      "beforeScore": 973.747,
+      "afterScore": 973.747,
+      "beforeFrames": 747832,
+      "afterFrames": 8199,
+      "sameTrack": true
+    },
+    {
+      "source": "lifted_refrain",
+      "seed": 16,
+      "beforeScore": 975.2459,
+      "afterScore": 975.2459,
+      "beforeFrames": 747393,
+      "afterFrames": 7647,
+      "sameTrack": true
+    },
+    {
+      "source": "lifted_refrain",
+      "seed": 17,
+      "beforeScore": 975.2459,
+      "afterScore": 975.2459,
+      "beforeFrames": 747393,
+      "afterFrames": 7647,
+      "sameTrack": true
+    },
+    {
+      "source": "flight_and_return",
+      "seed": 16,
+      "beforeScore": 978.6786,
+      "afterScore": 978.6786,
+      "beforeFrames": 749300,
+      "afterFrames": 7640,
+      "sameTrack": true
+    },
+    {
+      "source": "flight_and_return",
+      "seed": 17,
+      "beforeScore": 978.6786,
+      "afterScore": 978.6786,
+      "beforeFrames": 749300,
+      "afterFrames": 7640,
+      "sameTrack": true
+    },
+    {
+      "source": "open_canopy",
+      "seed": 16,
+      "beforeScore": 978.9706,
+      "afterScore": 978.9706,
+      "beforeFrames": 743525,
+      "afterFrames": 8120,
+      "sameTrack": true
+    },
+    {
+      "source": "open_canopy",
+      "seed": 17,
+      "beforeScore": 978.9706,
+      "afterScore": 978.9706,
+      "beforeFrames": 743525,
+      "afterFrames": 8120,
+      "sameTrack": true
+    },
+    {
+      "source": "quiet_current",
+      "seed": 16,
+      "beforeScore": 973.5026,
+      "afterScore": 973.5026,
+      "beforeFrames": 749980,
+      "afterFrames": 7701,
+      "sameTrack": true
+    },
+    {
+      "source": "quiet_current",
+      "seed": 17,
+      "beforeScore": 973.5026,
+      "afterScore": 973.5026,
+      "beforeFrames": 749980,
+      "afterFrames": 7701,
+      "sameTrack": true
+    },
+    {
+      "source": "support_then_lift",
+      "seed": 16,
+      "beforeScore": 965.9604,
+      "afterScore": 965.9604,
+      "beforeFrames": 748676,
+      "afterFrames": 7693,
+      "sameTrack": true
+    },
+    {
+      "source": "support_then_lift",
+      "seed": 17,
+      "beforeScore": 965.9604,
+      "afterScore": 965.9604,
+      "beforeFrames": 748676,
+      "afterFrames": 7693,
+      "sameTrack": true
+    },
+    {
+      "source": "rest_and_return",
+      "seed": 16,
+      "beforeScore": 968.2412,
+      "afterScore": 968.2412,
+      "beforeFrames": 749929,
+      "afterFrames": 8171,
+      "sameTrack": true
+    },
+    {
+      "source": "rest_and_return",
+      "seed": 17,
+      "beforeScore": 968.2412,
+      "afterScore": 968.2412,
+      "beforeFrames": 749929,
+      "afterFrames": 8171,
+      "sameTrack": true
+    },
+    {
+      "source": "pickup_staircase",
+      "seed": 16,
+      "beforeScore": 950.628,
+      "afterScore": 950.628,
+      "beforeFrames": 748929,
+      "afterFrames": 7743,
+      "sameTrack": true
+    },
+    {
+      "source": "pickup_staircase",
+      "seed": 17,
+      "beforeScore": 950.628,
+      "afterScore": 950.628,
+      "beforeFrames": 748929,
+      "afterFrames": 7743,
+      "sameTrack": true
+    },
+    {
+      "source": "pickup_interruptions",
+      "seed": 16,
+      "beforeScore": 963.6664,
+      "afterScore": 963.6664,
+      "beforeFrames": 748604,
+      "afterFrames": 7734,
+      "sameTrack": true
+    },
+    {
+      "source": "pickup_interruptions",
+      "seed": 17,
+      "beforeScore": 963.6664,
+      "afterScore": 963.6664,
+      "beforeFrames": 748604,
+      "afterFrames": 7734,
+      "sameTrack": true
+    },
+    {
+      "source": "pickup_recovery",
+      "seed": 16,
+      "beforeScore": 932.4026,
+      "afterScore": 932.4026,
+      "beforeFrames": 749885,
+      "afterFrames": 8206,
+      "sameTrack": true
+    },
+    {
+      "source": "pickup_recovery",
+      "seed": 17,
+      "beforeScore": 932.4026,
+      "afterScore": 932.4026,
+      "beforeFrames": 749885,
+      "afterFrames": 8206,
+      "sameTrack": true
+    },
+    {
+      "source": "dense_short_then_long",
+      "seed": 16,
+      "beforeScore": 927.6055,
+      "afterScore": 927.6055,
+      "beforeFrames": 747963,
+      "afterFrames": 7732,
+      "sameTrack": true
+    },
+    {
+      "source": "dense_short_then_long",
+      "seed": 17,
+      "beforeScore": 927.6055,
+      "afterScore": 927.6055,
+      "beforeFrames": 747963,
+      "afterFrames": 7732,
+      "sameTrack": true
+    },
+    {
+      "source": "interleaved_recovery",
+      "seed": 16,
+      "beforeScore": 932.6194,
+      "afterScore": 932.6194,
+      "beforeFrames": 749835,
+      "afterFrames": 7738,
+      "sameTrack": true
+    },
+    {
+      "source": "interleaved_recovery",
+      "seed": 17,
+      "beforeScore": 932.6194,
+      "afterScore": 932.6194,
+      "beforeFrames": 749835,
+      "afterFrames": 7738,
+      "sameTrack": true
+    },
+    {
+      "source": "three_note_returns",
+      "seed": 16,
+      "beforeScore": 927.2885,
+      "afterScore": 927.2885,
+      "beforeFrames": 749945,
+      "afterFrames": 8213,
+      "sameTrack": true
+    },
+    {
+      "source": "three_note_returns",
+      "seed": 17,
+      "beforeScore": 927.2885,
+      "afterScore": 927.2885,
+      "beforeFrames": 749945,
+      "afterFrames": 8213,
+      "sameTrack": true
+    },
+    {
+      "source": "supported_bridge",
+      "seed": 16,
+      "beforeScore": 950.4938,
+      "afterScore": 950.4938,
+      "beforeFrames": 749876,
+      "afterFrames": 7720,
+      "sameTrack": true
+    },
+    {
+      "source": "supported_bridge",
+      "seed": 17,
+      "beforeScore": 950.4938,
+      "afterScore": 950.4938,
+      "beforeFrames": 749876,
+      "afterFrames": 7720,
+      "sameTrack": true
+    },
+    {
+      "source": "supported_speed_change",
+      "seed": 16,
+      "beforeScore": 960.7718,
+      "afterScore": 960.7718,
+      "beforeFrames": 747595,
+      "afterFrames": 7700,
+      "sameTrack": true
+    },
+    {
+      "source": "supported_speed_change",
+      "seed": 17,
+      "beforeScore": 960.7718,
+      "afterScore": 960.7718,
+      "beforeFrames": 747595,
+      "afterFrames": 7700,
+      "sameTrack": true
+    },
+    {
+      "source": "endurance_and_return",
+      "seed": 16,
+      "beforeScore": 951.8764,
+      "afterScore": 951.8764,
+      "beforeFrames": 749815,
+      "afterFrames": 8179,
+      "sameTrack": true
+    },
+    {
+      "source": "endurance_and_return",
+      "seed": 17,
+      "beforeScore": 951.8764,
+      "afterScore": 951.8764,
+      "beforeFrames": 749815,
+      "afterFrames": 8179,
+      "sameTrack": true
+    },
+    {
+      "source": "energy_weave",
+      "seed": 16,
+      "beforeScore": 978.7261,
+      "afterScore": 978.7261,
+      "beforeFrames": 749874,
+      "afterFrames": 7708,
+      "sameTrack": true
+    },
+    {
+      "source": "energy_weave",
+      "seed": 17,
+      "beforeScore": 978.7261,
+      "afterScore": 978.7261,
+      "beforeFrames": 749874,
+      "afterFrames": 7708,
+      "sameTrack": true
+    },
+    {
+      "source": "alternating_intentions",
+      "seed": 16,
+      "beforeScore": 979.7321,
+      "afterScore": 979.7321,
+      "beforeFrames": 748663,
+      "afterFrames": 7708,
+      "sameTrack": true
+    },
+    {
+      "source": "alternating_intentions",
+      "seed": 17,
+      "beforeScore": 979.7321,
+      "afterScore": 979.7321,
+      "beforeFrames": 748663,
+      "afterFrames": 7708,
+      "sameTrack": true
+    },
+    {
+      "source": "recovery_mosaic",
+      "seed": 16,
+      "beforeScore": 981.8915,
+      "afterScore": 981.8915,
+      "beforeFrames": 749924,
+      "afterFrames": 8179,
+      "sameTrack": true
+    },
+    {
+      "source": "recovery_mosaic",
+      "seed": 17,
+      "beforeScore": 981.8915,
+      "afterScore": 981.8915,
+      "beforeFrames": 749924,
+      "afterFrames": 8179,
+      "sameTrack": true
+    },
+    {
+      "source": "amplitude_reply",
+      "seed": 16,
+      "beforeScore": 959.4267,
+      "afterScore": 959.4267,
+      "beforeFrames": 748060,
+      "afterFrames": 7662,
+      "sameTrack": true
+    },
+    {
+      "source": "amplitude_reply",
+      "seed": 17,
+      "beforeScore": 959.4267,
+      "afterScore": 959.4267,
+      "beforeFrames": 748060,
+      "afterFrames": 7662,
+      "sameTrack": true
+    },
+    {
+      "source": "restrained_then_wide",
+      "seed": 16,
+      "beforeScore": 949.844,
+      "afterScore": 949.844,
+      "beforeFrames": 743645,
+      "afterFrames": 7662,
+      "sameTrack": true
+    },
+    {
+      "source": "restrained_then_wide",
+      "seed": 17,
+      "beforeScore": 949.844,
+      "afterScore": 949.844,
+      "beforeFrames": 743645,
+      "afterFrames": 7662,
+      "sameTrack": true
+    },
+    {
+      "source": "arches_at_new_tempos",
+      "seed": 16,
+      "beforeScore": 954.9983,
+      "afterScore": 954.9983,
+      "beforeFrames": 745709,
+      "afterFrames": 8143,
+      "sameTrack": true
+    },
+    {
+      "source": "arches_at_new_tempos",
+      "seed": 17,
+      "beforeScore": 954.9983,
+      "afterScore": 954.9983,
+      "beforeFrames": 745709,
+      "afterFrames": 8143,
+      "sameTrack": true
+    },
+    {
+      "source": "music_amor_na_praia_46s",
+      "seed": 16,
+      "beforeScore": 977.0443,
+      "afterScore": 977.0443,
+      "beforeFrames": 719805,
+      "afterFrames": 5663,
+      "sameTrack": true
+    },
+    {
+      "source": "music_amor_na_praia_46s",
+      "seed": 17,
+      "beforeScore": 977.0443,
+      "afterScore": 977.0443,
+      "beforeFrames": 719805,
+      "afterFrames": 5663,
+      "sameTrack": true
+    },
+    {
+      "source": "music_luna_bala_44s",
+      "seed": 16,
+      "beforeScore": 958.8218,
+      "afterScore": 958.8218,
+      "beforeFrames": 704735,
+      "afterFrames": 5417,
+      "sameTrack": true
+    },
+    {
+      "source": "music_luna_bala_44s",
+      "seed": 17,
+      "beforeScore": 958.8218,
+      "afterScore": 958.8218,
+      "beforeFrames": 704735,
+      "afterFrames": 5417,
+      "sameTrack": true
+    },
+    {
+      "source": "music_tiki_tiki_48s",
+      "seed": 16,
+      "beforeScore": 930.1503,
+      "afterScore": 930.1503,
+      "beforeFrames": 729452,
+      "afterFrames": 5915,
+      "sameTrack": true
+    },
+    {
+      "source": "music_tiki_tiki_48s",
+      "seed": 17,
+      "beforeScore": 930.1503,
+      "afterScore": 930.1503,
+      "beforeFrames": 729452,
+      "afterFrames": 5915,
+      "sameTrack": true
+    },
+    {
+      "source": "music_shelter_impact_sync_81s",
+      "seed": 16,
+      "beforeScore": 920.6355,
+      "afterScore": 920.6355,
+      "beforeFrames": 742645,
+      "afterFrames": 9908,
+      "sameTrack": true
+    },
+    {
+      "source": "music_shelter_impact_sync_81s",
+      "seed": 17,
+      "beforeScore": 920.6355,
+      "afterScore": 920.6355,
+      "beforeFrames": 742645,
+      "afterFrames": 9908,
+      "sameTrack": true
+    },
+    {
+      "source": "music_amour_de_ma_vie_short_44s",
+      "seed": 16,
+      "beforeScore": 920.515,
+      "afterScore": 920.515,
+      "beforeFrames": 718504,
+      "afterFrames": 5539,
+      "sameTrack": true
+    },
+    {
+      "source": "music_amour_de_ma_vie_short_44s",
+      "seed": 17,
+      "beforeScore": 920.515,
+      "afterScore": 920.515,
+      "beforeFrames": 718504,
+      "afterFrames": 5539,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_river_reentry",
+      "seed": 16,
+      "beforeScore": 981.5083,
+      "afterScore": 981.5083,
+      "beforeFrames": 728546,
+      "afterFrames": 6804,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_river_reentry",
+      "seed": 17,
+      "beforeScore": 981.5083,
+      "afterScore": 981.5083,
+      "beforeFrames": 728546,
+      "afterFrames": 6804,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_countercurrent",
+      "seed": 16,
+      "beforeScore": 981.6571,
+      "afterScore": 981.6571,
+      "beforeFrames": 726892,
+      "afterFrames": 6219,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_countercurrent",
+      "seed": 17,
+      "beforeScore": 981.6571,
+      "afterScore": 981.6571,
+      "beforeFrames": 726892,
+      "afterFrames": 6219,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_split_signal",
+      "seed": 16,
+      "beforeScore": 843.7551,
+      "afterScore": 843.7551,
+      "beforeFrames": 735853,
+      "afterFrames": 735853,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_split_signal",
+      "seed": 17,
+      "beforeScore": 843.7551,
+      "afterScore": 843.7551,
+      "beforeFrames": 735853,
+      "afterFrames": 735853,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_pickup_lattice",
+      "seed": 16,
+      "beforeScore": 911.6008,
+      "afterScore": 911.6008,
+      "beforeFrames": 737847,
+      "afterFrames": 6655,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_pickup_lattice",
+      "seed": 17,
+      "beforeScore": 911.6008,
+      "afterScore": 911.6008,
+      "beforeFrames": 737847,
+      "afterFrames": 6655,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_loose_pocket",
+      "seed": 16,
+      "beforeScore": 978.4009,
+      "afterScore": 978.4009,
+      "beforeFrames": 736198,
+      "afterFrames": 6596,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_loose_pocket",
+      "seed": 17,
+      "beforeScore": 978.4009,
+      "afterScore": 978.4009,
+      "beforeFrames": 736198,
+      "afterFrames": 6596,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_offgrid_conversation",
+      "seed": 16,
+      "beforeScore": 977.3264,
+      "afterScore": 977.3264,
+      "beforeFrames": 732598,
+      "afterFrames": 6278,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_offgrid_conversation",
+      "seed": 17,
+      "beforeScore": 977.3264,
+      "afterScore": 977.3264,
+      "beforeFrames": 732598,
+      "afterFrames": 6278,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_rising_switch",
+      "seed": 16,
+      "beforeScore": 979.912,
+      "afterScore": 979.912,
+      "beforeFrames": 728682,
+      "afterFrames": 6573,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_rising_switch",
+      "seed": 17,
+      "beforeScore": 979.912,
+      "afterScore": 979.912,
+      "beforeFrames": 728682,
+      "afterFrames": 6573,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_meter_exchange",
+      "seed": 16,
+      "beforeScore": 974.9985,
+      "afterScore": 974.9985,
+      "beforeFrames": 737101,
+      "afterFrames": 6730,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_meter_exchange",
+      "seed": 17,
+      "beforeScore": 974.9985,
+      "afterScore": 974.9985,
+      "beforeFrames": 737101,
+      "afterFrames": 6730,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_wide_breaths",
+      "seed": 16,
+      "beforeScore": 898.5992,
+      "afterScore": 898.5992,
+      "beforeFrames": 741322,
+      "afterFrames": 741322,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_wide_breaths",
+      "seed": 17,
+      "beforeScore": 898.5992,
+      "afterScore": 898.5992,
+      "beforeFrames": 741322,
+      "afterFrames": 741322,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_open_hook",
+      "seed": 16,
+      "beforeScore": 876.4656,
+      "afterScore": 876.4656,
+      "beforeFrames": 707195,
+      "afterFrames": 707195,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_open_hook",
+      "seed": 17,
+      "beforeScore": 876.4656,
+      "afterScore": 876.4656,
+      "beforeFrames": 707195,
+      "afterFrames": 707195,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides",
+      "seed": 16,
+      "beforeScore": 852.9714,
+      "afterScore": 852.9714,
+      "beforeFrames": 744320,
+      "afterFrames": 744320,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides",
+      "seed": 17,
+      "beforeScore": 852.9714,
+      "afterScore": 852.9714,
+      "beforeFrames": 744320,
+      "afterFrames": 744320,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_dense_dialogue",
+      "seed": 16,
+      "beforeScore": 906.9168,
+      "afterScore": 906.9168,
+      "beforeFrames": 734901,
+      "afterFrames": 6787,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_dense_dialogue",
+      "seed": 17,
+      "beforeScore": 906.9168,
+      "afterScore": 906.9168,
+      "beforeFrames": 734901,
+      "afterFrames": 6787,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_high_air_drive",
+      "seed": 16,
+      "beforeScore": 909.6715,
+      "afterScore": 909.6715,
+      "beforeFrames": 731073,
+      "afterFrames": 7033,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_high_air_drive",
+      "seed": 17,
+      "beforeScore": 909.6715,
+      "afterScore": 909.6715,
+      "beforeFrames": 731073,
+      "afterFrames": 7033,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_sparse_lowline",
+      "seed": 16,
+      "beforeScore": 974.8069,
+      "afterScore": 974.8069,
+      "beforeFrames": 746945,
+      "afterFrames": 7686,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_sparse_lowline",
+      "seed": 17,
+      "beforeScore": 974.8069,
+      "afterScore": 974.8069,
+      "beforeFrames": 746945,
+      "afterFrames": 7686,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_pickup_progression",
+      "seed": 16,
+      "beforeScore": 965.4075,
+      "afterScore": 965.4075,
+      "beforeFrames": 749942,
+      "afterFrames": 7164,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_pickup_progression",
+      "seed": 17,
+      "beforeScore": 965.4075,
+      "afterScore": 965.4075,
+      "beforeFrames": 749942,
+      "afterFrames": 7164,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery",
+      "seed": 16,
+      "beforeScore": 947.1062,
+      "afterScore": 947.1062,
+      "beforeFrames": 741815,
+      "afterFrames": 6896,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery",
+      "seed": 17,
+      "beforeScore": 947.1062,
+      "afterScore": 947.1062,
+      "beforeFrames": 741815,
+      "afterFrames": 6896,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance",
+      "seed": 16,
+      "beforeScore": 952.2775,
+      "afterScore": 952.2775,
+      "beforeFrames": 743552,
+      "afterFrames": 9551,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance",
+      "seed": 17,
+      "beforeScore": 952.2775,
+      "afterScore": 952.2775,
+      "beforeFrames": 743552,
+      "afterFrames": 9551,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_regression_transition_mosaic",
+      "seed": 16,
+      "beforeScore": 972.2876,
+      "afterScore": 972.2876,
+      "beforeFrames": 745740,
+      "afterFrames": 6951,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_regression_transition_mosaic",
+      "seed": 17,
+      "beforeScore": 972.2876,
+      "afterScore": 972.2876,
+      "beforeFrames": 745740,
+      "afterFrames": 6951,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic",
+      "seed": 16,
+      "beforeScore": 742.8146,
+      "afterScore": 742.8146,
+      "beforeFrames": 729767,
+      "afterFrames": 729767,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic",
+      "seed": 17,
+      "beforeScore": 742.8146,
+      "afterScore": 742.8146,
+      "beforeFrames": 729767,
+      "afterFrames": 729767,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_believer_56_6s",
+      "seed": 16,
+      "beforeScore": 954.9074,
+      "afterScore": 954.9074,
+      "beforeFrames": 731708,
+      "afterFrames": 6634,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_believer_56_6s",
+      "seed": 17,
+      "beforeScore": 954.9074,
+      "afterScore": 954.9074,
+      "beforeFrames": 731708,
+      "afterFrames": 6634,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_believer_impact_56s",
+      "seed": 16,
+      "beforeScore": 904.5466,
+      "afterScore": 904.5466,
+      "beforeFrames": 723288,
+      "afterFrames": 723288,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_believer_impact_56s",
+      "seed": 17,
+      "beforeScore": 904.5466,
+      "afterScore": 904.5466,
+      "beforeFrames": 723288,
+      "afterFrames": 723288,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_river_reentry_tempo_fast_5",
+      "seed": 16,
+      "beforeScore": 958.7774,
+      "afterScore": 958.7774,
+      "beforeFrames": 726971,
+      "afterFrames": 6866,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_river_reentry_tempo_fast_5",
+      "seed": 17,
+      "beforeScore": 958.7774,
+      "afterScore": 958.7774,
+      "beforeFrames": 726971,
+      "afterFrames": 6866,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_countercurrent_impact_contrast_12",
+      "seed": 16,
+      "beforeScore": 980.1702,
+      "afterScore": 980.1702,
+      "beforeFrames": 727261,
+      "afterFrames": 6456,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_countercurrent_impact_contrast_12",
+      "seed": 17,
+      "beforeScore": 980.1702,
+      "afterScore": 980.1702,
+      "beforeFrames": 727261,
+      "afterFrames": 6456,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_split_signal_impact_relief_12",
+      "seed": 16,
+      "beforeScore": 827.3105,
+      "afterScore": 827.3105,
+      "beforeFrames": 748465,
+      "afterFrames": 748465,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_split_signal_impact_relief_12",
+      "seed": 17,
+      "beforeScore": 827.3105,
+      "afterScore": 827.3105,
+      "beforeFrames": 748465,
+      "afterFrames": 748465,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_pickup_lattice_speed_minus_4",
+      "seed": 16,
+      "beforeScore": 909.1464,
+      "afterScore": 909.1464,
+      "beforeFrames": 737159,
+      "afterFrames": 6656,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_pickup_lattice_speed_minus_4",
+      "seed": 17,
+      "beforeScore": 909.1464,
+      "afterScore": 909.1464,
+      "beforeFrames": 737159,
+      "afterFrames": 6656,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_loose_pocket_drag_later_20ms",
+      "seed": 16,
+      "beforeScore": 976.735,
+      "afterScore": 976.735,
+      "beforeFrames": 744787,
+      "afterFrames": 7364,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_loose_pocket_drag_later_20ms",
+      "seed": 17,
+      "beforeScore": 976.735,
+      "afterScore": 976.735,
+      "beforeFrames": 744787,
+      "afterFrames": 7364,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+      "seed": 16,
+      "beforeScore": 978.4416,
+      "afterScore": 978.4416,
+      "beforeFrames": 736452,
+      "afterFrames": 6500,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+      "seed": 17,
+      "beforeScore": 978.4416,
+      "afterScore": 978.4416,
+      "beforeFrames": 736452,
+      "afterFrames": 6500,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_rising_switch_tempo_fast_5",
+      "seed": 16,
+      "beforeScore": 980.6733,
+      "afterScore": 980.6733,
+      "beforeFrames": 737324,
+      "afterFrames": 6996,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_rising_switch_tempo_fast_5",
+      "seed": 17,
+      "beforeScore": 980.6733,
+      "afterScore": 980.6733,
+      "beforeFrames": 737324,
+      "afterFrames": 6996,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_meter_exchange_speed_plus_4",
+      "seed": 16,
+      "beforeScore": 974.071,
+      "afterScore": 974.071,
+      "beforeFrames": 736299,
+      "afterFrames": 6815,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_meter_exchange_speed_plus_4",
+      "seed": 17,
+      "beforeScore": 974.071,
+      "afterScore": 974.071,
+      "beforeFrames": 736299,
+      "afterFrames": 6815,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_wide_breaths_air_plus_5",
+      "seed": 16,
+      "beforeScore": 893.0666,
+      "afterScore": 893.0666,
+      "beforeFrames": 740106,
+      "afterFrames": 740106,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_wide_breaths_air_plus_5",
+      "seed": 17,
+      "beforeScore": 893.0666,
+      "afterScore": 893.0666,
+      "beforeFrames": 740106,
+      "afterFrames": 740106,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_open_hook_amplitude_plus_8",
+      "seed": 16,
+      "beforeScore": 841.6454,
+      "afterScore": 841.6454,
+      "beforeFrames": 694654,
+      "afterFrames": 694654,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_open_hook_amplitude_plus_8",
+      "seed": 17,
+      "beforeScore": 841.6454,
+      "afterScore": 841.6454,
+      "beforeFrames": 694654,
+      "afterFrames": 694654,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides_restrained_10",
+      "seed": 16,
+      "beforeScore": 850.2697,
+      "afterScore": 850.2697,
+      "beforeFrames": 749757,
+      "afterFrames": 749757,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides_restrained_10",
+      "seed": 17,
+      "beforeScore": 850.2697,
+      "afterScore": 850.2697,
+      "beforeFrames": 749757,
+      "afterFrames": 749757,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_dense_dialogue_impact_contrast_10",
+      "seed": 16,
+      "beforeScore": 883.0639,
+      "afterScore": 883.0639,
+      "beforeFrames": 734404,
+      "afterFrames": 734404,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_dense_dialogue_impact_contrast_10",
+      "seed": 17,
+      "beforeScore": 883.0639,
+      "afterScore": 883.0639,
+      "beforeFrames": 734404,
+      "afterFrames": 734404,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_high_air_drive_air_minus_5",
+      "seed": 16,
+      "beforeScore": 934.5365,
+      "afterScore": 934.5365,
+      "beforeFrames": 725520,
+      "afterFrames": 6748,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_high_air_drive_air_minus_5",
+      "seed": 17,
+      "beforeScore": 934.5365,
+      "afterScore": 934.5365,
+      "beforeFrames": 725520,
+      "afterFrames": 6748,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_sparse_lowline_air_minus_4",
+      "seed": 16,
+      "beforeScore": 972.9516,
+      "afterScore": 972.9516,
+      "beforeFrames": 749714,
+      "afterFrames": 7665,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_sparse_lowline_air_minus_4",
+      "seed": 17,
+      "beforeScore": 972.9516,
+      "afterScore": 972.9516,
+      "beforeFrames": 749714,
+      "afterFrames": 7665,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_pickup_progression_shifted",
+      "seed": 16,
+      "beforeScore": 959.1892,
+      "afterScore": 959.1892,
+      "beforeFrames": 745136,
+      "afterFrames": 6888,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_pickup_progression_shifted",
+      "seed": 17,
+      "beforeScore": 959.1892,
+      "afterScore": 959.1892,
+      "beforeFrames": 745136,
+      "afterFrames": 6888,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+      "seed": 16,
+      "beforeScore": 947.8121,
+      "afterScore": 947.8121,
+      "beforeFrames": 742032,
+      "afterFrames": 6656,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+      "seed": 17,
+      "beforeScore": 947.8121,
+      "afterScore": 947.8121,
+      "beforeFrames": 742032,
+      "afterFrames": 6656,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_4s",
+      "seed": 16,
+      "beforeScore": 960.7244,
+      "afterScore": 960.7244,
+      "beforeFrames": 746556,
+      "afterFrames": 9399,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_4s",
+      "seed": 17,
+      "beforeScore": 960.7244,
+      "afterScore": 960.7244,
+      "beforeFrames": 746556,
+      "afterFrames": 9399,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_6s",
+      "seed": 16,
+      "beforeScore": 973.5111,
+      "afterScore": 973.5111,
+      "beforeFrames": 741587,
+      "afterFrames": 11848,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_6s",
+      "seed": 17,
+      "beforeScore": 973.5111,
+      "afterScore": 973.5111,
+      "beforeFrames": 741587,
+      "afterFrames": 11848,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_7s",
+      "seed": 16,
+      "beforeScore": 956.3282,
+      "afterScore": 956.3282,
+      "beforeFrames": 747067,
+      "afterFrames": 9552,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_7s",
+      "seed": 17,
+      "beforeScore": 956.3282,
+      "afterScore": 956.3282,
+      "beforeFrames": 747067,
+      "afterFrames": 9552,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+      "seed": 16,
+      "beforeScore": 967.5894,
+      "afterScore": 967.5894,
+      "beforeFrames": 735768,
+      "afterFrames": 6447,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+      "seed": 17,
+      "beforeScore": 967.5894,
+      "afterScore": 967.5894,
+      "beforeFrames": 735768,
+      "afterFrames": 6447,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "seed": 16,
+      "beforeScore": 731.9277,
+      "afterScore": 731.9277,
+      "beforeFrames": 722746,
+      "afterFrames": 722746,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "seed": 17,
+      "beforeScore": 731.9277,
+      "afterScore": 731.9277,
+      "beforeFrames": 722746,
+      "afterFrames": 722746,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_believer_56_6s_impact_relief",
+      "seed": 16,
+      "beforeScore": 962.0864,
+      "afterScore": 962.0864,
+      "beforeFrames": 734639,
+      "afterFrames": 6602,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_believer_56_6s_impact_relief",
+      "seed": 17,
+      "beforeScore": 962.0864,
+      "afterScore": 962.0864,
+      "beforeFrames": 734639,
+      "afterFrames": 6602,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+      "seed": 16,
+      "beforeScore": 890.4299,
+      "afterScore": 890.4299,
+      "beforeFrames": 726429,
+      "afterFrames": 726429,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+      "seed": 17,
+      "beforeScore": 890.4299,
+      "afterScore": 890.4299,
+      "beforeFrames": 726429,
+      "afterFrames": 726429,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_harbor_return",
+      "seed": 16,
+      "beforeScore": 971.1723,
+      "afterScore": 971.1723,
+      "beforeFrames": 749327,
+      "afterFrames": 7034,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_harbor_return",
+      "seed": 17,
+      "beforeScore": 971.1723,
+      "afterScore": 971.1723,
+      "beforeFrames": 749327,
+      "afterFrames": 7034,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_crossing_lights",
+      "seed": 16,
+      "beforeScore": 947.59,
+      "afterScore": 947.59,
+      "beforeFrames": 746599,
+      "afterFrames": 7912,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_crossing_lights",
+      "seed": 17,
+      "beforeScore": 947.59,
+      "afterScore": 947.59,
+      "beforeFrames": 746599,
+      "afterFrames": 7912,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_afterglow_turn",
+      "seed": 16,
+      "beforeScore": 977.7212,
+      "afterScore": 977.7212,
+      "beforeFrames": 749434,
+      "afterFrames": 7734,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_afterglow_turn",
+      "seed": 17,
+      "beforeScore": 977.7212,
+      "afterScore": 977.7212,
+      "beforeFrames": 749434,
+      "afterFrames": 7734,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_woven_pickups",
+      "seed": 16,
+      "beforeScore": 968.3383,
+      "afterScore": 968.3383,
+      "beforeFrames": 749969,
+      "afterFrames": 7142,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_woven_pickups",
+      "seed": 17,
+      "beforeScore": 968.3383,
+      "afterScore": 968.3383,
+      "beforeFrames": 749969,
+      "afterFrames": 7142,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_pickup_answers",
+      "seed": 16,
+      "beforeScore": 960.4123,
+      "afterScore": 960.4123,
+      "beforeFrames": 749765,
+      "afterFrames": 7841,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_pickup_answers",
+      "seed": 17,
+      "beforeScore": 960.4123,
+      "afterScore": 960.4123,
+      "beforeFrames": 749765,
+      "afterFrames": 7841,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_broken_triplets",
+      "seed": 16,
+      "beforeScore": 956.7337,
+      "afterScore": 956.7337,
+      "beforeFrames": 747966,
+      "afterFrames": 7671,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_broken_triplets",
+      "seed": 17,
+      "beforeScore": 956.7337,
+      "afterScore": 956.7337,
+      "beforeFrames": 747966,
+      "afterFrames": 7671,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_late_letters",
+      "seed": 16,
+      "beforeScore": 979.5857,
+      "afterScore": 979.5857,
+      "beforeFrames": 746346,
+      "afterFrames": 7056,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_late_letters",
+      "seed": 17,
+      "beforeScore": 979.5857,
+      "afterScore": 979.5857,
+      "beforeFrames": 746346,
+      "afterFrames": 7056,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_swing_exchange",
+      "seed": 16,
+      "beforeScore": 981.4801,
+      "afterScore": 981.4801,
+      "beforeFrames": 746378,
+      "afterFrames": 7943,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_swing_exchange",
+      "seed": 17,
+      "beforeScore": 981.4801,
+      "afterScore": 981.4801,
+      "beforeFrames": 746378,
+      "afterFrames": 7943,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_offbeat_echoes",
+      "seed": 16,
+      "beforeScore": 982.4455,
+      "afterScore": 982.4455,
+      "beforeFrames": 749862,
+      "afterFrames": 7694,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_offbeat_echoes",
+      "seed": 17,
+      "beforeScore": 982.4455,
+      "afterScore": 982.4455,
+      "beforeFrames": 749862,
+      "afterFrames": 7694,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_gear_changes",
+      "seed": 16,
+      "beforeScore": 925.2284,
+      "afterScore": 920.0246,
+      "beforeFrames": 744147,
+      "afterFrames": 7015,
+      "sameTrack": false
+    },
+    {
+      "source": "stretch_gear_changes",
+      "seed": 17,
+      "beforeScore": 925.2284,
+      "afterScore": 920.0246,
+      "beforeFrames": 744147,
+      "afterFrames": 7015,
+      "sameTrack": false
+    },
+    {
+      "source": "stretch_half_time_return",
+      "seed": 16,
+      "beforeScore": 973.9591,
+      "afterScore": 973.9591,
+      "beforeFrames": 748154,
+      "afterFrames": 7806,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_half_time_return",
+      "seed": 17,
+      "beforeScore": 973.9591,
+      "afterScore": 973.9591,
+      "beforeFrames": 748154,
+      "afterFrames": 7806,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_accelerando_reply",
+      "seed": 16,
+      "beforeScore": 978.6489,
+      "afterScore": 978.6489,
+      "beforeFrames": 749990,
+      "afterFrames": 7620,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_accelerando_reply",
+      "seed": 17,
+      "beforeScore": 978.6489,
+      "afterScore": 978.6489,
+      "beforeFrames": 749990,
+      "afterFrames": 7620,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_archipelago",
+      "seed": 16,
+      "beforeScore": 953.4866,
+      "afterScore": 953.4866,
+      "beforeFrames": 749928,
+      "afterFrames": 7218,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_archipelago",
+      "seed": 17,
+      "beforeScore": 953.4866,
+      "afterScore": 953.4866,
+      "beforeFrames": 749928,
+      "afterFrames": 7218,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_wide_arc_dialogue",
+      "seed": 16,
+      "beforeScore": 950.2684,
+      "afterScore": 950.2684,
+      "beforeFrames": 749370,
+      "afterFrames": 7010,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_wide_arc_dialogue",
+      "seed": 17,
+      "beforeScore": 950.2684,
+      "afterScore": 950.2684,
+      "beforeFrames": 749370,
+      "afterFrames": 7010,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_terraced_skies",
+      "seed": 16,
+      "beforeScore": 942.7022,
+      "afterScore": 942.7022,
+      "beforeFrames": 741113,
+      "afterFrames": 8356,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_terraced_skies",
+      "seed": 17,
+      "beforeScore": 942.7022,
+      "afterScore": 942.7022,
+      "beforeFrames": 741113,
+      "afterFrames": 8356,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_woven_pulse",
+      "seed": 16,
+      "beforeScore": 965.73,
+      "afterScore": 965.73,
+      "beforeFrames": 743385,
+      "afterFrames": 7970,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_woven_pulse",
+      "seed": 17,
+      "beforeScore": 965.73,
+      "afterScore": 965.73,
+      "beforeFrames": 743385,
+      "afterFrames": 7970,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_density_release",
+      "seed": 16,
+      "beforeScore": 965.6305,
+      "afterScore": 965.6305,
+      "beforeFrames": 748150,
+      "afterFrames": 7313,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_density_release",
+      "seed": 17,
+      "beforeScore": 965.6305,
+      "afterScore": 965.6305,
+      "beforeFrames": 748150,
+      "afterFrames": 7313,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_compact_dialogue",
+      "seed": 16,
+      "beforeScore": 961.2104,
+      "afterScore": 961.2104,
+      "beforeFrames": 749491,
+      "afterFrames": 7477,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_compact_dialogue",
+      "seed": 17,
+      "beforeScore": 961.2104,
+      "afterScore": 961.2104,
+      "beforeFrames": 749491,
+      "afterFrames": 7477,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_lifted_refrain",
+      "seed": 16,
+      "beforeScore": 909.804,
+      "afterScore": 909.804,
+      "beforeFrames": 741161,
+      "afterFrames": 7915,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_lifted_refrain",
+      "seed": 17,
+      "beforeScore": 909.804,
+      "afterScore": 909.804,
+      "beforeFrames": 741161,
+      "afterFrames": 7915,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_flight_and_return",
+      "seed": 16,
+      "beforeScore": 976.9186,
+      "afterScore": 976.9186,
+      "beforeFrames": 749989,
+      "afterFrames": 7199,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_flight_and_return",
+      "seed": 17,
+      "beforeScore": 976.9186,
+      "afterScore": 976.9186,
+      "beforeFrames": 749989,
+      "afterFrames": 7199,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_open_canopy",
+      "seed": 16,
+      "beforeScore": 973.2657,
+      "afterScore": 973.2657,
+      "beforeFrames": 747214,
+      "afterFrames": 7387,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_open_canopy",
+      "seed": 17,
+      "beforeScore": 973.2657,
+      "afterScore": 973.2657,
+      "beforeFrames": 747214,
+      "afterFrames": 7387,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_quiet_current",
+      "seed": 16,
+      "beforeScore": 974.3619,
+      "afterScore": 974.3619,
+      "beforeFrames": 748630,
+      "afterFrames": 8405,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_quiet_current",
+      "seed": 17,
+      "beforeScore": 974.3619,
+      "afterScore": 974.3619,
+      "beforeFrames": 748630,
+      "afterFrames": 8405,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_support_then_lift",
+      "seed": 16,
+      "beforeScore": 961.3169,
+      "afterScore": 961.3169,
+      "beforeFrames": 741920,
+      "afterFrames": 7771,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_support_then_lift",
+      "seed": 17,
+      "beforeScore": 961.3169,
+      "afterScore": 961.3169,
+      "beforeFrames": 741920,
+      "afterFrames": 7771,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_rest_and_return",
+      "seed": 16,
+      "beforeScore": 969.2631,
+      "afterScore": 969.2631,
+      "beforeFrames": 749453,
+      "afterFrames": 8033,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_rest_and_return",
+      "seed": 17,
+      "beforeScore": 969.2631,
+      "afterScore": 969.2631,
+      "beforeFrames": 749453,
+      "afterFrames": 8033,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_pickup_staircase",
+      "seed": 16,
+      "beforeScore": 954.3076,
+      "afterScore": 954.3076,
+      "beforeFrames": 749065,
+      "afterFrames": 7985,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_pickup_staircase",
+      "seed": 17,
+      "beforeScore": 954.3076,
+      "afterScore": 954.3076,
+      "beforeFrames": 749065,
+      "afterFrames": 7985,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_pickup_interruptions",
+      "seed": 16,
+      "beforeScore": 947.7144,
+      "afterScore": 947.7144,
+      "beforeFrames": 749716,
+      "afterFrames": 7387,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_pickup_interruptions",
+      "seed": 17,
+      "beforeScore": 947.7144,
+      "afterScore": 947.7144,
+      "beforeFrames": 749716,
+      "afterFrames": 7387,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_pickup_recovery",
+      "seed": 16,
+      "beforeScore": 925.3811,
+      "afterScore": 925.3811,
+      "beforeFrames": 749932,
+      "afterFrames": 7578,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_pickup_recovery",
+      "seed": 17,
+      "beforeScore": 925.3811,
+      "afterScore": 925.3811,
+      "beforeFrames": 749932,
+      "afterFrames": 7578,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_dense_short_then_long",
+      "seed": 16,
+      "beforeScore": 961.7637,
+      "afterScore": 961.7637,
+      "beforeFrames": 748462,
+      "afterFrames": 7958,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_dense_short_then_long",
+      "seed": 17,
+      "beforeScore": 961.7637,
+      "afterScore": 961.7637,
+      "beforeFrames": 748462,
+      "afterFrames": 7958,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_interleaved_recovery",
+      "seed": 16,
+      "beforeScore": 883.8414,
+      "afterScore": 883.8414,
+      "beforeFrames": 749942,
+      "afterFrames": 749942,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_interleaved_recovery",
+      "seed": 17,
+      "beforeScore": 883.8414,
+      "afterScore": 883.8414,
+      "beforeFrames": 749942,
+      "afterFrames": 749942,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_three_note_returns",
+      "seed": 16,
+      "beforeScore": 864.376,
+      "afterScore": 864.376,
+      "beforeFrames": 749815,
+      "afterFrames": 749815,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_three_note_returns",
+      "seed": 17,
+      "beforeScore": 864.376,
+      "afterScore": 864.376,
+      "beforeFrames": 749815,
+      "afterFrames": 749815,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_supported_bridge",
+      "seed": 16,
+      "beforeScore": 952.8588,
+      "afterScore": 952.8588,
+      "beforeFrames": 748005,
+      "afterFrames": 9064,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_supported_bridge",
+      "seed": 17,
+      "beforeScore": 952.8588,
+      "afterScore": 952.8588,
+      "beforeFrames": 748005,
+      "afterFrames": 9064,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_supported_speed_change",
+      "seed": 16,
+      "beforeScore": 963.4963,
+      "afterScore": 963.4963,
+      "beforeFrames": 739957,
+      "afterFrames": 11322,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_supported_speed_change",
+      "seed": 17,
+      "beforeScore": 963.4963,
+      "afterScore": 963.4963,
+      "beforeFrames": 739957,
+      "afterFrames": 11322,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_endurance_and_return",
+      "seed": 16,
+      "beforeScore": 957.0041,
+      "afterScore": 957.0041,
+      "beforeFrames": 745368,
+      "afterFrames": 9162,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_endurance_and_return",
+      "seed": 17,
+      "beforeScore": 957.0041,
+      "afterScore": 957.0041,
+      "beforeFrames": 745368,
+      "afterFrames": 9162,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_energy_weave",
+      "seed": 16,
+      "beforeScore": 977.9663,
+      "afterScore": 977.9663,
+      "beforeFrames": 746086,
+      "afterFrames": 7909,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_energy_weave",
+      "seed": 17,
+      "beforeScore": 977.9663,
+      "afterScore": 977.9663,
+      "beforeFrames": 746086,
+      "afterFrames": 7909,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_alternating_intentions",
+      "seed": 16,
+      "beforeScore": 976.5109,
+      "afterScore": 976.5109,
+      "beforeFrames": 745591,
+      "afterFrames": 7287,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_alternating_intentions",
+      "seed": 17,
+      "beforeScore": 976.5109,
+      "afterScore": 976.5109,
+      "beforeFrames": 745591,
+      "afterFrames": 7287,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_recovery_mosaic",
+      "seed": 16,
+      "beforeScore": 978.3558,
+      "afterScore": 978.3558,
+      "beforeFrames": 749969,
+      "afterFrames": 7479,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_recovery_mosaic",
+      "seed": 17,
+      "beforeScore": 978.3558,
+      "afterScore": 978.3558,
+      "beforeFrames": 749969,
+      "afterFrames": 7479,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_amplitude_reply",
+      "seed": 16,
+      "beforeScore": 958.9947,
+      "afterScore": 958.9947,
+      "beforeFrames": 744685,
+      "afterFrames": 7886,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_amplitude_reply",
+      "seed": 17,
+      "beforeScore": 958.9947,
+      "afterScore": 958.9947,
+      "beforeFrames": 744685,
+      "afterFrames": 7886,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_restrained_then_wide",
+      "seed": 16,
+      "beforeScore": 952.0481,
+      "afterScore": 952.0481,
+      "beforeFrames": 749931,
+      "afterFrames": 7192,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_restrained_then_wide",
+      "seed": 17,
+      "beforeScore": 952.0481,
+      "afterScore": 952.0481,
+      "beforeFrames": 749931,
+      "afterFrames": 7192,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_arches_at_new_tempos",
+      "seed": 16,
+      "beforeScore": 946.7645,
+      "afterScore": 946.7645,
+      "beforeFrames": 748588,
+      "afterFrames": 7428,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_arches_at_new_tempos",
+      "seed": 17,
+      "beforeScore": 946.7645,
+      "afterScore": 946.7645,
+      "beforeFrames": 748588,
+      "afterFrames": 7428,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_amor_na_praia_46s",
+      "seed": 16,
+      "beforeScore": 972.0574,
+      "afterScore": 972.0574,
+      "beforeFrames": 710571,
+      "afterFrames": 5421,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_amor_na_praia_46s",
+      "seed": 17,
+      "beforeScore": 972.0574,
+      "afterScore": 972.0574,
+      "beforeFrames": 710571,
+      "afterFrames": 5421,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_luna_bala_44s",
+      "seed": 16,
+      "beforeScore": 962.5727,
+      "afterScore": 962.5727,
+      "beforeFrames": 705163,
+      "afterFrames": 5183,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_luna_bala_44s",
+      "seed": 17,
+      "beforeScore": 962.5727,
+      "afterScore": 962.5727,
+      "beforeFrames": 705163,
+      "afterFrames": 5183,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_tiki_tiki_48s",
+      "seed": 16,
+      "beforeScore": 872.4897,
+      "afterScore": 872.4897,
+      "beforeFrames": 721616,
+      "afterFrames": 721616,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_tiki_tiki_48s",
+      "seed": 17,
+      "beforeScore": 872.4897,
+      "afterScore": 872.4897,
+      "beforeFrames": 721616,
+      "afterFrames": 721616,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_shelter_impact_sync_81s",
+      "seed": 16,
+      "beforeScore": 894.7508,
+      "afterScore": 894.7508,
+      "beforeFrames": 745802,
+      "afterFrames": 745802,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_shelter_impact_sync_81s",
+      "seed": 17,
+      "beforeScore": 894.7508,
+      "afterScore": 894.7508,
+      "beforeFrames": 745802,
+      "afterFrames": 745802,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_amour_de_ma_vie_short_44s",
+      "seed": 16,
+      "beforeScore": 921.9881,
+      "afterScore": 921.9881,
+      "beforeFrames": 715853,
+      "afterFrames": 5303,
+      "sameTrack": true
+    },
+    {
+      "source": "stretch_music_amour_de_ma_vie_short_44s",
+      "seed": 17,
+      "beforeScore": 921.9881,
+      "afterScore": 921.9881,
+      "beforeFrames": 715853,
+      "afterFrames": 5303,
+      "sameTrack": true
+    }
+  ],
+  "decisions": [
+    {
+      "source": "bridge_river_reentry",
+      "reason": "accepted",
+      "rmsError": 0.0037415358508958107,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_countercurrent",
+      "reason": "accepted",
+      "rmsError": 0.0039037963197306284,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_split_signal",
+      "reason": "above-error-limit",
+      "rmsError": 0.03679991200001337,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_pickup_lattice",
+      "reason": "accepted",
+      "rmsError": 0.02478100898611749,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_loose_pocket",
+      "reason": "accepted",
+      "rmsError": 0.0054745275125348365,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_offgrid_conversation",
+      "reason": "accepted",
+      "rmsError": 0.0041750584471755715,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_rising_switch",
+      "reason": "accepted",
+      "rmsError": 0.0038266697373543707,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_meter_exchange",
+      "reason": "accepted",
+      "rmsError": 0.0046679846652517044,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_wide_breaths",
+      "reason": "accepted",
+      "rmsError": 0.019807367962820125,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_open_hook",
+      "reason": "above-error-limit",
+      "rmsError": 0.036692428847159,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_amplitude_tides",
+      "reason": "above-error-limit",
+      "rmsError": 0.029543949388711317,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_dense_dialogue",
+      "reason": "accepted",
+      "rmsError": 0.008299634628194968,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_high_air_drive",
+      "reason": "accepted",
+      "rmsError": 0.01821221718906169,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_sparse_lowline",
+      "reason": "accepted",
+      "rmsError": 0.006449701288390225,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_frontier_pickup_progression",
+      "reason": "accepted",
+      "rmsError": 0.006934656311086245,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_frontier_dense_recovery",
+      "reason": "accepted",
+      "rmsError": 0.010289628527476329,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance",
+      "reason": "accepted",
+      "rmsError": 0.01503083917651037,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_regression_transition_mosaic",
+      "reason": "accepted",
+      "rmsError": 0.005507597555668279,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic",
+      "reason": "above-error-limit",
+      "rmsError": 0.06127965602819729,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_believer_56_6s",
+      "reason": "accepted",
+      "rmsError": 0.009625938639430405,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_believer_impact_56s",
+      "reason": "accepted",
+      "rmsError": 0.02384243774295886,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_river_reentry_tempo_fast_5",
+      "reason": "accepted",
+      "rmsError": 0.003935390929807066,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_countercurrent_impact_contrast_12",
+      "reason": "accepted",
+      "rmsError": 0.004019620040072882,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_split_signal_impact_relief_12",
+      "reason": "above-error-limit",
+      "rmsError": 0.03695623533437972,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_pickup_lattice_speed_minus_4",
+      "reason": "accepted",
+      "rmsError": 0.022377830452934,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_loose_pocket_drag_later_20ms",
+      "reason": "invalid",
+      "rmsError": null,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_offgrid_conversation_answer_early_25ms",
+      "reason": "invalid",
+      "rmsError": null,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_rising_switch_tempo_fast_5",
+      "reason": "accepted",
+      "rmsError": 0.004574783874744384,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_meter_exchange_speed_plus_4",
+      "reason": "accepted",
+      "rmsError": 0.0041310269210167215,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_wide_breaths_air_plus_5",
+      "reason": "accepted",
+      "rmsError": 0.022029527327091177,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_open_hook_amplitude_plus_8",
+      "reason": "above-error-limit",
+      "rmsError": 0.04565899593041588,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_amplitude_tides_restrained_10",
+      "reason": "above-error-limit",
+      "rmsError": 0.02986535815581119,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_dense_dialogue_impact_contrast_10",
+      "reason": "accepted",
+      "rmsError": 0.009591016640538116,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_high_air_drive_air_minus_5",
+      "reason": "accepted",
+      "rmsError": 0.009306682292971888,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_sparse_lowline_air_minus_4",
+      "reason": "accepted",
+      "rmsError": 0.007422097196890418,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_frontier_pickup_progression_shifted",
+      "reason": "accepted",
+      "rmsError": 0.008446677274440862,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_frontier_dense_recovery_240ms_figures",
+      "reason": "invalid",
+      "rmsError": null,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_4s",
+      "reason": "invalid",
+      "rmsError": null,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_6s",
+      "reason": "invalid",
+      "rmsError": null,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_frontier_low_air_endurance_7s",
+      "reason": "accepted",
+      "rmsError": 0.01535890349966095,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_regression_transition_mosaic_tempo_fast_5",
+      "reason": "accepted",
+      "rmsError": 0.0061539829226247384,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_regression_amplitude_mosaic_contrast_10",
+      "reason": "above-error-limit",
+      "rmsError": 0.06320765677825398,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_believer_56_6s_impact_relief",
+      "reason": "accepted",
+      "rmsError": 0.008363036670112916,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "bridge_believer_impact_56s_amplitude_plus_5",
+      "reason": "accepted",
+      "rmsError": 0.024793695254511427,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "harbor_return",
+      "reason": "accepted",
+      "rmsError": 0.006227121955819053,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "crossing_lights",
+      "reason": "accepted",
+      "rmsError": 0.004881253789308486,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "afterglow_turn",
+      "reason": "accepted",
+      "rmsError": 0.004533000250351297,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "woven_pickups",
+      "reason": "accepted",
+      "rmsError": 0.0066352473796260055,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "pickup_answers",
+      "reason": "accepted",
+      "rmsError": 0.005778593385854035,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "broken_triplets",
+      "reason": "accepted",
+      "rmsError": 0.004582589579176682,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "late_letters",
+      "reason": "accepted",
+      "rmsError": 0.00525649944572699,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "swing_exchange",
+      "reason": "accepted",
+      "rmsError": 0.005088276242689458,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "offbeat_echoes",
+      "reason": "accepted",
+      "rmsError": 0.004319481566931413,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "gear_changes",
+      "reason": "accepted",
+      "rmsError": 0.010065033348553874,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "half_time_return",
+      "reason": "accepted",
+      "rmsError": 0.00600452303511932,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "accelerando_reply",
+      "reason": "accepted",
+      "rmsError": 0.00468728888573197,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "archipelago",
+      "reason": "accepted",
+      "rmsError": 0.011765661328506366,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "wide_arc_dialogue",
+      "reason": "accepted",
+      "rmsError": 0.011306880270734667,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "terraced_skies",
+      "reason": "accepted",
+      "rmsError": 0.012051005150395162,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "woven_pulse",
+      "reason": "accepted",
+      "rmsError": 0.006934142575534913,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "density_release",
+      "reason": "accepted",
+      "rmsError": 0.006183649580981503,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "compact_dialogue",
+      "reason": "accepted",
+      "rmsError": 0.006650949145994047,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "lifted_refrain",
+      "reason": "accepted",
+      "rmsError": 0.006266397992050338,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "flight_and_return",
+      "reason": "accepted",
+      "rmsError": 0.005387993004512551,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "open_canopy",
+      "reason": "accepted",
+      "rmsError": 0.005313413107945765,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "quiet_current",
+      "reason": "accepted",
+      "rmsError": 0.00671369491677473,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "support_then_lift",
+      "reason": "accepted",
+      "rmsError": 0.008658103909366709,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "rest_and_return",
+      "reason": "accepted",
+      "rmsError": 0.008068522930135883,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "pickup_staircase",
+      "reason": "accepted",
+      "rmsError": 0.012658107051328936,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "pickup_interruptions",
+      "reason": "accepted",
+      "rmsError": 0.009252521975309869,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "pickup_recovery",
+      "reason": "accepted",
+      "rmsError": 0.017497656066543896,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "dense_short_then_long",
+      "reason": "accepted",
+      "rmsError": 0.01878719551529494,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "interleaved_recovery",
+      "reason": "accepted",
+      "rmsError": 0.01743953503257077,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "three_note_returns",
+      "reason": "accepted",
+      "rmsError": 0.018872631813816144,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "supported_bridge",
+      "reason": "accepted",
+      "rmsError": 0.01269340304630953,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "supported_speed_change",
+      "reason": "accepted",
+      "rmsError": 0.010004582296217849,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "endurance_and_return",
+      "reason": "accepted",
+      "rmsError": 0.012330010889855192,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "energy_weave",
+      "reason": "accepted",
+      "rmsError": 0.005375866091269925,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "alternating_intentions",
+      "reason": "accepted",
+      "rmsError": 0.005119021330354884,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "recovery_mosaic",
+      "reason": "accepted",
+      "rmsError": 0.00456862855536051,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "amplitude_reply",
+      "reason": "accepted",
+      "rmsError": 0.010354850358065023,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "restrained_then_wide",
+      "reason": "accepted",
+      "rmsError": 0.012864367898318156,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "arches_at_new_tempos",
+      "reason": "accepted",
+      "rmsError": 0.01151144118723544,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "music_amor_na_praia_46s",
+      "reason": "accepted",
+      "rmsError": 0.005805808608056725,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "music_luna_bala_44s",
+      "reason": "accepted",
+      "rmsError": 0.010512511346948491,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "music_tiki_tiki_48s",
+      "reason": "accepted",
+      "rmsError": 0.018102265637534108,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "music_shelter_impact_sync_81s",
+      "reason": "accepted",
+      "rmsError": 0.020672764259776426,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "music_amour_de_ma_vie_short_44s",
+      "reason": "accepted",
+      "rmsError": 0.020705486754918023,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_river_reentry",
+      "reason": "accepted",
+      "rmsError": 0.004666189817457023,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_countercurrent",
+      "reason": "accepted",
+      "rmsError": 0.004628300644461193,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_split_signal",
+      "reason": "above-error-limit",
+      "rmsError": 0.04247323540021884,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_pickup_lattice",
+      "reason": "accepted",
+      "rmsError": 0.023138279226708764,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_loose_pocket",
+      "reason": "accepted",
+      "rmsError": 0.005458955831962709,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_offgrid_conversation",
+      "reason": "accepted",
+      "rmsError": 0.0057336567920150796,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_rising_switch",
+      "reason": "accepted",
+      "rmsError": 0.005073131349420233,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_meter_exchange",
+      "reason": "accepted",
+      "rmsError": 0.006329846770978815,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_wide_breaths",
+      "reason": "above-error-limit",
+      "rmsError": 0.026729547364676646,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_open_hook",
+      "reason": "above-error-limit",
+      "rmsError": 0.032964464169181106,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides",
+      "reason": "above-error-limit",
+      "rmsError": 0.03975732289864061,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_dense_dialogue",
+      "reason": "accepted",
+      "rmsError": 0.024426151517591307,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_high_air_drive",
+      "reason": "accepted",
+      "rmsError": 0.023667941926713416,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_sparse_lowline",
+      "reason": "accepted",
+      "rmsError": 0.006378973099432846,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_frontier_pickup_progression",
+      "reason": "accepted",
+      "rmsError": 0.008801242510160446,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery",
+      "reason": "accepted",
+      "rmsError": 0.013586019417342804,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance",
+      "reason": "accepted",
+      "rmsError": 0.01222470456713758,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_regression_transition_mosaic",
+      "reason": "accepted",
+      "rmsError": 0.007025919809880235,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic",
+      "reason": "above-error-limit",
+      "rmsError": 0.07432719261913348,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_believer_56_6s",
+      "reason": "accepted",
+      "rmsError": 0.01153522705961434,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_believer_impact_56s",
+      "reason": "above-error-limit",
+      "rmsError": 0.025080357269244676,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_river_reentry_tempo_fast_5",
+      "reason": "accepted",
+      "rmsError": 0.010524080598843518,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_countercurrent_impact_contrast_12",
+      "reason": "accepted",
+      "rmsError": 0.005007266621174481,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_split_signal_impact_relief_12",
+      "reason": "above-error-limit",
+      "rmsError": 0.047393787207642264,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_pickup_lattice_speed_minus_4",
+      "reason": "accepted",
+      "rmsError": 0.02381229361444494,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_loose_pocket_drag_later_20ms",
+      "reason": "accepted",
+      "rmsError": 0.005884975008013182,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+      "reason": "accepted",
+      "rmsError": 0.005448556851354306,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_rising_switch_tempo_fast_5",
+      "reason": "accepted",
+      "rmsError": 0.004878980460089039,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_meter_exchange_speed_plus_4",
+      "reason": "accepted",
+      "rmsError": 0.0065677684492478,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_wide_breaths_air_plus_5",
+      "reason": "above-error-limit",
+      "rmsError": 0.028273528445511075,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_open_hook_amplitude_plus_8",
+      "reason": "above-error-limit",
+      "rmsError": 0.043099122906075295,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_amplitude_tides_restrained_10",
+      "reason": "above-error-limit",
+      "rmsError": 0.040550428698840006,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_dense_dialogue_impact_contrast_10",
+      "reason": "above-error-limit",
+      "rmsError": 0.031089439296879937,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_high_air_drive_air_minus_5",
+      "reason": "accepted",
+      "rmsError": 0.016926159437214466,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_sparse_lowline_air_minus_4",
+      "reason": "accepted",
+      "rmsError": 0.0068552466792428535,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_frontier_pickup_progression_shifted",
+      "reason": "accepted",
+      "rmsError": 0.010416726901051963,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+      "reason": "accepted",
+      "rmsError": 0.01339974914051074,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_4s",
+      "reason": "accepted",
+      "rmsError": 0.010016926722475124,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_6s",
+      "reason": "accepted",
+      "rmsError": 0.00671150355697109,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_frontier_low_air_endurance_7s",
+      "reason": "accepted",
+      "rmsError": 0.011163522698571253,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+      "reason": "accepted",
+      "rmsError": 0.008236874089414087,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "reason": "above-error-limit",
+      "rmsError": 0.07801838221944404,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_believer_56_6s_impact_relief",
+      "reason": "accepted",
+      "rmsError": 0.009662758084287975,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+      "reason": "above-error-limit",
+      "rmsError": 0.029012735820126066,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_harbor_return",
+      "reason": "accepted",
+      "rmsError": 0.007312846681349921,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_crossing_lights",
+      "reason": "accepted",
+      "rmsError": 0.013458326985782245,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_afterglow_turn",
+      "reason": "accepted",
+      "rmsError": 0.005632678110159155,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_woven_pickups",
+      "reason": "accepted",
+      "rmsError": 0.00804344626057296,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_pickup_answers",
+      "reason": "accepted",
+      "rmsError": 0.010098160174151974,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_broken_triplets",
+      "reason": "accepted",
+      "rmsError": 0.011057557190444952,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_late_letters",
+      "reason": "accepted",
+      "rmsError": 0.005156399900960549,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_swing_exchange",
+      "reason": "accepted",
+      "rmsError": 0.004673372637307529,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_offbeat_echoes",
+      "reason": "accepted",
+      "rmsError": 0.004427591512454143,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_gear_changes",
+      "reason": "accepted",
+      "rmsError": 0.020838718607299453,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_half_time_return",
+      "reason": "accepted",
+      "rmsError": 0.0065964810809096075,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_accelerando_reply",
+      "reason": "accepted",
+      "rmsError": 0.005395590839877388,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_archipelago",
+      "reason": "accepted",
+      "rmsError": 0.011907474037052992,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_wide_arc_dialogue",
+      "reason": "accepted",
+      "rmsError": 0.012752715035369604,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_terraced_skies",
+      "reason": "accepted",
+      "rmsError": 0.014751210856626043,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_woven_pulse",
+      "reason": "accepted",
+      "rmsError": 0.008717733850410157,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_density_release",
+      "reason": "accepted",
+      "rmsError": 0.008743499398471929,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_compact_dialogue",
+      "reason": "accepted",
+      "rmsError": 0.009890493656373347,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_lifted_refrain",
+      "reason": "accepted",
+      "rmsError": 0.023631533292455396,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_flight_and_return",
+      "reason": "accepted",
+      "rmsError": 0.005837975083337041,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_open_canopy",
+      "reason": "accepted",
+      "rmsError": 0.006774541306554766,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_quiet_current",
+      "reason": "accepted",
+      "rmsError": 0.0064931260508952855,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_support_then_lift",
+      "reason": "accepted",
+      "rmsError": 0.009862802088580773,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_rest_and_return",
+      "reason": "accepted",
+      "rmsError": 0.007804787452510141,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_pickup_staircase",
+      "reason": "accepted",
+      "rmsError": 0.01169229434124196,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_pickup_interruptions",
+      "reason": "accepted",
+      "rmsError": 0.013425514300106559,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_pickup_recovery",
+      "reason": "accepted",
+      "rmsError": 0.01938740369550298,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_dense_short_then_long",
+      "reason": "accepted",
+      "rmsError": 0.009746622478484226,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_interleaved_recovery",
+      "reason": "above-error-limit",
+      "rmsError": 0.030869417661956503,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_three_note_returns",
+      "reason": "above-error-limit",
+      "rmsError": 0.03656384359396817,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_supported_bridge",
+      "reason": "accepted",
+      "rmsError": 0.012072145852714154,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_supported_speed_change",
+      "reason": "accepted",
+      "rmsError": 0.009296657161327613,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_endurance_and_return",
+      "reason": "accepted",
+      "rmsError": 0.010986890578759078,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_energy_weave",
+      "reason": "accepted",
+      "rmsError": 0.0055700079994765285,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_alternating_intentions",
+      "reason": "accepted",
+      "rmsError": 0.00594234142254535,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_recovery_mosaic",
+      "reason": "accepted",
+      "rmsError": 0.005470459140791177,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_amplitude_reply",
+      "reason": "accepted",
+      "rmsError": 0.010467436395148374,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_restrained_then_wide",
+      "reason": "accepted",
+      "rmsError": 0.012284928196009978,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_arches_at_new_tempos",
+      "reason": "accepted",
+      "rmsError": 0.01367622808671558,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_music_amor_na_praia_46s",
+      "reason": "accepted",
+      "rmsError": 0.007085114961791287,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_music_luna_bala_44s",
+      "reason": "accepted",
+      "rmsError": 0.009536426537723281,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_music_tiki_tiki_48s",
+      "reason": "above-error-limit",
+      "rmsError": 0.03410111925185001,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_music_shelter_impact_sync_81s",
+      "reason": "above-error-limit",
+      "rmsError": 0.027802495728382434,
+      "errorLimit": 0.025
+    },
+    {
+      "source": "stretch_music_amour_de_ma_vie_short_44s",
+      "reason": "accepted",
+      "rmsError": 0.02030573054377354,
+      "errorLimit": 0.025
+    }
+  ],
+  "limitations": [
+    "Existing V4 inputs are exposed development demonstrations.",
+    "Two zero-jitter seeds produce 176 distinct tracks, not 352 independent trajectories.",
+    "0.025 is an explicit compiler stopping tolerance, not a new scorer or a visual-quality guarantee.",
+    "Performance on unfamiliar short gallery passages is separately reported and much weaker than the V4 headline."
+  ]
+}

@@ -1,3 +1,28 @@
+# Current engineering work — 2026-09-29
+
+The compiler now stops after a preliminary track passes the complete physical
+contract and has sufficiently low measured target error. General search remains
+available for failed or poorly matched preliminary tracks. This changes V4 from
+**952.5191 to 952.4726** (−0.0465), with **352/352 valid runs**, while reducing
+actual physics work by **82.22%**: 261,277,684 → 46,454,822 frames across the full
+176-specification × seeds 16/17 panel. These are work savings, not a wall-time
+speedup claim. The frozen judge and coherent normal-arc production style remain
+unchanged; the completed 940 goal stays complete.
+
+A working [motion gallery](docs/motion-repertoire.md) compares the current arcs
+and experimental normal scattered segments on four new short passages, three
+allowances and two seeds: 48 recorded physics replays. It introduces no new
+specification controls or geometry framework. Normal segments remain a research
+choice; the results expose important target-adherence limitations.
+
+The separate 176-run jitter diagnostic preserves every track and score, with
+6.73% less physics work. All 176 focused tests pass; no new TypeScript diagnostics
+were introduced. See the [complete engineering report](docs/compiler-efficiency-2026-09-29.md).
+
+See [canonical evidence](benchmark/v4/studies/preview-quality-20260929-validation.json)
+and [gallery measurements](docs/evidence/motion-gallery-20260929.json). Code and
+compact evidence are versioned; raw tracks and replay assets stay local.
+
 # Creative direction — 2026-09-29
 
 The owner wants a broader visual motion repertoire and a playable gallery for
@@ -8,7 +33,7 @@ for the current implementation boundaries and proposed experiments. Coherent arc
 remain the production default. The frozen benchmark, completed performance goal
 and specification format are unchanged by this discussion.
 
-# Current: 952.5191 on frozen Benchmark V4
+# Previous qualification: 952.5191 on frozen Benchmark V4
 
 The [design and behavior audit](docs/compiler-design-audit-2026-09-11.md) preserves
 the completed 940 goal and improves the canonical headline from **952.4115 to

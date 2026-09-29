@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motion gallery · Line</title><link rel="stylesheet" href="/shared/theme.css"><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><a href="/motion-gallery/" class="brand">line <span>/ motion gallery</span></a><span data-lr-nav></span></header>
+<main>
+<div class="intro"><p class="eyebrow">GEOMETRY STUDIES · 01</p><h1>Same passage. Different tracks.</h1>
+<p>Compare arcs and guides with experimental scattered segments. Both use normal lines. Every ride shown comes from a measured physics replay, including unsuccessful attempts.</p></div>
+<div id="status" role="status">Loading the local study…</div>
+<section class="controls" aria-label="Comparison controls">
+<label>Passage<select id="passage"></select></label><label>Search allowance<select id="budget"></select></label>
+<label>Seed<select id="seed"></select></label><label>View<select id="view"><option value="follow">Follow rider</option><option value="overview">Whole track</option></select></label>
+<label>Playback<select id="rate"><option value="1">1×</option><option value="0.5">½×</option><option value="0.25">¼×</option></select></label>
+</section>
+<section class="transport" aria-label="Playback"><button id="play" disabled>Play</button><input id="seek" type="range" min="0" max="1" step="0.025" value="0" aria-label="Playback time"><output id="time">0.00 s</output></section>
+<div id="beats" class="beats" aria-label="Authored beat positions"></div>
+<div id="panels" class="panels"></div>
+<section class="notes"><h2>What this comparison measures</h2><p id="study-note"></p>
+<p>The adherence score uses the unchanged V4 scoring functions on these four research passages. It is <strong>not a V4 headline</strong> or a measure of visual quality. A score of zero means the physical or timing contract failed; the reason remains visible.</p>
+<p>These are recorded physics views at 40 frames per second, without music or production post-processing. The search allowance is a ceiling, not work that must be spent. This study compares whole tracks; it does not yet measure mixing styles or restricting how often scattered segments may be used.</p>
+<details><summary>All measured results</summary><div class="table-scroll"><table><thead><tr><th>Method</th><th>Allowance</th><th>Valid</th><th>Mean score</th><th>Physics frames</th><th>Compile time</th></tr></thead><tbody id="summary"></tbody></table></div></details>
+<p><a id="manifest-link">Download study manifest</a> · <span id="identity"></span></p></section>
+</main><script src="/shared/nav.js"></script><script type="module" src="main.js"></script>
+</body></html>

@@ -1,147 +1,106 @@
-# A visual motion repertoire
+# Motion gallery and measured construction
 
-Owner direction, 2026-09-29. The product should create visually interesting,
-enjoyable tracks synchronized to the authored music/specification. Numerical
-adherence supports that purpose; it does not define the entire creative result.
-The architecture and experiments below are proposals, not a frozen framework.
+The product is visually interesting tracks synchronized to the authored music.
+The score measures adherence, not whether a video looks good. The current task
+starts with concrete examples and measurements; it does not introduce a geometry
+plug-in framework, motion motifs, style quotas, or new specification controls.
 
-## Revised creative direction
+## What exists
 
-The owner is open to revisiting scattered normal-line segments as an intentional,
-possibly occasional visual effect. The earlier rejection concerned their look
-and pervasive use; it should not permanently exclude them from exploration.
-Frequency, placement and combinations should be discovered through examples.
-No particular probability, music-intensity rule or specification-format change
-was requested. Coherent arcs remain the current production default. The existing
-acceleration restriction is not broadened by this direction.
+The production compiler builds connected normal-line arcs, with optional paired
+or partial guides. Those are variations of the existing arc builder. Construction
+methods such as learned proposals and measured search are compiler internals,
+not additional artistic primitives.
 
-The frozen V4 suite, scoring and qualification contract remain intact. A study
-using a different visual/material contract must say so rather than present its
-score as an ordinary qualified V4 result. The completed performance goal remains
-complete; this direction does not open a new numeric target.
+The scattered normal-segment controller remains in
+[`normal_motion.ts`](../scripts/v0/optimizer/normal_motion.ts). It is now exercised
+through an explicit research entry point. It is not selected by the production
+dispatcher, and no acceleration lines are introduced. Its historical scores do
+not establish its capability on current inputs.
 
-## What the code already supports
+## Open the gallery
 
-The current [arc builder](../scripts/v0/optimizer/arc_geometry.ts) has continuous
-control over entry, turn, exit, support length, easing, bend, turn timing and
-guide geometry. Single, partially guided and fully guided arcs already belong
-to this family. The [control registry](../scripts/v0/optimizer/arc_motion_control.ts)
-shares search bounds, steps, identity and diversity across construction/repair.
+Run `npm run dash` and open **http://localhost:8767/motion-gallery/**. Through SSH,
+forward port 8767 to this machine. The Motion link also appears in the other
+dashboards. The generated assets stay local.
 
-The [normal-line segment controller](../scripts/v0/optimizer/normal_motion.ts)
-also remains in the tree, with the archived compiler and videos described in
-[the earlier review](normal-motion-video-review.md). It builds geometry through
-feedback over time, rather than evaluating only a complete parametric arc.
-The acceleration-based predecessor is a separate retained implementation.
-Their historical scores use earlier benchmark versions and cannot establish
-performance in the current 900-point range.
+The first study compares both implementations on the same four short passages,
+three actual-physics allowances (25,000 / 100,000 / 750,000), and seeds 101/102
+with 2% target jitter: **48 recorded runs**. The passages are separate from the
+frozen benchmark catalog. These two seeds characterize this small study; they
+do not establish broad robustness.
 
-The compiler is not yet a general plug-in system for unrelated geometry:
+The gallery provides synchronized play, pause, scrubbing and slower playback;
+a follow camera or whole-track view; authored versus measured interval targets;
+and visible scores, failures, geometry counts, physics work and compile time.
+It validates artifact checksums and input/compiler identities before displaying
+replays. It uses recorded physical rider positions, with interpolation between
+40 Hz frames, not invented trajectories. This is a physics inspection view,
+without music or final vertical-video post-processing.
 
-- Search and learned proposal outputs are typed as `ArcMotionControl`.
-- Candidate construction calls `motionArc` directly.
-- Guide reduction and repair rely on arc chains and interval ownership encoded
-  in line IDs.
-- Stored demonstrations and model output schemas describe the current controls.
+To regenerate with the current checkout:
 
-The shared registry makes adding arc dimensions easier. Supporting a materially
-different construction procedure requires another boundary in the architecture.
-Likewise, strong results on exposed development demonstrations do not show that
-arbitrary new families or unfamiliar specifications are already solved.
+```sh
+LR_ENGINE=wasm node --import tsx scripts/gallery/build.ts \
+  --compiler-root="$PWD" --out=generated/motion-gallery/my-study
+```
 
-## Separate shape, construction and composition
+Then open `/motion-gallery/?data=/generated/motion-gallery/my-study/manifest.json`.
+Use a new output directory after changing compiler, inputs or study code. The
+script records the full compiler inventory and frozen judge identity, verifies
+all construction work against its allowance, and independently replays both
+implementations using the fixed engine. Raw tracks and traces are local;
+compact measurements are versioned under `docs/evidence/`.
 
-A useful vocabulary distinguishes three things:
+The score uses the unchanged V4 evaluator on these research passages. It is
+**not a V4 headline**. Scattered segments do not satisfy the separate coherent-arc
+qualification contract. A physically valid ride can still have very poor target
+adherence, which the gallery displays rather than hiding.
 
-| Concept | Meaning | Example |
-|---|---|---|
-| Geometry family | The physical structures available to build | Smooth support arcs, paired guides, scattered normal segments |
-| Construction method | How a feasible structure is found | Parameter search, learned examples, measured feedback |
-| Motion motif | A recognizable visual passage, possibly using several structures | A sweeping descent, a quiet glide followed by a sharp catch |
+## Spend work when the measured result needs it
 
-These are different axes. Several construction methods may produce the same
-family. One motif may span several beats, and the same family may produce many
-motifs. A new artistic effect need not require a new primitive class.
+The old production path always ran general search after a completed preliminary
+track. A full validity-only stopping experiment reproduced the earlier
+counterfactual: 952.4696 on V4, 352/352 valid, with 96.18% less simulated work.
+However, the new gallery exposed a valid preliminary track scoring 598.3382 that
+continued search improved to 942.3736 at 100,000 frames. Physical validity alone
+is therefore not the production acceptance rule.
 
-The reusable boundary should be a physically measured proposal over an authored
-time window. Families can have different parameters and proposal methods,
-including methods that need intermediate physics probes. They share access to
-the incoming physical state, authored targets, metered work allowance and
-validation of the existing prefix and resulting continuation. Each candidate
-retains its geometry, measured outcome, construction provenance and family
-identity. Cached or learned controls must include their family/schema identity.
+Early acceptance now requires both the complete physical contract and a measured
+whole-trajectory RMS error no greater than **0.025** in the existing normalized,
+weighted target coordinates. Otherwise general search retains its full original
+allowance and uses the preliminary measurements as before. This is an explicit
+compiler stopping tolerance, not a new scorer, a claim of visual quality, or a
+per-case exception. The tolerance is a conservative initial engineering choice;
+its cost/quality tradeoff is recorded in the accompanying evidence. Research can
+set `previewMaxRmsError`, or use `searchAfterPreview: 'always'` for a matched
+comparison. Missing or nonfinite loss cannot qualify for early acceptance.
 
-Geometry ownership should be explicit enough that an arc-specific guide trimmer
-cannot accidentally process another family's segments. Search may refine within
-a family, but must not average unrelated parameter vectors together. Borrow
-existing metering, evaluation and continuation logic instead of copying an entire
-compiler for each family. Introduce only enough abstraction to support two real,
-different implementations before designing a larger extension system.
+Every attempt and its cold replays share one actual physics meter. Accepting a
+cheap track preserves the declared budget and reports actual work separately.
+Model loading, lookup and elapsed time are measured separately from simulation;
+a physics-work ratio is never presented as a wall-time speedup.
 
-Transitions deserve their own experiments. A visually appealing isolated motif
-may leave an arrival speed, pose or position that makes the next one difficult.
-Test entry and exit compatibility, include surrounding motion, and let the
-planner revise earlier choices when a later passage cannot be realized.
+See the [qualified results and detailed findings](compiler-efficiency-2026-09-29.md)
+for the full panel, separate jitter diagnostic, paired timing and gallery scores.
 
-## A playable gallery as a research instrument
+## What the first examples establish—and what they do not
 
-Start with a small set of short musical/physical situations and several actual
-rendered alternatives for each. Use the existing [playback dashboard](../dashboard/index.html),
-[specification timeline](../spec-dashboard/index.html) and
-[production rendering path](../scripts/produce/arc_review.ts) as reusable pieces.
-A motion gallery is not already implemented by those pages.
+Both implementations can produce complete rides on this small panel. The old
+segment controller is fast, but its target adherence is substantially weaker,
+particularly on the long quiet tail. Its terminal-continuation shortcut can
+accept a surviving trajectory after the last beat even when the remaining speed,
+air or amplitude misses the specification. More budget alone does not resolve
+that behavior. This is a specific controller limitation to investigate, not
+evidence that scattered geometry is inherently incapable of better motion.
 
-Useful capabilities would be:
+The gallery does not yet measure alternating styles within one track, or score
+as a function of the fraction of beats allowed to use each style. Those require
+working transitions and an actual usage constraint. Introducing probabilities,
+preferences or new specification syntax before that experiment would suggest
+control we have not demonstrated.
 
-- Synchronized comparisons of the same authored passage, including lead-in and
-  continuation, with a consistent camera treatment.
-- A geometry view and the finished vertical presentation with music. A beautiful
-  shape in an overview can still produce an awkward close-up ride.
-- A few meaningful family-specific controls, reproducible variants, and the
-  ability to pin a result and record what makes it interesting.
-- Visible physical/timing outcomes, actual search work and failed attempts,
-  alongside the videos. Failed construction should not silently become an arc
-  while retaining the requested family's label.
-- Examples of family transitions and longer sequences, so repetition, contrast
-  and pacing can be judged beyond a single isolated trick.
-
-The first gallery can compare existing arc variations with the retained normal
-segment approach. New curves or other structures should enter as hypotheses
-with rendered examples, rather than names in an empty catalog. Asset and compile
-identities must make the displayed video traceable to the actual tested inputs.
-
-## Choosing variety deliberately
-
-If the score is the sole selector, a small numerical advantage can cause one
-family to dominate. Creative choice therefore needs an explicit role of its own.
-Initially, manual family selection and reproducible seeded variation are enough
-to explore it. A future composer could choose among physically feasible,
-sufficiently faithful alternatives according to visual preferences and the
-surrounding sequence. The amount of permissible adherence loss is a product
-tradeoff to measure and inspect, not a new aesthetic scalar to invent now.
-
-Sparse use of a fragmented style might create an interesting contrast, or it
-might look distracting. That is a visual hypothesis. Randomness should vary
-which candidates are considered or selected, while preserving physical checks
-and reproducibility. An intensity-to-family rule should wait for evidence and
-the owner's musical/visual judgment; no such rule belongs in the specification
-format merely because it is easy to hardcode.
-
-## Practical next experiments
-
-The [unconditional-search finding](compiler-design-audit-2026-09-11.md#follow-up-the-99-finding-is-an-immediate-scheduling-problem)
-remains relevant: successful preliminary tracks should become reusable
-incumbents, with a deliberate choice to accept them or spend more on a measured
-improvement. A gallery should not inherit a nearly full-budget second attempt
-for every already successful variant. The recorded savings are in physics work;
-model loading, retrieval, rendering and wall-clock costs need separate measures.
-
-A useful small progression is to expose existing variations visually, compare
-the normal segment controller on matching situations, then compose two distinct
-families through the smallest shared physical contract that works. Use those
-examples to discover which new families and controls are worth building. Include
-unfamiliar situations as well as recorded development demonstrations.
-
-This progression is adaptable. Its purpose is to earn the architecture through
-actual attractive motion and reliable composition, while giving new ideas room
-to improve beyond their first implementation.
+Next, improve and measure the segment controller's terminal behavior, then test
+one transition between it and an arc. Keep the good arc path available while
+those experiments earn their place. Further geometry should arrive with real
+examples and measured limitations, rather than a large abstract taxonomy.

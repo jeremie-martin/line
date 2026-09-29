@@ -29,7 +29,7 @@ it('retains general search after a strict proposal fails without resetting or re
 });
 
 it('accepts a successful cold-replayed proposal without reducing the declared budget', () => {
-  const result = compileArcMotion(spec, 17, {...options, policyPreview: true});
+  const result = compileArcMotion(spec, 17, {...options, policyPreview: true, previewMaxRmsError: Infinity});
   expect(result.attempts).toHaveLength(1);
   expect(result.attempts[0].name).toBe('proposal');
   expect(result.attempts[0].complete).toBe(true);

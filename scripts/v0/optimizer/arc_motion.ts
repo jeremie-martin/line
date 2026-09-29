@@ -109,6 +109,8 @@ export type ArcMotionOptions= {
   policyPreview?:boolean;
   /** Accept a cold-validated proposal by default; always search only for explicit comparisons. */
   searchAfterPreview?:'failure'|'always';
+  /** Early acceptance also requires low measured whole-trajectory error. Infinity is a research ablation. */
+  previewMaxRmsError?:number;
   collectTrajectoryLoss?:boolean;
   lookaheadWeight?:number;
   lookaheadWarmStart?:boolean;
@@ -165,9 +167,9 @@ export type ArcMotionOptions= {
   valueGuidanceWeight?:number;
   valueSelection?:boolean};
 
-export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions):ReturnType<typeof compileArcMotionOnce>&{policyPreviewStats?:any;engineRebuilds?:number;attempts:ReturnType<typeof runArcAttempts>['records'];firstCompletionFrame:number|null}{
+export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions):ReturnType<typeof compileArcMotionOnce>&{policyPreviewStats?:any;engineRebuilds?:number;attempts:ReturnType<typeof runArcAttempts>['records'];proposalDecision:ReturnType<typeof runArcAttempts>['proposalDecision'];firstCompletionFrame:number|null}{
   const attempts=runArcAttempts(spec,seed,options,compileArcMotionOnce);
-  const diagnostics={attempts:attempts.records,firstCompletionFrame:attempts.firstCompletionFrame};
+  const diagnostics={attempts:attempts.records,proposalDecision:attempts.proposalDecision,firstCompletionFrame:attempts.firstCompletionFrame};
   if(attempts.results.length===1){
     const result=attempts.results[0],proposal=attempts.records[0].name==='proposal';
     return {...result,...diagnostics,budget:options.budget,...(proposal?{policyPreviewStats:{

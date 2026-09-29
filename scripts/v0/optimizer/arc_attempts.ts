@@ -19,6 +19,7 @@ const complete = (r: Outcome) => r.report.terminus.reason === 'endOfSpec' &&
 export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, options: ArcMotionOptions,
   compile: (spec: Spec, seed: number, options: ArcMotionOptions, continueMeter?: boolean) => R) {
   const results: R[] = [], names: Array<'proposal' | 'search'> = [];
+  let proposalDecision: {reason: 'accepted' | 'invalid' | 'above-error-limit' | 'forced-search'; rmsError: number | null; errorLimit: number} | null = null;
   const run = (name: 'proposal' | 'search', opts: ArcMotionOptions) => {
     const result = compile(spec, seed, opts, results.length > 0);
     results.push(result); names.push(name); return result;
@@ -34,7 +35,13 @@ export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, opti
       const preview = run('proposal', {...options, budget: allowance, controlPolicy: model.rolloutPolicy,
         policyPreview: false, policyRollout: true, policyRolloutStrict: true,
         lookaheadWidth: 0, qualityRetries: 0, refineAttempts: 0, collectTrajectoryLoss: true});
-      if (!complete(preview) || options.searchAfterPreview === 'always')
+      const errorLimit = options.previewMaxRmsError ?? .025;
+      if (!(errorLimit >= 0)) throw new Error('invalid preview error limit');
+      const rmsError = Number.isFinite(preview.trajectoryLoss) ? Math.sqrt(preview.trajectoryLoss!) : null;
+      const reason = options.searchAfterPreview === 'always' ? 'forced-search' : !complete(preview) ? 'invalid' :
+        rmsError === null || rmsError > errorLimit ? 'above-error-limit' : 'accepted';
+      proposalDecision = {reason, rmsError, errorLimit};
+      if (reason !== 'accepted')
         run('search', {...options, policyPreview: false, policyRollout: false, policyRolloutStrict: false,
         collectTrajectoryLoss: true, controlExamples: [
           ...(options.controlExamples ?? []),
@@ -55,5 +62,5 @@ export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, opti
       lookahead: r.lookaheadStats, planning: r.planningDecisions,
       commits: r.rows.map((row, index) => ({index, frame: row.frame, spent: row.spent}))};
   });
-  return {results, selected, records, firstCompletionFrame: records.find(r => r.complete)?.end ?? null};
+  return {results, selected, records, proposalDecision, firstCompletionFrame: records.find(r => r.complete)?.end ?? null};
 }

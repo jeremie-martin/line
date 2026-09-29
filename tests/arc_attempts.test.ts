@@ -45,3 +45,16 @@ it.each(['missed', 'offbeat', 'terminated', 'complete'] as const)(
     expect(result.records[result.selected].complete).toBe(true);
     expect(result.firstCompletionFrame).toBe(condition === 'complete' ? 100 : 200);
   });
+
+it.each([.0001, .02, undefined, NaN])('only accepts a valid proposal with sufficiently small measured loss (%s)', loss => {
+  let calls = 0;
+  const result = runArcAttempts(spec, 17, {budget: 75000, policyPreview: true, controlPolicy: {rolloutPolicy: {}}}, () => {
+    calls++;
+    return {track: {}, rows: [], failure: null, trajectoryLoss: loss,
+      report: {terminus: {reason: 'endOfSpec'}, contacts: [{status: 'hit'}], off_beat_landings: []} as any,
+      constructionFrames: 50, samples: 1, searchBudgetExhausted: false, lookaheadStats: {}, planningDecisions: [],
+      stats: {sim_frames: calls * 100, viable_candidate_samples: 1, gap_commits: 1}};
+  });
+  expect(calls).toBe(loss === .0001 ? 1 : 2);
+  expect(result.proposalDecision?.reason).toBe(loss === .0001 ? 'accepted' : 'above-error-limit');
+});

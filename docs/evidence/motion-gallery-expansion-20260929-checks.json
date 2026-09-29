@@ -1,0 +1,69 @@
+{
+  "schema": "line.motion-gallery-expansion-checks.v1",
+  "compilerCommit": "b01c4ff672218d128db3dd7911a6491efa6625fe",
+  "materials": {
+    "originalRuns": 48,
+    "originalNormalLines": 46669,
+    "newRuns": 360,
+    "newNormalLines": 430952,
+    "nonNormalLines": 0
+  },
+  "focusedTests": {
+    "passed": 184,
+    "files": 45,
+    "command": "LR_ENGINE=wasm npx vitest run tests/arc_*.test.ts tests/normal_motion_research.test.ts tests/normal_contacts.test.ts tests/compiler_input.test.ts tests/handoff_routing.test.ts tests/handoff_reference_import.test.ts tests/benchmark_v2_baseline_cache.test.ts --maxWorkers=4",
+    "rawLog": "/tmp/line-repertoire-tests.log",
+    "sha256": "46fde86c7f742ca3c87108d527e7433fb3850cebe8892bd5a12349a937a75792"
+  },
+  "typescript": {
+    "inheritedDiagnostics": 251,
+    "newDiagnostics": 0,
+    "baselineSha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc",
+    "currentSha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc",
+    "note": "Normalized diagnostic multisets match; global typecheck is not clean."
+  },
+  "browser": {
+    "comparisons": 360,
+    "artifacts": 360,
+    "played": "1.13 s",
+    "mobileOverflow": false,
+    "errors": [],
+    "rejectsCorruption": true,
+    "historicalManifestWorks": true,
+    "checks": [
+      "every recorded new artifact displayed",
+      "method selectors",
+      "play/pause",
+      "authored beat seek",
+      "overview",
+      "390px mobile",
+      "checksum corruption refusal",
+      "historical manifest"
+    ]
+  },
+  "selectionFix": {
+    "samePhysicalWork": 360,
+    "allOtherMethodsKeepIdenticalTracks": true,
+    "scatteredTrackChanges": 7,
+    "oldRegressionScore": 270.587,
+    "correctedScore": 898.396,
+    "regressedAgainstOriginalFeedback": 0
+  },
+  "canonical": {
+    "headline": 952.4726,
+    "valid": 352,
+    "runs": 352,
+    "specifications": 176,
+    "seeds": [
+      16,
+      17
+    ],
+    "distinctTracks": 176,
+    "exactTrackScoreObservationGeometryStatsAndWorkMatches": 352,
+    "physicalFrames": 46454822,
+    "frozenJudgeUnchanged": true,
+    "currentCompilerFilesMatchQualification": 137
+  },
+  "storage": "Raw tracks, traces, screenshots and experimental prototypes remain local. Shipping code and compact measurements are versioned.",
+  "observerFilesMatchQualification": 44
+}

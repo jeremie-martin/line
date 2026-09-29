@@ -1,27 +1,33 @@
 # Current engineering work — 2026-09-29
 
-The compiler now stops after a preliminary track passes the complete physical
-contract and has sufficiently low measured target error. General search remains
-available for failed or poorly matched preliminary tracks. This changes V4 from
-**952.5191 to 952.4726** (−0.0465), with **352/352 valid runs**, while reducing
-actual physics work by **82.22%**: 261,277,684 → 46,454,822 frames across the full
-176-specification × seeds 16/17 panel. These are work savings, not a wall-time
-speedup claim. The frozen judge and coherent normal-arc production style remain
-unchanged; the completed 940 goal stays complete.
+The [motion gallery](docs/motion-gallery-expansion-2026-09-29.md) now compares
+arcs, original and improved scattered segments, wave curves, and faceted curves.
+It contains **360 recorded rides**, all physically valid, on six research passages
+with three allowances and eight seeds at the central 100,000-frame allowance.
+All **430,952 emitted segments are normal type-0 lines**; no acceleration
+material is used. Raw tracks, traces and screenshots remain local.
 
-A working [motion gallery](docs/motion-repertoire.md) compares the current arcs
-and experimental normal scattered segments on four new short passages, three
-allowances and two seeds: 48 recorded physics replays. It introduces no new
-specification controls or geometry framework. Normal segments remain a research
-choice; the results expose important target-adherence limitations.
+At 100,000 frames, improved scattered construction scores **843.21 versus
+572.49** for the original across **six passages × eight seeds**, all 48 valid.
+Wave curves score **824.43** and facets **850.88** on the same panel. These are
+research-passage means, not canonical headlines or geometry ceilings. The new
+scattered method uses an arc ride as a measured reference and emits actual
+replayed fragments; it retains the original scattered candidate when better.
+The expanded passages caught a contact-only selection defect; selection now
+uses the shared whole-trajectory objective, including quiet tails. The report
+preserves the adverse result, limitations and remaining allocation issues.
 
-The separate 176-run jitter diagnostic preserves every track and score, with
-6.73% less physics work. All 176 focused tests pass; no new TypeScript diagnostics
-were introduced. See the [complete engineering report](docs/compiler-efficiency-2026-09-29.md).
+Production still uses coherent normal arcs. Its frozen V4 result remains
+**952.4726**, with **352/352 tracks, scores, observations, geometry, statistics and
+physical work unchanged**. The completed 940 goal stays complete. The earlier
+82.22% physics-work saving and separate jitter qualification remain preserved in
+[the efficiency report](docs/compiler-efficiency-2026-09-29.md).
 
-See [canonical evidence](benchmark/v4/studies/preview-quality-20260929-validation.json)
-and [gallery measurements](docs/evidence/motion-gallery-20260929.json). Code and
-compact evidence are versioned; raw tracks and replay assets stay local.
+All **184 focused tests pass**; TypeScript retains the same 251 inherited
+diagnostics. Every new gallery artifact passed checksum, material and budget
+checks and browser playback checks. See [measurements](docs/evidence/motion-gallery-expansion-20260929.json)
+and [validation](docs/evidence/motion-gallery-expansion-20260929-checks.json).
+Code and compact evidence are versioned; large archives remain local.
 
 # Creative direction — 2026-09-29
 

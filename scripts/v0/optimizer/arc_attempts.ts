@@ -13,6 +13,9 @@ type Outcome = {
   stats: {sim_frames: number; viable_candidate_samples: number; gap_commits: number};
 };
 
+const complete = (r: Outcome) => r.report.terminus.reason === 'endOfSpec' &&
+  !r.report.off_beat_landings.length && r.report.contacts.every(c => c.status === 'hit');
+
 export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, options: ArcMotionOptions,
   compile: (spec: Spec, seed: number, options: ArcMotionOptions, continueMeter?: boolean) => R) {
   const results: R[] = [], names: Array<'proposal' | 'search'> = [];
@@ -31,7 +34,8 @@ export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, opti
       const preview = run('proposal', {...options, budget: allowance, controlPolicy: model.rolloutPolicy,
         policyPreview: false, policyRollout: true, policyRolloutStrict: true,
         lookaheadWidth: 0, qualityRetries: 0, refineAttempts: 0, collectTrajectoryLoss: true});
-      run('search', {...options, policyPreview: false, policyRollout: false, policyRolloutStrict: false,
+      if (!complete(preview) || options.searchAfterPreview === 'always')
+        run('search', {...options, policyPreview: false, policyRollout: false, policyRolloutStrict: false,
         collectTrajectoryLoss: true, controlExamples: [
           ...(options.controlExamples ?? []),
           ...(options.previewMemory ? preview.rows.map(r => ({control: r.control, incoming: r.incoming, span: r.span, features: r.features})) : [])]});
@@ -40,13 +44,12 @@ export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, opti
   if (!results.length) run('search', options);
   // A complete physical trajectory always wins over an invalid one. Preserve
   // the established search-wins-ties rule, including when both attempts fail.
-  const selected = results.length === 2 && results[0].trajectoryLoss! < results[1].trajectoryLoss! ? 0 : results.length - 1;
+  const selected = results.length === 2 && (complete(results[0]) !== complete(results[1])
+    ? complete(results[0]) : results[0].trajectoryLoss! < results[1].trajectoryLoss!) ? 0 : results.length - 1;
   const records = results.map((r, index) => {
-    const complete = r.report.terminus.reason === 'endOfSpec' && !r.report.off_beat_landings.length &&
-      r.report.contacts.every(c => c.status === 'hit');
     const start = index ? results[index - 1].stats.sim_frames : 0;
     return {name: names[index], selected: index === selected, start, constructionEnd: r.constructionFrames,
-      end: r.stats.sim_frames, complete, loss: r.trajectoryLoss, failure: r.failure,
+      end: r.stats.sim_frames, complete: complete(r), loss: r.trajectoryLoss, failure: r.failure,
       trackHash: createHash('sha256').update(JSON.stringify(r.track)).digest('hex'), gapCommits: r.stats.gap_commits,
       exhausted: r.searchBudgetExhausted, samples: r.samples, viableCandidates: r.stats.viable_candidate_samples,
       lookahead: r.lookaheadStats, planning: r.planningDecisions,

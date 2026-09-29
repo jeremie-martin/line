@@ -107,6 +107,8 @@ export type ArcMotionOptions= {
   policyRollout?:boolean;
   policyRolloutStrict?:boolean;
   policyPreview?:boolean;
+  /** Accept a cold-validated proposal by default; always search only for explicit comparisons. */
+  searchAfterPreview?:'failure'|'always';
   collectTrajectoryLoss?:boolean;
   lookaheadWeight?:number;
   lookaheadWarmStart?:boolean;
@@ -166,7 +168,13 @@ export type ArcMotionOptions= {
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions):ReturnType<typeof compileArcMotionOnce>&{policyPreviewStats?:any;engineRebuilds?:number;attempts:ReturnType<typeof runArcAttempts>['records'];firstCompletionFrame:number|null}{
   const attempts=runArcAttempts(spec,seed,options,compileArcMotionOnce);
   const diagnostics={attempts:attempts.records,firstCompletionFrame:attempts.firstCompletionFrame};
-  if(attempts.results.length===1)return {...attempts.results[0],...diagnostics};
+  if(attempts.results.length===1){
+    const result=attempts.results[0],proposal=attempts.records[0].name==='proposal';
+    return {...result,...diagnostics,budget:options.budget,...(proposal?{policyPreviewStats:{
+      previewFrames:result.stats.sim_frames,searchFrames:0,totalFrames:result.stats.sim_frames,
+      previewLoss:result.trajectoryLoss,searchLoss:null,selected:'preview',
+      previewComplete:attempts.records[0].complete,searchComplete:null}}:{})};
+  }
   const [preview,searched]=attempts.results;
   const previewFrames=preview.stats.sim_frames,total=searched.stats.sim_frames;
   const chosen=attempts.results[attempts.selected];
@@ -181,7 +189,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
     stats:{...chosen.stats,sim_frames:total,viable_candidate_samples:preview.stats.viable_candidate_samples+searched.stats.viable_candidate_samples},
     policyPreviewStats:{previewFrames,searchFrames:total-previewFrames,totalFrames:total,
       previewLoss:preview.trajectoryLoss,searchLoss:searched.trajectoryLoss,selected:chosen===preview?'preview':'search',
-      previewComplete:preview.failure===null,searchComplete:searched.failure===null}};
+      previewComplete:attempts.records[0].complete,searchComplete:attempts.records[1].complete}};
 }
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){

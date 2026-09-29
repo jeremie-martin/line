@@ -6,7 +6,7 @@ const spec: Spec = {duration: 4, jitter: 0, contacts: [{t: 1}], axes: {air: () =
 it('retains a completed incumbent, reuses its controls, and records each attempt on the shared clock', () => {
   const reference = {control: {entry: 0, turn: 0, exit: 0, support: 8, bias: 0, offset: .1}, incoming: 3, span: 40, features: Array(57).fill(0)};
   let calls = 0;
-  const result = runArcAttempts(spec, 17, {budget: 75000, policyPreview: true, previewMemory: true,
+  const result = runArcAttempts(spec, 17, {budget: 75000, policyPreview: true, previewMemory: true, searchAfterPreview: 'always',
     controlPolicy: {rolloutPolicy: {}}}, (_spec, _seed, options, continueMeter) => {
     const first = calls++ === 0;
     expect(continueMeter).toBe(!first);
@@ -25,3 +25,23 @@ it('retains a completed incumbent, reuses its controls, and records each attempt
   expect(result.records.map(r => r.lookahead)).toEqual([{probes: 0}, {probes: 10}]);
   expect(result.records.map(r => r.selected)).toEqual([true, false]);
 });
+
+it.each(['missed', 'offbeat', 'terminated', 'complete'] as const)(
+  'uses the actual report to decide whether a %s proposal needs general search', condition => {
+    let calls = 0;
+    const result = runArcAttempts(spec, 17, {budget: 75000, policyPreview: true, controlPolicy: {rolloutPolicy: {}}},
+      (_spec, _seed, _options, continueMeter) => {
+        const first = calls++ === 0;
+        expect(continueMeter).toBe(!first);
+        return {track: {}, rows: [], failure: null, trajectoryLoss: 0,
+          report: {terminus: {reason: first && condition === 'terminated' ? 'crash' : 'endOfSpec'},
+            contacts: [{status: first && condition === 'missed' ? 'miss' : 'hit'}],
+            off_beat_landings: first && condition === 'offbeat' ? [1] : []} as any,
+          constructionFrames: 50, samples: 1, searchBudgetExhausted: false,
+          lookaheadStats: {}, planningDecisions: [],
+          stats: {sim_frames: calls * 100, viable_candidate_samples: 1, gap_commits: 1}};
+      });
+    expect(calls).toBe(condition === 'complete' ? 1 : 2);
+    expect(result.records[result.selected].complete).toBe(true);
+    expect(result.firstCompletionFrame).toBe(condition === 'complete' ? 100 : 200);
+  });

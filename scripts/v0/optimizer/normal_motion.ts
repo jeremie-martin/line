@@ -1,11 +1,10 @@
-/** ARCHIVED RESEARCH — outside the current coherent-arc product constraint.
- * Uses small point controls; retained for reproducing the archived proof of concept.
+/** EXPERIMENTAL RESEARCH — not a production compiler or an arc-qualified result.
+ * Uses scattered normal segments; retained for measured visual comparisons.
  * Production routing is in handoff.ts; current construction is in connected_arcs.ts. */
 /** Physical native motion construction. Authored targets and the evaluation
  * engine remain unchanged. No benchmark source identity enters this compiler. */
 import { createHash } from "node:crypto";
 import { LineRiderEngine as NativeEngine, disposeAllWasmEnginesForStudy as disposeSearch } from "../../lib/native_motion/engine.ts";
-import { LineRiderEngine as Judge, disposeAllWasmEnginesForStudy } from "../../lib/_lr_engine_wasm.ts";
 import { getRiderMetered, getPhysicsFrameCount, extractRawTrajectory, detect, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, resetFrameCount } from "../../lib/detector.ts";
 import { sliceTimeline, effectiveAxes, buildDriftReport, buildTrackJson, resolveStartState, validateSpec, sampleGapTargets } from "../core/substrate.ts";
 import { resetPerCompileState } from "../core/compile_lifecycle.ts";
@@ -15,6 +14,10 @@ import { pointwiseNormalProjection } from "./normal_pointwise_projection.ts";
 import { nativeMotionSchedule, scheduleNativeContacts } from "./native_motion_schedule.ts";
 import { impactToRawPx, wrapPi, CALIB, type TrackLine, type Spec } from "../types.ts";
 import type { CompileCheckpoint } from "./types.ts";
+import { normalizeCompilerTimeline } from "./compiler_input.ts";
+// Keep research replay cleanup separate from engines retained by callers.
+const { LineRiderEngine: Judge, disposeAllWasmEnginesForStudy } =
+  await import(new URL('../../lib/_lr_engine_wasm.ts?normal-motion-replay', import.meta.url).href);
 const Engine: any = NativeEngine;
 const hash = (b: string) => createHash("sha256").update(b).digest("hex");
 export function compileNormalMotion(spec: Spec, seed: number,
@@ -22,7 +25,10 @@ export function compileNormalMotion(spec: Spec, seed: number,
     onDiagnostic?: (value: unknown) => void }): CompileCheckpoint {
   const budget = options.budget, poseGain = 0.15, feedbackImpact = true;
   if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(budget) || budget <= 0) throw new Error("invalid native compiler input");
+  spec = normalizeCompilerTimeline(spec);
   validateSpec(spec);
+  if (budget <= 2 * (Math.round(spec.duration * 40) + 21))
+    throw new Error("normal-motion budget must cover two complete replays and construction work");
   resetPerCompileState();
   resetFrameCount();
   try {

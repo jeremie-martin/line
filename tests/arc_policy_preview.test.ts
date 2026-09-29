@@ -12,7 +12,7 @@ it('preserves ordinary compilation when complete-track proposals are disabled',(
   expect(disabled.track).toEqual(plain.track);expect(disabled.stats).toEqual(plain.stats);
 });
 it('charges both complete attempts and their cold replays to one actual physics counter',()=>{
-  const result=compileArcMotion(spec,17,{...options,policyPreview:true}),proof=result.policyPreviewStats;
+  const result=compileArcMotion(spec,17,{...options,policyPreview:true,searchAfterPreview:'always'}),proof=result.policyPreviewStats;
   expect(proof.previewFrames).toBeGreaterThan(0);expect(proof.searchFrames).toBeGreaterThan(0);
   expect(proof.previewFrames+proof.searchFrames).toBe(getPhysicsFrameCount());
   expect(result.stats.sim_frames).toBe(getPhysicsFrameCount());expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
@@ -26,4 +26,19 @@ it('retains general search after a strict proposal fails without resetting or re
   expect(result.policyPreviewStats.previewComplete).toBe(false);expect(result.policyPreviewStats.selected).toBe('search');
   expect(result.policyPreviewStats.previewFrames).toBeGreaterThan(0);expect(result.stats.sim_frames).toBe(getPhysicsFrameCount());
   expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);expect(result.failure).toBeNull();
+});
+
+it('accepts a successful cold-replayed proposal without reducing the declared budget', () => {
+  const result = compileArcMotion(spec, 17, {...options, policyPreview: true});
+  expect(result.attempts).toHaveLength(1);
+  expect(result.attempts[0].name).toBe('proposal');
+  expect(result.attempts[0].complete).toBe(true);
+  expect(result.budget).toBe(options.budget);
+  expect(result.policyPreviewStats.searchFrames).toBe(0);
+  expect(result.policyPreviewStats.searchComplete).toBeNull();
+  expect(result.stats.sim_frames).toBe(getPhysicsFrameCount());
+  expect(result.stats.sim_frames).toBe(result.firstCompletionFrame);
+  const compared = compileArcMotion(spec, 17, {...options, policyPreview: true, searchAfterPreview: 'always'});
+  expect(result.attempts[0].trackHash).toBe(compared.attempts[0].trackHash);
+  expect(result.stats.sim_frames).toBe(compared.policyPreviewStats.previewFrames);
 });

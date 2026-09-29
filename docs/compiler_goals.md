@@ -46,7 +46,10 @@ canonical result. Identical zero-jitter seed replicas are not independent sample
 The owner values maintainability and extensibility alongside performance.
 A material simplification can justify a small measured score tradeoff after
 investigation; individual regressions do not create an additional perfection
-veto. Keep coherent normal type-0 arcs and use video review for visual changes.
+veto. Coherent normal type-0 arcs remain the production default and V4 style
+contract. The owner's [2026-09-29 creative direction](motion-repertoire.md) also
+opens exploration of other normal-line styles, including occasional scattered
+segments. Use video review to judge those visual experiments.
 
 Focused tests cover the changed compiler paths, determinism, physical validity
 and budget accounting. Legacy handoff tests remain relevant to the retained

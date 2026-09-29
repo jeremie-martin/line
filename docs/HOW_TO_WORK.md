@@ -6,11 +6,14 @@ live in [goal.md](../goal.md); the [V4 contract](../benchmark/v4/README.md)
 defines the panel and scorer. Do not substitute the historical V2 promotion
 workflow or alter the benchmark to improve a compiler result.
 
-The product uses substantial coherent arcs made from normal type-0 lines.
-Curvature, turn timing, guide coverage and other geometry can evolve. The owner
-rejected constellations of isolated control segments and acceleration-line
-tracks. Physical validity and a high score do not establish visual quality;
-use the production vertical-video workflow to review meaningful style changes.
+Production currently uses substantial coherent arcs made from normal type-0
+lines. On 2026-09-29 the owner opened exploration of a broader
+[visual motion repertoire](motion-repertoire.md), including intentional,
+possibly occasional scattered normal-line segments. Earlier rejection of that
+style is no longer a blanket research exclusion. The frozen V4 qualification
+contract remains unchanged, and the acceleration restriction still applies.
+Physical validity and a high score do not establish visual quality; use the
+production vertical-video workflow to review meaningful style changes.
 
 ## Start from actual behavior
 

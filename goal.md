@@ -1,3 +1,13 @@
+# Creative direction — 2026-09-29
+
+The owner wants a broader visual motion repertoire and a playable gallery for
+exploring it. Scattered normal-line segments may be reconsidered as an
+intentional, possibly occasional effect; the earlier blanket exclusion no longer
+applies to that exploration. See [the design direction](docs/motion-repertoire.md)
+for the current implementation boundaries and proposed experiments. Coherent arcs
+remain the production default. The frozen benchmark, completed performance goal
+and specification format are unchanged by this discussion.
+
 # Current: 952.5191 on frozen Benchmark V4
 
 The [design and behavior audit](docs/compiler-design-audit-2026-09-11.md) preserves

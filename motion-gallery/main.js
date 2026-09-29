@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const number = n => n.toLocaleString(undefined, {maximumFractionDigits: 1});
-const title = method => method === 'arcs' ? 'Arcs and guides' : 'Scattered segments';
-const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260929/manifest.json', location.href);
+const title = method => manifest?.plan.methodDetails?.[method]?.title ?? ({arcs:'Arcs and guides',segments:'Scattered · original'}[method] ?? method);
+const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260929-expanded/manifest.json', location.href);
 let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0;
 const cache = new Map();
 const hex = bytes => [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -28,6 +28,8 @@ function cellCard(record) {
     metric.append(name, output); card.querySelector('.metrics').append(metric);
   }
   const details = card.querySelector('.details');
+  const description = document.createElement('p'); description.textContent = manifest.plan.methodDetails?.[record.method]?.description ?? ''; details.append(description);
+  if(record.construction){const selection = document.createElement('p'); selection.textContent = record.construction.selected === 'contact-fragments' ? 'Shown: reconstructed contact fragments.' : 'Shown: original feedback result retained after comparison.'; details.append(selection);}
   const text = document.createElement('p'); text.textContent = `${number(record.lines)} normal segments · seed ${record.seed} · ${(100 * record.jitter).toFixed(0)}% target jitter · allowance ${number(record.budget)} frames.`; details.append(text);
   if (!record.score.valid) {const failure = document.createElement('p'); failure.className = 'failure'; failure.textContent = record.score.hardFailures.join(' · '); details.append(failure);}
   const link = document.createElement('a'); link.href = new URL(record.path, manifestUrl); link.textContent = 'Track, targets and replay data'; details.append(link);
@@ -39,8 +41,9 @@ function cellCard(record) {
 }
 async function select() {
   const token = ++generation; pause(); $('play').disabled = true; $('status').textContent = 'Loading matching replays…';
-  const selected = manifest.cells.filter(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value);
+  const selected = ['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value && c.method === $(id).value));
   try {
+    if(selected.some(c=>!c))throw new Error('The comparison is incomplete.');
     const loaded = await Promise.all(selected.map(async cell => {
       if (!cache.has(cell.id)) cache.set(cell.id, read(new URL(cell.path, manifestUrl), cell.sha256));
       const raw = await cache.get(cell.id);
@@ -57,7 +60,7 @@ async function select() {
       beat.onclick = () => {seconds=c.frame/40; $('seek').value=String(seconds); draw();}; return beat;
     }));
     $('panels').replaceChildren(...records.map(cellCard)); $('play').disabled = false;
-    $('status').textContent = 'Matched inputs · synchronized playback · no substitution when a method fails'; draw();
+    $('status').textContent = 'Matched inputs · synchronized playback · all emitted geometry uses normal lines'; draw();
   } catch (error) {if (token === generation) {records = []; $('panels').replaceChildren(); $('status').textContent = `Cannot show this comparison: ${error.message}`;}}
 }
 const bones = [['TAIL','NOSE'],['NOSE','STRING'],['STRING','PEG'],['PEG','TAIL'],['BUTT','SHOULDER'],['SHOULDER','RHAND'],['SHOULDER','LHAND'],['BUTT','LFOOT'],['BUTT','RFOOT']];
@@ -100,12 +103,14 @@ function draw() { $('time').textContent = `${seconds.toFixed(2)} s`; records.for
 function tick(now) {if (playing) {seconds = Math.min(+$('seek').max, seconds + (now-previous)/1000*(+$('rate').value)); $('seek').value=String(seconds); draw(); if (seconds >= +$('seek').max) pause();} previous=now; requestAnimationFrame(tick);}
 $('play').onclick = () => {if (playing) pause(); else {if(seconds >= +$('seek').max)seconds=0; playing=true; $('play').textContent='Pause';}};
 $('seek').oninput = () => {seconds=+$('seek').value; draw();}; $('view').onchange = draw;
-for (const id of ['passage','budget','seed']) $(id).onchange = select;
+for (const id of ['passage','budget','seed','left-method','right-method']) $(id).onchange = select;
 window.addEventListener('resize', draw); document.addEventListener('visibilitychange', () => {if(document.hidden)pause();});
 try {
   const checksum = await fetch(new URL(manifestUrl.href+'.sha256')); if(!checksum.ok)throw new Error('No local study manifest found.');
   manifest = await read(manifestUrl, await checksum.text());
   if(manifest.schema !== 'line.motion-gallery.v1')throw new Error('Unsupported study format.');
+  for(const id of ['left-method','right-method'])options(id,manifest.plan.methods,title);
+  $('right-method').value=manifest.plan.methods.includes('scattered')?'scattered':manifest.plan.methods[1];
   options('passage', manifest.plan.cases.map(c=>c.id), id=>manifest.plan.cases.find(c=>c.id===id).title);
   options('budget', manifest.plan.budgets, b=>`${number(b)} frames`); $('budget').value=String(manifest.plan.budgets.at(-1)); options('seed',manifest.plan.seeds);
   $('study-note').textContent=manifest.plan.note; $('manifest-link').href=manifestUrl;

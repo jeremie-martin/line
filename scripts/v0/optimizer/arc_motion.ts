@@ -88,6 +88,8 @@ export type ArcMotionOptions= {
   solver?:string;
   channel?:number;
   wave?:boolean;
+  /** Research: straight facets per support frame; ordinary smooth arcs use four. */
+  subdivisions?:number;
   radius?:number;
   arrivalMode?:string;
   poseWeight?:number;
@@ -318,7 +320,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
-        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,
           options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
@@ -366,7 +368,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           if(!best||result.optimizationCost<best.optimizationCost)best=result;
           return result;
         }
-        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius),child=addArc(engine,added);
+        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions),child=addArc(engine,added);
         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
         const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;return null;};

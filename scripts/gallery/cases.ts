@@ -2,6 +2,7 @@
 import {sliceTimeline} from '../v0/core/substrate.ts';
 import type {Case} from '../../benchmark/v3/model.ts';
 
+// The last two passages were defined after the initial controller/shape probes.
 const definitions = [
   {id: 'even-catches', title: 'Even catches', duration: 6, beats: [.7, 1.4, 2.1, 2.8, 3.5, 4.2, 4.9, 5.6],
     air: [.5], speed: [.55], amplitude: [.14], impact: [.45]},
@@ -11,6 +12,10 @@ const definitions = [
     air: [.4], speed: [.6], amplitude: [.08], impact: [.4]},
   {id: 'quiet-tail', title: 'Quiet tail', duration: 9, beats: [.75, 1.5, 2.4, 3.2],
     air: [.4], speed: [.5], amplitude: [.13], impact: [.5]},
+  {id: 'slow-swell', title: 'Slow swell', duration: 8, beats: [.9, 2, 3.3, 4.45, 5.4, 6.6, 7.5],
+    air: [.4, .6], speed: [.38, .6], amplitude: [.09, .18], impact: [.25, .55]},
+  {id: 'staccato-release', title: 'Staccato release', duration: 7.8, beats: [.55, .9, 1.7, 2.05, 2.85, 3.2, 4.2, 4.55],
+    air: [.35], speed: [.5], amplitude: [.07], impact: [.35]},
 ];
 export const galleryCases: Case[] = definitions.map(d => {
   const durationFrames = Math.round(d.duration * 40), frames = d.beats.map(t => Math.round(t * 40));

@@ -13,9 +13,10 @@ export function normalizeArcTurnFraction(fraction:number,support:number,preserve
   return clamp(fraction,preserveImplicit?Math.min(.1,5/support):.1,.85);
 }
 
-/** Integrate a smooth tangent schedule into one contiguous polyline. All
- * subdivisions approximate the same physical curve; none isolates a point. */
-export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0):TrackLine[]{
+/** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
+ * make angular facets; their actual geometry must be searched and replayed. */
+export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0, subdivisions=4):TrackLine[]{
+  if(!Number.isFinite(subdivisions)||subdivisions<=0||subdivisions>4)throw new Error('arc subdivisions must be in (0, 4]');
   const entry=rad(c.entry), n={x:Math.sin(entry),y:-Math.cos(entry)}, t={x:Math.cos(entry),y:Math.sin(entry)};
   const point=points.reduce((a,b)=>a.x*n.x+a.y*n.y<b.x*n.x+b.y*n.y?a:b);
   const speed=Math.hypot(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
@@ -24,7 +25,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   const lines:TrackLine[]=[];
   lines.push(makeSolidLine(id++,x,y,anchor.x,anchor.y));x=anchor.x;y=anchor.y;
   let v=Math.max(2,velocity.x*t.x+velocity.y*t.y),previousAngle=entry;
-  const steps=Math.max(4,Math.ceil(c.support*4)),dt=c.support/steps;
+  const steps=Math.max(4,Math.ceil(c.support*subdivisions)),dt=c.support/steps;
   for(let k=0;k<steps;k++){
     const time=(k+.5)*dt, first=c.turnFraction===undefined?Math.min(wave?6:5,c.support*.5):c.support*c.turnFraction;
     const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);

@@ -10,6 +10,7 @@ import { sliceTimeline, effectiveAxes, buildDriftReport, buildTrackJson, resolve
 import { resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { makeRng } from "../../lib/rng.ts";
 import { CompileBudgetTelemetryRecorder, type BudgetTelemetryLevel } from "./budget_telemetry.ts";
+import { arcWholeTrajectoryObjective } from "./arc_refinement.ts";
 import { pointwiseNormalProjection } from "./normal_pointwise_projection.ts";
 import { nativeMotionSchedule, scheduleNativeContacts } from "./native_motion_schedule.ts";
 import { impactToRawPx, wrapPi, CALIB, type TrackLine, type Spec } from "../types.ts";
@@ -22,7 +23,7 @@ const Engine: any = NativeEngine;
 const hash = (b: string) => createHash("sha256").update(b).digest("hex");
 export function compileNormalMotion(spec: Spec, seed: number,
   options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel; onProgress?: (frame: number, frames: number) => void;
-    onDiagnostic?: (value: unknown) => void }): CompileCheckpoint {
+    onDiagnostic?: (value: unknown) => void }): CompileCheckpoint & { trajectoryLoss: number } {
   const budget = options.budget, poseGain = 0.15, feedbackImpact = true;
   if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(budget) || budget <= 0) throw new Error("invalid native compiler input");
   spec = normalizeCompilerTimeline(spec);
@@ -194,7 +195,7 @@ recorder.recordSegment("initial_search", 0, constructionFrames, "construction_co
 recorder.recordSegment("finalization", constructionFrames, total, "cold_replay_complete", episode);
 const costs = gaps.map(g => report.gaps.find(r => r.gap_index === g.index)?.axes)
   .map(axes => axes ? Object.values(axes).reduce((sum, axis) => sum + (axis?.error ?? 0) ** 2, 0) : null);
-return { budget, track, report, budgetTelemetry: recorder.snapshot(total, exhausted, terminal ? total : null, valid ? total : null),
+return { budget, track, report, trajectoryLoss: arcWholeTrajectoryObjective(trajectory, report, gaps).loss, budgetTelemetry: recorder.snapshot(total, exhausted, terminal ? total : null, valid ? total : null),
   stats: { actual_candidate_samples: candidateSamples, viable_candidate_samples: viableCandidates,
     engine_rebuilds: backtracks + 2, gap_commits: report.contacts.filter(c => c.status === "hit").length,
     gap_backtracks: backtracks, validation_retries: 0, polish_iterations: 0,

@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const number = n => n.toLocaleString(undefined, {maximumFractionDigits: 1});
 const title = method => manifest?.plan.methodDetails?.[method]?.title ?? ({arcs:'Arcs and guides',segments:'Scattered · original'}[method] ?? method);
-const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260929-expanded/manifest.json', location.href);
+const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260929-repertoire/manifest.json', location.href);
 let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0;
 const cache = new Map();
 const hex = bytes => [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -110,7 +110,7 @@ try {
   manifest = await read(manifestUrl, await checksum.text());
   if(manifest.schema !== 'line.motion-gallery.v1')throw new Error('Unsupported study format.');
   for(const id of ['left-method','right-method'])options(id,manifest.plan.methods,title);
-  $('right-method').value=manifest.plan.methods.includes('scattered')?'scattered':manifest.plan.methods[1];
+  $('right-method').value=manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);
   options('passage', manifest.plan.cases.map(c=>c.id), id=>manifest.plan.cases.find(c=>c.id===id).title);
   options('budget', manifest.plan.budgets, b=>`${number(b)} frames`); $('budget').value=String(manifest.plan.budgets.at(-1)); options('seed',manifest.plan.seeds);
   $('study-note').textContent=manifest.plan.note; $('manifest-link').href=manifestUrl;

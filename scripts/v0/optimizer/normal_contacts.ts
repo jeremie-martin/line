@@ -5,7 +5,7 @@
 import { createHash } from 'node:crypto';
 import { compileArcMotion } from './arc_motion.ts';
 import { compileNormalMotion } from './normal_motion.ts';
-import { arcTrajectoryLoss } from './arc_refinement.ts';
+import { arcWholeTrajectoryObjective } from './arc_refinement.ts';
 import { connectedArcOptions } from './connected_arcs.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { sliceTimeline, effectiveAxes, buildDriftReport, validateSpec } from '../core/substrate.ts';
@@ -136,7 +136,7 @@ export function compileContactFragments(input: Spec, seed: number, options: {
     let chosen: Candidate | undefined;
     for (const width of widths) {
       const lines = contactFragments(source.track.lines, footprints, width), raw = replayTrack(lines);
-      const difference = trajectoryDifference(reference, raw), report = reportFor(raw), loss = arcTrajectoryLoss(report);
+      const difference = trajectoryDifference(reference, raw), report = reportFor(raw), loss = arcWholeTrajectoryObjective(raw, report, gaps).loss;
       probes.push({ width, lines: lines.length, maximumDifference: Number.isFinite(difference) ? difference : null, loss: Number.isFinite(loss) ? loss : null });
       if (!chosen || loss < chosen.loss || (loss === chosen.loss && difference < chosen.difference))
         chosen = { lines, raw, width, difference, report, loss };
@@ -152,7 +152,7 @@ export function compileContactFragments(input: Spec, seed: number, options: {
       throw new Error('contact reconstruction is not deterministic');
     const report = chosen.report;
     const reconstructed = chosen.difference <= .001;
-    return { budget, track: { ...source.track, lines: chosen.lines }, report,
+    return { budget, track: { ...source.track, lines: chosen.lines }, report, trajectoryLoss: chosen.loss,
       stats: { ...source.stats, sim_frames: getPhysicsFrameCount(), gap_commits: report.contacts.filter(c => c.status === 'hit').length }, rows: [], attempts: [],
       failure: reconstructed ? source.failure : { reason: 'contact_reconstruction', probes },
       contactConstruction: { method: 'measured-contact-fragments', referenceTrackHash: hash(source.track),
@@ -169,7 +169,7 @@ export function compileContactFragments(input: Spec, seed: number, options: {
 }
 /** Keep the original scattered ride as an incumbent, then use unspent work to
 * reconstruct a measured arc plan. Both emitted alternatives contain scattered
-* type-0 segments. Select by the existing measured compiler objective, never a
+* type-0 segments. Select by the existing whole-trajectory compiler objective, including the tail, never a
 * benchmark identity. Each compiler owns a local meter; charge their sum. */
 export function compileScatteredMotion(spec: Spec, seed: number, options: {
   budget: number;
@@ -181,13 +181,13 @@ export function compileScatteredMotion(spec: Spec, seed: number, options: {
   const remaining = options.budget - baselineFrames, replay = Math.round(spec.duration * 40) + 21;
   const candidate = remaining > 10 * replay ? compileContactFragments(spec, seed, { budget: remaining }) : null;
   const candidateFrames = candidate?.stats.sim_frames ?? 0;
-  const baselineLoss = arcTrajectoryLoss(baseline.report), candidateLoss = candidate ? arcTrajectoryLoss(candidate.report) : Infinity;
+  const baselineLoss = baseline.trajectoryLoss, candidateLoss = candidate?.trajectoryLoss ?? Infinity;
   const useCandidate = candidate !== null && candidateLoss < baselineLoss;
   const chosen = useCandidate ? candidate! : baseline;
   const total = baselineFrames + candidateFrames;
   if (total > options.budget)
     throw new Error('scattered compilation exceeded its allowance');
-  return { budget: options.budget, track: chosen.track, report: chosen.report,
+  return { budget: options.budget, track: chosen.track, report: chosen.report, trajectoryLoss: chosen.trajectoryLoss,
     stats: { sim_frames: total, gap_commits: chosen.report.contacts.filter(c => c.status === 'hit').length },
     work: { feedback: baselineFrames, reconstruction: candidateFrames, total, lastMeter: getPhysicsFrameCount() },
     construction: { selected: useCandidate ? 'contact-fragments' : 'feedback',

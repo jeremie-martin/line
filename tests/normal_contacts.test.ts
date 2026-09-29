@@ -3,7 +3,9 @@ import { contactFragments, compileContactFragments, compileScatteredMotion } fro
 import { LineRiderEngine } from '../scripts/lib/_lr_engine_wasm.ts';
 import { getPhysicsFrameCount } from '../scripts/lib/detector.ts';
 import { compileNormalMotion } from '../scripts/v0/optimizer/normal_motion.ts';
-import { arcTrajectoryLoss } from '../scripts/v0/optimizer/arc_refinement.ts';
+import {galleryCases} from '../scripts/gallery/cases.ts';
+import {caseSpec} from '../benchmark/v3/model.ts';
+import {evaluateTrack} from '../benchmark/v4/evaluator.ts';
 import type { Spec, TrackLine } from '../scripts/v0/types.ts';
 const line: TrackLine = { id: 7, type: 0, x1: 0, y1: 0, x2: 10, y2: 0, flipped: true, leftExtended: true, rightExtended: true };
 it('merges overlapping contacts and leaves separated footprints disconnected, without extension or acceleration', () => {
@@ -38,7 +40,7 @@ it('charges both construction phases and keeps a validated scattered incumbent',
   expect(result.work.lastMeter).toBe(getPhysicsFrameCount());
   expect(result.work.lastMeter).toBe(result.work.reconstruction);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(25000);
-  expect(arcTrajectoryLoss(result.report)).toBeLessThanOrEqual(arcTrajectoryLoss(baseline.report));
+  expect(result.trajectoryLoss).toBeLessThanOrEqual(baseline.trajectoryLoss);
   expect(result.track.lines.every(l => l.type === 0)).toBe(true);
   expect(JSON.stringify(retained.getRider(0).ballisticState())).toBe(before);
   const repeat = compileScatteredMotion(spec, 17, { budget: 25000 });
@@ -48,4 +50,17 @@ it('charges both construction phases and keeps a validated scattered incumbent',
 it('refuses unsupported input or insufficient reconstruction work', () => {
   expect(() => compileContactFragments(spec, 17, { budget: 1000 })).toThrow('planning and validation');
   expect(() => compileScatteredMotion({ ...spec, axes: { rotation: () => 0 } as any }, 17, { budget: 25000 })).toThrow('supports');
+});
+
+it('includes the quiet tail when comparing scattered candidates', () => {
+  const c=galleryCases.find(c=>c.id==='staccato-release')!;
+  const input={...caseSpec(c),jitter:.02};
+  const baseline=compileNormalMotion(input,101,{budget:100000});
+  const result=compileScatteredMotion(input,101,{budget:100000});
+  expect(result.trajectoryLoss).toBeLessThanOrEqual(baseline.trajectoryLoss);
+  const before=evaluateTrack(c,baseline.track).score,after=evaluateTrack(c,result.track).score;
+  expect(before.valid&&after.valid).toBe(true);
+  expect(after.score).toBeGreaterThanOrEqual(before.score);
+  // Contact-only comparison previously chose a 270.587-point ride over 643.5152.
+  expect(after.score).toBeGreaterThan(600);
 });

@@ -11,7 +11,7 @@ import {verifyFrozen} from '../../benchmark/v4/contract.ts';
 import {detect, extractRawTrajectory} from '../lib/detector.ts';
 
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
-const out = resolve(arg('out') ?? 'generated/motion-gallery/20260929-expanded');
+const out = resolve(arg('out') ?? 'generated/motion-gallery/20260929-repertoire');
 const compilerRoot = resolve(arg('compiler-root') ?? '.');
 const budgets = (arg('budgets') ?? '25000,100000,750000').split(',').map(Number);
 const seeds = (arg('seeds') ?? '101,102').split(',').map(Number);

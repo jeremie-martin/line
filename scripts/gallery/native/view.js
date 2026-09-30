@@ -18,7 +18,7 @@ export function loadRider(){
     const blob=URL.createObjectURL(new Blob([text],{type:'image/svg+xml'}));
     try {image.src=blob;await image.decode();}finally{URL.revokeObjectURL(blob);}
     return setupSprites({spriteSvg:new SpriteSheet(url,dom,image),hq:true});
-  })();
+  })().catch(error=>{sheetPromise=undefined;throw error;});
 }
 // Same interpolation of points and state counters as mirror module 506.
 // Gallery tracks contain one rider, so there is no cross-rider sled exchange.

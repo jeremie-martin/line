@@ -21,7 +21,7 @@ try {
   const page=await browser.newPage({viewport:{width:1440,height:1100}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(`${origin}/motion-gallery/?data=/${paths[0]}`);
-  await page.waitForFunction(()=>!document.getElementById('play').disabled);
+  await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
   const rows=[];
   // Retain one worker, discard each engine after its display frames are copied.
   await page.evaluate(()=>{window.checkWorker=new Worker('/generated/motion-gallery-renderer/worker.js',{type:'module'});});
@@ -77,19 +77,19 @@ try {
       for(const [key,value]of Object.entries({passage:c.caseId,budget:c.budget,seed:c.seed,'right-method':c.method}))document.getElementById(key).value=String(value);
       document.getElementById('right-method').dispatchEvent(new Event('change'));
     },cell);
-    await page.waitForFunction(()=>!document.getElementById('play').disabled&&document.querySelectorAll('.shape-choice').length>0);
+    await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready'&&document.querySelectorAll('.shape-choice').length>0);
     assert.match(await page.locator('#status').textContent(),/replay verified/);comparisons++;
   }
   await page.selectOption('#passage',manifest.plan.cases[0].id);await page.selectOption('#left-method','arcs');await page.selectOption('#right-method','paired');
-  await page.waitForFunction(()=>!document.getElementById('play').disabled);
+  await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
   await page.locator('#beats button').nth(1).click();const beatTime=await page.locator('#time').textContent();
   const alternate=manifest.plan.methods.includes('scattered')?'scattered':'single';
-  await page.selectOption('#right-method',alternate);await page.waitForFunction(()=>!document.getElementById('play').disabled);
+  await page.selectOption('#right-method',alternate);await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
   assert.equal(await page.locator('#time').textContent(),beatTime);
   await page.locator('#play').click();await page.waitForTimeout(600);await page.locator('#play').click();
   assert.ok(parseFloat(await page.locator('#time').textContent())>parseFloat(beatTime)+.3);
   const paused=await page.locator('#time').textContent();await page.waitForTimeout(100);assert.equal(await page.locator('#time').textContent(),paused);
-  await page.selectOption('#right-method','paired');await page.waitForFunction(()=>!document.getElementById('play').disabled);
+  await page.selectOption('#right-method','paired');await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
   await page.selectOption('#view','overview');await page.selectOption('#view','follow');
   assert.equal(await page.locator('#inspect').isChecked(),false);
   await page.locator('#seek').fill('0');await page.locator('#seek').dispatchEvent('input');
@@ -104,7 +104,7 @@ try {
   await page.screenshot({path:out+'.desktop.png',fullPage:true});
   const mobileMethod=manifest.plan.methods.at(-1);
   await page.setViewportSize({width:390,height:844});await page.locator(`.shape-choice[data-method=${mobileMethod}]`).click();
-  await page.waitForFunction(()=>!document.getElementById('play').disabled);
+  await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
   assert.equal(await page.locator('#right-method').inputValue(),mobileMethod);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   const visible=await page.locator(`.shape-choice[data-method=${mobileMethod}]`).evaluate(el=>{const a=el.getBoundingClientRect(),b=el.parentElement.getBoundingClientRect();return a.left>=b.left-1&&a.right<=b.right+1;});assert.ok(visible);

@@ -15,6 +15,22 @@ it does not run a new search. The comparison menu also exposes both branches of
 each physical fork, including unsuccessful searches. The gallery starts at zero
 additional error; no production tolerance has been selected.
 
+In plain terms: if the best valid recorded track has target error **0.030** and
+the slider allows **0.010** extra, the selector considers valid tracks with
+error at most **0.040**, then chooses the fewest guided sections, followed by
+the shortest total guide length. It selects an entire measured track; it does
+not strip rails until a threshold is reached. At zero allowance it retains the
+best accuracy found in that pool. Timing and survival must still pass.
+
+“Target error” is the compiler's existing normalized whole-ride RMS objective
+over air, speed, amplitude and impact. It is neither additional physical motion
+nor benchmark points, and an aggregate ceiling does not bound every individual
+beat's error. This gallery preference is separate from production's early-stop
+tolerance described below. Both guided and unguided search can improve; the
+current tradeoffs are provisional. Fewer guides are an explicit preference in
+this experiment, not a general definition of beauty. Other geometries need
+their own concrete comparisons before assuming the same preference applies.
+
 An optional **Inspect rail contacts** view now identifies guide rails and
 actual collided segments, with buttons to jump between guide-contact frames.
 A separate [single-versus-paired study](motion-gallery-guidance-2026-09-30.md)
@@ -35,6 +51,41 @@ The [six-shape report](motion-gallery-six-shapes-2026-09-30.md) preserves the
 preceding experiments; [the four-shape report](motion-gallery-expansion-2026-09-29.md)
 preserves the scattered reconstruction studies. Normal lines remain mandatory;
 the production compiler still defaults to coherent arcs.
+
+### Playback and loading
+
+Changing seed, search allowance, style or the accuracy allowance preserves the
+playhead and play/pause intent within the same passage. Playback waits for the
+new verified pair, then resumes if it was playing; loading time does not advance
+the ride. Changing passage resets the playhead. Selecting a particular guide
+fork pauses at its boundary for inspection. Pause remains available while a
+replacement loads. Old panels and beat controls are cleared during loading so
+they cannot appear to describe the newly selected input.
+
+The selected pair loads before shape previews. Superseded downloads are aborted;
+queued native replays are cancelled, and an active obsolete replay's worker is
+terminated. Only successfully checked artifacts and replay results are cached.
+Identical left/right selections share their load and native replay. A visible
+retry button recovers comparison failures, including temporary track downloads,
+artwork failures and worker errors; preview failures have a separate retry.
+Existing thumbnails are retained when only the selected style changes.
+
+These changes address reproduced failures where switching seed stopped playback
+and reset time, and one HTTP 503 poisoned the download cache for subsequent
+attempts. Browser regressions also inject delayed downloads and a stuck worker,
+exercise rapid seed changes, and check pause intent during loading. Run them
+against the local studies and dashboard with:
+
+```sh
+npm run gallery:renderer
+node scripts/gallery/check_interactions.mjs \
+  --out=generated/gallery-interactions/checks.json
+```
+
+The [compact validation record](evidence/gallery-interactions-20260930.json)
+also records 648 native replays with zero body-position error, 216 shape
+comparisons, 144 preference selections, and 204 physical-fork inspections.
+No compiler search, benchmark or physics behavior changed in this repair.
 
 ## Behavior contract for guide choice
 

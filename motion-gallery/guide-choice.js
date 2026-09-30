@@ -2,7 +2,26 @@
 export async function createGuideChoicePanel(manifest,onchange){
   const {selectGuideAlternative}=await import('/generated/motion-gallery-renderer/view.js');
   const root=document.getElementById('guide-choice');root.hidden=false;
-  root.innerHTML='<h2>Choose how much guidance to keep</h2><p>Prefer fewer guided sections, then shorter visible guides, within an explicit motion-error allowance.</p><div class="choice-controls"><label>Extra motion error above the best measured ride<input id="extra-error" type="range" min="0" max="0.08" step="0.001" value="0"><output id="extra-error-value"></output></label><label>Comparison<select id="choice-fork"></select></label></div><p id="choice-explanation" role="status"></p><p id="choice-work"></p><details><summary>How the allowance works</summary><p>The compiler already measures whole-ride error across authored air, speed, amplitude and impact targets. This control allows an additional amount of that normalized root-mean-square error. It is not a number of benchmark points or a visual-quality score. The candidate set stays fixed, so relaxing the allowance cannot select more guided sections; when the count stays equal, guide length cannot increase. A track with fewer guides may still have more total guide length.</p><p>Every pair below starts with identical earlier geometry and rider state. One branch forbids a guide at the selected section; the other allows it. Both search the remaining ride. An unsuccessful branch means no valid continuation was found within that search allowance, not that the geometry is impossible.</p></details><details><summary>All measured alternatives</summary><div class="table-scroll"><table><thead><tr><th>Alternative</th><th>Guided sections</th><th>Guide length</th><th>Motion error</th><th>Adherence</th></tr></thead><tbody id="choice-candidates"></tbody></table></div></details>';
+  root.innerHTML=`
+    <h2>Choose how much guidance to keep</h2>
+    <p>This experiment prefers fewer guides while limiting the loss of accuracy against the specification. It selects whole tracks from the recorded search.</p>
+    <div class="choice-controls">
+      <label>Additional target error allowed<input id="extra-error" type="range" min="0" max="0.08" step="0.001" value="0"><output id="extra-error-value"></output></label>
+      <label>Comparison<select id="choice-fork"></select></label>
+    </div>
+    <p id="choice-explanation" role="status"></p><p id="choice-work"></p>
+    <details><summary>How the allowance works</summary>
+      <ol>
+        <li>Find the valid recorded track with the lowest target error.</li>
+        <li>Keep valid tracks whose error is at most that value plus the slider allowance.</li>
+        <li>Choose the fewest guided sections, then the shortest total guide length. Break remaining ties by lower error, then a stable identifier.</li>
+      </ol>
+      <p>For example: best error 0.030 + allowance 0.010 = ceiling 0.040. Moving the slider selects an already compiled track; it does not remove rails or run a new search.</p>
+      <p>Lower error means closer to the authored air, speed, amplitude and impact targets. This is the compiler’s existing normalized root-mean-square (RMS) error across the whole ride, not benchmark points, extra physical motion or a visual-quality score. It does not bound the error at each individual beat.</p>
+      <p>These are the alternatives this search found, not the limits of either geometry. Better searches can improve tracks both with and without guides. Preferring fewer guides is one explicit aesthetic preference for this experiment, not a claim that they always look better.</p>
+      <p>Every section comparison starts with identical earlier geometry and rider state. One branch forbids a guide at that section; the other allows it. Both search the remaining ride. Failure means no valid continuation was found within that search allowance, not that the geometry is impossible.</p>
+    </details>
+    <details><summary>All measured alternatives</summary><div class="table-scroll"><table><thead><tr><th>Alternative</th><th>Guided sections</th><th>Guide length</th><th>Target error (RMS)</th><th>Adherence</th></tr></thead><tbody id="choice-candidates"></tbody></table></div></details>`;
   const $=id=>document.getElementById(id),byId=new Map(manifest.cells.map(c=>[c.id,c]));
   const format=(n,d=3)=>Number.isFinite(n)?n.toFixed(d):'—';
   const label=d=>d.section===0?'Startup':`Beat ${d.section}`;
@@ -27,8 +46,8 @@ export async function createGuideChoicePanel(manifest,onchange){
       $('choice-explanation').textContent=`Identical earlier linework and rider history through frame ${fork.frame}. Each branch received ${fork.allowancePerBranch.toLocaleString()} physics frames to search and replay its continuation. ${cells.every(c=>c.valid)?'Both continuations passed timing and survival.':cells.every(c=>!c.valid)?'Neither search found a valid complete continuation.':cells[0].valid?'Only the guide-forbidden search found a valid complete continuation.':'Only the guide-allowed search found a valid complete continuation.'}`;
     }else if(choice){
       const reference=$('choice-fork').value==='reference';
-      cells=[reference?byId.get(portfolio.reference):choice.best,choice.selected];titles=[reference?'Original search':'Lowest measured motion error','Preferred guide usage'];
-      $('choice-explanation').textContent=`${choice.eligible} of ${candidates.filter(c=>c.valid).length} valid alternatives fit the error ceiling ${format(choice.ceiling,4)}. Best measured error: ${format(choice.best.qualityRms,4)}. Selected error: ${format(choice.selected.qualityRms,4)}. ${choice.selected.usage.guideSections} of ${choice.selected.usage.supportSections} sections retain a guide.`;
+      cells=[reference?byId.get(portfolio.reference):choice.best,choice.selected];titles=[reference?'Original search':'Closest match found','Fewer guides within allowance'];
+      $('choice-explanation').textContent=`${choice.eligible} of ${candidates.filter(c=>c.valid).length} valid alternatives fit the error ceiling ${format(choice.ceiling,4)}. Ceiling = best found ${format(choice.best.qualityRms,4)} + allowance ${format(extra)}. Selected target error: ${format(choice.selected.qualityRms,4)}. ${choice.selected.usage.guideSections} of ${choice.selected.usage.supportSections} sections retain a guide.`;
     }else{cells=[byId.get(portfolio.reference),byId.get(portfolio.reference)];titles=['Original search','No valid alternative'];$('choice-explanation').textContent='This portfolio contains no valid complete ride. No preference result is claimed.';}
     $('choice-candidates').replaceChildren(...candidates.map(c=>{
       const d=portfolio.decisions.find(d=>d.single===c.id||d.guided===c.id),tr=document.createElement('tr');

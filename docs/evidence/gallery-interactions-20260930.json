@@ -1,0 +1,142 @@
+{
+  "schema": "line.gallery-loading-repair.v1",
+  "baseline": "afcfc6f5",
+  "reproduced": [
+    {
+      "scenario": "Switch seed during playback",
+      "before": "1.14 s, playing",
+      "after": "0.00 s, paused"
+    },
+    {
+      "scenario": "Retry after one injected HTTP 503",
+      "after": "Same cached failure; no comparison panels"
+    }
+  ],
+  "interactions": {
+    "path": "generated/gallery-interactions-20260930/checks.json",
+    "sha256": "a55855ba3d8e585ad38b80a7d776aa1709934112e6dced72daf4a1c86e9773d8",
+    "result": {
+      "schema": "line.gallery-interaction-checks.v1",
+      "rows": [
+        {
+          "path": "generated/motion-gallery/20260930-functional-rails/manifest.json",
+          "sha256": "67025d6bbd8bca19bca00e232d885baaa1257fac85d9720473bb3e0fb9eb08d5",
+          "preservesPlaybackAndPlayhead": true,
+          "pausedSeedSwitch": true,
+          "rapidSeedSwitch": true,
+          "cancelsStaleDownloads": true,
+          "pauseDuringLoading": true,
+          "noStalePanels": true,
+          "retriesFailedDownload": true,
+          "selectedTracksBeforePreviews": true,
+          "stylePreservesPlayback": true
+        },
+        {
+          "path": "generated/motion-gallery/20260930-guide-intent/manifest.json",
+          "sha256": "a960f620e27a3ed74f0f2887a84adc13b54e0f71721c8a33eec04145e93d5803",
+          "preservesPlaybackAndPlayhead": true,
+          "pausedSeedSwitch": true,
+          "rapidSeedSwitch": true,
+          "cancelsStaleDownloads": true,
+          "pauseDuringLoading": true,
+          "noStalePanels": true,
+          "retriesFailedDownload": true,
+          "preferencePreservesPlayback": true,
+          "forkPausesAtBoundary": true,
+          "mobileOverflow": false
+        },
+        {
+          "cancelsRunningReplay": true,
+          "deduplicatesIdenticalPanels": true,
+          "noPhysicsOnPlayOrScrub": true,
+          "reusesVerifiedReplay": true
+        },
+        {
+          "resource": "artwork",
+          "retriesWithoutReload": true
+        },
+        {
+          "resource": "worker",
+          "retriesWithoutReload": true
+        }
+      ],
+      "errors": []
+    }
+  },
+  "native": [
+    {
+      "path": "generated/gallery-interactions-20260930/guide-choice-native.json",
+      "sha256": "17cd8eaa5264175f1007ed0e2b361186db57ac6b9f426a7da0c83d69cc1cc34d",
+      "rendererSha256": "ca7e8e8b8622d2ee0cd38827ff9f591290c5a9bc0cb7f866b3827dd8216e7600",
+      "schema": "line.gallery-native-checks.v1",
+      "studies": [
+        {
+          "path": "generated/motion-gallery/20260930-guide-intent/manifest.json",
+          "sha256": "a960f620e27a3ed74f0f2887a84adc13b54e0f71721c8a33eec04145e93d5803"
+        }
+      ],
+      "replayRuns": 432,
+      "maxBodyPointError": 0,
+      "meanReplayMs": 27.48958332836628,
+      "maxReplayMs": 75.40000009536743,
+      "mirrorChecks": [],
+      "contactReference": {
+        "path": "generated/guide-intent-20260930/contacts.json",
+        "sha256": "71bb2dac182a7d2bf0be07dac6fb85f0fb8ec2b875a5d5b1963e18b8b88d5361",
+        "matched": 432
+      },
+      "contactToggleAndNavigation": true,
+      "guideChoiceControls": {
+        "comparisons": 144,
+        "forks": 204,
+        "preferenceMatchesIndependentRanking": true,
+        "sharedPrefixSeeking": true,
+        "contactNavigation": true,
+        "preservesPlayhead": true,
+        "mobileOverflow": false
+      },
+      "uiComparisons": 144,
+      "rejectsReplayDrift": true,
+      "rejectsAcceleration": true,
+      "rejectsCorruptArtifact": true,
+      "playPause": true,
+      "mobileOverflow": false,
+      "errors": []
+    },
+    {
+      "path": "generated/gallery-interactions-20260930/shapes-native.json",
+      "sha256": "ff42fcb85c134ad2b599429b5b5c426ac40e02b1a95ad74ae0c69f3d0ee2d046",
+      "rendererSha256": "ca7e8e8b8622d2ee0cd38827ff9f591290c5a9bc0cb7f866b3827dd8216e7600",
+      "schema": "line.gallery-native-checks.v1",
+      "studies": [
+        {
+          "path": "generated/motion-gallery/20260930-functional-rails/manifest.json",
+          "sha256": "67025d6bbd8bca19bca00e232d885baaa1257fac85d9720473bb3e0fb9eb08d5"
+        }
+      ],
+      "replayRuns": 216,
+      "maxBodyPointError": 0,
+      "meanReplayMs": 30.92083334039759,
+      "maxReplayMs": 75,
+      "mirrorChecks": [],
+      "contactReference": null,
+      "contactToggleAndNavigation": true,
+      "guideChoiceControls": null,
+      "uiComparisons": 216,
+      "rejectsReplayDrift": true,
+      "rejectsAcceleration": true,
+      "rejectsCorruptArtifact": true,
+      "preservesTimeOnStyleChange": true,
+      "mobileSelectionVisible": true,
+      "playPause": true,
+      "mobileOverflow": false,
+      "errors": []
+    }
+  ],
+  "focusedTests": {
+    "command": "npx vitest run tests/arc_guide_choice.test.ts tests/gallery_contacts.test.ts",
+    "files": 2,
+    "passed": 6
+  },
+  "scope": "Dashboard selection, loading, playback, retry and explanatory copy. Compiler, benchmark, detector and physics unchanged. Large artifacts remain local."
+}

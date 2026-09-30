@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 /** Real browser checks for immutable preferences and the two physical branches. */
 export async function checkGuideChoiceUI(page,manifest,out){
  const cells=new Map(manifest.cells.map(c=>[c.id,c]));let comparisons=0,forks=0;
- const ready=()=>page.waitForFunction(()=>!document.getElementById('play').disabled);
+ const ready=()=>page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
  const shown=()=>page.locator('.details a').evaluateAll(links=>links.map(a=>new URL(a.href).pathname.split('/').at(-1).slice(0,-5)));
  for(const p of manifest.portfolios){
   await page.evaluate(p=>{for(const [k,v]of Object.entries({passage:p.caseId,budget:p.budget,seed:p.seed}))document.getElementById(k).value=String(v);document.getElementById('passage').dispatchEvent(new Event('change'));},p);await ready();

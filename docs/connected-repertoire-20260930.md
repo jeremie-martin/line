@@ -6,6 +6,17 @@ clearly distinguishable **connected** construction, whose silhouette and actual
 rider interaction differ. Preserve scattered, the restrained ripple and the
 earlier more pronounced ripple. Search improvements serve this creative result.
 
+## Owner review after delivery
+
+The owner reviewed the folded examples and said: “folded is great, it's completely
+different than the production baseline, that's very very good”. This establishes
+the visible contrast as a successful creative direction to preserve during further
+development. Alongside the positive scattered feedback and the subtler latest
+ripple, it gives the repertoire complementary kinds of variation. It does not
+resolve the measured entry failures, musical losses or search cost, or select an
+automatic frequency of use. The frozen evidence below records the pre-review
+state; this feedback is a subsequent observation.
+
 ## Development declaration
 
 Start with long physical faces and folded variations. The previous facets recipe
@@ -72,7 +83,8 @@ straight faces: entry, angled middle and exit. Unlike the earlier facets recipe,
 this is an explicit step, rather than a lower-resolution version of a curve.
 The guide, when used, is built from the same physical path. Every segment is a
 normal line. Finished Luna and Amor frames show the angular silhouette at the
-ordinary production camera scale; owner judgment of these examples remains open.
+ordinary production camera scale; the subsequent owner review above confirms
+that the visual difference is welcome.
 
 | Control | What it actually does |
 | --- | --- |
@@ -220,9 +232,10 @@ were persisted. Its unrecorded work is bounded by the one-million-frame allowanc
 
 These songs have zero authored jitter. Seed 381, development seed 351 and repeated
 runs do not establish independent robustness. Further songs, incoming states and
-musical targets remain to be studied. Owner review remains the next artistic
-check; these results complete a concrete expansion of the repertoire, not the
-roadmap or a claim that the new geometry is finished.
+musical targets remain to be studied. The positive owner review supports this
+creative direction; future variations and combinations still need review. These
+results complete a concrete expansion of the repertoire, not the roadmap or a
+claim that the new geometry is finished.
 
 To reproduce the frozen panel, use a clean compiler checkout at 0826323d with
 its built dependencies, and the committed current harness:

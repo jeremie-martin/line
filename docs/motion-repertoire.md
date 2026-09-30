@@ -20,6 +20,9 @@ that same entry, with larger musical errors. Contact timelines distinguish
 guided redirection, ballistic crossing and contacts on the main faces; they do
 not imply every corner is continuously ridden. The earlier panel below remains
 linked. These are early creative alternatives, not promoted production defaults.
+The owner has positively reviewed folded for its strong visual difference from
+production, alongside the earlier positive scattered feedback. Preserve those
+contrasts and the subtler ripple option as the repertoire develops.
 
 The preceding [repertoire development panel](repertoire-development-20260930.md)
 compares ordinary arcs, adjustable ripple phrases, a scattered first phrase and

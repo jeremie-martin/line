@@ -168,8 +168,13 @@ next concrete alternative. Its fixed faces and preserved angles make the step
 visible; measured contacts describe how the rider crosses it. The frozen panel
 has eleven complete rides and one failed entry. Two broader-initialization
 diagnoses complete that entry without changing the geometry, with larger musical
-errors; they do not replace the original confirmation. Owner review remains
-open. This is an evaluated repertoire addition, not completion of the roadmap.
+errors; they do not replace the original confirmation. The owner subsequently
+reviewed folded positively, specifically valuing its strong visual difference
+from production. Preserve that contrast while improving entry reliability,
+musical accuracy and cost. Scattered and folded now have positive owner feedback
+for their visual contrast; the latest ripple supplies subtler variation. This
+is an evaluated repertoire addition, not completion of the roadmap or a rule
+about how often any construction should appear.
 
 Review the new musical examples alongside the earlier ripple, with attention to
 phrase entry, visible motion and return. The next bounded engineering round can

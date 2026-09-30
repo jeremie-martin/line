@@ -15,7 +15,9 @@ rides. A separate diagnosis completes that same entry with broader initializatio
 at a musical cost. That retry is known-case development, not replacement
 confirmation. Native playback, actual contact order and local losses are recorded.
 Full V4 outputs and work remain exactly unchanged at 952.4726. Earlier scattered
-and ripple examples remain available; owner review of the folds is open. The
+and ripple examples remain available. The owner has now positively reviewed
+folded, valuing its clear visual difference from production. Preserve that
+contrast while improving reliability, musical accuracy and search cost. The
 next shared search question is recovery from an empty initial candidate set
 without weakening the intended construction or wasting the available allowance.
 

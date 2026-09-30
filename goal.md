@@ -1,3 +1,23 @@
+# Improving guide alternatives and their evaluation — 2026-09-30
+
+The [new bounded search and matched evaluation](docs/guide-search-2026-09-30.md)
+are complete. The frozen candidate was compared on **six passages × eight fresh
+seeds × two allowances**, with a declared memory ablation: **288 valid
+portfolios**, including seven failed individual attempts retained in the evidence.
+At 900,000 frames, mean best target error falls **8.59%** and mean research
+adherence rises **878.627 → 888.148**. At the same baseline-best +0.020 error
+ceiling, mean guided sections fall **3.479 → 2.229**. Valid zero-guide choices
+increase **13/48 → 48/48**. The report discloses accuracy regressions, a weaker
+small-budget result, and the remaining gap at intermediate guide limits.
+
+The [gallery](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-search/manifest.json)
+contains 210 normal-line rides, independently verified prefixes and native rider
+replay, and explicit guided/unguided references. All **352 canonical outputs and
+physical-work counts match exactly at 952.4726**. The completed performance goal
+stays complete. Code and compact evidence are versioned; large archives stay
+local. No new geometry, production preference, scoring change or visual approval
+is claimed.
+
 # Intentional guide choice — 2026-09-30
 
 The [guide-choice behavior contract](docs/motion-repertoire.md#behavior-contract-for-guide-choice)

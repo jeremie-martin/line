@@ -217,7 +217,7 @@ try {
   $('right-method').value=manifest.plan.methods.includes('paired')?'paired':manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);
   options('passage', manifest.plan.cases.map(c=>c.id), id=>manifest.plan.cases.find(c=>c.id===id).title);
   options('budget', manifest.plan.budgets, b=>`${number(b)} frames`); $('budget').value=String(manifest.plan.budgets.includes(100000)?100000:manifest.plan.budgets.at(-1)); options('seed',manifest.plan.seeds);
-  $('study-note').textContent=manifest.plan.note; $('manifest-link').href=manifestUrl;
+  $('study-note').textContent=choicePanel?.note??manifest.plan.note; $('manifest-link').href=manifestUrl;
   $('identity').textContent=`Compiler ${manifest.plan.compiler.head.slice(0,8)} · ${manifest.cells.length} recorded runs`;
   for(const row of manifest.summary){const tr=document.createElement('tr');for(const value of [title(row.method),number(row.budget),`${row.valid}/${row.runs}`,number(row.meanScore),number(row.totalPhysicalFrames),`${(row.totalCompileMs/1000).toFixed(1)} s`]){const td=document.createElement('td');td.textContent=value;tr.append(td);}$('summary').append(tr);}
   await select();

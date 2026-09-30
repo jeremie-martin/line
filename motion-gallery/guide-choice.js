@@ -33,7 +33,9 @@ export async function createGuideChoicePanel(manifest,onchange){
   let activeKey,portfolio,jumpTo;
   $('extra-error').oninput=()=>{if($('choice-fork').value!=='preference')$('choice-fork').value='preference';onchange();};
   $('choice-fork').onchange=()=>{const d=portfolio.decisions.find(d=>key(d)===$('choice-fork').value);jumpTo=d?.frame;onchange();};
-  return {select(caseId,budget,seed){
+  return {
+    note:'Beat-level fork comparisons share identical earlier linework and rider history. One branch forbids a guide at that section; the other allows it. Each searches the remaining ride. Complete-track comparisons, including independently searched references, can differ throughout the ride. The slider selects among recorded complete tracks within the displayed accuracy allowance; it does not remove rails or run another search. Failed attempts remain available for inspection.',
+    select(caseId,budget,seed){
     portfolio=manifest.portfolios.find(p=>p.caseId===caseId&&p.budget===budget&&p.seed===seed);
     if(!portfolio)throw new Error('Missing guide-choice portfolio');
     if(activeKey!==portfolio.key){
@@ -43,7 +45,7 @@ export async function createGuideChoicePanel(manifest,onchange){
     const candidates=portfolio.ids.map(id=>byId.get(id));
     const extra=+$('extra-error').value,choice=selectGuideAlternative(candidates,extra);
     $('extra-error-value').textContent=`+${format(extra)} RMS`;
-    $('choice-work').textContent=`Entire recorded search: ${portfolio.physicalFrames.toLocaleString()} of ${portfolio.budget.toLocaleString()} physics frames · ${(portfolio.compileMs/1000).toFixed(1)} s. Includes the reference, both branches at every fork, prefix checks and compiler replays. Moving this control reuses those results.`;
+    $('choice-work').textContent=`Entire recorded search: ${portfolio.physicalFrames.toLocaleString()} of ${portfolio.budget.toLocaleString()} physics frames · ${(portfolio.compileMs/1000).toFixed(1)} s. Includes all starting tracks, both branches at every fork, prefix checks and compiler replays. Moving this control reuses those results.`;
     let cells,titles;
     const fork=portfolio.decisions.find(d=>key(d)===$('choice-fork').value);
     if(fork){

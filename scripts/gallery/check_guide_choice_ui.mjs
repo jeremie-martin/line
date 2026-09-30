@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 /** Real browser checks for immutable preferences and the two physical branches. */
 export async function checkGuideChoiceUI(page,manifest,out){
- const cells=new Map(manifest.cells.map(c=>[c.id,c]));let comparisons=0,forks=0;
+ const cells=new Map(manifest.cells.map(c=>[c.id,c]));let comparisons=0,forks=0,references=0;
  const ready=()=>page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
  const shown=()=>page.locator('.details a').evaluateAll(links=>links.map(a=>new URL(a.href).pathname.split('/').at(-1).slice(0,-5)));
  for(const p of manifest.portfolios){
@@ -18,6 +18,12 @@ export async function checkGuideChoiceUI(page,manifest,out){
    assert.deepEqual(await shown(),[d.single,d.guided]);assert.equal(+(await page.locator('#seek').inputValue()),d.frame/40);
    assert.match(await page.locator('#choice-explanation').textContent(),/Identical earlier linework and rider history/);forks++;
   }
+  for(const id of p.references??[]){
+   if(id===p.reference)continue;
+   await page.selectOption('#choice-fork',id);await ready();
+   assert.equal((await shown())[0],id);
+   assert.match(await page.locator('.card h2').first().textContent(),/Independent unguided search/);references++;
+  }
  }
  const p=manifest.portfolios[0];
  await page.evaluate(p=>{for(const [k,v]of Object.entries({passage:p.caseId,budget:p.budget,seed:p.seed}))document.getElementById(k).value=String(v);document.getElementById('passage').dispatchEvent(new Event('change'));},p);await ready();
@@ -32,5 +38,5 @@ export async function checkGuideChoiceUI(page,manifest,out){
  await page.setViewportSize({width:390,height:844});await page.selectOption('#choice-fork','1');await ready();
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await page.locator('#inspect').check();await page.screenshot({path:out+'.mobile.png',fullPage:true});
- return {comparisons,forks,preferenceMatchesIndependentRanking:true,sharedPrefixSeeking:true,contactNavigation:true,preservesPlayhead:true,mobileOverflow:false};
+ return {comparisons,forks,references,preferenceMatchesIndependentRanking:true,sharedPrefixSeeking:true,contactNavigation:true,preservesPlayhead:true,mobileOverflow:false};
 }

@@ -1,0 +1,400 @@
+{
+  "schema": "line.guide-search-validation.v1",
+  "sources": [
+    {
+      "path": "generated/guide-search-20260930/gallery-evidence.json",
+      "sha256": "1190d2105cd24b864525fd446f7e49b8b3b4bf5c1a625bcc480482e37f0d1dca",
+      "bytes": 407683
+    },
+    {
+      "path": "generated/guide-search-20260930/gallery-browser.json",
+      "sha256": "b7185dfdd7c4c4b3184834f4a0deff31a6c3160882881a58c3794716883e91bb",
+      "bytes": 43244
+    },
+    {
+      "path": "generated/guide-search-20260930/gallery-contacts.json",
+      "sha256": "bf931d12ad4edf047e1b6cd394be0bcfd80a343be04bd3a2a7fd6c2019ea9a62",
+      "bytes": 117688
+    },
+    {
+      "path": "generated/guide-search-20260930/interactions.json",
+      "sha256": "a55855ba3d8e585ad38b80a7d776aa1709934112e6dced72daf4a1c86e9773d8",
+      "bytes": 1435
+    },
+    {
+      "path": "generated/guide-search-20260930/full-tests.log",
+      "sha256": "b810937c9b7d951f93fe15197f81ead0bbbfbdd9c6ff45c48580a238f31db298",
+      "bytes": 208
+    },
+    {
+      "path": "generated/guide-search-20260930/freeze-tests.log",
+      "sha256": "510fc02083c549b0022f6e26c2e4956cf4ecdfb5200939497417f5e487d67945",
+      "bytes": 203
+    },
+    {
+      "path": "generated/guide-search-20260930/typescript-baseline.log",
+      "sha256": "74f7cd694d95373f51051d7662f7887781d21bfcb7a948c49b3314e2278cda35",
+      "bytes": 91957
+    },
+    {
+      "path": "generated/guide-search-20260930/typescript-candidate.log",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc",
+      "bytes": 91903
+    },
+    {
+      "path": "generated/guide-search-20260930/typescript-comparison.json",
+      "sha256": "89c8bd4a5eafcb12567eb8952584081b920f6a72565a9e98177fd4cb30037e21",
+      "bytes": 72
+    },
+    {
+      "path": "generated/guide-search-20260930/gallery-final-ui.json",
+      "sha256": "b35e7e3a11de84e85b2cd865bb2a22b9c8783585b347de3e1c2bbd99e0e05f0a",
+      "bytes": 271
+    }
+  ],
+  "gallery": {
+    "manifest": {
+      "path": "generated/motion-gallery/20260930-guide-search/manifest.json",
+      "sha256": "5747877978601ce1d4422932e859a7378230cbc0ac917cfb98e579bc559030fa",
+      "planSha256": "4e751a079b2a217d421613b9a33db7ef51b2515b83e97c7cc7633e73ae1aeab1"
+    },
+    "checks": {
+      "runs": 210,
+      "valid": 210,
+      "normalLines": 180748,
+      "nonNormalLines": 0,
+      "forks": 99,
+      "exactPrefixFrameComparisons": 21012,
+      "allChecksumsBudgetsPrefixesAndGuideConstraintsVerified": true,
+      "maxIndependentRmsError": 2.7755575615628914e-16,
+      "monotonePreferenceChecks": 486,
+      "totalPhysicalFrames": 5343738
+    },
+    "summary": [
+      {
+        "budget": 900000,
+        "extraRms": 0,
+        "portfolios": 6,
+        "meanScore": 880.3401,
+        "meanRms": 0.03204525828746469,
+        "guidedSections": 41,
+        "supportSections": 51,
+        "guideLength": 3133.6178595403153,
+        "lowerGuideCountThanBest": 0,
+        "changedTrack": 0
+      },
+      {
+        "budget": 900000,
+        "extraRms": 0.0025,
+        "portfolios": 6,
+        "meanScore": 877.6135166666667,
+        "meanRms": 0.03283098899478751,
+        "guidedSections": 38,
+        "supportSections": 51,
+        "guideLength": 2595.5167488033785,
+        "lowerGuideCountThanBest": 3,
+        "changedTrack": 4
+      },
+      {
+        "budget": 900000,
+        "extraRms": 0.005,
+        "portfolios": 6,
+        "meanScore": 870.9725666666667,
+        "meanRms": 0.034677253795896944,
+        "guidedSections": 35,
+        "supportSections": 51,
+        "guideLength": 2488.2212765186196,
+        "lowerGuideCountThanBest": 5,
+        "changedTrack": 5
+      },
+      {
+        "budget": 900000,
+        "extraRms": 0.01,
+        "portfolios": 6,
+        "meanScore": 858.24565,
+        "meanRms": 0.03833211546568312,
+        "guidedSections": 28,
+        "supportSections": 51,
+        "guideLength": 1980.066909533703,
+        "lowerGuideCountThanBest": 6,
+        "changedTrack": 6
+      },
+      {
+        "budget": 900000,
+        "extraRms": 0.02,
+        "portfolios": 6,
+        "meanScore": 830.8489166666667,
+        "meanRms": 0.04645428208705434,
+        "guidedSections": 13,
+        "supportSections": 51,
+        "guideLength": 863.9467897768864,
+        "lowerGuideCountThanBest": 6,
+        "changedTrack": 6
+      },
+      {
+        "budget": 900000,
+        "extraRms": 0.04,
+        "portfolios": 6,
+        "meanScore": 813.3355333333334,
+        "meanRms": 0.05196223459635243,
+        "guidedSections": 6,
+        "supportSections": 51,
+        "guideLength": 335.7108361328944,
+        "lowerGuideCountThanBest": 6,
+        "changedTrack": 6
+      },
+      {
+        "budget": 900000,
+        "extraRms": 0.08,
+        "portfolios": 6,
+        "meanScore": 796.1690333333332,
+        "meanRms": 0.057887852623782016,
+        "guidedSections": 0,
+        "supportSections": 51,
+        "guideLength": 0,
+        "lowerGuideCountThanBest": 6,
+        "changedTrack": 6
+      }
+    ]
+  },
+  "nativeBrowser": {
+    "schema": "line.gallery-native-checks.v1",
+    "studies": [
+      {
+        "path": "generated/motion-gallery/20260930-guide-search/manifest.json",
+        "sha256": "5747877978601ce1d4422932e859a7378230cbc0ac917cfb98e579bc559030fa"
+      }
+    ],
+    "replayRuns": 210,
+    "maxBodyPointError": 0,
+    "meanReplayMs": 26.808571423803055,
+    "maxReplayMs": 81.5,
+    "mirrorChecks": [],
+    "contactReference": {
+      "path": "generated/guide-search-20260930/gallery-contacts.json",
+      "sha256": "bf931d12ad4edf047e1b6cd394be0bcfd80a343be04bd3a2a7fd6c2019ea9a62",
+      "matched": 210
+    },
+    "contactToggleAndNavigation": true,
+    "guideChoiceControls": {
+      "comparisons": 36,
+      "forks": 99,
+      "references": 6,
+      "preferenceMatchesIndependentRanking": true,
+      "sharedPrefixSeeking": true,
+      "contactNavigation": true,
+      "preservesPlayhead": true,
+      "mobileOverflow": false
+    },
+    "uiComparisons": 36,
+    "rejectsReplayDrift": true,
+    "rejectsAcceleration": true,
+    "rejectsCorruptArtifact": true,
+    "playPause": true,
+    "mobileOverflow": false,
+    "errors": []
+  },
+  "rendererSourceIdentity": {
+    "version": "v2153.0",
+    "sources": {
+      "unpacked/502.js": "15df8ef80fcfda695a7a40123ff8f7032c79ea5d927238e37fbe845b86327e85",
+      "unpacked/505.js": "65f93f9d0cd1946e8e28db730e1da7f6db98d66f81ccbaae7c0aa81bd1b08397",
+      "unpacked/823.js": "bd1c74f350222340b8efd70d759fc4c1dac03ba9604f029620677586fa971e03",
+      "unpacked/206.js": "4a1f4c234bcd4953778b9f85f7b00d7bfdacc7bf3c38149b92709a797fbd8a6a",
+      "unpacked/806.js": "d72b3c57ae4c4af1daabf817f4bff142571d91848d491ac8bb834721a82a4d30",
+      "unpacked/805.js": "88c1edd85d5274833f57dfcd78586fd933e74db27d0a9adb8716c8f67af9d0db",
+      "unpacked/506.js": "be97ba1b2a088f81fde277753b3efe547f74c7bfe1a95e3f342bef4f5ec411e6",
+      "unpacked/16.js": "75ff456d428134329db060eeeb9f2b690ffa4b37e18ed5499b86ab8f79897a45",
+      "unpacked/240.js": "63863ab349c07f785faa18e27fa55e2577a9b0db98fbae12629f986eb7b7413b",
+      "unpacked/64.js": "7719cd5ff7949b770bf03c03dcf95b3ca8f6dba7477e999f0aadd576c2875ca6",
+      "unpacked/544.js": "2c7b5e534e46eae89d0b6ebf8d01f5ca3d0605093fe5cce2ac9d9603fbd17c3d",
+      "unpacked/504.js": "512af86dd6317469387bac6b377cca14ea2fef7cdc70847a6742de9227d1c908",
+      "unpacked/285.js": "522497e8c4428b1e96dd870122b8bfd82995edda934e5bd9bf6910a401eac000",
+      "unpacked/145.js": "ae46d6f8958adf3460b053d1954ba407ba841adcb0362490d89d3a1b527dd462",
+      "unpacked/503.js": "675754c3f99aa76a36b4c090ba4eabaea985e7d8a9823fb8ea9fdde80df9e2e3",
+      "unpacked/25.js": "ae7c328c9f2c7506bba736bad7c6907328e3e0a4357f29c8d560d3eac654a577",
+      "unpacked/61.js": "15c019ce596c73110918d1a8222170fd29875f09fca4a1c5087482c0201e94d4",
+      "unpacked/66.js": "35885298b1153a617f94cdf1c7d280cc8fb834c520828beb34dd386b20a1ab73",
+      "unpacked/81.js": "746e9e4cca606da2327edd8681b04e9e6031135a92daa13037058b1e8bd5d91b",
+      "unpacked/167.js": "1a9880614ebafbbabc5b57d723e0211d62adafd21cbe5c7866f7894c2cc390df",
+      "unpacked/286.js": "e979be7902f4b9dbc4be161624b31844bcd930a053296b8fa9dc81e4389cded3",
+      "unpacked/21.js": "cbf1f298dc0f3c966cf33efde75b72e293a24d32e12d08ee76705cd104ffc578",
+      "unpacked/0.js": "e2db47494c428babfdc2a19d1a6b1c6e7f91a9bb42c2eaabf2a4f1205c1a9dbb",
+      "unpacked/551.js": "39fb6db9d70747b62a0b1cc7044785070416bd5f6c472e5553fdf898c43223d8",
+      "unpacked/483.js": "8c4d4925ac74f93c4a8108570f7c7668ac43fbaee5e90a5161a72aa8cc1c1898",
+      "unpacked/482.js": "b7c13f3d3de172d4505bb11b1ba354c008a8334c02c95bdf651f64dea1638f7f",
+      "unpacked/48.js": "d152a4f5fb91be42e2d5d32d560b8059087135abcfbbee903fe67f8ac93ae3a1",
+      "unpacked/143.js": "29bd4c98ec9705d885defc7b19051ff51d560bb1017166a216769f9837b4066a",
+      "unpacked/201.js": "d441e2ec20aa85d5ca157b683ad3d2e994b3d7ad6ecc866769ffc462ecfd0268",
+      "unpacked/513.js": "436659c30df798913436a11bfcca017c4126eb20e11c1fca2cd1778121a7c4ec",
+      "unpacked/288.js": "9b0d882f06455f8a9e372c9cedfc6c668a68bbf623163ead33658c9e0359ecd9",
+      "unpacked/517.js": "c97374fa0ff49ffbd3b543803f7385fab8199c0d074a371930fe6f2e9785f6a5",
+      "unpacked/289.js": "bdd95c494a05f11bd87d777c8c38fc7f4b59b58b2a1cbb5aec6ac60dc885dd55",
+      "unpacked/82.js": "a84c15793f071873d55022e8e04e2c6338725baab1f9e15aa382bf0a34b69ef4",
+      "unpacked/518.js": "33d9494540e482f18758853e0e6916d0144defe5e08fa594345af73f1a227032",
+      "unpacked/512.js": "1a1a5b755335be2d094b40cf2d281ab4a5fc3f31bbfb0c230d13ab2adee10f0f",
+      "unpacked/142.js": "3a6e8add8d96c9556b7da229c0659d463d548f12e38dcb86db8e9f51564d868f",
+      "unpacked/204.js": "dc81ffb0154d228814da3e13ffbff2daacdc7c4fe644ef445f9466efad60153b",
+      "unpacked/538.js": "4396247161951764004b76034065e6085293beb80d0c48fc431790dccfbc1485",
+      "unpacked/105.js": "af9148927bab6197e1c17efe8de45ae5228f2fdf8509e588a34962eaa5878bd3",
+      "unpacked/499.js": "49def44e56d04a24bb37cdc4d71355dc02f41f24ce524a22114bb23b8320023c",
+      "unpacked/196.js": "d4f29059b4c742cadcc0c63cc864e2e3cbb25fdb78ea9001fffd2d01db8f374e",
+      "unpacked/275.js": "60a25141c941fe6bacf42b5734eab5f58ba7f200e65bcf20f0ba1fb234e0de17",
+      "unpacked/274.js": "2274c454a4f192091478a3118f5e13d0e0257edd1d453fc0956a65cf28df188e",
+      "unpacked/276.js": "1cf3e1eeed2d717d4dba8a101c28b71f65e908beb02f90371b11f927125b8390",
+      "unpacked/18.js": "8ac585b83ef72e09c81cac682f445f956723e06f9d12c0f6dd51dd6a7898e02f",
+      "unpacked/507.js": "c06583e4a0f860d833ff7712ff625fb7669c9ba47b1b4d1060b4095f5a5ffa54",
+      "unpacked/496.js": "d820ed2e35cd8ac36b3dd2e718022657a2932a5452955ca53e9f6783a7d28d1f",
+      "unpacked/199.js": "a723d6455e71660f365cccc81da7f2e2c5ab8f3041c0c5fb9becf2b34caa27cf",
+      "unpacked/497.js": "2d9251e78d273a71c43482ce0058ffacbf21650b3809e89a78e10874c25c3432",
+      "unpacked/104.js": "c13efd37e26f6f5c926f723dd295a4d0d8f14f0754ef45cb7ce08b181b88afe1",
+      "unpacked/514.js": "44202869c009c63a57f6618c7b453eb3b337d00f6e54e2e05da026adc326c508",
+      "unpacked/501.js": "d36777975e3763010739c631816ed1e9e71372ce2f6723d8de621cb722a5e411",
+      "unpacked/500.js": "cacf0ee35decababed7c86b31da8cc9c8e1e7f1268deda839baabe38f6d46c3b",
+      "unpacked/144.js": "ae46d6f8958adf3460b053d1954ba407ba841adcb0362490d89d3a1b527dd462",
+      "unpacked/283.js": "3840f9f89550d97e2a326d888032e0e5f79ac9cfe34b1850af5daaf1c1785613",
+      "unpacked/477.js": "5691d7354c21792f8563a12f900663fdf73cc0c73abc4e132bca70fc821e5f58",
+      "unpacked/282.js": "b51f86cefa1f978a8e9b09a1e28124441ac0235463c487caed53d49e76df7981",
+      "unpacked/516.js": "6723355fe4e98e2e4734f76857a5df76b6521786927522871c54f602a07dad11",
+      "unpacked/515.js": "ac1fc2f7269968b06135880463344f1ff8b919a400825070ad250325a80d972b",
+      "unpacked/284.js": "17f0c49ae4ffb786046dff6fff9ed35441a84f79d41077f41aa229279ad7bf9b",
+      "unpacked/508.js": "5351357d35eb577ff5effe90eb5c4ecc36fa0888bac787f120bcdf44841d9681",
+      "unpacked/509.js": "70616cd96f2326a883154f383ee4db801216865722f168f80f46114843f47be7",
+      "unpacked/200.js": "e128a111b5da3684beae894239274400d0bf1fdc19b016b4ff6e6293c8ae2015",
+      "unpacked/510.js": "46ddbf012faafc8f764cc51d38a4d277ef4f03c18377d50f2695281cd50bda4e",
+      "unpacked/511.js": "7cedde7ca12f4a3c58115684515b51e9628f9b9685535761adc843ba9caee6a6",
+      "unpacked/287.js": "3461c12fb4de9747f8ac8cf1417379218f2367b382bb0067e20db5546df9e9a5",
+      "unpacked/519.js": "a2148faf41d3b0d73b8d1f16954e53600aee3a13753d0e403caae26fda7c52c2",
+      "unpacked/523.js": "4f004c5435751459d96319ad539936fe35461b532cabe1c1aecadbefa8171354",
+      "unpacked/525.js": "3ac78a4265c9aee0f2c3f188ffce34f189996b45bb6154ec602403b9e6e9c41a",
+      "unpacked/65.js": "3c103b0910496f414ea7f16cf199a632f8343c26644e11300528b32e8b5b9f54",
+      "unpacked/292.js": "e54afb8705317eac650610c98a22edf19e1762fc38f33cad6b22edffdd427581",
+      "unpacked/524.js": "685cf73aa95a3401bb4ec1be84bc8d08f02fe964e5c41a9b3930178cc3028c09",
+      "unpacked/526.js": "d1cda75ba14bac1952092a3051f1611d1d6e1b9503884cdeb4487c126072442f",
+      "unpacked/529.js": "64466a823fc0d8cbfc1733a3b31fbe9567d230e608888b352631d944971acc82",
+      "unpacked/527.js": "f9df9abe3cce8fa64d6db2ff645de1f8586969a716f116c12976d19e650254ac",
+      "unpacked/532.js": "7ff148d570f5f15e5909678a52f5aba8719486e4bc085687b86a3146818255ba",
+      "unpacked/528.js": "c96cb36dd6f468fcafd1e91b4c37cf7d7034a579a4bdc3840da302d39d64f609",
+      "unpacked/533.js": "9944ec345165ebae29cda3194bb60c7bc76c9c00d772654668c4d5b9f1f23be5",
+      "unpacked/530.js": "9cfa53dcb0a758e3ef3ee905ed50a2654f0f270e7c62eb4450f6f0d5a9d70c81",
+      "unpacked/531.js": "e07b94b6313e2a73a08c3834ac473ac2497e2d59c4975a33a840e7a82c05a41e",
+      "unpacked/295.js": "0dd9eb8ae4b34b9f0f46d8ebeb1f7806070d28893951ce5c35d63eb5bb3ccf06",
+      "unpacked/535.js": "87b3fa9986ac65543075595881f18340f4cdf0456ebcd27fc0aa79dd3c668fa9",
+      "unpacked/534.js": "1055bf6689b954fc6ba9136173de18c72fafb558fa6f52eaa1aec288a9296897",
+      "unpacked/205.js": "3bca9c1de699239db23a1a7c510429b0a1b4d82f43d7cd3181584a7d53f11a19",
+      "unpacked/536.js": "89ce0793a9981f118443d6359e3ccf03fa19efb43b3dd7c9d7ce4cc4305cf1f2",
+      "unpacked/537.js": "33ed15b82b805faafafdd084b575b137927d9f38fbec93057cf79a8ab53c30ef",
+      "unpacked/202.js": "b701b4215c87dc318c05544291188adb0ecd3f7584bad27664f6789a63c6d31a",
+      "unpacked/294.js": "fe379ac4936175a9fdc6068138dad10ca7f3b75748a61ccf21a1889d9cacbb4b",
+      "unpacked/291.js": "891c6defc6a1427480aa710fbd9ee96e5ba5ba989086b2c8fc46540d68a0ce50",
+      "unpacked/290.js": "f8bf9fed5b52244cbdf0b85722708001783b310c69be06bed41e90eca9dd970b",
+      "unpacked/83.js": "cc8f23e7c38d40206cd40ebf845be38fae219cb941ab13f6aa497ea79ed1edcd",
+      "unpacked/521.js": "37d8a476dd124e693bd95931fdc90117fbcde8a66075da5069187a35b7a626fb",
+      "unpacked/293.js": "e5ec1050cb45733acaad571426c0dd11d007276c85f17a02ccc7553eab905bfc",
+      "unpacked/203.js": "e5ec1050cb45733acaad571426c0dd11d007276c85f17a02ccc7553eab905bfc",
+      "unpacked/522.js": "239652ec98bd11c884c1a00f1d1724f194691707a652ab034b1d04749a23a298",
+      "unpacked/520.js": "4fff9e5b615d39b725b30932f9b8783efb67e756e1421c82c8b06e7427498852",
+      "unpacked/486.js": "c71f71ae6008f58368af5361ba51abecf2600926ab235632dea3b89b3a31fe14",
+      "unpacked/197.js": "3e966848ca599fef340b599b7ad8a397cfdd554d05c0a31ba7d43e9788d6525f",
+      "unpacked/485.js": "3e44b12a3fc15d297bdd00a6e746ea115e606549d73a2dd8a7fb02852cc4d224",
+      "unpacked/484.js": "61f568077ab6c20f00793547a7a96d049230e61da543d1cfa9d2c6a1e67b8d9d",
+      "unpacked/487.js": "7f1654e73aef50e1af77d9add14d2b3607e9c8b2a7d20acee3459d1e3856ccf3",
+      "unpacked/488.js": "538061aab7024e16e5fd8000004dd6811a8d3cc2299407162a94d203d245eeae",
+      "scripts/v0/optimizer/arc_guidance.ts": "81396bbc32dceb0ad0a39697ed9512e7b69e8f7b2fe1c15c267785ee604276d0",
+      "scripts/gallery/methods.ts": "bc9b7cf9726e3b3e6b505f78b988768883f712ea4c51536fb83f547890ce0156",
+      "scripts/gallery/contacts.ts": "1b5a4449d18a5f0831711cb5b3610e6f334f8565416b84d43d9ca4d2d3111f70",
+      "scripts/v0/optimizer/arc_guide_choice.ts": "b39dba2112404f65f82644509cce41f063c41a04edb253e8dec58f8143afaa47",
+      "scripts/gallery/native/view.js": "f3c6dba36dac28bd6d92f3a7e277e8688149e41c11afc11a371b335bf1e0b893",
+      "scripts/gallery/native/worker.js": "86a09865d1aa8149cc8f9b45517527eee6f730cf7bd194b6011d31ebc07b5862",
+      "scripts/gallery/build_renderer.mjs": "44a3baa7a13ca374d786f874b0d8eae8826e524ab1a13b0307383db78fa0f1e7",
+      "mirror/_v2153.0/bosh-sprite.svg": "9b8ae6a999a4ecc5e5fd4da7db18692d8fef5177433aeaf5c4ba19b806cbcf45"
+    },
+    "outputs": {
+      "generated/motion-gallery-renderer/view.js": "e2c7f36f4239a79c1201141dcd42666aabde49c8eedb23be41b5550c0847d5c2",
+      "generated/motion-gallery-renderer/worker.js": "c51db0aae093c0da48d78bc8ceeb514fc471ee3153fcd8ceb6f4c9d8731414cf"
+    }
+  },
+  "finalUi": {
+    "result": {
+      "comparisons": 36,
+      "forks": 99,
+      "references": 6,
+      "preferenceMatchesIndependentRanking": true,
+      "sharedPrefixSeeking": true,
+      "contactNavigation": true,
+      "preservesPlayhead": true,
+      "mobileOverflow": false
+    },
+    "errors": []
+  },
+  "interactions": {
+    "schema": "line.gallery-interaction-checks.v1",
+    "rows": [
+      {
+        "path": "generated/motion-gallery/20260930-functional-rails/manifest.json",
+        "sha256": "67025d6bbd8bca19bca00e232d885baaa1257fac85d9720473bb3e0fb9eb08d5",
+        "preservesPlaybackAndPlayhead": true,
+        "pausedSeedSwitch": true,
+        "rapidSeedSwitch": true,
+        "cancelsStaleDownloads": true,
+        "pauseDuringLoading": true,
+        "noStalePanels": true,
+        "retriesFailedDownload": true,
+        "selectedTracksBeforePreviews": true,
+        "stylePreservesPlayback": true
+      },
+      {
+        "path": "generated/motion-gallery/20260930-guide-intent/manifest.json",
+        "sha256": "a960f620e27a3ed74f0f2887a84adc13b54e0f71721c8a33eec04145e93d5803",
+        "preservesPlaybackAndPlayhead": true,
+        "pausedSeedSwitch": true,
+        "rapidSeedSwitch": true,
+        "cancelsStaleDownloads": true,
+        "pauseDuringLoading": true,
+        "noStalePanels": true,
+        "retriesFailedDownload": true,
+        "preferencePreservesPlayback": true,
+        "forkPausesAtBoundary": true,
+        "mobileOverflow": false
+      },
+      {
+        "cancelsRunningReplay": true,
+        "deduplicatesIdenticalPanels": true,
+        "noPhysicsOnPlayOrScrub": true,
+        "reusesVerifiedReplay": true
+      },
+      {
+        "resource": "artwork",
+        "retriesWithoutReload": true
+      },
+      {
+        "resource": "worker",
+        "retriesWithoutReload": true
+      }
+    ],
+    "errors": []
+  },
+  "tests": {
+    "broadSuite": {
+      "files": 42,
+      "passed": 165
+    },
+    "finalCandidateFocused": {
+      "files": 2,
+      "passed": 10
+    },
+    "note": "The broad suite preceded the final traversal changes; both directly affected test files were rerun after freezing. Counts overlap, not 175 distinct tests."
+  },
+  "typescript": {
+    "baseline": 251,
+    "candidate": 251,
+    "new": [],
+    "removed": []
+  },
+  "finalUiSourceSha256": {
+    "motion-gallery/guide-choice.js": "a9146b841b367964b65382c7bd58639b53ff5be89928b635a972410c3574b45b",
+    "motion-gallery/main.js": "10cab560bff5f813725b5e2f17a3ac1291d8271550321a06a07db54cfafdf3c8",
+    "motion-gallery/index.html": "5047edb04341dcf227bcfc987ba11504beb0a5d71347c655f28a8fea0250f080",
+    "scripts/gallery/check_guide_choice_ui.mjs": "309896001b4dbd82b287a31f8780c0573256d3ac55a8f0c57261317a9010cb6b"
+  }
+}

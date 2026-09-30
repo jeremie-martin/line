@@ -1,0 +1,4167 @@
+{
+  "schema": "line.guide-search-development.v1",
+  "raw": {
+    "path": "generated/guide-search-20260930/development-all.json",
+    "sha256": "986d6fbd9a092ee340996ba21d5bd714328dbcd48a754d59aa0188328ccd9342",
+    "bytes": 63261753
+  },
+  "sources": [
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/pilot-memory/results.json",
+      "sha256": "a7f71a81b7dc9828fd522e6fcb1992d45eea4c87c5840dbe09286843ea88c089",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "e2bc3338265d78e2b6c7eaaa120adc0b6d45be05118a2e3a3f78ba7240c9983e",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "e2472bd3365d8239c39e830f498ddb749175da3968a93d4bd6857d16ae857f29",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "cd32fa076157158f756cef7ecbf37093b5d676bf47b548b4eaaf06eb18d58913"
+      },
+      "variants": {
+        "baseline": {},
+        "memory": {
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches",
+        "alternating-lift",
+        "quick-pickups",
+        "quiet-tail",
+        "slow-swell",
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "75db78de10c22f1eb1fc739d4b0ecf90b239e184ccab66a2f00c4d1a8b8dfe72",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/pilot-frontier/results.json",
+      "sha256": "6e40354865b01f585b5da795911fcecb5085943457286c2438bf22fc9a5c4178",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "e2bc3338265d78e2b6c7eaaa120adc0b6d45be05118a2e3a3f78ba7240c9983e",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "e2472bd3365d8239c39e830f498ddb749175da3968a93d4bd6857d16ae857f29",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "cd32fa076157158f756cef7ecbf37093b5d676bf47b548b4eaaf06eb18d58913"
+      },
+      "variants": {
+        "frontier": {
+          "exploration": "accuracy-and-guidance"
+        },
+        "combined": {
+          "exploration": "accuracy-and-guidance",
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches",
+        "alternating-lift",
+        "quick-pickups",
+        "quiet-tail",
+        "slow-swell",
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "75db78de10c22f1eb1fc739d4b0ecf90b239e184ccab66a2f00c4d1a8b8dfe72",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/pilot-continuation/results.json",
+      "sha256": "611102624ae9ba361f52689c71506ea2eb2f7f51acf044c0e92e9fe604925839",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "d17d4cdda52e72b6e71dfe982fd228dec21a2fb842b3eebe106249f4d4f92818",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "234eb484afbd9f56a5e9a1190af2b013c7967bd5570d0c46956246d3d3424932",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "de2affd387145e2f9f0d68abbdabde3516f053a89d06ee24e7a6bef2542e5248"
+      },
+      "variants": {
+        "continuation": {
+          "sourceContinuation": true
+        },
+        "frontier-continuation": {
+          "exploration": "accuracy-and-guidance",
+          "sourceContinuation": true
+        }
+      },
+      "seeds": [
+        231
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches",
+        "alternating-lift",
+        "quick-pickups",
+        "quiet-tail",
+        "slow-swell",
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "7382e7d09a57daf34660d8675d9ffc051dc4d4b68ef542e48c7abf06cb6fa986",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/development-232/results.json",
+      "sha256": "8a176f09cabcf41c672f78047f0b10d93d0d38f51706944c190d752835738cf4",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "d17d4cdda52e72b6e71dfe982fd228dec21a2fb842b3eebe106249f4d4f92818",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "234eb484afbd9f56a5e9a1190af2b013c7967bd5570d0c46956246d3d3424932",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "de2affd387145e2f9f0d68abbdabde3516f053a89d06ee24e7a6bef2542e5248"
+      },
+      "variants": {
+        "baseline": {},
+        "combined": {
+          "exploration": "accuracy-and-guidance",
+          "sourceMemory": true
+        },
+        "continuation": {
+          "sourceContinuation": true
+        },
+        "frontier-continuation": {
+          "exploration": "accuracy-and-guidance",
+          "sourceContinuation": true
+        }
+      },
+      "seeds": [
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches",
+        "alternating-lift",
+        "quick-pickups",
+        "quiet-tail",
+        "slow-swell",
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "7382e7d09a57daf34660d8675d9ffc051dc4d4b68ef542e48c7abf06cb6fa986",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/initialization-231/results.json",
+      "sha256": "9956c6d2b3b2467a00a1c716cde3830a3289cbed754aea2a986add8b7ac9817f",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "0432c857955d4c65ee117deecbd451470c7e196bc27a0cb13a97116f44ecd51b",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "c2c0bf09b78ba90fcdb27ffc8f183c1c715c2dc56d164f135899ea3c8be8c01b",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "7cffcd026b4e16b608716b266e2cd8a3be59ab8d2ca522057565949d36c2f2eb"
+      },
+      "variants": {
+        "guide-aware": {},
+        "guide-aware-combined": {
+          "exploration": "accuracy-and-guidance",
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches",
+        "alternating-lift",
+        "quick-pickups",
+        "quiet-tail",
+        "slow-swell",
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "8caa918ff9065bb760e3677e9c1b72b88341f0d15189becc0d1880c41d13da6c",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/initialization-232/results.json",
+      "sha256": "db9358bb5e16bc1a4153a02194331602e1b29036179c0e1afd11268cd7727c2a",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "0432c857955d4c65ee117deecbd451470c7e196bc27a0cb13a97116f44ecd51b",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "c2c0bf09b78ba90fcdb27ffc8f183c1c715c2dc56d164f135899ea3c8be8c01b",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "7cffcd026b4e16b608716b266e2cd8a3be59ab8d2ca522057565949d36c2f2eb"
+      },
+      "variants": {
+        "guide-aware": {},
+        "guide-aware-combined": {
+          "exploration": "accuracy-and-guidance",
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches",
+        "alternating-lift",
+        "quick-pickups",
+        "quiet-tail",
+        "slow-swell",
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "8caa918ff9065bb760e3677e9c1b72b88341f0d15189becc0d1880c41d13da6c",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/initialization-memory/results.json",
+      "sha256": "0a954d9e034fe830815140dd6cc7b5aca7df4e18fe161084cf6a5ba1fa2200df",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "0432c857955d4c65ee117deecbd451470c7e196bc27a0cb13a97116f44ecd51b",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "c2c0bf09b78ba90fcdb27ffc8f183c1c715c2dc56d164f135899ea3c8be8c01b",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "7cffcd026b4e16b608716b266e2cd8a3be59ab8d2ca522057565949d36c2f2eb"
+      },
+      "variants": {
+        "guide-aware-memory": {
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches",
+        "alternating-lift",
+        "quick-pickups",
+        "quiet-tail",
+        "slow-swell",
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "8caa918ff9065bb760e3677e9c1b72b88341f0d15189becc0d1880c41d13da6c",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/dual-even-catches/results.json",
+      "sha256": "2db5125c037a0985dbeb472c68b4455ea3f057f8819edeab7df52e5310436c5a",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "3d8b6e187c0bf286d32fce8d02275927f8bbf4e013414517bceceff3ae27b1d2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "30fdd63ef56de8e924a288ccbe70ac1cc0132a2f64e885cd9a7495f6ac183b3f",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "40835b3ad02c1b35445f858c560a4eca4fcbb3c5dc8fa4e5a0b9404369497967"
+      },
+      "variants": {
+        "dual": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true
+        },
+        "dual-memory": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "171cb7d8ee79afb0f8dce603087795cbef649b8f2e656c2f27f8677e3f407d94",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/dual-alternating-lift/results.json",
+      "sha256": "7ae8b1c8557b2ba10b091748884d09ccd764e16a428fe626f099444423713ea6",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "3d8b6e187c0bf286d32fce8d02275927f8bbf4e013414517bceceff3ae27b1d2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "30fdd63ef56de8e924a288ccbe70ac1cc0132a2f64e885cd9a7495f6ac183b3f",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "40835b3ad02c1b35445f858c560a4eca4fcbb3c5dc8fa4e5a0b9404369497967"
+      },
+      "variants": {
+        "dual": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true
+        },
+        "dual-memory": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "alternating-lift"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "171cb7d8ee79afb0f8dce603087795cbef649b8f2e656c2f27f8677e3f407d94",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/dual-quick-pickups/results.json",
+      "sha256": "b622291af62711ee7b4c3dee378a487b46e9d632930c4b53a9bdabf0b3c38f72",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "3d8b6e187c0bf286d32fce8d02275927f8bbf4e013414517bceceff3ae27b1d2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "30fdd63ef56de8e924a288ccbe70ac1cc0132a2f64e885cd9a7495f6ac183b3f",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "40835b3ad02c1b35445f858c560a4eca4fcbb3c5dc8fa4e5a0b9404369497967"
+      },
+      "variants": {
+        "dual": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true
+        },
+        "dual-memory": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "quick-pickups"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "171cb7d8ee79afb0f8dce603087795cbef649b8f2e656c2f27f8677e3f407d94",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/dual-quiet-tail/results.json",
+      "sha256": "7a6ff0549334170eb08043bc0a264f52313f9e97f575c6b7797aef86f3a2478d",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "3d8b6e187c0bf286d32fce8d02275927f8bbf4e013414517bceceff3ae27b1d2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "30fdd63ef56de8e924a288ccbe70ac1cc0132a2f64e885cd9a7495f6ac183b3f",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "40835b3ad02c1b35445f858c560a4eca4fcbb3c5dc8fa4e5a0b9404369497967"
+      },
+      "variants": {
+        "dual": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true
+        },
+        "dual-memory": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "quiet-tail"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "171cb7d8ee79afb0f8dce603087795cbef649b8f2e656c2f27f8677e3f407d94",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/dual-slow-swell/results.json",
+      "sha256": "fb2239268021a286d55f744c4a3d27dc0719ddef6d9e91d49f3bf05d061d64fe",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "3d8b6e187c0bf286d32fce8d02275927f8bbf4e013414517bceceff3ae27b1d2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "30fdd63ef56de8e924a288ccbe70ac1cc0132a2f64e885cd9a7495f6ac183b3f",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "40835b3ad02c1b35445f858c560a4eca4fcbb3c5dc8fa4e5a0b9404369497967"
+      },
+      "variants": {
+        "dual": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true
+        },
+        "dual-memory": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "slow-swell"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "171cb7d8ee79afb0f8dce603087795cbef649b8f2e656c2f27f8677e3f407d94",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/dual-staccato-release/results.json",
+      "sha256": "5b9f4ff12bce99bd2feb02d5ff4fe6f46ea059ee25799c024d0cf9ba17874bf8",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "3d8b6e187c0bf286d32fce8d02275927f8bbf4e013414517bceceff3ae27b1d2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "30fdd63ef56de8e924a288ccbe70ac1cc0132a2f64e885cd9a7495f6ac183b3f",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "40835b3ad02c1b35445f858c560a4eca4fcbb3c5dc8fa4e5a0b9404369497967"
+      },
+      "variants": {
+        "dual": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true
+        },
+        "dual-memory": {
+          "exploration": "accuracy-and-guidance",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "171cb7d8ee79afb0f8dce603087795cbef649b8f2e656c2f27f8677e3f407d94",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/balanced-even-catches/results.json",
+      "sha256": "7c32704fd0f7f4a9dcef2d7bffb8d14d176e0b6b846a95973864914786c9757e",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "b11d61ed7e7b3bcb798e56e7f82bb47e66a7fbed9d48cbf9e32d829564a6367d",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "e00f8252cb32b73130c2fe00175e9484ff44f4572967088ada1f6186237d905e",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "39f2107f9523457229386b288930df89fe6887fd12afb7708056c4005201e351"
+      },
+      "variants": {
+        "balanced": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "balanced-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "dcb3345fc7689dfa08652dc708f2e33d63d850fe7eab3f81147539eed56f7de7",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/balanced-alternating-lift/results.json",
+      "sha256": "3938c5ded4e392f52d357d4ca778f1387061922935061c9c7a3ba6d382196f7c",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "b11d61ed7e7b3bcb798e56e7f82bb47e66a7fbed9d48cbf9e32d829564a6367d",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "e00f8252cb32b73130c2fe00175e9484ff44f4572967088ada1f6186237d905e",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "39f2107f9523457229386b288930df89fe6887fd12afb7708056c4005201e351"
+      },
+      "variants": {
+        "balanced": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "balanced-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "alternating-lift"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "dcb3345fc7689dfa08652dc708f2e33d63d850fe7eab3f81147539eed56f7de7",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/balanced-quick-pickups/results.json",
+      "sha256": "0db785b42b0339e3dea5baeaadec92c42f6123c0b5109bc1993816b3ddc37f6c",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "b11d61ed7e7b3bcb798e56e7f82bb47e66a7fbed9d48cbf9e32d829564a6367d",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "e00f8252cb32b73130c2fe00175e9484ff44f4572967088ada1f6186237d905e",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "39f2107f9523457229386b288930df89fe6887fd12afb7708056c4005201e351"
+      },
+      "variants": {
+        "balanced": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "balanced-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "quick-pickups"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "dcb3345fc7689dfa08652dc708f2e33d63d850fe7eab3f81147539eed56f7de7",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/balanced-quiet-tail/results.json",
+      "sha256": "bb0f65b3e5ae276e8cae4cd8192a12cf0991b5e06d8cebdf4d638f8932cadb50",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "b11d61ed7e7b3bcb798e56e7f82bb47e66a7fbed9d48cbf9e32d829564a6367d",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "e00f8252cb32b73130c2fe00175e9484ff44f4572967088ada1f6186237d905e",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "39f2107f9523457229386b288930df89fe6887fd12afb7708056c4005201e351"
+      },
+      "variants": {
+        "balanced": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "balanced-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "quiet-tail"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "dcb3345fc7689dfa08652dc708f2e33d63d850fe7eab3f81147539eed56f7de7",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/balanced-slow-swell/results.json",
+      "sha256": "e37ff66afc6498f528e5a13fc0aacc6d88e36894765d75610851350faea858cb",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "b11d61ed7e7b3bcb798e56e7f82bb47e66a7fbed9d48cbf9e32d829564a6367d",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "e00f8252cb32b73130c2fe00175e9484ff44f4572967088ada1f6186237d905e",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "39f2107f9523457229386b288930df89fe6887fd12afb7708056c4005201e351"
+      },
+      "variants": {
+        "balanced": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "balanced-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "slow-swell"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "dcb3345fc7689dfa08652dc708f2e33d63d850fe7eab3f81147539eed56f7de7",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/balanced-staccato-release/results.json",
+      "sha256": "50bd827b9447d01c5a76ddd9797bb0934bd608399ba262f4e3b3449e21fcaa79",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "b11d61ed7e7b3bcb798e56e7f82bb47e66a7fbed9d48cbf9e32d829564a6367d",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "e00f8252cb32b73130c2fe00175e9484ff44f4572967088ada1f6186237d905e",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "39f2107f9523457229386b288930df89fe6887fd12afb7708056c4005201e351"
+      },
+      "variants": {
+        "balanced": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "balanced-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "dcb3345fc7689dfa08652dc708f2e33d63d850fe7eab3f81147539eed56f7de7",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/archive-even-catches/results.json",
+      "sha256": "2bac464f0293c28ded3feec2ea94ca428541216d38d2d10e4f4c0e2a5fa3499e",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "7c9212adb857cdfbb3a81b66c6848d439831ddc7b20f228289f81d685eca36c2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "2d378cd8726f15822b00c5ef99d705af25222538df9166a24cd034981b3c5be1",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "327be73ecbe86d4db1acdedb20e76e24fbcd30705a46ecb990e3fa0f34387fbf"
+      },
+      "variants": {
+        "archive": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "archive-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "even-catches"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "0e9208615310611bd77d9a062a4eeab33d0bfd7f83532b8aade18fd7d18de2b9",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/archive-alternating-lift/results.json",
+      "sha256": "2cd48412e2c444b51c2fb8568b1711bae7c7a39dc20acec56781e7c74522759c",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "7c9212adb857cdfbb3a81b66c6848d439831ddc7b20f228289f81d685eca36c2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "2d378cd8726f15822b00c5ef99d705af25222538df9166a24cd034981b3c5be1",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "327be73ecbe86d4db1acdedb20e76e24fbcd30705a46ecb990e3fa0f34387fbf"
+      },
+      "variants": {
+        "archive": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "archive-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "alternating-lift"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "0e9208615310611bd77d9a062a4eeab33d0bfd7f83532b8aade18fd7d18de2b9",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/archive-quick-pickups/results.json",
+      "sha256": "030fca8eda1557294231c6d16b2d78818e096c547080a447dd5a2abb062f3250",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "7c9212adb857cdfbb3a81b66c6848d439831ddc7b20f228289f81d685eca36c2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "2d378cd8726f15822b00c5ef99d705af25222538df9166a24cd034981b3c5be1",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "327be73ecbe86d4db1acdedb20e76e24fbcd30705a46ecb990e3fa0f34387fbf"
+      },
+      "variants": {
+        "archive": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "archive-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "quick-pickups"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "0e9208615310611bd77d9a062a4eeab33d0bfd7f83532b8aade18fd7d18de2b9",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/archive-quiet-tail/results.json",
+      "sha256": "fe2bcff10456a30bf105e2f8aef81e1733f6d88f638e76ffa5940879c1d2bd89",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "7c9212adb857cdfbb3a81b66c6848d439831ddc7b20f228289f81d685eca36c2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "2d378cd8726f15822b00c5ef99d705af25222538df9166a24cd034981b3c5be1",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "327be73ecbe86d4db1acdedb20e76e24fbcd30705a46ecb990e3fa0f34387fbf"
+      },
+      "variants": {
+        "archive": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "archive-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "quiet-tail"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "0e9208615310611bd77d9a062a4eeab33d0bfd7f83532b8aade18fd7d18de2b9",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/archive-slow-swell/results.json",
+      "sha256": "5ddf3ff2d2ce45387bb4828e5ac2944d7e76b96adbb272d123f816edb4e7cbb5",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "7c9212adb857cdfbb3a81b66c6848d439831ddc7b20f228289f81d685eca36c2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "2d378cd8726f15822b00c5ef99d705af25222538df9166a24cd034981b3c5be1",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "327be73ecbe86d4db1acdedb20e76e24fbcd30705a46ecb990e3fa0f34387fbf"
+      },
+      "variants": {
+        "archive": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "archive-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "slow-swell"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "0e9208615310611bd77d9a062a4eeab33d0bfd7f83532b8aade18fd7d18de2b9",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    },
+    {
+      "path": "/home/wyss/line/generated/guide-search-20260930/archive-staccato-release/results.json",
+      "sha256": "5aa7058fc5bae2e855b81ed5f2485c98d9c7b4c94d9bb481de8632ed203b7d7a",
+      "compiler": {
+        "head": "9b824676c3413ae912a0ff260a8205ec87ea9666",
+        "compilerDiffSha256": "7c9212adb857cdfbb3a81b66c6848d439831ddc7b20f228289f81d685eca36c2",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "2d378cd8726f15822b00c5ef99d705af25222538df9166a24cd034981b3c5be1",
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "327be73ecbe86d4db1acdedb20e76e24fbcd30705a46ecb990e3fa0f34387fbf"
+      },
+      "variants": {
+        "archive": {
+          "exploration": "balanced",
+          "unguidedReference": true
+        },
+        "archive-memory": {
+          "exploration": "balanced",
+          "unguidedReference": true,
+          "sourceMemory": true
+        }
+      },
+      "seeds": [
+        231,
+        232
+      ],
+      "budgets": [
+        900000
+      ],
+      "cases": [
+        "staccato-release"
+      ],
+      "harness": {
+        "scripts/gallery/study_guide_search.ts": "0e9208615310611bd77d9a062a4eeab33d0bfd7f83532b8aade18fd7d18de2b9",
+        "scripts/gallery/artifacts.ts": "bfd57be64450dcc381f73cd28bde0580a33774952e7a4e7e37f0cb2619d6dca5",
+        "scripts/gallery/cases.ts": "8ea1216263f294f1841610eede58d2669a9d6ccda5d32971d2aceb77bad57ddb"
+      },
+      "judgeInputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef"
+    }
+  ],
+  "summary": [
+    {
+      "budget": 900000,
+      "variant": "baseline",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.0341614152842406,
+      "meanBestScore": 873.3188416666667,
+      "meanPhysicsFrames": 852095.9166666666,
+      "meanCompileMs": 17718.588905916666,
+      "bestRmsDelta": 0,
+      "bestRmsWins": 0,
+      "bestRmsLosses": 0,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": 0,
+        "upper95": 0
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 6.416666666666667,
+          "baselineGuideCount": 6.416666666666667,
+          "fewer": 0,
+          "more": 0,
+          "meanGuideLength": 536.5698699125921,
+          "baselineGuideLength": 536.5698699125921,
+          "meanScore": 873.3188416666667,
+          "baselineScore": 873.3188416666667,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.75,
+          "baselineGuideCount": 5.75,
+          "fewer": 0,
+          "more": 0,
+          "meanGuideLength": 425.91120459082157,
+          "baselineGuideLength": 425.91120459082157,
+          "meanScore": 866.9976833333332,
+          "baselineScore": 866.9976833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.833333333333333,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 0,
+          "more": 0,
+          "meanGuideLength": 358.6201326299601,
+          "baselineGuideLength": 358.6201326299601,
+          "meanScore": 858.570925,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 3.75,
+          "baselineGuideCount": 3.75,
+          "fewer": 0,
+          "more": 0,
+          "meanGuideLength": 249.47891691515005,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 839.1730333333335,
+          "baselineScore": 839.1730333333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.9166666666666667,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 0,
+          "more": 0,
+          "meanGuideLength": 121.57281690818452,
+          "baselineGuideLength": 121.57281690818452,
+          "meanScore": 799.6486000000001,
+          "baselineScore": 799.6486000000001,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.5,
+          "baselineGuideCount": 1.5,
+          "fewer": 0,
+          "more": 0,
+          "meanGuideLength": 76.98422143107639,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 763.3904833333335,
+          "baselineScore": 763.3904833333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 5,
+          "baselineFeasible": 5,
+          "meanRms": 0.053325999176397035,
+          "baselineRms": 0.053325999176397035,
+          "better": 0,
+          "worse": 0,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 9,
+          "baselineFeasible": 9,
+          "meanRms": 0.055522951516920986,
+          "baselineRms": 0.055522951516920986,
+          "better": 0,
+          "worse": 0,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 11,
+          "baselineFeasible": 11,
+          "meanRms": 0.05367944370862006,
+          "baselineRms": 0.05367944370862006,
+          "better": 0,
+          "worse": 0,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.036618629109248575,
+          "baselineRms": 0.036618629109248575,
+          "better": 0,
+          "worse": 0,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.0341614152842406,
+          "baselineRms": 0.0341614152842406,
+          "better": 0,
+          "worse": 0,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "memory",
+      "runs": 6,
+      "paired": 6,
+      "validPortfolios": 6,
+      "meanBestRms": 0.03261099460320629,
+      "meanBestScore": 878.5497333333333,
+      "meanPhysicsFrames": 850600.1666666666,
+      "meanCompileMs": 17118.88498583333,
+      "bestRmsDelta": -0.002855409045072664,
+      "bestRmsWins": 5,
+      "bestRmsLosses": 0,
+      "bestRmsDeltaInterval": null,
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 6.666666666666667,
+          "baselineGuideCount": 6.5,
+          "fewer": 0,
+          "more": 1,
+          "meanGuideLength": 543.7999671039556,
+          "baselineGuideLength": 520.5477333893356,
+          "meanScore": 875.5023333333334,
+          "baselineScore": 869.1377666666667,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 5.833333333333333,
+          "baselineGuideCount": 5.833333333333333,
+          "fewer": 2,
+          "more": 2,
+          "meanGuideLength": 413.0466866041386,
+          "baselineGuideLength": 380.2805727773535,
+          "meanScore": 868.6365000000001,
+          "baselineScore": 863.35035,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 5.5,
+          "baselineGuideCount": 5.166666666666667,
+          "fewer": 1,
+          "more": 3,
+          "meanGuideLength": 340.836505357106,
+          "baselineGuideLength": 352.31956606010954,
+          "meanScore": 859.7265833333335,
+          "baselineScore": 858.7353499999999,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 4.666666666666667,
+          "baselineGuideCount": 3.8333333333333335,
+          "fewer": 1,
+          "more": 3,
+          "meanGuideLength": 258.9652376237514,
+          "baselineGuideLength": 213.44165479705865,
+          "meanScore": 852.3906000000001,
+          "baselineScore": 836.6471,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 3.3333333333333335,
+          "baselineGuideCount": 1.8333333333333333,
+          "fewer": 0,
+          "more": 4,
+          "meanGuideLength": 184.6138706826732,
+          "baselineGuideLength": 88.0342945284569,
+          "meanScore": 813.7265166666666,
+          "baselineScore": 784.2682500000001,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 1.8333333333333333,
+          "baselineGuideCount": 1.5,
+          "fewer": 1,
+          "more": 3,
+          "meanGuideLength": 87.57820159348086,
+          "baselineGuideLength": 73.1327829196288,
+          "meanScore": 770.2305,
+          "baselineScore": 772.30935,
+          "guideCountDeltaInterval": null
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 6,
+          "feasible": 1,
+          "baselineFeasible": 2,
+          "meanRms": 0.06531298135242022,
+          "baselineRms": 0.052872002879951335,
+          "better": 0,
+          "worse": 1,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 0.25,
+          "paired": 6,
+          "feasible": 4,
+          "baselineFeasible": 5,
+          "meanRms": 0.05514519808048224,
+          "baselineRms": 0.05073069913854621,
+          "better": 1,
+          "worse": 2,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 0.5,
+          "paired": 6,
+          "feasible": 6,
+          "baselineFeasible": 6,
+          "meanRms": 0.05389197968526648,
+          "baselineRms": 0.056360811147852324,
+          "better": 3,
+          "worse": 3,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 0.75,
+          "paired": 6,
+          "feasible": 6,
+          "baselineFeasible": 6,
+          "meanRms": 0.043183804102429134,
+          "baselineRms": 0.03836199814342848,
+          "better": 1,
+          "worse": 4,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 1,
+          "paired": 6,
+          "feasible": 6,
+          "baselineFeasible": 6,
+          "meanRms": 0.03261099460320629,
+          "baselineRms": 0.035466403648278945,
+          "better": 5,
+          "worse": 0,
+          "rmsDeltaInterval": null
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "frontier",
+      "runs": 6,
+      "paired": 6,
+      "validPortfolios": 6,
+      "meanBestRms": 0.034975943983064875,
+      "meanBestScore": 870.5631833333333,
+      "meanPhysicsFrames": 883632.8333333334,
+      "meanCompileMs": 18278.012007499998,
+      "bestRmsDelta": -0.0004904596652140682,
+      "bestRmsWins": 4,
+      "bestRmsLosses": 1,
+      "bestRmsDeltaInterval": null,
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 6,
+          "feasible": 5,
+          "meanGuideCount": 6.4,
+          "baselineGuideCount": 6.4,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 526.3422113551084,
+          "baselineGuideLength": 548.0962020407405,
+          "meanScore": 857.4911,
+          "baselineScore": 856.0133599999999,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 6,
+          "baselineGuideCount": 5.833333333333333,
+          "fewer": 1,
+          "more": 2,
+          "meanGuideLength": 503.43267648011505,
+          "baselineGuideLength": 380.2805727773535,
+          "meanScore": 863.0185833333334,
+          "baselineScore": 863.35035,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 5.166666666666667,
+          "baselineGuideCount": 5.166666666666667,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 340.6312184737095,
+          "baselineGuideLength": 352.31956606010954,
+          "meanScore": 851.0485833333332,
+          "baselineScore": 858.7353499999999,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 4,
+          "baselineGuideCount": 3.8333333333333335,
+          "fewer": 3,
+          "more": 1,
+          "meanGuideLength": 266.94427443456806,
+          "baselineGuideLength": 213.44165479705865,
+          "meanScore": 815.5027166666667,
+          "baselineScore": 836.6471,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 1.8333333333333333,
+          "baselineGuideCount": 1.8333333333333333,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 115.51538775211047,
+          "baselineGuideLength": 88.0342945284569,
+          "meanScore": 779.17985,
+          "baselineScore": 784.2682500000001,
+          "guideCountDeltaInterval": null
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 6,
+          "feasible": 6,
+          "meanGuideCount": 1.8333333333333333,
+          "baselineGuideCount": 1.5,
+          "fewer": 1,
+          "more": 2,
+          "meanGuideLength": 107.73801050644532,
+          "baselineGuideLength": 73.1327829196288,
+          "meanScore": 771.0437666666667,
+          "baselineScore": 772.30935,
+          "guideCountDeltaInterval": null
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 6,
+          "feasible": 1,
+          "baselineFeasible": 2,
+          "meanRms": 0.06523675924177576,
+          "baselineRms": 0.052872002879951335,
+          "better": 0,
+          "worse": 1,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 0.25,
+          "paired": 6,
+          "feasible": 6,
+          "baselineFeasible": 5,
+          "meanRms": 0.055418364569660226,
+          "baselineRms": 0.05665395037708103,
+          "better": 3,
+          "worse": 2,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 0.5,
+          "paired": 6,
+          "feasible": 6,
+          "baselineFeasible": 6,
+          "meanRms": 0.0618526658256622,
+          "baselineRms": 0.056360811147852324,
+          "better": 3,
+          "worse": 3,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 0.75,
+          "paired": 6,
+          "feasible": 6,
+          "baselineFeasible": 6,
+          "meanRms": 0.04130206502141351,
+          "baselineRms": 0.03836199814342848,
+          "better": 2,
+          "worse": 4,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 1,
+          "paired": 6,
+          "feasible": 6,
+          "baselineFeasible": 6,
+          "meanRms": 0.034975943983064875,
+          "baselineRms": 0.035466403648278945,
+          "better": 4,
+          "worse": 1,
+          "rmsDeltaInterval": null
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "combined",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.032019317047646864,
+      "meanBestScore": 880.8049583333333,
+      "meanPhysicsFrames": 881705.5833333334,
+      "meanCompileMs": 17568.312902749996,
+      "bestRmsDelta": -0.0021420982365937358,
+      "bestRmsWins": 9,
+      "bestRmsLosses": 1,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0030208259249521704,
+        "upper95": -0.0012633705482353007
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 7,
+          "baselineGuideCount": 6.7272727272727275,
+          "fewer": 1,
+          "more": 3,
+          "meanGuideLength": 560.6669835284417,
+          "baselineGuideLength": 541.458420543948,
+          "meanScore": 880.5829181818182,
+          "baselineScore": 876.4535818181819,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.16666666666666666,
+            "upper95": 0.8
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 6.2727272727272725,
+          "baselineGuideCount": 6,
+          "fewer": 1,
+          "more": 4,
+          "meanGuideLength": 475.31164230416175,
+          "baselineGuideLength": 420.73987655656185,
+          "meanScore": 867.9803363636364,
+          "baselineScore": 869.5577727272725,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.2,
+            "upper95": 0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 5,
+          "more": 5,
+          "meanGuideLength": 367.39974831370495,
+          "baselineGuideLength": 358.6201326299601,
+          "meanScore": 846.2339333333333,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.416666666666667,
+          "baselineGuideCount": 3.75,
+          "fewer": 3,
+          "more": 5,
+          "meanGuideLength": 326.3278401902499,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 828.0093916666665,
+          "baselineScore": 839.1730333333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.5,
+            "upper95": 0.8333333333333334
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2.6666666666666665,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 2,
+          "more": 5,
+          "meanGuideLength": 167.55882646801712,
+          "baselineGuideLength": 121.57281690818452,
+          "meanScore": 777.8552249999999,
+          "baselineScore": 799.6486000000001,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.5,
+            "upper95": 1
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.3333333333333333,
+          "baselineGuideCount": 1.5,
+          "fewer": 4,
+          "more": 3,
+          "meanGuideLength": 82.37552837817468,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 751.8290583333334,
+          "baselineScore": 763.3904833333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.16666666666666666,
+            "upper95": -0.16666666666666666
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 2,
+          "baselineFeasible": 5,
+          "meanRms": 0.06105367491544153,
+          "baselineRms": 0.05092067717323455,
+          "better": 0,
+          "worse": 2,
+          "rmsDeltaInterval": null
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 11,
+          "baselineFeasible": 9,
+          "meanRms": 0.06259932355756964,
+          "baselineRms": 0.055522951516920986,
+          "better": 3,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.004377287339145752,
+            "upper95": 0.010450227917527267
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.05621019152269318,
+          "baselineRms": 0.05367944370862006,
+          "better": 6,
+          "worse": 5,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0016650115181615337,
+            "upper95": 0.0035696313691670465
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03979969433650903,
+          "baselineRms": 0.036618629109248575,
+          "better": 4,
+          "worse": 8,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0020898642028724886,
+            "upper95": 0.0042722662516484445
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.032019317047646864,
+          "baselineRms": 0.0341614152842406,
+          "better": 9,
+          "worse": 1,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0030208259249521704,
+            "upper95": -0.0012633705482353007
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "continuation",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.03289136742575055,
+      "meanBestScore": 877.8010666666668,
+      "meanPhysicsFrames": 850872.0833333334,
+      "meanCompileMs": 17694.655077000007,
+      "bestRmsDelta": -0.0012700478584900504,
+      "bestRmsWins": 7,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0013908013940978463,
+        "upper95": -0.0011492943228822543
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 7.111111111111111,
+          "baselineGuideCount": 6.888888888888889,
+          "fewer": 2,
+          "more": 2,
+          "meanGuideLength": 608.186697208043,
+          "baselineGuideLength": 580.8229104193974,
+          "meanScore": 880.1019777777778,
+          "baselineScore": 873.1121555555554,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0.4
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.75,
+          "baselineGuideCount": 5.75,
+          "fewer": 3,
+          "more": 5,
+          "meanGuideLength": 456.9892006368353,
+          "baselineGuideLength": 425.91120459082157,
+          "meanScore": 865.5616,
+          "baselineScore": 866.9976833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.5,
+            "upper95": 0.5
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.666666666666667,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 1,
+          "more": 7,
+          "meanGuideLength": 439.74578913466854,
+          "baselineGuideLength": 358.6201326299601,
+          "meanScore": 860.9144666666666,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.5,
+            "upper95": 1.1666666666666667
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.333333333333333,
+          "baselineGuideCount": 3.75,
+          "fewer": 1,
+          "more": 6,
+          "meanGuideLength": 268.44372676057475,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 832.5686499999998,
+          "baselineScore": 839.1730333333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 1.1666666666666667
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2.75,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 3,
+          "more": 5,
+          "meanGuideLength": 160.781752838558,
+          "baselineGuideLength": 121.57281690818452,
+          "meanScore": 804.681725,
+          "baselineScore": 799.6486000000001,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.8333333333333334,
+            "upper95": 2.5
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.5,
+          "baselineGuideCount": 1.5,
+          "fewer": 4,
+          "more": 3,
+          "meanGuideLength": 81.82668818295126,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 771.7463166666666,
+          "baselineScore": 763.3904833333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.6666666666666666,
+            "upper95": 0.6666666666666666
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 6,
+          "baselineFeasible": 5,
+          "meanRms": 0.056766439247958815,
+          "baselineRms": 0.051679392577282664,
+          "better": 0,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0024942337833785133,
+            "upper95": 0.007679859557973789
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 11,
+          "baselineFeasible": 9,
+          "meanRms": 0.06135532638236391,
+          "baselineRms": 0.05390532367320745,
+          "better": 3,
+          "worse": 5,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0008892800583032868,
+            "upper95": 0.014010725360009628
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 11,
+          "baselineFeasible": 11,
+          "meanRms": 0.05872197184302315,
+          "baselineRms": 0.0525337148197844,
+          "better": 3,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0036172169939013314,
+            "upper95": 0.015993731040378836
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.04351910796580105,
+          "baselineRms": 0.036618629109248575,
+          "better": 4,
+          "worse": 8,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0015335021894536417,
+            "upper95": 0.012267455523651305
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03289136742575055,
+          "baselineRms": 0.0341614152842406,
+          "better": 7,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0013908013940978463,
+            "upper95": -0.0011492943228822543
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "frontier-continuation",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.031092055452975897,
+      "meanBestScore": 883.8641666666667,
+      "meanPhysicsFrames": 883580.5833333334,
+      "meanCompileMs": 17535.17417908333,
+      "bestRmsDelta": -0.0030693598312647083,
+      "bestRmsWins": 7,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0030761966153926065,
+        "upper95": -0.00306252304713681
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 6.888888888888889,
+          "baselineGuideCount": 6.888888888888889,
+          "fewer": 2,
+          "more": 1,
+          "meanGuideLength": 537.0053067130267,
+          "baselineGuideLength": 580.8229104193974,
+          "meanScore": 875.8427777777778,
+          "baselineScore": 873.1121555555554,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.2,
+            "upper95": 0.25
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.916666666666667,
+          "baselineGuideCount": 5.75,
+          "fewer": 4,
+          "more": 6,
+          "meanGuideLength": 434.3452369427868,
+          "baselineGuideLength": 425.91120459082157,
+          "meanScore": 867.6729083333335,
+          "baselineScore": 866.9976833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.583333333333333,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 2,
+          "more": 7,
+          "meanGuideLength": 351.5616652254332,
+          "baselineGuideLength": 358.6201326299601,
+          "meanScore": 854.5034666666667,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.3333333333333333,
+            "upper95": 1.1666666666666667
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.5,
+          "baselineGuideCount": 3.75,
+          "fewer": 3,
+          "more": 5,
+          "meanGuideLength": 265.4983547167826,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 828.1818916666666,
+          "baselineScore": 839.1730333333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.5,
+            "upper95": 1
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.9166666666666667,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 5,
+          "more": 3,
+          "meanGuideLength": 122.83175771886438,
+          "baselineGuideLength": 121.57281690818452,
+          "meanScore": 785.8574916666666,
+          "baselineScore": 799.6486000000001,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.3333333333333333,
+            "upper95": 0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.3333333333333333,
+          "baselineGuideCount": 1.5,
+          "fewer": 5,
+          "more": 2,
+          "meanGuideLength": 94.30546314609761,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 756.8721333333333,
+          "baselineScore": 763.3904833333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.3333333333333333,
+            "upper95": 0
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 4,
+          "baselineFeasible": 5,
+          "meanRms": 0.05466872612747801,
+          "baselineRms": 0.05128185580972644,
+          "better": 1,
+          "worse": 2,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0018892413236244049,
+            "upper95": 0.006382128306005909
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 11,
+          "baselineFeasible": 9,
+          "meanRms": 0.06366175284713989,
+          "baselineRms": 0.055522951516920986,
+          "better": 4,
+          "worse": 5,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0025029617361509646,
+            "upper95": 0.012647473005473243
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.05713569333950618,
+          "baselineRms": 0.05367944370862006,
+          "better": 4,
+          "worse": 7,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0028174186729603787,
+            "upper95": 0.010984651595501896
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.043466273329983256,
+          "baselineRms": 0.036618629109248575,
+          "better": 2,
+          "worse": 9,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.006559024422814398,
+            "upper95": 0.0071362640186549585
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.031092055452975897,
+          "baselineRms": 0.0341614152842406,
+          "better": 7,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0030761966153926065,
+            "upper95": -0.00306252304713681
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "guide-aware",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.0341614152842406,
+      "meanBestScore": 873.3188416666667,
+      "meanPhysicsFrames": 852138,
+      "meanCompileMs": 17820.32419541667,
+      "bestRmsDelta": 0,
+      "bestRmsWins": 0,
+      "bestRmsLosses": 0,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": 0,
+        "upper95": 0
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 6.416666666666667,
+          "baselineGuideCount": 6.416666666666667,
+          "fewer": 0,
+          "more": 0,
+          "meanGuideLength": 536.5698699125921,
+          "baselineGuideLength": 536.5698699125921,
+          "meanScore": 873.3188416666667,
+          "baselineScore": 873.3188416666667,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.916666666666667,
+          "baselineGuideCount": 5.75,
+          "fewer": 0,
+          "more": 1,
+          "meanGuideLength": 465.97931834608454,
+          "baselineGuideLength": 425.91120459082157,
+          "meanScore": 867.6770666666666,
+          "baselineScore": 866.9976833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.666666666666667,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 1,
+          "more": 0,
+          "meanGuideLength": 341.7163814097978,
+          "baselineGuideLength": 358.6201326299601,
+          "meanScore": 856.6790833333334,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.3333333333333333,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 3.75,
+          "baselineGuideCount": 3.75,
+          "fewer": 0,
+          "more": 0,
+          "meanGuideLength": 251.85405930952982,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 839.0876666666667,
+          "baselineScore": 839.1730333333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 0,
+          "more": 1,
+          "meanGuideLength": 137.63766810779472,
+          "baselineGuideLength": 121.57281690818452,
+          "meanScore": 804.3253416666668,
+          "baselineScore": 799.6486000000001,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.5,
+          "baselineGuideCount": 1.5,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 76.64503754478817,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 762.8722583333333,
+          "baselineScore": 763.3904833333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 4,
+          "baselineFeasible": 5,
+          "meanRms": 0.05416158748667976,
+          "baselineRms": 0.05441516110386685,
+          "better": 1,
+          "worse": 1,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.00165961941141618,
+            "upper95": 0.0002151083142225979
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 9,
+          "baselineFeasible": 9,
+          "meanRms": 0.054917958056217374,
+          "baselineRms": 0.055522951516920986,
+          "better": 3,
+          "worse": 0,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0008223907278258627,
+            "upper95": -0.00033324687680080615
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 11,
+          "baselineFeasible": 11,
+          "meanRms": 0.0544581699517177,
+          "baselineRms": 0.05367944370862006,
+          "better": 1,
+          "worse": 1,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0.0014276647790123266
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.036924707840216585,
+          "baselineRms": 0.036618629109248575,
+          "better": 0,
+          "worse": 2,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0.0006121574619360066
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.0341614152842406,
+          "baselineRms": 0.0341614152842406,
+          "better": 0,
+          "worse": 0,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "guide-aware-combined",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.032019317047646864,
+      "meanBestScore": 880.8049583333333,
+      "meanPhysicsFrames": 882298,
+      "meanCompileMs": 17609.641026416666,
+      "bestRmsDelta": -0.0021420982365937358,
+      "bestRmsWins": 9,
+      "bestRmsLosses": 1,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0030208259249521704,
+        "upper95": -0.0012633705482353007
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 7.2727272727272725,
+          "baselineGuideCount": 6.7272727272727275,
+          "fewer": 1,
+          "more": 4,
+          "meanGuideLength": 581.2924746272945,
+          "baselineGuideLength": 541.458420543948,
+          "meanScore": 882.8775272727272,
+          "baselineScore": 876.4535818181819,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.3333333333333333,
+            "upper95": 0.8
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 6.545454545454546,
+          "baselineGuideCount": 6,
+          "fewer": 1,
+          "more": 5,
+          "meanGuideLength": 512.3727606423535,
+          "baselineGuideLength": 420.73987655656185,
+          "meanScore": 870.127209090909,
+          "baselineScore": 869.5577727272725,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.2,
+            "upper95": 0.8333333333333334
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.25,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 4,
+          "more": 6,
+          "meanGuideLength": 402.0442323106611,
+          "baselineGuideLength": 358.6201326299601,
+          "meanScore": 848.6486916666667,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.3333333333333333,
+            "upper95": 0.5
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.083333333333333,
+          "baselineGuideCount": 3.75,
+          "fewer": 4,
+          "more": 4,
+          "meanGuideLength": 292.81874670953937,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 821.3032499999998,
+          "baselineScore": 839.1730333333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0.6666666666666666
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2.25,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 2,
+          "more": 4,
+          "meanGuideLength": 152.2717144502978,
+          "baselineGuideLength": 121.57281690818452,
+          "meanScore": 787.8831083333333,
+          "baselineScore": 799.6486000000001,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.3333333333333333,
+            "upper95": 0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.5833333333333333,
+          "baselineGuideCount": 1.5,
+          "fewer": 2,
+          "more": 4,
+          "meanGuideLength": 82.79350390687112,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 757.6899083333336,
+          "baselineScore": 763.3904833333335,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.16666666666666666,
+            "upper95": 0.3333333333333333
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 2,
+          "baselineFeasible": 5,
+          "meanRms": 0.058688810562737184,
+          "baselineRms": 0.05829029918241174,
+          "better": 1,
+          "worse": 1,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.007238709129416064,
+            "upper95": 0.008035731890066955
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 11,
+          "baselineFeasible": 9,
+          "meanRms": 0.06238228505772552,
+          "baselineRms": 0.055522951516920986,
+          "better": 3,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.006263559091498031,
+            "upper95": 0.007604051602437673
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.0590796730063031,
+          "baselineRms": 0.05367944370862006,
+          "better": 5,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.004494085729484701,
+            "upper95": 0.006155348937848318
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03984714150521837,
+          "baselineRms": 0.036618629109248575,
+          "better": 3,
+          "worse": 9,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0020898642028724886,
+            "upper95": 0.00436716058906711
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.032019317047646864,
+          "baselineRms": 0.0341614152842406,
+          "better": 9,
+          "worse": 1,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0030208259249521704,
+            "upper95": -0.0012633705482353007
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "guide-aware-memory",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.033256589950194905,
+      "meanBestScore": 876.2815416666666,
+      "meanPhysicsFrames": 850963,
+      "meanCompileMs": 17692.181645333334,
+      "bestRmsDelta": -0.0009048253340456974,
+      "bestRmsWins": 7,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.002855409045072664,
+        "upper95": 0.0010457583769812693
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 7,
+          "baselineGuideCount": 7.111111111111111,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 527.340014659474,
+          "baselineGuideLength": 568.2055461392507,
+          "meanScore": 884.1860555555555,
+          "baselineScore": 879.8750444444444,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.6666666666666666,
+            "upper95": 0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 5.818181818181818,
+          "baselineGuideCount": 5.818181818181818,
+          "fewer": 4,
+          "more": 5,
+          "meanGuideLength": 486.4736291836661,
+          "baselineGuideLength": 433.191219364847,
+          "meanScore": 871.5826181818181,
+          "baselineScore": 868.7047272727272,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.583333333333333,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 2,
+          "more": 7,
+          "meanGuideLength": 439.50264760817936,
+          "baselineGuideLength": 358.62013262996015,
+          "meanScore": 858.5702833333334,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.3333333333333333,
+            "upper95": 1.1666666666666667
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4,
+          "baselineGuideCount": 3.75,
+          "fewer": 3,
+          "more": 4,
+          "meanGuideLength": 221.25153264309415,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 835.2028166666668,
+          "baselineScore": 839.1730333333331,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.3333333333333333,
+            "upper95": 0.8333333333333334
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2.8333333333333335,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 2,
+          "more": 6,
+          "meanGuideLength": 171.44502149313462,
+          "baselineGuideLength": 121.5728169081845,
+          "meanScore": 806.2610583333334,
+          "baselineScore": 799.6486,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.3333333333333333,
+            "upper95": 1.5
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.75,
+          "baselineGuideCount": 1.5,
+          "fewer": 2,
+          "more": 5,
+          "meanGuideLength": 93.33778949410572,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 774.0805416666667,
+          "baselineScore": 763.3904833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.16666666666666666,
+            "upper95": 0.3333333333333333
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 3,
+          "baselineFeasible": 5,
+          "meanRms": 0.06091725097658835,
+          "baselineRms": 0.052582739614204295,
+          "better": 1,
+          "worse": 2,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.006281277807341647,
+            "upper95": 0.012440978472468889
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 10,
+          "baselineFeasible": 9,
+          "meanRms": 0.05580042123661083,
+          "baselineRms": 0.052661272740360345,
+          "better": 3,
+          "worse": 4,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0021826356619863204,
+            "upper95": 0.004414498941936028
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.05656270513087736,
+          "baselineRms": 0.05367944370862006,
+          "better": 3,
+          "worse": 8,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.001268362617193623,
+            "upper95": 0.007865210269598421
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.041732842801360893,
+          "baselineRms": 0.036618629109248575,
+          "better": 2,
+          "worse": 9,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.00482180595900066,
+            "upper95": 0.005406621425223993
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.033256589950194905,
+          "baselineRms": 0.034161415284240604,
+          "better": 7,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.002855409045072664,
+            "upper95": 0.0010457583769812693
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "dual",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.03302995021138879,
+      "meanBestScore": 877.0195249999998,
+      "meanPhysicsFrames": 890456.25,
+      "meanCompileMs": 19498.50221325,
+      "bestRmsDelta": -0.0011314650728518234,
+      "bestRmsWins": 7,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0031595905301224007,
+        "upper95": 0.0008966603844187537
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 6.888888888888889,
+          "baselineGuideCount": 6.888888888888889,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 554.4025636465956,
+          "baselineGuideLength": 580.8229104193974,
+          "meanScore": 879.5638999999999,
+          "baselineScore": 873.1121555555554,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.2,
+            "upper95": 0.25
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 5.636363636363637,
+          "baselineGuideCount": 5.818181818181818,
+          "fewer": 4,
+          "more": 3,
+          "meanGuideLength": 460.82005854420805,
+          "baselineGuideLength": 433.191219364847,
+          "meanScore": 865.4585636363637,
+          "baselineScore": 868.7047272727272,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.2,
+            "upper95": -0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.083333333333333,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 5,
+          "more": 6,
+          "meanGuideLength": 370.0885553239073,
+          "baselineGuideLength": 358.62013262996015,
+          "meanScore": 853.6269583333334,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.16666666666666666,
+            "upper95": 0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2.8333333333333335,
+          "baselineGuideCount": 3.75,
+          "fewer": 8,
+          "more": 2,
+          "meanGuideLength": 210.18720491911006,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 824.4926333333334,
+          "baselineScore": 839.1730333333331,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1.1666666666666667,
+            "upper95": -0.6666666666666666
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.1666666666666667,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 6,
+          "more": 1,
+          "meanGuideLength": 69.79832281606959,
+          "baselineGuideLength": 121.5728169081845,
+          "meanScore": 802.160025,
+          "baselineScore": 799.6486,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.5
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 0.5833333333333334,
+          "baselineGuideCount": 1.5,
+          "fewer": 6,
+          "more": 0,
+          "meanGuideLength": 44.40670025243819,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 772.9451833333333,
+          "baselineScore": 763.3904833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.8333333333333334
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 5,
+          "meanRms": 0.056883098561511615,
+          "baselineRms": 0.053325999176397035,
+          "better": 2,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0031774806764264273,
+            "upper95": 0.013658969477426102
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 9,
+          "meanRms": 0.051634136687709664,
+          "baselineRms": 0.055522951516920986,
+          "better": 5,
+          "worse": 4,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.004603398708692428,
+            "upper95": -0.002995584979859951
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.05297030854589941,
+          "baselineRms": 0.05367944370862006,
+          "better": 5,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0037801874025324995,
+            "upper95": 0.002976127525053543
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03882410677418959,
+          "baselineRms": 0.036618629109248575,
+          "better": 6,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0008886602689601528,
+            "upper95": 0.003522295060921872
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03302995021138879,
+          "baselineRms": 0.034161415284240604,
+          "better": 7,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0031595905301224007,
+            "upper95": 0.0008966603844187537
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "dual-memory",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.03236422583148438,
+      "meanBestScore": 879.3367833333333,
+      "meanPhysicsFrames": 881869.4166666666,
+      "meanCompileMs": 17380.048269000003,
+      "bestRmsDelta": -0.0017971894527562217,
+      "bestRmsWins": 7,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0028502181674697666,
+        "upper95": -0.0007441607380426768
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 6.888888888888889,
+          "baselineGuideCount": 6.888888888888889,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 533.4916588908752,
+          "baselineGuideLength": 580.8229104193974,
+          "meanScore": 881.4760111111111,
+          "baselineScore": 873.1121555555554,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 6,
+          "baselineGuideCount": 6,
+          "fewer": 5,
+          "more": 3,
+          "meanGuideLength": 462.33931965321057,
+          "baselineGuideLength": 420.73987655656185,
+          "meanScore": 866.7215272727273,
+          "baselineScore": 869.5577727272725,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.16666666666666666,
+            "upper95": 0.2
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.25,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 3,
+          "more": 8,
+          "meanGuideLength": 378.2283359701555,
+          "baselineGuideLength": 358.62013262996015,
+          "meanScore": 854.63205,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.3333333333333333,
+            "upper95": 0.5
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2.8333333333333335,
+          "baselineGuideCount": 3.75,
+          "fewer": 9,
+          "more": 2,
+          "meanGuideLength": 167.74840102506062,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 823.2037583333332,
+          "baselineScore": 839.1730333333331,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1.5,
+            "upper95": -0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.1666666666666667,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 6,
+          "more": 1,
+          "meanGuideLength": 73.03565965164712,
+          "baselineGuideLength": 121.5728169081845,
+          "meanScore": 800.9296249999999,
+          "baselineScore": 799.6486,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.5
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 0.6666666666666666,
+          "baselineGuideCount": 1.5,
+          "fewer": 6,
+          "more": 1,
+          "meanGuideLength": 50.218975627976384,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 772.0085916666667,
+          "baselineScore": 763.3904833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.6666666666666666
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 5,
+          "meanRms": 0.05695814704763793,
+          "baselineRms": 0.053325999176397035,
+          "better": 2,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0030523998662158997,
+            "upper95": 0.013658969477426102
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 9,
+          "meanRms": 0.04969334013294873,
+          "baselineRms": 0.055522951516920986,
+          "better": 6,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.006007816093153189,
+            "upper95": -0.005687047616627498
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.055213561811184156,
+          "baselineRms": 0.05367944370862006,
+          "better": 4,
+          "worse": 7,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0008427904514047574,
+            "upper95": 0.004386408367326722
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.0371350457120538,
+          "baselineRms": 0.036618629109248575,
+          "better": 6,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.00039651836721884697,
+            "upper95": 0.0006363148383916167
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03236422583148438,
+          "baselineRms": 0.034161415284240604,
+          "better": 7,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0028502181674697666,
+            "upper95": -0.0007441607380426768
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "balanced",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.03282726368580031,
+      "meanBestScore": 877.6968583333332,
+      "meanPhysicsFrames": 890144.3333333334,
+      "meanCompileMs": 19567.72398525,
+      "bestRmsDelta": -0.0013341515984403036,
+      "bestRmsWins": 7,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0031595905301224007,
+        "upper95": 0.0004912873332417935
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 6.888888888888889,
+          "baselineGuideCount": 6.888888888888889,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 559.6900499198831,
+          "baselineGuideLength": 580.8229104193974,
+          "meanScore": 880.4098444444444,
+          "baselineScore": 873.1121555555554,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.2,
+            "upper95": 0.25
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.25,
+          "baselineGuideCount": 5.75,
+          "fewer": 5,
+          "more": 3,
+          "meanGuideLength": 461.2916844528061,
+          "baselineGuideLength": 425.91120459082157,
+          "meanScore": 862.1614666666668,
+          "baselineScore": 866.9976833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.8333333333333334,
+            "upper95": -0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.666666666666667,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 5,
+          "more": 4,
+          "meanGuideLength": 358.13680885683965,
+          "baselineGuideLength": 358.62013262996015,
+          "meanScore": 850.3554166666668,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.3333333333333333,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 3.1666666666666665,
+          "baselineGuideCount": 3.75,
+          "fewer": 6,
+          "more": 3,
+          "meanGuideLength": 210.04238575317495,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 830.3301666666667,
+          "baselineScore": 839.1730333333331,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.1666666666666667,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 6,
+          "more": 1,
+          "meanGuideLength": 73.22037882025407,
+          "baselineGuideLength": 121.5728169081845,
+          "meanScore": 805.1557583333333,
+          "baselineScore": 799.6486,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.8333333333333334,
+            "upper95": -0.6666666666666666
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 0.9166666666666666,
+          "baselineGuideCount": 1.5,
+          "fewer": 5,
+          "more": 1,
+          "meanGuideLength": 59.49171641709486,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 794.1599666666666,
+          "baselineScore": 763.3904833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.8333333333333334,
+            "upper95": -0.3333333333333333
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 5,
+          "meanRms": 0.05698379586347905,
+          "baselineRms": 0.053325999176397035,
+          "better": 2,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0030108747008083317,
+            "upper95": 0.013660803768917536
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 9,
+          "meanRms": 0.05532998812584405,
+          "baselineRms": 0.055522951516920986,
+          "better": 5,
+          "worse": 4,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0010129252541797515,
+            "upper95": 0.00046300609940529565
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.05344557587403451,
+          "baselineRms": 0.05367944370862006,
+          "better": 6,
+          "worse": 5,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.014307729171658503,
+            "upper95": 0.01665476576990197
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.037401105025037414,
+          "baselineRms": 0.036618629109248575,
+          "better": 6,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0007228617892217556,
+            "upper95": 0.0008420900423559158
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03282726368580031,
+          "baselineRms": 0.034161415284240604,
+          "better": 7,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0031595905301224007,
+            "upper95": 0.0004912873332417935
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "balanced-memory",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.03219774525710029,
+      "meanBestScore": 879.950375,
+      "meanPhysicsFrames": 882548.9166666666,
+      "meanCompileMs": 17423.1945285,
+      "bestRmsDelta": -0.001963670027140306,
+      "bestRmsWins": 8,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0029852712579637596,
+        "upper95": -0.0009420687963168523
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 6.222222222222222,
+          "baselineGuideCount": 6.888888888888889,
+          "fewer": 2,
+          "more": 0,
+          "meanGuideLength": 514.6548072041201,
+          "baselineGuideLength": 580.8229104193974,
+          "meanScore": 883.2037666666666,
+          "baselineScore": 873.1121555555554,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1.5,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 5.454545454545454,
+          "baselineGuideCount": 6,
+          "fewer": 7,
+          "more": 2,
+          "meanGuideLength": 447.5845366673471,
+          "baselineGuideLength": 420.73987655656185,
+          "meanScore": 867.0013454545453,
+          "baselineScore": 869.5577727272725,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.583333333333333,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 5,
+          "more": 3,
+          "meanGuideLength": 334.70195361528494,
+          "baselineGuideLength": 358.62013262996015,
+          "meanScore": 852.1992083333333,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.6666666666666666,
+            "upper95": 0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2.9166666666666665,
+          "baselineGuideCount": 3.75,
+          "fewer": 9,
+          "more": 3,
+          "meanGuideLength": 168.59742632798933,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 830.5364833333333,
+          "baselineScore": 839.1730333333331,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1.1666666666666667,
+            "upper95": -0.5
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.3333333333333333,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 6,
+          "more": 1,
+          "meanGuideLength": 66.5877393403972,
+          "baselineGuideLength": 121.5728169081845,
+          "meanScore": 806.2855083333333,
+          "baselineScore": 799.6486,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1,
+          "baselineGuideCount": 1.5,
+          "fewer": 5,
+          "more": 2,
+          "meanGuideLength": 48.9871295099716,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 798.4172083333333,
+          "baselineScore": 763.3904833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.5,
+            "upper95": -0.5
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 5,
+          "meanRms": 0.05696629542349836,
+          "baselineRms": 0.053325999176397035,
+          "better": 2,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.003040042100776137,
+            "upper95": 0.013660803768917536
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 9,
+          "meanRms": 0.052392624919671144,
+          "baselineRms": 0.055522951516920986,
+          "better": 6,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.006052068668094181,
+            "upper95": -0.0007929329405743743
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.06514757506594748,
+          "baselineRms": 0.05367944370862006,
+          "better": 7,
+          "worse": 4,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.01128782060521126,
+            "upper95": 0.01168450425986682
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03638365582280817,
+          "baselineRms": 0.036618629109248575,
+          "better": 7,
+          "worse": 5,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0007366033467199991,
+            "upper95": 0.0002666567738392027
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03219774525710029,
+          "baselineRms": 0.034161415284240604,
+          "better": 8,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0029852712579637596,
+            "upper95": -0.0009420687963168523
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "archive",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.032812946963571225,
+      "meanBestScore": 877.7449583333332,
+      "meanPhysicsFrames": 890276.6666666666,
+      "meanCompileMs": 19569.637779,
+      "bestRmsDelta": -0.0013484683206693882,
+      "bestRmsWins": 7,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0031595905301224007,
+        "upper95": 0.00046265388878362405
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 6.888888888888889,
+          "baselineGuideCount": 6.888888888888889,
+          "fewer": 1,
+          "more": 1,
+          "meanGuideLength": 559.6900499198831,
+          "baselineGuideLength": 580.8229104193974,
+          "meanScore": 880.4098444444444,
+          "baselineScore": 873.1121555555554,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.2,
+            "upper95": 0.25
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 5.25,
+          "baselineGuideCount": 5.75,
+          "fewer": 5,
+          "more": 3,
+          "meanGuideLength": 460.6366203394248,
+          "baselineGuideLength": 425.91120459082157,
+          "meanScore": 862.2947916666668,
+          "baselineScore": 866.9976833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.8333333333333334,
+            "upper95": -0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.833333333333333,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 4,
+          "more": 5,
+          "meanGuideLength": 372.522013966374,
+          "baselineGuideLength": 358.62013262996015,
+          "meanScore": 852.0584916666668,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.3333333333333333,
+            "upper95": 0.3333333333333333
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 3,
+          "baselineGuideCount": 3.75,
+          "fewer": 6,
+          "more": 2,
+          "meanGuideLength": 200.93900329230746,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 826.9691833333335,
+          "baselineScore": 839.1730333333331,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.5
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.1666666666666667,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 6,
+          "more": 1,
+          "meanGuideLength": 72.35430560510456,
+          "baselineGuideLength": 121.5728169081845,
+          "meanScore": 804.147975,
+          "baselineScore": 799.6486,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.8333333333333334,
+            "upper95": -0.6666666666666666
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 0.9166666666666666,
+          "baselineGuideCount": 1.5,
+          "fewer": 5,
+          "more": 1,
+          "meanGuideLength": 59.49171641709486,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 794.1599666666666,
+          "baselineScore": 763.3904833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.8333333333333334,
+            "upper95": -0.3333333333333333
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 5,
+          "meanRms": 0.05698379586347905,
+          "baselineRms": 0.053325999176397035,
+          "better": 2,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0030108747008083317,
+            "upper95": 0.013660803768917536
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 9,
+          "meanRms": 0.05494214043001376,
+          "baselineRms": 0.055522951516920986,
+          "better": 5,
+          "worse": 4,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0018855825697978792,
+            "upper95": 0.00046300609940529565
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.054428131508232475,
+          "baselineRms": 0.05367944370862006,
+          "better": 5,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.014318718301123296,
+            "upper95": 0.018829575120495275
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03736136527306608,
+          "baselineRms": 0.036618629109248575,
+          "better": 6,
+          "worse": 6,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.0006433822852790876,
+            "upper95": 0.0008420900423559158
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.032812946963571225,
+          "baselineRms": 0.034161415284240604,
+          "better": 7,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0031595905301224007,
+            "upper95": 0.00046265388878362405
+          }
+        }
+      ]
+    },
+    {
+      "budget": 900000,
+      "variant": "archive-memory",
+      "runs": 12,
+      "paired": 12,
+      "validPortfolios": 12,
+      "meanBestRms": 0.03220046103550484,
+      "meanBestScore": 879.9400666666667,
+      "meanPhysicsFrames": 882392.1666666666,
+      "meanCompileMs": 17410.001361666666,
+      "bestRmsDelta": -0.0019609542487357655,
+      "bestRmsWins": 8,
+      "bestRmsLosses": 3,
+      "bestRmsDeltaInterval": {
+        "seeds": 2,
+        "resamples": 4000,
+        "lower95": -0.0029852712579637596,
+        "upper95": -0.000936637239507771
+      },
+      "byCeiling": [
+        {
+          "extraRms": 0,
+          "paired": 12,
+          "feasible": 9,
+          "meanGuideCount": 6.222222222222222,
+          "baselineGuideCount": 6.888888888888889,
+          "fewer": 2,
+          "more": 0,
+          "meanGuideLength": 514.6548072041201,
+          "baselineGuideLength": 580.8229104193974,
+          "meanScore": 883.2037666666666,
+          "baselineScore": 873.1121555555554,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1.5,
+            "upper95": 0
+          }
+        },
+        {
+          "extraRms": 0.005,
+          "paired": 12,
+          "feasible": 11,
+          "meanGuideCount": 5.363636363636363,
+          "baselineGuideCount": 6,
+          "fewer": 7,
+          "more": 2,
+          "meanGuideLength": 439.03471446444473,
+          "baselineGuideLength": 420.73987655656185,
+          "meanScore": 865.3314636363637,
+          "baselineScore": 869.5577727272725,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1.2,
+            "upper95": -0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.01,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 4.583333333333333,
+          "baselineGuideCount": 4.833333333333333,
+          "fewer": 5,
+          "more": 4,
+          "meanGuideLength": 337.8831288558219,
+          "baselineGuideLength": 358.62013262996015,
+          "meanScore": 851.9788166666667,
+          "baselineScore": 858.570925,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.6666666666666666,
+            "upper95": 0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.02,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 2.6666666666666665,
+          "baselineGuideCount": 3.75,
+          "fewer": 9,
+          "more": 2,
+          "meanGuideLength": 158.26783457004987,
+          "baselineGuideLength": 249.47891691515005,
+          "meanScore": 830.1784250000001,
+          "baselineScore": 839.1730333333331,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1.6666666666666667,
+            "upper95": -0.5
+          }
+        },
+        {
+          "extraRms": 0.04,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1.3333333333333333,
+          "baselineGuideCount": 1.9166666666666667,
+          "fewer": 6,
+          "more": 1,
+          "meanGuideLength": 66.5877393403972,
+          "baselineGuideLength": 121.5728169081845,
+          "meanScore": 806.2855083333333,
+          "baselineScore": 799.6486,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -1,
+            "upper95": -0.16666666666666666
+          }
+        },
+        {
+          "extraRms": 0.08,
+          "paired": 12,
+          "feasible": 12,
+          "meanGuideCount": 1,
+          "baselineGuideCount": 1.5,
+          "fewer": 5,
+          "more": 2,
+          "meanGuideLength": 48.9871295099716,
+          "baselineGuideLength": 76.98422143107639,
+          "meanScore": 798.4172083333333,
+          "baselineScore": 763.3904833333332,
+          "guideCountDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.5,
+            "upper95": -0.5
+          }
+        }
+      ],
+      "byGuideFraction": [
+        {
+          "fraction": 0,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 5,
+          "meanRms": 0.05696629542349836,
+          "baselineRms": 0.053325999176397035,
+          "better": 2,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.003040042100776137,
+            "upper95": 0.013660803768917536
+          }
+        },
+        {
+          "fraction": 0.25,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 9,
+          "meanRms": 0.04980707790413955,
+          "baselineRms": 0.055522951516920986,
+          "better": 6,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.011869549453040263,
+            "upper95": -0.0007929329405743743
+          }
+        },
+        {
+          "fraction": 0.5,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 11,
+          "meanRms": 0.06542834896453255,
+          "baselineRms": 0.05367944370862006,
+          "better": 6,
+          "worse": 5,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": 0.01128782060521126,
+            "upper95": 0.012302206836753989
+          }
+        },
+        {
+          "fraction": 0.75,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03644121795239542,
+          "baselineRms": 0.036618629109248575,
+          "better": 7,
+          "worse": 5,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0006214790875454969,
+            "upper95": 0.0002666567738392027
+          }
+        },
+        {
+          "fraction": 1,
+          "paired": 12,
+          "feasible": 12,
+          "baselineFeasible": 12,
+          "meanRms": 0.03220046103550484,
+          "baselineRms": 0.034161415284240604,
+          "better": 8,
+          "worse": 3,
+          "rmsDeltaInterval": {
+            "seeds": 2,
+            "resamples": 4000,
+            "lower95": -0.0029852712579637596,
+            "upper95": -0.000936637239507771
+          }
+        }
+      ]
+    }
+  ],
+  "note": "Staged development on exposed seeds 231/232. Intermediate snapshots were fingerprinted dirty worktrees, not independently preserved clean revisions. Variant labels alone are insufficient to reproduce those snapshots. Final candidate is frozen at 0f0da680."
+}

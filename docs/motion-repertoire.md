@@ -7,13 +7,25 @@ plug-in framework, motion motifs, style quotas, or new specification controls.
 
 ## Current gallery
 
-The [guide-choice experiment](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-intent/manifest.json)
+The [improved guide-choice experiment](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-search/manifest.json)
 now makes one artistic preference explicit: prefer fewer guided sections, then
 shorter visible guides, while keeping measured whole-ride motion error within a
 chosen allowance. Its slider selects among a fixed set of recorded alternatives;
 it does not run a new search. The comparison menu also exposes both branches of
 each physical fork, including unsuccessful searches. The gallery starts at zero
 additional error; no production tolerance has been selected.
+
+The new search starts with independently optimized guided and unguided rides,
+then keeps two promising continuations while charging all work to the same
+total allowance. Its [fresh-seed evaluation](guide-search-2026-09-30.md) covers
+six passages × eight seeds × two ceilings. At 900,000 frames, mean best target
+error falls 8.59%; at a common baseline-best +0.020 ceiling, mean guided sections
+fall from 3.479 to 2.229. Some comparisons regress, particularly at intermediate
+guide limits. These results improve the available choices without defining a
+geometric ceiling or changing production. The gallery contains seed 241 from
+that panel; the complete measurements are in the report. The
+[original four-seed gallery](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-intent/manifest.json)
+remains available.
 
 In plain terms: if the best valid recorded track has target error **0.030** and
 the slider allows **0.010** extra, the selector considers valid tracks with
@@ -107,8 +119,10 @@ made explicit. This is a research path, not a new music-specification language.
 The geometry catalog now stores geometry, guide settings and search overrides
 separately. Existing recipes keep their previous behavior. In particular, some
 historical shape comparisons disable the preview policy; the old single-rail
-recipe also changes `channel`, which affects initialization as well as implicit
-guide clearance. Those comparisons are not pure shape interventions. The new
+recipe also changed `channel`, which then affected initialization as well as
+implicit guide clearance. Those comparisons were not pure shape interventions.
+Initialization now ignores an inactive channel when guides are explicitly
+forbidden; a regression check confirms identical tracks and work. The
 paired-fork study keeps preview disabled and channel fixed for **both** branches;
 only guide permission changes. Inactive guide search dimensions are removed.
 
@@ -121,12 +135,15 @@ body-point frame through the boundary. The final complete ride still passes the
 unchanged judge. Unsupported combinations that could edit the locked prefix,
 such as whole-track refinement, are rejected explicitly for this research API.
 
-The exploratory traversal starts from a complete reference, compares both guide
-permissions at successive supports, and follows the valid result with least
-visible guidance to obtain further alternatives. It keeps **all** measured
-results. That traversal may visit less accurate rides; the delivery selector
-separately applies the chosen full-ride error ceiling over the entire fixed pool.
-The common budget pays for reference construction, both branches, prefix checks
+The improved exploratory traversal starts from two complete references, one
+guide-allowed and one guide-forbidden. At successive supports it compares both
+guide permissions from each retained path. It keeps the most accurate track and
+a second offering the smallest measured error increase per removed guided
+section, reconsidering **all** already measured tracks. This is an exploration
+heuristic, separate from the delivery preference. The original single-path
+traversal remains available for research comparisons. The delivery selector
+applies the chosen full-ride error ceiling over the entire fixed pool.
+The common budget pays for both reference constructions, all branches, prefix checks
 and the compiler's cold replays. Independent gallery observation is recorded
 validation work, outside that construction allowance. All continuations use the
 same search configuration; per-branch ceilings scale with remaining ride length.

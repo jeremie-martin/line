@@ -147,3 +147,21 @@ rides; scores range widely, especially on L’amour de ma vie. Desktop/mobile na
 playback, rapid cross-song/seed switching, exact job reuse, cancellation and
 incomplete-result inspection pass. Final compiler qualification and finished
 collection rendering remain in progress.
+
+## Independent timing-window audit
+
+The complete `7d766851` V5 panel reaches 770.0210, with 148/150 physically valid
+rides and 147/150 fully realized rides; the fixed panel is 933.4258. The remaining
+valid request miss exposed a contract discrepancy rather than an engine mismatch.
+Native contact scheduling can use the existing ±1-frame musical tolerance. Search
+had checked construction over that scheduled window, while frozen V5 checks the
+saved authored window. On the captured terrace, traversal occurred partly one
+frame before the latter began. Search now checks the authored request window too.
+Neither timing tolerance nor frozen realization/scoring code is changed. This is
+a strict conformance convention, not a claim that a one-frame-early bend looks bad.
+A regression fixture records the actual native collision IDs and line geometry.
+
+Provisional `28c1db39` canonical/confirmation evaluations were stopped after this
+canonical audit to avoid spending more on a superseded compiler. Partial artifacts
+are preserved. Confirmation outcomes were not inspected or used in development;
+the complete confirmation panel will run on the corrected, frozen compiler.

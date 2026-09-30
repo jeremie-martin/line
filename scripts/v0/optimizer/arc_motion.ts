@@ -24,7 +24,7 @@ import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemo
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
-import {inspectConstruction} from './repertoire_realization.ts';
+import {inspectConstructionWindow} from './repertoire_candidate.ts';
 import type {ConstructionRequest} from './repertoire_policy.ts';
 import {contactObserver,extendContactObserver,fragmentInterval} from './contact_interval.ts';
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
@@ -495,7 +495,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const request=options.constructionRequests?.[i];
         if(request&&(request.construction==='scattered'?!!fragments:request.guidance==='required'||request.construction!=='arcs')){
           const guideIds=fragments?.guideIds??(arcRailGroups(added).get(i)![1]??[]).map(l=>l.id);
-          const fulfillment=inspectConstruction(request,added,new Set(guideIds),raw.frames.slice(frame,horizon+1).map(f=>f.contactLineIds));
+          const fulfillment=inspectConstructionWindow(request,added,new Set(guideIds),raw.frames);
           if(!fulfillment.fulfilled)return reject('construction:'+fulfillment.reasons.join(','));
         }
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);

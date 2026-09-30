@@ -16,8 +16,8 @@ function draw(){
 }
 function seek(t){seconds=Math.max(0,Math.min(+$('seek').max,t));if(audio.readyState>=1)audio.currentTime=seconds;draw();}
 function tick(){if(playing){seconds=audio.currentTime;if(seconds>=+$('seek').max)pause();draw();}requestAnimationFrame(tick);}requestAnimationFrame(tick);
-$('play').onclick=async()=>{if(playing)return pause();try{if(seconds>=+$('seek').max)seek(0);await audio.play();playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}};
-$('seek').oninput=()=>{pause();seek(+$('seek').value);};$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>audio.playbackRate=+$('rate').value;
+$('play').onclick=async()=>{if(playing)return pause();try{if(seconds>=+$('seek').max)seek(0);$('movie').pause();audio.currentTime=seconds;await audio.play();playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}};
+$('seek').oninput=()=>{pause();$('movie').pause();seek(+$('seek').value);};$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>audio.playbackRate=+$('rate').value;
 audio.onended=pause;audio.onerror=()=>{pause();if(audio.getAttribute('src'))status('Music unavailable; you can still scrub the saved ride.',true);};window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 function clearMovie(){const v=$('movie');v.pause();v.removeAttribute('src');v.load();v.hidden=true;$('movie-link').hidden=true;$('movie-link').removeAttribute('href');}
 async function loadMovie(m,url,signal,token){const c=m.cells.find(c=>c.method==='production');const probe=await fetch(new URL(c.id+'.video.json',url),{signal});if(!probe.ok)return;const v=await checked(new URL(c.id+'.video.json',url).href,signal);if(v.identity.planSha256!==m.planSha256||v.identity.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');if(token!==opening)return;const src=new URL(v.full.path,url).href;$('movie-link').href=src;$('movie-link').hidden=false;$('movie').src=src;$('movie').hidden=false;}

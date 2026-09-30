@@ -6,8 +6,8 @@ import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSear
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
-import { MOTION_PROFILES, type MotionProfile } from './motion_profiles.ts';
-import { motionArc, type ArcMotionControl, type ArcGeometryStyle } from './arc_geometry.ts';
+import { MOTION_PROFILES } from './motion_profiles.ts';
+import { motionArc, type ArcMotionControl, type ArcGeometryStyle, type ArcSectionStyle } from './arc_geometry.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides, arcRailGroups } from './arc_guidance.ts';
@@ -53,7 +53,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Research composition by support index (startup is zero). Applied to every
    * proposal, lookahead and rebuilt continuation. Omitted sections inherit the
    * global settings; this changes construction, never the musical specification. */
-  sectionStyles?:Record<number,{guides?:boolean;subdivisions?:number;profile?:MotionProfile}>;
+  sectionStyles?:Record<number,ArcSectionStyle>;
   /** Reuse the preliminary track as measured controls in general search. */
   previewMemory?:boolean;
   /** Measured controls retrieved by physical state and authored targets. */
@@ -218,6 +218,8 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
+  if(options.profileStrength!==undefined&&(!options.profile||!Number.isFinite(options.profileStrength)||options.profileStrength<0||options.profileStrength>2))
+    throw new Error('invalid profile strength');
   spec=normalizeCompilerTimeline(spec);
   validateSpec(spec);
   if(!continueMeter)resetFrameCount();const finalBudget=options.budget,budget=options.constructionBudget??finalBudget,duration=Math.round(spec.duration*40),end=duration+20;
@@ -306,9 +308,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     for(const [key,style] of Object.entries(options.sectionStyles)){
       const index=Number(key);
       if(!Number.isSafeInteger(index)||String(index)!==key||index<resumeAt||index>=contacts.length||
-        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>k!=='guides'&&k!=='subdivisions'&&k!=='profile')||
+        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','subdivisions','profile','profileStrength'].includes(k))||
         (style.guides!==undefined&&typeof style.guides!=='boolean')||
         (style.profile!==undefined&&!MOTION_PROFILES.includes(style.profile))||
+        (style.profileStrength!==undefined&&(!(style.profile??options.profile)||!Number.isFinite(style.profileStrength)||style.profileStrength<0||style.profileStrength>2))||
         (style.subdivisions!==undefined&&(!Number.isFinite(style.subdivisions)||style.subdivisions<=0||style.subdivisions>4)))
         throw new Error('invalid section style or locked prefix override');
       const permission=options.fork&&(index===options.fork.section?options.fork.guides:options.fork.continuationGuides?.[index-options.fork.section]);
@@ -382,7 +385,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
-        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.profile,options.contour,options.guides,
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.profile,options.profileStrength,options.contour,options.guides,
           options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();

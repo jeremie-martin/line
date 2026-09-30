@@ -5,10 +5,10 @@ export type MotionProfile = typeof MOTION_PROFILES[number];
 const rad = (degrees: number) => degrees * Math.PI / 180;
 const smooth = (x: number) => {x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
 
-export function profileHeading(profile: MotionProfile, base: number, phase: number): number {
+export function profileHeading(profile: MotionProfile, base: number, phase: number, strength=1): number {
   if(phase>=1)return base;
   const w=Math.max(0,Math.min(1,phase));
-  const amount=24;
+  const amount=24*strength;
   switch(profile) {
     case 'serpentine': return base+rad(amount*1.6)*Math.sin(2*Math.PI*w)*Math.sin(Math.PI*w);
     case 'scallops': return base+rad(amount)*Math.sin(4*Math.PI*w);

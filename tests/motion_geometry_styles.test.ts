@@ -9,6 +9,17 @@ import type {Spec} from '../scripts/v0/types.ts';
 const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],v={x:9,y:2};
 const control={entry:12,turn:-20,exit:25,support:20,bias:.2,offset:.1};
 
+it('varies physical profile strength while preserving default and zero-strength geometry',()=>{
+  const build=(style?:Parameters<typeof motionArc>[9])=>motionArc(points,v,control,1000,false,12,false,24,4,style);
+  for(const profile of MOTION_PROFILES){
+    expect(build({profile,profileStrength:0})).toEqual(build());
+    expect(build({profile,profileStrength:1})).toEqual(build({profile}));
+    expect(build({profile,profileStrength:1.5})).not.toEqual(build({profile}));
+  }
+  for(const profileStrength of [-1,NaN,Infinity,2.1])expect(()=>build({profile:'scallops',profileStrength})).toThrow('profile strength');
+  expect(()=>build({profileStrength:1})).toThrow('profile strength');
+});
+
 it('builds six distinct normal geometries without changing ordinary arcs or the input',()=>{
   const original=structuredClone({points,v,control});
   const base=motionArc(points,v,control,1000,false,12,false,24);

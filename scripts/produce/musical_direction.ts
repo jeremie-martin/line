@@ -20,7 +20,8 @@ import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
 import {galleryMethods,galleryArcOptions,type GalleryMethod} from '../gallery/methods.ts';
 import {verifyMainConstruction} from '../gallery/verify_construction.ts';
-import {musicalDirectionCases,musicalDirectionMethods} from './musical_direction_cases.ts';
+import {musicalDirectionCases,musicalDirectionMethods,repertoireConfirmationCase} from './musical_direction_cases.ts';
+import {stylesForPhrases,type ConstructionPhrase} from './musical_repertoire.ts';
 import type {Spec} from '../v0/types.ts';
 import type {ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
 
@@ -31,17 +32,28 @@ const seeds=(arg('seeds')??'301').split(',').map(Number),budget=Number(arg('budg
 assert.ok(seeds.length&&seeds.every(Number.isSafeInteger)&&new Set(seeds).size===seeds.length);
 assert.ok(Number.isSafeInteger(budget)&&budget>=20000);
 const songs=(arg('songs')??musicalDirectionCases.map(c=>c.song).join(',')).split(',');
-assert.ok(songs.every(s=>musicalDirectionCases.some(c=>c.song===s)));
-const definitions=musicalDirectionCases.filter(c=>songs.includes(c.song));
-const geometry=arg('geometry')??'facets';
+const allCases=[...musicalDirectionCases,repertoireConfirmationCase];
+assert.ok(songs.every(s=>allCases.some(c=>c.song===s)));
+const repertoire=arg('repertoire');
+assert.ok(!repertoire||['serpentine','terraces'].includes(repertoire),'unsupported repertoire candidate');
+const definitions=allCases.filter(c=>songs.includes(c.song));
+const geometry=repertoire??arg('geometry')??'facets';
 assert.ok(['facets','serpentine','terraces','scallops'].includes(geometry),'unsupported local geometry');
 const {profile,subdivisions}=galleryArcOptions(geometry as GalleryMethod)!;
-const geometryStyle={...(profile?{profile}:{}),...(subdivisions?{subdivisions}:{})};
+const strength=arg('strength')===undefined?undefined:Number(arg('strength'));
+assert.ok(strength===undefined||(profile&&Number.isFinite(strength)&&strength>=0&&strength<=2),'strength requires a profile and must be in [0, 2]');
+const geometryStyle={...(profile?{profile}:{}),...(subdivisions?{subdivisions}:{}),...(strength===undefined?{}:{profileStrength:strength})};
 const geometryTitle=galleryMethods[geometry as GalleryMethod].title;
-const methodDetails={baseline:musicalDirectionMethods.baseline,guidance:musicalDirectionMethods.guidance,
+const methodDetails:Record<string,{title:string;description:string}>=repertoire?{
+  baseline:musicalDirectionMethods.baseline,
+  ripple:{title:'Ripple phrases',description:'Ripple rails in both selected phrases; ordinary arcs elsewhere.'},
+  candidate:{title:geometryTitle+' phrases',description:geometryTitle+' in both selected phrases; ordinary arcs elsewhere.'},
+  mixed:{title:geometryTitle+' + ripples',description:'The first phrase uses '+geometryTitle.toLowerCase()+', the later phrase uses ripples, with ordinary arcs between and afterwards.'},
+}:{baseline:musicalDirectionMethods.baseline,guidance:musicalDirectionMethods.guidance,
   [geometry]:{title:geometryTitle+' throughout',description:'An independent complete ride searched with '+geometryTitle.toLowerCase()+'.'},
   mixed:{title:'Arcs → '+geometryTitle.toLowerCase()+' → arcs',description:'The selected phrase uses '+geometryTitle.toLowerCase()+', then returns to smooth construction. Earlier history is locked; the continuation is searched.'}};
-const methods=Object.keys(methodDetails);
+const methods=arg('methods')?.split(',')??Object.keys(methodDetails);
+assert.ok(methods[0]==='baseline'&&new Set(methods).size===methods.length&&methods.every(m=>methodDetails[m]),'methods must begin with baseline');
 const {compileArcMotion}=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/arc_motion.ts')).href);
 const {connectedArcOptions}=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/connected_arcs.ts')).href);
 const {composeArcSections}=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/arc_composition.ts')).href);
@@ -58,16 +70,17 @@ const cases=await Promise.all(definitions.map(async d=>{
   assert.ok(air.every(a=>Number.isFinite(a.target)),'musical study requires authored air throughout');
   const samples=Object.fromEntries((['speed','amplitude'] as const).filter(a=>spec.axes[a]).map(a=>[a,
     Array.from({length:durationFrames+1},(_,f)=>axesAtFrame(f,spec)[a]??null)]));
-  return {...d,id:d.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[],
+  return {...d,...(repertoire?{intent:`Compare arcs, ripples and ${geometryTitle.toLowerCase()} on the same two phrases; combine ${geometryTitle.toLowerCase()} in the first with ripples in the second.`}:{}),id:d.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[],
     source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),audioSha256:hash(cfg.audio),
     analysisSha256:hash(join('productions',d.song,'audio.json')),render:cfg.render,jitter:spec.jitter??0};
 }));
 const compiler=galleryCompilerIdentity(compilerRoot),judge=verifyFrozen();
 const harnessPaths=['scripts/produce/musical_direction.ts','scripts/produce/musical_direction_cases.ts',
+  'scripts/produce/musical_repertoire.ts',
   'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/methods.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/measure.ts'];
 const harness=galleryHarnessIdentity(harnessPaths);
 const plan={schema:'line.musical-direction-plan.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,
-  cases,seeds,budgets:[budget],methods,methodDetails,geometry,geometryStyle,jolt,
+  cases,seeds,budgets:[budget],methods,methodDetails,geometry,geometryStyle,jolt,repertoire:repertoire??null,
   note:'Real music, unchanged authored targets, normal lines only. Full tracks are compiled and independently validated. Local changes lock earlier geometry and rebuild the complete continuation. No aesthetic approval is implied. Each alternative has its own stated allowance; shared baseline work is counted once per comparison set.'};
 mkdirSync(out,{recursive:true});
 const write=(name:string,value:unknown)=>writeGalleryJson(out,name,value);
@@ -87,10 +100,17 @@ for(const c of cases)for(const seed of seeds){
   for(const method of methods){
     const began=performance.now();let composition:any=null;
     let styles:NonNullable<ArcMotionOptions['sectionStyles']>={};
-    if(method==='mixed'||method==='guidance'){
+    let phrases:ConstructionPhrase[]=[];
+    if(repertoire&&method!=='baseline'){
+      const ripple={profile:'scallops' as const};
+      phrases=[{title:c.moments[0].title,window:c.guidance,style:method==='ripple'?ripple:geometryStyle},
+        {title:c.moments[2].title,window:c.mixed,style:method==='candidate'?geometryStyle:ripple}];
+      styles=stylesForPhrases(reference.rows,phrases);
+      composition=composeArcSections(spec,seed,reference,styles,budget);
+    }else if(!repertoire&&(method==='mixed'||method==='guidance')){
       const window=c[method],style=method==='mixed'?geometryStyle:{guides:false};
-      styles=Object.fromEntries(reference.rows.flatMap((r:any,i:number)=>r.frame/40>=window[0]&&r.frame/40<window[1]?[[i,style]]:[]));
-      assert.ok(Object.keys(styles).length,'empty authored construction window');
+      phrases=[{title:methodDetails[method].title,window,style}];
+      styles=stylesForPhrases(reference.rows,phrases);
       composition=composeArcSections(spec,seed,reference,styles,budget);
     }
     const result=composition?.result??compileArcMotion(spec,seed,{...connectedArcOptions(spec,budget),collectTrajectoryLoss:true,
@@ -116,7 +136,9 @@ for(const c of cases)for(const seed of seeds){
       if(i>=(composition?.changedSections[0]??0))assert.equal(normal.length,1+Math.max(4,Math.ceil(r.control.support*subdivision)),'emitted shape differs from requested construction');
       if(styles[i]?.guides===false)assert.equal(guides.length,0,'forbidden guide emitted');
       return {section:i,start:r.frame/40,end:(result.rows[i+1]?.frame??c.durationFrames)/40,
-        shape:styles[i]?.profile??(method===geometry?profile:undefined)??(subdivision===.5?'facets':'arcs'),guidePermission:styles[i]?.guides===false?'forbidden':'allowed',
+        shape:styles[i]?.profile??(method===geometry?profile:undefined)??(subdivision===.5?'facets':'arcs'),
+        profileStrength:styles[i]?.profileStrength??(method===geometry?strength:undefined)??1,
+        guidePermission:styles[i]?.guides===false?'forbidden':'allowed',
         mainSegments:normal.length,guideSegments:guides.length,mainContactFrames:mainFrames.length,guideContactFrames:guideFrames.length,
         firstGuideContact:guideFrames[0]===undefined?null:guideFrames[0]/40,lastGuideContact:guideFrames.length?guideFrames.at(-1)!/40:null};
     });
@@ -143,7 +165,7 @@ for(const c of cases)for(const seed of seeds){
       trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,
       terminus:grade.terminus,failure:result.failure,valid,qualityRms:grade.score.weightedAxisRms,usage,sections,
       geometryVerification,contactSummary:inspection.summary,collisionSha256:sha(JSON.stringify(collisionIds)),metrics,
-      construction:{styles,boundaryFrame:composition?.boundaryFrame??null,prefixFrames,changedMotionFrames,
+      construction:{styles,phrases,boundaryFrame:composition?.boundaryFrame??null,prefixFrames,changedMotionFrames,
         changedSections:composition?.changedSections??[],baseTrackHash:method==='baseline'?null:sha(JSON.stringify(reference.track))},
       trackPath:relative(out,join(dir,'track.json')),reportPath:relative(out,join(dir,'report.json')),
       moments:c.moments.map(m=>({...m,observations:grade.observations.filter(o=>o.endFrame>=m.from*40&&o.startFrame<=m.to*40)}))};

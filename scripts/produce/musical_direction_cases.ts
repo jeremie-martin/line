@@ -21,3 +21,13 @@ export const musicalDirectionMethods = {
   facets:{title:'Facets throughout',description:'An independent full ride searched using angular geometry. This comparison can differ throughout.'},
   mixed:{title:'Arcs → facets → arcs',description:'A selected phrase uses actual faceted construction, then returns to smooth construction. The earlier ride is locked; later motion may change.'},
 };
+
+/** Reserved before repertoire development. Never included in default development runs. */
+export const repertoireConfirmationCase = {
+  song:'tiki_tiki_48s',title:'Tiki Tiki',excerpt:[5,37],
+  guidance:[6.9,9.5],mixed:[27.83,30.5],
+  intent:'Check reuse on the first beat phrase and the later run, with ordinary arcs between and afterwards.',
+  moments:[{time:6.9,title:'First beats and entry',from:6.4,to:10.43},
+    {time:10.43,title:'Drop and return',from:9.8,to:12},
+    {time:27.83,title:'Run and return',from:27,to:32}],
+} as const;

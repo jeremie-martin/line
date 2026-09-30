@@ -63,7 +63,7 @@ writeGalleryJson(dirname(out),out.split('/').at(-1)!,{schema:'line.musical-direc
   manifest:{path:relativePath(join(root,'manifest.json')),sha256:sha(bytes)},plan,
   checks:{tracks:cells.length,valid:cells.filter((r:any)=>r.valid).length,prefixFrameComparisons:prefixChecks,normalLines,
     completeDeclaredPanel:true,actualGeometryAndReturnVerified:true,allConstructionWorkAccounted:true},
-  interpretation:'Two exposed production songs; the second was not used for mechanism development. Zero authored jitter can make seeds duplicate tracks. These are research adherence values, not a canonical headline or aesthetic rating. Local summaries include whole authored intervals overlapping the named moment; no per-moment score was optimized. Wall times share a host with other jobs. Owner visual preference remains pending.',
+  interpretation:'Concrete production requests; development and reserved confirmation roles are recorded in the study report. Zero authored jitter can make seeds duplicate tracks. These are research adherence values, not a canonical headline or aesthetic rating. Local summaries include whole authored intervals overlapping the named moment; no per-moment score was optimized. Wall times share a host with other jobs. New examples require owner visual review.',
   summary,rows:cells.map((r:any)=>({...r,observations:undefined,moments:undefined,sections:undefined}))});
 function relativePath(path:string){return path.startsWith(process.cwd()+'/')?path.slice(process.cwd().length+1):path;}
 console.log(JSON.stringify({checks:cells.length,summary:summary.map(({local,...row}:any)=>row)}));

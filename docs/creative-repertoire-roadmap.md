@@ -75,6 +75,24 @@ not an automatic rejection. Significant simplification can justify a small
 measured accuracy tradeoff; neither regression nor improvement should be hidden
 by aggregate scores. No claim of a geometry ceiling follows from this study.
 
+### Review of the first panel and immediate focus
+
+The owner finds the new variety encouraging but observes that the serpentine
+rider bounces past its distinctive bends. Ordered collision inspection confirms
+concrete examples; the earlier count of contacts with shaped segments was too
+weak to establish traversal. The technical panel is delivered, while a convincing
+serpentine riding example remains unfinished. See the
+[results and follow-up](creative-repertoire-results.md#owner-feedback-and-traversal-check).
+
+Before widening this panel, develop one passage where the rider visibly follows
+the serpentine's changing direction. Investigate profile placement, curvature,
+available contact time and guide interaction with matched incoming states and
+unchanged musical targets. Use collision sequences to explain the actual ride,
+and finished video to judge the experience. Preserve failed alternatives and
+disclose accuracy and work. A bounce can be a deliberate choice elsewhere; it
+does not demonstrate the particular riding behavior being explored here. Do not
+replace this problem with an automatic contact quota or claim a geometry ceiling.
+
 ## Constraints and working practice
 
 Use normal lines only. Do not change benchmark, scorer, detector or physics.

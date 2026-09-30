@@ -116,6 +116,52 @@ cases. It does not claim every shaped segment is used or every guide is needed.
 The zero-strength geometry is a diagnostic reference, not a validated alternative
 ride: changing a surface can alter the whole continuation.
 
+### Owner feedback and traversal check
+
+The owner sees useful variety in the panel, but considers this an early beginning
+and points out that the serpentine rider bounces past the distinctive shape.
+The **74/78 any-contact count does not answer that concern**: a brief hit or an
+isolated touch near the end satisfies it. It is not evidence of riding through
+the shape. The panel demonstrates constructible alternatives, not a successful
+serpentine riding experience.
+
+A follow-up retains the contact sequence for all 78 profiled supports across
+all 12 tracks, with main-segment indices and guide collisions separately. Two
+examples from Luna's serpentine comparison confirm the problem:
+
+- **8.075–8.60 s, support 12:** main contacts reach the beginning of the profile
+  at frame 328 (8.20 s). Frames 329–333 have no collision with any track line.
+  The next contact is at frame 334 (8.35 s), on a segment near the end of the
+  profile. There are no guide contacts on this support. Touching both ends
+  clearly does not establish following the middle.
+- **24.95–25.50 s, support 43:** main contact reaches only phase 0.047 of the
+  profile's construction schedule. The last main contact is frame 1005
+  (25.125 s), on the entry portion. There are no guide contacts, and no line
+  collisions again before frame 1020. No main-rail contact reaches either peak
+  of the heading profile.
+
+Phase here is the segment midpoint in the heading construction schedule, not
+a fraction of physical rail length, rider time or a traversal score. Contact IDs
+include all rider points; they cannot by themselves prove continuous sled
+sliding. Native replay independently reproduces the saved collision hash and
+the stated collision-free intervals. All original inspection values remain
+unchanged. The [follow-up evidence](evidence/creative-repertoire-traversal-20260930.json)
+preserves the ordered contacts and owner feedback alongside the original study.
+
+The implementation explains why this is allowed: it adds the profile after the
+entry turn, while search fits musical axes, physical validity and continuation.
+It does not require traversal of the chosen profile. Short ground-contact
+windows and the late profile placement are plausible contributors; their
+relative causal importance has not been isolated. A shape request is therefore
+weaker than a request for that riding behavior.
+
+The next experiment should establish one convincing passage in which the rider
+actually follows the serpentine bends. Compare placement and curvature against
+the available contact time, then check guide interaction, musical costs and the
+finished video. Increasing strength alone or adding a contact quota would not
+establish success. Keep the current examples as diagnostic references; neither
+the geometry's potential nor success on other passages follows from this check.
+
 Native replay matches all 12 saved rides with zero body-position error. The full
 Line Rider app agrees on **3,448 sampled poses**, including scarf and rider state.
 All 12 native-gallery comparisons pass, including corruption rejection, playback,
@@ -139,10 +185,11 @@ existing diagnostics as the preceding compiler, with no new diagnostics after
 normalizing checkout paths and line locations. The current compiler source and
 engine match the frozen source used for the 352-run V4 check and confirmation.
 
-The previous positive ripple feedback applies to the earlier reviewed example;
-new preference and production adoption remain open. This milestone supplies
-concrete choices and evidence, while accuracy, efficient editing and artistic
-composition remain substantial work under the roadmap.
+The previous positive ripple feedback applies to the earlier reviewed example.
+The new panel's variety is encouraging to the owner, with the serpentine riding
+limitation above unresolved. Production adoption remains open. This milestone
+supplies concrete choices and evidence, while accuracy, efficient editing and
+artistic composition remain substantial work under the roadmap.
 
 ## Evidence and reproduction
 

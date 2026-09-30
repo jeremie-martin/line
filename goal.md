@@ -15,9 +15,12 @@ includes strength and budget comparisons plus a rejected future-value ablation.
 The current V4 baseline remains exactly unchanged. Local target costs on Amor
 and Tiki are material and disclosed. All twelve full vertical videos and excerpts
 are ready in the default music review; all nine musical comparisons and twelve
-native comparisons pass browser checks. The new examples still need owner
-aesthetic review. This is the first repertoire milestone, not completion of the
-broader creative roadmap.
+native comparisons pass browser checks. The owner finds the variety encouraging,
+but the serpentine rider bounces past its distinctive bends. Ordered collision
+inspection confirms concrete examples; any-contact counts do not demonstrate
+traversal. The next focus is one convincing ridden serpentine passage, with
+unchanged musical targets and measured costs, before widening the panel. This
+is an early technical milestone, not completion of the broader creative roadmap.
 
 # Musical direction on real songs — 2026-09-30
 

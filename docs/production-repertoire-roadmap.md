@@ -1,11 +1,12 @@
 # From a repertoire workspace to autonomous production
 
-Proposed on 2026-09-30. **Awaiting the owner's approval before implementation.**
+Approved on 2026-09-30. **Implementation in progress under the owner's full green light.**
 This is the next campaign after the [integrated workspace delivery](repertoire-workspace-results-20260930.md),
 preserved and pushed at `778a80ca`. It develops the
 [creative repertoire roadmap](creative-repertoire-roadmap.md) into a complete
 production workflow. Approval authorizes sustained execution of the whole campaign;
 the stages below are internal milestones, not repeated requests for permission.
+Execution and evidence are tracked in [the campaign ledger](production-repertoire-campaign.md).
 
 ## The outcome
 

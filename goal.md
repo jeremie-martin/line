@@ -1,8 +1,9 @@
-# Proposed next campaign: autonomous production repertoire — 2026-09-30
+# Active campaign: autonomous production repertoire — 2026-09-30
 
-The owner requested a written roadmap first, followed by their green light before
-implementation. The [production repertoire roadmap](docs/production-repertoire-roadmap.md)
-is **proposed and awaiting approval**. It combines intentional guided expressive
+The owner has given full approval to implement the entire
+[production repertoire roadmap](docs/production-repertoire-roadmap.md).
+The [campaign ledger](docs/production-repertoire-campaign.md) tracks execution.
+The campaign combines intentional guided expressive
 shapes and unguided ordinary passages, seeded automatic variety, a new V5 that
 tests musical accuracy and construction realization, shared compiler improvement,
 and a dashboard of complete automatically generated production videos.
@@ -12,7 +13,7 @@ segments. Existing V4/scorer/physics definitions remain frozen; normal type-0 li
 remain mandatory. The owner's latest preference is for control rails with folded,
 S-shaped and other expressive geometry so the rider engages with their distinctive
 parts. This is a direction for the new campaign, not evidence that current guide
-permission guarantees that behavior. No implementation of this proposal has begun.
+permission guarantees that behavior. Implementation is in progress.
 
 # Delivered: the first integrated repertoire workspace — 2026-09-30
 

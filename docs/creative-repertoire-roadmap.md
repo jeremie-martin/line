@@ -4,7 +4,7 @@ Agreed with the owner on 2026-09-30. This is the overarching roadmap, following 
 [first musical-direction milestone](musical-direction-plan.md).
 
 The next [production repertoire campaign](production-repertoire-roadmap.md) is
-**proposed, awaiting owner approval**. It takes the integrated workspace toward
+**approved and in progress**. It takes the integrated workspace toward
 automatic construction choices, intentional guidance, a new V5 evaluation,
 stronger shared compilation and complete production review. Its proposed V5
 extension is separate from the frozen benchmarks used for the delivered milestones

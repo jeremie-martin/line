@@ -881,7 +881,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(!best){failure={frame,reason:'no_arc',failures,incoming,pace,center};const retry=backtrack();if(retry!==null){i=retry;continue;}break;}
       if(options.terminalSelection&&i===contacts.length-1){
         const original=candidates.find(c=>JSON.stringify(c.c)===JSON.stringify(best.c));
-        if(!original||!Number.isFinite(original.terminalLoss))throw new Error('missing complete-trajectory candidate loss');
+        // Infinity is a measured invalid complete trajectory (for example a
+        // reconstructed prefix lost an earlier landing), not a missing value.
+        // Preserve that failed outcome for the final judge instead of crashing.
+        if(!original||candidates.some(c=>typeof c.terminalLoss!=='number'||Number.isNaN(c.terminalLoss)))throw new Error('missing complete-trajectory candidate loss');
         const selected=candidates.reduce((a,b)=>b.terminalLoss<a.terminalLoss-1e-15?b:a,original);
         const changed=selected!==original;
         terminalSelectionStats={candidates:candidates.length,initialLoss:original.terminalLoss,finalLoss:selected.terminalLoss,changed};

@@ -1,0 +1,9 @@
+{
+  "schema": "line.benchmark-v5.catalog-lock.v1",
+  "sha256": "f2da2c407ba9f63530087ebf3b731957ebf5fe6801fbf72bd256a6cc29fb621e",
+  "music": 22,
+  "canonical": 75,
+  "confirmation": 40,
+  "author": "scripts/benchmark/v5_author.ts",
+  "authoring": "No compiler outcomes read; targets copied unchanged from V4."
+}

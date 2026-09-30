@@ -7,6 +7,14 @@ plug-in framework, motion motifs, style quotas, or new specification controls.
 
 ## Current gallery
 
+The [guide-choice experiment](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-intent/manifest.json)
+now makes one artistic preference explicit: prefer fewer guided sections, then
+shorter visible guides, while keeping measured whole-ride motion error within a
+chosen allowance. Its slider selects among a fixed set of recorded alternatives;
+it does not run a new search. The comparison menu also exposes both branches of
+each physical fork, including unsuccessful searches. The gallery starts at zero
+additional error; no production tolerance has been selected.
+
 An optional **Inspect rail contacts** view now identifies guide rails and
 actual collided segments, with buttons to jump between guide-contact frames.
 A separate [single-versus-paired study](motion-gallery-guidance-2026-09-30.md)
@@ -27,6 +35,59 @@ The [six-shape report](motion-gallery-six-shapes-2026-09-30.md) preserves the
 preceding experiments; [the four-shape report](motion-gallery-expansion-2026-09-29.md)
 preserves the scattered reconstruction studies. Normal lines remain mandatory;
 the production compiler still defaults to coherent arcs.
+
+## Behavior contract for guide choice
+
+The goal is understandable artistic direction with measured adherence and cost.
+Adding geometry is paused while the existing main-curve/guide construction is
+made explicit. This is a research path, not a new music-specification language.
+
+| Decision | Current meaning |
+| --- | --- |
+| Shape | The connected main curve and opposing guide are emitted before simulation. Only normal type-0 lines are allowed. |
+| Guide permission | A forbidden guide cannot be emitted for the selected support. An allowed guide may be absent, unused, or contacted; permission does not require contact. |
+| Search | Both alternatives get the same incoming state, shape, targets, model settings and physics allowance. Each independently searches its geometry and the complete remaining ride. |
+| Earlier geometry | Every segment before the selected support is locked. Backtracking and guide trimming cannot alter it. Both branch prefixes must reproduce the source rider state and independent replay history. |
+| Continuation | Later supports use the same guide-allowed search in both branches. Their shapes and guide use may differ because the fork changes the arrival state. This is a continuation comparison, not an isolated contact-force experiment. |
+| Trimming | Unused guide sections can be removed after replay while retaining coherent curves. This preserves the measured trajectory; it is not a decision that a different unguided solution could not work. |
+| Delivery preference | Among valid measured tracks within the explicit error ceiling, prefer fewer guide-bearing sections, then shorter total guide length, then lower error and a stable ID. Contact count is diagnostic, not an aesthetic objective. |
+| Failure | Report that an attempt did not find a valid continuation within its allowance. Do not claim physical necessity or impossibility. |
+
+The geometry catalog now stores geometry, guide settings and search overrides
+separately. Existing recipes keep their previous behavior. In particular, some
+historical shape comparisons disable the preview policy; the old single-rail
+recipe also changes `channel`, which affects initialization as well as implicit
+guide clearance. Those comparisons are not pure shape interventions. The new
+paired-fork study keeps preview disabled and channel fixed for **both** branches;
+only guide permission changes. Inactive guide search dimensions are removed.
+
+The implementation uses a serialized prefix rather than retaining engine
+handles across compilations. The fork boundary is the frame immediately before
+the selected support, including startup as section zero. A cold prefix replay
+must match the original complete track's full rider state. The compiler checks
+that state again, and the gallery harness independently compares every recorded
+body-point frame through the boundary. The final complete ride still passes the
+unchanged judge. Unsupported combinations that could edit the locked prefix,
+such as whole-track refinement, are rejected explicitly for this research API.
+
+The exploratory traversal starts from a complete reference, compares both guide
+permissions at successive supports, and follows the valid result with least
+visible guidance to obtain further alternatives. It keeps **all** measured
+results. That traversal may visit less accurate rides; the delivery selector
+separately applies the chosen full-ride error ceiling over the entire fixed pool.
+The common budget pays for reference construction, both branches, prefix checks
+and the compiler's cold replays. Independent gallery observation is recorded
+validation work, outside that construction allowance. All continuations use the
+same search configuration; per-branch ceilings scale with remaining ride length.
+
+The ceiling is the lowest measured whole-trajectory RMS error in that pool plus
+the explicit extra allowance. It uses the compiler's existing authored-axis
+objective, not a modified benchmark score. Nested eligibility guarantees that
+relaxing the allowance cannot select more guided sections. At equal guide count,
+length cannot increase; choosing fewer guide sections can still increase total
+guide length. Both are visible in the gallery. The controls make no promise
+about unsearched alternatives or aesthetic quality. A finite portfolio plateau
+is not evidence that a geometry reached its capability ceiling.
 
 The sections below preserve the first gallery's findings and the efficiency work
 that preceded this expansion. Its local 48-run dataset remains available through

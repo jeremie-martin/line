@@ -65,8 +65,13 @@ try {
     }
     await mirror.close();
   }
+  const out=arg('out');mkdirSync(dirname(out),{recursive:true});
+  let comparisons=0,guideChoiceControls=null;
+  if(manifest.plan.kind==='guide-choice'){
+    const {checkGuideChoiceUI}=await import('./check_guide_choice_ui.mjs');
+    guideChoiceControls=await checkGuideChoiceUI(page,manifest,out);comparisons=guideChoiceControls.comparisons;
+  }else{
   // Exercise every comparison in the primary study through the actual UI.
-  let comparisons=0;
   for(const cell of manifest.cells){
     await page.evaluate(c=>{
       for(const [key,value]of Object.entries({passage:c.caseId,budget:c.budget,seed:c.seed,'right-method':c.method}))document.getElementById(key).value=String(value);
@@ -96,7 +101,6 @@ try {
   if(reference)assert.equal(+(await page.locator('#seek').inputValue()),reference.rows.find(r=>r.id===selectedId).firstGuideContactFrame/40);
   await page.locator('#inspect').uncheck();assert.equal(await page.locator('.contact-inspection').first().isVisible(),false);
   await page.locator('#inspect').check();
-  const out=arg('out');mkdirSync(dirname(out),{recursive:true});
   await page.screenshot({path:out+'.desktop.png',fullPage:true});
   const mobileMethod=manifest.plan.methods.at(-1);
   await page.setViewportSize({width:390,height:844});await page.locator(`.shape-choice[data-method=${mobileMethod}]`).click();
@@ -105,14 +109,16 @@ try {
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   const visible=await page.locator(`.shape-choice[data-method=${mobileMethod}]`).evaluate(el=>{const a=el.getBoundingClientRect(),b=el.parentElement.getBoundingClientRect();return a.left>=b.left-1&&a.right<=b.right+1;});assert.ok(visible);
   await page.screenshot({path:out+'.mobile.png',fullPage:true});
-  const corrupt=await browser.newPage();await corrupt.route('**/'+manifest.cells[0].path,async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+' '});});
+  }
+  const corruptCell=manifest.plan.kind==='guide-choice'?manifest.cells.find(c=>c.id===manifest.portfolios[0].preferences[0].best):manifest.cells[0];
+  const corrupt=await browser.newPage();await corrupt.route('**/'+corruptCell.path,async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+' '});});
   await corrupt.goto(`${origin}/motion-gallery/?data=/${paths[0]}`);await corrupt.waitForFunction(()=>document.getElementById('status').textContent.includes('Checksum mismatch'));
   assert.equal(await corrupt.locator('#panels canvas').count(),0);
   assert.deepEqual(errors,[]);
   const identity=JSON.parse(readFileSync('generated/motion-gallery-renderer/identity.json'));
   const result={schema:'line.gallery-native-checks.v1',studies:studies.map(s=>({path:s.path,sha256:hash(readFileSync(s.path))})),renderer:identity,
     replayRuns:rows.length,maxBodyPointError:Math.max(...rows.map(r=>r.maxError)),meanReplayMs:rows.reduce((n,r)=>n+r.replayMs,0)/rows.length,maxReplayMs:Math.max(...rows.map(r=>r.replayMs)),
-    mirrorChecks,contactReference:reference?{path:arg('contacts'),sha256:hash(readFileSync(arg('contacts'))),matched:rows.length}:null,contactToggleAndNavigation:true,uiComparisons:comparisons,rejectsReplayDrift:true,rejectsAcceleration:true,rejectsCorruptArtifact:true,preservesTimeOnStyleChange:true,playPause:true,mobileSelectionVisible:true,mobileOverflow:false,errors,rows};
+    mirrorChecks,contactReference:reference?{path:arg('contacts'),sha256:hash(readFileSync(arg('contacts'))),matched:rows.length}:null,contactToggleAndNavigation:true,guideChoiceControls,uiComparisons:comparisons,rejectsReplayDrift:true,rejectsAcceleration:true,rejectsCorruptArtifact:true,...(!guideChoiceControls?{preservesTimeOnStyleChange:true,mobileSelectionVisible:true}:{}),playPause:true,mobileOverflow:false,errors,rows};
   const body=JSON.stringify(result,null,2)+'\n';writeFileSync(out,body);writeFileSync(out+'.sha256',hash(body)+'\n');
   console.log({runs:rows.length,maxBodyPointError:result.maxBodyPointError,uiComparisons:comparisons,mirrorChecks});
 }finally{await browser.close();}

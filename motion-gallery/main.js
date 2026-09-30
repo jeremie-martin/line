@@ -1,9 +1,11 @@
 import {prepareView} from './replay.js';
+import {createGuideChoicePanel} from './guide-choice.js';
 const $ = id => document.getElementById(id);
 const number = n => n.toLocaleString(undefined, {maximumFractionDigits: 1});
 const title = method => manifest?.plan.methodDetails?.[method]?.title ?? ({arcs:'Arcs and guides',segments:'Scattered · original'}[method] ?? method);
 const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260930-functional-rails/manifest.json', location.href);
 let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0, activeInput, animation;
+let choicePanel;
 const cache = new Map();
 const hex = bytes => [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, '0')).join('');
 async function read(url, expected) {
@@ -20,7 +22,7 @@ function pause() { cancelAnimationFrame(animation); animation=undefined; playing
 function cellCard(record) {
   const card = document.createElement('article'); card.className = 'card';
   card.innerHTML = '<div class="card-head"><h2></h2><span class="badge"></span></div><canvas aria-label="Recorded track playback"></canvas><div class="contact-inspection" hidden><p class="guide-summary"></p><p class="contact-now"></p><div class="contact-navigation"></div></div><div class="metrics"></div><div class="interval"></div><div class="details"></div>';
-  card.querySelector('h2').textContent = title(record.method);
+  card.querySelector('h2').textContent = record.displayTitle??title(record.method);
   const badge = card.querySelector('.badge'); badge.textContent = record.score.valid ? 'Timing & survival pass' : 'Failed contract';
   badge.classList.toggle('fail', !record.score.valid);
   for (const [label, value] of [['Adherence / 1000', number(record.score.score)], ['Physics frames', number(record.physicalFrames)], ['Compile time', `${(record.compileMs / 1000).toFixed(2)} s`]]) {
@@ -29,9 +31,10 @@ function cellCard(record) {
     metric.append(name, output); card.querySelector('.metrics').append(metric);
   }
   const details = card.querySelector('.details');
+  if(record.usage){const p=document.createElement('p');p.className='choice-metrics';p.textContent=`${record.usage.guideSections}/${record.usage.supportSections} guided sections · ${record.usage.guideLength.toFixed(1)} world units of guide · motion error ${record.qualityRms?.toFixed(4)??'unavailable'}.`;details.append(p);}
   const description = document.createElement('p'); description.textContent = manifest.plan.methodDetails?.[record.method]?.description ?? ''; details.append(description);
   if(record.construction){const selection = document.createElement('p'); selection.textContent = record.construction.selected === 'contact-fragments' ? 'Shown: reconstructed contact fragments.' : 'Shown: original feedback result retained after comparison.'; details.append(selection);}
-  const text = document.createElement('p'); text.textContent = `${number(record.lines)} normal segments · seed ${record.seed} · ${(100 * record.jitter).toFixed(0)}% target jitter · allowance ${number(record.budget)} frames.`; details.append(text);
+  const text = document.createElement('p'); text.textContent = `${number(record.lines)} normal segments · seed ${record.seed} · ${(100 * record.jitter).toFixed(0)}% target jitter · ${record.attemptAllowance?'this attempt:':'allowance'} ${number(record.attemptAllowance??record.budget)} frames.`; details.append(text);
   if (!record.score.valid) {const failure = document.createElement('p'); failure.className = 'failure'; failure.textContent = record.score.hardFailures.join(' · '); details.append(failure);}
   const link = document.createElement('a'); link.href = new URL(record.path, manifestUrl); link.textContent = 'Track, targets and replay data'; details.append(link);
   record.inspector=card.querySelector('.contact-inspection');
@@ -90,14 +93,15 @@ async function showPalette(token) {
 async function select() {
   const input=[$('passage').value,$('budget').value,$('seed').value].join('|');
   const startTime=input===activeInput?seconds:0;
-  const token = ++generation; showPalette(token); pause(); $('play').disabled = true; $('status').textContent = 'Checking matching native replays…';
-  const selected = ['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value && c.method === $(id).value));
+  const token = ++generation; if(!choicePanel)showPalette(token); pause(); $('play').disabled = true; $('status').textContent = 'Checking matching native replays…';
   try {
+    const choice=choicePanel?.select($('passage').value,+$('budget').value,+$('seed').value);
+    const selected=choice?.cells??['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value && c.method === $(id).value));
     if(selected.some(c=>!c))throw new Error('The comparison is incomplete.');
     const loaded = await Promise.all(selected.map(loadCell));
     if (token !== generation) return;
     if (loaded.length !== 2) throw new Error('The comparison is incomplete.');
-    records = loaded; activeInput=input; seconds = Math.min(startTime, records[0].case.durationFrames / 40); $('seek').value = String(seconds); $('seek').max = String(records[0].case.durationFrames / 40);
+    records = loaded.map((r,i)=>({...r,displayTitle:choice?.titles[i]})); activeInput=input; seconds = Math.min(choice?.jumpTo!==undefined?choice.jumpTo/40:startTime, records[0].case.durationFrames / 40); $('seek').value = String(seconds); $('seek').max = String(records[0].case.durationFrames / 40);
     $('beats').replaceChildren(...records[0].case.contacts.map((c, i) => {
       const beat = document.createElement('button'); beat.textContent = String(i+1);
       beat.style.left = `${100*c.frame/records[0].case.durationFrames}%`;
@@ -154,6 +158,11 @@ try {
   const checksum = await fetch(new URL(manifestUrl.href+'.sha256')); if(!checksum.ok)throw new Error('No local study manifest found.');
   manifest = await read(manifestUrl, await checksum.text());
   if(manifest.schema !== 'line.motion-gallery.v1')throw new Error('Unsupported study format.');
+  if(manifest.plan.kind==='guide-choice'){
+    choicePanel=await createGuideChoicePanel(manifest,select);
+    for(const id of ['left-method','right-method'])$(id).closest('label').hidden=true;
+    document.querySelector('.palette-section').hidden=true;
+  }
   for(const id of ['left-method','right-method'])options(id,manifest.plan.methods,title);
   if(manifest.plan.methods.includes('single'))$('left-method').value='single';
   $('right-method').value=manifest.plan.methods.includes('paired')?'paired':manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);

@@ -1,4 +1,5 @@
 import {inspectRailContacts} from '../contacts.ts';
+export {selectGuideAlternative} from '../../v0/optimizer/arc_guide_choice.ts';
 // These are the mirror's actual Canvas drawing and sprite-mapping functions.
 // Keep them unmodified; the surrounding gallery owns only loading and cameras.
 const {render:drawLines}=require('native:805');

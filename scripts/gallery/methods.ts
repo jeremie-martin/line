@@ -2,13 +2,13 @@
  * evaluates every arc variant's emitted collision geometry. */
 import type {ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
 type GeometryOptions=Pick<ArcMotionOptions,'profile'|'contour'|'wave'|'subdivisions'>;
-type GuideOptions=Pick<ArcMotionOptions,'pruneGuidance'|'guides'>;
-type SearchOptions=Pick<ArcMotionOptions,'policyPreview'|'channel'>;
+type GuideOptions=Pick<ArcMotionOptions,'pruneGuidance'|'guides'|'channel'>;
+type SearchOptions=Pick<ArcMotionOptions,'policyPreview'>;
 type ArcRecipe=GeometryOptions&GuideOptions&SearchOptions;
 type Method = {title:string;description:string;geometry?:GeometryOptions;guidance?:GuideOptions;search?:SearchOptions;archived?:boolean;studyOnly?:boolean};
 export const galleryMethods = {
   arcs: {title:'Arcs and guides',description:'Smooth connected support curves with optional guides.',geometry:{}},
-  single: {studyOnly:true,title:'Single rail',description:'Each main curve is searched with opposing guides disabled from the outset, against the same motion and timing targets.',geometry:{},guidance:{guides:false},search:{channel:0}},
+  single: {studyOnly:true,title:'Single rail',description:'Each main curve is searched with opposing guides disabled from the outset, against the same motion and timing targets.',geometry:{},guidance:{guides:false,channel:0}},
   paired: {title:'Paired rails',description:'Plain support curves with their full opposing guides retained from near the start of each support. Both rails participate in the physics search; unused guide sections remain visible.',geometry:{},guidance:{pruneGuidance:false}},
   segments: {title:'Scattered · original',description:'The original velocity-feedback controller, retained as a comparison.'},
   scattered: {title:'Scattered · improved',description:'Tests measured contact fragments against the original scattered controller using the remaining allowance.'},

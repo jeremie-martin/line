@@ -1,3 +1,18 @@
+# Intentional guide choice — 2026-09-30
+
+The [guide-choice behavior contract](docs/motion-repertoire.md#behavior-contract-for-guide-choice)
+now distinguishes permission, search, trimming and delivery preference. The
+gallery exposes an explicit quality/simplicity tradeoff and both continuations
+from each identical physical prefix. The main study contains **432 valid rides
+from 204 matched forks**, using six passages and four fresh jitter seeds. Every
+portfolio stays inside its **900,000-frame total allowance**; all lines are
+normal. At +0.010 existing normalized RMS error, guided sections fall from
+149 to 108 and mean research adherence changes from 877.9685 to 859.5214.
+This is a disclosed research tradeoff; the gallery starts at zero extra error,
+and production settings remain unchanged. All **352 canonical outputs** still
+match exactly at **952.4726**. All **178 focused tests pass**, with no additional
+TypeScript diagnostics. The completed performance goal stays complete.
+
 # Guide choice and contact inspection — 2026-09-30
 
 The [gallery now exposes actual guide contacts](docs/motion-gallery-guidance-2026-09-30.md)

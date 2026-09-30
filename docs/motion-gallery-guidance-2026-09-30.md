@@ -1,5 +1,9 @@
 # Guide contacts and independently searched single rails
 
+The subsequent [intentional guide-choice experiment](#intentional-guide-choice-follow-up)
+adds an explicit preference and comparisons from identical incoming states.
+Its behavior contract lives in [the repertoire guide](motion-repertoire.md#behavior-contract-for-guide-choice).
+
 The [gallery](http://localhost:8767/motion-gallery/) now has an optional **Inspect
 rail contacts** view. Blue identifies an opposing guide; orange identifies
 segments that actually collided during the displayed integer physics frame.
@@ -157,3 +161,124 @@ The next useful experiment is to let single and guided construction compete
 within a track, measuring the adherence/guide-use tradeoff and transition
 behavior. This study establishes both options and makes their contacts visible;
 it does not yet implement per-beat preferences, quotas or random style mixing.
+
+## Intentional guide choice: follow-up
+
+The [Choose guide usage view](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-intent/manifest.json)
+now lets the artist vary an explicit allowance on whole-ride motion error and
+see which measured track has the fewest guided sections within it. At equal
+guide count it prefers shorter total visible guide length. The default is zero
+additional error; no nonzero tolerance is promoted into production.
+
+The left track shows the lowest measured error in the pool and the right shows
+the preference result. An additional comparison shows the original search.
+The menu can also show the two full continuations from any physical fork:
+guide forbidden at that support versus guide allowed. It seeks to the shared
+incoming frame and reports the allowance each branch received. Actual guide
+contacts remain available through the inspection checkbox. Failed searches
+remain representable and excluded from preference selection; none occurred
+in the completed panels below.
+
+The six-passage development pilot used seed 221 and a 450,000-frame total
+allowance: **108 valid alternatives from 51 forks**. Its compiler sources match
+the subsequent committed snapshot, although it ran before that commit and its
+plan records the dirty development identity. The main study froze clean compiler
+`509e724e` and used **four fresh seeds, 231–234**, 2% target jitter, and a
+**900,000-frame total allowance per passage/seed**. It produced **432 valid
+alternatives from 204 matched forks**, across 24 portfolios. All **356,248
+segments** are normal type-0 lines. These are the same six research passages;
+the fresh seeds do not constitute independent music or visual approval.
+
+| Extra normalized RMS error | Guided sections, out of 204 | Total visible guide length | Mean adherence / 1000 |
+| --- | ---: | ---: | ---: |
+| 0 | 149 | 12,949.8 | 877.9685 |
+| 0.005 | 139 | 11,281.4 | 871.8995 |
+| 0.010 | 108 | 8,430.6 | 859.5214 |
+| 0.020 | 80 | 5,773.0 | 842.7409 |
+| 0.040 | 47 | 3,492.9 | 812.4689 |
+| 0.080 | 38 | 2,017.1 | 772.7562 |
+
+At an extra error allowance of 0.010, guide count falls **27.5%** and guide
+length **34.9%**, while mean adherence falls **18.45 points**. Sixteen of the
+24 portfolios select a track with fewer guided sections. Those are disclosed
+tradeoffs on this panel, not recommendations for a production tolerance or
+claims that fewer guides universally look better. The allowance uses the
+compiler's existing normalized, time/event-weighted authored-axis RMS error;
+it is not a number of benchmark points. The frozen evaluator still computes
+the separately displayed adherence score.
+
+The ceiling bounds the aggregate whole-ride error, not the error of every
+individual interval. The gallery retains the per-interval target measurements
+so a local deterioration remains inspectable.
+
+The initial references average 856.4339 adherence. Additional branch searches
+produce the better measured alternatives above, but consume additional work.
+Each complete portfolio uses **833,217–886,447 physical frames**, including
+the reference, both branches, prefix verification and compiler cold replays.
+Generation averaged **17.8 seconds** on this shared host (15.1–20.6 seconds),
+including model-loading and contention effects. Moving the preference control
+does not repeat that work; it selects cached results and replays a newly viewed
+track once. This is a bounded research explorer, not a replacement for the
+production compiler's fast path or a throughput claim across machines.
+
+Both alternatives at every fork have identical earlier geometry and complete
+incoming physical state. They share targets, model settings, channel, shape,
+initialization and per-branch allowance. The guide-forbidden branch removes
+inactive guide variables. Both then search the whole remaining ride with guides
+allowed at later supports. Changing the first branch can therefore change later
+guide usage too. The experiment measures that complete consequence rather than
+claiming an isolated mechanical effect of one rail.
+
+The traversal follows one sequence of progressively simpler valid references,
+retaining every alternative for final selection. It does not explore every
+combination of earlier decisions. A plateau in the slider therefore describes
+the available pool, not a physical limit. More branches, different traversal
+orders, or a search better adapted to unguided curves may improve the tradeoff.
+No style quotas, random mixing or per-beat specification syntax were introduced.
+
+Every fork passed exact prefix-geometry and full-state checks; the independently
+recorded body traces also agree through the fork boundary, covering **42,768
+branch-prefix frames**. The summary verifier reconstructs the RMS error from
+the fixed judge's observations rather than trusting the compiler's returned
+loss: maximum disagreement is **3.47e-16**. It checks all budgets and forbidden
+guide constraints and evaluates 81 tolerance settings per portfolio (**1,944
+checks**) to verify the promised ordering. Raw alternatives and all hashes are
+preserved locally. See [main evidence](evidence/guide-choice-20260930.json),
+[development pilot](evidence/guide-choice-20260930-pilot.json) and
+[validation](evidence/guide-choice-20260930-checks.json).
+
+Native playback and independent fixed-engine collision IDs agree across **756
+rides / 223,404 frames**, including both new panels and the 216 existing gallery
+rides; maximum body-coordinate error is zero. Browser checks cover 144 main-study
+preference comparisons, all 204 main-study forks, 36 pilot preference comparisons,
+51 pilot forks and all 216 historical comparisons. They verify selection against
+an independent ranking, seeking to the shared boundary, contact navigation,
+preserved playhead, mobile layout and refusal of corrupted or drifting replays.
+Desktop and mobile screenshots were inspected.
+
+All **178 focused tests in 44 files** pass, and TypeScript retains its **251
+inherited diagnostics** with no additions. The shared gallery artifact/replay
+refactor reproduces 12 existing arc/paired tracks, scores, observations, work
+counts and traces exactly. Full frozen V4 remains **952.4726**, with all **352
+tracks, scores, observations, geometry, compiler statistics and work counts
+unchanged**; [production parity](evidence/guide-choice-20260930-production.json)
+records the comparison. The new geometry/catalog organization preserves the old
+recipes and makes their search overrides explicit.
+
+To reproduce the research with a clean compiler checkout and built WASM engine:
+
+```sh
+LR_ENGINE=wasm node --import tsx scripts/gallery/build_guide_choices.ts \
+  --compiler-root="$PWD" --seeds=231,232,233,234 --budgets=900000 \
+  --out=generated/motion-gallery/my-guide-choice-study
+node --import tsx scripts/gallery/summarize_guide_choices.ts \
+  generated/motion-gallery/my-guide-choice-study/manifest.json \
+  --out=generated/my-guide-choice-evidence.json
+npm run dash
+```
+
+Open `/motion-gallery/?data=/generated/motion-gallery/my-guide-choice-study/manifest.json`.
+The existing `contact_reference.ts` and `check_renderer.mjs` commands above also
+accept this dataset; browser checks exercise the preference control and every
+paired fork. Code and compact evidence are versioned; tracks, traces, screenshots
+and generated bundles stay local.

@@ -218,6 +218,20 @@ try {
   $('right-method').value=manifest.plan.methods.includes('paired')?'paired':manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);
   options('passage', manifest.plan.cases.map(c=>c.id), id=>manifest.plan.cases.find(c=>c.id===id).title);
   options('budget', manifest.plan.budgets, b=>`${number(b)} frames`); $('budget').value=String(manifest.plan.budgets.includes(100000)?100000:manifest.plan.budgets.at(-1)); options('seed',manifest.plan.seeds);
+  // A musical review links to the exact same pair and moment, not a default seed.
+  const query=new URLSearchParams(location.search);
+  for(const [param,id] of [['passage','passage'],['seed','seed'],['left','left-method'],['right','right-method']]){
+    const value=query.get(param);if(value!==null&&[...$(id).options].some(o=>o.value===value))$(id).value=value;
+  }
+  if(query.has('time')){
+    const time=Number(query.get('time')),c=manifest.plan.cases.find(c=>c.id===$('passage').value);
+    if(Number.isFinite(time)&&time>=0){seconds=Math.min(time,c.durationFrames/40);activePassage=c.id;}
+  }
+  if(manifest.plan.kind==='musical-direction'){
+    document.querySelector('.intro h1').textContent='Inspect the musical comparison.';
+    document.querySelector('.intro p:last-child').textContent='These are the same physical tracks used in the finished musical videos. Inspect actual contacts and achieved targets; use the music review for synchronized audio and the production camera.';
+    const link=document.createElement('a');link.href='/motion-gallery/music.html?data='+encodeURIComponent(manifestUrl.pathname);link.textContent='Return to musical videos';document.querySelector('.study-links').prepend(link);
+  }
   $('study-note').textContent=choicePanel?.note??manifest.plan.note; $('manifest-link').href=manifestUrl;
   $('identity').textContent=`Compiler ${manifest.plan.compiler.head.slice(0,8)} · ${manifest.cells.length} recorded runs`;
   for(const row of manifest.summary){const tr=document.createElement('tr');for(const value of [title(row.method),number(row.budget),`${row.valid}/${row.runs}`,number(row.meanScore),number(row.totalPhysicalFrames),`${(row.totalCompileMs/1000).toFixed(1)} s`]){const td=document.createElement('td');td.textContent=value;tr.append(td);}$('summary').append(tr);}

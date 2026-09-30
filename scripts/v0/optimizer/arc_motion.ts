@@ -49,6 +49,10 @@ export type ArcMotionFork = {
 export type ArcMotionOptions= ArcGeometryStyle & {
   budget:number;
   fork?:ArcMotionFork;
+  /** Research composition by support index (startup is zero). Applied to every
+   * proposal, lookahead and rebuilt continuation. Omitted sections inherit the
+   * global settings; this changes construction, never the musical specification. */
+  sectionStyles?:Record<number,{guides?:boolean;subdivisions?:number}>;
   /** Reuse the preliminary track as measured controls in general search. */
   previewMemory?:boolean;
   /** Measured controls retrieved by physical state and authored targets. */
@@ -294,6 +298,19 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   };
   setPhysicsFrameLimit(budget-2*(end+1));
   const contacts=[{frame:1,gap:-1},...planned.filter(g=>g.endsWithContact).map(g=>({frame:g.endFrame,gap:g.index}))];
+  if(options.sectionStyles){
+    if(typeof options.sectionStyles!=='object'||Array.isArray(options.sectionStyles))throw new Error('invalid section styles');
+    if(options.wholeTrackRefinement||(options.refineAttempts??0)>0||options.directControls||options.replayControls)
+      throw new Error('section styles require ordinary connected search');
+    for(const [key,style] of Object.entries(options.sectionStyles)){
+      const index=Number(key);
+      if(!Number.isSafeInteger(index)||String(index)!==key||index<resumeAt||index>=contacts.length||
+        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>k!=='guides'&&k!=='subdivisions')||
+        (style.guides!==undefined&&typeof style.guides!=='boolean')||
+        (style.subdivisions!==undefined&&(!Number.isFinite(style.subdivisions)||style.subdivisions<=0||style.subdivisions>4)))
+        throw new Error('invalid section style or locked prefix override');
+    }
+  }
   if(options.replayControls&&options.replayControls.length!==contacts.length)throw new Error('replay controls do not cover the complete timeline');
   try{
     if(options.fork){
@@ -325,7 +342,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       return features;
     };
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
-      const options={...compileOptions,...overrides};
+      const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
       if(options.fork?.continuationGuides&&i>=options.fork.section)options.guides=options.fork.continuationGuides[i-options.fork.section];
       if(options.fork&&i===options.fork.section)options.guides=options.fork.guides;
       // Once the timeline is complete, no future state needs a surrogate.

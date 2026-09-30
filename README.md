@@ -4,18 +4,24 @@ Procedural Line Rider videos synchronized to music.
 
 ## What this is
 
-Take an audio file → generate a Line Rider track JSON whose ride lands beats /
-events / shapes in sync with the music → render to mp4. The community
-equivalent (DoodleChaos's hand-made music tracks) takes a month per video.
-Nobody has published an automated pipeline; that's the gap this project fills.
+Turn an authored musical specification into a physical Line Rider track and a
+finished video. Audio analysis supports authoring; the compiler searches normal
+line geometry against the requested contacts and motion, then the production
+pipeline renders the actual ride with its music and camera.
 
 Status: the spec-to-track compiler and full vertical video pipeline are working.
 The current compiler uses coherent normal-line arcs with measured trajectory
 shaping and adaptive continuation planning. The current development benchmark is
 [V4](benchmark/v4/README.md): 176 specifications, retaining all 88 V3 cases,
 with two canonical seeds and a 750,000-frame allowance per run.
-The current canonical score is **952.4115**, with **352/352 valid runs**.
+The current canonical score is **952.4726**, with **352/352 valid runs**.
 The compiler also preserves validated curves when further search exhausts its budget.
+
+Current creative work follows the [musical direction plan](docs/musical-direction-plan.md):
+deliberate local construction choices on real songs, shown through the native
+inspector and the complete vertical-video pipeline. The production compiler uses
+early acceptance of accurate, physically validated proposals; experimental visual
+choices are kept explicit and do not replace its defaults.
 See [the V4 campaign and evidence](docs/arc-v4-940-campaign.md) and
 [the compiler map](scripts/v0/optimizer/README.md).
 

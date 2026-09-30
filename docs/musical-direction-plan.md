@@ -84,3 +84,21 @@ reference material and will not be committed without a request.
 Implementation in progress. Results and unresolved questions will be recorded
 here with links to the resulting artifacts and evidence, preserving the scope
 above rather than substituting a narrower numerical target.
+
+The concrete Luna hypotheses are a guide-free vocal build (supports beginning
+between 6.4 and 8.55 seconds) and an angular climax (24.2 to 25.8 seconds), followed
+by ordinary smooth construction. Actual boundaries snap to existing authored
+supports and are recorded. The comparison excerpt is 6–38 seconds from the
+complete 44-second ride. These are provisional artistic choices, not music rules.
+
+The second song is Amor na Praia: a guide-free soft introduction (1.5–3.5 seconds)
+and a faceted percussion burst (4.46–7.87 seconds), preserving the subsequent
+breath and drop as authored targets. This plan is fixed before confirmation on
+that song. Development uses Luna seed 301; confirmation uses seeds 311–313 on
+both songs. Authored jitter remains zero, so repeated seeds may produce identical
+tracks; distinct track counts will be reported instead of assuming independence.
+
+GPT-6.1-Sol independently reviewed the transcript and agreed plan. Its main
+recommendation was to make local composition central, verify actual geometry and
+contacts at the return to arcs, and report local target losses as well as global
+quality. The implementation follows those recommendations.

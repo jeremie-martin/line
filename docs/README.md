@@ -21,6 +21,7 @@ historical record, not live guidance.
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
 | [`compiler-efficiency-2026-09-29.md`](compiler-efficiency-2026-09-29.md) | REFERENCE | Qualified stopping policy, measured work and timing, and first gallery findings. |
 | [`motion-repertoire.md`](motion-repertoire.md) | LIVE | Playable motion gallery, measured geometry comparison and compiler stopping policy. |
+| [`musical-direction-plan.md`](musical-direction-plan.md) | LIVE | Current milestone: real musical comparisons, intentional local composition and measured quality/cost. |
 | [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | REFERENCE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
 | [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | REFERENCE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |
 | [`benchmark-v2-baseline.md`](benchmark-v2-baseline.md) | REFERENCE | Generated summary of the currently accepted baseline. |
@@ -46,8 +47,10 @@ historical record, not live guidance.
 
 ## Campaigns
 
-The current result is [952.5191 on frozen V4](compiler-design-audit-2026-09-11.md),
-following the 940 campaign and subsequent integrity and design audits.
+The current result is [952.4726 on frozen V4](compiler-efficiency-2026-09-29.md),
+after the integrity/design audits and the qualified early-acceptance efficiency work.
+The current creative milestone is [musical direction](musical-direction-plan.md);
+the guide-count studies remain supporting research, not an artistic objective.
 Earlier framework-specific campaigns remain historical references.
 
 | Doc | Tag | What |

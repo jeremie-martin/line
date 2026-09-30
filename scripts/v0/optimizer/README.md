@@ -16,6 +16,7 @@ checkouts can import and run the legacy backend without Rust or arc assets.
 | `compiler_input.ts` | Validate finite timeline values and order contacts with their authored targets. |
 | `arc_engine.ts` | Construct owned engine wrappers without empty-batch handle aliases. |
 | `arc_geometry.ts` | Pure coherent-curve construction: tangent schedule, turn timing, bend and guide separation. |
+| `arc_composition.ts` | Explicit research composition: lock an existing physical prefix, change selected supports, and search the complete continuation. |
 | `arc_attempts.ts` | Complete-trajectory competition, incumbent-control transfer, and separate work/completion records for each attempt. |
 | `arc_motion_control.ts` | Shared control registry: bounds, search defaults and steps, cache identity, expressive diversity, and exact adaptation of measured examples. |
 | `arc_motion.ts` | Measured candidate search, continuation planning, backtracking and final replays. |
@@ -83,8 +84,10 @@ library, with a ceiling of 5% of the existing allowance. Original control values
 and omitted geometry fields are preserved exactly at demonstrated states;
 otherwise entry/exit angles and support adapt to the measured incoming direction
 and interval. The proposal is physically validated and stops early on rejection.
-General search then continues against the same absolute frame ceiling, without
-resetting or refunding any proposal work. It adds the preliminary track's
+When the complete proposal passes the physical contract and its measured
+whole-ride RMS error is at most 0.025, compilation stops. Otherwise general
+search continues against the same absolute frame ceiling, without resetting or
+refunding any proposal work. It adds the preliminary track's
 measured controls, including useful partial prefixes, to the existing physical-state
 memory. Retrieval matches the full relative rider state and upcoming targets,
 then adapts heading and interval length. These proposals share the established
@@ -95,6 +98,28 @@ Explicit replay/direct-control studies bypass this competition. Disable
 measure the contribution of transferring the preliminary controls. Explicit
 `controlExamples` can offer other measured trajectories through the same memory
 interface. Each example includes its incoming physical/target feature vector.
+
+## Deliberate local composition
+
+`composeArcSections` is an explicit research API, separate from automatic style
+selection. Its sparse `sectionStyles` map permits `guides` and `subdivisions`
+overrides by physical support index; startup is zero. Missing entries inherit
+the ordinary connected-arc settings. The same overrides apply during proposals,
+lookahead and backtracking, so an arc–facet–arc configuration searches the actual
+collision geometry and returns to smooth construction afterwards.
+
+The earlier track and full incoming rider state are locked and independently
+verified. The rest of the ride is searched again; changing one phrase does not
+promise identical later motion. Preparation, search and cold replays fit inside
+one stated additional allowance. Building the reference is separate work and is
+counted once by the musical comparison runner. A forbidden guide cannot be
+emitted. An allowed guide need not be contacted; cleanup can remove unused parts.
+No guide quota, aesthetic score or music-specification field is introduced.
+
+The [musical direction plan](../../../docs/musical-direction-plan.md) records the
+intended comparisons, constraints and confirmation. `scripts/produce/musical_direction.ts`
+saves exact rides for both the native inspector and full production renderer.
+These capabilities do not change production defaults or establish artistic approval.
 
 Proposal diversity includes all supported curve controls: guide coverage and
 separation, bend, turn timing, easing, and contact offset as well as the original

@@ -1,3 +1,13 @@
+# Musical direction on real songs — 2026-09-30
+
+The owner authorized implementation of the [musical direction plan](docs/musical-direction-plan.md).
+The active milestone is deliberate, understandable visual choices on real music:
+preserved production rides, a local arc–facet–arc phrase, an inspectable guide-free
+phrase, finished vertical comparisons, and confirmation on a second song.
+Guide-count optimization is supporting research, not the artistic objective.
+Normal lines and the frozen benchmark/scorer/physics remain constraints.
+Implementation is in progress; owner visual preference is not yet established.
+
 # Guide coverage and transfer to facets — 2026-09-30
 
 The [four-part coverage study](docs/guide-coverage-2026-09-30.md) is complete:

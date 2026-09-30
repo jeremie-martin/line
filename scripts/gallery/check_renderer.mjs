@@ -49,7 +49,7 @@ try {
     const mirror=await browser.newPage();
     await mirror.route('**/*',route=>new URL(route.request().url()).origin===arg('mirror-origin')?route.continue():route.abort());
     await mirror.goto(arg('mirror-origin'));await mirror.waitForFunction(()=>window.__lr&&window.Selectors&&window.loadTrackFromString);
-    for(const method of ['arcs','paired','scattered','serpentine']){
+    for(const method of manifest.plan.methods.slice(0,4)){
       const cell=manifest.cells.find(c=>c.method===method);if(!cell)continue;
       const r=JSON.parse(readFileSync(resolve(dirname(path),cell.path))),native=await replay(r,true);
       await mirror.evaluate(async track=>{window.__lr.enterEditor();window.__lr.loadTrack(track);await window.__lr.waitForTrackLoaded(track);},r.track);
@@ -80,10 +80,12 @@ try {
     await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready'&&document.querySelectorAll('.shape-choice').length>0);
     assert.match(await page.locator('#status').textContent(),/replay verified/);comparisons++;
   }
-  await page.selectOption('#passage',manifest.plan.cases[0].id);await page.selectOption('#left-method','arcs');await page.selectOption('#right-method','paired');
+  const left=manifest.plan.methods.includes('arcs')?'arcs':manifest.plan.methods[0];
+  const right=manifest.plan.methods.includes('paired')?'paired':manifest.plan.methods[1]??left;
+  await page.selectOption('#passage',manifest.plan.cases[0].id);await page.selectOption('#left-method',left);await page.selectOption('#right-method',right);
   await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
   await page.locator('#beats button').nth(1).click();const beatTime=await page.locator('#time').textContent();
-  const alternate=manifest.plan.methods.includes('scattered')?'scattered':'single';
+  const alternate=manifest.plan.methods.find(m=>m!==right)??right;
   await page.selectOption('#right-method',alternate);await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
   assert.equal(await page.locator('#time').textContent(),beatTime);
   await page.locator('#play').click();await page.waitForTimeout(600);await page.locator('#play').click();

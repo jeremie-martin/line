@@ -99,7 +99,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const boundary = getRiderMetered(incumbent, horizon);
       const reference = {position: boundary.position, velocity: boundary.velocity, state: boundary.ballisticState()};
       const control = sourceRows[i].control;
-      const directKeys=arcMethodKeys('repair',!!(options.expressive||options.refineExpressive));
+      const directKeys=arcMethodKeys('repair',!!(options.expressive||options.refineExpressive),false,options.guides);
       const scale = Math.pow(.5, Math.floor((tries[i] - 1) / 2));
       const directControls = directKeys.flatMap(key => [-1, 1].map(sign => ({...control,
         [key]: arcControlValue(control,key,options.channel) + sign * arcControlStep(key,'repair',control.support) * scale})));

@@ -19,7 +19,7 @@ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_valu
 import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { createArcEngine } from './arc_engine.ts';
 import { runArcAttempts } from './arc_attempts.ts';
-import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemoKey, arcControlValue, arcControlStep, arcMethodKeys } from './arc_motion_control.ts';
+import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemoKey, arcControlValue, arcControlStep, arcMethodKeys, arcControlActive } from './arc_motion_control.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -320,7 +320,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
-        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.profile,options.contour,
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.profile,options.contour,options.guides,
           options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
@@ -538,17 +538,18 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(best&&options.guidance){
         const origin=best;
         const exitEnabled=options.independentExit&&best.c.support>=(options.minExitSupport??0);
-        const responseKeys=arcMethodKeys('response',!!options.expressive,!!exitEnabled);
+        const responseKeys=arcMethodKeys('response',!!options.expressive,!!exitEnabled,options.guides);
         const wantedResponse=Math.min(options.guidanceSamples??48,options.responseSamples??0);
         const responseRound=2*responseKeys.length+3;
         const responseAllowance=options.completeGuidanceBudget?Math.floor(wantedResponse/responseRound)*responseRound:wantedResponse>=responseRound?wantedResponse:0;
         const count=(options.guidanceSamples??48)-responseAllowance;
-        const keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
+        let keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
         if(options.guidanceJoint)keys.push(...ARC_CORE_KEYS);
         if(options.expressive)keys.push(...ARC_EXPRESSIVE_KEYS);
         if(exitEnabled)keys.push('exitBias');
+        if(options.guides===false)keys=keys.filter(key=>arcControlActive(key,false));
         const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
-        for(let k=0;k<count;k++){
+        for(let k=0;keys.length&&k<count;k++){
           const frac=(n:number)=>((k+1)*n)%1;
           let c:ArcMotionControl;
           if(k<broad){

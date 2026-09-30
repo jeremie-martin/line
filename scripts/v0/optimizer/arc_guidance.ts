@@ -1,9 +1,9 @@
 /** Reduce redundant guidance while retaining one coherent upper curve per arc. */
 import type { TrackLine } from '../types.ts';
 
-export function trimUnusedArcGuides(lines: TrackLine[], engine: any, duration: number) {
-  // Collision inspection must use an already metered complete replay.
-  if (engine.getLastFrameIndex() < duration) throw new Error('guidance reduction requires a metered full replay');
+/** Emitter contract: one main chain and at most one opposing guide per support.
+ * Shared with gallery inspection; fragments and contoured experiments do not use it. */
+export function arcRailGroups(lines:TrackLine[]):Map<number,TrackLine[][]> {
   const groups = new Map<number, TrackLine[][]>();
   for (const line of lines) {
     if (line.type !== 0) throw new Error('guidance reduction requires normal lines');
@@ -12,8 +12,15 @@ export function trimUnusedArcGuides(lines: TrackLine[], engine: any, duration: n
     if (previous && (previous.x2 !== line.x1 || previous.y2 !== line.y1)) chains.push([]);
     chains.at(-1)!.push(line); groups.set(id, chains);
   }
+  for(const chains of groups.values())if(chains.length>2)throw new Error('guidance must contain at most two connected curves');
+  return groups;
+}
+
+export function trimUnusedArcGuides(lines: TrackLine[], engine: any, duration: number) {
+  // Collision inspection must use an already metered complete replay.
+  if (engine.getLastFrameIndex() < duration) throw new Error('guidance reduction requires a metered full replay');
+  const groups = arcRailGroups(lines);
   const roofs = [...groups].map(([id, chains]) => {
-    if (chains.length > 2) throw new Error('guidance must contain at most two connected curves');
     return { id, lines: chains[1] ?? [] };
   });
   const roofIds = new Set(roofs.flatMap(g => g.lines.map(l => l.id))), touched = new Set<number>();

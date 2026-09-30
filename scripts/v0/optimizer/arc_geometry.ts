@@ -7,7 +7,7 @@ import type { TrackLine } from '../types.ts';
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
-export type ArcGeometryStyle={profile?:MotionProfile;contour?:RailContour};
+export type ArcGeometryStyle={guides?:boolean;profile?:MotionProfile;contour?:RailContour};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number};
 
@@ -49,7 +49,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     lines.push(makeSolidLine(id++,x,y,xx,yy));x=xx;y=yy;
   }
   const clearance=c.clearance??channel;
-  if(clearance>0&&(c.guideEnd??1)>(c.guideStart??0)){
+  if(style?.guides!==false&&clearance>0&&(c.guideEnd??1)>(c.guideStart??0)){
     const vertices=lines.map(l=>({x:l.x1,y:l.y1}));vertices.push({x:lines.at(-1)!.x2,y:lines.at(-1)!.y2});
     const roof=vertices.slice(2).map((p,i)=>{
       const index=i+2,prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];

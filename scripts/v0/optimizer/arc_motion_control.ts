@@ -6,7 +6,7 @@ type ControlKey = keyof ArcMotionControl;
 type Step = number | ((support: number) => number);
 type SearchMethod = 'coordinate' | 'response' | 'newton' | 'repair';
 export type ArcControlContext = {
-  span: number; bidirectional?: boolean; channel?: number;
+  span: number; bidirectional?: boolean; channel?: number; guides?: boolean;
   preserveTurnTiming?: boolean; independentExit?: boolean; exitRefinementOnly?: boolean;
 };
 type ControlDefinition = {
@@ -48,10 +48,16 @@ export const ARC_CONTROL_KEYS = Object.keys(ARC_CONTROL_DEFINITIONS) as readonly
 export const ARC_CORE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'core');
 export const ARC_EXPRESSIVE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'expressive');
 
+/** Disabled guides have no meaningful clearance, coverage or flare coordinates. */
+export function arcControlActive(key:ControlKey,guides=true):boolean {
+  return guides || (ARC_CONTROL_DEFINITIONS[key].family!=='guide' && key!=='guideFlare');
+}
+
 export function normalizeArcControl(control: ArcMotionControl, context: ArcControlContext): ArcMotionControl {
   const c = {...control};
   for (const key of ARC_CONTROL_KEYS) {
     const definition = ARC_CONTROL_DEFINITIONS[key];
+    if(!arcControlActive(key,context.guides)){delete c[key];continue;}
     // Independent probing must freeze late easing before changing entry bias.
     if (key === 'exitBias' && context.independentExit && !context.exitRefinementOnly && c[key] === undefined)
       c[key] = c.bias;
@@ -84,10 +90,10 @@ export function arcControlStep(key: ControlKey, method: SearchMethod, support: n
   return typeof step === 'number' ? step : step(support);
 }
 
-export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false): ControlKey[] {
+export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true): ControlKey[] {
   return ARC_CONTROL_KEYS.filter(key => {
     const definition = ARC_CONTROL_DEFINITIONS[key];
-    return definition[method] !== undefined && (definition.family !== 'expressive' || expressive) &&
+    return arcControlActive(key,guides) && definition[method] !== undefined && (definition.family !== 'expressive' || expressive) &&
       (definition.family !== 'exit' || independentExit);
   });
 }

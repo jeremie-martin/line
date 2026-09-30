@@ -29,7 +29,7 @@ const identity = () => JSON.parse(execFileSync(process.execPath, ['--import', 't
 const harness = () => Object.fromEntries(['scripts/gallery/build.ts', 'scripts/gallery/cases.ts', 'scripts/gallery/methods.ts'].map(p => [p, sha(readFileSync(p))]));
 const plan = {schema: 'line.motion-gallery-plan.v1', researchOnly: true, compilerRoot, compiler: identity(),
   judge: verifyFrozen(), harness: harness(), cases: galleryCases, budgets, seeds, jitter,
-  methods, methodDetails, observer: Object.fromEntries(execFileSync('git', ['ls-files', 'vendor/lr-core'], {cwd: compilerRoot, encoding: 'utf8'}).trim().split('\n').map(p => [p, sha(readFileSync(resolve(compilerRoot,p)))])), note: 'Eight functional geometry choices plus the original scattered controller for comparison. Paired rails retain the complete opposing guides that ordinary arcs trim after replay. Outlined contour experiments remain archived separately. Shapes are constructed before physics search. Matched short passages, not a benchmark headline. Improved scattered construction compares two normal-segment methods; its choice and all work are recorded. No arc track is substituted for scattered geometry. Wall times include lazy model loading; first cell is cold, later cells reuse the process.'};
+  methods, methodDetails, observer: Object.fromEntries(execFileSync('git', ['ls-files', 'vendor/lr-core'], {cwd: compilerRoot, encoding: 'utf8'}).trim().split('\n').map(p => [p, sha(readFileSync(resolve(compilerRoot,p)))])), note: 'Matched geometry research. Single rails are independently searched with guides disabled during every candidate simulation. Paired rails retain complete guides; ordinary arcs trim unused guide sections after replay. Shapes are constructed before physics search. Matched short passages, not a benchmark headline. Improved scattered construction compares two normal-segment methods; its choice and all work are recorded. No arc track is substituted for scattered geometry. Wall times include lazy model loading; first cell is cold, later cells reuse the process.'};
 mkdirSync(out, {recursive: true});
 const write = (name: string, value: unknown) => {
   const body = JSON.stringify(value) + '\n'; writeFileSync(resolve(out, name), body);
@@ -78,7 +78,7 @@ for (const c of galleryCases) for (const budget of budgets) for (const seed of s
     });
     trace = {fps: 40, pointIds, frames, terminus: det.terminus};
   } finally { dispose(); }
-  const cell = {id, caseId: c.id, method, seed, jitter, budget, score: grade.score, compileMs,
+  const cell = {id, caseId: c.id, method, railLayout:methodDetails[method].railLayout, seed, jitter, budget, score: grade.score, compileMs,
     processCompileCall: ++compileCalls, construction: result.construction ?? null, work: result.work ?? null,
     usesPolicy: Boolean(options?.controlPolicy), replayMs: performance.now() - replayStart, physicalFrames,
     lines: result.track.lines.length, trackHash, attempts: result.attempts ?? null, proposalDecision: result.proposalDecision ?? null,

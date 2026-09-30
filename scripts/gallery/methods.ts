@@ -1,10 +1,11 @@
 /** Concrete gallery choices, not a new specification language. The same search
  * evaluates every arc variant's emitted collision geometry. */
 import type {ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
-type GeometryOptions=Pick<ArcMotionOptions,'profile'|'contour'|'wave'|'subdivisions'|'policyPreview'|'pruneGuidance'>;
-type Method = {title:string;description:string;arc?:GeometryOptions;archived?:boolean};
+type GeometryOptions=Pick<ArcMotionOptions,'profile'|'contour'|'wave'|'subdivisions'|'policyPreview'|'pruneGuidance'|'guides'|'channel'>;
+type Method = {title:string;description:string;arc?:GeometryOptions;archived?:boolean;studyOnly?:boolean};
 export const galleryMethods = {
   arcs: {title:'Arcs and guides',description:'Smooth connected support curves with optional guides.',arc:{}},
+  single: {studyOnly:true,title:'Single rail',description:'Each main curve is searched with opposing guides disabled from the outset, against the same motion and timing targets.',arc:{guides:false,channel:0}},
   paired: {title:'Paired rails',description:'Plain support curves with their full opposing guides retained from near the start of each support. Both rails participate in the physics search; unused guide sections remain visible.',arc:{pruneGuidance:false}},
   segments: {title:'Scattered · original',description:'The original velocity-feedback controller, retained as a comparison.'},
   scattered: {title:'Scattered · improved',description:'Tests measured contact fragments against the original scattered controller using the remaining allowance.'},
@@ -18,8 +19,11 @@ export const galleryMethods = {
   petals: {archived:true,title:'Petal chains',description:'Rounded lobes grow along the supporting curves, creating a repeating floral outline. Every edge is physical.',arc:{contour:'petals',policyPreview:false}},
 } satisfies Record<string,Method>;
 export type GalleryMethod=keyof typeof galleryMethods;
-export const galleryActiveMethods=Object.keys(galleryMethods).filter(id=>!(galleryMethods[id as GalleryMethod] as Method).archived) as GalleryMethod[];
-export const galleryMethodDetails=Object.fromEntries(Object.entries(galleryMethods).map(([id,{title,description}])=>[id,{title,description}]));
+export const galleryActiveMethods=Object.keys(galleryMethods).filter(id=>!(galleryMethods[id as GalleryMethod] as Method).archived && !(galleryMethods[id as GalleryMethod] as Method).studyOnly) as GalleryMethod[];
+export const galleryMethodDetails=Object.fromEntries(Object.entries(galleryMethods).map(([id,definition])=>{
+  const {title,description,arc}=definition as Method;
+  return [id,{title,description,railLayout:arc?(arc.contour?'contours':'connected'):'fragments'}];
+}));
 export function galleryArcOptions(method:GalleryMethod):GeometryOptions|undefined {
   if(!Object.hasOwn(galleryMethods,method))throw new Error(`unknown gallery method: ${method}`);
   const definition:Method=galleryMethods[method];

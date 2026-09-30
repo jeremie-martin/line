@@ -52,3 +52,48 @@ it('charges reference construction, both branches, verification and cold replays
  }
  expect(selectGuideAlternative(r.candidates,.01)?.selected.valid).toBe(true);
 });
+it('keeps both exploration paths inside one allowance and preserves each paired physical fork',()=>{
+ const r=studyGuideChoices(spec,17,300000,{exploration:'accuracy-and-guidance',sourceContinuation:true});
+ expect(new Set(r.candidates.map(c=>c.id)).size).toBe(r.candidates.length);
+ expect(r.physicalFrames).toBeLessThanOrEqual(300000);
+ expect(r.physicalFrames).toBe(r.preparationFrames+r.candidates.reduce((n,c)=>n+c.result.stats.sim_frames,0));
+ expect(r.decisions.length).toBeGreaterThan(spec.contacts.length+1);
+ for(const d of r.decisions){
+  const source=r.candidates.find(c=>c.id===d.source)!;
+  for(const id of [d.single,d.guided]){
+   const c=r.candidates.find(c=>c.id===id)!;
+   const prefix=(lines:any[])=>lines.filter(l=>Math.floor((l.id-1000)/10000)<d.section);
+   expect(prefix(c.result.track.lines)).toEqual(prefix(source.result.track.lines));
+   expect(c.result.forkEvidence?.stateSha256).toBe(d.stateSha256);
+   expect(c.result.stats.sim_frames).toBeLessThanOrEqual(d.allowancePerBranch);
+   expect(c.result.track.lines.every(l=>l.type===0)).toBe(true);
+  }
+ }
+});
+it('treats source continuation controls as proposals and rejects incomplete references',()=>{
+ const reference=compileArcMotion(spec,17,options),captured=captureArcFork(reference,2);
+ const continuation=reference.rows.slice(2).map(r=>({control:r.control,incoming:r.incoming,span:r.span}));
+ const saved=JSON.stringify(continuation);
+ const fork={...captured.fork,guides:false,continuation};
+ const result=compileArcMotion(spec,17,{...options,fork});
+ expect(JSON.stringify(continuation)).toBe(saved);
+ expect(result.forkEvidence?.stateSha256).toBe(captured.fork.stateSha256);
+ expect(guideFootprint(result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===2)).guideSections).toBe(0);
+ expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
+ expect(result.stats.sim_frames).toBeGreaterThan(2*(spec.duration*40+21));
+ expect(()=>compileArcMotion(spec,17,{...options,fork:{...fork,continuation:[]}})).toThrow('cover the continuation');
+});
+it('pays for both starting tracks and keeps an independently compiled zero-guide alternative',()=>{
+ const r=studyGuideChoices(spec,17,300000,{exploration:'balanced',unguidedReference:true,sourceMemory:true});
+ expect(r.references).toEqual(['reference','reference-single']);
+ const single=r.candidates.find(c=>c.id==='reference-single')!;
+ expect(single.valid).toBe(true);expect(single.usage.guideSections).toBe(0);
+ const referenceWork=r.candidates.filter(c=>r.references.includes(c.id)).reduce((n,c)=>n+c.result.stats.sim_frames,0);
+ expect(r.physicalFrames).toBe(referenceWork+r.decisions.reduce((n,d)=>n+d.physicalFrames,0));
+ expect(r.physicalFrames).toBeLessThanOrEqual(300000);
+ for(const round of r.rounds){
+  expect(round.after.length).toBeGreaterThan(0);expect(round.after.length).toBeLessThanOrEqual(2);
+  for(const id of [...round.before,...round.after])expect(r.candidates.find(c=>c.id===id)?.valid).toBe(true);
+ }
+ expect(()=>studyGuideChoices(spec,17,300000,{unguidedReference:true})).toThrow('two-path');
+});

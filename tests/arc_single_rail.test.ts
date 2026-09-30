@@ -35,3 +35,12 @@ it('searches single rails from scratch through lookahead and replay without emit
   const last=new Map<number,any>();
   for(const l of result.track.lines){const group=Math.floor((l.id-1000)/10000),previous=last.get(group);if(previous)expect([l.x1,l.y1]).toEqual([previous.x2,previous.y2]);last.set(group,l);}
 });
+it('does not let an inactive guide clearance select a different unguided search',()=>{
+ const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+ const options={budget:35000,samples:32,guides:false,bidirectional:true,radius:24,
+  guidance:'clearance' as const,guidanceJoint:true,guidanceSamples:24,expressive:true,responseSamples:24,
+  lookaheadWidth:2,lookaheadSamples:8};
+ const a=compileArcMotion(spec,17,{...options,channel:0}),b=compileArcMotion(spec,17,{...options,channel:24});
+ expect(b.track).toEqual(a.track);expect(b.stats).toEqual(a.stats);
+ expect(b.report).toEqual(a.report);
+});

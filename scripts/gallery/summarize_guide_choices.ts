@@ -39,7 +39,7 @@ for(const p of manifest.portfolios){
  assert.ok(!keys.has(p.key));keys.add(p.key);
  const alternatives=p.ids.map((id:string)=>{assert.ok(!owned.has(id));owned.add(id);const c=cells.get(id);assert.ok(c);assert.equal(c.caseId,p.caseId);assert.equal(c.seed,p.seed);assert.equal(c.budget,p.budget);return c;});
  assert.equal(p.physicalFrames,p.preparationFrames+alternatives.reduce((s:number,c:any)=>s+c.physicalFrames,0));assert.ok(p.physicalFrames<=p.budget);totalWork+=p.physicalFrames;
- assert.equal(p.physicalFrames,cells.get(p.reference).physicalFrames+p.decisions.reduce((s:number,d:any)=>s+d.physicalFrames,0));
+ assert.equal(p.physicalFrames,(p.references??[p.reference]).reduce((s:number,id:string)=>s+cells.get(id).physicalFrames,0)+p.decisions.reduce((s:number,d:any)=>s+d.physicalFrames,0));
  assert.equal(p.preparationFrames,p.decisions.reduce((s:number,d:any)=>s+d.preparationFrames,0));
  for(const d of p.decisions){
   forks++;const source=raw.get(d.source),single=raw.get(d.single),guided=raw.get(d.guided);

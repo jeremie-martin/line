@@ -24,37 +24,43 @@ export async function createGuideChoicePanel(manifest,onchange){
     <details><summary>All measured alternatives</summary><div class="table-scroll"><table><thead><tr><th>Alternative</th><th>Guided sections</th><th>Guide length</th><th>Target error (RMS)</th><th>Adherence</th></tr></thead><tbody id="choice-candidates"></tbody></table></div></details>`;
   const $=id=>document.getElementById(id),byId=new Map(manifest.cells.map(c=>[c.id,c]));
   const format=(n,d=3)=>Number.isFinite(n)?n.toFixed(d):'—';
-  const label=d=>d.section===0?'Startup':`Beat ${d.section}`;
+  const key=d=>d.id??String(d.section);
+  const label=d=>{
+    const name=d.section===0?'Startup':`Beat ${d.section}`;
+    const sameSection=portfolio.decisions.filter(other=>other.section===d.section);
+    return name+(sameSection.length>1?` · path ${sameSection.indexOf(d)+1}`:'');
+  };
   let activeKey,portfolio,jumpTo;
   $('extra-error').oninput=()=>{if($('choice-fork').value!=='preference')$('choice-fork').value='preference';onchange();};
-  $('choice-fork').onchange=()=>{const d=portfolio.decisions.find(d=>String(d.section)===$('choice-fork').value);jumpTo=d?.frame;onchange();};
+  $('choice-fork').onchange=()=>{const d=portfolio.decisions.find(d=>key(d)===$('choice-fork').value);jumpTo=d?.frame;onchange();};
   return {select(caseId,budget,seed){
     portfolio=manifest.portfolios.find(p=>p.caseId===caseId&&p.budget===budget&&p.seed===seed);
     if(!portfolio)throw new Error('Missing guide-choice portfolio');
     if(activeKey!==portfolio.key){
       activeKey=portfolio.key;jumpTo=undefined;
-      $('choice-fork').replaceChildren(...[{value:'preference',text:'Preferred complete track'},{value:'reference',text:'Original search vs preferred'},...portfolio.decisions.map(d=>({value:String(d.section),text:`${label(d)} · ${(d.frame/40).toFixed(2)} s`}))].map(({value,text})=>{const o=document.createElement('option');o.value=value;o.textContent=text;return o;}));
+      $('choice-fork').replaceChildren(...[{value:'preference',text:'Preferred complete track'},{value:'reference',text:'Original search vs preferred'},...(portfolio.references??[]).filter(id=>id!==portfolio.reference).map(id=>({value:id,text:'Independent unguided search vs preferred'})),...portfolio.decisions.map(d=>({value:key(d),text:`${label(d)} · ${(d.frame/40).toFixed(2)} s`}))].map(({value,text})=>{const o=document.createElement('option');o.value=value;o.textContent=text;return o;}));
     }
     const candidates=portfolio.ids.map(id=>byId.get(id));
     const extra=+$('extra-error').value,choice=selectGuideAlternative(candidates,extra);
     $('extra-error-value').textContent=`+${format(extra)} RMS`;
     $('choice-work').textContent=`Entire recorded search: ${portfolio.physicalFrames.toLocaleString()} of ${portfolio.budget.toLocaleString()} physics frames · ${(portfolio.compileMs/1000).toFixed(1)} s. Includes the reference, both branches at every fork, prefix checks and compiler replays. Moving this control reuses those results.`;
     let cells,titles;
-    const fork=portfolio.decisions.find(d=>String(d.section)===$('choice-fork').value);
+    const fork=portfolio.decisions.find(d=>key(d)===$('choice-fork').value);
     if(fork){
       cells=[byId.get(fork.single),byId.get(fork.guided)];titles=[`${label(fork)} · guide forbidden`,`${label(fork)} · guide allowed`];
       $('choice-explanation').textContent=`Identical earlier linework and rider history through frame ${fork.frame}. Each branch received ${fork.allowancePerBranch.toLocaleString()} physics frames to search and replay its continuation. ${cells.every(c=>c.valid)?'Both continuations passed timing and survival.':cells.every(c=>!c.valid)?'Neither search found a valid complete continuation.':cells[0].valid?'Only the guide-forbidden search found a valid complete continuation.':'Only the guide-allowed search found a valid complete continuation.'}`;
     }else if(choice){
-      const reference=$('choice-fork').value==='reference';
-      cells=[reference?byId.get(portfolio.reference):choice.best,choice.selected];titles=[reference?'Original search':'Closest match found','Fewer guides within allowance'];
+      const mode=$('choice-fork').value;
+      const reference=mode==='reference'||mode===portfolio.reference?byId.get(portfolio.reference):(portfolio.references??[]).includes(mode)?byId.get(mode):null;
+      cells=[reference??choice.best,choice.selected];titles=[reference?(reference.id===portfolio.reference?'Original guided search':'Independent unguided search'):'Closest match found','Fewer guides within allowance'];
       $('choice-explanation').textContent=`${choice.eligible} of ${candidates.filter(c=>c.valid).length} valid alternatives fit the error ceiling ${format(choice.ceiling,4)}. Ceiling = best found ${format(choice.best.qualityRms,4)} + allowance ${format(extra)}. Selected target error: ${format(choice.selected.qualityRms,4)}. ${choice.selected.usage.guideSections} of ${choice.selected.usage.supportSections} sections retain a guide.`;
     }else{cells=[byId.get(portfolio.reference),byId.get(portfolio.reference)];titles=['Original search','No valid alternative'];$('choice-explanation').textContent='This portfolio contains no valid complete ride. No preference result is claimed.';}
     $('choice-candidates').replaceChildren(...candidates.map(c=>{
       const d=portfolio.decisions.find(d=>d.single===c.id||d.guided===c.id),tr=document.createElement('tr');
       if(c.id===choice?.selected.id)tr.className='selected-choice';
       const first=document.createElement('td'),button=document.createElement('button');
-      button.textContent=d?`${label(d)} · ${d.single===c.id?'forbidden':'allowed'}`:'Original search';
-      button.onclick=()=>{$('choice-fork').value=d?String(d.section):'reference';$('choice-fork').dispatchEvent(new Event('change'));};first.append(button);tr.append(first);
+      button.textContent=d?`${label(d)} · ${d.single===c.id?'forbidden':'allowed'}`:c.id===portfolio.reference?'Original guided search':'Independent unguided search';
+      button.onclick=()=>{$('choice-fork').value=d?key(d):c.id===portfolio.reference?'reference':c.id;$('choice-fork').dispatchEvent(new Event('change'));};first.append(button);tr.append(first);
       for(const v of [`${c.usage.guideSections}/${c.usage.supportSections}`,format(c.usage.guideLength,1),format(c.qualityRms,4),c.valid?format(c.score.score,1):'Failed contract']){const td=document.createElement('td');td.textContent=v;tr.append(td);}return tr;
     }));
     const at=jumpTo;jumpTo=undefined;return {cells,titles,jumpTo:at};

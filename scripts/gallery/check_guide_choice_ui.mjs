@@ -14,7 +14,7 @@ export async function checkGuideChoiceUI(page,manifest,out){
    assert.deepEqual(await shown(),[best.id,selected.id]);comparisons++;
   }
   for(const d of p.decisions){
-   await page.selectOption('#choice-fork',String(d.section));await ready();
+   await page.selectOption('#choice-fork',d.id??String(d.section));await ready();
    assert.deepEqual(await shown(),[d.single,d.guided]);assert.equal(+(await page.locator('#seek').inputValue()),d.frame/40);
    assert.match(await page.locator('#choice-explanation').textContent(),/Identical earlier linework and rider history/);forks++;
   }

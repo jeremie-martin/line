@@ -26,7 +26,21 @@ export function captureArcFork(result:Result,section:number){
   }finally{dispose();}
 }
 
-export function studyGuideChoices(spec:Spec,seed:number,budget:number){
+export type GuideStudyOptions={
+  /** Keep one path, both extremes, or accuracy plus the lowest marginal
+   * target-error cost per removed guided section. Select from all measured tracks. */
+  exploration?:'least-guidance'|'accuracy-and-guidance'|'balanced';
+  /** Reuse measured source controls as physically adapted proposals. */
+  sourceMemory?:boolean;
+  /** Seed each rebuilt section directly from the corresponding source curve. */
+  sourceContinuation?:boolean;
+  /** Search an independent unguided complete ride before branching. */
+  unguidedReference?:boolean;
+};
+
+export function studyGuideChoices(spec:Spec,seed:number,budget:number,options:GuideStudyOptions={}){
+  if(options.exploration&&!['least-guidance','accuracy-and-guidance','balanced'].includes(options.exploration))throw new Error('unknown guide exploration policy');
+  if(options.unguidedReference&&(!options.exploration||options.exploration==='least-guidance'))throw new Error('two starting tracks require two-path exploration');
   if(!Number.isSafeInteger(budget)||budget<20000)throw new Error('guide study needs a valid total allowance');
   const end=Math.round(spec.duration*40)+20;
   const referenceBudget=Math.min(250000,Math.floor(budget/4));
@@ -35,9 +49,10 @@ export function studyGuideChoices(spec:Spec,seed:number,budget:number){
   const common:ArcMotionOptions={...connectedArcOptions(spec,referenceBudget),policyPreview:false,collectTrajectoryLoss:true};
   const candidates:Array<{id:string;valid:boolean;qualityRms:number|null;usage:ReturnType<typeof guideFootprint>;result:Result;compileMs:number}>=[];
   let spent=0,preparationFrames=0;
-  const run=(id:string,allowance:number,fork?:ArcMotionFork)=>{
+  const run=(id:string,allowance:number,fork?:ArcMotionFork,source?:typeof candidates[number],overrides:Partial<ArcMotionOptions>={})=>{
     const started=performance.now();
-    const result=compileArcMotion(spec,seed,{...common,budget:allowance,...(fork?{fork}:{})});
+    const result=compileArcMotion(spec,seed,{...common,...overrides,budget:allowance,...(fork?{fork}:{}),
+      ...(options.sourceMemory&&source?{controlExamples:source.result.rows.map(r=>({features:r.features,incoming:r.incoming,span:r.span,control:r.control}))}:{})});
     const compileMs=performance.now()-started;
     if(result.stats.sim_frames>allowance)throw new Error('guide branch exceeded its allowance');
     spent+=result.stats.sim_frames;
@@ -46,41 +61,58 @@ export function studyGuideChoices(spec:Spec,seed:number,budget:number){
     const candidate={id,valid,qualityRms,usage:guideFootprint(result.track.lines),result,compileMs};
     candidates.push(candidate);return candidate;
   };
-  let source=run('reference',referenceBudget);
-  const decisions:any[]=[];
-  const sections=source.result.rows.length;
-  if(measuredGuideAlternative(source))for(let section=0;section<sections;section++){
-    // Cold prefix checks are charged too; reserve enough for both complete replays.
-    const preparationCeiling=2*(source.result.rows[section].frame+1);
-    const minimum=3*(end+1)+1;
-    if(spent+preparationCeiling+2*minimum>budget)break;
-    const captured=captureArcFork(source.result,section);
-    spent+=captured.physicsFrames;preparationFrames+=captured.physicsFrames;
-    const weights=source.result.rows.slice(section).map(r=>end-r.frame+1+end/2);
-    const allowance=Math.max(minimum,Math.floor((budget-spent)*weights[0]/weights.reduce((a,b)=>a+b,0)/2));
-    const single=run(`fork-${section}-single`,allowance,{...captured.fork,guides:false});
-    const guided=run(`fork-${section}-guided`,allowance,{...captured.fork,guides:true});
-    for(const candidate of [single,guided]){
-      const evidence=candidate.result.forkEvidence;
-      if(!evidence||evidence.stateSha256!==captured.fork.stateSha256||evidence.prefixSha256!==captured.prefixSha256)
-        throw new Error('guide alternatives did not start from the same prefix and physical state');
-      const prefix=candidate.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)<section);
-      if(sha(prefix)!==captured.prefixSha256)throw new Error('guide fork changed locked geometry');
+  const reference=run('reference',referenceBudget);
+  const references=[reference];
+  if(options.unguidedReference)references.push(run('reference-single',referenceBudget,undefined,undefined,{guides:false}));
+  let frontier=references.filter(measuredGuideAlternative);
+  const decisions:any[]=[],rounds:Array<{section:number;before:string[];after:string[]}>=[];
+  const sections=frontier[0]?.result.rows.length??0;
+  if(frontier.length)for(let section=0;section<sections;section++){
+    const before=frontier.map(c=>c.id);
+    for(const [slot,source] of frontier.entries()){
+      // Prefix checks and both complete replays are paid by the shared allowance.
+      const preparationCeiling=2*(source.result.rows[section].frame+1);
+      const minimum=3*(end+1)+1;
+      if(spent+preparationCeiling+2*minimum>budget)break;
+      const captured=captureArcFork(source.result,section);
+      if(options.sourceContinuation)captured.fork.continuation=source.result.rows.slice(section).map(r=>({incoming:r.incoming,span:r.span,control:r.control}));
+      spent+=captured.physicsFrames;preparationFrames+=captured.physicsFrames;
+      const weights=source.result.rows.slice(section).map(r=>end-r.frame+1+end/2);
+      const width=options.exploration&&options.exploration!=='least-guidance'?2:1;
+      const remainingWeight=weights[0]*(frontier.length-slot)+width*weights.slice(1).reduce((a,b)=>a+b,0);
+      const allowance=Math.max(minimum,Math.floor((budget-spent)*weights[0]/remainingWeight/2));
+      const name=frontier.length===1?`fork-${section}`:`fork-${section}-path-${slot}`;
+      const single=run(`${name}-single`,allowance,{...captured.fork,guides:false},source);
+      const guided=run(`${name}-guided`,allowance,{...captured.fork,guides:true},source);
+      for(const candidate of [single,guided]){
+        const evidence=candidate.result.forkEvidence;
+        if(!evidence||evidence.stateSha256!==captured.fork.stateSha256||evidence.prefixSha256!==captured.prefixSha256)
+          throw new Error('guide alternatives did not start from the same prefix and physical state');
+        const prefix=candidate.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)<section);
+        if(sha(prefix)!==captured.prefixSha256)throw new Error('guide fork changed locked geometry');
+      }
+      if(guideFootprint(single.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===section)).guideSections)
+        throw new Error('forbidden guide emitted at the fork');
+      const next=[source,single,guided].filter(measuredGuideAlternative).sort(compareGuideFootprint)[0];
+      decisions.push({section,frame:captured.frame,source:source.id,single:single.id,guided:guided.id,preferredFromPair:next.id,
+        prefixSha256:captured.prefixSha256,stateSha256:captured.fork.stateSha256,
+        allowancePerBranch:allowance,preparationFrames:captured.physicsFrames,
+        physicalFrames:captured.physicsFrames+single.result.stats.sim_frames+guided.result.stats.sim_frames,
+        outcome:single.valid&&guided.valid?'both-completed':single.valid?'only-single-completed':guided.valid?'only-guided-completed':'neither-completed'});
     }
-    if(single.result.track.lines.some(l=>Math.floor((l.id-1000)/10000)===section)&&
-      guideFootprint(single.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===section)).guideSections)
-      throw new Error('forbidden guide emitted at the fork');
-    // Walk toward fewer guides to collect alternatives, retaining every measured
-    // result. Delivery uses a separate explicit quality ceiling over this pool.
-    const next=[source,single,guided].filter(measuredGuideAlternative).sort(compareGuideFootprint)[0];
-    decisions.push({section,frame:captured.frame,source:source.id,single:single.id,guided:guided.id,next:next.id,
-      prefixSha256:captured.prefixSha256,stateSha256:captured.fork.stateSha256,
-      allowancePerBranch:allowance,preparationFrames:captured.physicsFrames,
-      physicalFrames:captured.physicsFrames+single.result.stats.sim_frames+guided.result.stats.sim_frames,
-      outcome:single.valid&&guided.valid?'both-completed':single.valid?'only-single-completed':guided.valid?'only-guided-completed':'neither-completed'});
-    source=next;
+    const valid=candidates.filter(measuredGuideAlternative);
+    const sparse=valid.slice().sort(compareGuideFootprint)[0];
+    frontier=[sparse];
+    if(options.exploration&&options.exploration!=='least-guidance'){
+      const accurate=valid.slice().sort((a,b)=>a.qualityRms!-b.qualityRms!||compareGuideFootprint(a,b))[0];
+      const step=(candidate:typeof accurate)=>(candidate.qualityRms!-accurate.qualityRms!)/(accurate.usage.guideSections-candidate.usage.guideSections);
+      const alternative=options.exploration==='balanced'?
+        valid.filter(c=>c.usage.guideSections<accurate.usage.guideSections).sort((a,b)=>step(a)-step(b)||compareGuideFootprint(a,b))[0]??sparse:sparse;
+      frontier=accurate.id!==alternative.id?[accurate,alternative]:[accurate];
+    }
+    rounds.push({section,before,after:frontier.map(c=>c.id)});
   }
   if(spent>budget)throw new Error('guide study exceeded its total allowance');
-  return {candidates,decisions,physicalFrames:spent,preparationFrames,referenceBudget,
-    policy:{preview:false,guideChannel:common.channel,exploration:'fewest-guide-sections-then-length',selection:'bounded-measured-rms-then-fewest-guide-sections-then-length'}};
+  return {candidates,decisions,rounds,physicalFrames:spent,preparationFrames,referenceBudget,references:references.map(r=>r.id),
+    policy:{preview:false,guideChannel:common.channel,exploration:options.exploration??'least-guidance',sourceMemory:!!options.sourceMemory,sourceContinuation:!!options.sourceContinuation,unguidedReference:!!options.unguidedReference,selection:'bounded-measured-rms-then-fewest-guide-sections-then-length'}};
 }

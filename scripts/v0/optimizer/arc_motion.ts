@@ -19,7 +19,7 @@ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_valu
 import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { createArcEngine } from './arc_engine.ts';
 import { runArcAttempts } from './arc_attempts.ts';
-import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemoKey, arcControlValue, arcControlStep, arcMethodKeys, arcControlActive } from './arc_motion_control.ts';
+import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemoKey, arcControlValue, arcControlStep, arcMethodKeys, arcControlActive, arcReferencedControl, type ArcControlReference } from './arc_motion_control.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -39,6 +39,9 @@ export type ArcMotionFork = {
   section:number; lines:TrackLine[]; rows:any[];
   start:{position:{x:number;y:number};velocity:{x:number;y:number}};
   stateSha256:string; guides:boolean; control?:ArcMotionControl;
+  /** Source controls for the rebuilt suffix. They are proposals, never replay
+   * shortcuts; each is checked from the newly reached physical state. */
+  continuation?:ArcControlReference[];
 };
 export type ArcMotionOptions= ArcGeometryStyle & {
   budget:number;
@@ -294,6 +297,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const fork=options.fork;
       if(!Number.isSafeInteger(resumeAt)||resumeAt<0||resumeAt>=contacts.length||fork.rows.length!==resumeAt||
         JSON.stringify(fork.start)!==JSON.stringify(start)||typeof fork.guides!=='boolean')throw new Error('invalid arc fork prefix');
+      if(fork.continuation&&fork.continuation.length!==contacts.length-resumeAt)throw new Error('arc fork controls do not cover the continuation');
       const groups=arcRailGroups(fork.lines);
       if(groups.size!==resumeAt||[...groups.keys()].some(i=>i<0||i>=resumeAt)||fork.rows.some((r,i)=>r.frame!==contacts[i].frame))
         throw new Error('arc fork prefix does not match the timeline');
@@ -519,8 +523,11 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         policyRolloutStats.fallbacks++;
         if(options.policyRolloutStrict)return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};
       }
-      center=options.flow||options.channel?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
-      if(options.bidirectional&&options.channel&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
+      // Guide permission, not an inactive clearance setting, determines which
+      // initialization is physically appropriate for an unguided support.
+      const guidedInitialization=options.guides!==false&&!!options.channel;
+      center=options.flow||guidedInitialization?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
+      if(options.bidirectional&&guidedInitialization&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
       const responseAxisWeights=options.rescaleMemoryWeights?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;
       const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0,options.controlDiversity);
@@ -534,10 +541,15 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
       const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0],options.controlDiversity):[];
       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
+      const reference=options.fork?.continuation?.[i-options.fork.section];
+      if(reference){
+        evaluate(reference.control);
+        evaluate(arcReferencedControl(reference,incoming,span));
+      }
       if(options.warmStart)evaluate(options.warmStart);
       for(let k=0;k<initial;k++){
         const frac=(n:number)=>((k+1)*n)%1;
-        evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:{entry:incoming-((options.flow||options.channel)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
+        evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:{entry:incoming-((options.flow||guidedInitialization)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5});
         if(k%10===9)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
       }
       if(best){

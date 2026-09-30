@@ -60,3 +60,19 @@ record of what remains exploratory. Keep normal lines only; freeze authored musi
 benchmark, scorer, detector and physics. Commit/push code, plans and compact evidence.
 Keep raw experiments, movies and the private transcript local. Owner feedback may
 steer ongoing work, but new visual approval is not required for technical progress.
+
+## Search decision after the controlled experiment
+
+Twenty-four matched-ceiling calls compared inherited search, 80 generic recovery
+proposals after failed initialization, removal of inactive fold coordinates, and
+cheap replay of source controls. Recovery completes all three failed strong-ripple
+or fold entries in this panel. Removing inactive coordinates changes search
+allocation and materially worsens the Luna fold; every source-control preview
+fails the requested quality/validity limit. Neither mechanism demonstrated a work
+saving here.
+
+Keep recovery in the composition workflow. The other two experimental options
+are archived in commit `c2e05858`, with their full measurements retained; they are
+removed from the delivered compiler surface. This is a result about these
+implementations and passages, not a claim that the ideas cannot work. The normal
+production configuration remains unchanged.

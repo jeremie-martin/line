@@ -26,7 +26,8 @@ for(const cell of manifest.cells){
   const groups=arcRailGroups(r.track.lines.filter((l:any)=>!fragments.has(Math.floor((l.id-1000)/10000)))),supports:any[]=[];
   for(const [key,style] of Object.entries(construction.styles) as [string,any][]){
     if(!style.profile)continue;
-    const section=Number(key),row=construction.rows[section],prefix=r.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)<section);
+    const section=Number(key),row=construction.rows[section];if(!row||fragments.has(section))continue;
+    const prefix=r.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)<section);
     try{
       const base=new Engine().setStart(r.track.startPosition,r.track.riders[0].startVelocity),engine=prefix.length?base.addLine(prefix):base;
       const free=engine.getRider(row.frame);engine.prepareCollisionTrace(row.frame);engine.getRider(row.frame);

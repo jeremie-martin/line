@@ -1,0 +1,27 @@
+[
+  {
+    "title": "Islands and folds",
+    "description": "Luna Bala \u00b7 4 deliberate passages \u00b7 development example",
+    "manifest": "/generated/repertoire-workspace-20260930/arrangements/preset-0/manifest.json"
+  },
+  {
+    "title": "Long wave phrases",
+    "description": "Luna Bala \u00b7 4 deliberate passages \u00b7 development example",
+    "manifest": "/generated/repertoire-workspace-20260930/arrangements/preset-1/manifest.json"
+  },
+  {
+    "title": "Air and edges",
+    "description": "Amor na Praia \u00b7 5 deliberate passages \u00b7 development example",
+    "manifest": "/generated/repertoire-workspace-20260930/arrangements/preset-2/manifest.json"
+  },
+  {
+    "title": "Ripples and interruptions",
+    "description": "Amor na Praia \u00b7 4 deliberate passages \u00b7 development example",
+    "manifest": "/generated/repertoire-workspace-20260930/arrangements/preset-3/manifest.json"
+  },
+  {
+    "title": "Reserved Tiki \u00b7 ripples and folds",
+    "description": "Tiki Tiki \u00b7 two reserved interventions on known music",
+    "manifest": "/generated/repertoire-workspace-20260930/reserved-tiki/manifest.json"
+  }
+]

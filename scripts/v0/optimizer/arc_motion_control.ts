@@ -1,14 +1,13 @@
 /** Control operations shared by learned proposals, local memory and search.
  * Omitted fields are intentional geometry choices, not missing numeric zeros. */
-import { normalizeArcTurnFraction, type ArcMotionControl, type ArcGeometryStyle } from './arc_geometry.ts';
+import { normalizeArcTurnFraction, type ArcMotionControl } from './arc_geometry.ts';
 
 type ControlKey = keyof ArcMotionControl;
 type Step = number | ((support: number) => number);
 type SearchMethod = 'coordinate' | 'response' | 'newton' | 'repair';
-export type ArcControlContext = ArcGeometryStyle & {
+export type ArcControlContext = {
   span: number; bidirectional?: boolean; channel?: number; guides?: boolean;
   preserveTurnTiming?: boolean; independentExit?: boolean; exitRefinementOnly?: boolean;
-  geometryAwareControls?: boolean;
 };
 type ControlDefinition = {
   family: 'core' | 'guide' | 'expressive' | 'exit';
@@ -50,11 +49,7 @@ export const ARC_CORE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITI
 export const ARC_EXPRESSIVE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'expressive');
 
 /** Disabled guides have no meaningful clearance, coverage or flare coordinates. */
-export function arcControlActive(key:ControlKey,guides=true,context?:Pick<ArcControlContext,'geometryAwareControls'|'profile'|'profileStrength'|'profileStart'>):boolean {
-  // At full strength from the start, the fold replaces every base heading.
-  // Its timing still uses bias/turnFraction; bend and late easing do nothing.
-  if(context?.geometryAwareControls&&context.profile==='fold'&&(context.profileStrength??1)===1&&context.profileStart===0&&
-    (key==='bend'||key==='exitBias'))return false;
+export function arcControlActive(key:ControlKey,guides=true):boolean {
   return guides || (ARC_CONTROL_DEFINITIONS[key].family!=='guide' && key!=='guideFlare');
 }
 
@@ -62,7 +57,7 @@ export function normalizeArcControl(control: ArcMotionControl, context: ArcContr
   const c = {...control};
   for (const key of ARC_CONTROL_KEYS) {
     const definition = ARC_CONTROL_DEFINITIONS[key];
-    if(!arcControlActive(key,context.guides,context)){delete c[key];continue;}
+    if(!arcControlActive(key,context.guides)){delete c[key];continue;}
     // Independent probing must freeze late easing before changing entry bias.
     if (key === 'exitBias' && context.independentExit && !context.exitRefinementOnly && c[key] === undefined)
       c[key] = c.bias;
@@ -95,10 +90,10 @@ export function arcControlStep(key: ControlKey, method: SearchMethod, support: n
   return typeof step === 'number' ? step : step(support);
 }
 
-export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true,context?:ArcControlContext): ControlKey[] {
+export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true): ControlKey[] {
   return ARC_CONTROL_KEYS.filter(key => {
     const definition = ARC_CONTROL_DEFINITIONS[key];
-    return arcControlActive(key,guides,context) && definition[method] !== undefined && (definition.family !== 'expressive' || expressive) &&
+    return arcControlActive(key,guides) && definition[method] !== undefined && (definition.family !== 'expressive' || expressive) &&
       (definition.family !== 'exit' || independentExit);
   });
 }

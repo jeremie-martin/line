@@ -1,7 +1,7 @@
 import {prepareView} from './replay.js';
 import {createGuideChoicePanel} from './guide-choice.js';
 const $ = id => document.getElementById(id);
-const number = n => n.toLocaleString(undefined, {maximumFractionDigits: 1});
+const number = n => Number.isFinite(n)?n.toLocaleString(undefined, {maximumFractionDigits: 1}):'—';
 const title = method => manifest?.plan.methodDetails?.[method]?.title ?? ({arcs:'Arcs and guides',segments:'Scattered · original'}[method] ?? method);
 const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260930-functional-rails/manifest.json', location.href);
 let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0, activePassage, animation;
@@ -87,7 +87,7 @@ async function loadCell(cell, signal) {
 async function showPalette(token, load) {
   $('palette-status').textContent='Loading shape previews…';
   try {
-    const cells=manifest.plan.methods.map(method=>manifest.cells.find(c=>c.method===method && c.caseId===$('passage').value && c.budget===+$('budget').value && c.seed===+$('seed').value));
+    const cells=manifest.plan.methods.map(method=>manifest.cells.find(c=>c.method===method && c.caseId===$('passage').value && (manifest.plan.composition||c.budget===+$('budget').value) && c.seed===+$('seed').value));
     if(cells.some(c=>!c))throw new Error('The shape comparison is incomplete.');
     for (const cell of cells) {
       if ([...$('palette').children].some(button=>button.dataset.method===cell.method)) continue;
@@ -100,7 +100,7 @@ async function showPalette(token, load) {
       // Local composition previews must show the edited phrase, not the shared
       // startup (which can make every construction look identical).
       const previewTime=manifest.plan.kind==='musical-direction'
-        ?(manifest.plan.repertoire?r.case.guidance[0]:r.case.mixed[0]):null;
+        ?(r.construction?.phrases?.[0]?.window[0]??manifest.plan.composition?.phrases?.[0]?.start??(manifest.plan.repertoire?r.case.guidance?.[0]:r.case.mixed?.[0])??r.case.contacts[0]?.frame/40):null;
       const beat=(previewTime===null?null:r.case.contacts.find(c=>c.frame>=previewTime*40))??r.case.contacts[Math.min(1,r.case.contacts.length-1)], at=Math.min(beat.frame+4,r.trace.frames.length-1);
       const [x,y]=r.trace.frames[at];
       // Fixed world framing, native line thickness and Bosh artwork in previews too.
@@ -140,7 +140,7 @@ async function select() {
     const choice=choicePanel?.select($('passage').value,+$('budget').value,+$('seed').value,$('left-method').value);
     if(choice?.jumpTo!==undefined){seconds=choice.jumpTo/40;pause();}
     $('seek').value=String(seconds); draw();
-    const selected=choice?.cells??['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value && c.method === $(id).value));
+    const selected=choice?.cells??['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && (manifest.plan.composition||c.budget === +$('budget').value) && c.seed === +$('seed').value && c.method === $(id).value));
     if(selected.some(c=>!c))throw new Error('The comparison is incomplete.');
     const loaded = await Promise.all(selected.map(load));
     if (token !== generation) return;
@@ -234,10 +234,10 @@ try {
   if(manifest.plan.kind==='musical-direction'){
     document.querySelector('.intro h1').textContent='Inspect the musical comparison.';
     document.querySelector('.intro p:last-child').textContent='These are the same physical tracks used in the finished musical videos. Inspect actual contacts and achieved targets; use the music review for synchronized audio and the production camera.';
-    const link=document.createElement('a');link.href='/motion-gallery/music.html?data='+encodeURIComponent(manifestUrl.pathname);link.textContent='Return to musical videos';document.querySelector('.study-links').prepend(link);
+    const link=document.createElement('a');link.href=(manifest.plan.composition?'/motion-gallery/workspace.html?data=':'/motion-gallery/music.html?data=')+encodeURIComponent(manifestUrl.pathname);link.textContent=manifest.plan.composition?'Return to creative workspace':'Return to musical videos';document.querySelector('.study-links').prepend(link);
   }
-  $('study-note').textContent=choicePanel?.note??manifest.plan.note; $('manifest-link').href=manifestUrl;
+  $('study-note').textContent=choicePanel?.note??manifest.plan.note??manifest.plan.cases[0]?.intent??''; $('manifest-link').href=manifestUrl;
   $('identity').textContent=`${manifest.plan.compiler.label??`Compiler ${manifest.plan.compiler.head.slice(0,8)}`} · ${manifest.cells.length} recorded runs`;
-  for(const row of manifest.summary){const tr=document.createElement('tr');for(const value of [title(row.method),number(row.budget),`${row.valid}/${row.runs}`,number(row.meanScore),number(row.totalPhysicalFrames),`${(row.totalCompileMs/1000).toFixed(1)} s`]){const td=document.createElement('td');td.textContent=value;tr.append(td);}$('summary').append(tr);}
+  for(const saved of manifest.summary){const cells=manifest.cells.filter(c=>c.method===saved.method),row={budget:cells[0]?.allowance??cells[0]?.budget,totalPhysicalFrames:cells.reduce((n,c)=>n+c.physicalFrames,0),totalCompileMs:cells.reduce((n,c)=>n+c.compileMs,0),...saved};const tr=document.createElement('tr');for(const value of [title(row.method),number(row.budget),`${row.valid}/${row.runs}`,number(row.meanScore),number(row.totalPhysicalFrames),`${(row.totalCompileMs/1000).toFixed(1)} s`]){const td=document.createElement('td');td.textContent=value;tr.append(td);}$('summary').append(tr);}
   await select();
 } catch(error) {$('status').textContent=`Gallery unavailable: ${error.message} Generate the local study using scripts/gallery/build.ts; see docs/motion-repertoire.md.`;}

@@ -11,6 +11,7 @@
  *   PORT=9000 npx tsx scripts/serve.ts            # custom port
  *   HOST=0.0.0.0 npx tsx scripts/serve.ts         # bind to all interfaces (LAN access)
  */
+import {createRepertoireApi} from "./gallery/repertoire_api.ts";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { execFileSync, spawn } from "node:child_process";
@@ -45,6 +46,7 @@ import {
   type BenchmarkCase,
 } from "../benchmark/v2/cases/case.ts";
 
+const repertoireApi=createRepertoireApi();
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
 const HOST = process.env.HOST ?? "127.0.0.1";
 const ROOT = resolve(process.cwd());
@@ -1532,6 +1534,8 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     return;
   }
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if(await repertoireApi(req,res,url))return;
 
   if (url.pathname === "/api/golden-runs") {
     return json(res, { runs: listGoldenRuns() });

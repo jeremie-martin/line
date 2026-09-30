@@ -19,6 +19,7 @@ try{
     await page.waitForFunction(()=>[...document.querySelectorAll('video')].every(v=>!v.seeking&&v.readyState>=2));};
   await page.goto(url);await ready();
   assert.equal(await page.locator('#variant').inputValue(),'mixed');
+  assert.equal(+(await page.locator('#seek').inputValue()),manifest.plan.cases[0].moments.find(m=>m.time===manifest.plan.cases[0].mixed[0]).time);
   let comparisons=0;
   for(const c of manifest.plan.cases)for(const seed of manifest.plan.seeds)for(const method of manifest.plan.methods.filter(m=>m!=='baseline')){
     await page.evaluate(({song,seed,method})=>{
@@ -43,7 +44,7 @@ try{
   await ready();assert.equal(await page.locator('#play').textContent(),'Pause');await page.locator('#play').click();
   assert.ok(await page.locator('video').evaluateAll(vs=>Math.abs(vs[0].currentTime-vs[1].currentTime)<.001));
   await page.selectOption('#rate','0.5');assert.deepEqual(await page.locator('video').evaluateAll(vs=>vs.map(v=>v.playbackRate)),[.5,.5]);
-  await page.selectOption('#variant','facets');await ready();
+  await page.selectOption('#variant',manifest.plan.geometry??'facets');await ready();
   assert.deepEqual(await page.locator('video').evaluateAll(vs=>vs.map(v=>v.playbackRate)),[.5,.5]);
   await page.selectOption('#rate','1');
   // A pause while a replacement is downloading must cancel resume intent.

@@ -102,11 +102,17 @@ interface. Each example includes its incoming physical/target feature vector.
 ## Deliberate local composition
 
 `composeArcSections` is an explicit research API, separate from automatic style
-selection. Its sparse `sectionStyles` map permits `guides` and `subdivisions`
+selection. Its sparse `sectionStyles` map permits `guides`, `subdivisions` and existing `profile`
 overrides by physical support index; startup is zero. Missing entries inherit
 the ordinary connected-arc settings. The same overrides apply during proposals,
 lookahead and backtracking, so an arc–facet–arc configuration searches the actual
-collision geometry and returns to smooth construction afterwards.
+collision geometry and returns to smooth construction afterwards. Conflicting
+fork and section guide permissions are rejected. Profile choices reuse the
+existing serpentine, terrace and ripple builders.
+
+The real-music harness reconstructs main rails from each saved incoming physical
+state and control to verify the emitted geometry, including the return to arcs.
+That independent validation is separate from the compilation allowance.
 
 The earlier track and full incoming rider state are locked and independently
 verified. The rest of the ride is searched again; changing one phrase does not

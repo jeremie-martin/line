@@ -117,3 +117,12 @@ this result and try a local phrase with an existing construction that changes th
 overall rail shape, keeping the same authored targets and normal-line constraint.
 First inspect its rendered contrast, then measure local consequences and reuse.
 No new geometry catalog or style framework is warranted by this feedback.
+
+The follow-up tests serpentine and ripple profiles on Luna seed 301. The local
+ripple phrase has the stronger quality/contrast tradeoff in the native preview:
+RMS 0.01376 versus 0.02547 for serpentine. Freeze this implementation before
+confirmation on both complete songs at seed 321. One fresh seed is intentional:
+the authored zero-jitter inputs already reproduced identical tracks across
+three seeds. Render the chosen geometry and its mixed phrase; reuse prior videos
+only where the entire physical/render input is identical. Owner review of the
+new production-scale contrast is still required before claiming aesthetic success.

@@ -18,6 +18,8 @@ import {galleryCompilerIdentity,galleryHarnessIdentity,replayGalleryTrack,writeG
 import {applyJolt,resolveJoltMs} from './seed.ts';
 import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
+import {galleryMethods,galleryArcOptions,type GalleryMethod} from '../gallery/methods.ts';
+import {verifyMainConstruction} from '../gallery/verify_construction.ts';
 import {musicalDirectionCases,musicalDirectionMethods} from './musical_direction_cases.ts';
 import type {Spec} from '../v0/types.ts';
 import type {ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
@@ -31,7 +33,15 @@ assert.ok(Number.isSafeInteger(budget)&&budget>=20000);
 const songs=(arg('songs')??musicalDirectionCases.map(c=>c.song).join(',')).split(',');
 assert.ok(songs.every(s=>musicalDirectionCases.some(c=>c.song===s)));
 const definitions=musicalDirectionCases.filter(c=>songs.includes(c.song));
-const methods=Object.keys(musicalDirectionMethods) as Array<keyof typeof musicalDirectionMethods>;
+const geometry=arg('geometry')??'facets';
+assert.ok(['facets','serpentine','terraces','scallops'].includes(geometry),'unsupported local geometry');
+const {profile,subdivisions}=galleryArcOptions(geometry as GalleryMethod)!;
+const geometryStyle={...(profile?{profile}:{}),...(subdivisions?{subdivisions}:{})};
+const geometryTitle=galleryMethods[geometry as GalleryMethod].title;
+const methodDetails={baseline:musicalDirectionMethods.baseline,guidance:musicalDirectionMethods.guidance,
+  [geometry]:{title:geometryTitle+' throughout',description:'An independent complete ride searched with '+geometryTitle.toLowerCase()+'.'},
+  mixed:{title:'Arcs → '+geometryTitle.toLowerCase()+' → arcs',description:'The selected phrase uses '+geometryTitle.toLowerCase()+', then returns to smooth construction. Earlier history is locked; the continuation is searched.'}};
+const methods=Object.keys(methodDetails);
 const {compileArcMotion}=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/arc_motion.ts')).href);
 const {connectedArcOptions}=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/connected_arcs.ts')).href);
 const {composeArcSections}=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/arc_composition.ts')).href);
@@ -54,10 +64,10 @@ const cases=await Promise.all(definitions.map(async d=>{
 }));
 const compiler=galleryCompilerIdentity(compilerRoot),judge=verifyFrozen();
 const harnessPaths=['scripts/produce/musical_direction.ts','scripts/produce/musical_direction_cases.ts',
-  'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/produce/seed.ts','scripts/produce/measure.ts'];
+  'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/methods.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/measure.ts'];
 const harness=galleryHarnessIdentity(harnessPaths);
 const plan={schema:'line.musical-direction-plan.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,
-  cases,seeds,budgets:[budget],methods,methodDetails:musicalDirectionMethods,jolt,
+  cases,seeds,budgets:[budget],methods,methodDetails,geometry,geometryStyle,jolt,
   note:'Real music, unchanged authored targets, normal lines only. Full tracks are compiled and independently validated. Local changes lock earlier geometry and rebuild the complete continuation. No aesthetic approval is implied. Each alternative has its own stated allowance; shared baseline work is counted once per comparison set.'};
 mkdirSync(out,{recursive:true});
 const write=(name:string,value:unknown)=>writeGalleryJson(out,name,value);
@@ -78,13 +88,13 @@ for(const c of cases)for(const seed of seeds){
     const began=performance.now();let composition:any=null;
     let styles:NonNullable<ArcMotionOptions['sectionStyles']>={};
     if(method==='mixed'||method==='guidance'){
-      const window=c[method],style=method==='mixed'?{subdivisions:.5}:{guides:false};
+      const window=c[method],style=method==='mixed'?geometryStyle:{guides:false};
       styles=Object.fromEntries(reference.rows.flatMap((r:any,i:number)=>r.frame/40>=window[0]&&r.frame/40<window[1]?[[i,style]]:[]));
       assert.ok(Object.keys(styles).length,'empty authored construction window');
       composition=composeArcSections(spec,seed,reference,styles,budget);
     }
     const result=composition?.result??compileArcMotion(spec,seed,{...connectedArcOptions(spec,budget),collectTrajectoryLoss:true,
-      ...(method==='facets'?{subdivisions:.5}:{})});
+      ...(method===geometry?geometryStyle:{})});
     const compileMs=performance.now()-began,physicalFrames=composition?.physicalFrames??result.stats.sim_frames;
     assert.ok(physicalFrames<=budget);compileWork+=physicalFrames;totalMs+=compileMs;
     if(method==='baseline')reference=result;
@@ -95,16 +105,18 @@ for(const c of cases)for(const seed of seeds){
     const valid=result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((x:any)=>x.status==='hit');
     assert.equal(valid,grade.score.valid,'compiler and frozen judge disagree');
     if(valid)assert.ok(Math.abs(Math.sqrt(result.trajectoryLoss)-grade.score.weightedAxisRms!)<1e-10,'target adapter changed the objective');
+    const geometryVerification=verifyMainConstruction(result.track,result.rows,{radius:24,channel:12,
+      ...(method===geometry?geometryStyle:{}),sectionStyles:styles},composition?.changedSections[0]??0);
     const sections=result.rows.map((r:any,i:number)=>{
       const chains=groups.get(i)??[],normal=chains[0]??[],guides=chains[1]??[];
       const guideIds=new Set(guides.map(l=>l.id)),mainIds=new Set(normal.map(l=>l.id));
       const guideFrames=collisionIds!.flatMap((ids,f)=>ids.some(id=>guideIds.has(id))?[f]:[]);
       const mainFrames=collisionIds!.flatMap((ids,f)=>ids.some(id=>mainIds.has(id))?[f]:[]);
-      const subdivision=styles[i]?.subdivisions??(method==='facets'?.5:4);
+      const subdivision=styles[i]?.subdivisions??(method===geometry?(subdivisions??4):4);
       if(i>=(composition?.changedSections[0]??0))assert.equal(normal.length,1+Math.max(4,Math.ceil(r.control.support*subdivision)),'emitted shape differs from requested construction');
       if(styles[i]?.guides===false)assert.equal(guides.length,0,'forbidden guide emitted');
       return {section:i,start:r.frame/40,end:(result.rows[i+1]?.frame??c.durationFrames)/40,
-        shape:subdivision===.5?'facets':'arcs',guidePermission:styles[i]?.guides===false?'forbidden':'allowed',
+        shape:styles[i]?.profile??(method===geometry?profile:undefined)??(subdivision===.5?'facets':'arcs'),guidePermission:styles[i]?.guides===false?'forbidden':'allowed',
         mainSegments:normal.length,guideSegments:guides.length,mainContactFrames:mainFrames.length,guideContactFrames:guideFrames.length,
         firstGuideContact:guideFrames[0]===undefined?null:guideFrames[0]/40,lastGuideContact:guideFrames.length?guideFrames.at(-1)!/40:null};
     });
@@ -130,7 +142,7 @@ for(const c of cases)for(const seed of seeds){
       compileMs,physicalFrames,validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
       trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,
       terminus:grade.terminus,failure:result.failure,valid,qualityRms:grade.score.weightedAxisRms,usage,sections,
-      contactSummary:inspection.summary,collisionSha256:sha(JSON.stringify(collisionIds)),metrics,
+      geometryVerification,contactSummary:inspection.summary,collisionSha256:sha(JSON.stringify(collisionIds)),metrics,
       construction:{styles,boundaryFrame:composition?.boundaryFrame??null,prefixFrames,changedMotionFrames,
         changedSections:composition?.changedSections??[],baseTrackHash:method==='baseline'?null:sha(JSON.stringify(reference.track))},
       trackPath:relative(out,join(dir,'track.json')),reportPath:relative(out,join(dir,'report.json')),

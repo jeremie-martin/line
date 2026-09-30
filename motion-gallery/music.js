@@ -43,22 +43,24 @@ async function select(){
   baseline=manifest.cells.find(c=>c.caseId===song&&c.seed===seed&&c.method==='baseline');
   selected=manifest.cells.find(c=>c.caseId===song&&c.seed===seed&&c.method===$('variant').value);
   if(!baseline||!selected){$('status').textContent='This recorded comparison is missing.';return;}
-  if(oldSong!==song){seconds=caseInfo.excerpt[0];stopAt=caseInfo.durationFrames/40;}
+  const focus=selected.method==='mixed'?caseInfo.mixed[0]:selected.method==='guidance'?caseInfo.guidance[0]:caseInfo.moments[0].time;
+  const defaultMoment=caseInfo.moments.reduce((best,m)=>Math.abs(m.time-focus)<Math.abs(best.time-focus)?m:best);
+  if(oldSong!==song){seconds=defaultMoment.time;stopAt=caseInfo.durationFrames/40;}
   $('intent').textContent=caseInfo.intent;$('alternative-title').textContent=manifest.plan.methodDetails[selected.method].title;
   $('baseline-metrics').textContent=`Whole-ride target error ${format(baseline.qualityRms,4)} RMS · ${format(baseline.compileMs/1000,2)} s compilation`;
   $('alternative-metrics').textContent=`Whole-ride target error ${format(selected.qualityRms,4)} RMS · ${format(selected.compileMs/1000,2)} s compilation`;
   const changed=selected.construction.changedSections.map(i=>selected.sections.find(s=>s.section===i));
   const interval=changed.length?`${format(changed[0].start,2)}–${format(changed.at(-1).end,2)} s`:null;
-  $('decision').textContent=selected.method==='mixed'?`Actual faceted supports at ${interval}, followed by smooth construction.`:
+  $('decision').textContent=selected.method==='mixed'?`${manifest.plan.methodDetails[selected.method].title}: changed supports at ${interval}, followed by smooth construction.`:
     selected.method==='guidance'?`Guide-free supports at ${interval}; guidance is permitted again afterwards.`:
-    'Faceted construction throughout an independently searched ride.';
+    `${manifest.plan.methodDetails[selected.method].title}: an independently searched complete ride.`;
   $('construction').textContent=selected.construction.boundaryFrame===null?'This independent comparison can change the whole ride.':
     `Earlier geometry and every rider point match the baseline through ${format(selected.construction.boundaryFrame/40,3)} s. The complete later ride is rebuilt. ${selected.construction.changedMotionFrames} recorded frames differ in rider position. These checks establish a physical change, not an aesthetic improvement.`;
   $('work').textContent=`Baseline: ${baseline.physicalFrames.toLocaleString()} simulated frames. Alternative: ${selected.physicalFrames.toLocaleString()}, including prefix preparation. Each has a ${selected.budget.toLocaleString()} frame ceiling. Independent validation and video rendering are additional work. Target jitter: ${caseInfo.jitter}; different seeds can produce identical tracks.`;
   const inspect=new URL('/motion-gallery/',location.href);inspect.searchParams.set('data',manifestUrl.pathname);inspect.searchParams.set('passage',song);inspect.searchParams.set('seed',seed);inspect.searchParams.set('left','baseline');inspect.searchParams.set('right',selected.method);inspect.searchParams.set('time',seconds);
   $('inspect').href=inspect;$('record').href=new URL(selected.path,manifestUrl);
   $('moments').replaceChildren(...caseInfo.moments.map(m=>{const b=document.createElement('button');b.textContent=m.title;b.dataset.time=m.time;b.onclick=()=>{pause();seek(m.time);showMoment(m);};return b;}));
-  showMoment((oldSong===song&&caseInfo.moments.find(m=>m.title===moment?.title))||caseInfo.moments[0]);$('seek').max=caseInfo.durationFrames/40;$('status').textContent='Loading the preserved production videos…';
+  showMoment((oldSong===song&&caseInfo.moments.find(m=>m.title===moment?.title))||defaultMoment);$('seek').max=caseInfo.durationFrames/40;$('status').textContent='Loading the preserved production videos…';
   for(const v of videos){v.removeAttribute('src');v.load();}
   for(const id of ['full-video','clip-video']){$(id).removeAttribute('href');$(id).hidden=true;}
   try{
@@ -71,7 +73,7 @@ async function select(){
     for(const id of ['play','excerpt','seek'])$(id).disabled=false;
     $('full-video').href=new URL(saved[1].full.path,manifestUrl);$('clip-video').href=new URL(saved[1].excerpt.path,manifestUrl);
     for(const id of ['full-video','clip-video'])$(id).hidden=false;
-    $('status').textContent='Same preserved tracks as the inspector · normal lines · full production rendering · visual preference awaiting review';
+    $('status').textContent='Same preserved tracks as the inspector · normal lines · full production rendering · experimental construction';
     if(playing)await play();
   }catch(e){if(token!==generation||signal.aborted)return;loading=false;pause();$('play').disabled=true;$('retry').hidden=false;$('status').textContent=`Videos are not available for this selection yet. Native track inspection is available. ${e.message}`;}
 }

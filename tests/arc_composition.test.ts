@@ -37,3 +37,17 @@ it('rejects unsupported styles and refuses to edit locked prefixes',()=>{
   expect(()=>compileArcMotion(spec,17,{...options,fork,sectionStyles:{1:{guides:false}}})).toThrow('section style');
   expect(()=>composeArcSections(spec,17,reference,{},250000)).toThrow('valid support');
 });
+
+it.each(['serpentine','terraces','scallops'] as const)('composes actual %s geometry and returns to ordinary arcs',async profile=>{
+  const {verifyMainConstruction}=await import('../scripts/gallery/verify_construction.ts');
+  const reference=compileArcMotion(spec,17,options),styles={2:{profile}};
+  const {result}=composeArcSections(spec,17,reference,styles,250000);
+  expect(result.report.terminus.reason).toBe('endOfSpec');
+  expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
+  expect(result.report.off_beat_landings).toHaveLength(0);
+  expect(verifyMainConstruction(result.track,result.rows,{radius:24,channel:12,sectionStyles:styles},2).mainSupportsVerified).toBe(result.rows.length-2);
+  expect(()=>verifyMainConstruction(result.track,result.rows,{radius:24,channel:12},2)).toThrow('main construction differs');
+  const {fork}=captureArcFork(reference,2);
+  expect(()=>compileArcMotion(spec,17,{...options,fork,sectionStyles:{2:{guides:false}}})).toThrow('conflicting');
+  expect(()=>compileArcMotion(spec,17,{...options,sectionStyles:{2:{profile:'unknown' as any}}})).toThrow('section style');
+});

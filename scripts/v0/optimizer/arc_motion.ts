@@ -6,6 +6,7 @@ import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSear
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
+import { MOTION_PROFILES, type MotionProfile } from './motion_profiles.ts';
 import { motionArc, type ArcMotionControl, type ArcGeometryStyle } from './arc_geometry.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
@@ -52,7 +53,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Research composition by support index (startup is zero). Applied to every
    * proposal, lookahead and rebuilt continuation. Omitted sections inherit the
    * global settings; this changes construction, never the musical specification. */
-  sectionStyles?:Record<number,{guides?:boolean;subdivisions?:number}>;
+  sectionStyles?:Record<number,{guides?:boolean;subdivisions?:number;profile?:MotionProfile}>;
   /** Reuse the preliminary track as measured controls in general search. */
   previewMemory?:boolean;
   /** Measured controls retrieved by physical state and authored targets. */
@@ -305,10 +306,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     for(const [key,style] of Object.entries(options.sectionStyles)){
       const index=Number(key);
       if(!Number.isSafeInteger(index)||String(index)!==key||index<resumeAt||index>=contacts.length||
-        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>k!=='guides'&&k!=='subdivisions')||
+        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>k!=='guides'&&k!=='subdivisions'&&k!=='profile')||
         (style.guides!==undefined&&typeof style.guides!=='boolean')||
+        (style.profile!==undefined&&!MOTION_PROFILES.includes(style.profile))||
         (style.subdivisions!==undefined&&(!Number.isFinite(style.subdivisions)||style.subdivisions<=0||style.subdivisions>4)))
         throw new Error('invalid section style or locked prefix override');
+      const permission=options.fork&&(index===options.fork.section?options.fork.guides:options.fork.continuationGuides?.[index-options.fork.section]);
+      if(permission!==undefined&&style.guides!==undefined&&permission!==style.guides)
+        throw new Error('conflicting section style and fork guide permissions');
     }
   }
   if(options.replayControls&&options.replayControls.length!==contacts.length)throw new Error('replay controls do not cover the complete timeline');

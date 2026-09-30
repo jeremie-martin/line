@@ -1,12 +1,20 @@
 # Active roadmap: a deliberate creative repertoire — 2026-09-30
 
-Active execution: [the integrated repertoire campaign](docs/repertoire-workspace-20260930.md).
-The owner requests ambitious sustained work across the roadmap, with multiple
-connected work packages and feedback on the substantial result. Do not stop at
-one new shape or one local optimization. Current work spans shared search,
-reusable phrase composition, further physical constructions, whole-track musical
-arrangements and a creative workspace; normal-line and frozen-judge constraints
-remain in force.
+Delivered: [the integrated repertoire workflow](docs/repertoire-workspace-results-20260930.md)
+now connects shared search, reusable composition, construction controls,
+five complete musical arrangements and an editable creative workspace. The owner
+requested substantial connected work rather than stopping after each small task;
+that remains the working approach. Normal-line and frozen-judge constraints remain
+in force. The creative roadmap is still early; technical delivery is not owner
+approval of every new arrangement.
+
+The workspace supports saved phrase plans, repeated scattered passages, connected
+shapes, guide permission, bounded compilation, exact native inspection and full
+production rendering. The focused studies retain unsuccessful ideas and actual
+contact timelines. Recovery is retained; two unsuccessful search options are
+archived. All five arrangements reproduce exactly with the delivered compiler;
+default V4 is unchanged at 952.4726 with 352/352 valid. Code and compact evidence
+are versioned; media and raw data remain local.
 
 The owner approved the [creative repertoire roadmap](docs/creative-repertoire-roadmap.md).
 Its first panel compared three constructions on shared musical passages and in
@@ -15,7 +23,7 @@ the owner's review. Preserve musical accuracy, understandable choices and
 reasonable computation. The musical-direction work below is the preceding milestone.
 
 The owner finds scattered visually strong and the latest ripple subtle. The
-[next creative milestone](docs/connected-repertoire-20260930.md) develops explicit
+[preceding connected-geometry milestone](docs/connected-repertoire-20260930.md) develops explicit
 three-face folded passages, preserving substantial corners while searching their
 placement. The frozen 0826323d panel has eleven valid complete rides and one failed
 Tiki entry; all outcomes remain visible, with full vertical videos for the valid
@@ -25,9 +33,9 @@ confirmation. Native playback, actual contact order and local losses are recorde
 Full V4 outputs and work remain exactly unchanged at 952.4726. Earlier scattered
 and ripple examples remain available. The owner has now positively reviewed
 folded, valuing its clear visual difference from production. Preserve that
-contrast while improving reliability, musical accuracy and search cost. The
-next shared search question is recovery from an empty initial candidate set
-without weakening the intended construction or wasting the available allowance.
+contrast while improving reliability, musical accuracy and search cost. That
+initialization question is now addressed by the integrated campaign above, while
+continuation cost and artistic development remain open.
 
 The [second repertoire milestone](docs/repertoire-development-20260930.md) now
 develops ripple placement/wave count and scattered phrases whose return is

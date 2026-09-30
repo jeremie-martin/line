@@ -76,3 +76,17 @@ are archived in commit `c2e05858`, with their full measurements retained; they a
 removed from the delivered compiler surface. This is a result about these
 implementations and passages, not a claim that the ideas cannot work. The normal
 production configuration remains unchanged.
+
+## Integrated delivery
+
+All five work packages now have a connected implementation and empirical result.
+The [workspace and results](repertoire-workspace-results-20260930.md) describe the
+editable composition workflow, five finished musical arrangements, 16 construction
+alternatives, 24 search calls, preserved failures, native/production checks and
+unchanged default benchmark. The artist can now modify and compare complete
+arrangements without another custom two-phrase study script.
+
+Further creative development remains open. This checkpoint is a substantial body
+of work for review, not a claim that every geometry, artistic choice or search
+mechanism is solved. Keep working at this scope rather than returning to a sequence
+of tiny isolated deliverables.

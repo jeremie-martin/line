@@ -17,6 +17,14 @@ search, reusable composition, further construction development, whole-track
 arrangements and a creative workspace. Small experiments and commits are internal
 checkpoints. Search improvements support this broader outcome.
 
+The first integrated delivery is now available in the
+[creative workspace](http://localhost:8767/motion-gallery/workspace.html): shared
+initialization recovery, editable ordered compositions, 16 controlled construction
+alternatives, five complete musical arrangements and finished vertical videos.
+See [results and limitations](repertoire-workspace-results-20260930.md). This
+advances all five strands below; it does not complete the creative roadmap or
+establish the owner's preference for the new arrangements.
+
 ## Roadmap
 
 1. **Understand and adjust existing constructions.** Establish what controls the

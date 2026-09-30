@@ -62,5 +62,9 @@
   {
     "title": "Luna Bala \u00b7 terraces \u00b7 unguided",
     "manifest": "/generated/repertoire-workspace-20260930/controls/luna_bala_44s-terraces-unguided/manifest.json"
+  },
+  {
+    "title": "Stress test \u00b7 extreme unguided startup folds (incomplete)",
+    "manifest": "/generated/repertoire-workspace-20260930/stress-failure/manifest.json"
   }
 ]

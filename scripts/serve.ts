@@ -1937,6 +1937,11 @@ function isCliEntry(): boolean {
 }
 
 if (isCliEntry()) {
+  for(const signal of ['SIGINT','SIGTERM'] as const)process.once(signal,()=>{
+    repertoireApi.close();
+    server.close(()=>process.exit(0));
+    setTimeout(()=>process.exit(0),1000).unref();
+  });
   server.listen(PORT, HOST, () => {
     console.log(`serving ${ROOT} on ${HOST}:${PORT}`);
     for (const host of accessHosts(HOST)) {

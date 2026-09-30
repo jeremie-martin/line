@@ -21,7 +21,7 @@ if(existsSync(join(out,'manifest.json')))throw new Error('preserve completed out
 const {composition,seed,baselineBudget,compositionBudget}=request,song=repertoireSongs.find(s=>s.id===composition.song)!;
 const compiler=galleryCompilerIdentity(process.cwd()),judge=verifyFrozen(),jolt=resolveJoltMs();
 const harnessPaths=['scripts/produce/repertoire.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
- 'scripts/gallery/artifacts.ts','scripts/gallery/repertoire_cache.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/measure.ts'];
+ 'scripts/gallery/artifacts.ts','scripts/gallery/repertoire_cache.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts'];
 const harness=galleryHarnessIdentity(harnessPaths);
 const {spec,musicCase:c}=await loadMusicCase({song:song.id,title:song.title,excerpt:[Math.max(0,(composition.phrases[0]?.start??0)-1),Math.min(song.duration,(composition.phrases.at(-1)?.end??song.duration)+2)],
  intent:composition.title,moments:composition.phrases.map(p=>({title:p.title,time:p.start,from:Math.max(0,p.start-.5),to:Math.min(song.duration,p.end+1)}))},jolt);
@@ -32,7 +32,7 @@ const planSha256=writeGalleryJson(out,'plan.json',plan);
 // Only exact compiler, authored inputs and settings share a source. A cache hit
 // retains its original cost and provenance; this request reports reuse separately.
 const cacheRoot=resolve('generated/repertoire-source-cache/v2');mkdirSync(cacheRoot,{recursive:true});
-const sourceKey=sha(JSON.stringify({compiler:compiler.candidateFingerprint,judge,jolt,spec:c.specSha256,analysis:c.analysisSha256,seed,baselineBudget}));
+const sourceKey=sha(JSON.stringify({compiler:compiler.candidateFingerprint,adapter:galleryHarnessIdentity(['scripts/produce/music_artifacts.ts','scripts/produce/seed.ts','scripts/produce/config.ts']),judge,jolt,spec:c.specSha256,analysis:c.analysisSha256,seed,baselineBudget}));
 let reference:any,cached=false,sourceCompileMs=0;
 const saved=readRepertoireCache(cacheRoot,sourceKey);
 if(saved){reference=saved.result;sourceCompileMs=saved.compileMs;cached=true;
@@ -53,4 +53,4 @@ const cells=[baseline.cell,alternative.cell],accounting={sourceKey,sourceCompile
  actualCompilationFrames:(cached?0:reference.stats.sim_frames)+composed.physicalFrames,compositionFrames:composed.physicalFrames,compositionAllowance:compositionBudget,
  validation:'Independent cold evaluation and rendering are outside the compiler work allowance.'};
 writeGalleryJson(out,'manifest.json',{schema:'line.motion-gallery.v1',planSha256,plan,cells,sets:[accounting],summary:cells.map(cell=>({method:cell.method,valid:Number(cell.valid),runs:1,meanScore:cell.score.score})),processElapsedMs:process.uptime()*1000});
-console.log(JSON.stringify({complete:true,out,valid:alternative.cell.valid,rms:alternative.cell.qualityRms,seconds:compileMs/1000,accounting}));
+console.log(JSON.stringify({complete:true,out,valid:alternative.cell.valid,rms:alternative.cell.qualityRms,seconds:compileMs/1000,accounting:{sourceKey,sourceReused:cached,actualCompilationFrames:accounting.actualCompilationFrames,compositionFrames:composed.physicalFrames}}));

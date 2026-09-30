@@ -13,6 +13,7 @@ export type RepertoireOptions={budget:number;creative?:CreativePreferences;plan?
 const complete=(result:any)=>result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((c:any)=>c.status==='hit');
 export function compileProductionRepertoire(input:Spec,seed:number,options:RepertoireOptions){
   const spec=normalizeCompilerTimeline(input),plan=options.plan?validateProductionPlan(spec,options.plan):planRepertoire(spec,seed,options.creative,options.phraseBoundaries);
+  if(plan.seed!==seed)throw new Error('construction plan and compiler seed differ');
   const end=Math.round(spec.duration*40)+20,replay=end+1,budget=options.budget;
   if(!Number.isSafeInteger(budget)||budget<12*replay)throw new Error('repertoire allowance cannot cover construction and independent replay');
   const styles=Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)]));

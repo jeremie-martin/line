@@ -21,7 +21,7 @@ if(savedSet)assert.equal(savedSet.planSha256,manifest.planSha256);
 const ids=arg('ids')!.split(',');
 assert.ok(ids.length&&ids.every(id=>manifest.cells.some((c:any)=>c.id===id)));
 const paths=['scripts/produce/render_musical_direction.ts','scripts/produce/render.ts','scripts/export.ts','scripts/lib/export.ts',
-  'scripts/make_overlay_data.ts','scripts/fx_recipe.ts',...execFileSync('git',['ls-files','remotion/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)];
+  'scripts/make_overlay_data.ts','scripts/make_spectrum.py','scripts/fx_recipe.ts',...execFileSync('git',['ls-files','remotion/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)];
 const pipeline=galleryHarnessIdentity(paths),mirror=await ensureMirror();
 const probe=(p:string)=>JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-show_format','-of','json',p],{encoding:'utf8'}));
 function check(p:string){

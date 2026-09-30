@@ -676,7 +676,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(best&&options.guidance){
         const origin=best;
         const exitEnabled=options.independentExit&&best.c.support>=(options.minExitSupport??0);
-        const responseKeys=arcMethodKeys('response',!!options.expressive,!!exitEnabled,options.guides);
+        const responseKeys=arcMethodKeys('response',!!options.expressive,!!exitEnabled,options.guides,options);
         const wantedResponse=Math.min(options.guidanceSamples??48,options.responseSamples??0);
         const responseRound=2*responseKeys.length+3;
         const responseAllowance=options.completeGuidanceBudget?Math.floor(wantedResponse/responseRound)*responseRound:wantedResponse>=responseRound?wantedResponse:0;
@@ -685,7 +685,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(options.guidanceJoint)keys.push(...ARC_CORE_KEYS);
         if(options.expressive)keys.push(...ARC_EXPRESSIVE_KEYS);
         if(exitEnabled)keys.push('exitBias');
-        if(options.guides===false)keys=keys.filter(key=>arcControlActive(key,false));
+        keys=keys.filter(key=>arcControlActive(key,options.guides,options));
         const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
         for(let k=0;keys.length&&k<count;k++){
           const frac=(n:number)=>((k+1)*n)%1;

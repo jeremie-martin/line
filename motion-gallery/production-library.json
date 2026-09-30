@@ -1,77 +1,342 @@
 {
   "schema": "line.production-library.v1",
+  "plan": "/generated/production-repertoire/library-7d766851/collection-plan.json",
   "entries": [
     {
       "id": "luna_bala_44s-101",
       "title": "Luna Bala",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/luna_bala_44s-101/manifest.json",
+      "score": 817.2719,
+      "video": false,
       "seed": 101,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "luna_bala_44s-202",
       "title": "Luna Bala",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/luna_bala_44s-202/manifest.json",
+      "score": 832.8911,
+      "video": false,
       "seed": 202,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "luna_bala_44s-303",
       "title": "Luna Bala",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/luna_bala_44s-303/manifest.json",
+      "score": 830.6004,
+      "video": false,
       "seed": 303,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "amor_na_praia_46s-101",
       "title": "Amor na Praia",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/amor_na_praia_46s-101/manifest.json",
+      "score": 774.5618,
+      "video": false,
       "seed": 101,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "amor_na_praia_46s-202",
       "title": "Amor na Praia",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/amor_na_praia_46s-202/manifest.json",
+      "score": 714.2193,
+      "video": false,
       "seed": 202,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "amor_na_praia_46s-303",
       "title": "Amor na Praia",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/amor_na_praia_46s-303/manifest.json",
+      "score": 826.0879,
+      "video": false,
       "seed": 303,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "tiki_tiki_48s-101",
       "title": "Tiki Tiki",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/tiki_tiki_48s-101/manifest.json",
+      "score": 609.8903,
+      "video": false,
       "seed": 101,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "tiki_tiki_48s-202",
       "title": "Tiki Tiki",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/tiki_tiki_48s-202/manifest.json",
+      "score": 696.0935,
+      "video": false,
       "seed": 202,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "tiki_tiki_48s-303",
       "title": "Tiki Tiki",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/tiki_tiki_48s-303/manifest.json",
+      "score": 731.2927,
+      "video": false,
       "seed": 303,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "amour_de_ma_vie_44s-101",
-      "title": "L\u2019amour de ma vie",
+      "title": "L’amour de ma vie",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/amour_de_ma_vie_44s-101/manifest.json",
+      "score": 434.5484,
+      "video": false,
       "seed": 101,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "amour_de_ma_vie_44s-202",
-      "title": "L\u2019amour de ma vie",
+      "title": "L’amour de ma vie",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/amour_de_ma_vie_44s-202/manifest.json",
+      "score": 492.4498,
+      "video": false,
       "seed": 202,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     },
     {
       "id": "amour_de_ma_vie_44s-303",
-      "title": "L\u2019amour de ma vie",
+      "title": "L’amour de ma vie",
+      "status": "Fulfilled",
+      "manifest": "/generated/production-repertoire/library-7d766851/amour_de_ma_vie_44s-303/manifest.json",
+      "score": 498.0542,
+      "video": false,
       "seed": 303,
-      "status": "Scheduled"
+      "settings": {
+        "mode": "production",
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      }
     }
   ]
 }

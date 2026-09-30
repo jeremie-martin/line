@@ -41,5 +41,5 @@ async function run(entry:any){const dir=join(out,entry.id);mkdirSync(dir,{recurs
  }catch(e){writeGalleryJson(dir,phase==='compile'?'failure.json':'render-failure.json',{error:String(e)});}
  finally{closeSync(fd);index();console.log(JSON.stringify({id:entry.id,phase,status:entry.status,video:entry.video,error:entry.error}));}
 }
-if(phase!=='index'){let next=0;await Promise.all(Array.from({length:jobs},async()=>{while(next<entries.length)await run(entries[next++]);}));}
+if(phase!=='index'){const queue=phase==='render'?[...entries].sort((a,b)=>a.request.seed-b.request.seed):entries;let next=0;await Promise.all(Array.from({length:jobs},async()=>{while(next<queue.length)await run(queue[next++]);}));}
 index();

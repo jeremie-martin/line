@@ -17,6 +17,7 @@
  * runs it once at launch, not per bundle.
  */
 import { spawn } from "node:child_process";
+import {createHash,randomUUID} from "node:crypto";
 import { openSync, closeSync, existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync, readFileSync, renameSync, statSync } from "node:fs";
 import { resolve, join, dirname, basename, relative } from "node:path";
 import type { RenderConfig } from "./config.ts";
@@ -124,13 +125,20 @@ function spectrumPython(): string {
   return existsSync(venv) ? venv : "python3";
 }
 
-/** Compute the music spectrum once (same song → same spectrum for every bundle).
- *  Writes remotion/public/<song>.spectrum.json; returns its basename. */
+/** Cache the actual recording and analysis recipe, not a mutable song name.
+ * Concurrent render lanes publish complete files atomically. */
 export async function ensureSpectrum(audioPath: string, song: string, logPath: string): Promise<string> {
-  const out = join(ROOT, "remotion", "public", `${song}.spectrum.json`);
-  mkdirSync(dirname(out), { recursive: true });
-  if (!existsSync(out)) {
-    await run(spectrumPython(), ["scripts/make_spectrum.py", `--audio=${audioPath}`, `--out=${out}`, "--fps=30", "--bands=56"], logPath);
+  const identity=createHash('sha256').update(readFileSync(audioPath))
+    .update(readFileSync(join(ROOT,'scripts/make_spectrum.py'))).update('fps=30;bands=56').digest('hex');
+  const out=join(ROOT,'remotion','public',`${song}.${identity}.spectrum.json`);
+  mkdirSync(dirname(out),{recursive:true});
+  if(!existsSync(out)){
+    const temporary=out+'.'+randomUUID()+'.tmp';
+    try{
+      await run(spectrumPython(),['scripts/make_spectrum.py',`--audio=${audioPath}`,`--out=${temporary}`,'--fps=30','--bands=56'],logPath);
+      JSON.parse(readFileSync(temporary,'utf8')); // Never publish a truncated analysis.
+      renameSync(temporary,out);
+    }finally{if(existsSync(temporary))rmSync(temporary);}
   }
   return basename(out);
 }

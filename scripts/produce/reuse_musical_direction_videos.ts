@@ -18,7 +18,8 @@ for(const sourceRoot of new Set([root,...(arg('from')?[resolve(arg('from')!)]:[]
     const record=read(join(sourceRoot,cell.id+'.video.json'));
     assert.equal(record.identity.cellSha256,cell.sha256);assert.equal(record.identity.planSha256,m.planSha256);
     for(const v of [record.full,record.excerpt])assert.equal(hash(join(sourceRoot,v.path)),v.sha256);
-    for(const [path,digest]of Object.entries(record.identity.pipeline))assert.equal(hash(path),digest,'render pipeline changed');
+    // An older pipeline is an ineligible cache source, not a failed new render.
+    if(Object.entries(record.identity.pipeline).some(([path,digest])=>!existsSync(path)||hash(path)!==digest))continue;
     sources.push({sourceRoot,cell,record,plan:m.plan});if(sourceRoot===root)saved.add(cell.id);
   }
 }

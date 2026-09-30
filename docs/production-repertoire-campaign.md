@@ -113,3 +113,37 @@ context separation is promoted; the ordinary reference keeps its original memory
 The richer production mode remains substantially less musically accurate than the
 ordinary profile. Canonical and reserved-panel qualification will quantify that
 limitation rather than extrapolating these three songs.
+
+## Scaling, repair, geometry and hardening
+
+[Further evidence](evidence/production-repertoire-budget-and-geometry-20261001.json)
+covers 750k/1.5m/3m/5m budgets on three unchanged plans, six incumbent-preserving
+suffix-repair trials, and three four-song fold experiments. Higher budget alone
+is not a reliable improvement: Luna is identical at 3m and 5m, and Amor slightly
+regresses. Local repair raises Luna 812.5286→822.8431 and Amor 828.1114→829.4552,
+but subsequent overlapping repairs spend substantial work without improving the
+incumbent; Tiki gains nothing. The study is preserved rather than enabling that
+extra work by default or claiming the remaining allowance is inherently useless.
+
+Two more expressive fold-coordinate implementations have mixed/worse results.
+Their [experimental patch](evidence/production-repertoire-fold-coordinate-experiment.patch)
+and all outcomes are retained; this is not a finding that richer fold geometry
+cannot work. A smaller correction has clear evidence: a full fold beginning at
+zero replaces the smooth heading schedule, making its `bend` coordinate inactive.
+Normalization, finite differences and coordinate search now omit that dimension
+only in that exact geometry. Four songs retain identical scores and spend fewer
+physics frames. Partial/delayed folds and other shapes retain the bend control.
+
+The API rejects ambiguous plan/preferences, mismatched seeds and unsupported axes.
+Authored spec bytes and jolt participate in job identity. Spectrum caching now
+keys the actual audio and analysis recipe, with atomic publication for concurrent
+renders; an old song-name cache cannot certify stale audio visualization. Obsolete
+render-pipeline sources are skipped rather than aborting a fresh render. Focused
+checks cover changed recordings, concurrent analysis and inactive geometry.
+
+The full ordinary companion at `7d766851` is exactly 952.4726, 352/352 valid and
+176 distinct tracks. The complete first automatic collection has 12/12 fulfilled
+rides; scores range widely, especially on L’amour de ma vie. Desktop/mobile native
+playback, rapid cross-song/seed switching, exact job reuse, cancellation and
+incomplete-result inspection pass. Final compiler qualification and finished
+collection rendering remain in progress.

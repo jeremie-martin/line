@@ -41,3 +41,9 @@ it('can end with actual contact fragments and preserves caller-owned judge engin
   expect(r.physicalFrames).toBeLessThanOrEqual(180000);
   expect(caller.getRider(10).ballisticState()).toEqual(before);
 });
+it('rejects ambiguous creative inputs and mismatched plan seeds',async()=>{
+ const {planRepertoire}=await import('../scripts/v0/optimizer/repertoire_policy.ts');const plan=planRepertoire(spec,101);
+ expect(()=>compileHandoff(spec,202,{budget:50000,constructionPlan:plan})).toThrow('seed differ');
+ expect(()=>compileHandoff(spec,101,{budget:50000,constructionPlan:plan,creative:{}})).toThrow('preferences or');
+ expect(()=>compileHandoff({...spec,axes:{...spec.axes,elevation:()=>.5}},101,{budget:50000,creative:{}})).toThrow('supports air');
+});

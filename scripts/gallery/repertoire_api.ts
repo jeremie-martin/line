@@ -43,7 +43,7 @@ export function createRepertoireApi(root=process.cwd()){
    'scripts/gallery/artifacts.ts','scripts/gallery/repertoire_cache.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
    ...readdirSync(join(root,'productions',requestSong(request))).filter(p=>/\.(ts|json)$/.test(p)).map(p=>`productions/${requestSong(request)}/${p}`)];
   const cfg=loadSelect(join(root,'productions',requestSong(request)));
-  return hash(JSON.stringify({request,compiler,jolt:resolveJoltMs(),audio:hash(readFileSync(cfg.audio)),render:cfg.render,files:paths.map(p=>[p,hash(readFileSync(join(root,p)))])}));
+  return hash(JSON.stringify({request,compiler,jolt:resolveJoltMs(),spec:hash(readFileSync(cfg.spec)),audio:hash(readFileSync(cfg.audio)),render:cfg.render,files:paths.map(p=>[p,hash(readFileSync(join(root,p)))])}));
  }
  function pump(){
   if(closed)return;

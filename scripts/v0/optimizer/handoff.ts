@@ -39,6 +39,9 @@ export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompile
   validateCompilerTelemetry(opts.budgetTelemetry);
   if(opts.creative!==undefined||opts.constructionPlan!==undefined){
     if(!repertoireBackend)throw new Error('creative production currently requires the WASM engine');
+    if(Object.keys(userSpec.axes).some(axis=>!['air','speed','amplitude'].includes(axis)))throw new Error('creative production supports air, speed and amplitude axes');
+    if(opts.creative!==undefined&&opts.constructionPlan!==undefined)throw new Error('choose creative preferences or an explicit construction plan');
+    if(opts.constructionPlan!==undefined&&opts.phraseBoundaries!==undefined)throw new Error('explicit plans already contain their phrase boundaries');
     if(Object.entries(opts).some(([key,value])=>value!==undefined&&!['budget','budgetTelemetry','creative','constructionPlan','phraseBoundaries'].includes(key)))throw new Error('legacy search options cannot be combined with creative production');
     const repertoire=repertoireBackend.compileProductionRepertoire(userSpec,seed,{budget:opts.budget,creative:opts.creative,plan:opts.constructionPlan,phraseBoundaries:opts.phraseBoundaries});
     const {result,physicalFrames,searchTotals}=repertoire,duration=Math.round(userSpec.duration*FPS);

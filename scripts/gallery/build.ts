@@ -1,15 +1,14 @@
 /** Generate replayable, matched geometry evidence. Raw tracks and traces stay local. */
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
+import {mkdirSync, readFileSync, existsSync} from 'node:fs';
 import {resolve, relative} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {galleryCases} from './cases.ts';
 import {galleryActiveMethods, galleryMethodDetails, galleryArcOptions, type GalleryMethod} from './methods.ts';
 import {caseSpec, sha} from '../../benchmark/v3/model.ts';
-import {evaluateDetection} from '../../benchmark/v4/evaluator.ts';
 import {verifyFrozen} from '../../benchmark/v4/contract.ts';
-import {detect, extractRawTrajectory} from '../lib/detector.ts';
+import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson,replayGalleryTrack} from './artifacts.ts';
 
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
 const out = resolve(arg('out') ?? 'generated/motion-gallery/20260930-functional-rails');
@@ -23,18 +22,13 @@ const jitter = Number(arg('jitter') ?? .02);
 assert.ok(budgets.every(b => Number.isSafeInteger(b) && b > 1000) && seeds.every(Number.isSafeInteger));
 assert.ok(new Set(budgets).size === budgets.length && new Set(seeds).size === seeds.length);
 assert.ok(Number.isFinite(jitter) && jitter >= 0 && jitter < 1);
-const identity = () => JSON.parse(execFileSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e',
-  'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; const {trackedChanges,...identity}=compilerCandidateIdentity("wasm"); console.log(JSON.stringify(identity));'],
-  {cwd: compilerRoot, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024}));
-const harness = () => Object.fromEntries(['scripts/gallery/build.ts', 'scripts/gallery/cases.ts', 'scripts/gallery/methods.ts'].map(p => [p, sha(readFileSync(p))]));
+const identity = () => galleryCompilerIdentity(compilerRoot);
+const harness = () => galleryHarnessIdentity(['scripts/gallery/build.ts','scripts/gallery/artifacts.ts','scripts/gallery/cases.ts','scripts/gallery/methods.ts']);
 const plan = {schema: 'line.motion-gallery-plan.v1', researchOnly: true, compilerRoot, compiler: identity(),
   judge: verifyFrozen(), harness: harness(), cases: galleryCases, budgets, seeds, jitter,
   methods, methodDetails, observer: Object.fromEntries(execFileSync('git', ['ls-files', 'vendor/lr-core'], {cwd: compilerRoot, encoding: 'utf8'}).trim().split('\n').map(p => [p, sha(readFileSync(resolve(compilerRoot,p)))])), note: 'Matched geometry research. Single rails are independently searched with guides disabled during every candidate simulation. Paired rails retain complete guides; ordinary arcs trim unused guide sections after replay. Shapes are constructed before physics search. Matched short passages, not a benchmark headline. Improved scattered construction compares two normal-segment methods; its choice and all work are recorded. No arc track is substituted for scattered geometry. Wall times include lazy model loading; first cell is cold, later cells reuse the process.'};
 mkdirSync(out, {recursive: true});
-const write = (name: string, value: unknown) => {
-  const body = JSON.stringify(value) + '\n'; writeFileSync(resolve(out, name), body);
-  writeFileSync(resolve(out, name + '.sha256'), sha(body) + '\n'); return sha(body);
-};
+const write = (name:string,value:unknown) => writeGalleryJson(out,name,value);
 if (existsSync(resolve(out, 'plan.json'))) assert.deepEqual(JSON.parse(readFileSync(resolve(out, 'plan.json'), 'utf8')), plan);
 else write('plan.json', plan);
 const planSha256 = sha(readFileSync(resolve(out, 'plan.json')));
@@ -43,9 +37,6 @@ const {connectedArcOptions} = await import(pathToFileURL(resolve(compilerRoot, '
 const {compileNormalMotion} = await import(pathToFileURL(resolve(compilerRoot, 'scripts/v0/optimizer/normal_motion.ts')).href);
 const {compileScatteredMotion} = await import(pathToFileURL(resolve(compilerRoot, 'scripts/v0/optimizer/normal_contacts.ts')).href);
 const {getPhysicsFrameCount} = await import(pathToFileURL(resolve(compilerRoot, 'scripts/lib/detector.ts')).href);
-const {LineRiderEngine: Engine, disposeAllWasmEnginesForStudy: dispose} =
-  await import(new URL('../lib/_lr_engine_wasm.ts?motion-gallery-replay', import.meta.url).href);
-const pointIds = ['PEG', 'TAIL', 'NOSE', 'STRING', 'BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT'];
 const cells: any[] = [];
 let compileCalls = 0;
 for (const c of galleryCases) for (const budget of budgets) for (const seed of seeds) for (const method of plan.methods) {
@@ -67,17 +58,7 @@ for (const c of galleryCases) for (const budget of budgets) for (const seed of s
   assert.ok(result.track.lines.every((l: any) => l.type === 0));
   const trackHash = sha(JSON.stringify(result.track));
   const replayStart = performance.now();
-  let grade: ReturnType<typeof evaluateDetection>, trace: any;
-  try {
-    const engine = new Engine().setStart(result.track.startPosition, result.track.riders[0].startVelocity).addLine(result.track.lines);
-    const det = detect(extractRawTrajectory(engine, c.durationFrames + 20));
-    grade = evaluateDetection(c, det);
-    const frames = Array.from({length: Math.min(c.durationFrames + 20, det.terminus.frame) + 1}, (_, frame) => {
-      const state = engine.getRider(frame).ballisticState();
-      return pointIds.flatMap(id => [state.points[id].x, state.points[id].y]);
-    });
-    trace = {fps: 40, pointIds, frames, terminus: det.terminus};
-  } finally { dispose(); }
+  const {grade,trace}=replayGalleryTrack(result.track,c);
   const cell = {id, caseId: c.id, method, railLayout:methodDetails[method].railLayout, seed, jitter, budget, score: grade.score, compileMs,
     processCompileCall: ++compileCalls, construction: result.construction ?? null, work: result.work ?? null,
     usesPolicy: Boolean(options?.controlPolicy), replayMs: performance.now() - replayStart, physicalFrames,

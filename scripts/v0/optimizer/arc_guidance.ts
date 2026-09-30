@@ -16,11 +16,11 @@ export function arcRailGroups(lines:TrackLine[]):Map<number,TrackLine[][]> {
   return groups;
 }
 
-export function trimUnusedArcGuides(lines: TrackLine[], engine: any, duration: number) {
+export function trimUnusedArcGuides(lines: TrackLine[], engine: any, duration: number, lockedBefore=0) {
   // Collision inspection must use an already metered complete replay.
   if (engine.getLastFrameIndex() < duration) throw new Error('guidance reduction requires a metered full replay');
   const groups = arcRailGroups(lines);
-  const roofs = [...groups].map(([id, chains]) => {
+  const roofs = [...groups].filter(([id])=>!lockedBefore||id>=lockedBefore).map(([id, chains]) => {
     return { id, lines: chains[1] ?? [] };
   });
   const roofIds = new Set(roofs.flatMap(g => g.lines.map(l => l.id))), touched = new Set<number>();

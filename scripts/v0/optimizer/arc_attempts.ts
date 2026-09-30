@@ -24,7 +24,7 @@ export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, opti
     const result = compile(spec, seed, opts, results.length > 0);
     results.push(result); names.push(name); return result;
   };
-  if (options.policyPreview && !options.replayControls && !options.directControls) {
+  if (options.policyPreview && !options.replayControls && !options.directControls && !options.fork) {
     if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(options.budget) || options.budget <= 0)
       throw new Error('invalid arc compiler input');
     spec = normalizeCompilerTimeline(spec); validateSpec(spec);

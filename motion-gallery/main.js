@@ -1,8 +1,9 @@
+import {prepareView} from './replay.js';
 const $ = id => document.getElementById(id);
 const number = n => n.toLocaleString(undefined, {maximumFractionDigits: 1});
 const title = method => manifest?.plan.methodDetails?.[method]?.title ?? ({arcs:'Arcs and guides',segments:'Scattered · original'}[method] ?? method);
-const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260930-ten-shapes/manifest.json', location.href);
-let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0, activeInput;
+const manifestUrl = new URL(new URLSearchParams(location.search).get('data') || '/generated/motion-gallery/20260930-functional-rails/manifest.json', location.href);
+let manifest, records = [], seconds = 0, playing = false, previous = 0, generation = 0, activeInput, animation;
 const cache = new Map();
 const hex = bytes => [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, '0')).join('');
 async function read(url, expected) {
@@ -15,7 +16,7 @@ async function read(url, expected) {
 const options = (id, values, label = String) => $(id).replaceChildren(...values.map(v => {
   const option = document.createElement('option'); option.value = String(v); option.textContent = label(v); return option;
 }));
-function pause() { playing = false; $('play').textContent = 'Play'; }
+function pause() { cancelAnimationFrame(animation); animation=undefined; playing = false; $('play').textContent = 'Play'; }
 function cellCard(record) {
   const card = document.createElement('article'); card.className = 'card';
   card.innerHTML = '<div class="card-head"><h2></h2><span class="badge"></span></div><canvas aria-label="Recorded track playback"></canvas><div class="metrics"></div><div class="interval"></div><div class="details"></div>';
@@ -42,8 +43,10 @@ function cellCard(record) {
 async function loadCell(cell) {
   if (!cache.has(cell.id)) cache.set(cell.id, read(new URL(cell.path, manifestUrl), cell.sha256));
   const raw = await cache.get(cell.id);
+  while(cache.size>24)cache.delete(cache.keys().next().value);
   if (raw.planSha256 !== manifest.planSha256 || raw.id !== cell.id || raw.trackHash !== cell.trackHash) throw new Error('Replay identity mismatch');
-  return {...raw, path: cell.path};
+  const native=await prepareView(raw,cell.sha256);
+  return {...raw, path: cell.path, native};
 }
 async function showPalette(token) {
   const scrollLeft=$('palette').scrollLeft;
@@ -53,20 +56,17 @@ async function showPalette(token) {
     if(cells.some(c=>!c))throw new Error('The shape comparison is incomplete.');
     const previews=await Promise.all(cells.map(loadCell));
     if(token!==generation)return;
-    const ns='http://www.w3.org/2000/svg';
     $('palette').replaceChildren(...previews.map(r=>{
       const button=document.createElement('button'); button.className='shape-choice';
       button.setAttribute('aria-pressed',String(r.method===$('right-method').value)); button.dataset.method=r.method;
       const label=document.createElement('strong'); label.textContent=title(r.method);
-      const svg=document.createElementNS(ns,'svg');
-      const beat=r.case.contacts[Math.min(1,r.case.contacts.length-1)], frame=r.trace.frames[Math.min(beat.frame+4,r.trace.frames.length-1)];
-      const [x,y]=frame, bounds=[x-65,y-70,x+155,y+70];
-      svg.setAttribute('viewBox',`${bounds[0]} ${bounds[1]} 220 140`); svg.setAttribute('aria-hidden','true');
-      const path=document.createElementNS(ns,'path');
-      path.setAttribute('d',r.track.lines.filter(l=>Math.max(l.x1,l.x2)>=bounds[0] && Math.min(l.x1,l.x2)<=bounds[2] && Math.max(l.y1,l.y2)>=bounds[1] && Math.min(l.y1,l.y2)<=bounds[3]).map(l=>`M${l.x1},${l.y1}L${l.x2},${l.y2}`).join(''));
-      path.setAttribute('vector-effect','non-scaling-stroke'); svg.append(path);
+      const preview=document.createElement('canvas'); preview.setAttribute('aria-hidden','true');
+      const beat=r.case.contacts[Math.min(1,r.case.contacts.length-1)], at=Math.min(beat.frame+4,r.trace.frames.length-1);
+      const [x,y]=r.trace.frames[at];
+      // Fixed world framing, native line thickness and Bosh artwork in previews too.
+      r.native.view.draw(preview,{w:220,h:140,x:x+45,y,z:1,r:devicePixelRatio||1},at);
       const note=document.createElement('span'); note.textContent=`${r.score.valid?'Pass':'Failed contract'} · ${number(r.score.score)} / 1000`; note.className=r.score.valid?'':'failure';
-      button.append(svg,label,note); button.title=manifest.plan.methodDetails?.[r.method]?.description ?? title(r.method);
+      button.append(preview,label,note); button.title=manifest.plan.methodDetails?.[r.method]?.description ?? title(r.method);
       button.onclick=()=>{$('right-method').value=r.method;select();}; return button;
     }));
     $('palette').scrollLeft=scrollLeft;
@@ -76,7 +76,7 @@ async function showPalette(token) {
 async function select() {
   const input=[$('passage').value,$('budget').value,$('seed').value].join('|');
   const startTime=input===activeInput?seconds:0;
-  const token = ++generation; showPalette(token); pause(); $('play').disabled = true; $('status').textContent = 'Loading matching replays…';
+  const token = ++generation; showPalette(token); pause(); $('play').disabled = true; $('status').textContent = 'Checking matching native replays…';
   const selected = ['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value && c.method === $(id).value));
   try {
     if(selected.some(c=>!c))throw new Error('The comparison is incomplete.');
@@ -91,32 +91,22 @@ async function select() {
       beat.onclick = () => {seconds=c.frame/40; $('seek').value=String(seconds); draw();}; return beat;
     }));
     $('panels').replaceChildren(...records.map(cellCard)); $('play').disabled = false;
-    $('status').textContent = 'Matched inputs · synchronized playback · all emitted geometry uses normal lines'; draw();
+    $('status').textContent = 'Native Bosh and line rendering · replay verified against saved physics · normal lines only'; draw();
   } catch (error) {if (token === generation) {records = []; $('panels').replaceChildren(); $('status').textContent = `Cannot show this comparison: ${error.message}`;}}
 }
-const bones = [['TAIL','NOSE'],['NOSE','STRING'],['STRING','PEG'],['PEG','TAIL'],['BUTT','SHOULDER'],['SHOULDER','RHAND'],['SHOULDER','LHAND'],['BUTT','LFOOT'],['BUTT','RFOOT']];
 function drawCard(r) {
   const canvas = r.canvas, dpr = devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
   if (canvas.width !== Math.round(w*dpr) || canvas.height !== Math.round(h*dpr)) {canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);}
-  const ctx = canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
-  const at = Math.min(seconds * 40, r.trace.frames.length - 1), f = Math.floor(at), fraction = at-f;
-  const a = r.trace.frames[f], b = r.trace.frames[Math.min(f+1,r.trace.frames.length-1)];
-  const points = Object.fromEntries(r.trace.pointIds.map((id,i) => [id, [a[i*2]*(1-fraction)+b[i*2]*fraction, a[i*2+1]*(1-fraction)+b[i*2+1]*fraction]]));
-  let scale, x, y;
-  if ($('view').value === 'overview') {const bounds = r.bounds; scale = Math.min((w-50)/Math.max(60,bounds[2]-bounds[0]),(h-50)/Math.max(60,bounds[3]-bounds[1])); x=(bounds[0]+bounds[2])/2; y=(bounds[1]+bounds[3])/2;}
-  else {scale = Math.min(w/250,h/190); [x,y] = points.PEG; x += 40;}
-  ctx.translate(w/2,h/2); ctx.scale(scale,scale); ctx.translate(-x,-y);
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#38473f'; ctx.lineWidth = 1.35/scale; ctx.beginPath();
-  for (const l of r.track.lines) {ctx.moveTo(l.x1,l.y1); ctx.lineTo(l.x2,l.y2);} ctx.stroke();
-  ctx.strokeStyle = '#19261f'; ctx.lineWidth = Math.max(1.5,1.6/scale); ctx.beginPath();
-  for (const [a,b] of bones) {ctx.moveTo(...points[a]); ctx.lineTo(...points[b]);} ctx.stroke();
-  const [sx,sy]=points.SHOULDER,[bx,by]=points.BUTT, length=Math.hypot(sx-bx,sy-by)||1;
-  ctx.beginPath(); ctx.arc(sx+3*(sx-bx)/length,sy+3*(sy-by)/length,3.2,0,2*Math.PI); ctx.fillStyle='#19261f'; ctx.fill();
-  if (r.contacts.some(c => c.actualFrame !== null && Math.abs(c.actualFrame-seconds*40)<2)) {
-    ctx.beginPath(); ctx.arc(...points.PEG,14,0,2*Math.PI); ctx.lineWidth=1.5/scale; ctx.strokeStyle='#389a70'; ctx.stroke();
-  }
-  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle = '#56665c'; ctx.font = '12px system-ui';
-  ctx.fillText(seconds*40 > r.trace.frames.length-1 ? `Replay ended: ${r.terminus.reason}` : `Frame ${Math.floor(seconds*40)}`,14,22);
+  const at=Math.min(seconds*40,r.trace.frames.length-1), f=Math.floor(at), fraction=at-f;
+  const a=r.trace.frames[f],b=r.trace.frames[Math.min(f+1,r.trace.frames.length-1)];
+  let scale,x,y;
+  if($('view').value==='overview'){
+    const bounds=r.bounds;scale=Math.min((w-50)/Math.max(60,bounds[2]-bounds[0]),(h-50)/Math.max(60,bounds[3]-bounds[1]));
+    x=(bounds[0]+bounds[2])/2;y=(bounds[1]+bounds[3])/2;
+  }else{scale=Math.min(w/250,h/190);x=a[0]*(1-fraction)+b[0]*fraction+40;y=a[1]*(1-fraction)+b[1]*fraction;}
+  r.native.view.draw(canvas,{w,h,x,y,z:scale,r:dpr},at);
+  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#56665c';ctx.font='12px system-ui';
+  ctx.fillText(seconds*40>r.trace.frames.length-1?`Replay ended: ${r.terminus.reason}`:`Frame ${Math.floor(seconds*40)}`,14,22);
   const frame = Math.round(seconds*40), observations = r.observations.filter(o => frame >= o.startFrame && frame <= o.endFrame);
   const gap = observations[0]?.gap;
   if (gap !== r.displayedGap) {
@@ -131,8 +121,8 @@ function drawCard(r) {
   }
 }
 function draw() { $('time').textContent = `${seconds.toFixed(2)} s`; records.forEach(drawCard); }
-function tick(now) {if (playing) {seconds = Math.min(+$('seek').max, seconds + (now-previous)/1000*(+$('rate').value)); $('seek').value=String(seconds); draw(); if (seconds >= +$('seek').max) pause();} previous=now; requestAnimationFrame(tick);}
-$('play').onclick = () => {if (playing) pause(); else {if(seconds >= +$('seek').max)seconds=0; playing=true; $('play').textContent='Pause';}};
+function tick(now) {animation=undefined;if (playing) {seconds = Math.min(+$('seek').max, seconds + (now-previous)/1000*(+$('rate').value)); $('seek').value=String(seconds); draw(); if (seconds >= +$('seek').max) pause();} previous=now; if(playing)animation=requestAnimationFrame(tick);}
+$('play').onclick = () => {if (playing) pause(); else {if(seconds >= +$('seek').max)seconds=0; playing=true; previous=performance.now(); animation=requestAnimationFrame(tick); $('play').textContent='Pause';}};
 $('seek').oninput = () => {seconds=+$('seek').value; draw();}; $('view').onchange = draw;
 for (const id of ['passage','budget','seed','left-method','right-method']) $(id).onchange = select;
 window.addEventListener('resize', draw); document.addEventListener('visibilitychange', () => {if(document.hidden)pause();});
@@ -141,7 +131,7 @@ try {
   manifest = await read(manifestUrl, await checksum.text());
   if(manifest.schema !== 'line.motion-gallery.v1')throw new Error('Unsupported study format.');
   for(const id of ['left-method','right-method'])options(id,manifest.plan.methods,title);
-  $('right-method').value=manifest.plan.methods.includes('teeth')?'teeth':manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);
+  $('right-method').value=manifest.plan.methods.includes('paired')?'paired':manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);
   options('passage', manifest.plan.cases.map(c=>c.id), id=>manifest.plan.cases.find(c=>c.id===id).title);
   options('budget', manifest.plan.budgets, b=>`${number(b)} frames`); $('budget').value=String(manifest.plan.budgets.includes(100000)?100000:manifest.plan.budgets.at(-1)); options('seed',manifest.plan.seeds);
   $('study-note').textContent=manifest.plan.note; $('manifest-link').href=manifestUrl;
@@ -149,4 +139,3 @@ try {
   for(const row of manifest.summary){const tr=document.createElement('tr');for(const value of [title(row.method),number(row.budget),`${row.valid}/${row.runs}`,number(row.meanScore),number(row.totalPhysicalFrames),`${(row.totalCompileMs/1000).toFixed(1)} s`]){const td=document.createElement('td');td.textContent=value;tr.append(td);}$('summary').append(tr);}
   await select();
 } catch(error) {$('status').textContent=`Gallery unavailable: ${error.message} Generate the local study using scripts/gallery/build.ts; see docs/motion-repertoire.md.`;}
-requestAnimationFrame(tick);

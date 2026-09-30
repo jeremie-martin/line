@@ -1,3 +1,13 @@
+# Gallery refinement — 2026-09-30
+
+The [functional gallery](docs/motion-gallery-native-2026-09-30.md) now offers
+plain Paired rails with full guides. Ribbons, teeth and petals are archived.
+Playback and previews use the native Line Rider renderer and Bosh artwork,
+including the scarf, with a background replay checked against saved physics.
+The new study contains 216 valid rides; all 24 paired-rail comparisons preserve
+the ordinary arcs' trajectories, scores and physical work. Production compiler
+and benchmark code are unchanged; the completed performance goal stays complete.
+
 # Current engineering work — 2026-09-30
 
 The [gallery now offers ten geometry choices](docs/motion-gallery-six-shapes-2026-09-30.md).

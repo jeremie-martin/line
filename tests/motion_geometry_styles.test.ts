@@ -51,3 +51,18 @@ it.each(RAIL_CONTOURS)('repeats the complete %s structure across the rail',kind=
     expect(out.some(l=>Math.abs(l.x2-x)<1e-9&&Math.abs(l.y2-depth)<1e-9)).toBe(true);
   }
 });
+
+it('offers full paired guides independently of archived contour experiments',async()=>{
+  const {galleryActiveMethods}=await import('../scripts/gallery/methods.ts');
+  expect(galleryActiveMethods).toContain('paired');
+  for(const method of RAIL_CONTOURS)expect(galleryActiveMethods).not.toContain(method);
+  const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+  const options={budget:25000,samples:24,channel:12,radius:24,bidirectional:true,pruneGuidance:true};
+  const trimmed=compileArcMotion(spec,17,options),full=compileArcMotion(spec,17,{...options,...galleryArcOptions('paired')});
+  expect(full.guidanceReduction).toBeNull();
+  expect(trimmed.guidanceReduction.removedSegments).toBeGreaterThan(0);
+  expect(full.track.lines.length).toBeGreaterThan(trimmed.track.lines.length);
+  expect(full.stats.sim_frames).toBe(trimmed.stats.sim_frames);
+  const retained=new Map(full.track.lines.map(l=>[l.id,l]));
+  for(const line of trimmed.track.lines)expect(retained.get(line.id)).toEqual(line);
+});

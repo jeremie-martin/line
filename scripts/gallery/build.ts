@@ -5,19 +5,19 @@ import {mkdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {resolve, relative} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {galleryCases} from './cases.ts';
-import {galleryMethods, galleryMethodDetails, galleryArcOptions, type GalleryMethod} from './methods.ts';
+import {galleryActiveMethods, galleryMethodDetails, galleryArcOptions, type GalleryMethod} from './methods.ts';
 import {caseSpec, sha} from '../../benchmark/v3/model.ts';
 import {evaluateDetection} from '../../benchmark/v4/evaluator.ts';
 import {verifyFrozen} from '../../benchmark/v4/contract.ts';
 import {detect, extractRawTrajectory} from '../lib/detector.ts';
 
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
-const out = resolve(arg('out') ?? 'generated/motion-gallery/20260930-ten-shapes');
+const out = resolve(arg('out') ?? 'generated/motion-gallery/20260930-functional-rails');
 const compilerRoot = resolve(arg('compiler-root') ?? '.');
 const budgets = (arg('budgets') ?? '100000,250000').split(',').map(Number);
 const seeds = (arg('seeds') ?? '201,202').split(',').map(Number);
 const methodDetails = galleryMethodDetails;
-const methods = (arg('methods') ?? Object.keys(galleryMethods).join(',')).split(',') as GalleryMethod[];
+const methods = (arg('methods') ?? galleryActiveMethods.join(',')).split(',') as GalleryMethod[];
 assert.ok(methods.length > 0 && new Set(methods).size === methods.length && methods.every(m => Object.hasOwn(methodDetails,m)));
 const jitter = Number(arg('jitter') ?? .02);
 assert.ok(budgets.every(b => Number.isSafeInteger(b) && b > 1000) && seeds.every(Number.isSafeInteger));
@@ -29,7 +29,7 @@ const identity = () => JSON.parse(execFileSync(process.execPath, ['--import', 't
 const harness = () => Object.fromEntries(['scripts/gallery/build.ts', 'scripts/gallery/cases.ts', 'scripts/gallery/methods.ts'].map(p => [p, sha(readFileSync(p))]));
 const plan = {schema: 'line.motion-gallery-plan.v1', researchOnly: true, compilerRoot, compiler: identity(),
   judge: verifyFrozen(), harness: harness(), cases: galleryCases, budgets, seeds, jitter,
-  methods, methodDetails, observer: Object.fromEntries(execFileSync('git', ['ls-files', 'vendor/lr-core'], {cwd: compilerRoot, encoding: 'utf8'}).trim().split('\n').map(p => [p, sha(readFileSync(resolve(compilerRoot,p)))])), note: 'Ten geometry choices plus the original scattered controller for comparison. Shapes are constructed before physics search; ribbon, teeth and petals retain a supporting rail and add physical material-side contours. Matched short passages, not a benchmark headline. Improved scattered construction compares two normal-segment methods; its choice and all work are recorded. No arc track is substituted for scattered geometry. Wall times include lazy model loading; first cell is cold, later cells reuse the process.'};
+  methods, methodDetails, observer: Object.fromEntries(execFileSync('git', ['ls-files', 'vendor/lr-core'], {cwd: compilerRoot, encoding: 'utf8'}).trim().split('\n').map(p => [p, sha(readFileSync(resolve(compilerRoot,p)))])), note: 'Eight functional geometry choices plus the original scattered controller for comparison. Paired rails retain the complete opposing guides that ordinary arcs trim after replay. Outlined contour experiments remain archived separately. Shapes are constructed before physics search. Matched short passages, not a benchmark headline. Improved scattered construction compares two normal-segment methods; its choice and all work are recorded. No arc track is substituted for scattered geometry. Wall times include lazy model loading; first cell is cold, later cells reuse the process.'};
 mkdirSync(out, {recursive: true});
 const write = (name: string, value: unknown) => {
   const body = JSON.stringify(value) + '\n'; writeFileSync(resolve(out, name), body);

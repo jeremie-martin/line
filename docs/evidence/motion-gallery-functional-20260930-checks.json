@@ -1,0 +1,4902 @@
+{
+  "schema": "line.gallery-native-checks.v1",
+  "studies": [
+    {
+      "path": "generated/motion-gallery/20260930-functional-rails/manifest.json",
+      "sha256": "67025d6bbd8bca19bca00e232d885baaa1257fac85d9720473bb3e0fb9eb08d5"
+    },
+    {
+      "path": "generated/motion-gallery/20260930-ten-shapes/manifest.json",
+      "sha256": "e95fffcad75d39ab27e36f64e373a73b6faacc4013abb37c972ae15fba571b0f"
+    },
+    {
+      "path": "generated/motion-gallery/20260930-ten-shapes-seeds/manifest.json",
+      "sha256": "a04f90b9e7cd36804e55f04f20302eaa6a5b87926c74a8787b13caf6df320937"
+    }
+  ],
+  "renderer": {
+    "version": "v2153.0",
+    "sources": {
+      "unpacked/502.js": "15df8ef80fcfda695a7a40123ff8f7032c79ea5d927238e37fbe845b86327e85",
+      "unpacked/505.js": "65f93f9d0cd1946e8e28db730e1da7f6db98d66f81ccbaae7c0aa81bd1b08397",
+      "unpacked/805.js": "88c1edd85d5274833f57dfcd78586fd933e74db27d0a9adb8716c8f67af9d0db",
+      "unpacked/806.js": "d72b3c57ae4c4af1daabf817f4bff142571d91848d491ac8bb834721a82a4d30",
+      "unpacked/823.js": "bd1c74f350222340b8efd70d759fc4c1dac03ba9604f029620677586fa971e03",
+      "unpacked/206.js": "4a1f4c234bcd4953778b9f85f7b00d7bfdacc7bf3c38149b92709a797fbd8a6a",
+      "unpacked/504.js": "512af86dd6317469387bac6b377cca14ea2fef7cdc70847a6742de9227d1c908",
+      "unpacked/145.js": "ae46d6f8958adf3460b053d1954ba407ba841adcb0362490d89d3a1b527dd462",
+      "unpacked/503.js": "675754c3f99aa76a36b4c090ba4eabaea985e7d8a9823fb8ea9fdde80df9e2e3",
+      "unpacked/506.js": "be97ba1b2a088f81fde277753b3efe547f74c7bfe1a95e3f342bef4f5ec411e6",
+      "unpacked/16.js": "75ff456d428134329db060eeeb9f2b690ffa4b37e18ed5499b86ab8f79897a45",
+      "unpacked/285.js": "522497e8c4428b1e96dd870122b8bfd82995edda934e5bd9bf6910a401eac000",
+      "unpacked/240.js": "63863ab349c07f785faa18e27fa55e2577a9b0db98fbae12629f986eb7b7413b",
+      "unpacked/64.js": "7719cd5ff7949b770bf03c03dcf95b3ca8f6dba7477e999f0aadd576c2875ca6",
+      "unpacked/286.js": "e979be7902f4b9dbc4be161624b31844bcd930a053296b8fa9dc81e4389cded3",
+      "unpacked/544.js": "2c7b5e534e46eae89d0b6ebf8d01f5ca3d0605093fe5cce2ac9d9603fbd17c3d",
+      "unpacked/61.js": "15c019ce596c73110918d1a8222170fd29875f09fca4a1c5087482c0201e94d4",
+      "unpacked/167.js": "1a9880614ebafbbabc5b57d723e0211d62adafd21cbe5c7866f7894c2cc390df",
+      "unpacked/81.js": "746e9e4cca606da2327edd8681b04e9e6031135a92daa13037058b1e8bd5d91b",
+      "unpacked/25.js": "ae7c328c9f2c7506bba736bad7c6907328e3e0a4357f29c8d560d3eac654a577",
+      "unpacked/66.js": "35885298b1153a617f94cdf1c7d280cc8fb834c520828beb34dd386b20a1ab73",
+      "unpacked/0.js": "e2db47494c428babfdc2a19d1a6b1c6e7f91a9bb42c2eaabf2a4f1205c1a9dbb",
+      "unpacked/21.js": "cbf1f298dc0f3c966cf33efde75b72e293a24d32e12d08ee76705cd104ffc578",
+      "unpacked/551.js": "39fb6db9d70747b62a0b1cc7044785070416bd5f6c472e5553fdf898c43223d8",
+      "unpacked/143.js": "29bd4c98ec9705d885defc7b19051ff51d560bb1017166a216769f9837b4066a",
+      "unpacked/48.js": "d152a4f5fb91be42e2d5d32d560b8059087135abcfbbee903fe67f8ac93ae3a1",
+      "unpacked/483.js": "8c4d4925ac74f93c4a8108570f7c7668ac43fbaee5e90a5161a72aa8cc1c1898",
+      "unpacked/482.js": "b7c13f3d3de172d4505bb11b1ba354c008a8334c02c95bdf651f64dea1638f7f",
+      "unpacked/513.js": "436659c30df798913436a11bfcca017c4126eb20e11c1fca2cd1778121a7c4ec",
+      "unpacked/288.js": "9b0d882f06455f8a9e372c9cedfc6c668a68bbf623163ead33658c9e0359ecd9",
+      "unpacked/289.js": "bdd95c494a05f11bd87d777c8c38fc7f4b59b58b2a1cbb5aec6ac60dc885dd55",
+      "unpacked/517.js": "c97374fa0ff49ffbd3b543803f7385fab8199c0d074a371930fe6f2e9785f6a5",
+      "unpacked/201.js": "d441e2ec20aa85d5ca157b683ad3d2e994b3d7ad6ecc866769ffc462ecfd0268",
+      "unpacked/499.js": "49def44e56d04a24bb37cdc4d71355dc02f41f24ce524a22114bb23b8320023c",
+      "unpacked/142.js": "3a6e8add8d96c9556b7da229c0659d463d548f12e38dcb86db8e9f51564d868f",
+      "unpacked/538.js": "4396247161951764004b76034065e6085293beb80d0c48fc431790dccfbc1485",
+      "unpacked/518.js": "33d9494540e482f18758853e0e6916d0144defe5e08fa594345af73f1a227032",
+      "unpacked/204.js": "dc81ffb0154d228814da3e13ffbff2daacdc7c4fe644ef445f9466efad60153b",
+      "unpacked/105.js": "af9148927bab6197e1c17efe8de45ae5228f2fdf8509e588a34962eaa5878bd3",
+      "unpacked/82.js": "a84c15793f071873d55022e8e04e2c6338725baab1f9e15aa382bf0a34b69ef4",
+      "unpacked/512.js": "1a1a5b755335be2d094b40cf2d281ab4a5fc3f31bbfb0c230d13ab2adee10f0f",
+      "unpacked/275.js": "60a25141c941fe6bacf42b5734eab5f58ba7f200e65bcf20f0ba1fb234e0de17",
+      "unpacked/196.js": "d4f29059b4c742cadcc0c63cc864e2e3cbb25fdb78ea9001fffd2d01db8f374e",
+      "unpacked/276.js": "1cf3e1eeed2d717d4dba8a101c28b71f65e908beb02f90371b11f927125b8390",
+      "unpacked/274.js": "2274c454a4f192091478a3118f5e13d0e0257edd1d453fc0956a65cf28df188e",
+      "unpacked/514.js": "44202869c009c63a57f6618c7b453eb3b337d00f6e54e2e05da026adc326c508",
+      "unpacked/496.js": "d820ed2e35cd8ac36b3dd2e718022657a2932a5452955ca53e9f6783a7d28d1f",
+      "unpacked/497.js": "2d9251e78d273a71c43482ce0058ffacbf21650b3809e89a78e10874c25c3432",
+      "unpacked/199.js": "a723d6455e71660f365cccc81da7f2e2c5ab8f3041c0c5fb9becf2b34caa27cf",
+      "unpacked/507.js": "c06583e4a0f860d833ff7712ff625fb7669c9ba47b1b4d1060b4095f5a5ffa54",
+      "unpacked/18.js": "8ac585b83ef72e09c81cac682f445f956723e06f9d12c0f6dd51dd6a7898e02f",
+      "unpacked/144.js": "ae46d6f8958adf3460b053d1954ba407ba841adcb0362490d89d3a1b527dd462",
+      "unpacked/283.js": "3840f9f89550d97e2a326d888032e0e5f79ac9cfe34b1850af5daaf1c1785613",
+      "unpacked/501.js": "d36777975e3763010739c631816ed1e9e71372ce2f6723d8de621cb722a5e411",
+      "unpacked/500.js": "cacf0ee35decababed7c86b31da8cc9c8e1e7f1268deda839baabe38f6d46c3b",
+      "unpacked/104.js": "c13efd37e26f6f5c926f723dd295a4d0d8f14f0754ef45cb7ce08b181b88afe1",
+      "unpacked/477.js": "5691d7354c21792f8563a12f900663fdf73cc0c73abc4e132bca70fc821e5f58",
+      "unpacked/282.js": "b51f86cefa1f978a8e9b09a1e28124441ac0235463c487caed53d49e76df7981",
+      "unpacked/515.js": "ac1fc2f7269968b06135880463344f1ff8b919a400825070ad250325a80d972b",
+      "unpacked/284.js": "17f0c49ae4ffb786046dff6fff9ed35441a84f79d41077f41aa229279ad7bf9b",
+      "unpacked/516.js": "6723355fe4e98e2e4734f76857a5df76b6521786927522871c54f602a07dad11",
+      "unpacked/511.js": "7cedde7ca12f4a3c58115684515b51e9628f9b9685535761adc843ba9caee6a6",
+      "unpacked/508.js": "5351357d35eb577ff5effe90eb5c4ecc36fa0888bac787f120bcdf44841d9681",
+      "unpacked/509.js": "70616cd96f2326a883154f383ee4db801216865722f168f80f46114843f47be7",
+      "unpacked/287.js": "3461c12fb4de9747f8ac8cf1417379218f2367b382bb0067e20db5546df9e9a5",
+      "unpacked/510.js": "46ddbf012faafc8f764cc51d38a4d277ef4f03c18377d50f2695281cd50bda4e",
+      "unpacked/200.js": "e128a111b5da3684beae894239274400d0bf1fdc19b016b4ff6e6293c8ae2015",
+      "unpacked/292.js": "e54afb8705317eac650610c98a22edf19e1762fc38f33cad6b22edffdd427581",
+      "unpacked/524.js": "685cf73aa95a3401bb4ec1be84bc8d08f02fe964e5c41a9b3930178cc3028c09",
+      "unpacked/519.js": "a2148faf41d3b0d73b8d1f16954e53600aee3a13753d0e403caae26fda7c52c2",
+      "unpacked/523.js": "4f004c5435751459d96319ad539936fe35461b532cabe1c1aecadbefa8171354",
+      "unpacked/532.js": "7ff148d570f5f15e5909678a52f5aba8719486e4bc085687b86a3146818255ba",
+      "unpacked/530.js": "9cfa53dcb0a758e3ef3ee905ed50a2654f0f270e7c62eb4450f6f0d5a9d70c81",
+      "unpacked/534.js": "1055bf6689b954fc6ba9136173de18c72fafb558fa6f52eaa1aec288a9296897",
+      "unpacked/528.js": "c96cb36dd6f468fcafd1e91b4c37cf7d7034a579a4bdc3840da302d39d64f609",
+      "unpacked/526.js": "d1cda75ba14bac1952092a3051f1611d1d6e1b9503884cdeb4487c126072442f",
+      "unpacked/531.js": "e07b94b6313e2a73a08c3834ac473ac2497e2d59c4975a33a840e7a82c05a41e",
+      "unpacked/202.js": "b701b4215c87dc318c05544291188adb0ecd3f7584bad27664f6789a63c6d31a",
+      "unpacked/533.js": "9944ec345165ebae29cda3194bb60c7bc76c9c00d772654668c4d5b9f1f23be5",
+      "unpacked/525.js": "3ac78a4265c9aee0f2c3f188ffce34f189996b45bb6154ec602403b9e6e9c41a",
+      "unpacked/537.js": "33ed15b82b805faafafdd084b575b137927d9f38fbec93057cf79a8ab53c30ef",
+      "unpacked/535.js": "87b3fa9986ac65543075595881f18340f4cdf0456ebcd27fc0aa79dd3c668fa9",
+      "unpacked/527.js": "f9df9abe3cce8fa64d6db2ff645de1f8586969a716f116c12976d19e650254ac",
+      "unpacked/295.js": "0dd9eb8ae4b34b9f0f46d8ebeb1f7806070d28893951ce5c35d63eb5bb3ccf06",
+      "unpacked/205.js": "3bca9c1de699239db23a1a7c510429b0a1b4d82f43d7cd3181584a7d53f11a19",
+      "unpacked/536.js": "89ce0793a9981f118443d6359e3ccf03fa19efb43b3dd7c9d7ce4cc4305cf1f2",
+      "unpacked/65.js": "3c103b0910496f414ea7f16cf199a632f8343c26644e11300528b32e8b5b9f54",
+      "unpacked/529.js": "64466a823fc0d8cbfc1733a3b31fbe9567d230e608888b352631d944971acc82",
+      "unpacked/521.js": "37d8a476dd124e693bd95931fdc90117fbcde8a66075da5069187a35b7a626fb",
+      "unpacked/290.js": "f8bf9fed5b52244cbdf0b85722708001783b310c69be06bed41e90eca9dd970b",
+      "unpacked/291.js": "891c6defc6a1427480aa710fbd9ee96e5ba5ba989086b2c8fc46540d68a0ce50",
+      "unpacked/294.js": "fe379ac4936175a9fdc6068138dad10ca7f3b75748a61ccf21a1889d9cacbb4b",
+      "unpacked/83.js": "cc8f23e7c38d40206cd40ebf845be38fae219cb941ab13f6aa497ea79ed1edcd",
+      "unpacked/293.js": "e5ec1050cb45733acaad571426c0dd11d007276c85f17a02ccc7553eab905bfc",
+      "unpacked/203.js": "e5ec1050cb45733acaad571426c0dd11d007276c85f17a02ccc7553eab905bfc",
+      "unpacked/522.js": "239652ec98bd11c884c1a00f1d1724f194691707a652ab034b1d04749a23a298",
+      "unpacked/520.js": "4fff9e5b615d39b725b30932f9b8783efb67e756e1421c82c8b06e7427498852",
+      "unpacked/484.js": "61f568077ab6c20f00793547a7a96d049230e61da543d1cfa9d2c6a1e67b8d9d",
+      "unpacked/486.js": "c71f71ae6008f58368af5361ba51abecf2600926ab235632dea3b89b3a31fe14",
+      "unpacked/197.js": "3e966848ca599fef340b599b7ad8a397cfdd554d05c0a31ba7d43e9788d6525f",
+      "unpacked/485.js": "3e44b12a3fc15d297bdd00a6e746ea115e606549d73a2dd8a7fb02852cc4d224",
+      "unpacked/487.js": "7f1654e73aef50e1af77d9add14d2b3607e9c8b2a7d20acee3459d1e3856ccf3",
+      "unpacked/488.js": "538061aab7024e16e5fd8000004dd6811a8d3cc2299407162a94d203d245eeae",
+      "scripts/gallery/build_renderer.mjs": "a01abd294a0b1527e31d4ac2a89f4971934541babda477a73df15a0ebc624cab",
+      "scripts/gallery/native/view.js": "48fdb1b3a43b754a33686acb78df558f51e61667a502209ac77db6e12fda0d26",
+      "scripts/gallery/native/worker.js": "3694d8e1608492a0c5b9e2777c45c24553111272a4a9bc760ecc184f5ddb94ad",
+      "mirror/_v2153.0/bosh-sprite.svg": "9b8ae6a999a4ecc5e5fd4da7db18692d8fef5177433aeaf5c4ba19b806cbcf45"
+    },
+    "outputs": {
+      "generated/motion-gallery-renderer/view.js": "9eb2fc3a33557f55dbde84e37b2b544ae65905033c997ed16682e5e653ea5a3a",
+      "generated/motion-gallery-renderer/worker.js": "cd669023075bd5831179fee59e6b9ca30c96b27b73bf30770a3c4b2feb6cbfeb"
+    }
+  },
+  "replayRuns": 744,
+  "maxBodyPointError": 0,
+  "meanReplayMs": 30.905107527009903,
+  "maxReplayMs": 76.5,
+  "mirrorChecks": [
+    {
+      "id": "even-catches-arcs-100000-201",
+      "poses": 42,
+      "exactAllPointsIncludingScarfAndState": true
+    },
+    {
+      "id": "even-catches-paired-100000-201",
+      "poses": 42,
+      "exactAllPointsIncludingScarfAndState": true
+    },
+    {
+      "id": "even-catches-scattered-100000-201",
+      "poses": 42,
+      "exactAllPointsIncludingScarfAndState": true
+    },
+    {
+      "id": "even-catches-serpentine-100000-201",
+      "poses": 42,
+      "exactAllPointsIncludingScarfAndState": true
+    }
+  ],
+  "uiComparisons": 216,
+  "rejectsReplayDrift": true,
+  "rejectsAcceleration": true,
+  "rejectsCorruptArtifact": true,
+  "preservesTimeOnStyleChange": true,
+  "playPause": true,
+  "mobileSelectionVisible": true,
+  "mobileOverflow": false,
+  "errors": [],
+  "rows": [
+    {
+      "id": "even-catches-arcs-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 76.5
+    },
+    {
+      "id": "even-catches-paired-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 49.89999985694885
+    },
+    {
+      "id": "even-catches-segments-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 40.299999952316284
+    },
+    {
+      "id": "even-catches-scattered-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 56.299999952316284
+    },
+    {
+      "id": "even-catches-waves-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 32.5
+    },
+    {
+      "id": "even-catches-facets-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.300000190734863
+    },
+    {
+      "id": "even-catches-serpentine-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.399999856948853
+    },
+    {
+      "id": "even-catches-terraces-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 30.100000143051147
+    },
+    {
+      "id": "even-catches-scallops-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 33.5
+    },
+    {
+      "id": "even-catches-arcs-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 43.299999952316284
+    },
+    {
+      "id": "even-catches-paired-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 39.700000047683716
+    },
+    {
+      "id": "even-catches-segments-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 30.90000009536743
+    },
+    {
+      "id": "even-catches-scattered-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 34.200000047683716
+    },
+    {
+      "id": "even-catches-waves-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.699999809265137
+    },
+    {
+      "id": "even-catches-facets-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 20.90000009536743
+    },
+    {
+      "id": "even-catches-serpentine-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.799999952316284
+    },
+    {
+      "id": "even-catches-terraces-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.600000143051147
+    },
+    {
+      "id": "even-catches-scallops-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 33.10000014305115
+    },
+    {
+      "id": "even-catches-arcs-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.799999952316284
+    },
+    {
+      "id": "even-catches-paired-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 39.700000047683716
+    },
+    {
+      "id": "even-catches-segments-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.90000009536743
+    },
+    {
+      "id": "even-catches-scattered-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 36.40000009536743
+    },
+    {
+      "id": "even-catches-waves-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.799999952316284
+    },
+    {
+      "id": "even-catches-facets-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 20.799999952316284
+    },
+    {
+      "id": "even-catches-serpentine-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 12.899999856948853
+    },
+    {
+      "id": "even-catches-terraces-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.59999990463257
+    },
+    {
+      "id": "even-catches-scallops-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24
+    },
+    {
+      "id": "even-catches-arcs-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.799999952316284
+    },
+    {
+      "id": "even-catches-paired-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.199999809265137
+    },
+    {
+      "id": "even-catches-segments-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27
+    },
+    {
+      "id": "even-catches-scattered-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 30.699999809265137
+    },
+    {
+      "id": "even-catches-waves-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.200000047683716
+    },
+    {
+      "id": "even-catches-facets-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.700000047683716
+    },
+    {
+      "id": "even-catches-serpentine-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.90000009536743
+    },
+    {
+      "id": "even-catches-terraces-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.5
+    },
+    {
+      "id": "even-catches-scallops-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 30.5
+    },
+    {
+      "id": "alternating-lift-arcs-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 30.200000047683716
+    },
+    {
+      "id": "alternating-lift-paired-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 30.299999952316284
+    },
+    {
+      "id": "alternating-lift-segments-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 30.40000009536743
+    },
+    {
+      "id": "alternating-lift-scattered-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 40
+    },
+    {
+      "id": "alternating-lift-waves-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 16.299999952316284
+    },
+    {
+      "id": "alternating-lift-facets-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 10.5
+    },
+    {
+      "id": "alternating-lift-serpentine-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.200000047683716
+    },
+    {
+      "id": "alternating-lift-terraces-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 17.40000009536743
+    },
+    {
+      "id": "alternating-lift-scallops-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 30.09999990463257
+    },
+    {
+      "id": "alternating-lift-arcs-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 24.90000009536743
+    },
+    {
+      "id": "alternating-lift-paired-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 14.5
+    },
+    {
+      "id": "alternating-lift-segments-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.799999952316284
+    },
+    {
+      "id": "alternating-lift-scattered-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 35.19999980926514
+    },
+    {
+      "id": "alternating-lift-waves-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 28.40000009536743
+    },
+    {
+      "id": "alternating-lift-facets-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 20.200000047683716
+    },
+    {
+      "id": "alternating-lift-serpentine-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.09999990463257
+    },
+    {
+      "id": "alternating-lift-terraces-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.40000009536743
+    },
+    {
+      "id": "alternating-lift-scallops-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.799999952316284
+    },
+    {
+      "id": "alternating-lift-arcs-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 14.599999904632568
+    },
+    {
+      "id": "alternating-lift-paired-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 32.59999990463257
+    },
+    {
+      "id": "alternating-lift-segments-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 32.700000047683716
+    },
+    {
+      "id": "alternating-lift-scattered-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 32.299999952316284
+    },
+    {
+      "id": "alternating-lift-waves-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 29
+    },
+    {
+      "id": "alternating-lift-facets-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 19.90000009536743
+    },
+    {
+      "id": "alternating-lift-serpentine-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.399999856948853
+    },
+    {
+      "id": "alternating-lift-terraces-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.100000143051147
+    },
+    {
+      "id": "alternating-lift-scallops-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 29.59999990463257
+    },
+    {
+      "id": "alternating-lift-arcs-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.09999990463257
+    },
+    {
+      "id": "alternating-lift-paired-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.5
+    },
+    {
+      "id": "alternating-lift-segments-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 15.899999856948853
+    },
+    {
+      "id": "alternating-lift-scattered-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 34.799999952316284
+    },
+    {
+      "id": "alternating-lift-waves-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.59999990463257
+    },
+    {
+      "id": "alternating-lift-facets-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 20.90000009536743
+    },
+    {
+      "id": "alternating-lift-serpentine-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.199999809265137
+    },
+    {
+      "id": "alternating-lift-terraces-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25
+    },
+    {
+      "id": "alternating-lift-scallops-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.90000009536743
+    },
+    {
+      "id": "quick-pickups-arcs-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.299999952316284
+    },
+    {
+      "id": "quick-pickups-paired-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.90000009536743
+    },
+    {
+      "id": "quick-pickups-segments-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 25.09999990463257
+    },
+    {
+      "id": "quick-pickups-scattered-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 27.100000143051147
+    },
+    {
+      "id": "quick-pickups-waves-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.40000009536743
+    },
+    {
+      "id": "quick-pickups-facets-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 8.599999904632568
+    },
+    {
+      "id": "quick-pickups-serpentine-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.5
+    },
+    {
+      "id": "quick-pickups-terraces-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.600000143051147
+    },
+    {
+      "id": "quick-pickups-scallops-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 27
+    },
+    {
+      "id": "quick-pickups-arcs-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.100000143051147
+    },
+    {
+      "id": "quick-pickups-paired-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.59999990463257
+    },
+    {
+      "id": "quick-pickups-segments-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.40000009536743
+    },
+    {
+      "id": "quick-pickups-scattered-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 29.5
+    },
+    {
+      "id": "quick-pickups-waves-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.899999856948853
+    },
+    {
+      "id": "quick-pickups-facets-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 16.399999856948853
+    },
+    {
+      "id": "quick-pickups-serpentine-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.299999952316284
+    },
+    {
+      "id": "quick-pickups-terraces-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 20.700000047683716
+    },
+    {
+      "id": "quick-pickups-scallops-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.5
+    },
+    {
+      "id": "quick-pickups-arcs-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 20.5
+    },
+    {
+      "id": "quick-pickups-paired-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.799999952316284
+    },
+    {
+      "id": "quick-pickups-segments-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.90000009536743
+    },
+    {
+      "id": "quick-pickups-scattered-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 28.299999952316284
+    },
+    {
+      "id": "quick-pickups-waves-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23
+    },
+    {
+      "id": "quick-pickups-facets-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 16.399999856948853
+    },
+    {
+      "id": "quick-pickups-serpentine-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.200000047683716
+    },
+    {
+      "id": "quick-pickups-terraces-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.799999952316284
+    },
+    {
+      "id": "quick-pickups-scallops-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 20.399999856948853
+    },
+    {
+      "id": "quick-pickups-arcs-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.5
+    },
+    {
+      "id": "quick-pickups-paired-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.5
+    },
+    {
+      "id": "quick-pickups-segments-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 12
+    },
+    {
+      "id": "quick-pickups-scattered-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 15.599999904632568
+    },
+    {
+      "id": "quick-pickups-waves-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.699999809265137
+    },
+    {
+      "id": "quick-pickups-facets-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 18.200000047683716
+    },
+    {
+      "id": "quick-pickups-serpentine-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.90000009536743
+    },
+    {
+      "id": "quick-pickups-terraces-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.5
+    },
+    {
+      "id": "quick-pickups-scallops-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.100000143051147
+    },
+    {
+      "id": "quiet-tail-arcs-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 19.59999990463257
+    },
+    {
+      "id": "quiet-tail-paired-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 38.39999985694885
+    },
+    {
+      "id": "quiet-tail-segments-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 32.200000047683716
+    },
+    {
+      "id": "quiet-tail-scattered-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 53.09999990463257
+    },
+    {
+      "id": "quiet-tail-waves-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 19.5
+    },
+    {
+      "id": "quiet-tail-facets-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 29.40000009536743
+    },
+    {
+      "id": "quiet-tail-serpentine-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.799999952316284
+    },
+    {
+      "id": "quiet-tail-terraces-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 40.5
+    },
+    {
+      "id": "quiet-tail-scallops-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.39999985694885
+    },
+    {
+      "id": "quiet-tail-arcs-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 36.200000047683716
+    },
+    {
+      "id": "quiet-tail-paired-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 43.39999985694885
+    },
+    {
+      "id": "quiet-tail-segments-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 31.899999856948853
+    },
+    {
+      "id": "quiet-tail-scattered-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 55.200000047683716
+    },
+    {
+      "id": "quiet-tail-waves-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 37.299999952316284
+    },
+    {
+      "id": "quiet-tail-facets-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 30.59999990463257
+    },
+    {
+      "id": "quiet-tail-serpentine-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 38.5
+    },
+    {
+      "id": "quiet-tail-terraces-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 44.19999980926514
+    },
+    {
+      "id": "quiet-tail-scallops-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 26.5
+    },
+    {
+      "id": "quiet-tail-arcs-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 34.09999990463257
+    },
+    {
+      "id": "quiet-tail-paired-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.799999952316284
+    },
+    {
+      "id": "quiet-tail-segments-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 31.299999952316284
+    },
+    {
+      "id": "quiet-tail-scattered-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 55.90000009536743
+    },
+    {
+      "id": "quiet-tail-waves-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 35.299999952316284
+    },
+    {
+      "id": "quiet-tail-facets-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 30.799999952316284
+    },
+    {
+      "id": "quiet-tail-serpentine-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 45.39999985694885
+    },
+    {
+      "id": "quiet-tail-terraces-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 41.60000014305115
+    },
+    {
+      "id": "quiet-tail-scallops-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 36.799999952316284
+    },
+    {
+      "id": "quiet-tail-arcs-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 39
+    },
+    {
+      "id": "quiet-tail-paired-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 40.799999952316284
+    },
+    {
+      "id": "quiet-tail-segments-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 31.700000047683716
+    },
+    {
+      "id": "quiet-tail-scattered-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 57.299999952316284
+    },
+    {
+      "id": "quiet-tail-waves-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 36.5
+    },
+    {
+      "id": "quiet-tail-facets-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 34.200000047683716
+    },
+    {
+      "id": "quiet-tail-serpentine-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 44.700000047683716
+    },
+    {
+      "id": "quiet-tail-terraces-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 21.199999809265137
+    },
+    {
+      "id": "quiet-tail-scallops-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 32.40000009536743
+    },
+    {
+      "id": "slow-swell-arcs-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 33.5
+    },
+    {
+      "id": "slow-swell-paired-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 36.5
+    },
+    {
+      "id": "slow-swell-segments-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 37.200000047683716
+    },
+    {
+      "id": "slow-swell-scattered-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 44.90000009536743
+    },
+    {
+      "id": "slow-swell-waves-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.700000047683716
+    },
+    {
+      "id": "slow-swell-facets-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 24.300000190734863
+    },
+    {
+      "id": "slow-swell-serpentine-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 31.299999952316284
+    },
+    {
+      "id": "slow-swell-terraces-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.299999952316284
+    },
+    {
+      "id": "slow-swell-scallops-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 34
+    },
+    {
+      "id": "slow-swell-arcs-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 17.799999952316284
+    },
+    {
+      "id": "slow-swell-paired-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 36.200000047683716
+    },
+    {
+      "id": "slow-swell-segments-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 34.09999990463257
+    },
+    {
+      "id": "slow-swell-scattered-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 38.299999952316284
+    },
+    {
+      "id": "slow-swell-waves-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 38.5
+    },
+    {
+      "id": "slow-swell-facets-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 29.09999990463257
+    },
+    {
+      "id": "slow-swell-serpentine-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 37.700000047683716
+    },
+    {
+      "id": "slow-swell-terraces-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 34.90000009536743
+    },
+    {
+      "id": "slow-swell-scallops-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32
+    },
+    {
+      "id": "slow-swell-arcs-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 17.399999856948853
+    },
+    {
+      "id": "slow-swell-paired-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.200000047683716
+    },
+    {
+      "id": "slow-swell-segments-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.89999985694885
+    },
+    {
+      "id": "slow-swell-scattered-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 49.90000009536743
+    },
+    {
+      "id": "slow-swell-waves-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32.799999952316284
+    },
+    {
+      "id": "slow-swell-facets-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 24.299999952316284
+    },
+    {
+      "id": "slow-swell-serpentine-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 31.300000190734863
+    },
+    {
+      "id": "slow-swell-terraces-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 30.800000190734863
+    },
+    {
+      "id": "slow-swell-scallops-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 30.40000009536743
+    },
+    {
+      "id": "slow-swell-arcs-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32.799999952316284
+    },
+    {
+      "id": "slow-swell-paired-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 36.200000047683716
+    },
+    {
+      "id": "slow-swell-segments-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 36.10000014305115
+    },
+    {
+      "id": "slow-swell-scattered-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 44
+    },
+    {
+      "id": "slow-swell-waves-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 36.30000019073486
+    },
+    {
+      "id": "slow-swell-facets-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 29.90000009536743
+    },
+    {
+      "id": "slow-swell-serpentine-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 38.5
+    },
+    {
+      "id": "slow-swell-terraces-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 38.60000014305115
+    },
+    {
+      "id": "slow-swell-scallops-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32.799999952316284
+    },
+    {
+      "id": "staccato-release-arcs-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 31.399999856948853
+    },
+    {
+      "id": "staccato-release-paired-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 40.200000047683716
+    },
+    {
+      "id": "staccato-release-segments-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 39.40000009536743
+    },
+    {
+      "id": "staccato-release-scattered-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 49.200000047683716
+    },
+    {
+      "id": "staccato-release-waves-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 30.100000143051147
+    },
+    {
+      "id": "staccato-release-facets-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 25
+    },
+    {
+      "id": "staccato-release-serpentine-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 30.899999856948853
+    },
+    {
+      "id": "staccato-release-terraces-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 32
+    },
+    {
+      "id": "staccato-release-scallops-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 30
+    },
+    {
+      "id": "staccato-release-arcs-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 33.799999952316284
+    },
+    {
+      "id": "staccato-release-paired-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 38.89999985694885
+    },
+    {
+      "id": "staccato-release-segments-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 38.299999952316284
+    },
+    {
+      "id": "staccato-release-scattered-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 50.60000014305115
+    },
+    {
+      "id": "staccato-release-waves-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 40.200000047683716
+    },
+    {
+      "id": "staccato-release-facets-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 30
+    },
+    {
+      "id": "staccato-release-serpentine-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.60000014305115
+    },
+    {
+      "id": "staccato-release-terraces-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 39.700000047683716
+    },
+    {
+      "id": "staccato-release-scallops-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 36.700000047683716
+    },
+    {
+      "id": "staccato-release-arcs-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 33.89999985694885
+    },
+    {
+      "id": "staccato-release-paired-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.799999952316284
+    },
+    {
+      "id": "staccato-release-segments-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.200000047683716
+    },
+    {
+      "id": "staccato-release-scattered-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 51.90000009536743
+    },
+    {
+      "id": "staccato-release-waves-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 16.299999952316284
+    },
+    {
+      "id": "staccato-release-facets-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 23.59999990463257
+    },
+    {
+      "id": "staccato-release-serpentine-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 32.5
+    },
+    {
+      "id": "staccato-release-terraces-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 32.200000047683716
+    },
+    {
+      "id": "staccato-release-scallops-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.90000009536743
+    },
+    {
+      "id": "staccato-release-arcs-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 19.40000009536743
+    },
+    {
+      "id": "staccato-release-paired-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 35.10000014305115
+    },
+    {
+      "id": "staccato-release-segments-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 19.90000009536743
+    },
+    {
+      "id": "staccato-release-scattered-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 51.89999985694885
+    },
+    {
+      "id": "staccato-release-waves-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 39.09999990463257
+    },
+    {
+      "id": "staccato-release-facets-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 26.299999952316284
+    },
+    {
+      "id": "staccato-release-serpentine-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 36
+    },
+    {
+      "id": "staccato-release-terraces-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 31.600000143051147
+    },
+    {
+      "id": "staccato-release-scallops-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 34.09999990463257
+    },
+    {
+      "id": "even-catches-arcs-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.100000143051147
+    },
+    {
+      "id": "even-catches-segments-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26.799999952316284
+    },
+    {
+      "id": "even-catches-scattered-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 33.59999990463257
+    },
+    {
+      "id": "even-catches-waves-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26.700000047683716
+    },
+    {
+      "id": "even-catches-facets-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 21.40000009536743
+    },
+    {
+      "id": "even-catches-serpentine-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25
+    },
+    {
+      "id": "even-catches-terraces-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.5
+    },
+    {
+      "id": "even-catches-scallops-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 22.799999952316284
+    },
+    {
+      "id": "even-catches-ribbon-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 29.799999952316284
+    },
+    {
+      "id": "even-catches-teeth-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.299999952316284
+    },
+    {
+      "id": "even-catches-petals-100000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 34.39999985694885
+    },
+    {
+      "id": "even-catches-arcs-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 21.5
+    },
+    {
+      "id": "even-catches-segments-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26
+    },
+    {
+      "id": "even-catches-scattered-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 15.900000095367432
+    },
+    {
+      "id": "even-catches-waves-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.799999952316284
+    },
+    {
+      "id": "even-catches-facets-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 23.199999809265137
+    },
+    {
+      "id": "even-catches-serpentine-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24
+    },
+    {
+      "id": "even-catches-terraces-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.09999990463257
+    },
+    {
+      "id": "even-catches-scallops-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.100000143051147
+    },
+    {
+      "id": "even-catches-ribbon-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 32
+    },
+    {
+      "id": "even-catches-teeth-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 32.200000047683716
+    },
+    {
+      "id": "even-catches-petals-100000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 35.799999952316284
+    },
+    {
+      "id": "even-catches-arcs-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 12.400000095367432
+    },
+    {
+      "id": "even-catches-segments-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26.899999856948853
+    },
+    {
+      "id": "even-catches-scattered-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 33.69999980926514
+    },
+    {
+      "id": "even-catches-waves-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26
+    },
+    {
+      "id": "even-catches-facets-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 20.700000047683716
+    },
+    {
+      "id": "even-catches-serpentine-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26.299999952316284
+    },
+    {
+      "id": "even-catches-terraces-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.800000190734863
+    },
+    {
+      "id": "even-catches-scallops-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 23.700000047683716
+    },
+    {
+      "id": "even-catches-ribbon-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 29.899999856948853
+    },
+    {
+      "id": "even-catches-teeth-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.700000047683716
+    },
+    {
+      "id": "even-catches-petals-250000-201",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 33.40000009536743
+    },
+    {
+      "id": "even-catches-arcs-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 23.700000047683716
+    },
+    {
+      "id": "even-catches-segments-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.399999856948853
+    },
+    {
+      "id": "even-catches-scattered-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 31.299999952316284
+    },
+    {
+      "id": "even-catches-waves-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.600000143051147
+    },
+    {
+      "id": "even-catches-facets-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 23.5
+    },
+    {
+      "id": "even-catches-serpentine-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26.300000190734863
+    },
+    {
+      "id": "even-catches-terraces-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.5
+    },
+    {
+      "id": "even-catches-scallops-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 29.800000190734863
+    },
+    {
+      "id": "even-catches-ribbon-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 34.799999952316284
+    },
+    {
+      "id": "even-catches-teeth-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.90000009536743
+    },
+    {
+      "id": "even-catches-petals-250000-202",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 33.59999990463257
+    },
+    {
+      "id": "alternating-lift-arcs-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 28.299999952316284
+    },
+    {
+      "id": "alternating-lift-segments-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 31.5
+    },
+    {
+      "id": "alternating-lift-scattered-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 37.09999990463257
+    },
+    {
+      "id": "alternating-lift-waves-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.200000047683716
+    },
+    {
+      "id": "alternating-lift-facets-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 20.299999952316284
+    },
+    {
+      "id": "alternating-lift-serpentine-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 13.299999952316284
+    },
+    {
+      "id": "alternating-lift-terraces-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.200000047683716
+    },
+    {
+      "id": "alternating-lift-scallops-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.5
+    },
+    {
+      "id": "alternating-lift-ribbon-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 34.59999990463257
+    },
+    {
+      "id": "alternating-lift-teeth-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 31.299999952316284
+    },
+    {
+      "id": "alternating-lift-petals-100000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 35.299999952316284
+    },
+    {
+      "id": "alternating-lift-arcs-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.200000047683716
+    },
+    {
+      "id": "alternating-lift-segments-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 29.299999952316284
+    },
+    {
+      "id": "alternating-lift-scattered-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 34.69999980926514
+    },
+    {
+      "id": "alternating-lift-waves-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 30.700000047683716
+    },
+    {
+      "id": "alternating-lift-facets-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.199999809265137
+    },
+    {
+      "id": "alternating-lift-serpentine-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.399999856948853
+    },
+    {
+      "id": "alternating-lift-terraces-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.100000143051147
+    },
+    {
+      "id": "alternating-lift-scallops-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 29
+    },
+    {
+      "id": "alternating-lift-ribbon-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 33.60000014305115
+    },
+    {
+      "id": "alternating-lift-teeth-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 15.700000047683716
+    },
+    {
+      "id": "alternating-lift-petals-100000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 32.700000047683716
+    },
+    {
+      "id": "alternating-lift-arcs-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.199999809265137
+    },
+    {
+      "id": "alternating-lift-segments-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 32.09999990463257
+    },
+    {
+      "id": "alternating-lift-scattered-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 30.100000143051147
+    },
+    {
+      "id": "alternating-lift-waves-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 15.900000095367432
+    },
+    {
+      "id": "alternating-lift-facets-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 20.300000190734863
+    },
+    {
+      "id": "alternating-lift-serpentine-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.299999952316284
+    },
+    {
+      "id": "alternating-lift-terraces-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 13.899999856948853
+    },
+    {
+      "id": "alternating-lift-scallops-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.800000190734863
+    },
+    {
+      "id": "alternating-lift-ribbon-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 34.09999990463257
+    },
+    {
+      "id": "alternating-lift-teeth-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 34.59999990463257
+    },
+    {
+      "id": "alternating-lift-petals-250000-201",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 36.40000009536743
+    },
+    {
+      "id": "alternating-lift-arcs-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 24.700000047683716
+    },
+    {
+      "id": "alternating-lift-segments-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.600000143051147
+    },
+    {
+      "id": "alternating-lift-scattered-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 18.700000047683716
+    },
+    {
+      "id": "alternating-lift-waves-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 30.700000047683716
+    },
+    {
+      "id": "alternating-lift-facets-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.600000143051147
+    },
+    {
+      "id": "alternating-lift-serpentine-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 13.799999952316284
+    },
+    {
+      "id": "alternating-lift-terraces-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.700000047683716
+    },
+    {
+      "id": "alternating-lift-scallops-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26
+    },
+    {
+      "id": "alternating-lift-ribbon-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 36.60000014305115
+    },
+    {
+      "id": "alternating-lift-teeth-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 31.200000047683716
+    },
+    {
+      "id": "alternating-lift-petals-250000-202",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 36.5
+    },
+    {
+      "id": "quick-pickups-arcs-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22
+    },
+    {
+      "id": "quick-pickups-segments-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.799999952316284
+    },
+    {
+      "id": "quick-pickups-scattered-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 30
+    },
+    {
+      "id": "quick-pickups-waves-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.299999952316284
+    },
+    {
+      "id": "quick-pickups-facets-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 15.5
+    },
+    {
+      "id": "quick-pickups-serpentine-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 12
+    },
+    {
+      "id": "quick-pickups-terraces-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.600000143051147
+    },
+    {
+      "id": "quick-pickups-scallops-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.799999952316284
+    },
+    {
+      "id": "quick-pickups-ribbon-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 30.90000009536743
+    },
+    {
+      "id": "quick-pickups-teeth-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 29.799999952316284
+    },
+    {
+      "id": "quick-pickups-petals-100000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 33.299999952316284
+    },
+    {
+      "id": "quick-pickups-arcs-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 11.099999904632568
+    },
+    {
+      "id": "quick-pickups-segments-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.700000047683716
+    },
+    {
+      "id": "quick-pickups-scattered-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 29.5
+    },
+    {
+      "id": "quick-pickups-waves-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.299999952316284
+    },
+    {
+      "id": "quick-pickups-facets-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.100000143051147
+    },
+    {
+      "id": "quick-pickups-serpentine-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.40000009536743
+    },
+    {
+      "id": "quick-pickups-terraces-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24
+    },
+    {
+      "id": "quick-pickups-scallops-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 25.200000047683716
+    },
+    {
+      "id": "quick-pickups-ribbon-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 29.299999952316284
+    },
+    {
+      "id": "quick-pickups-teeth-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 30.199999809265137
+    },
+    {
+      "id": "quick-pickups-petals-100000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 32.19999980926514
+    },
+    {
+      "id": "quick-pickups-arcs-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.90000009536743
+    },
+    {
+      "id": "quick-pickups-segments-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.800000190734863
+    },
+    {
+      "id": "quick-pickups-scattered-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 29
+    },
+    {
+      "id": "quick-pickups-waves-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.899999856948853
+    },
+    {
+      "id": "quick-pickups-facets-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 16.399999856948853
+    },
+    {
+      "id": "quick-pickups-serpentine-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 12.899999856948853
+    },
+    {
+      "id": "quick-pickups-terraces-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 20.200000047683716
+    },
+    {
+      "id": "quick-pickups-scallops-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 20.200000047683716
+    },
+    {
+      "id": "quick-pickups-ribbon-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 31.300000190734863
+    },
+    {
+      "id": "quick-pickups-teeth-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 26.5
+    },
+    {
+      "id": "quick-pickups-petals-250000-201",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 30.299999952316284
+    },
+    {
+      "id": "quick-pickups-arcs-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 11.800000190734863
+    },
+    {
+      "id": "quick-pickups-segments-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22
+    },
+    {
+      "id": "quick-pickups-scattered-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 28.59999990463257
+    },
+    {
+      "id": "quick-pickups-waves-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.299999952316284
+    },
+    {
+      "id": "quick-pickups-facets-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 19.299999952316284
+    },
+    {
+      "id": "quick-pickups-serpentine-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.5
+    },
+    {
+      "id": "quick-pickups-terraces-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.5
+    },
+    {
+      "id": "quick-pickups-scallops-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 25.09999990463257
+    },
+    {
+      "id": "quick-pickups-ribbon-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 33.299999952316284
+    },
+    {
+      "id": "quick-pickups-teeth-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 27.700000047683716
+    },
+    {
+      "id": "quick-pickups-petals-250000-202",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 31.399999856948853
+    },
+    {
+      "id": "quiet-tail-arcs-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 35.19999980926514
+    },
+    {
+      "id": "quiet-tail-segments-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 17.700000047683716
+    },
+    {
+      "id": "quiet-tail-scattered-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 52.5
+    },
+    {
+      "id": "quiet-tail-waves-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 37.09999990463257
+    },
+    {
+      "id": "quiet-tail-facets-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 28.799999952316284
+    },
+    {
+      "id": "quiet-tail-serpentine-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 44.40000009536743
+    },
+    {
+      "id": "quiet-tail-terraces-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.69999980926514
+    },
+    {
+      "id": "quiet-tail-scallops-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.60000014305115
+    },
+    {
+      "id": "quiet-tail-ribbon-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 50.40000009536743
+    },
+    {
+      "id": "quiet-tail-teeth-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.299999952316284
+    },
+    {
+      "id": "quiet-tail-petals-100000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 58.19999980926514
+    },
+    {
+      "id": "quiet-tail-arcs-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 39.799999952316284
+    },
+    {
+      "id": "quiet-tail-segments-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 31.700000047683716
+    },
+    {
+      "id": "quiet-tail-scattered-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 32
+    },
+    {
+      "id": "quiet-tail-waves-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 37.200000047683716
+    },
+    {
+      "id": "quiet-tail-facets-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 29.59999990463257
+    },
+    {
+      "id": "quiet-tail-serpentine-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 36
+    },
+    {
+      "id": "quiet-tail-terraces-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 23.799999952316284
+    },
+    {
+      "id": "quiet-tail-scallops-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.59999990463257
+    },
+    {
+      "id": "quiet-tail-ribbon-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 53.799999952316284
+    },
+    {
+      "id": "quiet-tail-teeth-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 41.40000009536743
+    },
+    {
+      "id": "quiet-tail-petals-100000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 46.799999952316284
+    },
+    {
+      "id": "quiet-tail-arcs-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 31.700000047683716
+    },
+    {
+      "id": "quiet-tail-segments-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 34.5
+    },
+    {
+      "id": "quiet-tail-scattered-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 59.09999990463257
+    },
+    {
+      "id": "quiet-tail-waves-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 41.90000009536743
+    },
+    {
+      "id": "quiet-tail-facets-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 30.5
+    },
+    {
+      "id": "quiet-tail-serpentine-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 43.90000009536743
+    },
+    {
+      "id": "quiet-tail-terraces-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 46.10000014305115
+    },
+    {
+      "id": "quiet-tail-scallops-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 40.60000014305115
+    },
+    {
+      "id": "quiet-tail-ribbon-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 59
+    },
+    {
+      "id": "quiet-tail-teeth-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 49.5
+    },
+    {
+      "id": "quiet-tail-petals-250000-201",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 53.5
+    },
+    {
+      "id": "quiet-tail-arcs-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 34.90000009536743
+    },
+    {
+      "id": "quiet-tail-segments-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 32.60000014305115
+    },
+    {
+      "id": "quiet-tail-scattered-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 58.80000019073486
+    },
+    {
+      "id": "quiet-tail-waves-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 24.5
+    },
+    {
+      "id": "quiet-tail-facets-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 17
+    },
+    {
+      "id": "quiet-tail-serpentine-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 25.5
+    },
+    {
+      "id": "quiet-tail-terraces-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 24.799999952316284
+    },
+    {
+      "id": "quiet-tail-scallops-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 19.90000009536743
+    },
+    {
+      "id": "quiet-tail-ribbon-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 36.60000014305115
+    },
+    {
+      "id": "quiet-tail-teeth-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 35.700000047683716
+    },
+    {
+      "id": "quiet-tail-petals-250000-202",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 35.40000009536743
+    },
+    {
+      "id": "slow-swell-arcs-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 22.09999990463257
+    },
+    {
+      "id": "slow-swell-segments-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 24.700000047683716
+    },
+    {
+      "id": "slow-swell-scattered-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 31.09999990463257
+    },
+    {
+      "id": "slow-swell-waves-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 23
+    },
+    {
+      "id": "slow-swell-facets-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 13.099999904632568
+    },
+    {
+      "id": "slow-swell-serpentine-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 16.799999952316284
+    },
+    {
+      "id": "slow-swell-terraces-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.60000014305115
+    },
+    {
+      "id": "slow-swell-scallops-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32
+    },
+    {
+      "id": "slow-swell-ribbon-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 43.19999980926514
+    },
+    {
+      "id": "slow-swell-teeth-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 38.200000047683716
+    },
+    {
+      "id": "slow-swell-petals-100000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 46.60000014305115
+    },
+    {
+      "id": "slow-swell-arcs-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 31.5
+    },
+    {
+      "id": "slow-swell-segments-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 36.09999990463257
+    },
+    {
+      "id": "slow-swell-scattered-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 46.200000047683716
+    },
+    {
+      "id": "slow-swell-waves-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 38.5
+    },
+    {
+      "id": "slow-swell-facets-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 24.5
+    },
+    {
+      "id": "slow-swell-serpentine-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 19.100000143051147
+    },
+    {
+      "id": "slow-swell-terraces-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 31.700000047683716
+    },
+    {
+      "id": "slow-swell-scallops-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 30.09999990463257
+    },
+    {
+      "id": "slow-swell-ribbon-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 42.5
+    },
+    {
+      "id": "slow-swell-teeth-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 38.89999985694885
+    },
+    {
+      "id": "slow-swell-petals-100000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 45
+    },
+    {
+      "id": "slow-swell-arcs-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 17.799999952316284
+    },
+    {
+      "id": "slow-swell-segments-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.59999990463257
+    },
+    {
+      "id": "slow-swell-scattered-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 44.10000014305115
+    },
+    {
+      "id": "slow-swell-waves-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32.799999952316284
+    },
+    {
+      "id": "slow-swell-facets-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 13.100000143051147
+    },
+    {
+      "id": "slow-swell-serpentine-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 30.799999952316284
+    },
+    {
+      "id": "slow-swell-terraces-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 31.299999952316284
+    },
+    {
+      "id": "slow-swell-scallops-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 29.90000009536743
+    },
+    {
+      "id": "slow-swell-ribbon-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 44.700000047683716
+    },
+    {
+      "id": "slow-swell-teeth-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 42.09999990463257
+    },
+    {
+      "id": "slow-swell-petals-250000-201",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 24.700000047683716
+    },
+    {
+      "id": "slow-swell-arcs-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 18.200000047683716
+    },
+    {
+      "id": "slow-swell-segments-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 18.59999990463257
+    },
+    {
+      "id": "slow-swell-scattered-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 43.59999990463257
+    },
+    {
+      "id": "slow-swell-waves-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 29.799999952316284
+    },
+    {
+      "id": "slow-swell-facets-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 26.40000009536743
+    },
+    {
+      "id": "slow-swell-serpentine-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.19999980926514
+    },
+    {
+      "id": "slow-swell-terraces-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 19.899999856948853
+    },
+    {
+      "id": "slow-swell-scallops-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 15.899999856948853
+    },
+    {
+      "id": "slow-swell-ribbon-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 22.299999952316284
+    },
+    {
+      "id": "slow-swell-teeth-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 20.5
+    },
+    {
+      "id": "slow-swell-petals-250000-202",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 23.299999952316284
+    },
+    {
+      "id": "staccato-release-arcs-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 16.100000143051147
+    },
+    {
+      "id": "staccato-release-segments-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 39.700000047683716
+    },
+    {
+      "id": "staccato-release-scattered-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 55.200000047683716
+    },
+    {
+      "id": "staccato-release-waves-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 33.59999990463257
+    },
+    {
+      "id": "staccato-release-facets-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 25.299999952316284
+    },
+    {
+      "id": "staccato-release-serpentine-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 33.60000014305115
+    },
+    {
+      "id": "staccato-release-terraces-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 33.89999985694885
+    },
+    {
+      "id": "staccato-release-scallops-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 20.800000190734863
+    },
+    {
+      "id": "staccato-release-ribbon-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 27.600000143051147
+    },
+    {
+      "id": "staccato-release-teeth-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 32.799999952316284
+    },
+    {
+      "id": "staccato-release-petals-100000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 38.09999990463257
+    },
+    {
+      "id": "staccato-release-arcs-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 34.09999990463257
+    },
+    {
+      "id": "staccato-release-segments-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.700000047683716
+    },
+    {
+      "id": "staccato-release-scattered-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 47.200000047683716
+    },
+    {
+      "id": "staccato-release-waves-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 34.299999952316284
+    },
+    {
+      "id": "staccato-release-facets-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 25.699999809265137
+    },
+    {
+      "id": "staccato-release-serpentine-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 32.60000014305115
+    },
+    {
+      "id": "staccato-release-terraces-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 41.5
+    },
+    {
+      "id": "staccato-release-scallops-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 36.09999990463257
+    },
+    {
+      "id": "staccato-release-ribbon-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 49.80000019073486
+    },
+    {
+      "id": "staccato-release-teeth-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 42.40000009536743
+    },
+    {
+      "id": "staccato-release-petals-100000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 47.799999952316284
+    },
+    {
+      "id": "staccato-release-arcs-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 33.700000047683716
+    },
+    {
+      "id": "staccato-release-segments-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 20.299999952316284
+    },
+    {
+      "id": "staccato-release-scattered-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 50.700000047683716
+    },
+    {
+      "id": "staccato-release-waves-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 29.700000047683716
+    },
+    {
+      "id": "staccato-release-facets-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 25.799999952316284
+    },
+    {
+      "id": "staccato-release-serpentine-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 33.89999985694885
+    },
+    {
+      "id": "staccato-release-terraces-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 31.90000009536743
+    },
+    {
+      "id": "staccato-release-scallops-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 40.5
+    },
+    {
+      "id": "staccato-release-ribbon-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 47.299999952316284
+    },
+    {
+      "id": "staccato-release-teeth-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 44.200000047683716
+    },
+    {
+      "id": "staccato-release-petals-250000-201",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 49.10000014305115
+    },
+    {
+      "id": "staccato-release-arcs-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 31.600000143051147
+    },
+    {
+      "id": "staccato-release-segments-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.10000014305115
+    },
+    {
+      "id": "staccato-release-scattered-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 54
+    },
+    {
+      "id": "staccato-release-waves-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.09999990463257
+    },
+    {
+      "id": "staccato-release-facets-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 25.299999952316284
+    },
+    {
+      "id": "staccato-release-serpentine-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 36
+    },
+    {
+      "id": "staccato-release-terraces-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 32.799999952316284
+    },
+    {
+      "id": "staccato-release-scallops-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 35.09999990463257
+    },
+    {
+      "id": "staccato-release-ribbon-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 46.40000009536743
+    },
+    {
+      "id": "staccato-release-teeth-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 42.299999952316284
+    },
+    {
+      "id": "staccato-release-petals-250000-202",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 48.40000009536743
+    },
+    {
+      "id": "even-catches-arcs-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.40000009536743
+    },
+    {
+      "id": "even-catches-segments-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26.299999952316284
+    },
+    {
+      "id": "even-catches-scattered-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 32.5
+    },
+    {
+      "id": "even-catches-waves-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.800000190734863
+    },
+    {
+      "id": "even-catches-facets-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.200000047683716
+    },
+    {
+      "id": "even-catches-serpentine-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 23.700000047683716
+    },
+    {
+      "id": "even-catches-terraces-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 29.300000190734863
+    },
+    {
+      "id": "even-catches-scallops-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 23
+    },
+    {
+      "id": "even-catches-ribbon-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.5
+    },
+    {
+      "id": "even-catches-teeth-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26.899999856948853
+    },
+    {
+      "id": "even-catches-petals-100000-203",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 30.799999952316284
+    },
+    {
+      "id": "even-catches-arcs-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 23.5
+    },
+    {
+      "id": "even-catches-segments-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 15
+    },
+    {
+      "id": "even-catches-scattered-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 33.39999985694885
+    },
+    {
+      "id": "even-catches-waves-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 21.399999856948853
+    },
+    {
+      "id": "even-catches-facets-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 21.09999990463257
+    },
+    {
+      "id": "even-catches-serpentine-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 21.5
+    },
+    {
+      "id": "even-catches-terraces-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.699999809265137
+    },
+    {
+      "id": "even-catches-scallops-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25
+    },
+    {
+      "id": "even-catches-ribbon-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.5
+    },
+    {
+      "id": "even-catches-teeth-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 29.100000143051147
+    },
+    {
+      "id": "even-catches-petals-100000-204",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 32.90000009536743
+    },
+    {
+      "id": "even-catches-arcs-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 21.199999809265137
+    },
+    {
+      "id": "even-catches-segments-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26
+    },
+    {
+      "id": "even-catches-scattered-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 32.60000014305115
+    },
+    {
+      "id": "even-catches-waves-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.40000009536743
+    },
+    {
+      "id": "even-catches-facets-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 20.700000047683716
+    },
+    {
+      "id": "even-catches-serpentine-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.299999952316284
+    },
+    {
+      "id": "even-catches-terraces-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 27.600000143051147
+    },
+    {
+      "id": "even-catches-scallops-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 23.200000047683716
+    },
+    {
+      "id": "even-catches-ribbon-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 31.5
+    },
+    {
+      "id": "even-catches-teeth-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 29.799999952316284
+    },
+    {
+      "id": "even-catches-petals-100000-205",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 33.59999990463257
+    },
+    {
+      "id": "even-catches-arcs-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.100000143051147
+    },
+    {
+      "id": "even-catches-segments-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 26.5
+    },
+    {
+      "id": "even-catches-scattered-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 32.299999952316284
+    },
+    {
+      "id": "even-catches-waves-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 24.59999990463257
+    },
+    {
+      "id": "even-catches-facets-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 20.600000143051147
+    },
+    {
+      "id": "even-catches-serpentine-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 20.90000009536743
+    },
+    {
+      "id": "even-catches-terraces-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 25.600000143051147
+    },
+    {
+      "id": "even-catches-scallops-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 22.600000143051147
+    },
+    {
+      "id": "even-catches-ribbon-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.299999952316284
+    },
+    {
+      "id": "even-catches-teeth-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 28.699999809265137
+    },
+    {
+      "id": "even-catches-petals-100000-206",
+      "frames": 261,
+      "maxError": 0,
+      "replayMs": 31.600000143051147
+    },
+    {
+      "id": "alternating-lift-arcs-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 23.299999952316284
+    },
+    {
+      "id": "alternating-lift-segments-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 29
+    },
+    {
+      "id": "alternating-lift-scattered-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 34.5
+    },
+    {
+      "id": "alternating-lift-waves-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 24.40000009536743
+    },
+    {
+      "id": "alternating-lift-facets-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 22.59999990463257
+    },
+    {
+      "id": "alternating-lift-serpentine-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 28.899999856948853
+    },
+    {
+      "id": "alternating-lift-terraces-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 14.399999856948853
+    },
+    {
+      "id": "alternating-lift-scallops-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 14.300000190734863
+    },
+    {
+      "id": "alternating-lift-ribbon-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 34.5
+    },
+    {
+      "id": "alternating-lift-teeth-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 32.5
+    },
+    {
+      "id": "alternating-lift-petals-100000-203",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 18.300000190734863
+    },
+    {
+      "id": "alternating-lift-arcs-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.09999990463257
+    },
+    {
+      "id": "alternating-lift-segments-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 16.299999952316284
+    },
+    {
+      "id": "alternating-lift-scattered-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 22.40000009536743
+    },
+    {
+      "id": "alternating-lift-waves-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 13.899999856948853
+    },
+    {
+      "id": "alternating-lift-facets-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 10.800000190734863
+    },
+    {
+      "id": "alternating-lift-serpentine-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 14.700000047683716
+    },
+    {
+      "id": "alternating-lift-terraces-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.09999990463257
+    },
+    {
+      "id": "alternating-lift-scallops-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 16.09999990463257
+    },
+    {
+      "id": "alternating-lift-ribbon-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 38.700000047683716
+    },
+    {
+      "id": "alternating-lift-teeth-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 33.5
+    },
+    {
+      "id": "alternating-lift-petals-100000-204",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 36.59999990463257
+    },
+    {
+      "id": "alternating-lift-arcs-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 29.5
+    },
+    {
+      "id": "alternating-lift-segments-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 16.399999856948853
+    },
+    {
+      "id": "alternating-lift-scattered-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 45
+    },
+    {
+      "id": "alternating-lift-waves-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 29.59999990463257
+    },
+    {
+      "id": "alternating-lift-facets-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26
+    },
+    {
+      "id": "alternating-lift-serpentine-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.199999809265137
+    },
+    {
+      "id": "alternating-lift-terraces-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.5
+    },
+    {
+      "id": "alternating-lift-scallops-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 27.799999952316284
+    },
+    {
+      "id": "alternating-lift-ribbon-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 34.5
+    },
+    {
+      "id": "alternating-lift-teeth-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 16.100000143051147
+    },
+    {
+      "id": "alternating-lift-petals-100000-205",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 35.80000019073486
+    },
+    {
+      "id": "alternating-lift-arcs-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 24.699999809265137
+    },
+    {
+      "id": "alternating-lift-segments-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 29
+    },
+    {
+      "id": "alternating-lift-scattered-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 38
+    },
+    {
+      "id": "alternating-lift-waves-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 26.59999990463257
+    },
+    {
+      "id": "alternating-lift-facets-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 21.700000047683716
+    },
+    {
+      "id": "alternating-lift-serpentine-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 22.799999952316284
+    },
+    {
+      "id": "alternating-lift-terraces-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.600000143051147
+    },
+    {
+      "id": "alternating-lift-scallops-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 25.700000047683716
+    },
+    {
+      "id": "alternating-lift-ribbon-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 19.699999809265137
+    },
+    {
+      "id": "alternating-lift-teeth-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 28.700000047683716
+    },
+    {
+      "id": "alternating-lift-petals-100000-206",
+      "frames": 277,
+      "maxError": 0,
+      "replayMs": 20.200000047683716
+    },
+    {
+      "id": "quick-pickups-arcs-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.600000143051147
+    },
+    {
+      "id": "quick-pickups-segments-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 25.100000143051147
+    },
+    {
+      "id": "quick-pickups-scattered-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 32.10000014305115
+    },
+    {
+      "id": "quick-pickups-waves-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.40000009536743
+    },
+    {
+      "id": "quick-pickups-facets-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 18.5
+    },
+    {
+      "id": "quick-pickups-serpentine-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.5
+    },
+    {
+      "id": "quick-pickups-terraces-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.200000047683716
+    },
+    {
+      "id": "quick-pickups-scallops-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.200000047683716
+    },
+    {
+      "id": "quick-pickups-ribbon-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 27.90000009536743
+    },
+    {
+      "id": "quick-pickups-teeth-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 24.700000047683716
+    },
+    {
+      "id": "quick-pickups-petals-100000-203",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 28.5
+    },
+    {
+      "id": "quick-pickups-arcs-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 12.599999904632568
+    },
+    {
+      "id": "quick-pickups-segments-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 11.900000095367432
+    },
+    {
+      "id": "quick-pickups-scattered-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 30.100000143051147
+    },
+    {
+      "id": "quick-pickups-waves-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.200000047683716
+    },
+    {
+      "id": "quick-pickups-facets-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 17.200000047683716
+    },
+    {
+      "id": "quick-pickups-serpentine-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21
+    },
+    {
+      "id": "quick-pickups-terraces-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.200000047683716
+    },
+    {
+      "id": "quick-pickups-scallops-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.799999952316284
+    },
+    {
+      "id": "quick-pickups-ribbon-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 27.40000009536743
+    },
+    {
+      "id": "quick-pickups-teeth-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 31.600000143051147
+    },
+    {
+      "id": "quick-pickups-petals-100000-204",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 27.300000190734863
+    },
+    {
+      "id": "quick-pickups-arcs-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 20.800000190734863
+    },
+    {
+      "id": "quick-pickups-segments-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.600000143051147
+    },
+    {
+      "id": "quick-pickups-scattered-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 14.5
+    },
+    {
+      "id": "quick-pickups-waves-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22
+    },
+    {
+      "id": "quick-pickups-facets-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 20.100000143051147
+    },
+    {
+      "id": "quick-pickups-serpentine-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 25.299999952316284
+    },
+    {
+      "id": "quick-pickups-terraces-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.100000143051147
+    },
+    {
+      "id": "quick-pickups-scallops-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 25.899999856948853
+    },
+    {
+      "id": "quick-pickups-ribbon-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 28.600000143051147
+    },
+    {
+      "id": "quick-pickups-teeth-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 26.399999856948853
+    },
+    {
+      "id": "quick-pickups-petals-100000-205",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 32.700000047683716
+    },
+    {
+      "id": "quick-pickups-arcs-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.299999952316284
+    },
+    {
+      "id": "quick-pickups-segments-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 23.59999990463257
+    },
+    {
+      "id": "quick-pickups-scattered-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 28.100000143051147
+    },
+    {
+      "id": "quick-pickups-waves-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 22.5
+    },
+    {
+      "id": "quick-pickups-facets-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 17.59999990463257
+    },
+    {
+      "id": "quick-pickups-serpentine-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.200000047683716
+    },
+    {
+      "id": "quick-pickups-terraces-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 21.200000047683716
+    },
+    {
+      "id": "quick-pickups-scallops-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 20
+    },
+    {
+      "id": "quick-pickups-ribbon-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 30.299999952316284
+    },
+    {
+      "id": "quick-pickups-teeth-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 26.800000190734863
+    },
+    {
+      "id": "quick-pickups-petals-100000-206",
+      "frames": 221,
+      "maxError": 0,
+      "replayMs": 30
+    },
+    {
+      "id": "quiet-tail-arcs-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 34.700000047683716
+    },
+    {
+      "id": "quiet-tail-segments-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 58.5
+    },
+    {
+      "id": "quiet-tail-scattered-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 32.700000047683716
+    },
+    {
+      "id": "quiet-tail-waves-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 23.59999990463257
+    },
+    {
+      "id": "quiet-tail-facets-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 28.200000047683716
+    },
+    {
+      "id": "quiet-tail-serpentine-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 38.80000019073486
+    },
+    {
+      "id": "quiet-tail-terraces-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 41
+    },
+    {
+      "id": "quiet-tail-scallops-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 38.40000009536743
+    },
+    {
+      "id": "quiet-tail-ribbon-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 53.59999990463257
+    },
+    {
+      "id": "quiet-tail-teeth-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 27.59999990463257
+    },
+    {
+      "id": "quiet-tail-petals-100000-203",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 53.200000047683716
+    },
+    {
+      "id": "quiet-tail-arcs-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 20.700000047683716
+    },
+    {
+      "id": "quiet-tail-segments-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 32.799999952316284
+    },
+    {
+      "id": "quiet-tail-scattered-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 57.700000047683716
+    },
+    {
+      "id": "quiet-tail-waves-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 39.10000014305115
+    },
+    {
+      "id": "quiet-tail-facets-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 33
+    },
+    {
+      "id": "quiet-tail-serpentine-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 40.10000014305115
+    },
+    {
+      "id": "quiet-tail-terraces-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 44.09999990463257
+    },
+    {
+      "id": "quiet-tail-scallops-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 36.59999990463257
+    },
+    {
+      "id": "quiet-tail-ribbon-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 49.59999990463257
+    },
+    {
+      "id": "quiet-tail-teeth-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 26.700000047683716
+    },
+    {
+      "id": "quiet-tail-petals-100000-204",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 28.299999952316284
+    },
+    {
+      "id": "quiet-tail-arcs-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 21.700000047683716
+    },
+    {
+      "id": "quiet-tail-segments-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 26.299999952316284
+    },
+    {
+      "id": "quiet-tail-scattered-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 59.09999990463257
+    },
+    {
+      "id": "quiet-tail-waves-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.200000047683716
+    },
+    {
+      "id": "quiet-tail-facets-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 30.100000143051147
+    },
+    {
+      "id": "quiet-tail-serpentine-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 43.69999980926514
+    },
+    {
+      "id": "quiet-tail-terraces-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 42.799999952316284
+    },
+    {
+      "id": "quiet-tail-scallops-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 28.40000009536743
+    },
+    {
+      "id": "quiet-tail-ribbon-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 29.100000143051147
+    },
+    {
+      "id": "quiet-tail-teeth-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 50.69999980926514
+    },
+    {
+      "id": "quiet-tail-petals-100000-205",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 50.200000047683716
+    },
+    {
+      "id": "quiet-tail-arcs-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 30.399999856948853
+    },
+    {
+      "id": "quiet-tail-segments-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 30.09999990463257
+    },
+    {
+      "id": "quiet-tail-scattered-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 54
+    },
+    {
+      "id": "quiet-tail-waves-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 37.5
+    },
+    {
+      "id": "quiet-tail-facets-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 29
+    },
+    {
+      "id": "quiet-tail-serpentine-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 29.399999856948853
+    },
+    {
+      "id": "quiet-tail-terraces-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 41.40000009536743
+    },
+    {
+      "id": "quiet-tail-scallops-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 23.5
+    },
+    {
+      "id": "quiet-tail-ribbon-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 58.89999985694885
+    },
+    {
+      "id": "quiet-tail-teeth-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 41.39999985694885
+    },
+    {
+      "id": "quiet-tail-petals-100000-206",
+      "frames": 381,
+      "maxError": 0,
+      "replayMs": 29.59999990463257
+    },
+    {
+      "id": "slow-swell-arcs-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 26
+    },
+    {
+      "id": "slow-swell-segments-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 36.60000014305115
+    },
+    {
+      "id": "slow-swell-scattered-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 27.799999952316284
+    },
+    {
+      "id": "slow-swell-waves-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 19.40000009536743
+    },
+    {
+      "id": "slow-swell-facets-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 13.100000143051147
+    },
+    {
+      "id": "slow-swell-serpentine-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.39999985694885
+    },
+    {
+      "id": "slow-swell-terraces-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 34.799999952316284
+    },
+    {
+      "id": "slow-swell-scallops-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32.299999952316284
+    },
+    {
+      "id": "slow-swell-ribbon-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 44.5
+    },
+    {
+      "id": "slow-swell-teeth-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 39.09999990463257
+    },
+    {
+      "id": "slow-swell-petals-100000-203",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 24.40000009536743
+    },
+    {
+      "id": "slow-swell-arcs-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 27.40000009536743
+    },
+    {
+      "id": "slow-swell-segments-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 22.899999856948853
+    },
+    {
+      "id": "slow-swell-scattered-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 40.60000014305115
+    },
+    {
+      "id": "slow-swell-waves-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 31.799999952316284
+    },
+    {
+      "id": "slow-swell-facets-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 25.799999952316284
+    },
+    {
+      "id": "slow-swell-serpentine-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32
+    },
+    {
+      "id": "slow-swell-terraces-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 37.299999952316284
+    },
+    {
+      "id": "slow-swell-scallops-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 30
+    },
+    {
+      "id": "slow-swell-ribbon-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 45.5
+    },
+    {
+      "id": "slow-swell-teeth-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 42.19999980926514
+    },
+    {
+      "id": "slow-swell-petals-100000-204",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 49.200000047683716
+    },
+    {
+      "id": "slow-swell-arcs-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 29.800000190734863
+    },
+    {
+      "id": "slow-swell-segments-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 37.5
+    },
+    {
+      "id": "slow-swell-scattered-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 48.5
+    },
+    {
+      "id": "slow-swell-waves-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 40.5
+    },
+    {
+      "id": "slow-swell-facets-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 28.399999856948853
+    },
+    {
+      "id": "slow-swell-serpentine-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 39.299999952316284
+    },
+    {
+      "id": "slow-swell-terraces-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 29.799999952316284
+    },
+    {
+      "id": "slow-swell-scallops-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 29.5
+    },
+    {
+      "id": "slow-swell-ribbon-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 46.200000047683716
+    },
+    {
+      "id": "slow-swell-teeth-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 41.60000014305115
+    },
+    {
+      "id": "slow-swell-petals-100000-205",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 44.39999985694885
+    },
+    {
+      "id": "slow-swell-arcs-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32.799999952316284
+    },
+    {
+      "id": "slow-swell-segments-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 34.40000009536743
+    },
+    {
+      "id": "slow-swell-scattered-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 48
+    },
+    {
+      "id": "slow-swell-waves-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 32.89999985694885
+    },
+    {
+      "id": "slow-swell-facets-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 26.90000009536743
+    },
+    {
+      "id": "slow-swell-serpentine-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 34.69999980926514
+    },
+    {
+      "id": "slow-swell-terraces-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 35.40000009536743
+    },
+    {
+      "id": "slow-swell-scallops-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 34.700000047683716
+    },
+    {
+      "id": "slow-swell-ribbon-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 44.5
+    },
+    {
+      "id": "slow-swell-teeth-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 37.700000047683716
+    },
+    {
+      "id": "slow-swell-petals-100000-206",
+      "frames": 341,
+      "maxError": 0,
+      "replayMs": 49
+    },
+    {
+      "id": "staccato-release-arcs-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 36.40000009536743
+    },
+    {
+      "id": "staccato-release-segments-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 41.90000009536743
+    },
+    {
+      "id": "staccato-release-scattered-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 46.5
+    },
+    {
+      "id": "staccato-release-waves-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 40.19999980926514
+    },
+    {
+      "id": "staccato-release-facets-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 25.40000009536743
+    },
+    {
+      "id": "staccato-release-serpentine-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 31.899999856948853
+    },
+    {
+      "id": "staccato-release-terraces-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 35.59999990463257
+    },
+    {
+      "id": "staccato-release-scallops-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 35.299999952316284
+    },
+    {
+      "id": "staccato-release-ribbon-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 46.90000009536743
+    },
+    {
+      "id": "staccato-release-teeth-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 40
+    },
+    {
+      "id": "staccato-release-petals-100000-203",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 27.399999856948853
+    },
+    {
+      "id": "staccato-release-arcs-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 36.40000009536743
+    },
+    {
+      "id": "staccato-release-segments-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 45.5
+    },
+    {
+      "id": "staccato-release-scattered-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 50.90000009536743
+    },
+    {
+      "id": "staccato-release-waves-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 19.199999809265137
+    },
+    {
+      "id": "staccato-release-facets-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 24.09999990463257
+    },
+    {
+      "id": "staccato-release-serpentine-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 30.600000143051147
+    },
+    {
+      "id": "staccato-release-terraces-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 34.700000047683716
+    },
+    {
+      "id": "staccato-release-scallops-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 34.89999985694885
+    },
+    {
+      "id": "staccato-release-ribbon-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 43.39999985694885
+    },
+    {
+      "id": "staccato-release-teeth-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 47.5
+    },
+    {
+      "id": "staccato-release-petals-100000-204",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 49.700000047683716
+    },
+    {
+      "id": "staccato-release-arcs-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 35.40000009536743
+    },
+    {
+      "id": "staccato-release-segments-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 39
+    },
+    {
+      "id": "staccato-release-scattered-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 47.39999985694885
+    },
+    {
+      "id": "staccato-release-waves-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.299999952316284
+    },
+    {
+      "id": "staccato-release-facets-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 26.799999952316284
+    },
+    {
+      "id": "staccato-release-serpentine-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 34.69999980926514
+    },
+    {
+      "id": "staccato-release-terraces-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 18.40000009536743
+    },
+    {
+      "id": "staccato-release-scallops-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 37.59999990463257
+    },
+    {
+      "id": "staccato-release-ribbon-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 39
+    },
+    {
+      "id": "staccato-release-teeth-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 41.40000009536743
+    },
+    {
+      "id": "staccato-release-petals-100000-205",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 51.09999990463257
+    },
+    {
+      "id": "staccato-release-arcs-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 32.89999985694885
+    },
+    {
+      "id": "staccato-release-segments-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 22.40000009536743
+    },
+    {
+      "id": "staccato-release-scattered-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 44.700000047683716
+    },
+    {
+      "id": "staccato-release-waves-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 31.100000143051147
+    },
+    {
+      "id": "staccato-release-facets-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 25.699999809265137
+    },
+    {
+      "id": "staccato-release-serpentine-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 31.399999856948853
+    },
+    {
+      "id": "staccato-release-terraces-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 34.299999952316284
+    },
+    {
+      "id": "staccato-release-scallops-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 41.799999952316284
+    },
+    {
+      "id": "staccato-release-ribbon-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 49.90000009536743
+    },
+    {
+      "id": "staccato-release-teeth-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 46.799999952316284
+    },
+    {
+      "id": "staccato-release-petals-100000-206",
+      "frames": 333,
+      "maxError": 0,
+      "replayMs": 48.299999952316284
+    }
+  ],
+  "pairedGuides": {
+    "pairs": 24,
+    "extraNormalGuideSegments": 11017,
+    "existingArtifactsUnchanged": 192,
+    "rows": [
+      {
+        "id": "even-catches-paired-100000-201",
+        "extraSegments": 302,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "even-catches-paired-100000-202",
+        "extraSegments": 276,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "even-catches-paired-250000-201",
+        "extraSegments": 307,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "even-catches-paired-250000-202",
+        "extraSegments": 260,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "alternating-lift-paired-100000-201",
+        "extraSegments": 286,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "alternating-lift-paired-100000-202",
+        "extraSegments": 365,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "alternating-lift-paired-250000-201",
+        "extraSegments": 422,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "alternating-lift-paired-250000-202",
+        "extraSegments": 407,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "quick-pickups-paired-100000-201",
+        "extraSegments": 253,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "quick-pickups-paired-100000-202",
+        "extraSegments": 255,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "quick-pickups-paired-250000-201",
+        "extraSegments": 282,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "quick-pickups-paired-250000-202",
+        "extraSegments": 211,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "quiet-tail-paired-100000-201",
+        "extraSegments": 856,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "quiet-tail-paired-100000-202",
+        "extraSegments": 662,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "quiet-tail-paired-250000-201",
+        "extraSegments": 734,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "quiet-tail-paired-250000-202",
+        "extraSegments": 853,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "slow-swell-paired-100000-201",
+        "extraSegments": 337,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "slow-swell-paired-100000-202",
+        "extraSegments": 454,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "slow-swell-paired-250000-201",
+        "extraSegments": 321,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "slow-swell-paired-250000-202",
+        "extraSegments": 379,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "staccato-release-paired-100000-201",
+        "extraSegments": 760,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "staccato-release-paired-100000-202",
+        "extraSegments": 708,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "staccato-release-paired-250000-201",
+        "extraSegments": 693,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      },
+      {
+        "id": "staccato-release-paired-250000-202",
+        "extraSegments": 634,
+        "exactTrace": true,
+        "exactScore": true,
+        "exactPhysicsWork": true
+      }
+    ]
+  },
+  "transport": {
+    "defaultPaired": true,
+    "seekSeconds": 1.85,
+    "quarterSpeedAfterOneSecond": 2.11,
+    "preservesScrub": true,
+    "hiDpi": [
+      {
+        "width": 698,
+        "css": 349,
+        "height": 636,
+        "cssHeight": 318
+      },
+      {
+        "width": 698,
+        "css": 349,
+        "height": 636,
+        "cssHeight": 318
+      }
+    ]
+  },
+  "drawCost": {
+    "camera": {
+      "w": 600,
+      "h": 390,
+      "z": 2,
+      "r": 1
+    },
+    "forcedReadback": true,
+    "samples": [
+      {
+        "id": "even-catches-paired-100000-201",
+        "lines": 1042,
+        "meanMs": 1.4733333317438762,
+        "p95Ms": 1.6000001430511475,
+        "maxMs": 2.9000000953674316,
+        "samples": 150
+      },
+      {
+        "id": "quiet-tail-scattered-250000-201",
+        "lines": 4365,
+        "meanMs": 3.1959999990463257,
+        "p95Ms": 3.5999999046325684,
+        "maxMs": 4.900000095367432,
+        "samples": 150
+      }
+    ]
+  },
+  "fullAppDenseReplay": {
+    "positions": 38760,
+    "rows": [
+      {
+        "id": "even-catches-arcs-100000-201",
+        "frames": 261,
+        "exactAllPointsIncludingScarf": true
+      },
+      {
+        "id": "alternating-lift-scattered-100000-202",
+        "frames": 277,
+        "exactAllPointsIncludingScarf": true
+      },
+      {
+        "id": "quick-pickups-serpentine-250000-202",
+        "frames": 221,
+        "exactAllPointsIncludingScarf": true
+      },
+      {
+        "id": "quiet-tail-teeth-100000-201",
+        "frames": 381,
+        "exactAllPointsIncludingScarf": true
+      }
+    ]
+  },
+  "checksSource": {
+    "motion-gallery/main.js": "fc85b1d8130e917cb2c9fef5fa0a5cfecafde24060c6a34855e1f0abfb4f5018",
+    "motion-gallery/replay.js": "20466719c71d328c47dffd36bf70ac026df9c4c93996fdc34a682d1afa1dde42",
+    "motion-gallery/index.html": "28f2cfd54e30f40f54a61f517dccde1baec04fd4dab9fb0c225740fd5f2da0c6",
+    "motion-gallery/style.css": "f75fab0a867700b1037e1cfe6c8485eec85857f27eefa13aecc462135684196c",
+    "scripts/gallery/check_renderer.mjs": "febc3d27c548e1be1de20eb8f073b747056d39e66bc3c868acdc70bc4ac256da",
+    "tests/motion_geometry_styles.test.ts": "2ed17b08639e3b95e7f4a194f63640655cca96029adfc9a4de44cbc2a16e5e76"
+  },
+  "validation": {
+    "geometryTests": {
+      "files": 1,
+      "passed": 12
+    },
+    "typescript": {
+      "previousDiagnostics": 251,
+      "currentDiagnostics": 251,
+      "newDiagnostics": 0
+    },
+    "compilerImplementationChanges": false,
+    "canonicalBenchmarkRerun": false
+  }
+}

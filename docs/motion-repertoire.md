@@ -5,14 +5,18 @@ The score measures adherence, not whether a video looks good. The current task
 starts with concrete examples and measurements; it does not introduce a geometry
 plug-in framework, motion motifs, style quotas, or new specification controls.
 
-## Current gallery expansion
+## Current gallery
 
-The gallery now has ten geometry choices: arcs/guides, improved scattered
-segments, waves, facets, serpentine rails, terraces, ripples, ribbed ribbons,
-crystal teeth and petal chains. The original scattered controller remains an
-additional comparison. Visual selectors and synchronized left/right playback
-show actual measured geometry. See [the six-shape report](motion-gallery-six-shapes-2026-09-30.md)
-for the latest implementation and evaluation; [the preceding report](motion-gallery-expansion-2026-09-29.md)
+The gallery focuses on eight functional geometry choices: arcs with trimmed
+or full paired guides, improved scattered segments, waves, facets, serpentine
+rails, terraces and ripples. The original scattered controller remains an
+additional comparison. Ribbons, teeth and petals are archived as optional
+contour experiments. The gallery now uses native Line Rider line rendering
+and Bosh artwork, including the scarf, with verified playback and synchronized
+scrubbing. See [the functional rails and rendering report](motion-gallery-native-2026-09-30.md).
+
+The [six-shape report](motion-gallery-six-shapes-2026-09-30.md) preserves the
+preceding experiments; [the four-shape report](motion-gallery-expansion-2026-09-29.md)
 preserves the scattered reconstruction studies. Normal lines remain mandatory;
 the production compiler still defaults to coherent arcs.
 

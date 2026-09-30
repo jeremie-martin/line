@@ -1,3 +1,12 @@
+# Active roadmap: a deliberate creative repertoire — 2026-09-30
+
+The owner approved the [creative repertoire roadmap](docs/creative-repertoire-roadmap.md)
+and authorized implementation of its next milestone: three visibly distinct
+constructions on shared musical passages, then a complete musical comparison
+combining them deliberately. Develop on two songs, check reuse on a reserved
+passage, and preserve musical accuracy, understandable choices and reasonable
+computation. The musical-direction work below is the preceding milestone.
+
 # Musical direction on real songs — 2026-09-30
 
 The owner authorized implementation of the [musical direction plan](docs/musical-direction-plan.md).

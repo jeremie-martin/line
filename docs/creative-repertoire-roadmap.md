@@ -10,6 +10,13 @@ found the first faceted phrase too similar to production; the ripple example was
 visibly different and meaningful, an encouraging beginning. Neither result
 establishes a geometry's potential or a universal artistic preference.
 
+The owner has now asked for sustained execution across these strands, rather
+than stopping after each small deliverable. The active
+[integrated repertoire campaign](repertoire-workspace-20260930.md) combines shared
+search, reusable composition, further construction development, whole-track
+arrangements and a creative workspace. Small experiments and commits are internal
+checkpoints. Search improvements support this broader outcome.
+
 ## Roadmap
 
 1. **Understand and adjust existing constructions.** Establish what controls the

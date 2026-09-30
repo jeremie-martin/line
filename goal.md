@@ -1,5 +1,13 @@
 # Active roadmap: a deliberate creative repertoire — 2026-09-30
 
+Active execution: [the integrated repertoire campaign](docs/repertoire-workspace-20260930.md).
+The owner requests ambitious sustained work across the roadmap, with multiple
+connected work packages and feedback on the substantial result. Do not stop at
+one new shape or one local optimization. Current work spans shared search,
+reusable phrase composition, further physical constructions, whole-track musical
+arrangements and a creative workspace; normal-line and frozen-judge constraints
+remain in force.
+
 The owner approved the [creative repertoire roadmap](docs/creative-repertoire-roadmap.md).
 Its first panel compared three constructions on shared musical passages and in
 complete musical combinations. The second milestone below incorporates

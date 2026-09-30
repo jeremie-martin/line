@@ -3,7 +3,8 @@ import {sliceTimeline} from '../v0/core/substrate.ts';
 import type {Case} from '../../benchmark/v3/model.ts';
 
 // The last two passages were defined after the initial controller/shape probes.
-const definitions = [
+export type GalleryCaseDefinition={id:string;title:string;duration:number;beats:number[];air:number[];speed:number[];amplitude:number[];impact:number[]};
+const definitions:GalleryCaseDefinition[] = [
   {id: 'even-catches', title: 'Even catches', duration: 6, beats: [.7, 1.4, 2.1, 2.8, 3.5, 4.2, 4.9, 5.6],
     air: [.5], speed: [.55], amplitude: [.14], impact: [.45]},
   {id: 'alternating-lift', title: 'Alternating lift', duration: 6.4, beats: [.55, 1.35, 2.05, 2.9, 3.5, 4.4, 5.15, 5.9],
@@ -17,7 +18,7 @@ const definitions = [
   {id: 'staccato-release', title: 'Staccato release', duration: 7.8, beats: [.55, .9, 1.7, 2.05, 2.85, 3.2, 4.2, 4.55],
     air: [.35], speed: [.5], amplitude: [.07], impact: [.35]},
 ];
-export const galleryCases: Case[] = definitions.map(d => {
+export function makeGalleryCase(d:GalleryCaseDefinition,source='scripts/gallery/cases.ts'):Case {
   const durationFrames = Math.round(d.duration * 40), frames = d.beats.map(t => Math.round(t * 40));
   const gaps = sliceTimeline(frames, durationFrames);
   const values = (axis: 'speed' | 'amplitude') => Array.from({length: durationFrames + 1}, (_, f) => {
@@ -25,7 +26,7 @@ export const galleryCases: Case[] = definitions.map(d => {
     return d[axis][i % d[axis].length];
   });
   return {id: d.id, title: d.title, parentId: d.id, group: 'gallery', stratum: 'gallery',
-    provenance: {kind: 'new_program', source: 'scripts/gallery/cases.ts', brief: 'Matched geometry research; outside the canonical catalog.'},
+    provenance: {kind: 'new_program', source, brief: 'Matched geometry research; outside the canonical catalog.'},
     phases: [], durationFrames, preroll: 5,
     contacts: frames.map((frame, i) => ({frame, impact: d.impact[i % d.impact.length]})),
     samples: {speed: values('speed'), amplitude: values('amplitude')},
@@ -34,4 +35,5 @@ export const galleryCases: Case[] = definitions.map(d => {
       const airborneFrames = Math.round(samples * requested);
       return {gap: i, samples, requested, airborneFrames, target: airborneFrames / samples, adjustment: 'quantization'};
     })};
-});
+}
+export const galleryCases: Case[] = definitions.map(d=>makeGalleryCase(d));

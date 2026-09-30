@@ -1,7 +1,7 @@
 import {it,expect} from 'vitest';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
 import {captureArcFork,studyGuideChoices} from '../scripts/v0/optimizer/arc_guide_study.ts';
-import {guideFootprint,selectGuideAlternative} from '../scripts/v0/optimizer/arc_guide_choice.ts';
+import {guideFootprint,selectGuideAlternative,guideCoverageFrontier} from '../scripts/v0/optimizer/arc_guide_choice.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const spec:Spec={duration:3,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 const options={budget:100000,samples:64,channel:12,radius:24,bidirectional:true,impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,guidance:'clearance' as const,guidanceSamples:24,pruneGuidance:true,collectTrajectoryLoss:true};
@@ -96,4 +96,29 @@ it('pays for both starting tracks and keeps an independently compiled zero-guide
   for(const id of [...round.before,...round.after])expect(r.candidates.find(c=>c.id===id)?.valid).toBe(true);
  }
  expect(()=>studyGuideChoices(spec,17,300000,{unguidedReference:true})).toThrow('two-path');
+});
+it('retains a useful middle continuation without assigning a preferred guide count',()=>{
+ const pool=[alternative('accurate',.02,4,300),alternative('sparse',.12,0,0),alternative('middle',.03,2,200),alternative('dominated',.08,3,180),alternative('invalid',0,1,1,false)];
+ expect(guideCoverageFrontier(pool).map(c=>c.id)).toEqual(['accurate','sparse','middle']);
+ expect(guideCoverageFrontier(pool,8).map(c=>c.id)).toEqual(['accurate','sparse','middle']);
+ expect(guideCoverageFrontier([])).toEqual([]);
+ expect(()=>guideCoverageFrontier(pool,1)).toThrow('at least two');
+});
+it('preserves later guide prohibitions while independently rebuilding faceted continuations',()=>{
+ const r=studyGuideChoices(spec,17,260000,{exploration:'coverage',unguidedReference:true,preserveGuidePattern:true,geometry:{subdivisions:.5}});
+ expect(r.physicalFrames).toBe(r.preparationFrames+r.candidates.reduce((n,c)=>n+c.result.stats.sim_frames,0));
+ expect(r.physicalFrames).toBeLessThanOrEqual(260000);
+ expect(r.decisions.length).toBeGreaterThan(0);
+ for(const d of r.decisions){
+  const source=r.candidates.find(c=>c.id===d.source)!;
+  for(const id of [d.single,d.guided]){
+   const c=r.candidates.find(c=>c.id===id)!;
+   expect(c.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)<d.section)).toEqual(source.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)<d.section));
+   for(let i=1;i<d.continuationGuides.length;i++)if(!d.continuationGuides[i])expect(guideFootprint(c.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===d.section+i)).guideSections).toBe(0);
+   expect(c.result.track.lines.every(l=>l.type===0)).toBe(true);
+  }
+ }
+ const reference=r.candidates.find(c=>c.valid)!;expect(reference).toBeDefined();
+ const {fork}=captureArcFork(reference.result,2);
+ expect(()=>compileArcMotion(spec,17,{...options,fork:{...fork,continuationGuides:[false]}})).toThrow('guide permissions');
 });

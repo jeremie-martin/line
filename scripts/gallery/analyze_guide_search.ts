@@ -7,6 +7,7 @@ import {resolve,dirname} from 'node:path';
 import {sha} from '../../benchmark/v3/model.ts';
 import {compareGuideFootprint} from '../v0/optimizer/arc_guide_choice.ts';
 const args=process.argv.slice(2),out=args.find(a=>a.startsWith('--out='))?.slice(6);
+const reference=args.find(a=>a.startsWith('--reference='))?.slice(12)??'baseline';
 assert.ok(out);const roots=args.filter(a=>!a.startsWith('--'));
 const rows:any[]=[],sources:any[]=[];
 for(const root of roots){
@@ -16,7 +17,7 @@ for(const root of roots){
  for(const file of files){const path=resolve(root,file),bytes=readFileSync(path);assert.equal(sha(bytes),readFileSync(path+'.sha256','utf8').trim());rows.push(JSON.parse(bytes.toString()));}
  sources.push({root,incomplete:true,rows:files.length});
 }
-const key=(r:any)=>[r.caseId,r.seed,r.budget].join('|');
+const key=(r:any)=>[r.shape??'arcs',r.caseId,r.seed,r.budget].join('|');
 const index=new Map(rows.map(r=>[[key(r),r.variant].join('|'),r]));assert.equal(index.size,rows.length,'duplicate experiment row');
 const mean=(values:number[])=>values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
 // Resample seeds as blocks, preserving the six-passage panel within each seed.
@@ -30,9 +31,9 @@ function seedInterval(values:Array<{seed:number;delta:number}>){
 }
 const valid=(r:any)=>r.candidates.filter((c:any)=>c.valid&&Number.isFinite(c.qualityRms));
 const best=(r:any)=>valid(r).slice().sort((a:any,b:any)=>a.qualityRms-b.qualityRms||compareGuideFootprint(a,b))[0];
-const variants=[...new Set(rows.map(r=>r.variant))],budgets=[...new Set(rows.map(r=>r.budget))];
-const summary=budgets.flatMap(budget=>variants.map(variant=>{
- const panel=rows.filter(r=>r.budget===budget&&r.variant===variant),paired=panel.map(r=>({r,b:index.get(key(r)+'|baseline')})).filter(p=>p.b);
+const variants=[...new Set(rows.map(r=>r.variant))],budgets=[...new Set(rows.map(r=>r.budget))],shapes=[...new Set(rows.map(r=>r.shape??'arcs'))];
+const summary=shapes.flatMap(shape=>budgets.flatMap(budget=>variants.map(variant=>{
+ const panel=rows.filter(r=>(r.shape??'arcs')===shape&&r.budget===budget&&r.variant===variant),paired=panel.map(r=>({r,b:index.get(key(r)+'|'+reference)})).filter(p=>p.b);
  const deltas=paired.map(({r,b})=>best(r)&&best(b)?best(r).qualityRms-best(b).qualityRms:null).filter((d):d is number=>d!==null);
  const byCeiling=[0,.005,.01,.02,.04,.08].map(extraRms=>{
   const pairs=paired.filter(({b})=>best(b)).map(({r,b})=>{
@@ -59,13 +60,13 @@ const summary=budgets.flatMap(budget=>variants.map(variant=>{
    better:both.filter(p=>p.r.qualityRms<p.b.qualityRms-1e-12).length,worse:both.filter(p=>p.r.qualityRms>p.b.qualityRms+1e-12).length,
    rmsDeltaInterval:seedInterval(both.map(p=>({seed:p.seed,delta:p.r.qualityRms-p.b.qualityRms})))};
  });
- return {budget,variant,runs:panel.length,paired:paired.length,validPortfolios:panel.filter(r=>best(r)).length,
+ return {shape,budget,variant,reference,runs:panel.length,paired:paired.length,validPortfolios:panel.filter(r=>best(r)).length,
   meanBestRms:mean(panel.filter(r=>best(r)).map(r=>best(r).qualityRms)),meanBestScore:mean(panel.filter(r=>best(r)).map(r=>best(r).score.score)),
   meanPhysicsFrames:mean(panel.map(r=>r.physicalFrames)),meanCompileMs:mean(panel.map(r=>r.compileMs)),
   bestRmsDelta:mean(deltas),bestRmsWins:deltas.filter(d=>d<-1e-12).length,bestRmsLosses:deltas.filter(d=>d>1e-12).length,
   bestRmsDeltaInterval:seedInterval(paired.filter(({r,b})=>best(r)&&best(b)).map(({r,b})=>({seed:r.seed,delta:best(r).qualityRms-best(b).qualityRms}))),
   byCeiling,byGuideFraction};
-}));
+})));
 const result={schema:'line.guide-search-comparison.v1',sources,summary,rows};mkdirSync(dirname(out),{recursive:true});
 const body=JSON.stringify(result,null,2)+'\n';writeFileSync(out,body);writeFileSync(out+'.sha256',sha(body)+'\n');
 for(const s of summary)console.log(JSON.stringify({...s,byCeiling:s.byCeiling.filter(c=>[0,.01,.02].includes(c.extraRms))}));

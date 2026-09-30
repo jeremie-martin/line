@@ -42,6 +42,9 @@ export type ArcMotionFork = {
   /** Source controls for the rebuilt suffix. They are proposals, never replay
    * shortcuts; each is checked from the newly reached physical state. */
   continuation?:ArcControlReference[];
+  /** Later guide permissions shared by both forks; geometry is still searched.
+   * The permission at section zero of this suffix is overridden by `guides`. */
+  continuationGuides?:boolean[];
 };
 export type ArcMotionOptions= ArcGeometryStyle & {
   budget:number;
@@ -298,6 +301,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(!Number.isSafeInteger(resumeAt)||resumeAt<0||resumeAt>=contacts.length||fork.rows.length!==resumeAt||
         JSON.stringify(fork.start)!==JSON.stringify(start)||typeof fork.guides!=='boolean')throw new Error('invalid arc fork prefix');
       if(fork.continuation&&fork.continuation.length!==contacts.length-resumeAt)throw new Error('arc fork controls do not cover the continuation');
+      if(fork.continuationGuides&&(fork.continuationGuides.length!==contacts.length-resumeAt||fork.continuationGuides.some(g=>typeof g!=='boolean')))
+        throw new Error('arc fork guide permissions do not cover the continuation');
       const groups=arcRailGroups(fork.lines);
       if(groups.size!==resumeAt||[...groups.keys()].some(i=>i<0||i>=resumeAt)||fork.rows.some((r,i)=>r.frame!==contacts[i].frame))
         throw new Error('arc fork prefix does not match the timeline');
@@ -321,6 +326,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     };
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides};
+      if(options.fork?.continuationGuides&&i>=options.fork.section)options.guides=options.fork.continuationGuides[i-options.fork.section];
       if(options.fork&&i===options.fork.section)options.guides=options.fork.guides;
       // Once the timeline is complete, no future state needs a surrogate.
       // Time weights make the varying span/impact terms proportional to the

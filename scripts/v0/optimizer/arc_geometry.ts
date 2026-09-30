@@ -1,14 +1,14 @@
 /** Coherent normal-line geometry shared by construction and refinement studies.
  * This module only builds curves; it does not simulate or select candidates. */
 import {railContours, type RailContour} from './rail_contours.ts';
-import {profileHeading, type MotionProfile} from './motion_profiles.ts';
+import {profileHeading,validProfileControls,type MotionProfileControls} from './motion_profiles.ts';
 import { makeSolidLine } from '../arc.ts';
 import type { TrackLine } from '../types.ts';
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
-export type ArcGeometryStyle={guides?:boolean;profile?:MotionProfile;profileStrength?:number;contour?:RailContour};
-export type ArcSectionStyle=Pick<ArcGeometryStyle,'guides'|'profile'|'profileStrength'>&{subdivisions?:number};
+export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:RailContour};
+export type ArcSectionStyle=MotionProfileControls&{guides?:boolean;subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number};
 
@@ -21,8 +21,7 @@ export function normalizeArcTurnFraction(fraction:number,support:number,preserve
  * make angular facets; their actual geometry must be searched and replayed. */
 export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0, subdivisions=4,style?:ArcGeometryStyle):TrackLine[]{
   const {profile,contour}=style??{};
-  if(style?.profileStrength!==undefined&&(!profile||!Number.isFinite(style.profileStrength)||style.profileStrength<0||style.profileStrength>2))
-    throw new Error('profile strength requires a profile and must be in [0, 2]');
+  if(!validProfileControls(style??{}))throw new Error('invalid profile controls');
   if(!Number.isFinite(subdivisions)||subdivisions<=0||subdivisions>4)throw new Error('arc subdivisions must be in (0, 4]');
   const entry=rad(c.entry), n={x:Math.sin(entry),y:-Math.cos(entry)}, t={x:Math.cos(entry),y:Math.sin(entry)};
   const point=points.reduce((a,b)=>a.x*n.x+a.y*n.y<b.x*n.x+b.y*n.y?a:b);
@@ -39,7 +38,9 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     const easing=(z:number,bias=c.bias)=>bias>=0?Math.pow(z,1+bias):1-Math.pow(1-z,1-bias);
     let a=rad(time<first?c.entry+c.turn*(wave?Math.sin(Math.PI*u):easing(u)):lerp(c.entry+(wave?0:c.turn),c.exit,easing(w,c.exitBias??c.bias)));
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
-    if(profile&&time>=first)a=profileHeading(profile,a,w,style?.profileStrength);
+    const profileFirst=style?.profileStart===undefined?first:c.support*style.profileStart;
+    if(profile&&time>=profileFirst)a=profileHeading(profile,a,
+      style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles);
     if(radius>0)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
     if(flow){
       // A passive supporting surface cannot turn downward faster than free

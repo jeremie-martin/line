@@ -15,7 +15,7 @@ it('composes distinct strengths on separated phrases and verifies the intervenin
   const reference=compileArcMotion(spec,17,options);
   const styles=stylesForPhrases(reference.rows,[
     {title:'First',window:[1,1.4],style:{profile:'terraces',profileStrength:1.5}},
-    {title:'Second',window:[2.8,3.2],style:{profile:'scallops',profileStrength:.75}},
+    {title:'Second',window:[2.8,3.2],style:{profile:'scallops',profileStrength:.75,profileStart:.25,rippleCycles:1}},
   ]);
   expect(Object.keys(styles)).toEqual(['2','5']);
   expect(()=>stylesForPhrases(reference.rows,[{title:'Empty',window:[.01,.02],style:{}}])).toThrow('empty');
@@ -27,7 +27,8 @@ it('composes distinct strengths on separated phrases and verifies the intervenin
   const {verifyMainConstruction}=await import('../scripts/gallery/verify_construction.ts');
   expect(verifyMainConstruction(composed.result.track,composed.result.rows,{radius:24,channel:12,sectionStyles:styles},2).exactGeometry).toBe(true);
   expect(()=>verifyMainConstruction(composed.result.track,composed.result.rows,{radius:24,channel:12,sectionStyles:{2:{profile:'terraces'},5:{profile:'scallops'}}},2)).toThrow('main construction differs');
-  for(const style of [{profileStrength:1},{profile:'scallops',profileStrength:-1},{profile:'scallops',profileStrength:NaN}])
+  for(const style of [{profileStrength:1},{profile:'scallops',profileStrength:-1},{profile:'scallops',profileStrength:NaN},
+    {profileStart:.2},{profile:'scallops',rippleCycles:4},{profile:'scallops',profileStart:NaN}])
     expect(()=>compileArcMotion(spec,17,{...options,sectionStyles:{2:style} as any})).toThrow('section style');
 });
 

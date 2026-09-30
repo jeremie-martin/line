@@ -31,8 +31,11 @@ for(const r of records.values())if(r.construction.boundaryFrame!==null){
   assert.deepEqual(r.trace.frames.slice(0,boundary+1),baseline.trace.frames.slice(0,boundary+1));prefixChecks+=boundary+1;
   const section=r.construction.changedSections[0],prefix=(lines:any[])=>lines.filter(l=>Math.floor((l.id-1000)/10000)<section);
   assert.deepEqual(prefix(r.track.lines),prefix(baseline.track.lines));
-  const construction=JSON.parse(readFileSync(join(root,r.id,'construction.json'),'utf8')),groups=arcRailGroups(r.track.lines);
+  const construction=JSON.parse(readFileSync(join(root,r.id,'construction.json'),'utf8'));
+  const fragments=new Set<number>(r.construction.fragmentSections??[]);
+  const groups=arcRailGroups(r.track.lines.filter((l:any)=>!fragments.has(Math.floor((l.id-1000)/10000))));
   for(const row of r.sections){
+    if(fragments.has(row.section))continue;
     const subdivision=r.construction.styles[row.section]?.subdivisions??4;
     if(row.section>=section)assert.equal(groups.get(row.section)![0].length,1+Math.max(4,Math.ceil(construction.rows[row.section].control.support*subdivision)));
     if(r.construction.styles[row.section]?.guides===false)assert.equal(groups.get(row.section)!.length,1);

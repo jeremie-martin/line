@@ -22,7 +22,8 @@ for(const cell of manifest.cells){
   const c=manifest.plan.cases.find((c:any)=>c.id===cell.caseId);
   const replay=replayGalleryTrack(r.track,c,true),collisions=replay.collisionIds!;
   assert.equal(sha(JSON.stringify(collisions)),cell.collisionSha256);
-  const groups=arcRailGroups(r.track.lines),supports:any[]=[];
+  const fragments=new Set<number>(construction.fragmentSections??[]);
+  const groups=arcRailGroups(r.track.lines.filter((l:any)=>!fragments.has(Math.floor((l.id-1000)/10000)))),supports:any[]=[];
   for(const [key,style] of Object.entries(construction.styles) as [string,any][]){
     if(!style.profile)continue;
     const section=Number(key),row=construction.rows[section],prefix=r.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)<section);
@@ -42,7 +43,8 @@ for(const cell of manifest.cells){
       // null before the profile begins distinguishes entry from shaped motion.
       const steps=Math.max(4,Math.ceil(row.control.support*4));
       assert.equal(actual.length,steps+1);
-      const entry=row.control.turnFraction===undefined?Math.min(5,row.control.support*.5):row.control.support*row.control.turnFraction;
+      const entry=style.profileStart!==undefined?row.control.support*style.profileStart:
+        row.control.turnFraction===undefined?Math.min(5,row.control.support*.5):row.control.support*row.control.turnFraction;
       const mainIndex=new Map(actual.map((line,index)=>[line.id,index]));
       const phase=(index:number)=>{
         const time=(index-.5)*row.control.support/steps;
@@ -54,16 +56,16 @@ for(const cell of manifest.cells){
         return mainContacts.length||guideIds.length?[{frame,main:mainContacts,guideIds}]:[];
       });
       supports.push({section,start:row.frame/40,end:(construction.rows[section+1]?.frame??c.durationFrames)/40,
-        profile:style.profile,strength:style.profileStrength??1,
+        profile:style.profile,strength:style.profileStrength??1,profileStart:style.profileStart??null,rippleCycles:style.rippleCycles??2,
         reshapedMainSegments:shaped.size,mainSegments:main.size,maxEndpointDisplacement:Math.max(...differences),
         mainContactFrames:count(main),reshapedMainContactFrames:count(shaped),guideContactFrames:count(guide),
-        profileSchedule:{supportFrames:row.control.support,entryFrames:entry,steps},contactTimeline});
+        profileSchedule:{supportFrames:row.control.support,profileStartFrames:entry,steps},contactTimeline});
     }finally{dispose();}
   }
   rows.push({id:cell.id,trackHash:cell.trackHash,collisionSha256:cell.collisionSha256,supports});
 }
 mkdirSync(dirname(out),{recursive:true});
-writeGalleryJson(dirname(out),out.split('/').at(-1)!,{schema:'line.repertoire-contact-inspection.v2',
+writeGalleryJson(dirname(out),out.split('/').at(-1)!,{schema:'line.repertoire-contact-inspection.v3',
   manifest:{path:join(root,'manifest.json'),sha256:sha(readFileSync(join(root,'manifest.json')))},
   toolSha256:sha(readFileSync(import.meta.filename)),
   interpretation:'Actual contacts with main segments displaced by the profile, relative to the same controls and incoming state at zero strength. Any-contact counts include glancing hits and do not establish traversal or useful riding. Timeline frames run at 40 fps; omitted frames have no collision with either rail of this support. Main segment zero is the approach. profilePhase is the segment midpoint in the construction heading schedule (null before its start), not rider time, arclength or a traversal score. Contacts include all rider points; simultaneous contacts do not establish ordering within a frame or continuous sliding. Guide IDs remain separate. This does not prove necessity or validate the zero-strength counterfactual ride.',rows});

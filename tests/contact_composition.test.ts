@@ -1,0 +1,42 @@
+import {it,expect} from 'vitest';
+import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
+import {composeContactSections,composeScatteredPhrase} from '../scripts/v0/optimizer/contact_composition.ts';
+import {LineRiderEngine} from '../scripts/lib/_lr_engine_wasm.ts';
+import type {Spec} from '../scripts/v0/types.ts';
+const spec:Spec={duration:3,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+it('reconstructs only requested supports, accounts for all attempts, and retains caller-owned engines',()=>{
+  const source=compileArcMotion(spec,17,{budget:40000,samples:40,channel:12,radius:24,bidirectional:true});
+  const saved=JSON.stringify(source),retained=new LineRiderEngine().setStart({x:123,y:-45},{x:3,y:0});
+  const before=JSON.stringify(retained.getRider(0).ballisticState());
+  const r=composeContactSections(spec,source,{sections:[2],widths:[.0003,.003,1],budget:10000});
+  const section=(l:any)=>Math.floor((l.id-1000)/10000);
+  expect(r.track.lines.filter(l=>section(l)!==2)).toEqual(source.track.lines.filter(l=>section(l)!==2));
+  expect(r.track.lines.filter(l=>section(l)===2)).not.toEqual(source.track.lines.filter(l=>section(l)===2));
+  expect(r.track.lines.every(l=>l.type===0)).toBe(true);
+  expect(new Set(r.track.lines.map(l=>l.id)).size).toBe(r.track.lines.length);
+  expect(r.construction.probes).toHaveLength(3);expect(r.construction.prefixMatches).toBe(true);
+  expect(r.physicalFrames).toBe(r.construction.observationFrames+r.construction.reconstructionFrames);
+  expect(r.physicalFrames).toBeLessThanOrEqual(6*(3*40+21));
+  for(const ids of Object.values(r.railGuides) as number[][])for(const id of ids)expect(r.track.lines.some(l=>l.id===id)).toBe(true);
+  expect(JSON.stringify(source)).toBe(saved);expect(JSON.stringify(retained.getRider(0).ballisticState())).toBe(before);
+  const repeat=composeContactSections(spec,source,{sections:[2],widths:[.0003,.003,1],budget:10000});
+  expect(repeat.track).toEqual(r.track);expect(repeat.physicalFrames).toBe(r.physicalFrames);
+});
+it('rejects invalid edits and insufficient replay allowances before reconstruction',()=>{
+  const source=compileArcMotion(spec,17,{budget:20000,samples:20,channel:12,radius:24,bidirectional:true});
+  for(const sections of [[],[2,2],[-1],[999]])expect(()=>composeContactSections(spec,source,{sections,widths:[1],budget:10000})).toThrow('sections');
+  for(const widths of [[],[0],[NaN],[1,1]])expect(()=>composeContactSections(spec,source,{sections:[2],widths,budget:10000})).toThrow('widths');
+  expect(()=>composeContactSections(spec,source,{sections:[2],widths:[1],budget:20})).toThrow('budget');
+});
+it('searches a real continuation from a locked fragment prefix and preserves the chosen linework',()=>{
+  const source=compileArcMotion(spec,17,{budget:40000,samples:40,channel:12,radius:24,bidirectional:true});
+  const r=composeScatteredPhrase(spec,17,source,[2],[.0003],180000);
+  expect(r.result.report.terminus.reason).toBe('endOfSpec');
+  expect(r.result.report.contacts.every(c=>c.status==='hit')).toBe(true);
+  expect(r.result.report.off_beat_landings).toHaveLength(0);
+  expect(r.physicalFrames).toBe(r.preparationFrames+r.result.stats.sim_frames);
+  expect(r.physicalFrames).toBeLessThanOrEqual(180000);
+  expect(r.result.forkEvidence?.section).toBe(3);
+  const frags=composeContactSections(spec,source,{sections:[2],widths:[.0003],budget:10000});
+  expect(r.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===2)).toEqual(frags.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===2));
+});

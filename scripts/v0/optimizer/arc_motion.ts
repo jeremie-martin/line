@@ -6,7 +6,7 @@ import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSear
 import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
-import { MOTION_PROFILES } from './motion_profiles.ts';
+import { validProfileControls } from './motion_profiles.ts';
 import { motionArc, type ArcMotionControl, type ArcGeometryStyle, type ArcSectionStyle } from './arc_geometry.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
@@ -46,6 +46,9 @@ export type ArcMotionFork = {
   /** Later guide permissions shared by both forks; geometry is still searched.
    * The permission at section zero of this suffix is overridden by `guides`. */
   continuationGuides?:boolean[];
+  /** Explicitly reconstructed normal-contact sections in a locked research
+   * prefix. They need not be connected curves; new sections still use arcs. */
+  fragmentSections?:number[];
 };
 export type ArcMotionOptions= ArcGeometryStyle & {
   budget:number;
@@ -218,8 +221,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
-  if(options.profileStrength!==undefined&&(!options.profile||!Number.isFinite(options.profileStrength)||options.profileStrength<0||options.profileStrength>2))
-    throw new Error('invalid profile strength');
+  if(!validProfileControls(options))throw new Error('invalid profile controls');
   spec=normalizeCompilerTimeline(spec);
   validateSpec(spec);
   if(!continueMeter)resetFrameCount();const finalBudget=options.budget,budget=options.constructionBudget??finalBudget,duration=Math.round(spec.duration*40),end=duration+20;
@@ -308,10 +310,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     for(const [key,style] of Object.entries(options.sectionStyles)){
       const index=Number(key);
       if(!Number.isSafeInteger(index)||String(index)!==key||index<resumeAt||index>=contacts.length||
-        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','subdivisions','profile','profileStrength'].includes(k))||
+        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','subdivisions','profile','profileStrength','profileStart','rippleCycles'].includes(k))||
         (style.guides!==undefined&&typeof style.guides!=='boolean')||
-        (style.profile!==undefined&&!MOTION_PROFILES.includes(style.profile))||
-        (style.profileStrength!==undefined&&(!(style.profile??options.profile)||!Number.isFinite(style.profileStrength)||style.profileStrength<0||style.profileStrength>2))||
+        !validProfileControls({...options,...style})||
         (style.subdivisions!==undefined&&(!Number.isFinite(style.subdivisions)||style.subdivisions<=0||style.subdivisions>4)))
         throw new Error('invalid section style or locked prefix override');
       const permission=options.fork&&(index===options.fork.section?options.fork.guides:options.fork.continuationGuides?.[index-options.fork.section]);
@@ -328,8 +329,12 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(fork.continuation&&fork.continuation.length!==contacts.length-resumeAt)throw new Error('arc fork controls do not cover the continuation');
       if(fork.continuationGuides&&(fork.continuationGuides.length!==contacts.length-resumeAt||fork.continuationGuides.some(g=>typeof g!=='boolean')))
         throw new Error('arc fork guide permissions do not cover the continuation');
-      const groups=arcRailGroups(fork.lines);
-      if(groups.size!==resumeAt||[...groups.keys()].some(i=>i<0||i>=resumeAt)||fork.rows.some((r,i)=>r.frame!==contacts[i].frame))
+      const fragments=new Set(fork.fragmentSections??[]);
+      if(fragments.size!==(fork.fragmentSections??[]).length||[...fragments].some(i=>!Number.isSafeInteger(i)||i<0||i>=resumeAt))throw new Error('invalid fragment prefix sections');
+      const groupIds=new Set(fork.lines.map(l=>Math.floor((l.id-1000)/10000)));
+      arcRailGroups(fork.lines.filter(l=>!fragments.has(Math.floor((l.id-1000)/10000))));
+      if(fork.lines.some(l=>l.type!==0)||new Set(fork.lines.map(l=>l.id)).size!==fork.lines.length||
+        groupIds.size!==resumeAt||[...groupIds].some(i=>i<0||i>=resumeAt)||fork.rows.some((r,i)=>r.frame!==contacts[i].frame))
         throw new Error('arc fork prefix does not match the timeline');
       lines.push(...fork.lines);rows.push(...fork.rows.map(r=>({...r,spent:0})));
       for(let i=0;i<resumeAt;i++)steps.push({lineStart:0,choices:[]});
@@ -385,7 +390,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
-        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.profile,options.profileStrength,options.contour,options.guides,
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.contour,options.guides,
           options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();

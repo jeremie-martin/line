@@ -56,7 +56,7 @@ function cellCard(record) {
   record.inspector=card.querySelector('.contact-inspection');
   record.contactNow=card.querySelector('.contact-now');
   const inspection=record.native.view.inspection,{summary,layout}=inspection;
-  card.querySelector('.guide-summary').textContent=layout==='connected'?
+  card.querySelector('.guide-summary').textContent=layout==='connected'||layout==='mixed'?
     (summary.guideSections?`${summary.touchedGuideSections} of ${summary.guideSections} guide rails contacted over this replay · ${summary.supportSections} support sections. Contact does not establish necessity.`:`${summary.supportSections} main-rail sections. No guide rails are present.`):
     layout==='fragments'?'Scattered fragments have no designated guide rail. Actual segment collisions are highlighted.':'Rail roles are unavailable for this archived geometry. Actual segment collisions are highlighted.';
   record.contactButtons=[-1,1].map(direction=>{

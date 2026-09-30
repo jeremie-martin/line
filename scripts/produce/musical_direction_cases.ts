@@ -31,3 +31,14 @@ export const repertoireConfirmationCase = {
     {time:10.43,title:'Drop and return',from:9.8,to:12},
     {time:27.83,title:'Run and return',from:27,to:32}],
 } as const;
+
+/** New intervention windows, reserved before the ripple/contact development.
+ * Tiki is an already known song; this is passage reuse, not unseen-song evidence. */
+export const repertoireContactReuseCase = {
+  song:'tiki_tiki_48s',title:'Tiki Tiki · new passages',excerpt:[10,42],
+  guidance:[12.1,14.8],mixed:[36,38.6],
+  intent:'Check the frozen constructions on two further phrases of a previously used song.',
+  moments:[{time:12.1,title:'First changed phrase',from:11.6,to:15.6},
+    {time:15.6,title:'Return to arcs',from:15,to:17},
+    {time:36,title:'Later phrase and return',from:35.5,to:40}],
+} as const;

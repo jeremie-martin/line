@@ -16,8 +16,20 @@ it('varies physical profile strength while preserving default and zero-strength 
     expect(build({profile,profileStrength:1})).toEqual(build({profile}));
     expect(build({profile,profileStrength:1.5})).not.toEqual(build({profile}));
   }
-  for(const profileStrength of [-1,NaN,Infinity,2.1])expect(()=>build({profile:'scallops',profileStrength})).toThrow('profile strength');
-  expect(()=>build({profileStrength:1})).toThrow('profile strength');
+  for(const profileStrength of [-1,NaN,Infinity,2.1])expect(()=>build({profile:'scallops',profileStrength})).toThrow('profile controls');
+  expect(()=>build({profileStrength:1})).toThrow('profile controls');
+});
+
+it('places ripple waves independently of the entry turn while retaining the inherited default',()=>{
+  const build=(style:any)=>motionArc(points,v,control,1000,false,12,false,24,4,style);
+  const inherited=build({profile:'scallops'});
+  expect(build({profile:'scallops',rippleCycles:2})).toEqual(inherited);
+  expect(build({profile:'scallops',profileStart:0,rippleCycles:1})).not.toEqual(inherited);
+  expect(build({profile:'scallops',profileStart:0,rippleCycles:1})[1]).not.toEqual(inherited[1]);
+  expect(build({profile:'scallops',profileStart:0,rippleCycles:1,profileStrength:0})).toEqual(build({}));
+  for(const style of [{profileStart:0},{profile:'scallops',profileStart:-.1},{profile:'scallops',profileStart:1},
+    {profile:'scallops',rippleCycles:1.5},{profile:'scallops',rippleCycles:0},{profile:'terraces',rippleCycles:1}])
+    expect(()=>build(style)).toThrow('profile controls');
 });
 
 it('builds six distinct normal geometries without changing ordinary arcs or the input',()=>{

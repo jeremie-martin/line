@@ -62,7 +62,33 @@ export function contactFragments(source: TrackLine[], footprints: Map<number, nu
   }
   return lines;
 }
-function trajectoryDifference(reference: RawTrajectory, candidate: RawTrajectory) {
+/** Observe immediate collision footprints; callers must independently replay the
+ * source with the fixed judge before relying on this reference. Work is metered. */
+export function observeContactReference(track:ReturnType<typeof compileArcMotion>['track'],end:number){
+  const footprints=new Map<number,number[]>();
+  let observer = new Observer().setStart(track.startPosition, track.riders[0].startVelocity);
+  for (const l of track.lines) {
+    const line = createLine(l), collide = line.collide.bind(line);
+    // Instrument only this line instance. Observe the immediate post-collision
+    // position before later constraint sweeps mutate the point again.
+    line.collide = (point: any) => {
+      const next = collide(point);
+      if (next) {
+        const dx = l.x2 - l.x1, dy = l.y2 - l.y1;
+        const t = ((next.pos.x - l.x1) * dx + (next.pos.y - l.y1) * dy) / (dx * dx + dy * dy);
+        const values = footprints.get(l.id) ?? [];
+        values.push(t);
+        footprints.set(l.id, values);
+      }
+      return next;
+    };
+    observer = observer.addLine(line);
+  }
+  const raw = extractRawTrajectory(observer, end);
+  return {raw,footprints};
+
+}
+export function trajectoryDifference(reference: RawTrajectory, candidate: RawTrajectory) {
   if (reference.frames.length !== candidate.frames.length)
     return Infinity;
   let maximum = 0;
@@ -89,30 +115,12 @@ export function compileContactFragments(input: Spec, seed: number, options: {
   if (!Number.isSafeInteger(budget) || sourceBudget <= 2 * replay)
     throw new Error('contact-fragment budget cannot cover planning and validation');
   const source = compileArcMotion(spec, seed, connectedArcOptions(spec, sourceBudget));
-  const sourceFrames = getPhysicsFrameCount(), footprints = new Map<number, number[]>();
+  const sourceFrames = getPhysicsFrameCount();
   if (source.track.lines.some(l => l.type !== 0))
     throw new Error('reference contains non-normal lines');
   setPhysicsFrameLimit(budget);
   try {
-    let observer = new Observer().setStart(source.track.startPosition, source.track.riders[0].startVelocity);
-    for (const l of source.track.lines) {
-      const line = createLine(l), collide = line.collide.bind(line);
-      // Instrument only this line instance. Observe the immediate post-collision
-      // position before later constraint sweeps mutate the point again.
-      line.collide = (point: any) => {
-        const next = collide(point);
-        if (next) {
-          const dx = l.x2 - l.x1, dy = l.y2 - l.y1;
-          const t = ((next.pos.x - l.x1) * dx + (next.pos.y - l.y1) * dy) / (dx * dx + dy * dy);
-          const values = footprints.get(l.id) ?? [];
-          values.push(t);
-          footprints.set(l.id, values);
-        }
-        return next;
-      };
-      observer = observer.addLine(line);
-    }
-    const reference = extractRawTrajectory(observer, end);
+    const {raw:reference,footprints}=observeContactReference(source.track,end);
     const replayTrack = (lines: TrackLine[]) => {
       try {
         const base = new Judge().setStart(source.track.startPosition, source.track.riders[0].startVelocity);

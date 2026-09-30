@@ -19,7 +19,9 @@ export function arcRailGroups(lines:TrackLine[]):Map<number,TrackLine[][]> {
 export function trimUnusedArcGuides(lines: TrackLine[], engine: any, duration: number, lockedBefore=0) {
   // Collision inspection must use an already metered complete replay.
   if (engine.getLastFrameIndex() < duration) throw new Error('guidance reduction requires a metered full replay');
-  const groups = arcRailGroups(lines);
+  // Locked prefixes may contain deliberately disconnected contact sections.
+  // They are never candidates for guide trimming in this resumed compilation.
+  const groups = arcRailGroups(lines.filter(l=>Math.floor((l.id-1000)/10000)>=lockedBefore));
   const roofs = [...groups].filter(([id])=>!lockedBefore||id>=lockedBefore).map(([id, chains]) => {
     return { id, lines: chains[1] ?? [] };
   });

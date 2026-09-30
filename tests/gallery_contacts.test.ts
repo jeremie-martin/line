@@ -16,6 +16,12 @@ it('does not infer guide rails for fragments, contours or unknown methods',()=>{
   expect(r.summary.supportSections).toBeNull();expect(r.guideFrames).toEqual([]);expect(r.byFrame[1].all).toEqual([1003]);
  }
 });
+it('uses explicit source roles for mixed scattered and connected tracks',()=>{
+ const r=inspectRailContacts({method:'mixed',railLayout:'mixed',railGuides:{0:[1003],1:[]},track:{lines}},[[1000,1003]]);
+ expect(r.guideFrames).toEqual([0]);expect(r.byFrame[0].guides).toEqual([1003]);expect(r.summary.supportSections).toBe(2);
+ expect(()=>inspectRailContacts({method:'mixed',railLayout:'mixed',track:{lines}},[[]])).toThrow('explicit rail roles');
+ expect(()=>inspectRailContacts({method:'mixed',railLayout:'mixed',railGuides:{1:[1003]},track:{lines}},[[]])).toThrow('invalid recorded');
+});
 it('rejects collision IDs outside the recorded track and malformed connected geometry',()=>{
  expect(()=>inspectRailContacts({method:'paired',track:{lines}},[[999]])).toThrow('missing track segment');
  expect(()=>inspectRailContacts({method:'arcs',track:{lines:[...lines,makeSolidLine(1004,7,8,9,8)]}},[[]])).toThrow('at most two');

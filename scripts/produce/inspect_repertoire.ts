@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync,mkdirSync} from 'node:fs';
 import {resolve,join,dirname} from 'node:path';
-import {motionArc} from '../v0/optimizer/arc_geometry.ts';
+import {motionArc,arcMainSteps} from '../v0/optimizer/arc_geometry.ts';
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
 import {replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
 import {sha} from '../../benchmark/v3/model.ts';
@@ -41,7 +41,7 @@ for(const cell of manifest.cells){
       // Mirror motionArc's integration schedule, not the rider's elapsed time
       // or physical distance. Segment zero is the straight approach. Keeping
       // null before the profile begins distinguishes entry from shaped motion.
-      const steps=Math.max(4,Math.ceil(row.control.support*4));
+      const steps=arcMainSteps(row.control.support,style.subdivisions,style.faces);
       assert.equal(actual.length,steps+1);
       const entry=style.profileStart!==undefined?row.control.support*style.profileStart:
         row.control.turnFraction===undefined?Math.min(5,row.control.support*.5):row.control.support*row.control.turnFraction;
@@ -57,6 +57,7 @@ for(const cell of manifest.cells){
       });
       supports.push({section,start:row.frame/40,end:(construction.rows[section+1]?.frame??c.durationFrames)/40,
         profile:style.profile,strength:style.profileStrength??1,profileStart:style.profileStart??null,rippleCycles:style.rippleCycles??2,
+        faces:style.faces,foldAngle:style.foldAngle,
         reshapedMainSegments:shaped.size,mainSegments:main.size,maxEndpointDisplacement:Math.max(...differences),
         mainContactFrames:count(main),reshapedMainContactFrames:count(shaped),guideContactFrames:count(guide),
         profileSchedule:{supportFrames:row.control.support,profileStartFrames:entry,steps},contactTimeline});

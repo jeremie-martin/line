@@ -1,7 +1,7 @@
 /** Concrete gallery choices, not a new specification language. The same search
  * evaluates every arc variant's emitted collision geometry. */
 import type {ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
-type GeometryOptions=Pick<ArcMotionOptions,'profile'|'contour'|'wave'|'subdivisions'>;
+type GeometryOptions=Pick<ArcMotionOptions,'profile'|'profileStart'|'foldAngle'|'faces'|'contour'|'wave'|'subdivisions'>;
 type GuideOptions=Pick<ArcMotionOptions,'pruneGuidance'|'guides'|'channel'>;
 type SearchOptions=Pick<ArcMotionOptions,'policyPreview'>;
 type ArcRecipe=GeometryOptions&GuideOptions&SearchOptions;
@@ -14,6 +14,7 @@ export const galleryMethods = {
   scattered: {title:'Scattered · improved',description:'Tests measured contact fragments against the original scattered controller using the remaining allowance.'},
   waves: {title:'Wave curves',description:'A returning bend followed by an independently shaped exit.',geometry:{wave:true},search:{policyPreview:false}},
   facets: {title:'Faceted curves',description:'Long straight faces, searched with their actual angular geometry.',geometry:{subdivisions:.5},search:{policyPreview:false}},
+  fold: {studyOnly:true,title:'Folded rails',description:'Three long faces with a steeper middle face. The complete connected geometry participates in physical search.',geometry:{profile:'fold',profileStart:0,faces:3,foldAngle:30},search:{policyPreview:false}},
   serpentine: {title:'Serpentine rails',description:'One broad S-shaped sweep: the curve bends one way, then the other.',geometry:{profile:'serpentine'},search:{policyPreview:false}},
   terraces: {title:'Terraced rails',description:'Two eased steps interrupt the slope, making ledges and rounded transitions.',geometry:{profile:'terraces'},search:{policyPreview:false}},
   scallops: {title:'Ripple rails',description:'Two successive waves along the support, creating a repeating undulation.',geometry:{profile:'scallops'},search:{policyPreview:false}},

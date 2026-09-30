@@ -238,6 +238,13 @@ are recorded in the compact evidence. The large raw archive is local.
 
 ## What remains open
 
+Owner feedback after delivery: scattered looks great because it is visually so
+different; the current ripple is much subtler. This supports retaining scattered
+as a strong contrast and the current ripple as a restrained variation. It does
+not approve every setting or establish the limit of ripple geometry. The agreed
+next milestone is another clearly distinguishable connected construction, with
+the [new development declaration](connected-repertoire-20260930.md).
+
 This is a usable local-composition milestone, not a finished repertoire or a
 claim of artistic approval. The strongest new capability is preserving chosen
 linework and searching a physical return from its actual state. Ripple placement

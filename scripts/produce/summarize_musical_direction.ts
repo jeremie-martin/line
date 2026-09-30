@@ -6,6 +6,7 @@ import {resolve,join,dirname} from 'node:path';
 import {sha} from '../../benchmark/v3/model.ts';
 import {writeGalleryJson} from '../gallery/artifacts.ts';
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
+import {arcMainSteps} from '../v0/optimizer/arc_geometry.ts';
 const arg=(key:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3);
 assert.ok(arg('study')&&arg('out'));const root=resolve(arg('study')!),out=resolve(arg('out')!);
 const bytes=readFileSync(join(root,'manifest.json'));
@@ -37,7 +38,7 @@ for(const r of records.values())if(r.construction.boundaryFrame!==null){
   for(const row of r.sections){
     if(fragments.has(row.section))continue;
     const subdivision=r.construction.styles[row.section]?.subdivisions??4;
-    if(row.section>=section)assert.equal(groups.get(row.section)![0].length,1+Math.max(4,Math.ceil(construction.rows[row.section].control.support*subdivision)));
+    if(row.section>=section)assert.equal(groups.get(row.section)![0].length,1+arcMainSteps(construction.rows[row.section].control.support,subdivision,r.construction.styles[row.section]?.faces));
     if(r.construction.styles[row.section]?.guides===false)assert.equal(groups.get(row.section)!.length,1);
   }
 }

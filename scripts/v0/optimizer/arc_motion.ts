@@ -7,7 +7,7 @@ import { getRiderMetered, getPhysicsFrameCount, resetFrameCount, setPhysicsFrame
 import { sliceTimeline, effectiveAxes, resolveStartState, buildTrackJson, buildDriftReport, findAuthoredContactNearFrame, validateSpec, sampleGapTargets } from '../core/substrate.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
 import { validProfileControls } from './motion_profiles.ts';
-import { motionArc, type ArcMotionControl, type ArcGeometryStyle, type ArcSectionStyle } from './arc_geometry.ts';
+import { motionArc, arcMainSteps, type ArcMotionControl, type ArcGeometryStyle, type ArcSectionStyle } from './arc_geometry.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides, arcRailGroups } from './arc_guidance.ts';
@@ -222,6 +222,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   if(!validProfileControls(options))throw new Error('invalid profile controls');
+  arcMainSteps(1,options.subdivisions,options.faces);
   spec=normalizeCompilerTimeline(spec);
   validateSpec(spec);
   if(!continueMeter)resetFrameCount();const finalBudget=options.budget,budget=options.constructionBudget??finalBudget,duration=Math.round(spec.duration*40),end=duration+20;
@@ -310,11 +311,12 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     for(const [key,style] of Object.entries(options.sectionStyles)){
       const index=Number(key);
       if(!Number.isSafeInteger(index)||String(index)!==key||index<resumeAt||index>=contacts.length||
-        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','subdivisions','profile','profileStrength','profileStart','rippleCycles'].includes(k))||
+        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','subdivisions','faces','profile','profileStrength','profileStart','rippleCycles','foldAngle'].includes(k))||
         (style.guides!==undefined&&typeof style.guides!=='boolean')||
         !validProfileControls({...options,...style})||
         (style.subdivisions!==undefined&&(!Number.isFinite(style.subdivisions)||style.subdivisions<=0||style.subdivisions>4)))
         throw new Error('invalid section style or locked prefix override');
+      arcMainSteps(1,style.subdivisions??options.subdivisions,style.faces??options.faces);
       const permission=options.fork&&(index===options.fork.section?options.fork.guides:options.fork.continuationGuides?.[index-options.fork.section]);
       if(permission!==undefined&&style.guides!==undefined&&permission!==style.guides)
         throw new Error('conflicting section style and fork guide permissions');
@@ -390,7 +392,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
-        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.contour,options.guides,
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,
           options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();

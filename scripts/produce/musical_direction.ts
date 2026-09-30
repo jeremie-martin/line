@@ -12,6 +12,7 @@ import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
 import {sliceTimeline,effectiveAxes,axesAtFrame} from '../v0/core/substrate.ts';
 import {extractTrace} from '../v0/core/trace.ts';
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
+import {arcMainSteps} from '../v0/optimizer/arc_geometry.ts';
 import {guideFootprint} from '../v0/optimizer/arc_guide_choice.ts';
 import {inspectRailContacts} from '../gallery/contacts.ts';
 import {galleryCompilerIdentity,galleryHarnessIdentity,replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
@@ -20,7 +21,7 @@ import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
 import {galleryMethods,galleryArcOptions,type GalleryMethod} from '../gallery/methods.ts';
 import {verifyMainConstruction} from '../gallery/verify_construction.ts';
-import {musicalDirectionCases,musicalDirectionMethods,repertoireConfirmationCase,repertoireContactReuseCase} from './musical_direction_cases.ts';
+import {musicalDirectionCases,musicalDirectionMethods,repertoireConfirmationCase,repertoireContactReuseCase,repertoireFoldReuseCase} from './musical_direction_cases.ts';
 import {stylesForPhrases,type ConstructionPhrase} from './musical_repertoire.ts';
 import type {Spec} from '../v0/types.ts';
 import type {ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
@@ -34,23 +35,31 @@ assert.ok(seeds.length&&seeds.every(Number.isSafeInteger)&&new Set(seeds).size==
 assert.ok(Number.isSafeInteger(budget)&&budget>=20000);
 assert.ok(Number.isSafeInteger(compositionBudget)&&compositionBudget>=20000&&compositionBudget<=budget);
 const songs=(arg('songs')??musicalDirectionCases.map(c=>c.song).join(',')).split(',');
-const allCases=[...musicalDirectionCases,arg('reuse-passages')==='contacts'?repertoireContactReuseCase:repertoireConfirmationCase];
+const allCases=[...musicalDirectionCases,arg('reuse-passages')==='fold'?repertoireFoldReuseCase:arg('reuse-passages')==='contacts'?repertoireContactReuseCase:repertoireConfirmationCase];
 assert.ok(songs.every(s=>allCases.some(c=>c.song===s)));
 const repertoire=arg('repertoire');
-assert.ok(!repertoire||['serpentine','terraces','contacts'].includes(repertoire),'unsupported repertoire candidate');
+assert.ok(!repertoire||['serpentine','terraces','contacts','fold'].includes(repertoire),'unsupported repertoire candidate');
 const definitions=allCases.filter(c=>songs.includes(c.song));
 const geometry=(repertoire==='contacts'?'scallops':repertoire)??arg('geometry')??'facets';
-assert.ok(['facets','serpentine','terraces','scallops'].includes(geometry),'unsupported local geometry');
-const {profile,subdivisions}=galleryArcOptions(geometry as GalleryMethod)!;
+assert.ok(['facets','serpentine','terraces','scallops','fold'].includes(geometry),'unsupported local geometry');
+const {profile,subdivisions,faces:defaultFaces,profileStart:defaultProfileStart,foldAngle:defaultFoldAngle}=galleryArcOptions(geometry as GalleryMethod)!;
 const strength=arg('strength')===undefined?undefined:Number(arg('strength'));
 assert.ok(strength===undefined||(profile&&Number.isFinite(strength)&&strength>=0&&strength<=2),'strength requires a profile and must be in [0, 2]');
 const geometryStyle={...(profile?{profile}:{}),...(subdivisions?{subdivisions}:{}),...(strength===undefined?{}:{profileStrength:strength})};
-const profileStart=arg('profile-start')===undefined?undefined:Number(arg('profile-start'));
+const profileStart=arg('profile-start')===undefined?defaultProfileStart:Number(arg('profile-start'));
 const rippleCycles=arg('ripple-cycles')===undefined?undefined:Number(arg('ripple-cycles'));
-Object.assign(geometryStyle,{...(profileStart===undefined?{}:{profileStart}),...(rippleCycles===undefined?{}:{rippleCycles})});
+const faces=arg('faces')===undefined?defaultFaces:Number(arg('faces'));
+const foldAngle=arg('fold-angle')===undefined?defaultFoldAngle:Number(arg('fold-angle'));
+Object.assign(geometryStyle,{...(profileStart===undefined?{}:{profileStart}),...(rippleCycles===undefined?{}:{rippleCycles}),
+  ...(faces===undefined?{}:{faces}),...(foldAngle===undefined?{}:{foldAngle})});
 const fragmentWidths=(arg('fragment-widths')??'.003').split(',').map(Number);
 const geometryTitle=galleryMethods[geometry as GalleryMethod].title;
-const methodDetails:Record<string,{title:string;description:string}>=repertoire==='contacts'?{
+const methodDetails:Record<string,{title:string;description:string}>=repertoire==='fold'?{
+  baseline:musicalDirectionMethods.baseline,
+  ripple:{title:'Subtle ripple reference',description:'The preceding one-wave ripple at strength 0.6 in both phrases, with ordinary arcs elsewhere.'},
+  candidate:{title:'Folded phrases',description:'Three connected faces with a deliberately angled middle face, searched against unchanged musical targets.'},
+  mixed:{title:'Scattered → arcs → folded',description:'Scattered normal contacts in the first phrase, folded connected rails later, with a searched return to ordinary arcs.'},
+}:repertoire==='contacts'?{
   baseline:musicalDirectionMethods.baseline,
   ripple:{title:'Broad ripple phrases',description:'Explicit ripple placement and wave count in both phrases, with ordinary arcs elsewhere.'},
   candidate:{title:'Scattered phrase',description:'Measured normal contact fragments in the first phrase; the return is searched from their actual exit state.'},
@@ -113,10 +122,11 @@ for(const c of cases)for(const seed of seeds){
     const began=performance.now();let composition:any=null;
     let styles:NonNullable<ArcMotionOptions['sectionStyles']>={};
     let phrases:ConstructionPhrase[]=[];
-    if(repertoire==='contacts'&&method!=='baseline'){
-      const first={title:c.moments[0].title,window:c.guidance,style:geometryStyle};
-      const later={title:'Later phrase',window:c.mixed,style:geometryStyle};
-      if(method==='ripple'){
+    if((repertoire==='contacts'||repertoire==='fold')&&method!=='baseline'){
+      const shape=repertoire==='fold'&&method==='ripple'?{profile:'scallops' as const,profileStrength:.6,profileStart:0,rippleCycles:1}:geometryStyle;
+      const first={title:c.moments[0].title,window:c.guidance,style:shape};
+      const later={title:'Later phrase',window:c.mixed,style:shape};
+      if(method==='ripple'||repertoire==='fold'&&method==='candidate'){
         phrases=[first,later];styles=stylesForPhrases(reference.rows,phrases);
         composition=composeArcSections(spec,seed,reference,styles,compositionBudget);
       }else{
@@ -164,10 +174,11 @@ for(const c of cases)for(const seed of seeds){
       const guideFrames=collisionIds!.flatMap((ids,f)=>ids.some(id=>guideIds.has(id))?[f]:[]);
       const mainFrames=collisionIds!.flatMap((ids,f)=>ids.some(id=>mainIds.has(id))?[f]:[]);
       const subdivision=styles[i]?.subdivisions??(method===geometry?(subdivisions??4):4);
-      if(!fragmented&&i>=(composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections[0]??0))assert.equal(normal.length,1+Math.max(4,Math.ceil(r.control.support*subdivision)),'emitted shape differs from requested construction');
+      const faceCount=styles[i]?.faces??(method===geometry?faces:undefined);
+      if(!fragmented&&i>=(composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections[0]??0))assert.equal(normal.length,1+arcMainSteps(r.control.support,subdivision,faceCount),'emitted shape differs from requested construction');
       if(styles[i]?.guides===false)assert.equal(guides.length,0,'forbidden guide emitted');
       return {section:i,start:r.frame/40,end:(result.rows[i+1]?.frame??c.durationFrames)/40,
-        shape:fragmented?'fragments':styles[i]?.profile??(method===geometry?profile:undefined)??(subdivision===.5?'facets':'arcs'),
+        shape:fragmented?'fragments':styles[i]?.profile??(method===geometry?profile:undefined)??(faceCount!==undefined||subdivision===.5?'facets':'arcs'),
         profileStrength:styles[i]?.profileStrength??(method===geometry?strength:undefined)??1,
         guidePermission:styles[i]?.guides===false?'forbidden':'allowed',
         mainSegments:normal.length,guideSegments:guides.length,mainContactFrames:mainFrames.length,guideContactFrames:guideFrames.length,

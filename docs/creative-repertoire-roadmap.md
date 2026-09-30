@@ -157,6 +157,12 @@ standards and distinction between technical completion and owner review apply.
 
 ## Following questions
 
+The owner subsequently finds scattered visually strong and the latest ripple
+much subtler. The agreed active milestone is a further clearly distinguishable
+connected construction, with visible rider interaction. See the
+[development declaration](connected-repertoire-20260930.md). Keep both kinds of
+variation available; entry search and efficiency work support this creative aim.
+
 Review the new musical examples alongside the earlier ripple, with attention to
 phrase entry, visible motion and return. The next bounded engineering round can
 address the observed shaped-entry proposal failures and the cost of searching an

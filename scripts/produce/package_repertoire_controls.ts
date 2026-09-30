@@ -12,7 +12,7 @@ const root=resolve(arg('study')!),source=resolve(arg('source')!);
 function read(path:string){const bytes=readFileSync(path);assert.equal(sha(bytes),readFileSync(path+'.sha256','utf8').trim());return JSON.parse(bytes.toString());}
 const original=read(join(source,'manifest.json'));
 const cases=original.plan.cases.filter((c:any)=>['luna_bala_44s','amor_na_praia_46s'].includes(c.id));
-const variants=[
+const variants:ReadonlyArray<readonly [string,string,string,number]>=arg('variants')?read(resolve(arg('variants')!)):[
   ['inherited','Inherited late two-wave','probe-ripple',0],
   ['early-two','Earlier two-wave, strength 1','probe-ripple',1],
   ['early-one','Earlier one-wave, strength 1','probe-ripple',2],
@@ -26,16 +26,19 @@ const variants=[
   ['dots','Fragments, width 0.003','probe-return-fragments',1],
   ['wide-dots','Fragments, width 0.03','probe-return-fragments',2],
   ['flecks','Fragments, width 0.3','probe-return-fragments',3],
-] as const;
+];
+assert.ok(variants.length&&new Set(variants.map(v=>v[0])).size===variants.length);
+for(const v of variants)assert.ok(v.length===4&&v.slice(0,3).every(x=>typeof x==='string'&&x.length>0)&&Number.isSafeInteger(v[3])&&v[3]>=0);
 const loaded=cases.flatMap((c:any)=>variants.map(([method,title,dir,index])=>{
   const path=join(root,dir,`${c.id}-${index}.json`),record=read(path);
   return {c,method,title,path,sha256:sha(readFileSync(path)),record};
 }));
 const out=join(root,'controls');mkdirSync(out,{recursive:true});
 const plan={schema:'line.repertoire-control-gallery.v1',cases,seeds:[351],budgets:[1000000],methods:variants.map(v=>v[0]),
-  compiler:{head:'development',label:'Development trials (working-tree snapshots)',frozenSuccessor:'e9ed9635'},
+  compiler:{head:'development',label:'Development trials (working-tree snapshots)',frozenSuccessor:arg('frozen-successor')},
+  variantsSource:arg('variants')?{path:resolve(arg('variants')!),sha256:sha(readFileSync(resolve(arg('variants')!)))}:null,
   methodDetails:Object.fromEntries(variants.map(([id,title,dir])=>[id,{title,description:dir==='probe-return-fragments'?
-    'Recorded fragment realization with a searched return. Invalid outcomes remain visible.':'Recorded ripple control experiment; fixed authored music. Invalid outcomes remain visible.'}])),
+    'Recorded fragment realization with a searched return. Invalid outcomes remain visible.':'Recorded connected-geometry experiment; fixed authored music. Invalid outcomes remain visible.'}])),
   sources:loaded.map(({path,sha256}:any)=>({path,sha256})),sourceManifest:{path:join(source,'manifest.json'),sha256:sha(readFileSync(join(source,'manifest.json')))},
   toolSha256:sha(readFileSync(import.meta.filename)),note:'Preserved development trials. Zero authored jitter; this is a control comparison, not seed robustness or a musical-video panel.'};
 const planSha256=writeGalleryJson(out,'plan.json',plan),cells:any[]=[];

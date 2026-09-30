@@ -8,7 +8,7 @@ import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
 const {LineRiderEngine:Engine,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../lib/native_motion/engine.ts?construction-verification',import.meta.url).href);
 export function verifyMainConstruction(track:ReturnType<typeof compileArcMotion>['track'],rows:Array<{frame:number;control:ArcMotionControl}>,
-  options:Pick<ArcMotionOptions,'profile'|'profileStrength'|'profileStart'|'rippleCycles'|'subdivisions'|'sectionStyles'|'radius'|'channel'>&{fragmentSections?:number[]},from=0){
+  options:Pick<ArcMotionOptions,'profile'|'profileStrength'|'profileStart'|'rippleCycles'|'foldAngle'|'subdivisions'|'faces'|'sectionStyles'|'radius'|'channel'>&{fragmentSections?:number[]},from=0){
   const fragments=new Set(options.fragmentSections??[]);
   const groups=arcRailGroups(track.lines.filter(l=>!fragments.has(Math.floor((l.id-1000)/10000))));let checked=0;
   for(let i=from;i<rows.length;i++){

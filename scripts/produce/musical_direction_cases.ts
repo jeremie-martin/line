@@ -42,3 +42,13 @@ export const repertoireContactReuseCase = {
     {time:15.6,title:'Return to arcs',from:15,to:17},
     {time:36,title:'Later phrase and return',from:35.5,to:40}],
 } as const;
+
+/** Reserved before connected-face development; further interventions on known music. */
+export const repertoireFoldReuseCase = {
+  song:'tiki_tiki_48s',title:'Tiki Tiki · connected folds',excerpt:[16,48],
+  guidance:[18.5,21],mixed:[40,42.5],
+  intent:'Compare a folded connected construction on further passages, then combine scattered and folded phrases.',
+  moments:[{time:18.5,title:'First folded phrase',from:18,to:21.8},
+    {time:21.8,title:'Return to arcs',from:21.2,to:23.2},
+    {time:40,title:'Later phrase and return',from:39.5,to:44}],
+} as const;

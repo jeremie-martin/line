@@ -57,7 +57,7 @@ async function select(){
     `${manifest.plan.methodDetails[selected.method].title}: an independently searched complete ride.`;
   $('phrases').replaceChildren(...(selected.construction.phrases??[]).map(phrase=>{
     const rows=changed.filter(r=>r.start>=phrase.window[0]&&r.start<phrase.window[1]);
-    const name=phrase.construction==='fragments'?'Scattered':{scallops:'Ripple',terraces:'Terraced',serpentine:'Serpentine'}[phrase.style.profile]??(phrase.style.guides===false?'Guide-free':'Faceted');
+    const name=phrase.construction==='fragments'?'Scattered':{scallops:'Ripple',terraces:'Terraced',serpentine:'Serpentine',fold:'Folded'}[phrase.style.profile]??(phrase.style.guides===false?'Guide-free':'Faceted');
     const button=document.createElement('button');
     button.textContent=`${name}${phrase.style.rippleCycles===undefined?'':` · ${phrase.style.rippleCycles} wave${phrase.style.rippleCycles===1?'':'s'}`}${phrase.style.profileStrength===undefined?'':` · strength ${phrase.style.profileStrength}`} · ${format(rows[0]?.start,2)}–${format(rows.at(-1)?.end,2)} s`;
     button.onclick=()=>{pause();seek(Math.max(0,(rows[0]?.start??phrase.window[0])-.5));

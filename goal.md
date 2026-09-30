@@ -13,8 +13,11 @@ Default V4 outputs remain exactly unchanged at 952.4726. The owner found too
 little visible difference in the mixed phrase. The follow-up now provides an
 arc–ripple–arc phrase on both songs, with finished
 production videos, exact geometry verification and disclosed local error costs.
-All eight follow-up rides are valid; default V4 again matches exactly. The new
-appearance remains awaiting owner judgment; these are explicit research choices.
+All eight follow-up rides are valid; default V4 again matches exactly. The owner
+found the reviewed ripple example visibly different and meaningful, an encouraging
+early result. This is a visual reference for further work, not separate approval
+of every song or variant. Local accuracy costs remain to address; these are
+explicit research choices with no change to production defaults.
 
 # Guide coverage and transfer to facets — 2026-09-30
 

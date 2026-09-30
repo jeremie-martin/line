@@ -19,7 +19,8 @@ Two existing profiles were then tried on Luna seed 301, with the same phrase,
 targets and allowance. Serpentine mixed construction has RMS 0.02547; ripple
 mixed construction has RMS 0.01376. The ripple curve has visible changes of bend
 in native inspection and substantially lower target error in this execution.
-It is the next production-video comparison, not an approved artistic default.
+The owner subsequently found the reviewed ripple example visibly different and
+meaningful: an encouraging early result. Production defaults remain unchanged.
 Neither first attempt establishes the capability ceiling of its profile.
 
 The [follow-up measurements](evidence/musical-shapes-20260930.json) and
@@ -86,7 +87,11 @@ command below and use a fresh output directory. `scallops` is the existing code
 name for Ripple rails. The original faceted study and both development attempts
 remain available for comparison. The new full V4 run again matches all 352 default outputs and work counts
 exactly at 952.4726. All 48 focused tests pass, with no new TypeScript diagnostics.
-Owner judgment of the new rendered appearance is still open.
+On 2026-09-30, the owner confirmed that the reviewed ripple example offers
+meaningful visible contrast. This feedback establishes a useful visual reference;
+it does not separately approve every song or variant, waive the measured local
+target costs, or establish an automatic construction preference. The owner
+explicitly described this as an encouraging beginning, with substantial work ahead.
 
 ## What is intentional, and what is searched
 

@@ -81,15 +81,15 @@ reference material and will not be committed without a request.
 
 ## Work record
 
-The first implementation and declared study are complete. The owner reports
-that the mixed phrase looks too similar to baseline, so the artistic milestone
-is not complete. See the [results and
+The first implementation and declared study are complete. The owner reported
+that the faceted mixed phrase looked too similar to baseline. The subsequent
+ripple example received encouraging feedback, recorded below. See the [results and
 reproduction guide](musical-direction-results.md) and the
 [music review](http://localhost:8767/motion-gallery/music.html). The 24 valid runs
 produce eight distinct rides across the two songs, with full production videos,
 local construction/contact checks and exact default V4 parity. Artistic
-preference remains awaiting owner review; the examples are provisional and have
-not changed production defaults.
+preference is not established across the examples, and production defaults have
+not changed.
 
 The concrete Luna hypotheses are a guide-free vocal build (supports beginning
 between 6.4 and 8.55 seconds) and an angular climax (24.2 to 25.8 seconds), followed
@@ -124,12 +124,27 @@ RMS 0.01376 versus 0.02547 for serpentine. Freeze this implementation before
 confirmation on both complete songs at seed 321. One fresh seed is intentional:
 the authored zero-jitter inputs already reproduced identical tracks across
 three seeds. Render the chosen geometry and its mixed phrase; reuse prior videos
-only where the entire physical/render input is identical. Owner review of the
-new production-scale contrast is still required before claiming aesthetic success.
+only where the entire physical/render input is identical. Production-scale
+contrast needs owner review as well as physical verification; the feedback from
+that review is recorded below.
 
 The ripple follow-up is now implemented and rendered on both songs. All eight
 confirmation rides pass; the rebuilt main rails and incoming prefixes are
 verified. The report discloses the greater local impact error on Amor. The full
 canonical default output remains exactly unchanged. The original facet result
-has been preserved, and the follow-up is an artistic proposal awaiting review,
-not an automatic production preference.
+has been preserved. The follow-up remains an explicit research choice, with no
+automatic production preference.
+
+### Owner review of ripple — 2026-09-30
+
+The owner found the reviewed ripple example visibly different and the difference
+meaningful, describing it as an encouraging result at the beginning of the work.
+This establishes a useful reference for visible variety. It is not separate
+approval of both songs or all variants, nor a waiver of their local target costs.
+
+The next focus is to preserve that visible contrast while improving musical
+accuracy and the entry into and return from the changed construction. Amor's
+measured impact loss is a concrete issue to investigate. Further distinct
+constructions should be judged against this visual reference and the same local
+target and work measurements. No larger control framework or automatic style
+selection follows from this single encouraging example.

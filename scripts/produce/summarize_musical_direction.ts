@@ -60,14 +60,15 @@ const summary=plan.cases.flatMap((c:any)=>plan.methods.map((method:string)=>{
   return {song:c.id,method,runs:rows.length,valid:rows.filter((r:any)=>r.valid).length,
     distinctTracks:new Set(rows.map((r:any)=>r.trackHash)).size,
     meanFrozenResearchAdherence:mean(rows.map((r:any)=>r.score.score)),meanProductionAdherence:mean(rows.map((r:any)=>r.metrics.score)),
-    meanRms:mean(rows.map((r:any)=>r.qualityRms)),meanPhysicsFrames:mean(rows.map((r:any)=>r.physicalFrames)),
+    meanRms:rows.every((r:any)=>r.valid)?mean(rows.map((r:any)=>r.qualityRms)):null,meanPhysicsFrames:mean(rows.map((r:any)=>r.physicalFrames)),
     meanCompileMs:mean(rows.map((r:any)=>r.compileMs)),local};
 }));
 mkdirSync(dirname(out),{recursive:true});
 writeGalleryJson(dirname(out),out.split('/').at(-1)!,{schema:'line.musical-direction-evidence.v1',
   manifest:{path:relativePath(join(root,'manifest.json')),sha256:sha(bytes)},plan,
   checks:{tracks:cells.length,valid:cells.filter((r:any)=>r.valid).length,prefixFrameComparisons:prefixChecks,normalLines,
-    completeDeclaredPanel:true,actualGeometryAndReturnVerified:true,allConstructionWorkAccounted:true},
+    completeDeclaredPanel:true,actualBuiltGeometryVerified:true,
+    allRequestedContinuationsCompleted:cells.every((r:any)=>r.valid),allConstructionWorkAccounted:true},
   interpretation:'Concrete production requests; development and reserved confirmation roles are recorded in the study report. Zero authored jitter can make seeds duplicate tracks. These are research adherence values, not a canonical headline or aesthetic rating. Local summaries include whole authored intervals overlapping the named moment; no per-moment score was optimized. Wall times share a host with other jobs. New examples require owner visual review.',
   summary,rows:cells.map((r:any)=>({...r,observations:undefined,moments:undefined,sections:undefined}))});
 function relativePath(path:string){return path.startsWith(process.cwd()+'/')?path.slice(process.cwd().length+1):path;}

@@ -62,7 +62,8 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     // Fixed angular folds have actual corners. Applying a smooth-curve radius
     // per face would weaken their angle whenever search shortened that face.
     // Their full corner geometry must pass physical evaluation instead.
-    if(radius>0&&!(profile==='fold'&&style?.faces!==undefined))a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
+    const angularFold=profile==='fold'&&style?.faces!==undefined&&(style?.profileStrength??1)>0&&time>=profileFirst;
+    if(radius>0&&!angularFold)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
     if(flow){
       // A passive supporting surface cannot turn downward faster than free
       // fall without releasing. Limit the opposite turn to a finite load.

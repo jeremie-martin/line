@@ -163,6 +163,14 @@ connected construction, with visible rider interaction. See the
 [development declaration](connected-repertoire-20260930.md). Keep both kinds of
 variation available; entry search and efficiency work support this creative aim.
 
+The [folded-passage delivery](connected-repertoire-20260930.md) now provides this
+next concrete alternative. Its fixed faces and preserved angles make the step
+visible; measured contacts describe how the rider crosses it. The frozen panel
+has eleven complete rides and one failed entry. Two broader-initialization
+diagnoses complete that entry without changing the geometry, with larger musical
+errors; they do not replace the original confirmation. Owner review remains
+open. This is an evaluated repertoire addition, not completion of the roadmap.
+
 Review the new musical examples alongside the earlier ripple, with attention to
 phrase entry, visible motion and return. The next bounded engineering round can
 address the observed shaped-entry proposal failures and the cost of searching an

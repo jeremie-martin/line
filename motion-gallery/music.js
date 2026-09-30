@@ -1,5 +1,5 @@
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
-const manifestUrl=new URL(query.get('data')||'/generated/repertoire-development-20260930/confirmation/manifest.json',location.href);
+const manifestUrl=new URL(query.get('data')||'/generated/connected-repertoire-20260930/review/manifest.json',location.href);
 const videos=[$('baseline'),$('alternative')];
 let manifest,selected,baseline,caseInfo,moment,seconds=0,playing=false,loading=true,generation=0,controller,stopAt=Infinity;
 const format=(n,d=3)=>Number.isFinite(n)?n.toFixed(d):'—';
@@ -48,8 +48,9 @@ async function select(){
   if(oldSong!==song){seconds=defaultMoment.time;stopAt=caseInfo.durationFrames/40;}
   $('intent').textContent=caseInfo.intent;$('alternative-title').textContent=manifest.plan.methodDetails[selected.method].title;
   $('baseline-metrics').textContent=`Whole-ride target error ${format(baseline.qualityRms,4)} RMS · ${format(baseline.compileMs/1000,2)} s compilation`;
-  $('alternative-metrics').textContent=`Whole-ride target error ${format(selected.qualityRms,4)} RMS · ${format(selected.compileMs/1000,2)} s compilation`;
-  const changed=selected.construction.changedSections.map(i=>selected.sections.find(s=>s.section===i));
+  $('alternative-metrics').textContent=selected.valid?`Whole-ride target error ${format(selected.qualityRms,4)} RMS · ${format(selected.compileMs/1000,2)} s compilation`:
+    `Incomplete ride · ${format(selected.compileMs/1000,2)} s compilation`;
+  const changed=selected.construction.changedSections.map(i=>selected.sections.find(s=>s.section===i)).filter(Boolean);
   const interval=changed.length?`${format(changed[0].start,2)}–${format(changed.at(-1).end,2)} s`:null;
   $('decision').textContent=manifest.plan.repertoire?manifest.plan.methodDetails[selected.method].description:
     selected.method==='mixed'?`${manifest.plan.methodDetails[selected.method].title}: changed supports at ${interval}, followed by smooth construction.`:
@@ -59,13 +60,13 @@ async function select(){
     const rows=changed.filter(r=>r.start>=phrase.window[0]&&r.start<phrase.window[1]);
     const name=phrase.construction==='fragments'?'Scattered':{scallops:'Ripple',terraces:'Terraced',serpentine:'Serpentine',fold:'Folded'}[phrase.style.profile]??(phrase.style.guides===false?'Guide-free':'Faceted');
     const button=document.createElement('button');
-    button.textContent=`${name}${phrase.style.rippleCycles===undefined?'':` · ${phrase.style.rippleCycles} wave${phrase.style.rippleCycles===1?'':'s'}`}${phrase.style.profileStrength===undefined?'':` · strength ${phrase.style.profileStrength}`} · ${format(rows[0]?.start,2)}–${format(rows.at(-1)?.end,2)} s`;
+    button.textContent=`${name}${phrase.style.rippleCycles===undefined?'':` · ${phrase.style.rippleCycles} wave${phrase.style.rippleCycles===1?'':'s'}`}${phrase.style.profileStrength===undefined?'':` · strength ${phrase.style.profileStrength}`} · ${format(rows[0]?.start??phrase.window[0],2)}–${format(rows.at(-1)?.end??phrase.window[1],2)} s${rows.length?'':' · not built'}`;
     button.onclick=()=>{pause();seek(Math.max(0,(rows[0]?.start??phrase.window[0])-.5));
       showMoment(caseInfo.moments.reduce((best,m)=>Math.abs(m.time-phrase.window[0])<Math.abs(best.time-phrase.window[0])?m:best));};
     return button;
   }));
   $('construction').textContent=selected.construction.boundaryFrame===null?'This independent comparison can change the whole ride.':
-    `Earlier geometry and every rider point match the baseline through ${format(selected.construction.boundaryFrame/40,3)} s. The complete later ride is rebuilt. ${selected.construction.changedMotionFrames} recorded frames differ in rider position. These checks establish a physical change, not an aesthetic improvement.`;
+    `Earlier geometry and every rider point match the baseline through ${format(selected.construction.boundaryFrame/40,3)} s. ${selected.valid?`The complete later ride is rebuilt. ${selected.construction.changedMotionFrames} recorded frames differ in rider position. These checks establish a physical change, not an aesthetic improvement.`:'The requested continuation failed. The inspector preserves the incomplete track; its divergence is not evidence of a successful construction change.'}`;
   $('work').textContent=`Baseline: ${baseline.physicalFrames.toLocaleString()} simulated frames, ceiling ${(baseline.allowance??baseline.budget).toLocaleString()}. Alternative: ${selected.physicalFrames.toLocaleString()}, including prefix preparation, ceiling ${(selected.allowance??selected.budget).toLocaleString()}. Independent validation and video rendering are additional work. Target jitter: ${caseInfo.jitter}; different seeds can produce identical tracks.`;
   const inspect=new URL('/motion-gallery/',location.href);inspect.searchParams.set('data',manifestUrl.pathname);inspect.searchParams.set('passage',song);inspect.searchParams.set('seed',seed);inspect.searchParams.set('left','baseline');inspect.searchParams.set('right',selected.method);inspect.searchParams.set('time',seconds);
   $('inspect').href=inspect;$('record').href=new URL(selected.path,manifestUrl);
@@ -73,6 +74,12 @@ async function select(){
   showMoment((oldSong===song&&caseInfo.moments.find(m=>m.title===moment?.title))||defaultMoment);$('seek').max=caseInfo.durationFrames/40;$('status').textContent='Loading the preserved production videos…';
   for(const v of videos){v.removeAttribute('src');v.load();}
   for(const id of ['full-video','clip-video']){$(id).removeAttribute('href');$(id).hidden=true;}
+  if(!baseline.valid||!selected.valid){
+    pause();
+    const failed=!selected.valid?selected:baseline;
+    $('status').textContent=`Incomplete ride${Number.isFinite(failed.failure?.frame)?` at ${format(failed.failure.frame/40,3)} s`:''}. No completed video is available. Inspect the saved track and failure details below, or choose another comparison.`;
+    return;
+  }
   try{
     const saved=await Promise.all([baseline,selected].map(c=>checked(new URL(c.id+'.video.json',manifestUrl).href,signal)));
     if(token!==generation||signal.aborted)return;
@@ -102,6 +109,6 @@ try{
   manifest=await checked(manifestUrl.href);
   if(manifest.plan.kind!=='musical-direction')throw new Error('Not a musical direction study');
   choices('song',manifest.plan.cases.map(c=>c.id),id=>manifest.plan.cases.find(c=>c.id===id).title);
-  choices('seed',manifest.plan.seeds);choices('variant',manifest.plan.methods.filter(m=>m!=='baseline'),id=>manifest.plan.methodDetails[id].title);$('variant').value=manifest.plan.methods.includes('mixed')?'mixed':manifest.plan.methods.find(m=>m!=='baseline');
+  choices('seed',manifest.plan.seeds);choices('variant',manifest.plan.methods.filter(m=>m!=='baseline'),id=>manifest.plan.methodDetails[id].title);$('variant').value=manifest.plan.repertoire==='fold'?'candidate':manifest.plan.methods.includes('mixed')?'mixed':manifest.plan.methods.find(m=>m!=='baseline');
   await select();
 }catch(e){$('status').textContent=`Cannot open this comparison: ${e.message}`;}

@@ -91,7 +91,8 @@ const cases=await Promise.all(definitions.map(async d=>{
   assert.ok(air.every(a=>Number.isFinite(a.target)),'musical study requires authored air throughout');
   const samples=Object.fromEntries((['speed','amplitude'] as const).filter(a=>spec.axes[a]).map(a=>[a,
     Array.from({length:durationFrames+1},(_,f)=>axesAtFrame(f,spec)[a]??null)]));
-  return {...d,...(repertoire&&repertoire!=='contacts'?{intent:`Compare arcs, ripples and ${geometryTitle.toLowerCase()} on the same two phrases; combine ${geometryTitle.toLowerCase()} in the first with ripples in the second.`}:{}),id:d.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[],
+  return {...d,...(repertoire==='fold'?{intent:'Compare ordinary arcs, subtle ripples and folded rails on shared phrases; combine scattered contacts in the first phrase with folded rails later.'}:
+    repertoire&&repertoire!=='contacts'?{intent:`Compare arcs, ripples and ${geometryTitle.toLowerCase()} on the same two phrases; combine ${geometryTitle.toLowerCase()} in the first with ripples in the second.`}:{}),id:d.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[],
     source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),audioSha256:hash(cfg.audio),
     analysisSha256:hash(join('productions',d.song,'audio.json')),render:cfg.render,jitter:spec.jitter??0};
 }));

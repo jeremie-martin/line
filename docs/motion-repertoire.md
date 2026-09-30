@@ -11,7 +11,17 @@ future decisions informed by that work.
 
 Start with the [music review](http://localhost:8767/motion-gallery/music.html) for
 finished musical comparisons and the exact same rides in the native inspector.
-The current [repertoire development panel](repertoire-development-20260930.md)
+The current [folded-passage panel](connected-repertoire-20260930.md) compares
+ordinary arcs, subtle ripple, explicit three-face folds and scattered/folded
+phrases. Eleven of twelve frozen attempts complete; the failed Tiki entry stays
+visible with an inspector link. All complete rides have production videos. A
+separate diagnostic gallery demonstrates successful broader initialization at
+that same entry, with larger musical errors. Contact timelines distinguish
+guided redirection, ballistic crossing and contacts on the main faces; they do
+not imply every corner is continuously ridden. The earlier panel below remains
+linked. These are early creative alternatives, not promoted production defaults.
+
+The preceding [repertoire development panel](repertoire-development-20260930.md)
 compares ordinary arcs, adjustable ripple phrases, a scattered first phrase and
 a scattered/ripple combination on Luna, Amor and further reserved Tiki passages.
 Scattered phrases preserve source motion through the edit and search a return

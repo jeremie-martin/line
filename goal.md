@@ -6,6 +6,19 @@ complete musical combinations. The second milestone below incorporates
 the owner's review. Preserve musical accuracy, understandable choices and
 reasonable computation. The musical-direction work below is the preceding milestone.
 
+The owner finds scattered visually strong and the latest ripple subtle. The
+[next creative milestone](docs/connected-repertoire-20260930.md) develops explicit
+three-face folded passages, preserving substantial corners while searching their
+placement. The frozen 0826323d panel has eleven valid complete rides and one failed
+Tiki entry; all outcomes remain visible, with full vertical videos for the valid
+rides. A separate diagnosis completes that same entry with broader initialization,
+at a musical cost. That retry is known-case development, not replacement
+confirmation. Native playback, actual contact order and local losses are recorded.
+Full V4 outputs and work remain exactly unchanged at 952.4726. Earlier scattered
+and ripple examples remain available; owner review of the folds is open. The
+next shared search question is recovery from an empty initial candidate set
+without weakening the intended construction or wasting the available allowance.
+
 The [second repertoire milestone](docs/repertoire-development-20260930.md) now
 develops ripple placement/wave count and scattered phrases whose return is
 searched from the actual realized state. The frozen panel has 12/12 valid
@@ -14,7 +27,8 @@ normal-line rides on Luna, Amor and further reserved Tiki passages; a separate
 Full V4 remains exactly 952.4726 across 352 outputs, including unchanged tracks
 and physical work. Local musical costs and substantial continuation-search cost
 are disclosed. This technical delivery remains an early roadmap milestone;
-artistic preference for the new examples is open. The next concrete questions
+the owner subsequently favors scattered for its visual contrast and finds the
+latest ripple subtler. The next concrete questions
 are shaped-entry proposal coverage and efficient styled continuations, informed
 by review of the finished musical comparisons. Earlier alternatives stay available.
 

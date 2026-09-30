@@ -22,6 +22,8 @@ it('moves fold corners without losing the selected headings or total support tim
   expect(a).not.toEqual(b);
   for(let i=1;i<a.length;i++)expect(Math.atan2(a[i].y2-a[i].y1,a[i].x2-a[i].x1)).toBeCloseTo(Math.atan2(b[i].y2-b[i].y1,b[i].x2-b[i].x1),12);
   expect(build(control,{...style,profileStrength:0})).toEqual(build(control,{faces:3}));
+  expect(motionArc(points,v,control,1000,false,12,false,24,4,{...style,profileStrength:0}))
+    .toEqual(motionArc(points,v,control,1000,false,12,false,24,4,{faces:3}));
   for(const bias of [-2,2])for(const turnFraction of [.1,.85]){
     const lines=motionArc(points,v,{...control,bias,turnFraction},1000,false,12,false,24,4,style);
     const angles=lines.slice(1,4).map(l=>Math.atan2(l.y2-l.y1,l.x2-l.x1)*180/Math.PI);

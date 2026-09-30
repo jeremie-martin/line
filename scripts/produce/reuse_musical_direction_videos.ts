@@ -46,8 +46,9 @@ for(const cell of manifest.cells){
     const video=probe.streams.find((stream:any)=>stream.codec_type==='video');
     assert.equal(video.width,1080);assert.equal(video.height,1920);assert.equal(video.avg_frame_rate,'60/1');
     assert.ok(probe.streams.some((stream:any)=>stream.codec_type==='audio'));
+    assert.ok(Math.abs(Number(probe.format.duration)-(c.excerpt[1]-c.excerpt[0]))<.1);
     execFileSync('ffmpeg',['-v','error','-i',path,'-f','null','-'],{stdio:['ignore','ignore','pipe']});
-    excerpt={path:relative(root,path),sha256:sha(readFileSync(path)),probe};
+    excerpt={path:relative(root,path),sha256:sha(readFileSync(path)),probe,start:c.excerpt[0],end:c.excerpt[1]};
   }
   const record={...original,id:cell.id,full:media(original.full),excerpt,
     identity:{...original.identity,planSha256:manifest.planSha256,cellSha256:cell.sha256},

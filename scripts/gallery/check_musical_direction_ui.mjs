@@ -18,17 +18,28 @@ try{
   const seek=async t=>{await page.locator('#seek').fill(String(t));await page.locator('#seek').dispatchEvent('input');
     await page.waitForFunction(()=>[...document.querySelectorAll('video')].every(v=>!v.seeking&&v.readyState>=2));};
   await page.goto(url);await ready();
-  assert.equal(await page.locator('#variant').inputValue(),'mixed');
+  assert.equal(await page.locator('#variant').inputValue(),manifest.plan.repertoire==='fold'?'candidate':'mixed');
   const firstCase=manifest.plan.cases[0],focus=manifest.plan.repertoire?firstCase.guidance[0]:firstCase.mixed[0];
   assert.equal(+(await page.locator('#seek').inputValue()),firstCase.moments.reduce((best,m)=>Math.abs(m.time-focus)<Math.abs(best.time-focus)?m:best).time);
   const otherMethod=manifest.plan.methods.includes('guidance')?'guidance':'ripple';
   const shapeMethod=manifest.plan.repertoire?'candidate':manifest.plan.geometry??'facets';
-  let comparisons=0;
+  let comparisons=0,incompleteComparisons=0;
   for(const c of manifest.plan.cases)for(const seed of manifest.plan.seeds)for(const method of manifest.plan.methods.filter(m=>m!=='baseline')){
     await page.evaluate(({song,seed,method})=>{
       for(const [id,value]of Object.entries({song,seed,variant:method}))document.getElementById(id).value=String(value);
       document.getElementById('variant').dispatchEvent(new Event('change'));
-    },{song:c.id,seed,method});await ready();
+    },{song:c.id,seed,method});
+    const record=manifest.cells.find(r=>r.caseId===c.id&&r.seed===seed&&r.method===method);
+    if(record.valid)await ready();
+    else{
+      await page.waitForFunction(()=>document.getElementById('status').textContent.startsWith('Incomplete ride'));
+      assert.equal(await page.locator('#play').isDisabled(),true);
+      assert.equal(await page.locator('#retry').isVisible(),false);
+      assert.equal(await page.locator('#full-video').isVisible(),false);
+      assert.deepEqual(await page.locator('video').evaluateAll(vs=>vs.map(v=>v.hasAttribute('src'))),[false,false]);
+      assert.ok((await page.locator('#alternative-metrics').textContent()).startsWith('Incomplete ride'));
+      incompleteComparisons++;
+    }
     const href=new URL(await page.locator('#inspect').getAttribute('href'));
     assert.equal(href.searchParams.get('passage'),c.id);assert.equal(href.searchParams.get('seed'),String(seed));assert.equal(href.searchParams.get('right'),method);
     assert.ok((await page.locator('#decision').textContent()).length>20);comparisons++;
@@ -88,7 +99,7 @@ try{
   }
   await page.selectOption('#display','both');
   assert.deepEqual(errors,[]);
-  const result={schema:'line.musical-direction-ui-checks.v1',manifest:{path,sha256:hash(readFileSync(path))},comparisons,
+  const result={schema:'line.musical-direction-ui-checks.v1',manifest:{path,sha256:hash(readFileSync(path))},comparisons,incompleteComparisons,
     singleAudioSource:true,synchronizedSeeking:true,playbackPreservedAcrossVariants:true,seedChoices:manifest.plan.seeds.length,
     rapidSeedSwitch:manifest.plan.seeds.length>1?true:null,
     pauseDuringReplacementRespected:true,failedDownloadRetry:true,exactTrackInspectorLink:true,localTargetsShown:true,fullWidthSingleVideoView:true,mobileOverflow:false,errors,

@@ -13,8 +13,8 @@ remain frozen. New V5 definitions must be committed before the canonical baselin
 | Seeded automatic policy | Initial implementation | Separate diversity RNG, repeated phrases, optional authored boundaries, broad preferences |
 | V5 pilot, freeze and baseline | Complete | 150 canonical runs; 449.0934 qualified headline, 117 valid, no execution exceptions |
 | Shared compiler campaign | In progress | Single shared search; actual fragmented exits; all 76 Luna requests fulfilled |
-| Production integration and qualification | Pending | Existing V4 reference: 952.4726 |
-| Production dashboard and music library | Pending | Preserve existing workspace and videos |
+| Production integration and qualification | In progress | Public automatic CLI, separate ordinary reference, input identities; V4 reference 952.4726 |
+| Production dashboard and music library | In progress | Native production comparison tested on desktop/mobile; four songs × three predeclared seeds |
 
 Large runs and media belong under `generated/production-repertoire/`; compact
 evidence, commands and findings will be linked here. Failed experiments remain
@@ -77,3 +77,39 @@ fulfill the frozen physical checks. Their raw data and compact
 Study work excludes the production wrapper's final independent realization replay,
 which is reserved from the same ceiling. Generalization and further diagnosis
 remain necessary before choosing production settings.
+
+## Production route and ending diagnosis
+
+The automatic CLI and dashboard now use the public compiler, and the ordinary
+reference is independent of automatic construction. Existing authored phrase
+boundaries participate in production plans. This intentionally differs from V5
+musical snapshots without phrase metadata; the policy and compiler are shared.
+L’amour de ma vie preserves its existing authored contacts and axis curves
+exactly. The predeclared review seeds are 101, 202 and 303 for all four songs.
+
+A repeated Tiki failure exposed a concrete distinction: the final musical scoring
+window could be only three frames, and inherited normalization then restricted
+support duration to two. Requested construction now uses the existing physical
+outro horizon for its available geometry, while musical loss still ends at the
+unchanged authored time. The same Tiki plan completes with all 78 requests at
+715.2056 and 1,999,858 study frames, instead of exhausting 3m without its last
+ripple. A short regression test exercises this boundary, including ordered
+physical traversal. Outro contacts can occur after the last scored musical frame;
+this is disclosed rather than represented as extra music coverage.
+
+Production pilot Luna (including authored phrase boundaries) completes at 785.7395
+with all 76 requests fulfilled. Desktop and 390px mobile browser checks confirm
+native replay, scrubbing, audio progress, no horizontal overflow and no page
+errors. Full vertical rendering uses the existing production pipeline. See
+[commands and artifact semantics](automatic-production.md).
+
+The [transfer study](evidence/production-repertoire-transfer-20261001.json)
+retains 36 additional configurations across Luna, Amor and Tiki. Merely reducing
+ordinary learned proposals, broadening search or adding deeper probes has mixed
+results. Reusing response memory only within the same actual geometry and guide
+permission improves all three matched plans after the ending fix: Luna
+782.7620→812.5286, Amor 824.6919→828.1114, Tiki 715.2056→721.7559. This small
+context separation is promoted; the ordinary reference keeps its original memory.
+The richer production mode remains substantially less musically accurate than the
+ordinary profile. Canonical and reserved-panel qualification will quantify that
+limitation rather than extrapolating these three songs.

@@ -80,7 +80,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
 }
 
 export function compileConnectedArcs(spec: Spec, seed: number,
-  options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel }): CompileCheckpoint {
+  options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel }): CompileCheckpoint & {construction:ReturnType<typeof compileArcMotion>} {
   spec = normalizeCompilerTimeline(spec);
   validateCompilerTelemetry(options.budgetTelemetry);
   resetPerCompileState();
@@ -111,7 +111,7 @@ export function compileConnectedArcs(spec: Spec, seed: number,
     recorder.recordSegment("finalization", attempt.constructionEnd, attempt.end, "cold_replay_complete", episode);
   }
   const costs = report.gaps.map(g => Object.values(g.axes).reduce((s, a) => s + (a?.error ?? 0) ** 2, 0));
-  return { budget: options.budget, track, report,
+  return { budget: options.budget, track, report, construction:result,
     budgetTelemetry: recorder.snapshot(total, exhausted, result.firstCompletionFrame, result.firstCompletionFrame),
     stats: { actual_candidate_samples: result.samples, viable_candidate_samples: result.stats.viable_candidate_samples, engine_rebuilds: result.engineRebuilds ?? result.backtracks + 2,
       gap_commits: result.stats.gap_commits, gap_backtracks: result.backtracks,

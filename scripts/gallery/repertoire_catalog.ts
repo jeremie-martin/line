@@ -1,9 +1,11 @@
 /** Concrete starting arrangements. They are editable examples, not musical rules. */
+import {creativePreferences,type CreativePreferences} from '../v0/optimizer/repertoire_policy.ts';
 import {compositionCatalog,validateRepertoirePlan,type RepertoirePlan} from '../v0/optimizer/repertoire_plan.ts';
 export const repertoireSongs=[
  {id:'luna_bala_44s',title:'Luna Bala',duration:44},
  {id:'amor_na_praia_46s',title:'Amor na Praia',duration:46},
  {id:'tiki_tiki_48s',title:'Tiki Tiki',duration:48},
+ {id:'amour_de_ma_vie_44s',title:'L’amour de ma vie',duration:44.544},
 ];
 const phrase=(title:string,start:number,end:number,recipe:any,controls?:any)=>({title,start,end,recipe,...(controls?{controls}:{})});
 const ripple={profileStart:0,profileStrength:1,rippleCycles:1};
@@ -31,3 +33,20 @@ export function validateRepertoireRequest(input:any):RepertoireRequest{
  return {...input,composition};
 }
 export const repertoireCatalog={songs:repertoireSongs,recipes:compositionCatalog,presets:repertoirePresets};
+
+/** Automatic production uses broad preferences, never manually placed passages. */
+export type AutomaticProductionRequest={mode:'production';song:string;seed:number;budget:number;referenceBudget:number;creative:CreativePreferences};
+export type GalleryRequest=RepertoireRequest|AutomaticProductionRequest;
+export function validateAutomaticProductionRequest(input:any):AutomaticProductionRequest{
+ if(!input||input.mode!=='production'||Object.keys(input).some(k=>!['mode','song','seed','budget','referenceBudget','creative'].includes(k)))throw new Error('invalid automatic production request');
+ if(!repertoireSongs.some(s=>s.id===input.song))throw new Error('unsupported production song');
+ if(!Number.isSafeInteger(input.seed)||input.seed<0||input.seed>2147483647)throw new Error('seed must be a non-negative 31-bit integer');
+ const song=repertoireSongs.find(s=>s.id===input.song)!;
+ if(!Number.isSafeInteger(input.budget)||input.budget<12*(Math.round(song.duration*40)+21)||input.budget>5000000)throw new Error('production allowance must cover search and replay, up to 5,000,000 frames');
+ const referenceBudget=input.referenceBudget??750000;
+ if(!Number.isSafeInteger(referenceBudget)||referenceBudget<20000||referenceBudget>5000000)throw new Error('invalid ordinary reference allowance');
+ return {mode:'production',song:input.song,seed:input.seed,budget:input.budget,referenceBudget,creative:creativePreferences(input.creative)};
+}
+export const isAutomatic=(r:GalleryRequest):r is AutomaticProductionRequest=>'mode' in r&&r.mode==='production';
+export const requestSong=(r:GalleryRequest)=>isAutomatic(r)?r.song:r.composition.song;
+export const validateGalleryRequest=(input:any):GalleryRequest=>input?.mode==='production'?validateAutomaticProductionRequest(input):validateRepertoireRequest(input);

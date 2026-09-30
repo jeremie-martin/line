@@ -6,6 +6,7 @@
 import { FPS, type Spec } from "../types.ts";
 import type { CompileCheckpoint } from "./types.ts";
 import type {CreativePreferences,ProductionPlan} from './repertoire_policy.ts';
+import type {compileArcMotion} from './arc_motion.ts';
 import type {compileProductionRepertoire} from './production_repertoire.ts';
 import {CompileBudgetTelemetryRecorder} from './budget_telemetry.ts';
 import {sliceTimeline} from '../core/substrate.ts';
@@ -32,7 +33,7 @@ export function handoffBackend(userSpec: Spec, opts: CompileHandoffOptions): "ar
 }
 
 export type ProductionCompileOptions=CompileHandoffOptions&{creative?:CreativePreferences;constructionPlan?:ProductionPlan;phraseBoundaries?:number[]};
-export type ProductionCheckpoint=CompileCheckpoint&{repertoire?:ReturnType<typeof compileProductionRepertoire>};
+export type ProductionCheckpoint=CompileCheckpoint&{construction?:ReturnType<typeof compileArcMotion>;repertoire?:ReturnType<typeof compileProductionRepertoire>};
 export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompileOptions): ProductionCheckpoint {
   userSpec = normalizeCompilerTimeline(userSpec);
   validateCompilerTelemetry(opts.budgetTelemetry);

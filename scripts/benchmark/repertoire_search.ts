@@ -10,6 +10,13 @@ import {loadMusicCase} from '../produce/music_artifacts.ts';
 import {galleryCompilerIdentity,replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
 const variants:Record<string,Partial<ArcMotionOptions>>={
  base:{},
+ scoped:{memoryScope:'construction'},
+ scoped_broader:{memoryScope:'construction',samples:120,guidanceSamples:320,responseSamples:250,policySamples:16},
+ scoped_deeper:{memoryScope:'construction',samples:120,guidanceSamples:320,responseSamples:250,policySamples:16,lookaheadDepth:3,lookaheadBranching:2,lookaheadWidth:4,lookaheadSamples:40,continuationGuidanceSamples:24},
+ policy8:{policySamples:8},
+ policy0:{policySamples:0},
+ broad_objective:{samples:120,guidanceSamples:320,responseSamples:250,policySamples:16,timeObjective:true,terminalOptimization:true,valueGuidanceWeight:0,continuationValueWeight:0},
+ broad_deeper:{samples:120,guidanceSamples:320,responseSamples:250,policySamples:16,lookaheadDepth:3,lookaheadBranching:2,lookaheadWidth:4,lookaheadSamples:40,continuationGuidanceSamples:24},
  objective:{timeObjective:true,terminalOptimization:true,valueGuidanceWeight:0,continuationValueWeight:0},
  no_priors:{arrivalWeight:0,headingWeight:0,valueGuidanceWeight:0,continuationValueWeight:0},
  deeper:{lookaheadDepth:3,lookaheadBranching:2,lookaheadWidth:4,lookaheadSamples:40,continuationGuidanceSamples:24},

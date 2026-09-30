@@ -34,23 +34,23 @@ export async function loadMusicCase(definition:any,jolt:number){
 }
 /** Keep the established cell/manifest contract shared by both native and production renderers. */
 export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:string;seed:number;budget:number;allowance:number;
- result:any;reference:any;referenceTrace:any;compileMs:number;physicalFrames:number;composition?:any;
+ result:any;reference:any;referenceTrace:any;compileMs:number;physicalFrames:number;composition?:any;production?:any;budgetTelemetry?:any;
  styles?:any;phrases?:any[];geometry?:string;geometryStyle?:any;subdivisions?:number;faces?:number;profile?:string;strength?:number}){
- const {out,planSha256,c,method,seed,budget,allowance,result,reference,referenceTrace,compileMs,physicalFrames,composition,
+ const {out,planSha256,c,method,seed,budget,allowance,result,reference,referenceTrace,compileMs,physicalFrames,composition,production,budgetTelemetry,
  styles={},phrases=[],geometry,geometryStyle={},subdivisions,faces,profile,strength}=args;
     const validationStarted=performance.now();
     const {grade,trace,collisionIds}=replayGalleryTrack(result.track,c as unknown as Case,true);
-    const fragmentSections:number[]=composition?.fragmentSections??[],railLayout=fragmentSections.length?'mixed':'connected';
-    const railGuides=composition?.railGuides;
+    const fragmentSections:number[]=production?.fragmentSections??composition?.fragmentSections??[],railLayout=fragmentSections.length?'mixed':'connected';
+    const railGuides=production?.railGuides??composition?.railGuides;
     const groups=arcRailGroups(result.track.lines.filter((l:any)=>!fragmentSections.includes(Math.floor((l.id-1000)/10000))));
     const inspection=inspectRailContacts({method,railLayout,railGuides,track:result.track},collisionIds!);
     const usage=railLayout==='connected'?guideFootprint(result.track.lines):{supportSections:inspection.summary.supportSections!,guideSections:inspection.summary.guideSections,
       guideLength:result.track.lines.filter((l:any)=>inspection.guideIds.has(l.id)).reduce((sum:number,l:any)=>sum+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)};
     const valid=result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((x:any)=>x.status==='hit');
     assert.equal(valid,grade.score.valid,'compiler and frozen judge disagree');
-    if(valid)assert.ok(Math.abs(Math.sqrt(result.trajectoryLoss)-grade.score.weightedAxisRms!)<1e-10,'target adapter changed the objective');
+    if(valid&&result.trajectoryLoss!==undefined)assert.ok(Math.abs(Math.sqrt(result.trajectoryLoss)-grade.score.weightedAxisRms!)<1e-10,'target adapter changed the objective');
     const geometryVerification=verifyMainConstruction(result.track,result.rows,{radius:24,channel:12,
-      ...(method===geometry?geometryStyle:{}),sectionStyles:styles,fragmentSections},composition?.attempts?0:composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections[0]??0);
+      ...(method===geometry?geometryStyle:{}),sectionStyles:styles,fragmentSections},composition?.attempts?0:composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections?.[0]??0);
     const sections=result.rows.map((r:any,i:number)=>{
       const chains=groups.get(i)??[],fragmented=fragmentSections.includes(i),sectionLines=result.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)===i);
       const normal=fragmented?sectionLines.filter((l:any)=>!inspection.guideIds.has(l.id)):chains[0]??[];
@@ -60,7 +60,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
       const mainFrames=collisionIds!.flatMap((ids,f)=>ids.some(id=>mainIds.has(id))?[f]:[]);
       const subdivision=styles[i]?.subdivisions??(method===geometry?(subdivisions??4):4);
       const faceCount=styles[i]?.faces??(method===geometry?faces:undefined);
-      if(!fragmented&&i>=(composition?.attempts?0:composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections[0]??0))assert.equal(normal.length,1+arcMainSteps(r.control.support,subdivision,faceCount),'emitted shape differs from requested construction');
+      if(!fragmented&&i>=(composition?.attempts?0:composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections?.[0]??0))assert.equal(normal.length,1+arcMainSteps(r.control.support,subdivision,faceCount),'emitted shape differs from requested construction');
       if(styles[i]?.guides===false)assert.equal(guides.length,0,'forbidden guide emitted');
       return {section:i,start:r.frame/40,end:(result.rows[i+1]?.frame??c.durationFrames)/40,
         shape:fragmented?'fragments':styles[i]?.profile??(method===geometry?profile:undefined)??(faceCount!==undefined||subdivision===.5?'facets':'arcs'),
@@ -70,7 +70,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
         firstGuideContact:guideFrames[0]===undefined?null:guideFrames[0]/40,lastGuideContact:guideFrames.length?guideFrames.at(-1)!/40:null};
     });
     let prefixFrames=0,changedMotionFrames=0;
-    if(method!=='baseline'){
+    if(method!=='baseline'&&referenceTrace){
       for(let f=0;f<Math.min(trace.frames.length,referenceTrace.frames.length);f++){
         const same=JSON.stringify(trace.frames[f])===JSON.stringify(referenceTrace.frames[f]);
         if(composition&&f<=composition.boundaryFrame){assert.ok(same,'earlier native rider history changed');prefixFrames++;}
@@ -83,16 +83,16 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     save('track.json',result.track);save('report.json',result.report);
     save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,proposalDecision:result.proposalDecision,
       failure:result.failure,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
-    save('budget-telemetry.json',{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
+    save('budget-telemetry.json',budgetTelemetry??{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
       preparationFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.preparationFrames,0)??composition?.preparationFrames??0,constructionFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.physicalFrames-a.preparationFrames,0)??result.stats.sim_frames,compositionStages:composition?.attempts,
       includes:'All search and cold replay work for this alternative, plus prefix preparation. Baseline creation is accounted once in the comparison set. Independent evaluation and rendering are separate.'});
     const cell={id,caseId:c.id,method,railLayout,railGuides,seed,jitter:c.jitter,budget,allowance,score:grade.score,
-      compileMs,physicalFrames,validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
+      compileMs,physicalFrames,...(production?{production}:{}),validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
       trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,
       terminus:grade.terminus,failure:result.failure,valid,qualityRms:grade.score.weightedAxisRms,usage,sections,
       geometryVerification,contactSummary:inspection.summary,collisionSha256:sha(JSON.stringify(collisionIds)),metrics,
       construction:{styles,phrases,fragmentSections,fragmentConstruction:composition?.fragmentConstruction,boundaryFrame:composition?.boundaryFrame??null,stages:composition?.attempts,prefixFrames,changedMotionFrames,
-        changedSections:composition?.changedSections??[],baseTrackHash:method==='baseline'?null:sha(JSON.stringify(reference.track))},
+        changedSections:composition?.changedSections??[],baseTrackHash:method==='baseline'||!reference?null:sha(JSON.stringify(reference.track))},
       trackPath:relative(out,join(dir,'track.json')),reportPath:relative(out,join(dir,'report.json')),
       moments:c.moments.map((m:any)=>({...m,observations:grade.observations.filter(o=>o.endFrame>=m.from*40&&o.startFrame<=m.to*40)}))};
     const path=id+'.json',digest=writeGalleryJson(out,path,{schema:'line.motion-gallery-cell.v1',planSha256,...cell,case:c,track:result.track,trace});

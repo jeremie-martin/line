@@ -11,6 +11,8 @@ const examples='motion-gallery/repertoire-examples.json';
 if(existsSync(examples))for(const e of read(examples))sources.add(resolve(e.manifest.replace(/^\//,'').replace(/\/manifest\.json$/,'')));
 const jobs='generated/repertoire-jobs';
 if(existsSync(jobs))for(const id of readdirSync(jobs))if(/^[a-f0-9-]{36}$/.test(id))sources.add(resolve(jobs,id,'output'));
+const library='motion-gallery/production-library.json';
+if(existsSync(library))for(const e of read(library).entries)if(e.manifest)sources.add(resolve(e.manifest.replace(/^\//,'').replace(/\/manifest\.json$/,'')));
 const pending=()=>manifest.cells.filter((c:any)=>c.valid&&!existsSync(join(out,c.id+'.video.json')));
 for(const source of sources){
  if(source===out||!pending().length||!existsSync(join(source,'manifest.json')))continue;

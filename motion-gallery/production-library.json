@@ -1,0 +1,77 @@
+{
+  "schema": "line.production-library.v1",
+  "entries": [
+    {
+      "id": "luna_bala_44s-101",
+      "title": "Luna Bala",
+      "seed": 101,
+      "status": "Scheduled"
+    },
+    {
+      "id": "luna_bala_44s-202",
+      "title": "Luna Bala",
+      "seed": 202,
+      "status": "Scheduled"
+    },
+    {
+      "id": "luna_bala_44s-303",
+      "title": "Luna Bala",
+      "seed": 303,
+      "status": "Scheduled"
+    },
+    {
+      "id": "amor_na_praia_46s-101",
+      "title": "Amor na Praia",
+      "seed": 101,
+      "status": "Scheduled"
+    },
+    {
+      "id": "amor_na_praia_46s-202",
+      "title": "Amor na Praia",
+      "seed": 202,
+      "status": "Scheduled"
+    },
+    {
+      "id": "amor_na_praia_46s-303",
+      "title": "Amor na Praia",
+      "seed": 303,
+      "status": "Scheduled"
+    },
+    {
+      "id": "tiki_tiki_48s-101",
+      "title": "Tiki Tiki",
+      "seed": 101,
+      "status": "Scheduled"
+    },
+    {
+      "id": "tiki_tiki_48s-202",
+      "title": "Tiki Tiki",
+      "seed": 202,
+      "status": "Scheduled"
+    },
+    {
+      "id": "tiki_tiki_48s-303",
+      "title": "Tiki Tiki",
+      "seed": 303,
+      "status": "Scheduled"
+    },
+    {
+      "id": "amour_de_ma_vie_44s-101",
+      "title": "L\u2019amour de ma vie",
+      "seed": 101,
+      "status": "Scheduled"
+    },
+    {
+      "id": "amour_de_ma_vie_44s-202",
+      "title": "L\u2019amour de ma vie",
+      "seed": 202,
+      "status": "Scheduled"
+    },
+    {
+      "id": "amour_de_ma_vie_44s-303",
+      "title": "L\u2019amour de ma vie",
+      "seed": 303,
+      "status": "Scheduled"
+    }
+  ]
+}

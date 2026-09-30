@@ -106,6 +106,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   minExitSupport?:number;
   /** Give unusable response-round remainders back to coordinate exploration. */
   completeGuidanceBudget?:boolean;
+  /** Keep learned responses local to their physical geometry and guide permission. */
+  memoryScope?:'construction';
   memorySamples?:number;
   memoryResponseSamples?:number;
   /** Replace the preceding truncated span once its contact boundary is measured. */
@@ -306,7 +308,13 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const fragmentStats={intervals:0,probes:0,observationFrames:0,replayFrames:0};
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
   const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
-  const controlMemory=new ArcControlMemory();
+  const controlMemory=new ArcControlMemory(),constructionMemories=new Map<string,ArcControlMemory>();
+  const memoryFor=(index:number)=>{
+    if(options.memoryScope!=='construction')return controlMemory;
+    const style={...options,...options.sectionStyles?.[index]};
+    const key=JSON.stringify([style.guides!==false,style.profile,style.profileStrength,style.profileStart,style.rippleCycles,style.faces,style.foldAngle,style.subdivisions]);
+    let memory=constructionMemories.get(key);if(!memory){memory=new ArcControlMemory();constructionMemories.set(key,memory);}return memory;
+  };
   for(const example of options.controlExamples??[])controlMemory.rememberControl(example);
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
   let deepestPrefix={lines:[] as TrackLine[],rows:[] as any[]};
@@ -369,7 +377,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const stateSha256=createHash('sha256').update(JSON.stringify(getRiderMetered(engine,frame).ballisticState())).digest('hex');
       if(stateSha256!==fork.stateSha256)throw new Error('arc fork incoming state mismatch');
       forkEvidence={section:resumeAt,frame,prefixSha256:createHash('sha256').update(JSON.stringify(lines)).digest('hex'),stateSha256};
-      if((options.memorySamples??0)>0)for(const row of rows)if(row.frame>1)controlMemory.rememberControl({features:row.features,incoming:row.incoming,span:row.next-row.frame-1,control:row.control});
+      if((options.memorySamples??0)>0)for(const [index,row] of rows.entries())if(row.frame>1)memoryFor(index).rememberControl({features:row.features,incoming:row.incoming,span:row.next-row.frame-1,control:row.control});
     }
     const compileOptions=options;
     const futureFeatures=(arrival:number[],i:number,count=2)=>{
@@ -382,6 +390,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     };
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
+      const controlMemory=memoryFor(i);
       if(options.fork?.continuationGuides&&i>=options.fork.section)options.guides=options.fork.continuationGuides[i-options.fork.section];
       if(options.fork&&i===options.fork.section)options.guides=options.fork.guides;
       // Once the timeline is complete, no future state needs a surrogate.
@@ -408,7 +417,11 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       // A final authored contact can have no scored tail. Its support still
       // needs room to realize the impact and survive the unscored grace.
       const span=objectiveEnd>frame||i===0?objectiveEnd-(i===0?0:frame):horizon-frame;
-      const support=clamp((1-(targets.air??.5))*(span+1),3,Math.max(3,span-6));
+      // The authored objective ends with the music; the final construction still
+      // has the existing physical survival horizon. Do not clamp a requested
+      // shape to two frames just because its last impact is near the song end.
+      const constructionSpan=options.constructionRequests&&i===contacts.length-1?horizon-frame:span;
+      const support=clamp((1-(targets.air??.5))*(constructionSpan+1),3,Math.max(3,constructionSpan-6));
       const impact=gap>=0?gaps[gap].targets.impact:undefined;
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
@@ -447,7 +460,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         return value===undefined||target===undefined||value<=1?0:
           ((value-target)**2-(1-target)**2)*(options.amplitudeWeight??1)*spanWeight(g,'amplitude');
       };
-      const controlContext={...options,span};
+      const controlContext={...options,span:constructionSpan};
       const evaluate=(c:ArcMotionControl,fragments?:{lines:TrackLine[];guideIds:number[]})=>{
         c=normalizeArcControl(c,controlContext);
         const key=memo?arcControlMemoKey(c,options.channel)+(fragments?'|fragments':''):'';
@@ -962,7 +975,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       }
       steps.push({lineStart:lines.length,choices:alternatives.filter(a=>JSON.stringify(a.c)!==JSON.stringify(best.c))});
       if((options.memorySamples??0)>0&&i>0){
-        controlMemory.rememberControl({features:interval.inputFeatures,incoming,span:horizon-frame,control:best.c});
+        memoryFor(i).rememberControl({features:interval.inputFeatures,incoming,span:horizon-frame,control:best.c});
       }
       // Incoming features were captured before candidate construction, which
       // can invalidate cached prefix frames even for a validated child.

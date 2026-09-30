@@ -85,7 +85,7 @@ $('use-result').onclick=()=>{if(loadedPlan)setPlan(loadedPlan);};
 $('render').onclick=async()=>{try{const {job}=await api(`jobs/${currentJob.id}/render`,{});currentJob=job;$('render').disabled=true;$('render').textContent='Rendering queued…';await refreshJobs();}catch(e){status(e.message,true);}};
 function card(title,description){const d=el('article',undefined,'card');d.append(el('h3',title),el('p',description));return d;}
 async function refreshJobs(){
- try{const {jobs}=await api('jobs');$('jobs').replaceChildren(...jobs.map(job=>{
+ try{const {jobs}=await api('jobs');$('jobs').replaceChildren(...jobs.filter(job=>job.request.composition).map(job=>{
   const c=card(job.request.composition.title,`${job.request.composition.song} · ${new Date(job.created).toLocaleString()}`),s=el('p',`${job.status}${job.status==='complete'?(job.valid?' · valid ride':' · incomplete ride'):''}${job.render?' · video '+job.render:''}`,'state');c.append(s);
   const controls=el('div',undefined,'row'),edit=el('button','Edit');edit.onclick=()=>setPlan(job.request.composition);controls.append(edit);
   if(job.manifest){const open=el('button','Inspect');open.onclick=()=>openResult(job.manifest,job);controls.append(open);}

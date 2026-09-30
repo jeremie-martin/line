@@ -19,7 +19,7 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   const constructionRequests=Object.fromEntries(plan.requests.map(r=>[r.section,r]));
   const allowance=budget-replay;
   const result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,allowance),policyPreview:false,
-    initialRecoverySamples:160,sectionStyles:styles,constructionRequests,collectTrajectoryLoss:true});
+    initialRecoverySamples:160,memoryScope:'construction',sectionStyles:styles,constructionRequests,collectTrajectoryLoss:true});
   let physicalFrames=result.stats.sim_frames;
   const fragmentSections=plan.requests.filter(r=>r.construction==='scattered'&&r.section<result.rows.length).map(r=>r.section);
   const railGuides:Record<number,number[]>=Object.fromEntries(fragmentSections.map(i=>[i,result.rows[i].railGuides??[]]));

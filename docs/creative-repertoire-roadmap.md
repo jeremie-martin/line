@@ -1,7 +1,15 @@
 # A deliberate repertoire for musical tracks
 
-Agreed with the owner on 2026-09-30. This is the active roadmap, following the
+Agreed with the owner on 2026-09-30. This is the overarching roadmap, following the
 [first musical-direction milestone](musical-direction-plan.md).
+
+The next [production repertoire campaign](production-repertoire-roadmap.md) is
+**proposed, awaiting owner approval**. It takes the integrated workspace toward
+automatic construction choices, intentional guidance, a new V5 evaluation,
+stronger shared compilation and complete production review. Its proposed V5
+extension is separate from the frozen benchmarks used for the delivered milestones
+below. The latest owner feedback favors control rails with expressive shapes,
+especially folds, while retaining ordinary unguided passages for contrast.
 
 The product is visually compelling, varied Line Rider tracks synchronized with
 music. Accurate compilation is a foundation. We want understandable, reproducible

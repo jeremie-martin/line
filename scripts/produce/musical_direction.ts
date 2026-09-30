@@ -1,3 +1,4 @@
+import {loadMusicCase,saveMusicCell} from './music_artifacts.ts';
 /** Compile a small real-music comparison, preserving exact tracks for both the
  * native gallery and production renderer. All authored targets remain unchanged.
  * Example: LR_ENGINE=wasm node --import tsx scripts/produce/musical_direction.ts
@@ -8,19 +9,10 @@ import {resolve,join,relative} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {sha,type Case} from '../../benchmark/v3/model.ts';
 import {verifyFrozen} from '../../benchmark/v4/contract.ts';
-import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
-import {sliceTimeline,effectiveAxes,axesAtFrame} from '../v0/core/substrate.ts';
-import {extractTrace} from '../v0/core/trace.ts';
-import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
-import {arcMainSteps} from '../v0/optimizer/arc_geometry.ts';
-import {guideFootprint} from '../v0/optimizer/arc_guide_choice.ts';
-import {inspectRailContacts} from '../gallery/contacts.ts';
-import {galleryCompilerIdentity,galleryHarnessIdentity,replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
-import {applyJolt,resolveJoltMs} from './seed.ts';
+import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
+import {resolveJoltMs} from './seed.ts';
 import {loadSelect} from './config.ts';
-import {measure} from './measure.ts';
 import {galleryMethods,galleryArcOptions,type GalleryMethod} from '../gallery/methods.ts';
-import {verifyMainConstruction} from '../gallery/verify_construction.ts';
 import {musicalDirectionCases,musicalDirectionMethods,repertoireConfirmationCase,repertoireContactReuseCase,repertoireFoldReuseCase} from './musical_direction_cases.ts';
 import {stylesForPhrases,type ConstructionPhrase} from './musical_repertoire.ts';
 import type {Spec} from '../v0/types.ts';
@@ -81,23 +73,12 @@ const {composeArcSections}=await import(pathToFileURL(join(compilerRoot,'scripts
 const jolt=resolveJoltMs(),specs=new Map<string,Spec>(),configs=new Map<string,ReturnType<typeof loadSelect>>();
 const hash=(path:string)=>sha(readFileSync(path));
 const cases=await Promise.all(definitions.map(async d=>{
-  const cfg=loadSelect(join('productions',d.song)),module=await import(pathToFileURL(cfg.spec).href);
-  const spec=normalizeCompilerTimeline(applyJolt(module.default,jolt));specs.set(d.song,spec);configs.set(d.song,cfg);
-  const durationFrames=Math.round(spec.duration*40),contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));
-  const gaps=sliceTimeline(contacts.map(c=>c.frame),durationFrames);
-  // Only the frozen evaluator's input fields are needed here. This is a sampled
-  // production request, not a benchmark catalog Case: do not quantize/repair air.
-  const air=gaps.map(g=>({gap:g.index,target:effectiveAxes(g,spec).air}));
-  assert.ok(air.every(a=>Number.isFinite(a.target)),'musical study requires authored air throughout');
-  const samples=Object.fromEntries((['speed','amplitude'] as const).filter(a=>spec.axes[a]).map(a=>[a,
-    Array.from({length:durationFrames+1},(_,f)=>axesAtFrame(f,spec)[a]??null)]));
-  return {...d,...(repertoire==='fold'?{intent:'Compare ordinary arcs, subtle ripples and folded rails on shared phrases; combine scattered contacts in the first phrase with folded rails later.'}:
-    repertoire&&repertoire!=='contacts'?{intent:`Compare arcs, ripples and ${geometryTitle.toLowerCase()} on the same two phrases; combine ${geometryTitle.toLowerCase()} in the first with ripples in the second.`}:{}),id:d.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[],
-    source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),audioSha256:hash(cfg.audio),
-    analysisSha256:hash(join('productions',d.song,'audio.json')),render:cfg.render,jitter:spec.jitter??0};
+  const definition={...d,...(repertoire==='fold'?{intent:'Compare ordinary arcs, subtle ripples and folded rails on shared phrases; combine scattered contacts in the first phrase with folded rails later.'}:
+    repertoire&&repertoire!=='contacts'?{intent:`Compare arcs, ripples and ${geometryTitle.toLowerCase()} on the same two phrases; combine ${geometryTitle.toLowerCase()} in the first with ripples in the second.`}:{})};
+  const {spec,cfg,musicCase}=await loadMusicCase(definition,jolt);specs.set(d.song,spec);configs.set(d.song,cfg);return musicCase;
 }));
 const compiler=galleryCompilerIdentity(compilerRoot),judge=verifyFrozen();
-const harnessPaths=['scripts/produce/musical_direction.ts','scripts/produce/musical_direction_cases.ts',
+const harnessPaths=['scripts/produce/musical_direction.ts','scripts/produce/music_artifacts.ts','scripts/produce/musical_direction_cases.ts',
   'scripts/produce/musical_repertoire.ts','scripts/v0/optimizer/contact_composition.ts',
   'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/methods.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/measure.ts'];
 const harness=galleryHarnessIdentity(harnessPaths);
@@ -154,68 +135,13 @@ for(const c of cases)for(const seed of seeds){
     const allowance=composition?compositionBudget:budget;
     assert.ok(physicalFrames<=allowance);compileWork+=physicalFrames;totalMs+=compileMs;
     if(method==='baseline')reference=result;
-    const validationStarted=performance.now();
-    const {grade,trace,collisionIds}=replayGalleryTrack(result.track,c as unknown as Case,true);
-    const fragmentSections:number[]=composition?.fragmentSections??[],railLayout=fragmentSections.length?'mixed':'connected';
-    const railGuides=composition?.railGuides;
-    const groups=arcRailGroups(result.track.lines.filter((l:any)=>!fragmentSections.includes(Math.floor((l.id-1000)/10000))));
-    const inspection=inspectRailContacts({method,railLayout,railGuides,track:result.track},collisionIds!);
-    const usage=railLayout==='connected'?guideFootprint(result.track.lines):{supportSections:inspection.summary.supportSections!,guideSections:inspection.summary.guideSections,
-      guideLength:result.track.lines.filter((l:any)=>inspection.guideIds.has(l.id)).reduce((sum:number,l:any)=>sum+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)};
-    const valid=result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((x:any)=>x.status==='hit');
-    assert.equal(valid,grade.score.valid,'compiler and frozen judge disagree');
-    if(valid)assert.ok(Math.abs(Math.sqrt(result.trajectoryLoss)-grade.score.weightedAxisRms!)<1e-10,'target adapter changed the objective');
-    const geometryVerification=verifyMainConstruction(result.track,result.rows,{radius:24,channel:12,
-      ...(method===geometry?geometryStyle:{}),sectionStyles:styles,fragmentSections},composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections[0]??0);
-    const sections=result.rows.map((r:any,i:number)=>{
-      const chains=groups.get(i)??[],fragmented=fragmentSections.includes(i),sectionLines=result.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)===i);
-      const normal=fragmented?sectionLines.filter((l:any)=>!inspection.guideIds.has(l.id)):chains[0]??[];
-      const guides=fragmented?sectionLines.filter((l:any)=>inspection.guideIds.has(l.id)):chains[1]??[];
-      const guideIds=new Set<number>(guides.map((l:any)=>l.id)),mainIds=new Set<number>(normal.map((l:any)=>l.id));
-      const guideFrames=collisionIds!.flatMap((ids,f)=>ids.some(id=>guideIds.has(id))?[f]:[]);
-      const mainFrames=collisionIds!.flatMap((ids,f)=>ids.some(id=>mainIds.has(id))?[f]:[]);
-      const subdivision=styles[i]?.subdivisions??(method===geometry?(subdivisions??4):4);
-      const faceCount=styles[i]?.faces??(method===geometry?faces:undefined);
-      if(!fragmented&&i>=(composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections[0]??0))assert.equal(normal.length,1+arcMainSteps(r.control.support,subdivision,faceCount),'emitted shape differs from requested construction');
-      if(styles[i]?.guides===false)assert.equal(guides.length,0,'forbidden guide emitted');
-      return {section:i,start:r.frame/40,end:(result.rows[i+1]?.frame??c.durationFrames)/40,
-        shape:fragmented?'fragments':styles[i]?.profile??(method===geometry?profile:undefined)??(faceCount!==undefined||subdivision===.5?'facets':'arcs'),
-        profileStrength:styles[i]?.profileStrength??(method===geometry?strength:undefined)??1,
-        guidePermission:styles[i]?.guides===false?'forbidden':'allowed',
-        mainSegments:normal.length,guideSegments:guides.length,mainContactFrames:mainFrames.length,guideContactFrames:guideFrames.length,
-        firstGuideContact:guideFrames[0]===undefined?null:guideFrames[0]/40,lastGuideContact:guideFrames.length?guideFrames.at(-1)!/40:null};
-    });
-    let prefixFrames=0,changedMotionFrames=0;
+    const {cell:saved,trace}=saveMusicCell({out,planSha256,c,method,seed,budget,allowance,result,reference,referenceTrace,
+      compileMs,physicalFrames,composition,styles,phrases,geometry,geometryStyle,subdivisions,faces,profile,strength});
     if(method==='baseline')referenceTrace=trace;
-    else{
-      for(let f=0;f<Math.min(trace.frames.length,referenceTrace.frames.length);f++){
-        const same=JSON.stringify(trace.frames[f])===JSON.stringify(referenceTrace.frames[f]);
-        if(composition&&f<=composition.boundaryFrame){assert.ok(same,'earlier native rider history changed');prefixFrames++;}
-        if(!same)changedMotionFrames++;
-      }
-    }
-    const metrics=measure(seed,result.track,result.report,extractTrace(result.track));
-    const id=`${c.id}-${seed}-${method}`,dir=join(out,id);mkdirSync(dir,{recursive:true});
-    const save=(name:string,value:unknown)=>writeGalleryJson(dir,name,value);
-    save('track.json',result.track);save('report.json',result.report);
-    save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,proposalDecision:result.proposalDecision,
-      failure:result.failure,styles,fragmentSections,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
-    save('budget-telemetry.json',{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
-      preparationFrames:composition?.preparationFrames??0,constructionFrames:result.stats.sim_frames,
-      includes:'All search and cold replay work for this alternative, plus prefix preparation. Baseline creation is accounted once in the comparison set. Independent evaluation and rendering are separate.'});
-    const cell={id,caseId:c.id,method,railLayout,railGuides,seed,jitter:c.jitter,budget,allowance,score:grade.score,
-      compileMs,physicalFrames,validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
-      trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,
-      terminus:grade.terminus,failure:result.failure,valid,qualityRms:grade.score.weightedAxisRms,usage,sections,
-      geometryVerification,contactSummary:inspection.summary,collisionSha256:sha(JSON.stringify(collisionIds)),metrics,
-      construction:{styles,phrases,fragmentSections,fragmentConstruction:composition?.fragmentConstruction,boundaryFrame:composition?.boundaryFrame??null,prefixFrames,changedMotionFrames,
-        changedSections:composition?.changedSections??[],baseTrackHash:method==='baseline'?null:sha(JSON.stringify(reference.track))},
-      trackPath:relative(out,join(dir,'track.json')),reportPath:relative(out,join(dir,'report.json')),
-      moments:c.moments.map(m=>({...m,observations:grade.observations.filter(o=>o.endFrame>=m.from*40&&o.startFrame<=m.to*40)}))};
-    const path=id+'.json',digest=write(path,{schema:'line.motion-gallery-cell.v1',planSha256,...cell,case:c,track:result.track,trace});
-    const saved={...cell,path,sha256:digest};cells.push(saved);byMethod.set(method,saved);
-    console.log(JSON.stringify({id,valid,score:grade.score.score,rms:cell.qualityRms,physicalFrames,seconds:compileMs/1000,
-      guided:usage.guideSections,changedSections:cell.construction.changedSections,prefixFrames,changedMotionFrames}));
+    cells.push(saved);byMethod.set(method,saved);
+    console.log(JSON.stringify({id:saved.id,valid:saved.valid,score:saved.score.score,rms:saved.qualityRms,physicalFrames,
+      seconds:compileMs/1000,guided:saved.usage.guideSections,changedSections:saved.construction.changedSections,
+      prefixFrames:saved.construction.prefixFrames,changedMotionFrames:saved.construction.changedMotionFrames}));
   }
   const accounting={caseId:c.id,seed,allowances:Object.fromEntries([...byMethod].map(([method,c])=>[method,c.allowance])),
     totalAllowance:[...byMethod.values()].reduce((sum,c)=>sum+c.allowance,0),physicalFrames:compileWork,compileMs:totalMs};

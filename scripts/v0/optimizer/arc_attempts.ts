@@ -19,12 +19,28 @@ const complete = (r: Outcome) => r.report.terminus.reason === 'endOfSpec' &&
 export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, options: ArcMotionOptions,
   compile: (spec: Spec, seed: number, options: ArcMotionOptions, continueMeter?: boolean) => R) {
   const results: R[] = [], names: Array<'proposal' | 'search'> = [];
-  let proposalDecision: {reason: 'accepted' | 'invalid' | 'above-error-limit' | 'forced-search'; rmsError: number | null; errorLimit: number} | null = null;
+  let proposalDecision: {reason: 'accepted' | 'invalid' | 'above-error-limit' | 'forced-search'; rmsError: number | null; errorLimit: number;source?:'reference'} | null = null;
   const run = (name: 'proposal' | 'search', opts: ArcMotionOptions) => {
     const result = compile(spec, seed, opts, results.length > 0);
     results.push(result); names.push(name); return result;
   };
-  if (options.policyPreview && !options.replayControls && !options.directControls && !options.fork) {
+  if(options.referencePreview&&options.fork){
+    if(!options.fork.continuation)throw new Error('reference preview requires continuation controls');
+    const end=Math.round(spec.duration*40)+20,allowance=Math.floor(options.budget*.05);
+    if(allowance>4*(end+1)&&options.constructionBudget===undefined){
+      const preview=run('proposal',{...options,budget:allowance,referencePreview:false,
+        samples:0,controlPolicy:undefined,memorySamples:0,memoryResponseSamples:0,
+        guidance:undefined,lookaheadWidth:0,qualityRetries:0,airProjection:0,
+        collectTrajectoryLoss:true});
+      const errorLimit=options.previewMaxRmsError??.025;
+      if(!(errorLimit>=0))throw new Error('invalid preview error limit');
+      const rmsError=Number.isFinite(preview.trajectoryLoss)?Math.sqrt(preview.trajectoryLoss!):null;
+      const reason=options.searchAfterPreview==='always'?'forced-search':!complete(preview)?'invalid':
+        rmsError===null||rmsError>errorLimit?'above-error-limit':'accepted';
+      proposalDecision={reason,rmsError,errorLimit,source:'reference'};
+      if(reason!=='accepted')run('search',{...options,referencePreview:false,collectTrajectoryLoss:true});
+    }
+  }else if (options.policyPreview && !options.replayControls && !options.directControls && !options.fork) {
     if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(options.budget) || options.budget <= 0)
       throw new Error('invalid arc compiler input');
     spec = normalizeCompilerTimeline(spec); validateSpec(spec);

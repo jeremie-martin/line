@@ -12,7 +12,7 @@ import type {Spec} from '../types.ts';
 type Result=ReturnType<typeof compileArcMotion>;
 const sha=(value:unknown)=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-export function captureArcFork(result:Result,section:number){
+export function captureArcFork(result:Pick<Result,'track'|'rows'>,section:number){
   const row=result.rows[section];
   if(!row||!Number.isSafeInteger(section)||section<0)throw new Error('invalid fork section');
   const start={position:result.track.startPosition,velocity:result.track.riders![0].startVelocity};

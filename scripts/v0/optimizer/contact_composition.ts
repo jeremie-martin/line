@@ -10,22 +10,25 @@ import {normalizeCompilerTimeline} from './compiler_input.ts';
 import {sliceTimeline,effectiveAxes,buildDriftReport,validateSpec} from '../core/substrate.ts';
 import {detect,extractRawTrajectory,resetFrameCount,getPhysicsFrameCount,setPhysicsFrameLimit} from '../../lib/detector.ts';
 import {compileArcMotion} from './arc_motion.ts';
-import type {ArcSectionStyles} from './arc_composition.ts';
+import type {ArcSectionStyles,CompositionSearch} from './arc_composition.ts';
 import {captureArcFork} from './arc_guide_study.ts';
 import {connectedArcOptions} from './connected_arcs.ts';
 import type {Spec,TrackLine} from '../types.ts';
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../../lib/_lr_engine_wasm.ts?contact-composition',import.meta.url).href);
-type Source=Pick<ReturnType<typeof compileArcMotion>,'track'|'rows'>;
+type Source=Pick<ReturnType<typeof compileArcMotion>,'track'|'rows'>&{fragmentSections?:number[];railGuides?:Record<number,number[]>};
 export function composeContactSections(input:Spec,source:Source,options:{sections:number[];widths:number[];budget:number;selectionEndFrame?:number}){
   const spec=normalizeCompilerTimeline(input);validateSpec(spec);
-  const {sections,widths,budget}=options,groups=arcRailGroups(source.track.lines);
+  const existing=new Set(source.fragmentSections??[]);
+  if(existing.size!==(source.fragmentSections??[]).length||[...existing].some(i=>!Number.isSafeInteger(i)||i<0||i>=source.rows.length||!Array.isArray(source.railGuides?.[i])))throw new Error('invalid preserved fragment metadata');
+  const {sections,widths,budget}=options,groups=arcRailGroups(source.track.lines.filter(l=>!existing.has(Math.floor((l.id-1000)/10000))));
   if(!sections.length||new Set(sections).size!==sections.length||!sections.every(i=>Number.isSafeInteger(i)&&i>=0&&i<source.rows.length&&groups.has(i)))throw new Error('invalid fragment sections');
   if(!widths.length||new Set(widths).size!==widths.length||!widths.every(w=>Number.isFinite(w)&&w>0))throw new Error('invalid fragment widths');
   const duration=Math.round(spec.duration*40),end=duration+20,replayFrames=end+1;
   if(!Number.isSafeInteger(budget)||budget<(widths.length+3)*replayFrames)throw new Error('fragment budget cannot cover observation and replay');
   if(Object.keys(spec.axes).some(axis=>!['air','speed','amplitude'].includes(axis)))throw new Error('unsupported fragment axes');
   const changed=new Set(sections),first=Math.min(...sections),boundary=source.rows[first].frame-1;
+  if([...existing].some(i=>i>=first))throw new Error('fragment edits must follow preserved fragment sections');
   const selectionEnd=options.selectionEndFrame??end;
   if(!Number.isSafeInteger(selectionEnd)||selectionEnd<boundary||selectionEnd>end)throw new Error('invalid fragment selection boundary');
   const contacts=spec.contacts.map(c=>Math.round(c.t*40)),gaps=sliceTimeline(contacts,duration);
@@ -44,7 +47,12 @@ export function composeContactSections(input:Spec,source:Source,options:{section
     const observationFrames=getPhysicsFrameCount(),probes:any[]=[];let chosen:any;
     for(const width of widths){
       const lines:TrackLine[]=[],railGuides:Record<number,number[]>={},provenance:Record<number,number>={};
-      for(const [section,chains]of groups){
+      for(const section of new Set(source.track.lines.map(l=>Math.floor((l.id-1000)/10000)))){
+        if(existing.has(section)){
+          lines.push(...source.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===section));
+          railGuides[section]=[...source.railGuides![section]];continue;
+        }
+        const chains=groups.get(section)!;
         const originalGuide=new Set((chains[1]??[]).map(l=>l.id));railGuides[section]=[];
         if(!changed.has(section)){
           lines.push(...chains.flat());railGuides[section]=[...originalGuide];continue;
@@ -84,7 +92,7 @@ export function composeContactSections(input:Spec,source:Source,options:{section
  * differences can grow over a long fixed suffix; the source suffix is a proposal,
  * not a requirement to reproduce its floating-point trajectory indefinitely. */
 export function composeScatteredPhrase(spec:Spec,seed:number,source:Source,sections:number[],widths:number[],budget:number,
-  sectionStyles:ArcSectionStyles={}){
+  sectionStyles:ArcSectionStyles={},search:CompositionSearch={}){
   const end=Math.round(spec.duration*40)+20,resumeAt=Math.max(...sections)+1;
   if(!source.rows[resumeAt]||Object.keys(sectionStyles).some(i=>Number(i)<resumeAt))throw new Error('scattered phrase requires a later continuation');
   const reconstructionCeiling=(widths.length+3)*(end+1);
@@ -92,16 +100,17 @@ export function composeScatteredPhrase(spec:Spec,seed:number,source:Source,secti
   const fragments=composeContactSections(spec,source,{sections,widths,budget:reconstructionCeiling,selectionEndFrame:source.rows[resumeAt].frame-1});
   const captured=captureArcFork({...source,track:fragments.track} as any,resumeAt);
   const preparationFrames=fragments.physicalFrames+captured.physicsFrames;
-  const fork={...captured.fork,fragmentSections:sections,guides:sectionStyles[resumeAt]?.guides??true,
+  const fragmentSections=[...source.fragmentSections??[],...sections].sort((a,b)=>a-b);
+  const fork={...captured.fork,fragmentSections,guides:sectionStyles[resumeAt]?.guides??true,
     continuation:source.rows.slice(resumeAt).map(r=>({control:r.control,incoming:r.incoming,span:r.span}))};
-  const result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,budget-preparationFrames),collectTrajectoryLoss:true,sectionStyles,fork});
-  const connected=arcRailGroups(result.track.lines.filter(l=>!sections.includes(Math.floor((l.id-1000)/10000))));
+  const result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,budget-preparationFrames),...search,collectTrajectoryLoss:true,sectionStyles,fork});
+  const connected=arcRailGroups(result.track.lines.filter(l=>!fragmentSections.includes(Math.floor((l.id-1000)/10000))));
   const railGuides:Record<number,number[]>={};
   for(const [section,chains]of connected)railGuides[section]=(chains[1]??[]).map(l=>l.id);
-  for(const section of sections)railGuides[section]=fragments.railGuides[section];
+  for(const section of fragmentSections)railGuides[section]=fragments.railGuides[section];
   return {result,physicalFrames:preparationFrames+result.stats.sim_frames,preparationFrames,
     changedSections:[...new Set([...sections,...Object.keys(sectionStyles).map(Number)])].sort((a,b)=>a-b),
-    boundaryFrame:fragments.boundaryFrame,railGuides,fragmentSections:sections,
+    boundaryFrame:fragments.boundaryFrame,railGuides,fragmentSections,
     fragmentConstruction:{...fragments.construction,fixedSuffixValid:fragments.valid,continuationBoundary:captured.frame,
       realizationFrames:fragments.physicalFrames,continuationPreparationFrames:captured.physicsFrames}};
 }

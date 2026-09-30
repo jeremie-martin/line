@@ -58,3 +58,20 @@ it.each([.0001, .02, undefined, NaN])('only accepts a valid proposal with suffic
   expect(calls).toBe(loss === .0001 ? 1 : 2);
   expect(result.proposalDecision?.reason).toBe(loss === .0001 ? 'accepted' : 'above-error-limit');
 });
+
+it.each([true,false])('validates a reference continuation before spending the full search allowance (accepted=%s)',accepted=>{
+  let calls=0;
+  const fork={section:1,continuation:[{control:{},incoming:0,span:40}]} as any;
+  const result=runArcAttempts(spec,17,{budget:75000,referencePreview:true,fork},(_spec,_seed,options,continueMeter)=>{
+    const first=calls++===0;
+    expect(continueMeter).toBe(!first);expect(options.fork).toBe(fork);
+    expect(options.budget).toBe(first?3750:75000);
+    if(first){expect(options.samples).toBe(0);expect(options.guidance).toBeUndefined();expect(options.lookaheadWidth).toBe(0);}
+    return {track:{},rows:[],failure:null,trajectoryLoss:first && !accepted ? .04 : 0,
+      report:{terminus:{reason:'endOfSpec'},contacts:[{status:'hit'}],off_beat_landings:[]} as any,
+      constructionFrames:50,samples:1,searchBudgetExhausted:false,lookaheadStats:{},planningDecisions:[],
+      stats:{sim_frames:calls*100,viable_candidate_samples:1,gap_commits:1}};
+  });
+  expect(calls).toBe(accepted?1:2);expect(result.proposalDecision?.source).toBe('reference');
+  expect(result.records.at(-1)?.end).toBe(accepted?100:200);
+});

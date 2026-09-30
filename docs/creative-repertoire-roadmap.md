@@ -89,7 +89,15 @@ as the next milestone. Serpentine remains an open research candidate, with a
 documented failure mode; its repair does not gate work on other constructions.
 The broader task is to develop a useful repertoire and understand its behavior.
 
-## Active next milestone: develop useful, distinct constructions
+## Second milestone: develop useful, distinct constructions
+
+The [implementation and measured results](repertoire-development-20260930.md)
+develop explicit ripple placement/wave count and local scattered phrases with
+searched returns. The frozen panel has twelve valid normal-line rides on Luna,
+Amor and further reserved Tiki passages, with local accuracy costs disclosed.
+The control gallery preserves successes and failures. This is technical delivery
+of the milestone below; owner judgment of the new musical examples remains open.
+It does not complete the roadmap or supersede the earlier encouraging ripple.
 
 Develop two complementary constructions beyond the ordinary-arc reference into
 convincing musical examples, with understandable controls, measured behavior and
@@ -146,6 +154,17 @@ The milestone is an evaluated, usable expansion of the creative repertoire.
 Contact diagnostics, geometry repairs and search improvements serve that result;
 none alone establishes artistic completion. The existing constraints, evidence
 standards and distinction between technical completion and owner review apply.
+
+## Following questions
+
+Review the new musical examples alongside the earlier ripple, with attention to
+phrase entry, visible motion and return. The next bounded engineering round can
+address the observed shaped-entry proposal failures and the cost of searching an
+already-good styled continuation. Preserve deliberate visual alternatives while
+comparing actual work and local targets. These shared obstacles are better defined
+now; they should not become a reason to perfect one geometry before trying the
+next complementary pair. Terraces, facets, waves and serpentine remain available
+directions, and no geometry ceiling or broad style-selection policy is established.
 
 ## Constraints and working practice
 

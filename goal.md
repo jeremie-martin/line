@@ -2,9 +2,21 @@
 
 The owner approved the [creative repertoire roadmap](docs/creative-repertoire-roadmap.md).
 Its first panel compared three constructions on shared musical passages and in
-complete musical combinations. The active next milestone below incorporates
+complete musical combinations. The second milestone below incorporates
 the owner's review. Preserve musical accuracy, understandable choices and
 reasonable computation. The musical-direction work below is the preceding milestone.
+
+The [second repertoire milestone](docs/repertoire-development-20260930.md) now
+develops ripple placement/wave count and scattered phrases whose return is
+searched from the actual realized state. The frozen panel has 12/12 valid
+normal-line rides on Luna, Amor and further reserved Tiki passages; a separate
+26-example control gallery retains failures. The compiler is frozen at e9ed9635.
+Full V4 remains exactly 952.4726 across 352 outputs, including unchanged tracks
+and physical work. Local musical costs and substantial continuation-search cost
+are disclosed. This technical delivery remains an early roadmap milestone;
+artistic preference for the new examples is open. The next concrete questions
+are shaped-entry proposal coverage and efficient styled continuations, informed
+by review of the finished musical comparisons. Earlier alternatives stay available.
 
 The [first repertoire panel](docs/creative-repertoire-results.md) now contains
 12 valid complete rides: arcs, ripple phrases, stronger serpentine phrases and
@@ -13,15 +25,15 @@ tracks with verified native replay and physical construction. Development
 includes strength and budget comparisons plus a rejected future-value ablation.
 The current V4 baseline remains exactly unchanged. Local target costs on Amor
 and Tiki are material and disclosed. All twelve full vertical videos and excerpts
-are ready in the default music review; all nine musical comparisons and twelve
+remain available through the earlier-panel link; all nine musical comparisons and twelve
 native comparisons pass browser checks. The owner finds the variety encouraging,
 but the serpentine rider bounces past its distinctive bends. Ordered collision
 inspection confirms concrete examples; any-contact counts do not demonstrate
 traversal. The owner clarified that repairing this single example is too narrow
-as the next milestone. The active next milestone is to review the repertoire,
+as the next milestone. That led to the second milestone above: review the repertoire,
 develop two complementary constructions with measured behavior and useful
-controls, then compose them into musical comparisons and check reuse. Selection
-remains open; serpentine is a research candidate, not a prerequisite. Unchanged
+controls, then compose them into musical comparisons and check reuse.
+Serpentine remains a research candidate, not a prerequisite. Unchanged
 musical targets, normal lines, empirical diagnosis and actual work remain central.
 The completed panel is an early technical milestone, not completion of the creative roadmap.
 

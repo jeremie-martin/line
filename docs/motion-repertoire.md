@@ -11,13 +11,22 @@ future decisions informed by that work.
 
 Start with the [music review](http://localhost:8767/motion-gallery/music.html) for
 finished musical comparisons and the exact same rides in the native inspector.
+The current [repertoire development panel](repertoire-development-20260930.md)
+compares ordinary arcs, adjustable ripple phrases, a scattered first phrase and
+a scattered/ripple combination on Luna, Amor and further reserved Tiki passages.
+Scattered phrases preserve source motion through the edit and search a return
+from the actual exit state. All twelve rides pass timing and survival; local
+musical costs remain visible. The linked control gallery contains 26 successes
+and failures. This expands deliberate local composition without changing
+production defaults or establishing new artistic preferences.
+
 The [first repertoire results](creative-repertoire-results.md) compare arcs,
 ripples and stronger serpentine phrases on Luna, Amor and the reserved Tiki song.
 The [preceding results](musical-direction-results.md) preserve the guide-free,
 facet and ripple studies. The owner found the earlier ripple example meaningfully
 different. The owner finds the new variety encouraging but identifies serpentine
 examples that bounce past their distinctive bends; the follow-up confirms this
-and corrects the limits of any-contact counts. The next milestone develops a
+and corrects the limits of any-contact counts. The second milestone develops a
 broader repertoire of useful constructions with empirical checks, rather than
 requiring that one geometry be perfected first. Both reports disclose local
 musical consequences, whole-ride quality and actual work. The guide-choice studies below are supporting
@@ -290,13 +299,13 @@ air or amplitude misses the specification. More budget alone does not resolve
 that behavior. This is a specific controller limitation to investigate, not
 evidence that scattered geometry is inherently incapable of better motion.
 
-The gallery does not yet measure alternating styles within one track, or score
-as a function of the fraction of beats allowed to use each style. Those require
-working transitions and an actual usage constraint. Introducing probabilities,
-preferences or new specification syntax before that experiment would suggest
-control we have not demonstrated.
+That first study did not measure alternating styles within a track. The musical
+panels above now exercise deliberate local transitions and compositions. Score as
+a function of the fraction of beats allowed to use each style remains unmeasured.
+Probabilities, broad preferences and new specification syntax still require
+groundwork rather than implying control from these few examples.
 
 The first expansion improved scattered adherence and added waves and facets.
-The six-shape study extends the concrete repertoire. Transitions and mixed styles
-remain future experiments; production keeps its qualified arc path. Further
+The six-shape study extended the concrete repertoire; the musical panels now
+study local composition. Production keeps its qualified arc path. Further
 geometry should arrive with real examples and measured limitations.

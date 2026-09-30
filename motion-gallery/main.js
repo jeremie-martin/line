@@ -237,7 +237,7 @@ try {
     const link=document.createElement('a');link.href='/motion-gallery/music.html?data='+encodeURIComponent(manifestUrl.pathname);link.textContent='Return to musical videos';document.querySelector('.study-links').prepend(link);
   }
   $('study-note').textContent=choicePanel?.note??manifest.plan.note; $('manifest-link').href=manifestUrl;
-  $('identity').textContent=`Compiler ${manifest.plan.compiler.head.slice(0,8)} · ${manifest.cells.length} recorded runs`;
+  $('identity').textContent=`${manifest.plan.compiler.label??`Compiler ${manifest.plan.compiler.head.slice(0,8)}`} · ${manifest.cells.length} recorded runs`;
   for(const row of manifest.summary){const tr=document.createElement('tr');for(const value of [title(row.method),number(row.budget),`${row.valid}/${row.runs}`,number(row.meanScore),number(row.totalPhysicalFrames),`${(row.totalCompileMs/1000).toFixed(1)} s`]){const td=document.createElement('td');td.textContent=value;tr.append(td);}$('summary').append(tr);}
   await select();
 } catch(error) {$('status').textContent=`Gallery unavailable: ${error.message} Generate the local study using scripts/gallery/build.ts; see docs/motion-repertoire.md.`;}

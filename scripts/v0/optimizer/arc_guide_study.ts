@@ -30,7 +30,7 @@ export function captureArcFork(result:Result,section:number){
 export type GuideStudyOptions={
   /** Keep one path, both extremes, or accuracy plus the lowest marginal
    * target-error cost per removed guided section. Select from all measured tracks. */
-  exploration?:'least-guidance'|'accuracy-and-guidance'|'balanced'|'coverage';
+  exploration?:'least-guidance'|'accuracy-and-guidance'|'balanced'|'coverage'|'coverage-focused';
   coverageWidth?:number;
   /** Rebuild later geometry with the source's guide permissions, rather than
    * granting guides again everywhere beyond the chosen section. */
@@ -46,7 +46,7 @@ export type GuideStudyOptions={
 };
 
 export function studyGuideChoices(spec:Spec,seed:number,budget:number,options:GuideStudyOptions={}){
-  if(options.exploration&&!['least-guidance','accuracy-and-guidance','balanced','coverage'].includes(options.exploration))throw new Error('unknown guide exploration policy');
+  if(options.exploration&&!['least-guidance','accuracy-and-guidance','balanced','coverage','coverage-focused'].includes(options.exploration))throw new Error('unknown guide exploration policy');
   if(options.coverageWidth!==undefined&&(!Number.isSafeInteger(options.coverageWidth)||options.coverageWidth<2||options.exploration!=='coverage'))throw new Error('invalid guide coverage width');
   if(options.unguidedReference&&(!options.exploration||options.exploration==='least-guidance'))throw new Error('two starting tracks require two-path exploration');
   if(!Number.isSafeInteger(budget)||budget<20000)throw new Error('guide study needs a valid total allowance');
@@ -122,6 +122,12 @@ export function studyGuideChoices(spec:Spec,seed:number,budget:number,options:Gu
     const sparse=valid.slice().sort(compareGuideFootprint)[0];
     frontier=[sparse];
     if(options.exploration==='coverage')frontier=guideCoverageFrontier(valid,options.coverageWidth??3);
+    else if(options.exploration==='coverage-focused'){
+      const [accurate,sparse,middle]=guideCoverageFrontier(valid,3);
+      // The sparse endpoint remains available for delivery. Spend the second
+      // path's allowance on a useful intermediate whenever one has been found.
+      frontier=middle?[accurate,middle]:sparse?[accurate,sparse]:[accurate];
+    }
     else if(options.exploration&&options.exploration!=='least-guidance'){
       const accurate=valid.slice().sort((a,b)=>a.qualityRms!-b.qualityRms!||compareGuideFootprint(a,b))[0];
       const step=(candidate:typeof accurate)=>(candidate.qualityRms!-accurate.qualityRms!)/(accurate.usage.guideSections-candidate.usage.guideSections);

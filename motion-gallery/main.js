@@ -133,7 +133,7 @@ async function select() {
   }
   updatePlay(); $('status').textContent = 'Checking matching native replays…';
   try {
-    const choice=choicePanel?.select($('passage').value,+$('budget').value,+$('seed').value);
+    const choice=choicePanel?.select($('passage').value,+$('budget').value,+$('seed').value,$('left-method').value);
     if(choice?.jumpTo!==undefined){seconds=choice.jumpTo/40;pause();}
     $('seek').value=String(seconds); draw();
     const selected=choice?.cells??['left-method','right-method'].map(id => manifest.cells.find(c => c.caseId === $('passage').value && c.budget === +$('budget').value && c.seed === +$('seed').value && c.method === $(id).value));
@@ -210,6 +210,7 @@ try {
   if(manifest.plan.kind==='guide-choice'){
     choicePanel=await createGuideChoicePanel(manifest,select);
     for(const id of ['left-method','right-method'])$(id).closest('label').hidden=true;
+    if(manifest.plan.methods.length>1){const label=$('left-method').closest('label');label.hidden=false;label.firstChild.textContent='Geometry';}
     document.querySelector('.palette-section').hidden=true;
   }
   for(const id of ['left-method','right-method'])options(id,manifest.plan.methods,title);

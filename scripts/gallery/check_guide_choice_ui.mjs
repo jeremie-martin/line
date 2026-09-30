@@ -5,7 +5,7 @@ export async function checkGuideChoiceUI(page,manifest,out){
  const ready=()=>page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
  const shown=()=>page.locator('.details a').evaluateAll(links=>links.map(a=>new URL(a.href).pathname.split('/').at(-1).slice(0,-5)));
  for(const p of manifest.portfolios){
-  await page.evaluate(p=>{for(const [k,v]of Object.entries({passage:p.caseId,budget:p.budget,seed:p.seed}))document.getElementById(k).value=String(v);document.getElementById('passage').dispatchEvent(new Event('change'));},p);await ready();
+  await page.evaluate(p=>{for(const [k,v]of Object.entries({passage:p.caseId,budget:p.budget,seed:p.seed,'left-method':p.method??'arcs'}))document.getElementById(k).value=String(v);document.getElementById('passage').dispatchEvent(new Event('change'));},p);await ready();
   const valid=p.ids.map(id=>cells.get(id)).filter(c=>c.valid&&Number.isFinite(c.qualityRms));
   const best=valid.slice().sort((a,b)=>a.qualityRms-b.qualityRms||a.usage.guideSections-b.usage.guideSections||a.usage.guideLength-b.usage.guideLength||a.id.localeCompare(b.id))[0];
   for(const t of [0,.005,.01,.02,.04,.08]){
@@ -17,6 +17,7 @@ export async function checkGuideChoiceUI(page,manifest,out){
    await page.selectOption('#choice-fork',d.id??String(d.section));await ready();
    assert.deepEqual(await shown(),[d.single,d.guided]);assert.equal(+(await page.locator('#seek').inputValue()),d.frame/40);
    assert.match(await page.locator('#choice-explanation').textContent(),/Identical earlier linework and rider history/);forks++;
+   assert.match(await page.locator('#choice-explanation').textContent(),d.continuationGuides?/Later guide permissions follow the source/:/Later guides are allowed/);
   }
   for(const id of p.references??[]){
    if(id===p.reference)continue;
@@ -26,7 +27,7 @@ export async function checkGuideChoiceUI(page,manifest,out){
   }
  }
  const p=manifest.portfolios[0];
- await page.evaluate(p=>{for(const [k,v]of Object.entries({passage:p.caseId,budget:p.budget,seed:p.seed}))document.getElementById(k).value=String(v);document.getElementById('passage').dispatchEvent(new Event('change'));},p);await ready();
+ await page.evaluate(p=>{for(const [k,v]of Object.entries({passage:p.caseId,budget:p.budget,seed:p.seed,'left-method':p.method??'arcs'}))document.getElementById(k).value=String(v);document.getElementById('passage').dispatchEvent(new Event('change'));},p);await ready();
  await page.selectOption('#choice-fork','reference');await ready();
  await page.locator('#seek').fill('0');await page.locator('#seek').dispatchEvent('input');await page.locator('#inspect').check();
  await page.locator('.contact-navigation button').nth(1).click();assert.match(await page.locator('.contact-now').first().textContent(),/guide: [1-9]/);

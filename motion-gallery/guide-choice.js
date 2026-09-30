@@ -35,8 +35,8 @@ export async function createGuideChoicePanel(manifest,onchange){
   $('choice-fork').onchange=()=>{const d=portfolio.decisions.find(d=>key(d)===$('choice-fork').value);jumpTo=d?.frame;onchange();};
   return {
     note:'Beat-level fork comparisons share identical earlier linework and rider history. One branch forbids a guide at that section; the other allows it. Each searches the remaining ride. Complete-track comparisons, including independently searched references, can differ throughout the ride. The slider selects among recorded complete tracks within the displayed accuracy allowance; it does not remove rails or run another search. Failed attempts remain available for inspection.',
-    select(caseId,budget,seed){
-    portfolio=manifest.portfolios.find(p=>p.caseId===caseId&&p.budget===budget&&p.seed===seed);
+    select(caseId,budget,seed,method='arcs'){
+    portfolio=manifest.portfolios.find(p=>p.caseId===caseId&&p.budget===budget&&p.seed===seed&&(p.method??'arcs')===method);
     if(!portfolio)throw new Error('Missing guide-choice portfolio');
     if(activeKey!==portfolio.key){
       activeKey=portfolio.key;jumpTo=undefined;
@@ -51,6 +51,7 @@ export async function createGuideChoicePanel(manifest,onchange){
     if(fork){
       cells=[byId.get(fork.single),byId.get(fork.guided)];titles=[`${label(fork)} · guide forbidden`,`${label(fork)} · guide allowed`];
       $('choice-explanation').textContent=`Identical earlier linework and rider history through frame ${fork.frame}. Each branch received ${fork.allowancePerBranch.toLocaleString()} physics frames to search and replay its continuation. ${cells.every(c=>c.valid)?'Both continuations passed timing and survival.':cells.every(c=>!c.valid)?'Neither search found a valid complete continuation.':cells[0].valid?'Only the guide-forbidden search found a valid complete continuation.':'Only the guide-allowed search found a valid complete continuation.'}`;
+      $('choice-explanation').textContent+=fork.continuationGuides?' Later guide permissions follow the source track in both branches; their geometry is searched again.':' Later guides are allowed in both branches; their geometry is searched again.';
     }else if(choice){
       const mode=$('choice-fork').value;
       const reference=mode==='reference'||mode===portfolio.reference?byId.get(portfolio.reference):(portfolio.references??[]).includes(mode)?byId.get(mode):null;

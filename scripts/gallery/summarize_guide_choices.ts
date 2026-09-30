@@ -33,11 +33,11 @@ for(const cell of manifest.cells){
   const error=Math.abs(Math.sqrt(loss/weight)-cell.qualityRms);maxRmsError=Math.max(maxRmsError,error);assert.ok(error<1e-12,cell.id);
  }else assert.equal(cell.qualityRms,null);
 }
-assert.equal(manifest.portfolios.length,manifest.plan.cases.length*manifest.plan.budgets.length*manifest.plan.seeds.length);
+assert.equal(manifest.portfolios.length,manifest.plan.cases.length*manifest.plan.budgets.length*manifest.plan.seeds.length*manifest.plan.methods.length);
 const keys=new Set<string>(),owned=new Set<string>();let forks=0,totalWork=0;
 for(const p of manifest.portfolios){
  assert.ok(!keys.has(p.key));keys.add(p.key);
- const alternatives=p.ids.map((id:string)=>{assert.ok(!owned.has(id));owned.add(id);const c=cells.get(id);assert.ok(c);assert.equal(c.caseId,p.caseId);assert.equal(c.seed,p.seed);assert.equal(c.budget,p.budget);return c;});
+ const alternatives=p.ids.map((id:string)=>{assert.ok(!owned.has(id));owned.add(id);const c=cells.get(id);assert.ok(c);assert.equal(c.caseId,p.caseId);assert.equal(c.seed,p.seed);assert.equal(c.budget,p.budget);assert.equal(c.method,p.method??'arcs');return c;});
  assert.equal(p.physicalFrames,p.preparationFrames+alternatives.reduce((s:number,c:any)=>s+c.physicalFrames,0));assert.ok(p.physicalFrames<=p.budget);totalWork+=p.physicalFrames;
  assert.equal(p.physicalFrames,(p.references??[p.reference]).reduce((s:number,id:string)=>s+cells.get(id).physicalFrames,0)+p.decisions.reduce((s:number,d:any)=>s+d.physicalFrames,0));
  assert.equal(p.preparationFrames,p.decisions.reduce((s:number,d:any)=>s+d.preparationFrames,0));
@@ -49,6 +49,7 @@ for(const p of manifest.portfolios){
    assert.deepEqual(prefix(r),prefix(source));assert.equal(r.fork.stateSha256,d.stateSha256);assert.equal(r.fork.prefixSha256,d.prefixSha256);
    assert.deepEqual(r.trace.frames.slice(0,d.frame+1),source.trace.frames.slice(0,d.frame+1));prefixFrames+=d.frame+1;
    assert.equal(r.attemptAllowance,d.allowancePerBranch);assert.equal(r.fork.section,d.section);assert.equal(r.fork.frame,d.frame);
+   for(let i=1;i<(d.continuationGuides?.length??0);i++)if(!d.continuationGuides[i])assert.equal(guideFootprint(r.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)===d.section+i)).guideSections,0);
   }
   assert.equal(guideFootprint(single.track.lines.filter((l:any)=>Math.floor((l.id-1000)/10000)===d.section)).guideSections,0);
   assert.equal(d.physicalFrames,d.preparationFrames+single.physicalFrames+guided.physicalFrames);
@@ -62,19 +63,19 @@ for(const p of manifest.portfolios){
  }
 }
 assert.equal(owned.size,cells.size);
-const summary=manifest.plan.budgets.flatMap((budget:number)=>[0,.0025,.005,.01,.02,.04,.08].map(extraRms=>{
- const choices=manifest.portfolios.filter((p:any)=>p.budget===budget).map((p:any)=>selectGuideAlternative(p.ids.map((id:string)=>cells.get(id)),extraRms)).filter(Boolean);
- return {budget,extraRms,portfolios:choices.length,meanScore:choices.reduce((s:number,c:any)=>s+c.selected.score.score,0)/choices.length,
+const summary=manifest.plan.methods.flatMap((method:string)=>manifest.plan.budgets.flatMap((budget:number)=>[0,.0025,.005,.01,.02,.04,.08].map(extraRms=>{
+ const choices=manifest.portfolios.filter((p:any)=>p.budget===budget&&(p.method??'arcs')===method).map((p:any)=>selectGuideAlternative(p.ids.map((id:string)=>cells.get(id)),extraRms)).filter(Boolean);
+ return {method,budget,extraRms,portfolios:choices.length,meanScore:choices.reduce((s:number,c:any)=>s+c.selected.score.score,0)/choices.length,
   meanRms:choices.reduce((s:number,c:any)=>s+c.selected.qualityRms,0)/choices.length,
   guidedSections:choices.reduce((s:number,c:any)=>s+c.selected.usage.guideSections,0),supportSections:choices.reduce((s:number,c:any)=>s+c.selected.usage.supportSections,0),
   guideLength:choices.reduce((s:number,c:any)=>s+c.selected.usage.guideLength,0),
   lowerGuideCountThanBest:choices.filter((c:any)=>c.selected.usage.guideSections<c.best.usage.guideSections).length,
   changedTrack:choices.filter((c:any)=>c.selected.id!==c.best.id).length};
-}));
+})));
 const evidence={schema:'line.guide-choice-study.v1',manifest:{path,sha256:sha(readFileSync(path)),planSha256:manifest.planSha256},plan:manifest.plan,
  checks:{runs:cells.size,valid:[...cells.values()].filter(c=>c.valid).length,normalLines,nonNormalLines:0,forks,exactPrefixFrameComparisons:prefixFrames,
   allChecksumsBudgetsPrefixesAndGuideConstraintsVerified:true,maxIndependentRmsError:maxRmsError,monotonePreferenceChecks:manifest.portfolios.length*81,totalPhysicalFrames:totalWork},summary,
- portfolios:manifest.portfolios,rows:[...cells.values()].map(c=>({id:c.id,caseId:c.caseId,seed:c.seed,budget:c.budget,score:c.score.score,valid:c.valid,hardFailures:c.score.hardFailures,qualityRms:c.qualityRms,usage:c.usage,
+ portfolios:manifest.portfolios,rows:[...cells.values()].map(c=>({id:c.id,caseId:c.caseId,method:c.method,seed:c.seed,budget:c.budget,score:c.score.score,valid:c.valid,hardFailures:c.score.hardFailures,qualityRms:c.qualityRms,usage:c.usage,
   physicalFrames:c.physicalFrames,attemptAllowance:c.attemptAllowance,compileMs:c.compileMs,lines:c.lines,trackHash:c.trackHash,artifactSha256:c.sha256,fork:c.fork,searchBudgetExhausted:c.searchBudgetExhausted})),
  interpretation:'Research portfolios on reused passages with target jitter, not canonical headlines or a capability ceiling. All alternatives, including failed attempts, remain recorded. Preference changes only selection over the fixed pool; it does not reduce generation work or alter the frozen score. Visible-guide count is preferred first, total guide length second. No visual approval or broad generalization is claimed.'};
 mkdirSync(dirname(out),{recursive:true});const body=JSON.stringify(evidence,null,2)+'\n';writeFileSync(out,body);writeFileSync(out+'.sha256',sha(body)+'\n');

@@ -18,6 +18,8 @@ Object.assign(variants,{
   coverage:{exploration:'coverage',unguidedReference:true},
   'pattern-coverage':{exploration:'coverage',unguidedReference:true,preserveGuidePattern:true},
   'pattern-coverage4':{exploration:'coverage',coverageWidth:4,unguidedReference:true,preserveGuidePattern:true},
+  focused:{exploration:'coverage-focused',unguidedReference:true},
+  'focused-pattern':{exploration:'coverage-focused',unguidedReference:true,preserveGuidePattern:true},
 });
 const names=(arg('variants')??'baseline,memory,frontier,combined').split(',');
 assert.ok(names.every(n=>n in variants));

@@ -69,10 +69,18 @@ try{
   await page.setViewportSize({width:390,height:844});await page.locator('.videos').scrollIntoViewIfNeeded();
   await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));await page.screenshot({path:out+'.mobile.png',fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  for(const view of ['baseline','alternative']){
+    await page.selectOption('#display',view);
+    assert.equal(await page.locator('.videos article:visible').count(),1);
+    assert.ok(await page.locator('.videos article:visible').evaluate(e=>e.getBoundingClientRect().width)>300);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  }
+  await page.selectOption('#display','both');
   assert.deepEqual(errors,[]);
   const result={schema:'line.musical-direction-ui-checks.v1',manifest:{path,sha256:hash(readFileSync(path))},comparisons,
-    singleAudioSource:true,synchronizedSeeking:true,playbackPreservedAcrossVariantsAndRapidSeeds:true,
-    pauseDuringReplacementRespected:true,failedDownloadRetry:true,exactTrackInspectorLink:true,localTargetsShown:true,mobileOverflow:false,errors,
+    singleAudioSource:true,synchronizedSeeking:true,playbackPreservedAcrossVariants:true,seedChoices:manifest.plan.seeds.length,
+    rapidSeedSwitch:manifest.plan.seeds.length>1?true:null,
+    pauseDuringReplacementRespected:true,failedDownloadRetry:true,exactTrackInspectorLink:true,localTargetsShown:true,fullWidthSingleVideoView:true,mobileOverflow:false,errors,
     files:Object.fromEntries(['motion-gallery/music.html','motion-gallery/music.js','motion-gallery/music.css','motion-gallery/main.js'].map(p=>[p,hash(readFileSync(p))]))};
   const body=JSON.stringify(result,null,2)+'\n';writeFileSync(out,body);writeFileSync(out+'.sha256',hash(body)+'\n');console.log(JSON.stringify(result));
 }finally{await browser.close();}

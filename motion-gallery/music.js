@@ -1,5 +1,5 @@
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
-const manifestUrl=new URL(query.get('data')||'/generated/musical-direction-20260930/confirmation/manifest.json',location.href);
+const manifestUrl=new URL(query.get('data')||'/generated/musical-shapes-20260930/confirmation/manifest.json',location.href);
 const videos=[$('baseline'),$('alternative')];
 let manifest,selected,baseline,caseInfo,moment,seconds=0,playing=false,loading=true,generation=0,controller,stopAt=Infinity;
 const format=(n,d=3)=>Number.isFinite(n)?n.toFixed(d):'—';
@@ -85,6 +85,7 @@ videos[0].addEventListener('timeupdate',()=>{
 for(const v of videos){v.addEventListener('ended',pause);v.addEventListener('error',()=>{if(!loading&&v.hasAttribute('src')){pause();$('status').textContent='Video playback failed. Retry this comparison.';$('retry').hidden=false;}});}
 $('play').onclick=()=>playing?pause():play();$('excerpt').onclick=()=>{seek(caseInfo.excerpt[0]);stopAt=caseInfo.excerpt[1];play();};
 $('seek').oninput=()=>{seek(+$('seek').value);stopAt=caseInfo.durationFrames/40;};$('rate').onchange=()=>videos.forEach(v=>v.playbackRate=+$('rate').value);
+$('display').onchange=()=>{document.querySelector('.videos').dataset.display=$('display').value;};
 $('retry').onclick=select;for(const id of ['song','seed','variant'])$(id).onchange=select;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 try{

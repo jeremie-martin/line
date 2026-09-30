@@ -9,8 +9,12 @@ Normal lines and the frozen benchmark/scorer/physics remain constraints.
 The [implementation and measured study](docs/musical-direction-results.md) are
 technically complete: 24 valid compilations, eight distinct normal-line rides, finished
 production videos, exact-track native inspection, and local target/cost evidence.
-Default V4 outputs remain exactly unchanged at 952.4726. The owner found too little visible difference in the mixed phrase. The artistic
-milestone continues with a stronger existing shape; these remain explicit research choices.
+Default V4 outputs remain exactly unchanged at 952.4726. The owner found too
+little visible difference in the mixed phrase. The follow-up now provides an
+arc–ripple–arc phrase on both songs, with finished
+production videos, exact geometry verification and disclosed local error costs.
+All eight follow-up rides are valid; default V4 again matches exactly. The new
+appearance remains awaiting owner judgment; these are explicit research choices.
 
 # Guide coverage and transfer to facets — 2026-09-30
 

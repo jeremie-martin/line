@@ -9,6 +9,85 @@ native inspector. The owner reviewed the mixed phrase and saw little difference 
 baseline. It is therefore not yet a convincing example of useful visual variety;
 this first execution is preserved while a stronger shape change is explored.
 
+## Follow-up after the visual review: a local ripple profile
+
+The owner found little visible difference in the faceted phrase. That feedback
+changes the interpretation of the first execution: verified physical differences
+were not enough to demonstrate useful visible variety. It remains archived.
+
+Two existing profiles were then tried on Luna seed 301, with the same phrase,
+targets and allowance. Serpentine mixed construction has RMS 0.02547; ripple
+mixed construction has RMS 0.01376. The ripple curve has visible changes of bend
+in native inspection and substantially lower target error in this execution.
+It is the next production-video comparison, not an approved artistic default.
+Neither first attempt establishes the capability ceiling of its profile.
+
+The [follow-up measurements](evidence/musical-shapes-20260930.json) and
+[validation](evidence/musical-shapes-20260930-checks.json) preserve the selected
+ripple execution and the serpentine development comparison.
+
+The API now accepts the existing `profile` field per support, alongside guide
+permission and subdivision density. It reuses the existing geometry builder.
+Conflicting fork/section guide permissions are rejected. Independent validation
+rebuilds the actual main rail from each saved control and incoming physical state;
+all 557 inspected supports in confirmation match exactly, including returns to
+ordinary arcs. There is no new specification language or geometry framework.
+
+The follow-up was frozen at `4f5b231b` before confirmation on Luna and Amor at
+seed 321. All eight rides pass timing and survival; all 31,505 emitted segments
+are normal lines. Earlier rider history matches over 1,492 compared prefix frames.
+One fresh seed per song is deliberate: the prior three-seed study established
+that these zero-jitter requests repeat the same physical tracks. Luna's fresh
+tracks also reproduce the corresponding development tracks exactly.
+
+| Song | Construction | Whole-ride RMS ↓ | Simulated frames | Compile seconds |
+|---|---|---:|---:|---:|
+| Luna | Baseline | 0.01232 | 5,417 | 3.36 |
+| Luna | Ripple throughout | 0.02246 | 938,468 | 22.89 |
+| Luna | Arc–ripple–arc phrase | 0.01376 | 714,893 | 19.12 |
+| Amor | Baseline | 0.01324 | 934,417 | 25.77 |
+| Amor | Ripple throughout | 0.02917 | 939,210 | 26.67 |
+| Amor | Arc–ripple–arc phrase | 0.01727 | 935,213 | 28.45 |
+
+The guide-free comparisons remain available and reproduce the first study.
+These wall times include shared-host contention; Luna's first baseline includes
+model loading. Geometry verification, judging and rendering are additional work.
+
+Local losses still matter. In Luna's climax/return, mean absolute air, speed and
+impact errors change from 0.0148 / 0.0115 / 0.0043 to **0.0237 / 0.0200 / 0.0096**.
+In Amor's percussion/return window, mean impact error rises from 0.0124 to
+**0.0325**, and the largest impact error rises from 0.0467 to **0.1571**. Those are
+real costs. The full-ride ripple option is less accurate than local use on both
+songs; it is retained as a comparison rather than presented as a better solution.
+
+All six follow-up video comparisons pass browser checks. The updated page also
+passes all 18 comparisons of the earlier three-seed study, including rapid seed
+switching and recovery from failed downloads. Native replay matches saved
+positions and contacts for all eight rides; the full Line Rider app matches
+2,248 sampled poses, including scarf and rider state.
+
+The review page now opens at the selected construction's musical moment. The
+first version opened at six seconds even when the mixed edit began near 24.4
+seconds. Switching constructions still preserves a chosen playhead and moment. A
+single-video view makes either ride available at a larger phone width, using
+the same preserved video and clock.
+This navigation correction makes the edit easier to inspect; it does not change
+the original conclusion that the faceted geometry was visually too subtle.
+
+The follow-up artifacts are in `generated/musical-shapes-20260930/confirmation/`.
+New rendering is required for the new physical tracks. Byte-identical baseline
+and guide-free rides can reuse earlier videos only after validating all physical,
+authored, camera, jolt, production-metric and render-pipeline identities. The
+reuse record names the source study. Source media remain local and are not copied
+just to change a seed label.
+
+To reproduce this follow-up, add `--geometry=scallops --seeds=321` to the study
+command below and use a fresh output directory. `scallops` is the existing code
+name for Ripple rails. The original faceted study and both development attempts
+remain available for comparison. The new full V4 run again matches all 352 default outputs and work counts
+exactly at 952.4726. All 48 focused tests pass, with no new TypeScript diagnostics.
+Owner judgment of the new rendered appearance is still open.
+
 ## What is intentional, and what is searched
 
 There are two small construction controls in this experiment: whether a support

@@ -126,3 +126,10 @@ the authored zero-jitter inputs already reproduced identical tracks across
 three seeds. Render the chosen geometry and its mixed phrase; reuse prior videos
 only where the entire physical/render input is identical. Owner review of the
 new production-scale contrast is still required before claiming aesthetic success.
+
+The ripple follow-up is now implemented and rendered on both songs. All eight
+confirmation rides pass; the rebuilt main rails and incoming prefixes are
+verified. The report discloses the greater local impact error on Amor. The full
+canonical default output remains exactly unchanged. The original facet result
+has been preserved, and the follow-up is an artistic proposal awaiting review,
+not an automatic production preference.

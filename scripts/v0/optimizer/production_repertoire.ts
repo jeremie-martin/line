@@ -1,7 +1,6 @@
 /** Production orchestration with one accountable allowance and no implicit style fallback. */
 import {compileArcMotion} from './arc_motion.ts';
 import {connectedArcOptions} from './connected_arcs.ts';
-import {composeScatteredPhrase,composeContactSections} from './contact_composition.ts';
 import {arcRailGroups} from './arc_guidance.ts';
 import {normalizeCompilerTimeline} from './compiler_input.ts';
 import {planRepertoire,validateProductionPlan,constructionStyle,type CreativePreferences,type ProductionPlan} from './repertoire_policy.ts';
@@ -17,36 +16,16 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   const end=Math.round(spec.duration*40)+20,replay=end+1,budget=options.budget;
   if(!Number.isSafeInteger(budget)||budget<12*replay)throw new Error('repertoire allowance cannot cover construction and independent replay');
   const styles=Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)]));
-  const scatter=plan.phrases.filter(p=>p.construction==='scattered');
-  const sourceBudget=scatter.length?Math.floor((budget-replay)*.55):budget-replay;
-  let result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,sourceBudget),policyPreview:false,
-    initialRecoverySamples:80,sectionStyles:styles,collectTrajectoryLoss:true});
-  let physicalFrames=result.stats.sim_frames,fragmentSections:number[]=[],railGuides:Record<number,number[]>={};
+  const constructionRequests=Object.fromEntries(plan.requests.map(r=>[r.section,r]));
+  const allowance=budget-replay;
+  const result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,allowance),policyPreview:false,
+    initialRecoverySamples:160,sectionStyles:styles,constructionRequests,collectTrajectoryLoss:true});
+  let physicalFrames=result.stats.sim_frames;
+  const fragmentSections=plan.requests.filter(r=>r.construction==='scattered'&&r.section<result.rows.length).map(r=>r.section);
+  const railGuides:Record<number,number[]>=Object.fromEntries(fragmentSections.map(i=>[i,result.rows[i].railGuides??[]]));
   const searchTotals={samples:result.samples,viable:result.stats.viable_candidate_samples,backtracks:result.backtracks,rebuilds:result.engineRebuilds??result.backtracks+2};
-  const work:Array<{stage:string;allowance:number;physicalFrames:number;complete:boolean}>=[{stage:'connected',allowance:sourceBudget,physicalFrames,complete:complete(result)}];
-  let constructionFailure:string|null=null;
-  for(const [i,phrase]of scatter.entries()){
-    if(!complete(result)){constructionFailure='connected-source-incomplete';break;}
-    const sections=Array.from({length:phrase.count},(_,k)=>phrase.first+k),resume=sections.at(-1)!+1;
-    const remaining=budget-replay-physicalFrames,allowance=Math.floor(remaining/(scatter.length-i));
-    const source={...result,fragmentSections,railGuides};
-    const minimum=resume<plan.requests.length?7*replay+2*(plan.requests[resume].frame+1):4*replay;
-    if(allowance<=minimum){constructionFailure='fragment-allowance';break;}
-    if(resume<plan.requests.length){
-      const edit=composeScatteredPhrase(spec,seed,source,sections,[.003],allowance,
-        Object.fromEntries(Object.entries(styles).filter(([index])=>Number(index)>=resume)),{initialRecoverySamples:80});
-      result=edit.result;fragmentSections=edit.fragmentSections;railGuides=edit.railGuides;
-      searchTotals.samples+=result.samples;searchTotals.viable+=result.stats.viable_candidate_samples;
-      searchTotals.backtracks+=result.backtracks;searchTotals.rebuilds+=(result.engineRebuilds??result.backtracks+2)+2;
-      physicalFrames+=edit.physicalFrames;work.push({stage:`scattered:${phrase.first}`,allowance,physicalFrames:edit.physicalFrames,complete:complete(result)});
-    }else{
-      const edit=composeContactSections(spec,source,{sections,widths:[.003],budget:allowance});
-      result={...result,track:edit.track,report:edit.report,trajectoryLoss:edit.trajectoryLoss};
-      fragmentSections=[...fragmentSections,...sections];railGuides=edit.railGuides;
-      searchTotals.rebuilds+=4;
-      physicalFrames+=edit.physicalFrames;work.push({stage:`scattered:${phrase.first}`,allowance,physicalFrames:edit.physicalFrames,complete:complete(result)});
-    }
-  }
+  const work:Array<{stage:string;allowance:number;physicalFrames:number;complete:boolean}>=[{stage:'shared-search',allowance,physicalFrames,complete:complete(result)}];
+  const constructionFailure=complete(result)?null:result.failure?.reason??'incomplete';
   const fragmented=new Set(fragmentSections);
   for(const [section,chains]of arcRailGroups(result.track.lines.filter(l=>!fragmented.has(Math.floor((l.id-1000)/10000)))))railGuides[section]=(chains[1]??[]).map(l=>l.id);
   // This independent physical check is compiler work, charged even on unsuccessful requests.

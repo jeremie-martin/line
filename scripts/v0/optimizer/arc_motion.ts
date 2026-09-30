@@ -24,6 +24,9 @@ import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemo
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
+import {inspectConstruction} from './repertoire_realization.ts';
+import type {ConstructionRequest} from './repertoire_policy.ts';
+import {contactObserver,extendContactObserver,fragmentInterval} from './contact_interval.ts';
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
 // disposal. A private module instance gives replay its own WASM instance and
 // registry without changing judge code or freeing engines retained by callers.
@@ -59,6 +62,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
    * proposal, lookahead and rebuilt continuation. Omitted sections inherit the
    * global settings; this changes construction, never the musical specification. */
   sectionStyles?:Record<number,ArcSectionStyle>;
+  /** Physical construction requirements participate in every proposal and continuation. */
+  constructionRequests?:Record<number,ConstructionRequest>;
   /** Reuse the preliminary track as measured controls in general search. */
   previewMemory?:boolean;
   /** Measured controls retrieved by physical state and authored targets. */
@@ -249,12 +254,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const start=fixed??{position:{x:0,y:0},velocity:{x:speed*Math.cos(pitch),y:speed*Math.sin(pitch)}};
 
   type Prefix={parent?:Prefix;lines?:TrackLine[];key?:string};
+  const hasFragments=Object.values(options.constructionRequests??{}).some(r=>r.construction==='scattered');
+  const trackPrefixes=options.reuseEvaluations||hasFragments;
   const prefixes=new WeakMap<Engine,Prefix>(),rootPrefix:Prefix={key:'root'};
   const memoContexts=new Map<string,Map<string,any>>();
   const prefixKey=(node:Prefix):string=>node.key??=createHash('sha256').update(prefixKey(node.parent!)+'\n'+JSON.stringify(node.lines,(_key,value)=>Object.is(value,-0)?'-0':value)).digest('hex');
   const addArc=(parent:Engine,geometry:TrackLine[])=>{
     const child=parent.addLine(geometry),prefix=prefixes.get(parent);
-    if(options.reuseEvaluations&&prefix)prefixes.set(child,{parent:prefix,lines:geometry});
+    if(trackPrefixes&&prefix)prefixes.set(child,{parent:prefix,lines:geometry});
     return child;
   };
   const detachArc=(source:Engine)=>{
@@ -263,7 +270,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   };
   const rebuildArc=(geometry:TrackLine[])=>{
     const result=createArcEngine(start,geometry);
-    if(options.reuseEvaluations){
+    if(trackPrefixes){
       let prefix=rootPrefix;const groups:TrackLine[][]=[];
       for(const line of geometry){
         const group=Math.floor((line.id-1000)/10000),last=groups.at(-1);
@@ -272,6 +279,18 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       for(const lines of groups)prefix={parent:prefix,lines};prefixes.set(result,prefix);
     }
     return result;
+  };
+  // Share immutable observed prefixes across intervals and search branches.
+  // No whole source ride or repeated suffix is needed to build scattered contacts.
+  const observers=new WeakMap<Prefix,any>();
+  if(hasFragments)observers.set(rootPrefix,contactObserver(start));
+  const observerFor=(engine:Engine)=>{
+    const prefix=prefixes.get(engine);if(!prefix)throw new Error('contact construction requires physical prefix lineage');
+    const missing:Prefix[]=[];let current=prefix;
+    while(!observers.has(current)){missing.push(current);if(!current.parent)throw new Error('missing contact observer root');current=current.parent;}
+    let observer=observers.get(current);
+    for(const p of missing.reverse()){observer=extendContactObserver(observer,p.lines!);observers.set(p,observer);}
+    return observer;
   };
   let engine:any=rebuildArc([]);
   const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[],teacherRows:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
@@ -284,6 +303,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const planningDecisions:any[]=[];
   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+  const fragmentStats={intervals:0,probes:0,observationFrames:0,replayFrames:0};
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
   const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
   const controlMemory=new ArcControlMemory();
@@ -397,7 +417,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i]]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -428,9 +448,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           ((value-target)**2-(1-target)**2)*(options.amplitudeWeight??1)*spanWeight(g,'amplitude');
       };
       const controlContext={...options,span};
-      const evaluate=(c:ArcMotionControl)=>{
+      const evaluate=(c:ArcMotionControl,fragments?:{lines:TrackLine[];guideIds:number[]})=>{
         c=normalizeArcControl(c,controlContext);
-        const key=memo?arcControlMemoKey(c,options.channel):'';
+        const key=memo?arcControlMemoKey(c,options.channel)+(fragments?'|fragments':''):'';
         samples++;
         const saved=memo?.get(key);
         if(saved){
@@ -444,7 +464,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           if(!best||result.optimizationCost<best.optimizationCost)best=result;
           return result;
         }
-        const added=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options),child=addArc(engine,added);
+        const added=fragments?.lines??motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options);
+        if(!added.length)return null;
+        const child=addArc(engine,added);
         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
         const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;return null;};
@@ -457,6 +479,12 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(i===0&&!raw.frames.slice(1,4).some(f=>f.sledContacts.length))return reject('startup');
         if(det.events.some(e=>e.type==='landing'&&!frames.some(f=>Math.abs(e.frame-f)<=1)))return reject('offbeat');
         if(i<contacts.length-1&&!raw.frames.slice(-6).every(f=>f.sledContacts.length===0))return reject('late_release');
+        const request=options.constructionRequests?.[i];
+        if(request&&(request.construction==='scattered'?!!fragments:request.guidance==='required'||request.construction!=='arcs')){
+          const guideIds=fragments?.guideIds??(arcRailGroups(added).get(i)![1]??[]).map(l=>l.id);
+          const fulfillment=inspectConstruction(request,added,new Set(guideIds),raw.frames.slice(frame,horizon+1).map(f=>f.contactLineIds));
+          if(!fulfillment.fulfilled)return reject('construction:'+fulfillment.reasons.join(','));
+        }
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);
         const measuredObjective=options.amplitudeOverflow||options.predictAirBoundary?objectiveAxes(det,{...outgoing,startFrame:i===0?0:frame},objectiveEnd):achieved;
         const residuals:number[]=['air','speed','amplitude'].map(key=>targets[key as keyof typeof targets]===undefined?0:((measuredObjective as any)[key]-(targets as any)[key])*Math.sqrt((key==='amplitude'?(options.amplitudeWeight??1):1)*spanWeight(outgoing,key)));
@@ -525,9 +553,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
           i<contacts.length-1?options.valueGuidanceWeight??0:0);
         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
-          achieved,actualImpact,terminalLoss,release};
+          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds};
         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
-          searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length}});
+          searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length,railGuides:fragments?.guideIds}});
         // Interrupted evaluations never reach this cache insertion.
         if(memo){const {child:_child,...measurement}=result;memo.set(key,{result:measurement,candidate:{...candidates.at(-1)}});}
         if(!best||guided.cost<best.optimizationCost)best=result;
@@ -725,6 +753,24 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(!best)throw error;
       }
       selectBounded();
+      if(best&&options.constructionRequests?.[i]?.construction==='scattered'){
+        fragmentStats.intervals++;
+        const source=candidates.slice().sort((a,b)=>a.cost-b.cost).slice(0,4);
+        candidates.length=0;best=null;
+        const observer=observerFor(engine);
+        for(const proposal of source){
+          const began=getPhysicsFrameCount();fragmentStats.probes++;
+          const fragments=fragmentInterval(observer,proposal.lines,frame,horizon);
+          const observed=getPhysicsFrameCount();fragmentStats.observationFrames+=observed-began;
+          const result=evaluate(proposal.c,fragments);
+          fragmentStats.replayFrames+=getPhysicsFrameCount()-observed;
+          if(result){
+            const prefix=prefixes.get(result.child)!;
+            observers.set(prefix,extendContactObserver(observer,fragments.lines));
+            break;
+          }
+        }
+      }
       return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support,span,inputFeatures};
     };
     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);
@@ -922,7 +968,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       // can invalidate cached prefix frames even for a validated child.
       if(terminalChildLines)best.child=addArc(engine,terminalChildLines);
       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);
-      rows.push({frame,next,incoming,span:interval.span,features:interval.inputFeatures,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,failures,lookahead,spent:getPhysicsFrameCount()});
+      rows.push({frame,next,incoming,span:interval.span,features:interval.inputFeatures,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,railGuides:best.railGuides,failures,lookahead,spent:getPhysicsFrameCount()});
       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\n');
     }
     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){
@@ -941,12 +987,13 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const coldEngine=createArcEngine(start,lines);
   raw=extractRawTrajectory(coldEngine,end);
   // Structured rails are indivisible: guide-only pruning would tear their contours.
-  const guidanceReduction=options.pruneGuidance&&!options.contour?trimUnusedArcGuides(lines,coldEngine,end,resumeAt):null;
+  const fragments=new Set(Object.values(options.constructionRequests??{}).filter(r=>r.construction==='scattered').map(r=>r.section));
+  const guidanceReduction=options.pruneGuidance&&!options.contour?trimUnusedArcGuides(lines,coldEngine,end,resumeAt,fragments):null;
   if(guidanceReduction)lines.splice(0,lines.length,...guidanceReduction.lines);
   disposeSearch();
   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
   const trajectoryLoss=options.collectTrajectoryLoss?arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight).loss:undefined;
-  return{track:buildTrackJson(lines,end,start),report,...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

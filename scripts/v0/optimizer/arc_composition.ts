@@ -8,7 +8,7 @@ import {arcRailGroups} from './arc_guidance.ts';
 import type {Spec} from '../types.ts';
 
 export type ArcSectionStyles = NonNullable<ArcMotionOptions['sectionStyles']>;
-export type CompositionSearch=Pick<ArcMotionOptions,'initialRecoverySamples'>;
+export type CompositionSearch=Pick<ArcMotionOptions,'initialRecoverySamples'|'constructionRequests'>;
 export type CompositionReference=Pick<ReturnType<typeof compileArcMotion>,'track'|'rows'|'report'>&{
   fragmentSections?:number[];railGuides?:Record<number,number[]>;
 };

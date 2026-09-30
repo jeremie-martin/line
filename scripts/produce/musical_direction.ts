@@ -29,8 +29,10 @@ const arg=(key:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(k
 assert.ok(arg('out'),'--out required');
 const out=resolve(arg('out')!),compilerRoot=resolve(arg('compiler-root')??'.');
 const seeds=(arg('seeds')??'301').split(',').map(Number),budget=Number(arg('budget')??1000000);
+const compositionBudget=Number(arg('composition-budget')??budget);
 assert.ok(seeds.length&&seeds.every(Number.isSafeInteger)&&new Set(seeds).size===seeds.length);
 assert.ok(Number.isSafeInteger(budget)&&budget>=20000);
+assert.ok(Number.isSafeInteger(compositionBudget)&&compositionBudget>=20000&&compositionBudget<=budget);
 const songs=(arg('songs')??musicalDirectionCases.map(c=>c.song).join(',')).split(',');
 const allCases=[...musicalDirectionCases,repertoireConfirmationCase];
 assert.ok(songs.every(s=>allCases.some(c=>c.song===s)));
@@ -80,7 +82,7 @@ const harnessPaths=['scripts/produce/musical_direction.ts','scripts/produce/musi
   'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/methods.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/measure.ts'];
 const harness=galleryHarnessIdentity(harnessPaths);
 const plan={schema:'line.musical-direction-plan.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,
-  cases,seeds,budgets:[budget],methods,methodDetails,geometry,geometryStyle,jolt,repertoire:repertoire??null,
+  cases,seeds,budgets:[budget],compositionBudget,methods,methodDetails,geometry,geometryStyle,jolt,repertoire:repertoire??null,
   note:'Real music, unchanged authored targets, normal lines only. Full tracks are compiled and independently validated. Local changes lock earlier geometry and rebuild the complete continuation. No aesthetic approval is implied. Each alternative has its own stated allowance; shared baseline work is counted once per comparison set.'};
 mkdirSync(out,{recursive:true});
 const write=(name:string,value:unknown)=>writeGalleryJson(out,name,value);
@@ -106,17 +108,18 @@ for(const c of cases)for(const seed of seeds){
       phrases=[{title:c.moments[0].title,window:c.guidance,style:method==='ripple'?ripple:geometryStyle},
         {title:c.moments[2].title,window:c.mixed,style:method==='candidate'?geometryStyle:ripple}];
       styles=stylesForPhrases(reference.rows,phrases);
-      composition=composeArcSections(spec,seed,reference,styles,budget);
+      composition=composeArcSections(spec,seed,reference,styles,compositionBudget);
     }else if(!repertoire&&(method==='mixed'||method==='guidance')){
       const window=c[method],style=method==='mixed'?geometryStyle:{guides:false};
       phrases=[{title:methodDetails[method].title,window,style}];
       styles=stylesForPhrases(reference.rows,phrases);
-      composition=composeArcSections(spec,seed,reference,styles,budget);
+      composition=composeArcSections(spec,seed,reference,styles,compositionBudget);
     }
     const result=composition?.result??compileArcMotion(spec,seed,{...connectedArcOptions(spec,budget),collectTrajectoryLoss:true,
       ...(method===geometry?geometryStyle:{})});
     const compileMs=performance.now()-began,physicalFrames=composition?.physicalFrames??result.stats.sim_frames;
-    assert.ok(physicalFrames<=budget);compileWork+=physicalFrames;totalMs+=compileMs;
+    const allowance=composition?compositionBudget:budget;
+    assert.ok(physicalFrames<=allowance);compileWork+=physicalFrames;totalMs+=compileMs;
     if(method==='baseline')reference=result;
     const validationStarted=performance.now();
     const {grade,trace,collisionIds}=replayGalleryTrack(result.track,c as unknown as Case,true);
@@ -157,10 +160,10 @@ for(const c of cases)for(const seed of seeds){
     save('track.json',result.track);save('report.json',result.report);
     save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,proposalDecision:result.proposalDecision,
       failure:result.failure,styles,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
-    save('budget-telemetry.json',{schema:'line.musical-direction-budget.v1',budget,physicalFrames,
+    save('budget-telemetry.json',{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
       preparationFrames:composition?.preparationFrames??0,constructionFrames:result.stats.sim_frames,
       includes:'All search and cold replay work for this alternative, plus prefix preparation. Baseline creation is accounted once in the comparison set. Independent evaluation and rendering are separate.'});
-    const cell={id,caseId:c.id,method,railLayout:'connected',seed,jitter:c.jitter,budget,score:grade.score,
+    const cell={id,caseId:c.id,method,railLayout:'connected',seed,jitter:c.jitter,budget,allowance,score:grade.score,
       compileMs,physicalFrames,validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
       trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,
       terminus:grade.terminus,failure:result.failure,valid,qualityRms:grade.score.weightedAxisRms,usage,sections,
@@ -174,7 +177,8 @@ for(const c of cases)for(const seed of seeds){
     console.log(JSON.stringify({id,valid,score:grade.score.score,rms:cell.qualityRms,physicalFrames,seconds:compileMs/1000,
       guided:usage.guideSections,changedSections:cell.construction.changedSections,prefixFrames,changedMotionFrames}));
   }
-  const accounting={caseId:c.id,seed,budgetPerAlternative:budget,totalAllowance:methods.length*budget,physicalFrames:compileWork,compileMs:totalMs};
+  const accounting={caseId:c.id,seed,allowances:Object.fromEntries([...byMethod].map(([method,c])=>[method,c.allowance])),
+    totalAllowance:[...byMethod.values()].reduce((sum,c)=>sum+c.allowance,0),physicalFrames:compileWork,compileMs:totalMs};
   assert.ok(compileWork<=accounting.totalAllowance);sets.push(accounting);
   write(setPath,{planSha256,cells:[...byMethod.values()],accounting});
 }

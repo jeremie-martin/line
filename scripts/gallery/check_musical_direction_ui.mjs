@@ -19,7 +19,10 @@ try{
     await page.waitForFunction(()=>[...document.querySelectorAll('video')].every(v=>!v.seeking&&v.readyState>=2));};
   await page.goto(url);await ready();
   assert.equal(await page.locator('#variant').inputValue(),'mixed');
-  assert.equal(+(await page.locator('#seek').inputValue()),manifest.plan.cases[0].moments.find(m=>m.time===manifest.plan.cases[0].mixed[0]).time);
+  const firstCase=manifest.plan.cases[0],focus=manifest.plan.repertoire?firstCase.guidance[0]:firstCase.mixed[0];
+  assert.equal(+(await page.locator('#seek').inputValue()),firstCase.moments.reduce((best,m)=>Math.abs(m.time-focus)<Math.abs(best.time-focus)?m:best).time);
+  const otherMethod=manifest.plan.methods.includes('guidance')?'guidance':'ripple';
+  const shapeMethod=manifest.plan.repertoire?'candidate':manifest.plan.geometry??'facets';
   let comparisons=0;
   for(const c of manifest.plan.cases)for(const seed of manifest.plan.seeds)for(const method of manifest.plan.methods.filter(m=>m!=='baseline')){
     await page.evaluate(({song,seed,method})=>{
@@ -37,14 +40,14 @@ try{
   assert.deepEqual(await page.locator('video').evaluateAll(vs=>vs.map(v=>v.muted)),[false,true]);
   const time=await page.locator('video').evaluateAll(vs=>vs.map(v=>v.currentTime));assert.ok(time.every(t=>Math.abs(t-24.8)<.01));
   await page.locator('#play').click();await page.waitForFunction(()=>document.getElementById('baseline').currentTime>25.1);
-  await page.selectOption('#variant','guidance');await ready();assert.equal(await page.locator('#play').textContent(),'Pause');
+  await page.selectOption('#variant',otherMethod);await ready();assert.equal(await page.locator('#play').textContent(),'Pause');
   assert.ok(+(await page.locator('#seek').inputValue())>=25.1);
   assert.ok((await page.locator('#moment-label').textContent()).includes(manifest.plan.cases[0].moments.at(-1).title));
   await page.evaluate(seeds=>{for(const seed of seeds){const s=document.getElementById('seed');s.value=String(seed);s.dispatchEvent(new Event('change'));}},[...manifest.plan.seeds].reverse());
   await ready();assert.equal(await page.locator('#play').textContent(),'Pause');await page.locator('#play').click();
   assert.ok(await page.locator('video').evaluateAll(vs=>Math.abs(vs[0].currentTime-vs[1].currentTime)<.001));
   await page.selectOption('#rate','0.5');assert.deepEqual(await page.locator('video').evaluateAll(vs=>vs.map(v=>v.playbackRate)),[.5,.5]);
-  await page.selectOption('#variant',manifest.plan.geometry??'facets');await ready();
+  await page.selectOption('#variant',shapeMethod);await ready();
   assert.deepEqual(await page.locator('video').evaluateAll(vs=>vs.map(v=>v.playbackRate)),[.5,.5]);
   await page.selectOption('#rate','1');
   // A pause while a replacement is downloading must cancel resume intent.
@@ -52,10 +55,10 @@ try{
   await page.locator('#play').click();await page.selectOption('#variant','mixed');await page.locator('#play').click();
   await ready();assert.equal(await page.locator('#play').textContent(),'Play');await page.unroute('**/*.video.json');
   // Temporary download failures are retried instead of being cached forever.
-  let fail=true;await page.route('**/*-guidance.video.json',route=>fail?route.fulfill({status:503,body:'temporary'}):route.continue());
-  await page.selectOption('#variant','guidance');await page.waitForFunction(()=>!document.getElementById('retry').hidden);
+  let fail=true;await page.route(`**/*-${otherMethod}.video.json`,route=>fail?route.fulfill({status:503,body:'temporary'}):route.continue());
+  await page.selectOption('#variant',otherMethod);await page.waitForFunction(()=>!document.getElementById('retry').hidden);
   assert.equal(await page.locator('#play').isDisabled(),true);
-  fail=false;await page.locator('#retry').click();await ready();await page.unroute('**/*-guidance.video.json');
+  fail=false;await page.locator('#retry').click();await ready();await page.unroute(`**/*-${otherMethod}.video.json`);
   await page.selectOption('#variant','mixed');await ready();await page.locator('#moments button').last().click();await seek(24.8);
   assert.ok(await page.locator('#targets tr').count()>0);
   const inspect=await page.locator('#inspect').getAttribute('href'),native=await browser.newPage();await native.goto(inspect);

@@ -43,7 +43,7 @@ async function select(){
   baseline=manifest.cells.find(c=>c.caseId===song&&c.seed===seed&&c.method==='baseline');
   selected=manifest.cells.find(c=>c.caseId===song&&c.seed===seed&&c.method===$('variant').value);
   if(!baseline||!selected){$('status').textContent='This recorded comparison is missing.';return;}
-  const focus=selected.method==='mixed'?caseInfo.mixed[0]:selected.method==='guidance'?caseInfo.guidance[0]:caseInfo.moments[0].time;
+  const focus=selected.construction.phrases?.[0]?.window[0]??(selected.method==='mixed'?caseInfo.mixed[0]:selected.method==='guidance'?caseInfo.guidance[0]:caseInfo.moments[0].time);
   const defaultMoment=caseInfo.moments.reduce((best,m)=>Math.abs(m.time-focus)<Math.abs(best.time-focus)?m:best);
   if(oldSong!==song){seconds=defaultMoment.time;stopAt=caseInfo.durationFrames/40;}
   $('intent').textContent=caseInfo.intent;$('alternative-title').textContent=manifest.plan.methodDetails[selected.method].title;
@@ -51,12 +51,22 @@ async function select(){
   $('alternative-metrics').textContent=`Whole-ride target error ${format(selected.qualityRms,4)} RMS · ${format(selected.compileMs/1000,2)} s compilation`;
   const changed=selected.construction.changedSections.map(i=>selected.sections.find(s=>s.section===i));
   const interval=changed.length?`${format(changed[0].start,2)}–${format(changed.at(-1).end,2)} s`:null;
-  $('decision').textContent=selected.method==='mixed'?`${manifest.plan.methodDetails[selected.method].title}: changed supports at ${interval}, followed by smooth construction.`:
+  $('decision').textContent=manifest.plan.repertoire?manifest.plan.methodDetails[selected.method].description:
+    selected.method==='mixed'?`${manifest.plan.methodDetails[selected.method].title}: changed supports at ${interval}, followed by smooth construction.`:
     selected.method==='guidance'?`Guide-free supports at ${interval}; guidance is permitted again afterwards.`:
     `${manifest.plan.methodDetails[selected.method].title}: an independently searched complete ride.`;
+  $('phrases').replaceChildren(...(selected.construction.phrases??[]).map(phrase=>{
+    const rows=changed.filter(r=>r.start>=phrase.window[0]&&r.start<phrase.window[1]);
+    const name={scallops:'Ripple',terraces:'Terraced',serpentine:'Serpentine'}[phrase.style.profile]??(phrase.style.guides===false?'Guide-free':'Faceted');
+    const button=document.createElement('button');
+    button.textContent=`${name}${phrase.style.profileStrength===undefined?'':` · strength ${phrase.style.profileStrength}`} · ${format(rows[0]?.start,2)}–${format(rows.at(-1)?.end,2)} s`;
+    button.onclick=()=>{pause();seek(Math.max(0,(rows[0]?.start??phrase.window[0])-.5));
+      showMoment(caseInfo.moments.reduce((best,m)=>Math.abs(m.time-phrase.window[0])<Math.abs(best.time-phrase.window[0])?m:best));};
+    return button;
+  }));
   $('construction').textContent=selected.construction.boundaryFrame===null?'This independent comparison can change the whole ride.':
     `Earlier geometry and every rider point match the baseline through ${format(selected.construction.boundaryFrame/40,3)} s. The complete later ride is rebuilt. ${selected.construction.changedMotionFrames} recorded frames differ in rider position. These checks establish a physical change, not an aesthetic improvement.`;
-  $('work').textContent=`Baseline: ${baseline.physicalFrames.toLocaleString()} simulated frames. Alternative: ${selected.physicalFrames.toLocaleString()}, including prefix preparation. Each has a ${selected.budget.toLocaleString()} frame ceiling. Independent validation and video rendering are additional work. Target jitter: ${caseInfo.jitter}; different seeds can produce identical tracks.`;
+  $('work').textContent=`Baseline: ${baseline.physicalFrames.toLocaleString()} simulated frames, ceiling ${(baseline.allowance??baseline.budget).toLocaleString()}. Alternative: ${selected.physicalFrames.toLocaleString()}, including prefix preparation, ceiling ${(selected.allowance??selected.budget).toLocaleString()}. Independent validation and video rendering are additional work. Target jitter: ${caseInfo.jitter}; different seeds can produce identical tracks.`;
   const inspect=new URL('/motion-gallery/',location.href);inspect.searchParams.set('data',manifestUrl.pathname);inspect.searchParams.set('passage',song);inspect.searchParams.set('seed',seed);inspect.searchParams.set('left','baseline');inspect.searchParams.set('right',selected.method);inspect.searchParams.set('time',seconds);
   $('inspect').href=inspect;$('record').href=new URL(selected.path,manifestUrl);
   $('moments').replaceChildren(...caseInfo.moments.map(m=>{const b=document.createElement('button');b.textContent=m.title;b.dataset.time=m.time;b.onclick=()=>{pause();seek(m.time);showMoment(m);};return b;}));
@@ -92,6 +102,6 @@ try{
   manifest=await checked(manifestUrl.href);
   if(manifest.plan.kind!=='musical-direction')throw new Error('Not a musical direction study');
   choices('song',manifest.plan.cases.map(c=>c.id),id=>manifest.plan.cases.find(c=>c.id===id).title);
-  choices('seed',manifest.plan.seeds);choices('variant',manifest.plan.methods.filter(m=>m!=='baseline'),id=>manifest.plan.methodDetails[id].title);$('variant').value='mixed';
+  choices('seed',manifest.plan.seeds);choices('variant',manifest.plan.methods.filter(m=>m!=='baseline'),id=>manifest.plan.methodDetails[id].title);$('variant').value=manifest.plan.methods.includes('mixed')?'mixed':manifest.plan.methods.find(m=>m!=='baseline');
   await select();
 }catch(e){$('status').textContent=`Cannot open this comparison: ${e.message}`;}

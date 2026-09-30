@@ -19,9 +19,10 @@ for(const cell of cells){
   const raw=readFileSync(join(root,cell.path));assert.equal(sha(raw),cell.sha256);const r=JSON.parse(raw.toString());
   assert.equal(r.planSha256,manifest.planSha256);assert.equal(sha(JSON.stringify(r.track)),cell.trackHash);
   assert.ok(r.track.lines.every((l:any)=>l.type===0));normalLines+=r.track.lines.length;
-  assert.ok(r.physicalFrames<=r.budget);records.set(r.id,r);
+  assert.ok(r.physicalFrames<=(r.allowance??r.budget));records.set(r.id,r);
   const budget=JSON.parse(readFileSync(join(root,r.id,'budget-telemetry.json'),'utf8'));
   assert.equal(r.physicalFrames,budget.preparationFrames+budget.constructionFrames);
+  assert.equal(budget.budget,r.allowance??r.budget);
   assert.equal(r.valid,r.score.valid);
 }
 for(const r of records.values())if(r.construction.boundaryFrame!==null){

@@ -97,11 +97,15 @@ async function showPalette(token, load) {
       button.setAttribute('aria-pressed',String(r.method===$('right-method').value)); button.dataset.method=r.method;
       const label=document.createElement('strong'); label.textContent=title(r.method);
       const preview=document.createElement('canvas'); preview.setAttribute('aria-hidden','true');
-      const beat=r.case.contacts[Math.min(1,r.case.contacts.length-1)], at=Math.min(beat.frame+4,r.trace.frames.length-1);
+      // Local composition previews must show the edited phrase, not the shared
+      // startup (which can make every construction look identical).
+      const previewTime=manifest.plan.kind==='musical-direction'
+        ?(manifest.plan.repertoire?r.case.guidance[0]:r.case.mixed[0]):null;
+      const beat=(previewTime===null?null:r.case.contacts.find(c=>c.frame>=previewTime*40))??r.case.contacts[Math.min(1,r.case.contacts.length-1)], at=Math.min(beat.frame+4,r.trace.frames.length-1);
       const [x,y]=r.trace.frames[at];
       // Fixed world framing, native line thickness and Bosh artwork in previews too.
       r.native.view.draw(preview,{w:220,h:140,x:x+45,y,z:1,r:devicePixelRatio||1},at);
-      const note=document.createElement('span'); note.textContent=`${r.score.valid?'Pass':'Failed contract'} · ${number(r.score.score)} / 1000`; note.className=r.score.valid?'':'failure';
+      const note=document.createElement('span'); note.textContent=`${r.score.valid?'Pass':'Failed contract'} · ${number(r.score.score)} / 1000${previewTime===null?'':` · ${(at/40).toFixed(2)} s`}`; note.className=r.score.valid?'':'failure';
       button.append(preview,label,note); button.title=manifest.plan.methodDetails?.[r.method]?.description ?? title(r.method);
       button.onclick=()=>{$('right-method').value=r.method;select();};
       $('palette').append(button);

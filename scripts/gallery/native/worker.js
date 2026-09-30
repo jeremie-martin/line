@@ -12,8 +12,10 @@ self.onmessage=({data:{request,track,trace}})=>{
     const started=performance.now();
     const engine=new Engine().setRiders(track.riders).addLines(track.lines.map(l=>createLineFromJson({...l})));
     let maxError=0;
+    const contacts=[];
     const frames=trace.frames.map((expected,index)=>{
       const rider=engine.getRawRider(index);
+      contacts.push([...engine.getFrame(index).involvedLineIds]);
       const points=rider.points.map(({name,pos})=>({name,pos:{x:pos.x,y:pos.y}}));
       for(let p=0;p<trace.pointIds.length;p++){
         const point=points.find(v=>v.name===trace.pointIds[p]);
@@ -26,6 +28,6 @@ self.onmessage=({data:{request,track,trace}})=>{
       }
       return {points,framesSinceUnmount:rider.framesSinceUnmount,framesSinceSledBreak:rider.framesSinceSledBreak,framesSinceStringDetached:rider.framesSinceStringDetached};
     });
-    self.postMessage({request,frames,maxError,replayMs:performance.now()-started});
+    self.postMessage({request,frames,contacts,maxError,replayMs:performance.now()-started});
   } catch(error) {self.postMessage({request,error:error.message});}
 };

@@ -7,6 +7,14 @@ plug-in framework, motion motifs, style quotas, or new specification controls.
 
 ## Current gallery
 
+An optional **Inspect rail contacts** view now identifies guide rails and
+actual collided segments, with buttons to jump between guide-contact frames.
+A separate [single-versus-paired study](motion-gallery-guidance-2026-09-30.md)
+contains 144 matched rides, including 48 independently searched without guides.
+All pass timing and survival; guides improve average adherence, while single
+rails outperform them on most quiet-tail comparisons. These are measured
+search results, not geometric capability ceilings or automatic style rules.
+
 The gallery focuses on eight functional geometry choices: arcs with trimmed
 or full paired guides, improved scattered segments, waves, facets, serpentine
 rails, terraces and ripples. The original scattered controller remains an

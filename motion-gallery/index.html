@@ -7,6 +7,7 @@
 <main>
 <div class="intro"><p class="eyebrow">GEOMETRY STUDIES · 04</p><h1>Same passage. Different tracks.</h1>
 <p>Functional shapes: arcs with trimmed or full guides, fragments, waves, facets, serpentine curves, terraces and ripples. Every shape uses normal lines. See the actual Bosh artwork and Line Rider line rendering, verified against each recorded physics replay, including unsuccessful attempts.</p></div>
+<nav class="study-links" aria-label="Gallery study"><a href="/motion-gallery/">Shape gallery</a><a href="?data=/generated/motion-gallery/20260930-guidance-choice/manifest.json">Single vs paired rails</a></nav>
 <div id="status" role="status">Loading the local study…</div>
 <section class="controls" aria-label="Comparison controls">
 <label>Left track<select id="left-method"></select></label><label>Right track<select id="right-method"></select></label>
@@ -14,6 +15,7 @@
 <label>Seed<select id="seed"></select></label><label>View<select id="view"><option value="follow">Follow rider</option><option value="overview">Whole track</option></select></label>
 <label>Playback<select id="rate"><option value="1">1×</option><option value="0.5">½×</option><option value="0.25">¼×</option></select></label>
 </section>
+<div class="inspection-control"><label><input id="inspect" type="checkbox"> Inspect rail contacts</label><span id="contact-legend" hidden><span class="guide-key">Blue: guide rail</span> · <span class="touch-key">Orange: segments with collisions in the displayed physics frame</span></span></div>
 <section class="palette-section" aria-label="Geometry choices"><p>Choose a shape for the right-hand track. These previews show the same authored beat in each measured ride.</p><div id="palette" class="palette"></div><p id="palette-status" role="status"></p></section>
 <section class="transport" aria-label="Playback"><button id="play" disabled>Play</button><input id="seek" type="range" min="0" max="1" step="0.025" value="0" aria-label="Playback time"><output id="time">0.00 s</output></section>
 <div id="beats" class="beats" aria-label="Authored beat positions"></div>

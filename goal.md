@@ -1,3 +1,17 @@
+# Guide choice and contact inspection — 2026-09-30
+
+The [gallery now exposes actual guide contacts](docs/motion-gallery-guidance-2026-09-30.md)
+and compares independently searched single rails against trimmed and full paired
+guides. All **144 matched rides** pass timing and survival across six research
+passages, four fresh target-jitter seeds and two allowances, using only normal
+lines. Single rails have lower mean adherence but win **9 of 48 comparisons**,
+including seven of eight quiet-tail comparisons; no geometry ceiling or general
+selection rule is claimed. Production remains **952.4726**, with all **352
+canonical outputs and work counts exactly unchanged**. The completed performance
+goal stays complete. All 175 focused tests pass; native collision IDs agree with
+the fixed engine across 360 gallery rides and 108,840 frames. Code and compact
+evidence are versioned; large archives remain local.
+
 # Gallery refinement — 2026-09-30
 
 The [functional gallery](docs/motion-gallery-native-2026-09-30.md) now offers

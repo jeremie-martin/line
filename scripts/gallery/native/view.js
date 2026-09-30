@@ -1,3 +1,4 @@
+import {inspectRailContacts} from '../contacts.ts';
 // These are the mirror's actual Canvas drawing and sprite-mapping functions.
 // Keep them unmodified; the surrounding gallery owns only loading and cameras.
 const {render:drawLines}=require('native:805');
@@ -28,18 +29,33 @@ export function riderAt(frames,at){
   return {points:a.points.map((p,i)=>({name:p.name,pos:{x:mix(p.pos.x,b.points[i].pos.x),y:mix(p.pos.y,b.points[i].pos.y)}})),
     framesSinceUnmount:mix(a.framesSinceUnmount,b.framesSinceUnmount),framesSinceSledBreak:mix(a.framesSinceSledBreak,b.framesSinceSledBreak),framesSinceStringDetached:mix(a.framesSinceStringDetached,b.framesSinceStringDetached)};
 }
-export function createView(track,frames,sheet){
+export function createView(record,native,sheet){
+  const {track}=record,{frames,contacts}=native;
+  if(contacts.length!==frames.length)throw new Error('Incomplete collision replay');
+  const inspection=inspectRailContacts(record,contacts);
   const lines=track.lines.map(l=>({...l,p1:{x:l.x1,y:l.y1},p2:{x:l.x2,y:l.y2}}));
   const generator=new EntityGenerator(0),overlay=document.createElement('canvas');
-  return {draw(canvas,camera,at){
+  const byId=new Map(lines.map(line=>[line.id,line]));
+  const highlight=(context,camera,ids,color)=>{
+    const scale=camera.z*camera.r;
+    context.setTransform(scale,0,0,scale,camera.w*camera.r/2-camera.x*scale,camera.h*camera.r/2-camera.y*scale);
+    context.lineWidth=2;context.lineCap='round';context.strokeStyle=color;context.beginPath();
+    for(const id of ids){const l=byId.get(id);context.moveTo(l.x1,l.y1);context.lineTo(l.x2,l.y2);}
+    context.stroke();context.setTransform(1,0,0,1,0,0);
+  };
+  return {inspection,draw(canvas,camera,at,inspect=false){
     const frame=Math.max(0,Math.min(at,frames.length-1));
     const entity=generator.makeRider({getRawRiders:()=>[riderAt(frames,frame)]},undefined,frame,1);
     const width=Math.round(camera.w*camera.r),height=Math.round(camera.h*camera.r);
+    if(width<=0||height<=0)return; // Detached or hidden comparison panel.
     if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
     if(overlay.width!==width||overlay.height!==height){overlay.width=width;overlay.height=height;}
     const context=canvas.getContext('2d');
     drawLines(context,camera,{color:false},lines);
+    if(inspect)highlight(context,camera,inspection.guideIds,'#2468ba');
     drawSprites(overlay.getContext('2d'),camera,sheet,[entity]);
     context.setTransform(1,0,0,1,0,0);context.globalAlpha=1;context.drawImage(overlay,0,0);
+    // Keep the collided segments visible even when Bosh's artwork covers them.
+    if(inspect)highlight(context,camera,inspection.byFrame[Math.floor(frame)].all,'#d35400');
   }};
 }

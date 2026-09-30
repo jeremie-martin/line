@@ -19,7 +19,7 @@ const options = (id, values, label = String) => $(id).replaceChildren(...values.
 function pause() { cancelAnimationFrame(animation); animation=undefined; playing = false; $('play').textContent = 'Play'; }
 function cellCard(record) {
   const card = document.createElement('article'); card.className = 'card';
-  card.innerHTML = '<div class="card-head"><h2></h2><span class="badge"></span></div><canvas aria-label="Recorded track playback"></canvas><div class="metrics"></div><div class="interval"></div><div class="details"></div>';
+  card.innerHTML = '<div class="card-head"><h2></h2><span class="badge"></span></div><canvas aria-label="Recorded track playback"></canvas><div class="contact-inspection" hidden><p class="guide-summary"></p><p class="contact-now"></p><div class="contact-navigation"></div></div><div class="metrics"></div><div class="interval"></div><div class="details"></div>';
   card.querySelector('h2').textContent = title(record.method);
   const badge = card.querySelector('.badge'); badge.textContent = record.score.valid ? 'Timing & survival pass' : 'Failed contract';
   badge.classList.toggle('fail', !record.score.valid);
@@ -34,6 +34,20 @@ function cellCard(record) {
   const text = document.createElement('p'); text.textContent = `${number(record.lines)} normal segments · seed ${record.seed} · ${(100 * record.jitter).toFixed(0)}% target jitter · allowance ${number(record.budget)} frames.`; details.append(text);
   if (!record.score.valid) {const failure = document.createElement('p'); failure.className = 'failure'; failure.textContent = record.score.hardFailures.join(' · '); details.append(failure);}
   const link = document.createElement('a'); link.href = new URL(record.path, manifestUrl); link.textContent = 'Track, targets and replay data'; details.append(link);
+  record.inspector=card.querySelector('.contact-inspection');
+  record.contactNow=card.querySelector('.contact-now');
+  const inspection=record.native.view.inspection,{summary,layout}=inspection;
+  card.querySelector('.guide-summary').textContent=layout==='connected'?
+    (summary.guideSections?`${summary.touchedGuideSections} of ${summary.guideSections} guide rails contacted over this replay · ${summary.supportSections} support sections. Contact does not establish necessity.`:`${summary.supportSections} main-rail sections. No guide rails are present.`):
+    layout==='fragments'?'Scattered fragments have no designated guide rail. Actual segment collisions are highlighted.':'Rail roles are unavailable for this archived geometry. Actual segment collisions are highlighted.';
+  record.contactButtons=[-1,1].map(direction=>{
+    const button=document.createElement('button');button.textContent=direction<0?'Previous guide contact':'Next guide contact';
+    button.onclick=()=>{
+      const at=Math.floor(seconds*40),frames=inspection.guideFrames;
+      const next=direction<0?frames.findLast(f=>f<at):frames.find(f=>f>at);
+      if(next!==undefined){pause();seconds=next/40;$('seek').value=String(seconds);draw();}
+    };card.querySelector('.contact-navigation').append(button);return button;
+  });
   record.canvas = card.querySelector('canvas'); record.interval = card.querySelector('.interval');
   const coords = record.track.lines.flatMap(l => [[l.x1, l.y1], [l.x2, l.y2]]);
   for (const frame of record.trace.frames) coords.push([frame[0], frame[1]]);
@@ -104,7 +118,16 @@ function drawCard(r) {
     const bounds=r.bounds;scale=Math.min((w-50)/Math.max(60,bounds[2]-bounds[0]),(h-50)/Math.max(60,bounds[3]-bounds[1]));
     x=(bounds[0]+bounds[2])/2;y=(bounds[1]+bounds[3])/2;
   }else{scale=Math.min(w/250,h/190);x=a[0]*(1-fraction)+b[0]*fraction+40;y=a[1]*(1-fraction)+b[1]*fraction;}
-  r.native.view.draw(canvas,{w,h,x,y,z:scale,r:dpr},at);
+  const inspect=$('inspect').checked;
+  r.native.view.draw(canvas,{w,h,x,y,z:scale,r:dpr},at,inspect);
+  r.inspector.hidden=!inspect;
+  if(inspect){
+    const {byFrame,guideFrames,layout}=r.native.view.inspection,contact=byFrame[f];
+    const text=contact.all.length?(layout==='connected'?`Colliding segments — guide: ${contact.guides.length}, main: ${contact.all.length-contact.guides.length}.`:`${contact.all.length} segments collided.`):'No segment collisions.';
+    r.contactNow.textContent=`${seconds*40>at?'Last recorded frame':'Frame'} ${f}: ${text}`;
+    r.contactButtons[0].disabled=!guideFrames.length||f<=guideFrames[0];
+    r.contactButtons[1].disabled=!guideFrames.length||f>=guideFrames.at(-1);
+  }
   const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#56665c';ctx.font='12px system-ui';
   ctx.fillText(seconds*40>r.trace.frames.length-1?`Replay ended: ${r.terminus.reason}`:`Frame ${Math.floor(seconds*40)}`,14,22);
   const frame = Math.round(seconds*40), observations = r.observations.filter(o => frame >= o.startFrame && frame <= o.endFrame);
@@ -123,6 +146,7 @@ function drawCard(r) {
 function draw() { $('time').textContent = `${seconds.toFixed(2)} s`; records.forEach(drawCard); }
 function tick(now) {animation=undefined;if (playing) {seconds = Math.min(+$('seek').max, seconds + (now-previous)/1000*(+$('rate').value)); $('seek').value=String(seconds); draw(); if (seconds >= +$('seek').max) pause();} previous=now; if(playing)animation=requestAnimationFrame(tick);}
 $('play').onclick = () => {if (playing) pause(); else {if(seconds >= +$('seek').max)seconds=0; playing=true; previous=performance.now(); animation=requestAnimationFrame(tick); $('play').textContent='Pause';}};
+$('inspect').onchange=()=>{$('contact-legend').hidden=!$('inspect').checked;draw();};
 $('seek').oninput = () => {seconds=+$('seek').value; draw();}; $('view').onchange = draw;
 for (const id of ['passage','budget','seed','left-method','right-method']) $(id).onchange = select;
 window.addEventListener('resize', draw); document.addEventListener('visibilitychange', () => {if(document.hidden)pause();});
@@ -131,6 +155,7 @@ try {
   manifest = await read(manifestUrl, await checksum.text());
   if(manifest.schema !== 'line.motion-gallery.v1')throw new Error('Unsupported study format.');
   for(const id of ['left-method','right-method'])options(id,manifest.plan.methods,title);
+  if(manifest.plan.methods.includes('single'))$('left-method').value='single';
   $('right-method').value=manifest.plan.methods.includes('paired')?'paired':manifest.plan.methods.includes('scattered')?'scattered':(manifest.plan.methods[1] ?? manifest.plan.methods[0]);
   options('passage', manifest.plan.cases.map(c=>c.id), id=>manifest.plan.cases.find(c=>c.id===id).title);
   options('budget', manifest.plan.budgets, b=>`${number(b)} frames`); $('budget').value=String(manifest.plan.budgets.includes(100000)?100000:manifest.plan.budgets.at(-1)); options('seed',manifest.plan.seeds);

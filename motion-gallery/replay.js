@@ -30,5 +30,5 @@ export async function prepareView(record,digest){
   }
   const entry=cache.get(digest);cache.delete(digest);cache.set(digest,entry);
   const {module,sheet,native}=await entry;
-  return {view:module.createView(record.track,native.frames,sheet),replayMs:native.replayMs,maxError:native.maxError};
+  return {view:module.createView(record,native,sheet),replayMs:native.replayMs,maxError:native.maxError};
 }

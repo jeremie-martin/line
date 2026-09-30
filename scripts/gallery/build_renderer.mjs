@@ -18,7 +18,7 @@ const result=await build({absWorkingDir:root,entryPoints:['scripts/gallery/nativ
       sources[path]=sha(contents);return {contents,loader:'js'};
     });
   }}]});
-for(const path of ['scripts/gallery/build_renderer.mjs','scripts/gallery/native/view.js','scripts/gallery/native/worker.js','mirror/_v2153.0/bosh-sprite.svg'])sources[path]=sha(readFileSync(resolve(root,path)));
+for(const path of [...Object.keys(result.metafile.inputs).filter(p=>!p.startsWith('native:')), 'scripts/gallery/build_renderer.mjs','scripts/gallery/native/view.js','scripts/gallery/native/worker.js','mirror/_v2153.0/bosh-sprite.svg'])sources[path]=sha(readFileSync(resolve(root,path)));
 const outputs=Object.fromEntries(Object.keys(result.metafile.outputs).map(p=>[p,sha(readFileSync(resolve(root,p)))]));
 writeFileSync(resolve(out,'identity.json'),JSON.stringify({version:'v2153.0',sources,outputs},null,2)+'\n');
 console.log(`Gallery renderer: ${Object.keys(sources).length} pinned local sources; ${Object.values(result.metafile.outputs).reduce((n,o)=>n+o.bytes,0)} bytes.`);

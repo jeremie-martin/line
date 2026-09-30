@@ -7,6 +7,13 @@ plug-in framework, motion motifs, style quotas, or new specification controls.
 
 ## Current gallery
 
+Start with the [music review](http://localhost:8767/motion-gallery/music.html) for
+finished Luna and Amor videos, deliberate guide-free and arc–facet–arc phrases,
+and the exact same rides in the native inspector. The [results](musical-direction-results.md)
+report local musical consequences, whole-ride quality and actual work. Owner
+visual preference remains open. The guide-choice studies below are supporting
+experiments with an explicit fewer-guides preference, not the overall artistic goal.
+
 The [Arcs & facets guide-choice experiment](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-coverage/manifest.json)
 now makes one artistic preference explicit: prefer fewer guided sections, then
 shorter visible guides, while keeping measured whole-ride motion error within a

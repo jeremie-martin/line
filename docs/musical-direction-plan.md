@@ -81,9 +81,15 @@ reference material and will not be committed without a request.
 
 ## Work record
 
-Implementation in progress. Results and unresolved questions will be recorded
-here with links to the resulting artifacts and evidence, preserving the scope
-above rather than substituting a narrower numerical target.
+The first implementation and declared study are complete. The owner reports
+that the mixed phrase looks too similar to baseline, so the artistic milestone
+is not complete. See the [results and
+reproduction guide](musical-direction-results.md) and the
+[music review](http://localhost:8767/motion-gallery/music.html). The 24 valid runs
+produce eight distinct rides across the two songs, with full production videos,
+local construction/contact checks and exact default V4 parity. Artistic
+preference remains awaiting owner review; the examples are provisional and have
+not changed production defaults.
 
 The concrete Luna hypotheses are a guide-free vocal build (supports beginning
 between 6.4 and 8.55 seconds) and an angular climax (24.2 to 25.8 seconds), followed
@@ -102,3 +108,12 @@ GPT-6.1-Sol independently reviewed the transcript and agreed plan. Its main
 recommendation was to make local composition central, verify actual geometry and
 contacts at the return to arcs, and report local target losses as well as global
 quality. The implementation follows those recommendations.
+
+### Owner feedback and next execution
+
+The first arc–facet–arc comparison has too little visible contrast at production
+scale. Physical differences and segmentation checks are not sufficient. Preserve
+this result and try a local phrase with an existing construction that changes the
+overall rail shape, keeping the same authored targets and normal-line constraint.
+First inspect its rendered contrast, then measure local consequences and reuse.
+No new geometry catalog or style framework is warranted by this feedback.

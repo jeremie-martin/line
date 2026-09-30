@@ -6,7 +6,11 @@ preserved production rides, a local arc–facet–arc phrase, an inspectable gui
 phrase, finished vertical comparisons, and confirmation on a second song.
 Guide-count optimization is supporting research, not the artistic objective.
 Normal lines and the frozen benchmark/scorer/physics remain constraints.
-Implementation is in progress; owner visual preference is not yet established.
+The [implementation and measured study](docs/musical-direction-results.md) are
+technically complete: 24 valid compilations, eight distinct normal-line rides, finished
+production videos, exact-track native inspection, and local target/cost evidence.
+Default V4 outputs remain exactly unchanged at 952.4726. The owner found too little visible difference in the mixed phrase. The artistic
+milestone continues with a stronger existing shape; these remain explicit research choices.
 
 # Guide coverage and transfer to facets — 2026-09-30
 

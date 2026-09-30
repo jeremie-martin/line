@@ -1,6 +1,7 @@
 /** Browser checks for native gallery playback. Run npm run gallery:renderer first.
  * Usage: node scripts/gallery/check_renderer.mjs MANIFEST... --out=generated/check.json
  * Optional --mirror-origin=http://127.0.0.1:8765 checks against the full app too.
+ * --mirror-cases=all checks one seed of every case/method instead of four examples.
  * The dashboard must already be served; --origin overrides localhost:8767. */
 import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
@@ -49,8 +50,10 @@ try {
     const mirror=await browser.newPage();
     await mirror.route('**/*',route=>new URL(route.request().url()).origin===arg('mirror-origin')?route.continue():route.abort());
     await mirror.goto(arg('mirror-origin'));await mirror.waitForFunction(()=>window.__lr&&window.Selectors&&window.loadTrackFromString);
-    for(const method of manifest.plan.methods.slice(0,4)){
-      const cell=manifest.cells.find(c=>c.method===method);if(!cell)continue;
+    const mirrorCells=arg('mirror-cases')==='all'
+      ?manifest.cells.filter((c,i,cells)=>cells.findIndex(other=>other.caseId===c.caseId&&other.method===c.method)===i)
+      :manifest.plan.methods.slice(0,4).map(method=>manifest.cells.find(c=>c.method===method)).filter(Boolean);
+    for(const cell of mirrorCells){
       const r=JSON.parse(readFileSync(resolve(dirname(path),cell.path))),native=await replay(r,true);
       await mirror.evaluate(async track=>{window.__lr.enterEditor();window.__lr.loadTrack(track);await window.__lr.waitForTrackLoaded(track);},r.track);
       const at=Array.from({length:Math.ceil(native.frames.length/13)},(_,i)=>i*13).flatMap(f=>[f,Math.min(f+.375,native.frames.length-1)]);
@@ -91,7 +94,7 @@ try {
   await page.locator('#play').click();await page.waitForTimeout(600);await page.locator('#play').click();
   assert.ok(parseFloat(await page.locator('#time').textContent())>parseFloat(beatTime)+.3);
   const paused=await page.locator('#time').textContent();await page.waitForTimeout(100);assert.equal(await page.locator('#time').textContent(),paused);
-  await page.selectOption('#right-method','paired');await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
+  await page.selectOption('#right-method',right);await page.waitForFunction(()=>document.getElementById('panels').dataset.state==='ready');
   await page.selectOption('#view','overview');await page.selectOption('#view','follow');
   assert.equal(await page.locator('#inspect').isChecked(),false);
   await page.locator('#seek').fill('0');await page.locator('#seek').dispatchEvent('input');

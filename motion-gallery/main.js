@@ -49,7 +49,7 @@ function cellCard(record) {
   const details = card.querySelector('.details');
   if(record.usage){const p=document.createElement('p');p.className='choice-metrics';p.textContent=`${record.usage.guideSections}/${record.usage.supportSections} guided sections · ${record.usage.guideLength.toFixed(1)} world units of guide · target error (RMS) ${record.qualityRms?.toFixed(4)??'unavailable'}.`;details.append(p);}
   const description = document.createElement('p'); description.textContent = manifest.plan.methodDetails?.[record.method]?.description ?? ''; details.append(description);
-  if(record.construction){const selection = document.createElement('p'); selection.textContent = record.construction.selected === 'contact-fragments' ? 'Shown: reconstructed contact fragments.' : 'Shown: original feedback result retained after comparison.'; details.append(selection);}
+  if(record.construction?.selected){const selection = document.createElement('p'); selection.textContent = record.construction.selected === 'contact-fragments' ? 'Shown: reconstructed contact fragments.' : 'Shown: original feedback result retained after comparison.'; details.append(selection);}
   const text = document.createElement('p'); text.textContent = `${number(record.lines)} normal segments · seed ${record.seed} · ${(100 * record.jitter).toFixed(0)}% target jitter · ${record.attemptAllowance?'this attempt:':'allowance'} ${number(record.attemptAllowance??record.budget)} frames.`; details.append(text);
   if (!record.score.valid) {const failure = document.createElement('p'); failure.className = 'failure'; failure.textContent = record.score.hardFailures.join(' · '); details.append(failure);}
   const link = document.createElement('a'); link.href = new URL(record.path, manifestUrl); link.textContent = 'Track, targets and replay data'; details.append(link);
@@ -141,7 +141,7 @@ async function select() {
     const loaded = await Promise.all(selected.map(load));
     if (token !== generation) return;
     if (loaded.length !== 2) throw new Error('The comparison is incomplete.');
-    records = loaded.map((r,i)=>({...r,displayTitle:choice?.titles[i]})); seconds = Math.min(seconds, records[0].case.durationFrames / 40); $('seek').value = String(seconds); $('seek').max = String(records[0].case.durationFrames / 40);
+    records = loaded.map((r,i)=>({...r,displayTitle:choice?.titles[i]})); seconds = Math.min(seconds, records[0].case.durationFrames / 40); $('seek').max = String(records[0].case.durationFrames / 40); $('seek').value = String(seconds);
     $('beats').replaceChildren(...records[0].case.contacts.map((c, i) => {
       const beat = document.createElement('button'); beat.textContent = String(i+1);
       beat.style.left = `${100*c.frame/records[0].case.durationFrames}%`;

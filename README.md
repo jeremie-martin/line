@@ -17,11 +17,14 @@ with two canonical seeds and a 750,000-frame allowance per run.
 The current canonical score is **952.4726**, with **352/352 valid runs**.
 The compiler also preserves validated curves when further search exhausts its budget.
 
-Current creative work follows the [musical direction plan](docs/musical-direction-plan.md):
+The [musical direction milestone](docs/musical-direction-results.md) implements
+the [agreed plan](docs/musical-direction-plan.md):
 deliberate local construction choices on real songs, shown through the native
 inspector and the complete vertical-video pipeline. The production compiler uses
 early acceptance of accurate, physically validated proposals; experimental visual
 choices are kept explicit and do not replace its defaults.
+Open the [music review](http://localhost:8767/motion-gallery/music.html) for Luna
+and Amor comparisons; their large video archives remain local.
 See [the V4 campaign and evidence](docs/arc-v4-940-campaign.md) and
 [the compiler map](scripts/v0/optimizer/README.md).
 

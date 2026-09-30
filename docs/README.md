@@ -21,6 +21,7 @@ historical record, not live guidance.
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
 | [`compiler-efficiency-2026-09-29.md`](compiler-efficiency-2026-09-29.md) | REFERENCE | Qualified stopping policy, measured work and timing, and first gallery findings. |
 | [`motion-repertoire.md`](motion-repertoire.md) | LIVE | Playable motion gallery, measured geometry comparison and compiler stopping policy. |
+| [`musical-direction-results.md`](musical-direction-results.md) | LIVE | Real-song construction examples, production review, local consequences and reproducible cost. |
 | [`musical-direction-plan.md`](musical-direction-plan.md) | LIVE | Current milestone: real musical comparisons, intentional local composition and measured quality/cost. |
 | [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | REFERENCE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
 | [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | REFERENCE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |

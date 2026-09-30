@@ -11,14 +11,15 @@ async function checked(url,signal){
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 function choices(id,items,label=v=>v){$(id).replaceChildren(...items.map(v=>{const o=document.createElement('option');o.value=v;o.textContent=label(v);return o;}));}
-function pause(){playing=false;videos.forEach(v=>v.pause());$('play').textContent='Play';$('play').disabled=loading;}
-function seek(t){seconds=Math.max(0,Math.min(caseInfo.durationFrames/40,t));for(const v of videos)if(v.readyState>=1)v.currentTime=seconds;$('seek').value=seconds;$('time').textContent=`${seconds.toFixed(2)} s`;}
+function pause(){const synchronize=!loading&&videos[0].readyState>=1;playing=false;videos.forEach(v=>v.pause());if(synchronize)seek(videos[0].currentTime);$('play').textContent='Play';$('play').disabled=loading;}
+function updateInspectorTime(){const url=new URL($('inspect').href);url.searchParams.set('time',seconds.toFixed(3));$('inspect').href=url;}
+function seek(t){seconds=Math.max(0,Math.min(caseInfo.durationFrames/40,t));for(const v of videos)if(v.readyState>=1)v.currentTime=seconds;$('seek').value=seconds;$('time').textContent=`${seconds.toFixed(2)} s`;updateInspectorTime();}
 async function play(){
-  if(loading)return;playing=true;$('play').textContent='Pause';
-  try{await Promise.all(videos.map(v=>v.play()));}catch(e){pause();$('status').textContent=`Playback could not start: ${e.message}`;}
+  if(loading)return;const token=generation;playing=true;$('play').textContent='Pause';
+  try{await Promise.all(videos.map(v=>v.play()));if(token===generation&&playing)videos[1].currentTime=videos[0].currentTime;}catch(e){if(token!==generation)return;pause();$('status').textContent=`Playback could not start: ${e.message}`;}
 }
 function showMoment(m){
-  moment=m;$('targets').replaceChildren();
+  moment=m;$('moment-label').textContent=`${m.title}, ${format(m.from,2)}–${format(m.to,2)} s.`;$('targets').replaceChildren();
   for(const button of $('moments').children)button.setAttribute('aria-pressed',String(button.dataset.time===String(m.time)));
   const other=new Map(selected.observations.map(o=>[`${o.gap}:${o.axis}`,o]));
   for(const o of baseline.observations.filter(o=>o.endFrame>=m.from*40&&o.startFrame<=m.to*40)){
@@ -34,6 +35,7 @@ function metadata(v,url,signal){return new Promise((resolve,reject)=>{
 });}
 async function select(){
   const token=++generation,oldSong=caseInfo?.id;controller?.abort();controller=new AbortController();const {signal}=controller;
+  if(!loading&&videos[0].readyState>=1)seconds=videos[0].currentTime;
   videos.forEach(v=>v.pause());loading=true;$('retry').hidden=true;$('play').disabled=!playing;$('excerpt').disabled=true;$('seek').disabled=true;
   const song=$('song').value,seed=+$('seed').value;
   if(oldSong!==song)pause();
@@ -41,10 +43,10 @@ async function select(){
   baseline=manifest.cells.find(c=>c.caseId===song&&c.seed===seed&&c.method==='baseline');
   selected=manifest.cells.find(c=>c.caseId===song&&c.seed===seed&&c.method===$('variant').value);
   if(!baseline||!selected){$('status').textContent='This recorded comparison is missing.';return;}
-  if(oldSong!==song)seconds=caseInfo.excerpt[0];
+  if(oldSong!==song){seconds=caseInfo.excerpt[0];stopAt=caseInfo.durationFrames/40;}
   $('intent').textContent=caseInfo.intent;$('alternative-title').textContent=manifest.plan.methodDetails[selected.method].title;
-  $('baseline-metrics').textContent=`Target adherence ${format(baseline.score.score,1)} / 1000 · ${format(baseline.compileMs/1000,2)} s compilation`;
-  $('alternative-metrics').textContent=`Target adherence ${format(selected.score.score,1)} / 1000 · ${format(selected.compileMs/1000,2)} s compilation`;
+  $('baseline-metrics').textContent=`Whole-ride target error ${format(baseline.qualityRms,4)} RMS · ${format(baseline.compileMs/1000,2)} s compilation`;
+  $('alternative-metrics').textContent=`Whole-ride target error ${format(selected.qualityRms,4)} RMS · ${format(selected.compileMs/1000,2)} s compilation`;
   const changed=selected.construction.changedSections.map(i=>selected.sections.find(s=>s.section===i));
   const interval=changed.length?`${format(changed[0].start,2)}–${format(changed.at(-1).end,2)} s`:null;
   $('decision').textContent=selected.method==='mixed'?`Actual faceted supports at ${interval}, followed by smooth construction.`:
@@ -55,16 +57,17 @@ async function select(){
   $('work').textContent=`Baseline: ${baseline.physicalFrames.toLocaleString()} simulated frames. Alternative: ${selected.physicalFrames.toLocaleString()}, including prefix preparation. Each has a ${selected.budget.toLocaleString()} frame ceiling. Independent validation and video rendering are additional work. Target jitter: ${caseInfo.jitter}; different seeds can produce identical tracks.`;
   const inspect=new URL('/motion-gallery/',location.href);inspect.searchParams.set('data',manifestUrl.pathname);inspect.searchParams.set('passage',song);inspect.searchParams.set('seed',seed);inspect.searchParams.set('left','baseline');inspect.searchParams.set('right',selected.method);inspect.searchParams.set('time',seconds);
   $('inspect').href=inspect;$('record').href=new URL(selected.path,manifestUrl);
-  $('moments').replaceChildren(...caseInfo.moments.map(m=>{const b=document.createElement('button');b.textContent=m.title;b.dataset.time=m.time;b.onclick=()=>{pause();seek(m.time);showMoment(m);inspect.searchParams.set('time',m.time);$('inspect').href=inspect;};return b;}));
-  showMoment(caseInfo.moments[0]);$('seek').max=caseInfo.durationFrames/40;$('status').textContent='Loading the preserved production videos…';
+  $('moments').replaceChildren(...caseInfo.moments.map(m=>{const b=document.createElement('button');b.textContent=m.title;b.dataset.time=m.time;b.onclick=()=>{pause();seek(m.time);showMoment(m);};return b;}));
+  showMoment((oldSong===song&&caseInfo.moments.find(m=>m.title===moment?.title))||caseInfo.moments[0]);$('seek').max=caseInfo.durationFrames/40;$('status').textContent='Loading the preserved production videos…';
   for(const v of videos){v.removeAttribute('src');v.load();}
   for(const id of ['full-video','clip-video']){$(id).removeAttribute('href');$(id).hidden=true;}
   try{
     const saved=await Promise.all([baseline,selected].map(c=>checked(new URL(c.id+'.video.json',manifestUrl).href,signal)));
+    if(token!==generation||signal.aborted)return;
     saved.forEach((r,i)=>{if(r.identity.planSha256!==manifest.planSha256||r.identity.cellSha256!==[baseline,selected][i].sha256)throw new Error('Video and track identity mismatch');});
     await Promise.all(videos.map((v,i)=>metadata(v,new URL(saved[i].full.path,manifestUrl).href,signal)));
     if(token!==generation)return;
-    loading=false;seek(seconds);stopAt=caseInfo.durationFrames/40;
+    loading=false;videos.forEach(v=>v.playbackRate=+$('rate').value);seek(seconds);stopAt=Math.min(stopAt,caseInfo.durationFrames/40);
     for(const id of ['play','excerpt','seek'])$(id).disabled=false;
     $('full-video').href=new URL(saved[1].full.path,manifestUrl);$('clip-video').href=new URL(saved[1].excerpt.path,manifestUrl);
     for(const id of ['full-video','clip-video'])$(id).hidden=false;
@@ -73,7 +76,7 @@ async function select(){
   }catch(e){if(token!==generation||signal.aborted)return;loading=false;pause();$('play').disabled=true;$('retry').hidden=false;$('status').textContent=`Videos are not available for this selection yet. Native track inspection is available. ${e.message}`;}
 }
 videos[0].addEventListener('timeupdate',()=>{
-  if(loading||!playing)return;seconds=videos[0].currentTime;$('seek').value=seconds;$('time').textContent=`${seconds.toFixed(2)} s`;
+  if(loading||!playing)return;seconds=videos[0].currentTime;$('seek').value=seconds;$('time').textContent=`${seconds.toFixed(2)} s`;updateInspectorTime();
   if(Math.abs(videos[1].currentTime-seconds)>.08)videos[1].currentTime=seconds;
   if(seconds>=stopAt)pause();
 });

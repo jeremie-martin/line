@@ -13,7 +13,12 @@ const arg=(key:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(k
 assert.ok(arg('study')&&arg('ids'),'--study and --ids required');
 const root=resolve(arg('study')!),hash=(p:string)=>sha(readFileSync(p));
 function read(path:string){assert.equal(hash(path),readFileSync(path+'.sha256','utf8').trim());return JSON.parse(readFileSync(path,'utf8'));}
-const manifest=read(join(root,'manifest.json')),ids=arg('ids')!.split(',');
+// A completed comparison set can be rendered while other sets are compiling.
+// This does not publish an incomplete study manifest or claim panel completion.
+const savedSet=arg('set')?read(join(root,arg('set')!)):null;
+const manifest=savedSet?{plan:read(join(root,'plan.json')),planSha256:hash(join(root,'plan.json')),cells:savedSet.cells}:read(join(root,'manifest.json'));
+if(savedSet)assert.equal(savedSet.planSha256,manifest.planSha256);
+const ids=arg('ids')!.split(',');
 assert.ok(ids.length&&ids.every(id=>manifest.cells.some((c:any)=>c.id===id)));
 const paths=['scripts/produce/render_musical_direction.ts','scripts/produce/render.ts','scripts/export.ts','scripts/lib/export.ts',
   'scripts/make_overlay_data.ts','scripts/fx_recipe.ts',...execFileSync('git',['ls-files','remotion/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)];

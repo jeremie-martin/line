@@ -1,5 +1,5 @@
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
-const manifestUrl=new URL(query.get('data')||'/generated/musical-shapes-20260930/confirmation/manifest.json',location.href);
+const manifestUrl=new URL(query.get('data')||'/generated/repertoire-20260930/confirmation/manifest.json',location.href);
 const videos=[$('baseline'),$('alternative')];
 let manifest,selected,baseline,caseInfo,moment,seconds=0,playing=false,loading=true,generation=0,controller,stopAt=Infinity;
 const format=(n,d=3)=>Number.isFinite(n)?n.toFixed(d):'—';

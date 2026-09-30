@@ -121,11 +121,28 @@ Line Rider app agrees on **3,448 sampled poses**, including scarf and rider stat
 All 12 native-gallery comparisons pass, including corruption rejection, playback,
 contact navigation and mobile layout.
 
-Production rendering and music-page checks are being completed. The previous
-positive ripple feedback applies to the earlier reviewed example; new preference
-and production adoption remain open. This milestone supplies concrete choices
-and evidence, while accuracy, efficient editing and artistic composition remain
-substantial work under the roadmap.
+All twelve full **1080×1920, 60 fps** videos with audio and their 32-second
+excerpts are ready in the [music review](http://localhost:8767/motion-gallery/music.html).
+The page defaults to this panel and retains links to the earlier ripple and facet
+comparisons. Construction buttons jump to the actual edited supports with a short
+lead-in; native thumbnails show the edited phrase instead of identical startup
+geometry. The same preserved tracks remain available for contact inspection.
+
+All nine musical comparisons pass browser checks: synchronized play and seek,
+single audio, phrase navigation, retained playback intent, loading-failure retry,
+exact-track inspector links and full-width mobile viewing. The preceding
+three-seed study also passes its 18 comparisons. All full videos and excerpts
+have checked identities, dimensions and audio and decode without errors.
+
+Twenty-seven focused tests across four files pass. TypeScript has the same 251
+existing diagnostics as the preceding compiler, with no new diagnostics after
+normalizing checkout paths and line locations. The current compiler source and
+engine match the frozen source used for the 352-run V4 check and confirmation.
+
+The previous positive ripple feedback applies to the earlier reviewed example;
+new preference and production adoption remain open. This milestone supplies
+concrete choices and evidence, while accuracy, efficient editing and artistic
+composition remain substantial work under the roadmap.
 
 ## Evidence and reproduction
 

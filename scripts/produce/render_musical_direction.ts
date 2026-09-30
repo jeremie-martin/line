@@ -52,7 +52,7 @@ try{
     const spectrumBase=await ensureSpectrum(resolve(c.audioPath),c.id,join(work,'spectrum.log'));
     const folder=await renderBundle({specPath:resolve(c.source),trackPath,reportPath,
       budgetTelemetryPath:join(root,id,'budget-telemetry.json'),audioPath:resolve(c.audioPath),spectrumBase,
-      seed:cell.seed,song:id,project:'musical-direction-review',metrics:cell.metrics,render:c.render,budget:cell.budget,
+      seed:cell.seed,song:id,project:'musical-direction-review',metrics:cell.metrics,render:c.render,budget:cell.allowance??cell.budget,
       jolt:manifest.plan.jolt,outDir:join(root,'videos'),workDir:work,gitSha:manifest.plan.compiler.head,host:hostname()});
     const full=join(folder,'video.mp4'),fullProbe=check(full),excerpt=join(folder,'excerpt.mp4');
     execFileSync('ffmpeg',['-v','error','-y','-ss',String(c.excerpt[0]),'-i',full,'-t',String(c.excerpt[1]-c.excerpt[0]),

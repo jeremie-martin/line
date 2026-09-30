@@ -30,6 +30,14 @@
     {
       "path": "generated/repertoire-20260930/previous-music-ui.json",
       "sha256": "76620123ac1c16c0096f424416837daa9d5d5f5bf5ef2badfafda1e5eaa97150"
+    },
+    {
+      "path": "generated/repertoire-20260930/music-ui-checks.json",
+      "sha256": "459e09adb6aaac89882c8505989ff037339575d6874bdfbe7fb849accc493c45"
+    },
+    {
+      "path": "generated/repertoire-20260930/video-checks.json",
+      "sha256": "3f35d6bd4cc3ac4229d28b26a50f679428c0a94374aead906f59c4c41ca6dc3e"
     }
   ],
   "compiler": {
@@ -2593,7 +2601,8 @@
         "development": "amor_na_praia_46s-331-mixed",
         "trackHash": "3d640ec00d9019beb8cd946ce1a1d392bbd61e7ad24c3037c9df3c18120985a5"
       }
-    ]
+    ],
+    "exactMainSupportReconstructions": 869
   },
   "development": {
     "runs": 38,
@@ -4748,5 +4757,440 @@
     "logSha256": "435a4062bf3d31d0719c4341a8eb9b857660fea3455da8eb71da4276d6df11cb",
     "path": "generated/repertoire-20260930/focused-tests.log",
     "command": "LR_ENGINE=wasm npx vitest run tests/arc_composition.test.ts tests/motion_geometry_styles.test.ts tests/arc_engine_ownership.test.ts tests/benchmark_v2_baseline_cache.test.ts"
+  },
+  "musicBrowser": {
+    "schema": "line.musical-direction-ui-checks.v1",
+    "manifest": {
+      "path": "generated/repertoire-20260930/confirmation/manifest.json",
+      "sha256": "618864ced1ecbe06045903ce672e3354ddc43afc34e6e0e84a6f38be3e4d3781"
+    },
+    "comparisons": 9,
+    "singleAudioSource": true,
+    "synchronizedSeeking": true,
+    "playbackPreservedAcrossVariants": true,
+    "seedChoices": 1,
+    "rapidSeedSwitch": null,
+    "pauseDuringReplacementRespected": true,
+    "failedDownloadRetry": true,
+    "exactTrackInspectorLink": true,
+    "localTargetsShown": true,
+    "fullWidthSingleVideoView": true,
+    "mobileOverflow": false,
+    "errors": [],
+    "files": {
+      "motion-gallery/music.html": "1078d2833b1f29b08712568918400b8b18952f1730b8e37edf84ddb888005b78",
+      "motion-gallery/music.js": "03f4764bd96124a500eddef882e1930fdcdd6cd7a2b9d0ce2fb3b205a2525d00",
+      "motion-gallery/music.css": "b0ee84674c35a7b85f5a1669a0e76577c7dee835b77d589881e476e3f4002e52",
+      "motion-gallery/main.js": "fd4130e7abfa5542788d75209270ae79ccfa52168752699c203bb95fd3a80218"
+    }
+  },
+  "rendering": {
+    "schema": "line.repertoire-video-checks.v1",
+    "videos": 12,
+    "resolution": [
+      1080,
+      1920
+    ],
+    "fps": 60,
+    "audio": true,
+    "decodedWithoutErrors": true,
+    "identitiesVerified": true,
+    "normalLinesOnly": true,
+    "visualApproval": null,
+    "records": [
+      {
+        "id": "luna_bala_44s-341-baseline",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/luna_bala_44s-341-baseline.video.json",
+          "sha256": "1faba0b67e43d926826273614fc3e28e21d1d1dcfc2a24827548ea16f6bf7123"
+        },
+        "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/../../musical-direction-20260930/confirmation/videos/luna_bala_44s-311-baseline/luna_bala_44s-311-baseline-s311/video.mp4",
+          "sha256": "f6bdbcc6a1ba6d0d07a0ed0b49451b665a9ca2b1f7d5549e4f78e6467bb9df8d",
+          "seconds": 44.544
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/../../musical-direction-20260930/confirmation/videos/luna_bala_44s-311-baseline/luna_bala_44s-311-baseline-s311/excerpt.mp4",
+          "sha256": "1b02a4fe806dc51df2468e0c49a7ac3e63eef6b414815116bb1ea2dc63114227",
+          "seconds": 32.0
+        },
+        "reusedFrom": "generated/musical-shapes-20260930/confirmation/luna_bala_44s-321-baseline",
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "luna_bala_44s-341-ripple",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/luna_bala_44s-341-ripple.video.json",
+          "sha256": "cf42efcfda61895165d1197d85ce83c5b7c29a41036a19b3ffbc80cf3368e1e0"
+        },
+        "trackHash": "9d186821645e8e75883e61877b1ad07b267e9b795410c5b1bc886fc5485207d3",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-terraces/videos/luna_bala_44s-331-ripple/luna_bala_44s-331-ripple-s331/video.mp4",
+          "sha256": "b601e6bc3ca6f4d94e2895db4fd9ee20480f9bd7744f0f2fd45207d59eb6b3ce",
+          "seconds": 44.544
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-terraces/videos/luna_bala_44s-331-ripple/luna_bala_44s-331-ripple-s331/excerpt.mp4",
+          "sha256": "a655028ab1d4ee578f7d3dc78f5f1d80746506a3e41d6408cfb86357881c6263",
+          "seconds": 32.0
+        },
+        "reusedFrom": "generated/repertoire-20260930/dev-terraces/luna_bala_44s-331-ripple",
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "luna_bala_44s-341-candidate",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/luna_bala_44s-341-candidate.video.json",
+          "sha256": "f39d6e28159f93c3e9e568ba44c52a65de4fd7b90159dc5a048a61b1a039539b"
+        },
+        "trackHash": "9df03247618fee7d91e057d68a70971e9e63e97ed74a1f9999c0784ed5106c61",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-serpentine-strong/videos/luna_bala_44s-331-candidate/luna_bala_44s-331-candidate-s331/video.mp4",
+          "sha256": "23ff89df504e565827e21017a431e7d07b94ff47ca0fa814087ccbe42646b46b",
+          "seconds": 44.544
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-serpentine-strong/videos/luna_bala_44s-331-candidate/luna_bala_44s-331-candidate-s331/excerpt.mp4",
+          "sha256": "ccef07f728b915272e83db28932dc1a15b1618e7dc26bb708525e6edecf5a162",
+          "seconds": 32.0
+        },
+        "reusedFrom": "generated/repertoire-20260930/dev-serpentine-strong/luna_bala_44s-331-candidate",
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "luna_bala_44s-341-mixed",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/luna_bala_44s-341-mixed.video.json",
+          "sha256": "f7ac52dea88de1310bc2cde33377c15561c2737ed130ef1039a3474f27adda46"
+        },
+        "trackHash": "ccd596c0f4a89cc07f011725bcfdb15a583d81956a67f26d2d5ed536f3ec0af5",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-serpentine-strong/videos/luna_bala_44s-331-mixed/luna_bala_44s-331-mixed-s331/video.mp4",
+          "sha256": "cedb59235783cb46feb3fd82cdb866340764a305889abc7a63e33ffb1d391b39",
+          "seconds": 44.544
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-serpentine-strong/videos/luna_bala_44s-331-mixed/luna_bala_44s-331-mixed-s331/excerpt.mp4",
+          "sha256": "474d961cef86e57e56dbf2e28d3498db85a90acafde1af8dda87b6e8b2459b75",
+          "seconds": 32.0
+        },
+        "reusedFrom": "generated/repertoire-20260930/dev-serpentine-strong/luna_bala_44s-331-mixed",
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "amor_na_praia_46s-341-baseline",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/amor_na_praia_46s-341-baseline.video.json",
+          "sha256": "76428b3a00d48ff40043a654928f26e450f7a10eb7bfcf7f8cd9e09a36f23806"
+        },
+        "trackHash": "a3421106b5aa937f0d8e41a473e1de4d5aedccc329f053701a04697aa3da1ccd",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/../../musical-direction-20260930/confirmation/videos/amor_na_praia_46s-311-baseline/amor_na_praia_46s-311-baseline-s311/video.mp4",
+          "sha256": "06e0e4852b64cb6d4ce257a78ec792b492c6ed1cf20c9fdd45acf6f79ee1009c",
+          "seconds": 46.549333
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/../../musical-direction-20260930/confirmation/videos/amor_na_praia_46s-311-baseline/amor_na_praia_46s-311-baseline-s311/excerpt.mp4",
+          "sha256": "d1831db806736d33c98f13f9c35363a2b0f7e5c9946cdd931e879b530df91d78",
+          "seconds": 32.0
+        },
+        "reusedFrom": "generated/musical-shapes-20260930/confirmation/amor_na_praia_46s-321-baseline",
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "amor_na_praia_46s-341-ripple",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/amor_na_praia_46s-341-ripple.video.json",
+          "sha256": "add637faf19dbd5aac6bfaec7b5ed55c3e62757718e98f4b4c63597cd3597c6e"
+        },
+        "trackHash": "f1915460648d5a4468894dc73422cb222d21b080176502ee05f6136325f34af4",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-terraces/videos/amor_na_praia_46s-331-ripple/amor_na_praia_46s-331-ripple-s331/video.mp4",
+          "sha256": "ea9a20178b6f71ba80060ed6a7f02d9d2187fed2e252ec262ff3d4e3012bdd4f",
+          "seconds": 46.549333
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-terraces/videos/amor_na_praia_46s-331-ripple/amor_na_praia_46s-331-ripple-s331/excerpt.mp4",
+          "sha256": "1c60f4cadd523a6f841866ee1757c6fc907c785b37493bd1a6ad2256fe3b414f",
+          "seconds": 32.0
+        },
+        "reusedFrom": "generated/repertoire-20260930/dev-terraces/amor_na_praia_46s-331-ripple",
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "amor_na_praia_46s-341-candidate",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/amor_na_praia_46s-341-candidate.video.json",
+          "sha256": "589e30f420c445782f7207f6e5e224127af9df7a6a6d85c933df8eca3cf4b088"
+        },
+        "trackHash": "9be005868ed92a18d85efa6dba02451d2623bff2d30e8248a5034c650cbf3858",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-serpentine-strong/videos/amor_na_praia_46s-331-candidate/amor_na_praia_46s-331-candidate-s331/video.mp4",
+          "sha256": "2add1c6c84f1e27e5e9b1835d79525c3b898cdfb2026f5bd09d33f53f7305c6c",
+          "seconds": 46.549333
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-serpentine-strong/videos/amor_na_praia_46s-331-candidate/amor_na_praia_46s-331-candidate-s331/excerpt.mp4",
+          "sha256": "a23685cd161f591a3643a50c5f1c565ae876dd5731aac7439b790f9d8c14928a",
+          "seconds": 32.0
+        },
+        "reusedFrom": "generated/repertoire-20260930/dev-serpentine-strong/amor_na_praia_46s-331-candidate",
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "amor_na_praia_46s-341-mixed",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/amor_na_praia_46s-341-mixed.video.json",
+          "sha256": "f6f4ada8d4de8db3dc444adab3e13444dea2551eb75313b764357e7213db6b98"
+        },
+        "trackHash": "3d640ec00d9019beb8cd946ce1a1d392bbd61e7ad24c3037c9df3c18120985a5",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-serpentine-strong/videos/amor_na_praia_46s-331-mixed/amor_na_praia_46s-331-mixed-s331/video.mp4",
+          "sha256": "1c33dfba1a779481e55715285bd8dc4c662eaeee27b12309d4810dd47ddb301f",
+          "seconds": 46.549333
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/../dev-serpentine-strong/videos/amor_na_praia_46s-331-mixed/amor_na_praia_46s-331-mixed-s331/excerpt.mp4",
+          "sha256": "c627a9e2a259b73a44216b46815b69812984e375588d845619b84d470dbd2ae8",
+          "seconds": 32.0
+        },
+        "reusedFrom": "generated/repertoire-20260930/dev-serpentine-strong/amor_na_praia_46s-331-mixed",
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "tiki_tiki_48s-341-baseline",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/tiki_tiki_48s-341-baseline.video.json",
+          "sha256": "389c022ba41129498154db7c9f3995d0a955e5ac0d283069df79626c1dbdcd26"
+        },
+        "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/videos/tiki_tiki_48s-341-baseline/tiki_tiki_48s-341-baseline-s341/video.mp4",
+          "sha256": "5245c884d45a2a74c0e4f57acf6b9ca3b0ee5bccb223fbf2135598008bc77b17",
+          "seconds": 48.554667
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/videos/tiki_tiki_48s-341-baseline/tiki_tiki_48s-341-baseline-s341/excerpt.mp4",
+          "sha256": "aa9dd6d5e87419dff10eea9ea15a81a0dcc6feef429a0094b7db0a1b87ac0749",
+          "seconds": 32.0
+        },
+        "reusedFrom": null,
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "tiki_tiki_48s-341-ripple",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/tiki_tiki_48s-341-ripple.video.json",
+          "sha256": "fe9c8fed0f80260c5fecdee8e5a1aba56f173ebc92558b4b8d43404197382283"
+        },
+        "trackHash": "ab83fa668a9fca3f6a28812b4a9693cafc5832a15765acdaf3791bfe6f045702",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/videos/tiki_tiki_48s-341-ripple/tiki_tiki_48s-341-ripple-s341/video.mp4",
+          "sha256": "292df5c037d717840436ac30bdc27bd84710a39a0358e59fe316281263e227c2",
+          "seconds": 48.554667
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/videos/tiki_tiki_48s-341-ripple/tiki_tiki_48s-341-ripple-s341/excerpt.mp4",
+          "sha256": "b5f50411e83aea6b7631599efc9f1bfd569bff85c181a2a6d9dbc17cde8f6ffd",
+          "seconds": 32.0
+        },
+        "reusedFrom": null,
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "tiki_tiki_48s-341-candidate",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/tiki_tiki_48s-341-candidate.video.json",
+          "sha256": "e926f43ca123702edb08cac084b5c89877ac183050676c41a1f4ac602221383d"
+        },
+        "trackHash": "b445803c30b85e27261c3015ce8d6d542f094cce86464132726175f4cb222501",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/videos/tiki_tiki_48s-341-candidate/tiki_tiki_48s-341-candidate-s341/video.mp4",
+          "sha256": "d445c59ce139e32af693964d44f8d3d1ed414b3662eb7bee89a75105ebf04dcc",
+          "seconds": 48.554667
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/videos/tiki_tiki_48s-341-candidate/tiki_tiki_48s-341-candidate-s341/excerpt.mp4",
+          "sha256": "f37790d4ec411a8bd636fabca1a79ccd536de315834b36155b51965630c96e97",
+          "seconds": 32.0
+        },
+        "reusedFrom": null,
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      },
+      {
+        "id": "tiki_tiki_48s-341-mixed",
+        "record": {
+          "path": "generated/repertoire-20260930/confirmation/tiki_tiki_48s-341-mixed.video.json",
+          "sha256": "9684925c848d4d551f9e20ec27efc6decdef625a7e13480e5111eff16eae637d"
+        },
+        "trackHash": "b6a0c682983016133f0ab1671ae970660f667cd58cc5c91408ffe14718258b07",
+        "full": {
+          "path": "generated/repertoire-20260930/confirmation/videos/tiki_tiki_48s-341-mixed/tiki_tiki_48s-341-mixed-s341/video.mp4",
+          "sha256": "fe4a5c78a1c5d3cbf83ff2dc24de24a76931a7213c9d1da0fdf5e3577964218d",
+          "seconds": 48.554667
+        },
+        "excerpt": {
+          "path": "generated/repertoire-20260930/confirmation/videos/tiki_tiki_48s-341-mixed/tiki_tiki_48s-341-mixed-s341/excerpt.mp4",
+          "sha256": "6012e0f3d0ad9c3a90e802d4de72ef7bd15b436c7df107d29ac77bd1f9c0ecbf",
+          "seconds": 32.0
+        },
+        "reusedFrom": null,
+        "pipeline": {
+          "scripts/produce/render_musical_direction.ts": "9cc1c6311e10389c7accd11a2ef8fef04d030e38f8b29aa857e2f77976218552",
+          "scripts/produce/render.ts": "3d39f579be3f8069c24ec08b332dd7646cdd299bed0bf601bcc6b493ed93aa48",
+          "scripts/export.ts": "539218c3225aaa196319bbce34cc3ab37046a2cb765069ee752dc3e8f22236bb",
+          "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+          "scripts/make_overlay_data.ts": "ac736272857dcc43e7c4a92275341dbc27f8b20ee0a3bf52d07fd910b3667620",
+          "scripts/fx_recipe.ts": "cdfa5efe4cb4a81d7521c6ae8ac02919def71d07fdc5afb8956ccd57aad2947a",
+          "remotion/src/CurveOverlay.tsx": "f7df7d730dd97b615a7b103a6c646354a8427d6a5819303bf36dd074ec224587",
+          "remotion/src/Root.tsx": "d37f9c207cdcf9344c67e1caba39817f713cca08b9426a7d9bad5d4539f550a4",
+          "remotion/src/fx.tsx": "a3abcb78552d36fbbe45e2474493d6b081cdbe474db077376351f02ed2a4d1d8",
+          "remotion/src/impact.ts": "f656147f685d63d4a60f7ec5dd0d2e2532e647e4401f01d45e1dfb2b6d4d2fde",
+          "remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+        }
+      }
+    ],
+    "pipelineNote": "Records name the exact generation pipeline. A subsequent renderer budget-metadata correction uses each edit allowance; all twelve recorded inputs have equal one-million-frame reference and edit allowances, so their rendering inputs are unaffected.",
+    "budgetMetadataCorrectionSha256": "181fc352c57e974f367ae30a2e3be46533940a5052e548a008b8213d73e1566a"
+  },
+  "currentCompilerSourceMatchesFrozen": true,
+  "validationTools": {
+    "scripts/produce/inspect_repertoire.ts": "126e7bbedfd8a1305b3122670edfe2bfcffab1b08b2bea71728feeda9f824aec",
+    "scripts/produce/summarize_musical_direction.ts": "b21ceec6afae777e505d2ff045e3890b1320d0ff9ad4ce338b78dab9b04a7570",
+    "scripts/gallery/check_renderer.mjs": "cfd32d7ec01ac0b4c87d5043dae1900af410626f3823e49ad4d98bf07761efe5",
+    "scripts/gallery/check_musical_direction_ui.mjs": "afd89f86e3583a72499423415da74980a7b2f86ec15284d05ebbc027c320d201"
   }
 }

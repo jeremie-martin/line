@@ -13,8 +13,11 @@ deliberate combinations on Luna, Amor and reserved Tiki. All are normal-line
 tracks with verified native replay and physical construction. Development
 includes strength and budget comparisons plus a rejected future-value ablation.
 The current V4 baseline remains exactly unchanged. Local target costs on Amor
-and Tiki are material and disclosed. Final production rendering and video-page
-checks are in progress; the new examples still need owner aesthetic review.
+and Tiki are material and disclosed. All twelve full vertical videos and excerpts
+are ready in the default music review; all nine musical comparisons and twelve
+native comparisons pass browser checks. The new examples still need owner
+aesthetic review. This is the first repertoire milestone, not completion of the
+broader creative roadmap.
 
 # Musical direction on real songs — 2026-09-30
 

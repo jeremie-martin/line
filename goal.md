@@ -1,11 +1,10 @@
 # Active roadmap: a deliberate creative repertoire — 2026-09-30
 
-The owner approved the [creative repertoire roadmap](docs/creative-repertoire-roadmap.md)
-and authorized implementation of its next milestone: three visibly distinct
-constructions on shared musical passages, then a complete musical comparison
-combining them deliberately. Develop on two songs, check reuse on a reserved
-passage, and preserve musical accuracy, understandable choices and reasonable
-computation. The musical-direction work below is the preceding milestone.
+The owner approved the [creative repertoire roadmap](docs/creative-repertoire-roadmap.md).
+Its first panel compared three constructions on shared musical passages and in
+complete musical combinations. The active next milestone below incorporates
+the owner's review. Preserve musical accuracy, understandable choices and
+reasonable computation. The musical-direction work below is the preceding milestone.
 
 The [first repertoire panel](docs/creative-repertoire-results.md) now contains
 12 valid complete rides: arcs, ripple phrases, stronger serpentine phrases and
@@ -18,9 +17,13 @@ are ready in the default music review; all nine musical comparisons and twelve
 native comparisons pass browser checks. The owner finds the variety encouraging,
 but the serpentine rider bounces past its distinctive bends. Ordered collision
 inspection confirms concrete examples; any-contact counts do not demonstrate
-traversal. The next focus is one convincing ridden serpentine passage, with
-unchanged musical targets and measured costs, before widening the panel. This
-is an early technical milestone, not completion of the broader creative roadmap.
+traversal. The owner clarified that repairing this single example is too narrow
+as the next milestone. The active next milestone is to review the repertoire,
+develop two complementary constructions with measured behavior and useful
+controls, then compose them into musical comparisons and check reuse. Selection
+remains open; serpentine is a research candidate, not a prerequisite. Unchanged
+musical targets, normal lines, empirical diagnosis and actual work remain central.
+The completed panel is an early technical milestone, not completion of the creative roadmap.
 
 # Musical direction on real songs — 2026-09-30
 

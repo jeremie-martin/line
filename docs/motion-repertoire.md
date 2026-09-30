@@ -15,8 +15,12 @@ The [first repertoire results](creative-repertoire-results.md) compare arcs,
 ripples and stronger serpentine phrases on Luna, Amor and the reserved Tiki song.
 The [preceding results](musical-direction-results.md) preserve the guide-free,
 facet and ripple studies. The owner found the earlier ripple example meaningfully
-different; the new comparisons still need artistic review. Both reports disclose
-local musical consequences, whole-ride quality and actual work. The guide-choice studies below are supporting
+different. The owner finds the new variety encouraging but identifies serpentine
+examples that bounce past their distinctive bends; the follow-up confirms this
+and corrects the limits of any-contact counts. The next milestone develops a
+broader repertoire of useful constructions with empirical checks, rather than
+requiring that one geometry be perfected first. Both reports disclose local
+musical consequences, whole-ride quality and actual work. The guide-choice studies below are supporting
 experiments with an explicit fewer-guides preference, not the overall artistic goal.
 
 The [Arcs & facets guide-choice experiment](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-coverage/manifest.json)

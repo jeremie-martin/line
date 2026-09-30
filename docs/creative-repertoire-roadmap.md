@@ -39,7 +39,7 @@ These steps inform one another. They do not require a large framework before
 practical examples. The first milestone's restriction on extending the geometry
 catalog was local to that milestone, not a permanent project constraint.
 
-## Next concrete milestone
+## First panel: delivered technical comparison
 
 Deliver three visibly distinct constructions on the same selected musical
 passages, followed by a complete musical comparison combining them intentionally.
@@ -75,7 +75,7 @@ not an automatic rejection. Significant simplification can justify a small
 measured accuracy tradeoff; neither regression nor improvement should be hidden
 by aggregate scores. No claim of a geometry ceiling follows from this study.
 
-### Review of the first panel and immediate focus
+### Review of the first panel
 
 The owner finds the new variety encouraging but observes that the serpentine
 rider bounces past its distinctive bends. Ordered collision inspection confirms
@@ -84,14 +84,68 @@ weak to establish traversal. The technical panel is delivered, while a convincin
 serpentine riding example remains unfinished. See the
 [results and follow-up](creative-repertoire-results.md#owner-feedback-and-traversal-check).
 
-Before widening this panel, develop one passage where the rider visibly follows
-the serpentine's changing direction. Investigate profile placement, curvature,
-available contact time and guide interaction with matched incoming states and
-unchanged musical targets. Use collision sequences to explain the actual ride,
-and finished video to judge the experience. Preserve failed alternatives and
-disclose accuracy and work. A bounce can be a deliberate choice elsewhere; it
-does not demonstrate the particular riding behavior being explored here. Do not
-replace this problem with an automatic contact quota or claim a geometry ceiling.
+The owner subsequently clarified that repairing this one example is too narrow
+as the next milestone. Serpentine remains an open research candidate, with a
+documented failure mode; its repair does not gate work on other constructions.
+The broader task is to develop a useful repertoire and understand its behavior.
+
+## Active next milestone: develop useful, distinct constructions
+
+Develop two complementary constructions beyond the ordinary-arc reference into
+convincing musical examples, with understandable controls, measured behavior and
+deliberate transitions. Their selection follows a short review of the existing
+repertoire. Neither serpentine nor a newly invented geometry is a required
+winner. The encouraging ripple example is a useful visual reference, not a
+finished implementation or a universal preference.
+
+1. **Review the available choices and choose two to develop.** Revisit waves,
+   ripples, terraces, facets, scattered normal segments and guided/unguided arc
+   alternatives using the existing gallery and evidence. State what each
+   candidate could contribute visually and what its current implementation
+   actually does. Select for complementary potential and a tractable experiment,
+   not just the highest first score. Preserve serpentine's diagnosis and include
+   it if it supplies a promising direction. Introduce a new construction when
+   this review identifies something worthwhile the existing choices do not offer.
+2. **Iterate on construction and search together.** Work on those two candidates
+   in bounded experiment rounds. Vary concrete controls against matched incoming
+   states and unchanged musical targets. Investigate whether weak results come
+   from construction, search proposals, parameter coupling, guidance or passage
+   suitability; test the explanation rather than declaring a geometry incapable.
+   Each round records its hypothesis, evidence and next decision. A meaningful
+   retry should address the observed failure, rather than merely spend more work.
+   It is acceptable to defer a candidate with a specific open question and
+   preserved results; no single geometry must be perfected before others advance.
+3. **Establish what the resulting rides do.** For each experiment, describe the
+   intended effect in plain terms and inspect its actual trajectory, contacts,
+   release and guide interaction. Continuous riding through bends is relevant
+   when that is the intended effect; a scattered construction may deliberately
+   produce separated impacts. Use geometry-appropriate observations, not a
+   universal contact quota. Compare local musical errors and actual work, and
+   check a small deliberate range of controls and incoming states. Report where
+   the effect is repeatable, disappears or changes character. These observations
+   support explanation; the finished video establishes whether the difference
+   is visible, and owner review establishes artistic preference.
+4. **Compose and check reuse.** Show the developed alternatives alongside the
+   arc reference on shared passages, then compose them into complete tracks with
+   deliberate entry, sustained use and return. Preserve faithful native playback
+   and full vertical musical comparisons. Freeze a candidate before testing a
+   further reserved passage; Tiki's already inspected confirmation is now known
+   evidence and cannot serve as a new unseen check. Disclose accuracy, cost and
+   failures on the new passage before any further tuning.
+
+Deliver a concise account of each developed choice: what it contributes, which
+controls matter, what behavior was observed, the tested range and remaining
+limitations. Keep promising alternatives visible in the gallery. Improve shared
+compiler machinery where concrete experiments demonstrate an obstacle, and test
+the affected alternatives before claiming a general improvement. Default
+behavior checks accompany shared changes. This work should also expose costly
+or confusing parts of the workflow worth simplifying; a larger specification
+language or abstract primitive system is not a prerequisite.
+
+The milestone is an evaluated, usable expansion of the creative repertoire.
+Contact diagnostics, geometry repairs and search improvements serve that result;
+none alone establishes artistic completion. The existing constraints, evidence
+standards and distinction between technical completion and owner review apply.
 
 ## Constraints and working practice
 

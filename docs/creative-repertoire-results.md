@@ -155,12 +155,15 @@ windows and the late profile placement are plausible contributors; their
 relative causal importance has not been isolated. A shape request is therefore
 weaker than a request for that riding behavior.
 
-The next experiment should establish one convincing passage in which the rider
-actually follows the serpentine bends. Compare placement and curvature against
-the available contact time, then check guide interaction, musical costs and the
-finished video. Increasing strength alone or adding a contact quota would not
-establish success. Keep the current examples as diagnostic references; neither
-the geometry's potential nor success on other passages follows from this check.
+If serpentine is selected for further development, a useful experiment is to
+compare placement and curvature against the available contact time, then check
+guide interaction, musical costs and the finished video. Increasing strength
+alone or adding a contact quota would not establish success. The owner clarified
+that this repair should not become the whole next milestone or block work on
+other constructions. The [active roadmap](creative-repertoire-roadmap.md#active-next-milestone-develop-useful-distinct-constructions)
+instead develops a broader useful repertoire, with geometry-appropriate empirical
+checks. The current examples remain diagnostic references; neither the
+geometry's potential nor success on other passages follows from this check.
 
 Native replay matches all 12 saved rides with zero body-position error. The full
 Line Rider app agrees on **3,448 sampled poses**, including scarf and rider state.

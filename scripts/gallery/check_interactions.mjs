@@ -12,7 +12,7 @@ const origin=arg('origin')??'http://127.0.0.1:8767';
 const out=arg('out');assert.ok(out,'Supply --out=PATH');
 const paths=[
  'generated/motion-gallery/20260930-functional-rails/manifest.json',
- 'generated/motion-gallery/20260930-guide-intent/manifest.json',
+ arg('guide-study')??'generated/motion-gallery/20260930-guide-intent/manifest.json',
 ];
 const hash=b=>createHash('sha256').update(b).digest('hex');
 async function ready(page){
@@ -41,9 +41,11 @@ try {
   console.log(`Interactions: ${path}`);
   const page=await pageFor(path);await ready(page);
   const budget=+(await page.locator('#budget').inputValue()),a=m.plan.seeds[0],b=m.plan.seeds[1];
+  assert.ok(b!==undefined&&m.plan.cases.length>1,'interaction study needs two seeds and passages');
   const checkShown=async(caseId,seed)=>{
    const ids=await shown(page);assert.equal(ids.length,2);
-   for(const id of ids)assert.ok(m.cells.some(c=>url(c)===id&&c.caseId===caseId&&c.seed===seed&&c.budget===budget),id);
+   const method=m.plan.kind==='guide-choice'?await page.locator('#left-method').inputValue():null;
+   for(const id of ids)assert.ok(m.cells.some(c=>url(c)===id&&c.caseId===caseId&&c.seed===seed&&c.budget===budget&&(!method||c.method===method)),id);
   };
   await seek(page,1);await page.locator('#play').click();
   await page.selectOption('#seed',String(b));await ready(page);
@@ -77,10 +79,20 @@ try {
    await page.locator('#play').click();
    await page.locator('#extra-error').fill('0.02');await page.locator('#extra-error').dispatchEvent('input');await ready(page);
    assert.equal(await page.locator('#play').textContent(),'Pause');
-   await page.selectOption('#choice-fork','1');await ready(page);
-   const p=m.portfolios.find(p=>p.caseId===m.plan.cases[0].id&&p.seed===b&&p.budget===budget);
-   assert.equal(await time(page),p.decisions.find(d=>d.section===1).frame/40);
+   const method=await page.locator('#left-method').inputValue();
+   const p=m.portfolios.find(p=>p.caseId===m.plan.cases[0].id&&p.seed===b&&p.budget===budget&&(p.method??'arcs')===method);
+   const d=p.decisions.find(d=>d.section===1);assert.ok(d);
+   await page.selectOption('#choice-fork',d.id??String(d.section));await ready(page);
+   assert.equal(await time(page),d.frame/40);
    assert.equal(await page.locator('#play').textContent(),'Play');
+   if(m.plan.methods.length>1){
+    await seek(page,1);await page.locator('#play').click();
+    await page.selectOption('#left-method',m.plan.methods.find(v=>v!==method));await ready(page);
+    assert.equal(await page.locator('#play').textContent(),'Pause');assert.ok(await time(page)>=1);await checkShown(p.caseId,b);
+    await page.locator('#play').click();const paused=await time(page);
+    await page.evaluate(methods=>{for(const method of methods){const el=document.getElementById('left-method');el.value=method;el.dispatchEvent(new Event('change'));}},[...m.plan.methods].reverse());
+    await ready(page);assert.equal(await time(page),paused);await checkShown(p.caseId,b);
+   }
   }else{
    await page.locator('#play').click();await page.selectOption('#right-method','paired');await ready(page);
    assert.equal(await page.locator('#play').textContent(),'Pause');await page.locator('#play').click();
@@ -119,7 +131,7 @@ try {
   await bad.locator('#retry').click();await ready(bad);assert.ok(requests>=2);await bad.close();
   rows.push({path,sha256:hash(readFileSync(path)),preservesPlaybackAndPlayhead:true,pausedSeedSwitch:true,rapidSeedSwitch:true,
    cancelsStaleDownloads:true,pauseDuringLoading:true,noStalePanels:true,retriesFailedDownload:true,
-   ...(m.plan.kind==='guide-choice'?{preferencePreservesPlayback:true,forkPausesAtBoundary:true,mobileOverflow:false}:{selectedTracksBeforePreviews:true,stylePreservesPlayback:true})});
+   ...(m.plan.kind==='guide-choice'?{preferencePreservesPlayback:true,forkPausesAtBoundary:true,mobileOverflow:false,geometrySwitchPreservesPlayback:m.plan.methods.length>1}:{selectedTracksBeforePreviews:true,stylePreservesPlayback:true})});
  }
  // Replacing a selection must terminate an in-flight replay, not wait behind it.
  let workers=0;

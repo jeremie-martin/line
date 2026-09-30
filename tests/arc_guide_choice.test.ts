@@ -104,8 +104,8 @@ it('retains a useful middle continuation without assigning a preferred guide cou
  expect(guideCoverageFrontier([])).toEqual([]);
  expect(()=>guideCoverageFrontier(pool,1)).toThrow('at least two');
 });
-it('preserves later guide prohibitions while independently rebuilding faceted continuations',()=>{
- const r=studyGuideChoices(spec,17,260000,{exploration:'coverage',unguidedReference:true,preserveGuidePattern:true,geometry:{subdivisions:.5}});
+it.each([{exploration:'coverage' as const,preserveGuidePattern:true},{exploration:'coverage-focused' as const,preserveGuidePattern:false}])('keeps faceted coverage forks and their permissions within one allowance: %j',mode=>{
+ const r=studyGuideChoices(spec,17,260000,{...mode,unguidedReference:true,geometry:{subdivisions:.5}});
  expect(r.physicalFrames).toBe(r.preparationFrames+r.candidates.reduce((n,c)=>n+c.result.stats.sim_frames,0));
  expect(r.physicalFrames).toBeLessThanOrEqual(260000);
  expect(r.decisions.length).toBeGreaterThan(0);
@@ -114,7 +114,7 @@ it('preserves later guide prohibitions while independently rebuilding faceted co
   for(const id of [d.single,d.guided]){
    const c=r.candidates.find(c=>c.id===id)!;
    expect(c.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)<d.section)).toEqual(source.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)<d.section));
-   for(let i=1;i<d.continuationGuides.length;i++)if(!d.continuationGuides[i])expect(guideFootprint(c.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===d.section+i)).guideSections).toBe(0);
+   for(let i=1;i<(d.continuationGuides?.length??0);i++)if(!d.continuationGuides[i])expect(guideFootprint(c.result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)===d.section+i)).guideSections).toBe(0);
    expect(c.result.track.lines.every(l=>l.type===0)).toBe(true);
   }
  }

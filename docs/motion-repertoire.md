@@ -7,7 +7,7 @@ plug-in framework, motion motifs, style quotas, or new specification controls.
 
 ## Current gallery
 
-The [improved guide-choice experiment](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-search/manifest.json)
+The [Arcs & facets guide-choice experiment](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-coverage/manifest.json)
 now makes one artistic preference explicit: prefer fewer guided sections, then
 shorter visible guides, while keeping measured whole-ride motion error within a
 chosen allowance. Its slider selects among a fixed set of recorded alternatives;
@@ -15,15 +15,31 @@ it does not run a new search. The comparison menu also exposes both branches of
 each physical fork, including unsuccessful searches. The gallery starts at zero
 additional error; no production tolerance has been selected.
 
-The new search starts with independently optimized guided and unguided rides,
-then keeps two promising continuations while charging all work to the same
-total allowance. Its [fresh-seed evaluation](guide-search-2026-09-30.md) covers
+The latest [coverage study](guide-coverage-2026-09-30.md) compares the previous
+balanced search with a focused two-path search on nine passages, eight fresh
+seeds, two allowances and both arcs and facets. At 900,000 frames, the focused
+search lowers mean error under a half-guide cap by 16.35% for arcs and 8.38% for
+facets at essentially unchanged actual work. Best accuracy is nearly unchanged.
+Other guide limits regress, and the three new passages show mixed transfer.
+Focused coverage remains an explicit research option; production is unchanged.
+
+The gallery contains all nine passages at seeds 271/272, with 1,288 recorded
+attempts and one visible failed continuation. The Geometry selector preserves
+the playhead. Changing geometry changes the available alternatives and their
+best measured error; the slider's ceiling is relative to that selected pool.
+The report uses common absolute error ceilings within each shape when comparing
+search algorithms. Those are different comparisons.
+
+Both searches start with independently optimized guided and unguided rides,
+then keep two promising continuations while charging all work to the same
+total allowance. The [preceding evaluation](guide-search-2026-09-30.md) covers
 six passages × eight seeds × two ceilings. At 900,000 frames, mean best target
 error falls 8.59%; at a common baseline-best +0.020 ceiling, mean guided sections
 fall from 3.479 to 2.229. Some comparisons regress, particularly at intermediate
 guide limits. These results improve the available choices without defining a
-geometric ceiling or changing production. The gallery contains seed 241 from
-that panel; the complete measurements are in the report. The
+geometric ceiling or changing production. The
+[preceding two-path gallery](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-search/manifest.json)
+contains seed 241 from that panel; the complete measurements are in the report. The
 [original four-seed gallery](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-intent/manifest.json)
 remains available.
 
@@ -51,7 +67,7 @@ All pass timing and survival; guides improve average adherence, while single
 rails outperform them on most quiet-tail comparisons. These are measured
 search results, not geometric capability ceilings or automatic style rules.
 
-The gallery focuses on eight functional geometry choices: arcs with trimmed
+The shape gallery focuses on eight functional geometry choices: arcs with trimmed
 or full paired guides, improved scattered segments, waves, facets, serpentine
 rails, terraces and ripples. The original scattered controller remains an
 additional comparison. Ribbons, teeth and petals are archived as optional
@@ -135,18 +151,25 @@ body-point frame through the boundary. The final complete ride still passes the
 unchanged judge. Unsupported combinations that could edit the locked prefix,
 such as whole-track refinement, are rejected explicitly for this research API.
 
-The improved exploratory traversal starts from two complete references, one
+The focused exploratory traversal starts from two complete references, one
 guide-allowed and one guide-forbidden. At successive supports it compares both
 guide permissions from each retained path. It keeps the most accurate track and
-a second offering the smallest measured error increase per removed guided
-section, reconsidering **all** already measured tracks. This is an exploration
-heuristic, separate from the delivery preference. The original single-path
-traversal remains available for research comparisons. The delivery selector
+an intermediate track that fills the largest measured error gap between the
+accurate and sparse endpoints over integer guide-count caps. With no useful
+intermediate it follows the sparse endpoint. It reconsiders **all** measured
+tracks, and keeps the endpoints available for delivery. This is an exploration
+heuristic, separate from the delivery preference. The previous balanced two-path
+and original single-path traversals remain available for comparisons. The delivery selector
 applies the chosen full-ride error ceiling over the entire fixed pool.
 The common budget pays for both reference constructions, all branches, prefix checks
 and the compiler's cold replays. Independent gallery observation is recorded
 validation work, outside that construction allowance. All continuations use the
 same search configuration; per-branch ceilings scale with remaining ride length.
+
+An explicit research option can preserve the source's later guide permissions
+while still rebuilding its geometry. Both fork branches share those later
+permissions. It is not enabled in the focused gallery; experiments showed mixed
+results. The comparison explanation states which continuation policy was used.
 
 The ceiling is the lowest measured whole-trajectory RMS error in that pool plus
 the explicit extra allowance. It uses the compiler's existing authored-axis

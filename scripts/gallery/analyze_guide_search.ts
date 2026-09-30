@@ -10,9 +10,24 @@ const args=process.argv.slice(2),out=args.find(a=>a.startsWith('--out='))?.slice
 const reference=args.find(a=>a.startsWith('--reference='))?.slice(12)??'baseline';
 assert.ok(out);const roots=args.filter(a=>!a.startsWith('--'));
 const rows:any[]=[],sources:any[]=[];
+const authored=new Map<string,string>();let judge:string|undefined;
 for(const root of roots){
  const path=resolve(root,'results.json');let files:string[];
- try{const study=JSON.parse(readFileSync(path,'utf8'));rows.push(...study.rows);sources.push({path,sha256:sha(readFileSync(path)),plan:study.plan});continue;}catch(error:any){if(error.code!=='ENOENT')throw error;}
+ try{
+  const bytes=readFileSync(path);assert.equal(sha(bytes),readFileSync(path+'.sha256','utf8').trim(),'study checksum mismatch');
+  const study=JSON.parse(bytes.toString()),plan=study.plan;
+  const judgeIdentity=JSON.stringify(plan.judge);if(judge!==undefined)assert.equal(judgeIdentity,judge,'different frozen judges');judge=judgeIdentity;
+  for(const c of plan.cases){const identity=JSON.stringify(c);if(authored.has(c.id))assert.equal(identity,authored.get(c.id),'different authored inputs under the same case ID');authored.set(c.id,identity);}
+  const expected=new Set(plan.cases.flatMap((c:any)=>plan.seeds.flatMap((seed:number)=>plan.budgets.flatMap((budget:number)=>Object.keys(plan.variants).map(variant=>JSON.stringify([c.id,seed,budget,variant]))))));
+  assert.equal(study.rows.length,expected.size,'incomplete study');
+  for(const r of study.rows){
+   assert.ok(expected.delete(JSON.stringify([r.caseId,r.seed,r.budget,r.variant])),'unexpected or duplicate study row');
+   assert.equal(r.shape??'arcs',plan.shape??'arcs');assert.ok(r.physicalFrames<=r.budget);
+   assert.equal(r.physicalFrames,r.preparationFrames+r.candidates.reduce((sum:number,c:any)=>sum+c.physicalFrames,0));
+   for(const c of r.candidates){assert.ok(c.physicalFrames<=c.allowance);assert.equal(c.valid,c.score.valid);}
+  }
+  rows.push(...study.rows);sources.push({path,sha256:sha(bytes),plan});continue;
+ }catch(error:any){if(error.code!=='ENOENT'||error.path!==path||!args.includes('--allow-incomplete'))throw error;}
  files=readdirSync(root).filter(f=>f.endsWith('.json')&&f!=='plan.json');
  for(const file of files){const path=resolve(root,file),bytes=readFileSync(path);assert.equal(sha(bytes),readFileSync(path+'.sha256','utf8').trim());rows.push(JSON.parse(bytes.toString()));}
  sources.push({root,incomplete:true,rows:files.length});

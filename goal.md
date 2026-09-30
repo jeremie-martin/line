@@ -1,3 +1,21 @@
+# Guide coverage and transfer to facets — 2026-09-30
+
+The [four-part coverage study](docs/guide-coverage-2026-09-30.md) is complete:
+diagnosis, bounded search allocation, fresh confirmation and transfer to facets.
+The frozen focused search was compared over **576 valid portfolios**: nine
+passages × eight fresh seeds × two allowances × two shapes × two methods.
+At 900,000 frames, half-guide-cap target error falls **16.35% for arcs** and
+**8.38% for facets**, with actual work changing by less than 0.04%. Best accuracy
+is nearly unchanged; other guide limits regress, and the three new passages
+show mixed transfer. Focused coverage stays an explicit research option.
+
+The [Arcs & facets gallery](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-coverage/manifest.json)
+contains 1,288 recorded attempts, including one inspectable failure, with two
+seeds and verified native replay. All 699,998 segments are normal lines.
+All **352 canonical outputs and work counts remain exactly unchanged at
+952.4726**. The completed performance goal remains complete. Code and compact
+evidence are versioned; large experiment and playback archives stay local.
+
 # Improving guide alternatives and their evaluation — 2026-09-30
 
 The [new bounded search and matched evaluation](docs/guide-search-2026-09-30.md)

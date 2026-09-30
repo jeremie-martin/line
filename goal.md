@@ -7,6 +7,15 @@ combining them deliberately. Develop on two songs, check reuse on a reserved
 passage, and preserve musical accuracy, understandable choices and reasonable
 computation. The musical-direction work below is the preceding milestone.
 
+The [first repertoire panel](docs/creative-repertoire-results.md) now contains
+12 valid complete rides: arcs, ripple phrases, stronger serpentine phrases and
+deliberate combinations on Luna, Amor and reserved Tiki. All are normal-line
+tracks with verified native replay and physical construction. Development
+includes strength and budget comparisons plus a rejected future-value ablation.
+The current V4 baseline remains exactly unchanged. Local target costs on Amor
+and Tiki are material and disclosed. Final production rendering and video-page
+checks are in progress; the new examples still need owner aesthetic review.
+
 # Musical direction on real songs — 2026-09-30
 
 The owner authorized implementation of the [musical direction plan](docs/musical-direction-plan.md).

@@ -36,6 +36,14 @@ try{
   await page.selectOption('#song',manifest.plan.cases[0].id);await ready();
   await page.selectOption('#seed',String(manifest.plan.seeds[0]));await ready();
   await page.selectOption('#variant','mixed');await ready();
+  if(manifest.plan.repertoire){
+    assert.equal(await page.locator('#phrases button').count(),2);
+    await page.locator('#phrases button').last().click();
+    const mixed=manifest.cells.find(c=>c.caseId===firstCase.id&&c.seed===manifest.plan.seeds[0]&&c.method==='mixed');
+    const from=mixed.sections.find(s=>s.start>=firstCase.mixed[0]&&s.start<firstCase.mixed[1]).start;
+    assert.equal(+(await page.locator('#seek').inputValue()),Math.max(0,from-.5));
+    assert.equal(await page.locator('#play').textContent(),'Play');
+  }
   await page.locator('#moments button').last().click();await seek(24.8);
   assert.deepEqual(await page.locator('video').evaluateAll(vs=>vs.map(v=>v.muted)),[false,true]);
   const time=await page.locator('video').evaluateAll(vs=>vs.map(v=>v.currentTime));assert.ok(time.every(t=>Math.abs(t-24.8)<.01));

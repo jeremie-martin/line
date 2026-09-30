@@ -1,5 +1,8 @@
 # Deliberate visual choices on real music
 
+This records the first musical-direction milestone. The active next steps are in
+the [creative repertoire roadmap](creative-repertoire-roadmap.md).
+
 The intended result is visually compelling, varied Line Rider tracks synchronized
 with music, supported by a compiler whose choices are understandable, reproducible
 and efficient. High specification adherence is a foundation; it does not establish

@@ -1,17 +1,22 @@
 # Motion gallery and measured construction
 
 The product is visually interesting tracks synchronized to the authored music.
-The score measures adherence, not whether a video looks good. The current task
-starts with concrete examples and measurements; it does not introduce a geometry
-plug-in framework, motion motifs, style quotas, or new specification controls.
+The score measures adherence, not whether a video looks good. The active
+[creative repertoire roadmap](creative-repertoire-roadmap.md) develops
+understandable constructions and deliberate musical combinations through concrete
+examples and measurements. A broad framework and automatic style rules remain
+future decisions informed by that work.
 
 ## Current gallery
 
 Start with the [music review](http://localhost:8767/motion-gallery/music.html) for
-finished Luna and Amor videos, deliberate guide-free and arc–facet–arc phrases,
-and the exact same rides in the native inspector. The [results](musical-direction-results.md)
-report local musical consequences, whole-ride quality and actual work. Owner
-visual preference remains open. The guide-choice studies below are supporting
+finished musical comparisons and the exact same rides in the native inspector.
+The [first repertoire results](creative-repertoire-results.md) compare arcs,
+ripples and stronger serpentine phrases on Luna, Amor and the reserved Tiki song.
+The [preceding results](musical-direction-results.md) preserve the guide-free,
+facet and ripple studies. The owner found the earlier ripple example meaningfully
+different; the new comparisons still need artistic review. Both reports disclose
+local musical consequences, whole-ride quality and actual work. The guide-choice studies below are supporting
 experiments with an explicit fewer-guides preference, not the overall artistic goal.
 
 The [Arcs & facets guide-choice experiment](http://localhost:8767/motion-gallery/?data=/generated/motion-gallery/20260930-guide-coverage/manifest.json)
@@ -125,8 +130,9 @@ No compiler search, benchmark or physics behavior changed in this repair.
 ## Behavior contract for guide choice
 
 The goal is understandable artistic direction with measured adherence and cost.
-Adding geometry is paused while the existing main-curve/guide construction is
-made explicit. This is a research path, not a new music-specification language.
+The guide-choice experiment below makes the existing main-curve/guide
+construction explicit. It is a supporting research path, not a new
+music-specification language or a restriction on the broader roadmap.
 
 | Decision | Current meaning |
 | --- | --- |

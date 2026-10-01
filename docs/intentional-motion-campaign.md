@@ -372,3 +372,36 @@ Integration checks pass (15 tests across four production, policy, archive and
 V6 files), with no added TypeScript diagnostics against the captured existing
 baseline. The earlier 57-file regression panel passes after rerunning its one
 obsolete-assertion file. Frozen judge verification passes.
+
+
+## Candidate 3 production replay and motion follow-up
+
+The full twelve-track candidate collection completes with all requested
+constructions fulfilled. Independent native qualification confirms 91.97%,
+93.35% and 95.22% reductions in integrated excess burst burden across the
+25/100/250ms bands. Both calm songs pass the frozen absolute-correction and
+direction checks. Two conditions fail: Amour 101's reported window has
+100ms excess 0.198465, and opening impact error improves 39.4% against the
+required 40%. This candidate is not described as motion-qualified.
+
+The 24-run `qualification-search-1` holds plans, seeds and budget fixed while
+comparing original weights, stronger burst weighting, and two strengths of
+additional calm-landing accuracy pressure. All 24 tracks complete and fulfill
+their requests. Cold native replay independently reproduces every musical
+score and full motion summary. All three strengthened variants resolve all
+three reported windows on this panel. Calm impact pressure improves Tiki's
+opening RMS from 0.03056 to 0.01421–0.01442, while Luna varies by seed. Scores
+remain mixed: the balanced setting raises dense-frontier 202 from 611.51 to
+644.64 and Amour 303 from 584.65 to 595.74, but lowers Tiki 101 from 821.74 to
+801.45. Full collection qualification remains necessary.
+
+The dashboard can now open a checksum-verified saved collection via its
+`collection` URL parameter, preserving the default collection and carrying
+that identity through passage links. Both the preserved collection and
+`library-candidate-3` pass all 14 native playback/audio/navigation/mobile checks,
+with no page errors. Their separate review evidence stays local.
+
+`objective-search-1` is a declared 36-run comparison on six difficult inputs:
+impact weighting, physical arrival preparation without the ordinary learned
+value, time-weighted errors, stronger short continuations, and secant response
+reuse. These target the remaining musical errors; confirmation remains reserved.

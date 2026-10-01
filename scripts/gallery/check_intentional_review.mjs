@@ -3,12 +3,15 @@ import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {chromium} from 'playwright';
 const origin=process.env.REVIEW_ORIGIN??'http://127.0.0.1:8767';
-const collection=JSON.parse(readFileSync('motion-gallery/production-library.json','utf8'));
-const out='generated/intentional-motion';mkdirSync(out,{recursive:true});
+const collectionPath=process.env.REVIEW_COLLECTION??'motion-gallery/production-library.json';
+const collection=JSON.parse(readFileSync(collectionPath,'utf8'));
+const out=process.env.REVIEW_OUT??'generated/intentional-motion';mkdirSync(out,{recursive:true});
+const reviewUrl=new URL(origin+'/motion-gallery/production.html');
+if(process.env.REVIEW_COLLECTION)reviewUrl.searchParams.set('collection','/'+collectionPath.replace(/^\/+/,''));
 const browser=await chromium.launch({headless:true}),errors=[],checks=[];
 try{
  const page=await browser.newPage({viewport:{width:1440,height:1000}});page.setDefaultTimeout(60000);page.on('pageerror',e=>errors.push(e.message));
- await page.goto(origin+'/motion-gallery/production.html');await page.waitForFunction(()=>!document.getElementById('play').disabled);
+ await page.goto(reviewUrl.href);await page.waitForFunction(()=>!document.getElementById('play').disabled);
  assert.equal(await page.locator('#library button').count(),collection.entries.filter(e=>e.manifest).length);
  for(const [i,entry]of collection.entries.filter(e=>e.manifest).entries()){
   await page.locator('#library button').nth(i).click();
@@ -19,6 +22,7 @@ try{
   assert.equal(await page.locator('#time').textContent(),sampleTime.toFixed(2)+' s');
   const link=await page.locator('#passage-link').getAttribute('href');assert.equal(new URL(link).searchParams.get('t'),sampleTime.toFixed(3));
   assert.equal(new URL(link).searchParams.get('data'),entry.manifest);
+  assert.equal(new URL(link).searchParams.get('collection'),reviewUrl.searchParams.get('collection'));
   if(entry.priorManifest){
    await page.selectOption('#comparison','2');
    assert.equal(await page.locator('#time').textContent(),sampleTime.toFixed(2)+' s');
@@ -28,7 +32,7 @@ try{
   checks.push({id:entry.id,nativeReplay:true,synchronizedAudio:true,previousArrangement:!!entry.priorManifest,shareableTime:true});
  }
  const last=collection.entries.filter(e=>e.manifest).at(-1);
- const url=new URL(origin+'/motion-gallery/production.html');url.searchParams.set('data',last.manifest);url.searchParams.set('t','9.425');url.searchParams.set('compare',last.priorManifest?'previous':'ordinary');
+ const url=new URL(reviewUrl);url.searchParams.set('data',last.manifest);url.searchParams.set('t','9.425');url.searchParams.set('compare',last.priorManifest?'previous':'ordinary');
  await page.goto(url.href);await page.waitForFunction(()=>!document.getElementById('play').disabled);
  assert.equal(await page.locator('#time').textContent(),'9.43 s');
  if(last.priorManifest)assert.equal(await page.locator('#comparison').inputValue(),'2');
@@ -41,5 +45,5 @@ try{
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  await page.screenshot({path:out+'/review-mobile.png',fullPage:true});checks.push({mobileNoOverflow:true});
  assert.deepEqual(errors,[]);
- writeFileSync(out+'/review-ui.json',JSON.stringify({checks,errors},null,2)+'\n');console.log(JSON.stringify({checks:checks.length,errors}));
+ writeFileSync(out+'/review-ui.json',JSON.stringify({collection:collectionPath,checks,errors},null,2)+'\n');console.log(JSON.stringify({checks:checks.length,errors}));
 }finally{await browser.close();}

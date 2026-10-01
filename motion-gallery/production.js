@@ -101,5 +101,15 @@ async function refreshJobs(){try{const {jobs}=await api('jobs');const automatic=
  const updated=automatic.find(j=>j.id===currentJob?.id);if(updated?.render==='complete'&&currentJob.render!=='complete'){currentJob=updated;await loadMovie(manifest,manifestUrl,controller.signal,opening);$('render').textContent='Videos ready';}
  }catch(e){status(e.message,true);}}
 $('generate').onsubmit=async event=>{event.preventDefault();try{const request={mode:'production',song:$('song').value,seed:+$('seed').value,budget:+$('budget').value,referenceBudget:750000,creative:{variation:+$('variation').value,guidedBalance,repertoire:[...$('repertoire').querySelectorAll('input:checked')].map(i=>i.value)}};status('Submitting automatic arrangement…');const {job,reused}=await api('compile',request);pendingJob=job.id;status(reused?'Opening matching saved request…':'Compilation queued…');await refreshJobs();}catch(e){status(e.message,true);}};
-async function loadLibrary(){try{const r=await fetch('production-library.json');if(!r.ok)throw new Error('The review collection is being generated.');const data=await r.json();libraryEntries=data.entries;$('library').replaceChildren(...data.entries.map(entry=>{const c=card(`${entry.title} · ${entry.seed}`,entry.error??entry.status??'Saved automatic arrangement');if(entry.manifest){const b=el('button','Open ride');b.onclick=()=>openResult(entry.manifest);c.append(b);}return c;}));const initial=new URLSearchParams(location.search).get('data')??data.entries.find(e=>e.manifest)?.manifest;if(initial){const params=new URLSearchParams(location.search);$('comparison').value=params.get('compare')==='previous'?'2':'1';await openResult(initial,undefined,Math.max(0,Number(params.get('t'))||0));}}catch(e){$('library').textContent=e.message;}}
+async function loadLibrary(){try{
+ const params=new URLSearchParams(location.search),collection=new URL(params.get('collection')??'production-library.json',location.href);
+ if(collection.origin!==location.origin)throw new Error('Review collections must be served from this gallery.');
+ let data;
+ if(params.has('collection'))data=await checked(collection.href);
+ else{const response=await fetch(collection.href);if(!response.ok)throw new Error('The review collection is being generated.');data=await response.json();}
+ libraryEntries=data.entries;
+ $('library').replaceChildren(...data.entries.map(entry=>{const c=card(`${entry.title} · ${entry.seed}`,entry.error??entry.status??'Saved automatic arrangement');if(entry.manifest){const b=el('button','Open ride');b.onclick=()=>openResult(entry.manifest);c.append(b);}return c;}));
+ const initial=params.get('data')??data.entries.find(e=>e.manifest)?.manifest;
+ if(initial){$('comparison').value=params.get('compare')==='previous'?'2':'1';await openResult(initial,undefined,Math.max(0,Number(params.get('t'))||0));}
+ }catch(e){$('library').textContent=e.message;}}
 try{catalog=await api('catalog');$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const [key,name]of Object.entries(names)){const label=el('label'),input=el('input');input.type='checkbox';input.value=key;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await loadLibrary();await refreshJobs();setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}

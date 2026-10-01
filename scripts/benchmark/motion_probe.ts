@@ -46,8 +46,11 @@ try{
  const examplePath=arg('examples',''),exampleBytes=examplePath?readFileSync(examplePath):undefined;
  const examples=exampleBytes?JSON.parse(gunzipSync(exampleBytes).toString()):undefined;
  if(examples)assert.equal(examples.schema,'line.construction-examples.v1');
+ const policyPath=arg('construction-policies',''),policyBytes=policyPath?readFileSync(policyPath):undefined;
+ const policies=policyBytes?JSON.parse(gunzipSync(policyBytes).toString()):undefined;
+ if(policies)assert.equal(policies.schema,'line.construction-policies.v1');
  const options={...repertoireSearchOptions(spec,plan,budget-Math.round(spec.duration*40)-21),...changes,
-  ...(examples?{constructionExamples:examples.groups}:{})};
+  ...(examples?{constructionExamples:examples.groups}:{}),...(policies?{constructionPolicies:policies.groups}:{})};
  let forkInput:any;
  if(arg('fork','')){
   const path=resolve(arg('fork','')),bytes=readFileSync(path),source=JSON.parse(bytes.toString());
@@ -75,9 +78,11 @@ try{
   summary:summarizeMotion(samples.filter(s=>s.frame>=r.frame&&s.frame<r.next),r.frame)}));
  const motion={full:summarizeMotion(samples,1),opening:summarizeMotion(samples.filter(s=>s.frame<=120),1),sections};
  assert.deepEqual(galleryCompilerIdentity(process.cwd()),compiler,'compiler changed during motion probe');
+ if(policyBytes)assert.ok(policyBytes.equals(readFileSync(policyPath)),'construction policies changed during motion probe');
  if(exampleBytes)assert.ok(exampleBytes.equals(readFileSync(examplePath)),'example corpus changed during motion probe');
  writeGalleryJson(out,id+'.json',{id,compiler,song,seed,budget,changes,ms,physicalFrames:result.stats.sim_frames+(forkInput?.preparationFrames??0),
   ...(forkInput?{forkInput,forkEvidence:result.forkEvidence}:{}),
+  ...(policyBytes?{constructionPolicies:{path:policyPath,sha256:createHash('sha256').update(policyBytes).digest('hex')}}:{}),
   ...(exampleBytes?{examples:{path:examplePath,sha256:createHash('sha256').update(exampleBytes).digest('hex')}}:{}),
   score:replay.grade.score,valid:replay.grade.score.valid,realization,motion,plan,rows:result.rows,railGuides:roles,
   track:result.track,report:result.report,failure:result.failure,planning:result.planningDecisions,attempts:result.attempts,attemptWork:result.attemptWork,completionFirst:result.completionFirstStats,lookahead:result.lookaheadStats,initializationRecovery:result.initializationRecovery,refinement:result.refinementStats,initialProposalWork:result.initialProposalWork,observedReceiverWork:result.observedReceiverWork,coupledIntervalWork:result.coupledIntervalWork,constructionImprovement:result.constructionImprovement});

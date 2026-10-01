@@ -89,6 +89,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Measured controls retrieved by physical state and authored targets. */
   controlExamples?:ArcControlExample[];
   constructionExamples?:Readonly<Record<string,readonly ArcControlExample[]>>;
+  constructionPolicies?:Readonly<Record<string,any>>;
   /** Preserve distinct expressive geometry in learned and memory proposals. */
   controlDiversity?:'inherited'|'geometry';
   /** Reserve work for improving a completed track inside the same hard limit. */
@@ -432,6 +433,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     };
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
+      const constructionPolicy=i>0?options.constructionPolicies?.[arcConstructionMemoryKey(options)]:undefined;
+      if(constructionPolicy)options.controlPolicy=constructionPolicy;
       const nextRequest=options.constructionRequests?.[i+1];
       if(options.constructionAwareArrival&&nextRequest&&(nextRequest.context?.quiet??0)<.5&&(nextRequest.guidance==='forbidden'||nextRequest.railLayout==='transfer')){
         options.futureValueModel=undefined;

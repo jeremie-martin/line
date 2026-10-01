@@ -86,8 +86,11 @@ export class ArcControlMemory {
       const residuals = m.residuals.map((r, j) => {
         const target = wanted[j];
         if(weights.axisWeights||m.axisWeights){
-          return target===undefined||m.targets[j]===undefined||storedWeights[j]<=0?0:
-            (r/Math.sqrt(storedWeights[j])+m.targets[j]!-target)*Math.sqrt(currentWeights[j]);
+          if(target===undefined||m.targets[j]===undefined||storedWeights[j]<=0)return 0;
+          // Equal weights already use the same units. Preserve their arithmetic
+          // rather than introducing a needless divide/multiply round trip.
+          if(storedWeights[j]===currentWeights[j])return r+(m.targets[j]!-target)*Math.sqrt(currentWeights[j]);
+          return (r/Math.sqrt(storedWeights[j])+m.targets[j]!-target)*Math.sqrt(currentWeights[j]);
         }
         return target === undefined ? 0 : r + ((m.targets[j] ?? target) - target) *
           Math.sqrt(j === 2 ? weights.amplitude : j === 3 ? weights.impact : 1);

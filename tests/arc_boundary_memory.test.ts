@@ -100,3 +100,16 @@ it('does not retain a calm passage impact preference when reusing its response e
  // compromise stays put, although the original fourfold impact weight would move.
  expect(proposal.entry).toBeCloseTo(8,14);
 });
+
+it('preserves exact response proposals when explicit weight metadata does not change the units',()=>{
+ const plain=new ArcControlMemory(),explicit=new ArcControlMemory(),features=Array(57).fill(0);
+ const example:ArcResponseExample={features,incoming:10,span:20,
+  control:{entry:8,turn:20,exit:15,support:12,bias:0,offset:.1},
+  targets:[.3,.6,.28,.11],keys:['entry','support'],
+  jac:[[.8,1.2],[1.3,-.7],[.17,.11],[.19,-.13]],residuals:[.1273,-.0841,.03782,-.011973],scale:[2,3],loss:.1};
+ plain.rememberResponse(example);
+ explicit.rememberResponse({...example,axisWeights:[1,1,1/3,1.5]});
+ const weights={amplitude:1/3,impact:1.5,damping:.0002},wanted=[.27,.71,.37,.18];
+ expect(explicit.proposeResponses(features,20,32,wanted,1,{...weights,axisWeights:[1,1,1/3,1.5]}))
+  .toEqual(plain.proposeResponses(features,20,32,wanted,1,weights));
+});

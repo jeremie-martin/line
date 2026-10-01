@@ -1,0 +1,221 @@
+{
+  "schema": "line.intentional-motion-verification.v1",
+  "compiler": {
+    "head": "5b031f7e22a287e7bb2f32e9ead1aaafccc351ce",
+    "compilerSourceFingerprint": "ed4d38b5a55f4b7e06a56c87c2e23b6b9758f4f07f491f8e17b30ac1973ce043",
+    "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "tests": {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "tests/arc_attempts.test.ts",
+      "tests/arc_authored_objective.test.ts",
+      "tests/arc_boundary_memory.test.ts",
+      "tests/arc_budget_interruptions.test.ts",
+      "tests/arc_candidate_memo.test.ts",
+      "tests/arc_composition.test.ts",
+      "tests/arc_continuation_boundary.test.ts",
+      "tests/arc_control_contract.test.ts",
+      "tests/arc_control_policy.test.ts",
+      "tests/arc_control_reference.test.ts",
+      "tests/arc_control_registry.test.ts",
+      "tests/arc_deployed_policy.test.ts",
+      "tests/arc_engine_ownership.test.ts",
+      "tests/arc_facets.test.ts",
+      "tests/arc_guidance_planning.test.ts",
+      "tests/arc_guide_choice.test.ts",
+      "tests/arc_horizon_policy.test.ts",
+      "tests/arc_integrity.test.ts",
+      "tests/arc_lazy_policy.test.ts",
+      "tests/arc_model.test.ts",
+      "tests/arc_motion_controls.test.ts",
+      "tests/arc_pair_response.test.ts",
+      "tests/arc_partition_index.test.ts",
+      "tests/arc_policy_archive.test.ts",
+      "tests/arc_policy_preview.test.ts",
+      "tests/arc_policy_rollout.test.ts",
+      "tests/arc_probe_base_fit.test.ts",
+      "tests/arc_profile_duration.test.ts",
+      "tests/arc_refinement.test.ts",
+      "tests/arc_replay_teacher.test.ts",
+      "tests/arc_residual_policy.test.ts",
+      "tests/arc_retry_budget.test.ts",
+      "tests/arc_reuse_evaluations.test.ts",
+      "tests/arc_review_cache.test.ts",
+      "tests/arc_secant_response.test.ts",
+      "tests/arc_single_rail.test.ts",
+      "tests/arc_startup_export.test.ts",
+      "tests/arc_terminal_optimization.test.ts",
+      "tests/arc_terminal_selection.test.ts",
+      "tests/arc_transition_revision.test.ts",
+      "tests/arc_turn_timing.test.ts",
+      "tests/arc_value.test.ts",
+      "tests/arc_value_correction.test.ts",
+      "tests/arc_value_guidance.test.ts",
+      "tests/arc_whole_refinement.test.ts",
+      "tests/benchmark_v6.test.ts",
+      "tests/intentional_repertoire.test.ts",
+      "tests/motion_contact_observer.test.ts",
+      "tests/motion_geometry_styles.test.ts",
+      "tests/motion_objective.test.ts",
+      "tests/motion_quality.test.ts",
+      "tests/native_motion_compiler.test.ts",
+      "tests/native_motion_control.test.ts",
+      "tests/normal_motion_compiler.test.ts",
+      "tests/normal_motion_research.test.ts",
+      "tests/production_motion_qualification.test.ts",
+      "tests/production_repertoire.test.ts",
+      "tests/repertoire_active_controls.test.ts",
+      "tests/repertoire_cache.test.ts",
+      "tests/repertoire_candidate.test.ts",
+      "tests/repertoire_composition.test.ts",
+      "tests/repertoire_feasibility.test.ts",
+      "tests/repertoire_policy.test.ts",
+      "tests/trajectory_postimpact_capture_arc_parity.test.ts",
+      "tests/handoff_routing.test.ts",
+      "tests/handoff_reference_import.test.ts",
+      "tests/handoff_rollout_probe.test.ts",
+      "--maxWorkers=2"
+    ],
+    "env": {
+      "LR_ENGINE": "wasm"
+    },
+    "filesPassed": 67,
+    "testsPassed": 262,
+    "log": {
+      "path": "generated/intentional-motion/final-integration-tests-corrected.log",
+      "sha256": "cc1d44fe0573fbfff5df99f9cb0243d242c887e3c1ff80e466fcd7183de30c3c"
+    },
+    "output": "RUN  v4.1.7 /home/wyss/line\n\n\n Test Files  67 passed (67)\n      Tests  262 passed (262)\n   Start at  14:09:36\n   Duration  312.96s (transform 3.90s, setup 0ms, import 14.70s, tests 289.22s, environment 7ms)"
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit --allowImportingTsExtensions",
+    "baseline": {
+      "path": "generated/intentional-motion/typecheck-before.txt",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "candidate": {
+      "path": "generated/intentional-motion/typecheck-candidate-8.txt",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "normalization": "source line/column positions removed; unique diagnostic text compared",
+    "baselineUniqueDiagnostics": 183,
+    "candidateUniqueDiagnostics": 183,
+    "added": [],
+    "removed": [],
+    "cleanTypecheck": false
+  },
+  "candidateBrowser": {
+    "source": {
+      "path": "generated/intentional-motion/review-candidate-8/review-ui.json",
+      "sha256": "eae24b287d63af46c4f963656ab67e3b3f2ce0613603437b46c6bfe0b78fc55b"
+    },
+    "collection": "generated/intentional-motion/library-candidate-8/collection.json",
+    "checks": [
+      {
+        "id": "luna_bala_44s-101",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "luna_bala_44s-202",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "luna_bala_44s-303",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "amor_na_praia_46s-101",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "amor_na_praia_46s-202",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "amor_na_praia_46s-303",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "tiki_tiki_48s-101",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "tiki_tiki_48s-202",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "tiki_tiki_48s-303",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "amour_de_ma_vie_44s-101",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "amour_de_ma_vie_44s-202",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "id": "amour_de_ma_vie_44s-303",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "previousArrangement": true,
+        "shareableTime": true
+      },
+      {
+        "shareablePassageReload": true,
+        "rapidSeedSwitch": true
+      },
+      {
+        "mobileNoOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "productionQualification": {
+    "source": {
+      "path": "generated/intentional-motion/qualification-candidate-8/qualification.json",
+      "sha256": "75fec04f04d989f9acb5b5a60d8040e4f756dd4f705f9b822ad2db361bc92bb8"
+    },
+    "passed": true,
+    "tracks": 12,
+    "maxNativeTraceError": 0
+  },
+  "interpretation": "Verification of frozen candidate 8. Candidate-route browser checks do not yet certify the published default collection. Inherited TypeScript diagnostics remain."
+}

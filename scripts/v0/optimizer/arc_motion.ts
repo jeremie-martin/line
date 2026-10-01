@@ -501,9 +501,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const request=options.constructionRequests?.[i];
         if(request&&(request.construction==='scattered'?!!fragments:request.guidance==='required'||request.construction!=='arcs')){
           const guideIds=fragments?.guideIds??(arcRailGroups(added).get(i)![1]??[]).map(l=>l.id);
-          const constructionFrames=request.context||request.railLayout==='transfer'
-            ?raw.frames.map(f=>f.frame>=request.frame&&f.frame<request.next?{contactLineIds:child.getAllContactLineIdsAtFrame(f.frame)}:f):raw.frames;
-          const fulfillment=inspectConstructionWindow(request,added,new Set(guideIds),constructionFrames);
+          const allContacts=request.context||request.railLayout==='transfer'?(frame:number)=>child.getAllContactLineIdsAtFrame(frame):undefined;
+          const fulfillment=inspectConstructionWindow(request,added,new Set(guideIds),raw.frames,allContacts);
           if(!fulfillment.fulfilled)return reject('construction:'+fulfillment.reasons.join(','));
         }
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);
@@ -1023,7 +1022,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   if(guidanceReduction){
     const requests=Object.values(options.constructionRequests??{}).filter(r=>r.context||r.railLayout==='transfer');
     if(requests.length){
-      const contacts=raw.frames.map((f:{frame:number})=>({contactLineIds:coldEngine.getAllContactLineIdsAtFrame(f.frame)}));
+      const contacts=raw.frames.map((f:{frame:number;position:{x:number;y:number}})=>({position:f.position,contactLineIds:coldEngine.getAllContactLineIdsAtFrame(f.frame)}));
       const restore=new Set<number>();
       for(const request of requests){
         if(request.construction==='scattered')continue;

@@ -43,9 +43,11 @@ describe('independent guide geometry and deliberate transfer',()=>{
   const main=[{id:1000,type:0,x1:-10,y1:0,x2:0,y2:0},{id:1001,type:0,x1:0,y1:0,x2:20,y2:0}];
   const guide={id:1010,type:0,x1:60,y1:-12,x2:40,y2:-12};
   const request={section:0,frame:1,next:10,construction:'arcs' as const,guidance:'required' as const,railLayout:'transfer' as const};
-  expect(inspectLayout(request,[...main,guide],new Set([1010]),[[1001],[],[1010],[1010]]).fulfilled).toBe(true);
+  const positions=[{x:10,y:-8},{x:30,y:-8},{x:44,y:-12},{x:50,y:-12}];
+  expect(inspectLayout(request,[...main,guide],new Set([1010]),[[1001],[],[1010],[1010]],positions).fulfilled).toBe(true);
+  expect(inspectLayout(request,[...main,{...guide,x1:100,x2:20}],new Set([1010]),[[1001],[],[1010],[1010]],positions.map(p=>({...p,x:24}))).reasons).toContain('missing-separated-transfer');
   expect(inspectLayout(request,[...main,guide],new Set([1010]),[[1001],[1010],[1010]]).reasons).toContain('missing-separated-transfer');
-  expect(inspectLayout(request,[...main,{...main[1],id:1002,x1:20,x2:70},guide],new Set([1010]),[[1001],[],[1010],[1010]]).reasons).toContain('missing-separated-transfer');
-  expect(inspectLayout({...request,construction:'fold'},[...main,guide],new Set([1010]),[[1001],[],[1010],[1010]]).reasons).toContain('missing-engaged-transfer-corners');
+  expect(inspectLayout(request,[...main,{...main[1],id:1002,x1:20,x2:70},guide],new Set([1010]),[[1001],[],[1010],[1010]],positions).reasons).toContain('missing-separated-transfer');
+  expect(inspectLayout({...request,construction:'fold'},[...main,guide],new Set([1010]),[[1001],[],[1010],[1010]],positions).reasons).toContain('missing-engaged-transfer-corners');
  });
 });

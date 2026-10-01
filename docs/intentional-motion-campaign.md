@@ -8,9 +8,9 @@ Native physics, normal-line constraint and V5/V4 definitions remain unchanged.
 
 | Stage | Status |
 |---|---|
-| Motion calibration and native observations | In progress |
+| Motion calibration and native observations | Implemented; frozen with V6 |
 | Context policy and intentional rail-layout pilot | In progress |
-| V6 freeze and baseline | Pending |
+| V6 freeze and baseline | Definition frozen; baseline next |
 | Shared search and accuracy campaign | Pending |
 | Qualification and integrated production review | Pending |
 
@@ -53,3 +53,30 @@ The new layout checker distinguishes physical flight/receiver interaction from
 line deletion and checks engagement with shaped portions. Its calibration and
 fixed-window probes continue. V6 is not frozen; no numerical achievement or
 motion-quality completion is claimed from these pilots.
+
+## V6 contract freeze
+
+The [V6 definition](../benchmark/v6/README.md) freezes 115 canonical cases × four
+seeds and 74 confirmation cases × four disjoint seeds. It preserves the existing
+music and musical judge, includes paired/transfer variants within family weights,
+and reserves fourteen musical source selections outside the V5 repertoire catalog.
+Those inputs were exposed in earlier ordinary benchmarks; they are not unseen music.
+Motion qualification uses all twelve preserved valid production tracks and the
+owner's named windows; broader V6 motion distributions remain mandatory diagnostics.
+The headline never filters on motion. Physics allowance remains three million.
+
+The corrected layout pilot completed contextual rides on all four songs. A stricter
+rider-position check then identified one remaining unsupported-receiver-location
+failure on each of three tracks; the compiler now checks that same actual position.
+Fixed-window prototypes complete three transfers for arcs, S sweeps, ripple and
+terraces across Luna and Amor. Folded transfer is physically demonstrated on Amor,
+but both three-fold sequences exhaust the allowance after the first requested fold.
+This is retained compiler work, not grounds to erase that family or weaken its check.
+Raw pilot-3 includes ten invalid research-option launches (500 recovery samples,
+above the existing 320 limit); corrected trials are under `layout-pilot-3b`.
+
+Checks before freeze: new motion, contextual-plan, native all-contact, transfer
+negative-control and frozen-V5 tests pass. The global typecheck retains the same
+inherited diagnostics after normalizing changed source line numbers (576 output
+lines); no additional diagnostic remains. Compiler changes and raw study records
+are preserved separately from the frozen V6 contract.

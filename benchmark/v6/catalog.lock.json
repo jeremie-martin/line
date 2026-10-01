@@ -1,0 +1,9 @@
+{
+  "schema": "line.benchmark-v6.catalog-lock.v1",
+  "sha256": "ae6b4fdbaeb1f38c25a182c3d7340d1d80b01c5d5cec2f7f2ae35f786ce64150",
+  "music": 33,
+  "canonical": 115,
+  "confirmation": 74,
+  "author": "scripts/benchmark/v6_author.ts",
+  "authoring": "No compiler outcomes read. Canonical musical parents preserved; confirmation selects source inputs outside the V5 catalog. All music was exposed in earlier ordinary benchmarks."
+}

@@ -10,7 +10,7 @@ import {inspectRepertoireLayout as inspectRepertoire} from '../v0/optimizer/repe
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
 import {loadMusicCase} from '../produce/music_artifacts.ts';
 import {galleryCompilerIdentity,replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
-import {motionSamples,summarizeMotion,effectiveBodyVelocity} from '../v0/optimizer/motion_quality.ts';
+import {motionSamples,summarizeMotion} from '../v0/optimizer/motion_quality.ts';
 import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit} from '../lib/detector.ts';
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
  await import(new URL('../lib/_lr_engine_wasm.ts?motion-probe',import.meta.url).href);
@@ -43,10 +43,10 @@ try{
  const replay=replayGalleryTrack(result.track,c as any,true),fragmented=new Set(plan.requests.filter(r=>r.construction==='scattered').map(r=>r.section));
  const roles:Record<number,number[]>={};for(const [i,chains]of arcRailGroups(result.track.lines.filter(l=>!fragmented.has(Math.floor((l.id-1000)/10000)))))roles[i]=(chains[1]??[]).map(l=>l.id);
  for(const i of fragmented)roles[i]=result.rows[i]?.railGuides??[];
- const realization=inspectRepertoire(plan,result.track.lines,roles,replay.collisionIds!);
  resetFrameCount();setPhysicsFrameLimit(null);
  const engine=new Judge().setStart(result.track.startPosition,result.track.riders[0].startVelocity).addLine(result.track.lines),end=Math.round(spec.duration*40);
- const raw=extractRawTrajectory(engine,end),samples=motionSamples(raw.frames,1,end,effectiveBodyVelocity(engine.getRider(end).ballisticState()));
+ const raw=extractRawTrajectory(engine,end+20),samples=motionSamples(raw.frames,1,end);
+ const realization=inspectRepertoire(plan,result.track.lines,roles,replay.collisionIds!,raw.frames.map(f=>f.position));
  const sections=plan.requests.map(r=>({section:r.section,construction:r.construction,guidance:r.guidance,
   summary:summarizeMotion(samples.filter(s=>s.frame>=r.frame&&s.frame<r.next),r.frame)}));
  const motion={full:summarizeMotion(samples,1),opening:summarizeMotion(samples.filter(s=>s.frame<=120),1),sections};

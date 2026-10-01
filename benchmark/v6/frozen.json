@@ -1,0 +1,56 @@
+{
+  "schema": "line.benchmark-v6.freeze.v1",
+  "judge": {
+    "v5": {
+      "schema": "line.benchmark-v5.freeze.v1",
+      "judge": {
+        "v4": {
+          "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "files": {
+            "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+            "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+            "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+            "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+            "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+            "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+            "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+            "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+            "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+            "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+            "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+            "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+            "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+            "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+            "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+            "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+            "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+            "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+            "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+          }
+        },
+        "files": {
+          "benchmark/v5/policy.ts": "c1bad1623f3e5bbc6f25bb30451bb9d08dbd4ba728593a90acc2810ba47ef594",
+          "benchmark/v5/model.ts": "d30420a41621c3bd3daa1d7285b3bd556dc885e5c15b48e9f0c8511695e3952d",
+          "benchmark/v5/evaluator.ts": "a506cc3e0c104fad19b760638e3b27b757062e7176b54c1f52ffa546e9a4ed97",
+          "benchmark/v5/contract.ts": "5d199928db3b934ff3b550184db21915b4817bb275748999590784edb248ef4b",
+          "benchmark/v5/catalog.json.gz": "da26bbd351e8061e2a75ced2bd18fcebd7267a5806ca3b8953f41f77850c49b8",
+          "benchmark/v5/catalog.lock.json": "2529b6fc39b5cd29e40b8e0888a408291f2ef8ba1ca7a5b8022188757d70f648",
+          "scripts/v0/optimizer/repertoire_realization.ts": "54b17ac4f198cd03b2fe04d47bce4b333eb73e0501e22f897c229eeebcb8d67b",
+          "scripts/v0/optimizer/arc_rail_groups.ts": "b5c409289f2bc926e7a769ec1b586344ad88ed4b1784438870ce5ea7aa55b03c"
+        }
+      }
+    },
+    "files": {
+      "benchmark/v6/policy.ts": "2df671976e3705e9c5699649a7fcae601dcc1a31b285f82a3103fd47d989719d",
+      "benchmark/v6/model.ts": "58c0686187274883f73dc84cd176efad65727d2fbc25e9c447b26c001aca4cfb",
+      "benchmark/v6/evaluator.ts": "3494e169f3907a9fb108a9d74129ff3de37936094a305b9c87620d822f2674df",
+      "benchmark/v6/contract.ts": "5a9427a5b491b97b184cd38f4d28d19d41f97bc79d2db498e36c7cf36c5617f9",
+      "benchmark/v6/replay.ts": "26b8419dcdb80ffc5f2b01fe6aa0aad1230fa48b69bf04a5aa959ea2eca1772b",
+      "benchmark/v6/catalog.json.gz": "e0ffa07caa5c4216eca159d6de9bf78500aaa3c2669a582e3894640f824e0ecb",
+      "benchmark/v6/catalog.lock.json": "9abf808b1ae8615530622b8aa1f6a46b66074a9173277c00058bacda2c0f61d0",
+      "scripts/v0/optimizer/repertoire_layout.ts": "8b1e6b574b0591eee517bdb5c6c4a4342ecff3e382b553ee2ef56d16b3c8edcd",
+      "scripts/v0/optimizer/motion_quality.ts": "7dea806aca18befa3d272587b83001717b095337f1b0ed9aa052c9916a23df6c"
+    }
+  }
+}

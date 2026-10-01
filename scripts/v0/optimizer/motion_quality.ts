@@ -37,16 +37,17 @@ export const MOTION_BANDS:readonly BurstBand[]=[
 ];
 export function summarizeMotion(samples:readonly MotionSample[],landingFrame:number,bands:readonly BurstBand[]=MOTION_BANDS){
   const bursts=bands.map(band=>{
-    let gain=0,maximum=0,maxRelative=0,maxExcess=0,peakFrame:number|null=null,exceedanceFrames=0,episodes=0,last=-Infinity;
+    let gain=0,maximum=0,maxRelative=0,maxExcess=0,excessIntegral=0,peakFrame:number|null=null,exceedanceFrames=0,episodes=0,last=-Infinity;
     for(let i=0;i<samples.length;i++){
       gain+=samples[i].solverGain;if(i>=band.frames)gain-=samples[i-band.frames].solverGain;
       if(i+1<band.frames)continue;
       const before=samples[i-band.frames+1].speedBefore,limit=Math.max(band.absolute,band.relative*before),excess=Math.max(0,gain-limit);
       maximum=Math.max(maximum,gain);maxRelative=Math.max(maxRelative,gain/Math.max(1,before));
+      excessIntegral+=excess/band.frames;
       if(excess>maxExcess){maxExcess=excess;peakFrame=samples[i].frame;}
       if(excess>1e-9){exceedanceFrames++;if(samples[i].frame-last>band.frames)episodes++;last=samples[i].frame;}
     }
-    return {...band,maximum,maxRelative,maxExcess,peakFrame,exceedanceFrames,episodes};
+    return {...band,maximum,maxRelative,maxExcess,excessIntegral,peakFrame,exceedanceFrames,episodes};
   });
   const later=samples.filter(s=>s.frame>=landingFrame+7);
   const total=(xs:readonly MotionSample[],f:(s:MotionSample)=>number)=>xs.reduce((a,s)=>a+f(s),0);

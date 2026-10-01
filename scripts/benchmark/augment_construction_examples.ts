@@ -46,7 +46,7 @@ for(const cell of evaluation.rows){
   assert.equal(request.section,i);assert.equal(check.section,i);
   const style=constructionStyle(request);
   if(scope==='profiled-transfers'&&!style.profile&&style.railLayout!=='transfer'){source.outsideScope++;continue;}
-  if(!request.context||!check.fulfilled||!row.control||row.features?.length!==57||
+  if(!request.context||!check.fulfilled||row.retainedContinuation||!row.control||row.features?.length!==57||
     !row.features.every(Number.isFinite)||!Number.isFinite(row.incoming)||!(row.span>0))continue;
   const observations=[row.impact,row.achieved?.air,row.achieved?.speed,row.achieved?.amplitude];
   const errors=observations.flatMap((value,j)=>row.features[48+j]>=0&&Number.isFinite(value)?[value-row.features[48+j]]:[]);

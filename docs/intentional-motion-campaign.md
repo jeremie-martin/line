@@ -14,6 +14,34 @@ Native physics, normal-line constraint and V5/V4 definitions remain unchanged.
 | Shared search and accuracy campaign | Active; 850 target remains unmet |
 | Qualification and integrated production review | Pending |
 
+## Current execution checkpoint
+
+Candidate 7, **`a5424745`**, is frozen for a complete 460-run canonical evaluation
+and all twelve production tracks. It enables bounded previous-transition revision
+at a measured musical RMS threshold of 0.12. Candidate 6 remains preserved at
+`intentional-motion-candidate-6-824`; confirmation is still uninspected. Candidate
+7 passes 22 focused tests and introduces no TypeScript diagnostics relative to
+the captured repository baseline.
+
+The compact research archive now retains **803 completed outcomes**, including
+all `retrieval-4`, `retrieval-4b`, `revision-1` and `budget-2` results. More canonical
+demonstrations improve some profiled endings but damage other passages, even when
+ordinary memory is preserved. These artifacts are not production defaults.
+The four-case 750k/1.5m/3m/5m study confirms that more work is not monotonically
+better: it changes planning choices as well as refinement opportunity. All
+failures and regressions remain recorded.
+
+Geometry-aware continuation and upstream whole-track repair studies are active.
+The latter preserves complete incumbents but frequently spends hundreds of
+thousands of frames rebuilding long suffixes without an accepted improvement.
+A bounded follow-up reconnects to the incumbent after one or two intervals,
+fits the rider's relative body state at that boundary, and then judges the entire
+translated continuation. All contacts, requested geometry, prefix integrity,
+motion objective and work limits still apply. Retained suffix rows are marked
+as incumbent measurements and excluded from new demonstration exports. Thirteen
+native refinement/revision tests pass. This mechanism remains experimental until
+the matched study establishes whether it buys useful improvements.
+
 ## Baseline preservation and implementation start
 
 The delivered four-song, twelve-arrangement library remains under

@@ -10,7 +10,10 @@ import type {TrackLine} from '../types.ts';
 export function observedReceiver(engine:LineRiderEngine,main:TrackLine[],frame:number,horizon:number,
  control:ArcMotionControl,id:number,style:ArcGeometryStyle&{radius?:number;subdivisions?:number},terminal=false){
  const own=new Set(main.map(l=>l.id)),flight=Math.round(control.receiverFlight??2);
- const last=horizon-(terminal?3:9);
+ // Upper-body contact may continue while the sled is airborne before the
+ // next beat. Requiring six wholly empty frames here wrongly excludes dense
+ // transfers; the caller validates actual sled release and the next landing.
+ const last=horizon-2;
  let contacted=false,free=0,at=-1;
  for(let f=frame;f<=last;f++){
   const state=getRiderMetered(engine,f).ballisticState();
@@ -28,7 +31,7 @@ export function observedReceiver(engine:LineRiderEngine,main:TrackLine[],frame:n
  const incoming=Math.atan2(velocity.y,velocity.x)*180/Math.PI,entry=incoming+(control.receiverEntry??8);
  const angle=entry*Math.PI/180,normal={x:Math.sin(angle),y:-Math.cos(angle)};
  const points=Object.values(trace),top=points.reduce((a,b)=>a.x*normal.x+a.y*normal.y>b.x*normal.x+b.y*normal.y?a:b);
- const available=horizon-at-(terminal?0:6),support=Math.max(2,available*(control.receiverDuration??.65));
+ const available=horizon-at+1,support=Math.max(2,available*(control.receiverDuration??.65));
  const c:ArcMotionControl={entry,turn:style.profile==='fold'?0:control.receiverTurn??15,
   exit:incoming+(control.receiverExit??35),support,bias:control.bias,offset:control.offset,
   turnFraction:control.turnFraction,

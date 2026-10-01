@@ -9,7 +9,7 @@ Native physics, normal-line constraint and V5/V4 definitions remain unchanged.
 | Stage | Status |
 |---|---|
 | Motion calibration and native observations | In progress |
-| Context policy and intentional rail-layout pilot | Pending |
+| Context policy and intentional rail-layout pilot | In progress |
 | V6 freeze and baseline | Pending |
 | Shared search and accuracy campaign | Pending |
 | Qualification and integrated production review | Pending |
@@ -21,3 +21,35 @@ The delivered four-song, twelve-arrangement library remains under
 all three Luna/Tiki opening seeds, and energetic controls form calibration anchors.
 The full previous motion study is retained. Baseline TypeScript diagnostics are
 captured before source changes; no claim of a clean repository typecheck is made.
+
+## Native observations and first controlled studies
+
+[Compact development evidence](evidence/intentional-motion-pilot-20261001.json)
+contains the completed first two panels. Native velocity-derived observations
+match the prior full-state measurements to <4e-15. All three reported bursts
+exceed the pilot 100ms band. These bands remain provisional before the V6 freeze.
+
+Pilot 1b tests baseline and two motion weights on four fixed V1 plans without
+phase boundaries. All twelve runs remain physically valid and fully fulfilled.
+Stronger motion weighting reduces bursts substantially, with mixed score changes:
+Luna 303 751.72→828.16; Tiki 303 746.24→733.08. This is not the production plan
+comparison; pilot 2 uses actual production phase boundaries and preserves its
+baselines separately. A missing local audio link caused twelve orchestration
+errors before pilot 1b; the failed launch remains local under `pilot-1`.
+
+Pilot 2 adds independent guide rotation and contextual arrangements. The exact
+saved production baselines reproduce. Musical effects are mixed: guide rotation
+with moderate motion pressure gives Luna 303 830.60→809.74 and Amour 101
+434.55→482.87, while both reduce burst severity. Stronger weights are not simply
+better. Whole-track contextual rides complete, but final layout fulfillment
+exposes a search/checker mismatch: search previously observed sled contacts;
+independent checks include rider-body contacts. Exact replays of sections 18 and
+37 in Luna confirm that a purported collision-free frame actually had a body
+contact. `ae15701f` introduces a cached all-contact reader, aligns the new search,
+and prevents guide pruning from invalidating a fulfilled requested construction.
+The frozen V5 checker and original physics remain untouched.
+
+The new layout checker distinguishes physical flight/receiver interaction from
+line deletion and checks engagement with shaped portions. Its calibration and
+fixed-window probes continue. V6 is not frozen; no numerical achievement or
+motion-quality completion is claimed from these pilots.

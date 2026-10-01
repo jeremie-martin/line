@@ -43,12 +43,18 @@ for study in args.studies.split(','):
             physicalFrames=r['physicalFrames'], ms=r['ms'], failure=r.get('failure'),
             examples=r.get('examples'),forkInput=r.get('forkInput'),
             initialProposalWork=r.get('initialProposalWork'),refinement=r.get('refinement'),constructionImprovement=r.get('constructionImprovement'),
+            observedReceiverWork=r.get('observedReceiverWork'),coupledIntervalWork=r.get('coupledIntervalWork'),
+            attempts=r.get('attempts'),attemptWork=r.get('attemptWork'),completionFirst=r.get('completionFirst'),
             source=str(path), sha256=hashlib.sha256(data).hexdigest(),
             planSha256=hashlib.sha256(json.dumps(r['plan'], sort_keys=True, separators=(',', ':')).encode()).hexdigest()))
     # Startup/import failures can precede the probe's structured error handler.
     for path in sorted(directory.glob('*.log')):
         text = path.read_text()
         if ('SyntaxError:' in text or 'Error:' in text) and not any(line.startswith('{"id":') for line in text.splitlines()):
+            structured = next((r for r in rows if r.get('study') == study and r.get('id', '').rsplit('-', 1)[0] == path.stem and 'error' in r), None)
+            if structured is not None:
+                structured['log'] = dict(source=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+                continue
             rows.append(dict(study=study, launchFailure=True, source=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
                 error=next((line for line in text.splitlines() if 'Error:' in line), 'See retained log')))
 result = dict(schema='line.intentional-motion-research.v1', studies=args.studies.split(','), compilers=compilers, rows=rows,

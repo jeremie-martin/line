@@ -9,9 +9,9 @@ Native physics, normal-line constraint and V5/V4 definitions remain unchanged.
 | Stage | Status |
 |---|---|
 | Motion calibration and native observations | Implemented; frozen with V6 |
-| Context policy and intentional rail-layout pilot | In progress |
-| V6 freeze and baseline | Definition frozen; baseline next |
-| Shared search and accuracy campaign | Pending |
+| Context policy and intentional rail-layout pilot | Implemented and frozen; geometry/search development continues |
+| V6 freeze and baseline | Complete: 536.3321 baseline, 661.4244 candidate 2 |
+| Shared search and accuracy campaign | Active; 850 target remains unmet |
 | Qualification and integrated production review | Pending |
 
 ## Baseline preservation and implementation start
@@ -248,3 +248,49 @@ Future V6 runs now preserve the already computed construction controls and
 incoming-state features alongside tracks and scores. Earlier runs did not save
 those fields, forcing avoidable recompilation for some diagnoses. This adds
 research evidence only; frozen judging, plans and aggregation are unchanged.
+
+## Native receiving curves and neighboring construction search
+
+The `receiver-1`/`receiver-1b` studies introduce an optional connected receiving
+curve placed from the actual native flight pose, rather than an offset of the
+support. All observations and rejected proposals count as compiler physics.
+The corrected launch panel is separate: three missing-audio launches and two
+invalid `ripple` labels in the first schedule are retained as errors; the valid
+construction name is `scallops`. No failed result was overwritten.
+
+The first placement method improves the Luna arc-transfer pilot from 921.19 to
+928.93 and terraces from 924.58 to 937.61, but regresses folded transfers and
+some complete automatic tracks. `receiver-2` gives the receiving fold its own
+bend, appropriate to its opposite contact side: the fixed Luna folded pilot
+then reaches 936.02, compared with 882.30 for the original constructor.
+The difficult Accelerando ending improves from 215.99 to 371.55; this remains
+poor musical accuracy. The identical-state ending probe also improves from
+210.31 to 252.44, so the effect is not merely a changed earlier trajectory.
+These remain experimental options, not promoted defaults.
+
+Inspection then found an unnecessarily restrictive prototype rule: the receiver
+reserved six entirely empty frames before a following beat. The actual timing
+contract requires the sled to be airborne, while upper-body guidance can continue.
+`receiver-3` tests this corrected proposal window without weakening the native
+landing, motion or construction checks. It completes dense-frontier seeds 202 and 303 at 616.43 and 637.90,
+where earlier receiver variants failed. Other difficult cases remain mixed; the
+full scheduled panel is still finishing.
+
+`pair-1` measures joint native adjustment of two adjacent constructions. It uses
+the second landing's complete span measurement, removes the first span's
+superseded estimate, and preserves the same motion residuals. Each accepted pair
+improves its measured pair objective; this does not guarantee a whole-track gain.
+On five unchanged requests with the expanded demonstration corpus, 64 pair probes
+improve Amour 303 from 520.70 to 571.78 and Tiki 101 from 800.02 to 815.06.
+Dense-dialogue 303 regresses from 688.38 to 657.92; the higher 128-probe setting
+fails to complete that track. Neither setting completes dense-frontier 202.
+Native timing/budget tests and memo-equivalence tests pass. Joint refinement is
+not enabled indiscriminately in production.
+
+The next reliability study reserves 40% or 50% of the same allowance for a first
+complete attempt, retains any complete incumbent, and warm-starts a second search
+with its controls and construction-scoped examples. The requests and seed never
+change. Both attempts are fully replayed and charged to one absolute meter;
+selection includes the existing musical and motion objective. `completion-1`
+compares this with a single pass and with observed receiving curves. Results and
+promotion remain open; the reserved V6 confirmation is still untouched.

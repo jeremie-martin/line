@@ -58,7 +58,7 @@ try{
   options.budget-=captured.physicsFrames;
   options.fork={...captured.fork,guides:plan.requests[section].guidance!=='forbidden',
    fragmentSections:plan.requests.filter(r=>r.section<section&&r.construction==='scattered').map(r=>r.section),
-   continuation:source.rows.slice(section).map((r:any)=>({control:r.control,incoming:r.incoming,span:r.span}))};
+   ...(source.rows.length===plan.requests.length?{continuation:source.rows.slice(section).map((r:any)=>({control:r.control,incoming:r.incoming,span:r.span}))}:{})};
   options.sectionStyles=Object.fromEntries(Object.entries(options.sectionStyles!).filter(([i])=>Number(i)>=section));
   forkInput={path,sha256:createHash('sha256').update(bytes).digest('hex'),section,preparationFrames:captured.physicsFrames,
    sourceCompilationFrames:source.physicalFrames,prefixSha256:captured.prefixSha256,stateSha256:captured.fork.stateSha256};

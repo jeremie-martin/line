@@ -292,6 +292,15 @@ export class LineRiderEngine {
       riderEjected: sc[4] !== -1,
     };
   }
+  /** Construction checks include body contacts as well as sled contacts. This
+   * is a read of an already metered frame, never an uncharged simulation. */
+  getAllContactLineIdsAtFrame(frame: number): number[] {
+    if(!Number.isSafeInteger(frame)||frame<0||frame>this.getLastFrameIndex())
+      throw new Error('all-contact observation requires an already simulated frame');
+    const n=ex.get_raw_frame(this.h,frame),ev=events(),ids=new Set<number>();
+    for(let p=0;p<n;p++)ids.add(ev[p*3+1]);
+    return [...ids];
+  }
   getCandidateWindow(startFrame: number, endFrame: number): any | null {
     if (typeof GET_CANDIDATE_WINDOW !== "function") return null;
     const start = Math.max(0, Math.trunc(startFrame));

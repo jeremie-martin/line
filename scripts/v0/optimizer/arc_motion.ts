@@ -27,7 +27,8 @@ import { makeRng } from '../../lib/rng.ts';
 import {inspectConstructionWindow} from './repertoire_candidate.ts';
 import type {ConstructionRequest} from './repertoire_policy.ts';
 import {contactObserver,extendContactObserver,fragmentInterval} from './contact_interval.ts';
-import {motionSamples,summarizeMotion,motionResiduals,effectiveBodyVelocity,type MotionSearchOptions} from './motion_quality.ts';
+import {motionSamples,summarizeMotion,effectiveBodyVelocity} from './motion_quality.ts';
+import {motionResiduals,type MotionSearchOptions} from './motion_objective.ts';
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
 // disposal. A private module instance gives replay its own WASM instance and
 // registry without changing judge code or freeing engines retained by callers.
@@ -500,7 +501,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const request=options.constructionRequests?.[i];
         if(request&&(request.construction==='scattered'?!!fragments:request.guidance==='required'||request.construction!=='arcs')){
           const guideIds=fragments?.guideIds??(arcRailGroups(added).get(i)![1]??[]).map(l=>l.id);
-          const fulfillment=inspectConstructionWindow(request,added,new Set(guideIds),raw.frames);
+          const constructionFrames=request.context||request.railLayout==='transfer'
+            ?raw.frames.map(f=>f.frame>=request.frame&&f.frame<request.next?{contactLineIds:child.getAllContactLineIdsAtFrame(f.frame)}:f):raw.frames;
+          const fulfillment=inspectConstructionWindow(request,added,new Set(guideIds),constructionFrames);
           if(!fulfillment.fulfilled)return reject('construction:'+fulfillment.reasons.join(','));
         }
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);
@@ -994,7 +997,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       // can invalidate cached prefix frames even for a validated child.
       if(terminalChildLines)best.child=addArc(engine,terminalChildLines);
       lines.push(...best.lines);engine=detachArc(best.child);Engine.retainOnly([engine]);
-      rows.push({frame,next,incoming,span:interval.span,features:interval.inputFeatures,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,railGuides:best.railGuides,failures,lookahead,spent:getPhysicsFrameCount()});
+      const selectedMeta=candidates.find(c=>c.lines===best.lines)?.meta;
+      rows.push({frame,next,incoming,span:interval.span,features:interval.inputFeatures,cost:best.cost,control:best.c,achieved:best.achieved,impact:best.actualImpact,release:best.release,lines:best.lines.length,railGuides:selectedMeta?.railGuides??best.railGuides,
+        ...(options.motionQuality?{motion:selectedMeta?.motion??best.motion,motionCost:selectedMeta?.motionCost??best.motionCost}:{}),failures,lookahead,spent:getPhysicsFrameCount()});
       if(options.diagnostic)process.stderr.write(JSON.stringify(rows.at(-1))+'\n');
     }
     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){
@@ -1015,7 +1020,31 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   // Structured rails are indivisible: guide-only pruning would tear their contours.
   const fragments=new Set(Object.values(options.constructionRequests??{}).filter(r=>r.construction==='scattered').map(r=>r.section));
   const guidanceReduction=options.pruneGuidance&&!options.contour?trimUnusedArcGuides(lines,coldEngine,end,resumeAt,fragments):null;
-  if(guidanceReduction)lines.splice(0,lines.length,...guidanceReduction.lines);
+  if(guidanceReduction){
+    const requests=Object.values(options.constructionRequests??{}).filter(r=>r.context||r.railLayout==='transfer');
+    if(requests.length){
+      const contacts=raw.frames.map((f:{frame:number})=>({contactLineIds:coldEngine.getAllContactLineIdsAtFrame(f.frame)}));
+      const restore=new Set<number>();
+      for(const request of requests){
+        if(request.construction==='scattered')continue;
+        const original=lines.filter(l=>Math.floor((l.id-1000)/10000)===request.section);
+        const proposed=guidanceReduction.lines.filter(l=>Math.floor((l.id-1000)/10000)===request.section);
+        if(original.length===proposed.length)continue;
+        const guides=new Set((arcRailGroups(original).get(request.section)?.[1]??[]).map(l=>l.id));
+        if(inspectConstructionWindow(request,original,guides,contacts).fulfilled&&!inspectConstructionWindow(request,proposed,guides,contacts).fulfilled)restore.add(request.section);
+      }
+      if(restore.size){
+        const kept=new Set(guidanceReduction.lines.map(l=>l.id));
+        guidanceReduction.lines=lines.filter(l=>restore.has(Math.floor((l.id-1000)/10000))||kept.has(l.id));
+        const spans=guidanceReduction.stats.spans.map(s=>restore.has(s.group)?{...s,after:s.before,lengthAfter:s.lengthBefore}:s);
+        Object.assign(guidanceReduction.stats,{spans,retainedForConstruction:[...restore],removedSegments:lines.length-guidanceReduction.lines.length,
+          removedGuides:spans.filter(s=>s.before>0&&s.after===0).length,
+          shortenedGuides:spans.filter(s=>s.after>0&&s.after<s.before).length,
+          lengthAfter:spans.reduce((n,s)=>n+s.lengthAfter,0)});
+      }
+    }
+    lines.splice(0,lines.length,...guidanceReduction.lines);
+  }
   disposeSearch();
   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);

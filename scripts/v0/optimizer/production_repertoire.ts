@@ -3,8 +3,10 @@ import {compileArcMotion} from './arc_motion.ts';
 import {connectedArcOptions} from './connected_arcs.ts';
 import {arcRailGroups} from './arc_guidance.ts';
 import {normalizeCompilerTimeline} from './compiler_input.ts';
-import {planRepertoire,validateProductionPlan,constructionStyle,type CreativePreferences,type ProductionPlan} from './repertoire_policy.ts';
-import {inspectRepertoire} from './repertoire_realization.ts';
+import {validateProductionPlan,constructionStyle,type CreativePreferences,type ProductionPlan} from './repertoire_policy.ts';
+import {planIntentionalRepertoire,INTENTIONAL_REPERTOIRE_POLICY} from './intentional_repertoire.ts';
+import {inspectRepertoireLayout as inspectRepertoire} from './repertoire_layout.ts';
+import {motionSamples,summarizeMotion} from './motion_quality.ts';
 import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit,getPhysicsFrameCount} from '../../lib/detector.ts';
 import type {Spec} from '../types.ts';
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
@@ -12,7 +14,7 @@ const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
 export type RepertoireOptions={budget:number;creative?:CreativePreferences;plan?:ProductionPlan;phraseBoundaries?:number[]};
 const complete=(result:any)=>result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((c:any)=>c.status==='hit');
 export function compileProductionRepertoire(input:Spec,seed:number,options:RepertoireOptions){
-  const spec=normalizeCompilerTimeline(input),plan=options.plan?validateProductionPlan(spec,options.plan):planRepertoire(spec,seed,options.creative,options.phraseBoundaries);
+  const spec=normalizeCompilerTimeline(input),plan=options.plan?validateProductionPlan(spec,options.plan):planIntentionalRepertoire(spec,seed,options.creative,options.phraseBoundaries);
   if(plan.seed!==seed)throw new Error('construction plan and compiler seed differ');
   const end=Math.round(spec.duration*40)+20,replay=end+1,budget=options.budget;
   if(!Number.isSafeInteger(budget)||budget<12*replay)throw new Error('repertoire allowance cannot cover construction and independent replay');
@@ -20,6 +22,7 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   const constructionRequests=Object.fromEntries(plan.requests.map(r=>[r.section,r]));
   const allowance=budget-replay;
   const result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,allowance),policyPreview:false,
+    ...(plan.policy===INTENTIONAL_REPERTOIRE_POLICY?{motionQuality:{burstWeight:.16,calmWeight:1}}:{}),
     initialRecoverySamples:160,memoryScope:'construction',sectionStyles:styles,constructionRequests,collectTrajectoryLoss:true});
   let physicalFrames=result.stats.sim_frames;
   const fragmentSections=plan.requests.filter(r=>r.construction==='scattered'&&r.section<result.rows.length).map(r=>r.section);
@@ -32,14 +35,18 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   // This independent physical check is compiler work, charged even on unsuccessful requests.
   resetFrameCount();setPhysicsFrameLimit(budget-physicalFrames);
   let realization:ReturnType<typeof inspectRepertoire>;
+  let motion:{full:ReturnType<typeof summarizeMotion>;sections:Array<{section:number;summary:ReturnType<typeof summarizeMotion>}>};
   try{
     const engine=new Judge().setStart(result.track.startPosition,result.track.riders[0].startVelocity).addLine(result.track.lines);
-    extractRawTrajectory(engine,end);
+    const raw=extractRawTrajectory(engine,end);
+    const samples=motionSamples(raw.frames,1,Math.round(spec.duration*40));
+    motion={full:summarizeMotion(samples,1),sections:plan.requests.map(r=>({section:r.section,
+      summary:summarizeMotion(samples.filter(s=>s.frame>=r.frame&&s.frame<r.next),r.frame)}))};
     const collisions=Array.from({length:end+1},(_,f)=>engine.getUpdatesAtFrame(f).filter((u:any)=>u.type==='CollisionUpdate').map((u:any)=>u.id));
     realization=inspectRepertoire(plan,result.track.lines,railGuides,collisions);
     const frames=getPhysicsFrameCount();physicalFrames+=frames;work.push({stage:'realization-replay',allowance:replay,physicalFrames:frames,complete:complete(result)});
   }finally{dispose();setPhysicsFrameLimit(null);}
   if(physicalFrames>budget)throw new Error('production repertoire exceeded its whole-compile allowance');
-  return {result:{...result,budget,stats:{...result.stats,sim_frames:physicalFrames}},plan,styles,fragmentSections,railGuides,realization,
+  return {result:{...result,budget,stats:{...result.stats,sim_frames:physicalFrames}},plan,styles,fragmentSections,railGuides,realization,motion,
     valid:complete(result),qualified:complete(result)&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals};
 }

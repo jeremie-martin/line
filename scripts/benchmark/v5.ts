@@ -22,7 +22,9 @@ if(command==='worker'){
  const {compileHandoff}=await import(pathToFileURL(join(runPlan.compilerRoot,'scripts/v0/optimizer/handoff.ts')).href);
  const began=performance.now();
  try{
-   const checkpoint=compileHandoff(spec,seed,{budget:runPlan.budget,...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})});
+   // Both panels are defined by frozen V1 plans. A later default arrangement
+   // policy must not regenerate different requests for this historical task.
+   const checkpoint=compileHandoff(spec,seed,{budget:runPlan.budget,constructionPlan:requested});
    const compileMs=performance.now()-began,r=checkpoint.repertoire;
    assert.ok(r,'public compiler did not return repertoire evidence');
    assert.deepEqual(r.plan.requests,requested.requests,'automatic policy changed frozen construction requests');

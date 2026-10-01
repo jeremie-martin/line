@@ -10,7 +10,7 @@ Native physics, normal-line constraint and V5/V4 definitions remain unchanged.
 |---|---|
 | Motion calibration and native observations | Implemented; frozen with V6 |
 | Context policy and intentional rail-layout pilot | Implemented and frozen; geometry/search development continues |
-| V6 freeze and baseline | Complete: 536.3321 baseline, 661.4244 candidate 2 |
+| V6 freeze and baseline | Complete: 536.3321 baseline, 805.5842 candidate 3 |
 | Shared search and accuracy campaign | Active; 850 target remains unmet |
 | Qualification and integrated production review | Pending |
 
@@ -515,3 +515,39 @@ Focused control, geometry, memory and coupled-native tests pass after updating
 the obsolete expectation that guide extent can never have a response step.
 The frozen benchmark verifier still passes; native score/motion comparisons
 will determine whether this expanded response space is useful.
+
+
+## Complete candidate-3 canonical result
+
+The frozen 460-run V6 evaluation of **`d59280fa`** finishes at **805.5842**:
+fixed **892.0804**, automatic **719.0880**, **458/460** valid and fully realized,
+8,142/8,148 requested constructions fulfilled, 315 distinct tracks, and zero
+execution errors. The two remaining invalid runs are the fixed Accelerando
+paired-fold ending at seeds 101 and 404; both exhaust construction capacity.
+Every scheduled outcome is retained in the
+[compact canonical archive](evidence/intentional-motion-v6-development-20261001.json.gz).
+
+The [full-panel motion comparison](evidence/intentional-motion-v6-candidate-3-motion-20261001.json)
+keeps completion changes separate from matched-valid motion. On the 404 matched
+valid runs, each of the three duration-normalized burst bands improves on average
+by musical parent; all three parent-bootstrap intervals are below zero. This
+does not override candidate 3's two failed production-motion conditions. The
+ordinary V4 companion remains exactly **952.4726**, 352/352 valid, with every
+track hash identical to the preserved qualified compiler. V5 is still finishing.
+
+## Candidate 6 passes the complete production-motion qualification
+
+All twelve tracks in `library-candidate-6b` are valid and fully fulfilled. The
+frozen qualification passes every condition. Duration-normalized burst burden
+falls **96.73%, 99.33% and 98.99%** in the one-, four- and ten-frame bands against
+the preserved automatic collection. All three reported windows have zero
+four-frame excess. Luna and Tiki pass both opening-motion limits. Mean opening
+impact RMS falls from **0.0296116 to 0.0154389** (**47.86%**); the individual Luna
+101 opening remains worse than its old automatic counterpart, so the aggregate
+pass is not an assertion that every passage improved.
+
+The [production qualification archive](evidence/intentional-motion-production-20261001.json.gz)
+retains candidate 3, candidate 4 and candidate 6 results, with input identities.
+The complete V6 evaluation of candidate **`40832757`** continues. Confirmation
+remains uninspected. The research archive now includes all 492 outcomes through
+`retrieval-3`, including failed launches and negative results.

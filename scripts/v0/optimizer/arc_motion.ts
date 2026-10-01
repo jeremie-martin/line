@@ -71,6 +71,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   constructionImprovementSamples?:number;
   observedReceiver?:boolean;
   compactFoldProposals?:boolean;
+  compactProfileProposals?:boolean;
   /** Native joint adjustment of neighboring supports, within the shared budget. */
   coupledIntervalSamples?:number;
   completionFirstFraction?:number;
@@ -340,7 +341,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
   const coupledIntervalWork:Array<{index:number;proposals:number;viable:number;accepted:number;physicsFrames:number;before:number;after:number}>=[];
   const observedReceiverWork={attempts:0,viable:0,physicsFrames:0,failures:{} as Record<string,number>};
-  const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic','compactFold'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
+  const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic','compactFold','compactProfile'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
   const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
   const constructionImprovement:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number;before:number|null;after:number|null}>=[];
   const controlMemory=new ArcControlMemory(),constructionMemories=new Map<string,ArcControlMemory>();
@@ -803,6 +804,22 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           const control={...anchor,support:duration,foldTiming:1,turnFraction:Math.min(5,duration*.2)/duration,
             foldBias:-2-4*frac(.6931471806),foldBend:-20-35*frac(.3247179572),exit:-20+40*frac(.7548776662),mainEnd:.4+.55*frac(.5698402910)};
           const accounting=initialProposalWork.compactFold,began=getPhysicsFrameCount();accounting.attempts++;
+          try{if(evaluate(control))accounting.viable++;}
+          finally{accounting.physicsFrames+=getPhysicsFrameCount()-began;}
+        }
+        Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
+      }
+      if(options.compactProfileProposals&&options.profile&&options.profile!=='fold'&&options.railLayout==='transfer'&&initial>0){
+        // Separate the duration of a complete motif from its later runout.
+        // A long air/speed demand need not stretch every reversal across the
+        // whole support. Native traversal and shape checks remain mandatory.
+        const anchor=best?.c??near[0]?.c??center;
+        if(anchor)for(let k=0;k<16;k++){
+          const frac=(n:number)=>((k+1)*n)%1,mainEnd=.8+.2*frac(.5698402910);
+          const duration=support*[.6,.9,1.2,1.5][Math.floor(k/4)]/mainEnd;
+          const control={...anchor,support:duration,profileEnd:[.2,.35,.6,1][k%4],mainEnd,
+            turnFraction:Math.min(5,duration*.3)/duration,exit:-20+40*frac(.7548776662)};
+          const accounting=initialProposalWork.compactProfile,began=getPhysicsFrameCount();accounting.attempts++;
           try{if(evaluate(control))accounting.viable++;}
           finally{accounting.physicsFrames+=getPhysicsFrameCount()-began;}
         }

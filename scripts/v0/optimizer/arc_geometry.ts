@@ -13,7 +13,9 @@ export type ArcSectionStyle=Omit<ArcGeometryStyle,'contour'>&{subdivisions?:numb
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number;
   guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
-  receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
+  receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number;
+  /** Fraction of the profiled duration occupied by a complete smooth motif. */
+  profileEnd?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
 export function normalizeArcTurnFraction(fraction:number,support:number,preserveImplicit=false):number{
@@ -46,7 +48,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   const uniformDt=c.support/steps;
   for(let k=0;k<steps;k++){
     const first=c.turnFraction===undefined?Math.min(wave?6:5,c.support*.5):c.support*c.turnFraction;
-    const profileFirst=style?.profileStart===undefined?first:c.support*style.profileStart;
+      const profileFirst=style?.profileStart===undefined?first:c.support*style.profileStart;
     let dt=uniformDt,time=(k+.5)*dt;
     if(profile==='fold'&&(style?.profileStrength??1)>0){
       const onset=profileFirst/c.support,amount=Math.min(1,style?.profileStrength??1);
@@ -62,6 +64,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):
+      c.profileEnd!==undefined?clamp((time-profileFirst)/Math.max(.01,(c.support-profileFirst)*c.profileEnd),0,1):
       style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles,
       {start:rad(c.entry+c.turn),exit:rad(c.exit),foldAngle:c.foldBend??style?.foldAngle});
     // Fixed angular folds have actual corners. Applying a smooth-curve radius

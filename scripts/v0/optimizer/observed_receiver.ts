@@ -34,7 +34,7 @@ export function observedReceiver(engine:LineRiderEngine,main:TrackLine[],frame:n
  const available=horizon-at+1,support=Math.max(2,available*(control.receiverDuration??.65));
  const c:ArcMotionControl={entry,turn:style.profile==='fold'?0:control.receiverTurn??15,
   exit:incoming+(control.receiverExit??35),support,bias:control.bias,offset:control.offset,
-  turnFraction:control.turnFraction,
+  turnFraction:control.turnFraction,profileEnd:control.profileEnd,
   // The receiving fold bends independently of the lower support. Reusing its
   // signed corner forces both surfaces to turn in the same direction even
   // though their active contact sides are opposite.

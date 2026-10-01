@@ -22,11 +22,13 @@ it('retains a complete incumbent when revisiting upstream choices needs guided s
   impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,authoredHorizon:true,
   guidance:'clearance',guidanceSamples:48,expressive:true,wholeTrackRefinement:true,
   refineAttempts:6,refineSamples:32,refineGuidanceSamples:48,refineWidth:3,refineMode:'reflow',
-  refineFollowSamples:1,refineRebuildSamples:48,refineRebuildGuidanceSamples:48,refineUpstream:true,refineBoundaryWeight:0});
+  refineFollowSamples:1,refineRebuildSamples:48,refineRebuildGuidanceSamples:48,refineUpstream:true,refineBoundaryWeight:0,
+  refineFollowErrorThreshold:0});
  expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
  expect(result.report.off_beat_landings).toEqual([]);expect(result.report.terminus.reason).toBe('endOfSpec');
  expect(result.stats.sim_frames).toBeLessThanOrEqual(200000);
  expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
+ expect(result.refinementStats.counts.refittedContinuations).toBeGreaterThan(0);
  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
  expect(result.track.lines.every(l=>l.type===0)).toBe(true);
 });

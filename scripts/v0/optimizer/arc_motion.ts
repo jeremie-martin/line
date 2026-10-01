@@ -213,6 +213,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Rebuild a bounded bridge, then physically test the translated old suffix. */
   refineRejoinAfter?:number;
   refineRejoinWeight?:number;
+  /** Re-optimize a valid but inaccurate warm continuation, not only failed ones. */
+  refineFollowErrorThreshold?:number;
   /** Whole-track error can originate in the preceding approach. */
   refineUpstream?:boolean;
   refineExpressive?:boolean;
@@ -274,6 +276,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   if(options.constructionContinuationSamples!==undefined&&(!Number.isSafeInteger(options.constructionContinuationSamples)||options.constructionContinuationSamples<0))throw new Error('invalid construction continuation allowance');
   if(options.refineRejoinAfter!==undefined&&(!Number.isSafeInteger(options.refineRejoinAfter)||options.refineRejoinAfter<1||options.refineMode!=='reflow'))throw new Error('invalid refinement rejoin horizon');
   if(options.refineRejoinWeight!==undefined&&(!Number.isFinite(options.refineRejoinWeight)||options.refineRejoinWeight<0))throw new Error('invalid refinement rejoin weight');
+  if(options.refineFollowErrorThreshold!==undefined&&(!Number.isFinite(options.refineFollowErrorThreshold)||options.refineFollowErrorThreshold<0))throw new Error('invalid refinement follow error threshold');
   const revision=options.transitionRevision?{errorThreshold:.12,width:3,samples:48,guidanceSamples:96,responseSamples:88,...options.transitionRevision}:undefined;
   if(revision&&(!Number.isFinite(revision.errorThreshold)||revision.errorThreshold<0||
     ![revision.width,revision.samples,revision.guidanceSamples,revision.responseSamples].every(v=>Number.isSafeInteger(v)&&v>=0)||revision.width>12))throw new Error('invalid transition revision');

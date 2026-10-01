@@ -73,7 +73,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
   const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes).map(([axis, value]) => [axis, value?.target])));
   const expectedObservations = observationContract(incumbentReport);
   const initialLoss = loss, tries = contacts.map(() => 0), records: any[] = [];
-  const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0, failedConstruction:0, rejoinedSuffixes:0};
+  const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0, failedConstruction:0, rejoinedSuffixes:0, refittedContinuations:0};
   const indexOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
   if (!Number.isFinite(loss)) return {lines, rows, engine: incumbent, stats: {initialLoss, finalLoss: loss, frames: getPhysicsFrameCount() - began, counts, records}};
   try {
@@ -156,9 +156,17 @@ export function refineArcTrack(input: ArcRefinementInput) {
             const bridge=oldBoundary?{arrivalReference:{position:oldBoundary.position,velocity:oldBoundary.velocity,state:oldBoundary.ballisticState()},boundaryWeight:options.refineRejoinWeight??1,
               arrivalWeight:0,headingWeight:0,samples:options.refineRebuildSamples??48,guidanceSamples:options.refineRebuildGuidanceSamples??96,completeGuidanceBudget:true}:{};
             let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,...(!planned&&options.constructionRequests?{warmIncoming:sourceRows[j].incoming}:{}),...bridge}, [incumbent, base]);
-            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,
-              guidanceSamples:options.refineRebuildGuidanceSamples??12,warmStart:sourceRows[j].control,
-              ...(options.refineRebuildGuidanceSamples!==undefined?{warmIncoming:sourceRows[j].incoming}:{}),...bridge},[incumbent,base]);
+            const inaccurate=next?.best&&options.refineFollowErrorThreshold!==undefined&&
+              Math.hypot(...next.best.localResiduals.slice(0,4))/2>options.refineFollowErrorThreshold;
+            if((!next?.best||inaccurate)&&(options.refineRebuildSamples??0)>0){
+              const warm=next;
+              const rebuilt=search(child,j,{samples:options.refineRebuildSamples,
+                guidanceSamples:options.refineRebuildGuidanceSamples??12,warmStart:warm?.best?.c??sourceRows[j].control,
+                ...(!warm?.best&&options.refineRebuildGuidanceSamples!==undefined?{warmIncoming:sourceRows[j].incoming}:{}),...bridge},
+                [incumbent,base,...(warm?.best?[warm.best.child]:[])]);
+              if(inaccurate)counts.refittedContinuations++;
+              if(!warm?.best||rebuilt?.best&&rebuilt.best.cost<warm.best.cost)next=rebuilt;
+            }
             if (!next?.best) {completed = false; break;}
             proposed.push(...next.best.lines); child = operations.detach(next.best.child);
             proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,

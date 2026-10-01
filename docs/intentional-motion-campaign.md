@@ -42,6 +42,33 @@ as incumbent measurements and excluded from new demonstration exports. Thirteen
 native refinement/revision tests pass. This mechanism remains experimental until
 the matched study establishes whether it buys useful improvements.
 
+Candidate 7's complete production collection passes every frozen motion condition:
+12/12 valid and fulfilled; burst-burden reductions **97.85%, 98.92%, 98.93%**;
+zero 100ms-band excess in all three reported windows; and unchanged passing
+Luna/Tiki opening measurements (47.86% mean impact-RMS improvement). All fourteen
+native/audio/seek/switch/mobile checks pass without browser errors. These are
+known-song technical checks, not owner artistic approval or a completed canonical
+headline. The complete 460-run musical evaluation continues.
+
+Both thirty-outcome continuation and upstream-repair studies are complete and
+retained: **863 outcomes** through `upstream-repair-1`. More accurate continuation
+probes are mixed and sometimes substantially worse; they remain off by default.
+The [candidate-6 context/work report](evidence/intentional-motion-v6-candidate-6-delivery-20261001.json)
+describes all 460 runs, all requested constructions and forty panel/layout/context
+groups. Median actual compiler work is 2,104,333.5 frames, with a maximum of
+2,959,534. Median wall time was 71.2 seconds on the shared loaded host; this is not
+an isolated latency benchmark. Separated folded/terraced passages have larger
+musical errors than paired versions; all their requests are nevertheless fulfilled.
+
+The next repair follow-up addresses a specific limitation: the warm suffix path
+only performed a full response search when a continuation was invalid. Valid but
+inaccurate continuations stayed near their old controls. An optional measured
+error threshold now offers native re-fitting while protecting the warm candidate,
+the completed incumbent and the shared meter. Eighteen focused native tests pass.
+Separately, `value-scope-1` tests restricting the historical arrival-value model,
+which has no upcoming-construction input, to ordinary futures versus disabling
+it altogether. Initial results are mixed; neither is a production default.
+
 ## Baseline preservation and implementation start
 
 The delivered four-song, twelve-arrangement library remains under

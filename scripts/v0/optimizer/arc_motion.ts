@@ -27,6 +27,7 @@ import { makeRng } from '../../lib/rng.ts';
 import {inspectConstructionWindow} from './repertoire_candidate.ts';
 import type {ConstructionRequest} from './repertoire_policy.ts';
 import {contactObserver,extendContactObserver,fragmentInterval} from './contact_interval.ts';
+import {motionSamples,summarizeMotion,motionResiduals,effectiveBodyVelocity,type MotionSearchOptions} from './motion_quality.ts';
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
 // disposal. A private module instance gives replay its own WASM instance and
 // registry without changing judge code or freeing engines retained by callers.
@@ -55,6 +56,8 @@ export type ArcMotionFork = {
 };
 export type ArcMotionOptions= ArcGeometryStyle & {
   budget:number;
+  /** Explicit motion research/production mode; absent in frozen ordinary/V5 defaults. */
+  motionQuality?:MotionSearchOptions;
   /** Explicit repertoire search options. Production defaults are unchanged. */
   initialRecoverySamples?:number;
   fork?:ArcMotionFork;
@@ -430,7 +433,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i]]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -521,6 +524,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
             residuals.push(...correction.residuals);cost=correction.cost;
           }
         }
+        const motion=options.motionQuality?summarizeMotion(motionSamples(raw.frames,Math.max(1,frame),horizon,effectiveBodyVelocity(state)),frame):undefined;
+        const motionErrors=motion?motionResiduals(motion,impact,options.motionQuality!):[];
+        const motionCost=motionErrors.reduce((n,r)=>n+r*r,0);
+        residuals.push(...motionErrors);cost+=motionCost;
         const localCost=cost,priorStart=residuals.length;
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
@@ -555,7 +562,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
             for(const r of [weight*((a.x-here.x)-(b.x-there.x))/18,weight*((a.y-here.y)-(b.y-there.y))/18,weight*(a.vx-b.vx)/7.2,weight*(a.vy-b.vy)/7.2]){residuals.push(r);cost+=r*r;}
           }
         }
-        const terminalLoss=options.terminalSelection&&i===contacts.length-1?arcDetectedTrajectoryObjective(det,gaps,options.amplitudeWeight).loss:undefined;
+        const terminalLoss=options.terminalSelection&&i===contacts.length-1?arcDetectedTrajectoryObjective(det,gaps,options.amplitudeWeight).loss+motionCost/contacts.length:undefined;
         const release=raw.frames.slice().reverse().find(f=>f.sledContacts.length)?.frame;
         const finalState=state.points;
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
@@ -566,9 +573,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
           i<contacts.length-1?options.valueGuidanceWeight??0:0);
         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
-          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds};
+          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds,motion,motionCost};
         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
-          searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length,railGuides:fragments?.guideIds}});
+          searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length,railGuides:fragments?.guideIds,motion,motionCost}});
         // Interrupted evaluations never reach this cache insertion.
         if(memo){const {child:_child,...measurement}=result;memo.set(key,{result:measurement,candidate:{...candidates.at(-1)}});}
         if(!best||guided.cost<best.optimizationCost)best=result;

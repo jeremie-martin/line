@@ -405,3 +405,31 @@ with no page errors. Their separate review evidence stays local.
 impact weighting, physical arrival preparation without the ordinary learned
 value, time-weighted errors, stronger short continuations, and secant response
 reuse. These target the remaining musical errors; confirmation remains reserved.
+
+
+## Candidate 4 passes the frozen production-motion conditions
+
+Compiler **`0b5e81f8`** uses burst weight 0.64 and calm-impact multiplier 1.5.
+All twelve requested automatic tracks complete and fulfill their plans. Cold
+qualification passes every frozen condition: integrated excess burden falls
+96.26%, 97.78% and 99.56% for the three bands; all three reported 100ms windows
+have zero excess; Luna/Tiki correction and direction criteria pass; mean quiet
+opening impact RMS falls 54.0%, from 0.02961 to 0.01362. Luna 101's individual
+opening impact error increases from its old automatic reference; the complete
+predeclared six-opening aggregate passes. This is measured motion qualification,
+not owner approval or achievement of the 850 musical-score target.
+
+[Complete independent qualification evidence](evidence/intentional-motion-production-20261001.json.gz)
+preserves both candidate 3's failed conditions and candidate 4's passing results,
+including every track, known window and input/artifact identity. The full native
+collection is retained at `generated/intentional-motion/library-candidate-4`.
+
+Further code analysis identified a local search blind spot: rolling burst
+windows restarted at each construction boundary. Independent whole-track
+qualification already included those windows. The search now includes preceding
+history for windows ending in the current interval, while keeping calm-motion
+totals local. The frozen observer and judge are unchanged. Selection also carries
+the chosen candidate's complete measurements through lookahead, bounded choice,
+terminal choice and replay; residuals no longer come from the displaced local
+incumbent when a different geometry wins. Both changes are under regression and
+matched-plan validation before the next integrated candidate.

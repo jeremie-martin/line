@@ -459,7 +459,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         options.impactWeight=(options.impactWeight??2)*(1+(options.motionQuality.calmImpactMultiplier-1)*Math.max(0,1-impact/.2));
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
-      type Near={c:ArcMotionControl;deficit:number;loss?:number};
+      type Near={c:ArcMotionControl;deficit:number;loss?:number;residuals?:number[]};
+      let lastRepair:Near|undefined;
       const near:Near[]=[],promising:Near[]=[];
       const rememberNear=(candidate:Near)=>{
         if(candidate.loss!==undefined){
@@ -511,13 +512,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       };
       const controlContext={...options,span:constructionSpan};
       const evaluate=(c:ArcMotionControl,fragments?:{lines:TrackLine[];guideIds:number[]})=>{
+        lastRepair=undefined;
         c=normalizeArcControl(c,controlContext);
         const key=memo?arcControlMemoKey(c,options.channel)+(fragments?'|fragments':''):'';
         samples++;
         const saved=memo?.get(key);
         if(saved){
           memoHits++;
-          if(saved.reason){if(saved.near)rememberNear(saved.near);memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
+          if(saved.reason){if(saved.near){rememberNear(saved.near);lastRepair=saved.near;}memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
           viableCandidates++;candidates.push({...saved.candidate,c});
           // Never reuse saved wrappers: retainOnly may already have freed them.
           // Rebuild from validated geometry; subsequent simulations stay metered.
@@ -584,7 +586,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const motionErrors=motion?motionResiduals(motion,motionImpact,options.motionQuality!):[];
         const motionCost=motionErrors.reduce((n,r)=>n+r*r,0);
         residuals.push(...motionErrors);cost+=motionCost;
-        if(unfinished){unfinished.near.loss=cost;rememberNear(unfinished.near);return reject(unfinished.reason,unfinished.near);}
+        const repairResiduals=options.constructionImprovementSamples?[...residuals,.2*(unfinished?.near.deficit??0)]:undefined;
+        if(unfinished){unfinished.near.loss=cost;unfinished.near.residuals=repairResiduals;lastRepair=unfinished.near;rememberNear(unfinished.near);return reject(unfinished.reason,unfinished.near);}
         const localCost=cost,priorStart=residuals.length;
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
@@ -636,7 +639,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
           i<contacts.length-1?options.valueGuidanceWeight??0:0);
         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
-          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds,motion,motionCost};
+          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds,motion,motionCost,repairResiduals};
         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
           searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length,railGuides:fragments?.guideIds,motion,motionCost}});
         // Interrupted evaluations never reach this cache insertion.
@@ -763,7 +766,35 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         constructionImprovement.push(record);
         const keys=arcMethodKeys('response',true,false,options.guides,options);
         try{
-          for(let k=0;k<options.constructionImprovementSamples!;k++){
+          // Joint finite responses can cross a coupled construction boundary
+          // that single-coordinate moves cannot. Rejected shapes remain only
+          // measurements; the ordinary evaluator alone admits valid geometry.
+          const probe=(control:ArcMotionControl)=>{
+            record.proposals++;const r=evaluate(control);if(r)record.viable++;
+            return r?{c:r.c,deficit:0,loss:r.localCost,residuals:r.repairResiduals}:lastRepair;
+          };
+          let round=0;
+          while(record.proposals+2*keys.length+3<=Math.floor(options.constructionImprovementSamples!*.6)){
+            const pool=round%2?near:promising,origin=pool[Math.floor(round/2)%Math.min(4,pool.length)];
+            const trust=Math.pow(.7,Math.floor(round/4)),constraintScale=Math.pow(2,round%6);round++;
+            if(!origin.residuals)break;
+            const weighted=(r:number[])=>r.map((value,i)=>i===r.length-1?value*constraintScale:value);
+            const originResiduals=weighted(origin.residuals);
+            const scale=(key:keyof ArcMotionControl)=>arcControlStep(key,'response',origin.c.support)*trust;
+            const jac=originResiduals.map(()=>Array(keys.length).fill(0));
+            keys.forEach((key,d)=>{
+              const value=arcControlValue(origin.c,key,options.channel),step=scale(key);
+              const a=probe({...origin.c,[key]:value+step}),b=probe({...origin.c,[key]:value-step});
+              const ar=a?.residuals?weighted(a.residuals):undefined,br=b?.residuals?weighted(b.residuals):undefined;
+              for(let j=0;j<jac.length;j++)jac[j][d]=ar&&br?(ar[j]-br[j])/2:ar?ar[j]-originResiduals[j]:br?originResiduals[j]-br[j]:0;
+            });
+            const delta=arcResponseStep(jac,originResiduals,.002);
+            if(delta)for(const fraction of [1,.5,.25]){
+              const c={...origin.c};keys.forEach((key,d)=>c[key]=arcControlValue(c,key,options.channel)+fraction*scale(key)*clamp(delta[d],-3,3));probe(c);
+            }
+            Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
+          }
+          for(let k=record.proposals;k<options.constructionImprovementSamples!;k++){
             let proposal=genericInitial(initial+(options.initialRecoverySamples??0)+k+1);
             if(k%4!==3){
               const trial=k-Math.floor(k/4),key=keys[Math.floor(trial/2)%keys.length];

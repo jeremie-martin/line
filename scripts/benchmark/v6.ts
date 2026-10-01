@@ -45,6 +45,15 @@ if(command==='worker'){
      geometryError,foreignGeometry:foreign,realization,motion:replay.motion,work:r.work,stats:checkpoint.stats,constructionFailure:r.constructionFailure,
      physicalFrames:checkpoint.stats.sim_frames,compileMs,judgeMs:performance.now()-judgeStarted,executionError:null};
    writeGalleryJson(join(out,'tracks'),id+'-'+seed+'.json',checkpoint.track);
+   // Preserve the already measured search output for diagnosis and proposal
+   // studies. A future analysis must not repeat a full compile merely to recover
+   // the controls, states or cost allocation behind a scored track.
+   writeGalleryJson(join(out,'construction'),id+'-'+seed+'.json',{
+     schema:'line.v6-construction-evidence.v1',id,seed,planSha256:row.planSha256,trackHash:row.trackHash,
+     rows:r.result.rows.map(({lookahead,...r}:any)=>r),failure:r.result.failure,
+     initializationRecovery:r.result.initializationRecovery,initialProposalWork:r.result.initialProposalWork,
+     constructionImprovement:r.result.constructionImprovement,lookahead:r.result.lookaheadStats,
+     refinement:r.result.refinementStats});
    writeGalleryJson(join(out,'cells'),id+'-'+seed+'.json',row);
  }catch(e){
    writeGalleryJson(join(out,'cells'),id+'-'+seed+'.json',{id,seed,sourceId:c.sourceId,panel:c.panel,family:c.family,split:c.split,
@@ -60,7 +69,7 @@ if(command==='worker'){
  assert.ok(Number.isSafeInteger(jobs)&&jobs>0&&jobs<=24&&cases.length);
  const plan={schema:'line.benchmark-v6.run-plan.v1',compilerRoot,compiler,judge:frozen,executionSha256:sha(readFileSync(import.meta.filename)),
    ids:cases.map(c=>c.id),seeds,budget,split,profile:arg('ids')||budget!==policy.budget?'diagnostic':split};
- mkdirSync(out,{recursive:true});for(const d of ['cells','tracks','logs'])mkdirSync(join(out,d),{recursive:true});
+ mkdirSync(out,{recursive:true});for(const d of ['cells','tracks','logs','construction'])mkdirSync(join(out,d),{recursive:true});
  if(existsSync(join(out,'plan.json')))assert.deepEqual(read(join(out,'plan.json')),plan,'cached V6 run identity mismatch');else writeGalleryJson(out,'plan.json',plan);
  const planHash=sha(readFileSync(join(out,'plan.json'))),queue=cases.flatMap(c=>seeds.map(seed=>({id:c.id,seed})));let completed=0;
  await Promise.all(Array.from({length:Math.min(jobs,queue.length)},async()=>{

@@ -29,7 +29,7 @@ for(const directory of studies)for(const name of readdirSync(directory).filter(n
       if(features[48+j]>=0&&Number.isFinite(value))features[48+j]=value;
   }
   const example={control:row.control,incoming:row.incoming,span:row.span,features};
-  const key=arcConstructionMemoryKey(constructionStyle(request)),identity=sha(JSON.stringify([key,example]));
+  const key=arcConstructionMemoryKey({...r.changes,...constructionStyle(request)}),identity=sha(JSON.stringify([key,example]));
   if(seen.has(identity))continue;seen.add(identity);
   (groups[key]??=[]).push(example);accepted++;
  }

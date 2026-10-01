@@ -549,7 +549,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           }
         }
         const motion=options.motionQuality?summarizeMotion(motionSamples(raw.frames,Math.max(1,frame),horizon,effectiveBodyVelocity(state)),frame):undefined;
-        const motionErrors=motion?motionResiduals(motion,impact,options.motionQuality!):[];
+        // Startup has no preceding impact, but the next authored landing still
+        // provides musical context. Do not silently exempt its internal motion.
+        const motionImpact=impact??request?.context?.nextImpact??undefined;
+        const motionErrors=motion?motionResiduals(motion,motionImpact,options.motionQuality!):[];
         const motionCost=motionErrors.reduce((n,r)=>n+r*r,0);
         residuals.push(...motionErrors);cost+=motionCost;
         const localCost=cost,priorStart=residuals.length;

@@ -439,6 +439,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const constructionSpan=options.constructionRequests&&i===contacts.length-1?horizon-frame:span;
       const support=clamp((1-(targets.air??.5))*(constructionSpan+1),3,Math.max(3,constructionSpan-6));
       const impact=gap>=0?gaps[gap].targets.impact:undefined;
+      if(impact!==undefined&&options.motionQuality?.calmImpactMultiplier!==undefined)
+        options.impactWeight=(options.impactWeight??2)*(1+(options.motionQuality.calmImpactMultiplier-1)*Math.max(0,1-impact/.2));
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
       const near:Array<{c:ArcMotionControl;deficit:number}>=[];
@@ -653,7 +655,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(options.bidirectional&&guidedInitialization&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
       const responseAxisWeights=options.rescaleMemoryWeights?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;
-      const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0,options.controlDiversity);
+      const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0,options.controlDiversity,options.constructionProposals&&options.railLayout==='transfer'?'both':'relative');
       const responses=controlMemory.proposeResponses(inputFeatures,incoming,span,
         [targets.air,targets.speed,targets.amplitude,impact],options.memoryResponseSamples??0,
         {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights},options.controlDiversity);
@@ -705,7 +707,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
               const keys=arcMethodKeys('response',true,false,options.guides,options);
               const trial=Math.floor(k*2/3),key=keys[Math.floor(trial/2)%keys.length];
               const anchor=near[Math.floor(trial/(2*keys.length))%Math.min(4,near.length)].c;
-              const step=arcControlStep(key,'coordinate',support)*Math.pow(.75,Math.floor(trial/(8*keys.length)));
+              const step=arcControlStep(key,'coordinate',anchor.support)*Math.pow(.65,Math.floor(trial/(6*keys.length)));
               proposal={...anchor,[key]:arcControlValue(anchor,key,options.channel)+(trial%2?-1:1)*step};
             }
             record.proposals++;if(evaluate(proposal))record.viable++;

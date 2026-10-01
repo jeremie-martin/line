@@ -71,3 +71,12 @@ it('transfers a weighted response through physical residual units before applyin
   expect(proposal.support).toBeCloseTo(24-.05*3*2,12);
   expect(example.jac).toEqual([[2,2],[3,-3],[0,0],[0,0]]);
 });
+
+it('can preserve demonstrated support duration when only the following flight grows',()=>{
+ const memory=new ArcControlMemory(),control={entry:10,turn:20,exit:30,support:12,bias:0,offset:0};
+ memory.rememberControl({control,features:[0],incoming:15,span:24});
+ const proposals=memory.proposeControls([0],25,240,4,'geometry','both');
+ expect(proposals.map(c=>c.support)).toEqual([120,12]);
+ expect(proposals.every(c=>c.entry===20&&c.exit===40)).toBe(true);
+ expect(memory.proposeControls([0],25,240,4,'geometry').map(c=>c.support)).toEqual([120]);
+});

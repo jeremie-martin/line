@@ -46,16 +46,20 @@ export class ArcControlMemory {
     if (this.responses.length > 384) this.responses.shift();
   }
 
-  proposeControls(features: number[], incoming: number, span: number, count: number, diversity: 'inherited' | 'geometry' = 'inherited'): ArcMotionControl[] {
+  proposeControls(features: number[], incoming: number, span: number, count: number, diversity: 'inherited' | 'geometry' = 'inherited', duration:'relative'|'both'='relative'): ArcMotionControl[] {
     if (count <= 0) return [];
     const nearest = this.controls.map(m => ({m, distance: distance(m.features, features)}))
       .sort((a, b) => a.distance - b.distance);
     const selected: ArcMotionControl[] = [];
     for (const {m} of nearest) {
-      const control = adapted(m, incoming, span);
-      if (selected.some(p => diversity === 'geometry' ? arcControlsSimilar(control, p) : arcControlSimilar(control, p))) continue;
-      selected.push(control);
-      if (selected.length >= count) break;
+      // A construction can keep its demonstrated duration while its following
+      // flight grows. Offer both hypotheses; native evaluation decides.
+      const proposals=[adapted(m,incoming,span),...(duration==='both'?[adapted(m,incoming,m.span)]:[])];
+      for(const control of proposals){
+        if (selected.some(p => diversity === 'geometry' ? arcControlsSimilar(control, p) : arcControlSimilar(control, p))) continue;
+        selected.push(control);
+        if (selected.length >= count) return selected;
+      }
     }
     return selected;
   }

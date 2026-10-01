@@ -1,6 +1,6 @@
 /** Search decisions remain independent of the frozen motion observations. */
 import type {summarizeMotion} from './motion_quality.ts';
-export type MotionSearchOptions={burstWeight:number;calmWeight?:number;calmLanding?:boolean};
+export type MotionSearchOptions={burstWeight:number;calmWeight?:number;calmLanding?:boolean;calmImpactMultiplier?:number};
 /** Search residuals are research parameters, not the benchmark definition.
  * Leave the first musical residuals unchanged for existing response memories. */
 export function motionResiduals(summary:ReturnType<typeof summarizeMotion>,impact:number|undefined,options:MotionSearchOptions):number[]{

@@ -43,7 +43,7 @@ for study in args.studies.split(','):
             physicalFrames=r['physicalFrames'], ms=r['ms'], failure=r.get('failure'),
             examples=r.get('examples'),constructionPolicies=r.get('constructionPolicies'),forkInput=r.get('forkInput'),
             initialProposalWork=r.get('initialProposalWork'),refinement=r.get('refinement'),constructionImprovement=r.get('constructionImprovement'),
-            observedReceiverWork=r.get('observedReceiverWork'),coupledIntervalWork=r.get('coupledIntervalWork'),
+            observedReceiverWork=r.get('observedReceiverWork'),coupledIntervalWork=r.get('coupledIntervalWork'),transitionRevisionWork=r.get('transitionRevisionWork'),
             attempts=r.get('attempts'),attemptWork=r.get('attemptWork'),completionFirst=r.get('completionFirst'),
             source=str(path), sha256=hashlib.sha256(data).hexdigest(),
             planSha256=hashlib.sha256(json.dumps(r['plan'], sort_keys=True, separators=(',', ':')).encode()).hexdigest()))

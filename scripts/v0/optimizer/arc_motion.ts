@@ -153,6 +153,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   impactWeight?:number;
   amplitudeWeight?:number;
   qualityRetries?:number;
+  /** Revisit the preceding choice using a stronger measured current interval. */
+  transitionRevision?:{errorThreshold?:number;width?:number;samples?:number;guidanceSamples?:number;responseSamples?:number};
   headingWeight?:number;
   guidance?:'span'|'clearance'|'full';
   guidanceSamples?:number;
@@ -228,7 +230,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions):ReturnType<typeof compileArcMotionOnce>&{policyPreviewStats?:any;completionFirstStats?:any;attemptWork?:any;engineRebuilds?:number;attempts:ReturnType<typeof runArcAttempts>['records'];proposalDecision:ReturnType<typeof runArcAttempts>['proposalDecision'];firstCompletionFrame:number|null}{
   const attempts=runArcAttempts(spec,seed,options,compileArcMotionOnce);
-  const diagnostics={attempts:attempts.records,proposalDecision:attempts.proposalDecision,firstCompletionFrame:attempts.firstCompletionFrame,attemptWork:attempts.results.map((r,i)=>({name:attempts.records[i].name,initialProposalWork:r.initialProposalWork,observedReceiverWork:r.observedReceiverWork,coupledIntervalWork:r.coupledIntervalWork,constructionImprovement:r.constructionImprovement}))};
+  const diagnostics={attempts:attempts.records,proposalDecision:attempts.proposalDecision,firstCompletionFrame:attempts.firstCompletionFrame,attemptWork:attempts.results.map((r,i)=>({name:attempts.records[i].name,initialProposalWork:r.initialProposalWork,observedReceiverWork:r.observedReceiverWork,coupledIntervalWork:r.coupledIntervalWork,transitionRevisionWork:r.transitionRevisionWork,constructionImprovement:r.constructionImprovement}))};
   if(attempts.results.length===1){
     const result=attempts.results[0],proposal=attempts.records[0].name==='proposal';
     return {...result,...diagnostics,budget:options.budget,...(proposal?{policyPreviewStats:{
@@ -258,6 +260,9 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 }
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
+  const revision=options.transitionRevision?{errorThreshold:.12,width:3,samples:48,guidanceSamples:96,responseSamples:88,...options.transitionRevision}:undefined;
+  if(revision&&(!Number.isFinite(revision.errorThreshold)||revision.errorThreshold<0||
+    ![revision.width,revision.samples,revision.guidanceSamples,revision.responseSamples].every(v=>Number.isSafeInteger(v)&&v>=0)||revision.width>12))throw new Error('invalid transition revision');
   if(options.initialRecoverySamples!==undefined&&(!Number.isSafeInteger(options.initialRecoverySamples)||options.initialRecoverySamples<0||options.initialRecoverySamples>320))throw new Error('invalid initialization recovery allowance');
   if(options.constructionImprovementSamples!==undefined&&(!Number.isSafeInteger(options.constructionImprovementSamples)||options.constructionImprovementSamples<0||options.constructionImprovementSamples>4096))throw new Error('invalid construction improvement allowance');
   if(options.coupledIntervalSamples!==undefined&&(!Number.isSafeInteger(options.coupledIntervalSamples)||options.coupledIntervalSamples<0||options.coupledIntervalSamples>512))throw new Error('invalid coupled interval allowance');
@@ -333,10 +338,11 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   let searchBudgetExhausted=false;
   let forkEvidence:{section:number;frame:number;prefixSha256:string;stateSha256:string}|null=null;
   const resumeAt=options.fork?.section??0;
-  const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation';index:number;frame:number;viable:number;retained:boolean}>=[];
+  const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation'|'revision';index:number;frame:number;viable:number;retained:boolean}>=[];
   const planningDecisions:any[]=[];
   const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
+  const transitionRevisionWork:Array<{index:number;error:number;proposals:number;viable:number;accepted:boolean;before:number;after:number;physicsFrames:number}>=[];
   const fragmentStats={intervals:0,probes:0,observationFrames:0,replayFrames:0};
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
   const coupledIntervalWork:Array<{index:number;proposals:number;viable:number;accepted:number;physicsFrames:number;before:number;after:number}>=[];
@@ -1121,10 +1127,58 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         overrides.guidanceSamples=Math.floor((options.guidanceSamples??48)*localScale);
         overrides.responseSamples=Math.floor((options.responseSamples??0)*localScale);
       }
-      const interval=searchInterval(engine,i,overrides);
+      let interval=searchInterval(engine,i,overrides);
       if(interval){const rate=(getPhysicsFrameCount()-localStart)/Math.max(1,interval.next-interval.frame)/localScale;observedConstructionRate=observedConstructionRate ? .8*observedConstructionRate+.2*rate : rate;}
       pendingControl=null;
       if(!interval){failure={frame:contacts[i].frame,reason:'contact_spacing'};break;}
+      const previous=steps[i-1];
+      if(revision&&revision.width>0&&i>resumeAt&&interval.best&&previous?.selected&&previous.choices.length&&!options.replayControls){
+        const measured=interval.best,target=interval.targets;
+        const errors=['air','speed','amplitude'].flatMap(key=>target[key as keyof typeof target]===undefined?[]:
+          [measured.achieved[key]-target[key as keyof typeof target]!]);
+        const impact=interval.gap>=0?gaps[interval.gap].targets.impact:undefined;
+        if(impact!==undefined&&measured.actualImpact!==undefined)errors.push(measured.actualImpact-impact);
+        const error=Math.sqrt(errors.reduce((n,v)=>n+v*v,0)/Math.max(1,errors.length));
+        const reserve=(end-interval.frame)*Math.max((options.samples??160)+(options.guidanceSamples??0),observedConstructionRate);
+        const estimate=interval.frame+(interval.next-interval.frame)*(revision.samples+revision.guidanceSamples+96);
+        if(error>revision.errorThreshold&&getPhysicsFrameCount()+estimate+reserve<budget-2*(end+1)){
+          const began=getPhysicsFrameCount(),original=interval,base=rebuildArc(lines.slice(0,previous.lineStart));
+          const before=previous.selected.measurement.localCost+measured.cost;
+          const record={index:i,error,proposals:0,viable:0,accepted:false,before,after:before,physicsFrames:0};
+          let winner:{previous:any;interval:NonNullable<typeof interval>;value:number}|null=null;
+          try{
+            for(const choice of previous.choices.slice(0,revision.width)){
+              if(getPhysicsFrameCount()+estimate+reserve>=budget-2*(end+1))break;
+              record.proposals++;
+              const branch=addArc(base,choice.lines);
+              const trial=searchInterval(branch,i,{samples:revision.samples,guidanceSamples:revision.guidanceSamples,
+                responseSamples:revision.responseSamples,initialRecoverySamples:Math.min(64,options.initialRecoverySamples??0),
+                warmStart:measured.c,warmIncoming:original.incoming},[engine,measured.child,base]);
+              if(trial?.best){
+                record.viable++;const value=choice.measurement.localCost+trial.best.cost;
+                if(value<(winner?.value??before)-1e-12)winner={previous:choice,interval:trial,value};
+              }
+              // Keep only engine-free measurements of alternatives. A winner is
+              // rebuilt below; all repeat simulation remains on the shared meter.
+              Engine.retainOnly([engine,measured.child,base]);
+            }
+          }catch(error){
+            if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
+            searchBudgetExhausted=true;
+            budgetInterruptions.push({phase:'revision',index:i,frame:interval.frame,viable:record.viable,retained:true});
+          }
+          if(winner){
+            const selected=winner.previous,branch=addArc(base,selected.lines),revised=winner.interval;
+            revised.best={...revised.best,child:addArc(branch,revised.best.lines)};
+            lines.splice(previous.lineStart,lines.length-previous.lineStart,...selected.lines);
+            rows[i-1]={...rows[i-1],control:selected.c,cost:selected.cost,...selected.meta,lookahead:null};
+            previous.choices=[previous.selected,...previous.choices.filter((c:any)=>c!==selected)];previous.selected=selected;
+            engine=branch;interval=revised;record.accepted=true;record.after=winner.value;
+          }
+          Engine.retainOnly([engine,interval.best.child]);
+          record.physicsFrames=getPhysicsFrameCount()-began;transitionRevisionWork.push(record);
+        }
+      }
       let {best}=interval;
       const {candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support}=interval;
       let lookahead:any=null;
@@ -1282,7 +1336,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(alternatives.every(a=>distinctArrival(a,candidate)))alternatives.push(candidate);
         if(alternatives.length>=12)break;
       }
-      steps.push({lineStart:lines.length,choices:alternatives.filter(a=>JSON.stringify(a.c)!==JSON.stringify(best.c))});
+      steps.push({lineStart:lines.length,selected:candidates.find(c=>c.lines===best.lines),choices:alternatives.filter(a=>JSON.stringify(a.c)!==JSON.stringify(best.c))});
       if((options.memorySamples??0)>0&&i>0){
         memoryFor(i).rememberControl({features:interval.inputFeatures,incoming,span:horizon-frame,control:best.c});
       }
@@ -1374,6 +1428,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       selectionLoss+=motionResiduals(intervalMotionSummary(observed,contact.frame,next-1),impact,options.motionQuality).reduce((n,r)=>n+r*r,0)/contacts.length;
     }
   }
-  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,coupledIntervalWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,coupledIntervalWork,transitionRevisionWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

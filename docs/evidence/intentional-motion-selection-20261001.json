@@ -1,0 +1,281 @@
+{
+  "schema": "line.intentional-motion-selection.v1",
+  "selectedAtUtc": "2026-10-01T12:37:56.616122+00:00",
+  "compiler": {
+    "head": "5b031f7e22a287e7bb2f32e9ead1aaafccc351ce",
+    "compilerSourceFingerprint": "ed4d38b5a55f4b7e06a56c87c2e23b6b9758f4f07f491f8e17b30ac1973ce043",
+    "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "canonical": {
+    "path": "generated/intentional-motion/v6-candidate-8/run.json",
+    "sha256": "fec2b2a83f756af390622169f3b411200b2a14094fc5c61ad2daee262b16758c"
+  },
+  "canonicalSummary": {
+    "headline": 835.6160538491686,
+    "panels": {
+      "fixed": {
+        "score": 912.382443722549,
+        "families": [
+          {
+            "family": "single",
+            "score": 908.2381397250981
+          },
+          {
+            "family": "arcs",
+            "score": 920.7884757207786
+          },
+          {
+            "family": "fold",
+            "score": 894.0940631549629
+          },
+          {
+            "family": "serpentine",
+            "score": 916.7816286802466
+          },
+          {
+            "family": "scallops",
+            "score": 918.7442627571733
+          },
+          {
+            "family": "terraces",
+            "score": 900.1831336352259
+          },
+          {
+            "family": "scattered",
+            "score": 927.8474023843571
+          }
+        ]
+      },
+      "automatic": {
+        "score": 758.8496639757881,
+        "families": [
+          {
+            "family": "regular_exceptions",
+            "score": 803.6784147100918
+          },
+          {
+            "family": "subdivision_pickup",
+            "score": 743.2921171320421
+          },
+          {
+            "family": "irregular_microtimed",
+            "score": 844.4402013748559
+          },
+          {
+            "family": "cadence_transition",
+            "score": 807.478711968706
+          },
+          {
+            "family": "spacious_amplitude",
+            "score": 793.535434798185
+          },
+          {
+            "family": "dense_musical",
+            "score": 746.6298510081097
+          },
+          {
+            "family": "high_air_energy",
+            "score": 794.7466655079418
+          },
+          {
+            "family": "sparse_transition",
+            "score": 704.7686996287722
+          },
+          {
+            "family": "rapid_pickup_frontier",
+            "score": 662.0884675373633
+          },
+          {
+            "family": "dense_recovery_frontier",
+            "score": 694.9527020553248
+          },
+          {
+            "family": "low_air_frontier",
+            "score": 649.9743807234595
+          },
+          {
+            "family": "legacy_transition_regression",
+            "score": 812.2696116595644
+          },
+          {
+            "family": "legacy_amplitude_regression",
+            "score": 802.7673298908473
+          },
+          {
+            "family": "believer",
+            "score": 720.7913007949636
+          },
+          {
+            "family": "amor_na_praia",
+            "score": 842.723050259963
+          },
+          {
+            "family": "luna_bala",
+            "score": 839.9689680266501
+          },
+          {
+            "family": "tiki_tiki",
+            "score": 802.5347091786526
+          },
+          {
+            "family": "shelter",
+            "score": 747.033750389709
+          },
+          {
+            "family": "amour_de_ma_vie",
+            "score": 604.469248894772
+          }
+        ]
+      }
+    },
+    "musical": {
+      "headline": 835.6160538491686,
+      "panels": {
+        "fixed": {
+          "score": 912.382443722549,
+          "families": [
+            {
+              "family": "single",
+              "score": 908.2381397250981
+            },
+            {
+              "family": "arcs",
+              "score": 920.7884757207786
+            },
+            {
+              "family": "fold",
+              "score": 894.0940631549629
+            },
+            {
+              "family": "serpentine",
+              "score": 916.7816286802466
+            },
+            {
+              "family": "scallops",
+              "score": 918.7442627571734
+            },
+            {
+              "family": "terraces",
+              "score": 900.1831336352259
+            },
+            {
+              "family": "scattered",
+              "score": 927.8474023843571
+            }
+          ]
+        },
+        "automatic": {
+          "score": 758.8496639757881,
+          "families": [
+            {
+              "family": "regular_exceptions",
+              "score": 803.6784147100918
+            },
+            {
+              "family": "subdivision_pickup",
+              "score": 743.2921171320421
+            },
+            {
+              "family": "irregular_microtimed",
+              "score": 844.4402013748559
+            },
+            {
+              "family": "cadence_transition",
+              "score": 807.478711968706
+            },
+            {
+              "family": "spacious_amplitude",
+              "score": 793.535434798185
+            },
+            {
+              "family": "dense_musical",
+              "score": 746.6298510081097
+            },
+            {
+              "family": "high_air_energy",
+              "score": 794.7466655079418
+            },
+            {
+              "family": "sparse_transition",
+              "score": 704.7686996287722
+            },
+            {
+              "family": "rapid_pickup_frontier",
+              "score": 662.0884675373633
+            },
+            {
+              "family": "dense_recovery_frontier",
+              "score": 694.9527020553248
+            },
+            {
+              "family": "low_air_frontier",
+              "score": 649.9743807234595
+            },
+            {
+              "family": "legacy_transition_regression",
+              "score": 812.2696116595644
+            },
+            {
+              "family": "legacy_amplitude_regression",
+              "score": 802.7673298908473
+            },
+            {
+              "family": "believer",
+              "score": 720.7913007949636
+            },
+            {
+              "family": "amor_na_praia",
+              "score": 842.723050259963
+            },
+            {
+              "family": "luna_bala",
+              "score": 839.9689680266501
+            },
+            {
+              "family": "tiki_tiki",
+              "score": 802.5347091786526
+            },
+            {
+              "family": "shelter",
+              "score": 747.033750389709
+            },
+            {
+              "family": "amour_de_ma_vie",
+              "score": 604.469248894772
+            }
+          ]
+        }
+      }
+    },
+    "runs": 460,
+    "valid": 460,
+    "fullyRealized": 460,
+    "realizedRequests": 8148,
+    "requested": 8148,
+    "distinctTracks": 315
+  },
+  "previousCanonical": {
+    "path": "generated/intentional-motion/v6-candidate-7/run.json",
+    "sha256": "86f66deae8510890ea79bd663cb062618e2adde01e1adbed93352a435d74d1d5"
+  },
+  "comparison": {
+    "headlineDelta": 1.3999841679064957,
+    "totalPhysicsFramesBefore": 916864567,
+    "totalPhysicsFramesAfter": 954726425,
+    "extraWorkFraction": 0.04129492987594108,
+    "scoreImproved": 256,
+    "scoreRegressed": 12,
+    "scoreEqual": 192,
+    "maximumRegression": -0.039800000000013824,
+    "changedTracks": 327
+  },
+  "productionQualification": {
+    "path": "generated/intentional-motion/qualification-candidate-8/qualification.json",
+    "sha256": "75fec04f04d989f9acb5b5a60d8040e4f756dd4f705f9b822ad2db361bc92bb8"
+  },
+  "motionPassed": true,
+  "confirmationBeforeSelection": "No confirmation outcomes run or inspected. Run the predeclared 74 cases \u00d7 seeds 503/607/709/811 on this fixed compiler next.",
+  "numericalTarget": 850,
+  "targetAchieved": false,
+  "reason": "Higher complete frozen headline, preserved full fulfillment and production motion pass, with a bounded 4.13% increase in actual work. All proposals remain inside the existing three-million allowance. No confirmation-based selection."
+}

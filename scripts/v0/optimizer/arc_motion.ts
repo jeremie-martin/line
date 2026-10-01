@@ -25,7 +25,7 @@ import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type Track
 
 import { makeRng } from '../../lib/rng.ts';
 import {inspectConstructionWindow} from './repertoire_candidate.ts';
-import type {ConstructionRequest} from './repertoire_policy.ts';
+import {constructionStyle,type ConstructionRequest} from './repertoire_policy.ts';
 import {contactObserver,extendContactObserver,fragmentInterval} from './contact_interval.ts';
 import {motionSamples,summarizeMotion,effectiveBodyVelocity} from './motion_quality.ts';
 import {constructionDeficit} from './repertoire_feasibility.ts';
@@ -325,7 +325,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const controlMemory=new ArcControlMemory(),constructionMemories=new Map<string,ArcControlMemory>();
   const memoryFor=(index:number)=>{
     if(options.memoryScope!=='construction')return controlMemory;
-    const style={...options,...options.sectionStyles?.[index]};
+    // A locked research prefix cannot carry section-style overrides, but its
+    // demonstrated controls still belong to the original requested constructor.
+    const request=options.constructionRequests?.[index];
+    const style={...options,...(options.sectionStyles?.[index]??(request?constructionStyle(request):{}))};
     const key=arcConstructionMemoryKey(style);
     let memory=constructionMemories.get(key);if(!memory){
       memory=new ArcControlMemory();

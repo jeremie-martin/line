@@ -54,7 +54,12 @@ for r in rows:
         if section is not None:
             observations[section].append(o)
     for q in requests:
-        key = (r['panel'], q['construction'], q['guidance'], q.get('railLayout', 'paired'),
+        # Paired/transfer is a connected-guide request. Do not label an open
+        # support or fragmented scatter as a physically paired connected rail.
+        layout = (q.get('railLayout', 'paired') if q['guidance'] == 'required' else
+                  'fragmented' if q['construction'] == 'scattered' else
+                  'open' if q['guidance'] == 'forbidden' else 'optional')
+        key = (r['panel'], q['construction'], q['guidance'], layout,
                'calm' if q.get('context', {}).get('quiet', 0) >= .5 else 'other')
         groups[key].append(dict(parent=r['sourceId'], run=(r['id'], r['seed']), valid=r['valid'],
             request=q, realized=realized.get(q['section']), motion=motion.get(q['section']),

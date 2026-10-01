@@ -217,5 +217,207 @@
     "tracks": 12,
     "maxNativeTraceError": 0
   },
-  "interpretation": "Verification of frozen candidate 8. Candidate-route browser checks do not yet certify the published default collection. Inherited TypeScript diagnostics remain."
+  "interpretation": "Frozen candidate 8 and its published default twelve-track library. Native/audio playback, both comparisons, saved links, nine reported-passage controls, motion detail, contact inspection and mobile layout are exercised. Inherited TypeScript diagnostics remain. Technical checks are not owner artistic approval.",
+  "publishedBrowser": {
+    "source": {
+      "path": "generated/intentional-motion/review-published-comparisons/review-ui.json",
+      "sha256": "ce259648eba10263a03d57e36e75e6e9fcdeb2bb1712eaca5fd3c3c028dc8f1d"
+    },
+    "checker": {
+      "path": "scripts/gallery/check_intentional_review.mjs",
+      "sha256": "dd55d664d6c1f8abb447c190b6d21b2f8a622ee724e4ee5c165482089336e04c"
+    },
+    "library": {
+      "path": "motion-gallery/production-library.json",
+      "sha256": "06faf22c5009ec4661bcd095e27f4be91d108c1a673c343883e790819fdc3ed3"
+    },
+    "reportedPassageControls": 9,
+    "collection": "motion-gallery/production-library.json",
+    "checks": [
+      {
+        "id": "luna_bala_44s-101",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [
+          {
+            "label": "Calm opening",
+            "start": 0
+          }
+        ],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "luna_bala_44s-202",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [
+          {
+            "label": "Calm opening",
+            "start": 0
+          }
+        ],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "luna_bala_44s-303",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [
+          {
+            "label": "Calm opening",
+            "start": 0
+          }
+        ],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "amor_na_praia_46s-101",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "amor_na_praia_46s-202",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "amor_na_praia_46s-303",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "tiki_tiki_48s-101",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [
+          {
+            "label": "Calm opening",
+            "start": 0
+          },
+          {
+            "label": "Reported acceleration \u00b7 15.32s",
+            "start": 14.7
+          }
+        ],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "tiki_tiki_48s-202",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [
+          {
+            "label": "Calm opening",
+            "start": 0
+          }
+        ],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "tiki_tiki_48s-303",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [
+          {
+            "label": "Calm opening",
+            "start": 0
+          }
+        ],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "amour_de_ma_vie_44s-101",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [
+          {
+            "label": "Reported acceleration \u00b7 5.95s",
+            "start": 5.3
+          }
+        ],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "amour_de_ma_vie_44s-202",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [],
+        "contactInspectionToggle": true
+      },
+      {
+        "id": "amour_de_ma_vie_44s-303",
+        "nativeReplay": true,
+        "synchronizedAudio": true,
+        "ordinaryComparison": true,
+        "previousArrangement": true,
+        "shareableTime": true,
+        "motionDetails": true,
+        "reportedPassages": [
+          {
+            "label": "Reported acceleration \u00b7 9.4s",
+            "start": 8.7
+          }
+        ],
+        "contactInspectionToggle": true
+      },
+      {
+        "shareablePassageReload": true,
+        "rapidSeedSwitch": true
+      },
+      {
+        "mobileNoOverflow": true
+      }
+    ],
+    "errors": []
+  }
 }

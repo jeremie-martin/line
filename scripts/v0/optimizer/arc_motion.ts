@@ -165,6 +165,9 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   continuationResponseSamples?:number;
   /** Extra measured response for profiled or transfer continuations only. */
   constructionContinuationSamples?:number;
+  /** The historical value model has no construction/layout input. Limit its
+   * use to futures composed entirely of ordinary connected guided arcs. */
+  constructionAwareValue?:boolean;
   /** Propose one demonstrated curve and search only when its physical replay fails. */
   policyRollout?:boolean;
   policyRolloutStrict?:boolean;
@@ -457,6 +460,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       lines:candidate.lines,c:candidate.c,cost:candidate.cost,localCost:candidate.localCost});
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
+      if(options.constructionAwareValue&&[i+1,i+2].some(index=>{
+        const request=options.constructionRequests?.[index];
+        return request&&(request.construction!=='arcs'||request.railLayout==='transfer'||request.guidance==='forbidden');
+      }))options.futureValueModel=undefined;
       const constructionPolicy=i>0?options.constructionPolicies?.[arcConstructionMemoryKey(options)]:undefined;
       if(constructionPolicy)options.controlPolicy=constructionPolicy;
       const nextRequest=options.constructionRequests?.[i+1];

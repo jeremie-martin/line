@@ -33,3 +33,13 @@ describe('native motion observations',()=>{
     expect(()=>motionSamples([{frame:1,velocity:{x:NaN,y:0}}],1,1,{x:1,y:0})).toThrow();
   });
 });
+
+// The mutable search rule must be able to observe calm correction during the
+// landing window too. Frozen motion summaries and musical impact stay unchanged.
+it('can search calm landing corrections without penalizing energetic contact',async()=>{
+ const {motionResiduals}=await import('../scripts/v0/optimizer/motion_objective.ts');
+ const summary=summarizeMotion([],1);summary.frames=10;summary.absoluteCorrection=2;
+ expect(motionResiduals(summary,.02,{burstWeight:0,calmWeight:1}).at(-1)).toBe(0);
+ expect(motionResiduals(summary,.02,{burstWeight:0,calmWeight:1,calmLanding:true}).at(-1)).toBeGreaterThan(0);
+ expect(motionResiduals(summary,.8,{burstWeight:0,calmWeight:1,calmLanding:true}).at(-1)).toBe(0);
+});

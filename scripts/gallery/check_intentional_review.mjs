@@ -14,16 +14,17 @@ try{
   await page.locator('#library button').nth(i).click();
   await page.waitForFunction(()=>!document.getElementById('play').disabled);
   assert.match(await page.locator('#result-title').textContent(),new RegExp(`seed ${entry.seed}$`));
-  await page.locator('#seek').evaluate(e=>{e.value='5.95';e.dispatchEvent(new Event('input'));});
-  assert.equal(await page.locator('#time').textContent(),'5.95 s');
-  const link=await page.locator('#passage-link').getAttribute('href');assert.equal(new URL(link).searchParams.get('t'),'5.950');
+  const sampleTime=Math.min(5.95,Number(await page.locator('#seek').getAttribute('max'))/2);
+  await page.locator('#seek').evaluate((e,t)=>{e.value=String(t);e.dispatchEvent(new Event('input'));},sampleTime);
+  assert.equal(await page.locator('#time').textContent(),sampleTime.toFixed(2)+' s');
+  const link=await page.locator('#passage-link').getAttribute('href');assert.equal(new URL(link).searchParams.get('t'),sampleTime.toFixed(3));
   assert.equal(new URL(link).searchParams.get('data'),entry.manifest);
   if(entry.priorManifest){
    await page.selectOption('#comparison','2');
-   assert.equal(await page.locator('#time').textContent(),'5.95 s');
+   assert.equal(await page.locator('#time').textContent(),sampleTime.toFixed(2)+' s');
    assert.equal(new URL(await page.locator('#passage-link').getAttribute('href')).searchParams.get('compare'),'previous');
   }
-  await page.locator('#play').click();await page.waitForFunction(()=>document.getElementById('audio').currentTime>6.05);await page.locator('#play').click();
+  await page.locator('#play').click();await page.waitForFunction(t=>document.getElementById('audio').currentTime>t+.1,sampleTime);await page.locator('#play').click();
   checks.push({id:entry.id,nativeReplay:true,synchronizedAudio:true,previousArrangement:!!entry.priorManifest,shareableTime:true});
  }
  const last=collection.entries.filter(e=>e.manifest).at(-1);

@@ -34,7 +34,7 @@ function index(){
   else if(existsSync(error)){e.status='Failed';e.error=read(error).error;}
  }
  const data={schema:'line.production-library.v1',plan:'/ '+relative(process.cwd(),planPath),entries:entries.map(({request,...e}:any)=>({...e,seed:request.seed,settings:request}))};
- data.plan='/'+relative(process.cwd(),planPath);writeGalleryJson(out,'collection.json',data);writeFileSync('motion-gallery/production-library.json',JSON.stringify(data,null,2)+'\n');
+ data.plan='/'+relative(process.cwd(),planPath);writeGalleryJson(out,'collection.json',data);if(arg('publish','true')==='true')writeFileSync('motion-gallery/production-library.json',JSON.stringify(data,null,2)+'\n');
 }
 index();
 async function run(entry:any){const dir=join(out,entry.id);mkdirSync(dir,{recursive:true});

@@ -402,7 +402,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
       const nextRequest=options.constructionRequests?.[i+1];
-      if(options.constructionAwareArrival&&nextRequest&&(nextRequest.construction!=='arcs'||nextRequest.guidance!=='optional')){
+      if(options.constructionAwareArrival&&nextRequest&&(nextRequest.context?.quiet??0)<.5&&(nextRequest.construction!=='arcs'||nextRequest.guidance!=='optional')){
         options.futureValueModel=undefined;
         options.arrivalMode='passive';options.headingWeight=0;
       }

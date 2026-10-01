@@ -4,6 +4,8 @@ import {caseSpec} from '../../benchmark/v4/model.ts';
 import {mkdirSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
 import {compileArcMotion,type ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
 import {repertoireSearchOptions} from '../v0/optimizer/repertoire_search.ts';
 import {planRepertoire,validateProductionPlan,type Construction} from '../v0/optimizer/repertoire_policy.ts';
@@ -40,7 +42,11 @@ try{
    plan.phrases=plan.requests.slice(1).map(r=>({first:r.section,count:1,construction:r.construction,guidance:r.guidance,railLayout:r.railLayout}));
    validateProductionPlan(spec,plan);
  }
- const options={...repertoireSearchOptions(spec,plan,budget-Math.round(spec.duration*40)-21),...changes};
+ const examplePath=arg('examples',''),exampleBytes=examplePath?readFileSync(examplePath):undefined;
+ const examples=exampleBytes?JSON.parse(gunzipSync(exampleBytes).toString()):undefined;
+ if(examples)assert.equal(examples.schema,'line.construction-examples.v1');
+ const options={...repertoireSearchOptions(spec,plan,budget-Math.round(spec.duration*40)-21),...changes,
+  ...(examples?{constructionExamples:examples.groups}:{})};
  const began=performance.now(),result=compileArcMotion(spec,seed,options),ms=performance.now()-began;
  const replay=replayGalleryTrack(result.track,c as any,true),fragmented=new Set(plan.requests.filter(r=>r.construction==='scattered').map(r=>r.section));
  const roles:Record<number,number[]>={};for(const [i,chains]of arcRailGroups(result.track.lines.filter(l=>!fragmented.has(Math.floor((l.id-1000)/10000)))))roles[i]=(chains[1]??[]).map(l=>l.id);
@@ -53,7 +59,9 @@ try{
   summary:summarizeMotion(samples.filter(s=>s.frame>=r.frame&&s.frame<r.next),r.frame)}));
  const motion={full:summarizeMotion(samples,1),opening:summarizeMotion(samples.filter(s=>s.frame<=120),1),sections};
  assert.deepEqual(galleryCompilerIdentity(process.cwd()),compiler,'compiler changed during motion probe');
+ if(exampleBytes)assert.ok(exampleBytes.equals(readFileSync(examplePath)),'example corpus changed during motion probe');
  writeGalleryJson(out,id+'.json',{id,compiler,song,seed,budget,changes,ms,physicalFrames:result.stats.sim_frames,
+  ...(exampleBytes?{examples:{path:examplePath,sha256:createHash('sha256').update(exampleBytes).digest('hex')}}:{}),
   score:replay.grade.score,valid:replay.grade.score.valid,realization,motion,plan,rows:result.rows,railGuides:roles,
   track:result.track,report:result.report,failure:result.failure,planning:result.planningDecisions,lookahead:result.lookaheadStats,initializationRecovery:result.initializationRecovery,refinement:result.refinementStats,initialProposalWork:result.initialProposalWork});
  console.log(JSON.stringify({id,ms,frames:result.stats.sim_frames,valid:replay.grade.score.valid,score:replay.grade.score.score,

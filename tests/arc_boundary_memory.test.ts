@@ -1,6 +1,13 @@
 import {expect,it} from 'vitest';
 import {arcBoundaryCorrection,arcSpanLoss} from '../scripts/v0/optimizer/arc_boundary.ts';
-import {ArcControlMemory,allocateArcProposalSlots,type ArcResponseExample} from '../scripts/v0/optimizer/arc_memory.ts';
+import {ArcControlMemory,arcConstructionMemoryKey,allocateArcProposalSlots,type ArcResponseExample} from '../scripts/v0/optimizer/arc_memory.ts';
+
+it('separates demonstrations across layouts, profiles and guide permission',()=>{
+ const base={guides:true,railLayout:'paired' as const,independentGuide:true};
+ const variants=[base,{...base,profile:'fold' as const,faces:3},{...base,railLayout:'transfer' as const},{...base,guides:false}];
+ expect(new Set(variants.map(arcConstructionMemoryKey)).size).toBe(variants.length);
+ expect(arcConstructionMemoryKey({...base})).toBe(arcConstructionMemoryKey(base));
+});
 
 it('keeps learned, remembered and response proposals represented in short lookahead probes',()=>{
   // A 32-sample probe has 16 initial evaluations; the analytic center uses one.

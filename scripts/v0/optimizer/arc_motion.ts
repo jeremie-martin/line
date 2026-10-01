@@ -14,7 +14,7 @@ import { trimUnusedArcGuides, arcRailGroups } from './arc_guidance.ts';
 import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
 import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
 import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
-import { ArcControlMemory, allocateArcProposalSlots, type ArcControlExample } from './arc_memory.ts';
+import { ArcControlMemory, arcConstructionMemoryKey, allocateArcProposalSlots, type ArcControlExample } from './arc_memory.ts';
 import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
@@ -78,6 +78,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   previewMemory?:boolean;
   /** Measured controls retrieved by physical state and authored targets. */
   controlExamples?:ArcControlExample[];
+  constructionExamples?:Readonly<Record<string,readonly ArcControlExample[]>>;
   /** Preserve distinct expressive geometry in learned and memory proposals. */
   controlDiversity?:'inherited'|'geometry';
   /** Reserve work for improving a completed track inside the same hard limit. */
@@ -325,8 +326,12 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const memoryFor=(index:number)=>{
     if(options.memoryScope!=='construction')return controlMemory;
     const style={...options,...options.sectionStyles?.[index]};
-    const key=JSON.stringify([style.guides!==false,style.profile,style.profileStrength,style.profileStart,style.rippleCycles,style.faces,style.foldAngle,style.subdivisions,style.railLayout,style.independentGuide]);
-    let memory=constructionMemories.get(key);if(!memory){memory=new ArcControlMemory();constructionMemories.set(key,memory);}return memory;
+    const key=arcConstructionMemoryKey(style);
+    let memory=constructionMemories.get(key);if(!memory){
+      memory=new ArcControlMemory();
+      for(const example of options.constructionExamples?.[key]??[])memory.rememberControl(example);
+      constructionMemories.set(key,memory);
+    }return memory;
   };
   for(const example of options.controlExamples??[])controlMemory.rememberControl(example);
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
@@ -668,7 +673,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       // Its optional learned proposals still pass the ordinary interval search.
       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
       const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];
-      const reservedGeneric=options.constructionProposals?Math.ceil(initial*(options.genericProposalFraction??.25)):0;
+      // The inherited model already covers ordinary arcs. Reserve new geometry
+      // proposals where its training constructor differs from this request.
+      const novelConstructor=!!options.profile||options.railLayout==='transfer';
+      const reservedGeneric=options.constructionProposals?Math.ceil(initial*(options.genericProposalFraction??(novelConstructor?.25:0))):0;
       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1-reservedGeneric)):requested;
       const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0],options.controlDiversity):[];
       const learnedEnd=policy.length,memoryEnd=learnedEnd+Math.min(remembered.length,counts[1]);

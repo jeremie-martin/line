@@ -1,5 +1,6 @@
 /** Reuse measured controls and local responses as proposals, never as validation. */
 import type { ArcMotionControl } from './arc_geometry.ts';
+import type {ArcGeometryStyle} from './arc_geometry.ts';
 import {arcControlsSimilar, arcReferencedControl, type ArcControlReference} from './arc_motion_control.ts';
 import { arcResponseStep } from './arc_response.ts';
 
@@ -16,6 +17,11 @@ export function allocateArcProposalSlots(requested: readonly number[], slots: nu
 }
 
 export type ArcControlExample = ArcControlReference & { features: number[]; };
+/** Only physically compatible constructors share demonstrations or responses. */
+export function arcConstructionMemoryKey(style:ArcGeometryStyle&{subdivisions?:number}):string{
+  return JSON.stringify([style.guides!==false,style.profile,style.profileStrength,style.profileStart,
+    style.rippleCycles,style.faces,style.foldAngle,style.subdivisions,style.railLayout,style.independentGuide]);
+}
 export type ArcResponseExample = ArcControlExample & {
   targets: Array<number | undefined>; keys: Array<keyof ArcMotionControl>;
   jac: number[][]; residuals: number[]; scale: number[]; loss: number;

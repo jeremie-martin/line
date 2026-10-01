@@ -18,6 +18,8 @@ historical record, not live guidance.
 | [`automatic-production.md`](automatic-production.md) | LIVE | Public automatic music command, dashboard, artifacts and bounded rendering. |
 | [`production-repertoire-architecture.md`](production-repertoire-architecture.md) | LIVE | Who chooses guidance; shared construction/search, physical checks and accounting. |
 | [`production-repertoire-results-20261001.md`](production-repertoire-results-20261001.md) | LIVE | Complete V5/V4 qualification, production collection and disclosed remaining gaps. |
+| [`production-repertoire-feedback-20261001.md`](production-repertoire-feedback-20261001.md) | LIVE | Owner confirms alignment and sets motion-quality questions for the next discussion. |
+| [`motion-quality-investigation-20261001.md`](motion-quality-investigation-20261001.md) | LIVE | Native acceleration mechanism, calm openings, metrics and separate-rail experiments before the next roadmap. |
 | [`production-repertoire-roadmap.md`](production-repertoire-roadmap.md) | REFERENCE | Approved scope for the autonomous production campaign. |
 | [`production-repertoire-campaign.md`](production-repertoire-campaign.md) | REFERENCE | Implementation and empirical research ledger, including unsuccessful experiments. |
 | [`benchmark-v2-context.md`](benchmark-v2-context.md) | REFERENCE | Product distribution, scoring, holdout, compute, and governance contract. |

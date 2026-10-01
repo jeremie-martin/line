@@ -29,7 +29,13 @@ with twelve finished automatic vertical videos and six distinct ordinary referen
 videos. Native/audio/video checks, rapid switching and mobile checks pass. Code,
 documentation and compact evidence are versioned; raw archives and media remain
 local. The roadmap's implementation is complete; final artistic review remains
-open, and physical fulfillment does not establish ordinary-profile musical quality.
+open for individual passages, and physical fulfillment does not establish
+ordinary-profile musical quality. The owner has now strongly confirmed alignment
+with this production direction. Their [review](docs/production-repertoire-feedback-20261001.md)
+and the [motion-quality investigation](docs/motion-quality-investigation-20261001.md)
+inform the next roadmap: sudden contact-driven speed gains, calm musical passages,
+and transfers to later control rails. A possible next score ambition around 850
+and a possible V6 remain discussion items; no new numerical goal has been opened.
 
 # Delivered: the first integrated repertoire workspace — 2026-09-30
 

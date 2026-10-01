@@ -4,6 +4,8 @@ Open [the production library](http://localhost:8767/motion-gallery/production.ht
 with `npm run dash`. Choose a song, a seed and broad preferences. The compiler
 chooses repeated constructions itself; the manual editor remains available for
 advanced inspection. All physical geometry uses normal type-0 lines.
+Native playback with music is sufficient for routine dashboard review; full
+vertical rendering is optional when useful or requested.
 The [architecture guide](production-repertoire-architecture.md) explains exactly
 who chooses guidance, what search can adjust, and what the physical checks mean.
 

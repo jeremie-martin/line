@@ -221,6 +221,9 @@ rewriting any of the 60 media/record files; its owned mirror starts and exits
 correctly. Current compiler/engine identity matches the qualified runs.
 
 Code, documentation and compact evidence are versioned. Raw archives, recordings,
-intermediate captures and finished media stay local. Visual approval remains open
-for one review of the integrated collection, especially repeated motifs, open/guided
-balance, shape traversal, transitions and musical accuracy together.
+intermediate captures and finished media stay local. The owner subsequently
+strongly confirmed alignment with the integrated direction, while identifying
+specific motion-quality concerns. Their [review](production-repertoire-feedback-20261001.md)
+and the [resulting investigation](motion-quality-investigation-20261001.md) preserve
+both that positive assessment and the remaining work. This is not blanket approval
+of every passage.

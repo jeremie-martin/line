@@ -14,7 +14,7 @@ remain frozen. New V5 definitions must be committed before the canonical baselin
 | V5 pilot, freeze and baseline | Complete | 150 canonical runs; 449.0934 qualified headline, 117 valid, no execution exceptions |
 | Shared compiler campaign | Complete, numerical ambition unmet | Canonical V5 770.1170 (+321.0235); fixed 933.4258, automatic 606.8081; unsuccessful studies retained |
 | Production integration and qualification | Complete | Public route; 147/150 canonical and 80/80 confirmation fulfilled; V4 unchanged at 952.4726 |
-| Production dashboard and music library | Complete; artistic review open | Twelve automatic films and six distinct ordinary films; native/audio/video/mobile checks pass |
+| Production dashboard and music library | Complete; owner confirms aligned direction | Twelve automatic films and six distinct ordinary films; native/audio/video/mobile checks pass; passage-specific feedback recorded |
 
 Large runs and media belong under `generated/production-repertoire/`; compact
 evidence, commands and findings will be linked here. Failed experiments remain
@@ -209,3 +209,9 @@ changes none of the 60 media/record files, and starts/closes its owned mirror.
 Compact [music evidence](evidence/production-repertoire-music-library-20261001.json)
 and [validation](evidence/production-repertoire-validation-20261001.json) preserve
 these outcomes. No artistic approval is inferred from the technical checks.
+
+The owner's subsequent [artistic review](production-repertoire-feedback-20261001.md)
+strongly confirms the direction and variety, while raising specific acceleration
+and calm-motion concerns. The [pre-roadmap investigation](motion-quality-investigation-20261001.md)
+records their native mechanism and bounded geometry experiments. The numerical
+qualification above remains unchanged.

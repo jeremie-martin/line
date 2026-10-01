@@ -185,3 +185,66 @@ sources are excluded from this corpus for the development comparison, and the
 reserved V6 confirmation remains untouched. The compressed corpus and complete
 source hashes are local under `construction-examples-1.json.gz*`. Its efficacy
 and deployment status remain open pending `examples-1`.
+
+## Complete V6 development comparison
+
+Both complete canonical panels have finished, using the same frozen V6 contract,
+115 cases × seeds 101/202/303/404 and a three-million-frame allowance:
+
+| Compiler | Headline | Fixed | Automatic | Valid and fully realized | Distinct tracks |
+|---|---:|---:|---:|---:|---:|
+| Minimal integration `7f8591c6` | 536.3321 | 851.8838 | 220.7804 | 406/460 | 315 |
+| Candidate 2 `664db8ea` | 661.4244 | 889.7542 | 433.0945 | 445/460 | 316 |
+
+Neither panel has an execution error. There are 404 matched-valid runs, 41 newly
+completed runs, two validity regressions and thirteen failures shared by both.
+The new task's headline is not directly comparable to V5. The 850 ambition remains
+unfinished; the complete automatic arrangements remain the main weakness.
+The [compact 920-cell record](evidence/intentional-motion-v6-development-20261001.json.gz)
+preserves every result, plan, compiler identity and raw-run checksum. The
+[motion comparison](evidence/intentional-motion-v6-motion-20261001.json) reports
+all observed tracks, matched-valid tracks, new completions, regressions, worst
+cases and musical-parent bootstrap intervals separately. Matched-valid excess
+burden decreases in each of the three frozen bands. This does not replace the
+separate twelve-track production qualification.
+
+`local-2` tests translated and reflowed suffixes with twenty repair attempts on
+three complete songs. Translation accepts no improvement; reflow makes six small
+whole-objective improvements on Tiki but changes its musical score by −0.0813.
+Most attempts fail continuation or functional construction checks. This remains
+disabled, and the recorded failures explain why spending the remaining budget
+on this mechanism is not currently useful.
+
+`examples-1` has twelve scheduled, completed outcomes. Reusing construction
+examples and time weighting improves Tiki 101 from 775.4690 to 818.5625 while
+using 1.65m rather than 1.91m frames; the difficult fixed folded ending completes
+at 548.8672 rather than failing. Amour 303, excluded from the demonstration
+corpus, improves modestly with examples alone but loses with time weighting.
+These mixed results do not justify a universal time-objective switch.
+
+`examples-2` compares original-target and achieved-target demonstration features,
+then bounded exploration of physically valid construction near misses. Relabeling
+alone is not reliably better. The near-miss exploration improves dense-dialogue
+303 from 311.7189 to 672.2646 under the same relabeled corpus and completes
+Afterglow 202 at 521.0168. Coordinate-only exploration is nevertheless ineffective
+on the difficult ending from an identical captured state (`tail-frontier-1`).
+The next implementation measures coupled responses while retaining exactly the
+same native construction acceptance conditions.
+
+`budget-1` uses four unchanged requests/seeds at 750k, 1.5m, 3m and 5m; the four
+3m cells are reused, without recompilation or result selection, from `aligned-1`'s
+declared base configuration. Additional allowance can recover completion, but
+does not guarantee better accuracy. Amour 303 scores 506.4656/540.8214/588.6822/
+564.2269. Afterglow 202 fails at 750k and 3m but completes at 1.5m and 5m.
+Search-path changes and feasibility need attention; more budget alone is not a
+validated solution.
+
+The twelve-run `aligned-1` experiment anchors a fold on its actual first face
+rather than its inherited approach tangent. This removes an extra approach
+corner, but reduces feasibility on the selected canonical cases. It is not a
+production default. No failed example was erased or relabeled as a success.
+
+Future V6 runs now preserve the already computed construction controls and
+incoming-state features alongside tracks and scores. Earlier runs did not save
+those fields, forcing avoidable recompilation for some diagnoses. This adds
+research evidence only; frozen judging, plans and aggregation are unchanged.

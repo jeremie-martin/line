@@ -10,6 +10,7 @@ export type ArcControlContext = {
   profile?: string; foldAngle?:number; profileStrength?: number; profileStart?: number;
   preserveTurnTiming?: boolean; independentExit?: boolean; exitRefinementOnly?: boolean;
   railLayout?:'paired'|'transfer';independentGuide?:boolean;
+  observedReceiver?:boolean;
 };
 type ControlDefinition = {
   family: 'core' | 'guide' | 'expressive' | 'exit';
@@ -49,13 +50,19 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
   foldTiming: {family:'expressive',min:0,max:1,tolerance:.05,coordinate:.2,response:.15,repair:.1},
   foldBend: {family:'expressive',min:-65,max:65,tolerance:3,coordinate:8,response:5,repair:3,searchDefault:()=>30},
   mainEnd: {family:'expressive',min:.2,max:1,tolerance:.04,coordinate:.12,response:.08,repair:.04,searchDefault:()=>.7},
+  receiverFlight: {family:'guide',min:1,max:12,tolerance:.5,coordinate:2,response:1,repair:1},
+  receiverEntry: {family:'guide',min:-25,max:45,tolerance:2,coordinate:5,response:3,repair:2},
+  receiverTurn: {family:'guide',min:-90,max:90,tolerance:4,coordinate:10,response:6,repair:4},
+  receiverExit: {family:'guide',min:-100,max:100,tolerance:4,coordinate:10,response:6,repair:4},
+  receiverDuration: {family:'guide',min:.1,max:1,tolerance:.05,coordinate:.15,response:.08,repair:.05,searchDefault:()=>.65},
 };
 export const ARC_CONTROL_KEYS = Object.keys(ARC_CONTROL_DEFINITIONS) as readonly ControlKey[];
 export const ARC_CORE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'core');
 export const ARC_EXPRESSIVE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'expressive');
 
 /** Disabled guides have no meaningful clearance, coverage or flare coordinates. */
-export function arcControlActive(key:ControlKey,guides=true,style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'>):boolean {
+export function arcControlActive(key:ControlKey,guides=true,style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'>):boolean {
+  if(key.startsWith('receiver'))return guides&&style?.observedReceiver===true&&style.railLayout==='transfer';
   if(key==='foldTiming')return style?.profile==='fold'&&style?.independentGuide===true&&style?.railLayout==='transfer';
   if(key==='foldBend')return style?.profile==='fold'&&style?.independentGuide===true;
   if(key==='guideTilt')return guides&&style?.independentGuide===true;
@@ -103,7 +110,7 @@ export function arcControlStep(key: ControlKey, method: SearchMethod, support: n
   return typeof step === 'number' ? step : step(support);
 }
 
-export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true, style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'>): ControlKey[] {
+export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true, style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'>): ControlKey[] {
   return ARC_CONTROL_KEYS.filter(key => {
     const definition = ARC_CONTROL_DEFINITIONS[key];
     return arcControlActive(key,guides,style) && definition[method] !== undefined && (definition.family !== 'expressive' || expressive) &&

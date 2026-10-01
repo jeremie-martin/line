@@ -12,7 +12,8 @@ export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:Rai
 export type ArcSectionStyle=Omit<ArcGeometryStyle,'contour'>&{subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number;
-  guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number};
+  guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;
+  receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
 export function normalizeArcTurnFraction(fraction:number,support:number,preserveImplicit=false):number{

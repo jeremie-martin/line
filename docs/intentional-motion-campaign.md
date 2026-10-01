@@ -80,3 +80,35 @@ negative-control and frozen-V5 tests pass. The global typecheck retains the same
 inherited diagnostics after normalizing changed source line numbers (576 output
 lines); no additional diagnostic remains. Compiler changes and raw study records
 are preserved separately from the frozen V6 contract.
+
+## Post-freeze construction and continuation experiments
+
+V6 was frozen at `7f8591c6`; its complete baseline is running from a detached
+checkout. No canonical confirmation outcomes have been inspected. The following
+are development probes, not V6 headline results.
+
+`1926e1f9` extends initial construction proposals to cover guide tilt, clearance,
+fold face angle and transfer extent before the first feasible construction. The
+previous implementation explored most guide coordinates only after finding a
+valid candidate. The fold's two engaged corners remain mandatory. Matched
+three-fold transfer passages on Luna 101 and Amor 101 changed from budget failures
+to complete, fully fulfilled tracks scoring 898.7760 and 905.5950. Four complete
+V2 arrangements also fulfilled every request, with mixed musical accuracy. Raw
+outputs and failed outcomes are retained in `generated/intentional-motion/proposals-1`.
+
+The ordinary future-value model assumes future guided ordinary constructions;
+it does not know the requested mixed-plan construction. Matched ablations in
+`arrival-1` test removing that prior, changing the incoming-angle prior, and deeper
+native continuation. Amour 101 improves from 417.0092 to 594.1386 with the
+incoming-angle prior and without the ordinary learned value. Tiki 303 improves
+from 663.7291 to 758.7156 with deeper continuation, while that same change barely
+helps Amour. These results justify testing mechanisms across contexts rather
+than applying a song-specific recipe. `7f46bdd9` additionally tests passive-catch
+speed headroom; `arrival-2` preserves its paired results and alternatives.
+
+The independent production qualification tool at `5ec239d1` replays both complete
+collections, verifies musical identities and saved native traces, and applies the
+frozen criteria without dropping failed tracks. Its baseline-versus-itself control
+correctly fails the required improvements and all three reported burst windows.
+Tests cover omissions, duplicates, incomplete realization and an individual
+window failure hidden by otherwise passing aggregate burst statistics.

@@ -1,10 +1,10 @@
 /** Production orchestration with one accountable allowance and no implicit style fallback. */
 import {compileArcMotion} from './arc_motion.ts';
-import {connectedArcOptions} from './connected_arcs.ts';
+import {repertoireSearchOptions} from './repertoire_search.ts';
 import {arcRailGroups} from './arc_guidance.ts';
 import {normalizeCompilerTimeline} from './compiler_input.ts';
-import {validateProductionPlan,constructionStyle,type CreativePreferences,type ProductionPlan} from './repertoire_policy.ts';
-import {planIntentionalRepertoire,INTENTIONAL_REPERTOIRE_POLICY} from './intentional_repertoire.ts';
+import {validateProductionPlan,type CreativePreferences,type ProductionPlan} from './repertoire_policy.ts';
+import {planIntentionalRepertoire} from './intentional_repertoire.ts';
 import {inspectRepertoireLayout as inspectRepertoire} from './repertoire_layout.ts';
 import {motionSamples,summarizeMotion} from './motion_quality.ts';
 import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit,getPhysicsFrameCount} from '../../lib/detector.ts';
@@ -18,12 +18,9 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   if(plan.seed!==seed)throw new Error('construction plan and compiler seed differ');
   const end=Math.round(spec.duration*40)+20,replay=end+1,budget=options.budget;
   if(!Number.isSafeInteger(budget)||budget<12*replay)throw new Error('repertoire allowance cannot cover construction and independent replay');
-  const styles=Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)]));
-  const constructionRequests=Object.fromEntries(plan.requests.map(r=>[r.section,r]));
-  const allowance=budget-replay;
-  const result=compileArcMotion(spec,seed,{...connectedArcOptions(spec,allowance),policyPreview:false,
-    ...(plan.policy===INTENTIONAL_REPERTOIRE_POLICY?{motionQuality:{burstWeight:.16,calmWeight:1}}:{}),
-    initialRecoverySamples:160,memoryScope:'construction',sectionStyles:styles,constructionRequests,collectTrajectoryLoss:true});
+  const allowance=budget-replay,searchOptions=repertoireSearchOptions(spec,plan,allowance);
+  const styles=searchOptions.sectionStyles!;
+  const result=compileArcMotion(spec,seed,searchOptions);
   let physicalFrames=result.stats.sim_frames;
   const fragmentSections=plan.requests.filter(r=>r.construction==='scattered'&&r.section<result.rows.length).map(r=>r.section);
   const railGuides:Record<number,number[]>=Object.fromEntries(fragmentSections.map(i=>[i,result.rows[i].railGuides??[]]));

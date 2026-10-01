@@ -3,8 +3,8 @@ import {mkdirSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
 import {compileArcMotion,type ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
-import {connectedArcOptions} from '../v0/optimizer/connected_arcs.ts';
-import {planRepertoire,constructionStyle,validateProductionPlan,type Construction} from '../v0/optimizer/repertoire_policy.ts';
+import {repertoireSearchOptions} from '../v0/optimizer/repertoire_search.ts';
+import {planRepertoire,validateProductionPlan,type Construction} from '../v0/optimizer/repertoire_policy.ts';
 import {planIntentionalRepertoire} from '../v0/optimizer/intentional_repertoire.ts';
 import {inspectRepertoireLayout as inspectRepertoire} from '../v0/optimizer/repertoire_layout.ts';
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
@@ -35,10 +35,7 @@ try{
    plan.phrases=plan.requests.slice(1).map(r=>({first:r.section,count:1,construction:r.construction,guidance:r.guidance,railLayout:r.railLayout}));
    validateProductionPlan(spec,plan);
  }
- const styles=Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)]));
- const options={...connectedArcOptions(spec,budget-Math.round(spec.duration*40)-21),policyPreview:false,
-  initialRecoverySamples:160,memoryScope:'construction' as const,sectionStyles:styles,
-  constructionRequests:Object.fromEntries(plan.requests.map(r=>[r.section,r])),collectTrajectoryLoss:true,...changes};
+ const options={...repertoireSearchOptions(spec,plan,budget-Math.round(spec.duration*40)-21),...changes};
  const began=performance.now(),result=compileArcMotion(spec,seed,options),ms=performance.now()-began;
  const replay=replayGalleryTrack(result.track,c as any,true),fragmented=new Set(plan.requests.filter(r=>r.construction==='scattered').map(r=>r.section));
  const roles:Record<number,number[]>={};for(const [i,chains]of arcRailGroups(result.track.lines.filter(l=>!fragmented.has(Math.floor((l.id-1000)/10000)))))roles[i]=(chains[1]??[]).map(l=>l.id);

@@ -16,8 +16,14 @@ reroll requested geometry, or change either benchmark to improve a result.
 shapes, deliberate open arcs and scattered normal-line passages through shared
 search. Earlier rejection of scattered geometry is no longer a blanket exclusion.
 The ordinary V4 style contract remains unchanged, and the acceleration restriction still applies.
-Physical validity and a high score do not establish visual quality; use the
-production vertical-video workflow to review meaningful style changes.
+Physical validity and a high score do not establish visual quality; use faithful
+native playback with music to review meaningful style changes. Finished vertical
+rendering remains available when useful or requested, not a routine prerequisite.
+
+The [intentional-motion roadmap](intentional-motion-roadmap.md) proposes the next
+campaign and is awaiting approval. Its V6 and score ambition do not replace the
+current frozen contracts until that campaign is authorized and its new contract
+is explicitly frozen.
 
 ## Start from actual behavior
 

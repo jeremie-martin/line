@@ -40,6 +40,7 @@ export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:
    // Preserve ordinary guidance where its physical assumptions apply. Active
    // mixed transitions use native continuation and explicit catch preparation.
    constructionAwareArrival:true,observedReceiver:true,compactFoldProposals:true,
+   transitionRevision:{errorThreshold:.12},
    memorySamples:16,policySamples:16,constructionExamples:artifact!.examples,constructionPolicies:artifact!.policies,
   }:{}),
   initialRecoverySamples:160,memoryScope:'construction',collectTrajectoryLoss:true,

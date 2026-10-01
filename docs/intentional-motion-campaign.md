@@ -138,3 +138,50 @@ The first recovery harness launch imported the musical adapter from the wrong
 module and exited before compilation. Those logs are retained in `recovery-1`;
 the corrected scheduled runs are in `recovery-1b`. These are execution failures,
 not evidence against a construction method.
+
+## Motion context, long intervals and useful search work
+
+The startup support had no preceding impact, so the first motion-aware search
+silently treated it as non-calm. It now uses the upcoming authored impact when
+there is no preceding one. This changes a genuine missing-context case, without
+song or timestamp rules. In `startup-1`, Tiki 101's opening absolute correction
+falls from 6.518 to 3.015 with the otherwise corresponding contextual search.
+Increasing all calm-motion penalties was not reliably better; those unsuccessful
+alternatives remain in `calm-1` and `startup-1`.
+
+`664db8ea` offers both relative and demonstrated absolute support durations in
+transfer memory, and scales construction repair to the actual short support.
+The previously incomplete Accelerando folded ending then completes for seeds
+101 and 404. Its score is only 205.9947: early release leaves a long inaccurate
+flight. Completion is progress, not a musical-quality success. Further work
+allows the three fold faces to distribute their duration more freely, retaining
+their headings and the frozen native corner-engagement checks.
+
+The shared whole-track refiner now supports mixed geometry with native
+construction validation and correctly tracked engine prefixes, including
+scattered continuations. Its first eight-run study (`refinement-1`) is negative
+on efficiency: three complete music tracks spend roughly another million frames
+for no meaningful gain (Tiki 101 gains 0.1152; Luna and Amour are unchanged).
+The incomplete long ending remains incomplete. Refinement is therefore not
+enabled in the production defaults. Subsequent work adapts warm continuations
+to the newly reached incoming direction and preserves their updated state
+metadata; this is a hypothesis to test, not a claimed improvement.
+
+Proposal accounting exposed another limitation: learned ordinary-arc proposals
+plus the two memories could consume every initial slot. `coverage-2` compares
+zero versus 25% reserved fresh proposals on five identical requests/seeds, with
+a third calm-impact-weight variant. The musical results are mixed, so the next
+implementation reserves fresh slots specifically for profiles and transfer
+layouts absent from the inherited model's constructor. The named studies save
+their exact schedules, all completed outcomes, per-stream actual physics work
+and failures. `continuation-1` separately tests fewer, more thoroughly refined
+continuations and time-weighted musical loss; neither is assumed superior.
+
+Construction-specific demonstration reuse is also being tested through the
+existing scoped memory, rather than a separate optimizer. The first corpus has
+3,415 locally fulfilled examples in 11 physical constructor groups; lookup uses
+incoming state and musical targets, never song/seed/section identity. All Amour
+sources are excluded from this corpus for the development comparison, and the
+reserved V6 confirmation remains untouched. The compressed corpus and complete
+source hashes are local under `construction-examples-1.json.gz*`. Its efficacy
+and deployment status remain open pending `examples-1`.

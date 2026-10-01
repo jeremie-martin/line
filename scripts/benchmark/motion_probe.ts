@@ -4,7 +4,7 @@ import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
 import {compileArcMotion,type ArcMotionOptions} from '../v0/optimizer/arc_motion.ts';
 import {connectedArcOptions} from '../v0/optimizer/connected_arcs.ts';
-import {planRepertoire,constructionStyle,validateProductionPlan} from '../v0/optimizer/repertoire_policy.ts';
+import {planRepertoire,constructionStyle,validateProductionPlan,type Construction} from '../v0/optimizer/repertoire_policy.ts';
 import {planIntentionalRepertoire} from '../v0/optimizer/intentional_repertoire.ts';
 import {inspectRepertoireLayout as inspectRepertoire} from '../v0/optimizer/repertoire_layout.ts';
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
@@ -25,6 +25,16 @@ try{
  const boundaries=c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t));
  const planner=arg('policy','v1')==='v2'?planIntentionalRepertoire:planRepertoire;
  const plan=arg('plan','')?validateProductionPlan(spec,JSON.parse(readFileSync(arg('plan',''),'utf8'))):planner(spec,seed,{},boundaries);
+ if(arg('shape','')){
+   if(plan.policy!=='line.repertoire-policy.v2')throw new Error('layout pilot requires the contextual policy');
+   for(const r of plan.requests.slice(1)){
+     const selected=r.section>=3&&r.section<=5;
+     r.construction=selected?arg('shape','arcs') as Construction:'arcs';r.guidance=selected?'required':'optional';
+     r.railLayout=selected?arg('layout','transfer') as 'paired'|'transfer':'paired';
+   }
+   plan.phrases=plan.requests.slice(1).map(r=>({first:r.section,count:1,construction:r.construction,guidance:r.guidance,railLayout:r.railLayout}));
+   validateProductionPlan(spec,plan);
+ }
  const styles=Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)]));
  const options={...connectedArcOptions(spec,budget-Math.round(spec.duration*40)-21),policyPreview:false,
   initialRecoverySamples:160,memoryScope:'construction' as const,sectionStyles:styles,

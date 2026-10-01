@@ -1,8 +1,36 @@
 import {expect, it} from 'vitest';
 import {runArcAttempts} from '../scripts/v0/optimizer/arc_attempts.ts';
 import type {Spec} from '../scripts/v0/types.ts';
+import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
 
 const spec: Spec = {duration: 4, jitter: 0, contacts: [{t: 1}], axes: {air: () => .5}};
+it('makes a bounded first completion, then preserves it if further shared-budget search fails',()=>{
+ let calls=0;
+ const control={entry:0,turn:0,exit:0,support:8,bias:0,offset:0};
+ const result=runArcAttempts(spec,17,{budget:100000,completionFirstFraction:.4},(_s,seed,options,continueMeter)=>{
+  const first=calls++===0;expect(seed).toBe(17);expect(continueMeter).toBe(!first);
+  expect(options.budget).toBe(first?40000:100000);
+  if(!first)expect(options.warmReferences).toEqual([{control,incoming:0,span:20}]);
+  return {track:{first},rows:[{control,incoming:0,span:20,features:[],frame:1,spent:100}],
+   report:{terminus:{reason:'endOfSpec'},off_beat_landings:[],contacts:[{status:first?'hit':'miss'}]} as any,
+   failure:first?null:'budget',trajectoryLoss:first?.2:.1,constructionFrames:first?100:400,
+   samples:1,searchBudgetExhausted:!first,lookaheadStats:{},planningDecisions:[],
+   stats:{sim_frames:first?300:700,viable_candidate_samples:1,gap_commits:first?1:0}};
+ });
+ expect(result.selected).toBe(0);expect(result.firstCompletionFrame).toBe(300);
+ expect(result.records.map(r=>[r.name,r.start,r.end])).toEqual([['completion',0,300],['search',300,700]]);
+});
+
+it('meters both native completion attempts against one hard limit',()=>{
+ const input:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+ const result=compileArcMotion(input,17,{budget:60000,samples:80,channel:12,radius:24,bidirectional:true,
+  impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,
+  completionFirstFraction:.4,memoryScope:'construction',memorySamples:4,budgetAdaptiveLocal:true});
+ expect(result.attempts).toHaveLength(2);expect(result.stats.sim_frames).toBe(result.attempts[1].end);
+ expect(result.stats.sim_frames).toBeLessThanOrEqual(60000);expect(result.attempts[0].end).toBeLessThanOrEqual(24000);
+ expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
+ expect(result.completionFirstStats.totalFrames).toBe(result.stats.sim_frames);
+});
 it('retains a completed incumbent, reuses its controls, and records each attempt on the shared clock', () => {
   const reference = {control: {entry: 0, turn: 0, exit: 0, support: 8, bias: 0, offset: .1}, incoming: 3, span: 40, features: Array(57).fill(0)};
   let calls = 0;

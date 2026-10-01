@@ -72,6 +72,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   observedReceiver?:boolean;
   /** Native joint adjustment of neighboring supports, within the shared budget. */
   coupledIntervalSamples?:number;
+  completionFirstFraction?:number;
+  warmReferences?:ArcControlReference[];
   genericProposalFraction?:number;
   constructionAwareArrival?:boolean;
   fork?:ArcMotionFork;
@@ -220,9 +222,9 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   valueGuidanceWeight?:number;
   valueSelection?:boolean};
 
-export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions):ReturnType<typeof compileArcMotionOnce>&{policyPreviewStats?:any;engineRebuilds?:number;attempts:ReturnType<typeof runArcAttempts>['records'];proposalDecision:ReturnType<typeof runArcAttempts>['proposalDecision'];firstCompletionFrame:number|null}{
+export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions):ReturnType<typeof compileArcMotionOnce>&{policyPreviewStats?:any;completionFirstStats?:any;attemptWork?:any;engineRebuilds?:number;attempts:ReturnType<typeof runArcAttempts>['records'];proposalDecision:ReturnType<typeof runArcAttempts>['proposalDecision'];firstCompletionFrame:number|null}{
   const attempts=runArcAttempts(spec,seed,options,compileArcMotionOnce);
-  const diagnostics={attempts:attempts.records,proposalDecision:attempts.proposalDecision,firstCompletionFrame:attempts.firstCompletionFrame};
+  const diagnostics={attempts:attempts.records,proposalDecision:attempts.proposalDecision,firstCompletionFrame:attempts.firstCompletionFrame,attemptWork:attempts.results.map((r,i)=>({name:attempts.records[i].name,initialProposalWork:r.initialProposalWork,observedReceiverWork:r.observedReceiverWork,coupledIntervalWork:r.coupledIntervalWork,constructionImprovement:r.constructionImprovement}))};
   if(attempts.results.length===1){
     const result=attempts.results[0],proposal=attempts.records[0].name==='proposal';
     return {...result,...diagnostics,budget:options.budget,...(proposal?{policyPreviewStats:{
@@ -242,9 +244,13 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
     budgetInterruptions:[...preview.budgetInterruptions.map(r=>({...r,attempt:'preview'})),...searched.budgetInterruptions.map(r=>({...r,attempt:'search'}))],
     candidateMemo:{hits:preview.candidateMemo.hits+searched.candidateMemo.hits,rejectedHits:preview.candidateMemo.rejectedHits+searched.candidateMemo.rejectedHits},
     stats:{...chosen.stats,sim_frames:total,viable_candidate_samples:preview.stats.viable_candidate_samples+searched.stats.viable_candidate_samples},
-    policyPreviewStats:{previewFrames,searchFrames:total-previewFrames,totalFrames:total,
+    ...(attempts.records[0].name==='completion'?{
+      completionFirstStats:{firstFrames:previewFrames,searchFrames:total-previewFrames,totalFrames:total,
+        firstLoss:preview.trajectoryLoss,searchLoss:searched.trajectoryLoss,selected:chosen===preview?'first':'search',
+        firstComplete:attempts.records[0].complete,searchComplete:attempts.records[1].complete}
+    }:{policyPreviewStats:{previewFrames,searchFrames:total-previewFrames,totalFrames:total,
       previewLoss:preview.trajectoryLoss,searchLoss:searched.trajectoryLoss,selected:chosen===preview?'preview':'search',
-      previewComplete:attempts.records[0].complete,searchComplete:attempts.records[1].complete}};
+      previewComplete:attempts.records[0].complete,searchComplete:attempts.records[1].complete}})};
 }
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
@@ -733,6 +739,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         evaluate(reference.control);
         evaluate(arcReferencedControl(reference,incoming,span));
       }
+      const warmReference=options.warmReferences?.[i];
+      if(warmReference)evaluate(arcReferencedControl(warmReference,incoming,span));
       if(options.warmStart){
         evaluate(options.warmStart);
         if(options.warmIncoming!==undefined&&options.warmIncoming!==incoming)
@@ -1315,6 +1323,17 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
   const trajectoryLoss=options.collectTrajectoryLoss?arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight).loss:undefined;
-  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,coupledIntervalWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
+  let selectionLoss=trajectoryLoss;
+  if(selectionLoss!==undefined&&options.motionQuality){
+    const observed=motionSamples(raw.frames,1,duration);
+    for(const [i,contact]of contacts.entries()){
+      const next=contacts[i+1]?.frame??duration+1,request=options.constructionRequests?.[i];
+      const samples=observed.filter(s=>s.frame>=contact.frame&&s.frame<next);
+      if(!samples.length)continue;
+      const impact=contact.gap>=0?gaps[contact.gap].targets.impact:request?.context?.nextImpact??undefined;
+      selectionLoss+=motionResiduals(summarizeMotion(samples,contact.frame),impact,options.motionQuality).reduce((n,r)=>n+r*r,0)/contacts.length;
+    }
+  }
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,coupledIntervalWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

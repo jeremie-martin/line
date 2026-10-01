@@ -5,9 +5,11 @@ import {normalizeCompilerTimeline} from './compiler_input.ts';
 import {validateSpec} from '../core/substrate.ts';
 import type {Spec, DriftReport} from '../types.ts';
 import type {ArcMotionOptions} from './arc_motion.ts';
+import {arcConstructionMemoryKey} from './arc_memory.ts';
+import {constructionStyle} from './repertoire_policy.ts';
 
 type Outcome = {
-  track: unknown; rows: any[]; report: DriftReport; failure: unknown; trajectoryLoss?: number;
+  track: unknown; rows: any[]; report: DriftReport; failure: unknown; trajectoryLoss?: number; selectionLoss?:number;
   lookaheadStats: unknown; planningDecisions: unknown;
   constructionFrames: number; samples: number; searchBudgetExhausted: boolean;
   stats: {sim_frames: number; viable_candidate_samples: number; gap_commits: number};
@@ -18,13 +20,33 @@ const complete = (r: Outcome) => r.report.terminus.reason === 'endOfSpec' &&
 
 export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, options: ArcMotionOptions,
   compile: (spec: Spec, seed: number, options: ArcMotionOptions, continueMeter?: boolean) => R) {
-  const results: R[] = [], names: Array<'proposal' | 'search'> = [];
+  const isComplete=(r:Outcome)=>complete(r)&&(!options.constructionRequests||(!r.failure&&r.rows.length===Object.keys(options.constructionRequests).length));
+  const loss=(r:Outcome)=>r.selectionLoss??r.trajectoryLoss??Infinity;
+  const results: R[] = [], names: Array<'proposal' | 'completion' | 'search'> = [];
   let proposalDecision: {reason: 'accepted' | 'invalid' | 'above-error-limit' | 'forced-search'; rmsError: number | null; errorLimit: number} | null = null;
-  const run = (name: 'proposal' | 'search', opts: ArcMotionOptions) => {
+  const run = (name: 'proposal' | 'completion' | 'search', opts: ArcMotionOptions) => {
     const result = compile(spec, seed, opts, results.length > 0);
     results.push(result); names.push(name); return result;
   };
-  if (options.policyPreview && !options.replayControls && !options.directControls && !options.fork) {
+  if(options.completionFirstFraction!==undefined){
+    const fraction=options.completionFirstFraction;
+    if(!Number.isFinite(fraction)||fraction<=0||fraction>=1||options.fork||options.directControls||options.replayControls||options.constructionBudget!==undefined)
+      throw new Error('invalid completion-first allocation');
+    const end=Math.round(spec.duration*40)+20,allowance=Math.floor(options.budget*fraction);
+    if(allowance>4*(end+1)&&options.budget-allowance>4*(end+1)){
+      const first=run('completion',{...options,budget:allowance,policyPreview:false,completionFirstFraction:undefined,collectTrajectoryLoss:true});
+      const examples={...options.constructionExamples};
+      for(const [i,row]of first.rows.entries()){
+        const request=options.constructionRequests?.[i];
+        const style={...options,...(options.sectionStyles?.[i]??(request?constructionStyle(request):{}))};
+        const key=arcConstructionMemoryKey(style);
+        examples[key]=[...(examples[key]??[]),{control:row.control,incoming:row.incoming,span:row.span,features:row.features}];
+      }
+      run('search',{...options,policyPreview:false,completionFirstFraction:undefined,collectTrajectoryLoss:true,
+        constructionExamples:examples,warmReferences:first.rows.map(r=>({control:r.control,incoming:r.incoming,span:r.span}))});
+    }
+  }
+  if (!results.length && options.policyPreview && !options.replayControls && !options.directControls && !options.fork) {
     if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(options.budget) || options.budget <= 0)
       throw new Error('invalid arc compiler input');
     spec = normalizeCompilerTimeline(spec); validateSpec(spec);
@@ -38,7 +60,7 @@ export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, opti
       const errorLimit = options.previewMaxRmsError ?? .025;
       if (!(errorLimit >= 0)) throw new Error('invalid preview error limit');
       const rmsError = Number.isFinite(preview.trajectoryLoss) ? Math.sqrt(preview.trajectoryLoss!) : null;
-      const reason = options.searchAfterPreview === 'always' ? 'forced-search' : !complete(preview) ? 'invalid' :
+      const reason = options.searchAfterPreview === 'always' ? 'forced-search' : !isComplete(preview) ? 'invalid' :
         rmsError === null || rmsError > errorLimit ? 'above-error-limit' : 'accepted';
       proposalDecision = {reason, rmsError, errorLimit};
       if (reason !== 'accepted')
@@ -51,12 +73,12 @@ export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, opti
   if (!results.length) run('search', options);
   // A complete physical trajectory always wins over an invalid one. Preserve
   // the established search-wins-ties rule, including when both attempts fail.
-  const selected = results.length === 2 && (complete(results[0]) !== complete(results[1])
-    ? complete(results[0]) : results[0].trajectoryLoss! < results[1].trajectoryLoss!) ? 0 : results.length - 1;
+  const selected = results.length === 2 && (isComplete(results[0]) !== isComplete(results[1])
+    ? isComplete(results[0]) : loss(results[0]) < loss(results[1])) ? 0 : results.length - 1;
   const records = results.map((r, index) => {
     const start = index ? results[index - 1].stats.sim_frames : 0;
     return {name: names[index], selected: index === selected, start, constructionEnd: r.constructionFrames,
-      end: r.stats.sim_frames, complete: complete(r), loss: r.trajectoryLoss, failure: r.failure,
+      end: r.stats.sim_frames, complete: isComplete(r), loss: r.trajectoryLoss, selectionLoss:loss(r), failure: r.failure,
       trackHash: createHash('sha256').update(JSON.stringify(r.track)).digest('hex'), gapCommits: r.stats.gap_commits,
       exhausted: r.searchBudgetExhausted, samples: r.samples, viableCandidates: r.stats.viable_candidate_samples,
       lookahead: r.lookaheadStats, planning: r.planningDecisions,

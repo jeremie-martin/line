@@ -47,7 +47,11 @@ it('offers only supported dimensions to each solver and keeps optional shape con
   for (const method of ['response', 'repair'] as const) {
     for (const key of arcMethodKeys(method, true, true)) expect(arcControlStep(key, method, 20)).toBeGreaterThan(0);
   }
-  expect(() => arcControlStep('guideEnd', 'response', 20)).toThrow('no response step');
+  for(const method of ['response','repair'] as const){
+    expect(arcMethodKeys(method,true,false,true,{independentGuide:true})).toEqual(expect.arrayContaining(['guideStart','guideEnd']));
+    expect(arcMethodKeys(method,true,false,false,{independentGuide:true})).not.toContain('guideStart');
+    expect(arcControlStep('guideEnd',method,20)).toBeGreaterThan(0);
+  }
   expect(arcControlStep('support', 'newton', 3)).toBe(1);
   expect(arcControlStep('support', 'response', 3)).toBe(.6);
 });

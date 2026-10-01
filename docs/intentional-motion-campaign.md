@@ -486,3 +486,32 @@ are indexed into the existing policy instead of being stored twice. Full runtime
 parity checks confirm both the policy and all 14,340 memory entries. Unit checks
 reject missing or invalid references. This is a production model artifact; raw
 experiments, training variants, media and CPU profiles stay local.
+
+
+## Candidate 6 freeze and next contact-geometry experiment
+
+Candidate **`40832757`** is frozen in `/tmp/line-motion-candidate-6`; complete
+canonical V6 and the twelve-track collection are running. Integration checks
+pass (17 tests in five files), with no added TypeScript diagnostics. The
+`retrieval-3` follow-up finishes all 18 tracks; neither relabeling demonstrations
+nor adding local secant reuse consistently beats the selected expanded memory.
+Every outcome remains in the compact development ledger.
+
+Two candidate-6 review jobs in `library-candidate-6` fail their harness identity
+assertion because a subsequent control-registry edit occurred in the working
+checkout while those jobs ran. The compiler itself was frozen. Preserve that
+collection and its failures; the complete replacement collection is
+`library-candidate-6b`, generated with both compiler and harness running from the
+frozen checkout. Shared output/reference directories are linked into that
+checkout so browser artifact paths remain correct. No benchmark result is
+replaced or reclassified by this review-harness correction.
+
+The next bounded experiment lets contextual guide onset and release participate
+in measured response and repair, alongside their existing independent angle.
+Those extent controls already exist geometrically, but were absent from the
+response solver. The historical ordinary/V1 response space is unchanged.
+Observed receivers still exclude these irrelevant offset-guide coordinates.
+Focused control, geometry, memory and coupled-native tests pass after updating
+the obsolete expectation that guide extent can never have a response step.
+The frozen benchmark verifier still passes; native score/motion comparisons
+will determine whether this expanded response space is useful.

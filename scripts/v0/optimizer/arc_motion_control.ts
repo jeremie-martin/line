@@ -37,8 +37,8 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
   offset: {family: 'core', min: -2, max: 3, tolerance: .2, coordinate: .4, response: .2, repair: .1},
   clearance: {family: 'guide', min: 6, max: 30, tolerance: 1, coordinate: 2, response: 1.5, repair: 1,
     searchDefault: (_c, channel) => channel ?? 12},
-  guideStart: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15},
-  guideEnd: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15, searchDefault: () => 1},
+  guideStart: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15, response:.06, repair:.04},
+  guideEnd: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15, response:.06, repair:.04, searchDefault: () => 1},
   turnFraction: {family: 'expressive', min: .1, max: .85, tolerance: .06, coordinate: .12, response: .08, repair: .06,
     searchDefault: c => Math.min(5, c.support * .5) / c.support,
     normalize: (v, c, context) => normalizeArcTurnFraction(v, c.support, context.preserveTurnTiming)},
@@ -115,6 +115,10 @@ export function arcControlStep(key: ControlKey, method: SearchMethod, support: n
 export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true, style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'compactFoldProposals'>): ControlKey[] {
   return ARC_CONTROL_KEYS.filter(key => {
     const definition = ARC_CONTROL_DEFINITIONS[key];
+    // Contextual constructions already search guide angle independently. Their
+    // onset and release can also respond to measured contact and motion error.
+    // Preserve the historical ordinary and V1 response spaces.
+    if((key==='guideStart'||key==='guideEnd')&&!style?.independentGuide)return false;
     return arcControlActive(key,guides,style) && definition[method] !== undefined && (definition.family !== 'expressive' || expressive) &&
       (definition.family !== 'exit' || independentExit);
   });

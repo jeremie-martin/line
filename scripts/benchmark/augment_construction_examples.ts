@@ -16,6 +16,7 @@ const base=resolve(arg('base')),run=resolve(arg('run')),out=resolve(arg('out'));
 assert.ok(arg('base')&&arg('run')&&arg('out'),'--base=FILE.gz --run=V6_DIRECTORY --out=FILE.gz');
 assert.ok(!existsSync(out),'preserve previous corpora');
 const maximum=Number(arg('max-error','Infinity'));assert.ok(maximum>0);
+const scope=arg('constructors','all');assert.ok(['all','profiled-transfers'].includes(scope));
 const excluded=new Set(arg('exclude-parent').split(',').filter(Boolean));
 const baseBytes=checked(base),baseData=JSON.parse(gunzipSync(baseBytes).toString());
 assert.equal(baseData.schema,'line.construction-examples.v1');
@@ -27,7 +28,7 @@ const groups:Record<string,ArcControlExample[]>=structuredClone(baseData.groups)
 for(const [key,rows] of Object.entries(groups))for(const row of rows)seen.add(sha(JSON.stringify([key,row])));
 const before=seen.size,sources:any[]=[];
 for(const cell of evaluation.rows){
- const source:any={id:cell.id,seed:cell.seed,parent:cell.sourceId,valid:cell.valid,accepted:0,duplicates:0,aboveError:0};
+ const source:any={id:cell.id,seed:cell.seed,parent:cell.sourceId,valid:cell.valid,accepted:0,duplicates:0,aboveError:0,outsideScope:0};
  sources.push(source);
  assert.equal(cell.split,'canonical');assert.equal(cell.planSha256,planHash);
  if(excluded.has(cell.sourceId)){source.excluded=true;continue;}
@@ -43,6 +44,8 @@ for(const cell of evaluation.rows){
  for(const [i,row] of construction.rows.entries()){
   const request=plan.requests[i],check=cell.realization.sections[i];
   assert.equal(request.section,i);assert.equal(check.section,i);
+  const style=constructionStyle(request);
+  if(scope==='profiled-transfers'&&!style.profile&&style.railLayout!=='transfer'){source.outsideScope++;continue;}
   if(!request.context||!check.fulfilled||!row.control||row.features?.length!==57||
     !row.features.every(Number.isFinite)||!Number.isFinite(row.incoming)||!(row.span>0))continue;
   const observations=[row.impact,row.achieved?.air,row.achieved?.speed,row.achieved?.amplitude];
@@ -50,7 +53,7 @@ for(const cell of evaluation.rows){
   const rms=errors.length?Math.sqrt(errors.reduce((n,x)=>n+x*x,0)/errors.length):Infinity;
   if(rms>maximum){source.aboveError++;continue;}
   const example={control:row.control,incoming:row.incoming,span:row.span,features:row.features};
-  const key=arcConstructionMemoryKey(constructionStyle(request)),identity=sha(JSON.stringify([key,example]));
+  const key=arcConstructionMemoryKey(style),identity=sha(JSON.stringify([key,example]));
   if(seen.has(identity)){source.duplicates++;continue;}
   seen.add(identity);(groups[key]??=[]).push(example);source.accepted++;
  }
@@ -60,7 +63,7 @@ const body=gzipSync(Buffer.from(JSON.stringify({schema:'line.construction-exampl
 writeFileSync(out,body);writeFileSync(out+'.sha256',sha(body)+'\n');
 const provenance={schema:'line.canonical-construction-augmentation.v1',base:{path:base,sha256:sha(baseBytes)},
  run:{path:join(run,'run.json'),sha256:sha(runBytes),compiler:evaluation.plan.compiler},
- excludedParents:[...excluded],maximumPhysicalRms:Number.isFinite(maximum)?maximum:null,
+ excludedParents:[...excluded],constructors:scope,maximumPhysicalRms:Number.isFinite(maximum)?maximum:null,
  before,added:seen.size-before,examples:seen.size,groups:Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,v.length])),sources,
  interpretation:'Canonical development evidence only. Reused music is exposed training data; source and seed identities are absent from runtime features.'};
 const record=JSON.stringify(provenance,null,2)+'\n';writeFileSync(out+'.provenance.json',record);writeFileSync(out+'.provenance.json.sha256',sha(record)+'\n');

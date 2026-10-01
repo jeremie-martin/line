@@ -1,0 +1,3957 @@
+{
+  "schema": "line.v6-motion-comparison.v1",
+  "plans": {
+    "baseline": {
+      "schema": "line.benchmark-v6.run-plan.v1",
+      "compilerRoot": "/tmp/line-v6-baseline-7f8591c6",
+      "compiler": {
+        "head": "7f8591c6276fd47764a826664cf09ccc970f76c8",
+        "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "9fcd114e9779344769f2444b7ae6b0a3004b5503cf48d612e03c84c8d53dc7d3",
+        "compilerSourceFiles": [
+          "engine-rs/.gitignore",
+          "engine-rs/Cargo.lock",
+          "engine-rs/Cargo.toml",
+          "engine-rs/README.md",
+          "engine-rs/src/abi.rs",
+          "engine-rs/src/engine.rs",
+          "engine-rs/src/frame.rs",
+          "engine-rs/src/grid.rs",
+          "engine-rs/src/kernel.rs",
+          "engine-rs/src/lib.rs",
+          "engine-rs/src/line.rs",
+          "package-lock.json",
+          "package.json",
+          "scripts/lib/_lr_engine.ts",
+          "scripts/lib/_lr_engine_record.ts",
+          "scripts/lib/_lr_engine_wasm.ts",
+          "scripts/lib/adapt.ts",
+          "scripts/lib/arc.ts",
+          "scripts/lib/arcLines.ts",
+          "scripts/lib/beam_prune.ts",
+          "scripts/lib/beam_search.ts",
+          "scripts/lib/detector.ts",
+          "scripts/lib/export.ts",
+          "scripts/lib/metrics.ts",
+          "scripts/lib/moves.ts",
+          "scripts/lib/native_motion/Cargo.lock",
+          "scripts/lib/native_motion/Cargo.toml",
+          "scripts/lib/native_motion/README.md",
+          "scripts/lib/native_motion/engine.ts",
+          "scripts/lib/native_motion/engine.wasm",
+          "scripts/lib/native_motion/manifest.json",
+          "scripts/lib/native_motion/manifest.json.sha256",
+          "scripts/lib/native_motion/src/abi.rs",
+          "scripts/lib/native_motion/src/engine.rs",
+          "scripts/lib/native_motion/src/frame.rs",
+          "scripts/lib/native_motion/src/grid.rs",
+          "scripts/lib/native_motion/src/kernel.rs",
+          "scripts/lib/native_motion/src/lib.rs",
+          "scripts/lib/native_motion/src/line.rs",
+          "scripts/lib/precise_landings.ts",
+          "scripts/lib/primitive.ts",
+          "scripts/lib/primitive_search.ts",
+          "scripts/lib/ride.ts",
+          "scripts/lib/rng.ts",
+          "scripts/lib/rotation.ts",
+          "scripts/lib/route.ts",
+          "scripts/lib/search.ts",
+          "scripts/lib/tune.ts",
+          "scripts/lib/update_types.ts",
+          "scripts/v0/arc.ts",
+          "scripts/v0/arc_placement.ts",
+          "scripts/v0/core/ballistic_launch.ts",
+          "scripts/v0/core/ballistic_micro_sim.ts",
+          "scripts/v0/core/ballistic_projection.ts",
+          "scripts/v0/core/ballistic_trace.ts",
+          "scripts/v0/core/beats.ts",
+          "scripts/v0/core/camera.ts",
+          "scripts/v0/core/candidate.ts",
+          "scripts/v0/core/compile_lifecycle.ts",
+          "scripts/v0/core/curves.ts",
+          "scripts/v0/core/exit_read.ts",
+          "scripts/v0/core/measure.ts",
+          "scripts/v0/core/polish.ts",
+          "scripts/v0/core/substrate.ts",
+          "scripts/v0/core/support_geometry.ts",
+          "scripts/v0/core/trace.ts",
+          "scripts/v0/optimizer/README.md",
+          "scripts/v0/optimizer/aim.ts",
+          "scripts/v0/optimizer/aim_impact_model.json",
+          "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+          "scripts/v0/optimizer/air_policy.ts",
+          "scripts/v0/optimizer/arc_actuator.ts",
+          "scripts/v0/optimizer/arc_attempts.ts",
+          "scripts/v0/optimizer/arc_boundary.ts",
+          "scripts/v0/optimizer/arc_composition.ts",
+          "scripts/v0/optimizer/arc_control.ts",
+          "scripts/v0/optimizer/arc_control_policy.ts",
+          "scripts/v0/optimizer/arc_control_policy_model.json",
+          "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+          "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+          "scripts/v0/optimizer/arc_engine.ts",
+          "scripts/v0/optimizer/arc_geometry.ts",
+          "scripts/v0/optimizer/arc_guidance.ts",
+          "scripts/v0/optimizer/arc_guide_choice.ts",
+          "scripts/v0/optimizer/arc_guide_study.ts",
+          "scripts/v0/optimizer/arc_memory.ts",
+          "scripts/v0/optimizer/arc_model.ts",
+          "scripts/v0/optimizer/arc_motion.ts",
+          "scripts/v0/optimizer/arc_motion_control.ts",
+          "scripts/v0/optimizer/arc_probe.ts",
+          "scripts/v0/optimizer/arc_proposal.ts",
+          "scripts/v0/optimizer/arc_rail_groups.ts",
+          "scripts/v0/optimizer/arc_refinement.ts",
+          "scripts/v0/optimizer/arc_response.ts",
+          "scripts/v0/optimizer/arc_value.ts",
+          "scripts/v0/optimizer/arc_value_model.json",
+          "scripts/v0/optimizer/arc_value_model.json.sha256",
+          "scripts/v0/optimizer/arc_vector_model.ts",
+          "scripts/v0/optimizer/budget_estimator.ts",
+          "scripts/v0/optimizer/budget_estimator_model.json",
+          "scripts/v0/optimizer/budget_model.ts",
+          "scripts/v0/optimizer/budget_telemetry.ts",
+          "scripts/v0/optimizer/compiler_input.ts",
+          "scripts/v0/optimizer/connected_arcs.ts",
+          "scripts/v0/optimizer/contact_composition.ts",
+          "scripts/v0/optimizer/contact_fragments.ts",
+          "scripts/v0/optimizer/contact_interval.ts",
+          "scripts/v0/optimizer/contact_phase.ts",
+          "scripts/v0/optimizer/contact_transition.ts",
+          "scripts/v0/optimizer/deadline.ts",
+          "scripts/v0/optimizer/handoff.ts",
+          "scripts/v0/optimizer/impact_policy.ts",
+          "scripts/v0/optimizer/impact_response_model.ts",
+          "scripts/v0/optimizer/intentional_repertoire.ts",
+          "scripts/v0/optimizer/kinematic_support.ts",
+          "scripts/v0/optimizer/legacy_handoff.ts",
+          "scripts/v0/optimizer/motion_objective.ts",
+          "scripts/v0/optimizer/motion_profiles.ts",
+          "scripts/v0/optimizer/motion_quality.ts",
+          "scripts/v0/optimizer/native_motion.ts",
+          "scripts/v0/optimizer/native_motion_schedule.ts",
+          "scripts/v0/optimizer/native_pointwise_energy.ts",
+          "scripts/v0/optimizer/node.ts",
+          "scripts/v0/optimizer/normal_contacts.ts",
+          "scripts/v0/optimizer/normal_motion.ts",
+          "scripts/v0/optimizer/normal_pointwise_projection.ts",
+          "scripts/v0/optimizer/objective.ts",
+          "scripts/v0/optimizer/objective_control.ts",
+          "scripts/v0/optimizer/polish.ts",
+          "scripts/v0/optimizer/production_repertoire.ts",
+          "scripts/v0/optimizer/rail_contours.ts",
+          "scripts/v0/optimizer/rail_recipes.ts",
+          "scripts/v0/optimizer/readiness.ts",
+          "scripts/v0/optimizer/readiness_base_features.ts",
+          "scripts/v0/optimizer/readiness_features.ts",
+          "scripts/v0/optimizer/readiness_model.json",
+          "scripts/v0/optimizer/readiness_model_artifact.ts",
+          "scripts/v0/optimizer/readiness_scoring.ts",
+          "scripts/v0/optimizer/register.ts",
+          "scripts/v0/optimizer/repair_branch_bound.ts",
+          "scripts/v0/optimizer/repertoire_candidate.ts",
+          "scripts/v0/optimizer/repertoire_composition.ts",
+          "scripts/v0/optimizer/repertoire_context.ts",
+          "scripts/v0/optimizer/repertoire_layout.ts",
+          "scripts/v0/optimizer/repertoire_plan.ts",
+          "scripts/v0/optimizer/repertoire_policy.ts",
+          "scripts/v0/optimizer/repertoire_realization.ts",
+          "scripts/v0/optimizer/sample.ts",
+          "scripts/v0/optimizer/selective_backtracking.ts",
+          "scripts/v0/optimizer/sim_frames.ts",
+          "scripts/v0/optimizer/solver.ts",
+          "scripts/v0/optimizer/types.ts",
+          "scripts/v0/score.ts",
+          "scripts/v0/trajectory/curve_resolution.ts",
+          "scripts/v0/trajectory/native_catch_history.ts",
+          "scripts/v0/trajectory/precontact_multicontact_history.ts",
+          "scripts/v0/types.ts",
+          "tsconfig.json"
+        ],
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "65994e81305ac36510412508eb8217fa97884c3dbebc0a2c5f051a6b1132317a"
+      },
+      "judge": {
+        "schema": "line.benchmark-v6.freeze.v1",
+        "judge": {
+          "v5": {
+            "schema": "line.benchmark-v5.freeze.v1",
+            "judge": {
+              "v4": {
+                "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+                "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+                "files": {
+                  "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+                  "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+                  "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+                  "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+                  "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+                  "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+                  "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+                  "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+                  "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+                  "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+                  "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+                  "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+                  "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+                  "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+                  "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+                  "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+                  "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+                  "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+                  "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+                }
+              },
+              "files": {
+                "benchmark/v5/policy.ts": "c1bad1623f3e5bbc6f25bb30451bb9d08dbd4ba728593a90acc2810ba47ef594",
+                "benchmark/v5/model.ts": "d30420a41621c3bd3daa1d7285b3bd556dc885e5c15b48e9f0c8511695e3952d",
+                "benchmark/v5/evaluator.ts": "a506cc3e0c104fad19b760638e3b27b757062e7176b54c1f52ffa546e9a4ed97",
+                "benchmark/v5/contract.ts": "5d199928db3b934ff3b550184db21915b4817bb275748999590784edb248ef4b",
+                "benchmark/v5/catalog.json.gz": "da26bbd351e8061e2a75ced2bd18fcebd7267a5806ca3b8953f41f77850c49b8",
+                "benchmark/v5/catalog.lock.json": "2529b6fc39b5cd29e40b8e0888a408291f2ef8ba1ca7a5b8022188757d70f648",
+                "scripts/v0/optimizer/repertoire_realization.ts": "54b17ac4f198cd03b2fe04d47bce4b333eb73e0501e22f897c229eeebcb8d67b",
+                "scripts/v0/optimizer/arc_rail_groups.ts": "b5c409289f2bc926e7a769ec1b586344ad88ed4b1784438870ce5ea7aa55b03c"
+              }
+            }
+          },
+          "files": {
+            "benchmark/v6/policy.ts": "2df671976e3705e9c5699649a7fcae601dcc1a31b285f82a3103fd47d989719d",
+            "benchmark/v6/model.ts": "58c0686187274883f73dc84cd176efad65727d2fbc25e9c447b26c001aca4cfb",
+            "benchmark/v6/evaluator.ts": "3494e169f3907a9fb108a9d74129ff3de37936094a305b9c87620d822f2674df",
+            "benchmark/v6/contract.ts": "5a9427a5b491b97b184cd38f4d28d19d41f97bc79d2db498e36c7cf36c5617f9",
+            "benchmark/v6/replay.ts": "26b8419dcdb80ffc5f2b01fe6aa0aad1230fa48b69bf04a5aa959ea2eca1772b",
+            "benchmark/v6/catalog.json.gz": "e0ffa07caa5c4216eca159d6de9bf78500aaa3c2669a582e3894640f824e0ecb",
+            "benchmark/v6/catalog.lock.json": "9abf808b1ae8615530622b8aa1f6a46b66074a9173277c00058bacda2c0f61d0",
+            "scripts/v0/optimizer/repertoire_layout.ts": "8b1e6b574b0591eee517bdb5c6c4a4342ecff3e382b553ee2ef56d16b3c8edcd",
+            "scripts/v0/optimizer/motion_quality.ts": "7dea806aca18befa3d272587b83001717b095337f1b0ed9aa052c9916a23df6c"
+          }
+        }
+      },
+      "executionSha256": "3602d23141a0c57433f60c11100e795fe02df03248a5f268916d3664a50e2fe3",
+      "ids": [
+        "canonical-afterglow_turn-single-paired",
+        "canonical-afterglow_turn-arcs-paired",
+        "canonical-afterglow_turn-arcs-transfer",
+        "canonical-afterglow_turn-fold-paired",
+        "canonical-afterglow_turn-fold-transfer",
+        "canonical-afterglow_turn-serpentine-paired",
+        "canonical-afterglow_turn-serpentine-transfer",
+        "canonical-afterglow_turn-scallops-paired",
+        "canonical-afterglow_turn-scallops-transfer",
+        "canonical-afterglow_turn-terraces-paired",
+        "canonical-afterglow_turn-terraces-transfer",
+        "canonical-afterglow_turn-scattered-paired",
+        "canonical-accelerando_reply-single-paired",
+        "canonical-accelerando_reply-arcs-paired",
+        "canonical-accelerando_reply-arcs-transfer",
+        "canonical-accelerando_reply-fold-paired",
+        "canonical-accelerando_reply-fold-transfer",
+        "canonical-accelerando_reply-serpentine-paired",
+        "canonical-accelerando_reply-serpentine-transfer",
+        "canonical-accelerando_reply-scallops-paired",
+        "canonical-accelerando_reply-scallops-transfer",
+        "canonical-accelerando_reply-terraces-paired",
+        "canonical-accelerando_reply-terraces-transfer",
+        "canonical-accelerando_reply-scattered-paired",
+        "canonical-archipelago-single-paired",
+        "canonical-archipelago-arcs-paired",
+        "canonical-archipelago-arcs-transfer",
+        "canonical-archipelago-fold-paired",
+        "canonical-archipelago-fold-transfer",
+        "canonical-archipelago-serpentine-paired",
+        "canonical-archipelago-serpentine-transfer",
+        "canonical-archipelago-scallops-paired",
+        "canonical-archipelago-scallops-transfer",
+        "canonical-archipelago-terraces-paired",
+        "canonical-archipelago-terraces-transfer",
+        "canonical-archipelago-scattered-paired",
+        "canonical-bridge_dense_dialogue-single-paired",
+        "canonical-bridge_dense_dialogue-arcs-paired",
+        "canonical-bridge_dense_dialogue-arcs-transfer",
+        "canonical-bridge_dense_dialogue-fold-paired",
+        "canonical-bridge_dense_dialogue-fold-transfer",
+        "canonical-bridge_dense_dialogue-serpentine-paired",
+        "canonical-bridge_dense_dialogue-serpentine-transfer",
+        "canonical-bridge_dense_dialogue-scallops-paired",
+        "canonical-bridge_dense_dialogue-scallops-transfer",
+        "canonical-bridge_dense_dialogue-terraces-paired",
+        "canonical-bridge_dense_dialogue-terraces-transfer",
+        "canonical-bridge_dense_dialogue-scattered-paired",
+        "canonical-bridge_high_air_drive-single-paired",
+        "canonical-bridge_high_air_drive-arcs-paired",
+        "canonical-bridge_high_air_drive-arcs-transfer",
+        "canonical-bridge_high_air_drive-fold-paired",
+        "canonical-bridge_high_air_drive-fold-transfer",
+        "canonical-bridge_high_air_drive-serpentine-paired",
+        "canonical-bridge_high_air_drive-serpentine-transfer",
+        "canonical-bridge_high_air_drive-scallops-paired",
+        "canonical-bridge_high_air_drive-scallops-transfer",
+        "canonical-bridge_high_air_drive-terraces-paired",
+        "canonical-bridge_high_air_drive-terraces-transfer",
+        "canonical-bridge_high_air_drive-scattered-paired",
+        "canonical-music_amor_na_praia_46s-single-paired",
+        "canonical-music_amor_na_praia_46s-arcs-paired",
+        "canonical-music_amor_na_praia_46s-arcs-transfer",
+        "canonical-music_amor_na_praia_46s-fold-paired",
+        "canonical-music_amor_na_praia_46s-fold-transfer",
+        "canonical-music_amor_na_praia_46s-serpentine-paired",
+        "canonical-music_amor_na_praia_46s-serpentine-transfer",
+        "canonical-music_amor_na_praia_46s-scallops-paired",
+        "canonical-music_amor_na_praia_46s-scallops-transfer",
+        "canonical-music_amor_na_praia_46s-terraces-paired",
+        "canonical-music_amor_na_praia_46s-terraces-transfer",
+        "canonical-music_amor_na_praia_46s-scattered-paired",
+        "canonical-music_luna_bala_44s-single-paired",
+        "canonical-music_luna_bala_44s-arcs-paired",
+        "canonical-music_luna_bala_44s-arcs-transfer",
+        "canonical-music_luna_bala_44s-fold-paired",
+        "canonical-music_luna_bala_44s-fold-transfer",
+        "canonical-music_luna_bala_44s-serpentine-paired",
+        "canonical-music_luna_bala_44s-serpentine-transfer",
+        "canonical-music_luna_bala_44s-scallops-paired",
+        "canonical-music_luna_bala_44s-scallops-transfer",
+        "canonical-music_luna_bala_44s-terraces-paired",
+        "canonical-music_luna_bala_44s-terraces-transfer",
+        "canonical-music_luna_bala_44s-scattered-paired",
+        "canonical-music_tiki_tiki_48s-single-paired",
+        "canonical-music_tiki_tiki_48s-arcs-paired",
+        "canonical-music_tiki_tiki_48s-arcs-transfer",
+        "canonical-music_tiki_tiki_48s-fold-paired",
+        "canonical-music_tiki_tiki_48s-fold-transfer",
+        "canonical-music_tiki_tiki_48s-serpentine-paired",
+        "canonical-music_tiki_tiki_48s-serpentine-transfer",
+        "canonical-music_tiki_tiki_48s-scallops-paired",
+        "canonical-music_tiki_tiki_48s-scallops-transfer",
+        "canonical-music_tiki_tiki_48s-terraces-paired",
+        "canonical-music_tiki_tiki_48s-terraces-transfer",
+        "canonical-music_tiki_tiki_48s-scattered-paired",
+        "canonical-afterglow_turn-automatic",
+        "canonical-bridge_pickup_lattice-automatic",
+        "canonical-bridge_loose_pocket-automatic",
+        "canonical-accelerando_reply-automatic",
+        "canonical-archipelago-automatic",
+        "canonical-bridge_dense_dialogue-automatic",
+        "canonical-bridge_high_air_drive-automatic",
+        "canonical-bridge_sparse_lowline-automatic",
+        "canonical-bridge_frontier_pickup_progression-automatic",
+        "canonical-bridge_frontier_dense_recovery-automatic",
+        "canonical-bridge_frontier_low_air_endurance-automatic",
+        "canonical-alternating_intentions-automatic",
+        "canonical-amplitude_reply-automatic",
+        "canonical-bridge_believer_56_6s-automatic",
+        "canonical-music_amor_na_praia_46s-automatic",
+        "canonical-music_luna_bala_44s-automatic",
+        "canonical-music_tiki_tiki_48s-automatic",
+        "canonical-music_shelter_impact_sync_81s-automatic",
+        "canonical-music_amour_de_ma_vie_short_44s-automatic"
+      ],
+      "seeds": [
+        101,
+        202,
+        303,
+        404
+      ],
+      "budget": 3000000,
+      "split": "canonical",
+      "profile": "canonical"
+    },
+    "candidate": {
+      "schema": "line.benchmark-v6.run-plan.v1",
+      "compilerRoot": "/tmp/line-motion-candidate-6",
+      "compiler": {
+        "head": "40832757ffe933d6b17478a486ae5c6a00144170",
+        "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+        "compilerSourceFingerprint": "57a872c4a1af2485cfa19419b575ee8b7f29e24b555b73c5fac6514033ed546f",
+        "compilerSourceFiles": [
+          "engine-rs/.gitignore",
+          "engine-rs/Cargo.lock",
+          "engine-rs/Cargo.toml",
+          "engine-rs/README.md",
+          "engine-rs/src/abi.rs",
+          "engine-rs/src/engine.rs",
+          "engine-rs/src/frame.rs",
+          "engine-rs/src/grid.rs",
+          "engine-rs/src/kernel.rs",
+          "engine-rs/src/lib.rs",
+          "engine-rs/src/line.rs",
+          "package-lock.json",
+          "package.json",
+          "scripts/lib/_lr_engine.ts",
+          "scripts/lib/_lr_engine_record.ts",
+          "scripts/lib/_lr_engine_wasm.ts",
+          "scripts/lib/adapt.ts",
+          "scripts/lib/arc.ts",
+          "scripts/lib/arcLines.ts",
+          "scripts/lib/beam_prune.ts",
+          "scripts/lib/beam_search.ts",
+          "scripts/lib/detector.ts",
+          "scripts/lib/export.ts",
+          "scripts/lib/metrics.ts",
+          "scripts/lib/moves.ts",
+          "scripts/lib/native_motion/Cargo.lock",
+          "scripts/lib/native_motion/Cargo.toml",
+          "scripts/lib/native_motion/README.md",
+          "scripts/lib/native_motion/engine.ts",
+          "scripts/lib/native_motion/engine.wasm",
+          "scripts/lib/native_motion/manifest.json",
+          "scripts/lib/native_motion/manifest.json.sha256",
+          "scripts/lib/native_motion/src/abi.rs",
+          "scripts/lib/native_motion/src/engine.rs",
+          "scripts/lib/native_motion/src/frame.rs",
+          "scripts/lib/native_motion/src/grid.rs",
+          "scripts/lib/native_motion/src/kernel.rs",
+          "scripts/lib/native_motion/src/lib.rs",
+          "scripts/lib/native_motion/src/line.rs",
+          "scripts/lib/precise_landings.ts",
+          "scripts/lib/primitive.ts",
+          "scripts/lib/primitive_search.ts",
+          "scripts/lib/ride.ts",
+          "scripts/lib/rng.ts",
+          "scripts/lib/rotation.ts",
+          "scripts/lib/route.ts",
+          "scripts/lib/search.ts",
+          "scripts/lib/tune.ts",
+          "scripts/lib/update_types.ts",
+          "scripts/v0/arc.ts",
+          "scripts/v0/arc_placement.ts",
+          "scripts/v0/core/ballistic_launch.ts",
+          "scripts/v0/core/ballistic_micro_sim.ts",
+          "scripts/v0/core/ballistic_projection.ts",
+          "scripts/v0/core/ballistic_trace.ts",
+          "scripts/v0/core/beats.ts",
+          "scripts/v0/core/camera.ts",
+          "scripts/v0/core/candidate.ts",
+          "scripts/v0/core/compile_lifecycle.ts",
+          "scripts/v0/core/curves.ts",
+          "scripts/v0/core/exit_read.ts",
+          "scripts/v0/core/measure.ts",
+          "scripts/v0/core/polish.ts",
+          "scripts/v0/core/substrate.ts",
+          "scripts/v0/core/support_geometry.ts",
+          "scripts/v0/core/trace.ts",
+          "scripts/v0/optimizer/README.md",
+          "scripts/v0/optimizer/aim.ts",
+          "scripts/v0/optimizer/aim_impact_model.json",
+          "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+          "scripts/v0/optimizer/air_policy.ts",
+          "scripts/v0/optimizer/arc_actuator.ts",
+          "scripts/v0/optimizer/arc_attempts.ts",
+          "scripts/v0/optimizer/arc_boundary.ts",
+          "scripts/v0/optimizer/arc_composition.ts",
+          "scripts/v0/optimizer/arc_control.ts",
+          "scripts/v0/optimizer/arc_control_policy.ts",
+          "scripts/v0/optimizer/arc_control_policy_model.json",
+          "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+          "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+          "scripts/v0/optimizer/arc_engine.ts",
+          "scripts/v0/optimizer/arc_geometry.ts",
+          "scripts/v0/optimizer/arc_guidance.ts",
+          "scripts/v0/optimizer/arc_guide_choice.ts",
+          "scripts/v0/optimizer/arc_guide_study.ts",
+          "scripts/v0/optimizer/arc_memory.ts",
+          "scripts/v0/optimizer/arc_model.ts",
+          "scripts/v0/optimizer/arc_motion.ts",
+          "scripts/v0/optimizer/arc_motion_control.ts",
+          "scripts/v0/optimizer/arc_pair_response.ts",
+          "scripts/v0/optimizer/arc_probe.ts",
+          "scripts/v0/optimizer/arc_proposal.ts",
+          "scripts/v0/optimizer/arc_rail_groups.ts",
+          "scripts/v0/optimizer/arc_refinement.ts",
+          "scripts/v0/optimizer/arc_response.ts",
+          "scripts/v0/optimizer/arc_value.ts",
+          "scripts/v0/optimizer/arc_value_model.json",
+          "scripts/v0/optimizer/arc_value_model.json.sha256",
+          "scripts/v0/optimizer/arc_vector_model.ts",
+          "scripts/v0/optimizer/budget_estimator.ts",
+          "scripts/v0/optimizer/budget_estimator_model.json",
+          "scripts/v0/optimizer/budget_model.ts",
+          "scripts/v0/optimizer/budget_telemetry.ts",
+          "scripts/v0/optimizer/compiler_input.ts",
+          "scripts/v0/optimizer/connected_arcs.ts",
+          "scripts/v0/optimizer/contact_composition.ts",
+          "scripts/v0/optimizer/contact_fragments.ts",
+          "scripts/v0/optimizer/contact_interval.ts",
+          "scripts/v0/optimizer/contact_phase.ts",
+          "scripts/v0/optimizer/contact_transition.ts",
+          "scripts/v0/optimizer/deadline.ts",
+          "scripts/v0/optimizer/handoff.ts",
+          "scripts/v0/optimizer/impact_policy.ts",
+          "scripts/v0/optimizer/impact_response_model.ts",
+          "scripts/v0/optimizer/intentional_repertoire.ts",
+          "scripts/v0/optimizer/kinematic_support.ts",
+          "scripts/v0/optimizer/legacy_handoff.ts",
+          "scripts/v0/optimizer/motion_objective.ts",
+          "scripts/v0/optimizer/motion_profiles.ts",
+          "scripts/v0/optimizer/motion_quality.ts",
+          "scripts/v0/optimizer/native_motion.ts",
+          "scripts/v0/optimizer/native_motion_schedule.ts",
+          "scripts/v0/optimizer/native_pointwise_energy.ts",
+          "scripts/v0/optimizer/node.ts",
+          "scripts/v0/optimizer/normal_contacts.ts",
+          "scripts/v0/optimizer/normal_motion.ts",
+          "scripts/v0/optimizer/normal_pointwise_projection.ts",
+          "scripts/v0/optimizer/objective.ts",
+          "scripts/v0/optimizer/objective_control.ts",
+          "scripts/v0/optimizer/observed_receiver.ts",
+          "scripts/v0/optimizer/polish.ts",
+          "scripts/v0/optimizer/production_repertoire.ts",
+          "scripts/v0/optimizer/rail_contours.ts",
+          "scripts/v0/optimizer/rail_recipes.ts",
+          "scripts/v0/optimizer/readiness.ts",
+          "scripts/v0/optimizer/readiness_base_features.ts",
+          "scripts/v0/optimizer/readiness_features.ts",
+          "scripts/v0/optimizer/readiness_model.json",
+          "scripts/v0/optimizer/readiness_model_artifact.ts",
+          "scripts/v0/optimizer/readiness_scoring.ts",
+          "scripts/v0/optimizer/register.ts",
+          "scripts/v0/optimizer/repair_branch_bound.ts",
+          "scripts/v0/optimizer/repertoire_candidate.ts",
+          "scripts/v0/optimizer/repertoire_composition.ts",
+          "scripts/v0/optimizer/repertoire_context.ts",
+          "scripts/v0/optimizer/repertoire_feasibility.ts",
+          "scripts/v0/optimizer/repertoire_layout.ts",
+          "scripts/v0/optimizer/repertoire_plan.ts",
+          "scripts/v0/optimizer/repertoire_policy.ts",
+          "scripts/v0/optimizer/repertoire_policy_model.json",
+          "scripts/v0/optimizer/repertoire_policy_model.json.gz",
+          "scripts/v0/optimizer/repertoire_realization.ts",
+          "scripts/v0/optimizer/repertoire_search.ts",
+          "scripts/v0/optimizer/sample.ts",
+          "scripts/v0/optimizer/selective_backtracking.ts",
+          "scripts/v0/optimizer/sim_frames.ts",
+          "scripts/v0/optimizer/solver.ts",
+          "scripts/v0/optimizer/types.ts",
+          "scripts/v0/score.ts",
+          "scripts/v0/trajectory/curve_resolution.ts",
+          "scripts/v0/trajectory/native_catch_history.ts",
+          "scripts/v0/trajectory/precontact_multicontact_history.ts",
+          "scripts/v0/types.ts",
+          "tsconfig.json"
+        ],
+        "compilerEnvironment": {},
+        "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "c4c634b85c646b20076ebb546eef4ecb29f288ff6110d4db7fe2f5052afb7e2c"
+      },
+      "judge": {
+        "schema": "line.benchmark-v6.freeze.v1",
+        "judge": {
+          "v5": {
+            "schema": "line.benchmark-v5.freeze.v1",
+            "judge": {
+              "v4": {
+                "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+                "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+                "files": {
+                  "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+                  "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+                  "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+                  "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+                  "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+                  "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+                  "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+                  "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+                  "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+                  "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+                  "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+                  "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+                  "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+                  "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+                  "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+                  "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+                  "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+                  "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+                  "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+                }
+              },
+              "files": {
+                "benchmark/v5/policy.ts": "c1bad1623f3e5bbc6f25bb30451bb9d08dbd4ba728593a90acc2810ba47ef594",
+                "benchmark/v5/model.ts": "d30420a41621c3bd3daa1d7285b3bd556dc885e5c15b48e9f0c8511695e3952d",
+                "benchmark/v5/evaluator.ts": "a506cc3e0c104fad19b760638e3b27b757062e7176b54c1f52ffa546e9a4ed97",
+                "benchmark/v5/contract.ts": "5d199928db3b934ff3b550184db21915b4817bb275748999590784edb248ef4b",
+                "benchmark/v5/catalog.json.gz": "da26bbd351e8061e2a75ced2bd18fcebd7267a5806ca3b8953f41f77850c49b8",
+                "benchmark/v5/catalog.lock.json": "2529b6fc39b5cd29e40b8e0888a408291f2ef8ba1ca7a5b8022188757d70f648",
+                "scripts/v0/optimizer/repertoire_realization.ts": "54b17ac4f198cd03b2fe04d47bce4b333eb73e0501e22f897c229eeebcb8d67b",
+                "scripts/v0/optimizer/arc_rail_groups.ts": "b5c409289f2bc926e7a769ec1b586344ad88ed4b1784438870ce5ea7aa55b03c"
+              }
+            }
+          },
+          "files": {
+            "benchmark/v6/policy.ts": "2df671976e3705e9c5699649a7fcae601dcc1a31b285f82a3103fd47d989719d",
+            "benchmark/v6/model.ts": "58c0686187274883f73dc84cd176efad65727d2fbc25e9c447b26c001aca4cfb",
+            "benchmark/v6/evaluator.ts": "3494e169f3907a9fb108a9d74129ff3de37936094a305b9c87620d822f2674df",
+            "benchmark/v6/contract.ts": "5a9427a5b491b97b184cd38f4d28d19d41f97bc79d2db498e36c7cf36c5617f9",
+            "benchmark/v6/replay.ts": "26b8419dcdb80ffc5f2b01fe6aa0aad1230fa48b69bf04a5aa959ea2eca1772b",
+            "benchmark/v6/catalog.json.gz": "e0ffa07caa5c4216eca159d6de9bf78500aaa3c2669a582e3894640f824e0ecb",
+            "benchmark/v6/catalog.lock.json": "9abf808b1ae8615530622b8aa1f6a46b66074a9173277c00058bacda2c0f61d0",
+            "scripts/v0/optimizer/repertoire_layout.ts": "8b1e6b574b0591eee517bdb5c6c4a4342ecff3e382b553ee2ef56d16b3c8edcd",
+            "scripts/v0/optimizer/motion_quality.ts": "7dea806aca18befa3d272587b83001717b095337f1b0ed9aa052c9916a23df6c"
+          }
+        }
+      },
+      "executionSha256": "01872012d0c10cc28cab0a04e6376feb235a0bb65b1c0f379191fc0585d51764",
+      "ids": [
+        "canonical-afterglow_turn-single-paired",
+        "canonical-afterglow_turn-arcs-paired",
+        "canonical-afterglow_turn-arcs-transfer",
+        "canonical-afterglow_turn-fold-paired",
+        "canonical-afterglow_turn-fold-transfer",
+        "canonical-afterglow_turn-serpentine-paired",
+        "canonical-afterglow_turn-serpentine-transfer",
+        "canonical-afterglow_turn-scallops-paired",
+        "canonical-afterglow_turn-scallops-transfer",
+        "canonical-afterglow_turn-terraces-paired",
+        "canonical-afterglow_turn-terraces-transfer",
+        "canonical-afterglow_turn-scattered-paired",
+        "canonical-accelerando_reply-single-paired",
+        "canonical-accelerando_reply-arcs-paired",
+        "canonical-accelerando_reply-arcs-transfer",
+        "canonical-accelerando_reply-fold-paired",
+        "canonical-accelerando_reply-fold-transfer",
+        "canonical-accelerando_reply-serpentine-paired",
+        "canonical-accelerando_reply-serpentine-transfer",
+        "canonical-accelerando_reply-scallops-paired",
+        "canonical-accelerando_reply-scallops-transfer",
+        "canonical-accelerando_reply-terraces-paired",
+        "canonical-accelerando_reply-terraces-transfer",
+        "canonical-accelerando_reply-scattered-paired",
+        "canonical-archipelago-single-paired",
+        "canonical-archipelago-arcs-paired",
+        "canonical-archipelago-arcs-transfer",
+        "canonical-archipelago-fold-paired",
+        "canonical-archipelago-fold-transfer",
+        "canonical-archipelago-serpentine-paired",
+        "canonical-archipelago-serpentine-transfer",
+        "canonical-archipelago-scallops-paired",
+        "canonical-archipelago-scallops-transfer",
+        "canonical-archipelago-terraces-paired",
+        "canonical-archipelago-terraces-transfer",
+        "canonical-archipelago-scattered-paired",
+        "canonical-bridge_dense_dialogue-single-paired",
+        "canonical-bridge_dense_dialogue-arcs-paired",
+        "canonical-bridge_dense_dialogue-arcs-transfer",
+        "canonical-bridge_dense_dialogue-fold-paired",
+        "canonical-bridge_dense_dialogue-fold-transfer",
+        "canonical-bridge_dense_dialogue-serpentine-paired",
+        "canonical-bridge_dense_dialogue-serpentine-transfer",
+        "canonical-bridge_dense_dialogue-scallops-paired",
+        "canonical-bridge_dense_dialogue-scallops-transfer",
+        "canonical-bridge_dense_dialogue-terraces-paired",
+        "canonical-bridge_dense_dialogue-terraces-transfer",
+        "canonical-bridge_dense_dialogue-scattered-paired",
+        "canonical-bridge_high_air_drive-single-paired",
+        "canonical-bridge_high_air_drive-arcs-paired",
+        "canonical-bridge_high_air_drive-arcs-transfer",
+        "canonical-bridge_high_air_drive-fold-paired",
+        "canonical-bridge_high_air_drive-fold-transfer",
+        "canonical-bridge_high_air_drive-serpentine-paired",
+        "canonical-bridge_high_air_drive-serpentine-transfer",
+        "canonical-bridge_high_air_drive-scallops-paired",
+        "canonical-bridge_high_air_drive-scallops-transfer",
+        "canonical-bridge_high_air_drive-terraces-paired",
+        "canonical-bridge_high_air_drive-terraces-transfer",
+        "canonical-bridge_high_air_drive-scattered-paired",
+        "canonical-music_amor_na_praia_46s-single-paired",
+        "canonical-music_amor_na_praia_46s-arcs-paired",
+        "canonical-music_amor_na_praia_46s-arcs-transfer",
+        "canonical-music_amor_na_praia_46s-fold-paired",
+        "canonical-music_amor_na_praia_46s-fold-transfer",
+        "canonical-music_amor_na_praia_46s-serpentine-paired",
+        "canonical-music_amor_na_praia_46s-serpentine-transfer",
+        "canonical-music_amor_na_praia_46s-scallops-paired",
+        "canonical-music_amor_na_praia_46s-scallops-transfer",
+        "canonical-music_amor_na_praia_46s-terraces-paired",
+        "canonical-music_amor_na_praia_46s-terraces-transfer",
+        "canonical-music_amor_na_praia_46s-scattered-paired",
+        "canonical-music_luna_bala_44s-single-paired",
+        "canonical-music_luna_bala_44s-arcs-paired",
+        "canonical-music_luna_bala_44s-arcs-transfer",
+        "canonical-music_luna_bala_44s-fold-paired",
+        "canonical-music_luna_bala_44s-fold-transfer",
+        "canonical-music_luna_bala_44s-serpentine-paired",
+        "canonical-music_luna_bala_44s-serpentine-transfer",
+        "canonical-music_luna_bala_44s-scallops-paired",
+        "canonical-music_luna_bala_44s-scallops-transfer",
+        "canonical-music_luna_bala_44s-terraces-paired",
+        "canonical-music_luna_bala_44s-terraces-transfer",
+        "canonical-music_luna_bala_44s-scattered-paired",
+        "canonical-music_tiki_tiki_48s-single-paired",
+        "canonical-music_tiki_tiki_48s-arcs-paired",
+        "canonical-music_tiki_tiki_48s-arcs-transfer",
+        "canonical-music_tiki_tiki_48s-fold-paired",
+        "canonical-music_tiki_tiki_48s-fold-transfer",
+        "canonical-music_tiki_tiki_48s-serpentine-paired",
+        "canonical-music_tiki_tiki_48s-serpentine-transfer",
+        "canonical-music_tiki_tiki_48s-scallops-paired",
+        "canonical-music_tiki_tiki_48s-scallops-transfer",
+        "canonical-music_tiki_tiki_48s-terraces-paired",
+        "canonical-music_tiki_tiki_48s-terraces-transfer",
+        "canonical-music_tiki_tiki_48s-scattered-paired",
+        "canonical-afterglow_turn-automatic",
+        "canonical-bridge_pickup_lattice-automatic",
+        "canonical-bridge_loose_pocket-automatic",
+        "canonical-accelerando_reply-automatic",
+        "canonical-archipelago-automatic",
+        "canonical-bridge_dense_dialogue-automatic",
+        "canonical-bridge_high_air_drive-automatic",
+        "canonical-bridge_sparse_lowline-automatic",
+        "canonical-bridge_frontier_pickup_progression-automatic",
+        "canonical-bridge_frontier_dense_recovery-automatic",
+        "canonical-bridge_frontier_low_air_endurance-automatic",
+        "canonical-alternating_intentions-automatic",
+        "canonical-amplitude_reply-automatic",
+        "canonical-bridge_believer_56_6s-automatic",
+        "canonical-music_amor_na_praia_46s-automatic",
+        "canonical-music_luna_bala_44s-automatic",
+        "canonical-music_tiki_tiki_48s-automatic",
+        "canonical-music_shelter_impact_sync_81s-automatic",
+        "canonical-music_amour_de_ma_vie_short_44s-automatic"
+      ],
+      "seeds": [
+        101,
+        202,
+        303,
+        404
+      ],
+      "budget": 3000000,
+      "split": "canonical",
+      "profile": "canonical"
+    }
+  },
+  "allScheduled": {
+    "baseline": {
+      "scheduled": 460,
+      "observed": 460,
+      "valid": 406,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 460,
+            "mean": 0.0021409317295845464,
+            "median": 0.0004769634335608324,
+            "p95": 0.010172227440068512,
+            "maximum": 0.037393542907493096
+          },
+          "maxExcess": {
+            "count": 460,
+            "mean": 0.052123790232855335,
+            "median": 0.019342848501904708,
+            "p95": 0.2616319931384601,
+            "maximum": 0.4363333362412195
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 460,
+            "mean": 0.0007937146777749856,
+            "median": 4.797815725828231e-05,
+            "p95": 0.004491993911052725,
+            "maximum": 0.01656135597253508
+          },
+          "maxExcess": {
+            "count": 460,
+            "mean": 0.06764092701915729,
+            "median": 0.011130932483921496,
+            "p95": 0.3639428304257102,
+            "maximum": 0.8326180159615966
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 460,
+            "mean": 0.0006476218046936804,
+            "median": 0.0,
+            "p95": 0.003441415837590563,
+            "maximum": 0.017785707679880875
+          },
+          "maxExcess": {
+            "count": 460,
+            "mean": 0.09713690918831598,
+            "median": 0.0,
+            "p95": 0.555955753770919,
+            "maximum": 1.5417961273142184
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "scheduled": 460,
+      "observed": 460,
+      "valid": 460,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 460,
+            "mean": 0.00037525367587640934,
+            "median": 0.0001823485953077806,
+            "p95": 0.0014128598718453353,
+            "maximum": 0.006957514687355734
+          },
+          "maxExcess": {
+            "count": 460,
+            "mean": 0.013648588936006133,
+            "median": 0.009680292746379549,
+            "p95": 0.04806907574299335,
+            "maximum": 0.1390821335381529
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 460,
+            "mean": 0.0001400955779655187,
+            "median": 5.347831238957472e-05,
+            "p95": 0.0006671924639734635,
+            "maximum": 0.003411833449530699
+          },
+          "maxExcess": {
+            "count": 460,
+            "mean": 0.022239110080412048,
+            "median": 0.010890748066449074,
+            "p95": 0.10240458412141429,
+            "maximum": 0.31918590311990114
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 460,
+            "mean": 4.7338249324276976e-05,
+            "median": 0.0,
+            "p95": 0.00030856205177086696,
+            "maximum": 0.002553845988068358
+          },
+          "maxExcess": {
+            "count": 460,
+            "mean": 0.013376870617936059,
+            "median": 0.0,
+            "p95": 0.11564952146816987,
+            "maximum": 0.3494681684541714
+          }
+        }
+      ]
+    }
+  },
+  "matchedValid": {
+    "baseline": {
+      "scheduled": 406,
+      "observed": 406,
+      "valid": 406,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 406,
+            "mean": 0.002118440059331309,
+            "median": 0.000572141775127095,
+            "p95": 0.009648174412777785,
+            "maximum": 0.037393542907493096
+          },
+          "maxExcess": {
+            "count": 406,
+            "mean": 0.05195860803281931,
+            "median": 0.021785834609372334,
+            "p95": 0.2616319931384601,
+            "maximum": 0.4244334828853882
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 406,
+            "mean": 0.0007603405336806821,
+            "median": 4.797815725828231e-05,
+            "p95": 0.004384989144249301,
+            "maximum": 0.01656135597253508
+          },
+          "maxExcess": {
+            "count": 406,
+            "mean": 0.06499150767602542,
+            "median": 0.011130932483921496,
+            "p95": 0.3281003197588148,
+            "maximum": 0.8326180159615966
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 406,
+            "mean": 0.0006312561551312359,
+            "median": 0.0,
+            "p95": 0.0030351519196647097,
+            "maximum": 0.017785707679880875
+          },
+          "maxExcess": {
+            "count": 406,
+            "mean": 0.09067151941343038,
+            "median": 0.0,
+            "p95": 0.5338697599437654,
+            "maximum": 1.5417961273142184
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "scheduled": 406,
+      "observed": 406,
+      "valid": 406,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 406,
+            "mean": 0.0003581654715432541,
+            "median": 0.00017629561882646414,
+            "p95": 0.0011490663142651378,
+            "maximum": 0.006957514687355734
+          },
+          "maxExcess": {
+            "count": 406,
+            "mean": 0.012865097659087058,
+            "median": 0.009492254368917097,
+            "p95": 0.04408893565857974,
+            "maximum": 0.1390821335381529
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 406,
+            "mean": 0.00011847535159182306,
+            "median": 4.479968671185451e-05,
+            "p95": 0.0004610408529890123,
+            "maximum": 0.0019753612433631566
+          },
+          "maxExcess": {
+            "count": 406,
+            "mean": 0.019779976501052954,
+            "median": 0.009024172311972944,
+            "p95": 0.08483151694997826,
+            "maximum": 0.212615396530774
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 406,
+            "mean": 4.226574011793284e-05,
+            "median": 0.0,
+            "p95": 0.0002501794910459292,
+            "maximum": 0.002553845988068358
+          },
+          "maxExcess": {
+            "count": 406,
+            "mean": 0.011900372186800831,
+            "median": 0.0,
+            "p95": 0.08514245069805648,
+            "maximum": 0.3494681684541714
+          }
+        }
+      ]
+    },
+    "pairedByParent": [
+      {
+        "frames": 1,
+        "matchedRuns": 406,
+        "sourceParents": 19,
+        "meanParentBurdenDelta": -0.007850951274326428,
+        "parentBootstrap95": [
+          -0.011935088363802226,
+          -0.004060119163227524
+        ]
+      },
+      {
+        "frames": 4,
+        "matchedRuns": 406,
+        "sourceParents": 19,
+        "meanParentBurdenDelta": -0.0038655854285307638,
+        "parentBootstrap95": [
+          -0.005875163211203566,
+          -0.0019910075897571766
+        ]
+      },
+      {
+        "frames": 10,
+        "matchedRuns": 406,
+        "sourceParents": 19,
+        "meanParentBurdenDelta": -0.0032503569552102007,
+        "parentBootstrap95": [
+          -0.00534146178156764,
+          -0.0014231649340942637
+        ]
+      }
+    ]
+  },
+  "newlyCompleted": {
+    "scheduled": 54,
+    "observed": 54,
+    "valid": 54,
+    "bands": [
+      {
+        "frames": 1,
+        "burden": {
+          "count": 54,
+          "mean": 0.0005037316566034653,
+          "median": 0.0002659086704217115,
+          "p95": 0.0018893720016670223,
+          "maximum": 0.0030495537663838682
+        },
+        "maxExcess": {
+          "count": 54,
+          "mean": 0.019539282610619928,
+          "median": 0.014438175003780862,
+          "p95": 0.06721467832131345,
+          "maximum": 0.08976732013927624
+        }
+      },
+      {
+        "frames": 4,
+        "burden": {
+          "count": 54,
+          "mean": 0.0003026476503307118,
+          "median": 5.347831238957472e-05,
+          "p95": 0.0012742840379032314,
+          "maximum": 0.003411833449530699
+        },
+        "maxExcess": {
+          "count": 54,
+          "mean": 0.04072815143633413,
+          "median": 0.012834794973497932,
+          "p95": 0.1723668167726191,
+          "maximum": 0.31918590311990114
+        }
+      },
+      {
+        "frames": 10,
+        "burden": {
+          "count": 54,
+          "mean": 8.54760037275311e-05,
+          "median": 0.0,
+          "p95": 0.0006866522144618872,
+          "maximum": 0.0008668813377921013
+        },
+        "maxExcess": {
+          "count": 54,
+          "mean": 0.024477951414989804,
+          "median": 0.0,
+          "p95": 0.16889131388409506,
+          "maximum": 0.23769951457186655
+        }
+      }
+    ]
+  },
+  "completionChanges": {
+    "newlyCompleted": [
+      [
+        "canonical-afterglow_turn-fold-transfer",
+        101
+      ],
+      [
+        "canonical-afterglow_turn-fold-transfer",
+        202
+      ],
+      [
+        "canonical-afterglow_turn-fold-transfer",
+        303
+      ],
+      [
+        "canonical-afterglow_turn-fold-transfer",
+        404
+      ],
+      [
+        "canonical-accelerando_reply-fold-transfer",
+        101
+      ],
+      [
+        "canonical-accelerando_reply-fold-transfer",
+        202
+      ],
+      [
+        "canonical-accelerando_reply-fold-transfer",
+        303
+      ],
+      [
+        "canonical-accelerando_reply-fold-transfer",
+        404
+      ],
+      [
+        "canonical-archipelago-fold-transfer",
+        101
+      ],
+      [
+        "canonical-archipelago-fold-transfer",
+        202
+      ],
+      [
+        "canonical-archipelago-fold-transfer",
+        303
+      ],
+      [
+        "canonical-archipelago-fold-transfer",
+        404
+      ],
+      [
+        "canonical-bridge_dense_dialogue-fold-transfer",
+        101
+      ],
+      [
+        "canonical-bridge_dense_dialogue-fold-transfer",
+        202
+      ],
+      [
+        "canonical-bridge_dense_dialogue-fold-transfer",
+        303
+      ],
+      [
+        "canonical-bridge_dense_dialogue-fold-transfer",
+        404
+      ],
+      [
+        "canonical-bridge_high_air_drive-fold-transfer",
+        101
+      ],
+      [
+        "canonical-bridge_high_air_drive-fold-transfer",
+        202
+      ],
+      [
+        "canonical-bridge_high_air_drive-fold-transfer",
+        303
+      ],
+      [
+        "canonical-bridge_high_air_drive-fold-transfer",
+        404
+      ],
+      [
+        "canonical-music_amor_na_praia_46s-fold-transfer",
+        101
+      ],
+      [
+        "canonical-music_amor_na_praia_46s-fold-transfer",
+        202
+      ],
+      [
+        "canonical-music_amor_na_praia_46s-fold-transfer",
+        303
+      ],
+      [
+        "canonical-music_amor_na_praia_46s-fold-transfer",
+        404
+      ],
+      [
+        "canonical-music_luna_bala_44s-fold-transfer",
+        101
+      ],
+      [
+        "canonical-music_luna_bala_44s-fold-transfer",
+        202
+      ],
+      [
+        "canonical-music_luna_bala_44s-fold-transfer",
+        303
+      ],
+      [
+        "canonical-music_luna_bala_44s-fold-transfer",
+        404
+      ],
+      [
+        "canonical-music_tiki_tiki_48s-fold-transfer",
+        101
+      ],
+      [
+        "canonical-music_tiki_tiki_48s-fold-transfer",
+        202
+      ],
+      [
+        "canonical-music_tiki_tiki_48s-fold-transfer",
+        303
+      ],
+      [
+        "canonical-music_tiki_tiki_48s-fold-transfer",
+        404
+      ],
+      [
+        "canonical-afterglow_turn-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_pickup_lattice-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_loose_pocket-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_loose_pocket-automatic",
+        404
+      ],
+      [
+        "canonical-accelerando_reply-automatic",
+        202
+      ],
+      [
+        "canonical-archipelago-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_dense_dialogue-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_dense_dialogue-automatic",
+        303
+      ],
+      [
+        "canonical-bridge_dense_dialogue-automatic",
+        404
+      ],
+      [
+        "canonical-bridge_high_air_drive-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_sparse_lowline-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_frontier_pickup_progression-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_frontier_pickup_progression-automatic",
+        404
+      ],
+      [
+        "canonical-bridge_frontier_dense_recovery-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_frontier_dense_recovery-automatic",
+        303
+      ],
+      [
+        "canonical-bridge_frontier_dense_recovery-automatic",
+        404
+      ],
+      [
+        "canonical-bridge_frontier_low_air_endurance-automatic",
+        202
+      ],
+      [
+        "canonical-alternating_intentions-automatic",
+        202
+      ],
+      [
+        "canonical-bridge_believer_56_6s-automatic",
+        202
+      ],
+      [
+        "canonical-music_shelter_impact_sync_81s-automatic",
+        202
+      ],
+      [
+        "canonical-music_shelter_impact_sync_81s-automatic",
+        404
+      ],
+      [
+        "canonical-music_amour_de_ma_vie_short_44s-automatic",
+        202
+      ]
+    ],
+    "regressed": [],
+    "bothInvalid": []
+  },
+  "executionErrors": [],
+  "worstValid": [
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 101,
+      "sourceId": "bridge_sparse_lowline",
+      "score": 625.9509,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2400,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.097288059310701,
+            "maxRelative": 0.10889648756636995,
+            "maxExcess": 0.04658328918100807,
+            "excessIntegral": 0.06453588757988704,
+            "peakFrame": 35,
+            "exceedanceFrames": 3,
+            "episodes": 3
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.920527752518531,
+            "maxRelative": 0.2250078407235618,
+            "maxExcess": 0.1829336139675608,
+            "excessIntegral": 0.0457334034918902,
+            "peakFrame": 38,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.972542106780061,
+            "maxRelative": 0.3437813990724064,
+            "maxExcess": 0.3494681684541714,
+            "excessIntegral": 0.1532307592841015,
+            "peakFrame": 266,
+            "exceedanceFrames": 13,
+            "episodes": 6
+          }
+        ],
+        "solverGain": -10.488310102663833,
+        "gravityGain": 9.724465970655153,
+        "positiveCorrection": 164.05934504131207,
+        "absoluteCorrection": 338.6070001852875,
+        "directionCorrection": 871.6877268490397,
+        "laterFrames": 2393,
+        "laterAbsoluteCorrection": 338.3864301164096,
+        "laterDirectionCorrection": 870.4879289482361
+      }
+    },
+    {
+      "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+      "seed": 202,
+      "sourceId": "music_amour_de_ma_vie_short_44s",
+      "score": 576.0699,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 1782,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.0439458970747548,
+            "maxRelative": 0.10492206089825028,
+            "maxExcess": 0.04653826255203786,
+            "excessIntegral": 0.08180279778098987,
+            "peakFrame": 756,
+            "exceedanceFrames": 3,
+            "episodes": 3
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.266336979858183,
+            "maxRelative": 0.27404100283307126,
+            "maxExcess": 0.31918590311990114,
+            "excessIntegral": 0.15199718017659264,
+            "peakFrame": 642,
+            "exceedanceFrames": 5,
+            "episodes": 4
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 3.139260472479952,
+            "maxRelative": 0.4296083399864381,
+            "maxExcess": 0.14804169993219052,
+            "excessIntegral": 0.026358871469546408,
+            "peakFrame": 10,
+            "exceedanceFrames": 2,
+            "episodes": 2
+          }
+        ],
+        "solverGain": -99.66419887917041,
+        "gravityGain": 106.52381673934059,
+        "positiveCorrection": 94.55004985693566,
+        "absoluteCorrection": 288.76429859304216,
+        "directionCorrection": 724.461369534871,
+        "laterFrames": 1775,
+        "laterAbsoluteCorrection": 286.86739701344044,
+        "laterDirectionCorrection": 722.2419703451643
+      }
+    },
+    {
+      "id": "canonical-accelerando_reply-automatic",
+      "seed": 303,
+      "sourceId": "accelerando_reply",
+      "score": 764.671,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2660,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.0720456388939095,
+            "maxRelative": 0.1035724579719151,
+            "maxExcess": 0.03511713764200475,
+            "excessIntegral": 0.03722069695773933,
+            "peakFrame": 2041,
+            "exceedanceFrames": 2,
+            "episodes": 2
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.8314093149480897,
+            "maxRelative": 0.20276670867334742,
+            "maxExcess": 0.024409045037975474,
+            "excessIntegral": 0.006226048592526179,
+            "peakFrame": 1183,
+            "exceedanceFrames": 2,
+            "episodes": 2
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.7743928844755157,
+            "maxRelative": 0.39624643818825134,
+            "maxExcess": 0.23990965683951115,
+            "excessIntegral": 0.04678500196109549,
+            "peakFrame": 70,
+            "exceedanceFrames": 3,
+            "episodes": 2
+          }
+        ],
+        "solverGain": -78.91240609977409,
+        "gravityGain": 88.74126378010068,
+        "positiveCorrection": 118.86423634325467,
+        "absoluteCorrection": 316.64087878628374,
+        "directionCorrection": 851.5392094759238,
+        "laterFrames": 2653,
+        "laterAbsoluteCorrection": 316.28343974513194,
+        "laterDirectionCorrection": 849.5093625306861
+      }
+    },
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 303,
+      "sourceId": "bridge_sparse_lowline",
+      "score": 719.8471,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2400,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.1372770652044863,
+            "maxRelative": 0.10348021904121095,
+            "maxExcess": 0.03354390007194752,
+            "excessIntegral": 0.04269217957521221,
+            "peakFrame": 560,
+            "exceedanceFrames": 2,
+            "episodes": 2
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.205886264416085,
+            "maxRelative": 0.2151285223139762,
+            "maxExcess": 0.14511519372314852,
+            "excessIntegral": 0.08657129470099362,
+            "peakFrame": 1432,
+            "exceedanceFrames": 6,
+            "episodes": 6
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.9695507262188077,
+            "maxRelative": 0.3263089352915876,
+            "maxExcess": 0.23942255161160375,
+            "excessIntegral": 0.03735411246153064,
+            "peakFrame": 1306,
+            "exceedanceFrames": 3,
+            "episodes": 3
+          }
+        ],
+        "solverGain": -38.48165743308005,
+        "gravityGain": 37.92773308319484,
+        "positiveCorrection": 141.89558031173226,
+        "absoluteCorrection": 322.2728180565442,
+        "directionCorrection": 899.2360178078069,
+        "laterFrames": 2393,
+        "laterAbsoluteCorrection": 322.05122605644635,
+        "laterDirectionCorrection": 898.0590762986859
+      }
+    },
+    {
+      "id": "canonical-afterglow_turn-automatic",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "score": 796.737,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2660,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.0898634980563724,
+            "maxRelative": 0.10657260606223816,
+            "maxExcess": 0.06721467832131345,
+            "excessIntegral": 0.07757790990085511,
+            "peakFrame": 496,
+            "exceedanceFrames": 2,
+            "episodes": 2
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.8246574219402296,
+            "maxRelative": 0.22154867592334027,
+            "maxExcess": 0.1774731954169413,
+            "excessIntegral": 0.04436829885423532,
+            "peakFrame": 512,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.6928413446637887,
+            "maxRelative": 0.3298006910629383,
+            "maxExcess": 0.23769951457186655,
+            "excessIntegral": 0.0456623722617155,
+            "peakFrame": 519,
+            "exceedanceFrames": 5,
+            "episodes": 3
+          }
+        ],
+        "solverGain": -82.98834422290244,
+        "gravityGain": 90.10946106882786,
+        "positiveCorrection": 116.3549154401343,
+        "absoluteCorrection": 315.69817510317216,
+        "directionCorrection": 851.1832959866965,
+        "laterFrames": 2653,
+        "laterAbsoluteCorrection": 315.39204679756915,
+        "laterDirectionCorrection": 849.3513941804549
+      }
+    },
+    {
+      "id": "canonical-bridge_believer_56_6s-automatic",
+      "seed": 303,
+      "sourceId": "bridge_believer_56_6s",
+      "score": 644.7455,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2264,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.2382201957881769,
+            "maxRelative": 0.10557583008692083,
+            "maxExcess": 0.060677056527198125,
+            "excessIntegral": 0.10354186299159607,
+            "peakFrame": 1753,
+            "exceedanceFrames": 4,
+            "episodes": 4
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.231174425333762,
+            "maxRelative": 0.21274675747509728,
+            "maxExcess": 0.13368118800916617,
+            "excessIntegral": 0.04506345047055238,
+            "peakFrame": 1031,
+            "exceedanceFrames": 2,
+            "episodes": 2
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.9861369934201356,
+            "maxRelative": 0.32806929276161156,
+            "maxExcess": 0.2203174009126041,
+            "excessIntegral": 0.032640349002963774,
+            "peakFrame": 593,
+            "exceedanceFrames": 3,
+            "episodes": 1
+          }
+        ],
+        "solverGain": -88.53325080036328,
+        "gravityGain": 93.67491798248184,
+        "positiveCorrection": 115.31488620827609,
+        "absoluteCorrection": 319.16302321691626,
+        "directionCorrection": 808.6825767285511,
+        "laterFrames": 2257,
+        "laterAbsoluteCorrection": 318.7764644402167,
+        "laterDirectionCorrection": 806.2714992577074
+      }
+    },
+    {
+      "id": "canonical-bridge_pickup_lattice-automatic",
+      "seed": 101,
+      "sourceId": "bridge_pickup_lattice",
+      "score": 743.8230999999998,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2320,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.0055188026820936,
+            "maxRelative": 0.10151214101014609,
+            "maxExcess": 0.014978368132897657,
+            "excessIntegral": 0.014978368132897657,
+            "peakFrame": 1726,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.9332666997145793,
+            "maxRelative": 0.3068446872683999,
+            "maxExcess": 0.212615396530774,
+            "excessIntegral": 0.11457095211506307,
+            "peakFrame": 15,
+            "exceedanceFrames": 3,
+            "episodes": 2
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.778312738135824,
+            "maxRelative": 0.313197096268874,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          }
+        ],
+        "solverGain": -55.49393905689219,
+        "gravityGain": 63.85417413930301,
+        "positiveCorrection": 114.24376828499706,
+        "absoluteCorrection": 283.9814756268868,
+        "directionCorrection": 786.5477164684643,
+        "laterFrames": 2313,
+        "laterAbsoluteCorrection": 283.9498483154101,
+        "laterDirectionCorrection": 786.3296297388449
+      }
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-terraces-transfer",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "score": 872.5159,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 1840,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 0.9958457125420139,
+            "maxRelative": 0.09771104722418374,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.7518838731729058,
+            "maxRelative": 0.20301965232527502,
+            "maxExcess": 0.026056985866386384,
+            "excessIntegral": 0.006514246466596596,
+            "peakFrame": 373,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.2100462187613843,
+            "maxRelative": 0.3849655404423551,
+            "maxExcess": 0.2100462187613843,
+            "excessIntegral": 0.041167522824411766,
+            "peakFrame": 325,
+            "exceedanceFrames": 3,
+            "episodes": 1
+          }
+        ],
+        "solverGain": -13.67279896953743,
+        "gravityGain": 17.243139249364496,
+        "positiveCorrection": 99.88805845957292,
+        "absoluteCorrection": 213.4489158886833,
+        "directionCorrection": 611.1609811912696,
+        "laterFrames": 1833,
+        "laterAbsoluteCorrection": 212.72824660665458,
+        "laterDirectionCorrection": 608.4128188095802
+      }
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-terraces-transfer",
+      "seed": 404,
+      "sourceId": "music_amor_na_praia_46s",
+      "score": 872.5159,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 1840,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 0.9958457125420139,
+            "maxRelative": 0.09771104722418374,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.7518838731729058,
+            "maxRelative": 0.20301965232527502,
+            "maxExcess": 0.026056985866386384,
+            "excessIntegral": 0.006514246466596596,
+            "peakFrame": 373,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.2100462187613843,
+            "maxRelative": 0.3849655404423551,
+            "maxExcess": 0.2100462187613843,
+            "excessIntegral": 0.041167522824411766,
+            "peakFrame": 325,
+            "exceedanceFrames": 3,
+            "episodes": 1
+          }
+        ],
+        "solverGain": -13.67279896953743,
+        "gravityGain": 17.243139249364496,
+        "positiveCorrection": 99.88805845957292,
+        "absoluteCorrection": 213.4489158886833,
+        "directionCorrection": 611.1609811912696,
+        "laterFrames": 1833,
+        "laterAbsoluteCorrection": 212.72824660665458,
+        "laterDirectionCorrection": 608.4128188095802
+      }
+    },
+    {
+      "id": "canonical-afterglow_turn-automatic",
+      "seed": 404,
+      "sourceId": "afterglow_turn",
+      "score": 827.1525,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2660,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.0317642475930207,
+            "maxRelative": 0.10234842501943676,
+            "maxExcess": 0.021799511004787275,
+            "excessIntegral": 0.03052095176992664,
+            "peakFrame": 1052,
+            "exceedanceFrames": 3,
+            "episodes": 3
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.280555191055413,
+            "maxRelative": 0.22458708410200237,
+            "maxExcess": 0.2054870502107351,
+            "excessIntegral": 0.11011214312693568,
+            "peakFrame": 1732,
+            "exceedanceFrames": 5,
+            "episodes": 5
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 3.0083173360378535,
+            "maxRelative": 0.30176913046667475,
+            "maxExcess": 0.015435227416183306,
+            "excessIntegral": 0.0015435227416183306,
+            "peakFrame": 1493,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          }
+        ],
+        "solverGain": -21.445531096690246,
+        "gravityGain": 30.599291854664138,
+        "positiveCorrection": 160.1815894226033,
+        "absoluteCorrection": 341.8087099418965,
+        "directionCorrection": 899.9131214683462,
+        "laterFrames": 2653,
+        "laterAbsoluteCorrection": 341.6733743910536,
+        "laterDirectionCorrection": 899.4399507270458
+      }
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 303,
+      "sourceId": "bridge_frontier_pickup_progression",
+      "score": 649.4727,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2400,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.1084787409483905,
+            "maxRelative": 0.1049345368055097,
+            "maxExcess": 0.041158774360088635,
+            "excessIntegral": 0.1276856072431043,
+            "peakFrame": 2365,
+            "exceedanceFrames": 6,
+            "episodes": 6
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.1251292268302198,
+            "maxRelative": 0.20911106722071876,
+            "maxExcess": 0.07751443348761522,
+            "excessIntegral": 0.04669811344986152,
+            "peakFrame": 349,
+            "exceedanceFrames": 7,
+            "episodes": 6
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 3.451421999880557,
+            "maxRelative": 0.3179749593820085,
+            "maxExcess": 0.18796304775678996,
+            "excessIntegral": 0.10061610899702637,
+            "peakFrame": 1916,
+            "exceedanceFrames": 12,
+            "episodes": 7
+          }
+        ],
+        "solverGain": -54.27715695829172,
+        "gravityGain": 54.42809356145111,
+        "positiveCorrection": 175.1414169999004,
+        "absoluteCorrection": 404.5599909580919,
+        "directionCorrection": 1009.1804105782835,
+        "laterFrames": 2393,
+        "laterAbsoluteCorrection": 403.9865930597604,
+        "laterDirectionCorrection": 1006.735841156237
+      }
+    },
+    {
+      "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+      "seed": 202,
+      "sourceId": "bridge_frontier_low_air_endurance",
+      "score": 581.2301,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2480,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 0.9990753021755872,
+            "maxRelative": 0.1070935378331739,
+            "maxExcess": 0.05713588209338161,
+            "excessIntegral": 0.10070821784336492,
+            "peakFrame": 1657,
+            "exceedanceFrames": 2,
+            "episodes": 2
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.072976450412579,
+            "maxRelative": 0.20741904752981427,
+            "maxExcess": 0.07277329269045718,
+            "excessIntegral": 0.024425674341434778,
+            "peakFrame": 1713,
+            "exceedanceFrames": 3,
+            "episodes": 3
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 3.301447868643067,
+            "maxRelative": 0.32148304955447987,
+            "maxExcess": 0.17303819549825894,
+            "excessIntegral": 0.024400422999723892,
+            "peakFrame": 1666,
+            "exceedanceFrames": 3,
+            "episodes": 2
+          }
+        ],
+        "solverGain": -85.19731532999069,
+        "gravityGain": 88.73371339094915,
+        "positiveCorrection": 115.14208127706742,
+        "absoluteCorrection": 315.48147788412484,
+        "directionCorrection": 840.8134292481207,
+        "laterFrames": 2473,
+        "laterAbsoluteCorrection": 314.8313752509671,
+        "laterDirectionCorrection": 838.1170628254839
+      }
+    },
+    {
+      "id": "canonical-bridge_frontier_dense_recovery-automatic",
+      "seed": 101,
+      "sourceId": "bridge_frontier_dense_recovery",
+      "score": 708.4993,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2320,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.0645244152968338,
+            "maxRelative": 0.1020646403284625,
+            "maxExcess": 0.019791860710125064,
+            "excessIntegral": 0.031627750226460694,
+            "peakFrame": 2158,
+            "exceedanceFrames": 4,
+            "episodes": 4
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.1234191463626644,
+            "maxRelative": 0.2068825681101955,
+            "maxExcess": 0.06159398657605397,
+            "excessIntegral": 0.044124674601888236,
+            "peakFrame": 303,
+            "exceedanceFrames": 6,
+            "episodes": 6
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 3.078008832704441,
+            "maxRelative": 0.3203072595612896,
+            "maxExcess": 0.17295879534719294,
+            "excessIntegral": 0.05858895717019412,
+            "peakFrame": 2187,
+            "exceedanceFrames": 9,
+            "episodes": 7
+          }
+        ],
+        "solverGain": -16.36837888148198,
+        "gravityGain": 16.42367656623252,
+        "positiveCorrection": 173.83159006963493,
+        "absoluteCorrection": 364.0315590207523,
+        "directionCorrection": 897.5898855526631,
+        "laterFrames": 2313,
+        "laterAbsoluteCorrection": 363.4716504623758,
+        "laterDirectionCorrection": 895.1547938719117
+      }
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 202,
+      "sourceId": "bridge_frontier_pickup_progression",
+      "score": 651.6706,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2400,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.0275100100435868,
+            "maxRelative": 0.10191739279135331,
+            "maxExcess": 0.019181637237482896,
+            "excessIntegral": 0.019181637237482896,
+            "peakFrame": 2056,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.2374336886118638,
+            "maxRelative": 0.21669358209393977,
+            "maxExcess": 0.1723668167726191,
+            "excessIntegral": 0.04309170419315478,
+            "peakFrame": 1839,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.8088667966597693,
+            "maxRelative": 0.27650129132783935,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          }
+        ],
+        "solverGain": -44.212982485333704,
+        "gravityGain": 39.328916987096335,
+        "positiveCorrection": 162.56216834964755,
+        "absoluteCorrection": 369.3373191846301,
+        "directionCorrection": 947.1961368061313,
+        "laterFrames": 2393,
+        "laterAbsoluteCorrection": 368.70779170974157,
+        "laterDirectionCorrection": 944.3614148845769
+      }
+    },
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 202,
+      "sourceId": "bridge_sparse_lowline",
+      "score": 656.44,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2400,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 0.9603131028136165,
+            "maxRelative": 0.10954170865410126,
+            "maxExcess": 0.0758249265422507,
+            "excessIntegral": 0.08471789305899191,
+            "peakFrame": 253,
+            "exceedanceFrames": 2,
+            "episodes": 2
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.8157652182165336,
+            "maxRelative": 0.19806087210991297,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.7882614090436633,
+            "maxRelative": 0.3212530599735226,
+            "maxExcess": 0.16889131388409506,
+            "excessIntegral": 0.046764093856244054,
+            "peakFrame": 262,
+            "exceedanceFrames": 6,
+            "episodes": 4
+          }
+        ],
+        "solverGain": -30.58586177711068,
+        "gravityGain": 30.571368148231965,
+        "positiveCorrection": 125.68567852217852,
+        "absoluteCorrection": 281.95721882146705,
+        "directionCorrection": 822.4657646679779,
+        "laterFrames": 2393,
+        "laterAbsoluteCorrection": 281.7406696875635,
+        "laterDirectionCorrection": 821.23915635287
+      }
+    },
+    {
+      "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+      "seed": 404,
+      "sourceId": "bridge_frontier_low_air_endurance",
+      "score": 553.5773,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2480,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.0130451017069806,
+            "maxRelative": 0.10389915476519315,
+            "maxExcess": 0.03410091144583971,
+            "excessIntegral": 0.08404143511938744,
+            "peakFrame": 250,
+            "exceedanceFrames": 4,
+            "episodes": 4
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.1070450725736123,
+            "maxRelative": 0.20987696332368286,
+            "maxExcess": 0.07709303346275354,
+            "excessIntegral": 0.041165190711623445,
+            "peakFrame": 510,
+            "exceedanceFrames": 3,
+            "episodes": 3
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.9101952182356747,
+            "maxRelative": 0.31856713044150303,
+            "maxExcess": 0.15492690341870086,
+            "excessIntegral": 0.026683418513336353,
+            "peakFrame": 169,
+            "exceedanceFrames": 5,
+            "episodes": 4
+          }
+        ],
+        "solverGain": -27.765368107832387,
+        "gravityGain": 30.162824782035347,
+        "positiveCorrection": 158.31889994711923,
+        "absoluteCorrection": 344.4031680020701,
+        "directionCorrection": 919.892921555191,
+        "laterFrames": 2473,
+        "laterAbsoluteCorrection": 343.19608929277246,
+        "laterDirectionCorrection": 914.0315645670129
+      }
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-arcs-transfer",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "score": 866.1730000000001,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2400,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.1014698461718595,
+            "maxRelative": 0.0998634247627302,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.8680128937840568,
+            "maxRelative": 0.2211368297927062,
+            "maxExcess": 0.1516402652513278,
+            "excessIntegral": 0.06418400589038165,
+            "peakFrame": 780,
+            "exceedanceFrames": 3,
+            "episodes": 2
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.021034026591039,
+            "maxRelative": 0.22350832233177398,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          }
+        ],
+        "solverGain": -57.103794604535665,
+        "gravityGain": 59.15713024828574,
+        "positiveCorrection": 100.53054624631577,
+        "absoluteCorrection": 258.16488709716697,
+        "directionCorrection": 646.6572327665324,
+        "laterFrames": 2393,
+        "laterAbsoluteCorrection": 257.55731643554105,
+        "laterDirectionCorrection": 644.1736187505483
+      }
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-arcs-transfer",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "score": 866.1730000000001,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2400,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.1014698461718595,
+            "maxRelative": 0.0998634247627302,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.8680128937840568,
+            "maxRelative": 0.2211368297927062,
+            "maxExcess": 0.1516402652513278,
+            "excessIntegral": 0.06418400589038165,
+            "peakFrame": 780,
+            "exceedanceFrames": 3,
+            "episodes": 2
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.021034026591039,
+            "maxRelative": 0.22350832233177398,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          }
+        ],
+        "solverGain": -57.103794604535665,
+        "gravityGain": 59.15713024828574,
+        "positiveCorrection": 100.53054624631577,
+        "absoluteCorrection": 258.16488709716697,
+        "directionCorrection": 646.6572327665324,
+        "laterFrames": 2393,
+        "laterAbsoluteCorrection": 257.55731643554105,
+        "laterDirectionCorrection": 644.1736187505483
+      }
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-automatic",
+      "seed": 303,
+      "sourceId": "bridge_dense_dialogue",
+      "score": 660.567,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 2320,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.1104023568511447,
+            "maxRelative": 0.0999706153407964,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 1.9902216067030185,
+            "maxRelative": 0.21759970141086618,
+            "maxExcess": 0.1493037617110744,
+            "excessIntegral": 0.07390847419838742,
+            "peakFrame": 2021,
+            "exceedanceFrames": 2,
+            "episodes": 1
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.4076253597192903,
+            "maxRelative": 0.2865735257460957,
+            "maxExcess": 0,
+            "excessIntegral": 0,
+            "peakFrame": null,
+            "exceedanceFrames": 0,
+            "episodes": 0
+          }
+        ],
+        "solverGain": -83.67380263679826,
+        "gravityGain": 93.84207674460873,
+        "positiveCorrection": 125.86645589952084,
+        "absoluteCorrection": 335.40671443583886,
+        "directionCorrection": 848.0769008975667,
+        "laterFrames": 2313,
+        "laterAbsoluteCorrection": 335.103463984078,
+        "laterDirectionCorrection": 846.2668982011485
+      }
+    },
+    {
+      "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+      "seed": 101,
+      "sourceId": "music_amour_de_ma_vie_short_44s",
+      "score": 630.3305,
+      "motion": {
+        "schema": "line.motion-observation.v1",
+        "frames": 1782,
+        "bursts": [
+          {
+            "frames": 1,
+            "absolute": 0.75,
+            "relative": 0.1,
+            "maximum": 1.1121441941735721,
+            "maxRelative": 0.11120777837665577,
+            "maxExcess": 0.08464458489671478,
+            "excessIntegral": 0.12365943983972993,
+            "peakFrame": 399,
+            "exceedanceFrames": 5,
+            "episodes": 5
+          },
+          {
+            "frames": 4,
+            "absolute": 1.25,
+            "relative": 0.2,
+            "maximum": 2.08217445129503,
+            "maxRelative": 0.27404100283307126,
+            "maxExcess": 0.13015737077650247,
+            "excessIntegral": 0.07825670278351887,
+            "peakFrame": 575,
+            "exceedanceFrames": 4,
+            "episodes": 3
+          },
+          {
+            "frames": 10,
+            "absolute": 2,
+            "relative": 0.3,
+            "maximum": 2.927915777984067,
+            "maxRelative": 0.4296083399864381,
+            "maxExcess": 0.14804169993219052,
+            "excessIntegral": 0.014804169993219051,
+            "peakFrame": 10,
+            "exceedanceFrames": 1,
+            "episodes": 1
+          }
+        ],
+        "solverGain": -31.47513421623158,
+        "gravityGain": 36.38967819383754,
+        "positiveCorrection": 124.61210396183594,
+        "absoluteCorrection": 280.69934213990325,
+        "directionCorrection": 714.7562961173171,
+        "laterFrames": 1775,
+        "laterAbsoluteCorrection": 278.8024405603014,
+        "laterDirectionCorrection": 712.5368969276103
+      }
+    }
+  ],
+  "families": [
+    {
+      "panel": "automatic",
+      "family": "amor_na_praia",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0003609866505259197,
+            "median": 0.00010464740746539112,
+            "p95": 0.0012346517871728965,
+            "maximum": 0.0012346517871728965
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.010244149124497337,
+            "median": 0.0048137807434079916,
+            "p95": 0.031349035011173365,
+            "maximum": 0.031349035011173365
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.00020535481026146056,
+            "median": 0.00023071016099506138,
+            "p95": 0.0003599989190557195,
+            "maximum": 0.0003599989190557195
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.035119142468914566,
+            "median": 0.040307048037395043,
+            "p95": 0.05986247380086818,
+            "maximum": 0.05986247380086818
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.00011339984211798598,
+            "median": 0.0,
+            "p95": 0.00045359936847194393,
+            "maximum": 0.00045359936847194393
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.02610547296497079,
+            "median": 0.0,
+            "p95": 0.10442189185988315,
+            "maximum": 0.10442189185988315
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "amour_de_ma_vie",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.003042800755984843,
+            "median": 0.002305973486203365,
+            "p95": 0.006957514687355734,
+            "maximum": 0.006957514687355734
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.07338075250029069,
+            "median": 0.06559142372437632,
+            "p95": 0.1390821335381529,
+            "maximum": 0.1390821335381529
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.0017070377698638842,
+            "median": 0.0017081588149624187,
+            "p95": 0.003411833449530699,
+            "maximum": 0.003411833449530699
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.14238707201543999,
+            "median": 0.1251811924709294,
+            "p95": 0.31918590311990114,
+            "maximum": 0.31918590311990114
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.0005016262149013644,
+            "median": 0.0004919640835755833,
+            "p95": 0.0006902720910352328,
+            "maximum": 0.0006902720910352328
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.13469039513739323,
+            "median": 0.14804169993219052,
+            "p95": 0.14804169993219052,
+            "maximum": 0.14804169993219052
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "believer",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0014650223795083018,
+            "median": 0.0012212511132981111,
+            "p95": 0.002832074934738714,
+            "maximum": 0.002832074934738714
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.04976260240131597,
+            "median": 0.04367016867236717,
+            "p95": 0.08864758064918599,
+            "maximum": 0.08864758064918599
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.0008336790565065479,
+            "median": 0.0009661508722863728,
+            "p95": 0.0014024144814534457,
+            "maximum": 0.0014024144814534457
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.10377620515344338,
+            "median": 0.1362109242792534,
+            "p95": 0.1426829720552667,
+            "maximum": 0.1426829720552667
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.00025621592164552743,
+            "median": 0.00022408953761116282,
+            "p95": 0.000576684611359784,
+            "maximum": 0.000576684611359784
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.10021291384019604,
+            "median": 0.09026712722409003,
+            "p95": 0.2203174009126041,
+            "maximum": 0.2203174009126041
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "cadence_transition",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0002803136751741892,
+            "median": 0.00028077248600447363,
+            "p95": 0.0005597097286878095,
+            "maximum": 0.0005597097286878095
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.018114969570149936,
+            "median": 0.018671370319297498,
+            "p95": 0.03511713764200475,
+            "maximum": 0.03511713764200475
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.00037957819408633396,
+            "median": 0.00034669489677662034,
+            "p95": 0.0007312981919270399,
+            "maximum": 0.0007312981919270399
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.07160582747639666,
+            "median": 0.07237959579588393,
+            "p95": 0.11725507327584328,
+            "maximum": 0.11725507327584328
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.00028998712584546617,
+            "median": 0.0002282073196526204,
+            "p95": 0.0007035338640766238,
+            "maximum": 0.0007035338640766238
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.10946085011843987,
+            "median": 0.09896687181712416,
+            "p95": 0.23990965683951115,
+            "maximum": 0.23990965683951115
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "dense_musical",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.001863329552075857,
+            "median": 0.001314112583793756,
+            "p95": 0.004825093040715916,
+            "maximum": 0.004825093040715916
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.040529962220334254,
+            "median": 0.03795164583630606,
+            "p95": 0.0862165572087249,
+            "maximum": 0.0862165572087249
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.00047825020454591563,
+            "median": 0.0002905755139646312,
+            "p95": 0.0012742840379032314,
+            "maximum": 0.0012742840379032314
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.07084006236824553,
+            "median": 0.06243193998028895,
+            "p95": 0.1493037617110744,
+            "maximum": 0.1493037617110744
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 2.643772834520315e-05,
+            "median": 0.0,
+            "p95": 0.0001057509133808126,
+            "maximum": 0.0001057509133808126
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.015333882440217828,
+            "median": 0.0,
+            "p95": 0.06133552976087131,
+            "maximum": 0.06133552976087131
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "dense_recovery_frontier",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0014593470772401574,
+            "median": 0.0013865299539925508,
+            "p95": 0.0030495537663838682,
+            "maximum": 0.0030495537663838682
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.04230903414494072,
+            "median": 0.03930594381708519,
+            "p95": 0.08976732013927624,
+            "maximum": 0.08976732013927624
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.0005764631227113469,
+            "median": 0.0005675752245834331,
+            "p95": 0.0007607702517566937,
+            "maximum": 0.0007607702517566937
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.07414885153885836,
+            "median": 0.0776462266907827,
+            "p95": 0.07970896619781409,
+            "maximum": 0.07970896619781409
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.00045706009135346187,
+            "median": 0.00040904296572249164,
+            "p95": 0.0010101544339688642,
+            "maximum": 0.0010101544339688642
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.10085936820744179,
+            "median": 0.11523933874128711,
+            "p95": 0.17295879534719294,
+            "maximum": 0.17295879534719294
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "high_air_energy",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.00043057445419909476,
+            "median": 0.0004937411112433583,
+            "p95": 0.0007348155943096623,
+            "maximum": 0.0007348155943096623
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.025834467251945686,
+            "median": 0.029624466674601502,
+            "p95": 0.04408893565857974,
+            "maximum": 0.04408893565857974
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.00030453291585364123,
+            "median": 0.0001137508051905133,
+            "p95": 0.0009906300530335384,
+            "maximum": 0.0009906300530335384
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.04544375553189556,
+            "median": 0.027300193245723192,
+            "p95": 0.12717463563613585,
+            "maximum": 0.12717463563613585
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "irregular_microtimed",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0004010207651944727,
+            "median": 0.00038647652017185765,
+            "p95": 0.0008311300204341755,
+            "maximum": 0.0008311300204341755
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.0119772440641632,
+            "median": 0.011705443668403481,
+            "p95": 0.02449808891984584,
+            "maximum": 0.02449808891984584
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 7.693219147794913e-05,
+            "median": 9.0807142197284e-05,
+            "p95": 0.00012611448151722847,
+            "maximum": 0.00012611448151722847
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.016750070795040928,
+            "median": 0.019375319660152268,
+            "p95": 0.028249643859859175,
+            "maximum": 0.028249643859859175
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 3.3293817410259435e-05,
+            "median": 0.0,
+            "p95": 0.00013317526964103774,
+            "maximum": 0.00013317526964103774
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.010101322368183285,
+            "median": 0.0,
+            "p95": 0.04040528947273314,
+            "maximum": 0.04040528947273314
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "legacy_amplitude_regression",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0002731755300164105,
+            "median": 0.00020057810427465752,
+            "p95": 0.0006254214159273702,
+            "maximum": 0.0006254214159273702
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.013826147202996991,
+            "median": 0.012536131517166094,
+            "p95": 0.026099544803345975,
+            "maximum": 0.026099544803345975
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.0001289886861277738,
+            "median": 0.00010569990302699138,
+            "p95": 0.00030455493845711243,
+            "maximum": 0.00030455493845711243
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.03224717153194345,
+            "median": 0.02642497575674785,
+            "p95": 0.07613873461427811,
+            "maximum": 0.07613873461427811
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "legacy_transition_regression",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0008351338349290831,
+            "median": 0.0007816508840994159,
+            "p95": 0.0014256664980684625,
+            "maximum": 0.0014256664980684625
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.029453029767319533,
+            "median": 0.030002922835229817,
+            "p95": 0.03956133905418735,
+            "maximum": 0.03956133905418735
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.00020500437590250284,
+            "median": 8.098227292555293e-05,
+            "p95": 0.0006117254912546483,
+            "maximum": 0.0006117254912546483
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.03491289636911271,
+            "median": 0.018797283755710215,
+            "p95": 0.09047515133896611,
+            "maximum": 0.09047515133896611
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 6.894347673205381e-06,
+            "median": 2.589836496857956e-06,
+            "p95": 2.239771769910561e-05,
+            "maximum": 2.239771769910561e-05
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.004308967295753363,
+            "median": 0.0016186478105362223,
+            "p95": 0.013998573561941008,
+            "maximum": 0.013998573561941008
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "low_air_frontier",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0016245530940601578,
+            "median": 0.0014899165561512288,
+            "p95": 0.002386214474425235,
+            "maximum": 0.002386214474425235
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.049604155405940153,
+            "median": 0.05308101675087418,
+            "p95": 0.05815367667617255,
+            "maximum": 0.05815367667617255
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.000528930415364709,
+            "median": 0.0005289022415918518,
+            "p95": 0.0006639546888971523,
+            "maximum": 0.0006639546888971523
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.07462296545880281,
+            "median": 0.07441172712070843,
+            "p95": 0.07709303346275354,
+            "maximum": 0.07709303346275354
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.00020642322980284238,
+            "median": 0.00019765760062716577,
+            "p95": 0.00043037771795703797,
+            "maximum": 0.00043037771795703797
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.0822640734243516,
+            "median": 0.07800904909957374,
+            "p95": 0.17303819549825894,
+            "maximum": 0.17303819549825894
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "luna_bala",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 1.64853262803302e-05,
+            "median": 0.0,
+            "p95": 6.59413051213208e-05,
+            "maximum": 6.59413051213208e-05
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.0029014174253381153,
+            "median": 0.0,
+            "p95": 0.011605669701352461,
+            "maximum": 0.011605669701352461
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.00011862092475900936,
+            "median": 0.0,
+            "p95": 0.00047448369903603743,
+            "maximum": 0.00047448369903603743
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.028448177634142313,
+            "median": 0.0,
+            "p95": 0.11379271053656925,
+            "maximum": 0.11379271053656925
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "rapid_pickup_frontier",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0013525380333553794,
+            "median": 0.0014811823627058655,
+            "p95": 0.0021280934540517382,
+            "maximum": 0.0021280934540517382
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.042152185067187625,
+            "median": 0.04139671554497765,
+            "p95": 0.06663367194131231,
+            "maximum": 0.06663367194131231
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.0014741922741394477,
+            "median": 0.0011246335939508138,
+            "p95": 0.0029293068387702503,
+            "maximum": 0.0029293068387702503
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.12724375958866518,
+            "median": 0.1295468940472132,
+            "p95": 0.1723668167726191,
+            "maximum": 0.1723668167726191
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.0008069654231045704,
+            "median": 0.000775463271233921,
+            "p95": 0.0016769351499504395,
+            "maximum": 0.0016769351499504395
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.10984488096187983,
+            "median": 0.12570823804536468,
+            "p95": 0.18796304775678996,
+            "maximum": 0.18796304775678996
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "regular_exceptions",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0005298458779121924,
+            "median": 0.0004763992001788576,
+            "p95": 0.0011665851112910544,
+            "maximum": 0.0011665851112910544
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.027628736326463343,
+            "median": 0.021650133492269963,
+            "p95": 0.06721467832131345,
+            "maximum": 0.06721467832131345
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.000606137713054814,
+            "median": 0.0003843645755311641,
+            "p95": 0.0016558217011569275,
+            "maximum": 0.0016558217011569275
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.1024922510983286,
+            "median": 0.10224097709128965,
+            "p95": 0.2054870502107351,
+            "maximum": 0.2054870502107351
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.0001835143177451353,
+            "median": 2.3702528259326972e-05,
+            "p95": 0.0006866522144618872,
+            "maximum": 0.0006866522144618872
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.06730596928919286,
+            "median": 0.015762181292452437,
+            "p95": 0.23769951457186655,
+            "maximum": 0.23769951457186655
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "shelter",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0007902624881108259,
+            "median": 0.0008968981694730253,
+            "p95": 0.0011229907409280124,
+            "maximum": 0.0011229907409280124
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.043334031780784904,
+            "median": 0.0477098252949989,
+            "p95": 0.05813118385503335,
+            "maximum": 0.05813118385503335
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.00011745464004746482,
+            "median": 0.00012657808335030433,
+            "p95": 0.00015829651734702477,
+            "maximum": 0.00015829651734702477
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.0380553033753786,
+            "median": 0.0410112990054986,
+            "p95": 0.051288071620436027,
+            "maximum": 0.051288071620436027
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "spacious_amplitude",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.00028771992766256723,
+            "median": 7.31934712677793e-05,
+            "p95": 0.0010044927681147104,
+            "maximum": 0.0010044927681147104
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.01689870787199199,
+            "median": 0.004237949038837896,
+            "p95": 0.059118933410292174,
+            "maximum": 0.059118933410292174
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.00013355469858584556,
+            "median": 0.00013621659463392534,
+            "p95": 0.0002617856050755316,
+            "maximum": 0.0002617856050755316
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.03338867464646139,
+            "median": 0.03405414865848133,
+            "p95": 0.0654464012688829,
+            "maximum": 0.0654464012688829
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 1.89108120223624e-05,
+            "median": 0.0,
+            "p95": 7.56432480894496e-05,
+            "maximum": 7.56432480894496e-05
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.0118192575139765,
+            "median": 0.0,
+            "p95": 0.047277030055906,
+            "maximum": 0.047277030055906
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "sparse_transition",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0013420915425044777,
+            "median": 0.0012437815053239912,
+            "p95": 0.002169266833116392,
+            "maximum": 0.002169266833116392
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.05531210385880128,
+            "median": 0.05593979441050345,
+            "p95": 0.0758249265422507,
+            "maximum": 0.0758249265422507
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.000687331167159614,
+            "median": 0.0006532348784776145,
+            "p95": 0.0014428549116832269,
+            "maximum": 0.0014428549116832269
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.09557961461969094,
+            "median": 0.09969242225560149,
+            "p95": 0.1829336139675608,
+            "maximum": 0.1829336139675608
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.0011468158728167878,
+            "median": 0.0007054244810866414,
+            "p95": 0.002553845988068358,
+            "maximum": 0.002553845988068358
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.22591257696351108,
+            "median": 0.2041569327478494,
+            "p95": 0.3494681684541714,
+            "maximum": 0.3494681684541714
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "subdivision_pickup",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 8.773866820512537e-05,
+            "median": 4.635347319561577e-05,
+            "p95": 0.00025824772642926995,
+            "maximum": 0.00025824772642926995
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.0050888427558972715,
+            "median": 0.0026885014453457146,
+            "p95": 0.014978368132897657,
+            "maximum": 0.014978368132897657
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 0.0010033377868101322,
+            "median": 0.0008577222531213605,
+            "p95": 0.0019753612433631566,
+            "maximum": 0.0019753612433631566
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.12347062458903668,
+            "median": 0.10321828478706685,
+            "p95": 0.212615396530774,
+            "maximum": 0.212615396530774
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 6.945115218126956e-05,
+            "median": 0.0,
+            "p95": 0.00027780460872507825,
+            "maximum": 0.00027780460872507825
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.02128561267451412,
+            "median": 0.0,
+            "p95": 0.08514245069805648,
+            "maximum": 0.08514245069805648
+          }
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "family": "tiki_tiki",
+      "scheduled": 4,
+      "observed": 4,
+      "valid": 4,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 4,
+            "mean": 0.0010082108008063907,
+            "median": 0.0006998563721822202,
+            "p95": 0.002088968064185697,
+            "maximum": 0.002088968064185697
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.04541782581502382,
+            "median": 0.032510183783574176,
+            "p95": 0.09276953066443416,
+            "maximum": 0.09276953066443416
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 4,
+            "mean": 8.178964559945404e-05,
+            "median": 0.0,
+            "p95": 0.00032715858239781614,
+            "maximum": 0.00032715858239781614
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0.015703611955095176,
+            "median": 0.0,
+            "p95": 0.0628144478203807,
+            "maximum": 0.0628144478203807
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 4,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maxExcess": {
+            "count": 4,
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0
+          }
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "family": "arcs",
+      "scheduled": 64,
+      "observed": 64,
+      "valid": 64,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 64,
+            "mean": 0.00027031301571126226,
+            "median": 0.0001685717834519353,
+            "p95": 0.0008182394512792531,
+            "maximum": 0.0009769670495171604
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.009503874460744847,
+            "median": 0.009040614487129672,
+            "p95": 0.022209791712581417,
+            "maximum": 0.02485682402012257
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 64,
+            "mean": 9.544640098648106e-05,
+            "median": 1.4100066725842891e-05,
+            "p95": 0.0004253051493562499,
+            "maximum": 0.0010697334315063608
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.017520638620212706,
+            "median": 0.0032712154803955507,
+            "p95": 0.09194348159817789,
+            "maximum": 0.1516402652513278
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 64,
+            "mean": 1.0230252167106137e-05,
+            "median": 0.0,
+            "p95": 0.00010517570592242954,
+            "maximum": 0.00012702667073050388
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.005243350926593983,
+            "median": 0.0,
+            "p95": 0.048380824724317595,
+            "maximum": 0.08447273603578509
+          }
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "family": "fold",
+      "scheduled": 64,
+      "observed": 64,
+      "valid": 64,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 64,
+            "mean": 0.0002937200455738785,
+            "median": 0.00012510549355198672,
+            "p95": 0.0016927113279011131,
+            "maximum": 0.0016927113279011131
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.010501089800032433,
+            "median": 0.006838935437319504,
+            "p95": 0.04806907574299335,
+            "maximum": 0.04806907574299335
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 64,
+            "mean": 6.454648117229655e-05,
+            "median": 0.0,
+            "p95": 0.0001826695338901949,
+            "maximum": 0.0004520860328868226
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.014810329648774333,
+            "median": 0.0,
+            "p95": 0.04633536109414704,
+            "maximum": 0.12025488474789481
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 64,
+            "mean": 7.085007166445808e-06,
+            "median": 0.0,
+            "p95": 6.490628786919612e-05,
+            "maximum": 0.000173267616613143
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.004109240198950093,
+            "median": 0.0,
+            "p95": 0.030867641788652644,
+            "maximum": 0.1152229650477401
+          }
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "family": "scallops",
+      "scheduled": 64,
+      "observed": 64,
+      "valid": 64,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 64,
+            "mean": 0.0002927954854488455,
+            "median": 0.00016040562750356297,
+            "p95": 0.0010350265192556884,
+            "maximum": 0.0015523596905568887
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.011522378289609527,
+            "median": 0.007353252523244147,
+            "p95": 0.04368086328127285,
+            "maximum": 0.04554116684725029
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 64,
+            "mean": 5.7014681892430284e-05,
+            "median": 1.4100066725842891e-05,
+            "p95": 0.00019282661845677665,
+            "maximum": 0.00019282661845677665
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.011606397800477283,
+            "median": 0.0032712154803955507,
+            "p95": 0.04633536109414704,
+            "maximum": 0.04633536109414704
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 64,
+            "mean": 4.886694619761195e-06,
+            "median": 0.0,
+            "p95": 4.604656563802907e-05,
+            "maximum": 8.930370771605725e-05
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.0031851396960633008,
+            "median": 0.0,
+            "p95": 0.03062096614928933,
+            "maximum": 0.05938696563117807
+          }
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "family": "scattered",
+      "scheduled": 32,
+      "observed": 32,
+      "valid": 32,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 32,
+            "mean": 0.0002292212326474401,
+            "median": 2.8401305689278308e-05,
+            "p95": 0.0014128598718453353,
+            "maximum": 0.0014128598718453353
+          },
+          "maxExcess": {
+            "count": 32,
+            "mean": 0.00901202942691948,
+            "median": 0.0017768976200180364,
+            "p95": 0.05522192075812038,
+            "maximum": 0.05522192075812038
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 32,
+            "mean": 5.813205005576379e-05,
+            "median": 5.347831238957472e-05,
+            "p95": 0.00017419308682010168,
+            "maximum": 0.00017419308682010168
+          },
+          "maxExcess": {
+            "count": 32,
+            "mean": 0.012449466386666753,
+            "median": 0.012834794973497932,
+            "p95": 0.04633536109414704,
+            "maximum": 0.04633536109414704
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 32,
+            "mean": 2.5534660878988114e-07,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 8.171091481276197e-06
+          },
+          "maxExcess": {
+            "count": 32,
+            "mean": 0.00016980549484527097,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0.005433775835048671
+          }
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "family": "serpentine",
+      "scheduled": 64,
+      "observed": 64,
+      "valid": 64,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 64,
+            "mean": 0.00028806762520089597,
+            "median": 0.00021212338688537477,
+            "p95": 0.001075191456945487,
+            "maximum": 0.001075191456945487
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.010351479897723033,
+            "median": 0.011872553938616637,
+            "p95": 0.023263010202447254,
+            "maximum": 0.03367476699056515
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 64,
+            "mean": 6.487018145203307e-05,
+            "median": 3.37891895577088e-05,
+            "p95": 0.00017419308682010168,
+            "maximum": 0.0005020628836025223
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.012861157011004504,
+            "median": 0.008053005226946741,
+            "p95": 0.04633536109414704,
+            "maximum": 0.08721336594412388
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 64,
+            "mean": 1.2875560289368293e-05,
+            "median": 0.0,
+            "p95": 6.089953255964742e-05,
+            "maximum": 0.00030856205177086696
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.006393660938198688,
+            "median": 0.0,
+            "p95": 0.03527681926412196,
+            "maximum": 0.1419385438145988
+          }
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "family": "single",
+      "scheduled": 32,
+      "observed": 32,
+      "valid": 32,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 32,
+            "mean": 0.00025196616198871493,
+            "median": 0.0002042057668480607,
+            "p95": 0.0009571819226999744,
+            "maximum": 0.0009571819226999744
+          },
+          "maxExcess": {
+            "count": 32,
+            "mean": 0.010411033179010772,
+            "median": 0.00994963688781969,
+            "p95": 0.028792599707689437,
+            "maximum": 0.028792599707689437
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 32,
+            "mean": 6.966895147042083e-05,
+            "median": 7.050033362921446e-06,
+            "p95": 0.0004610408529890123,
+            "maximum": 0.0004610408529890123
+          },
+          "maxExcess": {
+            "count": 32,
+            "mean": 0.014293695711756538,
+            "median": 0.0016356077401977753,
+            "p95": 0.08483151694997826,
+            "maximum": 0.08483151694997826
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 32,
+            "mean": 2.1033048020227226e-05,
+            "median": 0.0,
+            "p95": 0.0002501794910459292,
+            "maximum": 0.0002501794910459292
+          },
+          "maxExcess": {
+            "count": 32,
+            "mean": 0.00794655250684953,
+            "median": 0.0,
+            "p95": 0.07317654181102595,
+            "maximum": 0.07317654181102595
+          }
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "family": "terraces",
+      "scheduled": 64,
+      "observed": 64,
+      "valid": 64,
+      "bands": [
+        {
+          "frames": 1,
+          "burden": {
+            "count": 64,
+            "mean": 0.0002219793568921422,
+            "median": 6.926957262971444e-05,
+            "p95": 0.0007544608874999686,
+            "maximum": 0.0011490663142651378
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.008954570030841325,
+            "median": 0.0030478611957074353,
+            "p95": 0.025054740992653923,
+            "maximum": 0.07181664464157111
+          }
+        },
+        {
+          "frames": 4,
+          "burden": {
+            "count": 64,
+            "mean": 6.459403321213443e-05,
+            "median": 1.8539030565201317e-05,
+            "p95": 0.0002473763574912561,
+            "maximum": 0.00027967687561231326
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.012130419697900588,
+            "median": 0.0036576712477990325,
+            "p95": 0.04633536109414704,
+            "maximum": 0.04653553082440354
+          }
+        },
+        {
+          "frames": 10,
+          "burden": {
+            "count": 64,
+            "mean": 2.9795904103272603e-05,
+            "median": 0.0,
+            "p95": 4.538039183193686e-05,
+            "maximum": 0.0008949461483567775
+          },
+          "maxExcess": {
+            "count": 64,
+            "mean": 0.007659579253626675,
+            "median": 0.0,
+            "p95": 0.026320627262523377,
+            "maximum": 0.2100462187613843
+          }
+        }
+      ]
+    }
+  ],
+  "interpretation": "Motion diagnostics do not filter the headline. All-scheduled summaries include available invalid trajectories; infer improvements from matched-valid comparisons and report completion changes. Bootstrap resamples musical parents, not frames or duplicate seeds; it is descriptive uncertainty on these known sources, not a population aesthetic claim."
+}

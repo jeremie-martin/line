@@ -10,7 +10,7 @@ Native physics, normal-line constraint and V5/V4 definitions remain unchanged.
 |---|---|
 | Motion calibration and native observations | Implemented; frozen with V6 |
 | Context policy and intentional rail-layout pilot | Implemented and frozen; geometry/search development continues |
-| V6 freeze and baseline | Complete: 536.3321 baseline, 805.5842 candidate 3 |
+| V6 freeze and baseline | Complete: 536.3321 baseline, 824.9447 candidate 6 |
 | Shared search and accuracy campaign | Active; 850 target remains unmet |
 | Qualification and integrated production review | Pending |
 
@@ -579,3 +579,54 @@ An overdetermined-response regression test verifies that a previous calm passage
 impact preference does not leak into a later equally weighted compromise. The
 fourteen focused response/control tests pass. `response-units-1` measures the
 behavioral effect against the frozen candidate-6 compiler.
+
+
+## Candidate 6: complete canonical result and next bounded mechanisms
+
+The complete frozen evaluation of **`40832757`** reaches **824.9447**: fixed
+**908.0534**, automatic **741.8360**, **460/460** valid and fully realized,
+**8,148/8,148** requested constructions fulfilled, 315 distinct tracks, and no
+execution errors. This candidate also passes every twelve-track production-motion
+condition. It is a fully completed technical reference; **850 remains unmet**.
+All canonical outcomes are saved in the
+[canonical archive](evidence/intentional-motion-v6-development-20261001.json.gz),
+with [full-panel motion evidence](evidence/intentional-motion-v6-candidate-6-motion-20261001.json).
+Confirmation has not been run or inspected.
+
+The completed `objective-search-2`, `kinetic-1`, `allocation-1` and
+`response-units-1` studies are retained in the research archive. Additional local
+work, stronger kinetic-arrival priors and generic air projection do not provide
+consistent improvements. For example, extra response work improves dense dialogue
+but substantially harms two ending cases. The corrected response-weight metadata
+is retained as a consistency fix; equal weights now preserve the exact historical
+arithmetic instead of adding a needless divide/multiply round trip.
+
+`profile-duration-1` adds an experimental duration for a complete smooth motif
+before its runout. Omitted controls preserve historical geometry exactly. The
+full S, ripple or terrace shape must still pass native engagement checks; no
+shape threshold or benchmark request changes. On the ten-case pilot, the plain
+compact variant is mixed, while compact duration plus time weighting raises the
+fixed ripple ending from 473.42 to 793.22. This is a useful demonstrated mechanism,
+not a universal production improvement. `time-weight-2` similarly shows large
+ending improvements and large regressions elsewhere. All sixty outcomes remain
+in the ledger. The broad integration panel passes **260 tests in 66 files**,
+with no new TypeScript diagnostics.
+
+A checked canonical-demonstration exporter now augments the existing corpus from
+a complete, checksummed development run. It refuses confirmation runs, verifies
+track/plan identities, and excludes all dense-dialogue and Amour musical parents
+from these additions. Runtime examples contain physical state, musical targets
+and controls, without source/seed identifiers. Both full and low-error additions
+are being tested; a follow-up limits additions to profiled/transfer constructors
+to distinguish improved expressive coverage from disturbance of ordinary-arc
+proposals. Raw corpora remain local and are not deployed merely because they
+contain more examples.
+
+The next search mechanism, `transitionRevision`, revisits stored alternatives for
+the preceding interval when the current measured musical error is substantial.
+It uses the same native interval search with a bounded allowance, retains the
+current prefix unless a measured two-interval objective improves, and charges
+every branch and replay to the shared meter. It does not preserve an already
+completed whole track or promise monotonic final scores. Native tests exercise
+accepted revisions, timing, normal lines, cold-replay agreement and the hard
+frame limit. Twelve focused tests pass; its declared multi-case study is active.

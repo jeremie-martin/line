@@ -51,7 +51,15 @@ ratings; artistic approval remains a review of the actual ride.
 
 The dashboard reports the independent frozen musical judge's score. Existing
 production bundles also retain a `metrics.score` from `scoreDriftReport`; that
-older production diagnostic can differ and is not the V5 headline.
+older production diagnostic can differ and is not the frozen benchmark headline.
+
+The current V2 arrangement policy uses authored impact and speed to inform phrase
+choices, including paired shapes and transfers to a later control rail. It keeps
+the same broad creative controls; detailed per-beat geometry authoring is optional.
+The [intentional-motion report](intentional-motion-results-20261001.md) describes
+the complete review collection, qualification and remaining limits. In the viewer,
+choose the previous automatic arrangement or ordinary reference for synchronized
+comparison. Passage links preserve the selected track, time and comparison mode.
 
 ## Reproduce the review collection
 

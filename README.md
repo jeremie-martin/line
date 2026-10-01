@@ -14,16 +14,19 @@ guided shapes, open arcs and scattered passages from a song, seed and broad
 preferences. CLI, benchmark and dashboard share the public compiler and physical
 construction checks. All physical lines are normal type 0.
 
-Frozen [V5](benchmark/v5/README.md) evaluates this broader task: **770.1170**,
-up from 449.0934, with **147/150 valid and fully fulfilled runs**. Reserved
-confirmation scores 790.1098 with 80/80; the ambition above 900 remains unmet.
-The ordinary profile remains unchanged on full [V4](benchmark/v4/README.md),
-at **952.4726 with 352/352 valid runs**.
+Frozen [V6](benchmark/v6/README.md) evaluates contextual arrangements and paired
+or later-receiver layouts: **835.6161**, up from 536.3321, with **460/460 valid and
+fully fulfilled canonical runs**. All twelve production tracks pass the separate
+motion qualification. Reserved confirmation scores **795.5303**, with **295/296**
+valid and fulfilled; one budget failure remains. The **850 ambition remains unfinished**. Historical
+[V5](benchmark/v5/README.md) stays exactly 770.1170, 147/150, and the ordinary
+[V4](benchmark/v4/README.md) stays 952.4726, 352/352, with identical track outputs.
 
 Open the [production library](http://localhost:8767/motion-gallery/production.html)
-for four actual songs and three predeclared seeds each, native comparison and
-full vertical videos. The manual editor and earlier music studies remain available.
-See [the complete results and limitations](docs/production-repertoire-results-20261001.md),
+for four actual songs and three predeclared seeds each, with synchronized native
+playback, music and previous automatic/ordinary comparisons. Vertical rendering
+is optional. The manual editor and earlier studies remain available.
+See [the complete results and limitations](docs/intentional-motion-results-20261001.md),
 [production architecture](docs/production-repertoire-architecture.md), and
 [the ordinary compiler map](scripts/v0/optimizer/README.md). Large archives and
 media stay local.

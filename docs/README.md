@@ -14,13 +14,15 @@ historical record, not live guidance.
 
 | Doc | Tag | What |
 |---|---|---|
-| [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | Frozen repertoire V5 and ordinary V4 workflows, product constraints and design/performance tradeoffs. |
+| [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | Frozen V6 workflow, V5/V4 companions, product constraints and measured tradeoffs. |
 | [`automatic-production.md`](automatic-production.md) | LIVE | Public automatic music command, dashboard, artifacts and bounded rendering. |
 | [`production-repertoire-architecture.md`](production-repertoire-architecture.md) | LIVE | Who chooses guidance; shared construction/search, physical checks and accounting. |
-| [`production-repertoire-results-20261001.md`](production-repertoire-results-20261001.md) | LIVE | Complete V5/V4 qualification, production collection and disclosed remaining gaps. |
+| [`intentional-motion-results-20261001.md`](intentional-motion-results-20261001.md) | LIVE | Selected 835.6161 V6 compiler, motion qualification, integrated music review and unfinished 850 ambition. |
+| [`intentional-motion-campaign.md`](intentional-motion-campaign.md) | LIVE | Complete implementation, research, selection and confirmation ledger. |
+| [`production-repertoire-results-20261001.md`](production-repertoire-results-20261001.md) | REFERENCE | Previous V5/V4 delivery and preserved production comparison collection. |
 | [`production-repertoire-feedback-20261001.md`](production-repertoire-feedback-20261001.md) | LIVE | Owner confirms alignment and sets motion-quality questions for the next discussion. |
-| [`motion-quality-investigation-20261001.md`](motion-quality-investigation-20261001.md) | LIVE | Native acceleration mechanism, calm openings, metrics and separate-rail experiments before the next roadmap. |
-| [`intentional-motion-roadmap.md`](intentional-motion-roadmap.md) | LIVE | Approved active campaign: intentional motion, contextual arrangement, rail layouts and V6 ≥850 ambition. |
+| [`motion-quality-investigation-20261001.md`](motion-quality-investigation-20261001.md) | REFERENCE | Foundational native acceleration, calm-opening and separated-rail investigation. |
+| [`intentional-motion-roadmap.md`](intentional-motion-roadmap.md) | LIVE | Approved scope and delivery status for intentional motion, contextual arrangement, rail layouts and V6 ≥850 ambition. |
 | [`production-repertoire-roadmap.md`](production-repertoire-roadmap.md) | REFERENCE | Approved scope for the autonomous production campaign. |
 | [`production-repertoire-campaign.md`](production-repertoire-campaign.md) | REFERENCE | Implementation and empirical research ledger, including unsuccessful experiments. |
 | [`benchmark-v2-context.md`](benchmark-v2-context.md) | REFERENCE | Product distribution, scoring, holdout, compute, and governance contract. |
@@ -56,11 +58,11 @@ historical record, not live guidance.
 
 ## Campaigns
 
-The current broader result is [770.1170 on frozen V5](production-repertoire-results-20261001.md),
-with 952.4726 retained on the complete ordinary V4 companion. The production
-repertoire campaign integrates automatic arrangement, shared search and complete
-music review. Earlier guide-count studies remain supporting research, not an
-artistic objective.
+The current broader result is [835.6161 on frozen V6](intentional-motion-results-20261001.md),
+with exact V5/V4 companion parity. The intentional-motion campaign combines
+contextual arrangement, functional rail transfers, shared search and a complete
+native music review. The 850 numerical ambition remains unfinished. Earlier
+guide-count studies remain supporting research, not an artistic objective.
 Earlier framework-specific campaigns remain historical references.
 
 | Doc | Tag | What |

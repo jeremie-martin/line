@@ -1,8 +1,15 @@
 # Intentional motion, expressive variety and better musical accuracy
 
-**Approved in full on 2026-10-01; implementation in progress.** The owner
-authorized sustained execution of the entire roadmap. The [campaign ledger](intentional-motion-campaign.md)
-records progress and evidence. V6 was frozen after the contract pilot on 2026-10-01; canonical optimization is in progress.
+**Approved in full and delivered through implementation and evaluation on 2026-10-01.**
+The [delivery report](intentional-motion-results-20261001.md) records **835.6161**
+on complete canonical V6 (460/460 valid and fulfilled), **795.5303** on reserved
+confirmation (295/296), the passing twelve-track motion qualification and the
+published native music review. **The 850 numerical ambition remains unfinished.**
+The [campaign ledger](intentional-motion-campaign.md) preserves the connected
+research and adverse evidence. V6 was frozen before canonical optimization;
+confirmation was evaluated only after selecting the compiler and is now exposed.
+The stages below remain the approved scope, not a claim that their numerical
+ambition or every artistic question has been resolved.
 It follows the [owner's positive production review](production-repertoire-feedback-20261001.md)
 and the [motion investigation](motion-quality-investigation-20261001.md).
 The preceding [production roadmap](production-repertoire-roadmap.md) remains the

@@ -1,20 +1,33 @@
-# Active campaign: intentional motion — 2026-10-01
+# Delivered implementation: intentional motion — 2026-10-01
 
-The owner approved the entire [roadmap](docs/intentional-motion-roadmap.md).
-Implement context-sensitive arrangement, better contact realization and deliberate
-transfers to later control rails; establish and freeze V6, then pursue a headline
-of at least 850 with separate motion qualification. Preserve normal lines, native
-physics and frozen V5/V4 comparisons. Carry the connected campaign through the
-actual production library and complete qualification. Progress and evidence:
-[execution ledger](docs/intentional-motion-campaign.md). Baseline: `ca97d100`;
-qualified compiler: `0846b2e5`. V6 is frozen at `7f8591c6`: 460 canonical
-and 296 reserved confirmation runs. The complete canonical baseline is 536.3321;
-candidate 7 reaches **834.2161**, with **460/460 valid, fully fulfilled runs**
-and all 8,148 scored construction requests realized (41,392 total requests,
-including fixed-window surroundings). Its twelve production tracks pass every
-frozen motion condition. The fixed/automatic panels are 910.5312/757.9009.
-The 850 objective and final integrated qualification remain unfinished.
-Confirmation is untouched.
+The owner-approved [roadmap](docs/intentional-motion-roadmap.md) has been carried
+through its implementation, compiler campaign, complete evaluation and integrated
+music review. **The numerical ambition of V6 ≥850 remains unfinished.**
+The selected compiler `5b031f7e` reaches **835.6161** on all 460 canonical runs,
+up from the frozen 536.3321 baseline. All 460 rides are valid and fully fulfilled;
+fixed/automatic panels are 912.3824/758.8497, with 8,148/8,148 scored requests.
+
+Reserved confirmation, evaluated only after compiler selection, is **795.5303**:
+295/296 valid and fully fulfilled, with fixed/automatic panels 884.0679/706.9926.
+Offbeat echoes seed 709 exhausts the three-million allowance before its final
+folded support and remains a zero. A separate unchanged-compiler budget diagnostic
+is preserved; it neither replaces the failure nor changes the delivered compiler.
+Confirmation is now known evidence for future research. There are no execution errors.
+
+All twelve production tracks pass the frozen motion qualification. Measured
+burst burden falls by 97.85%/98.92%/98.93% across the three bands, the three reported
+windows pass individually, and mean Luna/Tiki opening-impact RMS improves 47.86%.
+Individual regressions remain disclosed. Normal lines, native physics and frozen
+V5/V4 are preserved: all 150 V5 and 352 V4 track hashes and scores match exactly.
+The default [native music library](http://localhost:8767/motion-gallery/production.html)
+is published, with prior automatic and ordinary comparisons; expanded browser
+checks and 262 tests pass. New artistic approval remains open.
+
+See the [delivery report](docs/intentional-motion-results-20261001.md) and
+[campaign ledger](docs/intentional-motion-campaign.md). Code, compact evidence and
+959 development outcomes are committed and pushed; large media/raw archives stay
+local. V6 remains frozen at `7f8591c6`. Further progress toward 850 must retain the
+motion and construction contract and disclose the now-exposed confirmation panel.
 
 # Delivered: autonomous production repertoire — 2026-10-01
 

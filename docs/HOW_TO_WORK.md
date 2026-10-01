@@ -1,28 +1,36 @@
 # Working on the compiler
 
-The broader production task uses **frozen V5**: 75 canonical cases × seeds 101/202,
-40 confirmation cases × seeds 307/409, and 3m actual physics frames per compile.
-It measures musical accuracy while fulfilling fixed construction requests and
-complete automatic plans. [The V5 contract](../benchmark/v5/README.md) defines
-qualification; [the current report](production-repertoire-results-20261001.md)
-discloses the remaining numerical gap and failures.
+The current production task uses **frozen V6**: 115 canonical cases × seeds
+101/202/303/404, 74 confirmation cases × seeds 503/607/709/811, and 3m actual
+physics frames per compile. It measures musical accuracy while fulfilling fixed
+construction/layout requests and complete contextual arrangements. Motion is a
+separate qualification and diagnostic obligation; it never filters the headline.
+[The V6 contract](../benchmark/v6/README.md) defines the task;
+[the current report](intentional-motion-results-20261001.md) records the selected
+835.6161 result and the unfinished 850 ambition.
+
+**Frozen V5 remains the historical repertoire companion:** its V1 policy,
+75 canonical cases × seeds 101/202, and 3m allowance stay unchanged. Its earlier
+confirmation panel has already been used and reported; it is development evidence.
 
 **Frozen V4 remains the ordinary-profile companion:** all 176 specifications,
 seeds 16/17, and 750,000 frames. The accepted result and goal status live in
 [goal.md](../goal.md). Do not substitute historical V2 promotion rules, silently
-reroll requested geometry, or change either benchmark to improve a result.
+reroll requested geometry, or change a frozen benchmark to improve a result.
 
 [Automatic production](automatic-production.md) now supports guided expressive
-shapes, deliberate open arcs and scattered normal-line passages through shared
-search. Earlier rejection of scattered geometry is no longer a blanket exclusion.
+shapes, deliberate open arcs, later-receiver transfers and scattered normal-line
+passages through shared search. Earlier rejection of scattered geometry is no
+longer a blanket exclusion.
 The ordinary V4 style contract remains unchanged, and the acceleration restriction still applies.
 Physical validity and a high score do not establish visual quality; use faithful
 native playback with music to review meaningful style changes. Finished vertical
 rendering remains available when useful or requested, not a routine prerequisite.
 
-The [intentional-motion roadmap](intentional-motion-roadmap.md) is approved for full
-implementation. Its V6 contract will be frozen after the bounded pilot; existing
-V5/V4 definitions remain unchanged. Follow the campaign ledger for current work.
+The [intentional-motion roadmap](intentional-motion-roadmap.md) defines the approved
+scope. V6 was frozen at `7f8591c6` before its canonical baseline and optimization;
+V5/V4 definitions remain unchanged. Follow the
+[campaign ledger](intentional-motion-campaign.md) for execution and exposure history.
 
 ## Start from actual behavior
 
@@ -47,13 +55,19 @@ drive the explicit deterministic variety and search random streams.
 
 A small physical study is useful for a mechanism check, not a headline claim:
 
-For repertoire work, freeze the compiler and run both complete V5 panels through
-`scripts/benchmark/v5.ts eval --compiler-root=CHECKOUT --out=DIR --jobs=8`;
-add `--split=confirmation` for the predeclared confirmation panel. Keep the policy
-requests and 3m allowance fixed. Report fixed and automatic panels, physical
-fulfillment, local errors, actual work and distinct tracks separately. The
-confirmation results already reported in this campaign are known evidence for
-future campaigns, not permanently unseen validation.
+For current repertoire work, freeze the compiler and run complete V6 through
+`scripts/benchmark/v6.ts eval --compiler-root=CHECKOUT --out=DIR --jobs=8`.
+Use `--split=confirmation` only after selection. Keep requests and the 3m allowance
+fixed. Also run the frozen V5 and V4 companions. Report fixed and automatic panels,
+physical fulfillment, motion, local errors, actual work and distinct tracks
+separately. Any confirmation outcomes already inspected are known evidence for
+subsequent research, not permanently untouched validation. If they motivate a
+revision, disclose that exposure and reserve fresh confirmation before tuning.
+
+The production-motion qualifier independently replays all twelve known-song
+arrangements against preserved references. Passing its frozen burst/opening rules
+does not certify all unseen music or replace visual review. Keep unsuccessful
+collections and report individual regressions alongside aggregate improvements.
 
 For an ordinary-arc mechanism study:
 

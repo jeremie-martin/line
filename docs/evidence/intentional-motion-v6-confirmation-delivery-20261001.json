@@ -1,0 +1,2919 @@
+{
+  "schema": "line.intentional-motion-delivery.v1",
+  "source": "generated/intentional-motion/v6-confirmation/run.json",
+  "sha256": "2c3eec815056f6e0d9b21084e76fe284387b69850f0b8dc14b708012e4f2abea",
+  "catalogSha256": "e0ffa07caa5c4216eca159d6de9bf78500aaa3c2669a582e3894640f824e0ecb",
+  "plan": {
+    "schema": "line.benchmark-v6.run-plan.v1",
+    "compilerRoot": "/tmp/line-motion-candidate-8",
+    "compiler": {
+      "head": "5b031f7e22a287e7bb2f32e9ead1aaafccc351ce",
+      "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+      "compilerSourceFingerprint": "ed4d38b5a55f4b7e06a56c87c2e23b6b9758f4f07f491f8e17b30ac1973ce043",
+      "compilerSourceFiles": [
+        "engine-rs/.gitignore",
+        "engine-rs/Cargo.lock",
+        "engine-rs/Cargo.toml",
+        "engine-rs/README.md",
+        "engine-rs/src/abi.rs",
+        "engine-rs/src/engine.rs",
+        "engine-rs/src/frame.rs",
+        "engine-rs/src/grid.rs",
+        "engine-rs/src/kernel.rs",
+        "engine-rs/src/lib.rs",
+        "engine-rs/src/line.rs",
+        "package-lock.json",
+        "package.json",
+        "scripts/lib/_lr_engine.ts",
+        "scripts/lib/_lr_engine_record.ts",
+        "scripts/lib/_lr_engine_wasm.ts",
+        "scripts/lib/adapt.ts",
+        "scripts/lib/arc.ts",
+        "scripts/lib/arcLines.ts",
+        "scripts/lib/beam_prune.ts",
+        "scripts/lib/beam_search.ts",
+        "scripts/lib/detector.ts",
+        "scripts/lib/export.ts",
+        "scripts/lib/metrics.ts",
+        "scripts/lib/moves.ts",
+        "scripts/lib/native_motion/Cargo.lock",
+        "scripts/lib/native_motion/Cargo.toml",
+        "scripts/lib/native_motion/README.md",
+        "scripts/lib/native_motion/engine.ts",
+        "scripts/lib/native_motion/engine.wasm",
+        "scripts/lib/native_motion/manifest.json",
+        "scripts/lib/native_motion/manifest.json.sha256",
+        "scripts/lib/native_motion/src/abi.rs",
+        "scripts/lib/native_motion/src/engine.rs",
+        "scripts/lib/native_motion/src/frame.rs",
+        "scripts/lib/native_motion/src/grid.rs",
+        "scripts/lib/native_motion/src/kernel.rs",
+        "scripts/lib/native_motion/src/lib.rs",
+        "scripts/lib/native_motion/src/line.rs",
+        "scripts/lib/precise_landings.ts",
+        "scripts/lib/primitive.ts",
+        "scripts/lib/primitive_search.ts",
+        "scripts/lib/ride.ts",
+        "scripts/lib/rng.ts",
+        "scripts/lib/rotation.ts",
+        "scripts/lib/route.ts",
+        "scripts/lib/search.ts",
+        "scripts/lib/tune.ts",
+        "scripts/lib/update_types.ts",
+        "scripts/v0/arc.ts",
+        "scripts/v0/arc_placement.ts",
+        "scripts/v0/core/ballistic_launch.ts",
+        "scripts/v0/core/ballistic_micro_sim.ts",
+        "scripts/v0/core/ballistic_projection.ts",
+        "scripts/v0/core/ballistic_trace.ts",
+        "scripts/v0/core/beats.ts",
+        "scripts/v0/core/camera.ts",
+        "scripts/v0/core/candidate.ts",
+        "scripts/v0/core/compile_lifecycle.ts",
+        "scripts/v0/core/curves.ts",
+        "scripts/v0/core/exit_read.ts",
+        "scripts/v0/core/measure.ts",
+        "scripts/v0/core/polish.ts",
+        "scripts/v0/core/substrate.ts",
+        "scripts/v0/core/support_geometry.ts",
+        "scripts/v0/core/trace.ts",
+        "scripts/v0/optimizer/README.md",
+        "scripts/v0/optimizer/aim.ts",
+        "scripts/v0/optimizer/aim_impact_model.json",
+        "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+        "scripts/v0/optimizer/air_policy.ts",
+        "scripts/v0/optimizer/arc_actuator.ts",
+        "scripts/v0/optimizer/arc_attempts.ts",
+        "scripts/v0/optimizer/arc_boundary.ts",
+        "scripts/v0/optimizer/arc_composition.ts",
+        "scripts/v0/optimizer/arc_control.ts",
+        "scripts/v0/optimizer/arc_control_policy.ts",
+        "scripts/v0/optimizer/arc_control_policy_model.json",
+        "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+        "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+        "scripts/v0/optimizer/arc_engine.ts",
+        "scripts/v0/optimizer/arc_geometry.ts",
+        "scripts/v0/optimizer/arc_guidance.ts",
+        "scripts/v0/optimizer/arc_guide_choice.ts",
+        "scripts/v0/optimizer/arc_guide_study.ts",
+        "scripts/v0/optimizer/arc_memory.ts",
+        "scripts/v0/optimizer/arc_model.ts",
+        "scripts/v0/optimizer/arc_motion.ts",
+        "scripts/v0/optimizer/arc_motion_control.ts",
+        "scripts/v0/optimizer/arc_pair_response.ts",
+        "scripts/v0/optimizer/arc_probe.ts",
+        "scripts/v0/optimizer/arc_proposal.ts",
+        "scripts/v0/optimizer/arc_rail_groups.ts",
+        "scripts/v0/optimizer/arc_refinement.ts",
+        "scripts/v0/optimizer/arc_response.ts",
+        "scripts/v0/optimizer/arc_value.ts",
+        "scripts/v0/optimizer/arc_value_model.json",
+        "scripts/v0/optimizer/arc_value_model.json.sha256",
+        "scripts/v0/optimizer/arc_vector_model.ts",
+        "scripts/v0/optimizer/budget_estimator.ts",
+        "scripts/v0/optimizer/budget_estimator_model.json",
+        "scripts/v0/optimizer/budget_model.ts",
+        "scripts/v0/optimizer/budget_telemetry.ts",
+        "scripts/v0/optimizer/compiler_input.ts",
+        "scripts/v0/optimizer/connected_arcs.ts",
+        "scripts/v0/optimizer/contact_composition.ts",
+        "scripts/v0/optimizer/contact_fragments.ts",
+        "scripts/v0/optimizer/contact_interval.ts",
+        "scripts/v0/optimizer/contact_phase.ts",
+        "scripts/v0/optimizer/contact_transition.ts",
+        "scripts/v0/optimizer/deadline.ts",
+        "scripts/v0/optimizer/handoff.ts",
+        "scripts/v0/optimizer/impact_policy.ts",
+        "scripts/v0/optimizer/impact_response_model.ts",
+        "scripts/v0/optimizer/intentional_repertoire.ts",
+        "scripts/v0/optimizer/kinematic_support.ts",
+        "scripts/v0/optimizer/legacy_handoff.ts",
+        "scripts/v0/optimizer/motion_objective.ts",
+        "scripts/v0/optimizer/motion_profiles.ts",
+        "scripts/v0/optimizer/motion_quality.ts",
+        "scripts/v0/optimizer/native_motion.ts",
+        "scripts/v0/optimizer/native_motion_schedule.ts",
+        "scripts/v0/optimizer/native_pointwise_energy.ts",
+        "scripts/v0/optimizer/node.ts",
+        "scripts/v0/optimizer/normal_contacts.ts",
+        "scripts/v0/optimizer/normal_motion.ts",
+        "scripts/v0/optimizer/normal_pointwise_projection.ts",
+        "scripts/v0/optimizer/objective.ts",
+        "scripts/v0/optimizer/objective_control.ts",
+        "scripts/v0/optimizer/observed_receiver.ts",
+        "scripts/v0/optimizer/polish.ts",
+        "scripts/v0/optimizer/production_repertoire.ts",
+        "scripts/v0/optimizer/rail_contours.ts",
+        "scripts/v0/optimizer/rail_recipes.ts",
+        "scripts/v0/optimizer/readiness.ts",
+        "scripts/v0/optimizer/readiness_base_features.ts",
+        "scripts/v0/optimizer/readiness_features.ts",
+        "scripts/v0/optimizer/readiness_model.json",
+        "scripts/v0/optimizer/readiness_model_artifact.ts",
+        "scripts/v0/optimizer/readiness_scoring.ts",
+        "scripts/v0/optimizer/register.ts",
+        "scripts/v0/optimizer/repair_branch_bound.ts",
+        "scripts/v0/optimizer/repertoire_candidate.ts",
+        "scripts/v0/optimizer/repertoire_composition.ts",
+        "scripts/v0/optimizer/repertoire_context.ts",
+        "scripts/v0/optimizer/repertoire_feasibility.ts",
+        "scripts/v0/optimizer/repertoire_layout.ts",
+        "scripts/v0/optimizer/repertoire_plan.ts",
+        "scripts/v0/optimizer/repertoire_policy.ts",
+        "scripts/v0/optimizer/repertoire_policy_model.json",
+        "scripts/v0/optimizer/repertoire_policy_model.json.gz",
+        "scripts/v0/optimizer/repertoire_realization.ts",
+        "scripts/v0/optimizer/repertoire_search.ts",
+        "scripts/v0/optimizer/sample.ts",
+        "scripts/v0/optimizer/selective_backtracking.ts",
+        "scripts/v0/optimizer/sim_frames.ts",
+        "scripts/v0/optimizer/solver.ts",
+        "scripts/v0/optimizer/types.ts",
+        "scripts/v0/score.ts",
+        "scripts/v0/trajectory/curve_resolution.ts",
+        "scripts/v0/trajectory/native_catch_history.ts",
+        "scripts/v0/trajectory/precontact_multicontact_history.ts",
+        "scripts/v0/types.ts",
+        "tsconfig.json"
+      ],
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "8531254c1db9c1e1de4332887c7b5d2a1c790bc3f10c533d9c1c64911e81fe94"
+    },
+    "judge": {
+      "schema": "line.benchmark-v6.freeze.v1",
+      "judge": {
+        "v5": {
+          "schema": "line.benchmark-v5.freeze.v1",
+          "judge": {
+            "v4": {
+              "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+              "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+              "files": {
+                "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+                "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+                "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+                "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+                "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+                "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+                "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+                "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+                "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+                "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+                "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+                "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+                "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+                "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+                "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+                "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+                "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+                "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+                "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+              }
+            },
+            "files": {
+              "benchmark/v5/policy.ts": "c1bad1623f3e5bbc6f25bb30451bb9d08dbd4ba728593a90acc2810ba47ef594",
+              "benchmark/v5/model.ts": "d30420a41621c3bd3daa1d7285b3bd556dc885e5c15b48e9f0c8511695e3952d",
+              "benchmark/v5/evaluator.ts": "a506cc3e0c104fad19b760638e3b27b757062e7176b54c1f52ffa546e9a4ed97",
+              "benchmark/v5/contract.ts": "5d199928db3b934ff3b550184db21915b4817bb275748999590784edb248ef4b",
+              "benchmark/v5/catalog.json.gz": "da26bbd351e8061e2a75ced2bd18fcebd7267a5806ca3b8953f41f77850c49b8",
+              "benchmark/v5/catalog.lock.json": "2529b6fc39b5cd29e40b8e0888a408291f2ef8ba1ca7a5b8022188757d70f648",
+              "scripts/v0/optimizer/repertoire_realization.ts": "54b17ac4f198cd03b2fe04d47bce4b333eb73e0501e22f897c229eeebcb8d67b",
+              "scripts/v0/optimizer/arc_rail_groups.ts": "b5c409289f2bc926e7a769ec1b586344ad88ed4b1784438870ce5ea7aa55b03c"
+            }
+          }
+        },
+        "files": {
+          "benchmark/v6/policy.ts": "2df671976e3705e9c5699649a7fcae601dcc1a31b285f82a3103fd47d989719d",
+          "benchmark/v6/model.ts": "58c0686187274883f73dc84cd176efad65727d2fbc25e9c447b26c001aca4cfb",
+          "benchmark/v6/evaluator.ts": "3494e169f3907a9fb108a9d74129ff3de37936094a305b9c87620d822f2674df",
+          "benchmark/v6/contract.ts": "5a9427a5b491b97b184cd38f4d28d19d41f97bc79d2db498e36c7cf36c5617f9",
+          "benchmark/v6/replay.ts": "26b8419dcdb80ffc5f2b01fe6aa0aad1230fa48b69bf04a5aa959ea2eca1772b",
+          "benchmark/v6/catalog.json.gz": "e0ffa07caa5c4216eca159d6de9bf78500aaa3c2669a582e3894640f824e0ecb",
+          "benchmark/v6/catalog.lock.json": "9abf808b1ae8615530622b8aa1f6a46b66074a9173277c00058bacda2c0f61d0",
+          "scripts/v0/optimizer/repertoire_layout.ts": "8b1e6b574b0591eee517bdb5c6c4a4342ecff3e382b553ee2ef56d16b3c8edcd",
+          "scripts/v0/optimizer/motion_quality.ts": "7dea806aca18befa3d272587b83001717b095337f1b0ed9aa052c9916a23df6c"
+        }
+      }
+    },
+    "executionSha256": "01872012d0c10cc28cab0a04e6376feb235a0bb65b1c0f379191fc0585d51764",
+    "ids": [
+      "confirmation-pickup_answers-single-paired",
+      "confirmation-pickup_answers-arcs-paired",
+      "confirmation-pickup_answers-arcs-transfer",
+      "confirmation-pickup_answers-fold-paired",
+      "confirmation-pickup_answers-fold-transfer",
+      "confirmation-pickup_answers-serpentine-paired",
+      "confirmation-pickup_answers-serpentine-transfer",
+      "confirmation-pickup_answers-scallops-paired",
+      "confirmation-pickup_answers-scallops-transfer",
+      "confirmation-pickup_answers-terraces-paired",
+      "confirmation-pickup_answers-terraces-transfer",
+      "confirmation-pickup_answers-scattered-paired",
+      "confirmation-offbeat_echoes-single-paired",
+      "confirmation-offbeat_echoes-arcs-paired",
+      "confirmation-offbeat_echoes-arcs-transfer",
+      "confirmation-offbeat_echoes-fold-paired",
+      "confirmation-offbeat_echoes-fold-transfer",
+      "confirmation-offbeat_echoes-serpentine-paired",
+      "confirmation-offbeat_echoes-serpentine-transfer",
+      "confirmation-offbeat_echoes-scallops-paired",
+      "confirmation-offbeat_echoes-scallops-transfer",
+      "confirmation-offbeat_echoes-terraces-paired",
+      "confirmation-offbeat_echoes-terraces-transfer",
+      "confirmation-offbeat_echoes-scattered-paired",
+      "confirmation-support_then_lift-single-paired",
+      "confirmation-support_then_lift-arcs-paired",
+      "confirmation-support_then_lift-arcs-transfer",
+      "confirmation-support_then_lift-fold-paired",
+      "confirmation-support_then_lift-fold-transfer",
+      "confirmation-support_then_lift-serpentine-paired",
+      "confirmation-support_then_lift-serpentine-transfer",
+      "confirmation-support_then_lift-scallops-paired",
+      "confirmation-support_then_lift-scallops-transfer",
+      "confirmation-support_then_lift-terraces-paired",
+      "confirmation-support_then_lift-terraces-transfer",
+      "confirmation-support_then_lift-scattered-paired",
+      "confirmation-supported_bridge-single-paired",
+      "confirmation-supported_bridge-arcs-paired",
+      "confirmation-supported_bridge-arcs-transfer",
+      "confirmation-supported_bridge-fold-paired",
+      "confirmation-supported_bridge-fold-transfer",
+      "confirmation-supported_bridge-serpentine-paired",
+      "confirmation-supported_bridge-serpentine-transfer",
+      "confirmation-supported_bridge-scallops-paired",
+      "confirmation-supported_bridge-scallops-transfer",
+      "confirmation-supported_bridge-terraces-paired",
+      "confirmation-supported_bridge-terraces-transfer",
+      "confirmation-supported_bridge-scattered-paired",
+      "confirmation-recovery_mosaic-single-paired",
+      "confirmation-recovery_mosaic-arcs-paired",
+      "confirmation-recovery_mosaic-arcs-transfer",
+      "confirmation-recovery_mosaic-fold-paired",
+      "confirmation-recovery_mosaic-fold-transfer",
+      "confirmation-recovery_mosaic-serpentine-paired",
+      "confirmation-recovery_mosaic-serpentine-transfer",
+      "confirmation-recovery_mosaic-scallops-paired",
+      "confirmation-recovery_mosaic-scallops-transfer",
+      "confirmation-recovery_mosaic-terraces-paired",
+      "confirmation-recovery_mosaic-terraces-transfer",
+      "confirmation-recovery_mosaic-scattered-paired",
+      "confirmation-harbor_return-automatic",
+      "confirmation-pickup_answers-automatic",
+      "confirmation-offbeat_echoes-automatic",
+      "confirmation-half_time_return-automatic",
+      "confirmation-wide_arc_dialogue-automatic",
+      "confirmation-woven_pulse-automatic",
+      "confirmation-open_canopy-automatic",
+      "confirmation-support_then_lift-automatic",
+      "confirmation-pickup_staircase-automatic",
+      "confirmation-three_note_returns-automatic",
+      "confirmation-supported_bridge-automatic",
+      "confirmation-recovery_mosaic-automatic",
+      "confirmation-restrained_then_wide-automatic",
+      "confirmation-bridge_believer_impact_56s_amplitude_plus_5-automatic"
+    ],
+    "seeds": [
+      503,
+      607,
+      709,
+      811
+    ],
+    "budget": 3000000,
+    "split": "confirmation",
+    "profile": "confirmation"
+  },
+  "summary": {
+    "headline": 795.5302870506375,
+    "panels": {
+      "fixed": {
+        "score": 884.0679446680987,
+        "families": [
+          {
+            "family": "single",
+            "score": 894.9779068215943
+          },
+          {
+            "family": "arcs",
+            "score": 891.5879834618896
+          },
+          {
+            "family": "fold",
+            "score": 838.6209353507793
+          },
+          {
+            "family": "serpentine",
+            "score": 895.5080604149276
+          },
+          {
+            "family": "scallops",
+            "score": 883.7614245551289
+          },
+          {
+            "family": "terraces",
+            "score": 869.395422652918
+          },
+          {
+            "family": "scattered",
+            "score": 914.6238794194529
+          }
+        ]
+      },
+      "automatic": {
+        "score": 706.9926294331763,
+        "families": [
+          {
+            "family": "regular_exceptions",
+            "score": 764.4131446887111
+          },
+          {
+            "family": "subdivision_pickup",
+            "score": 781.6700555968605
+          },
+          {
+            "family": "irregular_microtimed",
+            "score": 152.06976394299363
+          },
+          {
+            "family": "cadence_transition",
+            "score": 779.335305207196
+          },
+          {
+            "family": "spacious_amplitude",
+            "score": 783.4054356586563
+          },
+          {
+            "family": "dense_musical",
+            "score": 796.3491310890765
+          },
+          {
+            "family": "high_air_energy",
+            "score": 853.3175812272955
+          },
+          {
+            "family": "sparse_transition",
+            "score": 676.6912383194936
+          },
+          {
+            "family": "rapid_pickup_frontier",
+            "score": 751.4633391207542
+          },
+          {
+            "family": "dense_recovery_frontier",
+            "score": 732.3670654490279
+          },
+          {
+            "family": "low_air_frontier",
+            "score": 575.373122285105
+          },
+          {
+            "family": "legacy_transition_regression",
+            "score": 806.298071548822
+          },
+          {
+            "family": "legacy_amplitude_regression",
+            "score": 765.2287123525107
+          },
+          {
+            "family": "believer",
+            "score": 679.9148455779647
+          }
+        ]
+      }
+    },
+    "musical": {
+      "headline": 795.5302870506375,
+      "panels": {
+        "fixed": {
+          "score": 884.0679446680987,
+          "families": [
+            {
+              "family": "single",
+              "score": 894.9779068215943
+            },
+            {
+              "family": "arcs",
+              "score": 891.5879834618894
+            },
+            {
+              "family": "fold",
+              "score": 838.6209353507795
+            },
+            {
+              "family": "serpentine",
+              "score": 895.5080604149277
+            },
+            {
+              "family": "scallops",
+              "score": 883.7614245551289
+            },
+            {
+              "family": "terraces",
+              "score": 869.395422652918
+            },
+            {
+              "family": "scattered",
+              "score": 914.6238794194529
+            }
+          ]
+        },
+        "automatic": {
+          "score": 706.9926294331763,
+          "families": [
+            {
+              "family": "regular_exceptions",
+              "score": 764.4131446887111
+            },
+            {
+              "family": "subdivision_pickup",
+              "score": 781.6700555968605
+            },
+            {
+              "family": "irregular_microtimed",
+              "score": 152.06976394299363
+            },
+            {
+              "family": "cadence_transition",
+              "score": 779.335305207196
+            },
+            {
+              "family": "spacious_amplitude",
+              "score": 783.4054356586563
+            },
+            {
+              "family": "dense_musical",
+              "score": 796.3491310890765
+            },
+            {
+              "family": "high_air_energy",
+              "score": 853.3175812272955
+            },
+            {
+              "family": "sparse_transition",
+              "score": 676.6912383194936
+            },
+            {
+              "family": "rapid_pickup_frontier",
+              "score": 751.4633391207542
+            },
+            {
+              "family": "dense_recovery_frontier",
+              "score": 732.3670654490279
+            },
+            {
+              "family": "low_air_frontier",
+              "score": 575.373122285105
+            },
+            {
+              "family": "legacy_transition_regression",
+              "score": 806.298071548822
+            },
+            {
+              "family": "legacy_amplitude_regression",
+              "score": 765.2287123525107
+            },
+            {
+              "family": "believer",
+              "score": 679.9148455779647
+            }
+          ]
+        }
+      }
+    },
+    "runs": 296,
+    "valid": 295,
+    "fullyRealized": 295,
+    "realizedRequests": 5510,
+    "requested": 5604,
+    "distinctTracks": 255
+  },
+  "allConstructionRequests": {
+    "requested": 25532,
+    "fulfilled": 25531,
+    "completeTracks": 295,
+    "unavailableTracks": 0
+  },
+  "executionErrors": 0,
+  "work": {
+    "physicalFrames": {
+      "count": 296,
+      "mean": 2341245.070945946,
+      "median": 2314650.5,
+      "p95": 2663912,
+      "maximum": 2999952
+    },
+    "compileMs": {
+      "count": 296,
+      "mean": 90741.90007556757,
+      "median": 91433.7881455,
+      "p95": 108982.555503,
+      "maximum": 136288.047734
+    },
+    "judgeMs": {
+      "count": 296,
+      "mean": 261.6731417027022,
+      "median": 273.2326954999953,
+      "p95": 370.91878800000995,
+      "maximum": 433.2242530000076
+    }
+  },
+  "panels": [
+    {
+      "panel": "fixed",
+      "runs": 240,
+      "valid": 240,
+      "distinctTracks": 199,
+      "work": {
+        "physicalFrames": {
+          "count": 240,
+          "mean": 2331085.2125,
+          "median": 2314650.5,
+          "p95": 2616916,
+          "maximum": 2954126
+        },
+        "compileMs": {
+          "count": 240,
+          "mean": 92633.57840789584,
+          "median": 92666.10772649999,
+          "p95": 108982.555503,
+          "maximum": 136288.047734
+        },
+        "judgeMs": {
+          "count": 240,
+          "mean": 279.660432070833,
+          "median": 286.18046749999485,
+          "p95": 373.6916130000027,
+          "maximum": 433.2242530000076
+        }
+      }
+    },
+    {
+      "panel": "automatic",
+      "runs": 56,
+      "valid": 55,
+      "distinctTracks": 56,
+      "work": {
+        "physicalFrames": {
+          "count": 56,
+          "mean": 2384787.3214285714,
+          "median": 2318980.5,
+          "p95": 2953940,
+          "maximum": 2999952
+        },
+        "compileMs": {
+          "count": 56,
+          "mean": 82634.70722273215,
+          "median": 81480.3393085,
+          "p95": 113900.699656,
+          "maximum": 120925.927261
+        },
+        "judgeMs": {
+          "count": 56,
+          "mean": 184.58475441071303,
+          "median": 166.71790199999668,
+          "p95": 298.6265870000061,
+          "maximum": 323.74973700000555
+        }
+      }
+    }
+  ],
+  "contexts": [
+    {
+      "panel": "automatic",
+      "construction": "arcs",
+      "guidance": "forbidden",
+      "layout": "open",
+      "context": "other",
+      "requests": 1234,
+      "validRequests": 1216,
+      "musicalParents": 14,
+      "requestedSeconds": 887.65,
+      "fulfilled": 1234,
+      "mainContactFrames": {
+        "count": 1216,
+        "mean": 13.61266447368421,
+        "median": 11.0,
+        "p95": 25,
+        "maximum": 247
+      },
+      "guideContactFrames": {
+        "count": 1216,
+        "mean": 0,
+        "median": 0.0,
+        "p95": 0,
+        "maximum": 0
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 1216,
+          "rms": 0.056374558511906696
+        },
+        "speed": {
+          "observations": 1216,
+          "rms": 0.08109012857873096
+        },
+        "amplitude": {
+          "observations": 166,
+          "rms": 0.16076652184663828
+        },
+        "impact": {
+          "observations": 1216,
+          "rms": 0.09910563199884374
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 1216,
+        "mean": 1.0641455227894054,
+        "median": 0.964128340491242,
+        "p95": 2.4604371556609212,
+        "maximum": 13.806568456118901
+      },
+      "speedWeightedDirectionChange": {
+        "count": 1216,
+        "mean": 6.537922257061897,
+        "median": 6.1963963648621485,
+        "p95": 11.176826606576018,
+        "maximum": 49.244201048039976
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 1216,
+          "mean": 9.453436119222641e-05,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.07184643964243913
+        },
+        {
+          "frames": 4,
+          "count": 1216,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 10,
+          "count": 1216,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "arcs",
+      "guidance": "optional",
+      "layout": "optional",
+      "context": "other",
+      "requests": 56,
+      "validRequests": 55,
+      "musicalParents": 14,
+      "requestedSeconds": 31.9,
+      "fulfilled": 56,
+      "mainContactFrames": {
+        "count": 55,
+        "mean": 11.218181818181819,
+        "median": 11,
+        "p95": 16,
+        "maximum": 17
+      },
+      "guideContactFrames": {
+        "count": 55,
+        "mean": 0.7636363636363637,
+        "median": 0,
+        "p95": 7,
+        "maximum": 8
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 55,
+          "rms": 0.05195464349715851
+        },
+        "speed": {
+          "observations": 55,
+          "rms": 0.05085929931047056
+        },
+        "amplitude": {
+          "observations": 12,
+          "rms": 0.0314332573327817
+        },
+        "impact": {
+          "observations": 0,
+          "rms": null
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 55,
+        "mean": 0.8717630541216466,
+        "median": 1.0040664517244373,
+        "p95": 1.5816443054171572,
+        "maximum": 1.6372232187031468
+      },
+      "speedWeightedDirectionChange": {
+        "count": 55,
+        "mean": 3.1171066525313234,
+        "median": 1.7397263136908678,
+        "p95": 15.129431726426033,
+        "maximum": 15.373066826817714
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 55,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 55,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 10,
+          "count": 55,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "arcs",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 360,
+      "validRequests": 351,
+      "musicalParents": 14,
+      "requestedSeconds": 261.4,
+      "fulfilled": 360,
+      "mainContactFrames": {
+        "count": 351,
+        "mean": 12.797720797720798,
+        "median": 11,
+        "p95": 26,
+        "maximum": 96
+      },
+      "guideContactFrames": {
+        "count": 351,
+        "mean": 4.860398860398861,
+        "median": 4,
+        "p95": 11,
+        "maximum": 18
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 351,
+          "rms": 0.03614942234639502
+        },
+        "speed": {
+          "observations": 351,
+          "rms": 0.03309266145533019
+        },
+        "amplitude": {
+          "observations": 61,
+          "rms": 0.10260096561891487
+        },
+        "impact": {
+          "observations": 351,
+          "rms": 0.03852106978799896
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 351,
+        "mean": 0.25678939245225685,
+        "median": 0.15414163896997835,
+        "p95": 1.9274740360337264,
+        "maximum": 11.752639809229017
+      },
+      "speedWeightedDirectionChange": {
+        "count": 351,
+        "mean": 9.275175295076073,
+        "median": 9.048944998466903,
+        "p95": 14.645094806123765,
+        "maximum": 22.47001205381964
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 351,
+          "mean": 0.0017371006283155208,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.1600204623513092
+        },
+        {
+          "frames": 4,
+          "count": 351,
+          "mean": 0.0007827162954726142,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.08569193497962539
+        },
+        {
+          "frames": 10,
+          "count": 351,
+          "mean": 0.0003203320226291691,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.023108087118188167
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "arcs",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 96,
+      "validRequests": 94,
+      "musicalParents": 14,
+      "requestedSeconds": 68.7,
+      "fulfilled": 96,
+      "mainContactFrames": {
+        "count": 94,
+        "mean": 10.297872340425531,
+        "median": 10.0,
+        "p95": 20,
+        "maximum": 29
+      },
+      "guideContactFrames": {
+        "count": 94,
+        "mean": 4.382978723404255,
+        "median": 3.0,
+        "p95": 9,
+        "maximum": 23
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 94,
+          "rms": 0.06301259590294297
+        },
+        "speed": {
+          "observations": 94,
+          "rms": 0.04502499866437575
+        },
+        "amplitude": {
+          "observations": 19,
+          "rms": 0.07265206668535752
+        },
+        "impact": {
+          "observations": 94,
+          "rms": 0.08081315490918405
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 94,
+        "mean": 1.2154492970794326,
+        "median": 1.1329666905490825,
+        "p95": 2.8424690578428766,
+        "maximum": 6.925770246654128
+      },
+      "speedWeightedDirectionChange": {
+        "count": 94,
+        "mean": 10.320509981598041,
+        "median": 10.175258732787618,
+        "p95": 18.064354103492818,
+        "maximum": 22.037671448327487
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 94,
+          "mean": 0.0015408877098641457,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.11993963749515062
+        },
+        {
+          "frames": 4,
+          "count": 94,
+          "mean": 0.0013785549981559725,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.08764252754948318
+        },
+        {
+          "frames": 10,
+          "count": 94,
+          "mean": 1.3547869807263727e-05,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0012734997618827903
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "fold",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 481,
+      "validRequests": 460,
+      "musicalParents": 14,
+      "requestedSeconds": 348.425,
+      "fulfilled": 480,
+      "mainContactFrames": {
+        "count": 460,
+        "mean": 11.302173913043479,
+        "median": 9.0,
+        "p95": 19,
+        "maximum": 195
+      },
+      "guideContactFrames": {
+        "count": 460,
+        "mean": 3.8956521739130436,
+        "median": 4.0,
+        "p95": 7,
+        "maximum": 56
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 460,
+          "rms": 0.10221525510955001
+        },
+        "speed": {
+          "observations": 460,
+          "rms": 0.0640206196320792
+        },
+        "amplitude": {
+          "observations": 46,
+          "rms": 0.30448586406386957
+        },
+        "impact": {
+          "observations": 460,
+          "rms": 0.0894389469365447
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 460,
+        "mean": 0.6280497389533131,
+        "median": 0.36661617194504803,
+        "p95": 2.387480000335305,
+        "maximum": 11.389370872709492
+      },
+      "speedWeightedDirectionChange": {
+        "count": 460,
+        "mean": 9.441936940445636,
+        "median": 8.917812284687555,
+        "p95": 16.518662001069963,
+        "maximum": 47.66098490470639
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 460,
+          "mean": 0.0032894312650127927,
+          "median": 0.0,
+          "p95": 0.00023449795637278922,
+          "maximum": 0.30449762057753527
+        },
+        {
+          "frames": 4,
+          "count": 460,
+          "mean": 0.0004998077356931636,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.05885063779970474
+        },
+        {
+          "frames": 10,
+          "count": 460,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "scallops",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 540,
+      "validRequests": 535,
+      "musicalParents": 14,
+      "requestedSeconds": 379.575,
+      "fulfilled": 540,
+      "mainContactFrames": {
+        "count": 535,
+        "mean": 10.19252336448598,
+        "median": 9,
+        "p95": 20,
+        "maximum": 123
+      },
+      "guideContactFrames": {
+        "count": 535,
+        "mean": 5.85607476635514,
+        "median": 5,
+        "p95": 14,
+        "maximum": 42
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 535,
+          "rms": 0.0573324091056116
+        },
+        "speed": {
+          "observations": 535,
+          "rms": 0.03884315798445792
+        },
+        "amplitude": {
+          "observations": 83,
+          "rms": 0.09859048395982091
+        },
+        "impact": {
+          "observations": 535,
+          "rms": 0.05240523435622548
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 535,
+        "mean": 0.34288976480430367,
+        "median": 0.10140320607679598,
+        "p95": 2.696626659787171,
+        "maximum": 5.373060440123842
+      },
+      "speedWeightedDirectionChange": {
+        "count": 535,
+        "mean": 10.545783110052263,
+        "median": 10.155055657469754,
+        "p95": 18.42316036117265,
+        "maximum": 31.967426731787807
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 535,
+          "mean": 0.0007869581291636605,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0785772133653645
+        },
+        {
+          "frames": 4,
+          "count": 535,
+          "mean": 0.00048681848198901855,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.16556599577142617
+        },
+        {
+          "frames": 10,
+          "count": 535,
+          "mean": 0.00034905965547697384,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.09669020732993294
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "scallops",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 28,
+      "validRequests": 28,
+      "musicalParents": 14,
+      "requestedSeconds": 20.175,
+      "fulfilled": 28,
+      "mainContactFrames": {
+        "count": 28,
+        "mean": 9.678571428571429,
+        "median": 9.0,
+        "p95": 22,
+        "maximum": 24
+      },
+      "guideContactFrames": {
+        "count": 28,
+        "mean": 4.071428571428571,
+        "median": 3.5,
+        "p95": 8,
+        "maximum": 8
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 28,
+          "rms": 0.08502064313991467
+        },
+        "speed": {
+          "observations": 28,
+          "rms": 0.06625249179749287
+        },
+        "amplitude": {
+          "observations": 6,
+          "rms": 0.10478659647602089
+        },
+        "impact": {
+          "observations": 28,
+          "rms": 0.08369173075497884
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 28,
+        "mean": 1.6726963552940355,
+        "median": 1.6701667078792672,
+        "p95": 2.9437791465646335,
+        "maximum": 3.3852335563790064
+      },
+      "speedWeightedDirectionChange": {
+        "count": 28,
+        "mean": 10.1672325273334,
+        "median": 10.194411497508064,
+        "p95": 14.71327861007062,
+        "maximum": 17.429388447531988
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 28,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 28,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 10,
+          "count": 28,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "scattered",
+      "guidance": "optional",
+      "layout": "fragmented",
+      "context": "other",
+      "requests": 807,
+      "validRequests": 787,
+      "musicalParents": 14,
+      "requestedSeconds": 587.15,
+      "fulfilled": 807,
+      "mainContactFrames": {
+        "count": 787,
+        "mean": 15.049555273189327,
+        "median": 13,
+        "p95": 27,
+        "maximum": 154
+      },
+      "guideContactFrames": {
+        "count": 787,
+        "mean": 0,
+        "median": 0,
+        "p95": 0,
+        "maximum": 0
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 787,
+          "rms": 0.04399742243385453
+        },
+        "speed": {
+          "observations": 787,
+          "rms": 0.05832841206274181
+        },
+        "amplitude": {
+          "observations": 113,
+          "rms": 0.14341226242000682
+        },
+        "impact": {
+          "observations": 787,
+          "rms": 0.05656689065659294
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 787,
+        "mean": 0.14281471232106396,
+        "median": 0.031778434575738146,
+        "p95": 1.7004418305367128,
+        "maximum": 10.37264283823485
+      },
+      "speedWeightedDirectionChange": {
+        "count": 787,
+        "mean": 8.991253285125685,
+        "median": 8.72224020011911,
+        "p95": 14.46006122784725,
+        "maximum": 33.65845278888171
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 787,
+          "mean": 0.0005275137504300183,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.07838832089971308
+        },
+        {
+          "frames": 4,
+          "count": 787,
+          "mean": 4.813597866354577e-05,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.011225502543667571
+        },
+        {
+          "frames": 10,
+          "count": 787,
+          "mean": 0.00026657183198189576,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.04285457505396291
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "serpentine",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 641,
+      "validRequests": 630,
+      "musicalParents": 14,
+      "requestedSeconds": 466.125,
+      "fulfilled": 641,
+      "mainContactFrames": {
+        "count": 630,
+        "mean": 10.582539682539682,
+        "median": 9.0,
+        "p95": 21,
+        "maximum": 137
+      },
+      "guideContactFrames": {
+        "count": 630,
+        "mean": 6.09047619047619,
+        "median": 5.0,
+        "p95": 14,
+        "maximum": 29
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 630,
+          "rms": 0.07011024545164804
+        },
+        "speed": {
+          "observations": 630,
+          "rms": 0.045046899203813315
+        },
+        "amplitude": {
+          "observations": 103,
+          "rms": 0.10606628814900085
+        },
+        "impact": {
+          "observations": 630,
+          "rms": 0.058306227110757336
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 630,
+        "mean": 0.5011213595033761,
+        "median": 0.278413629027634,
+        "p95": 2.751456440246784,
+        "maximum": 10.622535257305236
+      },
+      "speedWeightedDirectionChange": {
+        "count": 630,
+        "mean": 11.219079071530535,
+        "median": 10.933155675384672,
+        "p95": 19.31650853616272,
+        "maximum": 40.58841362890147
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 630,
+          "mean": 0.002175993868094326,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.19497971182333246
+        },
+        {
+          "frames": 4,
+          "count": 630,
+          "mean": 0.0005551363356300574,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.07939549107962066
+        },
+        {
+          "frames": 10,
+          "count": 630,
+          "mean": 0.0003245276335017444,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.08339156134746635
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "serpentine",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 110,
+      "validRequests": 107,
+      "musicalParents": 13,
+      "requestedSeconds": 75.175,
+      "fulfilled": 110,
+      "mainContactFrames": {
+        "count": 107,
+        "mean": 8.046728971962617,
+        "median": 7,
+        "p95": 15,
+        "maximum": 75
+      },
+      "guideContactFrames": {
+        "count": 107,
+        "mean": 4.88785046728972,
+        "median": 5,
+        "p95": 9,
+        "maximum": 16
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 107,
+          "rms": 0.13423059802336282
+        },
+        "speed": {
+          "observations": 107,
+          "rms": 0.06292967026363569
+        },
+        "amplitude": {
+          "observations": 6,
+          "rms": 0.31659536994028203
+        },
+        "impact": {
+          "observations": 107,
+          "rms": 0.1317804653005566
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 107,
+        "mean": 1.7235811343406362,
+        "median": 1.4555344909032417,
+        "p95": 3.4905315635136436,
+        "maximum": 12.296150576866593
+      },
+      "speedWeightedDirectionChange": {
+        "count": 107,
+        "mean": 10.369158559382047,
+        "median": 9.995924326256416,
+        "p95": 19.085482425144654,
+        "maximum": 26.67527882595334
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 107,
+          "mean": 0.00358811640562634,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.3755983330445573
+        },
+        {
+          "frames": 4,
+          "count": 107,
+          "mean": 0.0010019812009092002,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.06204402014694549
+        },
+        {
+          "frames": 10,
+          "count": 107,
+          "mean": 0.0001643650851599606,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.017587064112115785
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "terraces",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 375,
+      "validRequests": 370,
+      "musicalParents": 14,
+      "requestedSeconds": 288.225,
+      "fulfilled": 375,
+      "mainContactFrames": {
+        "count": 370,
+        "mean": 10.891891891891891,
+        "median": 8.5,
+        "p95": 20,
+        "maximum": 109
+      },
+      "guideContactFrames": {
+        "count": 370,
+        "mean": 5.291891891891892,
+        "median": 4.0,
+        "p95": 13,
+        "maximum": 33
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 370,
+          "rms": 0.15533746332467327
+        },
+        "speed": {
+          "observations": 370,
+          "rms": 0.0700324455381472
+        },
+        "amplitude": {
+          "observations": 50,
+          "rms": 0.1318858179589285
+        },
+        "impact": {
+          "observations": 370,
+          "rms": 0.07808561119005943
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 370,
+        "mean": 0.8482467113668071,
+        "median": 0.6009588614352355,
+        "p95": 3.160776405280048,
+        "maximum": 9.951282463613165
+      },
+      "speedWeightedDirectionChange": {
+        "count": 370,
+        "mean": 11.174155858589831,
+        "median": 9.836786470374939,
+        "p95": 23.13079339829814,
+        "maximum": 56.82042283363372
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 370,
+          "mean": 0.0039056287496698205,
+          "median": 0.0,
+          "p95": 0.015913067587819185,
+          "maximum": 0.2639903344415023
+        },
+        {
+          "frames": 4,
+          "count": 370,
+          "mean": 0.0017245670838974205,
+          "median": 0.0,
+          "p95": 0.001904303732822823,
+          "maximum": 0.1688497506883573
+        },
+        {
+          "frames": 10,
+          "count": 370,
+          "mean": 0.00032200706325929583,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.04003939223298303
+        }
+      ]
+    },
+    {
+      "panel": "automatic",
+      "construction": "terraces",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 212,
+      "validRequests": 212,
+      "musicalParents": 14,
+      "requestedSeconds": 151.5,
+      "fulfilled": 212,
+      "mainContactFrames": {
+        "count": 212,
+        "mean": 9.44811320754717,
+        "median": 9.0,
+        "p95": 18,
+        "maximum": 49
+      },
+      "guideContactFrames": {
+        "count": 212,
+        "mean": 4.773584905660377,
+        "median": 4.0,
+        "p95": 9,
+        "maximum": 18
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 212,
+          "rms": 0.15920220751837405
+        },
+        "speed": {
+          "observations": 212,
+          "rms": 0.12027117750877397
+        },
+        "amplitude": {
+          "observations": 39,
+          "rms": 0.1468496870924138
+        },
+        "impact": {
+          "observations": 212,
+          "rms": 0.12326567417454798
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 212,
+        "mean": 1.6557357813456866,
+        "median": 1.3514305476710051,
+        "p95": 3.5052842216007214,
+        "maximum": 21.06512990241699
+      },
+      "speedWeightedDirectionChange": {
+        "count": 212,
+        "mean": 11.007020656190397,
+        "median": 11.100473605822767,
+        "p95": 17.159237774335775,
+        "maximum": 25.489564485013872
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 212,
+          "mean": 0.0006414435063304699,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0663556697289248
+        },
+        {
+          "frames": 4,
+          "count": 212,
+          "mean": 0.0003536810394526358,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.06550598445307268
+        },
+        {
+          "frames": 10,
+          "count": 212,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "arcs",
+      "guidance": "forbidden",
+      "layout": "open",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 24.083333333333332,
+        "median": 14.5,
+        "p95": 123,
+        "maximum": 148
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 0,
+        "median": 0.0,
+        "p95": 0,
+        "maximum": 0
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.09138339592890503
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.07591920531332016
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.09834463453141472
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": 1.1920170244616226,
+        "median": 0.9993776039795295,
+        "p95": 5.331481256942132,
+        "maximum": 6.527675019811715
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 7.608011796426462,
+        "median": 6.0715954995790185,
+        "p95": 29.480133917593488,
+        "maximum": 32.23767358626722
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "arcs",
+      "guidance": "optional",
+      "layout": "optional",
+      "context": "other",
+      "requests": 19872,
+      "validRequests": 19872,
+      "musicalParents": 5,
+      "requestedSeconds": 14783.7,
+      "fulfilled": 19872,
+      "mainContactFrames": {
+        "count": 19872,
+        "mean": 16.255132850241544,
+        "median": 13.0,
+        "p95": 29,
+        "maximum": 253
+      },
+      "guideContactFrames": {
+        "count": 19872,
+        "mean": 6.669585346215781,
+        "median": 6.0,
+        "p95": 15,
+        "maximum": 96
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 19872,
+          "rms": 0.032390636683003966
+        },
+        "speed": {
+          "observations": 19872,
+          "rms": 0.025366854050821737
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 19632,
+          "rms": 0.019928913517641117
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 19872,
+        "mean": -0.6833024497525273,
+        "median": -0.5363500706013742,
+        "p95": 0.13679039147062966,
+        "maximum": 11.73583048429099
+      },
+      "speedWeightedDirectionChange": {
+        "count": 19872,
+        "mean": 9.266071652860406,
+        "median": 9.008621655161251,
+        "p95": 14.444660130625897,
+        "maximum": 49.91951311805438
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 19872,
+          "mean": 0.000769851926350876,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.2639218802469131
+        },
+        {
+          "frames": 4,
+          "count": 19872,
+          "mean": 0.0002733581821517702,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.10870115013436432
+        },
+        {
+          "frames": 10,
+          "count": 19872,
+          "mean": 0.0007128433402106317,
+          "median": 0.0,
+          "p95": 0.00028616780617493815,
+          "maximum": 0.10421397214353398
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "arcs",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 23.533333333333335,
+        "median": 13.5,
+        "p95": 124,
+        "maximum": 127
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 6.95,
+        "median": 6.0,
+        "p95": 13,
+        "maximum": 57
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.02233748304613199
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.01253091603960639
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.024470439512118063
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": -0.3336470324154726,
+        "median": -0.617969692230254,
+        "p95": 4.6703493041275035,
+        "maximum": 9.521517950911164
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 9.53048723734137,
+        "median": 8.750470618364567,
+        "p95": 19.833916081451555,
+        "maximum": 23.220711213726705
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 5.5642804822699784e-05,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.003338568289361987
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0010143998417932313,
+          "median": 0.0,
+          "p95": 0.0017237834790605432,
+          "maximum": 0.029570103514266664
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "arcs",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 15.266666666666667,
+        "median": 9.5,
+        "p95": 99,
+        "maximum": 116
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 5.233333333333333,
+        "median": 4.0,
+        "p95": 11,
+        "maximum": 17
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.291684950794563
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.2138025910187389
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.0937486792034629
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": 2.4354974280684725,
+        "median": 1.7102002580538551,
+        "p95": 11.163841903762677,
+        "maximum": 19.587208759640756
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 10.33155017668986,
+        "median": 9.550268642804333,
+        "p95": 23.261385861666533,
+        "maximum": 30.983462376412344
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 5.328911141036597e-05,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0031973466846219583
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "fold",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 20.883333333333333,
+        "median": 11.5,
+        "p95": 122,
+        "maximum": 132
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 4.866666666666666,
+        "median": 4.0,
+        "p95": 10,
+        "maximum": 22
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.09542491247794702
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.06071601559643747
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.14154893649577008
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": 0.500917657888947,
+        "median": -0.0959378018199093,
+        "p95": 5.854335098663101,
+        "maximum": 8.23348741823122
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 12.062926722154382,
+        "median": 11.156415897872897,
+        "p95": 28.845438460316437,
+        "maximum": 38.712169257480916
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.02102681761261633,
+          "median": 0.0,
+          "p95": 0.1432423559661311,
+          "maximum": 0.5082152285702252
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.0003032020909150069,
+          "median": 0.0,
+          "p95": 0.004178345071463711,
+          "maximum": 0.005019101515195582
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "fold",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 8.783333333333333,
+        "median": 7.0,
+        "p95": 22,
+        "maximum": 36
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 5.1,
+        "median": 5.0,
+        "p95": 10,
+        "maximum": 11
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.40576875308287375
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.5504662219145692
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.147451882011915
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": 3.692679568310745,
+        "median": 2.2041791914974302,
+        "p95": 24.240041088835117,
+        "maximum": 24.463168406697076
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 9.126787508939113,
+        "median": 8.785945765983445,
+        "p95": 16.412663396749224,
+        "maximum": 17.344231995117514
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "scallops",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 20.616666666666667,
+        "median": 12.0,
+        "p95": 112,
+        "maximum": 116
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 8.916666666666666,
+        "median": 7.0,
+        "p95": 29,
+        "maximum": 33
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.05740226375529656
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.030459825475038234
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.05586963522982396
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": -0.6038528675996397,
+        "median": -0.7239765233215039,
+        "p95": 1.9506006625666288,
+        "maximum": 12.247693580689866
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 12.246855643779877,
+        "median": 11.013272246469384,
+        "p95": 25.893475506605608,
+        "maximum": 33.30317189686864
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.003072829316412392,
+          "median": 0.0,
+          "p95": 0.0065997673001694235,
+          "maximum": 0.09779184622402701
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.0004060886311272685,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.02436531786763611
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 2.498071396910655e-06,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0001498842838146393
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "scallops",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 12.7,
+        "median": 9.0,
+        "p95": 30,
+        "maximum": 101
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 5.966666666666667,
+        "median": 5.0,
+        "p95": 15,
+        "maximum": 15
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.29901783388386277
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.10917591724564499
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.17365386756353143
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": 2.4887833902843353,
+        "median": 1.7004963350571627,
+        "p95": 15.646558524427624,
+        "maximum": 20.91332991311147
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 11.33960237919173,
+        "median": 10.860939038353692,
+        "p95": 22.891155520912328,
+        "maximum": 27.992674605129885
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.00017347742564655986,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.005204322769396796
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 9.984859780275701e-05,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.005990915868165421
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "scattered",
+      "guidance": "optional",
+      "layout": "fragmented",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 24.833333333333332,
+        "median": 17.5,
+        "p95": 101,
+        "maximum": 124
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 0,
+        "median": 0.0,
+        "p95": 0,
+        "maximum": 0
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.07171028532963741
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.019527347178167693
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.04539338447545508
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": -0.6104239587624272,
+        "median": -0.82593064378253,
+        "p95": 0.6260618529089665,
+        "maximum": 9.476571860463157
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 9.817424405399265,
+        "median": 9.621469272996883,
+        "p95": 19.737914563288484,
+        "maximum": 22.00957574993261
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.00045683994272583214,
+          "median": 0.0,
+          "p95": 0.001747789166818708,
+          "maximum": 0.01283130369836561
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0005113831829048139,
+          "median": 0.0,
+          "p95": 0.008249784070401297,
+          "maximum": 0.008667439350024267
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "serpentine",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 21.066666666666666,
+        "median": 12.0,
+        "p95": 124,
+        "maximum": 135
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 10.866666666666667,
+        "median": 9.0,
+        "p95": 39,
+        "maximum": 54
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.057030186203243696
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.025677341833004987
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.052764238551397356
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": -0.4720143411968461,
+        "median": -0.872615230086951,
+        "p95": 3.1132939861266014,
+        "maximum": 3.5527957021547127
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 13.562770127929486,
+        "median": 13.4749721674627,
+        "p95": 30.189101337237908,
+        "maximum": 34.688229540915984
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "serpentine",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 16.033333333333335,
+        "median": 9.0,
+        "p95": 94,
+        "maximum": 128
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 6.433333333333334,
+        "median": 5.0,
+        "p95": 13,
+        "maximum": 33
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.1678316701323004
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.06258912900934453
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.11018514040227803
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": 2.1293939844544654,
+        "median": 1.8078483557985292,
+        "p95": 4.787095677440437,
+        "maximum": 14.595113663090807
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 12.943363122473432,
+        "median": 12.404847181429215,
+        "p95": 32.44406731023086,
+        "maximum": 32.503523222989394
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.0007020354859045898,
+          "median": 0.0,
+          "p95": 0.006834265899792448,
+          "maximum": 0.017643931627241472
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "terraces",
+      "guidance": "required",
+      "layout": "paired",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 16.85,
+        "median": 10.0,
+        "p95": 83,
+        "maximum": 94
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 10.866666666666667,
+        "median": 7.0,
+        "p95": 33,
+        "maximum": 117
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.128626800951232
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.05791779119223336
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.07337594677752533
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": 0.8919792833713854,
+        "median": 0.1396570470368088,
+        "p95": 8.48000006637772,
+        "maximum": 18.895227492222613
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 13.45611918846527,
+        "median": 12.153521226342546,
+        "p95": 30.295589189212627,
+        "maximum": 32.080042084973655
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.005831051978958701,
+          "median": 0.0,
+          "p95": 0.036857715888809116,
+          "maximum": 0.25171342668990965
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.00463721236999199,
+          "median": 0.0,
+          "p95": 0.024795120771154037,
+          "maximum": 0.11638242914706787
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.000698384706391386,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.028165122575961262
+        }
+      ]
+    },
+    {
+      "panel": "fixed",
+      "construction": "terraces",
+      "guidance": "required",
+      "layout": "transfer",
+      "context": "other",
+      "requests": 60,
+      "validRequests": 60,
+      "musicalParents": 5,
+      "requestedSeconds": 60.025,
+      "fulfilled": 60,
+      "mainContactFrames": {
+        "count": 60,
+        "mean": 15.016666666666667,
+        "median": 8.0,
+        "p95": 82,
+        "maximum": 121
+      },
+      "guideContactFrames": {
+        "count": 60,
+        "mean": 7.9,
+        "median": 7.0,
+        "p95": 15,
+        "maximum": 34
+      },
+      "musicalAxes": {
+        "air": {
+          "observations": 60,
+          "rms": 0.2050830018766711
+        },
+        "speed": {
+          "observations": 60,
+          "rms": 0.3819143292009394
+        },
+        "amplitude": {
+          "observations": 0,
+          "rms": null
+        },
+        "impact": {
+          "observations": 60,
+          "rms": 0.1354384568677175
+        }
+      },
+      "gravitySpeedChange": {
+        "count": 60,
+        "mean": 2.8663726199091424,
+        "median": 1.8131155585349505,
+        "p95": 16.348165650169015,
+        "maximum": 35.82009768884888
+      },
+      "speedWeightedDirectionChange": {
+        "count": 60,
+        "mean": 12.318764753838954,
+        "median": 11.41693813510646,
+        "p95": 29.22313867882309,
+        "maximum": 31.607701633310338
+      },
+      "burstBurden": [
+        {
+          "frames": 1,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        {
+          "frames": 4,
+          "count": 60,
+          "mean": 0.0009164355452587705,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.035583992944958134
+        },
+        {
+          "frames": 10,
+          "count": 60,
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        }
+      ]
+    }
+  ],
+  "failures": [
+    {
+      "id": "confirmation-offbeat_echoes-automatic",
+      "seed": 709,
+      "score": 0,
+      "musicalScore": 0,
+      "valid": false,
+      "fulfilled": 93,
+      "requested": 94,
+      "executionError": null,
+      "constructionFailure": "budget"
+    }
+  ],
+  "worstMusical": [
+    {
+      "id": "confirmation-offbeat_echoes-automatic",
+      "seed": 709,
+      "panel": "automatic",
+      "sourceId": "offbeat_echoes",
+      "score": 0,
+      "musicalScore": 0,
+      "physicalFrames": 2999952
+    },
+    {
+      "id": "confirmation-supported_bridge-automatic",
+      "seed": 607,
+      "panel": "automatic",
+      "sourceId": "supported_bridge",
+      "score": 371.8283,
+      "musicalScore": 371.8283,
+      "physicalFrames": 2953940
+    },
+    {
+      "id": "confirmation-recovery_mosaic-terraces-transfer",
+      "seed": 503,
+      "panel": "fixed",
+      "sourceId": "recovery_mosaic",
+      "score": 414.078,
+      "musicalScore": 414.078,
+      "physicalFrames": 2731952
+    },
+    {
+      "id": "confirmation-support_then_lift-fold-transfer",
+      "seed": 503,
+      "panel": "fixed",
+      "sourceId": "support_then_lift",
+      "score": 427.86100000000005,
+      "musicalScore": 427.861,
+      "physicalFrames": 2954126
+    },
+    {
+      "id": "confirmation-support_then_lift-fold-transfer",
+      "seed": 607,
+      "panel": "fixed",
+      "sourceId": "support_then_lift",
+      "score": 427.86100000000005,
+      "musicalScore": 427.861,
+      "physicalFrames": 2954126
+    },
+    {
+      "id": "confirmation-supported_bridge-fold-transfer",
+      "seed": 607,
+      "panel": "fixed",
+      "sourceId": "supported_bridge",
+      "score": 513.2709,
+      "musicalScore": 513.2709,
+      "physicalFrames": 2616916
+    },
+    {
+      "id": "confirmation-recovery_mosaic-fold-transfer",
+      "seed": 503,
+      "panel": "fixed",
+      "sourceId": "recovery_mosaic",
+      "score": 569.2981,
+      "musicalScore": 569.2981,
+      "physicalFrames": 2838232
+    },
+    {
+      "id": "confirmation-support_then_lift-arcs-transfer",
+      "seed": 503,
+      "panel": "fixed",
+      "sourceId": "support_then_lift",
+      "score": 570.6594,
+      "musicalScore": 570.6594,
+      "physicalFrames": 2414572
+    },
+    {
+      "id": "confirmation-support_then_lift-arcs-transfer",
+      "seed": 607,
+      "panel": "fixed",
+      "sourceId": "support_then_lift",
+      "score": 570.6594,
+      "musicalScore": 570.6594,
+      "physicalFrames": 2414572
+    },
+    {
+      "id": "confirmation-bridge_believer_impact_56s_amplitude_plus_5-automatic",
+      "seed": 607,
+      "panel": "automatic",
+      "sourceId": "bridge_believer_impact_56s_amplitude_plus_5",
+      "score": 575.2608,
+      "musicalScore": 575.2608,
+      "physicalFrames": 2471944
+    },
+    {
+      "id": "confirmation-support_then_lift-scallops-transfer",
+      "seed": 503,
+      "panel": "fixed",
+      "sourceId": "support_then_lift",
+      "score": 625.9433,
+      "musicalScore": 625.9433,
+      "physicalFrames": 2624525
+    },
+    {
+      "id": "confirmation-support_then_lift-scallops-transfer",
+      "seed": 607,
+      "panel": "fixed",
+      "sourceId": "support_then_lift",
+      "score": 625.9433,
+      "musicalScore": 625.9433,
+      "physicalFrames": 2624525
+    },
+    {
+      "id": "confirmation-supported_bridge-automatic",
+      "seed": 709,
+      "panel": "automatic",
+      "sourceId": "supported_bridge",
+      "score": 646.186,
+      "musicalScore": 646.186,
+      "physicalFrames": 2981973
+    },
+    {
+      "id": "confirmation-support_then_lift-automatic",
+      "seed": 503,
+      "panel": "automatic",
+      "sourceId": "support_then_lift",
+      "score": 646.803,
+      "musicalScore": 646.803,
+      "physicalFrames": 2454466
+    },
+    {
+      "id": "confirmation-supported_bridge-automatic",
+      "seed": 503,
+      "panel": "automatic",
+      "sourceId": "supported_bridge",
+      "score": 672.5983,
+      "musicalScore": 672.5983,
+      "physicalFrames": 2289815
+    },
+    {
+      "id": "confirmation-supported_bridge-automatic",
+      "seed": 811,
+      "panel": "automatic",
+      "sourceId": "supported_bridge",
+      "score": 678.0096,
+      "musicalScore": 678.0096,
+      "physicalFrames": 2109393
+    },
+    {
+      "id": "confirmation-support_then_lift-automatic",
+      "seed": 709,
+      "panel": "automatic",
+      "sourceId": "support_then_lift",
+      "score": 683.2739,
+      "musicalScore": 683.2739,
+      "physicalFrames": 2357424
+    },
+    {
+      "id": "confirmation-recovery_mosaic-scallops-transfer",
+      "seed": 503,
+      "panel": "fixed",
+      "sourceId": "recovery_mosaic",
+      "score": 684.429,
+      "musicalScore": 684.429,
+      "physicalFrames": 2597834
+    },
+    {
+      "id": "confirmation-support_then_lift-automatic",
+      "seed": 607,
+      "panel": "automatic",
+      "sourceId": "support_then_lift",
+      "score": 686.9118,
+      "musicalScore": 686.9118,
+      "physicalFrames": 2487867
+    },
+    {
+      "id": "confirmation-support_then_lift-automatic",
+      "seed": 811,
+      "panel": "automatic",
+      "sourceId": "support_then_lift",
+      "score": 690.7064,
+      "musicalScore": 690.7064,
+      "physicalFrames": 2355271
+    }
+  ],
+  "interpretation": "The frozen headline includes every scheduled outcome. Context diagnostics are request-weighted descriptions, not another headline or independent population samples. Calm means frozen authored quiet >=0.5. Musical RMS uses valid available observations, time weights for spans and event weights for impacts. All support requests are shown, including ordinary surroundings of fixed windows. Contact counts establish engagement, not continuous sliding or artistic approval. Work includes failed compiler attempts; independent judgment is separate. Wall times share a loaded host and are not isolated throughput measurements."
+}

@@ -8,71 +8,86 @@ Native physics, normal-line constraint and V5/V4 definitions remain unchanged.
 
 | Stage | Status |
 |---|---|
-| Motion calibration and native observations | Implemented; frozen with V6 |
-| Context policy and intentional rail-layout pilot | Implemented and frozen; geometry/search development continues |
-| V6 freeze and baseline | Complete: 536.3321 baseline, 834.2161 candidate 7 |
-| Shared search and accuracy campaign | Active; 850 target remains unmet |
-| Qualification and integrated production review | Pending |
+| Motion calibration and native observations | Delivered; frozen with V6 |
+| Context policy and intentional rail layouts | Delivered through the shared production compiler |
+| V6 freeze and baseline | Complete: 536.3321 baseline, 835.6161 selected canonical |
+| Shared search and accuracy campaign | Delivered research and compiler; 850 ambition remains unfinished |
+| Qualification and integrated production review | Complete evaluation and published review; one reserved budget failure disclosed |
 
-## Current execution checkpoint
+## Final delivery checkpoint
 
-Candidate 7 **`a5424745`** completes all 460 canonical runs at **834.2161**:
-fixed **910.5312**, automatic **757.9009**, 460/460 valid and fully realized,
-8,148/8,148 scored requests, 41,392/41,392 total support requests, 315 distinct
-tracks and no execution errors. This is 9.2713 points above candidate 6 while
-retaining the complete production-motion pass. Median work is 2,114,309 frames;
-maximum work is 2,999,994. The frozen three-million allowance is respected.
-All 406 matched-valid baseline runs contribute to the motion comparison, and
-all three parent-bootstrap intervals for mean burst-burden change are below zero.
-Fifty-four newly completed runs are reported separately.
+Selected compiler **`5b031f7e`**, source fingerprint
+`ed4d38b5a55f4b7e06a56c87c2e23b6b9758f4f07f491f8e17b30ac1973ce043`:
+**835.6161** on all 460 canonical runs, fixed **912.3824**, automatic **758.8497**.
+All 460 rides are valid and fulfilled: 8,148 scored requests and 41,392 total
+support requests, 315 distinct tracks, no execution errors. Median actual work
+is 2,198,910 frames, maximum 2,999,997, within the unchanged three-million limit.
+All 406 matched-valid baseline runs enter the motion comparison; all three
+musical-parent bootstrap intervals for mean burst-burden change lie below zero.
+The 54 newly completed runs are reported separately.
 
-Candidate 7's complete V4 companion is **952.4726**, 352/352 valid, with all
-352 hashes identical to the preserved compiler. Its complete V5 companion is
-**770.1170**, 147/150 valid, with all 150 track hashes identical, including the
+Selection was committed at `7a768c0d` **before reserved confirmation**. The complete
+296-run confirmation scores **795.5303**, fixed **884.0679**, automatic **706.9926**,
+with 295/296 valid and fully fulfilled, 255 distinct tracks and no execution errors.
+Offbeat echoes seed 709 fulfills 93/94 scored requests before exhausting its
+allowance; the missing final contact invalidates the run, which remains zero.
+Its final three requests combine two short folds and a long folded ending.
+The ending-refinement pass did not run because the first ride was incomplete.
+
+A post-selection diagnostic runs the same compiler and all four offbeat seeds
+with a five-million allowance. All four complete. Seed 709 actually uses
+2,965,537 frames, but its controls differ starting at section 2; this is evidence
+of budget-dependent search choices, not continuation of the same prefix or proof
+that simply increasing work is uniformly better. Seed 811's score regresses.
+No compiler change or substitution follows from this confirmation diagnosis.
+These outcomes are now known evidence for future work. See the
+[complete failure analysis](evidence/intentional-motion-confirmation-failure-20261001.json).
+
+The selected compiler's complete V4 companion is **952.4726**, 352/352 valid,
+with all 352 track hashes and scores identical to the preserved compiler. V5 is
+**770.1170**, 147/150, with all 150 hashes and scores identical, including the
 three inherited unsuccessful outcomes. No historical benchmark is rewritten.
 
-Candidate 8 **`5b031f7e`** is frozen for a full 460-run canonical trial and both
-legacy companions. It adds a small final-support refinement to candidate 7;
-earlier geometry stays fixed, completed incumbents are protected, and native
-validation plus the shared work meter still apply. Duplicate final-support
-controls do not consume proposal slots repeatedly. This fills those slots with
-fresh offers; the duplicate counter alone is not evidence of net frame savings.
-Broader optional repair and value-model prototypes are preserved on
-`research/intentional-motion-repair-20261001` at `55f774fa`, rather than added to
-production defaults. Confirmation remains untouched until final selection.
+The twelve-track production collection passes every frozen motion condition:
+burst-burden reductions **97.85%, 98.92%, 98.93%**, zero 100ms-band excess in each
+reported window, and passing Luna/Tiki opening comparisons. Mean opening-impact
+RMS improves 47.86%; Luna 101's individual opening impact is worse. The default
+native music gallery is published with both historical comparisons. Fourteen
+browser checks pass, including playback, audio identity, seeking, rapid switching,
+all nine opening/reported-passage controls, motion detail, contact inspection,
+share-link reload and mobile layout. These are technical checks, not new owner
+artistic approval.
 
-Both candidate 7 and candidate 8's complete production collections pass every
-frozen motion condition: 12/12 valid and fulfilled; burst-burden reductions
-**97.85%, 98.92%, 98.93%**; zero 100ms-band excess in all three reported windows;
-and passing Luna/Tiki opening measurements (47.86% mean impact-RMS improvement).
-Luna 101's opening impact is individually worse; the aggregate pass is not a
-claim that every passage improved. Fourteen native/audio/seek/switch/mobile checks
-pass on each collection without browser errors. These are known-song technical
-checks, not owner artistic approval.
+Final integration passes **262 tests in 67 files**, including engine ownership,
+reference-engine imports and dispatch. Normalized TypeScript diagnostics are
+unchanged from the captured repository baseline. An initial test command used an
+unsupported Vitest flag and exited before testing; the corrected run and both logs
+remain local. The production archive also retains the failed first collection,
+failing baseline self-check and two candidate-6 harness-identity launch failures.
 
-The final candidate-8 integration run passes **262 tests in 67 files**, including
-reference-engine imports and dispatch. The compiler introduces no normalized
-TypeScript diagnostics relative to the captured repository baseline. An initial
-test command used an unsupported Vitest CLI flag and exited before running tests;
-the corrected invocation and both logs remain local.
+Candidate 8's small final-support pass adds **1.4000 points** over candidate 7
+for **4.13% more actual work**. Starting states and all earlier emitted geometry
+are identical on all 460 matched runs. Of their rounded musical scores, 256 improve,
+12 regress and 192 are equal; the largest regression is 0.0398. Completed
+incumbents and the shared meter are protected. Duplicate final-support controls
+do not consume proposal slots repeatedly; that counter alone is not evidence of
+net frame savings. The selected source is tagged `intentional-motion-candidate-8-835`.
 
-The compact search archive retains **959 outcomes from 55 development studies**,
-including unsuccessful proposals and orchestration failures. More demonstrations,
-broader native continuation, value-model restrictions and whole-track re-fitting
-all produced mixed results. General repair frequently spends the remaining
-allowance rebuilding suffixes without accepting a better complete track. Bounded
-ending repair is more economical: the ten-case final-support pilot preserves or
-improves all musical scores, including folded and terraced endings. This pilot
-justifies a full trial, not another benchmark headline. The four-case
-750k/1.5m/3m/5m study also shows that more work is not monotonically better.
+The compact search archive retains **959 outcomes from 55 development studies**.
+More demonstrations, broader continuation, value-model restrictions and whole-track
+re-fitting produced material mixed results. General repair frequently spent the
+remaining allowance rebuilding suffixes without accepting a better complete ride.
+The four-case 750k/1.5m/3m/5m study also showed non-monotonic behavior. Unadopted
+repair and value prototypes are preserved at `55f774fa` on
+`research/intentional-motion-repair-20261001`, outside production defaults.
 
-The context/work reports retain all requests and disclose whether a request is
-open, guided, paired or a transfer. These are descriptive associations across
-incoming states and targets, not causal comparisons of interchangeable shapes.
-The roadmap's numerical ambition remains **850**, still unmet at this checkpoint.
+The [delivery report](intentional-motion-results-20261001.md) links complete
+canonical/confirmation results, individual regressions, context/work distributions,
+production scores, model provenance and the live review. Motion, musical accuracy,
+fulfillment and cost remain distinct. The 850 ambition remains open.
 
-The sections below preserve the development history; statements about provisional
-contracts, running studies and superseded candidates refer to those earlier stages.
+The sections below preserve development history; provisional contracts, running
+studies and superseded candidates refer to those earlier stages.
 
 ## Baseline preservation and implementation start
 

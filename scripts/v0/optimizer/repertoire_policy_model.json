@@ -2,12 +2,12 @@
   "schema": "line.arc-compressed-policy.v1",
   "compression": "gzip-file",
   "file": "repertoire_policy_model.json.gz",
-  "compressedSha256": "481ad166693e03bc41e953333e45e8ecf56b84d7640897ae8741a7eb019a9a5c",
-  "sha256": "32a99f3b755d7e039d693f47601a9246a371802f0b857a3e90d489a83e926b12",
-  "uncompressedBytes": 10383934,
+  "compressedSha256": "fd3877ac5cc5dbd221909ed835c8deb7ef21124074b0893cd15010a88905ff3f",
+  "sha256": "2e41ce68ec1e5b79d979ffc78e5bccbcb2b5a66f516ad8e1adef1221773777cc",
+  "uncompressedBytes": 21480830,
   "provenance": {
-    "training": "scripts/benchmark/train_construction_retrieval.py",
-    "sourceExamplesSha256": "36a81c3c518f88d4fd7475a1c2d449857bdcccb2e2e9b0664c07837aef8ef911",
-    "evidence": "docs/evidence/repertoire-policy-v6-provenance.json"
+    "policyTraining": "scripts/benchmark/train_construction_retrieval.py",
+    "packing": "scripts/benchmark/pack_construction_search_model.py",
+    "evidence": "docs/evidence/repertoire-search-memory-v6-provenance.json"
   }
 }

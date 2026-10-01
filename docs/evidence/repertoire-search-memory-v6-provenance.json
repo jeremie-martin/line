@@ -1,0 +1,2001 @@
+{
+  "schema": "line.repertoire-search-memory-provenance.v1",
+  "compilerContext": "3731c694 before deployment",
+  "policyUnchanged": true,
+  "memoryExamples": 14340,
+  "sharedPolicyReferences": 6013,
+  "newReceiverExamples": 608,
+  "packing": {
+    "schema": "line.construction-search-pack.v1",
+    "policies": "generated/intentional-motion/construction-policies-1.json.gz",
+    "policiesSha256": "481ad166693e03bc41e953333e45e8ecf56b84d7640897ae8741a7eb019a9a5c",
+    "examples": "generated/intentional-motion/construction-examples-3.json.gz",
+    "examplesSha256": "7d97a97c4175e2bd492c39b6d91fcbbd82a6757ce606b7e414f11dfd8d5a4452",
+    "sha256": "fd3877ac5cc5dbd221909ed835c8deb7ef21124074b0893cd15010a88905ff3f",
+    "groups": {
+      "[true,null,null,null,null,null,null,null,null,true]": {
+        "examples": 57,
+        "referenced": 34
+      },
+      "[false,null,null,null,null,null,null,null,\"paired\",true]": {
+        "examples": 3183,
+        "referenced": 1348
+      },
+      "[true,\"serpentine\",0.8,0,null,null,null,null,\"transfer\",true]": {
+        "examples": 413,
+        "referenced": 206
+      },
+      "[true,null,null,null,null,null,null,null,\"paired\",true]": {
+        "examples": 6050,
+        "referenced": 2602
+      },
+      "[true,\"terraces\",0.8,0,null,null,null,null,\"paired\",true]": {
+        "examples": 784,
+        "referenced": 364
+      },
+      "[true,\"scallops\",1,0,1,null,null,null,\"paired\",true]": {
+        "examples": 674,
+        "referenced": 326
+      },
+      "[true,\"serpentine\",0.8,0,null,null,null,null,\"paired\",true]": {
+        "examples": 746,
+        "referenced": 363
+      },
+      "[true,\"fold\",1,0,null,3,30,null,\"paired\",true]": {
+        "examples": 792,
+        "referenced": 326
+      },
+      "[true,null,null,null,null,null,null,null,\"transfer\",true]": {
+        "examples": 541,
+        "referenced": 192
+      },
+      "[true,\"fold\",1,0,null,3,30,null,\"transfer\",true]": {
+        "examples": 275,
+        "referenced": 76
+      },
+      "[true,\"scallops\",1,0,1,null,null,null,\"transfer\",true]": {
+        "examples": 564,
+        "referenced": 102
+      },
+      "[true,\"terraces\",0.8,0,null,null,null,null,\"transfer\",true]": {
+        "examples": 261,
+        "referenced": 74
+      }
+    }
+  },
+  "demonstrations": {
+    "schema": "line.construction-examples.provenance.v1",
+    "relabel": false,
+    "excluded": [
+      "amour_de_ma_vie_44s",
+      "canonical-bridge_dense_dialogue-automatic"
+    ],
+    "corpusSha256": "7d97a97c4175e2bd492c39b6d91fcbbd82a6757ce606b7e414f11dfd8d5a4452",
+    "examples": 14340,
+    "groups": {
+      "[true,null,null,null,null,null,null,null,null,true]": 57,
+      "[false,null,null,null,null,null,null,null,\"paired\",true]": 3183,
+      "[true,\"serpentine\",0.8,0,null,null,null,null,\"transfer\",true]": 413,
+      "[true,null,null,null,null,null,null,null,\"paired\",true]": 6050,
+      "[true,\"terraces\",0.8,0,null,null,null,null,\"paired\",true]": 784,
+      "[true,\"scallops\",1,0,1,null,null,null,\"paired\",true]": 674,
+      "[true,\"serpentine\",0.8,0,null,null,null,null,\"paired\",true]": 746,
+      "[true,\"fold\",1,0,null,3,30,null,\"paired\",true]": 792,
+      "[true,null,null,null,null,null,null,null,\"transfer\",true]": 541,
+      "[true,\"fold\",1,0,null,3,30,null,\"transfer\",true]": 275,
+      "[true,\"scallops\",1,0,1,null,null,null,\"transfer\",true]": 564,
+      "[true,\"terraces\",0.8,0,null,null,null,null,\"transfer\",true]": 261
+    },
+    "sources": [
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-1/tiki_tiki_48s-free-heading-303-3000000.json",
+        "sha256": "58c104d22a01fc81651560ddcc6ec656adef5b10e7be4e817cc15e182393e838",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-1/tiki_tiki_48s-impact-arrival-303-3000000.json",
+        "sha256": "46f226b87672235bb55131125930158df6ba7354c2ff51869a2c4e1bd9460243",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-1/tiki_tiki_48s-lookahead-303-3000000.json",
+        "sha256": "30797dc5959036e4299f45b3f3c129700c1df85ffd6e5516122c2e5657a6d190",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-1/tiki_tiki_48s-no-value-303-3000000.json",
+        "sha256": "10d3d40dab8b6ff93c938a9a36dd5c392db039adda1f874d768693c804aced67",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 67
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-2/luna_bala_44s-heading-deep-303-3000000.json",
+        "sha256": "800c255f4acb21eede5c26e8eb19486c31313e6f1076f8eb4823de57bb06b7d0",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-2/luna_bala_44s-heading-strong-303-3000000.json",
+        "sha256": "b2ac246f0e39e57bb5850965714a899913a4a11f0e75c6a4ebde4e0b3474754f",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-2/luna_bala_44s-passive-303-3000000.json",
+        "sha256": "9504e483e26000ebd7bcec3bab56fed2c93064498e6d2f4cbfd122a591783463",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-2/tiki_tiki_48s-heading-deep-303-3000000.json",
+        "sha256": "2f11f95a5119251a07239d983bc76b43870f3b41f4548cbb4c218eb2c702db45",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-2/tiki_tiki_48s-heading-strong-303-3000000.json",
+        "sha256": "9b7b00a45dc002ec2b4499a92aa31af606ede870c0c55966a71e493182f338e7",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/arrival-2/tiki_tiki_48s-passive-303-3000000.json",
+        "sha256": "1f109ffbcf18ba35d59a47f521475283371858f94d878b64633f4b36dcc2d92c",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/budget-1/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "8d8c39bd9be0758b8e983a86750ebe5aba42d91a348373751a3c1dfde0c143f7",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/budget-1/canonical-accelerando_reply-fold-transfer-curve-101-1500000.json",
+        "sha256": "f554960b2e7d713a35ddcdee2f74b1e29ea74221179f7ce0ba70f8e335b0d71a",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/budget-1/canonical-accelerando_reply-fold-transfer-curve-101-5000000.json",
+        "sha256": "3a910d3e1ce92aa1bc4c0af92d583d542fdf2e06f51ebf6bb79b6edba969b0b6",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 91
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/budget-1/canonical-accelerando_reply-fold-transfer-curve-101-750000.json",
+        "sha256": "4471f99197314297b0fad93fc3f4e8e4dd2e55eb7317b308a0f104a63e415eda",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 91
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/budget-1/canonical-afterglow_turn-automatic-base-202-3000000.json",
+        "sha256": "4631b725a4a3d30eb6c97d814b1a6ba6d1c1fd8063d1c73c911c612dc0dfb57c",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/budget-1/canonical-afterglow_turn-automatic-curve-202-1500000.json",
+        "sha256": "81b89b7b63b5d61ae2fe4dc3bcde0c0f5ca1d321e2534c2ef4e87622c3e856d0",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 96
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/budget-1/canonical-afterglow_turn-automatic-curve-202-5000000.json",
+        "sha256": "1c04673cd23fa77cc0576cc40d710514cfdd4b7de7920b07a5070e1804bb283d",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/budget-1/canonical-afterglow_turn-automatic-curve-202-750000.json",
+        "sha256": "e26cfa2fc930b00df16aedf436b7be461ea1e00ef3b545a230c1decfe1d51e68",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 94
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/calm-1/luna_bala_44s-calm8-303-3000000.json",
+        "sha256": "3ff5e077070726d5c06d2bd9cf2458ef37603e8ed24d1df4758cf9a121ff3713",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/calm-1/luna_bala_44s-context-303-3000000.json",
+        "sha256": "e1f36b7eded3a6494d8d3e5407b977a937d0c25e1b4b482b8d1ff2424b2825a1",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/calm-1/tiki_tiki_48s-calm1-101-3000000.json",
+        "sha256": "b0b7127175da2b243d6339df8c17fed367352d46e12431b4fc1422d2700b74b4",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/calm-1/tiki_tiki_48s-calm8-101-3000000.json",
+        "sha256": "667ecb2289cdf1080c36b441a617dfd71352e989405070bfcd703962519ed149",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/calm-1/tiki_tiki_48s-context-101-3000000.json",
+        "sha256": "df96966aa66a771f3cacba4c7f67115ca024f7cb4dd3591aa1b8755e25c22d0c",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/calm-1/tiki_tiki_48s-impact3-101-3000000.json",
+        "sha256": "7c37b6d20e2e18b9eab6b294d93d6c0ad4e2b1c19b298564f4b3de3edb1fdeaf",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "cf9faeff6090db2ef9d79f7ecf8068c54a00ec5a82f4b2d119cc9cee6213f51e",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-accelerando_reply-fold-transfer-both-101-3000000.json",
+        "sha256": "a97107868d0b20b72d4931dd4aaa20c48bb890c4700ad976fde254d2b6c1be17",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 5
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-accelerando_reply-fold-transfer-compact-101-3000000.json",
+        "sha256": "8152c846d193a68313af929581fc0c143d42ed615ed37c3eeabfb37170af39ca",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 3
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-accelerando_reply-fold-transfer-fork_base-101-3000000.json",
+        "sha256": "0ed8d89672af3ea316d87d25af9370828f744323dece758ad7adea2f5c696917",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-accelerando_reply-fold-transfer-fork_both-101-3000000.json",
+        "sha256": "e82de6f7757f90197992726396d3e15af960cacbddd36d79286cff7f3fc20827",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-accelerando_reply-fold-transfer-fork_compact-101-3000000.json",
+        "sha256": "788dda4522a3f8b1dfa8c8aaf4c1600269ba67c63625e0a50e3595d19ddc8338",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-accelerando_reply-fold-transfer-fork_receiver-101-3000000.json",
+        "sha256": "69c66406966563b3fd0a4e865430ccc03a31548b20fbe678e84baa9a218038e1",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-accelerando_reply-fold-transfer-receiver-101-3000000.json",
+        "sha256": "b506ac0fe5128ebf611478a5474f3622d10c1c8635695706c4f7e49b0061534e",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 2
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-afterglow_turn-automatic-base-202-3000000.json",
+        "sha256": "09ab648695ca2a4ed44e64c60cb6cec10063c65110313a1143da87c728b6f056",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-afterglow_turn-automatic-both-202-3000000.json",
+        "sha256": "46b68a8d96fec7ee0ee5b5143b982c8a0e5505376476c92dd7b7ad417e3a7f36",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-afterglow_turn-automatic-compact-202-3000000.json",
+        "sha256": "1ed2d7b1225a933275b8982cba665251c94eea7bf9b82cdbd943a37c3b41685c",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 91
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/compact-fold-1/canonical-afterglow_turn-automatic-receiver-202-3000000.json",
+        "sha256": "b21356473111c7fcd501a1ee72e041c16156150c743e0e05e29e007f7800c1ec",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 90
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "ae4d675c99ef22675e570cce6da97cde05b205e393a38f1cfcee7f086efb125a",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-accelerando_reply-fold-transfer-first40-101-3000000.json",
+        "sha256": "b96436f809cbd725bfb54615f3fa837894bf1a00401473337485da8c375238d7",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 88
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-accelerando_reply-fold-transfer-first50-101-3000000.json",
+        "sha256": "9a986118fe29d99f4d4ad2044126ebff0355724ee96435328e2c62271975a51f",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-accelerando_reply-fold-transfer-receiver40-101-3000000.json",
+        "sha256": "6e95c62da56da546ea850e18d94fcf75642bce4c1ad2a2b6c8e1bf0a4b5e7512",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-afterglow_turn-automatic-base-202-3000000.json",
+        "sha256": "ef5f40a891a8637d6bd0492523cc18fc86632f43c261eeee14644dba29e26dc3",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-afterglow_turn-automatic-first40-202-3000000.json",
+        "sha256": "56e59c16942007528458d519aba48b38d29164b81039ad62eab9d4abf88410ad",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 96
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-afterglow_turn-automatic-first50-202-3000000.json",
+        "sha256": "f3d642851e914ea1df4640aa40b553068d1ced0614d93e6b32222ef693d5f078",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-afterglow_turn-automatic-receiver40-202-3000000.json",
+        "sha256": "ddb9bd59d15fb35eeef24a739e748cc98572045781dfb00b7bf4c46b554f5b40",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-bridge_frontier_dense_recovery-automatic-base-202-3000000.json",
+        "sha256": "10107c3bed639e68a9e4e68278a976970039af85b4d071c67c593f3d51becaec",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-bridge_frontier_dense_recovery-automatic-first40-202-3000000.json",
+        "sha256": "52f00f8fecd6cc52ee5727be4dbabffc123ac5f804b43e320c862eacc4868057",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 70
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-bridge_frontier_dense_recovery-automatic-first50-202-3000000.json",
+        "sha256": "3975b3f526ded0df2ac11c93c513c2e97861bbd10db24975a46f5910d9ead44f",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 96
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/canonical-bridge_frontier_dense_recovery-automatic-receiver40-202-3000000.json",
+        "sha256": "b392b0f680103076fe776561e998a3c02464f9d4381aed409ad9eca833d8cd8f",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 123
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/tiki_tiki_48s-base-101-3000000.json",
+        "sha256": "8d1b527d118575951af69e3f6c29e7c64c4d1b343c7aed744455063f2ef634be",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/tiki_tiki_48s-first40-101-3000000.json",
+        "sha256": "6a75e8f2223015254d68fe839cfde872471c4d1301b85879248e45001fbd0543",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/tiki_tiki_48s-first50-101-3000000.json",
+        "sha256": "78692aac678bf44240e5175134bee586490ae332da5d5c2fbdc49b2faf2ae74d",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/completion-1/tiki_tiki_48s-receiver40-101-3000000.json",
+        "sha256": "f4ca6cdfc57da535b5d8e9e73c08a6ec0a6e948515106c54b9e9304ab92240ba",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 5
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/continuation-1/tiki_tiki_48s-base-303-3000000.json",
+        "sha256": "40663a734cb96e8288c53f3bac64e901abf8b9212c4c8740f2b2cb101be68a06",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/continuation-1/tiki_tiki_48s-refined-303-3000000.json",
+        "sha256": "b6e3b65ad858a06dc56be516c26d6ca0b55c523c11e1d75325462a845565d1f9",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/continuation-1/tiki_tiki_48s-refinedtime-303-3000000.json",
+        "sha256": "0de5a49fc60545d20e7e1cd899d0bb1599b8403c15b185fd99fc2f696dc41673",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/continuation-1/tiki_tiki_48s-time-303-3000000.json",
+        "sha256": "fff45432ca43c74a1495392003cc3c64da0a0ba2d920082a7682e88d6e6cf299",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/canonical-accelerando_reply-fold-transfer-calm2-101-3000000.json",
+        "sha256": "a77c449ea35399de0b912fc1735e6827559c31f5c08510790aca1c7a49b96cce",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 90
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/canonical-accelerando_reply-fold-transfer-coverage-101-3000000.json",
+        "sha256": "df8648b0bd5ba694c13b19b9e22f8fd68667972f390825de83eb7e1e7a3abc91",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/canonical-accelerando_reply-fold-transfer-inherited-101-3000000.json",
+        "sha256": "b583ba6c86812d65070f93e45c7b0501b58d6442e0ab50e3b80db4b9b0b43311",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/canonical-afterglow_turn-fold-transfer-calm2-101-3000000.json",
+        "sha256": "5f5b033e7e65312f24df8aceef0bd3719209e3906c416a0ea0e1cb3d501c1fb3",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 96
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/canonical-afterglow_turn-fold-transfer-coverage-101-3000000.json",
+        "sha256": "b004d2794261ab8a1013b43c178dd7e7218ee10422fdf44bfc49e8071463ff79",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/canonical-afterglow_turn-fold-transfer-inherited-101-3000000.json",
+        "sha256": "6afcb9fcc4cdd4657d4ef952d00056c5582a3d85bbe1b455bd02d37e50ae8150",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/luna_bala_44s-calm2-303-3000000.json",
+        "sha256": "9ebb10e6b75fc7860c17db9175c844d261d26a37a534542ab9b57236a653d8c5",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/luna_bala_44s-coverage-303-3000000.json",
+        "sha256": "8afffe7eef016339a0e248512ac5b22527818741eaf43fac7d01e5ae8977ddf0",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/luna_bala_44s-inherited-303-3000000.json",
+        "sha256": "28fb082b0a0103e6b6fbe217e528a6752caa3d354a6d7d20d384bce49b06fdf8",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/tiki_tiki_48s-calm2-101-3000000.json",
+        "sha256": "fd9e5dc68ab28e4cd7009c653e64e1fc09cf1511b85a52838fda7d0a0742583d",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/tiki_tiki_48s-coverage-101-3000000.json",
+        "sha256": "6194eee1e760617938a9547932115c7d5811a723c654a13f517bbfa597b91dcd",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 73
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/coverage-2/tiki_tiki_48s-inherited-101-3000000.json",
+        "sha256": "a88b3c4cfc2fc17ec6223df7d92bc7da2a46360d1e31f8ac4ece043887b62021",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/duration-1/canonical-accelerando_reply-fold-transfer-duration-101-3000000.json",
+        "sha256": "3c99f8a5f0dba9bca0a603a99f0529bf603755c927928044785f94f32ae85da1",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 4
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/duration-1/canonical-accelerando_reply-fold-transfer-duration-404-3000000.json",
+        "sha256": "bea90772587c6316e4be5c22f4c546336c849c281b63d0f3d47268db4f1de45a",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 404,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/duration-1/canonical-afterglow_turn-fold-transfer-duration-101-3000000.json",
+        "sha256": "d2c21bd66976317f9917417e76c2c69a8f77709e13df86372ac47a823178f581",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 96
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/duration-1/canonical-afterglow_turn-fold-transfer-duration-202-3000000.json",
+        "sha256": "71fbc1beade7b334a3e7fe22082ba5ecd0b2604135da9ce582c4dd636f5a3d56",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 202,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-1/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "4cfc0ada330ab4849aa01552feb32c17e4e73aeeb283438217dff82dd3224f62",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-1/canonical-accelerando_reply-fold-transfer-examples-101-3000000.json",
+        "sha256": "d5c0ece9a7ee8b2962eab8a1d3d3a07b351a6c55f696e3e7b38980e7c4346bf3",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-1/canonical-accelerando_reply-fold-transfer-examplestime-101-3000000.json",
+        "sha256": "8b6da82f8b8e7741bceb805a3e51504644051864d517c6ca27103c2af2bcc1f5",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-1/tiki_tiki_48s-base-101-3000000.json",
+        "sha256": "03acb7c5a46d0a7eb047f32b62d68a6dd6fb0d96fd9a062250a0535c6b605617",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 52
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-1/tiki_tiki_48s-examples-101-3000000.json",
+        "sha256": "7614c2c4aaf6ea831f03702ad49bf73fc25dea0df0027b26f8e08c611b310778",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-1/tiki_tiki_48s-examplestime-101-3000000.json",
+        "sha256": "637d2c045ce59dce7d044a7d36aa0136f5b42d37a12bd3c0d5fa59492307e848",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-2/canonical-afterglow_turn-automatic-frontier-202-3000000.json",
+        "sha256": "984cc20f3a7d9c9ad2c2c167cba39592ea88ff5780fd71d966cb0daa415285e5",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 89
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-2/canonical-afterglow_turn-automatic-original-202-3000000.json",
+        "sha256": "c268332dbf1b5da0e43f90436d83015fbdbc883727bd10ca35044e93da03e16e",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-2/canonical-afterglow_turn-automatic-relabel-202-3000000.json",
+        "sha256": "eedcb11771ea7482a49696ba7caa66f151749fdbf3246c839186b72a3bb67155",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 88
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-2/canonical-afterglow_turn-automatic-time-202-3000000.json",
+        "sha256": "92a3c04c6e107b7cbe6e4d2d0b04ec85b0477f492762335ca813ca5a3b599501",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-2/tiki_tiki_48s-frontier-202-3000000.json",
+        "sha256": "f32d46503db55c0845ee5d246b75df1788ac84677b33e9323499f40bd23f8b9b",
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "valid": true,
+        "accepted": 73
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-2/tiki_tiki_48s-original-202-3000000.json",
+        "sha256": "62ff7802d9fc2262f80db81d3db298e7b205a912dcd8ed1f823395cebf48c733",
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "valid": true,
+        "accepted": 64
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-2/tiki_tiki_48s-relabel-202-3000000.json",
+        "sha256": "0afc89f8d61149a846c4c09898d7342547ed786b83939942551e5afe8731f2a7",
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "valid": true,
+        "accepted": 61
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/examples-2/tiki_tiki_48s-time-202-3000000.json",
+        "sha256": "392ec302ca62d80953419a6303fe469496dd58b60e365ff0e3d053c93d424190",
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/local-2/luna_bala_44s-base-303-3000000.json",
+        "sha256": "dd796809e54fc9e5b3711ea6a75756c56625a4a32d94e4d875ca6631e1d6f636",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 60
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/local-2/luna_bala_44s-reflow-303-3000000.json",
+        "sha256": "98ac39eba1814c675cc405d50fd545ffa337aa1f6992a80d79eb8ee6ae175ec8",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/local-2/luna_bala_44s-translate-303-3000000.json",
+        "sha256": "299070220918695e98034fd94684bc7181783f3f4ffa8cf7a56bf9cfc166586d",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/local-2/tiki_tiki_48s-base-101-3000000.json",
+        "sha256": "f0ea4eaed49b2640d2e129fcfdcdcae4b43e39b9ce3c1fdc327304056b021ded",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/local-2/tiki_tiki_48s-reflow-101-3000000.json",
+        "sha256": "0c241c68c6c4cace542f6eea36b73a4223ac894c10d522948dbd021751f57a72",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 3
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/local-2/tiki_tiki_48s-translate-101-3000000.json",
+        "sha256": "6bcd45c5e732f87e069587490f084fef8ff66911f100ee5e63f93e41d29c08d0",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-afterglow_turn-automatic-base-202-3000000.json",
+        "sha256": "ca72772327b8032cb5cfa649f59dc4519542a7b929342d86fb24f38e5fad95a8",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-afterglow_turn-automatic-contextArrival-202-3000000.json",
+        "sha256": "f590818d367a9c8f0533a2d0a73535ec152373bf6b29b353699c909e4acd314a",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 96
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-afterglow_turn-automatic-continuation96-202-3000000.json",
+        "sha256": "6dbce6ca9877d6d59ed5fcc25df0c65c8f6c8465eaf3b11756f294c43af836d2",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-afterglow_turn-automatic-impact3-202-3000000.json",
+        "sha256": "31b66ec8169d8299c77ef9391702e393d8598349b5d4dfb4db14a11e10de7694",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-afterglow_turn-automatic-secant-202-3000000.json",
+        "sha256": "20abb9fb916748558be48acc6c4ad9dce306005d1b61efb3116458b3d4519d5c",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-afterglow_turn-automatic-time-202-3000000.json",
+        "sha256": "7df5b3d1da78c1fafa1ab175ed44106db759ce3d3d385ebb861838fe24276b9f",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-bridge_frontier_dense_recovery-automatic-base-202-3000000.json",
+        "sha256": "ea6f7f3c646e6c501b16c32ab516273497f00e62d2ef125cfa0fa52a8b21fe93",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 124
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-bridge_frontier_dense_recovery-automatic-contextArrival-202-3000000.json",
+        "sha256": "362eaa7712ccd5e85d530ea9b04881fdee6d68e09fe56bfb81166bdcb3d3cd17",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 124
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-bridge_frontier_dense_recovery-automatic-continuation96-202-3000000.json",
+        "sha256": "43138e84bc4b40aabe47eda91f822cb9345fb86952ebe74806694df7bbd1ae15",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 123
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-bridge_frontier_dense_recovery-automatic-impact3-202-3000000.json",
+        "sha256": "3769d92413ac97bdf3c0ce3319436242074fc234697cba9e7d1a4b008a98af21",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 123
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-bridge_frontier_dense_recovery-automatic-secant-202-3000000.json",
+        "sha256": "a3c78230d0664bd385ea2cd538ebff30c0f27e393fac0f8eb694eb95c0ad122a",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 124
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/canonical-bridge_frontier_dense_recovery-automatic-time-202-3000000.json",
+        "sha256": "ea9f5a5d57a67e8e9fd369bccb612c1aa9e7a2f18974855c2f14905db5892351",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 124
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/tiki_tiki_48s-base-101-3000000.json",
+        "sha256": "9ccf85ffb5b0de09e150a71cb6cbe2b51f3aebe23ea9dc226ad6f32cc6fa3996",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/tiki_tiki_48s-contextArrival-101-3000000.json",
+        "sha256": "42ddd9f296f505690e5346085c94a3fa40c955264aa55c0f25cf4c222501d667",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/tiki_tiki_48s-continuation96-101-3000000.json",
+        "sha256": "b46cccdacb9a36e8b2e965e79a67bdcc8e9a0519ecc8423eb5db39fcf9db9be9",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/tiki_tiki_48s-impact3-101-3000000.json",
+        "sha256": "f751294ab31cf8efa5dd612c26e407dc625c7efc6f3eaf8b35836ab563813b8f",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/tiki_tiki_48s-secant-101-3000000.json",
+        "sha256": "d37809545c367a2d2000e809e96a5d0b360aee5ae4900038f7f7f732fac0f15b",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1/tiki_tiki_48s-time-101-3000000.json",
+        "sha256": "dea3843c0278fc99e40186cb2a6803879ea30acdee98483668978fb7c482c737",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1b/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "ce49761bc798385e5fafdbd1c915d836fcb804b2c42ba40ae31277fe681c4513",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1b/canonical-accelerando_reply-fold-transfer-contextArrival-101-3000000.json",
+        "sha256": "f0f713870087d85528e593d33d27c131c676e18301c7578e92df013be32379b1",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1b/canonical-accelerando_reply-fold-transfer-continuation96-101-3000000.json",
+        "sha256": "f0c38d0a82bde5df510b8b5c9bae57643c2210832e72390f928bba1b63732e15",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1b/canonical-accelerando_reply-fold-transfer-impact3-101-3000000.json",
+        "sha256": "3d801e6727f11b7cc546ba7f54f14708761fa9f011d612176de68e8b1d001f0b",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1b/canonical-accelerando_reply-fold-transfer-secant-101-3000000.json",
+        "sha256": "3cc4a64aec006265de39de65634c559a9ab50b0ec36842a2357887670a1d034d",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/objective-search-1b/canonical-accelerando_reply-fold-transfer-time-101-3000000.json",
+        "sha256": "e62eb499be1a8252e815f649731706eb7bd2608369c4490cbf9466f2bd0515b4",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 91
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/canonical-afterglow_turn-automatic-base-202-3000000.json",
+        "sha256": "3f6b7794f7fc499dea58e87807eba709fb8793bedc0591a0fbcbfcea471bb48f",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/canonical-afterglow_turn-automatic-pair128-202-3000000.json",
+        "sha256": "7b909fcf23c7fac9bd30c0f58827c507d989d0ae94d2b0f331f8660e821e5ba2",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 94
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/canonical-afterglow_turn-automatic-pair64-202-3000000.json",
+        "sha256": "31228929c425a920f40408162eb32868fc5a2d06691c6d96df79837394018223",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 95
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/canonical-bridge_frontier_dense_recovery-automatic-base-202-3000000.json",
+        "sha256": "c1a991e7b5d4c5064ede9244d9add0a2811198a563d5f90e87e77db3b0411dd2",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/canonical-bridge_frontier_dense_recovery-automatic-pair128-202-3000000.json",
+        "sha256": "20124a6d4c2cf82b0e0210ed2cbec1e461fb655717ec328240d13fceb8374224",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 69
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/canonical-bridge_frontier_dense_recovery-automatic-pair64-202-3000000.json",
+        "sha256": "02e634d98702b98c978e6df3688b11a7021edd7f2ab4656710566f23e305791a",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 66
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/tiki_tiki_48s-base-101-3000000.json",
+        "sha256": "bd027b45bdd84ff5e05bf680ca4930a9d5a3441609197fcd217fb814af299c0f",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/tiki_tiki_48s-pair128-101-3000000.json",
+        "sha256": "ad0e1f5a5405e83b6a9b4646e20247286480752ac32d991e7ae0b2f5f462627d",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/pair-1/tiki_tiki_48s-pair64-101-3000000.json",
+        "sha256": "9a746dd6e18b78f0dbdb4281004490d3804903df6351eaa527726cf434b7121d",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/precision-1/canonical-accelerando_reply-fold-transfer-duration-101-3000000.json",
+        "sha256": "5424e59ca5c538ad07ac914c91a431e8d105a4f8297fb7438bbb92e290b858b2",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/precision-1/canonical-accelerando_reply-fold-transfer-duration-404-3000000.json",
+        "sha256": "9e993dd73904eb7c4c1de3952910d35d075737679d1bca4128ee501de357f846",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 404,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/precision-1/luna_bala_44s-precision2-303-3000000.json",
+        "sha256": "7b9dc9aebab170083ae8fb3ab770bce156288cab5a0d05be7d5381bf02dbc3ad",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/precision-1/luna_bala_44s-precision4-303-3000000.json",
+        "sha256": "9dc007963d652152f011d05657830e090d92ae4e9e55f2c05b54b8b52e3d6c0c",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/precision-1/tiki_tiki_48s-precision2-101-3000000.json",
+        "sha256": "e12ed0b4dddaf6627feaabf774a29fc488bfcbd7ad939e55ffd7694a34a552b9",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/precision-1/tiki_tiki_48s-precision4-101-3000000.json",
+        "sha256": "d76fd683a1070fb74a59a6af336d81ba4ebff37e437a79ca0f2c41baad32c716",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/proposals-1/amor_na_praia_46s-fold-base-101-3000000.json",
+        "sha256": "55e52caec0909624c66547fe861f3ff9e753f2a367f099161160d230b7221e21",
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "valid": false,
+        "accepted": 3
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/proposals-1/amor_na_praia_46s-fold-coverage-101-3000000.json",
+        "sha256": "9d685af8b0e8a2ea166c3bfda5a06116169306d8b612d47b11569d1e2b259c93",
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 79
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/proposals-1/luna_bala_44s-coverage-303-3000000.json",
+        "sha256": "59aa661a0a953130160107a56c72e7611ca3085689ae4e1fd7f6ebe803092ea4",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 68
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/proposals-1/luna_bala_44s-fold-base-101-3000000.json",
+        "sha256": "19bafcaa44fa1f5c7626200755584d2b52c0b93059349ef499bf915385be9b0f",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": false,
+        "accepted": 3
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/proposals-1/luna_bala_44s-fold-coverage-101-3000000.json",
+        "sha256": "ec97bd0ec5626f6f5356b7907af4e326668db887ca717094563f89bf0c4e2654",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/proposals-1/tiki_tiki_48s-coverage-303-3000000.json",
+        "sha256": "d4ea3be315e9fc482a67f6ad2411f9f825d2e66b8340ef3d6f975439d967aa92",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/canonical-bridge_frontier_dense_recovery-automatic-balanced-202-3000000.json",
+        "sha256": "1e30ade2295d30d26246bb5ebdedfb655e329758d86d0329905c07d342fe5dc8",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 122
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/canonical-bridge_frontier_dense_recovery-automatic-base-202-3000000.json",
+        "sha256": "a2b11f8f09df8b867f06714238b6b31f285a0749ff20d7c0a22304d4a726f79b",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/canonical-bridge_frontier_dense_recovery-automatic-burst64-202-3000000.json",
+        "sha256": "b5a033ccd67673a641ac6b27cceae6aea2c37b37b32d6fe8ca3f20d8d8c2b6db",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/canonical-bridge_frontier_dense_recovery-automatic-strong-202-3000000.json",
+        "sha256": "ead24057393de0da5fb8d25474b46d0799c9093cdba65a4f4bb6e1b56d0f7b52",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 122
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/luna_bala_44s-balanced-101-3000000.json",
+        "sha256": "992bbcae3ca12ccd83b19fc44ecce973ba65f45f334a896c88a7ae59bb0dede8",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/luna_bala_44s-balanced-303-3000000.json",
+        "sha256": "312604aaad403b4281d79531bc8070a7bed76d33f5a3e6ba485a8b68b1451578",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/luna_bala_44s-base-101-3000000.json",
+        "sha256": "5e1678caa2cfc2c457405df89b645976600b5786d4ae40caef7901e9635b45c6",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/luna_bala_44s-base-303-3000000.json",
+        "sha256": "e69e998f865fc17c013845febbde81ce287314ca1403bda8c55eaaa534d93c6f",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/luna_bala_44s-burst64-101-3000000.json",
+        "sha256": "20249cc9c7e8193b3a0615efb55a3cf9e27fd30a56c72c9f2f32080aebe40c53",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 64
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/luna_bala_44s-burst64-303-3000000.json",
+        "sha256": "3872387153d0264d55f5a9641b759c8a584c0ea94fa673ff42d8f6624dad3730",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 69
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/luna_bala_44s-strong-101-3000000.json",
+        "sha256": "87f10fe77a5fff5801a1bfe73531826cfcab6ecdef01b5d0d64958d08c420f42",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/luna_bala_44s-strong-303-3000000.json",
+        "sha256": "d4a05000b3027cda55b2a39e2c10093fc09e43f403389e3b0262ecb03d7b5c24",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/tiki_tiki_48s-balanced-101-3000000.json",
+        "sha256": "91487e93d87fbb0af17011a42549489682b5cc037ed9d31547b791e6dcb3db7f",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/tiki_tiki_48s-base-101-3000000.json",
+        "sha256": "c170fcfe8aca049e1ba24f9a93b0e392e22bf5ad0608c5647bba2015d8fca58d",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/tiki_tiki_48s-burst64-101-3000000.json",
+        "sha256": "63b6ecc4a46271c157c882e93d8427aaf7b21f615beee521c4b09efccfaf69db",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 70
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/qualification-search-1/tiki_tiki_48s-strong-101-3000000.json",
+        "sha256": "04c7b7578b6623787df38f250d4f5c3ceb8c51b0664edffa8474491cf4733b03",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 76
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "4090466388b5947bbe57719165d1b4bed87a5c4f061b319119405afefe3f22b8",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-accelerando_reply-fold-transfer-fork_base-101-3000000.json",
+        "sha256": "c46b63bcb5f305846b282b59c9fec9369069f0383de9a8bdd4c957b45dd7241a",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-accelerando_reply-fold-transfer-fork_receiver-101-3000000.json",
+        "sha256": "2d5269a333cc51c83e604fd7e151fd81dec5bd9c1863ff6e2baab0de7ff8983c",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-accelerando_reply-fold-transfer-fork_receiverResponse-101-3000000.json",
+        "sha256": "519cdd1021fb941fd1553498ca07f50f6f4933ff5aee003efca75d19900071ce",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-accelerando_reply-fold-transfer-receiver-101-3000000.json",
+        "sha256": "7bddfcc2356101421bfd8d1d6478278cc5e87cb473ed3d2f411f2ce7e40adb3a",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 5
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-accelerando_reply-fold-transfer-receiverResponse-101-3000000.json",
+        "sha256": "41071afabc969468c5457f00330da872d29ee5b9d7b87fd39b407c49e7026204",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 2
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-afterglow_turn-automatic-base-202-3000000.json",
+        "sha256": "97304ae3847a6fce38189af1449584aaa3da6756e338a8d7d834e22f77dc7e8c",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-afterglow_turn-automatic-receiver-202-3000000.json",
+        "sha256": "c86ca84d37c6309545daa20319a84bd646e048d6d353a8fcb4271dcf983bafe0",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 91
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/canonical-afterglow_turn-automatic-receiverResponse-202-3000000.json",
+        "sha256": "4b28eef6b07492c5aefc8413780dc5519659371711e6b03b78aa7565d10f8a30",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 88
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/luna_bala_44s-arcs_base-101-3000000.json",
+        "sha256": "39a147ec186209ede87469afda1a53109ccb3d57156db94269d35024f9be0e2b",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/luna_bala_44s-arcs_receiver-101-3000000.json",
+        "sha256": "83263112e0a31cd53af6a70aca04a80bfd254d0a3f55d8cbce7e92efdc976e1a",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/luna_bala_44s-fold_base-101-3000000.json",
+        "sha256": "dd31b2fa6a27b83aa0c55e05bc482b37c93733593f9ad7a5ce657713da254c5d",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/luna_bala_44s-fold_receiver-101-3000000.json",
+        "sha256": "cdeb035912943e1dd9b4f5df47433c566912869293816b44ddc7502dffcc9aef",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/luna_bala_44s-serpentine_base-101-3000000.json",
+        "sha256": "994b6125b94e2265812f46807e72177f8a7744d7763eba6714caf202a356c65e",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/luna_bala_44s-serpentine_receiver-101-3000000.json",
+        "sha256": "8ac86fb854c1e03527314568b46b5a55cbd98a1c28ad4232051e6a79fb6cf4e2",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/luna_bala_44s-terraces_base-101-3000000.json",
+        "sha256": "f85c95e294c9f7e5ca44716abd2ca20138b5bb2f2f12d70768182f771572b209",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1/luna_bala_44s-terraces_receiver-101-3000000.json",
+        "sha256": "8d351fa0e8c65c5fdf4dc9cc103006d1dd56da247ab0f01cdb0773d5f4527b85",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1b/luna_bala_44s-scallops_base-101-3000000.json",
+        "sha256": "1b93a850d406083684f91f05b804c68e52981d117b86ab0b18b1c73f5990532f",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-1b/luna_bala_44s-scallops_receiver-101-3000000.json",
+        "sha256": "c92257620bcbae1c755144687c065e595a63eda8ffe9b3329a3daa26234d6503",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 73
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-2/canonical-accelerando_reply-fold-transfer-fork_receiver-101-3000000.json",
+        "sha256": "68b76e9098c3798d76935c5fd1f72b2dad9650ccf364f5f2bb8dc0ab30e571a0",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-2/canonical-accelerando_reply-fold-transfer-fork_receiverResponse-101-3000000.json",
+        "sha256": "122047c6664c3fd789d2fcfa3a338afaccc44dadb2fb1294e613898a3b5c5140",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-2/canonical-accelerando_reply-fold-transfer-receiver-101-3000000.json",
+        "sha256": "5e6c84928d2c0cfe93d51f67d820ca4728469f88b4bb38ec4978efe75f4be652",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 4
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-2/canonical-accelerando_reply-fold-transfer-receiverResponse-101-3000000.json",
+        "sha256": "12b78effdfca6d885b82eeaf919a96c92cbcb0a8baa5bb875dcb79bae5afe3c2",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 2
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-2/canonical-afterglow_turn-automatic-receiver-202-3000000.json",
+        "sha256": "e20263198916ea28f18ee75023f1d44838f0c3d37b33a992e8b812b3139dac36",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 90
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-2/canonical-afterglow_turn-automatic-receiverResponse-202-3000000.json",
+        "sha256": "8ae345a22ad9ed303f01f5f2963ba61678a85c73e72719e0bb32d83cb107809f",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 89
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-2/luna_bala_44s-fold_receiver-101-3000000.json",
+        "sha256": "d09cda86990a5850706e7af175e66fcb79b63f58c190d80ae8d41c290759909a",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 74
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-2/luna_bala_44s-fold_receiverResponse-101-3000000.json",
+        "sha256": "f190366f55aab8da64d54fc67bb61328f90c6b3c41f406e881f28f3c8e1d6067",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 72
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-accelerando_reply-fold-transfer-fork_receiver-101-3000000.json",
+        "sha256": "d64e90061d12b6e48766a61185425b6d7ab8b0acae0fc55b4b1876a7c5e2976e",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-accelerando_reply-fold-transfer-fork_receiverResponse-101-3000000.json",
+        "sha256": "71bc02b7d41e0449bcceea1147061fc6c89c15a907123556b348b4b1be24247f",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-accelerando_reply-fold-transfer-receiver-101-3000000.json",
+        "sha256": "fb96d76a83ea57b7b61b1d58c5820c275ca37a7f28cf477c63bc22c05fde0ebd",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-accelerando_reply-fold-transfer-receiverResponse-101-3000000.json",
+        "sha256": "825bba4212c4ea6f95f147a85109f1ef6170825aaf4cb1b1124f4a5df1cb0c58",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-afterglow_turn-automatic-receiver-202-3000000.json",
+        "sha256": "9068f672b1fa5922d9786decdbc9d0eaa9fc5f56ae79572560a9be307028d180",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-afterglow_turn-automatic-receiverResponse-202-3000000.json",
+        "sha256": "c752dcd3c4e8e426a48e0dc764112287e0af066273e0216caa7841e016f7eec5",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 87
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-bridge_frontier_dense_recovery-automatic-receiver-202-3000000.json",
+        "sha256": "a271851666f6cf96be07a940a58f9e795c6bf8f9b8c4fbbfb04e350bac6ecd4b",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 124
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-bridge_frontier_dense_recovery-automatic-receiver-303-3000000.json",
+        "sha256": "3ff5f6a1c208250c3bfa7e7176ccad9d758cc3daf0664d783e921370b305ef2a",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 303,
+        "valid": true,
+        "accepted": 124
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-bridge_frontier_dense_recovery-automatic-receiverResponse-202-3000000.json",
+        "sha256": "5a695b1b33846c6e6593951df1815c8c486620fdae09d43ad72469cf0f110899",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 118
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/receiver-3/canonical-bridge_frontier_dense_recovery-automatic-receiverResponse-303-3000000.json",
+        "sha256": "f8de56ea11f31e00c5f50b0481ff8be20d325575a85db8538a46db39722dc223",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 303,
+        "valid": true,
+        "accepted": 121
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/recovery-1b/canonical-accelerando_reply-fold-transfer-context-101-3000000.json",
+        "sha256": "459034d4be29e28e084770ff9c9168599901f6663d13071635dd940d41d042cd",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 4
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/recovery-1b/canonical-accelerando_reply-fold-transfer-repair-101-3000000.json",
+        "sha256": "04d3da36c19266b766a079aa909545035b23b4c8d0821fa951b996855bc74a6c",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/recovery-1b/canonical-afterglow_turn-fold-transfer-context-101-3000000.json",
+        "sha256": "f776bad0d25810ba488678594b38dc22360920ee6eb1997675fa920e8b488d05",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 89
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/recovery-1b/canonical-afterglow_turn-fold-transfer-context-202-3000000.json",
+        "sha256": "46ef8fed8bbdd15e98dcc9d98157746f4fe692f392bc40dc643a096bed904c7a",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 202,
+        "valid": true,
+        "accepted": 37
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/recovery-1b/canonical-afterglow_turn-fold-transfer-repair-101-3000000.json",
+        "sha256": "5ceaa9566f35332a958dc089dd8117fb33ca67f01216759b016ff6a2a49391c6",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 96
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/recovery-1b/canonical-afterglow_turn-fold-transfer-repair-202-3000000.json",
+        "sha256": "8d23355aac1d9ee343a66bd8754da5690e0bbad12acea72a85b774cafa1640df",
+        "song": "canonical-afterglow_turn-fold-transfer",
+        "seed": 202,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/recovery-1b/canonical-afterglow_turn-single-paired-context-101-3000000.json",
+        "sha256": "0045b5ecf9315eec2041985415cb3ac5185000b0ab8ebf1bf146717ae7ff6642",
+        "song": "canonical-afterglow_turn-single-paired",
+        "seed": 101,
+        "valid": true,
+        "accepted": 93
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/recovery-1b/canonical-afterglow_turn-single-paired-repair-101-3000000.json",
+        "sha256": "245704479f966ba3b84c70bd245a3dd34680fd8ef81a7f02a96ae02314aaca16",
+        "song": "canonical-afterglow_turn-single-paired",
+        "seed": 101,
+        "valid": true,
+        "accepted": 91
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/refinement-1/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "447707516a150a6ed3551dbfb56ea00439b4b1b9187e075a9547b92bcddc51e9",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 4
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/refinement-1/canonical-accelerando_reply-fold-transfer-refine-101-3000000.json",
+        "sha256": "3ed5b6ddf7226ed029ad46cfd3c66932137d5fe79852eba170563181292fd653",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/refinement-1/luna_bala_44s-base-303-3000000.json",
+        "sha256": "f88628a7e3e351cf1877fbb872a9b6f7f810aa155a20ea23cb7ede31f0c7860e",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 61
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/refinement-1/luna_bala_44s-refine-303-3000000.json",
+        "sha256": "a58445102ff8a70559ee57e41d778bad9fb7d95530234a11904d09de26baa446",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/refinement-1/tiki_tiki_48s-base-101-3000000.json",
+        "sha256": "c86506fa7faedcc92ffb457f3935a1f574f13f780590fcd172ef0ed9e651df5c",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/refinement-1/tiki_tiki_48s-refine-101-3000000.json",
+        "sha256": "b136df9e843c118a8bbb8cde23d65974173fced6be1ea51ed58d393a4cf4a86a",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "8fae8138f4f02b12b4bbd11de05626b27595543d66a9557ee65ec4eb6bf92875",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-accelerando_reply-fold-transfer-learned-101-3000000.json",
+        "sha256": "b4c036603e14006f57e255ce2e6dd3ceecae6f92c11e9bf0ea982c21150a809c",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 4
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-accelerando_reply-fold-transfer-learned32-101-3000000.json",
+        "sha256": "6709a6843b9f3807cbebdd94e1a60b39b8d887072ba505a1b6919290aac233d4",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-accelerando_reply-fold-transfer-learnedReceiver-101-3000000.json",
+        "sha256": "5262f296d679f47fd51f9cf1ff0f69202f8643a1d430ea6e57fe61ec4f07d28f",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-afterglow_turn-automatic-base-202-3000000.json",
+        "sha256": "cac6660d0c59b342452e6b6358f96cc8b19ed778a2b47bf5c52854131906d799",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-afterglow_turn-automatic-learned-202-3000000.json",
+        "sha256": "175064874713a6f1bbbae28be43cb51bc8fee49e2acdc6305ab49dfdaae55242",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 90
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-afterglow_turn-automatic-learned32-202-3000000.json",
+        "sha256": "3c7828139cfb4fac7f36d6a0fee4586289a06f8da2d12d5e51c2d905a592cfbf",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 96
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-afterglow_turn-automatic-learnedReceiver-202-3000000.json",
+        "sha256": "70840ba072093b1689bd850705e7dad0cdac66679789c7348c8edd7c7c93427a",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-bridge_frontier_dense_recovery-automatic-base-202-3000000.json",
+        "sha256": "27c8ed6225a652008b0539ca95134311878b6d63b86a54736b7c03565976297a",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-bridge_frontier_dense_recovery-automatic-learned-202-3000000.json",
+        "sha256": "553ffdb00aeb2fad3a99754b53c587e268126e746b85974e846e575ffd2c0384",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 58
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-bridge_frontier_dense_recovery-automatic-learned32-202-3000000.json",
+        "sha256": "db9a01e9228b4ad81c7986f6d9a10c47945e177f020d8990852888861de4d84a",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": false,
+        "accepted": 69
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/canonical-bridge_frontier_dense_recovery-automatic-learnedReceiver-202-3000000.json",
+        "sha256": "40872ad3679ba14fa4ee9afb55d8647ff3733c84df817381e2033dfb554ca371",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/tiki_tiki_48s-base-101-3000000.json",
+        "sha256": "5963b8192d3a35c15055fcdfa289815e391f02500c7d0cce6c6092bf71108527",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/tiki_tiki_48s-learned-101-3000000.json",
+        "sha256": "6ebe15af1b833d8e10616c46b0b9d9818f7aa0d5ece610c1a8f36c8cc7058844",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 3
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/tiki_tiki_48s-learned32-101-3000000.json",
+        "sha256": "cfd757fbf1e81c32e55d91936bc55e3efb737441a3d1d1bd207b617403691139",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1/tiki_tiki_48s-learnedReceiver-101-3000000.json",
+        "sha256": "f46b05577079d17c60cadc0b6a3b78698f475c43ff4cbb5a3e3505493b7e2a2a",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1b/canonical-accelerando_reply-fold-transfer-specialized-101-3000000.json",
+        "sha256": "653997c8daacd3ddcb5c045676fe4576b35c498373e39cf5737e625f3b6b5389",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1b/canonical-accelerando_reply-fold-transfer-specializedReceiver-101-3000000.json",
+        "sha256": "198e7b18373532b7bfbcf07bb5b27776a773434511d9380ae8e11b0bfee2c716",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 5
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1b/canonical-afterglow_turn-automatic-specialized-202-3000000.json",
+        "sha256": "f296241a29550b6786471a20ae5517cc89f9c5e507ac05e16bc63c64369ff34d",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 90
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1b/canonical-afterglow_turn-automatic-specializedReceiver-202-3000000.json",
+        "sha256": "c80f33afef2687bac116366fae1ea09f3a2e0211c7d02197faaaf090bce2afdf",
+        "song": "canonical-afterglow_turn-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 92
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1b/canonical-bridge_frontier_dense_recovery-automatic-specialized-202-3000000.json",
+        "sha256": "0c99a6bb5ce0286de720296898bb61867b18904aa22922d741368161b042f04f",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 116
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1b/canonical-bridge_frontier_dense_recovery-automatic-specializedReceiver-202-3000000.json",
+        "sha256": "2f3e5f9159907e41c3bbf8cba9baee82dcf604af798b0f728af1a9f8cfb1aba9",
+        "song": "canonical-bridge_frontier_dense_recovery-automatic",
+        "seed": 202,
+        "valid": true,
+        "accepted": 120
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1b/tiki_tiki_48s-specialized-101-3000000.json",
+        "sha256": "5728eff164f862ef426c8516daa3cdfaeb3b075eb354cd6bcf874b96efb5b256",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 70
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/retrieval-1b/tiki_tiki_48s-specializedReceiver-101-3000000.json",
+        "sha256": "c1e9e0651a83a60a92a0dab5083481431d3d5b020209ee7eea54a2484c279ec1",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 4
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/startup-1/luna_bala_44s-calm8-303-3000000.json",
+        "sha256": "27add19dccc3da5e9604768d2103760627396d7a30cf8ba4a484546431fd9e3f",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/startup-1/luna_bala_44s-context-303-3000000.json",
+        "sha256": "e688a38542614ec3c4824787210e2618b27a2145f10a1305c9a9a3842ea6fd2d",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": true,
+        "accepted": 75
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/startup-1/tiki_tiki_48s-calm1-101-3000000.json",
+        "sha256": "92b2f111edef7e4a68ca2cdd686eaa847e7b543529fa0ecc8e0b7c6ff2f2ee23",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/startup-1/tiki_tiki_48s-calm8-101-3000000.json",
+        "sha256": "64df302475db6403a42b0e7492ea2a040c79712a2dfcab698e550af6d04cf466",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 78
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/startup-1/tiki_tiki_48s-context-101-3000000.json",
+        "sha256": "6638b63282038df17366b5e1a2b968994a271011088f0b2fc0f886aedbebd73c",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/startup-1/tiki_tiki_48s-impact3-101-3000000.json",
+        "sha256": "4b47ea65f76d3c38b90e7b6c67a3d9eee1c6741015b9e9c287d8f1c7db6e7e7e",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": true,
+        "accepted": 77
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/tail-fork-1/canonical-accelerando_reply-fold-transfer-base-101-3000000.json",
+        "sha256": "96377221cc0ce585b0147e7c8272889817660a8227d8f6d0589358e40ac92355",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 0
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/tail-fork-1/canonical-accelerando_reply-fold-transfer-deeper-101-3000000.json",
+        "sha256": "58076a1c91003e67ab28bf1e39e5efb12d4f48b9c472e0ce6770f717ff989f03",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/tail-fork-1/canonical-accelerando_reply-fold-transfer-relabel-101-3000000.json",
+        "sha256": "29975bd850655c027fb97b28dd705b5ddc034e89bca0038a03500aae5b91729d",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      },
+      {
+        "path": "/home/wyss/line/generated/intentional-motion/tail-fork-1/canonical-accelerando_reply-fold-transfer-response-101-3000000.json",
+        "sha256": "d53e7e668d6c6931cb1a1b5cfce2ccd64f5a433bbe1ded19eea95476af14ebfa",
+        "song": "canonical-accelerando_reply-fold-transfer",
+        "seed": 101,
+        "valid": true,
+        "accepted": 1
+      }
+    ]
+  },
+  "validation": {
+    "exactPolicyParity": true,
+    "exactMemoryParity": true,
+    "scope": "Native matched development study retrieval-2; not canonical qualification or a new benchmark headline."
+  }
+}

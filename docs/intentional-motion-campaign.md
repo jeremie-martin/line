@@ -433,3 +433,56 @@ the chosen candidate's complete measurements through lookahead, bounded choice,
 terminal choice and replay; residuals no longer come from the displaced local
 incumbent when a different geometry wins. Both changes are under regression and
 matched-plan validation before the next integrated candidate.
+
+
+## Search response, demonstration coverage and candidate 6
+
+The full V4 companion completes at **952.4726**, **352/352 valid**, with every
+track hash identical to the preserved qualified reference.
+[Per-run evidence](evidence/intentional-motion-v4-companion-20261001.json.gz)
+preserves the complete panel and source identities. V6/V5 canonical evaluation
+continues from the unchanged candidate-3 snapshot. After draining active cells,
+its coordinators resumed with 16 and 6 workers respectively; input plans,
+completed cells, compiler and judge identities are unchanged.
+
+`objective-search-1` and `response-search-2` compare impact weighting, arrival
+priors, time weighting, continuation refinement, secant reuse and completed-track
+repair. Results are mixed. A mistaken Accelerando case identifier causes six
+launch errors in each original schedule; these are retained. The corrected
+six-run cells are in `objective-search-1b` and `response-search-2b`. The corrected
+input is `canonical-accelerando_reply-fold-transfer`. Increasing continuation
+refinement or combining it with secant reuse helps some cases and substantially
+harms others. Completed-track repair mostly fails to preserve the later requested
+constructions or gives tiny gains; additional work alone remains insufficient.
+
+CPU sampling of a full Amour compile attributes about 7.4% inclusive time to
+detection, versus roughly 19.5% to native line insertion and 19% to metered state
+reads, with overlap between call stacks. The profile reproduces the corresponding
+unprofiled track's score and frame count. This is one shared-host profile, not
+a universal runtime breakdown, and does not justify a broad detector rewrite.
+
+The deployed proposal memory had no examples of the new receiver controls. A
+frozen expansion now contains **14,340** unique demonstrations, including **608**
+receiver examples, from 238 saved source records. Amour and dense-dialogue
+remain excluded from those demonstrations, although both are familiar development
+inputs. Confirmation is still reserved. The corpus and all source hashes are
+recorded in [its provenance](evidence/repertoire-search-memory-v6-provenance.json).
+A source-manifest mode reproduces the exact original corpus before relabeling it,
+so comparisons cannot silently include newly finished studies.
+
+`retrieval-2` compares the old memory, expanded memory, newly trained retrieval,
+and retrieval plus secant reuse. The simplest change—expanded memory with the
+existing proposal policy—completes all six and scores Amour 101 **662.40**,
+dense-dialogue 303 **660.57**, Tiki 101 **810.54**, Afterglow 202 **796.74**,
+dense-frontier 202 **691.19**, and the Accelerando folded ending **622.58**.
+The corresponding baselines are 526.53, 662.35, 801.45, 278.56, 644.64, and
+467.17. The small dense-dialogue regression remains visible. This panel supports
+a new integrated candidate, not a canonical headline. Follow-up relabeling and
+secant comparisons are retained as development evidence.
+
+The candidate-6 deployment preserves the exact proposal policy and exact new
+memory order in one 8.53 MB compressed artifact. Its 6,013 shared demonstrations
+are indexed into the existing policy instead of being stored twice. Full runtime
+parity checks confirm both the policy and all 14,340 memory entries. Unit checks
+reject missing or invalid references. This is a production model artifact; raw
+experiments, training variants, media and CPU profiles stay local.

@@ -30,6 +30,7 @@ import {contactObserver,extendContactObserver,fragmentInterval} from './contact_
 import {motionSamples,summarizeMotion,effectiveBodyVelocity} from './motion_quality.ts';
 import {constructionDeficit} from './repertoire_feasibility.ts';
 import {motionResiduals,type MotionSearchOptions} from './motion_objective.ts';
+import {refineArcPair,type PairMeasurement} from './arc_pair_response.ts';
 import {observedReceiver} from './observed_receiver.ts';
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
 // disposal. A private module instance gives replay its own WASM instance and
@@ -69,6 +70,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Bounded exploration of better physically valid but not yet realized shapes. */
   constructionImprovementSamples?:number;
   observedReceiver?:boolean;
+  /** Native joint adjustment of neighboring supports, within the shared budget. */
+  coupledIntervalSamples?:number;
   genericProposalFraction?:number;
   constructionAwareArrival?:boolean;
   fork?:ArcMotionFork;
@@ -247,6 +250,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
   if(options.initialRecoverySamples!==undefined&&(!Number.isSafeInteger(options.initialRecoverySamples)||options.initialRecoverySamples<0||options.initialRecoverySamples>320))throw new Error('invalid initialization recovery allowance');
   if(options.constructionImprovementSamples!==undefined&&(!Number.isSafeInteger(options.constructionImprovementSamples)||options.constructionImprovementSamples<0||options.constructionImprovementSamples>4096))throw new Error('invalid construction improvement allowance');
+  if(options.coupledIntervalSamples!==undefined&&(!Number.isSafeInteger(options.coupledIntervalSamples)||options.coupledIntervalSamples<0||options.coupledIntervalSamples>512))throw new Error('invalid coupled interval allowance');
   if(options.genericProposalFraction!==undefined&&(!Number.isFinite(options.genericProposalFraction)||options.genericProposalFraction<0||options.genericProposalFraction>1))throw new Error('invalid generic proposal fraction');
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   if(!validProfileControls(options))throw new Error('invalid profile controls');
@@ -325,6 +329,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
   const fragmentStats={intervals:0,probes:0,observationFrames:0,replayFrames:0};
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
+  const coupledIntervalWork:Array<{index:number;proposals:number;viable:number;accepted:number;physicsFrames:number;before:number;after:number}>=[];
   const observedReceiverWork={attempts:0,viable:0,physicsFrames:0,failures:{} as Record<string,number>};
   const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
   const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
@@ -652,7 +657,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
           i<contacts.length-1?options.valueGuidanceWeight??0:0);
         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
-          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds,motion,motionCost,repairResiduals};
+          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds,motion,motionCost,repairResiduals,localResiduals:residuals.slice(0,priorStart),arrivalResiduals:residuals.slice(priorStart)};
         candidates.push({lines:added,c,cost:cost-overflowPenalty,localCost:localCost-overflowPenalty,
           searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length,railGuides:fragments?.guideIds,motion,motionCost}});
         // Interrupted evaluations never reach this cache insertion.
@@ -1132,6 +1137,56 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         lookaheadStats.physicsFrames+=getPhysicsFrameCount()-startFrames;
         lookahead={probes,selected:winner?.candidate.c??original.c};
       }
+      if(best&&pendingControl?.index===i+1&&(options.coupledIntervalSamples??0)>0){
+        const original=best,initialNext=pendingControl.control;
+        const remaining=Math.max(1,end-frame),reserve=remaining*Math.max((options.samples??160)+(options.guidanceSamples??0),observedConstructionRate);
+        const estimated=(options.coupledIntervalSamples!+1)*Math.max(1,(contacts[i+2]?.frame??end+1)-frame);
+        if(getPhysicsFrameCount()+reserve+estimated<budget-2*(end+1)){
+          const styles=[i,i+1].map(index=>({...options,...options.sectionStyles?.[index]}));
+          const initialControls=[original.c,initialNext] as ArcMotionControl[];
+          const dimensions=initialControls.flatMap((c,which)=>arcMethodKeys('response',!!options.expressive,!!options.independentExit,styles[which].guides,
+            {...styles[which],observedReceiver:!!options.observedReceiver&&c.receiverFlight!==undefined}).map(key=>({which,key})));
+          const coordinates=(controls:ArcMotionControl[])=>dimensions.map(({which,key})=>arcControlValue(controls[which],key,options.channel));
+          const scales=dimensions.map(({which,key})=>arcControlStep(key,'response',initialControls[which].support));
+          const began=getPhysicsFrameCount();let winner:any=null;
+          const record={index:i,proposals:0,viable:0,accepted:0,physicsFrames:0,before:Infinity,after:Infinity};
+          const measure=(values:number[],unchanged?:ArcMotionControl[]):PairMeasurement<any>|null=>{
+            record.proposals++;
+            const controls=unchanged??initialControls.map(c=>({...c}));if(!unchanged)dimensions.forEach(({which,key},d)=>controls[which][key]=values[d]);
+            try{
+              const a=searchInterval(engine,i,{directControls:[controls[0]]},[engine,original.child]);
+              if(!a?.best)return null;
+              const b=searchInterval(a.best.child,i+1,{directControls:[controls[1]]},[engine,original.child,a.best.child]);
+              if(!b?.best)return null;
+              // The second interval replaces the first interval's incomplete
+              // outgoing span. Keep impact, previous-boundary and motion terms;
+              // include only the final interval's arrival prior.
+              const residuals=[...a.best.localResiduals.slice(3),...b.best.localResiduals,...b.best.arrivalResiduals];
+              const measured={coordinates:coordinates([a.best.c,b.best.c]),residuals,
+                value:a.best.localCost+b.best.cost,payload:{root:a.best,candidate:a.candidates.find(c=>JSON.stringify(c.c)===JSON.stringify(a.best.c)),next:b.best.c}};
+              record.viable++;
+              if(!winner||measured.value<winner.value-1e-12){winner=measured;record.accepted++;}
+              return measured;
+            }finally{Engine.retainOnly([engine,original.child]);}
+          };
+          try{
+            const initial=measure(coordinates(initialControls),initialControls);
+            if(initial){
+              record.before=initial.value;record.accepted=0;
+              refineArcPair(initial,scales,options.coupledIntervalSamples!,measure);
+              record.after=winner.value;
+              if(winner.value<initial.value-1e-12){
+                const {root,candidate,next}=winner.payload;
+                candidates.push(candidate);best={...root,child:addArc(engine,root.lines)};
+                pendingControl={index:i+1,control:next};
+              }
+            }
+          }catch(error){
+            if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
+            searchBudgetExhausted=true;Engine.retainOnly([engine,original.child]);
+          }finally{record.physicsFrames=getPhysicsFrameCount()-began;coupledIntervalWork.push(record);}
+        }
+      }
       // A quality retry resumes at an earlier fork and rebuilds its engine.
       // Estimate from that boundary, including its cold prefix, rather than
       // granting a retry using only the shorter suffix at the current contact.
@@ -1260,6 +1315,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
   const trajectoryLoss=options.collectTrajectoryLoss?arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight).loss:undefined;
-  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,coupledIntervalWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

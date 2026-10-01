@@ -19,8 +19,10 @@ export function allocateArcProposalSlots(requested: readonly number[], slots: nu
 export type ArcControlExample = ArcControlReference & { features: number[]; };
 /** Only physically compatible constructors share demonstrations or responses. */
 export function arcConstructionMemoryKey(style:ArcGeometryStyle&{subdivisions?:number}):string{
-  return JSON.stringify([style.guides!==false,style.profile,style.profileStrength,style.profileStart,
-    style.rippleCycles,style.faces,style.foldAngle,style.subdivisions,style.railLayout,style.independentGuide]);
+  const fields=[style.guides!==false,style.profile,style.profileStrength,style.profileStart,
+    style.rippleCycles,style.faces,style.foldAngle,style.subdivisions,style.railLayout,style.independentGuide];
+  if(style.alignedFoldEntry&&style.profile==='fold')fields.push(true);
+  return JSON.stringify(fields);
 }
 export type ArcResponseExample = ArcControlExample & {
   targets: Array<number | undefined>; keys: Array<keyof ArcMotionControl>;

@@ -9,6 +9,15 @@ import type {Spec} from '../scripts/v0/types.ts';
 const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],v={x:9,y:2};
 const control={entry:12,turn:-20,exit:25,support:20,bias:.2,offset:.1};
 
+it('can anchor a full fold on its actual first face without adding an approach corner',()=>{
+ const style={profile:'fold' as const,faces:3,profileStart:0,profileStrength:1};
+ const build=(alignedFoldEntry=false)=>motionArc(points,v,control,1000,false,12,false,24,4,{...style,alignedFoldEntry});
+ const lines=build(true),angle=(l:any)=>Math.atan2(l.y2-l.y1,l.x2-l.x1);
+ expect(angle(lines[0])).toBeCloseTo(angle(lines[1]),12);
+ expect(build()).toEqual(motionArc(points,v,control,1000,false,12,false,24,4,style));
+ expect(lines).not.toEqual(build());
+});
+
 it('can keep a fold entry compact before a long runout without changing its face headings',()=>{
   const style={profile:'fold' as const,faces:3,profileStart:0,foldAngle:40};
   const c={...control,support:180,turnFraction:.1,bias:-2};

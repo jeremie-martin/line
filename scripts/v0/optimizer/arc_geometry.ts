@@ -8,7 +8,7 @@ const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
 export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:RailContour;faces?:number;
-  railLayout?:'paired'|'transfer';independentGuide?:boolean};
+  railLayout?:'paired'|'transfer';independentGuide?:boolean;alignedFoldEntry?:boolean};
 export type ArcSectionStyle=Omit<ArcGeometryStyle,'contour'>&{subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number;
@@ -33,7 +33,8 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   const {profile,contour}=style??{};
   if(!validProfileControls(style??{}))throw new Error('invalid profile controls');
   const steps=arcMainSteps(c.support,subdivisions,style?.faces);
-  const entry=rad(c.entry), n={x:Math.sin(entry),y:-Math.cos(entry)}, t={x:Math.cos(entry),y:Math.sin(entry)};
+  const alignedFold=style?.alignedFoldEntry&&profile==='fold'&&style.profileStart===0&&(style.profileStrength??1)===1;
+  const entry=rad(c.entry+(alignedFold?c.turn:0)), n={x:Math.sin(entry),y:-Math.cos(entry)}, t={x:Math.cos(entry),y:Math.sin(entry)};
   const point=points.reduce((a,b)=>a.x*n.x+a.y*n.y<b.x*n.x+b.y*n.y?a:b);
   const speed=Math.hypot(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
   const anchor={x:point.x+n.x*c.offset,y:point.y+n.y*c.offset};

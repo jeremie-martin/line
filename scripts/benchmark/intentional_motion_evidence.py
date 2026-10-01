@@ -41,6 +41,8 @@ for study in args.studies.split(','):
             openingImpactRms=math.sqrt(sum(x*x for x in opening)/len(opening)) if opening else None,
             axisRms={a: math.sqrt(sum(x*x for x in xs)/len(xs)) for a, xs in errors.items()},
             physicalFrames=r['physicalFrames'], ms=r['ms'], failure=r.get('failure'),
+            examples=r.get('examples'),forkInput=r.get('forkInput'),
+            initialProposalWork=r.get('initialProposalWork'),refinement=r.get('refinement'),constructionImprovement=r.get('constructionImprovement'),
             source=str(path), sha256=hashlib.sha256(data).hexdigest(),
             planSha256=hashlib.sha256(json.dumps(r['plan'], sort_keys=True, separators=(',', ':')).encode()).hexdigest()))
     # Startup/import failures can precede the probe's structured error handler.

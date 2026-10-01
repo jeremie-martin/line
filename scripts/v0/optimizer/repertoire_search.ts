@@ -7,11 +7,10 @@ import type {ArcMotionOptions} from './arc_motion.ts';
 export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:number):ArcMotionOptions{
  return {...connectedArcOptions(spec,allowance),policyPreview:false,
   ...(plan.policy===INTENTIONAL_REPERTOIRE_POLICY?{
-   motionQuality:{burstWeight:.16,calmWeight:1},constructionProposals:true,
-   // The inherited value model predicts future ordinary guided construction.
-   // Mixed plans instead use measured continuation and an explicit catch prior.
-   valueGuidanceWeight:0,valueWeight:0,continuationValueWeight:0,headingWeight:0,
-   arrivalMode:'passive',arrivalWeight:.3,
+   motionQuality:{burstWeight:.16,calmWeight:1},constructionProposals:true,constructionRecovery:true,
+   // Preserve ordinary guidance where its physical assumptions apply. Active
+   // mixed transitions use native continuation and explicit catch preparation.
+   constructionAwareArrival:true,
   }:{}),
   initialRecoverySamples:160,memoryScope:'construction',collectTrajectoryLoss:true,
   sectionStyles:Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)])),

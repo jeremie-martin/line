@@ -11,6 +11,7 @@ export type ArcControlContext = {
   preserveTurnTiming?: boolean; independentExit?: boolean; exitRefinementOnly?: boolean;
   railLayout?:'paired'|'transfer';independentGuide?:boolean;
   observedReceiver?:boolean;compactFoldProposals?:boolean;
+  responseGuideExtent?:boolean;
 };
 type ControlDefinition = {
   family: 'core' | 'guide' | 'expressive' | 'exit';
@@ -112,13 +113,12 @@ export function arcControlStep(key: ControlKey, method: SearchMethod, support: n
   return typeof step === 'number' ? step : step(support);
 }
 
-export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true, style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'compactFoldProposals'>): ControlKey[] {
+export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true, style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'compactFoldProposals'|'responseGuideExtent'>): ControlKey[] {
   return ARC_CONTROL_KEYS.filter(key => {
     const definition = ARC_CONTROL_DEFINITIONS[key];
-    // Contextual constructions already search guide angle independently. Their
-    // onset and release can also respond to measured contact and motion error.
-    // Preserve the historical ordinary and V1 response spaces.
-    if((key==='guideStart'||key==='guideEnd')&&!style?.independentGuide)return false;
+    // Extent response has mixed measured results. Keep the controlled experiment
+    // explicit; adding dimensions also changes allocation among response rounds.
+    if((key==='guideStart'||key==='guideEnd')&&(!style?.independentGuide||!style.responseGuideExtent))return false;
     return arcControlActive(key,guides,style) && definition[method] !== undefined && (definition.family !== 'expressive' || expressive) &&
       (definition.family !== 'exit' || independentExit);
   });

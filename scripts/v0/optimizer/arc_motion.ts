@@ -96,6 +96,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   constructionBudget?:number;
   /** Reuse measured response directions between complete finite differences. */
   responseSecantSteps?:number;
+  responseGuideExtent?:boolean;
   wholeTrackRefinement?:boolean;
   /** Rank already simulated complete alternatives by the full authored loss. */
   terminalSelection?:boolean;
@@ -443,7 +444,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const nextRequest=options.constructionRequests?.[i+1];
       if(options.constructionAwareArrival&&nextRequest&&(nextRequest.context?.quiet??0)<.5&&(nextRequest.guidance==='forbidden'||nextRequest.railLayout==='transfer')){
         options.futureValueModel=undefined;
-        options.arrivalMode='passive';options.headingWeight=0;
+        if(options.arrivalMode!=='kinetic')options.arrivalMode='passive';options.headingWeight=0;
       }
       const controlMemory=memoryFor(i);
       if(options.fork?.continuationGuides&&i>=options.fork.section)options.guides=options.fork.continuationGuides[i-options.fork.section];
@@ -631,10 +632,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(i<contacts.length-1&&(options.arrivalWeight??0)>0){
           const nextImpact=gaps[contacts[i+1].gap].targets.impact??0;
           const nextSpeed=authoredSpeedToPx(planned[contacts[i+1].gap+1]?.targets.speed??targets.speed??.55);
-          const passive=options.arrivalMode==='passive'&&options.constructionRequests?.[i+1]?.guidance==='forbidden';
+          const passive=options.arrivalMode==='kinetic'||options.arrivalMode==='passive'&&options.constructionRequests?.[i+1]?.guidance==='forbidden';
           // A passive catch redirects incoming speed into the next surface.
-          // Prepare kinetic headroom instead of asking an unguided landing to
-          // both dissipate a strong impulse and retain the incoming speed.
+          // Prepare kinetic headroom for an unguided landing; the experimental
+          // kinetic mode also tests this preparation before guided constructions.
           // This is a proposal prior; actual native continuation decides merit.
           const impulse=impactToRawPx(nextImpact),arrivalSpeed=passive?Math.hypot(nextSpeed,impulse):nextSpeed;
           const desiredArrival=clamp(15+deg(passive?Math.atan2(impulse,nextSpeed):impulse/nextSpeed),20,70);

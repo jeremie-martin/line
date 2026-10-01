@@ -20,7 +20,7 @@ import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_valu
 import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { createArcEngine } from './arc_engine.ts';
 import { runArcAttempts } from './arc_attempts.ts';
-import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemoKey, arcControlValue, arcControlStep, arcMethodKeys, arcControlActive, arcReferencedControl, type ArcControlReference } from './arc_motion_control.ts';
+import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemoKey, arcControlValue, arcControlStep, arcMethodKeys, arcControlActive, arcControlsSimilar, arcReferencedControl, type ArcControlReference } from './arc_motion_control.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 
 import { makeRng } from '../../lib/rng.ts';
@@ -28,6 +28,7 @@ import {inspectConstructionWindow} from './repertoire_candidate.ts';
 import type {ConstructionRequest} from './repertoire_policy.ts';
 import {contactObserver,extendContactObserver,fragmentInterval} from './contact_interval.ts';
 import {motionSamples,summarizeMotion,effectiveBodyVelocity} from './motion_quality.ts';
+import {constructionDeficit} from './repertoire_feasibility.ts';
 import {motionResiduals,type MotionSearchOptions} from './motion_objective.ts';
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
 // disposal. A private module instance gives replay its own WASM instance and
@@ -63,6 +64,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   initialRecoverySamples?:number;
   /** Cover contact geometry before a first fully realized candidate exists. */
   constructionProposals?:boolean;
+  constructionRecovery?:boolean;
+  constructionAwareArrival?:boolean;
   fork?:ArcMotionFork;
   /** Research composition by support index (startup is zero). Applied to every
    * proposal, lookahead and rebuilt continuation. Omitted sections inherit the
@@ -398,6 +401,11 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     };
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
+      const nextRequest=options.constructionRequests?.[i+1];
+      if(options.constructionAwareArrival&&nextRequest&&(nextRequest.construction!=='arcs'||nextRequest.guidance!=='optional')){
+        options.futureValueModel=undefined;
+        options.arrivalMode='passive';options.headingWeight=0;
+      }
       const controlMemory=memoryFor(i);
       if(options.fork?.continuationGuides&&i>=options.fork.section)options.guides=options.fork.continuationGuides[i-options.fork.section];
       if(options.fork&&i===options.fork.section)options.guides=options.fork.guides;
@@ -433,12 +441,18 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const impact=gap>=0?gaps[gap].targets.impact:undefined;
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
+      const near:Array<{c:ArcMotionControl;deficit:number}>=[];
+      const rememberNear=(candidate:{c:ArcMotionControl;deficit:number})=>{
+        const similar=near.findIndex(n=>arcControlsSimilar(n.c,candidate.c));
+        if(similar>=0){if(near[similar].deficit<=candidate.deficit)return;near.splice(similar,1);}
+        near.push(candidate);near.sort((a,b)=>a.deficit-b.deficit);near.length=Math.min(near.length,12);
+      };
 
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
-      if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
+      if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&(!options.futureValueModel||options.futureValueModel===compileOptions.futureValueModel)){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,options.railLayout,options.independentGuide,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,!!options.futureValueModel]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -476,7 +490,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const saved=memo?.get(key);
         if(saved){
           memoHits++;
-          if(saved.reason){memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
+          if(saved.reason){if(saved.near)rememberNear(saved.near);memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
           viableCandidates++;candidates.push({...saved.candidate,c});
           // Never reuse saved wrappers: retainOnly may already have freed them.
           // Rebuild from validated geometry; subsequent simulations stay metered.
@@ -490,7 +504,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const child=addArc(engine,added);
         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
-        const reject=(reason:string)=>{memo?.set(key,{reason});failures[reason]=(failures[reason]??0)+1;return null;};
+        const reject=(reason:string,near?:{c:ArcMotionControl;deficit:number})=>{memo?.set(key,{reason,near});failures[reason]=(failures[reason]??0)+1;return null;};
         if(JSON.stringify(getRiderMetered(child,frame-1).ballisticState())!==before)return reject('prefix');
         const state=getRiderMetered(child,horizon).ballisticState();
         if(!state.riderMounted||!state.sledIntact)return reject('binding');
@@ -505,7 +519,11 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           const guideIds=fragments?.guideIds??(arcRailGroups(added).get(i)![1]??[]).map(l=>l.id);
           const allContacts=request.context||request.railLayout==='transfer'?(frame:number)=>child.getAllContactLineIdsAtFrame(frame):undefined;
           const fulfillment=inspectConstructionWindow(request,added,new Set(guideIds),raw.frames,allContacts);
-          if(!fulfillment.fulfilled)return reject('construction:'+fulfillment.reasons.join(','));
+          if(!fulfillment.fulfilled){
+            const nearby=options.constructionRecovery?{c,deficit:constructionDeficit(fulfillment)}:undefined;
+            if(nearby)rememberNear(nearby);
+            return reject('construction:'+fulfillment.reasons.join(','),nearby);
+          }
         }
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);
         const measuredObjective=options.amplitudeOverflow||options.predictAirBoundary?objectiveAxes(det,{...outgoing,startFrame:i===0?0:frame},objectiveEnd):achieved;
@@ -674,14 +692,22 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(k%10===9)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
       }
       if(!best&&initial>0&&(options.initialRecoverySamples??0)>0){
-        const began=getPhysicsFrameCount(),record={index:i,frame,proposals:0,viable:0,physicalFrames:0};
+        const began=getPhysicsFrameCount(),record={index:i,frame,proposals:0,viable:0,physicalFrames:0,bestConstructionDeficit:null as number|null,failures:{}};
         initializationRecovery.push(record);
         try{
           for(let k=1;k<=options.initialRecoverySamples!;k++){
-            record.proposals++;if(evaluate(genericInitial(k)))record.viable++;
+            let proposal=genericInitial(k);
+            if(options.constructionRecovery&&near.length&&k%3!==0){
+              const keys=arcMethodKeys('response',true,false,options.guides,options);
+              const trial=Math.floor(k*2/3),key=keys[Math.floor(trial/2)%keys.length];
+              const anchor=near[Math.floor(trial/(2*keys.length))%Math.min(4,near.length)].c;
+              const step=arcControlStep(key,'coordinate',support)*Math.pow(.75,Math.floor(trial/(8*keys.length)));
+              proposal={...anchor,[key]:arcControlValue(anchor,key,options.channel)+(trial%2?-1:1)*step};
+            }
+            record.proposals++;if(evaluate(proposal))record.viable++;
             if(k%10===0)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
           }
-        }finally{record.physicalFrames=getPhysicsFrameCount()-began;}
+        }finally{record.physicalFrames=getPhysicsFrameCount()-began;record.bestConstructionDeficit=near[0]?.deficit??null;record.failures={...failures};}
       }
       if(best){
         const keys=ARC_CORE_KEYS;

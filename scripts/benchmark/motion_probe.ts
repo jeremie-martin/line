@@ -1,4 +1,5 @@
 /** Matched-plan motion/search pilot. Keep every scheduled result, including failures. */
+import {loadCatalog,caseSpec} from '../../benchmark/v6/model.ts';
 import {mkdirSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
@@ -15,16 +16,19 @@ import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit} from '../lib/
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
  await import(new URL('../lib/_lr_engine_wasm.ts?motion-probe',import.meta.url).href);
 const arg=(k:string,d:string)=>process.argv.find(a=>a.startsWith('--'+k+'='))?.slice(k.length+3)??d;
-const song=arg('song','luna_bala_44s'),seed=Number(arg('seed','101')),budget=Number(arg('budget','3000000'));
+const caseId=arg('case',''),song=caseId||arg('song','luna_bala_44s'),seed=Number(arg('seed','101')),budget=Number(arg('budget','3000000'));
 const changes=JSON.parse(arg('options','{}')) as Partial<ArcMotionOptions>,label=arg('label','pilot');
 if(!/^[a-zA-Z0-9_-]+$/.test(label))throw new Error('invalid probe label');
 const out=resolve(arg('out','generated/intentional-motion/search'));mkdirSync(out,{recursive:true});
 const id=[song,label,seed,budget].join('-'),compiler=galleryCompilerIdentity(process.cwd());
 try{
- const {spec,musicCase:c}=await loadMusicCase({song,title:song,moments:[]},-15);
+ const catalog=caseId?loadCatalog():undefined,benchmarkCase=catalog?.cases.find(c=>c.id===caseId);
+ if(caseId&&!benchmarkCase)throw new Error('unknown V6 case');
+ const music=benchmarkCase?catalog!.music.find(c=>c.id===benchmarkCase.sourceId)!:undefined;
+ const {spec,musicCase:c}=music?{spec:caseSpec(music),musicCase:{...music,phases:[],moments:[]}}:await loadMusicCase({song,title:song,moments:[]},-15);
  const boundaries=c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t));
  const planner=arg('policy','v1')==='v2'?planIntentionalRepertoire:planRepertoire;
- const plan=arg('plan','')?validateProductionPlan(spec,JSON.parse(readFileSync(arg('plan',''),'utf8'))):planner(spec,seed,{},boundaries);
+ const plan=benchmarkCase?validateProductionPlan(spec,benchmarkCase.plans[seed]):arg('plan','')?validateProductionPlan(spec,JSON.parse(readFileSync(arg('plan',''),'utf8'))):planner(spec,seed,{},boundaries);
  if(arg('shape','')){
    if(plan.policy!=='line.repertoire-policy.v2')throw new Error('layout pilot requires the contextual policy');
    for(const r of plan.requests.slice(1)){
@@ -50,7 +54,7 @@ try{
  assert.deepEqual(galleryCompilerIdentity(process.cwd()),compiler,'compiler changed during motion probe');
  writeGalleryJson(out,id+'.json',{id,compiler,song,seed,budget,changes,ms,physicalFrames:result.stats.sim_frames,
   score:replay.grade.score,valid:replay.grade.score.valid,realization,motion,plan,rows:result.rows,railGuides:roles,
-  track:result.track,report:result.report,failure:result.failure,planning:result.planningDecisions,lookahead:result.lookaheadStats});
+  track:result.track,report:result.report,failure:result.failure,planning:result.planningDecisions,lookahead:result.lookaheadStats,initializationRecovery:result.initializationRecovery});
  console.log(JSON.stringify({id,ms,frames:result.stats.sim_frames,valid:replay.grade.score.valid,score:replay.grade.score.score,
   fulfilled:realization.fulfilledSections,total:realization.requested,bursts:motion.full.bursts.map(b=>({frames:b.frames,max:b.maximum,excess:b.maxExcess,episodes:b.episodes})),failure:result.failure}));
 }catch(error){writeGalleryJson(out,id+'.error.json',{id,compiler,error:String(error),stack:error instanceof Error?error.stack:null});throw error;}

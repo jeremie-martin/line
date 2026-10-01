@@ -677,7 +677,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           control.clearance=8+14*frac(.7548776662);
           control.guideTilt=-18+36*frac(.5698402910);
           control.turnFraction=.15+.65*frac(.2718281828);
-          if(options.railLayout==='transfer')control.support=Math.max(control.support,constructionSpan*(.4+.5*frac(.4384471872)));
+          if(options.railLayout==='transfer'&&k%3===1)
+            control.support=2*Math.pow(Math.max(1,(constructionSpan-4)/2),frac(.4384471872));
           if(options.profile==='fold'){
             control.foldBend=(k%2?1:-1)*(20+35*frac(.3247179572));
             // The first folded face is entry+turn; target that face's approach

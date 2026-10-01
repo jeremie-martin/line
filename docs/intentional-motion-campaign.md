@@ -112,3 +112,29 @@ frozen criteria without dropping failed tracks. Its baseline-versus-itself contr
 correctly fails the required improvements and all three reported burst windows.
 Tests cover omissions, duplicates, incomplete realization and an individual
 window failure hidden by otherwise passing aggregate burst statistics.
+
+The first complete replacement production collection (`library-candidate-1`,
+compiler `c94f0a00`) is development evidence, not a qualified delivery. Eleven of
+twelve tracks complete and fulfill; Amour 202 is incomplete. All three reported
+windows pass the frozen 100 ms band. Aggregate burst excess falls substantially,
+but Tiki's opening speed correction and the six-opening mean impact RMS still
+fail. See the independent `qualification-candidate-1/qualification.json`. All
+12 ordinary reference track hashes exactly match the preserved collection.
+Native playback, rapid seed switching, synchronized audio, three-way comparison,
+passage-link reload and mobile layout pass the updated browser checks. The
+preserved review collection remains the dashboard default during development.
+
+Repairing native-feasible construction near misses at `a5cc8708` completes the
+previously failing Afterglow folded-transfer requests for seeds 101 and 202.
+Using ordinary arrival/value guidance in ordinary surroundings scores 889.0502
+and 895.0766; globally replacing those priors scores 807.4759 and 806.0904.
+The canonical Accelerando ending remains unsuccessful. Its diagnostic rejects
+show a different mechanism: a 226-frame final interval received enormous support
+proposals, causing prefix collisions/binding before construction checking.
+The next experiment restores short capture proposals within long intervals
+rather than weakening the transfer definition or removing the ending request.
+
+The first recovery harness launch imported the musical adapter from the wrong
+module and exited before compilation. Those logs are retained in `recovery-1`;
+the corrected scheduled runs are in `recovery-1b`. These are execution failures,
+not evidence against a construction method.

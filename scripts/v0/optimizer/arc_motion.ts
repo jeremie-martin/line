@@ -347,7 +347,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const contacts=[{frame:1,gap:-1},...planned.filter(g=>g.endsWithContact).map(g=>({frame:g.endFrame,gap:g.index}))];
   if(options.sectionStyles){
     if(typeof options.sectionStyles!=='object'||Array.isArray(options.sectionStyles))throw new Error('invalid section styles');
-    if(options.wholeTrackRefinement||(options.refineAttempts??0)>0||options.directControls||options.replayControls)
+    if(((options.refineAttempts??0)>0&&options.refineMode!=='reflow')||options.directControls||options.replayControls)
       throw new Error('section styles require ordinary connected search');
     for(const [key,style] of Object.entries(options.sectionStyles)){
       const index=Number(key);
@@ -402,7 +402,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
       const nextRequest=options.constructionRequests?.[i+1];
-      if(options.constructionAwareArrival&&nextRequest&&(nextRequest.context?.quiet??0)<.5&&(nextRequest.construction!=='arcs'||nextRequest.guidance!=='optional')){
+      if(options.constructionAwareArrival&&nextRequest&&(nextRequest.context?.quiet??0)<.5&&nextRequest.guidance==='forbidden'){
         options.futureValueModel=undefined;
         options.arrivalMode='passive';options.headingWeight=0;
       }
@@ -632,7 +632,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           actualImpact:selected.meta.impact,release:selected.meta.release};
       };
       try {
-      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();return {best,candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,support,span,inputFeatures};}
+      if(options.directControls){for(const control of options.directControls)evaluate(control);selectBounded();}
+      else {
       if(options.policyRollout){
         const model=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
         const began=getPhysicsFrameCount();
@@ -720,7 +721,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         let local=initial;
         if(options.solver==='newton'){
           for(let iteration=0;iteration<4&&local+2*keys.length+3<max;iteration++){
-            const origin=best, scale=keys.map(key=>arcControlStep(key,'newton',support));
+            const origin=best, scale=keys.map(key=>arcControlStep(key,'newton',options.constructionProposals?origin.c.support:support));
             const jac=origin.residuals.map(()=>Array(keys.length).fill(0));
             for(let d=0;d<keys.length;d++){
               const key=keys[d], a=evaluate({...origin.c,[key]:origin.c[key]+scale[d]}),b=evaluate({...origin.c,[key]:origin.c[key]-scale[d]});local+=2;
@@ -735,7 +736,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         }
         for(let k=local;k<max;k++){
           const key=keys[Math.floor((k-initial)/2)%keys.length],round=Math.floor((k-initial)/(2*keys.length)),sign=k%2===0?-1:1;
-          const candidate={...best.c,[key]:best.c[key]+sign*arcControlStep(key,'coordinate',support)*Math.pow(.65,Math.floor(round/2))};
+          const candidate={...best.c,[key]:best.c[key]+sign*arcControlStep(key,'coordinate',options.constructionProposals?best.c.support:support)*Math.pow(.65,Math.floor(round/2))};
           evaluate(candidate);
           if(k%10===9)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
@@ -770,7 +771,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
               c.guideEnd=k===0?0:k%3===1?1:Math.max(c.guideStart,frac(.73205080757));
             }
           }else{
-            const key=keys[Math.floor(k/2)%keys.length],step=arcControlStep(key,'coordinate',support);
+            const key=keys[Math.floor(k/2)%keys.length],step=arcControlStep(key,'coordinate',options.constructionProposals?best.c.support:support);
             c={...best.c,...(exitEnabled?{exitBias:best.c.exitBias??best.c.bias}:{}),[key]:arcControlValue(best.c,key,options.channel)+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
@@ -778,7 +779,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         let responseUsed=0, trust=options.responseScale??1;
         let secant:{jac:number[][];trust:number;uses:number}|null=null;
         while(responseUsed+(secant?3:2*responseKeys.length+3)<=responseAllowance){
-          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale=(key:keyof ArcMotionControl)=>arcControlStep(key,'response',support);
+          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale=(key:keyof ArcMotionControl)=>arcControlStep(key,'response',options.constructionProposals?origin.c.support:support);
           const value=(key:keyof ArcMotionControl)=>arcControlValue(origin.c,key,options.channel);
           const reused=secant!==null;
           const jac=reused?secant!.jac:origin.residuals.map(()=>Array(responseKeys.length).fill(0));
@@ -825,6 +826,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           evaluate({...origin.c,support:adjusted,turnFraction:first/adjusted});
         }
         Engine.retainOnly([...protectedEngines,engine,best.child]);
+      }
       }
       } catch(error) {
         if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
@@ -1058,8 +1060,29 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     }
     if(!failure&&(options.refineAttempts??0)>0&&rows.length===contacts.length){
       setPhysicsFrameLimit(finalBudget-2*(end+1));
+      const requests=Object.values(options.constructionRequests??{});
+      const validate=requests.length?(candidate:Engine,geometry:TrackLine[],raw:any,candidateRows:any[])=>requests.every(request=>{
+        const section=geometry.filter(l=>Math.floor((l.id-1000)/10000)===request.section);
+        const guideIds=request.construction==='scattered'?candidateRows[request.section]?.railGuides??[]:(arcRailGroups(section).get(request.section)?.[1]??[]).map(l=>l.id);
+        return inspectConstructionWindow(request,section,new Set<number>(guideIds),raw.frames,
+          request.context||request.railLayout==='transfer'?(frame:number)=>candidate.getAllContactLineIdsAtFrame(frame):undefined).fulfilled;
+      }):undefined;
+      const objective=options.wholeTrackRefinement?(raw:any,report:any)=>{
+        const whole=arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight);
+        if(options.motionQuality&&Number.isFinite(whole.loss)){
+          const observed=motionSamples(raw.frames,1,duration);
+          for(const request of requests){
+            const samples=observed.filter(s=>s.frame>=request.frame&&s.frame<request.next);
+            if(!samples.length)continue;
+            const impact=request.context?.impact??(request.section?gaps[request.section-1]?.targets.impact:request.context?.nextImpact)??undefined;
+            const extra=motionResiduals(summarizeMotion(samples,request.frame),impact,options.motionQuality).reduce((n,v)=>n+v*v,0)/contacts.length;
+            whole.loss+=extra;whole.regrets[request.section]+=extra;
+          }
+        }
+        return whole;
+      }:undefined;
       const refined=refineArcTrack({engine,lines,rows,alternatives:steps.map(s=>s.choices),contacts,end,start,budget:finalBudget,options,search:searchInterval,report:reportFor,
-        objective:options.wholeTrackRefinement?(raw,report)=>arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight):undefined});
+        objective,validate,from:resumeAt,engines:requests.length?{create:rebuildArc,add:addArc,detach:detachArc}:undefined});
       lines.splice(0,lines.length,...refined.lines);rows.splice(0,rows.length,...refined.rows);
       engine=refined.engine;refinementStats=refined.stats;
     }

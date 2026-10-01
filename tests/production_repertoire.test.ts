@@ -47,3 +47,27 @@ it('rejects ambiguous creative inputs and mismatched plan seeds',async()=>{
  expect(()=>compileHandoff(spec,101,{budget:50000,constructionPlan:plan,creative:{}})).toThrow('preferences or');
  expect(()=>compileHandoff({...spec,axes:{...spec.axes,elevation:()=>.5}},101,{budget:50000,creative:{}})).toThrow('supports air');
 });
+
+it('refines mixed constructions through the shared search and preserves functional requests',async()=>{
+ const {compileArcMotion}=await import('../scripts/v0/optimizer/arc_motion.ts');
+ const {planIntentionalRepertoire}=await import('../scripts/v0/optimizer/intentional_repertoire.ts');
+ const {repertoireSearchOptions}=await import('../scripts/v0/optimizer/repertoire_search.ts');
+ const {replayV6}=await import('../benchmark/v6/replay.ts');
+ const {inspectRepertoireLayout}=await import('../scripts/v0/optimizer/repertoire_layout.ts');
+ const {arcRailGroups}=await import('../scripts/v0/optimizer/arc_guidance.ts');
+ const {sliceTimeline,effectiveAxes,axesAtFrame}=await import('../scripts/v0/core/substrate.ts');
+ const plan=planIntentionalRepertoire(spec,101,{repertoire:['scattered']});
+ const result=compileArcMotion(spec,101,{...repertoireSearchOptions(spec,plan,200000),constructionBudget:130000,
+  refineAttempts:2,refineDirect:true,refineSamples:0,refineWidth:2,refineMode:'reflow',wholeTrackRefinement:true});
+ expect(result.failure).toBeNull();expect(result.refinementStats.frames).toBeGreaterThan(0);
+ expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
+ const durationFrames=120,contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));
+ const gaps=sliceTimeline(contacts.map(c=>c.frame),durationFrames);
+ const music={id:'test',durationFrames,contacts,air:gaps.map(g=>({gap:g.index,target:effectiveAxes(g,spec).air})),samples:{speed:Array.from({length:121},(_,f)=>axesAtFrame(f,spec).speed)}} as any;
+ const replay=replayV6(result.track,music,plan),fragments=new Set(plan.requests.filter(r=>r.construction==='scattered').map(r=>r.section));
+ const roles:Record<number,number[]>={};for(const [i,chains]of arcRailGroups(result.track.lines.filter(l=>!fragments.has(Math.floor((l.id-1000)/10000)))))roles[i]=(chains[1]??[]).map(l=>l.id);
+ for(const i of fragments)roles[i]=result.rows[i].railGuides;
+ expect(replay.grade.score.valid).toBe(true);
+ expect(inspectRepertoireLayout(plan,result.track.lines,roles,replay.collisions,replay.positions).fulfilled).toBe(true);
+ expect(result.stats.sim_frames).toBeLessThanOrEqual(200000);
+});

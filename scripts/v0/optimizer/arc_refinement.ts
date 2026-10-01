@@ -55,10 +55,15 @@ export type ArcRefinementInput = {
   search: (engine: Engine, index: number, overrides: any, protectedEngines: Engine[]) => any;
   report: (raw: any, lines: TrackLine[]) => DriftReport;
   objective?: (raw:any, report:DriftReport) => {loss:number;regrets:number[]};
+  validate?: (engine:Engine,lines:TrackLine[],raw:any,rows:any[])=>boolean;
+  from?:number;
+  engines?: {create:(lines:TrackLine[])=>Engine;add:(base:Engine,lines:TrackLine[])=>Engine;detach:(base:Engine)=>Engine};
 };
 
 export function refineArcTrack(input: ArcRefinementInput) {
   const {contacts, end, start, options, search, report} = input;
+  const operations=input.engines??{create:(lines:TrackLine[])=>createArcEngine(start,lines),
+    add:(base:Engine,lines:TrackLine[])=>base.addLine(lines),detach:(base:Engine)=>base.detach()};
   const began = getPhysicsFrameCount(), ceiling = input.budget - 2 * (end + 1);
   let incumbent = input.engine, lines = input.lines.slice(), rows = input.rows.slice();
   const initialRaw=extractRawTrajectory(incumbent,end);
@@ -68,7 +73,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
   const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes).map(([axis, value]) => [axis, value?.target])));
   const expectedObservations = observationContract(incumbentReport);
   const initialLoss = loss, tries = contacts.map(() => 0), records: any[] = [];
-  const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0};
+  const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0, failedConstruction:0};
   const indexOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
   if (!Number.isFinite(loss)) return {lines, rows, engine: incumbent, stats: {initialLoss, finalLoss: loss, frames: getPhysicsFrameCount() - began, counts, records}};
   try {
@@ -85,7 +90,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
         const estimate = contact.frame + span * (samples + (options.refineGuidanceSamples??24) + 8) + (end - contact.frame + 1) * width * (1 + (options.refineFollowSamples ?? 0) * 1.25);
         const priority = error / (1 + tries[i]) / (options.refineSelection === 'rate' ? estimate : 1);
         return {index: i, error, estimate, priority};
-      }).filter(x => x.error > 0 && getPhysicsFrameCount() + x.estimate <= ceiling)
+      }).filter(x => x.index>=(input.from??0)&&x.error > 0 && getPhysicsFrameCount() + x.estimate <= ceiling)
         .sort((a, b) => b.priority - a.priority || a.index - b.index);
       if (!regret.length) break;
       const selected = regret[0], i = selected.index, frame = contacts[i].frame;
@@ -94,12 +99,13 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const spent = getPhysicsFrameCount(), lossBefore = loss;
       const sourceLines = lines, sourceRows = rows;
       const prefix = sourceLines.filter(l => indexOf(l) < i);
-      const base = createArcEngine(start, prefix);
+      const base = operations.create(prefix);
       const before = JSON.stringify(getRiderMetered(base, frame - 1).ballisticState());
       const boundary = getRiderMetered(incumbent, horizon);
       const reference = {position: boundary.position, velocity: boundary.velocity, state: boundary.ballisticState()};
       const control = sourceRows[i].control;
-      const directKeys=arcMethodKeys('repair',!!(options.expressive||options.refineExpressive),false,options.guides,options);
+      const style={...options,...options.sectionStyles?.[i]};
+      const directKeys=arcMethodKeys('repair',!!(options.expressive||options.refineExpressive),false,style.guides,style);
       const scale = Math.pow(.5, Math.floor((tries[i] - 1) / 2));
       const directControls = directKeys.flatMap(key => [-1, 1].map(sign => ({...control,
         [key]: arcControlValue(control,key,options.channel) + sign * arcControlStep(key,'repair',control.support) * scale})));
@@ -121,7 +127,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
         offered.add(key);
         if (evaluated >= width || getPhysicsFrameCount() + 2 * (end + 1) > ceiling) break;
         evaluated++; counts.proposals++;
-        let child = base.addLine(candidate.lines), proposed = [...prefix, ...candidate.lines];
+        let child = operations.add(base,candidate.lines), proposed = [...prefix, ...candidate.lines];
         const proposedRows = sourceRows.slice();
         proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost,
           ...candidate.meta, lookahead: null, spent: getPhysicsFrameCount()};
@@ -132,10 +138,10 @@ export function refineArcTrack(input: ArcRefinementInput) {
             let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control}, [incumbent, base]);
             if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control},[incumbent,base]);
             if (!next?.best) {completed = false; break;}
-            proposed.push(...next.best.lines); child = next.best.child.detach();
+            proposed.push(...next.best.lines); child = operations.detach(next.best.child);
             proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
               achieved: next.best.achieved, impact: next.best.actualImpact,
-              release: next.best.release, lines: next.best.lines.length,
+              release: next.best.release, lines: next.best.lines.length,railGuides:next.best.railGuides,
               failures: next.failures, lookahead: null, spent: getPhysicsFrameCount()};
             Engine.retainOnly([incumbent, base, child]);
           }
@@ -143,18 +149,21 @@ export function refineArcTrack(input: ArcRefinementInput) {
           const arrival = getRiderMetered(child, horizon).position;
           const dx = arrival.x - reference.position.x, dy = arrival.y - reference.position.y;
           const suffix = sourceLines.filter(l => indexOf(l) > i).map(l => ({...l, x1: l.x1 + dx, x2: l.x2 + dx, y1: l.y1 + dy, y2: l.y2 + dy}));
-          proposed.push(...suffix); child = child.addLine(suffix);
+          proposed.push(...suffix); child = operations.add(child,suffix);
         }
         if (!completed) {counts.failedContinuation++; Engine.retainOnly([incumbent, base]); continue;}
         if (JSON.stringify(getRiderMetered(child, frame - 1).ballisticState()) !== before) {
           counts.prefixChanged++; Engine.retainOnly([incumbent, base]); continue;
         }
         const candidateRaw=extractRawTrajectory(child,end),candidateReport = report(candidateRaw, proposed);
+        if(input.validate&&!input.validate(child,proposed,candidateRaw,proposedRows)){
+          counts.failedConstruction++;Engine.retainOnly([incumbent,base]);continue;
+        }
         const candidateObjective=input.objective?.(candidateRaw,candidateReport);
         const candidateLoss = observationContract(candidateReport) === expectedObservations ? candidateObjective?.loss??arcTrajectoryLoss(candidateReport, options.amplitudeWeight) : Infinity;
         if (Number.isFinite(candidateLoss)) counts.complete++;
         if (candidateLoss + 1e-12 < loss) {
-          incumbent = child.detach(); lines = proposed; rows = proposedRows;
+          incumbent = operations.detach(child); lines = proposed; rows = proposedRows;
           incumbentReport = candidateReport;objective=candidateObjective; loss = candidateLoss; counts.accepted++;
         }
         Engine.retainOnly([incumbent, base]);

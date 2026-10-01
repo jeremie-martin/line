@@ -24,7 +24,7 @@ const compilerRoot=resolve(arg('compiler-root','.')!);
 const compiler=galleryCompilerIdentity(compilerRoot),judge=verifyFrozen(),jolt=resolveJoltMs();
 const enginePath='engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
 assert.equal(sha(readFileSync(join(compilerRoot,enginePath))),sha(readFileSync(enginePath)),'candidate physics differs from the frozen native engine');
-const {compileHandoff}=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/handoff.ts')).href);
+const {compileHandoff}:typeof import('../v0/optimizer/handoff.ts')=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/handoff.ts')).href);
 const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
  'scripts/gallery/artifacts.ts','scripts/gallery/repertoire_cache.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts',
  'scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts',

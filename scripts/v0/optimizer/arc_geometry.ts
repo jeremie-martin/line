@@ -12,7 +12,7 @@ export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:Rai
 export type ArcSectionStyle=Omit<ArcGeometryStyle,'contour'>&{subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number;
-  guideTilt?:number;mainEnd?:number};
+  guideTilt?:number;mainEnd?:number;foldBend?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
 export function normalizeArcTurnFraction(fraction:number,support:number,preserveImplicit=false):number{
@@ -60,7 +60,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):
       style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles,
-      {start:rad(c.entry+c.turn),exit:rad(c.exit),foldAngle:style?.foldAngle});
+      {start:rad(c.entry+c.turn),exit:rad(c.exit),foldAngle:c.foldBend??style?.foldAngle});
     // Fixed angular folds have actual corners. Applying a smooth-curve radius
     // per face would weaken their angle whenever search shortened that face.
     // Their full corner geometry must pass physical evaluation instead.

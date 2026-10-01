@@ -61,6 +61,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   motionQuality?:MotionSearchOptions;
   /** Explicit repertoire search options. Production defaults are unchanged. */
   initialRecoverySamples?:number;
+  /** Cover contact geometry before a first fully realized candidate exists. */
+  constructionProposals?:boolean;
   fork?:ArcMotionFork;
   /** Research composition by support index (startup is zero). Applied to every
    * proposal, lookahead and rebuilt continuation. Omitted sections inherit the
@@ -643,8 +645,23 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(options.warmStart)evaluate(options.warmStart);
       const genericInitial=(k:number)=>{
         const frac=(n:number)=>((k+1)*n)%1;
-        return {entry:incoming-((options.flow||guidedInitialization)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5,
+        const control:ArcMotionControl={entry:incoming-((options.flow||guidedInitialization)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5,
           ...(options.railLayout==='transfer'?{mainEnd:.3+.65*frac(.6931471806)}:{})};
+        if(options.constructionProposals&&options.guides!==false&&options.independentGuide&&k%4!==0){
+          // Contact geometry is needed to FIND feasible constructions, not only
+          // to refine an already valid one. Keep every fourth inherited sample.
+          control.clearance=8+14*frac(.7548776662);
+          control.guideTilt=-18+36*frac(.5698402910);
+          control.turnFraction=.15+.65*frac(.2718281828);
+          if(options.railLayout==='transfer')control.support=Math.max(control.support,constructionSpan*(.4+.5*frac(.4384471872)));
+          if(options.profile==='fold'){
+            control.foldBend=(k%2?1:-1)*(20+35*frac(.3247179572));
+            // The first folded face is entry+turn; target that face's approach
+            // directly rather than inheriting a smooth arc's five-frame turn.
+            control.entry=incoming-control.turn-(1+frac(.61803398875)*Math.min(25,turn+5));
+          }
+        }
+        return control;
       };
       for(let k=0;k<initial;k++){
         evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:genericInitial(k));

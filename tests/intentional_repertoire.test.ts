@@ -39,6 +39,17 @@ describe('independent guide geometry and deliberate transfer',()=>{
   expect(shortened.length).toBeLessThan(old.length);
   expect(normalizeArcControl({...c,guideTilt:10,mainEnd:.5},{span:30})).toEqual(c);
  });
+ it('searches a folded face angle while preserving the declared default',()=>{
+  const style={profile:'fold' as const,profileStart:0,faces:3,foldAngle:30,independentGuide:true};
+  const implicit=motionArc(points,v,c,1000,false,12,false,0,4,style);
+  const normalized=normalizeArcControl(c,{...style,span:30});
+  expect(normalized.foldBend).toBe(30);
+  expect(motionArc(points,v,normalized,1000,false,12,false,0,4,style)).toEqual(implicit);
+  const other=motionArc(points,v,{...normalized,foldBend:-30},1000,false,12,false,0,4,style);
+  expect(other).not.toEqual(implicit);
+  expect(other.every(l=>l.type===0)).toBe(true);
+  expect(normalizeArcControl({...c,foldBend:-30},{span:30})).toEqual(c);
+ });
  it('requires physical transfer and an absent lower floor, not an unused guide',()=>{
   const main=[{id:1000,type:0,x1:-10,y1:0,x2:0,y2:0},{id:1001,type:0,x1:0,y1:0,x2:20,y2:0}];
   const guide={id:1010,type:0,x1:60,y1:-12,x2:40,y2:-12};

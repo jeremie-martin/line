@@ -178,13 +178,26 @@ function utcStamp(d: Date): { day: string; stamp: string; iso: string } {
   return { day: `${Y}/${M}/${D}`, stamp: `${Y}${M}${D}T${h}${m}${s}Z`, iso: `${Y}-${M}-${D}T${h}:${m}:${s}Z` };
 }
 
+/** Bound execution resources independently of the visual recipe. */
+export function renderResourceArgs(env: NodeJS.ProcessEnv = process.env): string[] {
+  const positive = (name: string, fallback: number) => {
+    const text = env[name] ?? String(fallback), value = Number(text);
+    if (!/^\d+$/.test(text) || !Number.isSafeInteger(value) || value < 1)
+      throw new Error(`${name} must be a positive integer`);
+    return value;
+  };
+  const concurrency = positive('LR_REMOTION_CONCURRENCY', 4);
+  const cacheBytes = positive('LR_REMOTION_CACHE_MB', 512) * 1024 * 1024;
+  if (!Number.isSafeInteger(cacheBytes)) throw new Error('LR_REMOTION_CACHE_MB is too large');
+  return [`--concurrency=${concurrency}`, `--offthreadvideo-cache-size-in-bytes=${cacheBytes}`];
+}
+
 /** Render one track and commit a production-ready bundle. Returns the bundle dir. */
 export async function renderBundle(inp: RenderInput): Promise<string> {
-  // Bound compositor memory when several renders share a workstation. This
-  // changes worker concurrency only, preserving the locked visual recipe.
-  const concurrency = process.env.LR_REMOTION_CONCURRENCY;
-  if (concurrency !== undefined && (!/^\d+$/.test(concurrency) || Number(concurrency) < 1 ||
-    !Number.isSafeInteger(Number(concurrency)))) throw new Error("LR_REMOTION_CONCURRENCY must be a positive integer");
+  // Remotion's default frame cache can claim half the machine's available RAM
+  // per process. A collection needs a per-render bound, independently of workers.
+  // These controls change execution resources, not the locked visual recipe.
+  const resources = renderResourceArgs();
   const name = `${inp.song}-s${inp.seed}`;
   const gen = resolve(inp.workDir);
   mkdirSync(gen, { recursive: true });
@@ -240,7 +253,7 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
     });
     await stage(name, "[4/5] Remotion overlay", () => run("npx", ["remotion", "render", "src/index.ts", "CurveOverlayVertical", outMp4,
       `--crf=${FINAL_CRF}`, "--jpeg-quality=100", `--props=${props}`, `--public-dir=${renderPublic}`,
-      ...(concurrency === undefined ? [] : [`--concurrency=${concurrency}`])], log, join(ROOT, "remotion")),
+      ...resources], log, join(ROOT, "remotion")),
       () => fileSizeLabel(outMp4));
 
     // 5. bundle: stage → upload.json (sidecar last) → atomic mv into this run dir.

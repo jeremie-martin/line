@@ -1,12 +1,25 @@
 import {prepareView} from './replay.js';
 const $=id=>document.getElementById(id),audio=$('audio');
 const names={arcs:'Arcs',fold:'Folds',serpentine:'S sweeps',scallops:'Ripples',terraces:'Terraces',scattered:'Scattered'};
-let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,pendingJob;
+let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,pendingJob,audioObjectUrl;
+const audioCache=new Map();
 const fmt=(v,n=2)=>Number.isFinite(v)?v.toFixed(n):'—';
 function el(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function status(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error);}
 async function api(path,body){const r=await fetch('/api/repertoire/'+path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.error??r.statusText);return d;}
 async function checked(url,signal,digest){const r=await fetch(url,{signal});if(!r.ok)throw new Error(`Artifact unavailable (${r.status})`);const bytes=await r.arrayBuffer();if(!digest){const sum=await fetch(url+'.sha256',{signal});if(!sum.ok)throw new Error('Missing artifact identity');digest=(await sum.text()).trim();}const actual=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');if(actual!==digest)throw new Error('Artifact checksum mismatch');return JSON.parse(new TextDecoder().decode(bytes));}
+async function verifiedAudio(c,signal){
+ let blob=audioCache.get(c.audioSha256);
+ if(!blob){
+  const response=await fetch('/'+c.audioPath,{signal});if(!response.ok)throw new Error('Music unavailable');
+  const bytes=await response.arrayBuffer(),digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
+  signal.throwIfAborted();if(digest!==c.audioSha256)throw new Error('Music does not match the saved recording');
+  blob=new Blob([bytes],{type:'audio/mpeg'});
+ }
+ signal.throwIfAborted();audioCache.delete(c.audioSha256);audioCache.set(c.audioSha256,blob);
+ while(audioCache.size>4)audioCache.delete(audioCache.keys().next().value);
+ return blob;
+}
 function pause(){playing=false;audio.pause();$('play').textContent='Play';}
 function draw(){
  $('time').textContent=fmt(seconds)+' s';$('seek').value=seconds;
@@ -19,11 +32,20 @@ function tick(){if(playing){seconds=audio.currentTime;if(seconds>=+$('seek').max
 $('play').onclick=async()=>{if(playing)return pause();try{if(seconds>=+$('seek').max)seek(0);$('movie').pause();audio.currentTime=seconds;await audio.play();playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}};
 $('seek').oninput=()=>{pause();$('movie').pause();seek(+$('seek').value);};$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>audio.playbackRate=+$('rate').value;
 audio.onended=pause;audio.onerror=()=>{pause();if(audio.getAttribute('src'))status('Music unavailable; you can still scrub the saved ride.',true);};window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
-function clearMovie(){const v=$('movie');v.pause();v.removeAttribute('src');v.load();v.hidden=true;$('movie-link').hidden=true;$('movie-link').removeAttribute('href');}
-async function loadMovie(m,url,signal,token){const c=m.cells.find(c=>c.method==='production');const probe=await fetch(new URL(c.id+'.video.json',url),{signal});if(!probe.ok)return;const v=await checked(new URL(c.id+'.video.json',url).href,signal);if(v.identity.planSha256!==m.planSha256||v.identity.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');if(token!==opening)return;const src=new URL(v.full.path,url).href;$('movie-link').href=src;$('movie-link').hidden=false;$('movie').src=src;$('movie').hidden=false;}
+function clearMovie(){const v=$('movie');v.pause();v.removeAttribute('src');v.load();v.hidden=true;for(const id of ['movie-link','reference-movie-link']){$(id).hidden=true;$(id).removeAttribute('href');}}
+async function loadMovie(m,url,signal,token){
+ for(const method of ['production','baseline']){
+  const c=m.cells.find(c=>c.method===method),recordUrl=new URL(c.id+'.video.json',url);
+  const probe=await fetch(recordUrl,{signal});if(!probe.ok)continue;
+  const v=await checked(recordUrl.href,signal);if(v.identity.planSha256!==m.planSha256||v.identity.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');
+  if(token!==opening)return;
+  const src=new URL(v.full.path,url).href,link=$(method==='production'?'movie-link':'reference-movie-link');link.href=src;link.hidden=false;
+  if(method==='production'){$('movie').src=src;$('movie').hidden=false;}
+ }
+}
 async function openResult(path,job){
- const token=++opening;controller?.abort();controller=new AbortController();const {signal}=controller;pause();clearMovie();currentJob=job;views=[];records=[];seconds=0;$('result').hidden=false;$('play').disabled=true;$('seek').disabled=true;$('render').hidden=true;$('timeline').replaceChildren();$('observations').replaceChildren();$('result-title').textContent='Loading saved track…';$('result-note').textContent='Verifying artifacts and native rider playback…';$('record-link').removeAttribute('href');
- for(const id of ['production','reference']){const c=$(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}audio.removeAttribute('src');audio.load();
+ const token=++opening;controller?.abort();controller=new AbortController();const {signal}=controller;pause();clearMovie();status('');currentJob=job;views=[];records=[];seconds=0;$('result').hidden=false;$('play').disabled=true;$('seek').disabled=true;$('render').hidden=true;$('timeline').replaceChildren();$('observations').replaceChildren();$('result-title').textContent='Loading saved track…';$('result-note').textContent='Verifying artifacts and native rider playback…';$('record-link').removeAttribute('href');
+ for(const id of ['production','reference']){const c=$(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}audio.removeAttribute('src');audio.load();if(audioObjectUrl){URL.revokeObjectURL(audioObjectUrl);audioObjectUrl=undefined;}delete audio.dataset.source;delete audio.dataset.sha256;
  try{
   const url=new URL(path,location.href),m=await checked(url.href,signal),cells=['production','baseline'].map(method=>m.cells.find(c=>c.method===method));if(cells.some(c=>!c))throw new Error('Missing production comparison');
   const data=await Promise.all(cells.map(c=>checked(new URL(c.path,url).href,signal,c.sha256)));data.forEach(r=>{if(r.planSha256!==m.planSha256)throw new Error('Mismatched plan identity');});
@@ -32,12 +54,16 @@ async function openResult(path,job){
   $('result-title').textContent=`${m.plan.cases[0].title} · seed ${ride.seed}`;$('result-note').textContent=p.qualified?'Complete ride · every requested construction fulfilled.':ride.valid?'Complete ride · some requested constructions were not fulfilled.':`Incomplete ride · ${ride.failure?.reason??p.constructionFailure??'see saved diagnostics'}`;$('result-note').classList.toggle('error',!p.qualified);
   $('production-metrics').textContent=`Musical score ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} requests · ${fmt(ride.compileMs/1000,1)} s`;
   $('reference-metrics').textContent=`Musical score ${fmt(base.score.score,1)} · ${base.valid?'complete':'incomplete'}`;
-  $('seek').max=Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;$('play').disabled=false;audio.src='/'+m.plan.cases[0].audioPath;audio.load();audio.playbackRate=+$('rate').value;
+  $('seek').max=Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;
   const real=new Map(p.realization.sections.map(r=>[r.section,r]));
-  $('timeline').replaceChildren(...p.plan.phrases.map(phrase=>{const requests=p.plan.requests.slice(phrase.first,phrase.first+phrase.count),ok=requests.every(r=>real.get(r.section)?.fulfilled),b=el('button',`${names[phrase.construction]} · ${fmt(requests[0].frame/40,1)}s`,ok?'':'unfulfilled');b.title=`${phrase.guidance} guidance; ${ok?'fulfilled':'unfulfilled'}`;b.onclick=()=>{pause();seek(requests[0].frame/40-.3);};return b;}));
+  $('timeline').replaceChildren(...p.plan.phrases.map(phrase=>{const requests=p.plan.requests.slice(phrase.first,phrase.first+phrase.count),ok=requests.every(r=>real.get(r.section)?.fulfilled),b=el('button',`${names[phrase.construction]} · ${fmt(requests[0].frame/40,1)}s`,ok?'':'unfulfilled');b.title=`${phrase.guidance} guidance; ${ok?'fulfilled':'unfulfilled'}`;b.onclick=()=>{pause();$('movie').pause();seek(requests[0].frame/40-.3);};return b;}));
   $('observations').replaceChildren(...p.plan.requests.slice(1).map(r=>{const result=real.get(r.section),tr=el('tr');for(const t of [r.section,fmt(r.frame/40),names[r.construction],r.guidance,result?.fulfilled?'Fulfilled':result?.reasons?.join(', ')??'Not built'])tr.append(el('td',String(t)));return tr;}));
   $('work').textContent=`Automatic compile: ${ride.physicalFrames.toLocaleString()} of ${ride.allowance.toLocaleString()} physics frames. Ordinary reference: ${base.physicalFrames.toLocaleString()} frames, accounted separately. Independent judging and video rendering are separate. ${p.plan.policy}. The physical checks establish functional construction, not an aesthetic rating.`;
   $('record-link').href=new URL(ride.path,url).href;$('render').hidden=!job||!ride.valid;$('render').disabled=['queued','rendering','complete'].includes(job?.render);$('render').textContent=job?.render==='complete'?'Videos ready':job?.render==='rendering'?'Rendering…':'Render finished videos';seek(0);
+  try{
+   const c=m.plan.cases[0],blob=await verifiedAudio(c,signal);if(token!==opening)return;
+   audioObjectUrl=URL.createObjectURL(blob);audio.src=audioObjectUrl;audio.dataset.source=c.audioPath;audio.dataset.sha256=c.audioSha256;audio.load();audio.playbackRate=+$('rate').value;$('play').disabled=false;
+  }catch(e){if(signal.aborted||token!==opening)return;status(e.message+'; the saved ride can still be scrubbed.',true);}
   await loadMovie(m,url,signal,token);
  }catch(e){if(signal.aborted||token!==opening)return;$('result-note').textContent='Could not open result: '+e.message;$('result-note').classList.add('error');}
 }

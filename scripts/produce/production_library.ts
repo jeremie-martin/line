@@ -7,6 +7,7 @@ import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {repertoireSongs,validateAutomaticProductionRequest} from '../gallery/repertoire_catalog.ts';
+import {ensureMirror} from './render.ts';
 const arg=(k:string,d:string)=>process.argv.find(a=>a.startsWith('--'+k+'='))?.slice(k.length+3)??d;
 const out=resolve(arg('out','generated/production-repertoire/library')),phase=arg('phase','compile'),jobs=Number(arg('jobs',phase==='render'?'1':'3'));
 if(!['compile','render','index'].includes(phase)||!Number.isSafeInteger(jobs)||jobs<1||jobs>12)throw new Error('invalid phase or jobs');
@@ -41,5 +42,13 @@ async function run(entry:any){const dir=join(out,entry.id);mkdirSync(dir,{recurs
  }catch(e){writeGalleryJson(dir,phase==='compile'?'failure.json':'render-failure.json',{error:String(e)});}
  finally{closeSync(fd);index();console.log(JSON.stringify({id:entry.id,phase,status:entry.status,video:entry.video,error:entry.error}));}
 }
-if(phase!=='index'){const queue=phase==='render'?[...entries].sort((a,b)=>a.request.seed-b.request.seed):entries;let next=0;await Promise.all(Array.from({length:jobs},async()=>{while(next<queue.length)await run(queue[next++]);}));}
+if(phase!=='index'){
+ // The batch owns any server it starts. Individual render children therefore
+ // cannot shut down a shared server while another lane is still using it.
+ const mirror=phase==='render'?await ensureMirror():null;
+ try{
+  const queue=phase==='render'?[...entries].sort((a,b)=>a.request.seed-b.request.seed):entries;
+  let next=0;await Promise.all(Array.from({length:jobs},async()=>{while(next<queue.length)await run(queue[next++]);}));
+ }finally{mirror?.kill();}
+}
 index();

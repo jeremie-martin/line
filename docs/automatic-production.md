@@ -4,6 +4,8 @@ Open [the production library](http://localhost:8767/motion-gallery/production.ht
 with `npm run dash`. Choose a song, a seed and broad preferences. The compiler
 chooses repeated constructions itself; the manual editor remains available for
 advanced inspection. All physical geometry uses normal type-0 lines.
+The [architecture guide](production-repertoire-architecture.md) explains exactly
+who chooses guidance, what search can adjust, and what the physical checks mean.
 
 Generate the same kind of artifact from the command line:
 
@@ -32,7 +34,10 @@ judging and rendering are separate.
 Each result saves the actual musical inputs and jolt offset, compiler identity,
 creative settings, requested plan, physical realization, budget telemetry, full
 track, native rider trajectory and report. The dashboard verifies checksums and
-replays the native rider before enabling playback. A complete ride can still miss
+replays the native rider before enabling playback. Native audio is checked against
+the saved recording checksum and played from those verified bytes. A changed or
+missing recording disables synchronized playback while keeping scrubbing available.
+A complete ride can still miss
 a construction request; that distinction remains visible. There is no silent
 ordinary-arc substitution or seed search.
 
@@ -41,6 +46,10 @@ camera, overlays and post-processing. Geometry and authored-input identities are
 checked again at render time. Partial rides stay inspectable but are not labeled
 completed production videos. Functional realization checks are not aesthetic
 ratings; artistic approval remains a review of the actual ride.
+
+The dashboard reports the independent frozen musical judge's score. Existing
+production bundles also retain a `metrics.score` from `scoreDriftReport`; that
+older production diagnostic can differ and is not the V5 headline.
 
 ## Reproduce the review collection
 
@@ -61,3 +70,11 @@ a new collection directory. Large recordings, runs and videos stay local; the
 small review index and evidence can be committed. L’amour de ma vie uses the
 existing `beats/amour_de_ma_vie_short.mp3` asset (locally linked as
 `productions/amour_de_ma_vie_44s/audio.mp3`).
+
+For parallel collection rendering, increase `--jobs`. The collection runner owns
+any Line Rider mirror server it starts until every render worker finishes.
+Each render defaults to four compositor workers and a 512 MiB decoded-video
+cache, configurable with `LR_REMOTION_CONCURRENCY` and `LR_REMOTION_CACHE_MB`.
+The cache bound applies per render; it avoids multiplying Remotion's large
+machine-wide memory assumption across concurrent jobs. These settings affect
+execution resources, not the visual recipe.

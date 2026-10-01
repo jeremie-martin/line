@@ -1,5 +1,6 @@
 /** Matched-plan motion/search pilot. Keep every scheduled result, including failures. */
-import {loadCatalog,caseSpec} from '../../benchmark/v6/model.ts';
+import {loadCatalog} from '../../benchmark/v6/model.ts';
+import {caseSpec} from '../../benchmark/v4/model.ts';
 import {mkdirSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';

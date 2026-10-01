@@ -81,6 +81,9 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const width = options.refineWidth ?? 4, samples = options.refineSamples ?? 48;
       const regret = contacts.map((contact, i) => {
         let error = objective?.regrets[i]??0;
+        // A missed landing target can require a different incoming state. Offer
+        // its preceding approach too; complete replay still decides acceptance.
+        if(options.refineUpstream)error+=objective?.regrets[i+1]??0;
         if(!objective)for (const gap of incumbentReport.gaps) for (const [axis, value] of Object.entries(gap.axes)) {
           if (!value) continue;
           const belongs = axis === 'impact' ? gap.gap_index === contact.gap : gap.gap_index === i;
@@ -137,7 +140,9 @@ export function refineArcTrack(input: ArcRefinementInput) {
           for (let j = i + 1; j < contacts.length; j++) {
             const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
             let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,...(!planned&&options.constructionRequests?{warmIncoming:sourceRows[j].incoming}:{})}, [incumbent, base]);
-            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control},[incumbent,base]);
+            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,
+              guidanceSamples:options.refineRebuildGuidanceSamples??12,warmStart:sourceRows[j].control,
+              ...(options.refineRebuildGuidanceSamples!==undefined?{warmIncoming:sourceRows[j].incoming}:{})},[incumbent,base]);
             if (!next?.best) {completed = false; break;}
             proposed.push(...next.best.lines); child = operations.detach(next.best.child);
             proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,

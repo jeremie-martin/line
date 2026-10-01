@@ -163,6 +163,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Explicit local correction allowance for simulated continuation probes. */
   continuationGuidanceSamples?:number;
   continuationResponseSamples?:number;
+  /** Extra measured response for profiled or transfer continuations only. */
+  constructionContinuationSamples?:number;
   /** Propose one demonstrated curve and search only when its physical replay fails. */
   policyRollout?:boolean;
   policyRolloutStrict?:boolean;
@@ -204,6 +206,9 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   replayControls?:ArcMotionControl[];
   refineDirect?:boolean;
   refineRebuildSamples?:number;
+  refineRebuildGuidanceSamples?:number;
+  /** Whole-track error can originate in the preceding approach. */
+  refineUpstream?:boolean;
   refineExpressive?:boolean;
   responseSamples?:number;
   responseDamping?:number;
@@ -260,6 +265,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 }
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
+  if(options.constructionContinuationSamples!==undefined&&(!Number.isSafeInteger(options.constructionContinuationSamples)||options.constructionContinuationSamples<0))throw new Error('invalid construction continuation allowance');
   const revision=options.transitionRevision?{errorThreshold:.12,width:3,samples:48,guidanceSamples:96,responseSamples:88,...options.transitionRevision}:undefined;
   if(revision&&(!Number.isFinite(revision.errorThreshold)||revision.errorThreshold<0||
     ![revision.width,revision.samples,revision.guidanceSamples,revision.responseSamples].every(v=>Number.isSafeInteger(v)&&v>=0)||revision.width>12))throw new Error('invalid transition revision');
@@ -1063,10 +1069,15 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       }
       return result;
     };
+    const continuationGuidance=(index:number)=>{
+      const style=options.sectionStyles?.[index],ordinary=options.continuationGuidanceSamples??Math.min(12,options.guidanceSamples??48);
+      return options.constructionContinuationSamples&&(style?.profile||style?.railLayout==='transfer')
+        ?Math.max(ordinary,options.constructionContinuationSamples):ordinary;
+    };
     const continuation=(base:Engine,index:number,depth:number,probeSamples:number,protectedEngines:Engine[]):any=>{
       const searched=searchInterval(base,index,{samples:probeSamples,
         constructionImprovementSamples:0,
-        guidanceSamples:options.continuationGuidanceSamples??Math.min(12,options.guidanceSamples??48),
+        guidanceSamples:continuationGuidance(index),
         responseSamples:options.continuationResponseSamples??options.responseSamples},protectedEngines);
       lookaheadStats.continuationNodes++;
       if(!searched?.best)return null;
@@ -1184,7 +1195,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       let lookahead:any=null;
       if(best&&(options.lookaheadWidth??0)>1&&i+1<contacts.length){
         let width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32,depth=Math.max(1,options.lookaheadDepth??1);
-        const probeRate=()=>options.continuationGuidanceSamples===undefined?1.4:
+        const probeRate=(index:number)=>options.constructionContinuationSamples?1+continuationGuidance(index)/probeSamples:options.continuationGuidanceSamples===undefined?1.4:
           1+options.continuationGuidanceSamples/probeSamples;
         const nominalRate=(options.samples??160)+(options.guidance?options.guidanceSamples??48:0);
         const constructionReserveRate=(options.adaptivePlanning?Math.max(nominalRate,observedConstructionRate):nominalRate)*(options.reserveFactor??1.1);
@@ -1193,7 +1204,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           const localAllowance=Math.max(0,rate-constructionReserveRate)*(next-frame);
           for(let d=Math.min(options.planningDepth??2,contacts.length-i-1);d>=1;d--){
             let framesPerProbe=0;
-            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(options.lookaheadBranching??2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*(probeRate()+6*(options.airProjection??0)/probeSamples);
+            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(options.lookaheadBranching??2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*(probeRate(i+k+1)+6*(options.airProjection??0)/probeSamples);
             const affordable=localAllowance/Math.max(1,framesPerProbe);
             if(affordable<width*probeSamples)continue;
             width=Math.max(width,Math.min(options.planningWidth??5,Math.floor(affordable/probeSamples)));
@@ -1211,7 +1222,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           if(probes.length>=width&&winner)break;
           const reserve=options.adaptivePlanning?(end-frame)*constructionReserveRate:(end-frame)*nominalRate*(options.reserveFactor??1.1);
           let probeAllowance=0;
-          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*(probeRate()+6*(options.airProjection??0)/probeSamples);
+          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*(probeRate(i+d+1)+6*(options.airProjection??0)/probeSamples);
           if(getPhysicsFrameCount()+reserve+probeAllowance>budget-2*(end+1))break;
           const branch=addArc(engine,candidate.lines);
           const future=continuation(branch,i+1,depth,probeSamples,[engine,original.child]);

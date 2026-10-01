@@ -20,10 +20,9 @@ Physical validity and a high score do not establish visual quality; use faithful
 native playback with music to review meaningful style changes. Finished vertical
 rendering remains available when useful or requested, not a routine prerequisite.
 
-The [intentional-motion roadmap](intentional-motion-roadmap.md) proposes the next
-campaign and is awaiting approval. Its V6 and score ambition do not replace the
-current frozen contracts until that campaign is authorized and its new contract
-is explicitly frozen.
+The [intentional-motion roadmap](intentional-motion-roadmap.md) is approved for full
+implementation. Its V6 contract will be frozen after the bounded pilot; existing
+V5/V4 definitions remain unchanged. Follow the campaign ledger for current work.
 
 ## Start from actual behavior
 

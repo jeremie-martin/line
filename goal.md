@@ -1,12 +1,13 @@
-# Proposed next campaign: intentional motion — 2026-10-01
+# Active campaign: intentional motion — 2026-10-01
 
-The [new roadmap](docs/intentional-motion-roadmap.md) proposes context-sensitive
-arrangement, better contact realization, deliberate transfers to later control
-rails, and a V6 musical headline ambition of at least 850 with separate motion
-qualification. It preserves normal lines, native physics and frozen V5/V4
-comparisons. **Awaiting the owner's green light:** implementation, V6 and the
-numerical goal have not been opened by this proposal. The delivered baseline
-below remains current.
+The owner approved the entire [roadmap](docs/intentional-motion-roadmap.md).
+Implement context-sensitive arrangement, better contact realization and deliberate
+transfers to later control rails; establish and freeze V6, then pursue a headline
+of at least 850 with separate motion qualification. Preserve normal lines, native
+physics and frozen V5/V4 comparisons. Carry the connected campaign through the
+actual production library and complete qualification. Progress and evidence:
+[execution ledger](docs/intentional-motion-campaign.md). Baseline: `ca97d100`;
+qualified compiler: `0846b2e5`. No new benchmark definition is frozen yet.
 
 # Delivered: autonomous production repertoire — 2026-10-01
 

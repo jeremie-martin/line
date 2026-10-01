@@ -1,7 +1,8 @@
 # Intentional motion, expressive variety and better musical accuracy
 
-**Proposed on 2026-10-01; awaiting the owner's green light.** This is a new
-campaign proposal, not an approved implementation or a changed benchmark.
+**Approved in full on 2026-10-01; implementation in progress.** The owner
+authorized sustained execution of the entire roadmap. The [campaign ledger](intentional-motion-campaign.md)
+records progress and evidence. V6 remains unfrozen until the contract pilot is complete.
 It follows the [owner's positive production review](production-repertoire-feedback-20261001.md)
 and the [motion investigation](motion-quality-investigation-20261001.md).
 The preceding [production roadmap](production-repertoire-roadmap.md) remains the

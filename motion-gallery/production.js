@@ -1,7 +1,7 @@
 import {prepareView} from './replay.js';
 const $=id=>document.getElementById(id),audio=$('audio');
 const names={arcs:'Arcs',fold:'Folds',serpentine:'S sweeps',scallops:'Ripples',terraces:'Terraces',scattered:'Scattered'};
-let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,pendingJob,audioObjectUrl;
+let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,pendingJob,audioObjectUrl,libraryEntries=[];
 const audioCache=new Map();
 // Range controls serialize with reduced precision. Preserve the policy default
 // until the artist actually changes it, including for exact request cache reuse.
@@ -27,12 +27,15 @@ async function verifiedAudio(c,signal){
 function pause(){playing=false;audio.pause();$('play').textContent='Play';}
 function draw(){
  $('time').textContent=fmt(seconds)+' s';$('seek').value=seconds;
- views.forEach((entry,i)=>{const canvas=$(i?'reference':'production'),r=records[i],at=Math.max(0,Math.min(seconds*40,r.trace.frames.length-1)),f=Math.floor(at),a=r.trace.frames[f],b=r.trace.frames[Math.min(f+1,r.trace.frames.length-1)],t=at-f;
+ [0,Number($('comparison').value)].forEach((index,i)=>{const entry=views[index],r=records[index];if(!entry||!r)return;const canvas=$(i?'reference':'production'),at=Math.max(0,Math.min(seconds*40,r.trace.frames.length-1)),f=Math.floor(at),a=r.trace.frames[f],b=r.trace.frames[Math.min(f+1,r.trace.frames.length-1)],t=at-f;
  if(a&&b)entry.view.draw(canvas,{x:a[0]+(b[0]-a[0])*t,y:a[1]+(b[1]-a[1])*t,w:canvas.clientWidth,h:canvas.clientHeight,z:+$('zoom').value,r:Math.min(2,devicePixelRatio)},at,$('inspect').checked);
  });
 }
-function seek(t){seconds=Math.max(0,Math.min(+$('seek').max,t));if(audio.readyState>=1)audio.currentTime=seconds;draw();}
-function tick(){if(playing){seconds=audio.currentTime;if(seconds>=+$('seek').max)pause();draw();}requestAnimationFrame(tick);}requestAnimationFrame(tick);
+function passageLink(updateHistory=true){if(!manifestUrl)return;const url=new URL(location.href);url.searchParams.set('data',manifestUrl.pathname);url.searchParams.set('t',seconds.toFixed(3));url.searchParams.set('compare',$('comparison').value==='2'?'previous':'ordinary');$('passage-link').href=url.href;if(updateHistory)history.replaceState(null,'',url);}
+function seek(t){seconds=Math.max(0,Math.min(+$('seek').max,t));if(audio.readyState>=1)audio.currentTime=seconds;draw();passageLink();}
+function comparisonChanged(){const r=records[Number($('comparison').value)];if(r)$('reference-metrics').textContent=`Musical score ${fmt(r.score.score,1)} · ${r.valid?'complete':'incomplete'}`;draw();passageLink();}
+$('comparison').onchange=comparisonChanged;
+function tick(){if(playing){seconds=audio.currentTime;if(seconds>=+$('seek').max)pause();draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
 $('play').onclick=async()=>{if(playing)return pause();try{if(seconds>=+$('seek').max)seek(0);$('movie').pause();audio.currentTime=seconds;await audio.play();playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}};
 $('seek').oninput=()=>{pause();$('movie').pause();seek(+$('seek').value);};$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>audio.playbackRate=+$('rate').value;
 audio.onended=pause;audio.onerror=()=>{pause();if(audio.getAttribute('src'))status('Music unavailable; you can still scrub the saved ride.',true);};window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
@@ -47,26 +50,45 @@ async function loadMovie(m,url,signal,token){
   if(method==='production'){$('movie').src=src;$('movie').hidden=false;}
  }
 }
-async function openResult(path,job){
- const token=++opening;controller?.abort();controller=new AbortController();const {signal}=controller;pause();clearMovie();status('');currentJob=job;views=[];records=[];seconds=0;$('result').hidden=false;$('play').disabled=true;$('seek').disabled=true;$('render').hidden=true;$('timeline').replaceChildren();$('observations').replaceChildren();$('result-title').textContent='Loading saved track…';$('result-note').textContent='Verifying artifacts and native rider playback…';$('record-link').removeAttribute('href');
+async function openResult(path,job,initialTime=0){
+ const token=++opening;controller?.abort();controller=new AbortController();const {signal}=controller;pause();clearMovie();status('');currentJob=job;views=[];records=[];manifestUrl=undefined;seconds=0;$('result').hidden=false;$('play').disabled=true;$('seek').disabled=true;$('render').hidden=true;$('timeline').replaceChildren();$('observations').replaceChildren();$('review-moments').replaceChildren();$('motion-summary').textContent='';$('result-title').textContent='Loading saved track…';$('result-note').textContent='Verifying artifacts and native rider playback…';$('record-link').removeAttribute('href');
  for(const id of ['production','reference']){const c=$(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}audio.removeAttribute('src');audio.load();if(audioObjectUrl){URL.revokeObjectURL(audioObjectUrl);audioObjectUrl=undefined;}delete audio.dataset.source;delete audio.dataset.sha256;
  try{
   const url=new URL(path,location.href),m=await checked(url.href,signal),cells=['production','baseline'].map(method=>m.cells.find(c=>c.method===method));if(cells.some(c=>!c))throw new Error('Missing production comparison');
   const data=await Promise.all(cells.map(c=>checked(new URL(c.path,url).href,signal,c.sha256)));data.forEach(r=>{if(r.planSha256!==m.planSha256)throw new Error('Mismatched plan identity');});
+  const prior=libraryEntries.find(e=>new URL(e.manifest??'',location.href).href===url.href)?.priorManifest;
+  if(prior){
+   const priorUrl=new URL(prior,location.href),pm=await checked(priorUrl.href,signal),pc=pm.cells.find(c=>c.method==='production');
+   if(!pc)throw new Error('Missing previous automatic arrangement');
+   const previous=await checked(new URL(pc.path,priorUrl).href,signal,pc.sha256);
+   if(previous.planSha256!==pm.planSha256||previous.seed!==data[0].seed||previous.case.id!==data[0].case.id||pm.plan.jolt!==m.plan.jolt)throw new Error('Previous arrangement has different musical inputs');
+   for(const key of ['audioSha256','specSha256','analysisSha256','durationFrames'])if(previous.case[key]!==data[0].case[key])throw new Error('Previous arrangement has different '+key);
+   data.push(previous);cells.push(pc);
+  }
+  $('comparison').options[1].disabled=!prior;if(!prior)$('comparison').value='1';
   const prepared=await Promise.all(data.map((r,i)=>prepareView(r,cells[i].sha256,signal)));if(token!==opening)return;
   records=data;views=prepared;manifest=m;manifestUrl=url;const [ride,base]=cells,p=ride.production;
   $('result-title').textContent=`${m.plan.cases[0].title} · seed ${ride.seed}`;$('result-note').textContent=p.qualified?'Complete ride · every requested construction fulfilled.':ride.valid?'Complete ride · some requested constructions were not fulfilled.':`Incomplete ride · ${ride.failure?.reason??p.constructionFailure??'see saved diagnostics'}`;$('result-note').classList.toggle('error',!p.qualified);
   $('production-metrics').textContent=`Musical score ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} requests · ${fmt(ride.compileMs/1000,1)} s`;
-  $('reference-metrics').textContent=`Musical score ${fmt(base.score.score,1)} · ${base.valid?'complete':'incomplete'}`;
+  comparisonChanged();
   $('seek').max=Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;
   const real=new Map(p.realization.sections.map(r=>[r.section,r]));
-  $('timeline').replaceChildren(...p.plan.phrases.map(phrase=>{const requests=p.plan.requests.slice(phrase.first,phrase.first+phrase.count),ok=requests.every(r=>real.get(r.section)?.fulfilled),b=el('button',`${names[phrase.construction]} · ${fmt(requests[0].frame/40,1)}s`,ok?'':'unfulfilled');b.title=`${phrase.guidance} guidance; ${ok?'fulfilled':'unfulfilled'}`;b.onclick=()=>{pause();$('movie').pause();seek(requests[0].frame/40-.3);};return b;}));
-  $('observations').replaceChildren(...p.plan.requests.slice(1).map(r=>{const result=real.get(r.section),tr=el('tr');for(const t of [r.section,fmt(r.frame/40),names[r.construction],r.guidance,result?.fulfilled?'Fulfilled':result?.reasons?.join(', ')??'Not built'])tr.append(el('td',String(t)));return tr;}));
+  $('timeline').replaceChildren(...p.plan.phrases.map(phrase=>{const requests=p.plan.requests.slice(phrase.first,phrase.first+phrase.count),ok=requests.every(r=>real.get(r.section)?.fulfilled),b=el('button',`${names[phrase.construction]} · ${fmt(requests[0].frame/40,1)}s`,ok?'':'unfulfilled');b.title=`${phrase.guidance} guidance; ${phrase.railLayout??'paired'} layout; ${ok?'fulfilled':'unfulfilled'}`;b.onclick=()=>{pause();$('movie').pause();seek(requests[0].frame/40-.3);};return b;}));
+  $('observations').replaceChildren(...p.plan.requests.slice(1).map(r=>{const result=real.get(r.section),tr=el('tr');for(const t of [r.section,fmt(r.frame/40),names[r.construction],`${r.guidance} / ${r.railLayout??'paired'}`,result?.fulfilled?'Fulfilled':result?.reasons?.join(', ')??'Not built'])tr.append(el('td',String(t)));return tr;}));
   $('work').textContent=`Automatic compile: ${ride.physicalFrames.toLocaleString()} of ${ride.allowance.toLocaleString()} physics frames. Ordinary reference: ${base.physicalFrames.toLocaleString()} frames, accounted separately. Independent judging and video rendering are separate. ${p.plan.policy}. The physical checks establish functional construction, not an aesthetic rating.`;
-  $('record-link').href=new URL(ride.path,url).href;$('render').hidden=!job||!ride.valid;$('render').disabled=['queued','rendering','complete'].includes(job?.render);$('render').textContent=job?.render==='complete'?'Videos ready':job?.render==='rendering'?'Rendering…':'Render finished videos';seek(0);
+  $('record-link').href=new URL(ride.path,url).href;$('render').hidden=!job||!ride.valid;$('render').disabled=['queued','rendering','complete'].includes(job?.render);$('render').textContent=job?.render==='complete'?'Videos ready':job?.render==='rendering'?'Rendering…':'Render finished videos';
+  const motion=p.motion?.full;$('motion-detail').hidden=!motion;
+  if(motion)$('motion-summary').textContent=motion.bursts.map(b=>`${b.frames*25} ms: ${b.episodes} above-band episodes; largest excess ${fmt(b.maxExcess)} px/frame`).join(' · ')+'. These measurements separate extra speed gain from gravity. They describe motion; they do not rate its artistic quality.';
+  const song=data[0].case.id,moments=[];
+  if(['luna_bala_44s','tiki_tiki_48s'].includes(song))moments.push(['Calm opening',0]);
+  if(song==='amour_de_ma_vie_44s'&&ride.seed===303)moments.push(['Reported acceleration · 9.4s',8.7]);
+  if(song==='amour_de_ma_vie_44s'&&ride.seed===101)moments.push(['Reported acceleration · 5.95s',5.3]);
+  if(song==='tiki_tiki_48s'&&ride.seed===101)moments.push(['Reported acceleration · 15.32s',14.7]);
+  $('review-moments').replaceChildren(...moments.map(([label,t])=>{const b=el('button',label);b.onclick=()=>{pause();seek(t);};return b;}));
+  seek(initialTime);
   try{
    const c=m.plan.cases[0],blob=await verifiedAudio(c,signal);if(token!==opening)return;
-   audioObjectUrl=URL.createObjectURL(blob);audio.src=audioObjectUrl;audio.dataset.source=c.audioPath;audio.dataset.sha256=c.audioSha256;audio.load();audio.playbackRate=+$('rate').value;$('play').disabled=false;
+   audioObjectUrl=URL.createObjectURL(blob);audio.src=audioObjectUrl;audio.dataset.source=c.audioPath;audio.dataset.sha256=c.audioSha256;audio.load();audio.onloadedmetadata=()=>{if(token===opening)audio.currentTime=seconds;};audio.playbackRate=+$('rate').value;$('play').disabled=false;
   }catch(e){if(signal.aborted||token!==opening)return;status(e.message+'; the saved ride can still be scrubbed.',true);}
   await loadMovie(m,url,signal,token);
  }catch(e){if(signal.aborted||token!==opening)return;$('result-note').textContent='Could not open result: '+e.message;$('result-note').classList.add('error');}
@@ -79,5 +101,5 @@ async function refreshJobs(){try{const {jobs}=await api('jobs');const automatic=
  const updated=automatic.find(j=>j.id===currentJob?.id);if(updated?.render==='complete'&&currentJob.render!=='complete'){currentJob=updated;await loadMovie(manifest,manifestUrl,controller.signal,opening);$('render').textContent='Videos ready';}
  }catch(e){status(e.message,true);}}
 $('generate').onsubmit=async event=>{event.preventDefault();try{const request={mode:'production',song:$('song').value,seed:+$('seed').value,budget:+$('budget').value,referenceBudget:750000,creative:{variation:+$('variation').value,guidedBalance,repertoire:[...$('repertoire').querySelectorAll('input:checked')].map(i=>i.value)}};status('Submitting automatic arrangement…');const {job,reused}=await api('compile',request);pendingJob=job.id;status(reused?'Opening matching saved request…':'Compilation queued…');await refreshJobs();}catch(e){status(e.message,true);}};
-async function loadLibrary(){try{const r=await fetch('production-library.json');if(!r.ok)throw new Error('The review collection is being generated.');const data=await r.json();$('library').replaceChildren(...data.entries.map(entry=>{const c=card(`${entry.title} · ${entry.seed}`,entry.error??entry.status??'Saved automatic arrangement');if(entry.manifest){const b=el('button','Open ride');b.onclick=()=>openResult(entry.manifest);c.append(b);}return c;}));const initial=new URLSearchParams(location.search).get('data')??data.entries.find(e=>e.manifest)?.manifest;if(initial)await openResult(initial);}catch(e){$('library').textContent=e.message;}}
+async function loadLibrary(){try{const r=await fetch('production-library.json');if(!r.ok)throw new Error('The review collection is being generated.');const data=await r.json();libraryEntries=data.entries;$('library').replaceChildren(...data.entries.map(entry=>{const c=card(`${entry.title} · ${entry.seed}`,entry.error??entry.status??'Saved automatic arrangement');if(entry.manifest){const b=el('button','Open ride');b.onclick=()=>openResult(entry.manifest);c.append(b);}return c;}));const initial=new URLSearchParams(location.search).get('data')??data.entries.find(e=>e.manifest)?.manifest;if(initial){const params=new URLSearchParams(location.search);$('comparison').value=params.get('compare')==='previous'?'2':'1';await openResult(initial,undefined,Math.max(0,Number(params.get('t'))||0));}}catch(e){$('library').textContent=e.message;}}
 try{catalog=await api('catalog');$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const [key,name]of Object.entries(names)){const label=el('label'),input=el('input');input.type='checkbox';input.value=key;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await loadLibrary();await refreshJobs();setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}

@@ -16,15 +16,20 @@ const read=(p:string)=>JSON.parse(readFileSync(p,'utf8'));
 const readChecked=(p:string)=>{const bytes=readFileSync(p);assert.equal(createHash('sha256').update(bytes).digest('hex'),readFileSync(p+'.sha256','utf8').trim(),'artifact checksum mismatch');return JSON.parse(bytes.toString());};
 const requests=repertoireSongs.flatMap(song=>[101,202,303].map(seed=>({id:song.id+'-'+seed,title:song.title,
  request:validateAutomaticProductionRequest({mode:'production',song:song.id,seed,budget:3000000,referenceBudget:750000,creative:{}})})));
+const referenceRoot=resolve(arg('reference-root','generated/production-repertoire/library-qualified'));
 const planPath=join(out,'collection-plan.json');
-const compiler=galleryCompilerIdentity(process.cwd()),harness=galleryHarnessIdentity(['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/produce/production_library.ts','scripts/gallery/repertoire_catalog.ts']);
+const compilerRoot=resolve(arg('compiler-root','.'));
+const compiler=galleryCompilerIdentity(compilerRoot),harness=galleryHarnessIdentity(['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/produce/production_library.ts','scripts/gallery/repertoire_catalog.ts']);
 if(phase==='compile'){
- const plan={schema:'line.production-library-plan.v1',compiler,harness,requests};
+ const plan={schema:'line.production-library-plan.v1',compilerRoot,compiler,harness,requests,referenceRoot};
  if(existsSync(planPath))assert.deepEqual(readChecked(planPath),plan,'library inputs changed; preserve this collection and choose a fresh output directory');else writeGalleryJson(out,'collection-plan.json',plan);
 }else if(!existsSync(planPath))throw new Error('compile the predeclared collection first');
 const plan=read(planPath),entries=plan.requests.map((r:any)=>({...r,status:'scheduled',manifest:undefined,error:undefined}));
 function index(){
- for(const e of entries){const dir=join(out,e.id),manifest=join(dir,'manifest.json'),error=join(dir,'failure.json');
+ for(const e of entries){
+  const prior=join(plan.referenceRoot??referenceRoot,e.id,'manifest.json');
+  if(existsSync(prior)&&resolve(prior)!==join(out,e.id,'manifest.json'))e.priorManifest='/'+relative(process.cwd(),prior);
+  const dir=join(out,e.id),manifest=join(dir,'manifest.json'),error=join(dir,'failure.json');
   if(existsSync(manifest)){const m=read(manifest),c=m.cells.find((c:any)=>c.method==='production');e.manifest='/'+relative(process.cwd(),manifest);e.status=c.production.qualified?'Fulfilled':c.valid?'Complete · request misses':'Incomplete';e.score=c.score.score;e.error=undefined;e.video=existsSync(join(dir,c.id+'.video.json'));}
   else if(existsSync(error)){e.status='Failed';e.error=read(error).error;}
  }
@@ -36,7 +41,7 @@ async function run(entry:any){const dir=join(out,entry.id);mkdirSync(dir,{recurs
  if(phase==='compile'&&existsSync(join(dir,'manifest.json'))){const manifest=readChecked(join(dir,'manifest.json'));readChecked(join(dir,'plan.json'));for(const cell of manifest.cells){const saved=readChecked(join(dir,cell.path));assert.equal(saved.trackHash,cell.trackHash);assert.equal(saved.planSha256,manifest.planSha256);}return;}
  if(phase==='render'&&!existsSync(join(dir,'manifest.json')))return;
  writeGalleryJson(dir,'request.json',entry.request);
- const args=phase==='compile'?['scripts/produce/automatic.ts','--request='+join(dir,'request.json'),'--out='+dir]:['scripts/produce/render_repertoire.ts','--study='+dir];
+ const args=phase==='compile'?['scripts/produce/automatic.ts','--request='+join(dir,'request.json'),'--out='+dir,'--compiler-root='+plan.compilerRoot]:['scripts/produce/render_repertoire.ts','--study='+dir];
  const fd=openSync(join(dir,phase+'.log'),'a');
  try{await new Promise<void>((done,fail)=>{const child=spawn(process.execPath,['--import','tsx',...args],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore',fd,fd]});child.once('error',fail);child.once('exit',(code,signal)=>code===0?done():fail(new Error(`${phase} exited ${code??signal}; see preserved log`)));});
  }catch(e){writeGalleryJson(dir,phase==='compile'?'failure.json':'render-failure.json',{error:String(e)});}

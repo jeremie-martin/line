@@ -4,9 +4,9 @@
 import assert from 'node:assert/strict';
 import {existsSync,mkdirSync,readFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {sha} from '../../benchmark/v3/model.ts';
 import {verifyFrozen} from '../../benchmark/v6/contract.ts';
-import {compileHandoff} from '../v0/optimizer/handoff.ts';
 import {validateAutomaticProductionRequest,repertoireSongs} from '../gallery/repertoire_catalog.ts';
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {loadMusicCase,saveMusicCell} from './music_artifacts.ts';
@@ -20,14 +20,19 @@ const request=validateAutomaticProductionRequest(arg('request')?JSON.parse(readF
 const out=resolve(arg('out')!);mkdirSync(out,{recursive:true});
 if(existsSync(join(out,'manifest.json')))throw new Error('completed output already exists; choose a fresh directory');
 const {song,seed,budget,referenceBudget,creative}=request,title=repertoireSongs.find(s=>s.id===song)!.title;
-const compiler=galleryCompilerIdentity(process.cwd()),judge=verifyFrozen(),jolt=resolveJoltMs();
+const compilerRoot=resolve(arg('compiler-root','.')!);
+const compiler=galleryCompilerIdentity(compilerRoot),judge=verifyFrozen(),jolt=resolveJoltMs();
+const enginePath='engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
+assert.equal(sha(readFileSync(join(compilerRoot,enginePath))),sha(readFileSync(enginePath)),'candidate physics differs from the frozen native engine');
+const {compileHandoff}=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/handoff.ts')).href);
 const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
  'scripts/gallery/artifacts.ts','scripts/gallery/repertoire_cache.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts',
- 'scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts'];
+ 'scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
+ 'scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/motion_profiles.ts','scripts/v0/optimizer/arc_motion_control.ts'];
 const harness=galleryHarnessIdentity(paths);
 const {spec,musicCase:c}=await loadMusicCase({song,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt);
 const methodDetails={baseline:{title:'Ordinary reference',description:'The ordinary public compiler profile.'},production:{title:'Automatic arrangement',description:'The same music with a seeded, repeated repertoire plan.'}};
-const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot:process.cwd(),compiler,judge,harness,jolt,
+const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,jolt,
  cases:[c],seeds:[seed],budgets:[budget],methods:['baseline','production'],methodDetails,request};
 const planSha256=writeGalleryJson(out,'plan.json',plan);
 const cacheRoot=resolve('generated/production-reference-cache/v1');mkdirSync(cacheRoot,{recursive:true});
@@ -47,7 +52,7 @@ const phrases=repertoire.plan.phrases.map(p=>{const requests=repertoire.plan.req
  window:[requests[0].frame/40,Math.min(spec.duration,requests.at(-1)!.next/40)],sections:requests.map(r=>r.section)};});
 const alternative=saveMusicCell({out,planSha256,c,method:'production',seed,budget,allowance:budget,result,reference,referenceTrace:baseline.trace,
  compileMs,physicalFrames:repertoire.physicalFrames,production,styles:repertoire.styles,phrases,budgetTelemetry:checkpoint.budgetTelemetry});
-assert.deepEqual(galleryCompilerIdentity(process.cwd()),compiler,'compiler changed during generation');assert.deepEqual(verifyFrozen(),judge);assert.deepEqual(galleryHarnessIdentity(paths),harness);
+assert.deepEqual(galleryCompilerIdentity(compilerRoot),compiler,'compiler changed during generation');assert.deepEqual(verifyFrozen(),judge);assert.deepEqual(galleryHarnessIdentity(paths),harness);
 const current=await loadMusicCase({song,title,moments:[]},jolt);for(const key of ['specSha256','audioSha256','analysisSha256'] as const)assert.equal(current.musicCase[key],c[key],'authored input changed during generation');
 const cells=[baseline.cell,alternative.cell],accounting={referenceReused:!!cached,referenceOriginalFrames:reference.stats.sim_frames,
  actualCompilationFrames:(cached?0:reference.stats.sim_frames)+repertoire.physicalFrames,productionFrames:repertoire.physicalFrames,productionAllowance:budget,

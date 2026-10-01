@@ -1,0 +1,2511 @@
+{
+  "raw": {
+    "path": "generated/production-repertoire/v4-qualified/run.json",
+    "sha256": "a49614e45db4edc606a50647d299bf0954c3316356681e58fdbe195466f231e3"
+  },
+  "plan": {
+    "schema": "line.benchmark-v4.plan.v1",
+    "compilerRoot": "/tmp/line-v5-qualified",
+    "compiler": {
+      "commit": "0846b2e5117d76d73836426a15d9acc167151c9d",
+      "dirty": "",
+      "sourceSha256": "e18d7711a270e0e5ac8c637d24c24928f7fe0435bb40a3c41c03b438ed521a49",
+      "files": {
+        "engine-rs/.gitignore": "44c92e3a70ad3307b7056871c2bdb096d8bfa9373f5bf06a79bb6324a20ff2fb",
+        "engine-rs/Cargo.lock": "f865a0b919323c50c8d06a1dcd46d1a5095a3f4232dbf9e577a8c7d885e8dc01",
+        "engine-rs/Cargo.toml": "f945fca16d45b5dfa36486eee95d44fbc043c4e2ffb8ef50c46563587d5a0512",
+        "engine-rs/README.md": "e9bb431cb3277103409a6e5b2f860b6d02e5e2d1ed557e14f386e7b3ea40054d",
+        "engine-rs/src/abi.rs": "095fc8fc62b35c5357c2d96e4356d5acdd0a14fdd6022bbc3198bd65e82f16ee",
+        "engine-rs/src/engine.rs": "8d798d149bbe5421cc38c6d776846ee802b48d436cec577a363792fb4bf5d339",
+        "engine-rs/src/frame.rs": "365ef290377c62fbf7b18b183d540f73f8e485d14423dfa46f3ce9fa1fb83285",
+        "engine-rs/src/grid.rs": "6835bb65ca720a7bcc7becef36aeeb8c8f874a29342457252e52c801f7a8b1f5",
+        "engine-rs/src/kernel.rs": "e1e0d402db1f63af868f8ba31766a29d8526114823c4c92f419524ac734a6b64",
+        "engine-rs/src/lib.rs": "aade2692272c382c3086bf061340cf81207b472a0521b8cf31455e2d3641974d",
+        "engine-rs/src/line.rs": "e053f3a59279bb7ba36444904872863143e5f093582a289b899afa71d1c56503",
+        "package-lock.json": "e8b27851b6b7f737ee92ff8872f4805b35e531834e0db51a481cf33a3d16ecf2",
+        "package.json": "3533652ec3146eb817663a5ccd726bf461a498dab23b2a2065a8ce92498b6668",
+        "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+        "scripts/lib/_lr_engine_record.ts": "fd62e0fbd8078987b055d95993c791d167ddd9808276b37bd87c074cbaa54208",
+        "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+        "scripts/lib/adapt.ts": "647c87fb9394d7eafd99c644ac1fb9d75aac09b6286fc24c33eea723658d5b71",
+        "scripts/lib/arc.ts": "394e74419388d14fb6db253bc6dea48bda87229a345a22b8126808f87f96ad20",
+        "scripts/lib/arcLines.ts": "0f151148557cbc80f946499a1d19500d5c4a798565bf933a43706be9eec3828f",
+        "scripts/lib/beam_prune.ts": "efd474c399673f093d8b115eae7e714735aaaa47828aa2df913a25f8df8a2e5d",
+        "scripts/lib/beam_search.ts": "33d1370dea5e9a863e4a12889722d90de993c9d3638cfce18dfd7ee1da334c9d",
+        "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+        "scripts/lib/export.ts": "a37624d39838f5e08b26092fb6d74fe4ec0ad0af720dd8858860498105253a39",
+        "scripts/lib/metrics.ts": "0ac11ab236a9897718addb23e2bbfe50942fa924d7ddbcc9cb56d74dd1e2735d",
+        "scripts/lib/moves.ts": "9b57d2a0009367ce57820a46edd877d6578995b3736ef4333f7c4bf326982d54",
+        "scripts/lib/native_motion/Cargo.lock": "f865a0b919323c50c8d06a1dcd46d1a5095a3f4232dbf9e577a8c7d885e8dc01",
+        "scripts/lib/native_motion/Cargo.toml": "f945fca16d45b5dfa36486eee95d44fbc043c4e2ffb8ef50c46563587d5a0512",
+        "scripts/lib/native_motion/README.md": "906f65fa0206222705f5cfcd53e97c81c0f74d5fc33f2b511a344afd86632772",
+        "scripts/lib/native_motion/engine.ts": "9a88a4193aa4c12c56794beaf0f233f12cbd4770809f674c702748edc58b8500",
+        "scripts/lib/native_motion/engine.wasm": "806d82055e0f0c60a88b2a5755b982459b95f97a6b046adf4b22abac426b1d69",
+        "scripts/lib/native_motion/manifest.json": "87a19d4a2a46048647e98b9830c3ac5879ea49e44fc6a18ecdcae86f09fbb62c",
+        "scripts/lib/native_motion/manifest.json.sha256": "4e22e273b4b3438c9710f8b167629f5c5f910818988046869eb001a8f4915e4a",
+        "scripts/lib/native_motion/src/abi.rs": "63fad5a6171f0c2d0b90491ef9d0fceb3b3c49cea182e01cf2a239a656c230e0",
+        "scripts/lib/native_motion/src/engine.rs": "347a72858def34bce2c37eb12b1005b3faaba4f51d04bc5d2b59ba6d909c6b38",
+        "scripts/lib/native_motion/src/frame.rs": "3ca4c7bdec25d50f0f509c989212d201b2dd201b42752c7221fd26f2d3a11be3",
+        "scripts/lib/native_motion/src/grid.rs": "9e4500cca2f5b20af64e6fc55682f8031a36d39bbb0920cff3602985856336ca",
+        "scripts/lib/native_motion/src/kernel.rs": "e673e014271b9f02c59237514073feb6233273c27fefc3c7a4b0fe4d00afc251",
+        "scripts/lib/native_motion/src/lib.rs": "aade2692272c382c3086bf061340cf81207b472a0521b8cf31455e2d3641974d",
+        "scripts/lib/native_motion/src/line.rs": "e053f3a59279bb7ba36444904872863143e5f093582a289b899afa71d1c56503",
+        "scripts/lib/precise_landings.ts": "6bd82837ac1e14dc33fb0837da84fc1ff7e705fd9a94c6e503df9ab58735c628",
+        "scripts/lib/primitive.ts": "1c6c6d3812a717d7605398869a048dddd3b30287cc3365e7269e9f83423e1130",
+        "scripts/lib/primitive_search.ts": "b315dbfa2508a7a03389d20b01dfc92f2a1f1d2ad7b59de4cc7542c01986ce0f",
+        "scripts/lib/ride.ts": "bd896d7c1c489e3ec00e95a6bd932b295b106869e1053a0ba9976f4db5560466",
+        "scripts/lib/rng.ts": "3449c09ba4384d20106b789b63f64c10d9245bc8935d378539ba56ad6f14067f",
+        "scripts/lib/rotation.ts": "192486bbe1be406aa10f984e748f59a0aa4d61959c46e1b3d422329c01db8adc",
+        "scripts/lib/route.ts": "bca4509634685aad73f077e70a756b493000beaf59829f3ea879b09485de279f",
+        "scripts/lib/search.ts": "85db41419892807db7f835a2b66b47d2450cca1d76a2790b653e9bf755f7bc1a",
+        "scripts/lib/tune.ts": "e8c1d46b2a64b44c844574f141443e61191cb1c739ba930b555a169a9eb4fcea",
+        "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2",
+        "scripts/v0/arc.ts": "33195b0396ddb74d01111c76d3b474902b4f8fd350dce376703f5b525d97d68f",
+        "scripts/v0/arc_placement.ts": "4f9562173977d69819f2984078a74fb30373f7bae3b56aaa296958356abc2498",
+        "scripts/v0/core/ballistic_launch.ts": "09eff6c2c93a4f3b56e82470d543f7ce26ea2638a93e66657e18309b09dd30e3",
+        "scripts/v0/core/ballistic_micro_sim.ts": "cbaaf2ef5a4cdfdab89d0c2ca2c23094f4b7a98fb32b77b89472ebbc2639ff35",
+        "scripts/v0/core/ballistic_projection.ts": "3be019b4f0e0b48b9372dd02313cfcd6f701b6cc53413df91b0e2b5412756cbf",
+        "scripts/v0/core/ballistic_trace.ts": "067d3ea9d5e1fc9a398115f3b42d3321e599a99650fcf62e3e9ea2bec05e1b8b",
+        "scripts/v0/core/beats.ts": "ddc0543f4511bea3a2c57f0d28f7c16223d518f556f728431752c999d450613c",
+        "scripts/v0/core/camera.ts": "5e8cd6cdca6ad464e113eab48f769f5c6cce32af19511693c59668bdfab80023",
+        "scripts/v0/core/candidate.ts": "a2afd0639a3475e0ae19af8925ceb5bbfcdd039fe62a19160fba1a5a7f1f1379",
+        "scripts/v0/core/compile_lifecycle.ts": "5951081e1716a63d9403247ca86058ee26c20e0012355a276553c65755f49384",
+        "scripts/v0/core/curves.ts": "39562db4cbd7ed51739d7606b9ea7a47f23d527d1a7b4e6113049077a135844f",
+        "scripts/v0/core/exit_read.ts": "57abee3a2eb7998f52d62358e366cec6feec883ca297762a80b9be10e137e872",
+        "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+        "scripts/v0/core/polish.ts": "45f084ed7c799b55302c1c2fb419542bbb625d923fddef03704ea9cc4432dab9",
+        "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+        "scripts/v0/core/support_geometry.ts": "423836284ef054deb4e7c8ec702b797f3c06f26181209955940d55edb500c71f",
+        "scripts/v0/core/trace.ts": "f70b88c5db6e68b51011115a52447df39f348ff7fcfc36d39a46858cfd8a73c3",
+        "scripts/v0/optimizer/README.md": "385a14786e44759ee8a5667f35002aac88175112bc187e59cf650748b127811c",
+        "scripts/v0/optimizer/aim.ts": "ceb62a2cf422b0f1540920522db955222caf3ec21d15f444bdcf00c65fef8b05",
+        "scripts/v0/optimizer/aim_impact_model.json": "ff8ea92bf9f8bf2df9555635f4f80eb37f99b7475d0fd5ee0e2f1bc5686a436a",
+        "scripts/v0/optimizer/aim_impact_pool_value_model.json": "1bf23a9660655b5eec2be5dd9c912c8bd1441c435997a57ff82dcfb1914bf37f",
+        "scripts/v0/optimizer/air_policy.ts": "d14f627208e057663134d2a1647d6afaad6ca0534cc0093b364c026f844fc85a",
+        "scripts/v0/optimizer/arc_actuator.ts": "8d532e5d701f3920b2c1febc828c38fcf8523c25a323d079568d372770b16b26",
+        "scripts/v0/optimizer/arc_attempts.ts": "d1f0d56f57441e61bb4568f02c849c2ca30c301ef80440f6a763bde437ecf406",
+        "scripts/v0/optimizer/arc_boundary.ts": "488fe4766fc37f55d0ebad90ab72d013c8fa8af6ff3faec5fec5b96f2881d395",
+        "scripts/v0/optimizer/arc_composition.ts": "ec1d906d696da7fe941d5c38dffbd1712473107a9d0d311aab22ce238a4e82dd",
+        "scripts/v0/optimizer/arc_control.ts": "b032a174a28b8264299d50b4152842b4d9b710b5ef18d853b38302a89eb6af42",
+        "scripts/v0/optimizer/arc_control_policy.ts": "84a4994cb17338d58952ecb3cf185196620bde05a06d352bd9d61b29654cbcb5",
+        "scripts/v0/optimizer/arc_control_policy_model.json": "9ba4bcd290e35930ca1a23ace7bd7756108da66e675fb96b33f36315acd47afe",
+        "scripts/v0/optimizer/arc_control_policy_model.json.gz": "0957c983e5fbb8da2200e344eca5f0042b414028c9a05b07c8e35140529bb010",
+        "scripts/v0/optimizer/arc_control_policy_model.json.sha256": "b182c0ac7682c9ce993a94aa6ce480e1dfdd2432d66e8f06622fa46cee92a709",
+        "scripts/v0/optimizer/arc_engine.ts": "61d5f2297c843f222340d4a6eaac7aca8d08f318738fa05dca7380bb713a386f",
+        "scripts/v0/optimizer/arc_geometry.ts": "92364fd71958c601be060b173fd2501e940fb8a9273a51c2607adf353fb58f89",
+        "scripts/v0/optimizer/arc_guidance.ts": "c564e91dc0496b2f2290a6668affabbe629fc7f34698698277fc5457b1f5480d",
+        "scripts/v0/optimizer/arc_guide_choice.ts": "5e64832c59b202abf9492a82a5606a0d6aeef5cdacc8b00b693bd348803bfa15",
+        "scripts/v0/optimizer/arc_guide_study.ts": "6f6bd8b37147b586d83461507991d768eb8e4af1fdd1935d9e067160da54df58",
+        "scripts/v0/optimizer/arc_memory.ts": "f3f350d5940af0c513b2e06248688eba4862b2b90c513529a964099c38cfa0b8",
+        "scripts/v0/optimizer/arc_model.ts": "3ffc7dbf477cbcebeaa2c2ff75d3f281a810a0860e64fe4e114a7c8e16351043",
+        "scripts/v0/optimizer/arc_motion.ts": "be686a90b2b2bcd58130e7d2acabd8f2b47934f9f03f4fd9f6e690b1e86cb8cf",
+        "scripts/v0/optimizer/arc_motion_control.ts": "b9ead61553bbf633be012078718eca0287bf2baa1b95f85e6bd4624c949e7c88",
+        "scripts/v0/optimizer/arc_probe.ts": "095642c54e10a1cfd417c65efe2f43eeb1d360da20d5b95612786888948a2233",
+        "scripts/v0/optimizer/arc_proposal.ts": "acd5ff54ff050bade6389659ecbbf956f2654fc0e146b71eccef07c7279ffc0f",
+        "scripts/v0/optimizer/arc_rail_groups.ts": "b5c409289f2bc926e7a769ec1b586344ad88ed4b1784438870ce5ea7aa55b03c",
+        "scripts/v0/optimizer/arc_refinement.ts": "67658545f85ccbe8dcb8c629aa52279f8398ad838022e067c87c83e2887ac945",
+        "scripts/v0/optimizer/arc_response.ts": "4a6eee1810a3ad96315b7c0236f36bb1131fafd5535e2d8125d84b3dce44af2c",
+        "scripts/v0/optimizer/arc_value.ts": "21f021af5b3ff57233daa10c068411ca9dee378fafbb3029d2f1b2ae941de8ca",
+        "scripts/v0/optimizer/arc_value_model.json": "b035052ca1817d608395109968fdd4aafa82f6d9eff74e7c6485241145bea144",
+        "scripts/v0/optimizer/arc_value_model.json.sha256": "8d59f87256b9745c65ca89044319bcb291315e42b493134535ebcd4a574ff6e6",
+        "scripts/v0/optimizer/arc_vector_model.ts": "9e37b37288005a85c21f655d158abf3a25d827e398bd577308f5dc704861b2a2",
+        "scripts/v0/optimizer/budget_estimator.ts": "1d7386d1dd1f393446fb335e8bf02ac3b889987b9c0bf18a78f486d555cfea9a",
+        "scripts/v0/optimizer/budget_estimator_model.json": "52e168424c5a3f6081c089a2d9719a2906809720d95150e005b151be2b0f6934",
+        "scripts/v0/optimizer/budget_model.ts": "1a0474db3cb6cc90981892b9c55efb24e55c172f37c738fd9e8b1d0204259d29",
+        "scripts/v0/optimizer/budget_telemetry.ts": "8813283a764dfeeb3b3e0ea6b7d938927a92da453a8f6753ad7ac0b174d2359e",
+        "scripts/v0/optimizer/compiler_input.ts": "608f1e239c6d7aaf5a7510c11ab0db427bec49ee62229daca8575992c20302f4",
+        "scripts/v0/optimizer/connected_arcs.ts": "a3e72ee39826ba504e6124f10e0637239df2c3f0a61ea57485311717919bb685",
+        "scripts/v0/optimizer/contact_composition.ts": "60bbd9b867697f7d154b9bd5c16cc5f20e70eb9ede14484e201f72db93b75571",
+        "scripts/v0/optimizer/contact_fragments.ts": "989bd44b5fdb44f0022f51ab51ab74d0e861bbfb0800a6b6b7330c7776d195bd",
+        "scripts/v0/optimizer/contact_interval.ts": "833b341149c2d86d4ae73d9b1d2ac5ac288ad7fece80392061c5fb16866084af",
+        "scripts/v0/optimizer/contact_phase.ts": "22a370bab2272e3beec156d33e78e8e6851144afd022290f3ef04129f856c9d1",
+        "scripts/v0/optimizer/contact_transition.ts": "e2e7aecaf904fbe1623a8527540c679697b1b08ceb3d25e3cdda47619ee5a386",
+        "scripts/v0/optimizer/deadline.ts": "e7725078b64d90a30ea6eebffca3d509946a0525c380c3ebc93c047e8afa5667",
+        "scripts/v0/optimizer/handoff.ts": "bef71facf422fcb98d8ed7547468b21f86ba16c1dd1177826b99841f8d200cb0",
+        "scripts/v0/optimizer/impact_policy.ts": "2b733d0cfe72393e3a030f7c32ee1f0d648568816c87c3bb082198901129917b",
+        "scripts/v0/optimizer/impact_response_model.ts": "d493b6e017e40f73aed85922f8ce13d29fe16d217aea5cf4ab33d77aa63a780f",
+        "scripts/v0/optimizer/kinematic_support.ts": "3d62937b5174ec7a3ffd6c43ff814cb996895c0aeb1a0a43a7065c43453532e9",
+        "scripts/v0/optimizer/legacy_handoff.ts": "fbff9221c9c4f9b3156b41ece58e922ed3965735c87763f00301573485224b34",
+        "scripts/v0/optimizer/motion_profiles.ts": "352cc8c7ee6f0547c26ef902ec5535418ae97d551831dda08fab096ef71873ad",
+        "scripts/v0/optimizer/native_motion.ts": "747e7222ed58544749864d5e32c78707122fad1aa054186e8fe88f83f4a809c6",
+        "scripts/v0/optimizer/native_motion_schedule.ts": "6ce6c11b93e0a3236631e2fd267389d36421aef555a2e67609d7ac376f7bb9d4",
+        "scripts/v0/optimizer/native_pointwise_energy.ts": "5a0a0851b1718373f7348bdc52b5cebe057e434fa3fe739e90f64d39f47a5d90",
+        "scripts/v0/optimizer/node.ts": "f2069d844f55b07ec72687bd85fe97a7b8620e830b8dbf15e4d44249ab8fe446",
+        "scripts/v0/optimizer/normal_contacts.ts": "1601273b5cc45e8efd9f5260126945af8f266805d804eabcfe77a251d4392c41",
+        "scripts/v0/optimizer/normal_motion.ts": "ecbb3f4aeae883c1d2148c80bf09628ace8af73bab0d5eba65eae493658eab72",
+        "scripts/v0/optimizer/normal_pointwise_projection.ts": "f7f5f17d9bd51e52ae8e9312b9d85b8a059b58f9c8b193f207968b7a390c5908",
+        "scripts/v0/optimizer/objective.ts": "1ab901f9af0b3f3d31ae3667e24776a8f021cdce75c66f3c686499d63778cddb",
+        "scripts/v0/optimizer/objective_control.ts": "57e0695f65e33decbffbdbb13511245fe33eccde9db8a5f17555335d60b91da3",
+        "scripts/v0/optimizer/polish.ts": "6eb004b2b720254f497f6a5034f30445d83814896f882f6be12d46f30cade94a",
+        "scripts/v0/optimizer/production_repertoire.ts": "b803476400d3d9af41bac682cca2c7cea4dad0025139d828411c4b5df321305a",
+        "scripts/v0/optimizer/rail_contours.ts": "5157f4528bceddeda3c5b8516aa9f4fa0b274bad6b0ea12173bc68aaa5e88b68",
+        "scripts/v0/optimizer/rail_recipes.ts": "4540db34626cc62c2e95df08a660adc812ac6daec8b9e6d580de2af980caf6c7",
+        "scripts/v0/optimizer/readiness.ts": "5c9c26c39b85939aee5d1f07c6ac5cd6fd743f1b9b1f7660c7271e4e9a5c3ff8",
+        "scripts/v0/optimizer/readiness_base_features.ts": "dbb37741c870cfa2541504c4a6965f9713d92af7665b0aa5a80897b45fe2bbf1",
+        "scripts/v0/optimizer/readiness_features.ts": "f159088e60e71eb2a2bfaa7a60ac0984ad803c86df843891d306b635b280c393",
+        "scripts/v0/optimizer/readiness_model.json": "6b33b4025a004fe34aa04b16e19b9c9c2e2ade0a27f49e7b350563142dc9531c",
+        "scripts/v0/optimizer/readiness_model_artifact.ts": "b9e5e435114225b591bed18e91a9d51e77304c727aef8c698e388fc0c148a73a",
+        "scripts/v0/optimizer/readiness_scoring.ts": "d7cdbf5a4159eb50c109c5abe50ca5520564544e6945e2e1f34674850210bc3d",
+        "scripts/v0/optimizer/register.ts": "01afbdec8321cc3472676d881cab5fa4524eb591b693aaa9b9941889ee1aff2d",
+        "scripts/v0/optimizer/repair_branch_bound.ts": "ad18615f14f4a15c8e572bde782c8651169aa1cc32d14aa2ac32518f18eb7821",
+        "scripts/v0/optimizer/repertoire_candidate.ts": "7c4e6fce4e617ed6fd4fc4022f87778f1c1876df3101b5df2ef9eae7e2f1841a",
+        "scripts/v0/optimizer/repertoire_composition.ts": "46824d2418b872d83f726a684bedeef1803ac8c00f59ab213c79f395f4c02d08",
+        "scripts/v0/optimizer/repertoire_plan.ts": "5eea2c3d7ecb97eb3da1f9f93df3a50a52e3211119c85698d2f7ec492bc2695d",
+        "scripts/v0/optimizer/repertoire_policy.ts": "3c45786ffb535e2c845b1003873c3ce59b932b28b4f856261424ad32b2bbd28b",
+        "scripts/v0/optimizer/repertoire_realization.ts": "54b17ac4f198cd03b2fe04d47bce4b333eb73e0501e22f897c229eeebcb8d67b",
+        "scripts/v0/optimizer/sample.ts": "c5a5e0d29492033c33c103de69bd6ef3a8f8bbeb0b8a09323b695260d624329a",
+        "scripts/v0/optimizer/selective_backtracking.ts": "d648e61d0764d38f2c83aa9bdd4abe84643f44d641a4e3aca874981b97f2919b",
+        "scripts/v0/optimizer/sim_frames.ts": "61a93e7515be8a2aa905ac3c25007449a81727f8a539bd709e3bf0e503df12d4",
+        "scripts/v0/optimizer/solver.ts": "ab99b7f8e44cdc2e14b5a2f5fbab119318f1c34c9daf7d9d12cfafac299462e4",
+        "scripts/v0/optimizer/types.ts": "b7218c6be5daa6eac839e347d298c188c74f530269d8d079e4686a9341cf3b3f",
+        "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+        "scripts/v0/trajectory/curve_resolution.ts": "50ac51816d083810fbf02c9e390e06b89b985353f359c0919e50d463f4ab5643",
+        "scripts/v0/trajectory/native_catch_history.ts": "87838b33267fa1d0de4a48623105656f5f637fbe3112b3d8939a73a420def42c",
+        "scripts/v0/trajectory/precontact_multicontact_history.ts": "fd5937e6c6dc39ce821af0a6ec12332de889cc1a1ac8e895bf6ad615d8b339e1",
+        "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+        "tsconfig.json": "bb8284dba7d92d2f5322325dafaf308fa1208e4dddcaab90eb27ff1f371e7d85"
+      },
+      "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+    },
+    "judge": {
+      "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+      "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "files": {
+        "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+        "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+        "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+        "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+        "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+        "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+        "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+        "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+        "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+        "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+        "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+        "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+        "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+        "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+        "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+        "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+        "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+        "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+        "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+      }
+    },
+    "suiteFingerprint": "4acd7513aed8b03e1265fe7b07d4bd14c6e4f6fd93c5a4a38fd706b86270597d",
+    "executionSha256": "743a12535529165759628d1d97855e34e661261ee42bac724fda721123f9963e",
+    "node": "v22.22.2",
+    "seeds": [
+      16,
+      17
+    ],
+    "budget": 750000,
+    "sources": [
+      "bridge_river_reentry",
+      "bridge_countercurrent",
+      "bridge_split_signal",
+      "bridge_pickup_lattice",
+      "bridge_loose_pocket",
+      "bridge_offgrid_conversation",
+      "bridge_rising_switch",
+      "bridge_meter_exchange",
+      "bridge_wide_breaths",
+      "bridge_open_hook",
+      "bridge_amplitude_tides",
+      "bridge_dense_dialogue",
+      "bridge_high_air_drive",
+      "bridge_sparse_lowline",
+      "bridge_frontier_pickup_progression",
+      "bridge_frontier_dense_recovery",
+      "bridge_frontier_low_air_endurance",
+      "bridge_regression_transition_mosaic",
+      "bridge_regression_amplitude_mosaic",
+      "bridge_believer_56_6s",
+      "bridge_believer_impact_56s",
+      "bridge_river_reentry_tempo_fast_5",
+      "bridge_countercurrent_impact_contrast_12",
+      "bridge_split_signal_impact_relief_12",
+      "bridge_pickup_lattice_speed_minus_4",
+      "bridge_loose_pocket_drag_later_20ms",
+      "bridge_offgrid_conversation_answer_early_25ms",
+      "bridge_rising_switch_tempo_fast_5",
+      "bridge_meter_exchange_speed_plus_4",
+      "bridge_wide_breaths_air_plus_5",
+      "bridge_open_hook_amplitude_plus_8",
+      "bridge_amplitude_tides_restrained_10",
+      "bridge_dense_dialogue_impact_contrast_10",
+      "bridge_high_air_drive_air_minus_5",
+      "bridge_sparse_lowline_air_minus_4",
+      "bridge_frontier_pickup_progression_shifted",
+      "bridge_frontier_dense_recovery_240ms_figures",
+      "bridge_frontier_low_air_endurance_4s",
+      "bridge_frontier_low_air_endurance_6s",
+      "bridge_frontier_low_air_endurance_7s",
+      "bridge_regression_transition_mosaic_tempo_fast_5",
+      "bridge_regression_amplitude_mosaic_contrast_10",
+      "bridge_believer_56_6s_impact_relief",
+      "bridge_believer_impact_56s_amplitude_plus_5",
+      "harbor_return",
+      "crossing_lights",
+      "afterglow_turn",
+      "woven_pickups",
+      "pickup_answers",
+      "broken_triplets",
+      "late_letters",
+      "swing_exchange",
+      "offbeat_echoes",
+      "gear_changes",
+      "half_time_return",
+      "accelerando_reply",
+      "archipelago",
+      "wide_arc_dialogue",
+      "terraced_skies",
+      "woven_pulse",
+      "density_release",
+      "compact_dialogue",
+      "lifted_refrain",
+      "flight_and_return",
+      "open_canopy",
+      "quiet_current",
+      "support_then_lift",
+      "rest_and_return",
+      "pickup_staircase",
+      "pickup_interruptions",
+      "pickup_recovery",
+      "dense_short_then_long",
+      "interleaved_recovery",
+      "three_note_returns",
+      "supported_bridge",
+      "supported_speed_change",
+      "endurance_and_return",
+      "energy_weave",
+      "alternating_intentions",
+      "recovery_mosaic",
+      "amplitude_reply",
+      "restrained_then_wide",
+      "arches_at_new_tempos",
+      "music_amor_na_praia_46s",
+      "music_luna_bala_44s",
+      "music_tiki_tiki_48s",
+      "music_shelter_impact_sync_81s",
+      "music_amour_de_ma_vie_short_44s",
+      "stretch_bridge_river_reentry",
+      "stretch_bridge_countercurrent",
+      "stretch_bridge_split_signal",
+      "stretch_bridge_pickup_lattice",
+      "stretch_bridge_loose_pocket",
+      "stretch_bridge_offgrid_conversation",
+      "stretch_bridge_rising_switch",
+      "stretch_bridge_meter_exchange",
+      "stretch_bridge_wide_breaths",
+      "stretch_bridge_open_hook",
+      "stretch_bridge_amplitude_tides",
+      "stretch_bridge_dense_dialogue",
+      "stretch_bridge_high_air_drive",
+      "stretch_bridge_sparse_lowline",
+      "stretch_bridge_frontier_pickup_progression",
+      "stretch_bridge_frontier_dense_recovery",
+      "stretch_bridge_frontier_low_air_endurance",
+      "stretch_bridge_regression_transition_mosaic",
+      "stretch_bridge_regression_amplitude_mosaic",
+      "stretch_bridge_believer_56_6s",
+      "stretch_bridge_believer_impact_56s",
+      "stretch_bridge_river_reentry_tempo_fast_5",
+      "stretch_bridge_countercurrent_impact_contrast_12",
+      "stretch_bridge_split_signal_impact_relief_12",
+      "stretch_bridge_pickup_lattice_speed_minus_4",
+      "stretch_bridge_loose_pocket_drag_later_20ms",
+      "stretch_bridge_offgrid_conversation_answer_early_25ms",
+      "stretch_bridge_rising_switch_tempo_fast_5",
+      "stretch_bridge_meter_exchange_speed_plus_4",
+      "stretch_bridge_wide_breaths_air_plus_5",
+      "stretch_bridge_open_hook_amplitude_plus_8",
+      "stretch_bridge_amplitude_tides_restrained_10",
+      "stretch_bridge_dense_dialogue_impact_contrast_10",
+      "stretch_bridge_high_air_drive_air_minus_5",
+      "stretch_bridge_sparse_lowline_air_minus_4",
+      "stretch_bridge_frontier_pickup_progression_shifted",
+      "stretch_bridge_frontier_dense_recovery_240ms_figures",
+      "stretch_bridge_frontier_low_air_endurance_4s",
+      "stretch_bridge_frontier_low_air_endurance_6s",
+      "stretch_bridge_frontier_low_air_endurance_7s",
+      "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+      "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+      "stretch_bridge_believer_56_6s_impact_relief",
+      "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+      "stretch_harbor_return",
+      "stretch_crossing_lights",
+      "stretch_afterglow_turn",
+      "stretch_woven_pickups",
+      "stretch_pickup_answers",
+      "stretch_broken_triplets",
+      "stretch_late_letters",
+      "stretch_swing_exchange",
+      "stretch_offbeat_echoes",
+      "stretch_gear_changes",
+      "stretch_half_time_return",
+      "stretch_accelerando_reply",
+      "stretch_archipelago",
+      "stretch_wide_arc_dialogue",
+      "stretch_terraced_skies",
+      "stretch_woven_pulse",
+      "stretch_density_release",
+      "stretch_compact_dialogue",
+      "stretch_lifted_refrain",
+      "stretch_flight_and_return",
+      "stretch_open_canopy",
+      "stretch_quiet_current",
+      "stretch_support_then_lift",
+      "stretch_rest_and_return",
+      "stretch_pickup_staircase",
+      "stretch_pickup_interruptions",
+      "stretch_pickup_recovery",
+      "stretch_dense_short_then_long",
+      "stretch_interleaved_recovery",
+      "stretch_three_note_returns",
+      "stretch_supported_bridge",
+      "stretch_supported_speed_change",
+      "stretch_endurance_and_return",
+      "stretch_energy_weave",
+      "stretch_alternating_intentions",
+      "stretch_recovery_mosaic",
+      "stretch_amplitude_reply",
+      "stretch_restrained_then_wide",
+      "stretch_arches_at_new_tempos",
+      "stretch_music_amor_na_praia_46s",
+      "stretch_music_luna_bala_44s",
+      "stretch_music_tiki_tiki_48s",
+      "stretch_music_shelter_impact_sync_81s",
+      "stretch_music_amour_de_ma_vie_short_44s"
+    ],
+    "profile": "canonical"
+  },
+  "summary": {
+    "headline": 952.4726,
+    "valid": 352,
+    "runs": 352,
+    "distinctTracks": 176,
+    "seeds": [
+      16,
+      17
+    ],
+    "specifications": [
+      {
+        "id": "bridge_river_reentry",
+        "score": 985.1453,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_countercurrent",
+        "score": 984.5061,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_split_signal",
+        "score": 863.1216,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_pickup_lattice",
+        "score": 905.6304,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_loose_pocket",
+        "score": 978.3399,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_offgrid_conversation",
+        "score": 983.4384,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_rising_switch",
+        "score": 984.8099,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_meter_exchange",
+        "score": 981.5013,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_wide_breaths",
+        "score": 923.8279,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_open_hook",
+        "score": 863.4928,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_amplitude_tides",
+        "score": 888.5398,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_dense_dialogue",
+        "score": 967.3465,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_high_air_drive",
+        "score": 929.7413,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_sparse_lowline",
+        "score": 974.5311,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_frontier_pickup_progression",
+        "score": 972.6426,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_frontier_dense_recovery",
+        "score": 959.677,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_frontier_low_air_endurance",
+        "score": 941.6484,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_regression_transition_mosaic",
+        "score": 978.2105,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_regression_amplitude_mosaic",
+        "score": 782.6117,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_believer_56_6s",
+        "score": 962.2281,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_believer_impact_56s",
+        "score": 909.0368,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_river_reentry_tempo_fast_5",
+        "score": 984.3817,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_countercurrent_impact_contrast_12",
+        "score": 984.0501,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_split_signal_impact_relief_12",
+        "score": 862.5821,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_pickup_lattice_speed_minus_4",
+        "score": 914.3779,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_loose_pocket_drag_later_20ms",
+        "score": 973.1349,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_offgrid_conversation_answer_early_25ms",
+        "score": 972.0264,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_rising_switch_tempo_fast_5",
+        "score": 981.8673,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_meter_exchange_speed_plus_4",
+        "score": 983.6117,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_wide_breaths_air_plus_5",
+        "score": 915.6527,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_open_hook_amplitude_plus_8",
+        "score": 833.0714,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_amplitude_tides_restrained_10",
+        "score": 887.3982,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_dense_dialogue_impact_contrast_10",
+        "score": 962.3625,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_high_air_drive_air_minus_5",
+        "score": 963.4577,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_sparse_lowline_air_minus_4",
+        "score": 970.748,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_frontier_pickup_progression_shifted",
+        "score": 966.7777,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_frontier_dense_recovery_240ms_figures",
+        "score": 948.1149,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_frontier_low_air_endurance_4s",
+        "score": 925.4293,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_frontier_low_air_endurance_6s",
+        "score": 915.7846,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_frontier_low_air_endurance_7s",
+        "score": 940.4135,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_regression_transition_mosaic_tempo_fast_5",
+        "score": 975.6846,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_regression_amplitude_mosaic_contrast_10",
+        "score": 776.5994,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_believer_56_6s_impact_relief",
+        "score": 967.1012,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "bridge_believer_impact_56s_amplitude_plus_5",
+        "score": 905.5844,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "harbor_return",
+        "score": 975.3992,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "crossing_lights",
+        "score": 980.6644,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "afterglow_turn",
+        "score": 982.0314,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "woven_pickups",
+        "score": 973.8081,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "pickup_answers",
+        "score": 977.1507,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "broken_triplets",
+        "score": 981.8366,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "late_letters",
+        "score": 979.1935,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "swing_exchange",
+        "score": 979.8526,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "offbeat_echoes",
+        "score": 982.8705,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "gear_changes",
+        "score": 960.5395,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "half_time_return",
+        "score": 976.268,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "accelerando_reply",
+        "score": 981.4255,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "archipelago",
+        "score": 954.0276,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "wide_arc_dialogue",
+        "score": 955.78,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "terraced_skies",
+        "score": 952.9393,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "woven_pulse",
+        "score": 972.6446,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "density_release",
+        "score": 975.5688,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "compact_dialogue",
+        "score": 973.747,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "lifted_refrain",
+        "score": 975.2459,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "flight_and_return",
+        "score": 978.6786,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "open_canopy",
+        "score": 978.9706,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "quiet_current",
+        "score": 973.5026,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "support_then_lift",
+        "score": 965.9604,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "rest_and_return",
+        "score": 968.2412,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "pickup_staircase",
+        "score": 950.628,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "pickup_interruptions",
+        "score": 963.6664,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "pickup_recovery",
+        "score": 932.4026,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "dense_short_then_long",
+        "score": 927.6055,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "interleaved_recovery",
+        "score": 932.6194,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "three_note_returns",
+        "score": 927.2885,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "supported_bridge",
+        "score": 950.4938,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "supported_speed_change",
+        "score": 960.7718,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "endurance_and_return",
+        "score": 951.8764,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "energy_weave",
+        "score": 978.7261,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "alternating_intentions",
+        "score": 979.7321,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "recovery_mosaic",
+        "score": 981.8915,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "amplitude_reply",
+        "score": 959.4267,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "restrained_then_wide",
+        "score": 949.844,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "arches_at_new_tempos",
+        "score": 954.9983,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "music_amor_na_praia_46s",
+        "score": 977.0443,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "music_luna_bala_44s",
+        "score": 958.8218,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "music_tiki_tiki_48s",
+        "score": 930.1503,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "music_shelter_impact_sync_81s",
+        "score": 920.6355,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "music_amour_de_ma_vie_short_44s",
+        "score": 920.515,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_river_reentry",
+        "score": 981.5083,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_countercurrent",
+        "score": 981.6571,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_split_signal",
+        "score": 843.7551,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_pickup_lattice",
+        "score": 911.6008,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_loose_pocket",
+        "score": 978.4009,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_offgrid_conversation",
+        "score": 977.3264,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_rising_switch",
+        "score": 979.912,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_meter_exchange",
+        "score": 974.9985,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_wide_breaths",
+        "score": 898.5992,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_open_hook",
+        "score": 876.4656,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_amplitude_tides",
+        "score": 852.9714,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_dense_dialogue",
+        "score": 906.9168,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_high_air_drive",
+        "score": 909.6715,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_sparse_lowline",
+        "score": 974.8069,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_frontier_pickup_progression",
+        "score": 965.4075,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_frontier_dense_recovery",
+        "score": 947.1062,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_frontier_low_air_endurance",
+        "score": 952.2775,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_regression_transition_mosaic",
+        "score": 972.2876,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_regression_amplitude_mosaic",
+        "score": 742.8146,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_believer_56_6s",
+        "score": 954.9074,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_believer_impact_56s",
+        "score": 904.5466,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_river_reentry_tempo_fast_5",
+        "score": 958.7774,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_countercurrent_impact_contrast_12",
+        "score": 980.1702,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_split_signal_impact_relief_12",
+        "score": 827.3105,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_pickup_lattice_speed_minus_4",
+        "score": 909.1464,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_loose_pocket_drag_later_20ms",
+        "score": 976.735,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_offgrid_conversation_answer_early_25ms",
+        "score": 978.4416,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_rising_switch_tempo_fast_5",
+        "score": 980.6733,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_meter_exchange_speed_plus_4",
+        "score": 974.071,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_wide_breaths_air_plus_5",
+        "score": 893.0666,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_open_hook_amplitude_plus_8",
+        "score": 841.6454,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_amplitude_tides_restrained_10",
+        "score": 850.2697,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_dense_dialogue_impact_contrast_10",
+        "score": 883.0639,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_high_air_drive_air_minus_5",
+        "score": 934.5365,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_sparse_lowline_air_minus_4",
+        "score": 972.9516,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_frontier_pickup_progression_shifted",
+        "score": 959.1892,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_frontier_dense_recovery_240ms_figures",
+        "score": 947.8121,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_frontier_low_air_endurance_4s",
+        "score": 960.7244,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_frontier_low_air_endurance_6s",
+        "score": 973.5111,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_frontier_low_air_endurance_7s",
+        "score": 956.3282,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_regression_transition_mosaic_tempo_fast_5",
+        "score": 967.5894,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_regression_amplitude_mosaic_contrast_10",
+        "score": 731.9277,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_believer_56_6s_impact_relief",
+        "score": 962.0864,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_bridge_believer_impact_56s_amplitude_plus_5",
+        "score": 890.4299,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_harbor_return",
+        "score": 971.1723,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_crossing_lights",
+        "score": 947.59,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_afterglow_turn",
+        "score": 977.7212,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_woven_pickups",
+        "score": 968.3383,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_pickup_answers",
+        "score": 960.4123,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_broken_triplets",
+        "score": 956.7337,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_late_letters",
+        "score": 979.5857,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_swing_exchange",
+        "score": 981.4801,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_offbeat_echoes",
+        "score": 982.4455,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_gear_changes",
+        "score": 920.0246,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_half_time_return",
+        "score": 973.9591,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_accelerando_reply",
+        "score": 978.6489,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_archipelago",
+        "score": 953.4866,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_wide_arc_dialogue",
+        "score": 950.2684,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_terraced_skies",
+        "score": 942.7022,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_woven_pulse",
+        "score": 965.73,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_density_release",
+        "score": 965.6305,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_compact_dialogue",
+        "score": 961.2104,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_lifted_refrain",
+        "score": 909.804,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_flight_and_return",
+        "score": 976.9186,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_open_canopy",
+        "score": 973.2657,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_quiet_current",
+        "score": 974.3619,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_support_then_lift",
+        "score": 961.3169,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_rest_and_return",
+        "score": 969.2631,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_pickup_staircase",
+        "score": 954.3076,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_pickup_interruptions",
+        "score": 947.7144,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_pickup_recovery",
+        "score": 925.3811,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_dense_short_then_long",
+        "score": 961.7637,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_interleaved_recovery",
+        "score": 883.8414,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_three_note_returns",
+        "score": 864.376,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_supported_bridge",
+        "score": 952.8588,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_supported_speed_change",
+        "score": 963.4963,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_endurance_and_return",
+        "score": 957.0041,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_energy_weave",
+        "score": 977.9663,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_alternating_intentions",
+        "score": 976.5109,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_recovery_mosaic",
+        "score": 978.3558,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_amplitude_reply",
+        "score": 958.9947,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_restrained_then_wide",
+        "score": 952.0481,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_arches_at_new_tempos",
+        "score": 946.7645,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_music_amor_na_praia_46s",
+        "score": 972.0574,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_music_luna_bala_44s",
+        "score": 962.5727,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_music_tiki_tiki_48s",
+        "score": 872.4897,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_music_shelter_impact_sync_81s",
+        "score": 894.7508,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      },
+      {
+        "id": "stretch_music_amour_de_ma_vie_short_44s",
+        "score": 921.9881,
+        "valid": 2,
+        "runs": 2,
+        "distinctTracks": 1
+      }
+    ],
+    "parents": [
+      {
+        "id": "bridge_river_reentry",
+        "group": "regular_exceptions",
+        "score": 977.3923,
+        "members": [
+          "bridge_river_reentry",
+          "bridge_river_reentry_tempo_fast_5",
+          "stretch_bridge_river_reentry",
+          "stretch_bridge_river_reentry_tempo_fast_5"
+        ]
+      },
+      {
+        "id": "bridge_countercurrent",
+        "group": "regular_exceptions",
+        "score": 982.5943,
+        "members": [
+          "bridge_countercurrent",
+          "bridge_countercurrent_impact_contrast_12",
+          "stretch_bridge_countercurrent",
+          "stretch_bridge_countercurrent_impact_contrast_12"
+        ]
+      },
+      {
+        "id": "bridge_split_signal",
+        "group": "subdivision_pickup",
+        "score": 849.062,
+        "members": [
+          "bridge_split_signal",
+          "bridge_split_signal_impact_relief_12",
+          "stretch_bridge_split_signal",
+          "stretch_bridge_split_signal_impact_relief_12"
+        ]
+      },
+      {
+        "id": "bridge_pickup_lattice",
+        "group": "subdivision_pickup",
+        "score": 910.1832,
+        "members": [
+          "bridge_pickup_lattice",
+          "bridge_pickup_lattice_speed_minus_4",
+          "stretch_bridge_pickup_lattice",
+          "stretch_bridge_pickup_lattice_speed_minus_4"
+        ]
+      },
+      {
+        "id": "bridge_loose_pocket",
+        "group": "irregular_microtimed",
+        "score": 976.6503,
+        "members": [
+          "bridge_loose_pocket",
+          "bridge_loose_pocket_drag_later_20ms",
+          "stretch_bridge_loose_pocket",
+          "stretch_bridge_loose_pocket_drag_later_20ms"
+        ]
+      },
+      {
+        "id": "bridge_offgrid_conversation",
+        "group": "irregular_microtimed",
+        "score": 977.7998,
+        "members": [
+          "bridge_offgrid_conversation",
+          "bridge_offgrid_conversation_answer_early_25ms",
+          "stretch_bridge_offgrid_conversation",
+          "stretch_bridge_offgrid_conversation_answer_early_25ms"
+        ]
+      },
+      {
+        "id": "bridge_rising_switch",
+        "group": "cadence_transition",
+        "score": 981.8139,
+        "members": [
+          "bridge_rising_switch",
+          "bridge_rising_switch_tempo_fast_5",
+          "stretch_bridge_rising_switch",
+          "stretch_bridge_rising_switch_tempo_fast_5"
+        ]
+      },
+      {
+        "id": "bridge_meter_exchange",
+        "group": "cadence_transition",
+        "score": 978.5371,
+        "members": [
+          "bridge_meter_exchange",
+          "bridge_meter_exchange_speed_plus_4",
+          "stretch_bridge_meter_exchange",
+          "stretch_bridge_meter_exchange_speed_plus_4"
+        ]
+      },
+      {
+        "id": "bridge_wide_breaths",
+        "group": "spacious_amplitude",
+        "score": 907.7013,
+        "members": [
+          "bridge_wide_breaths",
+          "bridge_wide_breaths_air_plus_5",
+          "stretch_bridge_wide_breaths",
+          "stretch_bridge_wide_breaths_air_plus_5"
+        ]
+      },
+      {
+        "id": "bridge_open_hook",
+        "group": "spacious_amplitude",
+        "score": 853.4957,
+        "members": [
+          "bridge_open_hook",
+          "bridge_open_hook_amplitude_plus_8",
+          "stretch_bridge_open_hook",
+          "stretch_bridge_open_hook_amplitude_plus_8"
+        ]
+      },
+      {
+        "id": "bridge_amplitude_tides",
+        "group": "spacious_amplitude",
+        "score": 869.6045,
+        "members": [
+          "bridge_amplitude_tides",
+          "bridge_amplitude_tides_restrained_10",
+          "stretch_bridge_amplitude_tides",
+          "stretch_bridge_amplitude_tides_restrained_10"
+        ]
+      },
+      {
+        "id": "bridge_dense_dialogue",
+        "group": "dense_musical",
+        "score": 929.224,
+        "members": [
+          "bridge_dense_dialogue",
+          "bridge_dense_dialogue_impact_contrast_10",
+          "stretch_bridge_dense_dialogue",
+          "stretch_bridge_dense_dialogue_impact_contrast_10"
+        ]
+      },
+      {
+        "id": "bridge_high_air_drive",
+        "group": "high_air_energy",
+        "score": 934.1551,
+        "members": [
+          "bridge_high_air_drive",
+          "bridge_high_air_drive_air_minus_5",
+          "stretch_bridge_high_air_drive",
+          "stretch_bridge_high_air_drive_air_minus_5"
+        ]
+      },
+      {
+        "id": "bridge_sparse_lowline",
+        "group": "sparse_transition",
+        "score": 973.2581,
+        "members": [
+          "bridge_sparse_lowline",
+          "bridge_sparse_lowline_air_minus_4",
+          "stretch_bridge_sparse_lowline",
+          "stretch_bridge_sparse_lowline_air_minus_4"
+        ]
+      },
+      {
+        "id": "bridge_frontier_pickup_progression",
+        "group": "rapid_pickup_frontier",
+        "score": 965.9924,
+        "members": [
+          "bridge_frontier_pickup_progression",
+          "bridge_frontier_pickup_progression_shifted",
+          "stretch_bridge_frontier_pickup_progression",
+          "stretch_bridge_frontier_pickup_progression_shifted"
+        ]
+      },
+      {
+        "id": "bridge_frontier_dense_recovery",
+        "group": "dense_recovery_frontier",
+        "score": 950.6634,
+        "members": [
+          "bridge_frontier_dense_recovery",
+          "bridge_frontier_dense_recovery_240ms_figures",
+          "stretch_bridge_frontier_dense_recovery",
+          "stretch_bridge_frontier_dense_recovery_240ms_figures"
+        ]
+      },
+      {
+        "id": "bridge_frontier_low_air_endurance",
+        "group": "low_air_frontier",
+        "score": 945.5987,
+        "members": [
+          "bridge_frontier_low_air_endurance",
+          "bridge_frontier_low_air_endurance_4s",
+          "bridge_frontier_low_air_endurance_6s",
+          "bridge_frontier_low_air_endurance_7s",
+          "stretch_bridge_frontier_low_air_endurance",
+          "stretch_bridge_frontier_low_air_endurance_4s",
+          "stretch_bridge_frontier_low_air_endurance_6s",
+          "stretch_bridge_frontier_low_air_endurance_7s"
+        ]
+      },
+      {
+        "id": "bridge_regression_transition_mosaic",
+        "group": "legacy_transition_regression",
+        "score": 973.4349,
+        "members": [
+          "bridge_regression_transition_mosaic",
+          "bridge_regression_transition_mosaic_tempo_fast_5",
+          "stretch_bridge_regression_transition_mosaic",
+          "stretch_bridge_regression_transition_mosaic_tempo_fast_5"
+        ]
+      },
+      {
+        "id": "bridge_regression_amplitude_mosaic",
+        "group": "legacy_amplitude_regression",
+        "score": 758.1816,
+        "members": [
+          "bridge_regression_amplitude_mosaic",
+          "bridge_regression_amplitude_mosaic_contrast_10",
+          "stretch_bridge_regression_amplitude_mosaic",
+          "stretch_bridge_regression_amplitude_mosaic_contrast_10"
+        ]
+      },
+      {
+        "id": "bridge_believer_56_6s",
+        "group": "believer",
+        "score": 961.5709,
+        "members": [
+          "bridge_believer_56_6s",
+          "bridge_believer_56_6s_impact_relief",
+          "stretch_bridge_believer_56_6s",
+          "stretch_bridge_believer_56_6s_impact_relief"
+        ]
+      },
+      {
+        "id": "bridge_believer_impact_56s",
+        "group": "believer",
+        "score": 902.3713,
+        "members": [
+          "bridge_believer_impact_56s",
+          "bridge_believer_impact_56s_amplitude_plus_5",
+          "stretch_bridge_believer_impact_56s",
+          "stretch_bridge_believer_impact_56s_amplitude_plus_5"
+        ]
+      },
+      {
+        "id": "harbor_return",
+        "group": "regular_exceptions",
+        "score": 973.2835,
+        "members": [
+          "harbor_return",
+          "stretch_harbor_return"
+        ]
+      },
+      {
+        "id": "crossing_lights",
+        "group": "regular_exceptions",
+        "score": 963.9855,
+        "members": [
+          "crossing_lights",
+          "stretch_crossing_lights"
+        ]
+      },
+      {
+        "id": "afterglow_turn",
+        "group": "regular_exceptions",
+        "score": 979.8739,
+        "members": [
+          "afterglow_turn",
+          "stretch_afterglow_turn"
+        ]
+      },
+      {
+        "id": "woven_pickups",
+        "group": "subdivision_pickup",
+        "score": 971.0694,
+        "members": [
+          "woven_pickups",
+          "stretch_woven_pickups"
+        ]
+      },
+      {
+        "id": "pickup_answers",
+        "group": "subdivision_pickup",
+        "score": 968.7454,
+        "members": [
+          "pickup_answers",
+          "stretch_pickup_answers"
+        ]
+      },
+      {
+        "id": "broken_triplets",
+        "group": "subdivision_pickup",
+        "score": 969.204,
+        "members": [
+          "broken_triplets",
+          "stretch_broken_triplets"
+        ]
+      },
+      {
+        "id": "late_letters",
+        "group": "irregular_microtimed",
+        "score": 979.3896,
+        "members": [
+          "late_letters",
+          "stretch_late_letters"
+        ]
+      },
+      {
+        "id": "swing_exchange",
+        "group": "irregular_microtimed",
+        "score": 980.666,
+        "members": [
+          "swing_exchange",
+          "stretch_swing_exchange"
+        ]
+      },
+      {
+        "id": "offbeat_echoes",
+        "group": "irregular_microtimed",
+        "score": 982.658,
+        "members": [
+          "offbeat_echoes",
+          "stretch_offbeat_echoes"
+        ]
+      },
+      {
+        "id": "gear_changes",
+        "group": "cadence_transition",
+        "score": 940.064,
+        "members": [
+          "gear_changes",
+          "stretch_gear_changes"
+        ]
+      },
+      {
+        "id": "half_time_return",
+        "group": "cadence_transition",
+        "score": 975.1129,
+        "members": [
+          "half_time_return",
+          "stretch_half_time_return"
+        ]
+      },
+      {
+        "id": "accelerando_reply",
+        "group": "cadence_transition",
+        "score": 980.0362,
+        "members": [
+          "accelerando_reply",
+          "stretch_accelerando_reply"
+        ]
+      },
+      {
+        "id": "archipelago",
+        "group": "spacious_amplitude",
+        "score": 953.7571,
+        "members": [
+          "archipelago",
+          "stretch_archipelago"
+        ]
+      },
+      {
+        "id": "wide_arc_dialogue",
+        "group": "spacious_amplitude",
+        "score": 953.0202,
+        "members": [
+          "wide_arc_dialogue",
+          "stretch_wide_arc_dialogue"
+        ]
+      },
+      {
+        "id": "terraced_skies",
+        "group": "spacious_amplitude",
+        "score": 947.8069,
+        "members": [
+          "terraced_skies",
+          "stretch_terraced_skies"
+        ]
+      },
+      {
+        "id": "woven_pulse",
+        "group": "dense_musical",
+        "score": 969.1811,
+        "members": [
+          "woven_pulse",
+          "stretch_woven_pulse"
+        ]
+      },
+      {
+        "id": "density_release",
+        "group": "dense_musical",
+        "score": 970.5869,
+        "members": [
+          "density_release",
+          "stretch_density_release"
+        ]
+      },
+      {
+        "id": "compact_dialogue",
+        "group": "dense_musical",
+        "score": 967.4584,
+        "members": [
+          "compact_dialogue",
+          "stretch_compact_dialogue"
+        ]
+      },
+      {
+        "id": "lifted_refrain",
+        "group": "high_air_energy",
+        "score": 941.9574,
+        "members": [
+          "lifted_refrain",
+          "stretch_lifted_refrain"
+        ]
+      },
+      {
+        "id": "flight_and_return",
+        "group": "high_air_energy",
+        "score": 977.7982,
+        "members": [
+          "flight_and_return",
+          "stretch_flight_and_return"
+        ]
+      },
+      {
+        "id": "open_canopy",
+        "group": "high_air_energy",
+        "score": 976.114,
+        "members": [
+          "open_canopy",
+          "stretch_open_canopy"
+        ]
+      },
+      {
+        "id": "quiet_current",
+        "group": "sparse_transition",
+        "score": 973.9322,
+        "members": [
+          "quiet_current",
+          "stretch_quiet_current"
+        ]
+      },
+      {
+        "id": "support_then_lift",
+        "group": "sparse_transition",
+        "score": 963.6359,
+        "members": [
+          "support_then_lift",
+          "stretch_support_then_lift"
+        ]
+      },
+      {
+        "id": "rest_and_return",
+        "group": "sparse_transition",
+        "score": 968.752,
+        "members": [
+          "rest_and_return",
+          "stretch_rest_and_return"
+        ]
+      },
+      {
+        "id": "pickup_staircase",
+        "group": "rapid_pickup_frontier",
+        "score": 952.466,
+        "members": [
+          "pickup_staircase",
+          "stretch_pickup_staircase"
+        ]
+      },
+      {
+        "id": "pickup_interruptions",
+        "group": "rapid_pickup_frontier",
+        "score": 955.6572,
+        "members": [
+          "pickup_interruptions",
+          "stretch_pickup_interruptions"
+        ]
+      },
+      {
+        "id": "pickup_recovery",
+        "group": "rapid_pickup_frontier",
+        "score": 928.8852,
+        "members": [
+          "pickup_recovery",
+          "stretch_pickup_recovery"
+        ]
+      },
+      {
+        "id": "dense_short_then_long",
+        "group": "dense_recovery_frontier",
+        "score": 944.5304,
+        "members": [
+          "dense_short_then_long",
+          "stretch_dense_short_then_long"
+        ]
+      },
+      {
+        "id": "interleaved_recovery",
+        "group": "dense_recovery_frontier",
+        "score": 907.9032,
+        "members": [
+          "interleaved_recovery",
+          "stretch_interleaved_recovery"
+        ]
+      },
+      {
+        "id": "three_note_returns",
+        "group": "dense_recovery_frontier",
+        "score": 895.2804,
+        "members": [
+          "three_note_returns",
+          "stretch_three_note_returns"
+        ]
+      },
+      {
+        "id": "supported_bridge",
+        "group": "low_air_frontier",
+        "score": 951.6756,
+        "members": [
+          "supported_bridge",
+          "stretch_supported_bridge"
+        ]
+      },
+      {
+        "id": "supported_speed_change",
+        "group": "low_air_frontier",
+        "score": 962.1331,
+        "members": [
+          "supported_speed_change",
+          "stretch_supported_speed_change"
+        ]
+      },
+      {
+        "id": "endurance_and_return",
+        "group": "low_air_frontier",
+        "score": 954.4368,
+        "members": [
+          "endurance_and_return",
+          "stretch_endurance_and_return"
+        ]
+      },
+      {
+        "id": "energy_weave",
+        "group": "legacy_transition_regression",
+        "score": 978.3461,
+        "members": [
+          "energy_weave",
+          "stretch_energy_weave"
+        ]
+      },
+      {
+        "id": "alternating_intentions",
+        "group": "legacy_transition_regression",
+        "score": 978.1202,
+        "members": [
+          "alternating_intentions",
+          "stretch_alternating_intentions"
+        ]
+      },
+      {
+        "id": "recovery_mosaic",
+        "group": "legacy_transition_regression",
+        "score": 980.1221,
+        "members": [
+          "recovery_mosaic",
+          "stretch_recovery_mosaic"
+        ]
+      },
+      {
+        "id": "amplitude_reply",
+        "group": "legacy_amplitude_regression",
+        "score": 959.2107,
+        "members": [
+          "amplitude_reply",
+          "stretch_amplitude_reply"
+        ]
+      },
+      {
+        "id": "restrained_then_wide",
+        "group": "legacy_amplitude_regression",
+        "score": 950.9454,
+        "members": [
+          "restrained_then_wide",
+          "stretch_restrained_then_wide"
+        ]
+      },
+      {
+        "id": "arches_at_new_tempos",
+        "group": "legacy_amplitude_regression",
+        "score": 950.8725,
+        "members": [
+          "arches_at_new_tempos",
+          "stretch_arches_at_new_tempos"
+        ]
+      },
+      {
+        "id": "music_amor_na_praia_46s",
+        "group": "amor_na_praia",
+        "score": 974.5477,
+        "members": [
+          "music_amor_na_praia_46s",
+          "stretch_music_amor_na_praia_46s"
+        ]
+      },
+      {
+        "id": "music_luna_bala_44s",
+        "group": "luna_bala",
+        "score": 960.6954,
+        "members": [
+          "music_luna_bala_44s",
+          "stretch_music_luna_bala_44s"
+        ]
+      },
+      {
+        "id": "music_tiki_tiki_48s",
+        "group": "tiki_tiki",
+        "score": 900.8593,
+        "members": [
+          "music_tiki_tiki_48s",
+          "stretch_music_tiki_tiki_48s"
+        ]
+      },
+      {
+        "id": "music_shelter_impact_sync_81s",
+        "group": "shelter",
+        "score": 907.601,
+        "members": [
+          "music_shelter_impact_sync_81s",
+          "stretch_music_shelter_impact_sync_81s"
+        ]
+      },
+      {
+        "id": "music_amour_de_ma_vie_short_44s",
+        "group": "amour_de_ma_vie",
+        "score": 921.2513,
+        "members": [
+          "music_amour_de_ma_vie_short_44s",
+          "stretch_music_amour_de_ma_vie_short_44s"
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "id": "regular_exceptions",
+        "stratum": "representative",
+        "weight": 0.2,
+        "score": 975.4043,
+        "parents": [
+          "bridge_river_reentry",
+          "bridge_countercurrent",
+          "harbor_return",
+          "crossing_lights",
+          "afterglow_turn"
+        ]
+      },
+      {
+        "id": "subdivision_pickup",
+        "stratum": "representative",
+        "weight": 0.15,
+        "score": 932.3722,
+        "parents": [
+          "bridge_split_signal",
+          "bridge_pickup_lattice",
+          "woven_pickups",
+          "pickup_answers",
+          "broken_triplets"
+        ]
+      },
+      {
+        "id": "irregular_microtimed",
+        "stratum": "representative",
+        "weight": 0.15,
+        "score": 979.4305,
+        "parents": [
+          "bridge_loose_pocket",
+          "bridge_offgrid_conversation",
+          "late_letters",
+          "swing_exchange",
+          "offbeat_echoes"
+        ]
+      },
+      {
+        "id": "cadence_transition",
+        "stratum": "representative",
+        "weight": 0.12,
+        "score": 970.9844,
+        "parents": [
+          "bridge_rising_switch",
+          "bridge_meter_exchange",
+          "gear_changes",
+          "half_time_return",
+          "accelerando_reply"
+        ]
+      },
+      {
+        "id": "spacious_amplitude",
+        "stratum": "representative",
+        "weight": 0.13,
+        "score": 913.3168,
+        "parents": [
+          "bridge_wide_breaths",
+          "bridge_open_hook",
+          "bridge_amplitude_tides",
+          "archipelago",
+          "wide_arc_dialogue",
+          "terraced_skies"
+        ]
+      },
+      {
+        "id": "dense_musical",
+        "stratum": "representative",
+        "weight": 0.1,
+        "score": 958.9547,
+        "parents": [
+          "bridge_dense_dialogue",
+          "woven_pulse",
+          "density_release",
+          "compact_dialogue"
+        ]
+      },
+      {
+        "id": "high_air_energy",
+        "stratum": "representative",
+        "weight": 0.08,
+        "score": 957.3045,
+        "parents": [
+          "bridge_high_air_drive",
+          "lifted_refrain",
+          "flight_and_return",
+          "open_canopy"
+        ]
+      },
+      {
+        "id": "sparse_transition",
+        "stratum": "representative",
+        "weight": 0.07,
+        "score": 969.8858,
+        "parents": [
+          "bridge_sparse_lowline",
+          "quiet_current",
+          "support_then_lift",
+          "rest_and_return"
+        ]
+      },
+      {
+        "id": "rapid_pickup_frontier",
+        "stratum": "capability",
+        "weight": 0.4,
+        "score": 950.6527,
+        "parents": [
+          "bridge_frontier_pickup_progression",
+          "pickup_staircase",
+          "pickup_interruptions",
+          "pickup_recovery"
+        ]
+      },
+      {
+        "id": "dense_recovery_frontier",
+        "stratum": "capability",
+        "weight": 0.35,
+        "score": 924.2948,
+        "parents": [
+          "bridge_frontier_dense_recovery",
+          "dense_short_then_long",
+          "interleaved_recovery",
+          "three_note_returns"
+        ]
+      },
+      {
+        "id": "low_air_frontier",
+        "stratum": "capability",
+        "weight": 0.25,
+        "score": 953.4426,
+        "parents": [
+          "bridge_frontier_low_air_endurance",
+          "supported_bridge",
+          "supported_speed_change",
+          "endurance_and_return"
+        ]
+      },
+      {
+        "id": "legacy_transition_regression",
+        "stratum": "legacy_regression",
+        "weight": 0.55,
+        "score": 977.5027,
+        "parents": [
+          "bridge_regression_transition_mosaic",
+          "energy_weave",
+          "alternating_intentions",
+          "recovery_mosaic"
+        ]
+      },
+      {
+        "id": "legacy_amplitude_regression",
+        "stratum": "legacy_regression",
+        "weight": 0.45,
+        "score": 900.5208,
+        "parents": [
+          "bridge_regression_amplitude_mosaic",
+          "amplitude_reply",
+          "restrained_then_wide",
+          "arches_at_new_tempos"
+        ]
+      },
+      {
+        "id": "believer",
+        "stratum": "development_music",
+        "weight": 0.16666666666666666,
+        "score": 931.5014,
+        "parents": [
+          "bridge_believer_56_6s",
+          "bridge_believer_impact_56s"
+        ]
+      },
+      {
+        "id": "amor_na_praia",
+        "stratum": "development_music",
+        "weight": 0.16666666666666666,
+        "score": 974.5477,
+        "parents": [
+          "music_amor_na_praia_46s"
+        ]
+      },
+      {
+        "id": "luna_bala",
+        "stratum": "development_music",
+        "weight": 0.16666666666666666,
+        "score": 960.6954,
+        "parents": [
+          "music_luna_bala_44s"
+        ]
+      },
+      {
+        "id": "tiki_tiki",
+        "stratum": "development_music",
+        "weight": 0.16666666666666666,
+        "score": 900.8593,
+        "parents": [
+          "music_tiki_tiki_48s"
+        ]
+      },
+      {
+        "id": "shelter",
+        "stratum": "development_music",
+        "weight": 0.16666666666666666,
+        "score": 907.601,
+        "parents": [
+          "music_shelter_impact_sync_81s"
+        ]
+      },
+      {
+        "id": "amour_de_ma_vie",
+        "stratum": "development_music",
+        "weight": 0.16666666666666666,
+        "score": 921.2513,
+        "parents": [
+          "music_amour_de_ma_vie_short_44s"
+        ]
+      }
+    ],
+    "strata": [
+      {
+        "id": "representative",
+        "weight": 0.7,
+        "score": 957.4724
+      },
+      {
+        "id": "capability",
+        "weight": 0.15,
+        "score": 942.1249
+      },
+      {
+        "id": "legacy_regression",
+        "weight": 0.1,
+        "score": 942.8608
+      },
+      {
+        "id": "development_music",
+        "weight": 0.05,
+        "score": 932.7427
+      }
+    ]
+  },
+  "previous": {
+    "path": "generated/production-repertoire/v4-ordinary/run.json",
+    "sha256": "bf83d180c12714b188b34505aeaddeb31a33f6a3e521088afe6fdef2f11bdace"
+  },
+  "identicalScores": true,
+  "identicalTracks": true,
+  "analysisScript": {
+    "path": "/home/wyss/line/scripts/benchmark/production_repertoire_evidence.py",
+    "sha256": "e88a0ebb8299859c6586cc76e4a1bca1272dbcc8072c593210d8561d7212228e"
+  }
+}

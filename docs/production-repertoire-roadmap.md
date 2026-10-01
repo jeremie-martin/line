@@ -1,6 +1,10 @@
 # From a repertoire workspace to autonomous production
 
-Approved on 2026-09-30. **Implementation in progress under the owner's full green light.**
+Approved on 2026-09-30. **Implemented and qualified on 2026-10-01.**
+The [delivery report](production-repertoire-results-20261001.md) records all six
+stages, complete qualification and the finished four-song, twelve-arrangement
+music library. V5 rises from 449.0934 to 770.1170; the ambition above 900 remains
+unmet. Final artistic review is open. The approved scope below is preserved.
 This is the next campaign after the [integrated workspace delivery](repertoire-workspace-results-20260930.md),
 preserved and pushed at `778a80ca`. It develops the
 [creative repertoire roadmap](creative-repertoire-roadmap.md) into a complete

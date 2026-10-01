@@ -1,0 +1,2130 @@
+{
+  "schema": "line.production-repertoire-music-evidence.v1",
+  "plan": {
+    "schema": "line.production-library-plan.v1",
+    "compiler": {
+      "head": "0846b2e5117d76d73836426a15d9acc167151c9d",
+      "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+      "compilerSourceFingerprint": "46e13a7d240c28b7c24a33aaf4de850a12d50bffc1dfe82e285de114529e45ad",
+      "compilerSourceFiles": [
+        "engine-rs/.gitignore",
+        "engine-rs/Cargo.lock",
+        "engine-rs/Cargo.toml",
+        "engine-rs/README.md",
+        "engine-rs/src/abi.rs",
+        "engine-rs/src/engine.rs",
+        "engine-rs/src/frame.rs",
+        "engine-rs/src/grid.rs",
+        "engine-rs/src/kernel.rs",
+        "engine-rs/src/lib.rs",
+        "engine-rs/src/line.rs",
+        "package-lock.json",
+        "package.json",
+        "scripts/lib/_lr_engine.ts",
+        "scripts/lib/_lr_engine_record.ts",
+        "scripts/lib/_lr_engine_wasm.ts",
+        "scripts/lib/adapt.ts",
+        "scripts/lib/arc.ts",
+        "scripts/lib/arcLines.ts",
+        "scripts/lib/beam_prune.ts",
+        "scripts/lib/beam_search.ts",
+        "scripts/lib/detector.ts",
+        "scripts/lib/export.ts",
+        "scripts/lib/metrics.ts",
+        "scripts/lib/moves.ts",
+        "scripts/lib/native_motion/Cargo.lock",
+        "scripts/lib/native_motion/Cargo.toml",
+        "scripts/lib/native_motion/README.md",
+        "scripts/lib/native_motion/engine.ts",
+        "scripts/lib/native_motion/engine.wasm",
+        "scripts/lib/native_motion/manifest.json",
+        "scripts/lib/native_motion/manifest.json.sha256",
+        "scripts/lib/native_motion/src/abi.rs",
+        "scripts/lib/native_motion/src/engine.rs",
+        "scripts/lib/native_motion/src/frame.rs",
+        "scripts/lib/native_motion/src/grid.rs",
+        "scripts/lib/native_motion/src/kernel.rs",
+        "scripts/lib/native_motion/src/lib.rs",
+        "scripts/lib/native_motion/src/line.rs",
+        "scripts/lib/precise_landings.ts",
+        "scripts/lib/primitive.ts",
+        "scripts/lib/primitive_search.ts",
+        "scripts/lib/ride.ts",
+        "scripts/lib/rng.ts",
+        "scripts/lib/rotation.ts",
+        "scripts/lib/route.ts",
+        "scripts/lib/search.ts",
+        "scripts/lib/tune.ts",
+        "scripts/lib/update_types.ts",
+        "scripts/v0/arc.ts",
+        "scripts/v0/arc_placement.ts",
+        "scripts/v0/core/ballistic_launch.ts",
+        "scripts/v0/core/ballistic_micro_sim.ts",
+        "scripts/v0/core/ballistic_projection.ts",
+        "scripts/v0/core/ballistic_trace.ts",
+        "scripts/v0/core/beats.ts",
+        "scripts/v0/core/camera.ts",
+        "scripts/v0/core/candidate.ts",
+        "scripts/v0/core/compile_lifecycle.ts",
+        "scripts/v0/core/curves.ts",
+        "scripts/v0/core/exit_read.ts",
+        "scripts/v0/core/measure.ts",
+        "scripts/v0/core/polish.ts",
+        "scripts/v0/core/substrate.ts",
+        "scripts/v0/core/support_geometry.ts",
+        "scripts/v0/core/trace.ts",
+        "scripts/v0/optimizer/README.md",
+        "scripts/v0/optimizer/aim.ts",
+        "scripts/v0/optimizer/aim_impact_model.json",
+        "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+        "scripts/v0/optimizer/air_policy.ts",
+        "scripts/v0/optimizer/arc_actuator.ts",
+        "scripts/v0/optimizer/arc_attempts.ts",
+        "scripts/v0/optimizer/arc_boundary.ts",
+        "scripts/v0/optimizer/arc_composition.ts",
+        "scripts/v0/optimizer/arc_control.ts",
+        "scripts/v0/optimizer/arc_control_policy.ts",
+        "scripts/v0/optimizer/arc_control_policy_model.json",
+        "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+        "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+        "scripts/v0/optimizer/arc_engine.ts",
+        "scripts/v0/optimizer/arc_geometry.ts",
+        "scripts/v0/optimizer/arc_guidance.ts",
+        "scripts/v0/optimizer/arc_guide_choice.ts",
+        "scripts/v0/optimizer/arc_guide_study.ts",
+        "scripts/v0/optimizer/arc_memory.ts",
+        "scripts/v0/optimizer/arc_model.ts",
+        "scripts/v0/optimizer/arc_motion.ts",
+        "scripts/v0/optimizer/arc_motion_control.ts",
+        "scripts/v0/optimizer/arc_probe.ts",
+        "scripts/v0/optimizer/arc_proposal.ts",
+        "scripts/v0/optimizer/arc_rail_groups.ts",
+        "scripts/v0/optimizer/arc_refinement.ts",
+        "scripts/v0/optimizer/arc_response.ts",
+        "scripts/v0/optimizer/arc_value.ts",
+        "scripts/v0/optimizer/arc_value_model.json",
+        "scripts/v0/optimizer/arc_value_model.json.sha256",
+        "scripts/v0/optimizer/arc_vector_model.ts",
+        "scripts/v0/optimizer/budget_estimator.ts",
+        "scripts/v0/optimizer/budget_estimator_model.json",
+        "scripts/v0/optimizer/budget_model.ts",
+        "scripts/v0/optimizer/budget_telemetry.ts",
+        "scripts/v0/optimizer/compiler_input.ts",
+        "scripts/v0/optimizer/connected_arcs.ts",
+        "scripts/v0/optimizer/contact_composition.ts",
+        "scripts/v0/optimizer/contact_fragments.ts",
+        "scripts/v0/optimizer/contact_interval.ts",
+        "scripts/v0/optimizer/contact_phase.ts",
+        "scripts/v0/optimizer/contact_transition.ts",
+        "scripts/v0/optimizer/deadline.ts",
+        "scripts/v0/optimizer/handoff.ts",
+        "scripts/v0/optimizer/impact_policy.ts",
+        "scripts/v0/optimizer/impact_response_model.ts",
+        "scripts/v0/optimizer/kinematic_support.ts",
+        "scripts/v0/optimizer/legacy_handoff.ts",
+        "scripts/v0/optimizer/motion_profiles.ts",
+        "scripts/v0/optimizer/native_motion.ts",
+        "scripts/v0/optimizer/native_motion_schedule.ts",
+        "scripts/v0/optimizer/native_pointwise_energy.ts",
+        "scripts/v0/optimizer/node.ts",
+        "scripts/v0/optimizer/normal_contacts.ts",
+        "scripts/v0/optimizer/normal_motion.ts",
+        "scripts/v0/optimizer/normal_pointwise_projection.ts",
+        "scripts/v0/optimizer/objective.ts",
+        "scripts/v0/optimizer/objective_control.ts",
+        "scripts/v0/optimizer/polish.ts",
+        "scripts/v0/optimizer/production_repertoire.ts",
+        "scripts/v0/optimizer/rail_contours.ts",
+        "scripts/v0/optimizer/rail_recipes.ts",
+        "scripts/v0/optimizer/readiness.ts",
+        "scripts/v0/optimizer/readiness_base_features.ts",
+        "scripts/v0/optimizer/readiness_features.ts",
+        "scripts/v0/optimizer/readiness_model.json",
+        "scripts/v0/optimizer/readiness_model_artifact.ts",
+        "scripts/v0/optimizer/readiness_scoring.ts",
+        "scripts/v0/optimizer/register.ts",
+        "scripts/v0/optimizer/repair_branch_bound.ts",
+        "scripts/v0/optimizer/repertoire_candidate.ts",
+        "scripts/v0/optimizer/repertoire_composition.ts",
+        "scripts/v0/optimizer/repertoire_plan.ts",
+        "scripts/v0/optimizer/repertoire_policy.ts",
+        "scripts/v0/optimizer/repertoire_realization.ts",
+        "scripts/v0/optimizer/sample.ts",
+        "scripts/v0/optimizer/selective_backtracking.ts",
+        "scripts/v0/optimizer/sim_frames.ts",
+        "scripts/v0/optimizer/solver.ts",
+        "scripts/v0/optimizer/types.ts",
+        "scripts/v0/score.ts",
+        "scripts/v0/trajectory/curve_resolution.ts",
+        "scripts/v0/trajectory/native_catch_history.ts",
+        "scripts/v0/trajectory/precontact_multicontact_history.ts",
+        "scripts/v0/types.ts",
+        "tsconfig.json"
+      ],
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "cd2d2fec4381421469c3b1bc4ede4383125199b8d43231974083e226fe1779f5"
+    },
+    "harness": {
+      "scripts/produce/automatic.ts": "9b0b25944731c771bc446700d74f6e11e6d5389505589c138bc2749ca2bd4cb6",
+      "scripts/produce/music_artifacts.ts": "881188449b6ff3e37d1b80236e32d4c8869c2f9259f6cd6a0f42bbc49fe01fce",
+      "scripts/produce/production_library.ts": "b5f209d6e2d1ba076a5a38a3b1bba111e519ca40ef0a9041908ed28dc1bf186b",
+      "scripts/gallery/repertoire_catalog.ts": "2fef1e38e35350ced24bc8aed53fa394ca261c782aedaa97620499b7f4d2d6ec"
+    },
+    "requests": [
+      {
+        "id": "luna_bala_44s-101",
+        "title": "Luna Bala",
+        "request": {
+          "mode": "production",
+          "song": "luna_bala_44s",
+          "seed": 101,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "luna_bala_44s-202",
+        "title": "Luna Bala",
+        "request": {
+          "mode": "production",
+          "song": "luna_bala_44s",
+          "seed": 202,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "luna_bala_44s-303",
+        "title": "Luna Bala",
+        "request": {
+          "mode": "production",
+          "song": "luna_bala_44s",
+          "seed": 303,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "amor_na_praia_46s-101",
+        "title": "Amor na Praia",
+        "request": {
+          "mode": "production",
+          "song": "amor_na_praia_46s",
+          "seed": 101,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "amor_na_praia_46s-202",
+        "title": "Amor na Praia",
+        "request": {
+          "mode": "production",
+          "song": "amor_na_praia_46s",
+          "seed": 202,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "amor_na_praia_46s-303",
+        "title": "Amor na Praia",
+        "request": {
+          "mode": "production",
+          "song": "amor_na_praia_46s",
+          "seed": 303,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "tiki_tiki_48s-101",
+        "title": "Tiki Tiki",
+        "request": {
+          "mode": "production",
+          "song": "tiki_tiki_48s",
+          "seed": 101,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "tiki_tiki_48s-202",
+        "title": "Tiki Tiki",
+        "request": {
+          "mode": "production",
+          "song": "tiki_tiki_48s",
+          "seed": 202,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "tiki_tiki_48s-303",
+        "title": "Tiki Tiki",
+        "request": {
+          "mode": "production",
+          "song": "tiki_tiki_48s",
+          "seed": 303,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "amour_de_ma_vie_44s-101",
+        "title": "L’amour de ma vie",
+        "request": {
+          "mode": "production",
+          "song": "amour_de_ma_vie_44s",
+          "seed": 101,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "amour_de_ma_vie_44s-202",
+        "title": "L’amour de ma vie",
+        "request": {
+          "mode": "production",
+          "song": "amour_de_ma_vie_44s",
+          "seed": 202,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      },
+      {
+        "id": "amour_de_ma_vie_44s-303",
+        "title": "L’amour de ma vie",
+        "request": {
+          "mode": "production",
+          "song": "amour_de_ma_vie_44s",
+          "seed": 303,
+          "budget": 3000000,
+          "referenceBudget": 750000,
+          "creative": {
+            "repertoire": [
+              "arcs",
+              "fold",
+              "serpentine",
+              "scallops",
+              "terraces",
+              "scattered"
+            ],
+            "variation": 1,
+            "guidedBalance": 0.6470588235294118
+          }
+        }
+      }
+    ]
+  },
+  "entries": [
+    {
+      "id": "luna_bala_44s-101",
+      "settings": {
+        "mode": "production",
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/manifest.json",
+        "sha256": "d9af752eb811d7bea99dc3c4ab1d83c35726fcfdf8dcb01f02221242a8586608"
+      },
+      "processElapsedMs": 64278.412840000005,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 5417,
+          "actualCompilationFrames": 2039231,
+          "productionFrames": 2033814,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "luna_bala_44s-101-baseline",
+          "method": "baseline",
+          "score": 951.9193,
+          "valid": true,
+          "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+          "physicalFrames": 5417,
+          "compileMs": 4118.379161,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-baseline/luna_bala_44s-101-baseline-s101/video.mp4",
+              "sha256": "638d0067914537d29481b0b2efa3b96c68ccf9233cb87f4b3f71bea5c7d48fc7",
+              "duration": 44.544,
+              "videoDuration": 44.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-baseline/luna_bala_44s-101-baseline-s101/excerpt.mp4",
+              "sha256": "6e699e3030ce04a829a96863123c8b95a07660490895130e7e130a159af8d581",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "luna_bala_44s-101-production",
+          "method": "production",
+          "score": 817.2719,
+          "valid": true,
+          "trackHash": "768d62eb784001fd58711d157481d2e651c7c654775089f7d206a65c86a1f720",
+          "physicalFrames": 2033814,
+          "compileMs": 57477.931353,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-production/luna_bala_44s-101-production-s101/video.mp4",
+              "sha256": "434cd2bf403ed1edb122fee56b40d3d74ae61d63da321f1c0eeb6e7e454f7c98",
+              "duration": 44.544,
+              "videoDuration": 44.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-production/luna_bala_44s-101-production-s101/excerpt.mp4",
+              "sha256": "88d4b56c8d44fb0630559e0d5e0287b9f299bef22fe414b0c86825de2cc89231",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "scattered:optional": {
+              "supports": 12,
+              "frames": 255,
+              "fulfilled": 12
+            },
+            "arcs:forbidden": {
+              "supports": 20,
+              "frames": 490,
+              "fulfilled": 20
+            },
+            "fold:required": {
+              "supports": 6,
+              "frames": 160,
+              "fulfilled": 6
+            },
+            "arcs:required": {
+              "supports": 14,
+              "frames": 370,
+              "fulfilled": 14
+            },
+            "serpentine:required": {
+              "supports": 12,
+              "frames": 251,
+              "fulfilled": 12
+            },
+            "scallops:required": {
+              "supports": 10,
+              "frames": 218,
+              "fulfilled": 10
+            },
+            "terraces:required": {
+              "supports": 1,
+              "frames": 21,
+              "fulfilled": 1
+            }
+          },
+          "realization": {
+            "requested": 76,
+            "fulfilledSections": 76
+          }
+        }
+      ]
+    },
+    {
+      "id": "luna_bala_44s-202",
+      "settings": {
+        "mode": "production",
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/luna_bala_44s-202/manifest.json",
+        "sha256": "d30b616348cb78a768c853343285f8f9d8e5a4c77b0a61ee6f85c35e22f6a2b3"
+      },
+      "processElapsedMs": 55777.457578,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 5417,
+          "actualCompilationFrames": 2000503,
+          "productionFrames": 1995086,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "luna_bala_44s-202-baseline",
+          "method": "baseline",
+          "score": 951.9193,
+          "valid": true,
+          "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+          "physicalFrames": 5417,
+          "compileMs": 4002.079276,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-baseline/luna_bala_44s-101-baseline-s101/video.mp4",
+              "sha256": "638d0067914537d29481b0b2efa3b96c68ccf9233cb87f4b3f71bea5c7d48fc7",
+              "duration": 44.544,
+              "videoDuration": 44.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-baseline/luna_bala_44s-101-baseline-s101/excerpt.mp4",
+              "sha256": "6e699e3030ce04a829a96863123c8b95a07660490895130e7e130a159af8d581",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": "generated/production-repertoire/library-qualified/luna_bala_44s-101/luna_bala_44s-101-baseline",
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "luna_bala_44s-202-production",
+          "method": "production",
+          "score": 832.8911,
+          "valid": true,
+          "trackHash": "7f6fc62e49bcc6c325fbe364390f7fc470cd44d5d1a1c6c4be89e531e4aea43a",
+          "physicalFrames": 1995086,
+          "compileMs": 49020.408319,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-202/videos/luna_bala_44s-202-production/luna_bala_44s-202-production-s202/video.mp4",
+              "sha256": "8aca709a33756cca43977ee9179d3f7e55f321fa0f643d5d94f28dc28753d32a",
+              "duration": 44.544,
+              "videoDuration": 44.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-202/videos/luna_bala_44s-202-production/luna_bala_44s-202-production-s202/excerpt.mp4",
+              "sha256": "8234aadb46f2e4a4d061afacfb8c435c270f2fd0b93e0f7d30b9813242e7ddac",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "arcs:required": {
+              "supports": 6,
+              "frames": 126,
+              "fulfilled": 6
+            },
+            "arcs:forbidden": {
+              "supports": 13,
+              "frames": 320,
+              "fulfilled": 13
+            },
+            "scattered:optional": {
+              "supports": 14,
+              "frames": 338,
+              "fulfilled": 14
+            },
+            "fold:required": {
+              "supports": 19,
+              "frames": 477,
+              "fulfilled": 19
+            },
+            "scallops:required": {
+              "supports": 14,
+              "frames": 307,
+              "fulfilled": 14
+            },
+            "terraces:required": {
+              "supports": 5,
+              "frames": 110,
+              "fulfilled": 5
+            },
+            "serpentine:required": {
+              "supports": 4,
+              "frames": 87,
+              "fulfilled": 4
+            }
+          },
+          "realization": {
+            "requested": 76,
+            "fulfilledSections": 76
+          }
+        }
+      ]
+    },
+    {
+      "id": "luna_bala_44s-303",
+      "settings": {
+        "mode": "production",
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/luna_bala_44s-303/manifest.json",
+        "sha256": "6bc336704f34c87ffb6d1957581991d296a1aaa823470cf2cb40302ef1d578b7"
+      },
+      "processElapsedMs": 62004.186546,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 5417,
+          "actualCompilationFrames": 1922309,
+          "productionFrames": 1916892,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "luna_bala_44s-303-baseline",
+          "method": "baseline",
+          "score": 951.9193,
+          "valid": true,
+          "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+          "physicalFrames": 5417,
+          "compileMs": 4094.2774160000004,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-baseline/luna_bala_44s-101-baseline-s101/video.mp4",
+              "sha256": "638d0067914537d29481b0b2efa3b96c68ccf9233cb87f4b3f71bea5c7d48fc7",
+              "duration": 44.544,
+              "videoDuration": 44.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-baseline/luna_bala_44s-101-baseline-s101/excerpt.mp4",
+              "sha256": "6e699e3030ce04a829a96863123c8b95a07660490895130e7e130a159af8d581",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": "generated/production-repertoire/library-qualified/luna_bala_44s-101/luna_bala_44s-101-baseline",
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "luna_bala_44s-303-production",
+          "method": "production",
+          "score": 830.6004,
+          "valid": true,
+          "trackHash": "0b47a5531f073db055d230d699158355bd07ddc94987d6f0ec3c7078e304bc4d",
+          "physicalFrames": 1916892,
+          "compileMs": 55182.762016,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-303/videos/luna_bala_44s-303-production/luna_bala_44s-303-production-s303/video.mp4",
+              "sha256": "83c2b36722457f77617962354c277e66710f59235b599ad47c2d9d48809d6ace",
+              "duration": 44.544,
+              "videoDuration": 44.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/luna_bala_44s-303/videos/luna_bala_44s-303-production/luna_bala_44s-303-production-s303/excerpt.mp4",
+              "sha256": "caf813f3815e0b40b53897a6b5e9d23d217bce1edd0ba7cea86100b3d69802f7",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "serpentine:required": {
+              "supports": 13,
+              "frames": 343,
+              "fulfilled": 13
+            },
+            "arcs:forbidden": {
+              "supports": 19,
+              "frames": 423,
+              "fulfilled": 19
+            },
+            "arcs:required": {
+              "supports": 6,
+              "frames": 130,
+              "fulfilled": 6
+            },
+            "fold:required": {
+              "supports": 7,
+              "frames": 151,
+              "fulfilled": 7
+            },
+            "terraces:required": {
+              "supports": 12,
+              "frames": 263,
+              "fulfilled": 12
+            },
+            "scallops:required": {
+              "supports": 5,
+              "frames": 173,
+              "fulfilled": 5
+            },
+            "scattered:optional": {
+              "supports": 13,
+              "frames": 282,
+              "fulfilled": 13
+            }
+          },
+          "realization": {
+            "requested": 76,
+            "fulfilledSections": 76
+          }
+        }
+      ]
+    },
+    {
+      "id": "amor_na_praia_46s-101",
+      "settings": {
+        "mode": "production",
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/manifest.json",
+        "sha256": "2f1ab7a89175875541fa456bc0a873f5fcde69036d65239e9289e6e6c69721d1"
+      },
+      "processElapsedMs": 89655.996988,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 724277,
+          "actualCompilationFrames": 2694333,
+          "productionFrames": 1970056,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "amor_na_praia_46s-101-baseline",
+          "method": "baseline",
+          "score": 950.0926,
+          "valid": true,
+          "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+          "physicalFrames": 724277,
+          "compileMs": 29429.274733000002,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-baseline/amor_na_praia_46s-101-baseline-s101/video.mp4",
+              "sha256": "5dc305f0f8f573872a16c392ec7f2eb92a0cff069e3bffacea67c1b5eb72e13b",
+              "duration": 46.549333,
+              "videoDuration": 46.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-baseline/amor_na_praia_46s-101-baseline-s101/excerpt.mp4",
+              "sha256": "a77e22033e11a00d5cc21beb940f139618ebe56e7ee054c685cea97841d9dd14",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "amor_na_praia_46s-101-production",
+          "method": "production",
+          "score": 774.5618,
+          "valid": true,
+          "trackHash": "1c9f8b72b76c08c816ddeb9183c6daca3176868432b473a39f180df0d4c72d6b",
+          "physicalFrames": 1970056,
+          "compileMs": 56962.805639,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-production/amor_na_praia_46s-101-production-s101/video.mp4",
+              "sha256": "747548517b12e2bb41bd3f1d96c2e7ee1de70b172a8881ab493628ccf86bab2a",
+              "duration": 46.549333,
+              "videoDuration": 46.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-production/amor_na_praia_46s-101-production-s101/excerpt.mp4",
+              "sha256": "fa235c25160b3943f1033dfb1718b180d0bf5d4203c293d252816ddc16f557f8",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "scattered:optional": {
+              "supports": 12,
+              "frames": 250,
+              "fulfilled": 12
+            },
+            "arcs:forbidden": {
+              "supports": 18,
+              "frames": 445,
+              "fulfilled": 18
+            },
+            "fold:required": {
+              "supports": 7,
+              "frames": 153,
+              "fulfilled": 7
+            },
+            "arcs:required": {
+              "supports": 15,
+              "frames": 340,
+              "fulfilled": 15
+            },
+            "serpentine:required": {
+              "supports": 10,
+              "frames": 242,
+              "fulfilled": 10
+            },
+            "scallops:required": {
+              "supports": 10,
+              "frames": 220,
+              "fulfilled": 10
+            },
+            "terraces:required": {
+              "supports": 6,
+              "frames": 198,
+              "fulfilled": 6
+            }
+          },
+          "realization": {
+            "requested": 79,
+            "fulfilledSections": 79
+          }
+        }
+      ]
+    },
+    {
+      "id": "amor_na_praia_46s-202",
+      "settings": {
+        "mode": "production",
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-202/manifest.json",
+        "sha256": "14bc78c9547485fee978be8bf180c1f04a5adada69efadf0744121d9092d61a5"
+      },
+      "processElapsedMs": 93762.22192,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 724277,
+          "actualCompilationFrames": 2994084,
+          "productionFrames": 2269807,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "amor_na_praia_46s-202-baseline",
+          "method": "baseline",
+          "score": 950.0926,
+          "valid": true,
+          "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+          "physicalFrames": 724277,
+          "compileMs": 30152.879902,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-baseline/amor_na_praia_46s-101-baseline-s101/video.mp4",
+              "sha256": "5dc305f0f8f573872a16c392ec7f2eb92a0cff069e3bffacea67c1b5eb72e13b",
+              "duration": 46.549333,
+              "videoDuration": 46.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-baseline/amor_na_praia_46s-101-baseline-s101/excerpt.mp4",
+              "sha256": "a77e22033e11a00d5cc21beb940f139618ebe56e7ee054c685cea97841d9dd14",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/amor_na_praia_46s-101-baseline",
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "amor_na_praia_46s-202-production",
+          "method": "production",
+          "score": 714.2193,
+          "valid": true,
+          "trackHash": "2914e59105a44719f01e1e029aa0ed398502b285371faf7035515bfcac4048ea",
+          "physicalFrames": 2269807,
+          "compileMs": 60625.363410000005,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-202/videos/amor_na_praia_46s-202-production/amor_na_praia_46s-202-production-s202/video.mp4",
+              "sha256": "a556d239a772f72cc808347ae48381c15964bf62199d95b08c272ddbdfc33141",
+              "duration": 46.549333,
+              "videoDuration": 46.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-202/videos/amor_na_praia_46s-202-production/amor_na_praia_46s-202-production-s202/excerpt.mp4",
+              "sha256": "9b1617551969d7aff94dcab549d3b3083281013d425f4c981fc215fcb32f5ec8",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "arcs:required": {
+              "supports": 6,
+              "frames": 142,
+              "fulfilled": 6
+            },
+            "arcs:forbidden": {
+              "supports": 16,
+              "frames": 417,
+              "fulfilled": 16
+            },
+            "scattered:optional": {
+              "supports": 12,
+              "frames": 277,
+              "fulfilled": 12
+            },
+            "fold:required": {
+              "supports": 20,
+              "frames": 426,
+              "fulfilled": 20
+            },
+            "scallops:required": {
+              "supports": 12,
+              "frames": 322,
+              "fulfilled": 12
+            },
+            "terraces:required": {
+              "supports": 6,
+              "frames": 132,
+              "fulfilled": 6
+            },
+            "serpentine:required": {
+              "supports": 6,
+              "frames": 132,
+              "fulfilled": 6
+            }
+          },
+          "realization": {
+            "requested": 79,
+            "fulfilledSections": 79
+          }
+        }
+      ]
+    },
+    {
+      "id": "amor_na_praia_46s-303",
+      "settings": {
+        "mode": "production",
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-303/manifest.json",
+        "sha256": "47b57dcc86bbda3be4688cc71e8b175ae14bb24bc20989fba284c7920818e478"
+      },
+      "processElapsedMs": 84328.219526,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 724277,
+          "actualCompilationFrames": 2512249,
+          "productionFrames": 1787972,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "amor_na_praia_46s-303-baseline",
+          "method": "baseline",
+          "score": 950.0926,
+          "valid": true,
+          "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+          "physicalFrames": 724277,
+          "compileMs": 30023.419057,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-baseline/amor_na_praia_46s-101-baseline-s101/video.mp4",
+              "sha256": "5dc305f0f8f573872a16c392ec7f2eb92a0cff069e3bffacea67c1b5eb72e13b",
+              "duration": 46.549333,
+              "videoDuration": 46.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-baseline/amor_na_praia_46s-101-baseline-s101/excerpt.mp4",
+              "sha256": "a77e22033e11a00d5cc21beb940f139618ebe56e7ee054c685cea97841d9dd14",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/amor_na_praia_46s-101-baseline",
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "amor_na_praia_46s-303-production",
+          "method": "production",
+          "score": 826.0879,
+          "valid": true,
+          "trackHash": "1ed14da1bd316b3132c6dce7f451dad4b94a0ccc93a967ebfe1130fa0baf8805",
+          "physicalFrames": 1787972,
+          "compileMs": 51331.515991,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-303/videos/amor_na_praia_46s-303-production/amor_na_praia_46s-303-production-s303/video.mp4",
+              "sha256": "a4451405b35524cb3fe3e674557ea7e1c6bbabcc77eb3fd253bdd3813ea71101",
+              "duration": 46.549333,
+              "videoDuration": 46.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-303/videos/amor_na_praia_46s-303-production/amor_na_praia_46s-303-production-s303/excerpt.mp4",
+              "sha256": "e72d7b2deab781f8f5c436b44bc9b3d0a40e99e8f4093497c126dec43feb7ad4",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "serpentine:required": {
+              "supports": 12,
+              "frames": 276,
+              "fulfilled": 12
+            },
+            "arcs:forbidden": {
+              "supports": 23,
+              "frames": 567,
+              "fulfilled": 23
+            },
+            "arcs:required": {
+              "supports": 6,
+              "frames": 142,
+              "fulfilled": 6
+            },
+            "fold:required": {
+              "supports": 7,
+              "frames": 181,
+              "fulfilled": 7
+            },
+            "terraces:required": {
+              "supports": 12,
+              "frames": 264,
+              "fulfilled": 12
+            },
+            "scallops:required": {
+              "supports": 4,
+              "frames": 88,
+              "fulfilled": 4
+            },
+            "scattered:optional": {
+              "supports": 14,
+              "frames": 330,
+              "fulfilled": 14
+            }
+          },
+          "realization": {
+            "requested": 79,
+            "fulfilledSections": 79
+          }
+        }
+      ]
+    },
+    {
+      "id": "tiki_tiki_48s-101",
+      "settings": {
+        "mode": "production",
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/manifest.json",
+        "sha256": "74483b9a5575256c9ca23a2149d36059138111732591175612d73a6d284ef5a8"
+      },
+      "processElapsedMs": 78632.890332,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 5915,
+          "actualCompilationFrames": 2238932,
+          "productionFrames": 2233017,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "tiki_tiki_48s-101-baseline",
+          "method": "baseline",
+          "score": 923.5058,
+          "valid": true,
+          "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+          "physicalFrames": 5915,
+          "compileMs": 4131.035495,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-baseline/tiki_tiki_48s-101-baseline-s101/video.mp4",
+              "sha256": "3315a22b49fcb1504686990aa79641012005ec2a65bf270ac1228a697323755b",
+              "duration": 48.554667,
+              "videoDuration": 48.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-baseline/tiki_tiki_48s-101-baseline-s101/excerpt.mp4",
+              "sha256": "7bda124ba8e9f3d715efde4e8737ee7022e02b5bf569a9752d3b1fc722d780a6",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "tiki_tiki_48s-101-production",
+          "method": "production",
+          "score": 609.8903,
+          "valid": true,
+          "trackHash": "98fe377fa17b4d9a1249b857c9eb50e63b1e1a2e42e3a59e4359819b8d7d0998",
+          "physicalFrames": 2233017,
+          "compileMs": 71318.305457,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-production/tiki_tiki_48s-101-production-s101/video.mp4",
+              "sha256": "1370544da9b3ae552bdf65189d261eab78112c92ef29e853f55818baa9bf342b",
+              "duration": 48.554667,
+              "videoDuration": 48.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-production/tiki_tiki_48s-101-production-s101/excerpt.mp4",
+              "sha256": "d7c9eccfda77e7301607ef91647eff9fa9c04cfa612c78efe1722a5db1fa5bc3",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "scattered:optional": {
+              "supports": 10,
+              "frames": 226,
+              "fulfilled": 10
+            },
+            "arcs:forbidden": {
+              "supports": 19,
+              "frames": 468,
+              "fulfilled": 19
+            },
+            "fold:required": {
+              "supports": 6,
+              "frames": 157,
+              "fulfilled": 6
+            },
+            "arcs:required": {
+              "supports": 15,
+              "frames": 383,
+              "fulfilled": 15
+            },
+            "serpentine:required": {
+              "supports": 12,
+              "frames": 259,
+              "fulfilled": 12
+            },
+            "scallops:required": {
+              "supports": 10,
+              "frames": 247,
+              "fulfilled": 10
+            },
+            "terraces:required": {
+              "supports": 5,
+              "frames": 163,
+              "fulfilled": 5
+            }
+          },
+          "realization": {
+            "requested": 78,
+            "fulfilledSections": 78
+          }
+        }
+      ]
+    },
+    {
+      "id": "tiki_tiki_48s-202",
+      "settings": {
+        "mode": "production",
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-202/manifest.json",
+        "sha256": "dd2bfd3f4f6892b6b64e19bdf3b4b3b451b9cf95ea79ca99922b7f10918ce477"
+      },
+      "processElapsedMs": 66536.26859400001,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 5915,
+          "actualCompilationFrames": 2213749,
+          "productionFrames": 2207834,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "tiki_tiki_48s-202-baseline",
+          "method": "baseline",
+          "score": 923.5058,
+          "valid": true,
+          "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+          "physicalFrames": 5915,
+          "compileMs": 4003.2835720000003,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-baseline/tiki_tiki_48s-101-baseline-s101/video.mp4",
+              "sha256": "3315a22b49fcb1504686990aa79641012005ec2a65bf270ac1228a697323755b",
+              "duration": 48.554667,
+              "videoDuration": 48.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-baseline/tiki_tiki_48s-101-baseline-s101/excerpt.mp4",
+              "sha256": "7bda124ba8e9f3d715efde4e8737ee7022e02b5bf569a9752d3b1fc722d780a6",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/tiki_tiki_48s-101-baseline",
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "tiki_tiki_48s-202-production",
+          "method": "production",
+          "score": 696.0935,
+          "valid": true,
+          "trackHash": "e85e124e6d220fc210131dc3a97ccc94dbdc36705a0987dbb4e426a3b6cf97a9",
+          "physicalFrames": 2207834,
+          "compileMs": 59581.709992000004,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-202/videos/tiki_tiki_48s-202-production/tiki_tiki_48s-202-production-s202/video.mp4",
+              "sha256": "66cb181a0156a0d89ea9f98289986637a93f7e5db0963315a40cd4ba62400b55",
+              "duration": 48.554667,
+              "videoDuration": 48.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-202/videos/tiki_tiki_48s-202-production/tiki_tiki_48s-202-production-s202/excerpt.mp4",
+              "sha256": "d6cc9eb77658b66562e0ac775f09727a78cbdf0a803a5013833fc5414d92d47f",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "arcs:required": {
+              "supports": 6,
+              "frames": 211,
+              "fulfilled": 6
+            },
+            "arcs:forbidden": {
+              "supports": 16,
+              "frames": 418,
+              "fulfilled": 16
+            },
+            "scattered:optional": {
+              "supports": 12,
+              "frames": 259,
+              "fulfilled": 12
+            },
+            "fold:required": {
+              "supports": 18,
+              "frames": 400,
+              "fulfilled": 18
+            },
+            "scallops:required": {
+              "supports": 13,
+              "frames": 295,
+              "fulfilled": 13
+            },
+            "terraces:required": {
+              "supports": 8,
+              "frames": 215,
+              "fulfilled": 8
+            },
+            "serpentine:required": {
+              "supports": 4,
+              "frames": 105,
+              "fulfilled": 4
+            }
+          },
+          "realization": {
+            "requested": 78,
+            "fulfilledSections": 78
+          }
+        }
+      ]
+    },
+    {
+      "id": "tiki_tiki_48s-303",
+      "settings": {
+        "mode": "production",
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-303/manifest.json",
+        "sha256": "b52d48ae597a97c69cb0676d94e74925640e7b8678ade6b2ee82af862088ca08"
+      },
+      "processElapsedMs": 64910.22424,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 5915,
+          "actualCompilationFrames": 2007380,
+          "productionFrames": 2001465,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "tiki_tiki_48s-303-baseline",
+          "method": "baseline",
+          "score": 923.5058,
+          "valid": true,
+          "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+          "physicalFrames": 5915,
+          "compileMs": 4171.594953000001,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-baseline/tiki_tiki_48s-101-baseline-s101/video.mp4",
+              "sha256": "3315a22b49fcb1504686990aa79641012005ec2a65bf270ac1228a697323755b",
+              "duration": 48.554667,
+              "videoDuration": 48.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-baseline/tiki_tiki_48s-101-baseline-s101/excerpt.mp4",
+              "sha256": "7bda124ba8e9f3d715efde4e8737ee7022e02b5bf569a9752d3b1fc722d780a6",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/tiki_tiki_48s-101-baseline",
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "tiki_tiki_48s-303-production",
+          "method": "production",
+          "score": 731.2927,
+          "valid": true,
+          "trackHash": "47b7a180526f8b10050cc8a429d88fb145848b6db07addcbff3a78d12a557543",
+          "physicalFrames": 2001465,
+          "compileMs": 57724.779491,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-303/videos/tiki_tiki_48s-303-production/tiki_tiki_48s-303-production-s303/video.mp4",
+              "sha256": "8ab7e0894a17dcf9e9db6cdeda7675e03fd9fb4278c66166d81aae4dab1f0fae",
+              "duration": 48.554667,
+              "videoDuration": 48.5
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-303/videos/tiki_tiki_48s-303-production/tiki_tiki_48s-303-production-s303/excerpt.mp4",
+              "sha256": "30e2fa4bd9bd04bb6705f5cfb867f1ba42f3d573ef120ca17e1fedf8141fdb4e",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "serpentine:required": {
+              "supports": 12,
+              "frames": 366,
+              "fulfilled": 12
+            },
+            "arcs:forbidden": {
+              "supports": 22,
+              "frames": 536,
+              "fulfilled": 22
+            },
+            "arcs:required": {
+              "supports": 6,
+              "frames": 158,
+              "fulfilled": 6
+            },
+            "fold:required": {
+              "supports": 7,
+              "frames": 175,
+              "fulfilled": 7
+            },
+            "terraces:required": {
+              "supports": 12,
+              "frames": 263,
+              "fulfilled": 12
+            },
+            "scallops:required": {
+              "supports": 6,
+              "frames": 126,
+              "fulfilled": 6
+            },
+            "scattered:optional": {
+              "supports": 12,
+              "frames": 279,
+              "fulfilled": 12
+            }
+          },
+          "realization": {
+            "requested": 78,
+            "fulfilledSections": 78
+          }
+        }
+      ]
+    },
+    {
+      "id": "amour_de_ma_vie_44s-101",
+      "settings": {
+        "mode": "production",
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-101/manifest.json",
+        "sha256": "d603bacde38329fa6bec5def3a62094cd5cce4ad1c29639d302eebf118078f6e"
+      },
+      "processElapsedMs": 133178.02768300002,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 720805,
+          "actualCompilationFrames": 3211589,
+          "productionFrames": 2490784,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "amour_de_ma_vie_44s-101-baseline",
+          "method": "baseline",
+          "score": 855.0551,
+          "valid": true,
+          "trackHash": "0e1aa273202c3da8ca9b357132dd889b69e322367a8974b8a99729499dba9917",
+          "physicalFrames": 720805,
+          "compileMs": 30916.693773000003,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-101/videos/amour_de_ma_vie_44s-101-baseline/amour_de_ma_vie_44s-101-baseline-s101/video.mp4",
+              "sha256": "2b0c57c3bf5d69845ba00831f31c16f711f957275a29e4816331e0c7ca39c170",
+              "duration": 45.098667,
+              "videoDuration": 45.05
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-101/videos/amour_de_ma_vie_44s-101-baseline/amour_de_ma_vie_44s-101-baseline-s101/excerpt.mp4",
+              "sha256": "53ce801b4e31058e9735099cd22396466658f52bc8cffb146f1e5953662c04a0",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "amour_de_ma_vie_44s-101-production",
+          "method": "production",
+          "score": 434.5484,
+          "valid": true,
+          "trackHash": "bdc659483517758c665dbb36a75534c8dbfca08caf6019656b7a3f1582da75cd",
+          "physicalFrames": 2490784,
+          "compileMs": 98971.87536900002,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-101/videos/amour_de_ma_vie_44s-101-production/amour_de_ma_vie_44s-101-production-s101/video.mp4",
+              "sha256": "12c67a3e89a5ad7dcfa45337a88f9ded353b4ef2192007b90624e3dabce1144f",
+              "duration": 45.098667,
+              "videoDuration": 45.05
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-101/videos/amour_de_ma_vie_44s-101-production/amour_de_ma_vie_44s-101-production-s101/excerpt.mp4",
+              "sha256": "933c45487076132fc3051923218795ad7c023376c8e20f10cab90a09780c7e9b",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "scattered:optional": {
+              "supports": 12,
+              "frames": 226,
+              "fulfilled": 12
+            },
+            "arcs:forbidden": {
+              "supports": 23,
+              "frames": 471,
+              "fulfilled": 23
+            },
+            "fold:required": {
+              "supports": 7,
+              "frames": 175,
+              "fulfilled": 7
+            },
+            "arcs:required": {
+              "supports": 15,
+              "frames": 307,
+              "fulfilled": 15
+            },
+            "serpentine:required": {
+              "supports": 12,
+              "frames": 200,
+              "fulfilled": 12
+            },
+            "scallops:required": {
+              "supports": 10,
+              "frames": 255,
+              "fulfilled": 10
+            },
+            "terraces:required": {
+              "supports": 6,
+              "frames": 147,
+              "fulfilled": 6
+            }
+          },
+          "realization": {
+            "requested": 86,
+            "fulfilledSections": 86
+          }
+        }
+      ]
+    },
+    {
+      "id": "amour_de_ma_vie_44s-202",
+      "settings": {
+        "mode": "production",
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-202/manifest.json",
+        "sha256": "b4a7b8f3451a78d13caba2208ed56a1af6b53ddb334a30c41549f96b6284d798"
+      },
+      "processElapsedMs": 135433.516868,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 722194,
+          "actualCompilationFrames": 3635871,
+          "productionFrames": 2913677,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "amour_de_ma_vie_44s-202-baseline",
+          "method": "baseline",
+          "score": 851.6246,
+          "valid": true,
+          "trackHash": "9fbf11a4d1ab681184783b6ed5eb1d08bec2873fbd87471d879bbb32ba64711e",
+          "physicalFrames": 722194,
+          "compileMs": 30838.872857,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-202/videos/amour_de_ma_vie_44s-202-baseline/amour_de_ma_vie_44s-202-baseline-s202/video.mp4",
+              "sha256": "51ebb0eb5e2cfaf70951e5cc05fd949a40bed2954eb9493016e0fe929db74351",
+              "duration": 45.098667,
+              "videoDuration": 45.05
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-202/videos/amour_de_ma_vie_44s-202-baseline/amour_de_ma_vie_44s-202-baseline-s202/excerpt.mp4",
+              "sha256": "4e77928ac28eb36ab4b0c2363e08c02ee147b43b8c3250b8ac93f6c696f00239",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "amour_de_ma_vie_44s-202-production",
+          "method": "production",
+          "score": 492.4498,
+          "valid": true,
+          "trackHash": "203c11875219d043792c9f9ac5be6607d4fb0e29e45b6a6a8ec5adce940d7b97",
+          "physicalFrames": 2913677,
+          "compileMs": 101386.23861999999,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-202/videos/amour_de_ma_vie_44s-202-production/amour_de_ma_vie_44s-202-production-s202/video.mp4",
+              "sha256": "4fc97864732fa386cb33749ccf481ca9d1ad80f8cfcb84ade7b6fada36c27998",
+              "duration": 45.098667,
+              "videoDuration": 45.05
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-202/videos/amour_de_ma_vie_44s-202-production/amour_de_ma_vie_44s-202-production-s202/excerpt.mp4",
+              "sha256": "cd823b24a3a3ea43a8a6856e4468d65c17b5a0c12fa803e47e149f4539f5a3c7",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "arcs:required": {
+              "supports": 6,
+              "frames": 160,
+              "fulfilled": 6
+            },
+            "arcs:forbidden": {
+              "supports": 16,
+              "frames": 308,
+              "fulfilled": 16
+            },
+            "scattered:optional": {
+              "supports": 14,
+              "frames": 237,
+              "fulfilled": 14
+            },
+            "fold:required": {
+              "supports": 20,
+              "frames": 456,
+              "fulfilled": 20
+            },
+            "scallops:required": {
+              "supports": 14,
+              "frames": 267,
+              "fulfilled": 14
+            },
+            "terraces:required": {
+              "supports": 9,
+              "frames": 233,
+              "fulfilled": 9
+            },
+            "serpentine:required": {
+              "supports": 6,
+              "frames": 120,
+              "fulfilled": 6
+            }
+          },
+          "realization": {
+            "requested": 86,
+            "fulfilledSections": 86
+          }
+        }
+      ]
+    },
+    {
+      "id": "amour_de_ma_vie_44s-303",
+      "settings": {
+        "mode": "production",
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "budget": 3000000,
+        "referenceBudget": 750000,
+        "creative": {
+          "repertoire": [
+            "arcs",
+            "fold",
+            "serpentine",
+            "scallops",
+            "terraces",
+            "scattered"
+          ],
+          "variation": 1,
+          "guidedBalance": 0.6470588235294118
+        }
+      },
+      "manifest": {
+        "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-303/manifest.json",
+        "sha256": "08fec7ccd07956be14e8f5dfa3c699ba2e1065cba409103bd41f1133c75fb9f5"
+      },
+      "processElapsedMs": 130692.496054,
+      "accounting": [
+        {
+          "referenceReused": false,
+          "referenceOriginalFrames": 721051,
+          "actualCompilationFrames": 3113780,
+          "productionFrames": 2392729,
+          "productionAllowance": 3000000,
+          "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+        }
+      ],
+      "cells": [
+        {
+          "id": "amour_de_ma_vie_44s-303-baseline",
+          "method": "baseline",
+          "score": 840.3146,
+          "valid": true,
+          "trackHash": "f2cc3695c713dc04e796b74db2e2ec3e7ddc54336ad541c7af1113594740468c",
+          "physicalFrames": 721051,
+          "compileMs": 31664.454023,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-303/videos/amour_de_ma_vie_44s-303-baseline/amour_de_ma_vie_44s-303-baseline-s303/video.mp4",
+              "sha256": "c32a89856459565322cf05d71441956a092cd248ee66546df6c6b923acbad2eb",
+              "duration": 45.098667,
+              "videoDuration": 45.05
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-303/videos/amour_de_ma_vie_44s-303-baseline/amour_de_ma_vie_44s-303-baseline-s303/excerpt.mp4",
+              "sha256": "1f95585db5a701f50f145db2109529b24dfa7948806723121fa763e7a668ebdc",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": null,
+          "choices": {},
+          "realization": {
+            "requested": null,
+            "fulfilledSections": null
+          }
+        },
+        {
+          "id": "amour_de_ma_vie_44s-303-production",
+          "method": "production",
+          "score": 498.0542,
+          "valid": true,
+          "trackHash": "4047e321cebe9d5faddd9cd25369faaee34c09cfe3a656a8c3e9f3b1cad8d919",
+          "physicalFrames": 2392729,
+          "compileMs": 95566.807145,
+          "media": [
+            {
+              "kind": "full",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-303/videos/amour_de_ma_vie_44s-303-production/amour_de_ma_vie_44s-303-production-s303/video.mp4",
+              "sha256": "428eb4185ce191f64bdfd6646626aff8ba83b354f288378f50daf5419861e375",
+              "duration": 45.098667,
+              "videoDuration": 45.05
+            },
+            {
+              "kind": "excerpt",
+              "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-303/videos/amour_de_ma_vie_44s-303-production/amour_de_ma_vie_44s-303-production-s303/excerpt.mp4",
+              "sha256": "82dcae7f695010528c8715440afe6d5f2cd4161b42d583042e3f23312fed1285",
+              "duration": 16.0,
+              "videoDuration": 16.0
+            }
+          ],
+          "reusedFrom": null,
+          "qualified": true,
+          "choices": {
+            "serpentine:required": {
+              "supports": 13,
+              "frames": 346,
+              "fulfilled": 13
+            },
+            "arcs:forbidden": {
+              "supports": 24,
+              "frames": 490,
+              "fulfilled": 24
+            },
+            "arcs:required": {
+              "supports": 6,
+              "frames": 82,
+              "fulfilled": 6
+            },
+            "fold:required": {
+              "supports": 10,
+              "frames": 170,
+              "fulfilled": 10
+            },
+            "terraces:required": {
+              "supports": 12,
+              "frames": 212,
+              "fulfilled": 12
+            },
+            "scallops:required": {
+              "supports": 6,
+              "frames": 147,
+              "fulfilled": 6
+            },
+            "scattered:optional": {
+              "supports": 14,
+              "frames": 334,
+              "fulfilled": 14
+            }
+          },
+          "realization": {
+            "requested": 86,
+            "fulfilledSections": 86
+          }
+        }
+      ]
+    }
+  ],
+  "uniqueFullVideoHashes": 18,
+  "visualApproval": null,
+  "analysisScript": {
+    "path": "/home/wyss/line/scripts/benchmark/production_repertoire_evidence.py",
+    "sha256": "e88a0ebb8299859c6586cc76e4a1bca1272dbcc8072c593210d8561d7212228e"
+  }
+}

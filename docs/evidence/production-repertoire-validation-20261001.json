@@ -1,0 +1,378 @@
+{
+  "schema": "line.production-repertoire-validation.v1",
+  "deliveredCompiler": {
+    "raw": {
+      "path": "generated/production-repertoire/delivery-compiler-identity.json",
+      "sha256": "62db56e7f374fffe1b3feb5c54909493ad440b7894c78d39fe7e3efcf2a02a89"
+    },
+    "matchesQualifiedCompiler": true,
+    "head": "8de0e7b5584926d807194fc277f78dd34030b9ee",
+    "compilerSourceFingerprint": "46e13a7d240c28b7c24a33aaf4de850a12d50bffc1dfe82e285de114529e45ad",
+    "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+    "candidateFingerprint": "cd2d2fec4381421469c3b1bc4ede4383125199b8d43231974083e226fe1779f5"
+  },
+  "compilerTests": {
+    "raw": {
+      "path": "generated/production-repertoire/qualified-tests.txt",
+      "sha256": "932d39d39728531c31bd55eea4679ef3b3f1c1c84c23b98302610a597836b2c0"
+    },
+    "files": 13,
+    "passed": 30
+  },
+  "renderTests": {
+    "raw": {
+      "path": "generated/production-repertoire/render-resource-tests.txt",
+      "sha256": "19f1712b3b8c9048154abd0350ec0976114e6db4a8c5f845ffd95ecbf85fffd8"
+    },
+    "files": 2,
+    "passed": 4,
+    "overlap": "Includes the already-tested spectrum-cache case; three new resource tests."
+  },
+  "typecheck": {
+    "raw": {
+      "path": "generated/production-repertoire/tsc-delivery.txt",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "previous": {
+      "path": "generated/production-repertoire/tsc-qualified.txt",
+      "sha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
+    },
+    "passes": false,
+    "diagnosticsIdentical": true,
+    "errors": 251
+  },
+  "checks": {
+    "api-check.json": {
+      "raw": {
+        "path": "generated/production-repertoire/api-check.json",
+        "sha256": "66da8ac02611c2c650e92d3df3aa2658f3d7a79b7ed5ab21a3c51a4bda5ae027"
+      },
+      "result": {
+        "invalidStatus": 400,
+        "firstJob": {
+          "id": "9c4a59e7-e624-49d7-b45e-c39d82d36451",
+          "created": "2026-09-30T22:47:26.249Z",
+          "updated": "2026-09-30T22:47:34.462Z",
+          "status": "complete",
+          "request": {
+            "mode": "production",
+            "song": "luna_bala_44s",
+            "seed": 424242,
+            "budget": 50000,
+            "referenceBudget": 750000,
+            "creative": {
+              "repertoire": [
+                "arcs",
+                "fold",
+                "serpentine",
+                "scallops",
+                "terraces",
+                "scattered"
+              ],
+              "variation": 1,
+              "guidedBalance": 0.6470588235294118
+            }
+          },
+          "identity": "cbe77270130e22f5fb09dc7c828c38a19c4c64cbebcb6af1da2107b78f644fdf",
+          "valid": false,
+          "qualified": false,
+          "manifest": "/generated/repertoire-jobs/9c4a59e7-e624-49d7-b45e-c39d82d36451/output/manifest.json"
+        },
+        "reused": true,
+        "cancelled": {
+          "id": "f8390e8e-ebb0-4a05-8dd0-2d436a62f211",
+          "created": "2026-09-30T22:47:35.491Z",
+          "updated": "2026-09-30T22:47:35.880Z",
+          "status": "cancelled",
+          "request": {
+            "mode": "production",
+            "song": "luna_bala_44s",
+            "seed": 424243,
+            "budget": 3000000,
+            "referenceBudget": 750000,
+            "creative": {
+              "repertoire": [
+                "arcs",
+                "fold",
+                "serpentine",
+                "scallops",
+                "terraces",
+                "scattered"
+              ],
+              "variation": 1,
+              "guidedBalance": 0.6470588235294118
+            }
+          },
+          "identity": "b5a7eeab59c0f6038d1855ef6979c8bf2922153a5928c79b904728d0b540f64f"
+        }
+      }
+    },
+    "playback-check.json": {
+      "raw": {
+        "path": "generated/production-repertoire/playback-check.json",
+        "sha256": "279c51baf8594340911943b163850e22e1687d94f9f432c32072da4a2adda5da"
+      },
+      "result": {
+        "rapidSwitchTitle": "L’amour de ma vie · seed 303",
+        "audio": {
+          "paused": false,
+          "time": 19.024911,
+          "source": "/productions/amour_de_ma_vie_44s/audio.mp3"
+        },
+        "mobileOverflow": false,
+        "incompleteMessage": "Incomplete ride · budget",
+        "errors": []
+      }
+    },
+    "audio-identity-browser.json": {
+      "raw": {
+        "path": "generated/production-repertoire/audio-identity-browser.json",
+        "sha256": "a15c3ad41bf073ab8d3305b4277c1db499dd41c05ef3386d1946687576aa3d76"
+      },
+      "result": {
+        "verifiedBlobPlayback": true,
+        "mutatedAudioRejected": true,
+        "scrubbingPreserved": true,
+        "reloadRecovers": true,
+        "errors": []
+      }
+    },
+    "render-cache-equivalence.json": {
+      "raw": {
+        "path": "generated/production-repertoire/render-cache-equivalence.json",
+        "sha256": "4b09878ce184152c145647224a4257203339bc31cd515090c50fb288d5b66823"
+      },
+      "result": {
+        "pairs": [
+          {
+            "song": "luna_bala_44s",
+            "before": "638d0067914537d29481b0b2efa3b96c68ccf9233cb87f4b3f71bea5c7d48fc7",
+            "after": "638d0067914537d29481b0b2efa3b96c68ccf9233cb87f4b3f71bea5c7d48fc7",
+            "byteIdentical": true
+          },
+          {
+            "song": "amor_na_praia_46s",
+            "before": "3acdfc959632394ae99b855bca17f559bd812adc5d39995fa7e3cbab8f56b644",
+            "after": "5dc305f0f8f573872a16c392ec7f2eb92a0cff069e3bffacea67c1b5eb72e13b",
+            "byteIdentical": false
+          },
+          {
+            "song": "tiki_tiki_48s",
+            "before": "3315a22b49fcb1504686990aa79641012005ec2a65bf270ac1228a697323755b",
+            "after": "3315a22b49fcb1504686990aa79641012005ec2a65bf270ac1228a697323755b",
+            "byteIdentical": true
+          },
+          {
+            "song": "amour_de_ma_vie_44s",
+            "before": "2b0c57c3bf5d69845ba00831f31c16f711f957275a29e4816331e0c7ca39c170",
+            "after": "2b0c57c3bf5d69845ba00831f31c16f711f957275a29e4816331e0c7ca39c170",
+            "byteIdentical": true
+          }
+        ],
+        "nonidenticalPairDecodedComparison": {
+          "song": "amor_na_praia_46s",
+          "metric": "FFmpeg full-video SSIM",
+          "result": "[Parsed_ssim_0 @ 0x59ae2e6a7d80] SSIM Y:1.000000 (73.798231) U:1.000000 (77.168620) V:1.000000 (77.638528) All:1.000000 (74.701570)",
+          "rawPath": "generated/production-repertoire/render-cache-equivalence.log",
+          "rawSha256": "65d381bb01c10e536a7a1ca63367de951532bc8338fcde56fb75b0bff4880d0a"
+        },
+        "settings": {
+          "beforeConcurrency": 6,
+          "afterConcurrency": 4,
+          "afterDecodedFrameCacheMiB": 512
+        },
+        "interpretation": "Resource settings changed, not the visual recipe. Three paired references are byte-identical; the fourth has rounded SSIM 1.000000, not an assertion of exact pixel identity."
+      }
+    },
+    "render-resume-check.json": {
+      "raw": {
+        "path": "generated/production-repertoire/render-resume-check.json",
+        "sha256": "49657a49327ed2bf78c258f39ddf01e75c3734505654083d4432866fd7a40243"
+      },
+      "result": {
+        "command": [
+          "node",
+          "--import",
+          "tsx",
+          "scripts/produce/production_library.ts",
+          "--out=generated/production-repertoire/library-qualified",
+          "--phase=render",
+          "--jobs=4"
+        ],
+        "elapsedSeconds": 3.0756542461458594,
+        "verifiedRecords": 24,
+        "unchangedFiles": 60,
+        "sha256AndModificationTimesUnchanged": true,
+        "ownedMirrorObserved": true,
+        "ownedMirrorClosedOnExit": true
+      }
+    },
+    "production-final-browser.json": {
+      "raw": {
+        "path": "generated/production-repertoire/production-final-browser.json",
+        "sha256": "378d1f14b25fb9acc3da14c7f038ed0e64bb73cf9c138b56a66cc04a1df9501f"
+      },
+      "result": {
+        "checks": [
+          {
+            "formDefaultsMatchSavedCreativePreferences": true,
+            "editedGuidancePreferenceSubmitted": true
+          },
+          {
+            "id": "luna_bala_44s-101",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 44.544,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/luna_bala_44s-101/videos/luna_bala_44s-101-production/luna_bala_44s-101-production-s101/video.mp4"
+            }
+          },
+          {
+            "id": "luna_bala_44s-202",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 44.544,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/luna_bala_44s-202/videos/luna_bala_44s-202-production/luna_bala_44s-202-production-s202/video.mp4"
+            }
+          },
+          {
+            "id": "luna_bala_44s-303",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 44.544,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/luna_bala_44s-303/videos/luna_bala_44s-303-production/luna_bala_44s-303-production-s303/video.mp4"
+            }
+          },
+          {
+            "id": "amor_na_praia_46s-101",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 46.549333,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/amor_na_praia_46s-101/videos/amor_na_praia_46s-101-production/amor_na_praia_46s-101-production-s101/video.mp4"
+            }
+          },
+          {
+            "id": "amor_na_praia_46s-202",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 46.549333,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/amor_na_praia_46s-202/videos/amor_na_praia_46s-202-production/amor_na_praia_46s-202-production-s202/video.mp4"
+            }
+          },
+          {
+            "id": "amor_na_praia_46s-303",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 46.549333,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/amor_na_praia_46s-303/videos/amor_na_praia_46s-303-production/amor_na_praia_46s-303-production-s303/video.mp4"
+            }
+          },
+          {
+            "id": "tiki_tiki_48s-101",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 48.554667,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/tiki_tiki_48s-101/videos/tiki_tiki_48s-101-production/tiki_tiki_48s-101-production-s101/video.mp4"
+            }
+          },
+          {
+            "id": "tiki_tiki_48s-202",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 48.554667,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/tiki_tiki_48s-202/videos/tiki_tiki_48s-202-production/tiki_tiki_48s-202-production-s202/video.mp4"
+            }
+          },
+          {
+            "id": "tiki_tiki_48s-303",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 48.554667,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/tiki_tiki_48s-303/videos/tiki_tiki_48s-303-production/tiki_tiki_48s-303-production-s303/video.mp4"
+            }
+          },
+          {
+            "id": "amour_de_ma_vie_44s-101",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 45.098667,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-101/videos/amour_de_ma_vie_44s-101-production/amour_de_ma_vie_44s-101-production-s101/video.mp4"
+            }
+          },
+          {
+            "id": "amour_de_ma_vie_44s-202",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 45.098667,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-202/videos/amour_de_ma_vie_44s-202-production/amour_de_ma_vie_44s-202-production-s202/video.mp4"
+            }
+          },
+          {
+            "id": "amour_de_ma_vie_44s-303",
+            "nativeReplay": true,
+            "synchronizedAudio": true,
+            "video": {
+              "w": 1080,
+              "h": 1920,
+              "d": 45.098667,
+              "src": "http://127.0.0.1:8767/generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-303/videos/amour_de_ma_vie_44s-303-production/amour_de_ma_vie_44s-303-production-s303/video.mp4"
+            }
+          },
+          {
+            "mutuallyExclusiveMediaPlayback": true,
+            "phraseSeekPausesVideo": true
+          },
+          {
+            "rapidSwitchUsesFinalSongSeedAndVideo": true
+          },
+          {
+            "mobileWidth": 390,
+            "noHorizontalOverflow": true
+          },
+          {
+            "changedRecordingCannotPlayAgainstSavedTrack": true,
+            "scrubbingSurvivesAudioMismatch": true,
+            "verifiedAudioRecoversOnReload": true
+          }
+        ],
+        "errors": []
+      }
+    }
+  },
+  "analysisScript": {
+    "path": "/home/wyss/line/scripts/benchmark/production_repertoire_evidence.py",
+    "sha256": "e88a0ebb8299859c6586cc76e4a1bca1272dbcc8072c593210d8561d7212228e"
+  }
+}

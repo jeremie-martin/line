@@ -14,15 +14,20 @@ historical record, not live guidance.
 
 | Doc | Tag | What |
 |---|---|---|
-| [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | Current frozen V4 workflow, product constraints and design/performance tradeoffs. |
+| [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | Frozen repertoire V5 and ordinary V4 workflows, product constraints and design/performance tradeoffs. |
+| [`automatic-production.md`](automatic-production.md) | LIVE | Public automatic music command, dashboard, artifacts and bounded rendering. |
+| [`production-repertoire-architecture.md`](production-repertoire-architecture.md) | LIVE | Who chooses guidance; shared construction/search, physical checks and accounting. |
+| [`production-repertoire-results-20261001.md`](production-repertoire-results-20261001.md) | LIVE | Complete V5/V4 qualification, production collection and disclosed remaining gaps. |
+| [`production-repertoire-roadmap.md`](production-repertoire-roadmap.md) | REFERENCE | Approved scope for the autonomous production campaign. |
+| [`production-repertoire-campaign.md`](production-repertoire-campaign.md) | REFERENCE | Implementation and empirical research ledger, including unsuccessful experiments. |
 | [`benchmark-v2-context.md`](benchmark-v2-context.md) | REFERENCE | Product distribution, scoring, holdout, compute, and governance contract. |
 | [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | REFERENCE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
 | [`benchmark-v2.md`](benchmark-v2.md) | REFERENCE | Benchmark V2 commands and operations. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
 | [`compiler-efficiency-2026-09-29.md`](compiler-efficiency-2026-09-29.md) | REFERENCE | Qualified stopping policy, measured work and timing, and first gallery findings. |
-| [`motion-repertoire.md`](motion-repertoire.md) | LIVE | Playable motion gallery, measured geometry comparison and compiler stopping policy. |
-| [`musical-direction-results.md`](musical-direction-results.md) | LIVE | Real-song construction examples, production review, local consequences and reproducible cost. |
-| [`musical-direction-plan.md`](musical-direction-plan.md) | LIVE | Current milestone: real musical comparisons, intentional local composition and measured quality/cost. |
+| [`motion-repertoire.md`](motion-repertoire.md) | REFERENCE | Earlier geometry gallery and stopping-policy studies. |
+| [`musical-direction-results.md`](musical-direction-results.md) | REFERENCE | Preceding real-song construction examples and local consequences. |
+| [`musical-direction-plan.md`](musical-direction-plan.md) | REFERENCE | Completed precursor milestone for deliberate musical composition. |
 | [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | REFERENCE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
 | [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | REFERENCE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |
 | [`benchmark-v2-baseline.md`](benchmark-v2-baseline.md) | REFERENCE | Generated summary of the currently accepted baseline. |
@@ -48,10 +53,11 @@ historical record, not live guidance.
 
 ## Campaigns
 
-The current result is [952.4726 on frozen V4](compiler-efficiency-2026-09-29.md),
-after the integrity/design audits and the qualified early-acceptance efficiency work.
-The current creative milestone is [musical direction](musical-direction-plan.md);
-the guide-count studies remain supporting research, not an artistic objective.
+The current broader result is [770.1170 on frozen V5](production-repertoire-results-20261001.md),
+with 952.4726 retained on the complete ordinary V4 companion. The production
+repertoire campaign integrates automatic arrangement, shared search and complete
+music review. Earlier guide-count studies remain supporting research, not an
+artistic objective.
 Earlier framework-specific campaigns remain historical references.
 
 | Doc | Tag | What |

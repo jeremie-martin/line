@@ -13,6 +13,21 @@ try{
  await page.waitForURL('**/production.html');
  await page.waitForFunction(()=>!document.getElementById('play').disabled);
  assert.equal(await page.locator('#library button').count(),12);
+ // Check the actual submitted settings without starting another physical search.
+ let submitted;
+ await page.route('**/api/repertoire/compile',async route=>{
+  submitted=route.request().postDataJSON();
+  await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({error:'Settings captured for browser validation'})});
+ });
+ await page.locator('#generate button[type=submit]').click();
+ await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Settings captured'));
+ assert.deepEqual(submitted.creative,collection.entries[0].settings.creative);
+ await page.locator('#balance').evaluate(e=>{e.value='.4';e.dispatchEvent(new Event('input'));});
+ await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/repertoire/compile')),
+  page.locator('#generate button[type=submit]').click()]);
+ assert.equal(submitted.creative.guidedBalance,.4);
+ await page.unroute('**/api/repertoire/compile');
+ checks.push({formDefaultsMatchSavedCreativePreferences:true,editedGuidancePreferenceSubmitted:true});
  for(let i=0;i<collection.entries.length;i++){
   const entry=collection.entries[i];
   await page.locator('#library button').nth(i).click();

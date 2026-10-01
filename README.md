@@ -9,24 +9,24 @@ finished video. Audio analysis supports authoring; the compiler searches normal
 line geometry against the requested contacts and motion, then the production
 pipeline renders the actual ride with its music and camera.
 
-Status: the spec-to-track compiler and full vertical video pipeline are working.
-The current compiler uses coherent normal-line arcs with measured trajectory
-shaping and adaptive continuation planning. The current development benchmark is
-[V4](benchmark/v4/README.md): 176 specifications, retaining all 88 V3 cases,
-with two canonical seeds and a 750,000-frame allowance per run.
-The current canonical score is **952.4726**, with **352/352 valid runs**.
-The compiler also preserves validated curves when further search exhausts its budget.
+The [automatic production mode](docs/automatic-production.md) chooses repeated
+guided shapes, open arcs and scattered passages from a song, seed and broad
+preferences. CLI, benchmark and dashboard share the public compiler and physical
+construction checks. All physical lines are normal type 0.
 
-The [musical direction milestone](docs/musical-direction-results.md) implements
-the [agreed plan](docs/musical-direction-plan.md):
-deliberate local construction choices on real songs, shown through the native
-inspector and the complete vertical-video pipeline. The production compiler uses
-early acceptance of accurate, physically validated proposals; experimental visual
-choices are kept explicit and do not replace its defaults.
-Open the [music review](http://localhost:8767/motion-gallery/music.html) for Luna
-and Amor comparisons; their large video archives remain local.
-See [the V4 campaign and evidence](docs/arc-v4-940-campaign.md) and
-[the compiler map](scripts/v0/optimizer/README.md).
+Frozen [V5](benchmark/v5/README.md) evaluates this broader task: **770.1170**,
+up from 449.0934, with **147/150 valid and fully fulfilled runs**. Reserved
+confirmation scores 790.1098 with 80/80; the ambition above 900 remains unmet.
+The ordinary profile remains unchanged on full [V4](benchmark/v4/README.md),
+at **952.4726 with 352/352 valid runs**.
+
+Open the [production library](http://localhost:8767/motion-gallery/production.html)
+for four actual songs and three predeclared seeds each, native comparison and
+full vertical videos. The manual editor and earlier music studies remain available.
+See [the complete results and limitations](docs/production-repertoire-results-20261001.md),
+[production architecture](docs/production-repertoire-architecture.md), and
+[the ordinary compiler map](scripts/v0/optimizer/README.md). Large archives and
+media stay local.
 
 > **Working on the compiler?** Start at [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md)
 > — the single how-to-work doc. The full documentation map is [`docs/README.md`](docs/README.md).

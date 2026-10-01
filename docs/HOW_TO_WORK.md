@@ -1,17 +1,21 @@
 # Working on the compiler
 
-The current benchmark is **frozen V4**: 176 specifications, seeds 16/17, and
-750,000 actual physics frames per compile. The accepted result and goal status
-live in [goal.md](../goal.md); the [V4 contract](../benchmark/v4/README.md)
-defines the panel and scorer. Do not substitute the historical V2 promotion
-workflow or alter the benchmark to improve a compiler result.
+The broader production task uses **frozen V5**: 75 canonical cases × seeds 101/202,
+40 confirmation cases × seeds 307/409, and 3m actual physics frames per compile.
+It measures musical accuracy while fulfilling fixed construction requests and
+complete automatic plans. [The V5 contract](../benchmark/v5/README.md) defines
+qualification; [the current report](production-repertoire-results-20261001.md)
+discloses the remaining numerical gap and failures.
 
-Production currently uses substantial coherent arcs made from normal type-0
-lines. On 2026-09-29 the owner opened exploration of a broader
-[visual motion repertoire](motion-repertoire.md), including intentional,
-possibly occasional scattered normal-line segments. Earlier rejection of that
-style is no longer a blanket research exclusion. The frozen V4 qualification
-contract remains unchanged, and the acceleration restriction still applies.
+**Frozen V4 remains the ordinary-profile companion:** all 176 specifications,
+seeds 16/17, and 750,000 frames. The accepted result and goal status live in
+[goal.md](../goal.md). Do not substitute historical V2 promotion rules, silently
+reroll requested geometry, or change either benchmark to improve a result.
+
+[Automatic production](automatic-production.md) now supports guided expressive
+shapes, deliberate open arcs and scattered normal-line passages through shared
+search. Earlier rejection of scattered geometry is no longer a blanket exclusion.
+The ordinary V4 style contract remains unchanged, and the acceleration restriction still applies.
 Physical validity and a high score do not establish visual quality; use the
 production vertical-video workflow to review meaningful style changes.
 
@@ -20,7 +24,9 @@ production vertical-video workflow to review meaningful style changes.
 Use the [compiler module map](../scripts/v0/optimizer/README.md) and the
 [design audit](compiler-design-audit-2026-09-11.md). `compileHandoff` is the public
 entry point; `connectedArcOptions` supplies the actual production settings to
-research. Reference engines, unsupported axes and diagnostic requests still
+research for the ordinary profile. The [production architecture](production-repertoire-architecture.md)
+maps automatic planning, construction search, realization and rendering.
+Reference engines, unsupported ordinary axes and diagnostic requests still
 need the explicitly retained legacy backend. Hook-based legacy studies call
 `compileLegacyHandoff` directly.
 
@@ -28,12 +34,23 @@ Inspect measured work, selected trajectories and unsuccessful attempts before
 choosing a change. Returned interval rows describe the selected track; aggregate
 work includes all attempts. The `attempts` records attribute construction,
 planning, replay and first completion separately. Models propose controls;
-real metered physics validates them. No case or seed identity belongs in the
-compiler's learned features or runtime decisions.
+real metered physics validates them. Do not use benchmark names or seeds as
+quality shortcuts in learned features or search decisions. Seeds legitimately
+drive the explicit deterministic variety and search random streams.
 
 ## Experiment and compare
 
 A small physical study is useful for a mechanism check, not a headline claim:
+
+For repertoire work, freeze the compiler and run both complete V5 panels through
+`scripts/benchmark/v5.ts eval --compiler-root=CHECKOUT --out=DIR --jobs=8`;
+add `--split=confirmation` for the predeclared confirmation panel. Keep the policy
+requests and 3m allowance fixed. Report fixed and automatic panels, physical
+fulfillment, local errors, actual work and distinct tracks separately. The
+confirmation results already reported in this campaign are known evidence for
+future campaigns, not permanently unseen validation.
+
+For an ordinary-arc mechanism study:
 
 ```bash
 LR_ENGINE=wasm node --import tsx scripts/benchmark/arc_motion_study.ts \

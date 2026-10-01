@@ -1,0 +1,5056 @@
+{
+  "schema": "line.production-repertoire-qualification.v1",
+  "raw": {
+    "path": "generated/production-repertoire/v5-qualified/run.json",
+    "sha256": "e24ee20b4c120316881e73af4897861ee18cb055605f30432e6269f396c79d27"
+  },
+  "plan": {
+    "schema": "line.benchmark-v5.run-plan.v1",
+    "compilerRoot": "/tmp/line-v5-qualified",
+    "compiler": {
+      "head": "0846b2e5117d76d73836426a15d9acc167151c9d",
+      "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+      "compilerSourceFingerprint": "46e13a7d240c28b7c24a33aaf4de850a12d50bffc1dfe82e285de114529e45ad",
+      "compilerSourceFiles": [
+        "engine-rs/.gitignore",
+        "engine-rs/Cargo.lock",
+        "engine-rs/Cargo.toml",
+        "engine-rs/README.md",
+        "engine-rs/src/abi.rs",
+        "engine-rs/src/engine.rs",
+        "engine-rs/src/frame.rs",
+        "engine-rs/src/grid.rs",
+        "engine-rs/src/kernel.rs",
+        "engine-rs/src/lib.rs",
+        "engine-rs/src/line.rs",
+        "package-lock.json",
+        "package.json",
+        "scripts/lib/_lr_engine.ts",
+        "scripts/lib/_lr_engine_record.ts",
+        "scripts/lib/_lr_engine_wasm.ts",
+        "scripts/lib/adapt.ts",
+        "scripts/lib/arc.ts",
+        "scripts/lib/arcLines.ts",
+        "scripts/lib/beam_prune.ts",
+        "scripts/lib/beam_search.ts",
+        "scripts/lib/detector.ts",
+        "scripts/lib/export.ts",
+        "scripts/lib/metrics.ts",
+        "scripts/lib/moves.ts",
+        "scripts/lib/native_motion/Cargo.lock",
+        "scripts/lib/native_motion/Cargo.toml",
+        "scripts/lib/native_motion/README.md",
+        "scripts/lib/native_motion/engine.ts",
+        "scripts/lib/native_motion/engine.wasm",
+        "scripts/lib/native_motion/manifest.json",
+        "scripts/lib/native_motion/manifest.json.sha256",
+        "scripts/lib/native_motion/src/abi.rs",
+        "scripts/lib/native_motion/src/engine.rs",
+        "scripts/lib/native_motion/src/frame.rs",
+        "scripts/lib/native_motion/src/grid.rs",
+        "scripts/lib/native_motion/src/kernel.rs",
+        "scripts/lib/native_motion/src/lib.rs",
+        "scripts/lib/native_motion/src/line.rs",
+        "scripts/lib/precise_landings.ts",
+        "scripts/lib/primitive.ts",
+        "scripts/lib/primitive_search.ts",
+        "scripts/lib/ride.ts",
+        "scripts/lib/rng.ts",
+        "scripts/lib/rotation.ts",
+        "scripts/lib/route.ts",
+        "scripts/lib/search.ts",
+        "scripts/lib/tune.ts",
+        "scripts/lib/update_types.ts",
+        "scripts/v0/arc.ts",
+        "scripts/v0/arc_placement.ts",
+        "scripts/v0/core/ballistic_launch.ts",
+        "scripts/v0/core/ballistic_micro_sim.ts",
+        "scripts/v0/core/ballistic_projection.ts",
+        "scripts/v0/core/ballistic_trace.ts",
+        "scripts/v0/core/beats.ts",
+        "scripts/v0/core/camera.ts",
+        "scripts/v0/core/candidate.ts",
+        "scripts/v0/core/compile_lifecycle.ts",
+        "scripts/v0/core/curves.ts",
+        "scripts/v0/core/exit_read.ts",
+        "scripts/v0/core/measure.ts",
+        "scripts/v0/core/polish.ts",
+        "scripts/v0/core/substrate.ts",
+        "scripts/v0/core/support_geometry.ts",
+        "scripts/v0/core/trace.ts",
+        "scripts/v0/optimizer/README.md",
+        "scripts/v0/optimizer/aim.ts",
+        "scripts/v0/optimizer/aim_impact_model.json",
+        "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+        "scripts/v0/optimizer/air_policy.ts",
+        "scripts/v0/optimizer/arc_actuator.ts",
+        "scripts/v0/optimizer/arc_attempts.ts",
+        "scripts/v0/optimizer/arc_boundary.ts",
+        "scripts/v0/optimizer/arc_composition.ts",
+        "scripts/v0/optimizer/arc_control.ts",
+        "scripts/v0/optimizer/arc_control_policy.ts",
+        "scripts/v0/optimizer/arc_control_policy_model.json",
+        "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+        "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+        "scripts/v0/optimizer/arc_engine.ts",
+        "scripts/v0/optimizer/arc_geometry.ts",
+        "scripts/v0/optimizer/arc_guidance.ts",
+        "scripts/v0/optimizer/arc_guide_choice.ts",
+        "scripts/v0/optimizer/arc_guide_study.ts",
+        "scripts/v0/optimizer/arc_memory.ts",
+        "scripts/v0/optimizer/arc_model.ts",
+        "scripts/v0/optimizer/arc_motion.ts",
+        "scripts/v0/optimizer/arc_motion_control.ts",
+        "scripts/v0/optimizer/arc_probe.ts",
+        "scripts/v0/optimizer/arc_proposal.ts",
+        "scripts/v0/optimizer/arc_rail_groups.ts",
+        "scripts/v0/optimizer/arc_refinement.ts",
+        "scripts/v0/optimizer/arc_response.ts",
+        "scripts/v0/optimizer/arc_value.ts",
+        "scripts/v0/optimizer/arc_value_model.json",
+        "scripts/v0/optimizer/arc_value_model.json.sha256",
+        "scripts/v0/optimizer/arc_vector_model.ts",
+        "scripts/v0/optimizer/budget_estimator.ts",
+        "scripts/v0/optimizer/budget_estimator_model.json",
+        "scripts/v0/optimizer/budget_model.ts",
+        "scripts/v0/optimizer/budget_telemetry.ts",
+        "scripts/v0/optimizer/compiler_input.ts",
+        "scripts/v0/optimizer/connected_arcs.ts",
+        "scripts/v0/optimizer/contact_composition.ts",
+        "scripts/v0/optimizer/contact_fragments.ts",
+        "scripts/v0/optimizer/contact_interval.ts",
+        "scripts/v0/optimizer/contact_phase.ts",
+        "scripts/v0/optimizer/contact_transition.ts",
+        "scripts/v0/optimizer/deadline.ts",
+        "scripts/v0/optimizer/handoff.ts",
+        "scripts/v0/optimizer/impact_policy.ts",
+        "scripts/v0/optimizer/impact_response_model.ts",
+        "scripts/v0/optimizer/kinematic_support.ts",
+        "scripts/v0/optimizer/legacy_handoff.ts",
+        "scripts/v0/optimizer/motion_profiles.ts",
+        "scripts/v0/optimizer/native_motion.ts",
+        "scripts/v0/optimizer/native_motion_schedule.ts",
+        "scripts/v0/optimizer/native_pointwise_energy.ts",
+        "scripts/v0/optimizer/node.ts",
+        "scripts/v0/optimizer/normal_contacts.ts",
+        "scripts/v0/optimizer/normal_motion.ts",
+        "scripts/v0/optimizer/normal_pointwise_projection.ts",
+        "scripts/v0/optimizer/objective.ts",
+        "scripts/v0/optimizer/objective_control.ts",
+        "scripts/v0/optimizer/polish.ts",
+        "scripts/v0/optimizer/production_repertoire.ts",
+        "scripts/v0/optimizer/rail_contours.ts",
+        "scripts/v0/optimizer/rail_recipes.ts",
+        "scripts/v0/optimizer/readiness.ts",
+        "scripts/v0/optimizer/readiness_base_features.ts",
+        "scripts/v0/optimizer/readiness_features.ts",
+        "scripts/v0/optimizer/readiness_model.json",
+        "scripts/v0/optimizer/readiness_model_artifact.ts",
+        "scripts/v0/optimizer/readiness_scoring.ts",
+        "scripts/v0/optimizer/register.ts",
+        "scripts/v0/optimizer/repair_branch_bound.ts",
+        "scripts/v0/optimizer/repertoire_candidate.ts",
+        "scripts/v0/optimizer/repertoire_composition.ts",
+        "scripts/v0/optimizer/repertoire_plan.ts",
+        "scripts/v0/optimizer/repertoire_policy.ts",
+        "scripts/v0/optimizer/repertoire_realization.ts",
+        "scripts/v0/optimizer/sample.ts",
+        "scripts/v0/optimizer/selective_backtracking.ts",
+        "scripts/v0/optimizer/sim_frames.ts",
+        "scripts/v0/optimizer/solver.ts",
+        "scripts/v0/optimizer/types.ts",
+        "scripts/v0/score.ts",
+        "scripts/v0/trajectory/curve_resolution.ts",
+        "scripts/v0/trajectory/native_catch_history.ts",
+        "scripts/v0/trajectory/precontact_multicontact_history.ts",
+        "scripts/v0/types.ts",
+        "tsconfig.json"
+      ],
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "cd2d2fec4381421469c3b1bc4ede4383125199b8d43231974083e226fe1779f5"
+    },
+    "judge": {
+      "schema": "line.benchmark-v5.freeze.v1",
+      "judge": {
+        "v4": {
+          "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "files": {
+            "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+            "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+            "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+            "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+            "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+            "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+            "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+            "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+            "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+            "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+            "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+            "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+            "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+            "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+            "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+            "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+            "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+            "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+            "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+          }
+        },
+        "files": {
+          "benchmark/v5/policy.ts": "c1bad1623f3e5bbc6f25bb30451bb9d08dbd4ba728593a90acc2810ba47ef594",
+          "benchmark/v5/model.ts": "d30420a41621c3bd3daa1d7285b3bd556dc885e5c15b48e9f0c8511695e3952d",
+          "benchmark/v5/evaluator.ts": "a506cc3e0c104fad19b760638e3b27b757062e7176b54c1f52ffa546e9a4ed97",
+          "benchmark/v5/contract.ts": "5d199928db3b934ff3b550184db21915b4817bb275748999590784edb248ef4b",
+          "benchmark/v5/catalog.json.gz": "da26bbd351e8061e2a75ced2bd18fcebd7267a5806ca3b8953f41f77850c49b8",
+          "benchmark/v5/catalog.lock.json": "2529b6fc39b5cd29e40b8e0888a408291f2ef8ba1ca7a5b8022188757d70f648",
+          "scripts/v0/optimizer/repertoire_realization.ts": "54b17ac4f198cd03b2fe04d47bce4b333eb73e0501e22f897c229eeebcb8d67b",
+          "scripts/v0/optimizer/arc_rail_groups.ts": "b5c409289f2bc926e7a769ec1b586344ad88ed4b1784438870ce5ea7aa55b03c"
+        }
+      }
+    },
+    "executionSha256": "1e1f80fded78ed3b17794fbb1ed506de1d30738613efdc10b94676295be332c5",
+    "ids": [
+      "canonical-afterglow_turn-single",
+      "canonical-afterglow_turn-arcs",
+      "canonical-afterglow_turn-fold",
+      "canonical-afterglow_turn-serpentine",
+      "canonical-afterglow_turn-scallops",
+      "canonical-afterglow_turn-terraces",
+      "canonical-afterglow_turn-scattered",
+      "canonical-accelerando_reply-single",
+      "canonical-accelerando_reply-arcs",
+      "canonical-accelerando_reply-fold",
+      "canonical-accelerando_reply-serpentine",
+      "canonical-accelerando_reply-scallops",
+      "canonical-accelerando_reply-terraces",
+      "canonical-accelerando_reply-scattered",
+      "canonical-archipelago-single",
+      "canonical-archipelago-arcs",
+      "canonical-archipelago-fold",
+      "canonical-archipelago-serpentine",
+      "canonical-archipelago-scallops",
+      "canonical-archipelago-terraces",
+      "canonical-archipelago-scattered",
+      "canonical-bridge_dense_dialogue-single",
+      "canonical-bridge_dense_dialogue-arcs",
+      "canonical-bridge_dense_dialogue-fold",
+      "canonical-bridge_dense_dialogue-serpentine",
+      "canonical-bridge_dense_dialogue-scallops",
+      "canonical-bridge_dense_dialogue-terraces",
+      "canonical-bridge_dense_dialogue-scattered",
+      "canonical-bridge_high_air_drive-single",
+      "canonical-bridge_high_air_drive-arcs",
+      "canonical-bridge_high_air_drive-fold",
+      "canonical-bridge_high_air_drive-serpentine",
+      "canonical-bridge_high_air_drive-scallops",
+      "canonical-bridge_high_air_drive-terraces",
+      "canonical-bridge_high_air_drive-scattered",
+      "canonical-music_amor_na_praia_46s-single",
+      "canonical-music_amor_na_praia_46s-arcs",
+      "canonical-music_amor_na_praia_46s-fold",
+      "canonical-music_amor_na_praia_46s-serpentine",
+      "canonical-music_amor_na_praia_46s-scallops",
+      "canonical-music_amor_na_praia_46s-terraces",
+      "canonical-music_amor_na_praia_46s-scattered",
+      "canonical-music_luna_bala_44s-single",
+      "canonical-music_luna_bala_44s-arcs",
+      "canonical-music_luna_bala_44s-fold",
+      "canonical-music_luna_bala_44s-serpentine",
+      "canonical-music_luna_bala_44s-scallops",
+      "canonical-music_luna_bala_44s-terraces",
+      "canonical-music_luna_bala_44s-scattered",
+      "canonical-music_tiki_tiki_48s-single",
+      "canonical-music_tiki_tiki_48s-arcs",
+      "canonical-music_tiki_tiki_48s-fold",
+      "canonical-music_tiki_tiki_48s-serpentine",
+      "canonical-music_tiki_tiki_48s-scallops",
+      "canonical-music_tiki_tiki_48s-terraces",
+      "canonical-music_tiki_tiki_48s-scattered",
+      "canonical-afterglow_turn-automatic",
+      "canonical-bridge_pickup_lattice-automatic",
+      "canonical-bridge_loose_pocket-automatic",
+      "canonical-accelerando_reply-automatic",
+      "canonical-archipelago-automatic",
+      "canonical-bridge_dense_dialogue-automatic",
+      "canonical-bridge_high_air_drive-automatic",
+      "canonical-bridge_sparse_lowline-automatic",
+      "canonical-bridge_frontier_pickup_progression-automatic",
+      "canonical-bridge_frontier_dense_recovery-automatic",
+      "canonical-bridge_frontier_low_air_endurance-automatic",
+      "canonical-alternating_intentions-automatic",
+      "canonical-amplitude_reply-automatic",
+      "canonical-bridge_believer_56_6s-automatic",
+      "canonical-music_amor_na_praia_46s-automatic",
+      "canonical-music_luna_bala_44s-automatic",
+      "canonical-music_tiki_tiki_48s-automatic",
+      "canonical-music_shelter_impact_sync_81s-automatic",
+      "canonical-music_amour_de_ma_vie_short_44s-automatic"
+    ],
+    "seeds": [
+      101,
+      202
+    ],
+    "budget": 3000000,
+    "split": "canonical",
+    "profile": "canonical"
+  },
+  "summary": {
+    "headline": 770.1169831069376,
+    "panels": {
+      "fixed": {
+        "score": 933.425838746885,
+        "families": [
+          {
+            "family": "single",
+            "score": 895.7423971677224
+          },
+          {
+            "family": "arcs",
+            "score": 947.7394985708108
+          },
+          {
+            "family": "fold",
+            "score": 921.6628406831483
+          },
+          {
+            "family": "serpentine",
+            "score": 940.0446485007758
+          },
+          {
+            "family": "scallops",
+            "score": 934.3887440819133
+          },
+          {
+            "family": "terraces",
+            "score": 944.1723242194811
+          },
+          {
+            "family": "scattered",
+            "score": 950.2304180043429
+          }
+        ]
+      },
+      "automatic": {
+        "score": 606.8081274669902,
+        "families": [
+          {
+            "family": "regular_exceptions",
+            "score": 708.315371799949
+          },
+          {
+            "family": "subdivision_pickup",
+            "score": 648.5973627567156
+          },
+          {
+            "family": "irregular_microtimed",
+            "score": 709.9508904709171
+          },
+          {
+            "family": "cadence_transition",
+            "score": 723.0181199359032
+          },
+          {
+            "family": "spacious_amplitude",
+            "score": 731.677809391952
+          },
+          {
+            "family": "dense_musical",
+            "score": 620.8204619187113
+          },
+          {
+            "family": "high_air_energy",
+            "score": 730.2318317611048
+          },
+          {
+            "family": "sparse_transition",
+            "score": 621.7919685127931
+          },
+          {
+            "family": "rapid_pickup_frontier",
+            "score": 0
+          },
+          {
+            "family": "dense_recovery_frontier",
+            "score": 23.36781894220326
+          },
+          {
+            "family": "low_air_frontier",
+            "score": 548.8227759388474
+          },
+          {
+            "family": "legacy_transition_regression",
+            "score": 731.6738655708623
+          },
+          {
+            "family": "legacy_amplitude_regression",
+            "score": 793.4791320152847
+          },
+          {
+            "family": "believer",
+            "score": 497.7296723948154
+          },
+          {
+            "family": "amor_na_praia",
+            "score": 772.9765632788111
+          },
+          {
+            "family": "luna_bala",
+            "score": 802.8923901366782
+          },
+          {
+            "family": "tiki_tiki",
+            "score": 704.6419715435303
+          },
+          {
+            "family": "shelter",
+            "score": 692.5319315688212
+          },
+          {
+            "family": "amour_de_ma_vie",
+            "score": 466.83448393491653
+          }
+        ]
+      }
+    },
+    "musical": {
+      "headline": 770.1169831069376,
+      "panels": {
+        "fixed": {
+          "score": 933.425838746885,
+          "families": [
+            {
+              "family": "single",
+              "score": 895.7423971677224
+            },
+            {
+              "family": "arcs",
+              "score": 947.7394985708106
+            },
+            {
+              "family": "fold",
+              "score": 921.6628406831483
+            },
+            {
+              "family": "serpentine",
+              "score": 940.0446485007758
+            },
+            {
+              "family": "scallops",
+              "score": 934.3887440819133
+            },
+            {
+              "family": "terraces",
+              "score": 944.1723242194811
+            },
+            {
+              "family": "scattered",
+              "score": 950.2304180043429
+            }
+          ]
+        },
+        "automatic": {
+          "score": 606.8081274669902,
+          "families": [
+            {
+              "family": "regular_exceptions",
+              "score": 708.315371799949
+            },
+            {
+              "family": "subdivision_pickup",
+              "score": 648.5973627567156
+            },
+            {
+              "family": "irregular_microtimed",
+              "score": 709.9508904709171
+            },
+            {
+              "family": "cadence_transition",
+              "score": 723.0181199359032
+            },
+            {
+              "family": "spacious_amplitude",
+              "score": 731.677809391952
+            },
+            {
+              "family": "dense_musical",
+              "score": 620.8204619187113
+            },
+            {
+              "family": "high_air_energy",
+              "score": 730.2318317611048
+            },
+            {
+              "family": "sparse_transition",
+              "score": 621.7919685127931
+            },
+            {
+              "family": "rapid_pickup_frontier",
+              "score": 0
+            },
+            {
+              "family": "dense_recovery_frontier",
+              "score": 23.36781894220326
+            },
+            {
+              "family": "low_air_frontier",
+              "score": 548.8227759388474
+            },
+            {
+              "family": "legacy_transition_regression",
+              "score": 731.6738655708623
+            },
+            {
+              "family": "legacy_amplitude_regression",
+              "score": 793.4791320152847
+            },
+            {
+              "family": "believer",
+              "score": 497.7296723948154
+            },
+            {
+              "family": "amor_na_praia",
+              "score": 772.9765632788111
+            },
+            {
+              "family": "luna_bala",
+              "score": 802.8923901366782
+            },
+            {
+              "family": "tiki_tiki",
+              "score": 704.6419715435303
+            },
+            {
+              "family": "shelter",
+              "score": 692.5319315688212
+            },
+            {
+              "family": "amour_de_ma_vie",
+              "score": 466.83448393491653
+            }
+          ]
+        }
+      }
+    },
+    "runs": 150,
+    "valid": 147,
+    "fullyRealized": 147,
+    "realizedRequests": 3491,
+    "requested": 3834,
+    "distinctTracks": 129
+  },
+  "executionErrors": 0,
+  "interpretation": {
+    "errors": "Descriptive association on valid rides only, limited to scored sections. Frame-weighted per axis; impacts weighted one each. This is not a causal shape comparison.",
+    "distribution": "Requested duration includes the physical outro; counts are not musical-time quotas. Local fulfillment on a failed ride does not earn V5 credit.",
+    "runtime": "Cold compiler function-call time under concurrent benchmark/render load; excludes process startup, preceding imports and independent judging."
+  },
+  "diagnostics": {
+    "fixed": {
+      "choices": {
+        "arcs:forbidden": {
+          "requestedSupports": 48,
+          "requestedFrames": 1789,
+          "locallyFulfilledSupports": 48,
+          "fulfilledOnValidRides": 48,
+          "supportsWithGuideContact": 0
+        },
+        "arcs:required": {
+          "requestedSupports": 48,
+          "requestedFrames": 1789,
+          "locallyFulfilledSupports": 48,
+          "fulfilledOnValidRides": 48,
+          "supportsWithGuideContact": 48
+        },
+        "fold:required": {
+          "requestedSupports": 48,
+          "requestedFrames": 1789,
+          "locallyFulfilledSupports": 48,
+          "fulfilledOnValidRides": 48,
+          "supportsWithGuideContact": 48
+        },
+        "serpentine:required": {
+          "requestedSupports": 48,
+          "requestedFrames": 1789,
+          "locallyFulfilledSupports": 48,
+          "fulfilledOnValidRides": 48,
+          "supportsWithGuideContact": 48
+        },
+        "scallops:required": {
+          "requestedSupports": 48,
+          "requestedFrames": 1789,
+          "locallyFulfilledSupports": 48,
+          "fulfilledOnValidRides": 48,
+          "supportsWithGuideContact": 48
+        },
+        "terraces:required": {
+          "requestedSupports": 48,
+          "requestedFrames": 1789,
+          "locallyFulfilledSupports": 48,
+          "fulfilledOnValidRides": 48,
+          "supportsWithGuideContact": 48
+        },
+        "scattered:optional": {
+          "requestedSupports": 48,
+          "requestedFrames": 1789,
+          "locallyFulfilledSupports": 48,
+          "fulfilledOnValidRides": 48,
+          "supportsWithGuideContact": 0
+        }
+      },
+      "transitions": {
+        "arcs:optional → arcs:forbidden": {
+          "requestedEntries": 16,
+          "fulfilledEntriesOnValidRides": 16
+        },
+        "arcs:forbidden → arcs:forbidden": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 32
+        },
+        "arcs:optional → arcs:required": {
+          "requestedEntries": 16,
+          "fulfilledEntriesOnValidRides": 16
+        },
+        "arcs:required → arcs:required": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 32
+        },
+        "arcs:optional → fold:required": {
+          "requestedEntries": 16,
+          "fulfilledEntriesOnValidRides": 16
+        },
+        "fold:required → fold:required": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 32
+        },
+        "arcs:optional → serpentine:required": {
+          "requestedEntries": 16,
+          "fulfilledEntriesOnValidRides": 16
+        },
+        "serpentine:required → serpentine:required": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 32
+        },
+        "arcs:optional → scallops:required": {
+          "requestedEntries": 16,
+          "fulfilledEntriesOnValidRides": 16
+        },
+        "scallops:required → scallops:required": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 32
+        },
+        "arcs:optional → terraces:required": {
+          "requestedEntries": 16,
+          "fulfilledEntriesOnValidRides": 16
+        },
+        "terraces:required → terraces:required": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 32
+        },
+        "arcs:optional → scattered:optional": {
+          "requestedEntries": 16,
+          "fulfilledEntriesOnValidRides": 16
+        },
+        "scattered:optional → scattered:optional": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 32
+        }
+      },
+      "errorsByConstructionAndAxis": {
+        "arcs:forbidden/impact": {
+          "observations": 48,
+          "weight": 48,
+          "squaredErrorSum": 0.8286935033964224,
+          "rms": 0.13139424640152805
+        },
+        "arcs:forbidden/air": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 4.8536053430654285,
+          "rms": 0.05293687329010778
+        },
+        "arcs:forbidden/speed": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 45.36688582367951,
+          "rms": 0.1618436038037763
+        },
+        "arcs:required/impact": {
+          "observations": 48,
+          "weight": 48,
+          "squaredErrorSum": 0.01591901785292428,
+          "rms": 0.0182111560662484
+        },
+        "arcs:required/air": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 2.0262159786611917,
+          "rms": 0.03420337201834975
+        },
+        "arcs:required/speed": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 0.47370877881211526,
+          "rms": 0.016537953738712897
+        },
+        "fold:required/impact": {
+          "observations": 48,
+          "weight": 48,
+          "squaredErrorSum": 0.2926583676068007,
+          "rms": 0.07808360471406069
+        },
+        "fold:required/air": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 9.229427854977052,
+          "rms": 0.0729984175813852
+        },
+        "fold:required/speed": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 12.437190934273916,
+          "rms": 0.08473975557271242
+        },
+        "serpentine:required/impact": {
+          "observations": 48,
+          "weight": 48,
+          "squaredErrorSum": 0.2358116542257516,
+          "rms": 0.07009096087492184
+        },
+        "serpentine:required/air": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 2.706803584486594,
+          "rms": 0.03953251347344432
+        },
+        "serpentine:required/speed": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 3.6712391300705773,
+          "rms": 0.04603969024013905
+        },
+        "scallops:required/impact": {
+          "observations": 48,
+          "weight": 48,
+          "squaredErrorSum": 0.12325142080984604,
+          "rms": 0.050672852036750995
+        },
+        "scallops:required/air": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 9.715979805743292,
+          "rms": 0.0748978511677842
+        },
+        "scallops:required/speed": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 2.7898199782979436,
+          "rms": 0.04013415708392478
+        },
+        "terraces:required/impact": {
+          "observations": 48,
+          "weight": 48,
+          "squaredErrorSum": 0.034634429929687065,
+          "rms": 0.026861694353393778
+        },
+        "terraces:required/air": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 3.291420476600879,
+          "rms": 0.043593098568938116
+        },
+        "terraces:required/speed": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 0.978176340135341,
+          "rms": 0.023764825689071487
+        },
+        "scattered:optional/impact": {
+          "observations": 48,
+          "weight": 48,
+          "squaredErrorSum": 0.0028252299013601656,
+          "rms": 0.007671959089980654
+        },
+        "scattered:optional/air": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 1.248137846792467,
+          "rms": 0.026844624429011494
+        },
+        "scattered:optional/speed": {
+          "observations": 48,
+          "weight": 1732,
+          "squaredErrorSum": 0.24444111401821952,
+          "rms": 0.011879910896991192
+        },
+        "arcs:forbidden/amplitude": {
+          "observations": 12,
+          "weight": 430,
+          "squaredErrorSum": 3.4140164259379415,
+          "rms": 0.08910428207205649
+        },
+        "arcs:required/amplitude": {
+          "observations": 12,
+          "weight": 430,
+          "squaredErrorSum": 0.5724756750526336,
+          "rms": 0.0364875153880361
+        },
+        "fold:required/amplitude": {
+          "observations": 12,
+          "weight": 430,
+          "squaredErrorSum": 13.849816529876115,
+          "rms": 0.17946831377954908
+        },
+        "serpentine:required/amplitude": {
+          "observations": 12,
+          "weight": 430,
+          "squaredErrorSum": 0.966095133393367,
+          "rms": 0.04739971380036664
+        },
+        "scallops:required/amplitude": {
+          "observations": 12,
+          "weight": 430,
+          "squaredErrorSum": 2.386005600519471,
+          "rms": 0.07449060500335739
+        },
+        "terraces:required/amplitude": {
+          "observations": 12,
+          "weight": 430,
+          "squaredErrorSum": 0.5972284470314602,
+          "rms": 0.037267993844443015
+        },
+        "scattered:optional/amplitude": {
+          "observations": 12,
+          "weight": 430,
+          "squaredErrorSum": 0.1993172750520394,
+          "rms": 0.02152971311078366
+        }
+      },
+      "worstPassagesByAxis": {
+        "impact": [
+          {
+            "id": "canonical-music_luna_bala_44s-single",
+            "seed": 101,
+            "section": 75,
+            "request": "arcs:forbidden",
+            "gap": 74,
+            "startFrame": 1674,
+            "endFrame": 1696,
+            "tail": false,
+            "axis": "impact",
+            "target": 0.542,
+            "achieved": 0.20341415272379917,
+            "error": 0.3385858472762009
+          },
+          {
+            "id": "canonical-music_luna_bala_44s-single",
+            "seed": 202,
+            "section": 75,
+            "request": "arcs:forbidden",
+            "gap": 74,
+            "startFrame": 1674,
+            "endFrame": 1696,
+            "tail": false,
+            "axis": "impact",
+            "target": 0.542,
+            "achieved": 0.20341415272379917,
+            "error": 0.3385858472762009
+          },
+          {
+            "id": "canonical-accelerando_reply-fold",
+            "seed": 202,
+            "section": 33,
+            "request": "fold:required",
+            "gap": 32,
+            "startFrame": 808,
+            "endFrame": 824,
+            "tail": false,
+            "axis": "impact",
+            "target": 0.8,
+            "achieved": 0.5264834951691197,
+            "error": 0.2735165048308803
+          },
+          {
+            "id": "canonical-music_tiki_tiki_48s-single",
+            "seed": 101,
+            "section": 29,
+            "request": "arcs:forbidden",
+            "gap": 28,
+            "startFrame": 749,
+            "endFrame": 766,
+            "tail": false,
+            "axis": "impact",
+            "target": 0.76,
+            "achieved": 0.5013711909709272,
+            "error": 0.2586288090290728
+          },
+          {
+            "id": "canonical-music_tiki_tiki_48s-single",
+            "seed": 202,
+            "section": 29,
+            "request": "arcs:forbidden",
+            "gap": 28,
+            "startFrame": 749,
+            "endFrame": 766,
+            "tail": false,
+            "axis": "impact",
+            "target": 0.76,
+            "achieved": 0.5013711909709272,
+            "error": 0.2586288090290728
+          }
+        ],
+        "air": [
+          {
+            "id": "canonical-bridge_high_air_drive-scallops",
+            "seed": 101,
+            "section": 33,
+            "request": "scallops:required",
+            "gap": 33,
+            "startFrame": 766,
+            "endFrame": 789,
+            "tail": false,
+            "axis": "air",
+            "target": 0.875,
+            "achieved": 0.6666666666666666,
+            "error": 0.20833333333333337
+          },
+          {
+            "id": "canonical-bridge_high_air_drive-scallops",
+            "seed": 202,
+            "section": 33,
+            "request": "scallops:required",
+            "gap": 33,
+            "startFrame": 766,
+            "endFrame": 789,
+            "tail": false,
+            "axis": "air",
+            "target": 0.875,
+            "achieved": 0.6666666666666666,
+            "error": 0.20833333333333337
+          },
+          {
+            "id": "canonical-music_luna_bala_44s-scallops",
+            "seed": 101,
+            "section": 74,
+            "request": "scallops:required",
+            "gap": 74,
+            "startFrame": 1674,
+            "endFrame": 1696,
+            "tail": false,
+            "axis": "air",
+            "target": 0.8695652173913043,
+            "achieved": 0.6956521739130435,
+            "error": 0.17391304347826086
+          },
+          {
+            "id": "canonical-music_luna_bala_44s-scallops",
+            "seed": 202,
+            "section": 74,
+            "request": "scallops:required",
+            "gap": 74,
+            "startFrame": 1674,
+            "endFrame": 1696,
+            "tail": false,
+            "axis": "air",
+            "target": 0.8695652173913043,
+            "achieved": 0.6956521739130435,
+            "error": 0.17391304347826086
+          },
+          {
+            "id": "canonical-bridge_high_air_drive-fold",
+            "seed": 101,
+            "section": 33,
+            "request": "fold:required",
+            "gap": 33,
+            "startFrame": 766,
+            "endFrame": 789,
+            "tail": false,
+            "axis": "air",
+            "target": 0.875,
+            "achieved": 0.7083333333333334,
+            "error": 0.16666666666666663
+          }
+        ],
+        "speed": [
+          {
+            "id": "canonical-accelerando_reply-single",
+            "seed": 202,
+            "section": 34,
+            "request": "arcs:forbidden",
+            "gap": 34,
+            "startFrame": 852,
+            "endFrame": 873,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.6638200593171296,
+            "achieved": 0.2549138436819739,
+            "error": 0.4089062156351557
+          },
+          {
+            "id": "canonical-afterglow_turn-single",
+            "seed": 101,
+            "section": 8,
+            "request": "arcs:forbidden",
+            "gap": 8,
+            "startFrame": 202,
+            "endFrame": 228,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.6921160858154296,
+            "achieved": 0.2916559029306544,
+            "error": 0.4004601828847752
+          },
+          {
+            "id": "canonical-bridge_dense_dialogue-single",
+            "seed": 101,
+            "section": 47,
+            "request": "arcs:forbidden",
+            "gap": 47,
+            "startFrame": 689,
+            "endFrame": 707,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.819302350823045,
+            "achieved": 0.47108059921758993,
+            "error": 0.3482217516054551
+          },
+          {
+            "id": "canonical-music_tiki_tiki_48s-single",
+            "seed": 101,
+            "section": 29,
+            "request": "arcs:forbidden",
+            "gap": 29,
+            "startFrame": 766,
+            "endFrame": 784,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.6737759080721745,
+            "achieved": 0.3612827341748778,
+            "error": 0.3124931738972967
+          },
+          {
+            "id": "canonical-music_tiki_tiki_48s-single",
+            "seed": 202,
+            "section": 29,
+            "request": "arcs:forbidden",
+            "gap": 29,
+            "startFrame": 766,
+            "endFrame": 784,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.6737759080721745,
+            "achieved": 0.3612827341748778,
+            "error": 0.3124931738972967
+          }
+        ],
+        "amplitude": [
+          {
+            "id": "canonical-archipelago-fold",
+            "seed": 202,
+            "section": 66,
+            "request": "fold:required",
+            "gap": 66,
+            "startFrame": 2385,
+            "endFrame": 2500,
+            "tail": true,
+            "axis": "amplitude",
+            "target": 0.1845717015759698,
+            "achieved": 0.4569953020727416,
+            "error": 0.2724236004967718
+          },
+          {
+            "id": "canonical-archipelago-fold",
+            "seed": 202,
+            "section": 65,
+            "request": "fold:required",
+            "gap": 65,
+            "startFrame": 2334,
+            "endFrame": 2385,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.22233925170898441,
+            "achieved": 0.4566605867662304,
+            "error": 0.23432133505724598
+          },
+          {
+            "id": "canonical-archipelago-fold",
+            "seed": 202,
+            "section": 64,
+            "request": "fold:required",
+            "gap": 64,
+            "startFrame": 2302,
+            "endFrame": 2334,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.23969514160156247,
+            "achieved": 0.033692030797858465,
+            "error": 0.206003110803704
+          },
+          {
+            "id": "canonical-archipelago-single",
+            "seed": 101,
+            "section": 43,
+            "request": "arcs:forbidden",
+            "gap": 43,
+            "startFrame": 1559,
+            "endFrame": 1585,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.24769860500000002,
+            "achieved": 0.08868808702615703,
+            "error": 0.15901051797384297
+          },
+          {
+            "id": "canonical-archipelago-single",
+            "seed": 202,
+            "section": 65,
+            "request": "arcs:forbidden",
+            "gap": 65,
+            "startFrame": 2334,
+            "endFrame": 2385,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.22233925170898441,
+            "achieved": 0.3805123452950666,
+            "error": 0.1581730935860822
+          }
+        ]
+      },
+      "requestMisses": [],
+      "work": {
+        "n": 112,
+        "min": 1512080,
+        "median": 2136954.0,
+        "p90": 2269248,
+        "max": 2385649,
+        "sum": 223321955
+      },
+      "compileMs": {
+        "n": 112,
+        "min": 61024.782616000004,
+        "median": 86170.4408905,
+        "p90": 105516.612079,
+        "max": 126935.715766,
+        "sum": 9903932.381112
+      },
+      "judgeMs": {
+        "n": 112,
+        "min": 98.96008599999186,
+        "median": 197.93411999999807,
+        "p90": 246.9612679999991,
+        "max": 309.1331849999988,
+        "sum": 21984.956705000033
+      }
+    },
+    "automatic": {
+      "choices": {
+        "scattered:optional": {
+          "requestedSupports": 528,
+          "requestedFrames": 13402,
+          "locallyFulfilledSupports": 527,
+          "fulfilledOnValidRides": 481,
+          "supportsWithGuideContact": 0
+        },
+        "arcs:forbidden": {
+          "requestedSupports": 793,
+          "requestedFrames": 20384,
+          "locallyFulfilledSupports": 793,
+          "fulfilledOnValidRides": 716,
+          "supportsWithGuideContact": 0
+        },
+        "fold:required": {
+          "requestedSupports": 552,
+          "requestedFrames": 14190,
+          "locallyFulfilledSupports": 547,
+          "fulfilledOnValidRides": 492,
+          "supportsWithGuideContact": 547
+        },
+        "arcs:required": {
+          "requestedSupports": 447,
+          "requestedFrames": 11417,
+          "locallyFulfilledSupports": 445,
+          "fulfilledOnValidRides": 407,
+          "supportsWithGuideContact": 445
+        },
+        "serpentine:required": {
+          "requestedSupports": 386,
+          "requestedFrames": 9307,
+          "locallyFulfilledSupports": 383,
+          "fulfilledOnValidRides": 350,
+          "supportsWithGuideContact": 383
+        },
+        "scallops:required": {
+          "requestedSupports": 552,
+          "requestedFrames": 14016,
+          "locallyFulfilledSupports": 550,
+          "fulfilledOnValidRides": 493,
+          "supportsWithGuideContact": 550
+        },
+        "terraces:required": {
+          "requestedSupports": 240,
+          "requestedFrames": 6216,
+          "locallyFulfilledSupports": 240,
+          "fulfilledOnValidRides": 216,
+          "supportsWithGuideContact": 240
+        }
+      },
+      "transitions": {
+        "arcs:optional → scattered:optional": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 18
+        },
+        "scattered:optional → scattered:optional": {
+          "requestedEntries": 325,
+          "fulfilledEntriesOnValidRides": 296
+        },
+        "scattered:optional → arcs:forbidden": {
+          "requestedEntries": 85,
+          "fulfilledEntriesOnValidRides": 79
+        },
+        "arcs:forbidden → arcs:forbidden": {
+          "requestedEntries": 519,
+          "fulfilledEntriesOnValidRides": 466
+        },
+        "arcs:forbidden → fold:required": {
+          "requestedEntries": 68,
+          "fulfilledEntriesOnValidRides": 62
+        },
+        "fold:required → fold:required": {
+          "requestedEntries": 327,
+          "fulfilledEntriesOnValidRides": 292
+        },
+        "fold:required → arcs:forbidden": {
+          "requestedEntries": 33,
+          "fulfilledEntriesOnValidRides": 30
+        },
+        "arcs:forbidden → arcs:required": {
+          "requestedEntries": 40,
+          "fulfilledEntriesOnValidRides": 37
+        },
+        "arcs:required → arcs:required": {
+          "requestedEntries": 275,
+          "fulfilledEntriesOnValidRides": 251
+        },
+        "arcs:required → scattered:optional": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 18
+        },
+        "arcs:forbidden → scattered:optional": {
+          "requestedEntries": 61,
+          "fulfilledEntriesOnValidRides": 56
+        },
+        "scattered:optional → arcs:required": {
+          "requestedEntries": 38,
+          "fulfilledEntriesOnValidRides": 35
+        },
+        "arcs:required → arcs:forbidden": {
+          "requestedEntries": 40,
+          "fulfilledEntriesOnValidRides": 36
+        },
+        "arcs:forbidden → serpentine:required": {
+          "requestedEntries": 20,
+          "fulfilledEntriesOnValidRides": 19
+        },
+        "serpentine:required → serpentine:required": {
+          "requestedEntries": 239,
+          "fulfilledEntriesOnValidRides": 217
+        },
+        "serpentine:required → scallops:required": {
+          "requestedEntries": 29,
+          "fulfilledEntriesOnValidRides": 25
+        },
+        "scallops:required → scallops:required": {
+          "requestedEntries": 325,
+          "fulfilledEntriesOnValidRides": 290
+        },
+        "scallops:required → serpentine:required": {
+          "requestedEntries": 63,
+          "fulfilledEntriesOnValidRides": 58
+        },
+        "serpentine:required → arcs:forbidden": {
+          "requestedEntries": 58,
+          "fulfilledEntriesOnValidRides": 53
+        },
+        "arcs:required → terraces:required": {
+          "requestedEntries": 33,
+          "fulfilledEntriesOnValidRides": 31
+        },
+        "terraces:required → terraces:required": {
+          "requestedEntries": 141,
+          "fulfilledEntriesOnValidRides": 127
+        },
+        "terraces:required → serpentine:required": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 18
+        },
+        "serpentine:required → arcs:required": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 18
+        },
+        "arcs:required → scallops:required": {
+          "requestedEntries": 37,
+          "fulfilledEntriesOnValidRides": 33
+        },
+        "serpentine:required → scattered:optional": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 18
+        },
+        "arcs:forbidden → scallops:required": {
+          "requestedEntries": 44,
+          "fulfilledEntriesOnValidRides": 39
+        },
+        "scallops:required → fold:required": {
+          "requestedEntries": 68,
+          "fulfilledEntriesOnValidRides": 59
+        },
+        "fold:required → arcs:required": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 28
+        },
+        "arcs:required → serpentine:required": {
+          "requestedEntries": 21,
+          "fulfilledEntriesOnValidRides": 18
+        },
+        "fold:required → scallops:required": {
+          "requestedEntries": 57,
+          "fulfilledEntriesOnValidRides": 52
+        },
+        "scallops:required → arcs:required": {
+          "requestedEntries": 14,
+          "fulfilledEntriesOnValidRides": 13
+        },
+        "terraces:required → arcs:forbidden": {
+          "requestedEntries": 13,
+          "fulfilledEntriesOnValidRides": 12
+        },
+        "arcs:optional → arcs:required": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 17
+        },
+        "arcs:required → fold:required": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 17
+        },
+        "scallops:required → arcs:forbidden": {
+          "requestedEntries": 45,
+          "fulfilledEntriesOnValidRides": 40
+        },
+        "arcs:forbidden → terraces:required": {
+          "requestedEntries": 32,
+          "fulfilledEntriesOnValidRides": 28
+        },
+        "terraces:required → scallops:required": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 17
+        },
+        "scallops:required → scattered:optional": {
+          "requestedEntries": 29,
+          "fulfilledEntriesOnValidRides": 25
+        },
+        "scattered:optional → fold:required": {
+          "requestedEntries": 36,
+          "fulfilledEntriesOnValidRides": 32
+        },
+        "fold:required → scattered:optional": {
+          "requestedEntries": 39,
+          "fulfilledEntriesOnValidRides": 35
+        },
+        "scattered:optional → scallops:required": {
+          "requestedEntries": 41,
+          "fulfilledEntriesOnValidRides": 37
+        },
+        "fold:required → serpentine:required": {
+          "requestedEntries": 24,
+          "fulfilledEntriesOnValidRides": 20
+        },
+        "serpentine:required → fold:required": {
+          "requestedEntries": 19,
+          "fulfilledEntriesOnValidRides": 17
+        },
+        "fold:required → terraces:required": {
+          "requestedEntries": 33,
+          "fulfilledEntriesOnValidRides": 29
+        },
+        "terraces:required → scattered:optional": {
+          "requestedEntries": 17,
+          "fulfilledEntriesOnValidRides": 15
+        },
+        "terraces:required → fold:required": {
+          "requestedEntries": 15,
+          "fulfilledEntriesOnValidRides": 13
+        },
+        "terraces:required → arcs:required": {
+          "requestedEntries": 10,
+          "fulfilledEntriesOnValidRides": 8
+        },
+        "scattered:optional → terraces:required": {
+          "requestedEntries": 1,
+          "fulfilledEntriesOnValidRides": 1
+        }
+      },
+      "errorsByConstructionAndAxis": {
+        "scattered:optional/impact": {
+          "observations": 481,
+          "weight": 481,
+          "squaredErrorSum": 2.4207765084401696,
+          "rms": 0.07094222574635298
+        },
+        "scattered:optional/air": {
+          "observations": 481,
+          "weight": 12851,
+          "squaredErrorSum": 16.147145511117294,
+          "rms": 0.03544699448516152
+        },
+        "scattered:optional/speed": {
+          "observations": 481,
+          "weight": 12851,
+          "squaredErrorSum": 28.87746382323977,
+          "rms": 0.04740357136118233
+        },
+        "arcs:forbidden/impact": {
+          "observations": 716,
+          "weight": 716,
+          "squaredErrorSum": 21.746745122076476,
+          "rms": 0.17427721897362097
+        },
+        "arcs:forbidden/air": {
+          "observations": 716,
+          "weight": 19341,
+          "squaredErrorSum": 59.3747220629135,
+          "rms": 0.05540657852498546
+        },
+        "arcs:forbidden/speed": {
+          "observations": 716,
+          "weight": 19341,
+          "squaredErrorSum": 978.2147984162591,
+          "rms": 0.22489388755487544
+        },
+        "fold:required/impact": {
+          "observations": 492,
+          "weight": 492,
+          "squaredErrorSum": 12.165591737921913,
+          "rms": 0.15724761516618
+        },
+        "fold:required/air": {
+          "observations": 492,
+          "weight": 13320,
+          "squaredErrorSum": 160.5253609444141,
+          "rms": 0.1097791124228804
+        },
+        "fold:required/speed": {
+          "observations": 492,
+          "weight": 13320,
+          "squaredErrorSum": 280.1888488475907,
+          "rms": 0.14503516422727192
+        },
+        "arcs:required/impact": {
+          "observations": 407,
+          "weight": 407,
+          "squaredErrorSum": 1.5160791522091606,
+          "rms": 0.06103286165655441
+        },
+        "arcs:required/air": {
+          "observations": 407,
+          "weight": 10869,
+          "squaredErrorSum": 13.039313214749084,
+          "rms": 0.03463638547936646
+        },
+        "arcs:required/speed": {
+          "observations": 407,
+          "weight": 10869,
+          "squaredErrorSum": 81.41195633622903,
+          "rms": 0.08654645849476411
+        },
+        "serpentine:required/impact": {
+          "observations": 350,
+          "weight": 350,
+          "squaredErrorSum": 1.2142606349904652,
+          "rms": 0.05890090067199955
+        },
+        "serpentine:required/air": {
+          "observations": 350,
+          "weight": 8830,
+          "squaredErrorSum": 24.55497327446649,
+          "rms": 0.052733838049942076
+        },
+        "serpentine:required/speed": {
+          "observations": 350,
+          "weight": 8830,
+          "squaredErrorSum": 17.577522287089035,
+          "rms": 0.04461680597780698
+        },
+        "scallops:required/impact": {
+          "observations": 493,
+          "weight": 493,
+          "squaredErrorSum": 1.6901910883346445,
+          "rms": 0.058552365362319954
+        },
+        "scallops:required/air": {
+          "observations": 493,
+          "weight": 13185,
+          "squaredErrorSum": 63.959980085881945,
+          "rms": 0.06964887290977484
+        },
+        "scallops:required/speed": {
+          "observations": 493,
+          "weight": 13185,
+          "squaredErrorSum": 29.023734446464797,
+          "rms": 0.04691768540084195
+        },
+        "terraces:required/impact": {
+          "observations": 216,
+          "weight": 216,
+          "squaredErrorSum": 1.2148521728897943,
+          "rms": 0.07499543729608175
+        },
+        "terraces:required/air": {
+          "observations": 216,
+          "weight": 5846,
+          "squaredErrorSum": 16.034011892584356,
+          "rms": 0.052371099913553286
+        },
+        "terraces:required/speed": {
+          "observations": 216,
+          "weight": 5846,
+          "squaredErrorSum": 43.95012240846607,
+          "rms": 0.08670629699055847
+        },
+        "scattered:optional/amplitude": {
+          "observations": 103,
+          "weight": 3316,
+          "squaredErrorSum": 8.857427633833641,
+          "rms": 0.051682860836958444
+        },
+        "arcs:forbidden/amplitude": {
+          "observations": 149,
+          "weight": 4912,
+          "squaredErrorSum": 78.15382531853135,
+          "rms": 0.1261380000503586
+        },
+        "fold:required/amplitude": {
+          "observations": 97,
+          "weight": 3322,
+          "squaredErrorSum": 65.32802398522792,
+          "rms": 0.14023291022632392
+        },
+        "arcs:required/amplitude": {
+          "observations": 83,
+          "weight": 2789,
+          "squaredErrorSum": 18.253912569967227,
+          "rms": 0.0809009694569696
+        },
+        "serpentine:required/amplitude": {
+          "observations": 77,
+          "weight": 2334,
+          "squaredErrorSum": 24.472951731416824,
+          "rms": 0.10239830102534815
+        },
+        "scallops:required/amplitude": {
+          "observations": 105,
+          "weight": 3108,
+          "squaredErrorSum": 35.20356845310845,
+          "rms": 0.10642724968985678
+        },
+        "terraces:required/amplitude": {
+          "observations": 34,
+          "weight": 991,
+          "squaredErrorSum": 5.512406473979707,
+          "rms": 0.0745819595626824
+        }
+      },
+      "worstPassagesByAxis": {
+        "impact": [
+          {
+            "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+            "seed": 202,
+            "section": 22,
+            "request": "arcs:forbidden",
+            "gap": 21,
+            "startFrame": 409,
+            "endFrame": 422,
+            "tail": false,
+            "axis": "impact",
+            "target": 1,
+            "achieved": 0.037716348665219064,
+            "error": 0.9622836513347809
+          },
+          {
+            "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+            "seed": 202,
+            "section": 8,
+            "request": "scattered:optional",
+            "gap": 7,
+            "startFrame": 183,
+            "endFrame": 209,
+            "tail": false,
+            "axis": "impact",
+            "target": 1,
+            "achieved": 0.10564180032942254,
+            "error": 0.8943581996705775
+          },
+          {
+            "id": "canonical-bridge_believer_56_6s-automatic",
+            "seed": 202,
+            "section": 20,
+            "request": "arcs:forbidden",
+            "gap": 19,
+            "startFrame": 520,
+            "endFrame": 539,
+            "tail": false,
+            "axis": "impact",
+            "target": 1,
+            "achieved": 0.11590169184219809,
+            "error": 0.8840983081578019
+          },
+          {
+            "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+            "seed": 202,
+            "section": 23,
+            "request": "arcs:forbidden",
+            "gap": 22,
+            "startFrame": 422,
+            "endFrame": 436,
+            "tail": false,
+            "axis": "impact",
+            "target": 0.945,
+            "achieved": 0.09976239237358715,
+            "error": 0.8452376076264128
+          },
+          {
+            "id": "canonical-bridge_believer_56_6s-automatic",
+            "seed": 101,
+            "section": 43,
+            "request": "arcs:required",
+            "gap": 42,
+            "startFrame": 1134,
+            "endFrame": 1153,
+            "tail": false,
+            "axis": "impact",
+            "target": 0.956,
+            "achieved": 0.24938702048306466,
+            "error": 0.7066129795169354
+          }
+        ],
+        "air": [
+          {
+            "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+            "seed": 202,
+            "section": 54,
+            "request": "fold:required",
+            "gap": 54,
+            "startFrame": 1345,
+            "endFrame": 1367,
+            "tail": false,
+            "axis": "air",
+            "target": 0.2608695652173913,
+            "achieved": 0.7391304347826086,
+            "error": 0.47826086956521735
+          },
+          {
+            "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+            "seed": 101,
+            "section": 33,
+            "request": "scallops:required",
+            "gap": 33,
+            "startFrame": 785,
+            "endFrame": 905,
+            "tail": false,
+            "axis": "air",
+            "target": 0.049586776859504134,
+            "achieved": 0.5041322314049587,
+            "error": 0.45454545454545453
+          },
+          {
+            "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+            "seed": 202,
+            "section": 13,
+            "request": "fold:required",
+            "gap": 13,
+            "startFrame": 287,
+            "endFrame": 309,
+            "tail": false,
+            "axis": "air",
+            "target": 0.2608695652173913,
+            "achieved": 0.6521739130434783,
+            "error": 0.391304347826087
+          },
+          {
+            "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+            "seed": 202,
+            "section": 32,
+            "request": "fold:required",
+            "gap": 32,
+            "startFrame": 763,
+            "endFrame": 785,
+            "tail": false,
+            "axis": "air",
+            "target": 0.2608695652173913,
+            "achieved": 0.6521739130434783,
+            "error": 0.391304347826087
+          },
+          {
+            "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+            "seed": 202,
+            "section": 45,
+            "request": "fold:required",
+            "gap": 45,
+            "startFrame": 1147,
+            "endFrame": 1169,
+            "tail": false,
+            "axis": "air",
+            "target": 0.2608695652173913,
+            "achieved": 0.6521739130434783,
+            "error": 0.391304347826087
+          }
+        ],
+        "speed": [
+          {
+            "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+            "seed": 202,
+            "section": 22,
+            "request": "arcs:forbidden",
+            "gap": 22,
+            "startFrame": 422,
+            "endFrame": 436,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.852357437204343,
+            "achieved": -0.17585406650056085,
+            "error": 1.0282115037049038
+          },
+          {
+            "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+            "seed": 202,
+            "section": 23,
+            "request": "arcs:forbidden",
+            "gap": 23,
+            "startFrame": 436,
+            "endFrame": 449,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.8544685316608913,
+            "achieved": -0.15058223251982794,
+            "error": 1.0050507641807194
+          },
+          {
+            "id": "canonical-bridge_believer_56_6s-automatic",
+            "seed": 101,
+            "section": 42,
+            "request": "arcs:forbidden",
+            "gap": 42,
+            "startFrame": 1134,
+            "endFrame": 1153,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.9095461005739388,
+            "achieved": -0.08226585487814421,
+            "error": 0.991811955452083
+          },
+          {
+            "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+            "seed": 202,
+            "section": 21,
+            "request": "arcs:forbidden",
+            "gap": 21,
+            "startFrame": 409,
+            "endFrame": 422,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.8502359649342538,
+            "achieved": -0.06711203467377747,
+            "error": 0.9173479996080313
+          },
+          {
+            "id": "canonical-bridge_believer_56_6s-automatic",
+            "seed": 101,
+            "section": 43,
+            "request": "arcs:required",
+            "gap": 43,
+            "startFrame": 1153,
+            "endFrame": 1172,
+            "tail": false,
+            "axis": "speed",
+            "target": 0.9071933661566838,
+            "achieved": 0.010582502921182199,
+            "error": 0.8966108632355015
+          }
+        ],
+        "amplitude": [
+          {
+            "id": "canonical-music_shelter_impact_sync_81s-automatic",
+            "seed": 101,
+            "section": 103,
+            "request": "arcs:forbidden",
+            "gap": 103,
+            "startFrame": 2846,
+            "endFrame": 2870,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.5406784722222231,
+            "achieved": 0.074660321799175,
+            "error": 0.46601815042304806
+          },
+          {
+            "id": "canonical-music_shelter_impact_sync_81s-automatic",
+            "seed": 202,
+            "section": 69,
+            "request": "fold:required",
+            "gap": 69,
+            "startFrame": 1910,
+            "endFrame": 1934,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.5508104166666664,
+            "achieved": 0.12351923018043726,
+            "error": 0.42729118648622916
+          },
+          {
+            "id": "canonical-music_shelter_impact_sync_81s-automatic",
+            "seed": 202,
+            "section": 67,
+            "request": "fold:required",
+            "gap": 67,
+            "startFrame": 1814,
+            "endFrame": 1838,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.17963670286351166,
+            "achieved": 0.5948515783633755,
+            "error": 0.4152148754998639
+          },
+          {
+            "id": "canonical-music_tiki_tiki_48s-automatic",
+            "seed": 202,
+            "section": 11,
+            "request": "arcs:required",
+            "gap": 11,
+            "startFrame": 385,
+            "endFrame": 418,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.9252941176470593,
+            "achieved": 0.5430768140491625,
+            "error": 0.38221730359789674
+          },
+          {
+            "id": "canonical-amplitude_reply-automatic",
+            "seed": 101,
+            "section": 34,
+            "request": "scallops:required",
+            "gap": 34,
+            "startFrame": 1190,
+            "endFrame": 1218,
+            "tail": false,
+            "axis": "amplitude",
+            "target": 0.4247191934470785,
+            "achieved": 0.05596900585671207,
+            "error": 0.36875018759036643
+          }
+        ]
+      },
+      "requestMisses": [
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 101,
+          "section": 110,
+          "request": "fold:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-fold-corners"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 100,
+          "request": "fold:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-fold-corners"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 101,
+          "request": "fold:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-fold-corners"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 102,
+          "request": "serpentine:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-shaped-reversals"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 103,
+          "request": "serpentine:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-shaped-reversals"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 104,
+          "request": "scallops:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-shaped-reversals"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 105,
+          "request": "scallops:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-shaped-reversals"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 106,
+          "request": "fold:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-fold-corners"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 107,
+          "request": "fold:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-fold-corners"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 108,
+          "request": "arcs:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 109,
+          "request": "arcs:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_pickup_progression-automatic",
+          "seed": 202,
+          "section": 110,
+          "request": "serpentine:required",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-shaped-reversals"
+          ]
+        },
+        {
+          "id": "canonical-bridge_frontier_dense_recovery-automatic",
+          "seed": 202,
+          "section": 123,
+          "request": "scattered:optional",
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-contact-fragmentation"
+          ]
+        }
+      ],
+      "work": {
+        "n": 38,
+        "min": 1996339,
+        "median": 2693010.5,
+        "p90": 2996430,
+        "max": 2999978,
+        "sum": 101017325
+      },
+      "compileMs": {
+        "n": 38,
+        "min": 57540.137394,
+        "median": 91967.6546135,
+        "p90": 132819.605216,
+        "max": 154767.015436,
+        "sum": 3661792.852896
+      },
+      "judgeMs": {
+        "n": 38,
+        "min": 86.58843799999886,
+        "median": 178.73981800000183,
+        "p90": 240.97891800000798,
+        "max": 295.77013499999885,
+        "sum": 6955.086032000072
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "canonical-afterglow_turn-single",
+      "seed": 101,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "single",
+      "score": 872.9588,
+      "musicalScore": 872.9588,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "de38ca7acecebd9c407765ece9161c1d57e9aee43eea82ce80200c06aa1a9ce2",
+      "physicalFrames": 2293255,
+      "compileMs": 95980.399099,
+      "judgeMs": 254.95057200000156,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-single",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "single",
+      "score": 899.5074,
+      "musicalScore": 899.5074,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "e32fb8382759b62bf16e7ee0ba43017f9bde27f2c150a629706d890319f275c9",
+      "physicalFrames": 2260730,
+      "compileMs": 94569.28203999999,
+      "judgeMs": 225.3624390000041,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-arcs",
+      "seed": 101,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 972.1228,
+      "musicalScore": 972.1228,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "2ecf8585fcc1caab1d66b0c7591f035775d9038ae02b6113613e99f31af78511",
+      "physicalFrames": 2238329,
+      "compileMs": 95103.194838,
+      "judgeMs": 218.28220799998962,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-arcs",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 973.5735,
+      "musicalScore": 973.5735,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "8996e4fbb0e8d289e1817d1a360467d61c597f871d631bd25f761378334ae2b0",
+      "physicalFrames": 2250167,
+      "compileMs": 97817.826761,
+      "judgeMs": 195.875177000009,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-fold",
+      "seed": 101,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 961.4681999999999,
+      "musicalScore": 961.4682,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "8b4a521e16fcffcb2c9436f6a3fad73dc8ef208acb9bfa1ffcf2dc577cbc8f66",
+      "physicalFrames": 2265784,
+      "compileMs": 94919.076595,
+      "judgeMs": 246.9612679999991,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-fold",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 906.1308,
+      "musicalScore": 906.1308,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "367b5bf75012091c456b27f58e8516d42efdf7e1dfe2944c687ecb9189fd3602",
+      "physicalFrames": 2325976,
+      "compileMs": 94493.934673,
+      "judgeMs": 217.17367899999954,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-serpentine",
+      "seed": 101,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 969.2911,
+      "musicalScore": 969.2911,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c94ee6acf98c2b421b0df95aff21d076cf75b7977ae870367b515868509db163",
+      "physicalFrames": 2267676,
+      "compileMs": 97665.62896599999,
+      "judgeMs": 280.3878529999929,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-serpentine",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 969.5606000000001,
+      "musicalScore": 969.5606,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "87412e26c1b6365a1aa77c45f261345dc3adf41a3f777ebe17d0b6116cad7d52",
+      "physicalFrames": 2301199,
+      "compileMs": 96464.326419,
+      "judgeMs": 252.80638200000976,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-scallops",
+      "seed": 101,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 966.658,
+      "musicalScore": 966.658,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "5a1c7915c052b73cd34ccc52e272c7a914c31b8d69ac0056793499f4f70b7328",
+      "physicalFrames": 2267864,
+      "compileMs": 96102.545849,
+      "judgeMs": 261.0522990000027,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-scallops",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 968.591,
+      "musicalScore": 968.591,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "16a96063f587ca58fa335259f12acaf1163b18ba4a2fcd99090d49c0bdd0c24a",
+      "physicalFrames": 2274161,
+      "compileMs": 96300.82912200001,
+      "judgeMs": 222.64886600000318,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-terraces",
+      "seed": 101,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 967.8031,
+      "musicalScore": 967.8031,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "ed36f128abb9956e66abf07df4e22aee24dbacfd635ead2df9db68d38906833b",
+      "physicalFrames": 2264714,
+      "compileMs": 94599.514583,
+      "judgeMs": 175.0853999999963,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-terraces",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 968.9681999999999,
+      "musicalScore": 968.9682,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "79b07367a4a2ad0b95998e618529a7262549ce57d4deb20194eb3a25146751ae",
+      "physicalFrames": 2269248,
+      "compileMs": 95467.463771,
+      "judgeMs": 185.73196099999768,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-scattered",
+      "seed": 101,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 979.6624,
+      "musicalScore": 979.6624,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "d13c74c53c9545f988721337e46b9fa1e1ae6cafd942e501393244a57c943b14",
+      "physicalFrames": 2219361,
+      "compileMs": 93309.37406399999,
+      "judgeMs": 193.957098999992,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-scattered",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 974.1457,
+      "musicalScore": 974.1457,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "7623ececf5202c496ceeb2c3ac2561cccf53abc470c95620f793bbfb61fe3a32",
+      "physicalFrames": 2172241,
+      "compileMs": 92415.448167,
+      "judgeMs": 188.20029199999408,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-single",
+      "seed": 101,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "single",
+      "score": 954.8354,
+      "musicalScore": 954.8354,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "27ddbe16792cc579dc32f9a2e894120f1d0d182f3c563f3aa1a66eeb0a9cec02",
+      "physicalFrames": 2207607,
+      "compileMs": 88388.31438200001,
+      "judgeMs": 221.0828610000026,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-single",
+      "seed": 202,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "single",
+      "score": 869.8639,
+      "musicalScore": 869.8639,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "d9e4a35a2963c608a0b93419f33212a2a09ed4649b1f275f76f01193f87a32b4",
+      "physicalFrames": 2255005,
+      "compileMs": 92725.548847,
+      "judgeMs": 198.13213600000017,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-arcs",
+      "seed": 101,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 976.0989,
+      "musicalScore": 976.0989,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "06df20a57df0eafa14686f0822fcd444a3afea496b4437528a0e50ae825afb1c",
+      "physicalFrames": 2368827,
+      "compileMs": 111167.962691,
+      "judgeMs": 184.9580419999984,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-arcs",
+      "seed": 202,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 973.3375,
+      "musicalScore": 973.3375,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "955c6b85b1630588ece397bf864b2ca461376688418eb4fb3f88b7805a513be7",
+      "physicalFrames": 2225554,
+      "compileMs": 92027.2343,
+      "judgeMs": 197.1788499999966,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-fold",
+      "seed": 101,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 971.9227999999999,
+      "musicalScore": 971.9228,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "564644f438d7bb8e7c4eac8fe4a45a966f08d30d57a3e735ea9b9f38fc6aa58e",
+      "physicalFrames": 2270822,
+      "compileMs": 88436.985816,
+      "judgeMs": 187.76174499999615,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-fold",
+      "seed": 202,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 895.3456,
+      "musicalScore": 895.3456,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "fae8a9620a7c8e7eb346a838b8486c791a2c44bdd2eed9b1db71787d57bfeaf8",
+      "physicalFrames": 2282854,
+      "compileMs": 90970.123521,
+      "judgeMs": 179.23788400000194,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-serpentine",
+      "seed": 101,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 958.9771999999999,
+      "musicalScore": 958.9772,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "84e3bf389f6dd33e8ff0751fd24f8fc2c2bcfd6ee23a57db05682497c6a957fb",
+      "physicalFrames": 2234181,
+      "compileMs": 105516.612079,
+      "judgeMs": 270.6754680000013,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-serpentine",
+      "seed": 202,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 968.1893999999999,
+      "musicalScore": 968.1894,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "f8efa8d5646d8af55fff2a2a87eac36ba27b21f63e6523b0c914ff179bd59372",
+      "physicalFrames": 2240586,
+      "compileMs": 98802.774657,
+      "judgeMs": 214.22033399999782,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-scallops",
+      "seed": 101,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 949.0385,
+      "musicalScore": 949.0385,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "8b63edf1de1e4e52e7a66c1373e24398454475dddf14c0e5f52768ced0bf0724",
+      "physicalFrames": 2220937,
+      "compileMs": 104461.872899,
+      "judgeMs": 242.72701200000301,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-scallops",
+      "seed": 202,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 969.3443000000001,
+      "musicalScore": 969.3443,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "8b65e81d2f0135996c82482bd6ae64fc0a0725ca5c8358edc90398cce5d49dbc",
+      "physicalFrames": 2244776,
+      "compileMs": 98414.314626,
+      "judgeMs": 246.44557799999893,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-terraces",
+      "seed": 101,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 972.6766000000001,
+      "musicalScore": 972.6766,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "4494460480a296f0454e5d874dac3958687fafa26bf9d0c95942f3907b157a52",
+      "physicalFrames": 2239334,
+      "compileMs": 105186.532651,
+      "judgeMs": 309.1331849999988,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-terraces",
+      "seed": 202,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 973.0445,
+      "musicalScore": 973.0445,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "78913f84f6640f71cd492c7e87cd8aa28c1b8424b61119de2c06e6f1ce4c3a21",
+      "physicalFrames": 2246363,
+      "compileMs": 97564.564237,
+      "judgeMs": 213.9572569999873,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-scattered",
+      "seed": 101,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 978.2141,
+      "musicalScore": 978.2141,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "865253be3f8cc8bb40749ecf0df5d9de6c1c6454c95ea9bd68c3370fa1b8b36e",
+      "physicalFrames": 2159544,
+      "compileMs": 98354.095619,
+      "judgeMs": 279.4137120000087,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-scattered",
+      "seed": 202,
+      "sourceId": "accelerando_reply",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 973.8858999999999,
+      "musicalScore": 973.8859,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "48b8466110837df6257e7f71232b7e51665d821dbd0bebc1b3830c2d15aba5b4",
+      "physicalFrames": 2176902,
+      "compileMs": 96564.071672,
+      "judgeMs": 205.29814300000726,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-single",
+      "seed": 101,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "single",
+      "score": 930.5450999999999,
+      "musicalScore": 930.5451,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "65b095ae237796410e41f962d833626840220b5632e0e2c8c9850a0a36e3448b",
+      "physicalFrames": 2213000,
+      "compileMs": 79607.458501,
+      "judgeMs": 245.76009499999054,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-single",
+      "seed": 202,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "single",
+      "score": 910.7408,
+      "musicalScore": 910.7408,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "faca2c0ae061f2436745ff0fdb987b4dd923cd9664e7485ccd9e9eb672cf2a8f",
+      "physicalFrames": 2213235,
+      "compileMs": 79778.492358,
+      "judgeMs": 176.27898899999855,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-arcs",
+      "seed": 101,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 942.9801000000001,
+      "musicalScore": 942.9801,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "3ec957c5cc5efd08c96e168b248d636420cf48218b679527d6c4f2004e8f113c",
+      "physicalFrames": 2257488,
+      "compileMs": 85097.683384,
+      "judgeMs": 234.7238170000055,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-arcs",
+      "seed": 202,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 939.9375999999999,
+      "musicalScore": 939.9376,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "2d6f4eec7f07298e46e72163c9b680d44bc8e063b59743460da393e9982d4188",
+      "physicalFrames": 2322514,
+      "compileMs": 95689.18222999999,
+      "judgeMs": 160.13810300000478,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-fold",
+      "seed": 101,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 929.3017999999998,
+      "musicalScore": 929.3018,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "ccc254896c9b89726e198f3106603e0c7b9031686b3788a8bad8e4157c4b005c",
+      "physicalFrames": 2279118,
+      "compileMs": 77049.751309,
+      "judgeMs": 175.32058800000232,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-fold",
+      "seed": 202,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 845.0534000000001,
+      "musicalScore": 845.0534,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "1b46b378edaaad4ff66fc6a681db6621450f59043ed8fb41404d69f8360da6e6",
+      "physicalFrames": 2349408,
+      "compileMs": 77434.759597,
+      "judgeMs": 203.300814000002,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-serpentine",
+      "seed": 101,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 944.129,
+      "musicalScore": 944.129,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "6125a3bd01b3946d9521fb917e01a9e62af41dc783320067a5bced0d35f677c8",
+      "physicalFrames": 2244990,
+      "compileMs": 81076.07430600001,
+      "judgeMs": 189.18364699999802,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-serpentine",
+      "seed": 202,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 936.3104,
+      "musicalScore": 936.3104,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "bc81a8b68a45ffd653f9e1adf23612377dc6ef187ab452bb85d4ebc4878c6277",
+      "physicalFrames": 2385649,
+      "compileMs": 88939.11327,
+      "judgeMs": 189.35194500000216,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-scallops",
+      "seed": 101,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 940.5834,
+      "musicalScore": 940.5834,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "a9a6d53a58676a3a7e9a4cf05109151f1412fee0d0fbf472e2f4381d713b29d2",
+      "physicalFrames": 2267092,
+      "compileMs": 80988.7139,
+      "judgeMs": 226.886222000001,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-scallops",
+      "seed": 202,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 910.6472,
+      "musicalScore": 910.6472,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "005c7f4b897ea4ba7b0c67ca645696d6f6b532e8d2f183ff330c80b2b1869a91",
+      "physicalFrames": 2229133,
+      "compileMs": 86328.434157,
+      "judgeMs": 182.83585700001277,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-terraces",
+      "seed": 101,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 940.8048,
+      "musicalScore": 940.8048,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "acc39a69361eb9473722ad81886a1a3805e924c1ffa92d57f94446d2976466ec",
+      "physicalFrames": 2254685,
+      "compileMs": 81423.8829,
+      "judgeMs": 201.24894900000072,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-terraces",
+      "seed": 202,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 947.8242,
+      "musicalScore": 947.8242,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "b120867c8792be4b9aafc007a4afaa8703dd07e5a445b9d01ae451933423cdca",
+      "physicalFrames": 2243785,
+      "compileMs": 86012.44762400001,
+      "judgeMs": 190.82657299999846,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-scattered",
+      "seed": 101,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 947.1093999999999,
+      "musicalScore": 947.1094,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "a619008bc53a05f6645db8f02a7da78b47d22b6ab8038a63f2592ff8325fb22a",
+      "physicalFrames": 2164056,
+      "compileMs": 78536.64379900001,
+      "judgeMs": 195.47778800000378,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-scattered",
+      "seed": 202,
+      "sourceId": "archipelago",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 947.6102999999999,
+      "musicalScore": 947.6103,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "aa9b43a2d20bcd63c95aac69b5dd923dbdc6aaef60d51d91519a32ac36de224a",
+      "physicalFrames": 2110860,
+      "compileMs": 79565.305539,
+      "judgeMs": 187.1588849999971,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-single",
+      "seed": 101,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "single",
+      "score": 890.1165,
+      "musicalScore": 890.1165,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "7d995400ef595438d1995d3d9c8b4dc765b9101c30a0d8200526b752c8a92a17",
+      "physicalFrames": 2138460,
+      "compileMs": 108753.03084800001,
+      "judgeMs": 161.30961399999796,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-single",
+      "seed": 202,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "single",
+      "score": 949.3845,
+      "musicalScore": 949.3845,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "29eb8e116f52a47cf9f1f395bf459dcdac61514cfb3e83462bceeee13616628e",
+      "physicalFrames": 2057903,
+      "compileMs": 102770.507455,
+      "judgeMs": 159.4685649999883,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-arcs",
+      "seed": 101,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 950.9833,
+      "musicalScore": 950.9833,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "472d855b1eee572f746dee8f09560e216126eaf9b85ba6a6fe25c13e296d8191",
+      "physicalFrames": 2093089,
+      "compileMs": 106447.6138,
+      "judgeMs": 167.78800000000047,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-arcs",
+      "seed": 202,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 948.3893000000002,
+      "musicalScore": 948.3893,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "bbb5da2331c37b095956d33989b86b716ee95d6b72f4bc0e00ff318605a3af2d",
+      "physicalFrames": 2093855,
+      "compileMs": 117630.403822,
+      "judgeMs": 207.75340900001174,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-fold",
+      "seed": 101,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 930.7019999999999,
+      "musicalScore": 930.702,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "17fa2543f17dd73d95fd329eafa60a1389fdf42ceceed61046951f844f5e3a0a",
+      "physicalFrames": 2127450,
+      "compileMs": 104971.679794,
+      "judgeMs": 151.3895429999975,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-fold",
+      "seed": 202,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 937.7238000000001,
+      "musicalScore": 937.7238,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "042f45b103af0d3ffec9864f8a2a4410374eaee8daa9f9bd1a8313c999fedd34",
+      "physicalFrames": 2054210,
+      "compileMs": 99062.669636,
+      "judgeMs": 157.25929300001008,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-serpentine",
+      "seed": 101,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 950.7625000000002,
+      "musicalScore": 950.7625,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "015758113fc6bea2b54cfe8ef27210a76d55bca242231a65239b76a07325804d",
+      "physicalFrames": 2143715,
+      "compileMs": 107220.52305300001,
+      "judgeMs": 164.07617700000992,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-serpentine",
+      "seed": 202,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 943.8717,
+      "musicalScore": 943.8717,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "5908610cef25dc3d512a8cc1397037b4583b73eee82137c6c371684b4e034814",
+      "physicalFrames": 2141683,
+      "compileMs": 113257.46856899999,
+      "judgeMs": 185.70229299999482,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-scallops",
+      "seed": 101,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 944.4005000000001,
+      "musicalScore": 944.4005,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "0053f81b74d777d8450dff2f4746e8bb5782b5dec8a226ff44ab4fc8fd4ed704",
+      "physicalFrames": 2107170,
+      "compileMs": 104426.756895,
+      "judgeMs": 211.0499920000002,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-scallops",
+      "seed": 202,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 946.0514,
+      "musicalScore": 946.0514,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "886b131a1e64cd8b5bee6feb0bc8e79deadca5dbd5ce96b7d8ccc6203e7e0d8a",
+      "physicalFrames": 2135302,
+      "compileMs": 116297.24485300001,
+      "judgeMs": 248.9014199999947,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-terraces",
+      "seed": 101,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 952.5108999999999,
+      "musicalScore": 952.5109,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "459c821595ce0b9cd12cf821e38ded9cbcb6aec6ef841986c9e19c52ae724f91",
+      "physicalFrames": 2101491,
+      "compileMs": 111924.479108,
+      "judgeMs": 186.61945399999968,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-terraces",
+      "seed": 202,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 942.6725,
+      "musicalScore": 942.6725,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "29ee73827ac51b26349ab84603ac715caffd90be1bb66c296adbff9531dc5021",
+      "physicalFrames": 2249756,
+      "compileMs": 126935.715766,
+      "judgeMs": 252.01303400000324,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-scattered",
+      "seed": 101,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 948.2126,
+      "musicalScore": 948.2126,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "ef39294cdf30236e5f680aa35062bdc188eddbacf8cd1812398105e0141e2f57",
+      "physicalFrames": 2064573,
+      "compileMs": 114220.77556499999,
+      "judgeMs": 199.25390899999184,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-scattered",
+      "seed": 202,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 949.7883,
+      "musicalScore": 949.7883,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "460e4190821338ff6bc10f206e2a6c1e72f18465ecfe68e1c2d4000a015f2416",
+      "physicalFrames": 1963671,
+      "compileMs": 110845.918983,
+      "judgeMs": 217.33658800000558,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-single",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "single",
+      "score": 876.6087000000001,
+      "musicalScore": 876.6087,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "07e8c3c8c716e13df936b4375d1dbeec09c9a0b26f447997a0ac36d8fb0dd246",
+      "physicalFrames": 2141715,
+      "compileMs": 78529.644909,
+      "judgeMs": 218.70271100000537,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-single",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "single",
+      "score": 876.6087000000001,
+      "musicalScore": 876.6087,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "07e8c3c8c716e13df936b4375d1dbeec09c9a0b26f447997a0ac36d8fb0dd246",
+      "physicalFrames": 2141715,
+      "compileMs": 81291.258199,
+      "judgeMs": 215.4711030000035,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-arcs",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 919.6033000000001,
+      "musicalScore": 919.6033,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "6d0631deacc2517e3ee72983108345ab532ded8b6de88c602ab0c8faf7700749",
+      "physicalFrames": 2136954,
+      "compileMs": 82029.698526,
+      "judgeMs": 196.03416200001084,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-arcs",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 919.6033000000001,
+      "musicalScore": 919.6033,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "6d0631deacc2517e3ee72983108345ab532ded8b6de88c602ab0c8faf7700749",
+      "physicalFrames": 2136954,
+      "compileMs": 85047.946274,
+      "judgeMs": 196.18590799999947,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-fold",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 901.1129,
+      "musicalScore": 901.1129,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "11146de69736272c87ce4612d0746e72b903bc0380639933182b5dba7a2166d5",
+      "physicalFrames": 2168465,
+      "compileMs": 92356.300533,
+      "judgeMs": 211.0014039999951,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-fold",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 901.1129,
+      "musicalScore": 901.1129,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "11146de69736272c87ce4612d0746e72b903bc0380639933182b5dba7a2166d5",
+      "physicalFrames": 2168465,
+      "compileMs": 92856.486781,
+      "judgeMs": 217.20646600000327,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-serpentine",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 886.2819,
+      "musicalScore": 886.2819,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "ca5d7ac2e0fde89acd6913f0b3eb1b8b7ea5c4deb0fa5e74c2b712451ec2e93f",
+      "physicalFrames": 2192090,
+      "compileMs": 94358.18826400001,
+      "judgeMs": 196.54910400000517,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-serpentine",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 886.2819,
+      "musicalScore": 886.2819,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "ca5d7ac2e0fde89acd6913f0b3eb1b8b7ea5c4deb0fa5e74c2b712451ec2e93f",
+      "physicalFrames": 2192090,
+      "compileMs": 93978.53055899999,
+      "judgeMs": 220.67199600000458,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-scallops",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 892.4836,
+      "musicalScore": 892.4836,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "7cdcd78b5e5105d46498bc6e2d02ddb14dae1a530fc482755d942f2456fc35c2",
+      "physicalFrames": 2193419,
+      "compileMs": 93287.29774200001,
+      "judgeMs": 195.98507199999585,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-scallops",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 892.4836,
+      "musicalScore": 892.4836,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "7cdcd78b5e5105d46498bc6e2d02ddb14dae1a530fc482755d942f2456fc35c2",
+      "physicalFrames": 2193419,
+      "compileMs": 92711.76715599999,
+      "judgeMs": 206.11734300000535,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-terraces",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 908.3177,
+      "musicalScore": 908.3177,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "f051dd50568241d675cf1f88267bd961ddbc27e62a71e5b2637128e58abe3dd1",
+      "physicalFrames": 2153835,
+      "compileMs": 93251.058329,
+      "judgeMs": 202.76360399999248,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-terraces",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 908.3177,
+      "musicalScore": 908.3177,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "f051dd50568241d675cf1f88267bd961ddbc27e62a71e5b2637128e58abe3dd1",
+      "physicalFrames": 2153835,
+      "compileMs": 93460.375728,
+      "judgeMs": 220.61391600000206,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-scattered",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 920.5467,
+      "musicalScore": 920.5467,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "db546b49810f239e701eae0f36a1d90628a66c2cf8b3701020a288697d4bcee0",
+      "physicalFrames": 2083091,
+      "compileMs": 89661.791367,
+      "judgeMs": 202.92055999999866,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-scattered",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 920.5467,
+      "musicalScore": 920.5467,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "db546b49810f239e701eae0f36a1d90628a66c2cf8b3701020a288697d4bcee0",
+      "physicalFrames": 2083091,
+      "compileMs": 90216.412255,
+      "judgeMs": 206.7054310000094,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-single",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "single",
+      "score": 969.0731,
+      "musicalScore": 969.0731,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "201a7b847b8b08a163b6810d02f34feb8ad261a60c1019818ccdaf1f8caf9277",
+      "physicalFrames": 1622626,
+      "compileMs": 76917.485971,
+      "judgeMs": 196.15169700000843,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-single",
+      "seed": 202,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "single",
+      "score": 941.5544,
+      "musicalScore": 941.5544,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c5977e68a69ff37caf16f1e9ca84f77fe7bd171eda59ea944f7d4c02ef7fe169",
+      "physicalFrames": 1625472,
+      "compileMs": 76940.631843,
+      "judgeMs": 229.9076689999929,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-arcs",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 960.0234999999999,
+      "musicalScore": 960.0235,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "e815937c8eb3a2aa87987427d556333cab0079dcd1fa5c07af67e111bdd1dd67",
+      "physicalFrames": 1715012,
+      "compileMs": 80778.461521,
+      "judgeMs": 255.60088900000846,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-arcs",
+      "seed": 202,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 968.4759,
+      "musicalScore": 968.4759,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "7e14f6c32135dc87fee208487bb1100da27afceff9aa9dc8e4789efa00c8c057",
+      "physicalFrames": 1663204,
+      "compileMs": 80969.46747,
+      "judgeMs": 193.64427399999113,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-fold",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 967.5054,
+      "musicalScore": 967.5054,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "f9604752c133d11645e6f43ad87bafe7e9aaa236aec8c3db930c81d7f0b474d6",
+      "physicalFrames": 1658088,
+      "compileMs": 77527.485238,
+      "judgeMs": 224.3649149999983,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-fold",
+      "seed": 202,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 953.2087,
+      "musicalScore": 953.2087,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "dce8d1bd773983065cca210ad3728e11a5eb30b58a6e8921907da602208475d8",
+      "physicalFrames": 1698091,
+      "compileMs": 78520.50572700001,
+      "judgeMs": 234.42829599999823,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-serpentine",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 963.9762999999999,
+      "musicalScore": 963.9763,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "2118db2537235da9d89e5131d7a93b239fc04850a04ed55d3e4e42d329614006",
+      "physicalFrames": 1692424,
+      "compileMs": 84121.259026,
+      "judgeMs": 242.24721899999713,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-serpentine",
+      "seed": 202,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 966.1785999999998,
+      "musicalScore": 966.1786,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "2943447ba612abcb53d24a26dc0e0520fa292dd70821aba5ed823b599b4d7e2b",
+      "physicalFrames": 1723075,
+      "compileMs": 80752.341973,
+      "judgeMs": 200.8627039999992,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-scallops",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 961.1078000000001,
+      "musicalScore": 961.1078,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "245d84cbd7c7fc7ce5c18b999162472a39bcd725dffc80cf7200cb7be90e9276",
+      "physicalFrames": 1707608,
+      "compileMs": 83916.127775,
+      "judgeMs": 264.90653200000816,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-scallops",
+      "seed": 202,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 944.1433000000001,
+      "musicalScore": 944.1433,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "0a68061a6da0cf054852dee21ac132f10de2b277ac46d6ec2dd48354ab3bb342",
+      "physicalFrames": 1722609,
+      "compileMs": 83338.93958800001,
+      "judgeMs": 192.4147079999966,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-terraces",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 960.5623,
+      "musicalScore": 960.5623,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "82bee2547644a98947d61dc4bbb9fd78782faf245010163c1759b2352bc10935",
+      "physicalFrames": 1679166,
+      "compileMs": 84800.497216,
+      "judgeMs": 197.73610399999598,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-terraces",
+      "seed": 202,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 969.864,
+      "musicalScore": 969.864,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "4f8403357ded6096c3ecd0480be5a9d36991e4417482ef210939bd9be48e58fa",
+      "physicalFrames": 1652188,
+      "compileMs": 81147.81829000001,
+      "judgeMs": 234.3166990000027,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-scattered",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 971.4706,
+      "musicalScore": 971.4706,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c814dd1d9c3c5e421a1c3fff69a869f8fd35b9bde89559e89f69585a63a229b3",
+      "physicalFrames": 1588357,
+      "compileMs": 78341.952425,
+      "judgeMs": 144.49623200000497,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-scattered",
+      "seed": 202,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 965.6225,
+      "musicalScore": 965.6225,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c9a05c9659b1798e1a069e186656958e72bdb58d638bebcd1d972221fef957b5",
+      "physicalFrames": 1579009,
+      "compileMs": 78285.052784,
+      "judgeMs": 231.6847689999995,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-single",
+      "seed": 101,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "single",
+      "score": 839.4941,
+      "musicalScore": 839.4941,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "97b9a0f7338f290bbf7acb4481aaeda113ad4e987ca13f1fcecd56b2241054d9",
+      "physicalFrames": 1554759,
+      "compileMs": 74032.38804399999,
+      "judgeMs": 106.96221300000616,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-single",
+      "seed": 202,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "single",
+      "score": 839.4941,
+      "musicalScore": 839.4941,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "97b9a0f7338f290bbf7acb4481aaeda113ad4e987ca13f1fcecd56b2241054d9",
+      "physicalFrames": 1554759,
+      "compileMs": 73003.287338,
+      "judgeMs": 108.68423800000164,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-arcs",
+      "seed": 101,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 942.9291,
+      "musicalScore": 942.9291,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "322db39fe6a081ba54c840df199983968b33d38e4bb9a84f691a80056c0ac978",
+      "physicalFrames": 1621660,
+      "compileMs": 74834.792584,
+      "judgeMs": 114.72156299999915,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-arcs",
+      "seed": 202,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 942.9291,
+      "musicalScore": 942.9291,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "322db39fe6a081ba54c840df199983968b33d38e4bb9a84f691a80056c0ac978",
+      "physicalFrames": 1621660,
+      "compileMs": 75675.60587000001,
+      "judgeMs": 103.98549400000775,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-fold",
+      "seed": 101,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 919.7890000000001,
+      "musicalScore": 919.789,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "eb1e6be9b4a49d679f61eafba0e333d56d42c77ac9ef55c5a0a5fa14bfbbb42b",
+      "physicalFrames": 1634264,
+      "compileMs": 72488.342168,
+      "judgeMs": 109.49403400000301,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-fold",
+      "seed": 202,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 919.7890000000001,
+      "musicalScore": 919.789,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "eb1e6be9b4a49d679f61eafba0e333d56d42c77ac9ef55c5a0a5fa14bfbbb42b",
+      "physicalFrames": 1634264,
+      "compileMs": 70308.12242900001,
+      "judgeMs": 105.70079699999769,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-serpentine",
+      "seed": 101,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 932.567,
+      "musicalScore": 932.567,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "8d8bd2eb82fc0f2da85fd58d37294b479426e258c766d70f813e4218631704e6",
+      "physicalFrames": 1591191,
+      "compileMs": 72201.30255600001,
+      "judgeMs": 130.50494199999957,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-serpentine",
+      "seed": 202,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 932.567,
+      "musicalScore": 932.567,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "8d8bd2eb82fc0f2da85fd58d37294b479426e258c766d70f813e4218631704e6",
+      "physicalFrames": 1591191,
+      "compileMs": 72135.769441,
+      "judgeMs": 102.85687899999903,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-scallops",
+      "seed": 101,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 916.2018000000002,
+      "musicalScore": 916.2018,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c1817931af53ed243a97ec789ea1ad0cf29c042bce5b830f0ab01aaac6d3185c",
+      "physicalFrames": 1575911,
+      "compileMs": 73445.193772,
+      "judgeMs": 118.97250299999723,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-scallops",
+      "seed": 202,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 916.2018000000002,
+      "musicalScore": 916.2018,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c1817931af53ed243a97ec789ea1ad0cf29c042bce5b830f0ab01aaac6d3185c",
+      "physicalFrames": 1575911,
+      "compileMs": 73083.41776800001,
+      "judgeMs": 115.34864500000549,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-terraces",
+      "seed": 101,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 940.2156,
+      "musicalScore": 940.2156,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "fc5308eabd82b0ffe0f2210a2c8361a8701a8101b0bf669fb481122aff82cc15",
+      "physicalFrames": 1571568,
+      "compileMs": 72523.348177,
+      "judgeMs": 124.99410899999202,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-terraces",
+      "seed": 202,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 940.2156,
+      "musicalScore": 940.2156,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "fc5308eabd82b0ffe0f2210a2c8361a8701a8101b0bf669fb481122aff82cc15",
+      "physicalFrames": 1571568,
+      "compileMs": 71797.702167,
+      "judgeMs": 108.9912570000015,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-scattered",
+      "seed": 101,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 943.0816,
+      "musicalScore": 943.0816,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "d22ad33e0b9e1a8804b746cc47245bba57ba6d55cc7a7668a3014625de4fa354",
+      "physicalFrames": 1512080,
+      "compileMs": 71742.01645,
+      "judgeMs": 98.96008599999186,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-scattered",
+      "seed": 202,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 943.0816,
+      "musicalScore": 943.0816,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "d22ad33e0b9e1a8804b746cc47245bba57ba6d55cc7a7668a3014625de4fa354",
+      "physicalFrames": 1512080,
+      "compileMs": 71334.428776,
+      "judgeMs": 126.52779799999553,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-single",
+      "seed": 101,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "single",
+      "score": 857.2635999999999,
+      "musicalScore": 857.2636,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "2794669fc34728df227735632fda29820f1c8dde8653d86ac9ac2f9868d2c354",
+      "physicalFrames": 1726038,
+      "compileMs": 85864.28877,
+      "judgeMs": 226.69444799999474,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-single",
+      "seed": 202,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "single",
+      "score": 857.2635999999999,
+      "musicalScore": 857.2636,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "2794669fc34728df227735632fda29820f1c8dde8653d86ac9ac2f9868d2c354",
+      "physicalFrames": 1726038,
+      "compileMs": 86861.99673599999,
+      "judgeMs": 223.00019900000188,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-arcs",
+      "seed": 101,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 916.435,
+      "musicalScore": 916.435,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c789799bd7ce16cd4ed1fe33beabed51b60788a4da90487971facf10de664a62",
+      "physicalFrames": 1685817,
+      "compileMs": 84218.398066,
+      "judgeMs": 205.77256899999338,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-arcs",
+      "seed": 202,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "arcs",
+      "score": 916.435,
+      "musicalScore": 916.435,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c789799bd7ce16cd4ed1fe33beabed51b60788a4da90487971facf10de664a62",
+      "physicalFrames": 1685817,
+      "compileMs": 83065.69743599999,
+      "judgeMs": 199.40770700000576,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-fold",
+      "seed": 101,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 905.4464000000002,
+      "musicalScore": 905.4464,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "56a848678741716ce20e1c893f2719c4536a63cd31121d9c543e117fef617cbe",
+      "physicalFrames": 1720395,
+      "compileMs": 81745.651241,
+      "judgeMs": 202.94039299999713,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-fold",
+      "seed": 202,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "fold",
+      "score": 905.4464000000002,
+      "musicalScore": 905.4464,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "56a848678741716ce20e1c893f2719c4536a63cd31121d9c543e117fef617cbe",
+      "physicalFrames": 1720395,
+      "compileMs": 81862.338454,
+      "judgeMs": 196.36565500000142,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-serpentine",
+      "seed": 101,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 915.9109,
+      "musicalScore": 915.9109,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "460b21334f603b3587263e6ec2710ec9dd438e2afb6f032926ee1389ab8836a3",
+      "physicalFrames": 1719355,
+      "compileMs": 82300.388957,
+      "judgeMs": 199.83157599999686,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-serpentine",
+      "seed": 202,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "serpentine",
+      "score": 915.9109,
+      "musicalScore": 915.9109,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "460b21334f603b3587263e6ec2710ec9dd438e2afb6f032926ee1389ab8836a3",
+      "physicalFrames": 1719355,
+      "compileMs": 81523.49287399999,
+      "judgeMs": 191.64797599999292,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-scallops",
+      "seed": 101,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 916.355,
+      "musicalScore": 916.355,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "0e158ed068a7a2f634e4a0a0351497decffe287e7f405275df2826c9d4cf74ff",
+      "physicalFrames": 1685791,
+      "compileMs": 80075.67910400001,
+      "judgeMs": 175.6829859999998,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-scallops",
+      "seed": 202,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "scallops",
+      "score": 916.355,
+      "musicalScore": 916.355,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "0e158ed068a7a2f634e4a0a0351497decffe287e7f405275df2826c9d4cf74ff",
+      "physicalFrames": 1685791,
+      "compileMs": 78534.60504899999,
+      "judgeMs": 165.7208559999999,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-terraces",
+      "seed": 101,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 906.5104,
+      "musicalScore": 906.5104,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "aed8b30a26f4ecf3902ae21ebadb15004a54f971f99f600b05a242d9e51f07c1",
+      "physicalFrames": 1675167,
+      "compileMs": 74515.490058,
+      "judgeMs": 245.42282700000214,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-terraces",
+      "seed": 202,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "terraces",
+      "score": 906.5104,
+      "musicalScore": 906.5104,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "aed8b30a26f4ecf3902ae21ebadb15004a54f971f99f600b05a242d9e51f07c1",
+      "physicalFrames": 1675167,
+      "compileMs": 72516.893654,
+      "judgeMs": 176.43964100000449,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-scattered",
+      "seed": 101,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 920.3651999999998,
+      "musicalScore": 920.3652,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c1e239b3bfe547b6098eaec9d20075987866826af7a7009d11831c1ff8966340",
+      "physicalFrames": 1628279,
+      "compileMs": 65739.593123,
+      "judgeMs": 170.55929299999843,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-scattered",
+      "seed": 202,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "fixed",
+      "family": "scattered",
+      "score": 920.3651999999998,
+      "musicalScore": 920.3652,
+      "valid": true,
+      "fulfilled": 3,
+      "requested": 3,
+      "trackHash": "c1e239b3bfe547b6098eaec9d20075987866826af7a7009d11831c1ff8966340",
+      "physicalFrames": 1628279,
+      "compileMs": 61024.782616000004,
+      "judgeMs": 181.96326899999985,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-automatic",
+      "seed": 101,
+      "sourceId": "afterglow_turn",
+      "panel": "automatic",
+      "family": "regular_exceptions",
+      "score": 724.343,
+      "musicalScore": 724.343,
+      "valid": true,
+      "fulfilled": 95,
+      "requested": 95,
+      "trackHash": "c10081db01278de880c770f18c8488b2f6b599f10c60355c1f87c1f5475ee1ef",
+      "physicalFrames": 2605365,
+      "compileMs": 106788.997242,
+      "judgeMs": 217.77901399999973,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-afterglow_turn-automatic",
+      "seed": 202,
+      "sourceId": "afterglow_turn",
+      "panel": "automatic",
+      "family": "regular_exceptions",
+      "score": 692.6418999999999,
+      "musicalScore": 692.6419,
+      "valid": true,
+      "fulfilled": 95,
+      "requested": 95,
+      "trackHash": "5617d429f505c4c81389b85595f6b31bfdc38b9ab39be01987c6d24ff536de9f",
+      "physicalFrames": 2768798,
+      "compileMs": 85275.732894,
+      "judgeMs": 190.98682199999166,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_pickup_lattice-automatic",
+      "seed": 101,
+      "sourceId": "bridge_pickup_lattice",
+      "panel": "automatic",
+      "family": "subdivision_pickup",
+      "score": 658.1928,
+      "musicalScore": 658.1928,
+      "valid": true,
+      "fulfilled": 99,
+      "requested": 99,
+      "trackHash": "858283ff5797f3b9b992aa3c1b07d8d62c57fbfcb94ba68ff1f5bef381f82255",
+      "physicalFrames": 2711216,
+      "compileMs": 87295.507882,
+      "judgeMs": 178.21577900000557,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_pickup_lattice-automatic",
+      "seed": 202,
+      "sourceId": "bridge_pickup_lattice",
+      "panel": "automatic",
+      "family": "subdivision_pickup",
+      "score": 639.1416,
+      "musicalScore": 639.1416,
+      "valid": true,
+      "fulfilled": 99,
+      "requested": 99,
+      "trackHash": "e123d85e0d103e8b200465bcf0653c5536c452a50e9096c0a4600fd50d09c000",
+      "physicalFrames": 2866746,
+      "compileMs": 90273.713351,
+      "judgeMs": 139.63969499999075,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_loose_pocket-automatic",
+      "seed": 101,
+      "sourceId": "bridge_loose_pocket",
+      "panel": "automatic",
+      "family": "irregular_microtimed",
+      "score": 703.8839,
+      "musicalScore": 703.8839,
+      "valid": true,
+      "fulfilled": 104,
+      "requested": 104,
+      "trackHash": "3de156043ab3d69dcc83c3c1d046549bc4c35dd3d6480a4005fbcb87bdbeb261",
+      "physicalFrames": 2560231,
+      "compileMs": 84195.322119,
+      "judgeMs": 140.72717399999965,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_loose_pocket-automatic",
+      "seed": 202,
+      "sourceId": "bridge_loose_pocket",
+      "panel": "automatic",
+      "family": "irregular_microtimed",
+      "score": 716.0701,
+      "musicalScore": 716.0701,
+      "valid": true,
+      "fulfilled": 104,
+      "requested": 104,
+      "trackHash": "d751fd8a2bf179f3ec096dc3441f0fce2953cbab5ff33efbcf5ef426baba197b",
+      "physicalFrames": 2697827,
+      "compileMs": 81355.497615,
+      "judgeMs": 136.28622600001108,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-automatic",
+      "seed": 101,
+      "sourceId": "accelerando_reply",
+      "panel": "automatic",
+      "family": "cadence_transition",
+      "score": 682.9232,
+      "musicalScore": 682.9232,
+      "valid": true,
+      "fulfilled": 92,
+      "requested": 92,
+      "trackHash": "62ca87a32333cd5e466d435976e9f4e24cd0fd3e0f2e1635316c5bf6b4f1cdd2",
+      "physicalFrames": 2764062,
+      "compileMs": 101101.994561,
+      "judgeMs": 204.80142100001103,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-accelerando_reply-automatic",
+      "seed": 202,
+      "sourceId": "accelerando_reply",
+      "panel": "automatic",
+      "family": "cadence_transition",
+      "score": 765.4636,
+      "musicalScore": 765.4636,
+      "valid": true,
+      "fulfilled": 92,
+      "requested": 92,
+      "trackHash": "79e12d1b318d471540e793778033a8002a963b5dadbb3c8bc57fd8f9d18c0bc6",
+      "physicalFrames": 2799680,
+      "compileMs": 85372.57949199999,
+      "judgeMs": 240.81695999999647,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-automatic",
+      "seed": 101,
+      "sourceId": "archipelago",
+      "panel": "automatic",
+      "family": "spacious_amplitude",
+      "score": 783.7307,
+      "musicalScore": 783.7307,
+      "valid": true,
+      "fulfilled": 66,
+      "requested": 66,
+      "trackHash": "313034f161c950d91d33644d6e1344a91de01cc0e7105dd54d7bd3f18e73d498",
+      "physicalFrames": 2366376,
+      "compileMs": 67739.219437,
+      "judgeMs": 158.47050500000478,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-archipelago-automatic",
+      "seed": 202,
+      "sourceId": "archipelago",
+      "panel": "automatic",
+      "family": "spacious_amplitude",
+      "score": 683.0777,
+      "musicalScore": 683.0777,
+      "valid": true,
+      "fulfilled": 66,
+      "requested": 66,
+      "trackHash": "0626721a0d7d95a63ed4c1864d7a6777fbd0b9200ed549d34b20e106ecbe44d1",
+      "physicalFrames": 2526988,
+      "compileMs": 64570.027736000004,
+      "judgeMs": 135.49510600000212,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-automatic",
+      "seed": 101,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "automatic",
+      "family": "dense_musical",
+      "score": 596.383,
+      "musicalScore": 596.383,
+      "valid": true,
+      "fulfilled": 130,
+      "requested": 130,
+      "trackHash": "77a2fbb8f4deaa35f1aef43de382616a419f53cf82606ea9c010d0e06ba9af0e",
+      "physicalFrames": 2961345,
+      "compileMs": 128051.45750399999,
+      "judgeMs": 235.4316450000042,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_dense_dialogue-automatic",
+      "seed": 202,
+      "sourceId": "bridge_dense_dialogue",
+      "panel": "automatic",
+      "family": "dense_musical",
+      "score": 646.2576,
+      "musicalScore": 646.2576,
+      "valid": true,
+      "fulfilled": 130,
+      "requested": 130,
+      "trackHash": "5f80db33be181da66694b6b5304bcd49af95e975e54ca67270c64c896d5ec7f5",
+      "physicalFrames": 2577732,
+      "compileMs": 111640.244029,
+      "judgeMs": 197.16599599999608,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-automatic",
+      "seed": 101,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "automatic",
+      "family": "high_air_energy",
+      "score": 723.8022,
+      "musicalScore": 723.8022,
+      "valid": true,
+      "fulfilled": 94,
+      "requested": 94,
+      "trackHash": "d237c0cce17a80f45d2f513c6af7d134a735066c0c2633ea9b188d0058fba673",
+      "physicalFrames": 2688194,
+      "compileMs": 84335.090787,
+      "judgeMs": 176.85804200000712,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_high_air_drive-automatic",
+      "seed": 202,
+      "sourceId": "bridge_high_air_drive",
+      "panel": "automatic",
+      "family": "high_air_energy",
+      "score": 736.7184999999998,
+      "musicalScore": 736.7185,
+      "valid": true,
+      "fulfilled": 94,
+      "requested": 94,
+      "trackHash": "1cbc02199e891ce2df801b0d7e9b9bab3b7a324c3fcc1d26007ea61c7a87d870",
+      "physicalFrames": 2589346,
+      "compileMs": 73860.021596,
+      "judgeMs": 187.57078600001114,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 101,
+      "sourceId": "bridge_sparse_lowline",
+      "panel": "automatic",
+      "family": "sparse_transition",
+      "score": 652.5652,
+      "musicalScore": 652.5652,
+      "valid": true,
+      "fulfilled": 82,
+      "requested": 82,
+      "trackHash": "6f22637cb0ab0172f0e08d3532baf8ced202feec63ed07d0274dece17f6437b0",
+      "physicalFrames": 2657280,
+      "compileMs": 130869.49987599999,
+      "judgeMs": 280.2244730000093,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 202,
+      "sourceId": "bridge_sparse_lowline",
+      "panel": "automatic",
+      "family": "sparse_transition",
+      "score": 592.4677,
+      "musicalScore": 592.4677,
+      "valid": true,
+      "fulfilled": 82,
+      "requested": 82,
+      "trackHash": "f2e933fad0584e13bcaf0a21710a07568ae7b62612caec2e4f9a6a0609f97d38",
+      "physicalFrames": 2996430,
+      "compileMs": 118649.818421,
+      "judgeMs": 240.97891800000798,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 101,
+      "sourceId": "bridge_frontier_pickup_progression",
+      "panel": "automatic",
+      "family": "rapid_pickup_frontier",
+      "score": 0,
+      "musicalScore": 0,
+      "valid": false,
+      "fulfilled": 109,
+      "requested": 110,
+      "trackHash": "d552b39f8f416b4b71998075c28d21e9db2e65c13a35a45a4daf0f07efc5e4ea",
+      "physicalFrames": 2999972,
+      "compileMs": 141721.542259,
+      "judgeMs": 228.99961599998642,
+      "executionError": null,
+      "constructionFailure": "budget"
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 202,
+      "sourceId": "bridge_frontier_pickup_progression",
+      "panel": "automatic",
+      "family": "rapid_pickup_frontier",
+      "score": 0,
+      "musicalScore": 0,
+      "valid": false,
+      "fulfilled": 99,
+      "requested": 110,
+      "trackHash": "f4aa2b4f38531dfb6d94921646896b83062ce267dd1a8960a7518a1af5f1bf5c",
+      "physicalFrames": 2999978,
+      "compileMs": 128452.79599,
+      "judgeMs": 193.0222589999903,
+      "executionError": null,
+      "constructionFailure": "budget"
+    },
+    {
+      "id": "canonical-bridge_frontier_dense_recovery-automatic",
+      "seed": 101,
+      "sourceId": "bridge_frontier_dense_recovery",
+      "panel": "automatic",
+      "family": "dense_recovery_frontier",
+      "score": 592.7906,
+      "musicalScore": 592.7906,
+      "valid": true,
+      "fulfilled": 123,
+      "requested": 123,
+      "trackHash": "faee31c19957dbc81c7d488939114d8721628459f5ea6ad155968b4419062686",
+      "physicalFrames": 2994853,
+      "compileMs": 136436.662037,
+      "judgeMs": 191.80832100001862,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_frontier_dense_recovery-automatic",
+      "seed": 202,
+      "sourceId": "bridge_frontier_dense_recovery",
+      "panel": "automatic",
+      "family": "dense_recovery_frontier",
+      "score": 0,
+      "musicalScore": 0,
+      "valid": false,
+      "fulfilled": 122,
+      "requested": 123,
+      "trackHash": "92530fb1ef25f1e5952188cb8e846d58b5f23534c5b9ecb3c1769187306e3ddb",
+      "physicalFrames": 2998751,
+      "compileMs": 132819.605216,
+      "judgeMs": 216.53896800000803,
+      "executionError": null,
+      "constructionFailure": "budget"
+    },
+    {
+      "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+      "seed": 101,
+      "sourceId": "bridge_frontier_low_air_endurance",
+      "panel": "automatic",
+      "family": "low_air_frontier",
+      "score": 551.9907,
+      "musicalScore": 551.9907,
+      "valid": true,
+      "fulfilled": 90,
+      "requested": 90,
+      "trackHash": "85e39dcce85556d4d312fa0fbe1625b7153e65cde58d49dc225b170beda76e18",
+      "physicalFrames": 2894262,
+      "compileMs": 154767.015436,
+      "judgeMs": 295.77013499999885,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_frontier_low_air_endurance-automatic",
+      "seed": 202,
+      "sourceId": "bridge_frontier_low_air_endurance",
+      "panel": "automatic",
+      "family": "low_air_frontier",
+      "score": 545.673,
+      "musicalScore": 545.673,
+      "valid": true,
+      "fulfilled": 90,
+      "requested": 90,
+      "trackHash": "e6440fe0d723cd5ac6364c8a3bbf949e53ccc65a1371422d1f11a31ff47368aa",
+      "physicalFrames": 2933259,
+      "compileMs": 123246.597369,
+      "judgeMs": 280.87606100000266,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-alternating_intentions-automatic",
+      "seed": 101,
+      "sourceId": "alternating_intentions",
+      "panel": "automatic",
+      "family": "legacy_transition_regression",
+      "score": 708.4615,
+      "musicalScore": 708.4615,
+      "valid": true,
+      "fulfilled": 84,
+      "requested": 84,
+      "trackHash": "df3b3ffad771cb155067bbdd380057c415cb93383f3f21e8026e72072bdbb9a0",
+      "physicalFrames": 2547073,
+      "compileMs": 102568.245515,
+      "judgeMs": 203.4986179999978,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-alternating_intentions-automatic",
+      "seed": 202,
+      "sourceId": "alternating_intentions",
+      "panel": "automatic",
+      "family": "legacy_transition_regression",
+      "score": 755.6457,
+      "musicalScore": 755.6457,
+      "valid": true,
+      "fulfilled": 84,
+      "requested": 84,
+      "trackHash": "84049163905e58e5664928b43e5d641d341bd9fa13b085ccf1ee15ab0afc4162",
+      "physicalFrames": 2576002,
+      "compileMs": 93661.595876,
+      "judgeMs": 228.894650000002,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-amplitude_reply-automatic",
+      "seed": 101,
+      "sourceId": "amplitude_reply",
+      "panel": "automatic",
+      "family": "legacy_amplitude_regression",
+      "score": 812.1661,
+      "musicalScore": 812.1661,
+      "valid": true,
+      "fulfilled": 68,
+      "requested": 68,
+      "trackHash": "f8c7c55bad8e55a2822e6c7155f7d5316f7bddbeda0c26d6583710b362752a55",
+      "physicalFrames": 2506552,
+      "compileMs": 102660.59791899999,
+      "judgeMs": 169.72928099999262,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-amplitude_reply-automatic",
+      "seed": 202,
+      "sourceId": "amplitude_reply",
+      "panel": "automatic",
+      "family": "legacy_amplitude_regression",
+      "score": 775.2216,
+      "musicalScore": 775.2216,
+      "valid": true,
+      "fulfilled": 68,
+      "requested": 68,
+      "trackHash": "c1ea5ee143990628628e4db989f187ef10745cf7de640096a8059945305348f4",
+      "physicalFrames": 2672086,
+      "compileMs": 78166.761451,
+      "judgeMs": 170.5522420000052,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_believer_56_6s-automatic",
+      "seed": 101,
+      "sourceId": "bridge_believer_56_6s",
+      "panel": "automatic",
+      "family": "believer",
+      "score": 475.80070000000006,
+      "musicalScore": 475.8007,
+      "valid": true,
+      "fulfilled": 84,
+      "requested": 84,
+      "trackHash": "4c9615f1239c4ac5688c6d04577d7a71178c027a608742d8fe485f4fdc23ff62",
+      "physicalFrames": 2977114,
+      "compileMs": 103404.449201,
+      "judgeMs": 127.76102499999979,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-bridge_believer_56_6s-automatic",
+      "seed": 202,
+      "sourceId": "bridge_believer_56_6s",
+      "panel": "automatic",
+      "family": "believer",
+      "score": 520.6672,
+      "musicalScore": 520.6672,
+      "valid": true,
+      "fulfilled": 84,
+      "requested": 84,
+      "trackHash": "fa26f9804d6be03f7700da686d58964b9c159dec65d6b9cc50ef14c262ff7904",
+      "physicalFrames": 2940591,
+      "compileMs": 96591.18995700001,
+      "judgeMs": 158.58114500000374,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-automatic",
+      "seed": 101,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "automatic",
+      "family": "amor_na_praia",
+      "score": 774.0452,
+      "musicalScore": 774.0452,
+      "valid": true,
+      "fulfilled": 78,
+      "requested": 78,
+      "trackHash": "a093b2b16baa17267a1f91bbf05593d467664ba7746e720dedc24deef358c8e6",
+      "physicalFrames": 2102179,
+      "compileMs": 69239.0833,
+      "judgeMs": 94.41869200000656,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amor_na_praia_46s-automatic",
+      "seed": 202,
+      "sourceId": "music_amor_na_praia_46s",
+      "panel": "automatic",
+      "family": "amor_na_praia",
+      "score": 771.9094,
+      "musicalScore": 771.9094,
+      "valid": true,
+      "fulfilled": 78,
+      "requested": 78,
+      "trackHash": "8c5ae924169447c18db5c58ecd0b6b90ea406820638037f9ec21c855897a5e93",
+      "physicalFrames": 2122099,
+      "compileMs": 63461.684966,
+      "judgeMs": 167.90431199999875,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-automatic",
+      "seed": 101,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "automatic",
+      "family": "luna_bala",
+      "score": 795.3246,
+      "musicalScore": 795.3246,
+      "valid": true,
+      "fulfilled": 75,
+      "requested": 75,
+      "trackHash": "ca3c1153dae7b3ce67c77d36f5c4d4f4ebf9960f98de9f363dc7962073a5300a",
+      "physicalFrames": 1996339,
+      "compileMs": 60828.351053,
+      "judgeMs": 86.58843799999886,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_luna_bala_44s-automatic",
+      "seed": 202,
+      "sourceId": "music_luna_bala_44s",
+      "panel": "automatic",
+      "family": "luna_bala",
+      "score": 810.5321,
+      "musicalScore": 810.5321,
+      "valid": true,
+      "fulfilled": 75,
+      "requested": 75,
+      "trackHash": "af87cadb15fdf069c0fea6cf4e3008fcd4d54b7f1c94328995bf7a184dc299be",
+      "physicalFrames": 1999060,
+      "compileMs": 57540.137394,
+      "judgeMs": 92.33160900000075,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-automatic",
+      "seed": 101,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "automatic",
+      "family": "tiki_tiki",
+      "score": 743.6328,
+      "musicalScore": 743.6328,
+      "valid": true,
+      "fulfilled": 77,
+      "requested": 77,
+      "trackHash": "2cd6521253b3942fda22e32e12c62a4a0e2bdca82160f8be0137c93835ca2856",
+      "physicalFrames": 2068734,
+      "compileMs": 73481.713764,
+      "judgeMs": 141.81919399999606,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_tiki_tiki_48s-automatic",
+      "seed": 202,
+      "sourceId": "music_tiki_tiki_48s",
+      "panel": "automatic",
+      "family": "tiki_tiki",
+      "score": 667.6928,
+      "musicalScore": 667.6928,
+      "valid": true,
+      "fulfilled": 77,
+      "requested": 77,
+      "trackHash": "999bc9a96315db02d452c77f888c563a03569dbb920347f2173a35ca8000e66f",
+      "physicalFrames": 2327232,
+      "compileMs": 76609.51096700001,
+      "judgeMs": 146.62228300000424,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_shelter_impact_sync_81s-automatic",
+      "seed": 101,
+      "sourceId": "music_shelter_impact_sync_81s",
+      "panel": "automatic",
+      "family": "shelter",
+      "score": 652.4306,
+      "musicalScore": 652.4306,
+      "valid": true,
+      "fulfilled": 113,
+      "requested": 113,
+      "trackHash": "9804a6557ca1c18af2b8d2f337570538d88d86e6ecf3a913da5a79a9249a84e8",
+      "physicalFrames": 2991713,
+      "compileMs": 99713.425921,
+      "judgeMs": 179.2638569999981,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_shelter_impact_sync_81s-automatic",
+      "seed": 202,
+      "sourceId": "music_shelter_impact_sync_81s",
+      "panel": "automatic",
+      "family": "shelter",
+      "score": 735.0943,
+      "musicalScore": 735.0943,
+      "valid": true,
+      "fulfilled": 113,
+      "requested": 113,
+      "trackHash": "64633e9e74d99f51539744992f83af7453c026147d25cde02a9b8f832d3c0ead",
+      "physicalFrames": 2950979,
+      "compileMs": 94662.888934,
+      "judgeMs": 166.769484000004,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+      "seed": 101,
+      "sourceId": "music_amour_de_ma_vie_short_44s",
+      "panel": "automatic",
+      "family": "amour_de_ma_vie",
+      "score": 534.8063,
+      "musicalScore": 534.8063,
+      "valid": true,
+      "fulfilled": 85,
+      "requested": 85,
+      "trackHash": "c3eca6ec6905ba93863ba19ead5d91c4c65adee27a25f9d8c2ebcf998b47797e",
+      "physicalFrames": 2392106,
+      "compileMs": 81513.650242,
+      "judgeMs": 163.58017500001006,
+      "executionError": null,
+      "constructionFailure": null
+    },
+    {
+      "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
+      "seed": 202,
+      "sourceId": "music_amour_de_ma_vie_short_44s",
+      "panel": "automatic",
+      "family": "amour_de_ma_vie",
+      "score": 407.4855,
+      "musicalScore": 407.4855,
+      "valid": true,
+      "fulfilled": 85,
+      "requested": 85,
+      "trackHash": "5cff1a7cfc3575b838a893f2446ea5a3c93f217d2538537b8b53368f22ab0fd6",
+      "physicalFrames": 2888775,
+      "compileMs": 88870.623587,
+      "judgeMs": 188.30710499999986,
+      "executionError": null,
+      "constructionFailure": null
+    }
+  ],
+  "baseline": {
+    "raw": {
+      "path": "generated/production-repertoire/v5-baseline/run.json",
+      "sha256": "a29da697b831269585fd0e67f5213687e16f788e7eebec35ebe5200b5514184e"
+    },
+    "summary": {
+      "headline": 449.093444975363,
+      "panels": {
+        "fixed": {
+          "score": 777.792466010166,
+          "families": [
+            {
+              "family": "single",
+              "score": 891.8921278504538
+            },
+            {
+              "family": "arcs",
+              "score": 682.5616278715248
+            },
+            {
+              "family": "fold",
+              "score": 735.1693735671204
+            },
+            {
+              "family": "serpentine",
+              "score": 882.47301806521
+            },
+            {
+              "family": "scallops",
+              "score": 770.3259533284465
+            },
+            {
+              "family": "terraces",
+              "score": 920.8110588555772
+            },
+            {
+              "family": "scattered",
+              "score": 561.3141025328288
+            }
+          ]
+        },
+        "automatic": {
+          "score": 120.39442394056009,
+          "families": [
+            {
+              "family": "regular_exceptions",
+              "score": 0
+            },
+            {
+              "family": "subdivision_pickup",
+              "score": 0
+            },
+            {
+              "family": "irregular_microtimed",
+              "score": 0
+            },
+            {
+              "family": "cadence_transition",
+              "score": 0
+            },
+            {
+              "family": "spacious_amplitude",
+              "score": 0
+            },
+            {
+              "family": "dense_musical",
+              "score": 0
+            },
+            {
+              "family": "high_air_energy",
+              "score": 0
+            },
+            {
+              "family": "sparse_transition",
+              "score": 0
+            },
+            {
+              "family": "rapid_pickup_frontier",
+              "score": 0
+            },
+            {
+              "family": "dense_recovery_frontier",
+              "score": 0
+            },
+            {
+              "family": "low_air_frontier",
+              "score": 0
+            },
+            {
+              "family": "legacy_transition_regression",
+              "score": 538.8495659839303
+            },
+            {
+              "family": "legacy_amplitude_regression",
+              "score": 0
+            },
+            {
+              "family": "believer",
+              "score": 0
+            },
+            {
+              "family": "amor_na_praia",
+              "score": 569.2114640659487
+            },
+            {
+              "family": "luna_bala",
+              "score": 622.8257888962718
+            },
+            {
+              "family": "tiki_tiki",
+              "score": 538.7689447568279
+            },
+            {
+              "family": "shelter",
+              "score": 0
+            },
+            {
+              "family": "amour_de_ma_vie",
+              "score": 17.838291167662927
+            }
+          ]
+        }
+      },
+      "musical": {
+        "headline": 512.7049922213148,
+        "panels": {
+          "fixed": {
+            "score": 878.5487751266144,
+            "families": [
+              {
+                "family": "single",
+                "score": 891.8921278504538
+              },
+              {
+                "family": "arcs",
+                "score": 949.7292749999999
+              },
+              {
+                "family": "fold",
+                "score": 921.7198009345925
+              },
+              {
+                "family": "serpentine",
+                "score": 942.0062315959365
+              },
+              {
+                "family": "scallops",
+                "score": 940.2597337659952
+              },
+              {
+                "family": "terraces",
+                "score": 942.9201542064934
+              },
+              {
+                "family": "scattered",
+                "score": 561.3141025328288
+              }
+            ]
+          },
+          "automatic": {
+            "score": 146.8612093160151,
+            "families": [
+              {
+                "family": "regular_exceptions",
+                "score": 0
+              },
+              {
+                "family": "subdivision_pickup",
+                "score": 0
+              },
+              {
+                "family": "irregular_microtimed",
+                "score": 0
+              },
+              {
+                "family": "cadence_transition",
+                "score": 0
+              },
+              {
+                "family": "spacious_amplitude",
+                "score": 0
+              },
+              {
+                "family": "dense_musical",
+                "score": 0
+              },
+              {
+                "family": "high_air_energy",
+                "score": 0
+              },
+              {
+                "family": "sparse_transition",
+                "score": 0
+              },
+              {
+                "family": "rapid_pickup_frontier",
+                "score": 0
+              },
+              {
+                "family": "dense_recovery_frontier",
+                "score": 0
+              },
+              {
+                "family": "low_air_frontier",
+                "score": 0
+              },
+              {
+                "family": "legacy_transition_regression",
+                "score": 603.9974239891936
+              },
+              {
+                "family": "legacy_amplitude_regression",
+                "score": 0
+              },
+              {
+                "family": "believer",
+                "score": 0
+              },
+              {
+                "family": "amor_na_praia",
+                "score": 720.7042998129359
+              },
+              {
+                "family": "luna_bala",
+                "score": 782.451474847836
+              },
+              {
+                "family": "tiki_tiki",
+                "score": 664.2902351868695
+              },
+              {
+                "family": "shelter",
+                "score": 0
+              },
+              {
+                "family": "amour_de_ma_vie",
+                "score": 18.91954316745241
+              }
+            ]
+          }
+        }
+      },
+      "runs": 150,
+      "valid": 117,
+      "fullyRealized": 86,
+      "realizedRequests": 888,
+      "requested": 3834,
+      "distinctTracks": 124
+    },
+    "headlineGain": 321.0235381315746,
+    "actualPhysicsFrames": {
+      "before": 308639552,
+      "after": 324339280
+    },
+    "pairedRows": {
+      "improved": 107,
+      "regressed": 40,
+      "unchanged": 3
+    },
+    "worstPairedRegressions": [
+      {
+        "id": "canonical-bridge_high_air_drive-serpentine",
+        "seed": 101,
+        "before": 919.2599,
+        "after": 886.2819,
+        "delta": -32.978000000000065
+      },
+      {
+        "id": "canonical-bridge_high_air_drive-serpentine",
+        "seed": 202,
+        "before": 919.2599,
+        "after": 886.2819,
+        "delta": -32.978000000000065
+      },
+      {
+        "id": "canonical-accelerando_reply-fold",
+        "seed": 202,
+        "before": 923.0111,
+        "after": 895.3456,
+        "delta": -27.665500000000065
+      },
+      {
+        "id": "canonical-bridge_high_air_drive-single",
+        "seed": 101,
+        "before": 897.5771,
+        "after": 876.6087000000001,
+        "delta": -20.96839999999986
+      },
+      {
+        "id": "canonical-bridge_high_air_drive-single",
+        "seed": 202,
+        "before": 897.5771,
+        "after": 876.6087000000001,
+        "delta": -20.96839999999986
+      }
+    ]
+  },
+  "analysisScript": {
+    "path": "/home/wyss/line/scripts/benchmark/production_repertoire_evidence.py",
+    "sha256": "e88a0ebb8299859c6586cc76e4a1bca1272dbcc8072c593210d8561d7212228e"
+  }
+}

@@ -1,4 +1,4 @@
-# Active campaign: autonomous production repertoire — 2026-09-30
+# Delivered: autonomous production repertoire — 2026-10-01
 
 The owner has given full approval to implement the entire
 [production repertoire roadmap](docs/production-repertoire-roadmap.md).
@@ -8,12 +8,28 @@ shapes and unguided ordinary passages, seeded automatic variety, a new V5 that
 tests musical accuracy and construction realization, shared compiler improvement,
 and a dashboard of complete automatically generated production videos.
 
-The proposed V5 broadens the construction contract, including scattered normal
+V5 broadens the construction contract, including scattered normal
 segments. Existing V4/scorer/physics definitions remain frozen; normal type-0 lines
 remain mandatory. The owner's latest preference is for control rails with folded,
 S-shaped and other expressive geometry so the rider engages with their distinctive
-parts. This is a direction for the new campaign, not evidence that current guide
-permission guarantees that behavior. Implementation is in progress.
+parts. This guided the campaign, but is not evidence that current guide
+permission guarantees that behavior.
+
+The [delivery report](docs/production-repertoire-results-20261001.md) records
+the completed shared compiler, automatic policy, public workflow, frozen V5 and
+production library. Canonical V5 improves from 449.0934 to **770.1170**, with
+147/150 valid and fully fulfilled runs; reserved confirmation scores **790.1098**,
+with 80/80. The **ambition above 900 remains unmet**, particularly on complete
+automatic arrangements (canonical panel 606.8081). Ordinary V4 remains exactly
+952.4726 with 352/352 valid and identical tracks. Existing scoring and physics
+are unchanged; the broader V5 construction contract was frozen before optimization.
+
+All four songs × three predeclared seeds are compiled and physically fulfilled,
+with twelve finished automatic vertical videos and six distinct ordinary reference
+videos. Native/audio/video checks, rapid switching and mobile checks pass. Code,
+documentation and compact evidence are versioned; raw archives and media remain
+local. The roadmap's implementation is complete; final artistic review remains
+open, and physical fulfillment does not establish ordinary-profile musical quality.
 
 # Delivered: the first integrated repertoire workspace — 2026-09-30
 

@@ -9,12 +9,12 @@ remain frozen. New V5 definitions must be committed before the canonical baselin
 
 | Stage | Status | Evidence |
 |---|---|---|
-| Construction requests and physical realization | Initial implementation | Physical geometry and ordered main/opposing contact checks; bypass negative tests |
-| Seeded automatic policy | Initial implementation | Separate diversity RNG, repeated phrases, optional authored boundaries, broad preferences |
+| Construction requests and physical realization | Complete | Frozen geometry/contact checks, bypass negatives, authored-window regression, guide-removal studies |
+| Seeded automatic policy | Complete | Separate diversity RNG, repeated phrases, authored boundaries, broad preferences; recorded actual distribution |
 | V5 pilot, freeze and baseline | Complete | 150 canonical runs; 449.0934 qualified headline, 117 valid, no execution exceptions |
-| Shared compiler campaign | In progress | Single shared search; actual fragmented exits; all 76 Luna requests fulfilled |
-| Production integration and qualification | In progress | Public automatic CLI, separate ordinary reference, input identities; V4 reference 952.4726 |
-| Production dashboard and music library | In progress | Native production comparison tested on desktop/mobile; four songs × three predeclared seeds |
+| Shared compiler campaign | Complete, numerical ambition unmet | Canonical V5 770.1170 (+321.0235); fixed 933.4258, automatic 606.8081; unsuccessful studies retained |
+| Production integration and qualification | Complete | Public route; 147/150 canonical and 80/80 confirmation fulfilled; V4 unchanged at 952.4726 |
+| Production dashboard and music library | Complete; artistic review open | Twelve automatic films and six distinct ordinary films; native/audio/video/mobile checks pass |
 
 Large runs and media belong under `generated/production-repertoire/`; compact
 evidence, commands and findings will be linked here. Failed experiments remain
@@ -165,3 +165,47 @@ Provisional `28c1db39` canonical/confirmation evaluations were stopped after thi
 canonical audit to avoid spending more on a superseded compiler. Partial artifacts
 are preserved. Confirmation outcomes were not inspected or used in development;
 the complete confirmation panel will run on the corrected, frozen compiler.
+
+## Final compiler qualification
+
+Compiler `0846b2e5` was qualified from an immutable checkout. Canonical V5 scores
+770.1170: fixed requests 933.4258, complete automatic tracks 606.8081. There are
+147/150 valid and fully fulfilled rides, with 3,491/3,834 credited requests. The
+three frontier failures exhaust the 3m allowance and remain zero outcomes. Against
+the frozen starting baseline, 107 rows improve, 40 regress and three are unchanged;
+the largest regression is 32.98 points. Total consumed work increases about 5%
+while substantially more rides finish. The numerical ambition above 900 remains
+unmet, especially for full automatic arrangements.
+
+The reserved confirmation scores 790.1098 with 80/80 valid and fully fulfilled
+rides and all 1,150 requests credited. It was not used to tune the final compiler.
+Full ordinary V4 remains 952.4726, with 352/352 valid and exactly the same track
+hashes and scores as the preceding complete companion. All three final evaluations
+have zero execution errors. The [delivery report](production-repertoire-results-20261001.md)
+links compact evidence, per-construction errors, worst passages, costs and limits.
+
+The final production collection uses all four actual songs and seeds 101/202/303,
+without retries that select easier plans. All twelve tracks fulfill their physical
+requests. Their musical scores range from 434.55 to 832.89; construction fulfillment
+does not imply ordinary-profile accuracy or final artistic approval.
+
+An eight-worker video trial exposed excessive decoded-frame caching and swapping.
+The owned batch was stopped and preserved. Render processes now bound that cache
+to 512 MiB each, with explicit compositor concurrency; the collection owns its
+shared mirror server until all workers finish. Media is regenerated with the
+correct pipeline identity. Native playback verifies the saved recording bytes
+before playing them, and survives unavailable or changed audio through scrubbing.
+The form preserves the exact policy default instead of silently rounding it via
+HTML range stepping. These changes do not alter physical compilation or V5.
+
+The completed collection contains 24 checked media records referring to 18 unique
+full vertical films, each with a review excerpt: twelve automatic rides and six
+distinct ordinary references. All are 1080×1920 at 60 fps with actual music and
+production post-processing. Every full film and excerpt decodes without errors.
+All twelve native comparisons and video links pass browser checks, including
+mobile layout, rapid switching, media exclusivity, changed-audio rejection and
+exact form defaults. Cached batch resume verifies all 24 records in 3.08 seconds,
+changes none of the 60 media/record files, and starts/closes its owned mirror.
+Compact [music evidence](evidence/production-repertoire-music-library-20261001.json)
+and [validation](evidence/production-repertoire-validation-20261001.json) preserve
+these outcomes. No artistic approval is inferred from the technical checks.

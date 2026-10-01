@@ -24,77 +24,55 @@ retaining the complete production-motion pass. Median work is 2,114,309 frames;
 maximum work is 2,999,994. The frozen three-million allowance is respected.
 All 406 matched-valid baseline runs contribute to the motion comparison, and
 all three parent-bootstrap intervals for mean burst-burden change are below zero.
-Fifty-four newly completed runs are reported separately. This remains known-source
-development evidence; confirmation is still untouched.
+Fifty-four newly completed runs are reported separately.
 
-The complete candidate-7 V4 companion is **952.4726**, 352/352 valid, with all
-352 hashes identical to the preserved compiler. Its V5 companion is active.
-The broad integration run passes **255 tests in 64 files**. The final-support
-follow-up also passes four native tests, including a fixed-prefix assertion.
+Candidate 7's complete V4 companion is **952.4726**, 352/352 valid, with all
+352 hashes identical to the preserved compiler. Its complete V5 companion is
+**770.1170**, 147/150 valid, with all 150 track hashes identical, including the
+three inherited unsuccessful outcomes. No historical benchmark is rewritten.
 
-The full repair and value-scope studies are retained, including failures. General
-re-fitting often consumes the remaining allowance without improving a completed
-track. Restricting or removing the historical value model causes material mixed
-regressions. These remain research mechanisms. Bounded ending repair is more
-economical: on its declared pilot, the final-support variant preserves or improves
-all ten musical scores, including the folded ending (646.69→671.22) and terraced
-ending (754.46→827.11). This is a development pilot, not another benchmark headline.
-The next complete candidate will test this small finishing pass. The broader
-unadopted mechanisms will be preserved on a research branch rather than added
-to the delivered production defaults.
+Candidate 8 **`5b031f7e`** is frozen for a full 460-run canonical trial and both
+legacy companions. It adds a small final-support refinement to candidate 7;
+earlier geometry stays fixed, completed incumbents are protected, and native
+validation plus the shared work meter still apply. Duplicate final-support
+controls do not consume proposal slots repeatedly. This fills those slots with
+fresh offers; the duplicate counter alone is not evidence of net frame savings.
+Broader optional repair and value-model prototypes are preserved on
+`research/intentional-motion-repair-20261001` at `55f774fa`, rather than added to
+production defaults. Confirmation remains untouched until final selection.
 
-Candidate 7, **`a5424745`**, is frozen for a complete 460-run canonical evaluation
-and all twelve production tracks. It enables bounded previous-transition revision
-at a measured musical RMS threshold of 0.12. Candidate 6 remains preserved at
-`intentional-motion-candidate-6-824`; confirmation is still uninspected. Candidate
-7 passes 22 focused tests and introduces no TypeScript diagnostics relative to
-the captured repository baseline.
+Both candidate 7 and candidate 8's complete production collections pass every
+frozen motion condition: 12/12 valid and fulfilled; burst-burden reductions
+**97.85%, 98.92%, 98.93%**; zero 100ms-band excess in all three reported windows;
+and passing Luna/Tiki opening measurements (47.86% mean impact-RMS improvement).
+Luna 101's opening impact is individually worse; the aggregate pass is not a
+claim that every passage improved. Fourteen native/audio/seek/switch/mobile checks
+pass on each collection without browser errors. These are known-song technical
+checks, not owner artistic approval.
 
-The compact research archive now retains **803 completed outcomes**, including
-all `retrieval-4`, `retrieval-4b`, `revision-1` and `budget-2` results. More canonical
-demonstrations improve some profiled endings but damage other passages, even when
-ordinary memory is preserved. These artifacts are not production defaults.
-The four-case 750k/1.5m/3m/5m study confirms that more work is not monotonically
-better: it changes planning choices as well as refinement opportunity. All
-failures and regressions remain recorded.
+The final candidate-8 integration run passes **262 tests in 67 files**, including
+reference-engine imports and dispatch. The compiler introduces no normalized
+TypeScript diagnostics relative to the captured repository baseline. An initial
+test command used an unsupported Vitest CLI flag and exited before running tests;
+the corrected invocation and both logs remain local.
 
-Geometry-aware continuation and upstream whole-track repair studies are active.
-The latter preserves complete incumbents but frequently spends hundreds of
-thousands of frames rebuilding long suffixes without an accepted improvement.
-A bounded follow-up reconnects to the incumbent after one or two intervals,
-fits the rider's relative body state at that boundary, and then judges the entire
-translated continuation. All contacts, requested geometry, prefix integrity,
-motion objective and work limits still apply. Retained suffix rows are marked
-as incumbent measurements and excluded from new demonstration exports. Thirteen
-native refinement/revision tests pass. This mechanism remains experimental until
-the matched study establishes whether it buys useful improvements.
+The compact search archive retains **959 outcomes from 55 development studies**,
+including unsuccessful proposals and orchestration failures. More demonstrations,
+broader native continuation, value-model restrictions and whole-track re-fitting
+all produced mixed results. General repair frequently spends the remaining
+allowance rebuilding suffixes without accepting a better complete track. Bounded
+ending repair is more economical: the ten-case final-support pilot preserves or
+improves all musical scores, including folded and terraced endings. This pilot
+justifies a full trial, not another benchmark headline. The four-case
+750k/1.5m/3m/5m study also shows that more work is not monotonically better.
 
-Candidate 7's complete production collection passes every frozen motion condition:
-12/12 valid and fulfilled; burst-burden reductions **97.85%, 98.92%, 98.93%**;
-zero 100ms-band excess in all three reported windows; and unchanged passing
-Luna/Tiki opening measurements (47.86% mean impact-RMS improvement). All fourteen
-native/audio/seek/switch/mobile checks pass without browser errors. These are
-known-song technical checks, not owner artistic approval or a completed canonical
-headline. The complete 460-run musical evaluation continues.
+The context/work reports retain all requests and disclose whether a request is
+open, guided, paired or a transfer. These are descriptive associations across
+incoming states and targets, not causal comparisons of interchangeable shapes.
+The roadmap's numerical ambition remains **850**, still unmet at this checkpoint.
 
-Both thirty-outcome continuation and upstream-repair studies are complete and
-retained: **863 outcomes** through `upstream-repair-1`. More accurate continuation
-probes are mixed and sometimes substantially worse; they remain off by default.
-The [candidate-6 context/work report](evidence/intentional-motion-v6-candidate-6-delivery-20261001.json)
-describes all 460 runs, all requested constructions and forty panel/layout/context
-groups. Median actual compiler work is 2,104,333.5 frames, with a maximum of
-2,959,534. Median wall time was 71.2 seconds on the shared loaded host; this is not
-an isolated latency benchmark. Separated folded/terraced passages have larger
-musical errors than paired versions; all their requests are nevertheless fulfilled.
-
-The next repair follow-up addresses a specific limitation: the warm suffix path
-only performed a full response search when a continuation was invalid. Valid but
-inaccurate continuations stayed near their old controls. An optional measured
-error threshold now offers native re-fitting while protecting the warm candidate,
-the completed incumbent and the shared meter. Eighteen focused native tests pass.
-Separately, `value-scope-1` tests restricting the historical arrival-value model,
-which has no upcoming-construction input, to ordinary futures versus disabling
-it altogether. Initial results are mixed; neither is a production default.
+The sections below preserve the development history; statements about provisional
+contracts, running studies and superseded candidates refer to those earlier stages.
 
 ## Baseline preservation and implementation start
 

@@ -54,14 +54,14 @@ for r in rows:
         if section is not None:
             observations[section].append(o)
     for q in requests:
-        key = (r['panel'], q['construction'], q.get('railLayout', 'paired'),
+        key = (r['panel'], q['construction'], q['guidance'], q.get('railLayout', 'paired'),
                'calm' if q.get('context', {}).get('quiet', 0) >= .5 else 'other')
         groups[key].append(dict(parent=r['sourceId'], run=(r['id'], r['seed']), valid=r['valid'],
             request=q, realized=realized.get(q['section']), motion=motion.get(q['section']),
             observations=observations[q['section']]))
 
 contexts = []
-for (panel, construction, layout, context), items in sorted(groups.items()):
+for (panel, construction, guidance, layout, context), items in sorted(groups.items()):
     valid = [x for x in items if x['valid']]
     observed = [x for x in valid if x['motion']]
     axes = {}
@@ -69,12 +69,15 @@ for (panel, construction, layout, context), items in sorted(groups.items()):
         values = [o for x in valid for o in x['observations'] if o['axis'] == axis and isinstance(o.get('error'), (int, float))]
         mass = sum(1 if axis == 'impact' else o['endFrame']-o['startFrame'] for o in values)
         axes[axis] = dict(observations=len(values), rms=math.sqrt(sum(o['error']**2*(1 if axis == 'impact' else o['endFrame']-o['startFrame']) for o in values)/mass) if mass else None)
-    contexts.append(dict(panel=panel, construction=construction, layout=layout, context=context,
+    contexts.append(dict(panel=panel, construction=construction, guidance=guidance, layout=layout, context=context,
         requests=len(items), validRequests=len(valid), musicalParents=len({x['parent'] for x in items}),
+        requestedSeconds=sum(max(0, x['request']['next']-x['request']['frame'])/40 for x in items),
         fulfilled=sum(bool(x['realized'] and x['realized']['fulfilled']) for x in items),
         mainContactFrames=distribution([x['realized']['mainContactFrames'] for x in valid if x['realized']]),
         guideContactFrames=distribution([x['realized']['guideContactFrames'] for x in valid if x['realized']]),
         musicalAxes=axes,
+        gravitySpeedChange=distribution([x['motion']['gravityGain'] for x in observed]),
+        speedWeightedDirectionChange=distribution([x['motion']['directionCorrection'] for x in observed]),
         burstBurden=[dict(frames=f, **distribution([next(b['excessIntegral'] for b in x['motion']['bursts'] if b['frames']==f)/max(1/40, x['motion']['frames']/40) for x in observed])) for f in [1, 4, 10]]))
 
 result = dict(schema='line.intentional-motion-delivery.v1', source=str(root/'run.json'), sha256=digest,

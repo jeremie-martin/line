@@ -335,7 +335,40 @@ not yet adopted the new receiver, pair optimizer, split allocation or learned
 construction artifacts.
 
 The [complete development ledger](evidence/intentional-motion-search-20261001.json.gz)
-preserves all 306 outcomes through `compact-fold-1`, including launch errors,
+preserves all 342 outcomes through `retrieval-1b`, including launch errors,
 source checksums, per-attempt work and rejected-proposal diagnostics. It is
 compressed losslessly; raw runs and the large training artifacts remain local
 until a deployment choice is supported by complete evidence.
+
+
+## Integrated candidate 3 — full evaluations in progress
+
+Candidate **`d59280fa`** integrates the construction retrieval artifact, its
+6,013 demonstrations, native receiving curves and compact fold timing into the
+single public V2 repertoire path. The model is a 4.08 MB deployment artifact,
+with [training provenance](evidence/repertoire-policy-v6-provenance.json), not a
+raw experiment archive. The artifact also supplies the ordinary distance-based
+memory, avoiding a duplicate copy of its demonstrations. Frozen V1/V5 plans and
+the ordinary V4 route retain their prior configurations. Neither coupled-pair
+refinement nor completion-first splitting is a default: their controlled results
+remain mixed.
+
+`retrieval-1` compares four configurations on six declared inputs. The integrated
+configuration completes all six and scores Amour 303 584.65, dense-dialogue 303
+715.33, Afterglow 202 414.71, Tiki 101 821.74, dense-frontier 202 611.51, and the
+fixed Accelerando folded ending 413.09. The high errors in the endings are still
+visible. Restricting learned retrieval to profiles/transfers (`retrieval-1b`)
+helps some inputs and harms others, so it is not treated as an established
+universal improvement. These small development studies do not certify 850.
+
+The complete **460-run canonical V6**, **150-run canonical V5** and **352-run V4**
+evaluations now run from `/tmp/line-motion-candidate-3`. The unchanged twelve-track
+production collection is being rebuilt in `generated/intentional-motion/library-candidate-3`
+with publication disabled. Full production motion qualification follows its
+completion. The dashboard still presents the preserved collection; confirmation
+remains untouched. No partial result is called a new canonical headline.
+
+Integration checks pass (15 tests across four production, policy, archive and
+V6 files), with no added TypeScript diagnostics against the captured existing
+baseline. The earlier 57-file regression panel passes after rerunning its one
+obsolete-assertion file. Frozen judge verification passes.

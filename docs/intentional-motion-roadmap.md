@@ -2,7 +2,7 @@
 
 **Approved in full on 2026-10-01; implementation in progress.** The owner
 authorized sustained execution of the entire roadmap. The [campaign ledger](intentional-motion-campaign.md)
-records progress and evidence. V6 remains unfrozen until the contract pilot is complete.
+records progress and evidence. V6 was frozen after the contract pilot on 2026-10-01; canonical optimization is in progress.
 It follows the [owner's positive production review](production-repertoire-feedback-20261001.md)
 and the [motion investigation](motion-quality-investigation-20261001.md).
 The preceding [production roadmap](production-repertoire-roadmap.md) remains the

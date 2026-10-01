@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {existsSync,mkdirSync,readFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {sha} from '../../benchmark/v3/model.ts';
-import {verifyFrozen} from '../../benchmark/v5/contract.ts';
+import {verifyFrozen} from '../../benchmark/v6/contract.ts';
 import {compileHandoff} from '../v0/optimizer/handoff.ts';
 import {validateAutomaticProductionRequest,repertoireSongs} from '../gallery/repertoire_catalog.ts';
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';

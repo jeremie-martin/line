@@ -543,8 +543,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(i<contacts.length-1&&(options.arrivalWeight??0)>0){
           const nextImpact=gaps[contacts[i+1].gap].targets.impact??0;
           const nextSpeed=authoredSpeedToPx(planned[contacts[i+1].gap+1]?.targets.speed??targets.speed??.55);
-          const desiredArrival=clamp(15+deg(impactToRawPx(nextImpact)/nextSpeed),20,70);
-          const weight=Math.sqrt(options.arrivalWeight??0), r1=options.arrivalMode==='speed'?0:weight*(deg(Math.atan2(finalVelocity.y,finalVelocity.x))-desiredArrival)/45,r2=weight*(Math.hypot(finalVelocity.x,finalVelocity.y)-nextSpeed)/7.2;
+          const passive=options.arrivalMode==='passive'&&options.constructionRequests?.[i+1]?.guidance==='forbidden';
+          // A passive catch redirects incoming speed into the next surface.
+          // Prepare kinetic headroom instead of asking an unguided landing to
+          // both dissipate a strong impulse and retain the incoming speed.
+          // This is a proposal prior; actual native continuation decides merit.
+          const impulse=impactToRawPx(nextImpact),arrivalSpeed=passive?Math.hypot(nextSpeed,impulse):nextSpeed;
+          const desiredArrival=clamp(15+deg(passive?Math.atan2(impulse,nextSpeed):impulse/nextSpeed),20,70);
+          const weight=Math.sqrt(options.arrivalWeight??0), r1=options.arrivalMode==='speed'?0:weight*(deg(Math.atan2(finalVelocity.y,finalVelocity.x))-desiredArrival)/45,r2=weight*(Math.hypot(finalVelocity.x,finalVelocity.y)-arrivalSpeed)/7.2;
           residuals.push(r1,r2);cost+=r1*r1+r2*r2;
         }
         if(i<contacts.length-1&&(options.headingWeight??0)>0){

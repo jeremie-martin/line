@@ -65,6 +65,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Cover contact geometry before a first fully realized candidate exists. */
   constructionProposals?:boolean;
   constructionRecovery?:boolean;
+  genericProposalFraction?:number;
   constructionAwareArrival?:boolean;
   fork?:ArcMotionFork;
   /** Research composition by support index (startup is zero). Applied to every
@@ -158,6 +159,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   lookaheadWeight?:number;
   lookaheadWarmStart?:boolean;
   warmStart?:ArcMotionControl;
+  warmIncoming?:number;
   pruneGuidance?:boolean;
   lookaheadDepth?:number;
   lookaheadBranching?:number;
@@ -239,6 +241,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
   if(options.initialRecoverySamples!==undefined&&(!Number.isSafeInteger(options.initialRecoverySamples)||options.initialRecoverySamples<0||options.initialRecoverySamples>320))throw new Error('invalid initialization recovery allowance');
+  if(options.genericProposalFraction!==undefined&&(!Number.isFinite(options.genericProposalFraction)||options.genericProposalFraction<0||options.genericProposalFraction>1))throw new Error('invalid generic proposal fraction');
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   if(!validProfileControls(options))throw new Error('invalid profile controls');
   arcMainSteps(1,options.subdivisions,options.faces);
@@ -316,6 +319,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
   const fragmentStats={intervals:0,probes:0,observationFrames:0,replayFrames:0};
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
+  const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
   const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
   const controlMemory=new ArcControlMemory(),constructionMemories=new Map<string,ArcControlMemory>();
   const memoryFor=(index:number)=>{
@@ -402,7 +406,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
       const nextRequest=options.constructionRequests?.[i+1];
-      if(options.constructionAwareArrival&&nextRequest&&(nextRequest.context?.quiet??0)<.5&&nextRequest.guidance==='forbidden'){
+      if(options.constructionAwareArrival&&nextRequest&&(nextRequest.context?.quiet??0)<.5&&(nextRequest.guidance==='forbidden'||nextRequest.railLayout==='transfer')){
         options.futureValueModel=undefined;
         options.arrivalMode='passive';options.headingWeight=0;
       }
@@ -664,15 +668,22 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       // Its optional learned proposals still pass the ordinary interval search.
       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
       const requested=[proposalModel?options.policySamples??8:0,remembered.length,responses.length];
-      const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1)):requested;
+      const reservedGeneric=options.constructionProposals?Math.ceil(initial*(options.genericProposalFraction??.25)):0;
+      const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1-reservedGeneric)):requested;
       const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0],options.controlDiversity):[];
+      const learnedEnd=policy.length,memoryEnd=learnedEnd+Math.min(remembered.length,counts[1]);
       policy.push(...remembered.slice(0,counts[1]),...responses.slice(0,counts[2]));
       const reference=options.fork?.continuation?.[i-options.fork.section];
       if(reference){
         evaluate(reference.control);
         evaluate(arcReferencedControl(reference,incoming,span));
       }
-      if(options.warmStart)evaluate(options.warmStart);
+      if(options.warmStart){
+        evaluate(options.warmStart);
+        if(options.warmIncoming!==undefined&&options.warmIncoming!==incoming)
+          evaluate({...options.warmStart,entry:options.warmStart.entry+incoming-options.warmIncoming,
+            exit:options.warmStart.exit+incoming-options.warmIncoming});
+      }
       const genericInitial=(k:number)=>{
         const frac=(n:number)=>((k+1)*n)%1;
         const control:ArcMotionControl={entry:incoming-((options.flow||guidedInitialization)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5,
@@ -687,6 +698,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
             control.support=2*Math.pow(Math.max(1,(constructionSpan-4)/2),frac(.4384471872));
           if(options.profile==='fold'){
             control.foldBend=(k%2?1:-1)*(20+35*frac(.3247179572));
+            if(options.railLayout==='transfer')control.foldTiming=k%2?1:frac(.6931471806);
             // The first folded face is entry+turn; target that face's approach
             // directly rather than inheriting a smooth arc's five-frame turn.
             control.entry=incoming-control.turn-(1+frac(.61803398875)*Math.min(25,turn+5));
@@ -695,7 +707,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         return control;
       };
       for(let k=0;k<initial;k++){
-        evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:genericInitial(k));
+        const stream=k===0?'center':k<=learnedEnd?'learned':k<=memoryEnd?'memory':k<=policy.length?'response':'generic';
+        const accounting=initialProposalWork[stream],began=getPhysicsFrameCount();accounting.attempts++;
+        try{if(evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:genericInitial(k)))accounting.viable++;}
+        finally{accounting.physicsFrames+=getPhysicsFrameCount()-began;}
         if(k%10===9)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
       }
       if(!best&&initial>0&&(options.initialRecoverySamples??0)>0){
@@ -1126,6 +1141,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
   const trajectoryLoss=options.collectTrajectoryLoss?arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight).loss:undefined;
-  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

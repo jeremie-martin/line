@@ -130,16 +130,18 @@ export function refineArcTrack(input: ArcRefinementInput) {
         let child = operations.add(base,candidate.lines), proposed = [...prefix, ...candidate.lines];
         const proposedRows = sourceRows.slice();
         proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost,
+          incoming:searchResult.incoming,span:searchResult.span,features:searchResult.inputFeatures,
           ...candidate.meta, lookahead: null, spent: getPhysicsFrameCount()};
         let completed = true;
         if (options.refineMode === 'reflow') {
           for (let j = i + 1; j < contacts.length; j++) {
             const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
-            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control}, [incumbent, base]);
+            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,...(!planned&&options.constructionRequests?{warmIncoming:sourceRows[j].incoming}:{})}, [incumbent, base]);
             if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,guidanceSamples:12,warmStart:sourceRows[j].control},[incumbent,base]);
             if (!next?.best) {completed = false; break;}
             proposed.push(...next.best.lines); child = operations.detach(next.best.child);
             proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
+              incoming:next.incoming,span:next.span,features:next.inputFeatures,
               achieved: next.best.achieved, impact: next.best.actualImpact,
               release: next.best.release, lines: next.best.lines.length,railGuides:next.best.railGuides,
               failures: next.failures, lookahead: null, spent: getPhysicsFrameCount()};

@@ -9,6 +9,23 @@ import type {Spec} from '../scripts/v0/types.ts';
 const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],v={x:9,y:2};
 const control={entry:12,turn:-20,exit:25,support:20,bias:.2,offset:.1};
 
+it('can keep a fold entry compact before a long runout without changing its face headings',()=>{
+  const style={profile:'fold' as const,faces:3,profileStart:0,foldAngle:40};
+  const c={...control,support:180,turnFraction:.1,bias:-2};
+  const build=(foldTiming?:number)=>motionArc(points,v,{...c,foldTiming},1000,false,0,false,0,4,style);
+  const original=build(),compact=build(1);
+  expect(build(0)).toEqual(original);
+  expect(compact).toHaveLength(original.length);
+  const length=(l:any)=>Math.hypot(l.x2-l.x1,l.y2-l.y1);
+  expect(length(compact[1])).toBeLessThan(length(original[1]));
+  expect(length(compact[2])).toBeLessThan(length(original[2]));
+  for(let i=1;i<original.length;i++){
+    expect(length(compact[i])).toBeGreaterThan(0);
+    expect(Math.atan2(compact[i].y2-compact[i].y1,compact[i].x2-compact[i].x1))
+      .toBeCloseTo(Math.atan2(original[i].y2-original[i].y1,original[i].x2-original[i].x1),12);
+  }
+});
+
 it('moves fold corners without losing the selected headings or total support time',()=>{
   for(const first of [.1,1/3,.85])for(const bias of [-2,0,2]){
     const times=Array.from({length:61},(_,i)=>foldTime(i/60,first,bias));

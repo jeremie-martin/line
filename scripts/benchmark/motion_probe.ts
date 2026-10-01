@@ -55,7 +55,7 @@ try{
  assert.deepEqual(galleryCompilerIdentity(process.cwd()),compiler,'compiler changed during motion probe');
  writeGalleryJson(out,id+'.json',{id,compiler,song,seed,budget,changes,ms,physicalFrames:result.stats.sim_frames,
   score:replay.grade.score,valid:replay.grade.score.valid,realization,motion,plan,rows:result.rows,railGuides:roles,
-  track:result.track,report:result.report,failure:result.failure,planning:result.planningDecisions,lookahead:result.lookaheadStats,initializationRecovery:result.initializationRecovery});
+  track:result.track,report:result.report,failure:result.failure,planning:result.planningDecisions,lookahead:result.lookaheadStats,initializationRecovery:result.initializationRecovery,refinement:result.refinementStats,initialProposalWork:result.initialProposalWork});
  console.log(JSON.stringify({id,ms,frames:result.stats.sim_frames,valid:replay.grade.score.valid,score:replay.grade.score.score,
   fulfilled:realization.fulfilledSections,total:realization.requested,bursts:motion.full.bursts.map(b=>({frames:b.frames,max:b.maximum,excess:b.maxExcess,episodes:b.episodes})),failure:result.failure}));
 }catch(error){writeGalleryJson(out,id+'.error.json',{id,compiler,error:String(error),stack:error instanceof Error?error.stack:null});throw error;}

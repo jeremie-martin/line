@@ -15,13 +15,17 @@ const smooth = (x: number) => {x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
 
 /** Allocate the fold's three faces using the existing entry-duration and easing
  * controls. The corner headings stay deliberate while search can move them. */
-export function foldTime(phase:number,first=1/3,bias=0):number {
+export function foldTime(phase:number,first=1/3,bias=0,minimum=.2):number {
   if(phase<=0)return 0;if(phase>=1)return 1;
   if(first===1/3&&bias===0)return phase;
-  // Each of the three faces receives at least a fifth of the support time.
-  // Distribute the remaining two fifths using existing searched controls;
-  // shrinking a face to a point cannot silently erase the selected structure.
-  const split=1/(1+Math.exp(-bias)),entry=.2+.4*first,middle=entry+.2+.4*(1-first)*split;
+  // The historical schedule gives every face a fifth of the support time.
+  // Intentional transfers can instead search an absolute face-duration floor;
+  // shrinking a face to a point cannot silently erase an engaged corner.
+  // Transfer captures may keep short, substantial entry faces before a long
+  // runout. The caller searches this timing; native corner engagement still
+  // decides validity. Preserve exact historical arithmetic at the default.
+  const remaining=minimum===.2?.4:1-3*minimum;
+  const split=1/(1+Math.exp(-bias)),entry=minimum+remaining*first,middle=entry+minimum+remaining*(1-first)*split;
   return phase<1/3?phase*3*entry:phase<2/3?entry+(phase-1/3)*3*(middle-entry):middle+(phase-2/3)*3*(1-middle);
 }
 

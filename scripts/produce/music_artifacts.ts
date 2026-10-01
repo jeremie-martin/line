@@ -83,7 +83,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     const save=(name:string,value:unknown)=>writeGalleryJson(dir,name,value);
     save('track.json',result.track);save('report.json',result.report);
     save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,proposalDecision:result.proposalDecision,
-      failure:result.failure,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
+      failure:result.failure,refinement:result.refinementStats,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
     save('budget-telemetry.json',budgetTelemetry??{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
       preparationFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.preparationFrames,0)??composition?.preparationFrames??0,constructionFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.physicalFrames-a.preparationFrames,0)??result.stats.sim_frames,compositionStages:composition?.attempts,
       includes:'All search and cold replay work for this alternative, plus prefix preparation. Baseline creation is accounted once in the comparison set. Independent evaluation and rendering are separate.'});

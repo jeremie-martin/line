@@ -46,6 +46,7 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
   exitBias: {family: 'exit', min: -3, max: 3, tolerance: .3, coordinate: .5, response: .4,
     searchDefault: c => c.bias},
   guideTilt: {family:'guide',min:-25,max:25,tolerance:2,coordinate:5,response:3,repair:2},
+  foldTiming: {family:'expressive',min:0,max:1,tolerance:.05,coordinate:.2,response:.15,repair:.1},
   foldBend: {family:'expressive',min:-65,max:65,tolerance:3,coordinate:8,response:5,repair:3,searchDefault:()=>30},
   mainEnd: {family:'expressive',min:.2,max:1,tolerance:.04,coordinate:.12,response:.08,repair:.04,searchDefault:()=>.7},
 };
@@ -55,6 +56,7 @@ export const ARC_EXPRESSIVE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DE
 
 /** Disabled guides have no meaningful clearance, coverage or flare coordinates. */
 export function arcControlActive(key:ControlKey,guides=true,style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'>):boolean {
+  if(key==='foldTiming')return style?.profile==='fold'&&style?.independentGuide===true&&style?.railLayout==='transfer';
   if(key==='foldBend')return style?.profile==='fold'&&style?.independentGuide===true;
   if(key==='guideTilt')return guides&&style?.independentGuide===true;
   if(key==='mainEnd')return style?.railLayout==='transfer';

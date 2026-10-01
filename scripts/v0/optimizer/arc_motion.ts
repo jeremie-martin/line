@@ -65,6 +65,8 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Cover contact geometry before a first fully realized candidate exists. */
   constructionProposals?:boolean;
   constructionRecovery?:boolean;
+  /** Bounded exploration of better physically valid but not yet realized shapes. */
+  constructionImprovementSamples?:number;
   genericProposalFraction?:number;
   constructionAwareArrival?:boolean;
   fork?:ArcMotionFork;
@@ -242,6 +244,7 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
   if(options.initialRecoverySamples!==undefined&&(!Number.isSafeInteger(options.initialRecoverySamples)||options.initialRecoverySamples<0||options.initialRecoverySamples>320))throw new Error('invalid initialization recovery allowance');
+  if(options.constructionImprovementSamples!==undefined&&(!Number.isSafeInteger(options.constructionImprovementSamples)||options.constructionImprovementSamples<0||options.constructionImprovementSamples>4096))throw new Error('invalid construction improvement allowance');
   if(options.genericProposalFraction!==undefined&&(!Number.isFinite(options.genericProposalFraction)||options.genericProposalFraction<0||options.genericProposalFraction>1))throw new Error('invalid generic proposal fraction');
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   if(!validProfileControls(options))throw new Error('invalid profile controls');
@@ -322,6 +325,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
   const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
   const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
+  const constructionImprovement:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number;before:number|null;after:number|null}>=[];
   const controlMemory=new ArcControlMemory(),constructionMemories=new Map<string,ArcControlMemory>();
   const memoryFor=(index:number)=>{
     if(options.memoryScope!=='construction')return controlMemory;
@@ -455,8 +459,17 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         options.impactWeight=(options.impactWeight??2)*(1+(options.motionQuality.calmImpactMultiplier-1)*Math.max(0,1-impact/.2));
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
-      const near:Array<{c:ArcMotionControl;deficit:number}>=[];
-      const rememberNear=(candidate:{c:ArcMotionControl;deficit:number})=>{
+      type Near={c:ArcMotionControl;deficit:number;loss?:number};
+      const near:Near[]=[],promising:Near[]=[];
+      const rememberNear=(candidate:Near)=>{
+        if(candidate.loss!==undefined){
+          const merit=(r:Near)=>r.loss!+.04*r.deficit*r.deficit;
+          const similar=promising.findIndex(n=>arcControlsSimilar(n.c,candidate.c));
+          if(similar<0||merit(candidate)<merit(promising[similar])){
+            if(similar>=0)promising.splice(similar,1);
+            promising.push(candidate);promising.sort((a,b)=>merit(a)-merit(b));promising.length=Math.min(12,promising.length);
+          }
+        }
         const similar=near.findIndex(n=>arcControlsSimilar(n.c,candidate.c));
         if(similar>=0){if(near[similar].deficit<=candidate.deficit)return;near.splice(similar,1);}
         near.push(candidate);near.sort((a,b)=>a.deficit-b.deficit);near.length=Math.min(near.length,12);
@@ -466,7 +479,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&(!options.futureValueModel||options.futureValueModel===compileOptions.futureValueModel)){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,options.railLayout,options.independentGuide,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,!!options.futureValueModel]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,!!options.futureValueModel,!!options.constructionImprovementSamples]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -518,7 +531,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const child=addArc(engine,added);
         const prefixReusable=prefixRaw&&child.getLastFrameIndex()>=frame-1;
         if(added.length>=10000)throw new Error('arc geometry id range exhausted');
-        const reject=(reason:string,near?:{c:ArcMotionControl;deficit:number})=>{memo?.set(key,{reason,near});failures[reason]=(failures[reason]??0)+1;return null;};
+        const reject=(reason:string,near?:Near)=>{memo?.set(key,{reason,near});failures[reason]=(failures[reason]??0)+1;return null;};
         if(JSON.stringify(getRiderMetered(child,frame-1).ballisticState())!==before)return reject('prefix');
         const state=getRiderMetered(child,horizon).ballisticState();
         if(!state.riderMounted||!state.sledIntact)return reject('binding');
@@ -529,14 +542,16 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(det.events.some(e=>e.type==='landing'&&!frames.some(f=>Math.abs(e.frame-f)<=1)))return reject('offbeat');
         if(i<contacts.length-1&&!raw.frames.slice(-6).every(f=>f.sledContacts.length===0))return reject('late_release');
         const request=options.constructionRequests?.[i];
+        let unfinished:{reason:string;near:Near}|undefined;
         if(request&&(request.construction==='scattered'?!!fragments:request.guidance==='required'||request.construction!=='arcs')){
           const guideIds=fragments?.guideIds??(arcRailGroups(added).get(i)![1]??[]).map(l=>l.id);
           const allContacts=request.context||request.railLayout==='transfer'?(frame:number)=>child.getAllContactLineIdsAtFrame(frame):undefined;
           const fulfillment=inspectConstructionWindow(request,added,new Set(guideIds),raw.frames,allContacts);
           if(!fulfillment.fulfilled){
             const nearby=options.constructionRecovery?{c,deficit:constructionDeficit(fulfillment)}:undefined;
-            if(nearby)rememberNear(nearby);
-            return reject('construction:'+fulfillment.reasons.join(','),nearby);
+            const reason='construction:'+fulfillment.reasons.join(',');
+            if(options.constructionImprovementSamples){unfinished={reason,near:{c,deficit:constructionDeficit(fulfillment)}};}
+            else{if(nearby)rememberNear(nearby);return reject(reason,nearby);}
           }
         }
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);
@@ -569,6 +584,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         const motionErrors=motion?motionResiduals(motion,motionImpact,options.motionQuality!):[];
         const motionCost=motionErrors.reduce((n,r)=>n+r*r,0);
         residuals.push(...motionErrors);cost+=motionCost;
+        if(unfinished){unfinished.near.loss=cost;rememberNear(unfinished.near);return reject(unfinished.reason,unfinished.near);}
         const localCost=cost,priorStart=residuals.length;
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
@@ -742,6 +758,24 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           }
         }finally{record.physicalFrames=getPhysicsFrameCount()-began;record.bestConstructionDeficit=near[0]?.deficit??null;record.failures={...failures};}
       }
+      if(promising.length&&(options.constructionImprovementSamples??0)>0){
+        const began=getPhysicsFrameCount(),record={index:i,frame,proposals:0,viable:0,physicalFrames:0,before:best?.localCost??null,after:best?.localCost??null};
+        constructionImprovement.push(record);
+        const keys=arcMethodKeys('response',true,false,options.guides,options);
+        try{
+          for(let k=0;k<options.constructionImprovementSamples!;k++){
+            let proposal=genericInitial(initial+(options.initialRecoverySamples??0)+k+1);
+            if(k%4!==3){
+              const trial=k-Math.floor(k/4),key=keys[Math.floor(trial/2)%keys.length];
+              const anchor=promising[Math.floor(trial/(2*keys.length))%Math.min(4,promising.length)].c;
+              const step=arcControlStep(key,'coordinate',anchor.support)*Math.pow(.7,Math.floor(trial/(8*keys.length)));
+              proposal={...anchor,[key]:arcControlValue(anchor,key,options.channel)+(trial%2?-1:1)*step};
+            }
+            record.proposals++;if(evaluate(proposal))record.viable++;
+            if(k%10===9)Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
+          }
+        }finally{record.physicalFrames=getPhysicsFrameCount()-began;record.after=best?.localCost??null;}
+      }
       if(best){
         const keys=ARC_CORE_KEYS;
         let local=initial;
@@ -897,6 +931,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     };
     const continuation=(base:Engine,index:number,depth:number,probeSamples:number,protectedEngines:Engine[]):any=>{
       const searched=searchInterval(base,index,{samples:probeSamples,
+        constructionImprovementSamples:0,
         guidanceSamples:options.continuationGuidanceSamples??Math.min(12,options.guidanceSamples??48),
         responseSamples:options.continuationResponseSamples??options.responseSamples},protectedEngines);
       lookaheadStats.continuationNodes++;
@@ -1152,6 +1187,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
   const trajectoryLoss=options.collectTrajectoryLoss?arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight).loss:undefined;
-  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

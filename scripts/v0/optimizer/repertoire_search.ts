@@ -23,7 +23,7 @@ export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:
  const artifact=plan.policy===INTENTIONAL_REPERTOIRE_POLICY?loadConstructionArtifact():undefined;
  return {...connectedArcOptions(spec,allowance),policyPreview:false,
   ...(plan.policy===INTENTIONAL_REPERTOIRE_POLICY?{
-   motionQuality:{burstWeight:.16,calmWeight:1},constructionProposals:true,constructionRecovery:true,
+   motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},constructionProposals:true,constructionRecovery:true,
    // Preserve ordinary guidance where its physical assumptions apply. Active
    // mixed transitions use native continuation and explicit catch preparation.
    constructionAwareArrival:true,observedReceiver:true,compactFoldProposals:true,

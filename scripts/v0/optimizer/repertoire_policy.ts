@@ -3,16 +3,19 @@ import {createHash} from 'node:crypto';
 import {makeRng} from '../../lib/rng.ts';
 import type {Spec} from '../types.ts';
 import type {ArcSectionStyle} from './arc_geometry.ts';
+import {repertoireMusicHash,repertoireContexts,type RepertoireContext,type ContextSpec} from './repertoire_context.ts';
 
 export const REPERTOIRE_POLICY='line.repertoire-policy.v1';
 export const constructions=['arcs','fold','serpentine','scallops','terraces','scattered'] as const;
 export type Construction=typeof constructions[number];
 export type Guidance='required'|'forbidden'|'optional';
 export type CreativePreferences={repertoire?:Construction[];variation?:number;guidedBalance?:number};
-export type ConstructionRequest={section:number;frame:number;next:number;construction:Construction;guidance:Guidance};
+export type ConstructionRequest={section:number;frame:number;next:number;construction:Construction;guidance:Guidance;
+  railLayout?:'paired'|'transfer';context?:RepertoireContext};
 export type ProductionPlan={schema:'line.production-plan.v1';policy:string;seed:number;timelineSha256:string;
   phraseBoundaries:number[];
-  preferences:Required<CreativePreferences>;phrases:Array<{first:number;count:number;construction:Construction;guidance:Guidance}>;
+  musicalSha256?:string;
+  preferences:Required<CreativePreferences>;phrases:Array<{first:number;count:number;construction:Construction;guidance:Guidance;railLayout?:'paired'|'transfer';choices?:Array<{construction:Construction;guidance:Guidance;weight:number}>}>;
   requests:ConstructionRequest[]};
 const hash=(v:unknown)=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 export function supportTimeline(spec:Pick<Spec,'duration'|'contacts'>){
@@ -27,7 +30,7 @@ export function creativePreferences(input:CreativePreferences={}):Required<Creat
   return {repertoire:[...repertoire],variation,guidedBalance};
 }
 export function constructionStyle(r:ConstructionRequest):ArcSectionStyle{
-  const base={guides:r.guidance!=='forbidden'};
+  const base={guides:r.guidance!=='forbidden',...(r.railLayout?{railLayout:r.railLayout}:{}),...(r.context?{independentGuide:true}:{})};
   switch(r.construction){
     case 'fold':return {...base,profile:'fold',profileStart:0,profileStrength:1,faces:3,foldAngle:30};
     case 'serpentine':return {...base,profile:'serpentine',profileStart:0,profileStrength:.8};
@@ -70,20 +73,28 @@ export function planRepertoire(spec:Pick<Spec,'duration'|'contacts'>,seed:number
   return {schema:'line.production-plan.v1',policy:REPERTOIRE_POLICY,seed,timelineSha256:hash(timeline),phraseBoundaries:[...phraseBoundaries],preferences,phrases,requests};
 }
 /** Fixed benchmark requests use exactly the same realization route as automatic plans. */
-export function validateProductionPlan(spec:Pick<Spec,'duration'|'contacts'>,input:ProductionPlan):ProductionPlan{
+export function validateProductionPlan(spec:ContextSpec,input:ProductionPlan):ProductionPlan{
   const timeline=supportTimeline(spec);
-  if(input?.schema!=='line.production-plan.v1'||input.policy!==REPERTOIRE_POLICY||input.timelineSha256!==hash(timeline)||
+  if(input?.schema!=='line.production-plan.v1'||![REPERTOIRE_POLICY,'line.repertoire-policy.v2'].includes(input.policy)||input.timelineSha256!==hash(timeline)||
     !Array.isArray(input.requests)||input.requests.length!==timeline.length)throw new Error('production plan does not match musical timeline');
+  if(input.policy==='line.repertoire-policy.v2'&&input.musicalSha256!==repertoireMusicHash(spec))throw new Error('production plan does not match musical targets');
+  if(input.policy==='line.repertoire-policy.v2'){
+    const contexts=repertoireContexts(spec);
+    if(input.requests.some((r,i)=>JSON.stringify(r.context)!==JSON.stringify(contexts[i])))throw new Error('production context does not match authored targets');
+  }
   creativePreferences(input.preferences);
   if(!Number.isSafeInteger(input.seed)||input.seed<0||input.seed>2147483647)throw new Error('invalid plan seed');
   for(const [i,r]of input.requests.entries())if(!r||r.section!==i||r.frame!==timeline[i].frame||r.next!==timeline[i].next||
     !constructions.includes(r.construction)||!['required','forbidden','optional'].includes(r.guidance)||
-    (r.construction==='scattered'&&r.guidance!=='optional'))throw new Error('invalid construction request');
+    (r.construction==='scattered'&&r.guidance!=='optional')||
+    (r.railLayout!==undefined&&!['paired','transfer'].includes(r.railLayout))||
+    (r.railLayout==='transfer'&&(r.guidance!=='required'||r.construction==='scattered'))||
+    (input.policy===REPERTOIRE_POLICY&&(r.railLayout!==undefined||r.context!==undefined)))throw new Error('invalid construction request');
   let first=1;
   if(!Array.isArray(input.phrases))throw new Error('missing production phrases');
   for(const p of input.phrases){
     if(p.first!==first||!Number.isSafeInteger(p.count)||p.count<1||first+p.count>timeline.length||
-      input.requests.slice(first,first+p.count).some(r=>r.construction!==p.construction||r.guidance!==p.guidance))throw new Error('phrases do not match support requests');
+      input.requests.slice(first,first+p.count).some(r=>r.construction!==p.construction||r.guidance!==p.guidance||r.railLayout!==p.railLayout))throw new Error('phrases do not match support requests');
     first+=p.count;
   }
   if(first!==timeline.length)throw new Error('phrases do not cover musical timeline');

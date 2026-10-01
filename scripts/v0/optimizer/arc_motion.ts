@@ -315,7 +315,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const memoryFor=(index:number)=>{
     if(options.memoryScope!=='construction')return controlMemory;
     const style={...options,...options.sectionStyles?.[index]};
-    const key=JSON.stringify([style.guides!==false,style.profile,style.profileStrength,style.profileStart,style.rippleCycles,style.faces,style.foldAngle,style.subdivisions]);
+    const key=JSON.stringify([style.guides!==false,style.profile,style.profileStrength,style.profileStart,style.rippleCycles,style.faces,style.foldAngle,style.subdivisions,style.railLayout,style.independentGuide]);
     let memory=constructionMemories.get(key);if(!memory){memory=new ArcControlMemory();constructionMemories.set(key,memory);}return memory;
   };
   for(const example of options.controlExamples??[])controlMemory.rememberControl(example);
@@ -346,7 +346,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     for(const [key,style] of Object.entries(options.sectionStyles)){
       const index=Number(key);
       if(!Number.isSafeInteger(index)||String(index)!==key||index<resumeAt||index>=contacts.length||
-        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','subdivisions','faces','profile','profileStrength','profileStart','rippleCycles','foldAngle'].includes(k))||
+        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','subdivisions','faces','profile','profileStrength','profileStart','rippleCycles','foldAngle','railLayout','independentGuide'].includes(k))||
+        (style.railLayout!==undefined&&!['paired','transfer'].includes(style.railLayout))||
+        (style.independentGuide!==undefined&&typeof style.independentGuide!=='boolean')||
         (style.guides!==undefined&&typeof style.guides!=='boolean')||
         !validProfileControls({...options,...style})||
         (style.subdivisions!==undefined&&(!Number.isFinite(style.subdivisions)||style.subdivisions<=0||style.subdivisions>4)))
@@ -432,7 +434,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&options.futureValueModel===compileOptions.futureValueModel){
-        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,options.railLayout,options.independentGuide,
           options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
@@ -639,7 +641,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       if(options.warmStart)evaluate(options.warmStart);
       const genericInitial=(k:number)=>{
         const frac=(n:number)=>((k+1)*n)%1;
-        return {entry:incoming-((options.flow||guidedInitialization)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5};
+        return {entry:incoming-((options.flow||guidedInitialization)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5,
+          ...(options.railLayout==='transfer'?{mainEnd:.3+.65*frac(.6931471806)}:{})};
       };
       for(let k=0;k<initial;k++){
         evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:genericInitial(k));
@@ -691,6 +694,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         let keys:(keyof ArcMotionControl)[]=options.guidance==='span'?['guideStart','guideEnd']:options.guidance==='clearance'?['clearance']:['clearance','guideStart','guideEnd'];
         if(options.guidanceJoint)keys.push(...ARC_CORE_KEYS);
         if(options.expressive)keys.push(...ARC_EXPRESSIVE_KEYS);
+        if(options.independentGuide)keys.push('guideTilt');
         if(exitEnabled)keys.push('exitBias');
         keys=keys.filter(key=>arcControlActive(key,options.guides,options));
         const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
@@ -701,6 +705,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
             c={...origin.c};
             if(options.guidance!=='span')c.clearance=k===0?12:8+16*frac(.61803398875);
             if(options.expressive&&k>0){c.turnFraction=.15+.65*frac(.2718281828);c.bend=-35+70*frac(.1415926535);c.guideFlare=-12+24*frac(.5772156649);}
+            if(options.independentGuide&&k>0)c.guideTilt=-15+30*frac(.9159655941);
+            if(options.railLayout==='transfer'&&k>0)c.mainEnd=.3+.6*frac(.6931471806);
             if(exitEnabled)c.exitBias=k>0?-2+4*frac(.9159655941):c.exitBias??c.bias;
             if(options.guidance!=='clearance'){
               c.guideStart=k%3===0?0:frac(.41421356237)*.7;

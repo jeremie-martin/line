@@ -7,10 +7,12 @@ import type { TrackLine } from '../types.ts';
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
-export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:RailContour;faces?:number};
+export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:RailContour;faces?:number;
+  railLayout?:'paired'|'transfer';independentGuide?:boolean};
 export type ArcSectionStyle=Omit<ArcGeometryStyle,'contour'>&{subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
-  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number};
+  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number;
+  guideTilt?:number;mainEnd?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
 export function normalizeArcTurnFraction(fraction:number,support:number,preserveImplicit=false):number{
@@ -74,7 +76,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     const xx=x+Math.cos(a)*v*dt, yy=y+Math.sin(a)*v*dt;
     lines.push(makeSolidLine(id++,x,y,xx,yy));x=xx;y=yy;
   }
-  const clearance=c.clearance??channel;
+  const mainCount=lines.length,clearance=c.clearance??channel;
   if(style?.guides!==false&&clearance>0&&(c.guideEnd??1)>(c.guideStart??0)){
     const vertices=lines.map(l=>({x:l.x1,y:l.y1}));vertices.push({x:lines.at(-1)!.x2,y:lines.at(-1)!.y2});
     const roof=vertices.slice(2).map((p,i)=>{
@@ -92,9 +94,24 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
       const at=(distance:number)=>{let i=1;while(i<distances.length-1&&distances[i]<distance)i++;const t=(distance-distances[i-1])/Math.max(1e-12,distances[i]-distances[i-1]);return{x:lerp(roof[i-1].x,roof[i].x,t),y:lerp(roof[i-1].y,roof[i].y,t)};};
       if(from>0&&!distances.includes(from))clipped.unshift(at(from));
       if(to<length&&!distances.includes(to))clipped.push(at(to));
+      if(style?.independentGuide&&c.guideTilt){
+        const pivot=clipped[Math.floor(clipped.length/2)],a=rad(c.guideTilt),co=Math.cos(a),si=Math.sin(a);
+        for(const p of clipped){const x=p.x-pivot.x,y=p.y-pivot.y;p.x=pivot.x+co*x-si*y;p.y=pivot.y+si*x+co*y;}
+      }
       clipped.reverse();
       for(let i=1;i<clipped.length;i++)lines.push(makeSolidLine(id++,clipped[i-1].x,clipped[i-1].y,clipped[i].x,clipped[i].y));
     }
+  }
+  if(style?.railLayout==='transfer'){
+    const main=lines.slice(0,mainCount),extent=clamp(c.mainEnd??.7,.2,1);
+    let remaining=main.slice(1).reduce((n,l)=>n+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)*extent;
+    const retained=[main[0]];
+    for(const line of main.slice(1)){
+      const length=Math.hypot(line.x2-line.x1,line.y2-line.y1);if(remaining<=1e-9)break;
+      if(remaining>=length){retained.push(line);remaining-=length;}
+      else{retained.push({...line,x2:lerp(line.x1,line.x2,remaining/length),y2:lerp(line.y1,line.y2,remaining/length)});break;}
+    }
+    return [...retained,...lines.slice(mainCount)];
   }
   return contour?railContours(lines,contour,id):lines;
 }

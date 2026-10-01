@@ -165,9 +165,6 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   continuationResponseSamples?:number;
   /** Extra measured response for profiled or transfer continuations only. */
   constructionContinuationSamples?:number;
-  /** The historical value model has no construction/layout input. Limit its
-   * use to futures composed entirely of ordinary connected guided arcs. */
-  constructionAwareValue?:boolean;
   /** Propose one demonstrated curve and search only when its physical replay fails. */
   policyRollout?:boolean;
   policyRolloutStrict?:boolean;
@@ -210,11 +207,6 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   refineDirect?:boolean;
   refineRebuildSamples?:number;
   refineRebuildGuidanceSamples?:number;
-  /** Rebuild a bounded bridge, then physically test the translated old suffix. */
-  refineRejoinAfter?:number;
-  refineRejoinWeight?:number;
-  /** Re-optimize a valid but inaccurate warm continuation, not only failed ones. */
-  refineFollowErrorThreshold?:number;
   /** Spend remaining work on the ending without reconstructing a long suffix. */
   refineTailSections?:number;
   /** Whole-track error can originate in the preceding approach. */
@@ -276,9 +268,6 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,continueMeter=false){
   if(options.constructionContinuationSamples!==undefined&&(!Number.isSafeInteger(options.constructionContinuationSamples)||options.constructionContinuationSamples<0))throw new Error('invalid construction continuation allowance');
-  if(options.refineRejoinAfter!==undefined&&(!Number.isSafeInteger(options.refineRejoinAfter)||options.refineRejoinAfter<1||options.refineMode!=='reflow'))throw new Error('invalid refinement rejoin horizon');
-  if(options.refineRejoinWeight!==undefined&&(!Number.isFinite(options.refineRejoinWeight)||options.refineRejoinWeight<0))throw new Error('invalid refinement rejoin weight');
-  if(options.refineFollowErrorThreshold!==undefined&&(!Number.isFinite(options.refineFollowErrorThreshold)||options.refineFollowErrorThreshold<0))throw new Error('invalid refinement follow error threshold');
   if(options.refineTailSections!==undefined&&(!Number.isSafeInteger(options.refineTailSections)||options.refineTailSections<1))throw new Error('invalid refinement tail window');
   const revision=options.transitionRevision?{errorThreshold:.12,width:3,samples:48,guidanceSamples:96,responseSamples:88,...options.transitionRevision}:undefined;
   if(revision&&(!Number.isFinite(revision.errorThreshold)||revision.errorThreshold<0||
@@ -466,10 +455,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       lines:candidate.lines,c:candidate.c,cost:candidate.cost,localCost:candidate.localCost});
     const searchInterval=(engine:Engine,i:number,overrides:Partial<ArcMotionOptions>={},protectedEngines:Engine[]=[])=>{
       const options={...compileOptions,...overrides,...compileOptions.sectionStyles?.[i]};
-      if(options.constructionAwareValue&&[i+1,i+2].some(index=>{
-        const request=options.constructionRequests?.[index];
-        return request&&(request.construction!=='arcs'||request.railLayout==='transfer'||request.guidance==='forbidden');
-      }))options.futureValueModel=undefined;
       const constructionPolicy=i>0?options.constructionPolicies?.[arcConstructionMemoryKey(options)]:undefined;
       if(constructionPolicy)options.controlPolicy=constructionPolicy;
       const nextRequest=options.constructionRequests?.[i+1];

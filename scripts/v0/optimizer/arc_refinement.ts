@@ -73,7 +73,8 @@ export function refineArcTrack(input: ArcRefinementInput) {
   const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes).map(([axis, value]) => [axis, value?.target])));
   const expectedObservations = observationContract(incumbentReport);
   const initialLoss = loss, tries = contacts.map(() => 0), records: any[] = [];
-  const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0, failedConstruction:0, rejoinedSuffixes:0, refittedContinuations:0};
+  const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0, failedConstruction:0, duplicateFinalCandidates:0};
+  const finalCandidates=new Set<string>();
   const indexOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
   if (!Number.isFinite(loss)) return {lines, rows, engine: incumbent, stats: {initialLoss, finalLoss: loss, frames: getPhysicsFrameCount() - began, counts, records}};
   try {
@@ -128,61 +129,40 @@ export function refineArcTrack(input: ArcRefinementInput) {
         const key = JSON.stringify(candidate.c);
         if (offered.has(key) || key === JSON.stringify(sourceRows[i].control)) continue;
         offered.add(key);
+        // A fixed final-support control has no stochastic continuation. Avoid
+        // judging the identical complete geometry repeatedly for one incumbent.
+        // Earlier supports remain eligible: rebuilding their suffix can differ.
+        if(i===contacts.length-1&&finalCandidates.has(key)){counts.duplicateFinalCandidates++;continue;}
         if (evaluated >= width || getPhysicsFrameCount() + 2 * (end + 1) > ceiling) break;
+        if(i===contacts.length-1)finalCandidates.add(key);
         evaluated++; counts.proposals++;
         let child = operations.add(base,candidate.lines), proposed = [...prefix, ...candidate.lines];
         const proposedRows = sourceRows.slice();
         proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost,
-          retainedContinuation:false,
           incoming:searchResult.incoming,span:searchResult.span,features:searchResult.inputFeatures,
           ...candidate.meta, lookahead: null, spent: getPhysicsFrameCount()};
         let completed = true;
-        const appendSuffix=(after:number,at:number,target:{x:number;y:number})=>{
-          const arrival=getRiderMetered(child,at).position;
-          const dx=arrival.x-target.x,dy=arrival.y-target.y;
-          const suffix=sourceLines.filter(l=>indexOf(l)>after).map(l=>({...l,x1:l.x1+dx,x2:l.x2+dx,y1:l.y1+dy,y2:l.y2+dy}));
-          proposed.push(...suffix);child=operations.add(child,suffix);
-          // These controls were measured in the incumbent. The independent full
-          // replay is authoritative; do not export stale state/control pairs as
-          // newly measured training demonstrations.
-          for(let j=after+1;j<proposedRows.length;j++)proposedRows[j]={...proposedRows[j],retainedContinuation:true};
-        };
         if (options.refineMode === 'reflow') {
-          const rejoin=options.refineRejoinAfter===undefined?contacts.length-1:Math.min(contacts.length-1,i+options.refineRejoinAfter);
-          for (let j = i + 1; j <= rejoin; j++) {
+          for (let j = i + 1; j < contacts.length; j++) {
             const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
-            const boundaryFrame=(contacts[j+1]?.frame??end+1)-1;
-            const oldBoundary=options.refineRejoinAfter!==undefined&&j===rejoin&&j+1<contacts.length?getRiderMetered(incumbent,boundaryFrame):undefined;
-            const bridge=oldBoundary?{arrivalReference:{position:oldBoundary.position,velocity:oldBoundary.velocity,state:oldBoundary.ballisticState()},boundaryWeight:options.refineRejoinWeight??1,
-              arrivalWeight:0,headingWeight:0,samples:options.refineRebuildSamples??48,guidanceSamples:options.refineRebuildGuidanceSamples??96,completeGuidanceBudget:true}:{};
-            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,...(!planned&&options.constructionRequests?{warmIncoming:sourceRows[j].incoming}:{}),...bridge}, [incumbent, base]);
-            const inaccurate=next?.best&&options.refineFollowErrorThreshold!==undefined&&
-              Math.hypot(...next.best.localResiduals.slice(0,4))/2>options.refineFollowErrorThreshold;
-            if((!next?.best||inaccurate)&&(options.refineRebuildSamples??0)>0){
-              const warm=next;
-              const rebuilt=search(child,j,{samples:options.refineRebuildSamples,
-                guidanceSamples:options.refineRebuildGuidanceSamples??12,warmStart:warm?.best?.c??sourceRows[j].control,
-                ...(!warm?.best&&options.refineRebuildGuidanceSamples!==undefined?{warmIncoming:sourceRows[j].incoming}:{}),...bridge},
-                [incumbent,base,...(warm?.best?[warm.best.child]:[])]);
-              if(inaccurate)counts.refittedContinuations++;
-              if(!warm?.best||rebuilt?.best&&rebuilt.best.cost<warm.best.cost)next=rebuilt;
-            }
+            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,...(!planned&&options.constructionRequests?{warmIncoming:sourceRows[j].incoming}:{})}, [incumbent, base]);
+            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,
+              guidanceSamples:options.refineRebuildGuidanceSamples??12,warmStart:sourceRows[j].control,
+              ...(options.refineRebuildGuidanceSamples!==undefined?{warmIncoming:sourceRows[j].incoming}:{})},[incumbent,base]);
             if (!next?.best) {completed = false; break;}
             proposed.push(...next.best.lines); child = operations.detach(next.best.child);
             proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
-              retainedContinuation:false,
               incoming:next.incoming,span:next.span,features:next.inputFeatures,
               achieved: next.best.achieved, impact: next.best.actualImpact,
               release: next.best.release, lines: next.best.lines.length,railGuides:next.best.railGuides,
               failures: next.failures, lookahead: null, spent: getPhysicsFrameCount()};
             Engine.retainOnly([incumbent, base, child]);
           }
-          if(completed&&rejoin+1<contacts.length){
-            const at=contacts[rejoin+1].frame-1;
-            appendSuffix(rejoin,at,getRiderMetered(incumbent,at).position);counts.rejoinedSuffixes++;
-          }
         } else {
-          appendSuffix(i,horizon,reference.position);
+          const arrival = getRiderMetered(child, horizon).position;
+          const dx = arrival.x - reference.position.x, dy = arrival.y - reference.position.y;
+          const suffix = sourceLines.filter(l => indexOf(l) > i).map(l => ({...l, x1: l.x1 + dx, x2: l.x2 + dx, y1: l.y1 + dy, y2: l.y2 + dy}));
+          proposed.push(...suffix); child = operations.add(child,suffix);
         }
         if (!completed) {counts.failedContinuation++; Engine.retainOnly([incumbent, base]); continue;}
         if (JSON.stringify(getRiderMetered(child, frame - 1).ballisticState()) !== before) {
@@ -198,6 +178,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
         if (candidateLoss + 1e-12 < loss) {
           incumbent = operations.detach(child); lines = proposed; rows = proposedRows;
           incumbentReport = candidateReport;objective=candidateObjective; loss = candidateLoss; counts.accepted++;
+          finalCandidates.clear();
         }
         Engine.retainOnly([incumbent, base]);
       }

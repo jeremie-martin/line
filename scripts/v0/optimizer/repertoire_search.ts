@@ -41,6 +41,9 @@ export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:
    // mixed transitions use native continuation and explicit catch preparation.
    constructionAwareArrival:true,observedReceiver:true,compactFoldProposals:true,
    transitionRevision:{errorThreshold:.12},
+   // Preserve the complete ride while using spare work to improve its ending.
+   wholeTrackRefinement:true,refineTailSections:1,refineAttempts:12,
+   refineSamples:64,refineGuidanceSamples:96,refineWidth:4,refineMode:'reflow',
    memorySamples:16,policySamples:16,constructionExamples:artifact!.examples,constructionPolicies:artifact!.policies,
   }:{}),
   initialRecoverySamples:160,memoryScope:'construction',collectTrajectoryLoss:true,

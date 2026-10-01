@@ -53,6 +53,9 @@ try{
   ...(examples?{constructionExamples:examples.groups}:{}),...(policies?{constructionPolicies:policies.groups}:{})};
  let forkInput:any;
  if(arg('fork','')){
+  // Locked-prefix diagnostics study reconstruction; the production ending pass
+  // is evaluated through complete-track probes and its independent cold replay.
+  options.refineAttempts=0;
   const path=resolve(arg('fork','')),bytes=readFileSync(path),source=JSON.parse(bytes.toString());
   assert.deepEqual(source.plan,plan,'fork must use exactly the same requested plan');
   const section=Number(arg('section',String(source.rows.length-1)));

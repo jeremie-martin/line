@@ -70,6 +70,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Bounded exploration of better physically valid but not yet realized shapes. */
   constructionImprovementSamples?:number;
   observedReceiver?:boolean;
+  compactFoldProposals?:boolean;
   /** Native joint adjustment of neighboring supports, within the shared budget. */
   coupledIntervalSamples?:number;
   completionFirstFraction?:number;
@@ -337,7 +338,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
   const coupledIntervalWork:Array<{index:number;proposals:number;viable:number;accepted:number;physicsFrames:number;before:number;after:number}>=[];
   const observedReceiverWork={attempts:0,viable:0,physicsFrames:0,failures:{} as Record<string,number>};
-  const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
+  const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic','compactFold'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
   const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
   const constructionImprovement:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number;before:number|null;after:number|null}>=[];
   const controlMemory=new ArcControlMemory(),constructionMemories=new Map<string,ArcControlMemory>();
@@ -782,6 +783,18 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         try{if(evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:genericInitial(k)))accounting.viable++;}
         finally{accounting.physicsFrames+=getPhysicsFrameCount()-began;}
         if(k%10===9)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
+      }
+      if(options.compactFoldProposals&&options.profile==='fold'&&options.railLayout==='transfer'&&initial>0){
+        const anchor=best?.c??near[0]?.c??center;
+        if(anchor)for(let k=0;k<16;k++){
+          const frac=(n:number)=>((k+1)*n)%1,duration=Math.max(2,support*(.65+.7*frac(.4384471872)));
+          const control={...anchor,support:duration,foldTiming:1,turnFraction:Math.min(5,duration*.2)/duration,
+            foldBias:-2-4*frac(.6931471806),foldBend:-20-35*frac(.3247179572),exit:-20+40*frac(.7548776662),mainEnd:.4+.55*frac(.5698402910)};
+          const accounting=initialProposalWork.compactFold,began=getPhysicsFrameCount();accounting.attempts++;
+          try{if(evaluate(control))accounting.viable++;}
+          finally{accounting.physicsFrames+=getPhysicsFrameCount()-began;}
+        }
+        Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
       }
       if(options.observedReceiver&&options.railLayout==='transfer'&&initial>0){
         const anchor=best?.c??near[0]?.c??center;

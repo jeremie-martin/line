@@ -102,6 +102,20 @@ it('places ripple waves independently of the entry turn while retaining the inhe
     expect(()=>build(style)).toThrow('profile controls');
 });
 
+it('permits short folded entry faces before a long runout without weakening either corner',()=>{
+ const c={...control,support:160,entry:15,turn:0,exit:0,foldBend:-35,foldTiming:1,turnFraction:5/160};
+ const build=(foldBias?:number)=>motionArc(points,v,{...c,...(foldBias===undefined?{}:{foldBias})},1000,false,0,false,24,4,
+  {profile:'fold',profileStart:0,profileStrength:1,faces:3,guides:false}).slice(1);
+ const original=build(),compact=build(-5);
+ const length=(l:any)=>Math.hypot(l.x2-l.x1,l.y2-l.y1);
+ const heading=(l:any)=>Math.atan2(l.y2-l.y1,l.x2-l.x1);
+ expect(compact).toHaveLength(3);
+ expect(compact.map(heading)).toEqual(original.map(heading));
+ expect(length(compact[1])).toBeLessThan(length(original[1])*.2);
+ expect(length(compact[2])).toBeGreaterThan(length(original[2]));
+ expect(build(c.bias)).toEqual(original);
+});
+
 it('builds six distinct normal geometries without changing ordinary arcs or the input',()=>{
   const original=structuredClone({points,v,control});
   const base=motionArc(points,v,control,1000,false,12,false,24);

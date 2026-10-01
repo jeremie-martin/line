@@ -12,7 +12,7 @@ export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:Rai
 export type ArcSectionStyle=Omit<ArcGeometryStyle,'contour'>&{subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number;
-  guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;
+  guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
   receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
@@ -51,7 +51,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     if(profile==='fold'&&(style?.profileStrength??1)>0){
       const onset=profileFirst/c.support,amount=Math.min(1,style?.profileStrength??1);
       const at=(station:number)=>station<=onset?station:lerp(station,
-        onset+(1-onset)*foldTime((station-onset)/(1-onset),c.turnFraction??1/3,c.bias,
+        onset+(1-onset)*foldTime((station-onset)/(1-onset),c.turnFraction??1/3,c.foldBias??c.bias,
           lerp(.2,Math.min(.2,2/c.support),c.foldTiming??0)),amount);
       const from=at(k/steps),to=at((k+1)/steps);
       dt=c.support*(to-from);time=c.support*(from+to)/2;

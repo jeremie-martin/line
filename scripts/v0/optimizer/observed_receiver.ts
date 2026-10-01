@@ -38,7 +38,7 @@ export function observedReceiver(engine:LineRiderEngine,main:TrackLine[],frame:n
   // The receiving fold bends independently of the lower support. Reusing its
   // signed corner forces both surfaces to turn in the same direction even
   // though their active contact sides are opposite.
-  foldBend:style.profile==='fold'?(control.receiverTurn??-(control.foldBend??30)):control.foldBend,foldTiming:control.foldTiming};
+  foldBend:style.profile==='fold'?(control.receiverTurn??-(control.foldBend??30)):control.foldBend,foldTiming:control.foldTiming,foldBias:control.foldBias};
  const forward=motionArc([top],velocity,c,0,false,0,false,style.radius,style.subdivisions,
   {...style,guides:false,railLayout:'paired',alignedFoldEntry:true});
  const guide=forward.reverse().map(l=>makeSolidLine(id++,l.x2,l.y2,l.x1,l.y1));

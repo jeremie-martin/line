@@ -15,6 +15,7 @@ import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
 import {loadMusicCase} from '../produce/music_artifacts.ts';
 import {galleryCompilerIdentity,replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
 import {motionSamples,summarizeMotion} from '../v0/optimizer/motion_quality.ts';
+import {captureArcFork} from '../v0/optimizer/arc_guide_study.ts';
 import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit} from '../lib/detector.ts';
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
  await import(new URL('../lib/_lr_engine_wasm.ts?motion-probe',import.meta.url).href);
@@ -47,6 +48,21 @@ try{
  if(examples)assert.equal(examples.schema,'line.construction-examples.v1');
  const options={...repertoireSearchOptions(spec,plan,budget-Math.round(spec.duration*40)-21),...changes,
   ...(examples?{constructionExamples:examples.groups}:{})};
+ let forkInput:any;
+ if(arg('fork','')){
+  const path=resolve(arg('fork','')),bytes=readFileSync(path),source=JSON.parse(bytes.toString());
+  assert.deepEqual(source.plan,plan,'fork must use exactly the same requested plan');
+  const section=Number(arg('section',String(source.rows.length-1)));
+  resetFrameCount();setPhysicsFrameLimit(null);
+  const captured=captureArcFork(source,section);
+  options.budget-=captured.physicsFrames;
+  options.fork={...captured.fork,guides:plan.requests[section].guidance!=='forbidden',
+   fragmentSections:plan.requests.filter(r=>r.section<section&&r.construction==='scattered').map(r=>r.section),
+   continuation:source.rows.slice(section).map((r:any)=>({control:r.control,incoming:r.incoming,span:r.span}))};
+  options.sectionStyles=Object.fromEntries(Object.entries(options.sectionStyles!).filter(([i])=>Number(i)>=section));
+  forkInput={path,sha256:createHash('sha256').update(bytes).digest('hex'),section,preparationFrames:captured.physicsFrames,
+   sourceCompilationFrames:source.physicalFrames,prefixSha256:captured.prefixSha256,stateSha256:captured.fork.stateSha256};
+ }
  const began=performance.now(),result=compileArcMotion(spec,seed,options),ms=performance.now()-began;
  const replay=replayGalleryTrack(result.track,c as any,true),fragmented=new Set(plan.requests.filter(r=>r.construction==='scattered').map(r=>r.section));
  const roles:Record<number,number[]>={};for(const [i,chains]of arcRailGroups(result.track.lines.filter(l=>!fragmented.has(Math.floor((l.id-1000)/10000)))))roles[i]=(chains[1]??[]).map(l=>l.id);
@@ -60,7 +76,8 @@ try{
  const motion={full:summarizeMotion(samples,1),opening:summarizeMotion(samples.filter(s=>s.frame<=120),1),sections};
  assert.deepEqual(galleryCompilerIdentity(process.cwd()),compiler,'compiler changed during motion probe');
  if(exampleBytes)assert.ok(exampleBytes.equals(readFileSync(examplePath)),'example corpus changed during motion probe');
- writeGalleryJson(out,id+'.json',{id,compiler,song,seed,budget,changes,ms,physicalFrames:result.stats.sim_frames,
+ writeGalleryJson(out,id+'.json',{id,compiler,song,seed,budget,changes,ms,physicalFrames:result.stats.sim_frames+(forkInput?.preparationFrames??0),
+  ...(forkInput?{forkInput,forkEvidence:result.forkEvidence}:{}),
   ...(exampleBytes?{examples:{path:examplePath,sha256:createHash('sha256').update(exampleBytes).digest('hex')}}:{}),
   score:replay.grade.score,valid:replay.grade.score.valid,realization,motion,plan,rows:result.rows,railGuides:roles,
   track:result.track,report:result.report,failure:result.failure,planning:result.planningDecisions,lookahead:result.lookaheadStats,initializationRecovery:result.initializationRecovery,refinement:result.refinementStats,initialProposalWork:result.initialProposalWork});

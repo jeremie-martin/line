@@ -48,7 +48,7 @@ it('rejects ambiguous creative inputs and mismatched plan seeds',async()=>{
  expect(()=>compileHandoff({...spec,axes:{...spec.axes,elevation:()=>.5}},101,{budget:50000,creative:{}})).toThrow('supports air');
 });
 
-it('refines mixed constructions through the shared search and preserves functional requests',async()=>{
+it.each(['reflow','translate'] as const)('refines mixed constructions with %s and preserves functional requests',async(refineMode)=>{
  const {compileArcMotion}=await import('../scripts/v0/optimizer/arc_motion.ts');
  const {planIntentionalRepertoire}=await import('../scripts/v0/optimizer/intentional_repertoire.ts');
  const {repertoireSearchOptions}=await import('../scripts/v0/optimizer/repertoire_search.ts');
@@ -58,7 +58,7 @@ it('refines mixed constructions through the shared search and preserves function
  const {sliceTimeline,effectiveAxes,axesAtFrame}=await import('../scripts/v0/core/substrate.ts');
  const plan=planIntentionalRepertoire(spec,101,{repertoire:['scattered']});
  const result=compileArcMotion(spec,101,{...repertoireSearchOptions(spec,plan,200000),constructionBudget:130000,
-  refineAttempts:2,refineDirect:true,refineSamples:0,refineWidth:2,refineMode:'reflow',wholeTrackRefinement:true});
+  refineAttempts:2,refineDirect:true,refineSamples:0,refineWidth:2,refineMode,wholeTrackRefinement:true});
  expect(result.failure).toBeNull();expect(result.refinementStats.frames).toBeGreaterThan(0);
  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
  const durationFrames=120,contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));

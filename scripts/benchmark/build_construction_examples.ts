@@ -21,7 +21,14 @@ for(const directory of studies)for(const name of readdirSync(directory).filter(n
   const request=r.plan.requests[i],check=r.realization.sections[i];
   if(!request?.context||!check?.fulfilled||!row.control||row.features?.length!==57||
     !row.features.every(Number.isFinite)||!Number.isFinite(row.incoming)||!(row.span>0))continue;
-  const example={control:row.control,incoming:row.incoming,span:row.span,features:row.features};
+  const features=row.features.slice();
+  if(arg('relabel','false')==='true'){
+    // A demonstration describes what this control actually achieved, not the
+    // target it missed. Keep absent axes and later musical context unchanged.
+    for(const [j,value]of [row.impact,row.achieved?.air,row.achieved?.speed,row.achieved?.amplitude].entries())
+      if(features[48+j]>=0&&Number.isFinite(value))features[48+j]=value;
+  }
+  const example={control:row.control,incoming:row.incoming,span:row.span,features};
   const key=arcConstructionMemoryKey(constructionStyle(request)),identity=sha(JSON.stringify([key,example]));
   if(seen.has(identity))continue;seen.add(identity);
   (groups[key]??=[]).push(example);accepted++;
@@ -32,7 +39,7 @@ const result={schema:'line.construction-examples.v1',groups};
 assert.ok(seen.size,'no validated examples');
 const out=resolve(arg('out')),bytes=gzipSync(Buffer.from(JSON.stringify(result)+'\n'),{level:9});
 mkdirSync(dirname(out),{recursive:true});writeFileSync(out,bytes);writeFileSync(out+'.sha256',sha(bytes)+'\n');
-const evidence={schema:'line.construction-examples.provenance.v1',excluded:[...excluded].filter(Boolean),
+const evidence={schema:'line.construction-examples.provenance.v1',relabel:arg('relabel','false')==='true',excluded:[...excluded].filter(Boolean),
  corpusSha256:sha(bytes),examples:seen.size,groups:Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,v.length])),sources};
 const body=JSON.stringify(evidence,null,2)+'\n';writeFileSync(out+'.provenance.json',body);writeFileSync(out+'.provenance.json.sha256',sha(body)+'\n');
 console.log(JSON.stringify({out,examples:seen.size,groups:Object.keys(groups).length,bytes:bytes.length}));

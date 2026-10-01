@@ -356,7 +356,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const contacts=[{frame:1,gap:-1},...planned.filter(g=>g.endsWithContact).map(g=>({frame:g.endFrame,gap:g.index}))];
   if(options.sectionStyles){
     if(typeof options.sectionStyles!=='object'||Array.isArray(options.sectionStyles))throw new Error('invalid section styles');
-    if(((options.refineAttempts??0)>0&&options.refineMode!=='reflow')||options.directControls||options.replayControls)
+    if(options.directControls||options.replayControls)
       throw new Error('section styles require ordinary connected search');
     for(const [key,style] of Object.entries(options.sectionStyles)){
       const index=Number(key);

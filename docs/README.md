@@ -18,6 +18,7 @@ historical record, not live guidance.
 | [`automatic-production.md`](automatic-production.md) | LIVE | Public automatic music command, dashboard, artifacts and bounded rendering. |
 | [`production-repertoire-architecture.md`](production-repertoire-architecture.md) | LIVE | Who chooses guidance; shared construction/search, physical checks and accounting. |
 | [`intentional-motion-results-20261001.md`](intentional-motion-results-20261001.md) | LIVE | Selected 835.6161 V6 compiler, motion qualification, integrated music review and unfinished 850 ambition. |
+| [`beat-salience-investigation-20261001.md`](beat-salience-investigation-20261001.md) | LIVE | Read-only investigation of perceived beat sync: player clock, delayed/weak impacts and secondary accents across 36 saved comparisons. |
 | [`intentional-motion-campaign.md`](intentional-motion-campaign.md) | LIVE | Complete implementation, research, selection and confirmation ledger. |
 | [`production-repertoire-results-20261001.md`](production-repertoire-results-20261001.md) | REFERENCE | Previous V5/V4 delivery and preserved production comparison collection. |
 | [`production-repertoire-feedback-20261001.md`](production-repertoire-feedback-20261001.md) | LIVE | Owner confirms alignment and sets motion-quality questions for the next discussion. |

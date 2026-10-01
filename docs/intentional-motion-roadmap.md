@@ -10,6 +10,10 @@ research and adverse evidence. V6 was frozen before canonical optimization;
 confirmation was evaluated only after selecting the compiler and is now exposed.
 The stages below remain the approved scope, not a claim that their numerical
 ambition or every artistic question has been resolved.
+The owner's subsequent review strongly endorses the delivered variety, geometry
+and overall direction. A new concern about felt beat synchronization is examined
+in the [read-only beat-salience investigation](beat-salience-investigation-20261001.md);
+this feedback requests understanding before further compiler or metric changes.
 It follows the [owner's positive production review](production-repertoire-feedback-20261001.md)
 and the [motion investigation](motion-quality-investigation-20261001.md).
 The preceding [production roadmap](production-repertoire-roadmap.md) remains the

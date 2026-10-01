@@ -79,6 +79,10 @@ for (panel, construction, layout, context), items in sorted(groups.items()):
 
 result = dict(schema='line.intentional-motion-delivery.v1', source=str(root/'run.json'), sha256=digest,
     catalogSha256=hashlib.sha256(catalog_bytes).hexdigest(), plan=plan, summary=run['summary'],
+    allConstructionRequests=dict(requested=sum(x['realization']['requested'] for x in rows if x.get('realization')),
+        fulfilled=sum(x['realization']['fulfilledSections'] for x in rows if x.get('realization')),
+        completeTracks=sum(bool(x.get('realization', {}).get('fulfilled')) for x in rows),
+        unavailableTracks=sum(not bool(x.get('realization')) for x in rows)),
     executionErrors=run['executionErrors'], work=work(rows),
     panels=[dict(panel=panel, runs=len(rs), valid=sum(r['valid'] for r in rs),
         distinctTracks=len({r['trackHash'] for r in rs if r.get('trackHash')}), work=work(rs))

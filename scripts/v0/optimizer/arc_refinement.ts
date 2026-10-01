@@ -93,7 +93,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
         const estimate = contact.frame + span * (samples + (options.refineGuidanceSamples??24) + 8) + (end - contact.frame + 1) * width * (1 + (options.refineFollowSamples ?? 0) * 1.25);
         const priority = error / (1 + tries[i]) / (options.refineSelection === 'rate' ? estimate : 1);
         return {index: i, error, estimate, priority};
-      }).filter(x => x.index>=(input.from??0)&&x.error > 0 && getPhysicsFrameCount() + x.estimate <= ceiling)
+      }).filter(x => x.index>=Math.max(input.from??0,options.refineTailSections===undefined?0:contacts.length-options.refineTailSections)&&x.error > 0 && getPhysicsFrameCount() + x.estimate <= ceiling)
         .sort((a, b) => b.priority - a.priority || a.index - b.index);
       if (!regret.length) break;
       const selected = regret[0], i = selected.index, frame = contacts[i].frame;

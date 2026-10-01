@@ -609,6 +609,12 @@
     "requested": 8148,
     "distinctTracks": 315
   },
+  "allConstructionRequests": {
+    "requested": 41392,
+    "fulfilled": 41392,
+    "completeTracks": 460,
+    "unavailableTracks": 0
+  },
   "executionErrors": 0,
   "work": {
     "physicalFrames": {

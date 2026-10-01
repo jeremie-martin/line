@@ -52,7 +52,6 @@ it('searches a faceted unguided section and returns to smooth arcs without chang
 it('rejects unsupported styles and refuses to edit locked prefixes',()=>{
   for(const sectionStyles of [{99:{guides:false}},{1:{subdivisions:0}},{1:{guides:'false'}},{1:42},[],{1:[]}])
     expect(()=>compileArcMotion(spec,17,{...options,sectionStyles:sectionStyles as any})).toThrow('section style');
-  expect(()=>compileArcMotion(spec,17,{...options,sectionStyles:{1:{guides:false}},wholeTrackRefinement:true})).toThrow('ordinary connected');
   const reference=compileArcMotion(spec,17,options),composed=composeArcSections(spec,17,reference,{2:{guides:false}},250000);
   expect(composed.result.forkEvidence?.section).toBe(2);
   const {fork}=captureArcFork(reference,2);

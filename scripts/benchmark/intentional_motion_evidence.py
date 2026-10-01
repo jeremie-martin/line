@@ -3,7 +3,7 @@
 Raw tracks, arrays, media and failed-launch logs remain in generated/. This is
 research evidence; only the separately frozen V6 runner produces its headline.
 """
-import argparse, hashlib, json, math
+import argparse, gzip, hashlib, json, math
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
@@ -41,7 +41,7 @@ for study in args.studies.split(','):
             openingImpactRms=math.sqrt(sum(x*x for x in opening)/len(opening)) if opening else None,
             axisRms={a: math.sqrt(sum(x*x for x in xs)/len(xs)) for a, xs in errors.items()},
             physicalFrames=r['physicalFrames'], ms=r['ms'], failure=r.get('failure'),
-            examples=r.get('examples'),forkInput=r.get('forkInput'),
+            examples=r.get('examples'),constructionPolicies=r.get('constructionPolicies'),forkInput=r.get('forkInput'),
             initialProposalWork=r.get('initialProposalWork'),refinement=r.get('refinement'),constructionImprovement=r.get('constructionImprovement'),
             observedReceiverWork=r.get('observedReceiverWork'),coupledIntervalWork=r.get('coupledIntervalWork'),
             attempts=r.get('attempts'),attemptWork=r.get('attemptWork'),completionFirst=r.get('completionFirst'),
@@ -60,6 +60,8 @@ for study in args.studies.split(','):
 result = dict(schema='line.intentional-motion-research.v1', studies=args.studies.split(','), compilers=compilers, rows=rows,
     interpretation='Completed development outcomes, unfiltered. Missing scheduled/in-progress outcomes must be reported in the campaign ledger. Probe scores are not canonical V6 headlines. Compilation frames exclude independent research judgment; wall times share a host.')
 out = Path(args.out);out.parent.mkdir(parents=True, exist_ok=True)
-body = (json.dumps(result, indent=2)+'\n').encode();out.write_bytes(body)
+body = (json.dumps(result, indent=2)+'\n').encode()
+if out.suffix == '.gz': body = gzip.compress(body, compresslevel=9, mtime=0)
+out.write_bytes(body)
 Path(str(out)+'.sha256').write_text(hashlib.sha256(body).hexdigest()+'\n')
 print(json.dumps(dict(rows=len(rows), bytes=len(body))))

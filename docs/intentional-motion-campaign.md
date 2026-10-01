@@ -294,3 +294,48 @@ change. Both attempts are fully replayed and charged to one absolute meter;
 selection includes the existing musical and motion objective. `completion-1`
 compares this with a single pass and with observed receiving curves. Results and
 promotion remain open; the reserved V6 confirmation is still untouched.
+
+
+The complete `receiver-3` panel confirms both dense-frontier seeds complete with
+both receiver variants (202: 616.43/504.21; 303: 637.90/676.35), while Afterglow
+and dense-dialogue still fail in this panel. Its short native regression test
+now covers a nine-frame receiving window and proves the required flight prefix
+is unchanged by the added upper rail.
+
+`compact-fold-1` separates fold-face timing from general arc easing, so short
+entry faces can precede a long runout without changing corner headings. The
+sixteen scheduled comparisons include identical-state forks. Alone this is a
+modest change on the captured ending; combined with observed receiving curves
+it completes Afterglow 202 at 657.38 and dense-dialogue 303 at 651.17. Neither is
+a complete benchmark result, and the Accelerando ending remains weak.
+
+`completion-1` has 24 completed outcomes. A first 40%/50% pass is not uniformly
+better: on dense-dialogue 303 the 40% split fails while the single pass scores
+688.38. Adding receivers to that split restores 688.02 and completes dense-frontier
+202 at 640.63. The three split variants complete Afterglow 202 at 426.24, 448.77
+and 382.84; the single pass fails. This supports preserving incumbents, but not
+a universal split allocation as the solution to construction difficulty.
+
+The next study trains construction-specific supervised neighborhoods through
+the existing `arcControlProposals` runtime. It retrieves exact demonstrated
+controls rather than emitting averaged shapes. The 6,013-example corpus excludes
+all Amour and dense-dialogue inputs used here; they remain development transfers,
+not newly reserved confirmation. Python-to-runtime retrieval agrees on 48 queries
+between observed states. A second artifact retains the established ordinary-arc
+proposer and applies the new neighborhoods only to profiles and transfer layouts
+(36 parity queries). Native compile results, not the training fit, determine
+whether either variant is useful. Both 24- and 12-run schedules are still active.
+
+A broader compiler regression run covers 57 files and 235 tests: 234 pass, and
+one obsolete assertion expected mixed-geometry whole-track refinement to
+be forbidden. That restriction was intentionally removed when mixed refinement
+was implemented. The obsolete assertion is removed; all six tests in its file pass on rerun.
+The V6 frozen-contract verifier still passes. Current production defaults have
+not yet adopted the new receiver, pair optimizer, split allocation or learned
+construction artifacts.
+
+The [complete development ledger](evidence/intentional-motion-search-20261001.json.gz)
+preserves all 306 outcomes through `compact-fold-1`, including launch errors,
+source checksums, per-attempt work and rejected-proposal diagnostics. It is
+compressed losslessly; raw runs and the large training artifacts remain local
+until a deployment choice is supported by complete evidence.

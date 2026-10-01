@@ -551,3 +551,31 @@ retains candidate 3, candidate 4 and candidate 6 results, with input identities.
 The complete V6 evaluation of candidate **`40832757`** continues. Confirmation
 remains uninspected. The research archive now includes all 492 outcomes through
 `retrieval-3`, including failed launches and negative results.
+
+
+## Preserved comparisons and response-weight consistency
+
+The complete candidate-3 V5 companion finishes at **770.1170**, 147/150 valid
+and fulfilled. All **150/150 track hashes** match the preserved qualified V5
+compiler, including its three existing failures. Compact checked-input evidence
+is in [the V5 companion](evidence/intentional-motion-v5-companion-20261001.json.gz).
+The candidate-6 native collection passes all fourteen browser checks, including
+synchronized audio, previous-arrangement comparisons, shared passage links,
+rapid seed switching and mobile layout; no browser errors occur.
+
+`extent-1` completes all 32 outcomes. Adding guide-extent response dimensions is
+mixed and substantially harms two ending examples. It remains explicitly
+experimental (`responseGuideExtent`), rather than silently changing the default
+response allocation. `kinetic-1` tests kinetic headroom before all constructions,
+with a stronger and a learned-value-free variant. `allocation-1` tests broader
+initialization and additional local response work under the same hard allowance.
+Both are ongoing controlled studies, not new production defaults.
+
+Response memory previously omitted its weight metadata unless time weighting was
+enabled. The new calm-impact multiplier can also change those weights between
+intervals. The caller now records physical-axis weights whenever this multiplier
+is enabled, allowing the existing response-memory conversion to preserve units.
+An overdetermined-response regression test verifies that a previous calm passage's
+impact preference does not leak into a later equally weighted compromise. The
+fourteen focused response/control tests pass. `response-units-1` measures the
+behavioral effect against the frozen candidate-6 compiler.

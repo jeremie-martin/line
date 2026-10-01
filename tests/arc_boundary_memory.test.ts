@@ -87,3 +87,16 @@ it('can preserve demonstrated support duration when only the following flight gr
  expect(proposals.every(c=>c.entry===20&&c.exit===40)).toBe(true);
  expect(memory.proposeControls([0],25,240,4,'geometry').map(c=>c.support)).toEqual([120]);
 });
+
+it('does not retain a calm passage impact preference when reusing its response elsewhere',()=>{
+ const memory=new ArcControlMemory(),features=Array(57).fill(0);
+ memory.rememberResponse({features,incoming:10,span:20,
+  control:{entry:8,turn:20,exit:15,support:12,bias:0,offset:.1},
+  targets:[.3,undefined,undefined,.4],keys:['entry'],jac:[[1],[0],[0],[2]],
+  residuals:[.2,0,0,-.4],scale:[1],loss:.2,axisWeights:[1,1,1/3,4]});
+ const proposal=memory.proposeResponses(features,10,20,[.3,undefined,undefined,.4],1,
+  {amplitude:1/3,impact:1,damping:0,axisWeights:[1,1,1/3,1]})[0];
+ // Physical air/impact errors are opposite and equal. Their equally weighted
+ // compromise stays put, although the original fourfold impact weight would move.
+ expect(proposal.entry).toBeCloseTo(8,14);
+});

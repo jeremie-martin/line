@@ -727,7 +727,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       center=options.flow||guidedInitialization?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&guidedInitialization&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
-      const responseAxisWeights=options.rescaleMemoryWeights?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;
+      // Calm landing emphasis changes impact units between adjacent intervals.
+      // Store those weights even without time weighting so response reuse can
+      // recover physical residuals before applying this interval's weights.
+      const responseAxisWeights=options.rescaleMemoryWeights||options.motionQuality?.calmImpactMultiplier!==undefined?['air','speed','amplitude'].map(key=>spanWeight(outgoing,key)*(key==='amplitude'?(options.amplitudeWeight??1):1)).concat(options.impactWeight??2):undefined;
       const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0,options.controlDiversity,options.constructionProposals&&options.railLayout==='transfer'?'both':'relative');
       const responses=controlMemory.proposeResponses(inputFeatures,incoming,span,
         [targets.air,targets.speed,targets.amplitude,impact],options.memoryResponseSamples??0,

@@ -9,9 +9,10 @@ actual production library and complete qualification. Progress and evidence:
 [execution ledger](docs/intentional-motion-campaign.md). Baseline: `ca97d100`;
 qualified compiler: `0846b2e5`. V6 is frozen at `7f8591c6`: 460 canonical
 and 296 reserved confirmation runs. The complete canonical baseline is 536.3321;
-candidate 6 reaches **824.9447**, with **460/460 valid, fully fulfilled runs**
-and all 8,148 constructions realized. Its twelve production tracks pass every
-frozen motion condition. The fixed/automatic panels are 908.0534/741.8360.
+candidate 7 reaches **834.2161**, with **460/460 valid, fully fulfilled runs**
+and all 8,148 scored construction requests realized (41,392 total requests,
+including fixed-window surroundings). Its twelve production tracks pass every
+frozen motion condition. The fixed/automatic panels are 910.5312/757.9009.
 The 850 objective and final integrated qualification remain unfinished.
 Confirmation is untouched.
 

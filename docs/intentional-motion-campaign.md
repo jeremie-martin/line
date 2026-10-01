@@ -10,11 +10,38 @@ Native physics, normal-line constraint and V5/V4 definitions remain unchanged.
 |---|---|
 | Motion calibration and native observations | Implemented; frozen with V6 |
 | Context policy and intentional rail-layout pilot | Implemented and frozen; geometry/search development continues |
-| V6 freeze and baseline | Complete: 536.3321 baseline, 824.9447 candidate 6 |
+| V6 freeze and baseline | Complete: 536.3321 baseline, 834.2161 candidate 7 |
 | Shared search and accuracy campaign | Active; 850 target remains unmet |
 | Qualification and integrated production review | Pending |
 
 ## Current execution checkpoint
+
+Candidate 7 **`a5424745`** completes all 460 canonical runs at **834.2161**:
+fixed **910.5312**, automatic **757.9009**, 460/460 valid and fully realized,
+8,148/8,148 scored requests, 41,392/41,392 total support requests, 315 distinct
+tracks and no execution errors. This is 9.2713 points above candidate 6 while
+retaining the complete production-motion pass. Median work is 2,114,309 frames;
+maximum work is 2,999,994. The frozen three-million allowance is respected.
+All 406 matched-valid baseline runs contribute to the motion comparison, and
+all three parent-bootstrap intervals for mean burst-burden change are below zero.
+Fifty-four newly completed runs are reported separately. This remains known-source
+development evidence; confirmation is still untouched.
+
+The complete candidate-7 V4 companion is **952.4726**, 352/352 valid, with all
+352 hashes identical to the preserved compiler. Its V5 companion is active.
+The broad integration run passes **255 tests in 64 files**. The final-support
+follow-up also passes four native tests, including a fixed-prefix assertion.
+
+The full repair and value-scope studies are retained, including failures. General
+re-fitting often consumes the remaining allowance without improving a completed
+track. Restricting or removing the historical value model causes material mixed
+regressions. These remain research mechanisms. Bounded ending repair is more
+economical: on its declared pilot, the final-support variant preserves or improves
+all ten musical scores, including the folded ending (646.69→671.22) and terraced
+ending (754.46→827.11). This is a development pilot, not another benchmark headline.
+The next complete candidate will test this small finishing pass. The broader
+unadopted mechanisms will be preserved on a research branch rather than added
+to the delivered production defaults.
 
 Candidate 7, **`a5424745`**, is frozen for a complete 460-run canonical evaluation
 and all twelve production tracks. It enables bounded previous-transition revision

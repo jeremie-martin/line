@@ -202,13 +202,23 @@ proposed campaign. Preserve the few remaining uncertain interpretations.
 
 ### Outcome and working scope
 
-Aim to deliver **an integrated automatic compiler candidate and complete musical
-tracks whose intended strikes are clearer, while preserving expressive guidance,
-upper receivers, quiet landings and the existing visual variety**. Measurements,
-construction, search and independent review must describe the same physical
-interactions. The shared implementation should make later geometry easier to
-introduce. A successful isolated detector or hand-arranged clip does not finish
-this campaign.
+Aim to deliver **a more general, physically meaningful definition of impact,
+integrated into a high-performing automatic compiler that produces clearer
+musical strikes and varied complete tracks**. Develop, compare and challenge the
+definition before optimizing the compiler against it. Measurements, construction,
+search and independent review must describe the same physical interactions.
+Preserve the successful lower landings and expressive variety already achieved.
+A successful isolated detector or hand-arranged clip does not finish the campaign.
+
+The author supplies musical times, desired impact strengths, other motion targets
+and broad creative preferences. Search and automatic arrangement choose how to
+realize them. Upper hits, brief inverted contact, sustained guidance and response
+profiles are observed outcomes and diagnostic examples; they are not new required
+authoring concepts or a prescribed sequence of behaviors. Existing geometric
+preferences still express visual variety. The compiler remains free to discover
+different physical solutions within those preferences, all evaluated by the same
+impact definition. Its shared implementation should make later geometry easier
+to introduce without adding a new impact rule for each construction.
 
 Plan roughly **five to seven hours of sustained work**, carrying experiments
 through to integration, full-song evaluation and delivery. The allocations below
@@ -228,9 +238,9 @@ not to a new interpretation of musical interactions.
 | Stage | Effort guide | Required result |
 | --- | --- | --- |
 | 1. Turn the review into testable requirements | 25–40 minutes | Recorded judgments, counterexamples, development inputs and reserved checks |
-| 2. Build and challenge a shared interaction observer | 60–75 minutes | A versioned working interpretation, its failure cases and an independently measured baseline |
-| 3. Establish physical control in bounded construction experiments | 60–75 minutes | Replayed strike/guidance/receiver examples with checked continuation and measured cost |
-| 4. Integrate and improve the automatic compiler | 90–120 minutes | A complete compiler candidate producing uncurated full tracks through the public path |
+| 2. Develop and challenge a general impact definition | 75–105 minutes | Compared definitions of impact identity, timing and strength; a selected working contract and baseline |
+| 3. Test the definition through physical construction experiments | 45–60 minutes | Replayed alternatives that expose measurement failures and demonstrate realizable musical control |
+| 4. Integrate the definition and improve the automatic compiler | 90–105 minutes | A complete compiler candidate optimizing the shared impact contract and producing uncurated full tracks |
 | 5. Freeze and evaluate the candidate | 60–80 minutes | Paired musical/physical results, reserved outcomes, failures, cost and regression analysis |
 | 6. Deliver a coherent native review | 20–30 minutes | Complete songs, focused comparisons, concise findings, committed code and compact evidence |
 
@@ -277,7 +287,17 @@ If an answer is uncertain, retain that case as ambiguous and report how candidat
 decisions change across plausible interpretations. Do not invent an owner label.
 Existing judgments provide enough definite cases to continue autonomous work.
 
-### 2. Build and challenge a shared interaction observer
+### 2. Develop and challenge a general impact definition
+
+The central research task is the meaning and measurement of impact itself:
+identify a physically meaningful strike, its onset and its strength, regardless
+of whether the contacted geometry lies above, below or beside the rider. Seek a
+small, coherent definition that explains the evidence across constructions and
+can guide optimization. Do not encode the panel's descriptive labels as separate
+event types or patch each failure with its own formula. Ordinary contact and
+continuous steering should not become repeated impacts simply because the engine
+reports collisions, while a clear upper strike must not be invisible because it
+fails a lower-landing convention.
 
 Keep the actual contact history and time-resolved rider response together. Extend
 the existing observation path rather than creating separate physics replays for
@@ -287,11 +307,23 @@ Construction IDs and the words "main" or "guide" remain provenance, not definiti
 of an impact. A meaningful response cannot be determined solely by the first
 contact frame or by a global peak floor.
 
-Test a small number of mechanistically distinct interpretations. For example,
-compare grouping by physically continuous engagement with grouping by a distinct
-change in the rider's response, and determine where combining that evidence is
-necessary. Do not combine every prototype into an unprincipled formula. Retain
-an explicit uncertain result where the evidence does not distinguish them.
+Implement and compare a small number of mechanistically distinct candidate
+definitions, including alternatives to the current fixed-window redirection
+quantity. Investigate physically bounded response accumulation, meaningful changes
+in motion around contact, and ways to distinguish an onset from ongoing support;
+these are research directions, not preselected formulas. The existing calibrated
+definition and its successful examples are a serious baseline. Keep the useful
+physical reasoning and evidence even if the final formula or event recognition
+changes substantially.
+
+Each iteration must expose actual event sequences, timing and strength on complete
+saved rides, not just produce a better aggregate number. Inspect disagreements
+in native replay, vary conditions in bounded experiments, examine the physical
+cause of failures and revise the candidate. Expand beyond the sixteen known
+passages using declared development inputs, preserving reserved runs for later
+validation. A definition's weak first implementation does not end the idea; nor
+does a successful fit to those sixteen passages establish generality. Retain an
+explicit uncertain result where the evidence does not distinguish alternatives.
 
 Verify the known clean multi-peak landing, the two-surface Tiki interaction,
 the tiny-touch/strong-response Amour example, quiet contacts, sustained steering,
@@ -314,13 +346,15 @@ owner judgments of strike clarity; retain that direct comparison. Passage 13
 also has an inverted configuration but is preferred to 12. Neither a larger
 response peak nor an upright-pose rule is established as the solution.
 
-Keep event identity, timing and strength separately inspectable. Preserve the
-old calibrated landing measure where it is meaningful, but do not blindly apply
-its normalization to body-side impacts. Test candidate strength summaries against
-known lower strikes and physically interpretable upper responses; label any
-uncalibrated scale honestly. Do not fit a universal perceived-intensity scale
-from one or two owner comparisons. Merely matching all authored beats or reducing
-the number of unmatched observations cannot select the model.
+Keep event identity, timing and strength separately inspectable while developing
+one shared impact contract. Strength is part of this research, not an unchanged
+scalar bolted onto a new detector. Test whether the response being accumulated
+belongs to one strike and whether its magnitude corresponds to the intended
+notion of impact. Preserve useful lower-landing calibration where supported, and
+check its applicability to other contacts rather than applying it automatically.
+Use the broader existing calibration evidence and new physical comparisons;
+label any uncalibrated scale honestly. Merely matching all authored beats or
+reducing the number of unmatched observations cannot select the definition.
 
 Version and record a working measurement definition before using it to optimize
 the compiler, then evaluate the existing compiler under that definition. A later
@@ -328,18 +362,26 @@ definition revision requires a new baseline and new comparisons under the same
 revision. This prevents moving the ruler during search. It is a research contract
 until the evidence and artistic review support production adoption.
 
-### 3. Establish physical control in bounded construction experiments
+### 3. Test the definition through physical construction experiments
 
-Use saved incoming states and the existing connected/scattered builders to test
-three linked capabilities:
+Use saved incoming states and the existing connected/scattered builders to make
+controlled variations in approach, contact and release. These experiments both
+challenge the candidate definition and establish that useful physical alternatives
+are realizable. They are not a commitment to implement a catalogue of named
+motion types. Important comparisons include:
 
-1. A distinct lower strike whose measured strength belongs to that engagement,
-   with its timing, following guide and exit checked separately.
-2. Substantial guidance that redirects the rider smoothly enough to prepare the
-   next musical strike, preserving the requested shape and useful speed change.
-3. A separate upper receiver deliberately carrying an authored musical strike,
-   with entry, release and continuation checked. An upper hit cannot simply be
-   called a beat because it already exists near one.
+1. A coherent strike and a similar accumulated response spread across separate
+   engagements: the definition must not credit a later interaction to the first.
+2. A distinct strike and substantial smooth redirection: both can change the
+   trajectory, but the resulting musical impact measurement must remain meaningful.
+3. Different physical realizations of the same authored impact, including an
+   upper contact: timing, strength and continuation must be checked under the same
+   rule. An existing off-beat collision cannot become correct merely by naming it.
+
+If these experiments expose a failure in the definition, return to stage 2 and
+revise it before committing search to that objective. Understanding whether the
+measurement or the available construction/search is inadequate is part of the
+campaign, rather than a reason to push a failed formula into production.
 
 For guidance, check cumulative speed gain over the entire engagement as well as
 individual bursts. The rejected passage 10 gains about 27% body speed while
@@ -357,16 +399,17 @@ probes where they clarify attribution. Every locally promising result must be
 replayed from the unchanged prefix and continued through subsequent contacts;
 a local scalar gain can otherwise conceal a broken or musically worse suffix.
 
-The upper-receiver experiment must expose the current architectural assumption
-that an interval's opening lower contact owns the musical event. If necessary,
-use a bounded pair of neighboring intervals so the receiver can fulfill the
-appropriate authored target. Keep this a shared construction/search extension,
-not a second compiler or a song-specific placement rule. Brief body-side hits,
-inverted sled contact and sustained upside-down skiing are distinct capability
-claims; do not use one as evidence for another. Sustained inverted riding is an
-optional extension after the core strike/receiver problem works.
+Use these experiments to test the current architectural assumption that an
+interval's opening support contact owns the musical event. If necessary, allow
+shared search over neighboring intervals to choose which physical engagement
+fulfills the authored target. A constrained upper-contact assay may establish
+capability, but its hand-imposed condition must not silently become a production
+policy. Preserve the distinction between what was observed and what search can
+reliably produce; one briefly inverted frame does not demonstrate sustained
+upside-down riding. Additional capabilities remain optional extensions once the
+general impact objective and its automatic realization work.
 
-### 4. Integrate and improve the automatic compiler
+### 4. Integrate the definition and improve the automatic compiler
 
 Integrate the promising interpretation and physical proposals through the common
 repertoire/search path, using the existing control registry, contact observer,
@@ -375,20 +418,40 @@ Factor shared observations once and give the independent whole-track checker
 the same definition, with tests against cold native replay. Avoid accumulating
 separate song/geometry penalties and duplicate evaluators.
 
-The compiler should select and realize the musical interaction deliberately.
-For an experimental policy that admits upper musical receivers, declare its
-small seeded choice rule and feasibility criteria before search. Artists should
-still supply music, a seed and broad preferences. They should not have to assign
-each rail or author extra beats. Requests must remain fixed during a matched
-comparison: budget growth or search failure cannot reroll a difficult plan into
-an easier one. A new policy's results must be distinguished from improvements to
-the realization of an unchanged plan.
+Connect the selected impact definition to event recognition, one-to-one musical
+association, strength error and handling of extra impacts, local candidate ranking,
+whole-track evaluation and the saved review. A newly recognized off-beat strike
+must participate in the same musical accounting as an ordinary strike; it must
+not remain an informational marker while search continues optimizing only old
+landings. Conversely, contact without a meaningful strike should remain usable
+for smooth guidance. Validate the complete path, including detection and matching,
+rather than changing only the reported magnitude.
+
+The current compiler rejects extra detected `landing` events
+(`arc_motion.ts`, candidate `offbeat` check; `arc_refinement.ts`, whole-track loss),
+and `buildDriftReport` reports only that event class as off-beat landings. That
+supports the expected mechanism: making a previously invisible strike part of
+the shared impact account can make its incorrect timing matter to optimization.
+It does not by itself guarantee that current proposals can find a good replacement.
+Measure that distinction and improve construction/search where needed.
+
+Allow automatic arrangement and search to discover how to satisfy the specification.
+An upper strike may result from the available geometry, the incoming state or an
+automatic creative choice; it does not require a new compulsory upper-hit request
+or sampling policy. Retain existing broad geometry preferences and seeded variety,
+without preassigning a diagnostic behavior to every beat. Artists should not have
+to assign each rail or author extra beats. Musical requests and explicit creative
+requirements remain fixed during matched comparisons: budget growth or search
+failure cannot reroll a difficult plan into an easier one. Distinguish any
+justified arrangement-policy change from improvement to the realization of
+unchanged requests.
 
 Direct search toward the physical response associated with the intended beat,
 while evaluating the incoming approach, guidance and following musical passage.
-Do not obtain a better impact number by borrowing a later collision. Equally,
-do not make all off-beat contact undesirable: transfers and continuous steering
-are valuable, and unresolved perceptual cases are not automatic penalties.
+Do not obtain a better impact number by borrowing a later collision. Distinguish
+off-beat contact from an off-beat impact under the common definition: useful
+transfers and continuous steering remain possible, while a clear extra strike
+must be accounted for. Unresolved perceptual cases are not automatic penalties.
 Targeted improvements should come from better geometry and coordinated approach,
 contact and release, as well as appropriate candidate selection.
 
@@ -426,6 +489,13 @@ interaction policy or event definition changes the task, its outputs cannot be
 called comparable V6 scores merely because the music is unchanged. Evaluate that
 candidate under the separately versioned working definition with an unchanged
 baseline and fixed requests. Report both accounts where meaningful.
+
+The final comparison must establish that the new definition influenced what the
+compiler built, not merely how a saved track was described. Retain a matched
+baseline and inspect which formerly unaccounted strikes were retimed, softened
+or avoided, and whether requested impacts became more faithful. Check resulting
+variety and continuation so that removing a visible failure cannot hide a less
+capable or musically dull solution.
 
 Do not invent a successor headline target before establishing what it measures.
 V6's 850 ambition remains useful only for that unchanged contract. If a successor
@@ -465,6 +535,12 @@ continue implementing, measuring and presenting provisional candidates under
 documented assumptions; absence of feedback does not settle an artistic question.
 Keep unresolved interpretations visible and defer any claim of perceptual
 validation. Do not let an unresolved example block unrelated constructive work.
+
+Reallocate effort when measurements reveal a weak definition, an inadequate
+search proposal or an architectural limitation. The sequence is an empirical
+feedback loop, not an obligation to finish a predetermined formula and proceed
+regardless of its results. Use the physical evidence, native replay and the
+owner's existing judgments to make reasoned choices while they are unavailable.
 
 The five-to-seven-hour ambition is to connect understanding to improved complete
 rides. It is not a promise to solve every form of inverted riding, perfect all

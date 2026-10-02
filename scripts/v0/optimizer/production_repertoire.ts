@@ -9,16 +9,22 @@ import {inspectRepertoireLayout as inspectRepertoire} from './repertoire_layout.
 import {motionSamples,summarizeMotion} from './motion_quality.ts';
 import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit,getPhysicsFrameCount} from '../../lib/detector.ts';
 import type {Spec} from '../types.ts';
+import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
+import {impactFrames,evaluateMusicalImpacts} from './impact_search.ts';
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../../lib/_lr_engine_wasm.ts?production-repertoire-audit',import.meta.url).href);
-export type RepertoireOptions={budget:number;creative?:CreativePreferences;plan?:ProductionPlan;phraseBoundaries?:number[]};
-const complete=(result:any)=>result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((c:any)=>c.status==='hit');
+export type RepertoireOptions={budget:number;creative?:CreativePreferences;plan?:ProductionPlan;phraseBoundaries?:number[];impactContract?:typeof CONTACT_IMPACT_CONTRACT.id};
+const complete=(result:any)=>result.impactEvaluation?result.impactEvaluation.valid:result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((c:any)=>c.status==='hit');
 export function compileProductionRepertoire(input:Spec,seed:number,options:RepertoireOptions){
   const spec=normalizeCompilerTimeline(input),plan=options.plan?validateProductionPlan(spec,options.plan):planIntentionalRepertoire(spec,seed,options.creative,options.phraseBoundaries);
   if(plan.seed!==seed)throw new Error('construction plan and compiler seed differ');
   const end=Math.round(spec.duration*40)+20,replay=end+1,budget=options.budget;
   if(!Number.isSafeInteger(budget)||budget<12*replay)throw new Error('repertoire allowance cannot cover construction and independent replay');
   const allowance=budget-replay,searchOptions=repertoireSearchOptions(spec,plan,allowance);
+  if(options.impactContract!==undefined){
+    if(options.impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
+    searchOptions.impactContract=options.impactContract;
+  }
   const styles=searchOptions.sectionStyles!;
   const result=compileArcMotion(spec,seed,searchOptions);
   let physicalFrames=result.stats.sim_frames;
@@ -36,6 +42,10 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   try{
     const engine=new Judge().setStart(result.track.startPosition,result.track.riders[0].startVelocity).addLine(result.track.lines);
     const raw=extractRawTrajectory(engine,end);
+    if(options.impactContract){
+      const measured=evaluateMusicalImpacts(impactFrames(engine,raw.frames),spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact})),Math.round(spec.duration*40),result.report.terminus.reason==='endOfSpec');
+      if(JSON.stringify(measured)!==JSON.stringify(result.impactEvaluation))throw new Error('production impact replay mismatch');
+    }
     const samples=motionSamples(raw.frames,1,Math.round(spec.duration*40));
     motion={full:summarizeMotion(samples,1),sections:plan.requests.map(r=>({section:r.section,
       summary:summarizeMotion(samples.filter(s=>s.frame>=r.frame&&s.frame<r.next),r.frame)}))};

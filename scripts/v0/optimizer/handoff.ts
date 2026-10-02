@@ -8,6 +8,7 @@ import type { CompileCheckpoint } from "./types.ts";
 import type {CreativePreferences,ProductionPlan} from './repertoire_policy.ts';
 import type {compileArcMotion} from './arc_motion.ts';
 import type {compileProductionRepertoire} from './production_repertoire.ts';
+import type {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
 import {CompileBudgetTelemetryRecorder} from './budget_telemetry.ts';
 import {sliceTimeline} from '../core/substrate.ts';
 // Reference-engine checkouts need no WASM artifacts or arc models. Load the arc
@@ -32,18 +33,18 @@ export function handoffBackend(userSpec: Spec, opts: CompileHandoffOptions): "ar
     opts.budget > 4 * (Math.round(userSpec.duration * FPS) + 20) ? "arcs" : "legacy";
 }
 
-export type ProductionCompileOptions=CompileHandoffOptions&{creative?:CreativePreferences;constructionPlan?:ProductionPlan;phraseBoundaries?:number[]};
+export type ProductionCompileOptions=CompileHandoffOptions&{creative?:CreativePreferences;constructionPlan?:ProductionPlan;phraseBoundaries?:number[];impactContract?:typeof CONTACT_IMPACT_CONTRACT.id};
 export type ProductionCheckpoint=CompileCheckpoint&{construction?:ReturnType<typeof compileArcMotion>;repertoire?:ReturnType<typeof compileProductionRepertoire>};
 export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompileOptions): ProductionCheckpoint {
   userSpec = normalizeCompilerTimeline(userSpec);
   validateCompilerTelemetry(opts.budgetTelemetry);
-  if(opts.creative!==undefined||opts.constructionPlan!==undefined){
+  if(opts.creative!==undefined||opts.constructionPlan!==undefined||opts.impactContract!==undefined){
     if(!repertoireBackend)throw new Error('creative production currently requires the WASM engine');
     if(Object.keys(userSpec.axes).some(axis=>!['air','speed','amplitude'].includes(axis)))throw new Error('creative production supports air, speed and amplitude axes');
     if(opts.creative!==undefined&&opts.constructionPlan!==undefined)throw new Error('choose creative preferences or an explicit construction plan');
     if(opts.constructionPlan!==undefined&&opts.phraseBoundaries!==undefined)throw new Error('explicit plans already contain their phrase boundaries');
-    if(Object.entries(opts).some(([key,value])=>value!==undefined&&!['budget','budgetTelemetry','creative','constructionPlan','phraseBoundaries'].includes(key)))throw new Error('legacy search options cannot be combined with creative production');
-    const repertoire=repertoireBackend.compileProductionRepertoire(userSpec,seed,{budget:opts.budget,creative:opts.creative,plan:opts.constructionPlan,phraseBoundaries:opts.phraseBoundaries});
+    if(Object.entries(opts).some(([key,value])=>value!==undefined&&!['budget','budgetTelemetry','creative','constructionPlan','phraseBoundaries','impactContract'].includes(key)))throw new Error('legacy search options cannot be combined with creative production');
+    const repertoire=repertoireBackend.compileProductionRepertoire(userSpec,seed,{budget:opts.budget,creative:opts.creative,plan:opts.constructionPlan,phraseBoundaries:opts.phraseBoundaries,impactContract:opts.impactContract});
     const {result,physicalFrames,searchTotals}=repertoire,duration=Math.round(userSpec.duration*FPS);
     const recorder=new CompileBudgetTelemetryRecorder({level:opts.budgetTelemetry??'summary',
       gaps:sliceTimeline(userSpec.contacts.map(c=>Math.round(c.t*FPS)),duration),durationFrames:duration,

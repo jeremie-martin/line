@@ -301,6 +301,13 @@ export class LineRiderEngine {
     for(let p=0;p<n;p++)ids.add(ev[p*3+1]);
     return [...ids];
   }
+  /** All-point physical contact, read from already metered native state. The
+   * impact account does not need line/point wrapper allocations in hot search. */
+  hasContactAtFrame(frame: number): boolean {
+    if(!Number.isSafeInteger(frame)||frame<0||frame>this.getLastFrameIndex())
+      throw new Error('impact contact observation requires an already simulated frame');
+    return ex.get_raw_frame(this.h,frame)>0;
+  }
   getCandidateWindow(startFrame: number, endFrame: number): any | null {
     if (typeof GET_CANDIDATE_WINDOW !== "function") return null;
     const start = Math.max(0, Math.trunc(startFrame));

@@ -5,6 +5,8 @@ import {resolve} from 'node:path';
 import {sha,type Case} from '../../benchmark/v3/model.ts';
 import {evaluateDetection} from '../../benchmark/v4/evaluator.ts';
 import {detect,extractRawTrajectory} from '../lib/detector.ts';
+import {CONTACT_IMPACT_CONTRACT} from '../lib/contact_impact.ts';
+import {impactFrames,evaluateMusicalImpacts} from '../v0/optimizer/impact_search.ts';
 const {LineRiderEngine:Engine,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../lib/_lr_engine_wasm.ts?gallery-artifact-replay',import.meta.url).href);
 export function galleryCompilerIdentity(root:string){
@@ -16,18 +18,21 @@ export const galleryHarnessIdentity=(paths:string[])=>Object.fromEntries(paths.m
 export function writeGalleryJson(out:string,name:string,value:unknown){
   const body=JSON.stringify(value)+'\n';writeFileSync(resolve(out,name),body);writeFileSync(resolve(out,name+'.sha256'),sha(body)+'\n');return sha(body);
 }
-export function replayGalleryTrack(track:any,c:Case,includeCollisions=false){
+export function replayGalleryTrack(track:any,c:Case,includeCollisions=false,impactContract?:typeof CONTACT_IMPACT_CONTRACT.id){
+  if(impactContract!==undefined&&impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
   const pointIds=['PEG','TAIL','NOSE','STRING','BUTT','SHOULDER','RHAND','LHAND','LFOOT','RFOOT'];
   if(!track.lines.every((l:any)=>l.type===0))throw new Error('gallery requires normal lines');
   try{
     const engine=new Engine().setStart(track.startPosition,track.riders[0].startVelocity).addLine(track.lines);
-    const det=detect(extractRawTrajectory(engine,c.durationFrames+20));
+    const raw=extractRawTrajectory(engine,c.durationFrames+20),det=detect(raw);
     const grade=evaluateDetection(c,det);
+    const impactEvaluation=impactContract?evaluateMusicalImpacts(impactFrames(engine,raw.frames),c.contacts,c.durationFrames,
+      det.terminus.reason==='endOfSpec'&&det.terminus.frame>=c.durationFrames):undefined;
     const frames=Array.from({length:Math.min(c.durationFrames+20,det.terminus.frame)+1},(_,frame)=>{
       const state=engine.getRider(frame).ballisticState();return pointIds.flatMap(id=>[state.points[id].x,state.points[id].y]);
     });
     const collisionIds=includeCollisions?frames.map((_,frame)=>[...new Set<number>(engine.getUpdatesAtFrame(frame)
       .filter((u:any)=>u.type==='CollisionUpdate').map((u:any)=>u.id))].sort((a,b)=>a-b)):undefined;
-    return {grade,trace:{fps:40,pointIds,frames,terminus:det.terminus},collisionIds};
+    return {grade,trace:{fps:40,pointIds,frames,terminus:det.terminus},collisionIds,...(impactEvaluation?{impactEvaluation}:{})};
   }finally{dispose();}
 }

@@ -16,6 +16,7 @@ import {verifyMainConstruction} from '../gallery/verify_construction.ts';
 import {applyJolt} from './seed.ts';
 import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
+import {contactImpactGrade} from '../gallery/contact_impact_grade.ts';
 
 export async function loadMusicCase(definition:any,jolt:number){
   const cfg=loadSelect(join('productions',definition.song)),module=await import(pathToFileURL(cfg.spec).href);
@@ -39,16 +40,19 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
  const {out,planSha256,c,method,seed,budget,allowance,result,reference,referenceTrace,compileMs,physicalFrames,composition,production,budgetTelemetry,
  styles={},phrases=[],geometry,geometryStyle={},subdivisions,faces,profile,strength}=args;
     const validationStarted=performance.now();
-    const {grade,trace,collisionIds}=replayGalleryTrack(result.track,c as unknown as Case,true);
+    const {grade:historicalGrade,trace,collisionIds,impactEvaluation}=replayGalleryTrack(result.track,c as unknown as Case,true,result.impactEvaluation?.contract);
+    if(impactEvaluation)assert.deepEqual(impactEvaluation,result.impactEvaluation,'independent impact account differs');
+    const grade=impactEvaluation?contactImpactGrade(historicalGrade,impactEvaluation):historicalGrade;
     const fragmentSections:number[]=production?.fragmentSections??composition?.fragmentSections??[],railLayout=fragmentSections.length?'mixed':'connected';
     const railGuides=production?.railGuides??composition?.railGuides;
     const groups=arcRailGroups(result.track.lines.filter((l:any)=>!fragmentSections.includes(Math.floor((l.id-1000)/10000))));
     const inspection=inspectRailContacts({method,railLayout,railGuides,track:result.track},collisionIds!);
     const usage=railLayout==='connected'?guideFootprint(result.track.lines):{supportSections:inspection.summary.supportSections!,guideSections:inspection.summary.guideSections,
       guideLength:result.track.lines.filter((l:any)=>inspection.guideIds.has(l.id)).reduce((sum:number,l:any)=>sum+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)};
-    const valid=result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((x:any)=>x.status==='hit');
-    assert.equal(valid,grade.score.valid,'compiler and frozen judge disagree');
-    if(valid&&result.trajectoryLoss!==undefined)assert.ok(Math.abs(Math.sqrt(result.trajectoryLoss)-grade.score.weightedAxisRms!)<1e-10,'target adapter changed the objective');
+    const valid=impactEvaluation?impactEvaluation.valid:result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((x:any)=>x.status==='hit');
+    assert.equal(valid,grade.score.valid,'compiler and independent judge disagree');
+    const loss=impactEvaluation?result.impactTrajectoryLoss:result.trajectoryLoss;
+    if(valid&&loss!==undefined)assert.ok(Math.abs(Math.sqrt(loss)-grade.score.weightedAxisRms!)<1e-10,'target adapter changed the objective');
     const geometryVerification=verifyMainConstruction(result.track,result.rows,{radius:24,channel:12,
       ...(method===geometry?geometryStyle:{}),sectionStyles:styles,fragmentSections},composition?.attempts?0:composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections?.[0]??0);
     const sections=result.rows.map((r:any,i:number)=>{
@@ -82,6 +86,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     const id=`${c.id}-${seed}-${method}`,dir=join(out,id);mkdirSync(dir,{recursive:true});
     const save=(name:string,value:unknown)=>writeGalleryJson(dir,name,value);
     save('track.json',result.track);save('report.json',result.report);
+    if(impactEvaluation)save('contact-impacts.json',{evaluation:impactEvaluation,grade,historicalGrade});
     save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,proposalDecision:result.proposalDecision,
       failure:result.failure,refinement:result.refinementStats,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
     save('budget-telemetry.json',budgetTelemetry??{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
@@ -89,6 +94,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
       includes:production?'All automatic search and compiler replay work. An explicitly requested reference is accounted separately. Independent evaluation and rendering are separate.':
         'All search and cold replay work for this alternative, plus prefix preparation. Baseline creation is accounted once in the comparison set. Independent evaluation and rendering are separate.'});
     const cell={id,caseId:c.id,method,railLayout,railGuides,seed,jitter:c.jitter,budget,allowance,score:grade.score,
+      ...(impactEvaluation?{impactContract:impactEvaluation.contract,impactEvaluation,historicalGrade}:{}),
       compileMs,physicalFrames,...(production?{production}:{}),validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
       trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,
       terminus:grade.terminus,failure:result.failure,valid,qualityRms:grade.score.weightedAxisRms,usage,sections,

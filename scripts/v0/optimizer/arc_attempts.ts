@@ -10,12 +10,13 @@ import {constructionStyle} from './repertoire_policy.ts';
 
 type Outcome = {
   track: unknown; rows: any[]; report: DriftReport; failure: unknown; trajectoryLoss?: number; selectionLoss?:number;
+  impactEvaluation?:{valid:boolean};
   lookaheadStats: unknown; planningDecisions: unknown;
   constructionFrames: number; samples: number; searchBudgetExhausted: boolean;
   stats: {sim_frames: number; viable_candidate_samples: number; gap_commits: number};
 };
 
-const complete = (r: Outcome) => r.report.terminus.reason === 'endOfSpec' &&
+const complete = (r: Outcome) => r.impactEvaluation ? r.impactEvaluation.valid : r.report.terminus.reason === 'endOfSpec' &&
   !r.report.off_beat_landings.length && r.report.contacts.every(c => c.status === 'hit');
 
 export function runArcAttempts<R extends Outcome>(spec: Spec, seed: number, options: ArcMotionOptions,

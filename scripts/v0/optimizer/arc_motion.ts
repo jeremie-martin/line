@@ -32,6 +32,8 @@ import {constructionDeficit} from './repertoire_feasibility.ts';
 import {motionResiduals,intervalMotionSummary,type MotionSearchOptions} from './motion_objective.ts';
 import {refineArcPair,type PairMeasurement} from './arc_pair_response.ts';
 import {observedReceiver} from './observed_receiver.ts';
+import {CONTACT_IMPACT_CONTRACT, contactImpactPrefix, continueContactImpacts, accountContactImpacts} from '../../lib/contact_impact.ts';
+import {impactFrames, evaluateMusicalImpacts, impactSearchResiduals, engagementGainResiduals, type ImpactSearchOptions} from './impact_search.ts';
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
 // disposal. A private module instance gives replay its own WASM instance and
 // registry without changing judge code or freeing engines retained by callers.
@@ -60,6 +62,9 @@ export type ArcMotionFork = {
 };
 export type ArcMotionOptions= ArcGeometryStyle & {
   budget:number;
+  /** Explicit experimental ruler; absent means the qualified landing contract. */
+  impactContract?:typeof CONTACT_IMPACT_CONTRACT.id;
+  impactSearch?:ImpactSearchOptions;
   /** Explicit motion research/production mode; absent in frozen ordinary/V5 defaults. */
   motionQuality?:MotionSearchOptions;
   /** Explicit repertoire search options. Production defaults are unchanged. */
@@ -278,6 +283,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   if(options.genericProposalFraction!==undefined&&(!Number.isFinite(options.genericProposalFraction)||options.genericProposalFraction<0||options.genericProposalFraction>1))throw new Error('invalid generic proposal fraction');
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   if(!validProfileControls(options))throw new Error('invalid profile controls');
+  if(options.impactContract!==undefined&&options.impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
   arcMainSteps(1,options.subdivisions,options.faces);
   spec=normalizeCompilerTimeline(spec);
   validateSpec(spec);
@@ -290,6 +296,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   try{
   if(typeof options.controlPolicy==='function')options={...options,controlPolicy:options.controlPolicy()};
   const frames=spec.contacts.map(c=>Math.round(c.t*40));
+  const impactTargets=spec.contacts.map((c,i)=>({frame:frames[i],impact:c.impact}));
   const gaps=sliceTimeline(frames,duration);
   for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
   const impactCount=Math.max(1,gaps.filter(g=>g.targets.impact!==undefined).length);
@@ -484,7 +491,11 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       engine.prepareCollisionTrace(frame);getRiderMetered(engine,frame);
       const trace=engine.readCollisionTrace()[0];
       const points=['PEG','TAIL','NOSE','STRING'].map(key=>trace[key]);
-      const prefixRaw=options.cachePrefixReads?extractRawTrajectory(engine,frame-1):null;
+      const prefixRaw=options.cachePrefixReads||options.impactContract?extractRawTrajectory(engine,frame-1):null;
+      const prefixImpactFrames=options.impactContract?impactFrames(engine,prefixRaw!.frames,beforeState):undefined;
+      const impactPrefix=prefixImpactFrames?contactImpactPrefix(prefixImpactFrames):undefined;
+      const localImpactTargets=options.impactContract?impactTargets.filter(t=>t.frame>=frame-CONTACT_IMPACT_CONTRACT.matchFrames&&t.frame<=horizon+CONTACT_IMPACT_CONTRACT.matchFrames):[];
+      const currentImpactTarget=localImpactTargets.findIndex(t=>t===impactTargets[gap]);
       const incoming=deg(Math.atan2(velocity.y,velocity.x)),pace=Math.hypot(velocity.x,velocity.y);
       // A final authored contact can have no scored tail. Its support still
       // needs room to realize the impact and survive the unscored grace.
@@ -520,7 +531,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&(!options.futureValueModel||options.futureValueModel===compileOptions.futureValueModel)){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,options.railLayout,options.independentGuide,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,!!options.futureValueModel,!!options.constructionImprovementSamples,!!options.alignedFoldEntry,!!options.observedReceiver]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.poseWeight,options.collectValue,options.completeBoundary,options.authoredHorizon,options.timeObjective,options.amplitudeOverflow,options.predictAirBoundary,options.boundedSelection,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,options.impactContract,options.impactSearch,!!options.futureValueModel,!!options.constructionImprovementSamples,!!options.alignedFoldEntry,!!options.observedReceiver]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -589,10 +600,16 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(!state.riderMounted||!state.sledIntact)return reject('binding');
         const raw=prefixReusable?{duration:horizon,frames:[...prefixRaw!.frames,...extractRawTrajectoryWindow(child,frame,horizon).frames]}:extractRawTrajectory(child,horizon),det=detect(raw);
         if(det.terminus.reason!=='endOfSpec')return reject(det.terminus.reason);
-        if(i>0&&!findAuthoredContactNearFrame(det,frame,1,frame-contacts[i-1].frame))return reject('missed');
+        if(!options.impactContract&&i>0&&!findAuthoredContactNearFrame(det,frame,1,frame-contacts[i-1].frame))return reject('missed');
         if(i===0&&!raw.frames.slice(1,4).some(f=>f.sledContacts.length))return reject('startup');
-        if(det.events.some(e=>e.type==='landing'&&!frames.some(f=>Math.abs(e.frame-f)<=1)))return reject('offbeat');
+        if(!options.impactContract&&det.events.some(e=>e.type==='landing'&&!frames.some(f=>Math.abs(e.frame-f)<=1)))return reject('offbeat');
         if(i<contacts.length-1&&!raw.frames.slice(-6).every(f=>f.sledContacts.length===0))return reject('late_release');
+        const observedImpacts=options.impactContract?impactFrames(child,raw.frames.slice(frame),state):undefined;
+        const impactEvents=observedImpacts?continueContactImpacts(impactPrefix!,observedImpacts)
+          .filter(e=>e.onset>=frame-CONTACT_IMPACT_CONTRACT.matchFrames&&e.onset<=Math.min(duration,horizon)):undefined;
+        const impactAccount=impactEvents?accountContactImpacts(impactEvents,localImpactTargets):undefined;
+        const impactMatch=impactAccount?.matches.find(m=>m.target===currentImpactTarget);
+        if(options.impactContract&&i>0&&!impactMatch)return reject('missed_impact');
         const request=options.constructionRequests?.[i];
         let unfinished:{reason:string;near:Near}|undefined;
         if(request&&(request.construction==='scattered'?!!fragments:request.guidance==='required'||request.construction!=='arcs')){
@@ -612,8 +629,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         let overflowPenalty=options.boundedSelection?amplitudeExcess(measuredObjective,outgoing):0;
         let cost=residuals.reduce((s,x)=>s+x*x,0);
         let actualImpact:number|undefined;
-        if(impact!==undefined){actualImpact=measureGapAxes(det,gaps[gap],added,frame).impact;if(actualImpact===undefined)return reject('impact');cost+=(options.impactWeight??2)*(actualImpact-impact)**2;}
+        if(impact!==undefined){actualImpact=impactEvents&&impactMatch?impactEvents[impactMatch.event].strength:measureGapAxes(det,gaps[gap],added,frame).impact;if(actualImpact===undefined)return reject('impact');cost+=(options.impactWeight??2)*(actualImpact-impact)**2;}
         residuals.push(impact===undefined?0:Math.sqrt(options.impactWeight??2)*(actualImpact!-impact));
+        if(impactEvents&&impactAccount){
+          const extra=impactSearchResiduals(impactEvents,impactAccount,currentImpactTarget<0?undefined:currentImpactTarget,
+            frame-CONTACT_IMPACT_CONTRACT.matchFrames,i<contacts.length-1?next-CONTACT_IMPACT_CONTRACT.matchFrames:duration+1,options.impactSearch);
+          extra.push(...engagementGainResiduals([...impactPrefix!.pending,...observedImpacts!],frame,Math.min(duration,horizon),options.impactSearch));
+          residuals.push(...extra);cost+=extra.reduce((s,r)=>s+r*r,0);
+        }
         if(options.completeBoundary&&priorGap){
           const actual=options.amplitudeOverflow?objectiveAxes(det,priorGap,priorGap.endFrame):measureGapAxes(det,priorGap,added,priorGap.endFrame);
           if(options.boundedSelection)overflowPenalty+=amplitudeExcess(actual,priorGap)-amplitudeExcess(priorAxes,priorGap);
@@ -679,7 +702,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
             for(const r of [weight*((a.x-here.x)-(b.x-there.x))/18,weight*((a.y-here.y)-(b.y-there.y))/18,weight*(a.vx-b.vx)/7.2,weight*(a.vy-b.vy)/7.2]){residuals.push(r);cost+=r*r;}
           }
         }
-        const terminalLoss=options.terminalSelection&&i===contacts.length-1?arcDetectedTrajectoryObjective(det,gaps,options.amplitudeWeight).loss+motionCost/contacts.length:undefined;
+        const terminalImpacts=options.impactContract&&options.terminalSelection&&i===contacts.length-1?
+          evaluateMusicalImpacts([...prefixImpactFrames!,...observedImpacts!],impactTargets,duration,true):undefined;
+        const terminalLoss=options.terminalSelection&&i===contacts.length-1?arcDetectedTrajectoryObjective(det,gaps,options.amplitudeWeight,terminalImpacts).loss+motionCost/contacts.length:undefined;
         const release=raw.frames.slice().reverse().find(f=>f.sledContacts.length)?.frame;
         const finalState=state.points;
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
@@ -1372,8 +1397,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         return inspectConstructionWindow(request,section,new Set<number>(guideIds),raw.frames,
           request.context||request.railLayout==='transfer'?(frame:number)=>candidate.getAllContactLineIdsAtFrame(frame):undefined).fulfilled;
       }):undefined;
-      const objective=options.wholeTrackRefinement?(raw:any,report:any)=>{
-        const whole=arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight);
+      const objective=options.wholeTrackRefinement?(raw:any,report:any,candidate:Engine)=>{
+        const physical=options.impactContract?impactFrames(candidate,raw.frames):undefined;
+        const impacts=physical?evaluateMusicalImpacts(physical,impactTargets,duration,report.terminus.reason==='endOfSpec'):undefined;
+        const whole=arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight,impacts);
+        if(physical&&Number.isFinite(whole.loss))for(const request of requests){
+          const extra=engagementGainResiduals(physical,request.frame,request.next-1,options.impactSearch).reduce((n,v)=>n+v*v,0)/contacts.length;
+          whole.loss+=extra;whole.regrets[request.section]+=extra;
+        }
         if(options.motionQuality&&Number.isFinite(whole.loss)){
           const observed=motionSamples(raw.frames,1,duration);
           for(const request of requests){
@@ -1427,11 +1458,23 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
     }
     lines.splice(0,lines.length,...guidanceReduction.lines);
   }
+  const finalImpactFrames=options.impactContract?impactFrames(coldEngine,raw.frames):undefined;
   disposeSearch();
-  try{const base=new Judge().setStart(start.position,start.velocity);const replay=extractRawTrajectory(lines.length?base.addLine(lines):base,end);if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');}finally{disposeJudge();setPhysicsFrameLimit(null);}
+  try{
+    const base=new Judge().setStart(start.position,start.velocity),judge=lines.length?base.addLine(lines):base;
+    const replay=extractRawTrajectory(judge,end);
+    if(JSON.stringify(replay)!==JSON.stringify(raw))throw new Error('fixed-engine replay mismatch');
+    if(finalImpactFrames&&JSON.stringify(impactFrames(judge,replay.frames))!==JSON.stringify(finalImpactFrames))throw new Error('fixed-engine impact observation mismatch');
+  }finally{disposeJudge();setPhysicsFrameLimit(null);}
   const report=reportFor(raw,lines);
+  const impactEvaluation=finalImpactFrames?evaluateMusicalImpacts(finalImpactFrames,impactTargets,duration,report.terminus.reason==='endOfSpec'):undefined;
   const trajectoryLoss=options.collectTrajectoryLoss?arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight).loss:undefined;
-  let selectionLoss=trajectoryLoss;
+  const impactTrajectoryLoss=impactEvaluation?arcWholeTrajectoryObjective(raw,report,gaps,options.amplitudeWeight,impactEvaluation).loss:undefined;
+  let selectionLoss=impactTrajectoryLoss??trajectoryLoss;
+  if(selectionLoss!==undefined&&finalImpactFrames)for(const [i,contact]of contacts.entries()){
+    const next=contacts[i+1]?.frame??duration+1;
+    selectionLoss+=engagementGainResiduals(finalImpactFrames,contact.frame,next-1,options.impactSearch).reduce((n,v)=>n+v*v,0)/contacts.length;
+  }
   if(selectionLoss!==undefined&&options.motionQuality){
     const observed=motionSamples(raw.frames,1,duration);
     for(const [i,contact]of contacts.entries()){
@@ -1442,6 +1485,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       selectionLoss+=motionResiduals(intervalMotionSummary(observed,contact.frame,next-1),impact,options.motionQuality).reduce((n,r)=>n+r*r,0)/contacts.length;
     }
   }
-  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,coupledIntervalWork,transitionRevisionWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats,terminalSelectionStats,guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,coupledIntervalWork,transitionRevisionWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats,terminalSelectionStats,...(impactEvaluation?{impactEvaluation,impactTrajectoryLoss}:{}),guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

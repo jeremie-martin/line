@@ -5,6 +5,8 @@ import type { DriftReport, TrackLine, Gap } from '../types.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { createArcEngine } from './arc_engine.ts';
 import { arcMethodKeys, arcControlStep, arcControlValue } from './arc_motion_control.ts';
+import type {MusicalImpactEvaluation} from './impact_search.ts';
+import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
 
 export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3): number {
   if (report.terminus.reason !== 'endOfSpec' || report.off_beat_landings.length ||
@@ -22,17 +24,28 @@ export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3):
 
 /** Compiler objective over the whole authored timeline. Span axes represent
  * time; impacts represent events. No benchmark IDs or benchmark code are used. */
-export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3) {
+export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3, impacts?:MusicalImpactEvaluation) {
   const regrets=Array(gaps.length+1).fill(0);
-  if(report.terminus.reason!=='endOfSpec'||report.off_beat_landings.length||report.contacts.some(c=>c.status!=='hit'))return {loss:Infinity,regrets};
-  return arcDetectedTrajectoryObjective(detect(raw),gaps,amplitudeWeight);
+  if(report.terminus.reason!=='endOfSpec'||(impacts?!impacts.valid:report.off_beat_landings.length||report.contacts.some(c=>c.status!=='hit')))return {loss:Infinity,regrets};
+  return arcDetectedTrajectoryObjective(detect(raw),gaps,amplitudeWeight,impacts);
 }
 
 /** Whole authored-axis loss for an already detected physical trajectory. */
-export function arcDetectedTrajectoryObjective(det:ReturnType<typeof detect>,gaps:Gap[],amplitudeWeight=1/3){
+export function arcDetectedTrajectoryObjective(det:ReturnType<typeof detect>,gaps:Gap[],amplitudeWeight=1/3,impacts?:MusicalImpactEvaluation){
   const regrets=Array(gaps.length+1).fill(0),measured=gaps.map(g=>measureGapAxes(det,g,[],g.endFrame));
   let loss=0,normalizer=0;
   for(const axis of ['air','speed','amplitude','impact'] as const){
+    if(axis==='impact'&&impacts){
+      const {account,events,targets}=impacts,mass=Math.max(1,targets.length);
+      if(!impacts.valid)return {loss:Infinity,regrets};
+      normalizer+=1;loss+=account.loss;
+      for(const match of account.matches)regrets[match.target+1]+=match.loss/mass;
+      for(const i of account.unmatchedEvents){
+        const event=events[i],gap=gaps.find(g=>event.onset>=g.startFrame&&event.onset<g.endFrame)??gaps.at(-1);
+        if(gap)regrets[gap.index]+=(event.raw/CONTACT_IMPACT_CONTRACT.veryStrong)**2/mass;
+      }
+      continue;
+    }
     const targeted=gaps.filter(g=>g.targets[axis]!==undefined);
     if(!targeted.length)continue;
     const importance=axis==='amplitude'?amplitudeWeight:1;
@@ -54,7 +67,7 @@ export type ArcRefinementInput = {
   budget: number; options: any;
   search: (engine: Engine, index: number, overrides: any, protectedEngines: Engine[]) => any;
   report: (raw: any, lines: TrackLine[]) => DriftReport;
-  objective?: (raw:any, report:DriftReport) => {loss:number;regrets:number[]};
+  objective?: (raw:any, report:DriftReport, engine:Engine) => {loss:number;regrets:number[]};
   validate?: (engine:Engine,lines:TrackLine[],raw:any,rows:any[])=>boolean;
   from?:number;
   engines?: {create:(lines:TrackLine[])=>Engine;add:(base:Engine,lines:TrackLine[])=>Engine;detach:(base:Engine)=>Engine};
@@ -68,9 +81,12 @@ export function refineArcTrack(input: ArcRefinementInput) {
   let incumbent = input.engine, lines = input.lines.slice(), rows = input.rows.slice();
   const initialRaw=extractRawTrajectory(incumbent,end);
   let incumbentReport = report(initialRaw, lines);
-  let objective=input.objective?.(initialRaw,incumbentReport);
+  let objective=input.objective?.(initialRaw,incumbentReport,incumbent);
   let loss = objective?.loss??arcTrajectoryLoss(incumbentReport, options.amplitudeWeight);
-  const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes).map(([axis, value]) => [axis, value?.target])));
+  // Body-only strikes may have no historical sled-landing measurement. The
+  // shared account checks their authored targets independently.
+  const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes)
+    .filter(([axis])=>!options.impactContract||axis!=='impact').map(([axis, value]) => [axis, value?.target])));
   const expectedObservations = observationContract(incumbentReport);
   const initialLoss = loss, tries = contacts.map(() => 0), records: any[] = [];
   const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0, failedConstruction:0, duplicateFinalCandidates:0};
@@ -172,7 +188,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
         if(input.validate&&!input.validate(child,proposed,candidateRaw,proposedRows)){
           counts.failedConstruction++;Engine.retainOnly([incumbent,base]);continue;
         }
-        const candidateObjective=input.objective?.(candidateRaw,candidateReport);
+        const candidateObjective=input.objective?.(candidateRaw,candidateReport,child);
         const candidateLoss = observationContract(candidateReport) === expectedObservations ? candidateObjective?.loss??arcTrajectoryLoss(candidateReport, options.amplitudeWeight) : Infinity;
         if (Number.isFinite(candidateLoss)) counts.complete++;
         if (candidateLoss + 1e-12 < loss) {

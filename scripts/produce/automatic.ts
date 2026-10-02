@@ -13,7 +13,10 @@ import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '.
 import {loadMusicCase,saveMusicCell} from './music_artifacts.ts';
 import {readRepertoireCache,publishRepertoireCache} from '../gallery/repertoire_cache.ts';
 import {resolveJoltMs} from './seed.ts';
+import {CONTACT_IMPACT_CONTRACT} from '../lib/contact_impact.ts';
 const arg=(key:string,d?:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3)??d;
+const impactContract=arg('impact-contract') as typeof CONTACT_IMPACT_CONTRACT.id|undefined;
+if(impactContract!==undefined&&impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
 if(!arg('out'))throw new Error('--out required; outputs are preserved rather than overwritten');
 const request=validateAutomaticProductionRequest(arg('request')?JSON.parse(readFileSync(resolve(arg('request')!),'utf8')):
  {mode:'production',song:arg('song','luna_bala_44s'),seed:Number(arg('seed','101')),budget:Number(arg('budget','3000000')),
@@ -27,13 +30,13 @@ const enginePath='engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm
 assert.equal(sha(readFileSync(join(compilerRoot,enginePath))),sha(readFileSync(enginePath)),'candidate physics differs from the frozen native engine');
 const {compileHandoff}:typeof import('../v0/optimizer/handoff.ts')=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/handoff.ts')).href);
 const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
- 'scripts/gallery/artifacts.ts','scripts/gallery/repertoire_cache.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts',
+ 'scripts/gallery/artifacts.ts','scripts/gallery/contact_impact_grade.ts','scripts/lib/contact_impact.ts','scripts/v0/optimizer/impact_search.ts','scripts/gallery/repertoire_cache.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts',
  'scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
  'scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/motion_profiles.ts','scripts/v0/optimizer/arc_motion_control.ts'];
 const harness=galleryHarnessIdentity(paths);
 const {spec,musicCase:c}=await loadMusicCase({song,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt);
 const methodDetails={baseline:{title:'Ordinary reference',description:'The ordinary public compiler profile.'},production:{title:'Automatic arrangement',description:'The same music with a seeded, repeated repertoire plan.'}};
-const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,jolt,
+const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,jolt,impactContract,
  cases:[c],seeds:[seed],budgets:[budget],methods:referenceBudget?['baseline','production']:['production'],methodDetails,request};
 const planSha256=writeGalleryJson(out,'plan.json',plan);
 let reference:any=null,baseline:ReturnType<typeof saveMusicCell>|null=null,referenceReused=false;
@@ -50,7 +53,7 @@ if(referenceBudget){
  console.log(JSON.stringify({stage:'reference',valid:baseline.cell.valid,reused:!!cached,physicalFrames:reference.stats.sim_frames}));
  referenceReused=!!cached;
 }
-const began=performance.now(),checkpoint=compileHandoff(spec,seed,{budget,creative,budgetTelemetry:'summary',phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
+const began=performance.now(),checkpoint=compileHandoff(spec,seed,{budget,creative,impactContract,budgetTelemetry:'summary',phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
 const repertoire=checkpoint.repertoire!;
 const {result,...production}=repertoire;
 const phrases=repertoire.plan.phrases.map(p=>{const requests=repertoire.plan.requests.slice(p.first,p.first+p.count);return {...p,title:p.construction,

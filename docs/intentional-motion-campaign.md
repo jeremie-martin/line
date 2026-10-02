@@ -720,8 +720,8 @@ evaluation without treating intermediate diagnostic success as completion.
 | General impact identity, timing and strength | Provisional shared v1 baselined before compiler tuning; perceptual limitations retained |
 | Controlled physical experiments and continuation | 315 geometry replays and 45 same-state, full-continuation branches recorded |
 | Shared automatic compiler integration and improvement | Integrated through public automatic production; 12/12 first-pilot songs valid/fulfilled; search ablations active |
-| Frozen candidate, complete tracks and reserved evaluation | Pending |
-| Native music review, evidence and delivery | Pending |
+| Frozen candidate, complete tracks and reserved evaluation | Twenty paired songs complete; both 460-input panels running |
+| Native music review, evidence and delivery | Twenty-track native review delivered and browser-checked; final panel evidence pending |
 
 Known owner judgments, including unresolved examples, remain in the separately
 hashed October 2 feedback record. No artist-facing catalog of hit types is being
@@ -826,3 +826,32 @@ default. Renaming segment IDs preserves all fifteen complete physical assays
 exactly. Subdivision of the same straight surfaces changes native collisions in
 all thirty trials; those altered outcomes are retained, rather than attributing
 physical changes to an ID-sensitive detector.
+
+### Twenty-song final review and reserved results
+
+All twelve development tracks exactly reproduce the selected study geometry. All
+eight reserved arrangements also complete and fulfill their unchanged requests.
+No compiler changes follow the source/configuration freeze at `7cbf50c3`. The
+[paired evidence](evidence/general-impact-final-production-20261002.json) includes
+every song and seed, quiet/strong groups, motion, cost and construction/context
+breakdowns. Under the same experimental account, mean impact loss falls from
+0.15483 to 0.01339 on development and from 0.17505 to 0.01278 on reserved runs.
+Mean onset RMS falls from approximately 31.5–31.7 ms to 6.5–6.8 ms. Strong extra
+responses fall from 289 to 6 and from 198 to 3 respectively. These are counts
+within tracks, not hundreds of independent trials.
+
+Six of the twenty tracks have higher quiet-strength error than their paired
+baseline, and some individual intended strong strikes remain weak. The rejected
+Amor 202 head-first configuration is still visually similar; a precisely timed
+0.647 response against 1.0 does not settle its perceived clarity. The focused
+review deliberately includes this limitation, the former Tiki upper rival with
+remaining weak strikes, an approved lower landing, quiet Luna and a newly
+beat-aligned upper receiver. Complete songs remain available around every example.
+
+The production page links to the experimental native review. Both sides are
+automatic arrangements measured under the same experimental account; the
+generation form explicitly retains the validated compiler. Native/audio checks
+pass for all twenty songs, chart/table seeking, rapid switching, restart, mobile
+layout and audio-identity rejection. The integration panel passes 230 tests in
+69 suites. Full TypeScript checking retains the same 251 pre-existing diagnostics
+and introduces none. Large traces, media and test logs remain local.

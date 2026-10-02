@@ -1,0 +1,190 @@
+{
+  "schema": "line.contact-impact-verification.v1",
+  "compilerCommit": "7cbf50c329b041e1133090cd05af07d5c5734593",
+  "tests": {
+    "numTotalTestSuites": 69,
+    "numPassedTestSuites": 69,
+    "numFailedTestSuites": 0,
+    "numTotalTests": 230,
+    "numPassedTests": 230,
+    "numFailedTests": 0,
+    "success": true
+  },
+  "testReportSha256": "d43b98c5ef59e41578b6b5f37701a2e40bd752ab710bf5300820c277e9b0b202",
+  "typescript": {
+    "command": "npx tsc --noEmit --allowImportingTsExtensions",
+    "startingDiagnostics": 251,
+    "finalDiagnostics": 251,
+    "addedNormalizedDiagnostics": {},
+    "removedNormalizedDiagnostics": {},
+    "qualification": "The repository does not have a clean full typecheck. All 251 diagnostics predate this campaign; compare multiplicities after removing line/column positions."
+  },
+  "browser": {
+    "schema": "line.contact-impact-browser-checks.v1",
+    "collectionSha256": "2aa1b1cc1837be42f8e80f74b5517f455e0ce6bd8b9fd2aaa895d39d3ad0e76e",
+    "scriptSha256": "e23ee9c8cf53a53326d9153ecfe181e850e04bdb547cc4b0d0d9506804c322bc",
+    "checks": [
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 1021,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 919,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 1021,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 919,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 1021,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 919,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 1021,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 919,
+        "nativeCurrentAndBaseline": true,
+        "sharedRuler": true,
+        "verifiedMusicPlays": true
+      },
+      {
+        "chartAndRowsSeek": true,
+        "chartPauses": true,
+        "smallResponsesInspectable": true,
+        "restartFromEnd": true
+      },
+      {
+        "rapidSelectionKeepsFinalTrackAndMeasurements": true
+      },
+      {
+        "mobileOverflow": false
+      },
+      {
+        "validatedDefaultUnaffected": true
+      },
+      {
+        "changedAudioRejected": true,
+        "silentScrubbingStillAvailable": true
+      }
+    ],
+    "errors": []
+  },
+  "archive": "Raw logs, traces, tracks, screenshots and experimental outputs remain local under generated/general-impact-20261002."
+}

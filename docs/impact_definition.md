@@ -141,3 +141,49 @@ It does not replace this production definition or alter frozen V6. Its
 records the matched baseline, historical calibration tradeoffs and unresolved
 perceptual cases. Candidate compiler results must identify this working ruler
 explicitly; they are not interchangeable with historical benchmark headlines.
+
+The shared experimental account has three inspectable parts:
+
+1. Actual contact at any native rider point establishes a physical engagement. A
+   contact-free frame separates engagements. A renewed response after a valley
+   can identify another strike during continued contact. Geometry names, segment
+   IDs and rider orientation do not define an event.
+2. Onset is the rising response relative to the leading peak. Strength accumulates
+   contacted center-of-mass path bending over at most six native steps, bounded
+   by that engagement. A separate receiver cannot donate its response. The
+   retained 7.55 scale is provisional outside the successful lower-landing cases;
+   historical felt-rank consistency is slightly worse, and the rejected head-first
+   example remains a counterexample to treating magnitude as clarity.
+3. Monotone one-to-one association matches requested musical times within four
+   native frames (100 ms), then accounts for strength, timing and unmatched
+   response. The half-frame quantization allowance does not shift authored times.
+   All unmatched responses contribute, including those hidden by the review
+   table's display filter. The compiler is rewarded for exact timing; the window
+   is an association bound, not a claim that 100 ms lateness is acceptable.
+
+The selected experimental search profile adds contact preparation, shared
+neighboring-interval work, opposing receiving surfaces and a preference against
+whole-engagement speed gains. These are compiler choices, separate from the
+measurement contract and absent from artist specifications. Opposing surfaces
+currently extend paired construction, not every transfer layout. A body-side
+contact demonstrates upper receiving capability, not sustained upside-down skiing.
+
+Use the explicit public route:
+
+```sh
+npm run produce:automatic -- --song=luna_bala_44s --seed=101 \
+  --impact-contract=line.contact-impact.v1 --out=generated/my-impact-review
+```
+
+The resulting `contact-impacts.json`, cell account, independent replay and native
+review use the shared interpretation. Historical `report.json`, legacy telemetry
+and render/effect measurements remain separately available under their original
+landing meaning. They must not be described as the new account. This campaign
+delivers native audio playback; migration of vertical-render post-effects is not
+part of it. Omitted `impact-contract` retains the validated production compiler.
+
+The [twenty-track paired result](evidence/general-impact-final-production-20261002.json)
+reports development and reserved arrangements separately, with complete tracks,
+quiet/strong errors, every unmatched event and sustained/local gain observations.
+Search/profile changes require new candidate evaluation; measurement changes
+require a new contract identity and remeasuring the baseline before optimization.

@@ -130,3 +130,14 @@ The decision evidence is preserved by the analysis harnesses and
 
 Run `npm test -- --run tests/v0_impact.test.ts tests/overlay_impact.test.ts` for
 the focused semantic checks.
+
+## October 2 experimental contact-impact contract
+
+The approved [six-stage campaign](intentional-motion-roadmap.md) now has a
+provisional shared implementation in `scripts/lib/contact_impact.ts`. It develops
+physical event identity, timing and strength together across all collision points.
+It does not replace this production definition or alter frozen V6. Its
+[pre-tuning evidence](evidence/general-impact-research-checkpoint-20261002.json)
+records the matched baseline, historical calibration tradeoffs and unresolved
+perceptual cases. Candidate compiler results must identify this working ruler
+explicitly; they are not interchangeable with historical benchmark headlines.

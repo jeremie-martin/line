@@ -716,10 +716,10 @@ evaluation without treating intermediate diagnostic success as completion.
 
 | Stage | Status |
 | --- | --- |
-| Requirements and declared development/reserved inputs | In progress |
-| General impact identity, timing and strength | Pending |
-| Controlled physical experiments and continuation | Pending |
-| Shared automatic compiler integration and improvement | Pending |
+| Requirements and declared development/reserved inputs | Complete; declaration committed before metric comparison |
+| General impact identity, timing and strength | Provisional shared v1 baselined before compiler tuning; perceptual limitations retained |
+| Controlled physical experiments and continuation | 375 scheduled perturbations retained; coordinated reconstruction next |
+| Shared automatic compiler integration and improvement | Starting against the recorded working contract |
 | Frozen candidate, complete tracks and reserved evaluation | Pending |
 | Native music review, evidence and delivery | Pending |
 
@@ -728,3 +728,37 @@ hashed October 2 feedback record. No artist-facing catalog of hit types is being
 introduced. The working definition will be versioned and baselined before search
 is tuned against it; any revision requires repeating that baseline. Large raw
 traces and render assets stay local.
+
+### Working definition and physical checkpoint
+
+The [research checkpoint](evidence/general-impact-research-checkpoint-20261002.json)
+records complete development rides, 90 historical felt labels, alternative
+mechanisms and parameter sensitivity before compiler tuning. The selected working
+`line.contact-impact.v1` accumulates contacted effective-velocity path bending
+on its physical frame, includes all collision points, separates disconnected
+engagements and recognizes renewed response within continuing contact. It retains
+quiet events without a global response floor. One-to-one musical accounting
+includes strength error, timing and every unmatched response. This is an
+experimental ruler, not a promoted definition of perceptual quality.
+
+On the four discriminating historical sets, mean tie-aware Spearman correlation
+is 0.8052 versus 0.8282 for the current landing quantity. All 90 historical labels
+remain matched. The clean Tiki lower strike remains coherent; the separate lower
+and upper receivers no longer contribute to one another. The rejected Amor
+inverted example remains insufficiently explained by magnitude alone. This is
+an explicit limitation, not justification for an upright-only rule.
+
+The full current production baseline matches 944/945 requested events under the
+working account. Its requested frames are the actual saved compiler inputs,
+including the existing production jolt and quantization; offsets from unshifted
+audio beats are distinct diagnostics. Preliminary ordinal-parsing and audio-time
+pilot mistakes were corrected and their raw results retained locally.
+
+Fifteen declared incoming states span the owner examples and all six construction
+forms. Of 375 scheduled perturbations, 315 execute and 60 lack the selected rail.
+Every executed variant replays the entire original continuation. No non-baseline
+perturbation preserves a valid full legacy continuation. This reinforces the need
+for coordinated physical reconstruction: a favorable isolated event is not a
+working track. The next experiments use the shared compiler to rebuild and judge
+the following passage. Twelve focused contract tests pass, including every
+prefix boundary of a mixed-contact sequence and rotated observation coordinates.

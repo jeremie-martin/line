@@ -1,0 +1,344 @@
+{
+  "schema": "line.interaction-panel.v1",
+  "declaredBeforeCandidateExecution": true,
+  "sourceAuditSha256": "1637b64027a73dc7c0bbc2f68b2cf2d087362e7a91d968d22d146d8726ebe0c2",
+  "purpose": "Compare interpretations, not tune or promote a compiler or a perceptual scalar. Owner feedback is distinct from provisional controls.",
+  "clips": [
+    {
+      "id": "upper-rival",
+      "title": "Upper hit before the beat",
+      "song": "tiki_tiki_48s",
+      "seed": 303,
+      "focus": [
+        12.3,
+        12.8
+      ],
+      "range": [
+        11.700000000000001,
+        13.4
+      ],
+      "selection": "Owner-named example",
+      "ownerFeedback": "Owner confirmed the distracting upper hit around 12.45 s.",
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json",
+      "artifactSha256": "cda9527c6145159168bfe34b0bb83d571b213c81f26ac925ef417e8d98048394",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/manifest.json"
+    },
+    {
+      "id": "clean-landing",
+      "title": "Clean lower landing",
+      "song": "tiki_tiki_48s",
+      "seed": 303,
+      "focus": [
+        13.88,
+        14.15
+      ],
+      "range": [
+        13.280000000000001,
+        14.75
+      ],
+      "selection": "Owner-named positive comparison",
+      "ownerFeedback": "Owner found the landing around 13.95 s cleaner and better defined.",
+      "question": "Does this feel like one coherent impact despite several response peaks?",
+      "record": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json",
+      "artifactSha256": "cda9527c6145159168bfe34b0bb83d571b213c81f26ac925ef417e8d98048394",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/manifest.json"
+    },
+    {
+      "id": "open-transfer",
+      "title": "Lower slide to an upper receiver",
+      "song": "tiki_tiki_48s",
+      "seed": 101,
+      "focus": [
+        13.9,
+        14.4
+      ],
+      "range": [
+        13.3,
+        15.0
+      ],
+      "selection": "Owner-named welcome transfer",
+      "ownerFeedback": "Owner values this separated transfer; this does not imply every part needs to count as a musical hit.",
+      "question": "Does the upper interaction feel like guidance, a second impact, or something in between?",
+      "record": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+      "artifactSha256": "ec0f508d2f36d071dfcd1e0c799b2d5256b0a1e92b2853e927627552369b68be",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json"
+    },
+    {
+      "id": "merged-hits",
+      "title": "Two surfaces, one reported impact",
+      "song": "tiki_tiki_48s",
+      "seed": 101,
+      "focus": [
+        14.78,
+        15.05
+      ],
+      "range": [
+        14.18,
+        15.65
+      ],
+      "selection": "Owner-named example",
+      "ownerFeedback": "Owner sees two separate interactions and welcomes the possibility of an intentional upper musical strike.",
+      "question": "Do you perceive two distinct impacts here, and which one carries the beat?",
+      "record": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+      "artifactSha256": "ec0f508d2f36d071dfcd1e0c799b2d5256b0a1e92b2853e927627552369b68be",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json"
+    },
+    {
+      "id": "split-lower",
+      "title": "Split response on lower support",
+      "song": "luna_bala_44s",
+      "seed": 101,
+      "focus": [
+        42.3,
+        42.8
+      ],
+      "range": [
+        41.699999999999996,
+        43.4
+      ],
+      "selection": "Prior diagnostic: second pulse precedes first guide contact",
+      "ownerFeedback": null,
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-production.json",
+      "artifactSha256": "d8913dd2f0227321675d1954689f9acd80243f3c81b23d0e602f1ce518c393f9",
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "manifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-101/manifest.json"
+    },
+    {
+      "id": "ripple-receiver",
+      "title": "Ripple receiver before a landing",
+      "song": "luna_bala_44s",
+      "seed": 202,
+      "focus": [
+        15.82,
+        16.3
+      ],
+      "range": [
+        15.22,
+        16.900000000000002
+      ],
+      "selection": "Prior diagnostic: guide deletion isolated the extra response",
+      "ownerFeedback": null,
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/luna_bala_44s-202/luna_bala_44s-202-production.json",
+      "artifactSha256": "6fc35ddfc1cc77ef0063d013c6f5557885985fc89d0b0fad734ef4b45c0ca045",
+      "trackHash": "218f32afa6c2b620fad38f7c44258101cc360b824bc33ae124bc8f3503b9352b",
+      "manifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-202/manifest.json"
+    },
+    {
+      "id": "inverted-contact",
+      "title": "Brief inverted contact",
+      "song": "amor_na_praia_46s",
+      "seed": 101,
+      "focus": [
+        21.75,
+        22.05
+      ],
+      "range": [
+        21.15,
+        22.650000000000002
+      ],
+      "selection": "Prior strict pose screen, not proof of sustained overhead riding",
+      "ownerFeedback": null,
+      "question": "What interaction stands out here? Is it a strike, sliding, or rotation around contact?",
+      "record": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json",
+      "artifactSha256": "5ba29e1907ea4a404558c7fb0b9dd1496c3bfa0b28289e60ed1c6b986eb26dd2",
+      "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+      "manifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/manifest.json"
+    },
+    {
+      "id": "luna-opening",
+      "title": "Luna: quiet opening",
+      "song": "luna_bala_44s",
+      "seed": 101,
+      "focus": [
+        0.0,
+        1.8
+      ],
+      "range": [
+        0,
+        2.4
+      ],
+      "selection": "Current automatic opening; prior calm-opening concerns motivate this control",
+      "ownerFeedback": null,
+      "question": "Do the intended quiet contacts remain clear and appropriately smooth?",
+      "record": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-production.json",
+      "artifactSha256": "d8913dd2f0227321675d1954689f9acd80243f3c81b23d0e602f1ce518c393f9",
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "manifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-101/manifest.json"
+    },
+    {
+      "id": "tiki-opening",
+      "title": "Tiki: quiet opening",
+      "song": "tiki_tiki_48s",
+      "seed": 101,
+      "focus": [
+        0.0,
+        1.8
+      ],
+      "range": [
+        0,
+        2.4
+      ],
+      "selection": "Current automatic opening; prior calm-opening concerns motivate this control",
+      "ownerFeedback": null,
+      "question": "Do the intended quiet contacts remain clear and appropriately smooth?",
+      "record": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+      "artifactSha256": "ec0f508d2f36d071dfcd1e0c799b2d5256b0a1e92b2853e927627552369b68be",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json"
+    },
+    {
+      "id": "sustained-guidance",
+      "title": "Sustained guidance with a low response peak",
+      "song": "amor_na_praia_46s",
+      "seed": 101,
+      "focus": [
+        7.85,
+        8.15
+      ],
+      "range": [
+        7.25,
+        8.75
+      ],
+      "selection": "Prior observation rule: >=8 consecutive guide-contact frames, peak correction <=0.8; largest accumulated absolute heading change. Not an artistic approval.",
+      "ownerFeedback": null,
+      "question": "Does this feel like smooth guidance or like an additional musical impact?",
+      "record": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json",
+      "artifactSha256": "5ba29e1907ea4a404558c7fb0b9dd1496c3bfa0b28289e60ed1c6b986eb26dd2",
+      "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+      "manifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/manifest.json"
+    },
+    {
+      "id": "amour-strong",
+      "title": "Amour: strong requested impact",
+      "song": "amour_de_ma_vie_44s",
+      "seed": 202,
+      "focus": [
+        5.11,
+        5.81
+      ],
+      "range": [
+        4.510000000000001,
+        6.409999999999999
+      ],
+      "selection": "Authored-target-only control: strong in [4,40] s; largest target, smallest target, or largest adjacent target difference respectively; earliest time breaks ties.",
+      "ownerFeedback": null,
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-production.json",
+      "artifactSha256": "52c24710559d15bb8b498722a5b5555221d1834541f15d93479362f6c53a1ebb",
+      "trackHash": "7f61f3ce5b0ebb08fa3c1b0ec7c042f6b6665401dd90596a913b2e419a875656",
+      "manifest": "/generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/manifest.json"
+    },
+    {
+      "id": "amor-strong",
+      "title": "Amor: strong requested impact",
+      "song": "amor_na_praia_46s",
+      "seed": 202,
+      "focus": [
+        9.0,
+        9.7
+      ],
+      "range": [
+        8.4,
+        10.299999999999999
+      ],
+      "selection": "Authored-target-only control: strong in [4,40] s; largest target, smallest target, or largest adjacent target difference respectively; earliest time breaks ties.",
+      "ownerFeedback": null,
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/amor_na_praia_46s-202-production.json",
+      "artifactSha256": "123a460db0dfecec9b19f4559d7e50bb5be6aa64c26c6c9d09f27a6c6c111ed2",
+      "trackHash": "cf9fe39f96d11ef3028b71a421d8bbcaaa895385e4d176023ea4ca3bb9531148",
+      "manifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/manifest.json"
+    },
+    {
+      "id": "luna-strong",
+      "title": "Luna: energetic passage",
+      "song": "luna_bala_44s",
+      "seed": 303,
+      "focus": [
+        28.1,
+        28.8
+      ],
+      "range": [
+        27.5,
+        29.400000000000002
+      ],
+      "selection": "Authored-target-only control: strong in [20,35] s; largest target, smallest target, or largest adjacent target difference respectively; earliest time breaks ties.",
+      "ownerFeedback": null,
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/luna_bala_44s-303/luna_bala_44s-303-production.json",
+      "artifactSha256": "7c46e3aec03c5f96422da360d3293f5916d02a19099c20ba526473d4c7bf12ce",
+      "trackHash": "8c9badc84ddd7d632516d081df01c3ccfd94d0f1828c7fe3ad42641c0921948c",
+      "manifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-303/manifest.json"
+    },
+    {
+      "id": "tiki-contrast",
+      "title": "Tiki: changing impact demand",
+      "song": "tiki_tiki_48s",
+      "seed": 202,
+      "focus": [
+        6.87,
+        7.57
+      ],
+      "range": [
+        6.2700000000000005,
+        8.17
+      ],
+      "selection": "Authored-target-only control: contrast in [5,40] s; largest target, smallest target, or largest adjacent target difference respectively; earliest time breaks ties.",
+      "ownerFeedback": null,
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/tiki_tiki_48s-202-production.json",
+      "artifactSha256": "7131ce1b80cb42b0327ffbcc5f46f9caf937f7125376bf738f569dd595166367",
+      "trackHash": "9a0630ad8bcf17274dc26e11143f430838b24ce66f3808c03660c42a61dbc2a8",
+      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/manifest.json"
+    },
+    {
+      "id": "amour-contrast",
+      "title": "Amour: changing impact demand",
+      "song": "amour_de_ma_vie_44s",
+      "seed": 303,
+      "focus": [
+        10.44,
+        11.14
+      ],
+      "range": [
+        9.84,
+        11.74
+      ],
+      "selection": "Authored-target-only control: contrast in [5,40] s; largest target, smallest target, or largest adjacent target difference respectively; earliest time breaks ties.",
+      "ownerFeedback": null,
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-production.json",
+      "artifactSha256": "6a777202ef63e6e3a652b774d0b5b5d83438a1c03f45a387fb0ebca05032e23a",
+      "trackHash": "46cca64f2bcd8fcf302793e514305135d03fd354501e29a434fe64d8bcf2b533",
+      "manifest": "/generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/manifest.json"
+    },
+    {
+      "id": "amor-quiet",
+      "title": "Amor: quieter requested impact",
+      "song": "amor_na_praia_46s",
+      "seed": 303,
+      "focus": [
+        24.4,
+        25.1
+      ],
+      "range": [
+        23.799999999999997,
+        25.700000000000003
+      ],
+      "selection": "Authored-target-only control: quiet in [10,35] s; largest target, smallest target, or largest adjacent target difference respectively; earliest time breaks ties.",
+      "ownerFeedback": null,
+      "question": "Which interaction feels like the musical hit, and does another movement compete with it?",
+      "record": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/amor_na_praia_46s-303-production.json",
+      "artifactSha256": "1324d2fd64b1fe20fecf3590052f4fb6ea31024cf6e784eccdf103ca764190db",
+      "trackHash": "19ddcf0a60253ef638e1a36b4eb2f1bcd06bd8fc1b6a6dc6de49fe394acb02b1",
+      "manifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/manifest.json"
+    }
+  ]
+}

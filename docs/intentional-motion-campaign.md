@@ -718,8 +718,8 @@ evaluation without treating intermediate diagnostic success as completion.
 | --- | --- |
 | Requirements and declared development/reserved inputs | Complete; declaration committed before metric comparison |
 | General impact identity, timing and strength | Provisional shared v1 baselined before compiler tuning; perceptual limitations retained |
-| Controlled physical experiments and continuation | 375 scheduled perturbations retained; coordinated reconstruction next |
-| Shared automatic compiler integration and improvement | Starting against the recorded working contract |
+| Controlled physical experiments and continuation | 315 geometry replays and 45 same-state, full-continuation branches recorded |
+| Shared automatic compiler integration and improvement | Integrated through public automatic production; 12/12 first-pilot songs valid/fulfilled; search ablations active |
 | Frozen candidate, complete tracks and reserved evaluation | Pending |
 | Native music review, evidence and delivery | Pending |
 
@@ -762,3 +762,41 @@ for coordinated physical reconstruction: a favorable isolated event is not a
 working track. The next experiments use the shared compiler to rebuild and judge
 the following passage. Twelve focused contract tests pass, including every
 prefix boundary of a mixed-contact sequence and rotated observation coordinates.
+
+### Integrated automatic pilot and coordinated continuation
+
+The [integration checkpoint](evidence/general-impact-integration-checkpoint-20261002.json)
+preserves the first twelve full-song results at `6f80aeba`. All use the original
+seeded requests and the public automatic entry point, with the experimental
+contract explicitly selected. The same implementation supplies local selection,
+complete-track refinement, independent cold replay and saved review. Historical
+landing reports remain separately available; their hard failures must not be
+presented as comparable scores for this changed task. Production defaults remain
+on the qualified historical contract.
+
+All twelve songs complete and fulfill their arrangements. Strength, timing and
+unmatched-event error fall substantially across the panel. This is not a complete
+quality victory: several span errors increase, and a few quiet contacts become
+stronger than requested. Search research therefore includes contact preparation,
+whole-engagement speed gains, coordinated neighboring intervals, and the inherited
+release and future-value assumptions. Definitions and authored inputs stay fixed.
+
+The 45 paired continuation trials start from fifteen identical saved states and
+retain their preceding physical history. Both shared-account variants complete
+and fulfill all fifteen requests; every pair has lower full-track impact loss
+than its legacy-search branch. The engagement-gain preference generally reduces
+extra acceleration further. The preserved prefix contributes its original errors
+to every complete-track account. For the earlier geometry-only perturbations,
+72 of 300 non-baseline trials survive, but none fulfill all following musical
+requests; 228 eject. Survival and musical completion are distinct results.
+
+A further explanatory study over 42 existing tracks challenges whole-body response
+coherence as a strength modifier. It weakens the positive clean landing more than
+the rejected head-first example, and does not improve broad calibration. Do not
+adopt it as a posture workaround. The named perceptual discrepancy remains open.
+
+The first broad whole-track refinement ablation uses roughly 1.2 million extra
+frames per song for very little gain. Keep its evidence rather than silently
+spending that work in production. Contact preparation by one frame is promising;
+two frames is less effective in the initial matched panel. Later trials remain
+development evidence, and the eight reserved arrangements are still unexamined.

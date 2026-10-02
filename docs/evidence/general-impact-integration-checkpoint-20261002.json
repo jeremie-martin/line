@@ -1,0 +1,4131 @@
+{
+  "schema": "line.general-impact-integration-checkpoint.v1",
+  "compilerCommit": "6f80aeba",
+  "contract": "line.contact-impact.v1",
+  "status": "development, not reserved qualification",
+  "baselineSha256": "130a200eb8dc5f4cad72c92715c1122fbb5e5ab55cc0eb7896478e7440dcb3b3",
+  "pairedSourceSha256": "c95d9af1d1f688241c0a60116c058626e60749a302013ab9ac1b2b5deb3ffbba",
+  "pairedSongs": [
+    {
+      "song": "amor_na_praia_46s",
+      "seed": 101,
+      "baseline": {
+        "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.2160438481759366,
+          "components": {
+            "air": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.02890122323224799,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.03760613513949243,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 78,
+              "weightSum": 78,
+              "rmsError": 0.3711809947984291,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 421.3989
+        },
+        "targets": 78,
+        "matched": 78,
+        "missing": [],
+        "strengthMse": 0.015759200542662707,
+        "timingMse": 0.0703125,
+        "extraMse": 0.05170363035688872,
+        "loss": 0.13777533089955143,
+        "extraAboveQuarterScale": 16,
+        "quiet": {
+          "targets": 9,
+          "matched": 9,
+          "strengthMse": 0.025038679586141865,
+          "timingMse": 0.006944444444444444,
+          "extraRawSquared": 0.11563398852564845
+        },
+        "strong": {
+          "targets": 10,
+          "matched": 10,
+          "strengthMse": 0.008351901799620129,
+          "timingMse": 0.065625,
+          "extraRawSquared": 0.7518732754264644
+        },
+        "gains": {
+          "count": 19,
+          "maxExcess": 2.2708675597029213,
+          "excessSum": 7.1141030936675715,
+          "worst": [
+            {
+              "start": 308,
+              "end": 330,
+              "solverGain": 1.3299240702206134,
+              "gravityGain": -0.5176309444114224,
+              "speedBefore": 8.83309687849972,
+              "strongest": {
+                "start": 314,
+                "end": 330,
+                "gain": 3.0208675597029213,
+                "speedBefore": 7.152907970933071
+              },
+              "excess": 2.2708675597029213
+            },
+            {
+              "start": 212,
+              "end": 220,
+              "solverGain": -1.4746780861123252,
+              "gravityGain": 0.20375236223393944,
+              "speedBefore": 8.921324278042702,
+              "strongest": {
+                "start": 217,
+                "end": 219,
+                "gain": 1.4126484402313535,
+                "speedBefore": 7.087919013902994
+              },
+              "excess": 0.6626484402313535
+            },
+            {
+              "start": 189,
+              "end": 192,
+              "solverGain": 1.1632242515021058,
+              "gravityGain": -0.10741912271546727,
+              "speedBefore": 7.229719941804681,
+              "strongest": {
+                "start": 189,
+                "end": 191,
+                "gain": 1.30032761118634,
+                "speedBefore": 7.229719941804681
+              },
+              "excess": 0.55032761118634
+            },
+            {
+              "start": 659,
+              "end": 663,
+              "solverGain": 1.5212153108843722,
+              "gravityGain": -0.13780750127133423,
+              "speedBefore": 9.936713287839966,
+              "strongest": {
+                "start": 659,
+                "end": 663,
+                "gain": 1.5212153108843722,
+                "speedBefore": 9.936713287839966
+              },
+              "excess": 0.5275439821003756
+            },
+            {
+              "start": 1224,
+              "end": 1232,
+              "solverGain": 0.15716995273343315,
+              "gravityGain": 0.047902642293644604,
+              "speedBefore": 11.438634897089532,
+              "strongest": {
+                "start": 1229,
+                "end": 1232,
+                "gain": 1.4443166395516815,
+                "speedBefore": 10.263586366922238
+              },
+              "excess": 0.4179580028594576
+            }
+          ]
+        },
+        "physicalFrames": 1511410,
+        "compileMs": 52076.877895
+      },
+      "candidate": {
+        "trackHash": "33c598c3b1afd6bdff03e0f4138aaa5fb24c34d3ddc6cdd23d507a9bbce3880d",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.09145288128506439,
+          "components": {
+            "air": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.05280675486899665,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.051994126150239434,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 78,
+              "weightSum": 78,
+              "rmsError": 0.1399962355640284,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 693.6335
+        },
+        "targets": 78,
+        "matched": 78,
+        "missing": [],
+        "strengthMse": 0.008803379738571954,
+        "timingMse": 0.009615384615384616,
+        "extraMse": 0.001180181618142359,
+        "loss": 0.01959894597209893,
+        "extraAboveQuarterScale": 0,
+        "quiet": {
+          "targets": 9,
+          "matched": 9,
+          "strengthMse": 0.0013726658518430383,
+          "timingMse": 0.003472222222222222,
+          "extraRawSquared": 0.03146153063950785
+        },
+        "strong": {
+          "targets": 10,
+          "matched": 10,
+          "strengthMse": 0.0030835803706495994,
+          "timingMse": 0.0140625,
+          "extraRawSquared": 0.004299689865801731
+        },
+        "gains": {
+          "count": 12,
+          "maxExcess": 1.0808855722722093,
+          "excessSum": 4.071428845125588,
+          "worst": [
+            {
+              "start": 308,
+              "end": 326,
+              "solverGain": 0.44148974984505696,
+              "gravityGain": -0.4031954583304289,
+              "speedBefore": 9.227473141294537,
+              "strongest": {
+                "start": 316,
+                "end": 326,
+                "gain": 1.8585509524595487,
+                "speedBefore": 7.776653801873394
+              },
+              "excess": 1.0808855722722093
+            },
+            {
+              "start": 212,
+              "end": 218,
+              "solverGain": -0.5230256445601409,
+              "gravityGain": 0.14423555820510892,
+              "speedBefore": 8.197274371777446,
+              "strongest": {
+                "start": 216,
+                "end": 217,
+                "gain": 1.394088488070846,
+                "speedBefore": 7.2454304247405386
+              },
+              "excess": 0.644088488070846
+            },
+            {
+              "start": 1070,
+              "end": 1075,
+              "solverGain": 0.30886410479548054,
+              "gravityGain": -0.011065695569088874,
+              "speedBefore": 11.015726040686229,
+              "strongest": {
+                "start": 1073,
+                "end": 1075,
+                "gain": 1.588532507171692,
+                "speedBefore": 9.784574947044828
+              },
+              "excess": 0.6100750124672092
+            },
+            {
+              "start": 366,
+              "end": 372,
+              "solverGain": -0.47124254919701336,
+              "gravityGain": 0.27501968432434154,
+              "speedBefore": 10.68357892314436,
+              "strongest": {
+                "start": 370,
+                "end": 372,
+                "gain": 1.3712249377271188,
+                "speedBefore": 9.122011773256187
+              },
+              "excess": 0.45902376040150017
+            },
+            {
+              "start": 1026,
+              "end": 1045,
+              "solverGain": 0.17575552017308382,
+              "gravityGain": -0.25048248955160446,
+              "speedBefore": 11.002585916331208,
+              "strongest": {
+                "start": 1036,
+                "end": 1041,
+                "gain": 1.246023122300258,
+                "speedBefore": 10.331948607583856
+              },
+              "excess": 0.2128282615418724
+            }
+          ]
+        },
+        "physicalFrames": 1462730,
+        "compileMs": 40539.752270000005
+      }
+    },
+    {
+      "song": "amor_na_praia_46s",
+      "seed": 202,
+      "baseline": {
+        "trackHash": "cf9fe39f96d11ef3028b71a421d8bbcaaa895385e4d176023ea4ca3bb9531148",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.22187972209607662,
+          "components": {
+            "air": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.04082116129131691,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.05074728947930392,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 78,
+              "weightSum": 78,
+              "rmsError": 0.3787481731092951,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 411.6759
+        },
+        "targets": 78,
+        "matched": 78,
+        "missing": [],
+        "strengthMse": 0.01890343081055258,
+        "timingMse": 0.0390625,
+        "extraMse": 0.08548424782307601,
+        "loss": 0.14345017863362858,
+        "extraAboveQuarterScale": 22,
+        "quiet": {
+          "targets": 9,
+          "matched": 9,
+          "strengthMse": 0.004282755126312527,
+          "timingMse": 0.006944444444444444,
+          "extraRawSquared": 0.4865881183614379
+        },
+        "strong": {
+          "targets": 10,
+          "matched": 10,
+          "strengthMse": 0.0407814596767066,
+          "timingMse": 0.025,
+          "extraRawSquared": 1.1492897609653285
+        },
+        "gains": {
+          "count": 10,
+          "maxExcess": 1.2061975226554575,
+          "excessSum": 5.979344688256704,
+          "worst": [
+            {
+              "start": 945,
+              "end": 949,
+              "solverGain": 2.2291063368785657,
+              "gravityGain": -0.027614816625716188,
+              "speedBefore": 10.229088142231081,
+              "strongest": {
+                "start": 945,
+                "end": 949,
+                "gain": 2.2291063368785657,
+                "speedBefore": 10.229088142231081
+              },
+              "excess": 1.2061975226554575
+            },
+            {
+              "start": 328,
+              "end": 334,
+              "solverGain": 1.3422467456904474,
+              "gravityGain": 0.33083383618042816,
+              "speedBefore": 7.900556726570715,
+              "strongest": {
+                "start": 328,
+                "end": 333,
+                "gain": 1.6594306360442221,
+                "speedBefore": 7.900556726570715
+              },
+              "excess": 0.8693749633871506
+            },
+            {
+              "start": 295,
+              "end": 300,
+              "solverGain": 0.47322776137721867,
+              "gravityGain": 0.022476075470519774,
+              "speedBefore": 9.20232787499528,
+              "strongest": {
+                "start": 298,
+                "end": 300,
+                "gain": 1.602649515775603,
+                "speedBefore": 8.110390972508661
+              },
+              "excess": 0.791610418524737
+            },
+            {
+              "start": 572,
+              "end": 575,
+              "solverGain": 1.5687894217203198,
+              "gravityGain": 0.1780571479632158,
+              "speedBefore": 9.114437931217173,
+              "strongest": {
+                "start": 572,
+                "end": 575,
+                "gain": 1.5687894217203198,
+                "speedBefore": 9.114437931217173
+              },
+              "excess": 0.6573456285986023
+            },
+            {
+              "start": 318,
+              "end": 325,
+              "solverGain": 1.0773939048753984,
+              "gravityGain": -0.31371013641637013,
+              "speedBefore": 7.293819229498014,
+              "strongest": {
+                "start": 321,
+                "end": 325,
+                "gain": 1.2866072176011478,
+                "speedBefore": 6.861460228801154
+              },
+              "excess": 0.5366072176011478
+            }
+          ]
+        },
+        "physicalFrames": 1617408,
+        "compileMs": 53016.39231899999
+      },
+      "candidate": {
+        "trackHash": "09cba8e3aaa74296a691d3556b7ca221ff517f0febd0d67851f24f07606510a4",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.0896484883326791,
+          "components": {
+            "air": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.04756472700934234,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.05611949750633104,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 78,
+              "weightSum": 78,
+              "rmsError": 0.13674338420986645,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 698.658
+        },
+        "targets": 78,
+        "matched": 78,
+        "missing": [],
+        "strengthMse": 0.006391323974871928,
+        "timingMse": 0.009415064102564102,
+        "extraMse": 0.002892365047731123,
+        "loss": 0.018698753125167153,
+        "extraAboveQuarterScale": 0,
+        "quiet": {
+          "targets": 9,
+          "matched": 9,
+          "strengthMse": 0.0009132506942991751,
+          "timingMse": 0,
+          "extraRawSquared": 0.02002407363968356
+        },
+        "strong": {
+          "targets": 10,
+          "matched": 10,
+          "strengthMse": 0.02542834000208268,
+          "timingMse": 0.0125,
+          "extraRawSquared": 0.038947089186239944
+        },
+        "gains": {
+          "count": 5,
+          "maxExcess": 1.7446012125353647,
+          "excessSum": 4.23815323066503,
+          "worst": [
+            {
+              "start": 308,
+              "end": 332,
+              "solverGain": 0.27622142622187695,
+              "gravityGain": -0.4136397857564198,
+              "speedBefore": 9.030697513414355,
+              "strongest": {
+                "start": 314,
+                "end": 331,
+                "gain": 2.4946012125353647,
+                "speedBefore": 7.405090343971817
+              },
+              "excess": 1.7446012125353647
+            },
+            {
+              "start": 938,
+              "end": 947,
+              "solverGain": 1.8260123539380917,
+              "gravityGain": -0.08399124760177479,
+              "speedBefore": 10.8205836211633,
+              "strongest": {
+                "start": 942,
+                "end": 947,
+                "gain": 2.519773470863587,
+                "speedBefore": 10.108117258327756
+              },
+              "excess": 1.5089617450308115
+            },
+            {
+              "start": 277,
+              "end": 284,
+              "solverGain": -0.3313321273457568,
+              "gravityGain": 0.030680748109745082,
+              "speedBefore": 8.430528970636702,
+              "strongest": {
+                "start": 281,
+                "end": 284,
+                "gain": 1.4166871139430226,
+                "speedBefore": 6.7643539648724795
+              },
+              "excess": 0.6666871139430226
+            },
+            {
+              "start": 295,
+              "end": 301,
+              "solverGain": -0.0396015260431648,
+              "gravityGain": 0.11649483901182389,
+              "speedBefore": 8.77330051498938,
+              "strongest": {
+                "start": 298,
+                "end": 301,
+                "gain": 1.0082426966864793,
+                "speedBefore": 7.805166990494226
+              },
+              "excess": 0.2277259976370566
+            },
+            {
+              "start": 1719,
+              "end": 1720,
+              "solverGain": 1.0587469433403722,
+              "gravityGain": 0.06399726149419571,
+              "speedBefore": 9.685697818215974,
+              "strongest": {
+                "start": 1719,
+                "end": 1720,
+                "gain": 1.0587469433403722,
+                "speedBefore": 9.685697818215974
+              },
+              "excess": 0.09017716151877475
+            }
+          ]
+        },
+        "physicalFrames": 1646295,
+        "compileMs": 46226.546008000005
+      }
+    },
+    {
+      "song": "amor_na_praia_46s",
+      "seed": 303,
+      "baseline": {
+        "trackHash": "19ddcf0a60253ef638e1a36b4eb2f1bcd06bd8fc1b6a6dc6de49fe394acb02b1",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.2151271958772424,
+          "components": {
+            "air": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.04715146743851832,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.0481121703224176,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 78,
+              "weightSum": 78,
+              "rmsError": 0.3664711303817496,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 422.9468
+        },
+        "targets": 78,
+        "matched": 78,
+        "missing": [],
+        "strengthMse": 0.01617316639555581,
+        "timingMse": 0.06169871794871795,
+        "extraMse": 0.05642920505900355,
+        "loss": 0.1343010894032773,
+        "extraAboveQuarterScale": 18,
+        "quiet": {
+          "targets": 9,
+          "matched": 9,
+          "strengthMse": 0.008165931261766493,
+          "timingMse": 0.020833333333333332,
+          "extraRawSquared": 0.16366896204122158
+        },
+        "strong": {
+          "targets": 10,
+          "matched": 10,
+          "strengthMse": 0.02778148761693499,
+          "timingMse": 0.1265625,
+          "extraRawSquared": 1.4376396336491686
+        },
+        "gains": {
+          "count": 13,
+          "maxExcess": 1.1773324880219809,
+          "excessSum": 6.023674762127453,
+          "worst": [
+            {
+              "start": 308,
+              "end": 322,
+              "solverGain": 0.6093414975559135,
+              "gravityGain": -0.859657230740134,
+              "speedBefore": 7.934171364990929,
+              "strongest": {
+                "start": 315,
+                "end": 322,
+                "gain": 1.9273324880219809,
+                "speedBefore": 6.136654455576991
+              },
+              "excess": 1.1773324880219809
+            },
+            {
+              "start": 244,
+              "end": 248,
+              "solverGain": 1.6003165839090414,
+              "gravityGain": 0.30526447068602724,
+              "speedBefore": 7.9194061540491765,
+              "strongest": {
+                "start": 244,
+                "end": 248,
+                "gain": 1.6003165839090414,
+                "speedBefore": 7.9194061540491765
+              },
+              "excess": 0.8083759685041237
+            },
+            {
+              "start": 1070,
+              "end": 1076,
+              "solverGain": -0.5805132198462193,
+              "gravityGain": 0.03015863407203412,
+              "speedBefore": 11.286462314181275,
+              "strongest": {
+                "start": 1074,
+                "end": 1075,
+                "gain": 1.7005791674077706,
+                "speedBefore": 9.952649300620166
+              },
+              "excess": 0.7053142373457539
+            },
+            {
+              "start": 968,
+              "end": 971,
+              "solverGain": 1.7043550095260613,
+              "gravityGain": -0.16107557023186558,
+              "speedBefore": 10.256181355928732,
+              "strongest": {
+                "start": 968,
+                "end": 971,
+                "gain": 1.7043550095260613,
+                "speedBefore": 10.256181355928732
+              },
+              "excess": 0.678736873933188
+            },
+            {
+              "start": 783,
+              "end": 788,
+              "solverGain": 0.952162241921819,
+              "gravityGain": -0.054733544744571816,
+              "speedBefore": 11.10955132300371,
+              "strongest": {
+                "start": 785,
+                "end": 788,
+                "gain": 1.6270444331120224,
+                "speedBefore": 10.453531132962349
+              },
+              "excess": 0.5816913198157876
+            }
+          ]
+        },
+        "physicalFrames": 1782515,
+        "compileMs": 54906.385207
+      },
+      "candidate": {
+        "trackHash": "93106a21b34bbc4529717a404d6c467495abf6c1d92f743e9862bbedff8afa57",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.09019126382977094,
+          "components": {
+            "air": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.04611789478869997,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 79,
+              "weightSum": 1840,
+              "rmsError": 0.07384617264424224,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 78,
+              "weightSum": 78,
+              "rmsError": 0.1297045673046605,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 697.1428
+        },
+        "targets": 78,
+        "matched": 78,
+        "missing": [],
+        "strengthMse": 0.005542960349059214,
+        "timingMse": 0.008814102564102564,
+        "extraMse": 0.0024662118665274325,
+        "loss": 0.01682327477968921,
+        "extraAboveQuarterScale": 0,
+        "quiet": {
+          "targets": 9,
+          "matched": 9,
+          "strengthMse": 0.0008406529702546506,
+          "timingMse": 0,
+          "extraRawSquared": 0.022603359189319945
+        },
+        "strong": {
+          "targets": 10,
+          "matched": 10,
+          "strengthMse": 0.019246501415229985,
+          "timingMse": 0.0140625,
+          "extraRawSquared": 0.06034504735124367
+        },
+        "gains": {
+          "count": 12,
+          "maxExcess": 2.252266053751673,
+          "excessSum": 5.825439783559856,
+          "worst": [
+            {
+              "start": 308,
+              "end": 332,
+              "solverGain": 1.781349523654221,
+              "gravityGain": -2.171738514321362,
+              "speedBefore": 7.786131244508577,
+              "strongest": {
+                "start": 314,
+                "end": 332,
+                "gain": 3.002266053751673,
+                "speedBefore": 6.0771914792672455
+              },
+              "excess": 2.252266053751673
+            },
+            {
+              "start": 1070,
+              "end": 1076,
+              "solverGain": 0.2740624693531899,
+              "gravityGain": 0.028784746215951174,
+              "speedBefore": 11.395212642347735,
+              "strongest": {
+                "start": 1074,
+                "end": 1076,
+                "gain": 2.022510534672401,
+                "speedBefore": 9.812220735059292
+              },
+              "excess": 1.041288461166472
+            },
+            {
+              "start": 586,
+              "end": 594,
+              "solverGain": 1.0822294869092524,
+              "gravityGain": 0.049604998905406816,
+              "speedBefore": 10.4922573207072,
+              "strongest": {
+                "start": 591,
+                "end": 594,
+                "gain": 1.5982684924169899,
+                "speedBefore": 10.02007746262604
+              },
+              "excess": 0.5962607461543858
+            },
+            {
+              "start": 377,
+              "end": 379,
+              "solverGain": 1.3194323193397945,
+              "gravityGain": 0.17392186408030508,
+              "speedBefore": 7.672370971023068,
+              "strongest": {
+                "start": 377,
+                "end": 379,
+                "gain": 1.3194323193397945,
+                "speedBefore": 7.672370971023068
+              },
+              "excess": 0.5521952222374877
+            },
+            {
+              "start": 1201,
+              "end": 1206,
+              "solverGain": 1.0463199629527349,
+              "gravityGain": 0.12865217042054589,
+              "speedBefore": 10.912317449760826,
+              "strongest": {
+                "start": 1204,
+                "end": 1206,
+                "gain": 1.5671256860175973,
+                "speedBefore": 10.476116800706482
+              },
+              "excess": 0.519514005946949
+            }
+          ]
+        },
+        "physicalFrames": 1839918,
+        "compileMs": 50263.043938
+      }
+    },
+    {
+      "song": "amour_de_ma_vie_44s",
+      "seed": 101,
+      "baseline": {
+        "trackHash": "a7b97c400289b46172ac61c93abf9cb68cc28f7141dd9d082cf4ac871c0e472b",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.23400698612757362,
+          "components": {
+            "air": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.08238541537508395,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.11214431831002059,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 85,
+              "weightSum": 85,
+              "rmsError": 0.38067585144554017,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 392.1825
+        },
+        "targets": 85,
+        "matched": 85,
+        "missing": [],
+        "strengthMse": 0.038898096164588745,
+        "timingMse": 0.02849264705882353,
+        "extraMse": 0.07752336065037466,
+        "loss": 0.14491410387378695,
+        "extraAboveQuarterScale": 23,
+        "quiet": {
+          "targets": 3,
+          "matched": 3,
+          "strengthMse": 0.028965696297647156,
+          "timingMse": 0.015625,
+          "extraRawSquared": 0.3886009177238685
+        },
+        "strong": {
+          "targets": 66,
+          "matched": 66,
+          "strengthMse": 0.045484882335716736,
+          "timingMse": 0.031013257575757576,
+          "extraRawSquared": 4.52896121516269
+        },
+        "gains": {
+          "count": 37,
+          "maxExcess": 1.9320973818976885,
+          "excessSum": 25.529058733861543,
+          "worst": [
+            {
+              "start": 1250,
+              "end": 1263,
+              "solverGain": 1.3751397248847397,
+              "gravityGain": -0.6436335303924778,
+              "speedBefore": 11.905165238675103,
+              "strongest": {
+                "start": 1256,
+                "end": 1262,
+                "gain": 2.9513050966413257,
+                "speedBefore": 10.192077147436372
+              },
+              "excess": 1.9320973818976885
+            },
+            {
+              "start": 584,
+              "end": 598,
+              "solverGain": 0.9480409040231512,
+              "gravityGain": 0.21653005305568396,
+              "speedBefore": 9.191170788894484,
+              "strongest": {
+                "start": 590,
+                "end": 598,
+                "gain": 2.6665513642208083,
+                "speedBefore": 7.623487388026879
+              },
+              "excess": 1.9042026254181204
+            },
+            {
+              "start": 1,
+              "end": 12,
+              "solverGain": 2.5658941249332985,
+              "gravityGain": 0.8930128464497225,
+              "speedBefore": 5,
+              "strongest": {
+                "start": 1,
+                "end": 12,
+                "gain": 2.5658941249332985,
+                "speedBefore": 5
+              },
+              "excess": 1.8158941249332985
+            },
+            {
+              "start": 1330,
+              "end": 1345,
+              "solverGain": 1.255684570513525,
+              "gravityGain": -0.5689956743779181,
+              "speedBefore": 11.555029450082369,
+              "strongest": {
+                "start": 1332,
+                "end": 1343,
+                "gain": 2.493678968813457,
+                "speedBefore": 10.443951442706835
+              },
+              "excess": 1.4492838245427735
+            },
+            {
+              "start": 289,
+              "end": 296,
+              "solverGain": 1.6198017402750562,
+              "gravityGain": -0.4959117145065832,
+              "speedBefore": 11.272018393682915,
+              "strongest": {
+                "start": 292,
+                "end": 296,
+                "gain": 2.467438376792746,
+                "speedBefore": 10.247788533426288
+              },
+              "excess": 1.4426595234501172
+            }
+          ]
+        },
+        "physicalFrames": 1597691,
+        "compileMs": 43119.921753
+      },
+      "candidate": {
+        "trackHash": "e0bbf0b9cadb3af62c80dca68cb75e4d94acf2a4fcad468b34ad4444368d0c85",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.16701465655743158,
+          "components": {
+            "air": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.12120082762313328,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.1442759565111871,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 85,
+              "weightSum": 85,
+              "rmsError": 0.2194914446424736,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 512.703
+        },
+        "targets": 85,
+        "matched": 85,
+        "missing": [],
+        "strengthMse": 0.034322210379460504,
+        "timingMse": 0.010477941176470587,
+        "extraMse": 0.003376342715308962,
+        "loss": 0.04817649427124005,
+        "extraAboveQuarterScale": 1,
+        "quiet": {
+          "targets": 3,
+          "matched": 3,
+          "strengthMse": 0.011581647875088351,
+          "timingMse": 0.005208333333333333,
+          "extraRawSquared": 0.023658077049878646
+        },
+        "strong": {
+          "targets": 66,
+          "matched": 66,
+          "strengthMse": 0.03304807713595267,
+          "timingMse": 0.010890151515151516,
+          "extraRawSquared": 0.2528214298116984
+        },
+        "gains": {
+          "count": 37,
+          "maxExcess": 1.4878077916316608,
+          "excessSum": 16.288562458816752,
+          "worst": [
+            {
+              "start": 22,
+              "end": 32,
+              "solverGain": 2.058203751827139,
+              "gravityGain": 0.813828217038993,
+              "speedBefore": 6.683376713430453,
+              "strongest": {
+                "start": 24,
+                "end": 31,
+                "gain": 2.2378077916316608,
+                "speedBefore": 6.727450951847598
+              },
+              "excess": 1.4878077916316608
+            },
+            {
+              "start": 584,
+              "end": 594,
+              "solverGain": 0.03412860729068257,
+              "gravityGain": -0.4755924588304019,
+              "speedBefore": 11.728529277229995,
+              "strongest": {
+                "start": 590,
+                "end": 594,
+                "gain": 2.1829964565345215,
+                "speedBefore": 9.414283175963769
+              },
+              "excess": 1.2415681389381445
+            },
+            {
+              "start": 1490,
+              "end": 1499,
+              "solverGain": 0.9855607586445743,
+              "gravityGain": 0.35038357709433043,
+              "speedBefore": 9.095256508122532,
+              "strongest": {
+                "start": 1492,
+                "end": 1498,
+                "gain": 2.0220871590629343,
+                "speedBefore": 8.30147643255125
+              },
+              "excess": 1.1919395158078094
+            },
+            {
+              "start": 1197,
+              "end": 1209,
+              "solverGain": 0.40678132629504304,
+              "gravityGain": -0.2966612515660412,
+              "speedBefore": 11.910576823469878,
+              "strongest": {
+                "start": 1203,
+                "end": 1209,
+                "gain": 2.0827815134209615,
+                "speedBefore": 10.248768652509078
+              },
+              "excess": 1.0579046481700536
+            },
+            {
+              "start": 636,
+              "end": 641,
+              "solverGain": -0.3175454924480725,
+              "gravityGain": 0.23041097505376484,
+              "speedBefore": 11.863437196159081,
+              "strongest": {
+                "start": 640,
+                "end": 641,
+                "gain": 1.7958710790008627,
+                "speedBefore": 9.980863371581036
+              },
+              "excess": 0.7977847418427592
+            }
+          ]
+        },
+        "physicalFrames": 1750173,
+        "compileMs": 48553.00261
+      }
+    },
+    {
+      "song": "amour_de_ma_vie_44s",
+      "seed": 202,
+      "baseline": {
+        "trackHash": "7f61f3ce5b0ebb08fa3c1b0ec7c042f6b6665401dd90596a913b2e419a875656",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.27740209179107117,
+          "components": {
+            "air": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.07607664063821164,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.10773676384680696,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 85,
+              "weightSum": 85,
+              "rmsError": 0.46201828541217654,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 329.6881
+        },
+        "targets": 85,
+        "matched": 85,
+        "missing": [],
+        "strengthMse": 0.046925182979252085,
+        "timingMse": 0.034926470588235295,
+        "extraMse": 0.13160924248772005,
+        "loss": 0.21346089605520743,
+        "extraAboveQuarterScale": 28,
+        "quiet": {
+          "targets": 3,
+          "matched": 3,
+          "strengthMse": 0.008064807551254273,
+          "timingMse": 0.010416666666666666,
+          "extraRawSquared": 1.1531158095945138
+        },
+        "strong": {
+          "targets": 66,
+          "matched": 66,
+          "strengthMse": 0.0577910585709337,
+          "timingMse": 0.04142992424242424,
+          "extraRawSquared": 7.562179553119375
+        },
+        "gains": {
+          "count": 23,
+          "maxExcess": 2.084089804260067,
+          "excessSum": 17.238013015435367,
+          "worst": [
+            {
+              "start": 343,
+              "end": 348,
+              "solverGain": 3.0735701845458845,
+              "gravityGain": -0.01659188235023379,
+              "speedBefore": 10.234320634904613,
+              "strongest": {
+                "start": 344,
+                "end": 348,
+                "gain": 3.1008865191686876,
+                "speedBefore": 10.167967149086204
+              },
+              "excess": 2.084089804260067
+            },
+            {
+              "start": 1570,
+              "end": 1585,
+              "solverGain": 0.7933797528158255,
+              "gravityGain": -0.9808376432983739,
+              "speedBefore": 11.073140036619334,
+              "strongest": {
+                "start": 1573,
+                "end": 1584,
+                "gain": 2.946529664958611,
+                "speedBefore": 9.008706797773483
+              },
+              "excess": 2.0456589851812623
+            },
+            {
+              "start": 1739,
+              "end": 1748,
+              "solverGain": 2.1023483548205633,
+              "gravityGain": 0.1750822306847617,
+              "speedBefore": 8.88560191340083,
+              "strongest": {
+                "start": 1739,
+                "end": 1747,
+                "gain": 2.5781706363987418,
+                "speedBefore": 8.88560191340083
+              },
+              "excess": 1.6896104450586589
+            },
+            {
+              "start": 584,
+              "end": 592,
+              "solverGain": 1.060859106402841,
+              "gravityGain": -0.35097444408611267,
+              "speedBefore": 9.871140188261979,
+              "strongest": {
+                "start": 585,
+                "end": 592,
+                "gain": 2.3682654691233527,
+                "speedBefore": 8.542879564641309
+              },
+              "excess": 1.5139775126592219
+            },
+            {
+              "start": 685,
+              "end": 691,
+              "solverGain": 1.707149272191586,
+              "gravityGain": 0.0715425735380677,
+              "speedBefore": 9.620024220688451,
+              "strongest": {
+                "start": 685,
+                "end": 690,
+                "gain": 2.405863311729771,
+                "speedBefore": 9.620024220688451
+              },
+              "excess": 1.4438608896609257
+            }
+          ]
+        },
+        "physicalFrames": 1945896,
+        "compileMs": 59418.685679
+      },
+      "candidate": {
+        "trackHash": "c70d8455cbfac5c3a596ad332c420ab56966795892d5b6c748064960c310691a",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.18613557311758414,
+          "components": {
+            "air": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.09554658936448905,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.1585831849731825,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 85,
+              "weightSum": 85,
+              "rmsError": 0.2639347977133929,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 474.9516
+        },
+        "targets": 85,
+        "matched": 85,
+        "missing": [],
+        "strengthMse": 0.0446251800527566,
+        "timingMse": 0.014338235294117646,
+        "extraMse": 0.010698162097135375,
+        "loss": 0.06966157744400962,
+        "extraAboveQuarterScale": 5,
+        "quiet": {
+          "targets": 3,
+          "matched": 3,
+          "strengthMse": 0.004660323964582776,
+          "timingMse": 0,
+          "extraRawSquared": 0.12158581656465303
+        },
+        "strong": {
+          "targets": 66,
+          "matched": 66,
+          "strengthMse": 0.05463168510272788,
+          "timingMse": 0.016098484848484848,
+          "extraRawSquared": 0.5177522996080731
+        },
+        "gains": {
+          "count": 17,
+          "maxExcess": 1.6064511006284836,
+          "excessSum": 13.048720036114691,
+          "worst": [
+            {
+              "start": 1383,
+              "end": 1398,
+              "solverGain": 1.3380678646031772,
+              "gravityGain": 0.0034040952911755795,
+              "speedBefore": 11.418604615983586,
+              "strongest": {
+                "start": 1389,
+                "end": 1396,
+                "gain": 2.657344483803902,
+                "speedBefore": 10.508933831754183
+              },
+              "excess": 1.6064511006284836
+            },
+            {
+              "start": 1276,
+              "end": 1289,
+              "solverGain": 1.555398292316843,
+              "gravityGain": -0.18933312083961873,
+              "speedBefore": 11.65188838092285,
+              "strongest": {
+                "start": 1283,
+                "end": 1289,
+                "gain": 2.533339796023382,
+                "speedBefore": 10.626405535939055
+              },
+              "excess": 1.4706992424294765
+            },
+            {
+              "start": 580,
+              "end": 595,
+              "solverGain": 1.0560159547402277,
+              "gravityGain": -1.3304143905570536,
+              "speedBefore": 8.691439089368913,
+              "strongest": {
+                "start": 590,
+                "end": 594,
+                "gain": 1.860091515493127,
+                "speedBefore": 7.142605297733969
+              },
+              "excess": 1.110091515493127
+            },
+            {
+              "start": 1,
+              "end": 12,
+              "solverGain": 1.7127894757295614,
+              "gravityGain": 0.5335235634528583,
+              "speedBefore": 5,
+              "strongest": {
+                "start": 1,
+                "end": 11,
+                "gain": 1.7554406395886435,
+                "speedBefore": 5
+              },
+              "excess": 1.0054406395886435
+            },
+            {
+              "start": 623,
+              "end": 628,
+              "solverGain": 1.797999005622966,
+              "gravityGain": 0.12320298646574024,
+              "speedBefore": 9.158273582013575,
+              "strongest": {
+                "start": 625,
+                "end": 628,
+                "gain": 1.9002521361956237,
+                "speedBefore": 9.103592444836643
+              },
+              "excess": 0.9898928917119594
+            }
+          ]
+        },
+        "physicalFrames": 2062553,
+        "compileMs": 62136.755407000004
+      }
+    },
+    {
+      "song": "amour_de_ma_vie_44s",
+      "seed": 303,
+      "baseline": {
+        "trackHash": "46cca64f2bcd8fcf302793e514305135d03fd354501e29a434fe64d8bcf2b533",
+        "valid": false,
+        "fulfilled": true,
+        "score": {
+          "valid": false,
+          "hardFailures": [
+            "incomplete_impact_account"
+          ],
+          "weightedAxisRms": 0.31425215231536374,
+          "components": {
+            "air": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.07891550085057776,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.10136735736703553,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 85,
+              "weightSum": 85,
+              "rmsError": 0.5289236696258184,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 0
+        },
+        "targets": 85,
+        "matched": 84,
+        "missing": [
+          55
+        ],
+        "strengthMse": 0.04494475041158485,
+        "timingMse": 0.058823529411764705,
+        "extraMse": 0.16422726258473938,
+        "loss": 0.2797602482904419,
+        "extraAboveQuarterScale": 41,
+        "quiet": {
+          "targets": 3,
+          "matched": 3,
+          "strengthMse": 0.0021908595068392315,
+          "timingMse": 0.010416666666666666,
+          "extraRawSquared": 1.4756239857964975
+        },
+        "strong": {
+          "targets": 66,
+          "matched": 65,
+          "strengthMse": 0.051786618986843634,
+          "timingMse": 0.06321022727272728,
+          "extraRawSquared": 8.468066665757519
+        },
+        "gains": {
+          "count": 33,
+          "maxExcess": 2.4931947231923024,
+          "excessSum": 20.97209149695081,
+          "worst": [
+            {
+              "start": 263,
+              "end": 279,
+              "solverGain": 2.824825787975377,
+              "gravityGain": -0.6803619085162795,
+              "speedBefore": 8.158479561174843,
+              "strongest": {
+                "start": 267,
+                "end": 279,
+                "gain": 3.2431947231923024,
+                "speedBefore": 7.494882736925365
+              },
+              "excess": 2.4931947231923024
+            },
+            {
+              "start": 1,
+              "end": 11,
+              "solverGain": 2.256835752681037,
+              "gravityGain": 0.7553965272739047,
+              "speedBefore": 5,
+              "strongest": {
+                "start": 1,
+                "end": 11,
+                "gain": 2.256835752681037,
+                "speedBefore": 5
+              },
+              "excess": 1.5068357526810372
+            },
+            {
+              "start": 157,
+              "end": 168,
+              "solverGain": 0.009838069700256469,
+              "gravityGain": -0.30410086774484135,
+              "speedBefore": 10.696319160206599,
+              "strongest": {
+                "start": 162,
+                "end": 167,
+                "gain": 2.349545057134197,
+                "speedBefore": 9.084045786568211
+              },
+              "excess": 1.4411404784773758
+            },
+            {
+              "start": 414,
+              "end": 416,
+              "solverGain": 2.227416042397003,
+              "gravityGain": -0.06910634247123681,
+              "speedBefore": 8.757404296689845,
+              "strongest": {
+                "start": 414,
+                "end": 416,
+                "gain": 2.227416042397003,
+                "speedBefore": 8.757404296689845
+              },
+              "excess": 1.3516756127280185
+            },
+            {
+              "start": 1624,
+              "end": 1637,
+              "solverGain": -0.7260103685796686,
+              "gravityGain": 0.34814096848479714,
+              "speedBefore": 10.790062126130008,
+              "strongest": {
+                "start": 1633,
+                "end": 1636,
+                "gain": 1.8146449353802865,
+                "speedBefore": 9.135818463691402
+              },
+              "excess": 0.9010630890111462
+            }
+          ]
+        },
+        "physicalFrames": 2130469,
+        "compileMs": 72130.12423300001
+      },
+      "candidate": {
+        "trackHash": "4c9034a7fbf67aedef2f622db4c73bf43e895a9558342c5e060a35e415479d94",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.17112690115580045,
+          "components": {
+            "air": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.11697351381881774,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 86,
+              "weightSum": 1782,
+              "rmsError": 0.1138829850224788,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 85,
+              "weightSum": 85,
+              "rmsError": 0.2473885843866083,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 504.3385
+        },
+        "targets": 85,
+        "matched": 85,
+        "missing": [],
+        "strengthMse": 0.037688206128347876,
+        "timingMse": 0.013970588235294118,
+        "extraMse": 0.009542317321168023,
+        "loss": 0.06120111168481002,
+        "extraAboveQuarterScale": 4,
+        "quiet": {
+          "targets": 3,
+          "matched": 3,
+          "strengthMse": 0.023191328041999245,
+          "timingMse": 0.005208333333333333,
+          "extraRawSquared": 0.18312124266788082
+        },
+        "strong": {
+          "targets": 66,
+          "matched": 66,
+          "strengthMse": 0.04344154468899255,
+          "timingMse": 0.015151515151515152,
+          "extraRawSquared": 0.5197244933634695
+        },
+        "gains": {
+          "count": 26,
+          "maxExcess": 1.5629084510986164,
+          "excessSum": 16.691573490174413,
+          "worst": [
+            {
+              "start": 1,
+              "end": 12,
+              "solverGain": 2.1309193322649795,
+              "gravityGain": 0.3593900884875163,
+              "speedBefore": 5,
+              "strongest": {
+                "start": 1,
+                "end": 11,
+                "gain": 2.3129084510986164,
+                "speedBefore": 5
+              },
+              "excess": 1.5629084510986164
+            },
+            {
+              "start": 1650,
+              "end": 1663,
+              "solverGain": 1.5861212886221203,
+              "gravityGain": -0.1502665446765281,
+              "speedBefore": 9.635275377058665,
+              "strongest": {
+                "start": 1655,
+                "end": 1661,
+                "gain": 2.2625925618761897,
+                "speedBefore": 9.009100297672028
+              },
+              "excess": 1.361682532108987
+            },
+            {
+              "start": 1596,
+              "end": 1606,
+              "solverGain": 1.6283904744908053,
+              "gravityGain": -0.027500299888053803,
+              "speedBefore": 9.320310259683614,
+              "strongest": {
+                "start": 1600,
+                "end": 1606,
+                "gain": 2.2078733146876903,
+                "speedBefore": 8.71790611726346
+              },
+              "excess": 1.3360827029613442
+            },
+            {
+              "start": 742,
+              "end": 747,
+              "solverGain": 2.236105883562944,
+              "gravityGain": -0.08053065956337235,
+              "speedBefore": 9.08110020331356,
+              "strongest": {
+                "start": 742,
+                "end": 747,
+                "gain": 2.236105883562944,
+                "speedBefore": 9.08110020331356
+              },
+              "excess": 1.3279958632315878
+            },
+            {
+              "start": 1676,
+              "end": 1688,
+              "solverGain": -0.18327493033571507,
+              "gravityGain": -0.4544440791728519,
+              "speedBefore": 11.287856584059366,
+              "strongest": {
+                "start": 1683,
+                "end": 1688,
+                "gain": 2.1907177899618695,
+                "speedBefore": 8.897761183332666
+              },
+              "excess": 1.3009416716286029
+            }
+          ]
+        },
+        "physicalFrames": 2184073,
+        "compileMs": 60195.25507
+      }
+    },
+    {
+      "song": "luna_bala_44s",
+      "seed": 101,
+      "baseline": {
+        "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.2140320261170263,
+          "components": {
+            "air": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.03325167828162587,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.029218407759086764,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 75,
+              "weightSum": 75,
+              "rmsError": 0.368062134904906,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 424.8037
+        },
+        "targets": 75,
+        "matched": 75,
+        "missing": [],
+        "strengthMse": 0.01576225566351676,
+        "timingMse": 0.059583333333333335,
+        "extraMse": 0.060124146153907154,
+        "loss": 0.13546973515075725,
+        "extraAboveQuarterScale": 23,
+        "quiet": {
+          "targets": 8,
+          "matched": 8,
+          "strengthMse": 0.002515718342032021,
+          "timingMse": 0.029296875,
+          "extraRawSquared": 0.26413241958594824
+        },
+        "strong": {
+          "targets": 26,
+          "matched": 26,
+          "strengthMse": 0.012257657409954882,
+          "timingMse": 0.04927884615384615,
+          "extraRawSquared": 1.6396000381941305
+        },
+        "gains": {
+          "count": 18,
+          "maxExcess": 1.0095747705549796,
+          "excessSum": 7.159819640024204,
+          "worst": [
+            {
+              "start": 518,
+              "end": 523,
+              "solverGain": 0.10939105464641408,
+              "gravityGain": 0.04808100027412188,
+              "speedBefore": 10.637474032174305,
+              "strongest": {
+                "start": 521,
+                "end": 523,
+                "gain": 1.9023476869818747,
+                "speedBefore": 8.927729164268952
+              },
+              "excess": 1.0095747705549796
+            },
+            {
+              "start": 1396,
+              "end": 1398,
+              "solverGain": 1.8732004999021399,
+              "gravityGain": -0.10712900980940177,
+              "speedBefore": 9.489628156361874,
+              "strongest": {
+                "start": 1396,
+                "end": 1398,
+                "gain": 1.8732004999021399,
+                "speedBefore": 9.489628156361874
+              },
+              "excess": 0.9242376842659524
+            },
+            {
+              "start": 955,
+              "end": 966,
+              "solverGain": 0.5084183790792167,
+              "gravityGain": -0.05662003524661152,
+              "speedBefore": 12.041084939565616,
+              "strongest": {
+                "start": 963,
+                "end": 966,
+                "gain": 1.8743922307362553,
+                "speedBefore": 10.734788363440513
+              },
+              "excess": 0.800913394392204
+            },
+            {
+              "start": 345,
+              "end": 350,
+              "solverGain": -0.85644498373677,
+              "gravityGain": 0.23584739869704308,
+              "speedBefore": 11.081365973430245,
+              "strongest": {
+                "start": 348,
+                "end": 350,
+                "gain": 1.4913489167078229,
+                "speedBefore": 8.979277286147234
+              },
+              "excess": 0.5934211880930995
+            },
+            {
+              "start": 999,
+              "end": 1006,
+              "solverGain": -0.395628507214159,
+              "gravityGain": -0.11551936950890784,
+              "speedBefore": 12.09064156397285,
+              "strongest": {
+                "start": 1003,
+                "end": 1005,
+                "gain": 1.6329511974555633,
+                "speedBefore": 10.640703502795064
+              },
+              "excess": 0.5688808471760567
+            }
+          ]
+        },
+        "physicalFrames": 1478956,
+        "compileMs": 43564.682251000006
+      },
+      "candidate": {
+        "trackHash": "a0655da75777299525b28303787b31218d2fd31f9f9b09fe0258a0c3937d95e1",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.0692066230936111,
+          "components": {
+            "air": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.033899738007779755,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.046714630180291816,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 75,
+              "weightSum": 75,
+              "rmsError": 0.10505817973954192,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 758.186
+        },
+        "targets": 75,
+        "matched": 75,
+        "missing": [],
+        "strengthMse": 0.0022848769987650823,
+        "timingMse": 0.008333333333333333,
+        "extraMse": 0.0004190107980874798,
+        "loss": 0.011037221130185897,
+        "extraAboveQuarterScale": 0,
+        "quiet": {
+          "targets": 8,
+          "matched": 8,
+          "strengthMse": 0.0017341177647020158,
+          "timingMse": 0.001953125,
+          "extraRawSquared": 0.005601445716732517
+        },
+        "strong": {
+          "targets": 26,
+          "matched": 26,
+          "strengthMse": 0.0033675169485565355,
+          "timingMse": 0.013221153846153846,
+          "extraRawSquared": 0.009095050691551811
+        },
+        "gains": {
+          "count": 8,
+          "maxExcess": 0.70656661575732,
+          "excessSum": 2.827453036749737,
+          "worst": [
+            {
+              "start": 1513,
+              "end": 1517,
+              "solverGain": -1.276851409936194,
+              "gravityGain": 0.3237602124599803,
+              "speedBefore": 10.560044346796724,
+              "strongest": {
+                "start": 1515,
+                "end": 1516,
+                "gain": 1.5899148472011237,
+                "speedBefore": 8.833482314438037
+              },
+              "excess": 0.70656661575732
+            },
+            {
+              "start": 1021,
+              "end": 1026,
+              "solverGain": 1.0249534710229486,
+              "gravityGain": -0.23273524851578564,
+              "speedBefore": 10.814317058137206,
+              "strongest": {
+                "start": 1025,
+                "end": 1026,
+                "gain": 1.5156057682893298,
+                "speedBefore": 10.188588952238176
+              },
+              "excess": 0.49674687306551224
+            },
+            {
+              "start": 999,
+              "end": 1008,
+              "solverGain": 0.45632045954239153,
+              "gravityGain": -0.4248408405897841,
+              "speedBefore": 11.501767525701567,
+              "strongest": {
+                "start": 1006,
+                "end": 1008,
+                "gain": 1.4968884555507227,
+                "speedBefore": 10.23906732030197
+              },
+              "excess": 0.4729817235205256
+            },
+            {
+              "start": 954,
+              "end": 962,
+              "solverGain": -0.36142665113128913,
+              "gravityGain": -0.09618790903473062,
+              "speedBefore": 11.972711541654302,
+              "strongest": {
+                "start": 957,
+                "end": 961,
+                "gain": 1.5107713240108662,
+                "speedBefore": 10.682885870477815
+              },
+              "excess": 0.4424827369630846
+            },
+            {
+              "start": 976,
+              "end": 984,
+              "solverGain": -0.06858353493401026,
+              "gravityGain": -0.09878665651930696,
+              "speedBefore": 12.01811057881243,
+              "strongest": {
+                "start": 981,
+                "end": 984,
+                "gain": 1.3398425956458553,
+                "speedBefore": 10.652010120968654
+              },
+              "excess": 0.2746415835489897
+            }
+          ]
+        },
+        "physicalFrames": 1426578,
+        "compileMs": 36116.072294
+      }
+    },
+    {
+      "song": "luna_bala_44s",
+      "seed": 202,
+      "baseline": {
+        "trackHash": "218f32afa6c2b620fad38f7c44258101cc360b824bc33ae124bc8f3503b9352b",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.17972323906590681,
+          "components": {
+            "air": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.04556964716025128,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.05528673073317724,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 75,
+              "weightSum": 75,
+              "rmsError": 0.302932521601017,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 487.2914
+        },
+        "targets": 75,
+        "matched": 75,
+        "missing": [],
+        "strengthMse": 0.010198805927008605,
+        "timingMse": 0.026041666666666668,
+        "extraMse": 0.05552764004987537,
+        "loss": 0.09176811264355064,
+        "extraAboveQuarterScale": 21,
+        "quiet": {
+          "targets": 8,
+          "matched": 8,
+          "strengthMse": 0.0019852623888240795,
+          "timingMse": 0.009765625,
+          "extraRawSquared": 0.17289787733491327
+        },
+        "strong": {
+          "targets": 26,
+          "matched": 26,
+          "strengthMse": 0.01201437281603508,
+          "timingMse": 0.033052884615384616,
+          "extraRawSquared": 1.1511666456026126
+        },
+        "gains": {
+          "count": 7,
+          "maxExcess": 1.0172533469736127,
+          "excessSum": 4.096187156887142,
+          "worst": [
+            {
+              "start": 1042,
+              "end": 1049,
+              "solverGain": 0.2925386293045804,
+              "gravityGain": 0.1494518418679025,
+              "speedBefore": 11.316165208095333,
+              "strongest": {
+                "start": 1047,
+                "end": 1049,
+                "gain": 1.9941553053558003,
+                "speedBefore": 9.769019583821876
+              },
+              "excess": 1.0172533469736127
+            },
+            {
+              "start": 344,
+              "end": 352,
+              "solverGain": -0.024497399658176988,
+              "gravityGain": 0.2615547154864508,
+              "speedBefore": 10.507102212723472,
+              "strongest": {
+                "start": 350,
+                "end": 352,
+                "gain": 1.6192553364402968,
+                "speedBefore": 9.175884121174278
+              },
+              "excess": 0.701666924322869
+            },
+            {
+              "start": 1326,
+              "end": 1332,
+              "solverGain": 0.033577456602326805,
+              "gravityGain": 0.2808841288277417,
+              "speedBefore": 8.874463312288214,
+              "strongest": {
+                "start": 1329,
+                "end": 1331,
+                "gain": 1.4218170698144714,
+                "speedBefore": 8.16413170484459
+              },
+              "excess": 0.6054038993300125
+            },
+            {
+              "start": 1391,
+              "end": 1395,
+              "solverGain": 0.11504424700390281,
+              "gravityGain": 0.026645650327656867,
+              "speedBefore": 11.209899319298254,
+              "strongest": {
+                "start": 1394,
+                "end": 1395,
+                "gain": 1.5687606863970522,
+                "speedBefore": 9.84341779311568
+              },
+              "excess": 0.5844189070854842
+            },
+            {
+              "start": 703,
+              "end": 705,
+              "solverGain": 1.5753793710122768,
+              "gravityGain": 0.009781377864676699,
+              "speedBefore": 10.059944005539196,
+              "strongest": {
+                "start": 703,
+                "end": 705,
+                "gain": 1.5753793710122768,
+                "speedBefore": 10.059944005539196
+              },
+              "excess": 0.5693849704583571
+            }
+          ]
+        },
+        "physicalFrames": 1562715,
+        "compileMs": 50067.717631
+      },
+      "candidate": {
+        "trackHash": "ee8fdccea82082641e06e738f637c8cb596cb68ad039baf73bb657331e304e3c",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.07630632452549105,
+          "components": {
+            "air": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.048923674916450346,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.04473215419320684,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 75,
+              "weightSum": 75,
+              "rmsError": 0.11433929290350418,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 736.9573
+        },
+        "targets": 75,
+        "matched": 75,
+        "missing": [],
+        "strengthMse": 0.0033496198503757037,
+        "timingMse": 0.008125,
+        "extraMse": 0.001598854051297618,
+        "loss": 0.013073473901673321,
+        "extraAboveQuarterScale": 0,
+        "quiet": {
+          "targets": 8,
+          "matched": 8,
+          "strengthMse": 0.0007624073303518217,
+          "timingMse": 0.00390625,
+          "extraRawSquared": 0.0077332046357216295
+        },
+        "strong": {
+          "targets": 26,
+          "matched": 26,
+          "strengthMse": 0.004150139588907356,
+          "timingMse": 0.010817307692307692,
+          "extraRawSquared": 0.017180337204408168
+        },
+        "gains": {
+          "count": 5,
+          "maxExcess": 0.8862194134032989,
+          "excessSum": 1.6344652511875317,
+          "worst": [
+            {
+              "start": 1042,
+              "end": 1049,
+              "solverGain": 0.9745294573783934,
+              "gravityGain": -0.1063215568653284,
+              "speedBefore": 10.452840951702543,
+              "strongest": {
+                "start": 1044,
+                "end": 1048,
+                "gain": 1.8696957968210235,
+                "speedBefore": 9.834763834177245
+              },
+              "excess": 0.8862194134032989
+            },
+            {
+              "start": 344,
+              "end": 351,
+              "solverGain": -1.6187321513113915,
+              "gravityGain": 0.3937216749414798,
+              "speedBefore": 11.127307216285004,
+              "strongest": {
+                "start": 349,
+                "end": 350,
+                "gain": 1.2743840771734138,
+                "speedBefore": 9.175689165030963
+              },
+              "excess": 0.3568151606703175
+            },
+            {
+              "start": 1369,
+              "end": 1376,
+              "solverGain": -0.1393808148314033,
+              "gravityGain": 0.029941674773308335,
+              "speedBefore": 11.069312583172648,
+              "strongest": {
+                "start": 1373,
+                "end": 1374,
+                "gain": 1.2801714833020945,
+                "speedBefore": 10.402853555466598
+              },
+              "excess": 0.23988612775543472
+            },
+            {
+              "start": 954,
+              "end": 961,
+              "solverGain": -1.5667039831750902,
+              "gravityGain": 0.5274757278608924,
+              "speedBefore": 12.026560964696705,
+              "strongest": {
+                "start": 959,
+                "end": 960,
+                "gain": 1.1898435404747971,
+                "speedBefore": 10.656372218771256
+              },
+              "excess": 0.1242063185976714
+            },
+            {
+              "start": 1495,
+              "end": 1499,
+              "solverGain": -1.3803865811729423,
+              "gravityGain": 0.4160517898638272,
+              "speedBefore": 11.289347604269057,
+              "strongest": {
+                "start": 1499,
+                "end": 1499,
+                "gain": 0.9587636902233925,
+                "speedBefore": 9.314254594625833
+              },
+              "excess": 0.0273382307608091
+            }
+          ]
+        },
+        "physicalFrames": 1497066,
+        "compileMs": 40671.991966
+      }
+    },
+    {
+      "song": "luna_bala_44s",
+      "seed": 303,
+      "baseline": {
+        "trackHash": "8c9badc84ddd7d632516d081df01c3ccfd94d0f1828c7fe3ad42641c0921948c",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.2125821593250132,
+          "components": {
+            "air": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.038624432498349605,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.03354463610687047,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 75,
+              "weightSum": 75,
+              "rmsError": 0.36463191576231224,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 427.2745
+        },
+        "targets": 75,
+        "matched": 75,
+        "missing": [],
+        "strengthMse": 0.011902832426531517,
+        "timingMse": 0.057291666666666664,
+        "extraMse": 0.0637619348992958,
+        "loss": 0.13295643399249396,
+        "extraAboveQuarterScale": 23,
+        "quiet": {
+          "targets": 8,
+          "matched": 8,
+          "strengthMse": 0.0026066318978849386,
+          "timingMse": 0.009765625,
+          "extraRawSquared": 0.6865066099172767
+        },
+        "strong": {
+          "targets": 26,
+          "matched": 26,
+          "strengthMse": 0.005150998077865277,
+          "timingMse": 0.078125,
+          "extraRawSquared": 1.9327939723452199
+        },
+        "gains": {
+          "count": 12,
+          "maxExcess": 0.9089625618031286,
+          "excessSum": 4.324629991767931,
+          "worst": [
+            {
+              "start": 1553,
+              "end": 1557,
+              "solverGain": 1.8669510124472648,
+              "gravityGain": 0.11697899688856417,
+              "speedBefore": 9.579884506441362,
+              "strongest": {
+                "start": 1553,
+                "end": 1557,
+                "gain": 1.8669510124472648,
+                "speedBefore": 9.579884506441362
+              },
+              "excess": 0.9089625618031286
+            },
+            {
+              "start": 1653,
+              "end": 1658,
+              "solverGain": -0.8861971965471085,
+              "gravityGain": 0.11100981448026204,
+              "speedBefore": 10.1753412385009,
+              "strongest": {
+                "start": 1655,
+                "end": 1657,
+                "gain": 1.6521172270745321,
+                "speedBefore": 8.511463795231354
+              },
+              "excess": 0.8009708475513967
+            },
+            {
+              "start": 345,
+              "end": 351,
+              "solverGain": -1.0302562541629978,
+              "gravityGain": 0.11276735769739332,
+              "speedBefore": 10.500758553594615,
+              "strongest": {
+                "start": 349,
+                "end": 350,
+                "gain": 1.5433606272316958,
+                "speedBefore": 8.823930554625388
+              },
+              "excess": 0.6609675717691569
+            },
+            {
+              "start": 1709,
+              "end": 1712,
+              "solverGain": 1.1565535235317101,
+              "gravityGain": -0.2137575595086023,
+              "speedBefore": 7.676551327832413,
+              "strongest": {
+                "start": 1709,
+                "end": 1712,
+                "gain": 1.1565535235317101,
+                "speedBefore": 7.676551327832413
+              },
+              "excess": 0.3888983907484689
+            },
+            {
+              "start": 1348,
+              "end": 1353,
+              "solverGain": 0.06481645702039884,
+              "gravityGain": 0.08808257960765076,
+              "speedBefore": 11.057134101512197,
+              "strongest": {
+                "start": 1352,
+                "end": 1353,
+                "gain": 1.3048337593695205,
+                "speedBefore": 9.972477794693622
+              },
+              "excess": 0.30758597990015824
+            }
+          ]
+        },
+        "physicalFrames": 1580262,
+        "compileMs": 47658.956819
+      },
+      "candidate": {
+        "trackHash": "39dcded95caba9574687fc53bec752ecec0d65dba27adc2b9914f9123ec43b74",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.07771868804719598,
+          "components": {
+            "air": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.04007464262579914,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 76,
+              "weightSum": 1760,
+              "rmsError": 0.04798636538540021,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 75,
+              "weightSum": 75,
+              "rmsError": 0.11921373734115309,
+              "weight": 0.3333333333333333
+            }
+          },
+          "score": 732.8057
+        },
+        "targets": 75,
+        "matched": 75,
+        "missing": [],
+        "strengthMse": 0.0032332790669183076,
+        "timingMse": 0.008958333333333334,
+        "extraMse": 0.0020203027705937965,
+        "loss": 0.014211915170845439,
+        "extraAboveQuarterScale": 0,
+        "quiet": {
+          "targets": 8,
+          "matched": 8,
+          "strengthMse": 0.0010416546943674923,
+          "timingMse": 0.00390625,
+          "extraRawSquared": 0.0077332046357216295
+        },
+        "strong": {
+          "targets": 26,
+          "matched": 26,
+          "strengthMse": 0.006151632598342404,
+          "timingMse": 0.013221153846153846,
+          "extraRawSquared": 0.09916963086462983
+        },
+        "gains": {
+          "count": 5,
+          "maxExcess": 0.381745935993834,
+          "excessSum": 1.2592017336307844,
+          "worst": [
+            {
+              "start": 977,
+              "end": 984,
+              "solverGain": -0.05079552866611614,
+              "gravityGain": -0.08226577430655446,
+              "speedBefore": 11.694167503754397,
+              "strongest": {
+                "start": 982,
+                "end": 983,
+                "gain": 1.4525536702810644,
+                "speedBefore": 10.708077342872304
+              },
+              "excess": 0.381745935993834
+            },
+            {
+              "start": 999,
+              "end": 1006,
+              "solverGain": -0.4434242100404049,
+              "gravityGain": -0.10945660616039632,
+              "speedBefore": 12.101813458144367,
+              "strongest": {
+                "start": 1004,
+                "end": 1005,
+                "gain": 1.4219748614129522,
+                "speedBefore": 10.63903414454586
+              },
+              "excess": 0.3580714469583661
+            },
+            {
+              "start": 1020,
+              "end": 1029,
+              "solverGain": -0.014452985912315697,
+              "gravityGain": -0.24568229716600776,
+              "speedBefore": 12.04141860635874,
+              "strongest": {
+                "start": 1027,
+                "end": 1029,
+                "gain": 1.3841022044858367,
+                "speedBefore": 10.580832960490277
+              },
+              "excess": 0.32601890843680903
+            },
+            {
+              "start": 1041,
+              "end": 1046,
+              "solverGain": 0.6445129247219548,
+              "gravityGain": -0.13830633068808318,
+              "speedBefore": 11.150538531755876,
+              "strongest": {
+                "start": 1045,
+                "end": 1046,
+                "gain": 1.1938984735337659,
+                "speedBefore": 10.510164629200952
+              },
+              "excess": 0.14288201061367056
+            },
+            {
+              "start": 605,
+              "end": 611,
+              "solverGain": -0.37003624483630304,
+              "gravityGain": 0.1401627908276577,
+              "speedBefore": 11.008736605633016,
+              "strongest": {
+                "start": 609,
+                "end": 610,
+                "gain": 1.0649377273768508,
+                "speedBefore": 10.144542957487461
+              },
+              "excess": 0.05048343162810465
+            }
+          ]
+        },
+        "physicalFrames": 1627861,
+        "compileMs": 41825.05358
+      }
+    },
+    {
+      "song": "tiki_tiki_48s",
+      "seed": 303,
+      "baseline": {
+        "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.202223925143177,
+          "components": {
+            "air": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.053803084425027986,
+              "weight": 0.3
+            },
+            "speed": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.045186776764248954,
+              "weight": 0.3
+            },
+            "amplitude": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.10479663707019327,
+              "weight": 0.09999999999999999
+            },
+            "impact": {
+              "observations": 77,
+              "weightSum": 77,
+              "rmsError": 0.35737607353129863,
+              "weight": 0.3
+            }
+          },
+          "score": 445.3496
+        },
+        "targets": 77,
+        "matched": 77,
+        "missing": [],
+        "strengthMse": 0.01499096020663439,
+        "timingMse": 0.03449675324675325,
+        "extraMse": 0.07822994447926053,
+        "loss": 0.12771765793264817,
+        "extraAboveQuarterScale": 24,
+        "quiet": {
+          "targets": 14,
+          "matched": 14,
+          "strengthMse": 0.00184300031742125,
+          "timingMse": 0.016741071428571428,
+          "extraRawSquared": 1.7332205990221334
+        },
+        "strong": {
+          "targets": 37,
+          "matched": 37,
+          "strengthMse": 0.017721412659487866,
+          "timingMse": 0.03927364864864865,
+          "extraRawSquared": 2.4987855376858046
+        },
+        "gains": {
+          "count": 12,
+          "maxExcess": 0.9680735617458813,
+          "excessSum": 5.190849851679563,
+          "worst": [
+            {
+              "start": 300,
+              "end": 306,
+              "solverGain": 0.39703808442677246,
+              "gravityGain": 0.2009465743182588,
+              "speedBefore": 7.5778504451270825,
+              "strongest": {
+                "start": 301,
+                "end": 303,
+                "gain": 1.7180735617458813,
+                "speedBefore": 7.141906311313134
+              },
+              "excess": 0.9680735617458813
+            },
+            {
+              "start": 327,
+              "end": 332,
+              "solverGain": 1.4618399621918474,
+              "gravityGain": 0.19179327718871697,
+              "speedBefore": 8.206090490026975,
+              "strongest": {
+                "start": 329,
+                "end": 332,
+                "gain": 1.526130049219871,
+                "speedBefore": 8.143778809846712
+              },
+              "excess": 0.7117521682351998
+            },
+            {
+              "start": 893,
+              "end": 895,
+              "solverGain": 1.3940640974552831,
+              "gravityGain": 0.11292836691329988,
+              "speedBefore": 8.7682732517349,
+              "strongest": {
+                "start": 893,
+                "end": 894,
+                "gain": 1.5357445539729504,
+                "speedBefore": 8.7682732517349
+              },
+              "excess": 0.6589172287994604
+            },
+            {
+              "start": 766,
+              "end": 773,
+              "solverGain": 0.9427633336329286,
+              "gravityGain": 0.023377011349511534,
+              "speedBefore": 10.122328458898318,
+              "strongest": {
+                "start": 772,
+                "end": 773,
+                "gain": 1.530962006832377,
+                "speedBefore": 9.639799378339239
+              },
+              "excess": 0.566982068998453
+            },
+            {
+              "start": 478,
+              "end": 482,
+              "solverGain": 1.506698888131174,
+              "gravityGain": 0.07465328928786086,
+              "speedBefore": 10.54600650543778,
+              "strongest": {
+                "start": 478,
+                "end": 482,
+                "gain": 1.506698888131174,
+                "speedBefore": 10.54600650543778
+              },
+              "excess": 0.45209823758739587
+            }
+          ]
+        },
+        "physicalFrames": 1761429,
+        "compileMs": 51451.29742
+      },
+      "candidate": {
+        "trackHash": "80096b2f3bf3c181462c2e9542cfc7133312688cf1b7f2144ff0424ad4f5f5ad",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.09214320264645086,
+          "components": {
+            "air": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.05600779927789638,
+              "weight": 0.3
+            },
+            "speed": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.06837737614977539,
+              "weight": 0.3
+            },
+            "amplitude": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.12256856929365166,
+              "weight": 0.09999999999999999
+            },
+            "impact": {
+              "observations": 77,
+              "weightSum": 77,
+              "rmsError": 0.12442350570198193,
+              "weight": 0.3
+            }
+          },
+          "score": 691.7208
+        },
+        "targets": 77,
+        "matched": 77,
+        "missing": [],
+        "strengthMse": 0.0054914698184445245,
+        "timingMse": 0.007711038961038961,
+        "extraMse": 0.002278699991687646,
+        "loss": 0.015481208771171132,
+        "extraAboveQuarterScale": 0,
+        "quiet": {
+          "targets": 14,
+          "matched": 14,
+          "strengthMse": 0.009392297689150416,
+          "timingMse": 0.004464285714285714,
+          "extraRawSquared": 0.014144178712367478
+        },
+        "strong": {
+          "targets": 37,
+          "matched": 37,
+          "strengthMse": 0.005602243691949421,
+          "timingMse": 0.008023648648648648,
+          "extraRawSquared": 0.09077100385975881
+        },
+        "gains": {
+          "count": 6,
+          "maxExcess": 0.5577250364275993,
+          "excessSum": 2.0445648049415235,
+          "worst": [
+            {
+              "start": 802,
+              "end": 807,
+              "solverGain": 0.2573564331349054,
+              "gravityGain": -0.028150412079416043,
+              "speedBefore": 10.447569674161427,
+              "strongest": {
+                "start": 805,
+                "end": 807,
+                "gain": 1.4850418582400788,
+                "speedBefore": 9.273168218124795
+              },
+              "excess": 0.5577250364275993
+            },
+            {
+              "start": 611,
+              "end": 615,
+              "solverGain": 0.5709365577995786,
+              "gravityGain": 0.008848467453137943,
+              "speedBefore": 10.67650975193112,
+              "strongest": {
+                "start": 613,
+                "end": 615,
+                "gain": 1.4433133162414276,
+                "speedBefore": 9.851045180971123
+              },
+              "excess": 0.45820879814431514
+            },
+            {
+              "start": 1184,
+              "end": 1189,
+              "solverGain": 0.4172847667962465,
+              "gravityGain": 0.04118203230855677,
+              "speedBefore": 11.721391411118995,
+              "strongest": {
+                "start": 1186,
+                "end": 1189,
+                "gain": 1.4574095581267308,
+                "speedBefore": 10.759303642397764
+              },
+              "excess": 0.3814791938869544
+            },
+            {
+              "start": 1167,
+              "end": 1171,
+              "solverGain": 0.2619148739958437,
+              "gravityGain": 0.10991933622609373,
+              "speedBefore": 11.821092634582817,
+              "strongest": {
+                "start": 1170,
+                "end": 1171,
+                "gain": 1.3441351821414678,
+                "speedBefore": 10.838794013844277
+              },
+              "excess": 0.26025578075704003
+            },
+            {
+              "start": 1219,
+              "end": 1224,
+              "solverGain": 0.9087719439136741,
+              "gravityGain": 0.17124387793206175,
+              "speedBefore": 12.289369153391899,
+              "strongest": {
+                "start": 1220,
+                "end": 1224,
+                "gain": 1.4165021022440278,
+                "speedBefore": 11.831854490602215
+              },
+              "excess": 0.23331665318380623
+            }
+          ]
+        },
+        "physicalFrames": 1829067,
+        "compileMs": 45783.195962000005
+      }
+    },
+    {
+      "song": "tiki_tiki_48s",
+      "seed": 101,
+      "baseline": {
+        "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.23552288450914569,
+          "components": {
+            "air": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.0391095241426934,
+              "weight": 0.3
+            },
+            "speed": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.029878280572943873,
+              "weight": 0.3
+            },
+            "amplitude": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.08389896417624866,
+              "weight": 0.09999999999999999
+            },
+            "impact": {
+              "observations": 77,
+              "weightSum": 77,
+              "rmsError": 0.4244229240978256,
+              "weight": 0.3
+            }
+          },
+          "score": 389.8117
+        },
+        "targets": 77,
+        "matched": 77,
+        "missing": [],
+        "strengthMse": 0.014646660828269986,
+        "timingMse": 0.05073051948051948,
+        "extraMse": 0.11475763819095916,
+        "loss": 0.18013481849974863,
+        "extraAboveQuarterScale": 29,
+        "quiet": {
+          "targets": 14,
+          "matched": 14,
+          "strengthMse": 0.003636797340470995,
+          "timingMse": 0.016741071428571428,
+          "extraRawSquared": 2.7522787897657346
+        },
+        "strong": {
+          "targets": 37,
+          "matched": 37,
+          "strengthMse": 0.016536087903455364,
+          "timingMse": 0.0620777027027027,
+          "extraRawSquared": 3.045506397494514
+        },
+        "gains": {
+          "count": 18,
+          "maxExcess": 1.2302861441209065,
+          "excessSum": 10.12066222534158,
+          "worst": [
+            {
+              "start": 663,
+              "end": 667,
+              "solverGain": 1.0188181308927113,
+              "gravityGain": -0.09445833958366912,
+              "speedBefore": 10.242658640291872,
+              "strongest": {
+                "start": 665,
+                "end": 667,
+                "gain": 2.1421502205475758,
+                "speedBefore": 9.118640764266692
+              },
+              "excess": 1.2302861441209065
+            },
+            {
+              "start": 296,
+              "end": 300,
+              "solverGain": 1.8554582470932477,
+              "gravityGain": -0.053379752993246044,
+              "speedBefore": 7.488286944718839,
+              "strongest": {
+                "start": 296,
+                "end": 300,
+                "gain": 1.8554582470932477,
+                "speedBefore": 7.488286944718839
+              },
+              "excess": 1.1054582470932477
+            },
+            {
+              "start": 1052,
+              "end": 1057,
+              "solverGain": 1.3798156956256022,
+              "gravityGain": 0.061944549363172285,
+              "speedBefore": 8.924416480770871,
+              "strongest": {
+                "start": 1052,
+                "end": 1055,
+                "gain": 1.813158825613133,
+                "speedBefore": 8.924416480770871
+              },
+              "excess": 0.9207171775360459
+            },
+            {
+              "start": 870,
+              "end": 877,
+              "solverGain": -0.23072864024005213,
+              "gravityGain": 0.09187199264059132,
+              "speedBefore": 10.074140146536537,
+              "strongest": {
+                "start": 874,
+                "end": 877,
+                "gain": 1.7037642489643297,
+                "speedBefore": 8.352085740084686
+              },
+              "excess": 0.8685556749558611
+            },
+            {
+              "start": 732,
+              "end": 738,
+              "solverGain": 0.24184354913915307,
+              "gravityGain": -0.01618966492962315,
+              "speedBefore": 10.83005132335539,
+              "strongest": {
+                "start": 736,
+                "end": 738,
+                "gain": 1.7414625587029935,
+                "speedBefore": 9.453774318382068
+              },
+              "excess": 0.7960851268647866
+            }
+          ]
+        },
+        "physicalFrames": 1539765,
+        "compileMs": 49376.023941
+      },
+      "candidate": {
+        "trackHash": "8595dae761d6c3ae4ad0bb05c5b6533d110eca4b5a03eb6d93b220b9d54d6ac3",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.08589935442639773,
+          "components": {
+            "air": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.057356620744020516,
+              "weight": 0.3
+            },
+            "speed": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.050319933758112036,
+              "weight": 0.3
+            },
+            "amplitude": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.11968446588263004,
+              "weight": 0.09999999999999999
+            },
+            "impact": {
+              "observations": 77,
+              "weightSum": 77,
+              "rmsError": 0.11831735080610671,
+              "weight": 0.3
+            }
+          },
+          "score": 709.2144
+        },
+        "targets": 77,
+        "matched": 77,
+        "missing": [],
+        "strengthMse": 0.0032662569061394095,
+        "timingMse": 0.008522727272727272,
+        "extraMse": 0.0022100113229086404,
+        "loss": 0.013998995501775321,
+        "extraAboveQuarterScale": 0,
+        "quiet": {
+          "targets": 14,
+          "matched": 14,
+          "strengthMse": 0.0014210837120018098,
+          "timingMse": 0.0011160714285714285,
+          "extraRawSquared": 0.05483864457641085
+        },
+        "strong": {
+          "targets": 37,
+          "matched": 37,
+          "strengthMse": 0.005177270711092931,
+          "timingMse": 0.011402027027027027,
+          "extraRawSquared": 0.06312219403406626
+        },
+        "gains": {
+          "count": 4,
+          "maxExcess": 0.6929368312662564,
+          "excessSum": 1.7392125517100074,
+          "worst": [
+            {
+              "start": 836,
+              "end": 851,
+              "solverGain": 0.052898347493391285,
+              "gravityGain": -0.26323697838114235,
+              "speedBefore": 9.819426994494206,
+              "strongest": {
+                "start": 842,
+                "end": 851,
+                "gain": 1.5291297085666677,
+                "speedBefore": 8.361928773004113
+              },
+              "excess": 0.6929368312662564
+            },
+            {
+              "start": 1515,
+              "end": 1520,
+              "solverGain": 1.0153641600528207,
+              "gravityGain": -0.04293544809672589,
+              "speedBefore": 9.9188006358574,
+              "strongest": {
+                "start": 1517,
+                "end": 1519,
+                "gain": 1.5929917601213823,
+                "speedBefore": 9.557506274229608
+              },
+              "excess": 0.6372411326984215
+            },
+            {
+              "start": 697,
+              "end": 706,
+              "solverGain": -0.5168131595948751,
+              "gravityGain": 0.2333303679990344,
+              "speedBefore": 10.977877269199528,
+              "strongest": {
+                "start": 701,
+                "end": 706,
+                "gain": 1.2191775850890192,
+                "speedBefore": 9.46169798567685
+              },
+              "excess": 0.2730077865213342
+            },
+            {
+              "start": 662,
+              "end": 666,
+              "solverGain": -0.10448550238970888,
+              "gravityGain": 0.2740979157891825,
+              "speedBefore": 9.897111515166563,
+              "strongest": {
+                "start": 662,
+                "end": 664,
+                "gain": 1.1257379527406517,
+                "speedBefore": 9.897111515166563
+              },
+              "excess": 0.13602680122399535
+            },
+            {
+              "start": 2,
+              "end": 24,
+              "solverGain": -0.2524904483075563,
+              "gravityGain": -0.1048804416427318,
+              "speedBefore": 7.890103039096671,
+              "strongest": {
+                "start": 6,
+                "end": 7,
+                "gain": 0.10333040882718958,
+                "speedBefore": 7.786806998071373
+              },
+              "excess": 0
+            }
+          ]
+        },
+        "physicalFrames": 1648409,
+        "compileMs": 46578.522867
+      }
+    },
+    {
+      "song": "tiki_tiki_48s",
+      "seed": 202,
+      "baseline": {
+        "trackHash": "9a0630ad8bcf17274dc26e11143f430838b24ce66f3808c03660c42a61dbc2a8",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.2079480499777168,
+          "components": {
+            "air": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.03872852217173421,
+              "weight": 0.3
+            },
+            "speed": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.044276391387769634,
+              "weight": 0.3
+            },
+            "amplitude": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.11541956332156961,
+              "weight": 0.09999999999999999
+            },
+            "impact": {
+              "observations": 77,
+              "weightSum": 77,
+              "rmsError": 0.3691076390007933,
+              "weight": 0.3
+            }
+          },
+          "score": 435.2685
+        },
+        "targets": 77,
+        "matched": 77,
+        "missing": [],
+        "strengthMse": 0.017540791204858866,
+        "timingMse": 0.04342532467532467,
+        "extraMse": 0.0752743332885564,
+        "loss": 0.13624044916873995,
+        "extraAboveQuarterScale": 21,
+        "quiet": {
+          "targets": 14,
+          "matched": 14,
+          "strengthMse": 0.007979720578936103,
+          "timingMse": 0.006696428571428571,
+          "extraRawSquared": 2.108162525984232
+        },
+        "strong": {
+          "targets": 37,
+          "matched": 37,
+          "strengthMse": 0.02073158329095761,
+          "timingMse": 0.03842905405405406,
+          "extraRawSquared": 2.4650718643624003
+        },
+        "gains": {
+          "count": 14,
+          "maxExcess": 0.9871784581265408,
+          "excessSum": 7.569996110247026,
+          "worst": [
+            {
+              "start": 1226,
+              "end": 1228,
+              "solverGain": 2.101697755517433,
+              "gravityGain": 0.06434018347379933,
+              "speedBefore": 11.145192973908923,
+              "strongest": {
+                "start": 1226,
+                "end": 1228,
+                "gain": 2.101697755517433,
+                "speedBefore": 11.145192973908923
+              },
+              "excess": 0.9871784581265408
+            },
+            {
+              "start": 611,
+              "end": 616,
+              "solverGain": 0.7534054551173242,
+              "gravityGain": 0.06081691842197934,
+              "speedBefore": 10.864726960907033,
+              "strongest": {
+                "start": 615,
+                "end": 616,
+                "gain": 1.9289294445150365,
+                "speedBefore": 9.75093359039875
+              },
+              "excess": 0.9538360854751614
+            },
+            {
+              "start": 1376,
+              "end": 1381,
+              "solverGain": 1.1793922079555053,
+              "gravityGain": 0.061188135585057424,
+              "speedBefore": 10.061820331298504,
+              "strongest": {
+                "start": 1378,
+                "end": 1381,
+                "gain": 1.836262752773541,
+                "speedBefore": 9.413324870167514
+              },
+              "excess": 0.8949302657567895
+            },
+            {
+              "start": 1463,
+              "end": 1471,
+              "solverGain": 0.313422513109888,
+              "gravityGain": -0.11485459391982822,
+              "speedBefore": 11.375515514497536,
+              "strongest": {
+                "start": 1468,
+                "end": 1471,
+                "gain": 1.8114081502087238,
+                "speedBefore": 9.870555837834836
+              },
+              "excess": 0.8243525664252402
+            },
+            {
+              "start": 1602,
+              "end": 1607,
+              "solverGain": 0.41891548956954416,
+              "gravityGain": 0.08452136357445816,
+              "speedBefore": 10.595795115539252,
+              "strongest": {
+                "start": 1604,
+                "end": 1607,
+                "gain": 1.7299820604759208,
+                "speedBefore": 9.363482361189625
+              },
+              "excess": 0.7936338243569583
+            }
+          ]
+        },
+        "physicalFrames": 1568964,
+        "compileMs": 47382.343987
+      },
+      "candidate": {
+        "trackHash": "de65f0170997e32134b8d935ce78346330196ebfe866c90e349b7e0b384527cc",
+        "valid": true,
+        "fulfilled": true,
+        "score": {
+          "valid": true,
+          "hardFailures": [],
+          "weightedAxisRms": 0.10496857240534384,
+          "components": {
+            "air": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.05385033018783339,
+              "weight": 0.3
+            },
+            "speed": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.06792738715358426,
+              "weight": 0.3
+            },
+            "amplitude": {
+              "observations": 78,
+              "weightSum": 1920,
+              "rmsError": 0.12716948454405588,
+              "weight": 0.09999999999999999
+            },
+            "impact": {
+              "observations": 77,
+              "weightSum": 77,
+              "rmsError": 0.15434805923453596,
+              "weight": 0.3
+            }
+          },
+          "score": 657.1294
+        },
+        "targets": 77,
+        "matched": 77,
+        "missing": [],
+        "strengthMse": 0.00981339899789056,
+        "timingMse": 0.009537337662337662,
+        "extraMse": 0.004472586729239599,
+        "loss": 0.02382332338946782,
+        "extraAboveQuarterScale": 1,
+        "quiet": {
+          "targets": 14,
+          "matched": 14,
+          "strengthMse": 0.0016206513132482577,
+          "timingMse": 0.004464285714285714,
+          "extraRawSquared": 0.07314429101383423
+        },
+        "strong": {
+          "targets": 37,
+          "matched": 37,
+          "strengthMse": 0.015208141767178449,
+          "timingMse": 0.011824324324324325,
+          "extraRawSquared": 0.20581731305364845
+        },
+        "gains": {
+          "count": 6,
+          "maxExcess": 0.7113518644463368,
+          "excessSum": 1.9229508217052504,
+          "worst": [
+            {
+              "start": 906,
+              "end": 911,
+              "solverGain": 0.487968942973545,
+              "gravityGain": 0.4100040528631954,
+              "speedBefore": 8.800471764313864,
+              "strongest": {
+                "start": 909,
+                "end": 911,
+                "gain": 1.5145810588863817,
+                "speedBefore": 8.032291944400448
+              },
+              "excess": 0.7113518644463368
+            },
+            {
+              "start": 1246,
+              "end": 1248,
+              "solverGain": 1.4433102508052453,
+              "gravityGain": 0.026187757150045954,
+              "speedBefore": 10.096098531046472,
+              "strongest": {
+                "start": 1246,
+                "end": 1248,
+                "gain": 1.4433102508052453,
+                "speedBefore": 10.096098531046472
+              },
+              "excess": 0.433700397700598
+            },
+            {
+              "start": 1515,
+              "end": 1521,
+              "solverGain": 0.6815933691923952,
+              "gravityGain": 0.26576029956461156,
+              "speedBefore": 11.128808665978628,
+              "strongest": {
+                "start": 1517,
+                "end": 1521,
+                "gain": 1.3981641914931782,
+                "speedBefore": 10.517104530998656
+              },
+              "excess": 0.3464537383933124
+            },
+            {
+              "start": 549,
+              "end": 550,
+              "solverGain": 1.3381155025708527,
+              "gravityGain": 0.037852707363720484,
+              "speedBefore": 10.219691329469581,
+              "strongest": {
+                "start": 549,
+                "end": 550,
+                "gain": 1.3381155025708527,
+                "speedBefore": 10.219691329469581
+              },
+              "excess": 0.3161463696238944
+            },
+            {
+              "start": 924,
+              "end": 927,
+              "solverGain": -1.3995149477598874,
+              "gravityGain": 0.3371315087280662,
+              "speedBefore": 9.840806182950887,
+              "strongest": {
+                "start": 926,
+                "end": 927,
+                "gain": 0.8398697674705087,
+                "speedBefore": 7.806210861007986
+              },
+              "excess": 0.059248681369710066
+            }
+          ]
+        },
+        "physicalFrames": 1603836,
+        "compileMs": 44917.351396
+      }
+    }
+  ],
+  "continuationPlanSha256": "230d4178372b3baec2f88b3bec350bd80834bb4395f1f396ca7e90894cfc54f7",
+  "continuations": [
+    {
+      "source": "luna-opening",
+      "variant": "legacy",
+      "physicalFrames": 1387213,
+      "preparationFrames": 30,
+      "compilerFrames": 1387183,
+      "prefix": {
+        "frame": 15,
+        "stateSha256": "cc3965544f268f93dd189b86ea3b56f95048974e5a3251d5c1b9da284662a6d3",
+        "geometrySha256": "55f3c9c33d9e8dde59fe00d5f55a95b9e50b04702b33b30651cb873b540f3b49",
+        "unchanged": true
+      },
+      "trackHash": "db44564e85c93f0c46967070cab383e2fda99a4439b1f93081a9c87597f98cc6",
+      "valid": false,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.13242311632733714,
+      "gainExcess": 4.401434057232221
+    },
+    {
+      "source": "clean-landing",
+      "variant": "shared",
+      "physicalFrames": 1353190,
+      "preparationFrames": 1112,
+      "compilerFrames": 1352078,
+      "prefix": {
+        "frame": 556,
+        "stateSha256": "63ec2698e9affc96b6df3a475677b537ec4897ab67d9276a5c1ea40bf723200d",
+        "geometrySha256": "3435e1c99dcc5b5de201047873e78cdc8b34739bea027a7a6538f708802bcc9d",
+        "unchanged": true
+      },
+      "trackHash": "3b1b306dfaa1453ba159ee6467d9dbecc859272d75343650dd944673369f4647",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.058710475534111045,
+      "gainExcess": 4.813248562964431
+    },
+    {
+      "source": "sustained-guidance",
+      "variant": "legacy",
+      "physicalFrames": 1201674,
+      "preparationFrames": 612,
+      "compilerFrames": 1201062,
+      "prefix": {
+        "frame": 306,
+        "stateSha256": "5c4a33fabd66eee44284dfd647ee4bbbedc6f50c3367a700c608c99723340879",
+        "geometrySha256": "2d7e47407f8c581a124007657a7af95e5da464599687e0aafcf70b0530d92b90",
+        "unchanged": true
+      },
+      "trackHash": "abec1a21ea95305e911e0a324718697cf648a2655f55ddc81f32ea6124e9d147",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.08112494236808065,
+      "gainExcess": 8.336925268278993
+    },
+    {
+      "source": "first-scallops",
+      "variant": "legacy",
+      "physicalFrames": 624207,
+      "preparationFrames": 2080,
+      "compilerFrames": 622127,
+      "prefix": {
+        "frame": 1040,
+        "stateSha256": "8bdebef4aca0f5ed1cca8242a5b32de44b78bf54dcbd5a7bad3bae1aa64fe37c",
+        "geometrySha256": "af8f8f5944934d9564d3c42b4fa77a0780c0234dcbfe57d9e5f2dc5ae00dbd6d",
+        "unchanged": true
+      },
+      "trackHash": "9810186b8d688ad1c78f2095fcfdfd8aa370d55a5d365e0ea094ea8bc20a6704",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.1103906315135011,
+      "gainExcess": 7.315879162231999
+    },
+    {
+      "source": "first-scattered",
+      "variant": "legacy",
+      "physicalFrames": 1042597,
+      "preparationFrames": 686,
+      "compilerFrames": 1041911,
+      "prefix": {
+        "frame": 343,
+        "stateSha256": "d1fda42f7805ddd716b1c59fd3cfe9c6f3f80d72d4a084b2770e286ed8502f69",
+        "geometrySha256": "c06a616f3dc3a12373be264531bcd64f3233e305d938b0b64d82b7fd0e037e8c",
+        "unchanged": true
+      },
+      "trackHash": "f596428dce771f50060fffda65b0c0f71ca4011e67e3183b4c1f3a0ae380b557",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.1134302923825419,
+      "gainExcess": 6.90292381924308
+    },
+    {
+      "source": "open-transfer",
+      "variant": "shared-gain",
+      "physicalFrames": 1221790,
+      "preparationFrames": 1112,
+      "compilerFrames": 1220678,
+      "prefix": {
+        "frame": 556,
+        "stateSha256": "869385a2b3f363f6c0ce392a0c028fd4e8c2ba4348b9eebe688930ebd2a3b12a",
+        "geometrySha256": "5444edcef68c5dcedc9df398333a44f3a52dbd9cf499a4ace21a0be882680c1d",
+        "unchanged": true
+      },
+      "trackHash": "37c2cd5db16cd509723e8f2c3958427b26f47c3fe81240da4778bf06d670b309",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.0541794850369613,
+      "gainExcess": 3.6773566134462268
+    },
+    {
+      "source": "luna-strong",
+      "variant": "legacy",
+      "physicalFrames": 610490,
+      "preparationFrames": 2256,
+      "compilerFrames": 608234,
+      "prefix": {
+        "frame": 1128,
+        "stateSha256": "2f66d748d148c8df56a5774a1616f4748a24e05d6c3e0db8e608ded866693430",
+        "geometrySha256": "9cc5829c1ac16d5f875a489c042612f54f9f9a9d77b033cf60f4d148cb5857ff",
+        "unchanged": true
+      },
+      "trackHash": "d7b69d9140b3b955b1a688b8ead22196da9596cba6970935f01024936287c3ec",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.12915736841618136,
+      "gainExcess": 2.247477642377302
+    },
+    {
+      "source": "tiki-opening",
+      "variant": "shared-gain",
+      "physicalFrames": 1571084,
+      "preparationFrames": 74,
+      "compilerFrames": 1571010,
+      "prefix": {
+        "frame": 37,
+        "stateSha256": "8ec8fa0dd29271a84f3bf85dfa0d1247665a99d48407ed46f5426bcec35d28b7",
+        "geometrySha256": "df2367380329b6e6b6de9426ff3792104c9af136c818744c0c104a3332e639e3",
+        "unchanged": true
+      },
+      "trackHash": "8d6cc5ad64e9596707805b443d997b68401bb1251300f275ea86c744e0889105",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.012384271474710405,
+      "gainExcess": 0.9502430567139524
+    },
+    {
+      "source": "clean-landing",
+      "variant": "shared-gain",
+      "physicalFrames": 1380219,
+      "preparationFrames": 1112,
+      "compilerFrames": 1379107,
+      "prefix": {
+        "frame": 556,
+        "stateSha256": "63ec2698e9affc96b6df3a475677b537ec4897ab67d9276a5c1ea40bf723200d",
+        "geometrySha256": "3435e1c99dcc5b5de201047873e78cdc8b34739bea027a7a6538f708802bcc9d",
+        "unchanged": true
+      },
+      "trackHash": "1e043ed134b21179bbda181357d96da812ba1a71b54ebba7ca983d1715b5b13d",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.06121920481870991,
+      "gainExcess": 2.6406271473238045
+    },
+    {
+      "source": "sustained-guidance",
+      "variant": "shared",
+      "physicalFrames": 1198180,
+      "preparationFrames": 612,
+      "compilerFrames": 1197568,
+      "prefix": {
+        "frame": 306,
+        "stateSha256": "5c4a33fabd66eee44284dfd647ee4bbbedc6f50c3367a700c608c99723340879",
+        "geometrySha256": "2d7e47407f8c581a124007657a7af95e5da464599687e0aafcf70b0530d92b90",
+        "unchanged": true
+      },
+      "trackHash": "01cab7c16b7e7c2ca45fc11622f64b2a2dac08eea10ccaa0243b5ab1354bbf59",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.032528980843703204,
+      "gainExcess": 6.011875221517922
+    },
+    {
+      "source": "luna-opening",
+      "variant": "shared-gain",
+      "physicalFrames": 1379780,
+      "preparationFrames": 30,
+      "compilerFrames": 1379750,
+      "prefix": {
+        "frame": 15,
+        "stateSha256": "cc3965544f268f93dd189b86ea3b56f95048974e5a3251d5c1b9da284662a6d3",
+        "geometrySha256": "55f3c9c33d9e8dde59fe00d5f55a95b9e50b04702b33b30651cb873b540f3b49",
+        "unchanged": true
+      },
+      "trackHash": "00e4cd17f10944e6a8acc2969127a1552a2b23d5d1a875471450e5afb62a1eb2",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.012640520269826764,
+      "gainExcess": 1.5018758909325318
+    },
+    {
+      "source": "merged-hits",
+      "variant": "shared-gain",
+      "physicalFrames": 1183354,
+      "preparationFrames": 1182,
+      "compilerFrames": 1182172,
+      "prefix": {
+        "frame": 591,
+        "stateSha256": "a61266ba89920a085ea6863f1834799e10df9fd6eb2539a6ff3279e7b2850cea",
+        "geometrySha256": "1a0286fe08edae8e229b7fd747250ce34ba120847aa76d979bcc193154b9ca34",
+        "unchanged": true
+      },
+      "trackHash": "e63028399f82a66d1b72ebad94b702349fda2d1492e9dd09c7a7506d0a848c58",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.056855988929856306,
+      "gainExcess": 2.661482251680118
+    },
+    {
+      "source": "open-transfer",
+      "variant": "shared",
+      "physicalFrames": 1181132,
+      "preparationFrames": 1112,
+      "compilerFrames": 1180020,
+      "prefix": {
+        "frame": 556,
+        "stateSha256": "869385a2b3f363f6c0ce392a0c028fd4e8c2ba4348b9eebe688930ebd2a3b12a",
+        "geometrySha256": "5444edcef68c5dcedc9df398333a44f3a52dbd9cf499a4ace21a0be882680c1d",
+        "unchanged": true
+      },
+      "trackHash": "3dbf2152ef32494b31b09def1da47dd6479268c23ca280fb4049235adf9a11d7",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.05234972304069828,
+      "gainExcess": 4.375742478715761
+    },
+    {
+      "source": "first-scattered",
+      "variant": "shared-gain",
+      "physicalFrames": 1096990,
+      "preparationFrames": 686,
+      "compilerFrames": 1096304,
+      "prefix": {
+        "frame": 343,
+        "stateSha256": "d1fda42f7805ddd716b1c59fd3cfe9c6f3f80d72d4a084b2770e286ed8502f69",
+        "geometrySha256": "c06a616f3dc3a12373be264531bcd64f3233e305d938b0b64d82b7fd0e037e8c",
+        "unchanged": true
+      },
+      "trackHash": "1ca5cb0f685dd21569612519596188ef8823d9d3747b3418b17a96b292912224",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.029437994715251034,
+      "gainExcess": 0.5502834881218732
+    },
+    {
+      "source": "first-fold",
+      "variant": "legacy",
+      "physicalFrames": 1108732,
+      "preparationFrames": 600,
+      "compilerFrames": 1108132,
+      "prefix": {
+        "frame": 300,
+        "stateSha256": "c8b8bdf906fbfbf6fc3895bd31224ff2cf01f11a45ba8ffc7c1901825e8421f2",
+        "geometrySha256": "464b67bec05b8c65b77b0e3a6b8849eb6143176ca89239ca1426199c7d687819",
+        "unchanged": true
+      },
+      "trackHash": "72cda0ae064254d695fc9ed503b6df010e4ab8d05ce2242bbca6f93de31167ff",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.10690594502717077,
+      "gainExcess": 6.451250917178793
+    },
+    {
+      "source": "tiki-opening",
+      "variant": "shared",
+      "physicalFrames": 1645152,
+      "preparationFrames": 74,
+      "compilerFrames": 1645078,
+      "prefix": {
+        "frame": 37,
+        "stateSha256": "8ec8fa0dd29271a84f3bf85dfa0d1247665a99d48407ed46f5426bcec35d28b7",
+        "geometrySha256": "df2367380329b6e6b6de9426ff3792104c9af136c818744c0c104a3332e639e3",
+        "unchanged": true
+      },
+      "trackHash": "edbe727850dba34afcdf922fd01e910a79c9b069a5f86db732f6a5bcc43416c1",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.01500665172624588,
+      "gainExcess": 3.678331213401294
+    },
+    {
+      "source": "first-fold",
+      "variant": "shared",
+      "physicalFrames": 1133677,
+      "preparationFrames": 600,
+      "compilerFrames": 1133077,
+      "prefix": {
+        "frame": 300,
+        "stateSha256": "c8b8bdf906fbfbf6fc3895bd31224ff2cf01f11a45ba8ffc7c1901825e8421f2",
+        "geometrySha256": "464b67bec05b8c65b77b0e3a6b8849eb6143176ca89239ca1426199c7d687819",
+        "unchanged": true
+      },
+      "trackHash": "7bf07044f1e306858aec2f853e406310bd7f1dc75edeaccbb1c6d49061561913",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.02544279493745901,
+      "gainExcess": 4.450605543739272
+    },
+    {
+      "source": "first-serpentine",
+      "variant": "shared",
+      "physicalFrames": 891628,
+      "preparationFrames": 1296,
+      "compilerFrames": 890332,
+      "prefix": {
+        "frame": 648,
+        "stateSha256": "041d127607d10911802cd0aee5676dfe39afa9d86b0d97c26b60500ec4b5267d",
+        "geometrySha256": "b6adc76edc714d08bd9f458a7b15c9bb2af7a78e4e1e91aa1d7c9b6838552661",
+        "unchanged": true
+      },
+      "trackHash": "5c83df810d9f5339855e60a785e33cbbdd77e71093e0bb6ed6ba85f6ee94daf0",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.04327067870314054,
+      "gainExcess": 6.2102958988545875
+    },
+    {
+      "source": "luna-opening",
+      "variant": "shared",
+      "physicalFrames": 1388558,
+      "preparationFrames": 30,
+      "compilerFrames": 1388528,
+      "prefix": {
+        "frame": 15,
+        "stateSha256": "cc3965544f268f93dd189b86ea3b56f95048974e5a3251d5c1b9da284662a6d3",
+        "geometrySha256": "55f3c9c33d9e8dde59fe00d5f55a95b9e50b04702b33b30651cb873b540f3b49",
+        "unchanged": true
+      },
+      "trackHash": "d11715214eb2f0899ac2fad22fc6d32408835dd9af51c4e488946ca2166da020",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.011736564502902164,
+      "gainExcess": 3.8039384845388384
+    },
+    {
+      "source": "first-terraces",
+      "variant": "legacy",
+      "physicalFrames": 1139415,
+      "preparationFrames": 514,
+      "compilerFrames": 1138901,
+      "prefix": {
+        "frame": 257,
+        "stateSha256": "84d866167a7e8e44edf8e7628e0eef6b00ca8ddd7bf9bbda3f81912ab2d267a9",
+        "geometrySha256": "73b5b64acc10a84a086b656f4814d5c71fb120aef6678b9261f0e571a650663a",
+        "unchanged": true
+      },
+      "trackHash": "b5c5ce5822bf3981d4b28ef461186ed8d98dabaf9e9c964237e4057aaf795339",
+      "valid": false,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.1280369020482484,
+      "gainExcess": 8.348108383060023
+    },
+    {
+      "source": "open-transfer",
+      "variant": "legacy",
+      "physicalFrames": 1085058,
+      "preparationFrames": 1112,
+      "compilerFrames": 1083946,
+      "prefix": {
+        "frame": 556,
+        "stateSha256": "869385a2b3f363f6c0ce392a0c028fd4e8c2ba4348b9eebe688930ebd2a3b12a",
+        "geometrySha256": "5444edcef68c5dcedc9df398333a44f3a52dbd9cf499a4ace21a0be882680c1d",
+        "unchanged": true
+      },
+      "trackHash": "d75f3f49dac4496f836406f64621da056c4a781c55f5f323c7baa41760b2d31f",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.14992732213574797,
+      "gainExcess": 9.647268010986963
+    },
+    {
+      "source": "luna-strong",
+      "variant": "shared-gain",
+      "physicalFrames": 635170,
+      "preparationFrames": 2256,
+      "compilerFrames": 632914,
+      "prefix": {
+        "frame": 1128,
+        "stateSha256": "2f66d748d148c8df56a5774a1616f4748a24e05d6c3e0db8e608ded866693430",
+        "geometrySha256": "9cc5829c1ac16d5f875a489c042612f54f9f9a9d77b033cf60f4d148cb5857ff",
+        "unchanged": true
+      },
+      "trackHash": "fcc716d31effe0a4d90119cea79d8a7123be53887a6716e2a2d543b7ea705ccd",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.09389130088182635,
+      "gainExcess": 1.9782561642146055
+    },
+    {
+      "source": "amour-contrast",
+      "variant": "shared",
+      "physicalFrames": 1652705,
+      "preparationFrames": 842,
+      "compilerFrames": 1651863,
+      "prefix": {
+        "frame": 421,
+        "stateSha256": "f592c6282f2ff4c5dd6fe9db88a031c886f5a125e9af745bdf183a35d70a80ca",
+        "geometrySha256": "dd5eccbb4c204703481bdca876098be61dd3c23ab9f962716363113a32450955",
+        "unchanged": true
+      },
+      "trackHash": "dbb84ba50e86c779bc0a4cb85e043ebc259b64b565acf1b99ab0c702c835fae5",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.14203550345675955,
+      "gainExcess": 17.163873282698855
+    },
+    {
+      "source": "amour-contrast",
+      "variant": "shared-gain",
+      "physicalFrames": 1533365,
+      "preparationFrames": 842,
+      "compilerFrames": 1532523,
+      "prefix": {
+        "frame": 421,
+        "stateSha256": "f592c6282f2ff4c5dd6fe9db88a031c886f5a125e9af745bdf183a35d70a80ca",
+        "geometrySha256": "dd5eccbb4c204703481bdca876098be61dd3c23ab9f962716363113a32450955",
+        "unchanged": true
+      },
+      "trackHash": "7813333046515aff45f89bef4ab7f11432dcf5e476dd8c1fb86fbb0e4f537a23",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.12037966396569197,
+      "gainExcess": 15.145222509294687
+    },
+    {
+      "source": "merged-hits",
+      "variant": "shared",
+      "physicalFrames": 1111011,
+      "preparationFrames": 1182,
+      "compilerFrames": 1109829,
+      "prefix": {
+        "frame": 591,
+        "stateSha256": "a61266ba89920a085ea6863f1834799e10df9fd6eb2539a6ff3279e7b2850cea",
+        "geometrySha256": "1a0286fe08edae8e229b7fd747250ce34ba120847aa76d979bcc193154b9ca34",
+        "unchanged": true
+      },
+      "trackHash": "ac5c52a32752bac32c168a89687938cc8f1c6a3d4ec65ea2e80855e24726b66a",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.05562927863474114,
+      "gainExcess": 4.586620480235238
+    },
+    {
+      "source": "upper-rival",
+      "variant": "shared-gain",
+      "physicalFrames": 1414919,
+      "preparationFrames": 974,
+      "compilerFrames": 1413945,
+      "prefix": {
+        "frame": 487,
+        "stateSha256": "4ab4d5a637951777a1a9b4f13353ca981f9a86174aac86281ca836110b2077dc",
+        "geometrySha256": "2d4adf0bf36215a772adfd8ae380b16747d6d0625a8be6f5415dd0ae922e32c2",
+        "unchanged": true
+      },
+      "trackHash": "a1ab1320caf459e239aeb9340031d2a8bd6388fa6c9ec608080d3ec2dd8e2745",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.04338824586486617,
+      "gainExcess": 3.048527337371713
+    },
+    {
+      "source": "first-scallops",
+      "variant": "shared",
+      "physicalFrames": 625154,
+      "preparationFrames": 2080,
+      "compilerFrames": 623074,
+      "prefix": {
+        "frame": 1040,
+        "stateSha256": "8bdebef4aca0f5ed1cca8242a5b32de44b78bf54dcbd5a7bad3bae1aa64fe37c",
+        "geometrySha256": "af8f8f5944934d9564d3c42b4fa77a0780c0234dcbfe57d9e5f2dc5ae00dbd6d",
+        "unchanged": true
+      },
+      "trackHash": "728b434dd5512ab9214a151d267c8cd11ee016632b00ad2e67ffd8523694ce2c",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.07046656636349061,
+      "gainExcess": 6.385586232520575
+    },
+    {
+      "source": "first-terraces",
+      "variant": "shared-gain",
+      "physicalFrames": 1183457,
+      "preparationFrames": 514,
+      "compilerFrames": 1182943,
+      "prefix": {
+        "frame": 257,
+        "stateSha256": "84d866167a7e8e44edf8e7628e0eef6b00ca8ddd7bf9bbda3f81912ab2d267a9",
+        "geometrySha256": "73b5b64acc10a84a086b656f4814d5c71fb120aef6678b9261f0e571a650663a",
+        "unchanged": true
+      },
+      "trackHash": "fefb573aa064f3a4afff22cae11ee9b057b5ec925c2dc4ac3a3fa92b3404dc1c",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.019591971326014153,
+      "gainExcess": 0.9654758379095976
+    },
+    {
+      "source": "amor-strong",
+      "variant": "shared",
+      "physicalFrames": 1283396,
+      "preparationFrames": 728,
+      "compilerFrames": 1282668,
+      "prefix": {
+        "frame": 364,
+        "stateSha256": "52b4578ae1b9d8f15be0b277627442f6793cfdd41c8ffba5e580cbd15e0502b9",
+        "geometrySha256": "31c9a1645692455539d9a504903a468ed14f4f96b71b6084c262ff5efc8a0602",
+        "unchanged": true
+      },
+      "trackHash": "0f74e2b782c67218529b549212ddcba439c8f32c3b918b33ccdf1a6d4e8b0452",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.028846596696857026,
+      "gainExcess": 6.769790636233289
+    },
+    {
+      "source": "luna-strong",
+      "variant": "shared",
+      "physicalFrames": 618854,
+      "preparationFrames": 2256,
+      "compilerFrames": 616598,
+      "prefix": {
+        "frame": 1128,
+        "stateSha256": "2f66d748d148c8df56a5774a1616f4748a24e05d6c3e0db8e608ded866693430",
+        "geometrySha256": "9cc5829c1ac16d5f875a489c042612f54f9f9a9d77b033cf60f4d148cb5857ff",
+        "unchanged": true
+      },
+      "trackHash": "65c78230a448fc9b4a44ddacb90846bebdd5a23a2d499922338971aaf1546a0a",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.09410429923481306,
+      "gainExcess": 1.764958566858453
+    },
+    {
+      "source": "first-serpentine",
+      "variant": "legacy",
+      "physicalFrames": 867425,
+      "preparationFrames": 1296,
+      "compilerFrames": 866129,
+      "prefix": {
+        "frame": 648,
+        "stateSha256": "041d127607d10911802cd0aee5676dfe39afa9d86b0d97c26b60500ec4b5267d",
+        "geometrySha256": "b6adc76edc714d08bd9f458a7b15c9bb2af7a78e4e1e91aa1d7c9b6838552661",
+        "unchanged": true
+      },
+      "trackHash": "0430c622b3077171385e749ec4ee60d3863c1f2c85da85d356ff4301b0be3cbd",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.10121954391097111,
+      "gainExcess": 6.38288196863449
+    },
+    {
+      "source": "sustained-guidance",
+      "variant": "shared-gain",
+      "physicalFrames": 1209484,
+      "preparationFrames": 612,
+      "compilerFrames": 1208872,
+      "prefix": {
+        "frame": 306,
+        "stateSha256": "5c4a33fabd66eee44284dfd647ee4bbbedc6f50c3367a700c608c99723340879",
+        "geometrySha256": "2d7e47407f8c581a124007657a7af95e5da464599687e0aafcf70b0530d92b90",
+        "unchanged": true
+      },
+      "trackHash": "892393cf78a19e3d101a6c066ed5ba5a7d829c60cb85dc2cdee63417deac7032",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.02925593948570017,
+      "gainExcess": 2.645372651852561
+    },
+    {
+      "source": "first-scallops",
+      "variant": "shared-gain",
+      "physicalFrames": 607003,
+      "preparationFrames": 2080,
+      "compilerFrames": 604923,
+      "prefix": {
+        "frame": 1040,
+        "stateSha256": "8bdebef4aca0f5ed1cca8242a5b32de44b78bf54dcbd5a7bad3bae1aa64fe37c",
+        "geometrySha256": "af8f8f5944934d9564d3c42b4fa77a0780c0234dcbfe57d9e5f2dc5ae00dbd6d",
+        "unchanged": true
+      },
+      "trackHash": "fbac1e6cedcc7bad7814a979ed3350bcca1fd21d3dac0c812f6e5925914e5d97",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.07193787942156789,
+      "gainExcess": 4.97987870723533
+    },
+    {
+      "source": "amor-strong",
+      "variant": "shared-gain",
+      "physicalFrames": 1267057,
+      "preparationFrames": 728,
+      "compilerFrames": 1266329,
+      "prefix": {
+        "frame": 364,
+        "stateSha256": "52b4578ae1b9d8f15be0b277627442f6793cfdd41c8ffba5e580cbd15e0502b9",
+        "geometrySha256": "31c9a1645692455539d9a504903a468ed14f4f96b71b6084c262ff5efc8a0602",
+        "unchanged": true
+      },
+      "trackHash": "d5c37982cf17eb0b11993cd6ba1bed6a93fd6312a2119bc563461bd4b0c85459",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.02945637254686994,
+      "gainExcess": 3.309806143504374
+    },
+    {
+      "source": "first-fold",
+      "variant": "shared-gain",
+      "physicalFrames": 1175565,
+      "preparationFrames": 600,
+      "compilerFrames": 1174965,
+      "prefix": {
+        "frame": 300,
+        "stateSha256": "c8b8bdf906fbfbf6fc3895bd31224ff2cf01f11a45ba8ffc7c1901825e8421f2",
+        "geometrySha256": "464b67bec05b8c65b77b0e3a6b8849eb6143176ca89239ca1426199c7d687819",
+        "unchanged": true
+      },
+      "trackHash": "3b066e6ffd80c6e0758f6af17b4a5f335bf7d9036496aee8fd4826d0cad856a9",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.02382430493365719,
+      "gainExcess": 1.77139394395595
+    },
+    {
+      "source": "merged-hits",
+      "variant": "legacy",
+      "physicalFrames": 1065589,
+      "preparationFrames": 1182,
+      "compilerFrames": 1064407,
+      "prefix": {
+        "frame": 591,
+        "stateSha256": "a61266ba89920a085ea6863f1834799e10df9fd6eb2539a6ff3279e7b2850cea",
+        "geometrySha256": "1a0286fe08edae8e229b7fd747250ce34ba120847aa76d979bcc193154b9ca34",
+        "unchanged": true
+      },
+      "trackHash": "53b79d3822db9d879df2f05fe0fad47511721075902e0b891c548e5210624839",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.1427792309025361,
+      "gainExcess": 7.745225950973523
+    },
+    {
+      "source": "first-terraces",
+      "variant": "shared",
+      "physicalFrames": 1163407,
+      "preparationFrames": 514,
+      "compilerFrames": 1162893,
+      "prefix": {
+        "frame": 257,
+        "stateSha256": "84d866167a7e8e44edf8e7628e0eef6b00ca8ddd7bf9bbda3f81912ab2d267a9",
+        "geometrySha256": "73b5b64acc10a84a086b656f4814d5c71fb120aef6678b9261f0e571a650663a",
+        "unchanged": true
+      },
+      "trackHash": "aad6db476f97b06ab7b739054466085dd24356ffc5c2c96943d72302b6bdbe3b",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.01987248351743582,
+      "gainExcess": 3.582359744947479
+    },
+    {
+      "source": "first-serpentine",
+      "variant": "shared-gain",
+      "physicalFrames": 869748,
+      "preparationFrames": 1296,
+      "compilerFrames": 868452,
+      "prefix": {
+        "frame": 648,
+        "stateSha256": "041d127607d10911802cd0aee5676dfe39afa9d86b0d97c26b60500ec4b5267d",
+        "geometrySha256": "b6adc76edc714d08bd9f458a7b15c9bb2af7a78e4e1e91aa1d7c9b6838552661",
+        "unchanged": true
+      },
+      "trackHash": "f8e388c05a53abdcf7f30a233779ca6b6566cf490542f7d1501e8897f407bd63",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.042762128264294666,
+      "gainExcess": 2.630794864774459
+    },
+    {
+      "source": "amor-strong",
+      "variant": "legacy",
+      "physicalFrames": 1259797,
+      "preparationFrames": 728,
+      "compilerFrames": 1259069,
+      "prefix": {
+        "frame": 364,
+        "stateSha256": "52b4578ae1b9d8f15be0b277627442f6793cfdd41c8ffba5e580cbd15e0502b9",
+        "geometrySha256": "31c9a1645692455539d9a504903a468ed14f4f96b71b6084c262ff5efc8a0602",
+        "unchanged": true
+      },
+      "trackHash": "185e262eaaa3892d61d74cad3da933dc72c6f7fb3dfdb6bc77b983e3cf6e323c",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.1590056636275222,
+      "gainExcess": 8.010725852065242
+    },
+    {
+      "source": "clean-landing",
+      "variant": "legacy",
+      "physicalFrames": 1320279,
+      "preparationFrames": 1112,
+      "compilerFrames": 1319167,
+      "prefix": {
+        "frame": 556,
+        "stateSha256": "63ec2698e9affc96b6df3a475677b537ec4897ab67d9276a5c1ea40bf723200d",
+        "geometrySha256": "3435e1c99dcc5b5de201047873e78cdc8b34739bea027a7a6538f708802bcc9d",
+        "unchanged": true
+      },
+      "trackHash": "579a4e268c41600cdfdb106668c45b3233d6c0741654987e89dc3c1d0ed43b6d",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.17336653830086818,
+      "gainExcess": 6.201416556900111
+    },
+    {
+      "source": "tiki-opening",
+      "variant": "legacy",
+      "physicalFrames": 1467909,
+      "preparationFrames": 74,
+      "compilerFrames": 1467835,
+      "prefix": {
+        "frame": 37,
+        "stateSha256": "8ec8fa0dd29271a84f3bf85dfa0d1247665a99d48407ed46f5426bcec35d28b7",
+        "geometrySha256": "df2367380329b6e6b6de9426ff3792104c9af136c818744c0c104a3332e639e3",
+        "unchanged": true
+      },
+      "trackHash": "32d86ed981aca930e772a493b9bb7b8f51542fa0ee2d17c483646635b8a68316",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.15542745622541526,
+      "gainExcess": 10.993867285817723
+    },
+    {
+      "source": "upper-rival",
+      "variant": "shared",
+      "physicalFrames": 1495556,
+      "preparationFrames": 974,
+      "compilerFrames": 1494582,
+      "prefix": {
+        "frame": 487,
+        "stateSha256": "4ab4d5a637951777a1a9b4f13353ca981f9a86174aac86281ca836110b2077dc",
+        "geometrySha256": "2d4adf0bf36215a772adfd8ae380b16747d6d0625a8be6f5415dd0ae922e32c2",
+        "unchanged": true
+      },
+      "trackHash": "583e6126deafb672a6dbdb2265526fd2406230fb40352fba36fe4b31ad332acb",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": false,
+      "loss": 0.04752548613599432,
+      "gainExcess": 3.7066383576843447
+    },
+    {
+      "source": "amour-contrast",
+      "variant": "legacy",
+      "physicalFrames": 1573606,
+      "preparationFrames": 842,
+      "compilerFrames": 1572764,
+      "prefix": {
+        "frame": 421,
+        "stateSha256": "f592c6282f2ff4c5dd6fe9db88a031c886f5a125e9af745bdf183a35d70a80ca",
+        "geometrySha256": "dd5eccbb4c204703481bdca876098be61dd3c23ab9f962716363113a32450955",
+        "unchanged": true
+      },
+      "trackHash": "27cb61bae7d70ea040c344a47af8948d23b39a23720fe45635f35113b5b882f0",
+      "valid": false,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.3060546456366027,
+      "gainExcess": 27.300110462604653
+    },
+    {
+      "source": "first-scattered",
+      "variant": "shared",
+      "physicalFrames": 1096901,
+      "preparationFrames": 686,
+      "compilerFrames": 1096215,
+      "prefix": {
+        "frame": 343,
+        "stateSha256": "d1fda42f7805ddd716b1c59fd3cfe9c6f3f80d72d4a084b2770e286ed8502f69",
+        "geometrySha256": "c06a616f3dc3a12373be264531bcd64f3233e305d938b0b64d82b7fd0e037e8c",
+        "unchanged": true
+      },
+      "trackHash": "2f56db9fd0b6b16aba22fea13e0b213fae636d4ceb730b6deef75b4e2e695208",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.023702706670488342,
+      "gainExcess": 3.900941509268262
+    },
+    {
+      "source": "upper-rival",
+      "variant": "legacy",
+      "physicalFrames": 1371934,
+      "preparationFrames": 974,
+      "compilerFrames": 1370960,
+      "prefix": {
+        "frame": 487,
+        "stateSha256": "4ab4d5a637951777a1a9b4f13353ca981f9a86174aac86281ca836110b2077dc",
+        "geometrySha256": "2d4adf0bf36215a772adfd8ae380b16747d6d0625a8be6f5415dd0ae922e32c2",
+        "unchanged": true
+      },
+      "trackHash": "863e315621ac1aa2c6080a8746ae8e9281e81ac8a80990b30945e8aa9974f4cc",
+      "valid": true,
+      "fulfilled": true,
+      "legacyValid": true,
+      "loss": 0.1580306349685359,
+      "gainExcess": 6.525444233576758
+    }
+  ],
+  "limits": [
+    "The working ruler is experimental and is not a V6 headline.",
+    "The backward head-first strength/clarity discrepancy remains unresolved.",
+    "Some span errors and quiet contacts worsened, despite much better event accounting.",
+    "Two declaration/adapter attempts preceded the 45 executed continuation trials; their error logs remain local.",
+    "The original perturbation study has 300 non-baseline trials: 293 preserve the prefix, 72 survive, 228 eject; none satisfy all subsequent musical requests. Reported 580765 trial frames exclude baseline prefix-preparation observations."
+  ]
+}

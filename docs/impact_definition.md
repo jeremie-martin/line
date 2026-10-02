@@ -153,7 +153,11 @@ The shared experimental account has three inspectable parts:
    by that engagement. A separate receiver cannot donate its response. The
    retained 7.55 scale is provisional outside the successful lower-landing cases;
    historical felt-rank consistency is slightly worse, and the rejected head-first
-   example remains a counterexample to treating magnitude as clarity.
+   example remains a counterexample to treating magnitude as clarity. A renewed
+   response within the same engagement cannot start before the preceding six-step
+   accumulation ends; closely spaced responses without a contact-free frame can
+   therefore remain one measured event. This is a documented resolution limit,
+   not proof that every such sequence feels like one strike.
 3. Monotone one-to-one association matches requested musical times within four
    native frames (100 ms), then accounts for strength, timing and unmatched
    response. The half-frame quantization allowance does not shift authored times.

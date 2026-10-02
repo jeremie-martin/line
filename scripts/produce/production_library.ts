@@ -15,7 +15,7 @@ mkdirSync(out,{recursive:true});
 const read=(p:string)=>JSON.parse(readFileSync(p,'utf8'));
 const readChecked=(p:string)=>{const bytes=readFileSync(p);assert.equal(createHash('sha256').update(bytes).digest('hex'),readFileSync(p+'.sha256','utf8').trim(),'artifact checksum mismatch');return JSON.parse(bytes.toString());};
 const requests=repertoireSongs.flatMap(song=>[101,202,303].map(seed=>({id:song.id+'-'+seed,title:song.title,
- request:validateAutomaticProductionRequest({mode:'production',song:song.id,seed,budget:3000000,referenceBudget:750000,creative:{}})})));
+ request:validateAutomaticProductionRequest({mode:'production',song:song.id,seed,budget:3000000,creative:{}})})));
 const referenceRoot=resolve(arg('reference-root','generated/production-repertoire/library-qualified'));
 const planPath=join(out,'collection-plan.json');
 const compilerRoot=resolve(arg('compiler-root','.'));

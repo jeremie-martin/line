@@ -43,8 +43,9 @@ export function validateAutomaticProductionRequest(input:any):AutomaticProductio
  if(!Number.isSafeInteger(input.seed)||input.seed<0||input.seed>2147483647)throw new Error('seed must be a non-negative 31-bit integer');
  const song=repertoireSongs.find(s=>s.id===input.song)!;
  if(!Number.isSafeInteger(input.budget)||input.budget<12*(Math.round(song.duration*40)+21)||input.budget>5000000)throw new Error('production allowance must cover search and replay, up to 5,000,000 frames');
- const referenceBudget=input.referenceBudget??750000;
- if(!Number.isSafeInteger(referenceBudget)||referenceBudget<20000||referenceBudget>5000000)throw new Error('invalid ordinary reference allowance');
+ // Historical comparison studies can opt in; ordinary production makes one ride.
+ const referenceBudget=input.referenceBudget??0;
+ if(!Number.isSafeInteger(referenceBudget)||(referenceBudget!==0&&referenceBudget<20000)||referenceBudget>5000000)throw new Error('invalid ordinary reference allowance');
  return {mode:'production',song:input.song,seed:input.seed,budget:input.budget,referenceBudget,creative:creativePreferences(input.creative)};
 }
 export const isAutomatic=(r:GalleryRequest):r is AutomaticProductionRequest=>'mode' in r&&r.mode==='production';

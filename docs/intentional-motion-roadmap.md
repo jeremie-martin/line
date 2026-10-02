@@ -19,6 +19,159 @@ and the [motion investigation](motion-quality-investigation-20261001.md).
 The preceding [production roadmap](production-repertoire-roadmap.md) remains the
 record of the delivered campaign.
 
+## October 2 working agreement: establish meaning before the next campaign
+
+This section records the owner's latest direction and supersedes the earlier
+end-only artistic review cadence for the **next** campaign. The delivered roadmap
+below remains a historical record. The next long compiler campaign is not yet
+defined; first work together more closely on the meaning of contact and impact.
+Do not turn the newly observed failure modes into a collection of unrelated
+penalties, special cases or song-specific corrections.
+
+The product is **automatic arrangement**. The main dashboard now presents one
+automatic ride, with an optional previous-automatic comparison loaded on demand.
+Ordinary reference tracks remain historical evidence, outside this product view.
+New production requests and new library batches do not compile an ordinary
+reference by default. An explicit reference allowance remains available to
+historical studies. Native playback with music is the normal review path;
+vertical rendering remains optional.
+
+### What we are trying to make intentional
+
+The owner welcomes lower strikes, separate upper receivers, scattered transfers,
+strong expressive motion, and potentially inverted sled riding. Guidance can
+substantially change the trajectory while preparing a later strike. The result
+should make the intended musical interaction clear, without flattening the ride
+or requiring an artist to specify each rail manually.
+
+The [interaction investigation](beat-salience-investigation-20261001.md#october-2-follow-up-welcome-upper-receivers-and-merged-impacts)
+provides measured examples of both missing accents and distinct interactions
+being combined into one landing impact. Those observations do **not** establish
+the right replacement definition. The owner is open to modernizing that
+definition. Retain the current definition as a comparison and protect frozen
+benchmark meanings; do not treat it as an untouchable product requirement.
+
+### First milestone: compare explanations on a small musical review
+
+Start with a declared panel of roughly twelve to sixteen short passages, retaining
+their musical lead-in and continuation and links to the full tracks. Include:
+
+- The owner-confirmed distracting Tiki 303 hit at 12.45 s and cleaner landing
+  around 13.95 s.
+- The appealing Tiki 101 transfers around 14.20 and 14.95 s, including the
+  measured merging of the second transfer into the preceding landing's score.
+- Calm automatic openings, strong intended lower impacts, smooth substantial
+  steering, and varied constructions with connected and separated receivers.
+- Split lower-surface responses and brief inverted-contact candidates, which
+  challenge a simplistic rule that every problem is an upper-rail problem.
+- Additional automatic passages selected by musical context before examining
+  diagnostic outcomes. Label them as unlabeled controls, not owner approvals.
+
+Historical ordinary clips can remain calibration controls in the study; they
+need not occupy the production dashboard. Avoid filling a review with tiny
+variations of the same issue. If an example is ambiguous to the owner, retain
+that ambiguity instead of inventing a precise numeric label.
+
+Compare three working hypotheses offline, through the same replay observations:
+
+| Candidate approach | What it could resolve | What could disqualify it |
+| --- | --- | --- |
+| Keep the landing measure, add an independent account of other physical interactions | Least disruption to established lower-impact meaning; exposes extra hits and mixed attribution | Remains unable to target an upper strike coherently, or requires accumulating unrelated exceptions |
+| Identify contact episodes from actual rider/surface engagement, then measure and associate each with musical intent | Could separate a lower strike and later upper receiver regardless of their compiler section | Treats each scattered segment as an impact, divides smooth guidance arbitrarily, or merges visibly distinct hits |
+| Identify response pulses from continuous body motion, using contacts to explain them, then associate them with the music | Could recognize salient upper/body hits without depending on construction labels | Confuses smooth turning or gravity with a strike, divides the positively reviewed clean landing into several impacts, or responds mainly to limb motion |
+
+These are competing explanations, not a commitment to implement three compiler
+backends or a large new taxonomy. A useful final design may combine parts, but
+it must explain why each part is necessary. Implement observations once, reuse
+saved/native replay, and keep tentative grouping and matching replaceable.
+
+The first deliverable is a small music review showing where these approaches
+agree and disagree, with the actual rider and concise contact/response timelines.
+The owner can identify which interaction carries the beat, whether two hits feel
+distinct, and whether a transfer is welcome. Present our provisional interpretation
+separately from their judgment. Do not ask the owner to tune coefficients, label
+thousands of frames, or decide implementation details.
+
+### Evidence required before adopting a definition
+
+Test event identity and timing before fitting a single strength scalar. Separate
+the questions "what happened?", "which musical request did it serve?", and
+"how strong did it feel?" in the experiment, without assuming these require
+three public authoring concepts.
+
+In particular, check that the proposed account:
+
+- Preserves the interpretation of known clean lower landings, including the
+  positive example that spans several contact frames and has multiple local peaks.
+- Distinguishes the named lower-to-upper transfer without depending on whether
+  those surfaces share a construction ID. Equivalent role labels and segment
+  tessellation must not alone create new perceptual events.
+- Recognizes that upper contact can be useful steering or a musical strike;
+  contact location alone does not choose its artistic role.
+- Keeps missed beats, extra interactions and ambiguous matches visible. Merely
+  assigning every pulse to the nearest beat must not hide the problem.
+- Handles body contact, persistent sled contact, brief touches, simultaneous
+  contacts, and continuous sliding honestly. The old calibrated landing scale
+  must not silently become a supposedly calibrated body-hit scale.
+- Uses the correct native frame convention and distinguishes response from
+  gravity. Report 25 ms sampling limits and sensitivity to grouping thresholds.
+- Detects displaced problems in the following passage, and does not reward
+  replacing expressive motion with empty flight or repetitive easy geometry.
+
+Use the existing local causal probes as attribution checks. Supplement them
+with bounded construction experiments if the saved corpus cannot distinguish
+the hypotheses—for example, arranging a receiver to carry an intended musical
+strike and checking its continuation. A failed first attempt is evidence about
+that attempt, not proof that the desired movement is impossible. Dedicated,
+repeatable inverted riding remains an open capability question.
+
+### Decision and subsequent compiler work
+
+Review a small set of consequential disagreements together before adopting the
+measurement contract. Revise the definition if the owner’s judgments expose a
+wrong assumption. Routine engineering and empirical follow-through proceed
+autonomously; this early review concerns musical meaning, not permission for
+each implementation step.
+
+Once that interpretation holds up, specify the broader campaign: one shared
+representation of intended musical interactions, geometry and search that can
+realize them, an efficient common observer, and independent whole-track
+evaluation. Prefer a simpler consistent design even if a small measured score
+tradeoff needs investigation. Retire replaced paths after their purpose and
+remaining consumers are understood.
+
+Only then decide whether the new task needs a separately versioned benchmark.
+If contact/impact semantics change, preserve V6 and its historical scores and
+measure a fresh baseline under the new contract before selecting a new headline
+target. A score increase caused by a new ruler is not a compiler improvement.
+Do not rush to choose V7, 850, or a new universal penalty before that decision.
+
+The broad ambition is unchanged: a fast, maintainable automatic compiler that
+produces varied, compelling tracks with clear musical synchronization. The next
+review is deliberately earlier because these definitions will shape that system.
+
+### Dashboard change validation
+
+Tiki 101 was generated through `produce/automatic.ts` with no reference request:
+one production record, valid and fully fulfilled, musical score **840.6198**,
+**1,539,765** compiler physics frames. Track hash, score and compiler frame count
+match the saved production track exactly. No ordinary reference was compiled.
+The local output is `generated/automatic-only-smoke-20261002/`.
+A second full generation with an explicit historical reference also reproduces
+the same automatic track, score and frame count, and accounts for the reference's
+5,915 frames separately. [Compact validation evidence](evidence/automatic-review-20261002.json)
+binds both new outputs and the saved source by manifest and track hashes.
+
+Browser checks cover the default full-width automatic view, old passage URLs,
+music playback, seeking, optional previous-automatic comparison, seed switching,
+failure of the optional comparison without losing the current ride, a manifest
+containing only automatic production, and mobile overflow. No ordinary records
+were fetched and no page errors occurred. Three request-contract tests pass;
+direct comparison links and switching seeds during a delayed previous load also
+pass, without stale results replacing the selected ride. In the TypeScript check,
+the existing 251 diagnostics remain, with none in the changed files.
+Compiler behavior, contact/impact definitions and frozen benchmarks are unchanged.
+
 ## The outcome
 
 Given music, a seed and broad preferences, the production compiler should make

@@ -1,0 +1,175 @@
+{
+  "schema": "line.automatic-review-check.v1",
+  "runs": [
+    {
+      "manifest": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json",
+      "manifestSha256": "317c7f7a3d80944196d5213162b564fd82250fc00901504c2823fd69a07d1297",
+      "methods": [
+        "baseline",
+        "production"
+      ],
+      "productionTrackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "productionScore": {
+        "score": 840.6198,
+        "valid": true,
+        "hardFailures": [],
+        "weightedAxisRms": 0.04340393866503848,
+        "components": {
+          "air": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.0391095241426934,
+            "weight": 0.3
+          },
+          "speed": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.029878280572943873,
+            "weight": 0.3
+          },
+          "amplitude": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.08389896417624866,
+            "weight": 0.1
+          },
+          "impact": {
+            "observations": 77,
+            "weightSum": 77,
+            "rmsError": 0.03887236868070664,
+            "weight": 0.3
+          }
+        }
+      },
+      "physicalFrames": 1539765,
+      "accounting": {
+        "referenceReused": false,
+        "referenceOriginalFrames": 5915,
+        "actualCompilationFrames": 1545680,
+        "productionFrames": 1539765,
+        "productionAllowance": 3000000,
+        "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+      }
+    },
+    {
+      "manifest": "generated/automatic-only-smoke-20261002/manifest.json",
+      "manifestSha256": "8d5cc3852524ee2655b9b42ff169239e7c8afbe871b7babcc38c4c8fd096f6c2",
+      "methods": [
+        "production"
+      ],
+      "productionTrackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "productionScore": {
+        "score": 840.6198,
+        "valid": true,
+        "hardFailures": [],
+        "weightedAxisRms": 0.04340393866503848,
+        "components": {
+          "air": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.0391095241426934,
+            "weight": 0.3
+          },
+          "speed": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.029878280572943873,
+            "weight": 0.3
+          },
+          "amplitude": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.08389896417624866,
+            "weight": 0.1
+          },
+          "impact": {
+            "observations": 77,
+            "weightSum": 77,
+            "rmsError": 0.03887236868070664,
+            "weight": 0.3
+          }
+        }
+      },
+      "physicalFrames": 1539765,
+      "accounting": {
+        "referenceRequested": false,
+        "referenceReused": false,
+        "referenceOriginalFrames": 0,
+        "actualCompilationFrames": 1539765,
+        "productionFrames": 1539765,
+        "productionAllowance": 3000000,
+        "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+      }
+    },
+    {
+      "manifest": "generated/automatic-reference-smoke-20261002/manifest.json",
+      "manifestSha256": "b8b4feb6e91b086a6db4693db0a11ef68b073f05df1f80c67adeaaf9433a173d",
+      "methods": [
+        "baseline",
+        "production"
+      ],
+      "productionTrackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "productionScore": {
+        "score": 840.6198,
+        "valid": true,
+        "hardFailures": [],
+        "weightedAxisRms": 0.04340393866503848,
+        "components": {
+          "air": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.0391095241426934,
+            "weight": 0.3
+          },
+          "speed": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.029878280572943873,
+            "weight": 0.3
+          },
+          "amplitude": {
+            "observations": 78,
+            "weightSum": 1920,
+            "rmsError": 0.08389896417624866,
+            "weight": 0.1
+          },
+          "impact": {
+            "observations": 77,
+            "weightSum": 77,
+            "rmsError": 0.03887236868070664,
+            "weight": 0.3
+          }
+        }
+      },
+      "physicalFrames": 1539765,
+      "accounting": {
+        "referenceRequested": true,
+        "referenceReused": false,
+        "referenceOriginalFrames": 5915,
+        "actualCompilationFrames": 1545680,
+        "productionFrames": 1539765,
+        "productionAllowance": 3000000,
+        "validation": "Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay."
+      }
+    }
+  ],
+  "browser": {
+    "checks": [
+      "default full-width automatic view, old passage links, no ordinary or previous replay fetched, audio advances",
+      "optional prior automatic comparison loads and hides; shared seeking preserves passage time",
+      "seed switch; missing optional comparison leaves current native playback usable",
+      "new manifest containing only automatic production loads with music and seeking",
+      "mobile view has no horizontal overflow",
+      "running server normalizes a new request without an ordinary reference",
+      "direct previous-comparison link; switching seeds during delayed previous loading cannot replace the new ride"
+    ],
+    "errors": [],
+    "ordinaryRecordsFetched": 0
+  },
+  "validation": {
+    "requestTestsPassed": 3,
+    "typeScriptExistingDiagnostics": 251,
+    "changedFileDiagnostics": 0
+  },
+  "scope": "Dashboard and production artifact defaults only. The compiler, physical track, score and production search cost are unchanged."
+}

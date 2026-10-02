@@ -12,7 +12,7 @@
     "quantizationFrames": 0.5
   },
   "contractSourceSha256": "24b14558f1ff9cfcda5028c0f78aea187fa61b608a8332d2f4289e30e609b36e",
-  "studySha256": "3128a350e2358297cb8fc2a763a38e57e2eebeb3a1a6eb9ff7f73f034530df4c",
+  "studySha256": "17beec16876d740d8e857e7a2a1d758a9a7e482ac2911b5674004047eb10a143",
   "declarationSha256": "4505cc4e4bfab23a95b9c059290a2c80e99a28eb99d243c7bfb2c868b8e8a2a0",
   "historical": [
     {
@@ -328,12 +328,12 @@
       "targets": 77,
       "matched": 77,
       "missing": [],
-      "events": 138,
+      "events": 137,
       "extraCountAboveQuarterScale": 29,
       "strengthMse": 0.014646660828269986,
       "timingMse": 0.05073051948051948,
-      "extraMse": 0.1147883590191136,
-      "loss": 0.18016553932790308
+      "extraMse": 0.11475763819095916,
+      "loss": 0.18013481849974863
     },
     {
       "id": "previous-tiki_tiki_48s-101",
@@ -341,12 +341,12 @@
       "targets": 77,
       "matched": 77,
       "missing": [],
-      "events": 144,
-      "extraCountAboveQuarterScale": 38,
+      "events": 142,
+      "extraCountAboveQuarterScale": 37,
       "strengthMse": 0.02660975029374745,
       "timingMse": 0.027800324675324676,
-      "extraMse": 0.1371766444534548,
-      "loss": 0.19158671942252692
+      "extraMse": 0.13511316942405197,
+      "loss": 0.1895232443931241
     },
     {
       "id": "ordinary-tiki_tiki_48s-101",
@@ -367,12 +367,12 @@
       "targets": 77,
       "matched": 77,
       "missing": [],
-      "events": 136,
+      "events": 134,
       "extraCountAboveQuarterScale": 21,
       "strengthMse": 0.017540791204858866,
       "timingMse": 0.04342532467532467,
-      "extraMse": 0.07585452257482747,
-      "loss": 0.13682063845501102
+      "extraMse": 0.0752743332885564,
+      "loss": 0.13624044916873995
     },
     {
       "id": "previous-tiki_tiki_48s-202",
@@ -380,12 +380,12 @@
       "targets": 77,
       "matched": 77,
       "missing": [],
-      "events": 136,
+      "events": 134,
       "extraCountAboveQuarterScale": 27,
       "strengthMse": 0.01890848622451784,
       "timingMse": 0.03591720779220779,
-      "extraMse": 0.11625981134562696,
-      "loss": 0.1710855053623526
+      "extraMse": 0.11606944543607631,
+      "loss": 0.17089513945280194
     },
     {
       "id": "ordinary-tiki_tiki_48s-202",
@@ -419,12 +419,12 @@
       "targets": 77,
       "matched": 77,
       "missing": [],
-      "events": 142,
+      "events": 138,
       "extraCountAboveQuarterScale": 36,
       "strengthMse": 0.03924228257420034,
       "timingMse": 0.059862012987012984,
-      "extraMse": 0.16316942181947083,
-      "loss": 0.26227371738068417
+      "extraMse": 0.1630350581755699,
+      "loss": 0.2621393537367832
     },
     {
       "id": "ordinary-tiki_tiki_48s-303",
@@ -528,12 +528,12 @@
       "missing": [
         55
       ],
-      "events": 149,
+      "events": 148,
       "extraCountAboveQuarterScale": 41,
       "strengthMse": 0.04494475041158485,
       "timingMse": 0.058823529411764705,
-      "extraMse": 0.16426002153451186,
-      "loss": 0.27979300724021433
+      "extraMse": 0.16422726258473938,
+      "loss": 0.2797602482904419
     },
     {
       "id": "previous-amour_de_ma_vie_44s-303",
@@ -730,5 +730,8 @@
       }
     ],
     "conclusion": "No tested non-baseline perturbation preserves a complete old continuation. Local geometry changes require coordinated reconstruction of later contacts; a local loss improvement is not a repair."
-  }
+  },
+  "previousPilotStudySha256": "3128a350e2358297cb8fc2a763a38e57e2eebeb3a1a6eb9ff7f73f034530df4c",
+  "studyPath": "generated/general-impact-20261002/definition-baseline-v1/audit.json.gz",
+  "evaluationDomain": "Observe the complete native ride including the 20-frame grace; include events with onset at or before nominal song duration. Targets are the actual rounded compiler inputs after the saved jolt."
 }

@@ -50,11 +50,11 @@ const evaluate = (frames: ImpactObservation[], beats: any[]) => variants.map(v =
     extras: matching.unmatchedEvents.length, extraRaw: distributions(matching.unmatchedEvents.map(i => events[i].raw)),
     oldDifference: distributions(paired.map(p => p.strength - p.old))}};
 });
-const working = (frames: ImpactObservation[], beats: any[]) => {
+const working = (frames: ImpactObservation[], beats: any[], through = Infinity) => {
   const from = frames[0].frame;
   const observed = observeContactImpacts(frames.map(f => ({frame: f.frame, velocity: {x: f.incoming[0], y: f.incoming[1]}})),
     f => frames[f - from].contact, {x: frames.at(-1)!.effective[0], y: frames.at(-1)!.effective[1]});
-  const events = detectContactImpacts(observed);
+  const events = detectContactImpacts(observed).filter(e => e.onset <= through);
   return {events, account: accountContactImpacts(events, beats.map(b => ({frame: b.requestedFrame ?? b.frame, impact: b.target}))), gains: contactSpeedGains(observed)};
 };
 for (const r of audit.runs) {
@@ -69,7 +69,7 @@ for (const r of audit.runs) {
   const results = evaluate(frames, beats);
   const clips = owner.clips.filter((c: any) => r.version === 'current' && c.song === r.song && c.seed === r.seed).map((c: any) => ({id: c.id,
     methods: results.filter(v => primaryIds.includes(v.id)).map(v => ({id: v.id, events: v.events.filter(e => e.end >= c.focus[0] * 40 && e.start <= c.focus[1] * 40)}))}));
-  runs.push({id: `${r.version}-${r.song}-${r.seed}`, trackHash: r.trackHash, beats, clips, working: working(frames, beats),
+  runs.push({id: `${r.version}-${r.song}-${r.seed}`, trackHash: r.trackHash, beats, clips, working: working(frames, beats, r.durationFrames),
     variants: results.map(v => primaryIds.includes(v.id) ? v : {id: v.id, summary: v.summary})});
 }
 const {LineRiderEngine: Engine, disposeAllWasmEnginesForStudy: dispose} =

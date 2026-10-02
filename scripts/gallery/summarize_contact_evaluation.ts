@@ -21,7 +21,9 @@ const mean=(a:number[])=>a.reduce((n,x)=>n+x,0)/Math.max(1,a.length);
 const quantile=(a:number[],p:number)=>{const sorted=[...a].sort((a,b)=>a-b);return sorted[Math.round((sorted.length-1)*p)]??null;};
 function summary(rows:any[]){
  const paired=rows.filter(r=>!r.executionError);
- return {scheduled:rows.length,validFulfilled:rows.filter(r=>r.candidate.valid&&r.candidate.fulfilled).length,
+ return {scheduled:rows.length,distinctMusicalInputs:new Set(rows.map(r=>r.sourceId)).size,
+  distinctCandidateTracks:new Set(rows.map(r=>r.trackHash).filter(Boolean)).size,
+  validFulfilled:rows.filter(r=>r.candidate.valid&&r.candidate.fulfilled).length,
   executionErrors:rows.filter(r=>r.executionError).length,
   baselineValid:rows.filter(r=>r.baseline.valid).length,
   meanExperimentalQuality:mean(rows.map(r=>r.candidate.quality)),meanBaselineExperimentalQuality:mean(rows.map(r=>r.baseline.quality)),

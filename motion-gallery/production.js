@@ -1,7 +1,7 @@
 import {prepareView} from './replay.js';
 const $=id=>document.getElementById(id),audio=$('audio');
 const names={arcs:'Arcs',fold:'Folds',serpentine:'S sweeps',scallops:'Ripples',terraces:'Terraces',scattered:'Scattered'};
-let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,audioObjectUrl,libraryEntries=[];
+let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,audioObjectUrl,libraryEntries=[],interactionReview;
 const audioCache=new Map();
 // Range controls serialize with reduced precision. Preserve the policy default
 // until the artist actually changes it, including for exact request cache reuse.
@@ -26,13 +26,14 @@ async function verifiedAudio(c,signal){
 }
 function pause(){playing=false;audio.pause();$('play').textContent='Play';}
 function draw(){
- $('time').textContent=fmt(seconds)+' s';$('seek').value=seconds;
+ $('time').textContent=fmt(seconds,interactionReview?3:2)+' s';$('seek').value=seconds;
  ($('comparison').checked?[0,1]:[0]).forEach(index=>{const entry=views[index],r=records[index];if(!entry||!r)return;const canvas=$(index?'reference':'production'),at=Math.max(0,Math.min(seconds*40,r.trace.frames.length-1)),f=Math.floor(at),a=r.trace.frames[f],b=r.trace.frames[Math.min(f+1,r.trace.frames.length-1)],t=at-f;
  if(a&&b)entry.view.draw(canvas,{x:a[0]+(b[0]-a[0])*t,y:a[1]+(b[1]-a[1])*t,w:canvas.clientWidth,h:canvas.clientHeight,z:+$('zoom').value,r:Math.min(2,devicePixelRatio)},at,$('inspect').checked);
  });
+ interactionReview?.draw(seconds);
 }
 function passageLink(updateHistory=true){if(!manifestUrl)return;const url=new URL(location.href);url.searchParams.set('data',manifestUrl.pathname);url.searchParams.set('t',seconds.toFixed(3));if($('comparison').checked)url.searchParams.set('compare','previous');else url.searchParams.delete('compare');$('passage-link').href=url.href;if(updateHistory)history.replaceState(null,'',url);}
-function seek(t){seconds=Math.max(0,Math.min(+$('seek').max,t));if(audio.readyState>=1)audio.currentTime=seconds;draw();passageLink();}
+function seek(t){seconds=Math.max(+$('seek').min,Math.min(+$('seek').max,t));if(audio.readyState>=1)audio.currentTime=seconds;draw();passageLink();}
 async function comparisonChanged(){
  if($('comparison').disabled)return;
  const token=opening,signal=controller?.signal;
@@ -59,7 +60,7 @@ async function comparisonChanged(){
 }
 $('comparison').onchange=comparisonChanged;
 function tick(){if(playing){seconds=audio.currentTime;if(seconds>=+$('seek').max)pause();draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
-$('play').onclick=async()=>{if(playing)return pause();try{if(seconds>=+$('seek').max)seek(0);$('movie').pause();audio.currentTime=seconds;await audio.play();playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}};
+$('play').onclick=async()=>{if(playing)return pause();try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();audio.currentTime=seconds;await audio.play();playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}};
 $('seek').oninput=()=>{pause();$('movie').pause();seek(+$('seek').value);};$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>audio.playbackRate=+$('rate').value;
 audio.onended=pause;audio.onerror=()=>{pause();if(audio.getAttribute('src'))status('Music unavailable; you can still scrub the saved ride.',true);};window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 function clearMovie(){const v=$('movie');v.pause();v.removeAttribute('src');v.load();v.hidden=true;$('movie-link').hidden=true;$('movie-link').removeAttribute('href');}
@@ -72,6 +73,7 @@ async function loadMovie(m,url,signal,token){
   $('movie').src=src;$('movie').hidden=false;
 }
 async function openResult(path,job,initialTime=0){
+ interactionReview?.clear();
  const token=++opening;controller?.abort();controller=new AbortController();const {signal}=controller;pause();clearMovie();status('');currentJob=job;views=[];records=[];manifestUrl=undefined;seconds=0;$('result').hidden=false;$('play').disabled=true;$('seek').disabled=true;$('render').hidden=true;$('timeline').replaceChildren();$('observations').replaceChildren();$('review-moments').replaceChildren();$('motion-summary').textContent='';$('result-title').textContent='Loading saved track…';$('result-note').textContent='Verifying artifacts and native rider playback…';$('record-link').removeAttribute('href');
  previousUrl=undefined;$('comparison-control').hidden=true;$('comparison').disabled=true;$('comparison-ride').hidden=true;$('rides').classList.remove('comparing');
  for(const id of ['production','reference']){const c=$(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}audio.removeAttribute('src');audio.load();if(audioObjectUrl){URL.revokeObjectURL(audioObjectUrl);audioObjectUrl=undefined;}delete audio.dataset.source;delete audio.dataset.sha256;
@@ -86,7 +88,9 @@ async function openResult(path,job,initialTime=0){
   $('comparison').disabled=false;
   $('result-title').textContent=`${m.plan.cases[0].title} · seed ${ride.seed}`;$('result-note').textContent=p.qualified?'Complete ride · every requested construction fulfilled.':ride.valid?'Complete ride · some requested constructions were not fulfilled.':`Incomplete ride · ${ride.failure?.reason??p.constructionFailure??'see saved diagnostics'}`;$('result-note').classList.toggle('error',!p.qualified);
   $('production-metrics').textContent=`Musical score ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} requests · ${fmt(ride.compileMs/1000,1)} s`;
-  $('seek').max=Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;
+  interactionReview?.bind(data[0],cells[0].sha256,url);
+  $('seek').min=interactionReview?.range?.[0]??0;
+  $('seek').max=interactionReview?.range?.[1]??Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;
   const real=new Map(p.realization.sections.map(r=>[r.section,r]));
   $('timeline').replaceChildren(...p.plan.phrases.map(phrase=>{const requests=p.plan.requests.slice(phrase.first,phrase.first+phrase.count),ok=requests.every(r=>real.get(r.section)?.fulfilled),b=el('button',`${names[phrase.construction]} · ${fmt(requests[0].frame/40,1)}s`,ok?'':'unfulfilled');b.title=`${phrase.guidance} guidance; ${phrase.railLayout??'paired'} layout; ${ok?'fulfilled':'unfulfilled'}`;b.onclick=()=>{pause();$('movie').pause();seek(requests[0].frame/40-.3);};return b;}));
   $('observations').replaceChildren(...p.plan.requests.slice(1).map(r=>{const result=real.get(r.section),tr=el('tr');for(const t of [r.section,fmt(r.frame/40),names[r.construction],`${r.guidance} / ${r.railLayout??'paired'}`,result?.fulfilled?'Fulfilled':result?.reasons?.join(', ')??'Not built'])tr.append(el('td',String(t)));return tr;}));
@@ -125,7 +129,11 @@ async function loadLibrary(){try{
  else{const response=await fetch(collection.href);if(!response.ok)throw new Error('The review collection is being generated.');data=await response.json();}
  libraryEntries=data.entries;
  $('library').replaceChildren(...data.entries.map(entry=>{const c=card(`${entry.title} · ${entry.seed}`,entry.error??entry.status??'Saved automatic arrangement');if(entry.manifest){const b=el('button','Open ride');b.onclick=()=>openResult(entry.manifest);c.append(b);}return c;}));
- const initial=params.get('data')??data.entries.find(e=>e.manifest)?.manifest;
- if(initial){$('comparison').checked=params.get('compare')==='previous';await openResult(initial,undefined,Math.max(0,Number(params.get('t'))||0));}
+ if(params.has('review')){
+  const {createInteractionReview}=await import('./interaction-review.js');
+  interactionReview=await createInteractionReview({url:params.get('review'),checked,open:openResult,seek:t=>{pause();seek(Math.round(t*40)/40);},time:()=>seconds});
+ }
+ const initial=interactionReview?.initial.manifest??params.get('data')??data.entries.find(e=>e.manifest)?.manifest;
+ if(initial){const at=Math.max(0,Number(params.get('t'))||interactionReview?.initial.range[0]||0);$('comparison').checked=!interactionReview&&params.get('compare')==='previous';await openResult(initial,undefined,interactionReview?Math.round(at*40)/40:at);}
  }catch(e){$('library').textContent=e.message;}}
 try{catalog=await api('catalog');$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const [key,name]of Object.entries(names)){const label=el('label'),input=el('input');input.type='checkbox';input.value=key;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await loadLibrary();await refreshJobs();setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}

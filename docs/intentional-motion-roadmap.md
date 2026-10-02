@@ -53,6 +53,18 @@ benchmark meanings; do not treat it as an untouchable product requirement.
 
 ### First milestone: compare explanations on a small musical review
 
+**Delivered on October 2:** the panel was declared and committed before running
+the candidate comparison (`90b7c805`). Sixteen passages are available in the
+[native music review](http://localhost:8767/motion-gallery/production.html?review=/generated/interaction-candidates-20261002/review.json&clip=merged-hits).
+The [comparison findings](beat-salience-investigation-20261001.md#october-2-candidate-comparison-on-a-declared-musical-panel)
+cover twelve unchanged automatic tracks, 945 authored beats, grouping and timing
+sensitivity, and counterexamples to both new candidates. The review reuses the
+production player and verifies that its observations belong to the loaded ride.
+No replacement impact definition, compiler objective or benchmark was adopted.
+The next decision is still about perceptual meaning, particularly quiet contact,
+sustained guidance and a weak first touch before a stronger response. The owner
+has been asked about one sustained-guidance passage; the answer remains open.
+
 Start with a declared panel of roughly twelve to sixteen short passages, retaining
 their musical lead-in and continuation and links to the full tracks. Include:
 

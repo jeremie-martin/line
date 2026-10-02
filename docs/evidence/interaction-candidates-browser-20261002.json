@@ -1,0 +1,37 @@
+{
+  "schema": "line.interaction-review-checks.v1",
+  "reviewSha256": "b2a8cd9228a99eaffbd95e310c7b67a75865a2ef78b516b66995a9a7d4c7a3fd",
+  "scriptSha256": "9b7a30df285dd2627168fbd1049f5f29e31fa286ab692dc65f1c9b8e21e66716",
+  "checks": [
+    {
+      "allPassagesLoad": 16,
+      "nativeRecordsBound": true,
+      "excerptRanges": true
+    },
+    {
+      "notesIsolatedByPassage": true,
+      "notesSurviveReload": true,
+      "exportCarriesArtifactIdentityAndMarkedTimes": true
+    },
+    {
+      "musicPlayback": true,
+      "autopauseAtExcerptEnd": true,
+      "restartAtExcerptBeginning": true,
+      "chartSeeksAndPausesNativePlayer": true
+    },
+    {
+      "mobileHorizontalOverflow": false
+    },
+    {
+      "rapidSelectionLeavesFinalPassage": true
+    },
+    {
+      "rejectsMismatchedStudyTrack": true,
+      "noStaleMeasurementsOnFailure": true
+    },
+    {
+      "normalProductionViewUnaffected": true
+    }
+  ],
+  "errors": []
+}

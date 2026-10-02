@@ -1,0 +1,3639 @@
+{
+  "schema": "line.interaction-candidates.v1",
+  "panelSha256": "4f92e172c8d545fe78805f03a1f6cd22cfdafd4c4aa1ec842f9d36fa6e4057d8",
+  "auditSha256": "86bde0abe3a4dc60df3e19f990e82a99ee6e85e2d7e2f544699b7b458aa743f1",
+  "reviewSha256": "b2a8cd9228a99eaffbd95e310c7b67a75865a2ef78b516b66995a9a7d4c7a3fd",
+  "runs": 12,
+  "authoredBeats": 945,
+  "totals": {
+    "contact": {
+      "events": 1486,
+      "matchedBeats": 945,
+      "unmatchedEvents": 541
+    },
+    "pulse": {
+      "events": 1497,
+      "matchedBeats": 899,
+      "unmatchedEvents": 598
+    }
+  },
+  "variants": [
+    {
+      "method": "contact",
+      "parameters": {
+        "holes": 0
+      },
+      "events": 1486,
+      "matchedBeats": 945
+    },
+    {
+      "method": "contact",
+      "parameters": {
+        "holes": 1
+      },
+      "events": 1192,
+      "matchedBeats": 943
+    },
+    {
+      "method": "contact",
+      "parameters": {
+        "holes": 2
+      },
+      "events": 1081,
+      "matchedBeats": 942
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 0.25,
+        "valleyFraction": 0.25,
+        "edgeFraction": 0.2
+      },
+      "events": 1367,
+      "matchedBeats": 929
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 0.25,
+        "valleyFraction": 0.4,
+        "edgeFraction": 0.2
+      },
+      "events": 1571,
+      "matchedBeats": 930
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 0.25,
+        "valleyFraction": 0.6,
+        "edgeFraction": 0.2
+      },
+      "events": 1795,
+      "matchedBeats": 930
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 0.25,
+        "valleyFraction": 0.85,
+        "edgeFraction": 0.2
+      },
+      "events": 2135,
+      "matchedBeats": 930
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 0.5,
+        "valleyFraction": 0.25,
+        "edgeFraction": 0.2
+      },
+      "events": 1321,
+      "matchedBeats": 898
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 0.5,
+        "valleyFraction": 0.4,
+        "edgeFraction": 0.2
+      },
+      "events": 1497,
+      "matchedBeats": 899
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 0.5,
+        "valleyFraction": 0.6,
+        "edgeFraction": 0.2
+      },
+      "events": 1660,
+      "matchedBeats": 899
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 0.5,
+        "valleyFraction": 0.85,
+        "edgeFraction": 0.2
+      },
+      "events": 1931,
+      "matchedBeats": 899
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 1,
+        "valleyFraction": 0.25,
+        "edgeFraction": 0.2
+      },
+      "events": 1113,
+      "matchedBeats": 800
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 1,
+        "valleyFraction": 0.4,
+        "edgeFraction": 0.2
+      },
+      "events": 1206,
+      "matchedBeats": 801
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 1,
+        "valleyFraction": 0.6,
+        "edgeFraction": 0.2
+      },
+      "events": 1286,
+      "matchedBeats": 801
+    },
+    {
+      "method": "pulse",
+      "parameters": {
+        "floor": 1,
+        "valleyFraction": 0.85,
+        "edgeFraction": 0.2
+      },
+      "events": 1412,
+      "matchedBeats": 801
+    }
+  ],
+  "matchingSensitivity": [
+    {
+      "method": "contact",
+      "clock": "start",
+      "tolerance": 2,
+      "matchedBeats": 942
+    },
+    {
+      "method": "pulse",
+      "clock": "start",
+      "tolerance": 2,
+      "matchedBeats": 762
+    },
+    {
+      "method": "contact",
+      "clock": "start",
+      "tolerance": 4,
+      "matchedBeats": 945
+    },
+    {
+      "method": "pulse",
+      "clock": "start",
+      "tolerance": 4,
+      "matchedBeats": 899
+    },
+    {
+      "method": "contact",
+      "clock": "start",
+      "tolerance": 6,
+      "matchedBeats": 945
+    },
+    {
+      "method": "pulse",
+      "clock": "start",
+      "tolerance": 6,
+      "matchedBeats": 915
+    },
+    {
+      "method": "contact",
+      "clock": "start",
+      "tolerance": 8,
+      "matchedBeats": 945
+    },
+    {
+      "method": "pulse",
+      "clock": "start",
+      "tolerance": 8,
+      "matchedBeats": 921
+    },
+    {
+      "method": "contact",
+      "clock": "peakFrame",
+      "tolerance": 2,
+      "matchedBeats": 190
+    },
+    {
+      "method": "pulse",
+      "clock": "peakFrame",
+      "tolerance": 2,
+      "matchedBeats": 180
+    },
+    {
+      "method": "contact",
+      "clock": "peakFrame",
+      "tolerance": 4,
+      "matchedBeats": 616
+    },
+    {
+      "method": "pulse",
+      "clock": "peakFrame",
+      "tolerance": 4,
+      "matchedBeats": 634
+    },
+    {
+      "method": "contact",
+      "clock": "peakFrame",
+      "tolerance": 6,
+      "matchedBeats": 857
+    },
+    {
+      "method": "pulse",
+      "clock": "peakFrame",
+      "tolerance": 6,
+      "matchedBeats": 858
+    },
+    {
+      "method": "contact",
+      "clock": "peakFrame",
+      "tolerance": 8,
+      "matchedBeats": 908
+    },
+    {
+      "method": "pulse",
+      "clock": "peakFrame",
+      "tolerance": 8,
+      "matchedBeats": 896
+    }
+  ],
+  "notes": [
+    "Known development examples plus predeclared contextual controls; not a blind validation or calibrated perceptual metric.",
+    "All candidates read the same previously native-verified observations including 20 frames of post-song grace, preserving complete final landing windows; clipping happens after detection and matching.",
+    "A uses the unchanged landing measure with supplementary C pulse observations, not a third independent event detector.",
+    "B observes quiet and sustained engagement; C has a response floor. Counts describe different interpretations, not competing scores.",
+    "The current 0\u20131 impact scale is not applied to raw episode or pulse responses.",
+    "Four-frame matching is provisional; one-to-one matching preserves extras, missing targets and alternative eligible assignments. Both onset and peak clocks are swept at 50/100/150/200 ms.",
+    "Pulse association with contact includes the immediately preceding frame; this is diagnostic proximity, not independent force attribution.",
+    "Changing the grouping parameters must not be mistaken for changing the physical ride."
+  ],
+  "clips": [
+    {
+      "id": "upper-rival",
+      "title": "Upper hit before the beat",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "focus": [
+        12.3,
+        12.8
+      ],
+      "ownerFeedback": "Owner confirmed the distracting upper hit around 12.45 s.",
+      "counts": {
+        "landing": 2,
+        "contact": 4,
+        "pulse": 3
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 4,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65,
+            12.75
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 2,
+          "peaks": [
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 2,
+          "peaks": [
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65,
+            12.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65,
+            12.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65,
+            12.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65,
+            12.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            12.325,
+            12.45,
+            12.65,
+            12.75
+          ]
+        }
+      ],
+      "finding": "The upper response around 12.45 s is distinct under both candidate methods and has no authored beat match at the provisional 100 ms tolerance. The current score does not directly capture this peak."
+    },
+    {
+      "id": "clean-landing",
+      "title": "Clean lower landing",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "focus": [
+        13.88,
+        14.15
+      ],
+      "ownerFeedback": "Owner found the landing around 13.95 s cleaner and better defined.",
+      "counts": {
+        "landing": 1,
+        "contact": 1,
+        "pulse": 1
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            13.95,
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            13.95,
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            13.95,
+            14.025
+          ]
+        }
+      ],
+      "finding": "The default contact and pulse methods both retain one interaction. A high valley threshold splits its two local peaks. The owner has already identified this as a cleaner landing."
+    },
+    {
+      "id": "open-transfer",
+      "title": "Lower slide to an upper receiver",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "focus": [
+        13.9,
+        14.4
+      ],
+      "ownerFeedback": "Owner values this separated transfer; this does not imply every part needs to count as a musical hit.",
+      "counts": {
+        "landing": 1,
+        "contact": 2,
+        "pulse": 2
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 1,
+          "peaks": [
+            14.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.025,
+            14.25
+          ]
+        }
+      ],
+      "finding": "Both default candidates separate the later upper engagement from the lower landing. Its lack of an authored beat match does not make this welcome transfer undesirable."
+    },
+    {
+      "id": "merged-hits",
+      "title": "Two surfaces, one reported impact",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "focus": [
+        14.78,
+        15.05
+      ],
+      "ownerFeedback": "Owner sees two separate interactions and welcomes the possibility of an intentional upper musical strike.",
+      "counts": {
+        "landing": 1,
+        "contact": 2,
+        "pulse": 2
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 1,
+          "peaks": [
+            14.85
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 1,
+          "peaks": [
+            14.85
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            14.85,
+            14.975
+          ]
+        }
+      ],
+      "finding": "Both default candidates separate lower and upper responses. Bridging one empty contact frame merges them. All twelve pulse parameter settings retain two responses in the focus. The existing landing impact includes part of both."
+    },
+    {
+      "id": "split-lower",
+      "title": "Split response on lower support",
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "focus": [
+        42.3,
+        42.8
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 1,
+        "contact": 3,
+        "pulse": 4
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 3,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 1,
+          "peaks": [
+            42.7
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 1,
+          "peaks": [
+            42.7
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7,
+            42.775
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7,
+            42.775
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7,
+            42.775
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7,
+            42.775
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7,
+            42.775
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7,
+            42.775
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            42.45,
+            42.575,
+            42.7
+          ]
+        }
+      ],
+      "finding": "The second lower-support response remains separate under the default candidates. Bridging empty contact frames merges it; the pulse method also identifies smaller later activity. More markers do not establish more perceived impacts."
+    },
+    {
+      "id": "ripple-receiver",
+      "title": "Ripple receiver before a landing",
+      "trackHash": "218f32afa6c2b620fad38f7c44258101cc360b824bc33ae124bc8f3503b9352b",
+      "focus": [
+        15.82,
+        16.3
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 2,
+        "contact": 3,
+        "pulse": 3
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            15.825,
+            15.975,
+            16.275
+          ]
+        }
+      ],
+      "finding": "Both candidates identify the extra receiver response before the next landing. This is a previously measured causal guide example, not a new owner judgment."
+    },
+    {
+      "id": "inverted-contact",
+      "title": "Brief inverted contact",
+      "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+      "focus": [
+        21.75,
+        22.05
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 1,
+        "contact": 1,
+        "pulse": 1
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            21.825,
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            21.825,
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            21.825,
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            21.825,
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            21.925
+          ]
+        }
+      ],
+      "finding": "The default methods each report one interaction here. The recorded pose is a brief inverted contact, not a demonstrated sustained overhead slide."
+    },
+    {
+      "id": "luna-opening",
+      "title": "Luna: quiet opening",
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "focus": [
+        0,
+        1.8
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 3,
+        "contact": 6,
+        "pulse": 4
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 6,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.025,
+            1.35,
+            1.475
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 4,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.475
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 4,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 8,
+          "peaks": [
+            0.025,
+            0.125,
+            0.45,
+            0.875,
+            0.975,
+            1.35,
+            1.425,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 9,
+          "peaks": [
+            0.025,
+            0.125,
+            0.45,
+            0.525,
+            0.875,
+            0.975,
+            1.35,
+            1.425,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 6,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.35,
+            1.425,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 6,
+          "peaks": [
+            0.025,
+            0.45,
+            0.975,
+            1.35,
+            1.425,
+            1.475
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            0.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            0.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            0.975
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            0.975
+          ]
+        }
+      ],
+      "finding": "Some low-impact activity is divided by empty contact frames or by pulse thresholds. A later physical peak can also move the pulse onset outside the provisional beat association window."
+    },
+    {
+      "id": "tiki-opening",
+      "title": "Tiki: quiet opening",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "focus": [
+        0,
+        1.8
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 1,
+        "contact": 5,
+        "pulse": 2
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 5,
+          "peaks": [
+            0.05,
+            0.55,
+            0.975,
+            1.125,
+            1.2
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 2,
+          "peaks": [
+            0.05,
+            1.2
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 2,
+          "peaks": [
+            0.05,
+            1.2
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            0.05,
+            0.55,
+            0.975,
+            1.2
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 5,
+          "peaks": [
+            0.05,
+            0.2,
+            0.55,
+            0.975,
+            1.2
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 5,
+          "peaks": [
+            0.05,
+            0.2,
+            0.55,
+            0.975,
+            1.2
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 5,
+          "peaks": [
+            0.05,
+            0.2,
+            0.55,
+            0.975,
+            1.2
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            0.05,
+            0.55
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            0.05,
+            0.55
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            0.05,
+            0.55
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            0.05,
+            0.55
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 0,
+          "peaks": []
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 0,
+          "peaks": []
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 0,
+          "peaks": []
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 0,
+          "peaks": []
+        }
+      ],
+      "finding": "The established landing near 0.975 s has a body-response peak below the default 0.5 pulse floor. Contact episodes retain it. This exposes a measurement limitation; the physical ride has not changed."
+    },
+    {
+      "id": "sustained-guidance",
+      "title": "Sustained guidance with a low response peak",
+      "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+      "focus": [
+        7.85,
+        8.15
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 1,
+        "contact": 1,
+        "pulse": 1
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 1,
+          "peaks": [
+            7.75
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 1,
+          "peaks": [
+            7.75
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 1,
+          "peaks": [
+            7.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            7.95,
+            8.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 4,
+          "peaks": [
+            7.875,
+            7.95,
+            8.075,
+            8.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            8.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            8.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            8.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 0,
+          "peaks": []
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 0,
+          "peaks": []
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 0,
+          "peaks": []
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 0,
+          "peaks": []
+        }
+      ],
+      "finding": "Actual contact continues through the focus. The pulse method can mark local fluctuations inside that same engagement; the count changes with its parameters. The open question is whether these feel like guidance or distinct accents."
+    },
+    {
+      "id": "amour-strong",
+      "title": "Amour: strong requested impact",
+      "trackHash": "7f61f3ce5b0ebb08fa3c1b0ec7c042f6b6665401dd90596a913b2e419a875656",
+      "focus": [
+        5.11,
+        5.81
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 2,
+        "contact": 3,
+        "pulse": 2
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 3,
+          "peaks": [
+            5.35,
+            5.55,
+            5.6
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            5.35,
+            5.6
+          ]
+        }
+      ],
+      "finding": "A tiny contact at 5.55 s gets the contact-based beat match; the stronger engagement at 5.60 s is unmatched. Pulse matching instead associates the stronger response with that beat. This tests whether first contact is a useful musical onset."
+    },
+    {
+      "id": "amor-strong",
+      "title": "Amor: strong requested impact",
+      "trackHash": "cf9fe39f96d11ef3028b71a421d8bbcaaa895385e4d176023ea4ca3bb9531148",
+      "focus": [
+        9,
+        9.7
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 2,
+        "contact": 2,
+        "pulse": 2
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            9.175,
+            9.75
+          ]
+        }
+      ],
+      "finding": "This contextual control was selected using authored targets before running the candidates. Listen for whether their grouping and timing describe the interaction you perceive."
+    },
+    {
+      "id": "luna-strong",
+      "title": "Luna: energetic passage",
+      "trackHash": "8c9badc84ddd7d632516d081df01c3ccfd94d0f1828c7fe3ad42641c0921948c",
+      "focus": [
+        28.1,
+        28.8
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 2,
+        "contact": 2,
+        "pulse": 2
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            28.3,
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            28.3,
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            28.3,
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            28.3,
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            28.3,
+            28.375,
+            28.925
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            28.3,
+            28.375,
+            28.925
+          ]
+        }
+      ],
+      "finding": "This contextual control was selected using authored targets before running the candidates. Listen for whether their grouping and timing describe the interaction you perceive."
+    },
+    {
+      "id": "tiki-contrast",
+      "title": "Tiki: changing impact demand",
+      "trackHash": "9a0630ad8bcf17274dc26e11143f430838b24ce66f3808c03660c42a61dbc2a8",
+      "focus": [
+        6.87,
+        7.57
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 1,
+        "contact": 1,
+        "pulse": 1
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 1,
+          "peaks": [
+            7.025
+          ]
+        }
+      ],
+      "finding": "This contextual control was selected using authored targets before running the candidates. Listen for whether their grouping and timing describe the interaction you perceive."
+    },
+    {
+      "id": "amour-contrast",
+      "title": "Amour: changing impact demand",
+      "trackHash": "46cca64f2bcd8fcf302793e514305135d03fd354501e29a434fe64d8bcf2b533",
+      "focus": [
+        10.44,
+        11.14
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 2,
+        "contact": 2,
+        "pulse": 2
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            10.625,
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            10.625,
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 2,
+          "peaks": [
+            10.675,
+            10.95
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            10.625,
+            10.675,
+            10.95
+          ]
+        }
+      ],
+      "finding": "This contextual control was selected using authored targets before running the candidates. Listen for whether their grouping and timing describe the interaction you perceive."
+    },
+    {
+      "id": "amor-quiet",
+      "title": "Amor: quieter requested impact",
+      "trackHash": "19ddcf0a60253ef638e1a36b4eb2f1bcd06bd8fc1b6a6dc6de49fe394acb02b1",
+      "focus": [
+        24.4,
+        25.1
+      ],
+      "ownerFeedback": null,
+      "counts": {
+        "landing": 2,
+        "contact": 3,
+        "pulse": 3
+      },
+      "sensitivity": [
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 0
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 1
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "contact",
+          "parameters": {
+            "holes": 2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.25,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 0.5,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.25,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.4,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.6,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        },
+        {
+          "method": "pulse",
+          "parameters": {
+            "floor": 1,
+            "valleyFraction": 0.85,
+            "edgeFraction": 0.2
+          },
+          "count": 3,
+          "peaks": [
+            24.625,
+            24.8,
+            25.125
+          ]
+        }
+      ],
+      "finding": "This contextual control was selected using authored targets before running the candidates. Listen for whether their grouping and timing describe the interaction you perceive."
+    }
+  ]
+}

@@ -565,3 +565,195 @@ and **63 tests passing in four files**. TypeScript with
 `--allowImportingTsExtensions` still reports the existing 251 diagnostics; none
 are in the new study. No compiler, physics, scoring, specification or playback
 behavior changed.
+
+## October 2 candidate comparison on a declared musical panel
+
+The first calibration milestone from the
+[working agreement](intentional-motion-roadmap.md#october-2-working-agreement-establish-meaning-before-the-next-campaign)
+is now implemented. Its result is a comparison with explicit counterexamples,
+not a new impact definition. **No compiler, physics, specification or benchmark
+meaning changed.** This work uses the same saved automatic arrangements and the
+same native observations as the preceding investigations.
+
+The [16-passage panel](evidence/interaction-panel-20261002.json) was committed as
+`90b7c805` before executing these candidate groupings. It includes the owner's
+named examples, lower-surface counterexamples, quiet openings, a brief inverted
+contact, and sustained guide contact. Six additional passages were selected
+using authored strong/quiet/contrast targets rather than diagnostic outcomes.
+The sustained-contact control was selected mechanically from existing observations:
+at least eight consecutive guide-contact frames, peak body correction at most
+0.8, then largest summed absolute turning. That selection is **not** a finding
+that the owner considers it smooth. This is a development panel with contextual
+controls, not a blind validation set.
+
+### What was actually compared
+
+The study processes all twelve current automatic tracks, including the saved
+20-frame post-song grace, and all **945 authored beats**. It detects and associates
+events on the complete traces before clipping passages for display. Every
+original landing's seven-frame window is present and reproduces its previously
+saved peak. Track hashes, record hashes and source observation hashes are checked;
+all track lines remain ordinary type 0 lines.
+
+| Interpretation | Working definition | Deliberate limitation |
+| --- | --- | --- |
+| A: landing plus supplementary observations | Keep the existing landing event and calibrated impact unchanged; expose other whole-ride response peaks beside it | Supplementary observations reuse C below. A is not a third independent detector or a solution to merged attribution |
+| B: contact episodes | Maximal consecutive actual contact by any rider point; no response floor | One empty frame separates episodes, even when the interruption might be visually unimportant |
+| C: response pulses | Body-mean correction peaks near current or preceding contact; merge peaks without a sufficiently deep intervening trough | Grouping depends on provisional response and valley thresholds; mean body response is not a calibrated measure of felt impact |
+
+B and C receive only frame time, body correction and a contact boolean. Geometry
+IDs, construction names, support/guide roles and which side of the rider a
+surface occupies are not grouping inputs. Relabeling those identities cannot
+change the output. This is not a claim that physically retessellating a track
+leaves the engine's motion unchanged.
+
+Body correction is the previously measured difference from the incoming motion
+after gravity, in world units per frame. It is a mean over body points, not a
+mass-weighted force or a perceptually calibrated strength. The separate point-RMS
+and heading observations remain available in passage data. We did not adopt a
+strength normalization or compare a calibrated 0–1 landing impact directly with
+this raw correction.
+
+A's bands retain the original stored-frame scoring windows. A physical response
+at frame `f` enters the stored velocity at `f + 1`; the supplementary peak-credit
+check tests that following frame against both the window and sled-contact gate.
+The response maximum shown inside an A band is descriptive body motion, not
+the largest contribution to the established landing scalar. The previous exact
+score reconstruction remains the reference for that attribution.
+
+B is swept over zero, one and two allowed empty frames. C is swept over floors
+0.25, 0.5 and 1.0, and valley fractions 0.25, 0.4, 0.6 and 0.85. Its default is
+floor 0.5, valley fraction 0.4; interval extent uses 20% of the grouped peak.
+Those are research settings, not thresholds an artist needs to approve.
+
+Beat association is monotone and one-to-one: maximize matches within a declared
+time tolerance, then minimize absolute timing error. Unmatched interactions,
+unmatched requests and alternative eligible beats remain in the evidence. We
+compare onset and peak clocks at 50, 100, 150 and 200 ms tolerance. Native
+sampling is 25 ms; sub-frame precision is not inferred from these observations.
+
+### Findings that constrain the design
+
+1. **The welcomed two-surface Tiki interaction is distinguishable.** Around
+   14.825–15.025 s in Tiki 101, default B and C separate the lower and upper
+   responses. All twelve tested C parameter combinations retain two responses
+   in the declared focus. Allowing just one empty contact frame in B merges
+   them. This remains the example where deleting the later guide previously
+   removed 49.45% of the earlier landing's reported raw impact. A generic
+   gap-bridging rule would erase a distinction the owner explicitly sees.
+2. **A clean landing can have more than one response peak.** Both default methods
+   retain one interaction for the owner's positive Tiki 303 example around
+   13.95 s. Raising C's valley fraction to 0.85 splits it into two. Counting
+   every local maximum is not an adequate explanation of a musical strike.
+3. **Quiet contact must not disappear merely because it is quiet.** Tiki 101's
+   established landing near 0.975 s has a body-response peak of about 0.40 and
+   disappears under C's default 0.5 floor. B retains it. Across the swept pulse
+   settings, the Tiki opening has 0–5 overlapping pulses and Luna's has 1–9.
+   This concerns detection, before any question of strength calibration.
+4. **First contact is not automatically the meaningful onset.** In the additional
+   Amour 202 strong-target control, a tiny contact at 5.550 s (peak about 0.02)
+   receives B's match to the 5.5293 s beat. A stronger engagement at 5.600 s
+   (peak about 2.19) remains unmatched. C instead associates the stronger
+   response with that beat. Bridging the brief interruption changes B's answer,
+   but the same operation merges the desired Tiki distinction above. No owner
+   judgment about this new Amour example is being assumed.
+5. **Contact and accents inside contact are different questions.** In Amor 101,
+   actual contact continues from 7.700–8.250 s, across the declared 7.85–8.15 s
+   focus. B reports one engagement. C marks 0–4 pulses overlapping that focus
+   across its settings; the default local peak at 8.125 s is about 0.544.
+   Whether this feels like continuous guidance or a separate accent is an open
+   perceptual question, now presented in the native review. The earlier larger
+   physical peak is also shown in its surrounding context.
+6. **An unassociated interaction is not necessarily undesirable.** The welcome
+   Tiki transfer around 14.20–14.35 s remains separate in both defaults without
+   an authored beat association. The owner-confirmed distracting upper response
+   around 12.45 s in Tiki 303 is also separate and unmatched. The same structural
+   fact does not establish the same artistic judgment.
+
+![Four candidate-grouping examples](evidence/interaction-candidates-examples-20261002.png)
+
+Shading identifies the declared focus; context on either side is retained.
+Dashed lines are authored beat times. Candidate intervals overlap the focus
+when their extent reaches it, even when their strongest peak lies outside it.
+
+### Corpus totals are diagnostic counts, not a new headline score
+
+At the default 100 ms onset association:
+
+| Candidate | Observed episodes/pulses | Authored beats associated | Unmatched observations |
+| --- | ---: | ---: | ---: |
+| B: contact, no empty-frame bridging | 1,486 | 945 / 945 | 541 |
+| C: response, floor 0.5 / valley 0.4 | 1,497 | 899 / 945 | 598 |
+
+The extra observations include startup, welcome transfers, guidance and the
+post-song continuation. **541 and 598 are not counts of bad impacts.** Likewise,
+B's 945 matches do not establish perfect musical clarity: the weak-touch Amour
+example demonstrates how a formally successful match can be questionable.
+
+B produces 1,192 episodes with one empty frame allowed, and 1,081 with two;
+943 and 942 beats respectively remain associated. Across C's twelve settings,
+the number of pulses varies from 1,113 to 2,135 and associated beats from 800
+to 930. At valley fraction 0.4, reducing the floor to 0.25 recovers 930 beat
+associations; raising it to 1.0 retains only 801. These changes are interpretation
+changes on identical physical rides, not compiler gains or losses.
+
+Timing convention matters as well: at 100 ms, using peak time rather than onset
+reduces associated beats to 616 for B and 634 for C. Response peaks commonly
+occur after first engagement. This does not show playback drift or establish
+which instant the listener perceives as carrying the beat. Fitting a strength
+scalar before resolving identity and onset would hide this uncertainty.
+
+### Review, validation and the next decision
+
+The [musical review](http://localhost:8767/motion-gallery/production.html?review=/generated/interaction-candidates-20261002/review.json&clip=merged-hits)
+uses the existing native rider, audio clock and production renderer. Each
+passage has lead-in/continuation, an adjustable speed and zoom, a full-track
+link and optional measurement timelines. Measurements are collapsed initially
+so the ride can be judged first. Their record hash and track hash must match
+the loaded native ride before they can be displayed.
+
+Optional notes and marked music times stay in browser-local storage. An export
+includes panel, candidate and track identities. Existing owner feedback is
+distinguished from unlabeled cases and our provisional findings. Nothing is
+automatically submitted or treated as an owner judgment.
+
+Browser validation loaded all sixteen passages, exercised playback, automatic
+excerpt stopping/restarting, chart seeking, notes across passage changes and
+reloads, export identities, rapid selection changes, and the ordinary production
+view. An injected valid-checksum/wrong-track study was rejected with playback
+disabled and no stale measurement display. Mobile layout has no horizontal
+overflow. Browser validation reported no page errors. The playback check first
+waits for `audio.play()` to resolve before waiting for the automatic pause;
+otherwise the initial Play label can make a test falsely conclude playback has
+already finished.
+
+The candidate and existing impact/contact suites pass **70 tests in five files**.
+Repository TypeScript with `--allowImportingTsExtensions` still reports the 251
+existing diagnostics, none in the new candidate or study code. No compiler
+benchmark was rerun: no track-generating or scoring behavior changed.
+
+Neither B nor C is ready to become the product contract. The useful direction
+is to keep actual engagement and its time-resolved response available together,
+then determine which interval and onset correspond to an intended musical
+interaction. This is a direction to test, not an already-validated hybrid
+formula. Strong guidance, separate upper strikes and quiet lower landings must
+remain representable by the same account; a surplus marker alone cannot become
+a penalty. The next owner check is the sustained-guidance example above, with
+the weak-touch Amour case available as a second disagreement if useful. Existing
+positive and negative Tiki judgments need not be relabeled.
+
+Before a long optimization campaign, the eventual choice still needs new
+validation passages, strength calibration, and a bounded construction assay
+that intentionally places an upper musical receiver and checks its continuation.
+This comparison did not demonstrate sustained inverted skiing or solve upper
+receiver search. Frozen V6 remains a historical comparison until any successor
+contract is explicitly defined.
+
+Evidence: [summary](evidence/interaction-candidates-summary-20261002.json),
+[full derived audit](evidence/interaction-candidates-audit-20261002.json.gz),
+[browser validation](evidence/interaction-candidates-browser-20261002.json).
+Run `node --import tsx scripts/gallery/study_interaction_candidates.ts`, then
+`python3 scripts/gallery/report_interaction_candidates.py`; with the gallery
+server running, use `node scripts/gallery/check_interaction_review.mjs`.
+The raw replay archive, saved production records, browser screenshots and media
+remain local. Code and the compact derived evidence are retained in Git.

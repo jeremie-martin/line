@@ -33,7 +33,7 @@ import {motionResiduals,intervalMotionSummary,type MotionSearchOptions} from './
 import {refineArcPair,type PairMeasurement} from './arc_pair_response.ts';
 import {observedReceiver} from './observed_receiver.ts';
 import {CONTACT_IMPACT_CONTRACT, contactImpactPrefix, continueContactImpacts, accountContactImpacts} from '../../lib/contact_impact.ts';
-import {impactFrames, evaluateMusicalImpacts, impactSearchResiduals, engagementGainResiduals, type ImpactSearchOptions} from './impact_search.ts';
+import {impactFrames, evaluateMusicalImpacts, impactSearchResiduals, engagementGainResiduals, validateImpactSearchOptions, type ImpactSearchOptions} from './impact_search.ts';
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
 // disposal. A private module instance gives replay its own WASM instance and
 // registry without changing judge code or freeing engines retained by callers.
@@ -287,6 +287,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   if(!validProfileControls(options))throw new Error('invalid profile controls');
   if(options.impactContract!==undefined&&options.impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
+  validateImpactSearchOptions(options.impactSearch);
+  if(options.impactSearch&&!options.impactContract)throw new Error('impact search options require their measurement contract');
   if(options.impactPreparationFrames!==undefined&&(!options.impactContract||!Number.isSafeInteger(options.impactPreparationFrames)||options.impactPreparationFrames<0||options.impactPreparationFrames>2))throw new Error('invalid impact preparation');
   arcMainSteps(1,options.subdivisions,options.faces);
   spec=normalizeCompilerTimeline(spec);
@@ -511,7 +513,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       // has the existing physical survival horizon. Do not clamp a requested
       // shape to two frames just because its last impact is near the song end.
       const constructionSpan=options.constructionRequests&&i===contacts.length-1?horizon-frame:span;
-      const support=clamp((1-(targets.air??.5))*(constructionSpan+1),3,Math.max(3,constructionSpan-6));
+      const releaseFrames=options.impactSearch?.releaseFrames??6;
+      const support=clamp((1-(targets.air??.5))*(constructionSpan+1),3,Math.max(3,constructionSpan-releaseFrames));
       const impact=gap>=0?gaps[gap].targets.impact:undefined;
       if(impact!==undefined&&options.motionQuality?.calmImpactMultiplier!==undefined)
         options.impactWeight=(options.impactWeight??2)*(1+(options.motionQuality.calmImpactMultiplier-1)*Math.max(0,1-impact/.2));
@@ -568,7 +571,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         return value===undefined||target===undefined||value<=1?0:
           ((value-target)**2-(1-target)**2)*(options.amplitudeWeight??1)*spanWeight(g,'amplitude');
       };
-      const controlContext={...options,span:constructionSpan};
+      const controlContext={...options,span:constructionSpan,releaseReserveFrames:options.impactSearch?.releaseFrames};
       const evaluateCandidate=(c:ArcMotionControl,fragments?:{lines:TrackLine[];guideIds:number[]})=>{
         lastRepair=undefined;
         c=normalizeArcControl(c,controlContext);
@@ -610,7 +613,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         if(!options.impactContract&&i>0&&!findAuthoredContactNearFrame(det,frame,1,frame-contacts[i-1].frame))return reject('missed');
         if(i===0&&!raw.frames.slice(1,4).some(f=>f.sledContacts.length))return reject('startup');
         if(!options.impactContract&&det.events.some(e=>e.type==='landing'&&!frames.some(f=>Math.abs(e.frame-f)<=1)))return reject('offbeat');
-        if(i<contacts.length-1&&!raw.frames.slice(-6).every(f=>f.sledContacts.length===0))return reject('late_release');
+        if(i<contacts.length-1&&releaseFrames>0&&!raw.frames.slice(-releaseFrames).every(f=>f.sledContacts.length===0))return reject('late_release');
         const observedImpacts=options.impactContract?impactFrames(child,raw.frames.slice(frame),state):undefined;
         const impactEvents=observedImpacts?continueContactImpacts(impactPrefix!,observedImpacts)
           .filter(e=>e.onset>=frame-CONTACT_IMPACT_CONTRACT.matchFrames&&e.onset<=Math.min(duration,horizon)):undefined;

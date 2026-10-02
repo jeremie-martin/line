@@ -6,7 +6,14 @@ import {CONTACT_IMPACT_CONTRACT, observeContactImpacts, detectContactImpacts, ac
 import {effectiveBodyVelocity} from './motion_quality.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
-export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number};
+export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number; releaseFrames?:number};
+export function validateImpactSearchOptions(options:ImpactSearchOptions|undefined){
+  if(!options)return;
+  for(const [key,value] of Object.entries(options)){
+    if(!['extraWeight','timingWeight','engagementGainWeight','releaseFrames'].includes(key)||!Number.isFinite(value)||value<0||
+      (key==='releaseFrames'&&(!Number.isSafeInteger(value)||value>6)))throw new Error('invalid impact search options');
+  }
+}
 export type MusicalImpactEvaluation = ReturnType<typeof evaluateMusicalImpacts>;
 export function impactFrames(engine: any, frames: readonly RawFrame[], terminalState?: Parameters<typeof effectiveBodyVelocity>[0]) {
   if (!frames.length) return [];

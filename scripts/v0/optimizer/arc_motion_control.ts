@@ -13,6 +13,7 @@ export type ArcControlContext = {
   observedReceiver?:boolean;compactFoldProposals?:boolean;
   responseGuideExtent?:boolean;
   compactProfileProposals?:boolean;
+  releaseReserveFrames?:number;
 };
 type ControlDefinition = {
   family: 'core' | 'guide' | 'expressive' | 'exit';
@@ -34,7 +35,7 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
   support: {family: 'core', min: 2, max: Infinity, tolerance: 1,
     coordinate: s => Math.max(1, s * .18), response: s => Math.max(.6, s * .1),
     newton: s => Math.max(1, s * .1), repair: s => Math.max(.5, s * .06),
-    normalize: (v, _c, context) => clamp(v, 2, Math.max(2, context.span - 4))},
+    normalize: (v, _c, context) => clamp(v, 2, Math.max(2, context.span - (context.releaseReserveFrames??4)))},
   bias: {family: 'core', min: -2, max: 2, tolerance: .3, coordinate: .5, response: .25, repair: .2},
   offset: {family: 'core', min: -2, max: 3, tolerance: .2, coordinate: .4, response: .2, repair: .1},
   clearance: {family: 'guide', min: 6, max: 30, tolerance: 1, coordinate: 2, response: 1.5, repair: 1,

@@ -190,15 +190,15 @@ pass, without stale results replacing the selected ride. In the TypeScript check
 the existing 251 diagnostics remain, with none in the changed files.
 Compiler behavior, contact/impact definitions and frozen benchmarks are unchanged.
 
-## Proposed next campaign: clear musical interactions in automatic tracks
+## Active campaign: clear musical interactions in automatic tracks
 
-**Status: proposed on October 2, after delivery of the sixteen-passage comparison.**
-This is the next campaign for discussion, not a claim that its implementation
-has started or that a replacement impact definition has been accepted. The owner
+**Status: approved in full; implementation started October 2 at 21:15 UTC.**
+The six stages below are authorized as one sustained campaign. A replacement
+impact definition remains provisional until its evidence is evaluated. The owner
 has now reviewed the panel; the [recorded feedback](evidence/interaction-panel-feedback-20261002.json)
 and [follow-up measurements](evidence/interaction-feedback-checks-20261002.json)
 sharpen the requirements below. No further labeling round is needed to start the
-proposed campaign. Preserve the few remaining uncertain interpretations.
+campaign. Preserve the few remaining uncertain interpretations.
 
 ### Outcome and working scope
 

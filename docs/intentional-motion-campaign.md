@@ -705,3 +705,26 @@ every branch and replay to the shared meter. It does not preserve an already
 completed whole track or promise monotonic final scores. Native tests exercise
 accepted revisions, timing, normal lines, cold-replay agreement and the hard
 frame limit. Twelve focused tests pass; its declared multi-case study is active.
+
+## General impact campaign — October 2, 21:15 UTC
+
+The owner approved all six stages of the revised roadmap. Starting revision is
+`18258cfe858410e0886067ee7bd3e722a49abc3e`; the qualified physical compiler remains
+`5b031f7e`. Frozen V6 and the existing twelve production records are preserved.
+This execution ledger records research, contract revisions, integration and
+evaluation without treating intermediate diagnostic success as completion.
+
+| Stage | Status |
+| --- | --- |
+| Requirements and declared development/reserved inputs | In progress |
+| General impact identity, timing and strength | Pending |
+| Controlled physical experiments and continuation | Pending |
+| Shared automatic compiler integration and improvement | Pending |
+| Frozen candidate, complete tracks and reserved evaluation | Pending |
+| Native music review, evidence and delivery | Pending |
+
+Known owner judgments, including unresolved examples, remain in the separately
+hashed October 2 feedback record. No artist-facing catalog of hit types is being
+introduced. The working definition will be versioned and baselined before search
+is tuned against it; any revision requires repeating that baseline. Large raw
+traces and render assets stay local.

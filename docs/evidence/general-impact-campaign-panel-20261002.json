@@ -1,0 +1,381 @@
+{
+  "schema": "line.general-impact-campaign-panel.v1",
+  "declaredAt": "2026-10-02T21:15:02Z",
+  "startingCommit": "18258cfe858410e0886067ee7bd3e722a49abc3e",
+  "qualifiedCompilerCommit": "5b031f7e22a287e7bb2f32e9ead1aaafccc351ce",
+  "productionBaselineFingerprint": "ed4d38b5a55f4b7e06a56c87c2e23b6b9758f4f07f491f8e17b30ac1973ce043",
+  "development": {
+    "audit": "generated/beat-salience-20261001/audit.json",
+    "auditSha256": "1637b64027a73dc7c0bbc2f68b2cf2d087362e7a91d968d22d146d8726ebe0c2",
+    "runs": [
+      {
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-production.json",
+        "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+        "durationFrames": 1760
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/luna_bala_44s-101/luna_bala_44s-101-production.json",
+        "trackHash": "768d62eb784001fd58711d157481d2e651c7c654775089f7d206a65c86a1f720",
+        "durationFrames": 1760
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-baseline.json",
+        "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+        "durationFrames": 1760
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-202/luna_bala_44s-202-production.json",
+        "trackHash": "218f32afa6c2b620fad38f7c44258101cc360b824bc33ae124bc8f3503b9352b",
+        "durationFrames": 1760
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/luna_bala_44s-202/luna_bala_44s-202-production.json",
+        "trackHash": "7f6fc62e49bcc6c325fbe364390f7fc470cd44d5d1a1c6c4be89e531e4aea43a",
+        "durationFrames": 1760
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-202/luna_bala_44s-202-baseline.json",
+        "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+        "durationFrames": 1760
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-303/luna_bala_44s-303-production.json",
+        "trackHash": "8c9badc84ddd7d632516d081df01c3ccfd94d0f1828c7fe3ad42641c0921948c",
+        "durationFrames": 1760
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/luna_bala_44s-303/luna_bala_44s-303-production.json",
+        "trackHash": "0b47a5531f073db055d230d699158355bd07ddc94987d6f0ec3c7078e304bc4d",
+        "durationFrames": 1760
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-303/luna_bala_44s-303-baseline.json",
+        "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+        "durationFrames": 1760
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json",
+        "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+        "durationFrames": 1840
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json",
+        "trackHash": "1c9f8b72b76c08c816ddeb9183c6daca3176868432b473a39f180df0d4c72d6b",
+        "durationFrames": 1840
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-baseline.json",
+        "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+        "durationFrames": 1840
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/amor_na_praia_46s-202-production.json",
+        "trackHash": "cf9fe39f96d11ef3028b71a421d8bbcaaa895385e4d176023ea4ca3bb9531148",
+        "durationFrames": 1840
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-202/amor_na_praia_46s-202-production.json",
+        "trackHash": "2914e59105a44719f01e1e029aa0ed398502b285371faf7035515bfcac4048ea",
+        "durationFrames": 1840
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/amor_na_praia_46s-202-baseline.json",
+        "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+        "durationFrames": 1840
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/amor_na_praia_46s-303-production.json",
+        "trackHash": "19ddcf0a60253ef638e1a36b4eb2f1bcd06bd8fc1b6a6dc6de49fe394acb02b1",
+        "durationFrames": 1840
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/amor_na_praia_46s-303/amor_na_praia_46s-303-production.json",
+        "trackHash": "1ed14da1bd316b3132c6dce7f451dad4b94a0ccc93a967ebfe1130fa0baf8805",
+        "durationFrames": 1840
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/amor_na_praia_46s-303-baseline.json",
+        "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+        "durationFrames": 1840
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+        "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+        "durationFrames": 1920
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+        "trackHash": "98fe377fa17b4d9a1249b857c9eb50e63b1e1a2e42e3a59e4359819b8d7d0998",
+        "durationFrames": 1920
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-baseline.json",
+        "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+        "durationFrames": 1920
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/tiki_tiki_48s-202-production.json",
+        "trackHash": "9a0630ad8bcf17274dc26e11143f430838b24ce66f3808c03660c42a61dbc2a8",
+        "durationFrames": 1920
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-202/tiki_tiki_48s-202-production.json",
+        "trackHash": "e85e124e6d220fc210131dc3a97ccc94dbdc36705a0987dbb4e426a3b6cf97a9",
+        "durationFrames": 1920
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/tiki_tiki_48s-202-baseline.json",
+        "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+        "durationFrames": 1920
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json",
+        "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+        "durationFrames": 1920
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json",
+        "trackHash": "47b7a180526f8b10050cc8a429d88fb145848b6db07addcbff3a78d12a557543",
+        "durationFrames": 1920
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-baseline.json",
+        "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+        "durationFrames": 1920
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-production.json",
+        "trackHash": "a7b97c400289b46172ac61c93abf9cb68cc28f7141dd9d082cf4ac871c0e472b",
+        "durationFrames": 1782
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-production.json",
+        "trackHash": "bdc659483517758c665dbb36a75534c8dbfca08caf6019656b7a3f1582da75cd",
+        "durationFrames": 1782
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-baseline.json",
+        "trackHash": "0e1aa273202c3da8ca9b357132dd889b69e322367a8974b8a99729499dba9917",
+        "durationFrames": 1782
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-production.json",
+        "trackHash": "7f61f3ce5b0ebb08fa3c1b0ec7c042f6b6665401dd90596a913b2e419a875656",
+        "durationFrames": 1782
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-production.json",
+        "trackHash": "203c11875219d043792c9f9ac5be6607d4fb0e29e45b6a6a8ec5adce940d7b97",
+        "durationFrames": 1782
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-baseline.json",
+        "trackHash": "9fbf11a4d1ab681184783b6ed5eb1d08bec2873fbd87471d879bbb32ba64711e",
+        "durationFrames": 1782
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "version": "current",
+        "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-production.json",
+        "trackHash": "46cca64f2bcd8fcf302793e514305135d03fd354501e29a434fe64d8bcf2b533",
+        "durationFrames": 1782
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "version": "previous",
+        "path": "generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-production.json",
+        "trackHash": "4047e321cebe9d5faddd9cd25369faaee34c09cfe3a656a8c3e9f3b1cad8d919",
+        "durationFrames": 1782
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "version": "ordinary",
+        "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-baseline.json",
+        "trackHash": "f2cc3695c713dc04e796b74db2e2ec3e7ddc54336ad541c7af1113594740468c",
+        "durationFrames": 1782
+      }
+    ],
+    "ownerPanel": "docs/evidence/interaction-panel-20261002.json",
+    "ownerPanelSha256": "4f92e172c8d545fe78805f03a1f6cd22cfdafd4c4aa1ec842f9d36fa6e4057d8",
+    "feedback": "docs/evidence/interaction-panel-feedback-20261002.json",
+    "feedbackSha256": "f35de8a25df7cf04df5e23038da5fe4249bf2c63664a33a12db746dd2245f1fa",
+    "selection": "All twelve current automatic production rides, plus all saved previous/ordinary comparisons and historical physical calibration where replayable; sixteen owner passages are known development examples, not a holdout."
+  },
+  "reserved": {
+    "songs": [
+      "amour_de_ma_vie_44s",
+      "amor_na_praia_46s",
+      "luna_bala_44s",
+      "tiki_tiki_48s"
+    ],
+    "seeds": [
+      919,
+      1021
+    ],
+    "scheduledRuns": 8,
+    "exposureCheck": "Recursive generated-file scan found no matching production seed records; four numeric substring hits were unrelated July scratch render names. Previous campaign explicitly records these seeds unexamined. Reserved arrangements are of known songs, not unseen music. Evaluate only after source/configuration freeze, retain all results."
+  },
+  "constraints": [
+    "Normal type 0 lines, unchanged native physics.",
+    "Frozen V6 and existing baseline preserved.",
+    "No artist-facing diagnostic hit taxonomy.",
+    "One shared impact event, timing, strength and matching contract used by search and independent evaluation.",
+    "No identity or geometry-label gates in impact definition.",
+    "Full tracks and continued prefixes required, no clip-only success.",
+    "Twelve development production tracks plus eight reserved tracks, each scheduled failure retained.",
+    "Version and baseline the provisional definition before optimizing it; revise baseline if definition changes."
+  ],
+  "requirements": [
+    {
+      "id": "coherent-clean",
+      "evidence": [
+        "clean-landing",
+        "tiki-contrast"
+      ],
+      "expectation": "Preserve the clear lower strikes including a multi-peak seven-contact-frame response."
+    },
+    {
+      "id": "distinct-receivers",
+      "evidence": [
+        "merged-hits",
+        "upper-rival",
+        "ripple-receiver"
+      ],
+      "expectation": "Separate physical engagements must not donate response to an earlier strike; upper strikes participate in the same musical account."
+    },
+    {
+      "id": "quiet",
+      "evidence": [
+        "luna-opening",
+        "tiki-opening"
+      ],
+      "expectation": "Quiet touches remain representable; existing 0.06/0.02 targets do not change."
+    },
+    {
+      "id": "strength-clarity",
+      "evidence": [
+        "amor-strong",
+        "clean-landing",
+        "luna-strong"
+      ],
+      "expectation": "Challenge accumulated magnitude on weak-looking distributed body-side contact without excluding inverted or upper engagements categorically."
+    },
+    {
+      "id": "smooth-guidance",
+      "evidence": [
+        "sustained-guidance",
+        "amour-contrast"
+      ],
+      "expectation": "Useful steering remains possible; report both cumulative nongravity acceleration and local bursts."
+    },
+    {
+      "id": "tiny-precontact",
+      "evidence": [
+        "amour-strong"
+      ],
+      "expectation": "A tiny preliminary contact must not automatically steal the beat from the meaningful response; exact desired perceptual onset remains uncertain."
+    }
+  ]
+}

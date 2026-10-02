@@ -223,3 +223,161 @@ Validation: complete 36-record cold replay and score parity; three local guide
 assays with exact prefix parity; four synthetic metric assays; eight browser
 playback windows; **11 existing impact/recapture/overlay tests passed in four
 test files**. The compiler and frozen contracts remain untouched.
+
+## October 2: historical tracks and impacts between beats
+
+The owner clarified that an upper-rail collision can create a visible accent
+before an otherwise correctly scored landing. Preserve the established landing
+impact definition and investigate the rest of the ride separately. Neither all
+extra accents nor all guide contacts are undesirable by definition.
+
+### Historical material recovered
+
+There are **226 production videos from July 6–7** in
+`generated/bundles/260706-235241/`: 76 Amor, 75 Luna and 75 Tiki. Their upload
+metadata records compiler `e7c356e`. Individual production scores range from
+654.1–686.2 for Tiki, 655.3–696.7 for Amor, and 713.1–757.2 for Luna. These are
+not benchmark headlines. The July 17 output folder is empty; this search has
+not recovered a specifically mid-July production batch. Most July bundles
+retain videos and metadata rather than raw geometry.
+
+The [inventory](evidence/historical-production-inventory-20261002.json) binds
+all upload files and verifies video presence. Examples selected by earliest
+upload time, not diagnostic outcome:
+
+- [July Tiki](../generated/bundles/260706-235241/tiki_tiki_48s/tiki_tiki_48s-s946081389/video.mp4).
+- [July Luna](../generated/bundles/260706-235241/luna_bala_44s/luna_bala_44s-s946081256/video.mp4).
+- [July Amor](../generated/bundles/260706-235241/amor_na_praia_46s/amor_na_praia_46s-s946078955/video.mp4).
+- [910-era Luna](../archives/arc-v3-910/luna_bala_44s/video.mp4), generated
+  September 9 with seed 260908011. Canonical V3 headline 910.5248; this production
+  track's score 905.3429.
+
+One July 6 Amor geometry/report survives at
+`generated/produce/_paritycheck/s946078916.track.json`, with its render log and
+video. Its upload says `paritytest`, not a recoverable compiler hash. All 78
+saved contact frames replay exactly and authored target times match the current
+specification plus production jolt. No original full trajectory or audio hash
+survives there; do not claim complete historical playback parity.
+
+The study also replays three 852-era tracks and the 910-era Luna. Their archived
+track/report hashes and current spec/audio/analysis identities match. All 305
+contact frames and scored impacts reproduce. Twenty-four current/ordinary
+records reproduce their full saved traces and prior diagnostic peaks. Total:
+**29 records and 2,273 authored contacts**, not a multi-seed historical trial.
+
+For 61 strong Amor beats, July's median physical landing peak is **75 ms** after
+the beat, versus **100 ms** in the 852-era track and each current seed. Median
+physical response share in the first two contact frames is **44.0%** in July,
+versus **25.1–30.6%** currently. July measures weaker under today's impact ruler;
+that does not refute cleaner perceived rhythm. The deliberate July 31 definition
+change (`48dbda18`) prevents direct comparison of historical scores.
+
+For Luna, the 910-era median peak is **100 ms**, versus **95 ms** currently:
+there is no uniform timing regression. At **42.380 s**, however, the old track
+has one decaying response, strongest at +70 ms. Current seed 101 also has an early
+pulse at +70 ms, then a stronger pulse at +195 ms. Scored impact remains similar:
+**0.564 / 0.540**, target **0.542**. Calling this only a late landing would miss
+the split response.
+
+![Historical comparison](evidence/historical-impact-examples-20261002.png)
+
+### Continuous observations and causal checks
+
+`scripts/gallery/ride_accents.ts` observes native frames without a landing gate:
+mean body velocity correction, signed speed change, turning, and RMS corrections
+of all six body points. The latter retains opposing movements cancelled in the
+mean; its nontranslational part includes legitimate rotation and articulation.
+These are kinematic quantities, not calibrated perceptual scores or forces.
+
+Records include peak width/concentration, musical timing, nearby landing
+strength, actual collision IDs and guide/support roles, plus the exact scoring
+gates. Sweeps at 0.5/1/2 absolute units and 0.5/1/2 times the nearby landing peak
+expose threshold sensitivity. No threshold becomes an artistic rule.
+
+All **36 saved records** are replayed: 12 current, 12 previous, 12 ordinary
+(only six distinct ordinary tracks). Mean correction matches the previous
+independent frame audit within 1e-8. No compiler, judge, arrangement or player
+change is involved.
+
+| Passage | Before next beat | One-frame turn | Extra/landing peak | Next target / achieved | Jolt after guide removal |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Tiki 303, 12.450 s, S transfer | 167 ms | 22.75° | 2.62× | 0.657 / 0.640 | 4.238 → 0.059 |
+| Luna 202, 15.975 s, ripple transfer | 235 ms | 15.25° | 1.73× | 0.659 / 0.651 | 2.790 → 0.123 |
+| Luna 303, 9.950 s, scattered | 260 ms | 12.35° | 1.94× | 0.358 / 0.339 | 2.302 → 0.034 |
+| Ordinary Amor 101, 23.175 s, paired arc | 225 ms | 11.37° | 1.63× | 0.624 / 0.619 | 2.332 → 0.065 |
+
+Each guide deletion preserves all ten rider-point positions exactly until first
+removed contact, and preserves the earlier completed landing impact. Probes
+end shortly after the jolt, before the next landing. This establishes local
+causation, **not** a valid replacement or preservation of the next target.
+
+The three current examples slow the rider by 0.83, 0.52 and 0.20 units/frame.
+Positive-speed-gain limits therefore miss them. They are outside all scored
+landing windows; the next stored-velocity frame is also airborne under the sled
+detector, so its contact-gated redirection contribution is zero. Tiki is labeled
+a **kick** on the next frame; the other two have no detector event within four
+frames. An off-beat-*landing* gate does not prohibit every forceful collision.
+The search's direction/absolute-correction residuals apply only below requested
+impact 0.2 and average over the interval; these energetic passages are outside
+that calm-specific rule. This is a coverage gap, not a recent scorer change.
+
+A fifth positive probe, Amour 101's terrace guide at 7.725 s, reduces correction
+**2.170 → 0.046**. It lies at the tail of the previous landing window while nearer
+the next beat, making temporal attribution ambiguous. A **negative control**
+removes Luna 101's final guide: the second pulse at 42.575 s remains **1.807**,
+with identical trajectory throughout the assay. That support pulse precedes
+the first guide contact at 42.650 s. Guides do not explain every split hit.
+
+![Competing guide collisions](evidence/ride-accents-examples-20261002.png)
+
+### Population evidence and limits
+
+Descriptive screen: correction ≥1, outside every physical landing window, >75 ms
+from the nearest beat, stronger than that landing's peak, and authored impact
+≥0.5. Each collection below contains 696 strong beat occurrences:
+
+| Collection | Extra peaks | Before / after nearest beat | Recent guide contact | Slowing down |
+| --- | ---: | ---: | ---: | ---: |
+| Ordinary | 16 | 10 / 6 | 16 | 0 |
+| Previous automatic | 43 | 9 / 34 | 31 | 23 |
+| Current automatic | 34 | 12 / 22 | 30 | 17 |
+
+These are peaks, not independent affected beats or listener judgments.
+Deduplicating ordinary gives 8 peaks / 394 strong beats / six tracks; both views
+are saved. Raising the absolute floor to 2 gives 4 / 22 / 17; requiring >2× the
+landing peak gives 0 / 7 / 2. Guide proximity is association except in the
+explicit causal probes.
+
+The direction is not universal. Across **all** target strengths, the same
+screen gives **94 / 143 / 78**: current automatic improves the broad count over
+ordinary, while retaining more competing accents around strong beats. Minimizing
+all jolts would misrepresent the evidence and suppress useful motion. Extra
+body-point movement is likewise diagnostic, not automatically a flaw.
+
+This establishes several concrete instances of the owner's mechanism, not that
+it explains most of the perceived problem. Weak intended hits, split support
+responses, musical context and camera presentation remain relevant. The specific
+Tiki listening check is pending; technical work does not depend on the reply.
+
+Keep the landing metric and frozen benchmark. Use complementary observations
+for landing concentration, extra accent dominance/timing, body response, and
+collision provenance. Before defining a new scalar, compare welcome transfers
+and unwelcome jolts across ordinary/new geometry and quiet/energetic passages.
+Next causal compiler studies should test gentler or distributed receiver
+engagement with matched incoming states and full suffix reconstruction. Preserve
+requested geometry and the possibility of useful accents at musical subdivisions
+not represented by the contact specification.
+
+Evidence: [summary](evidence/ride-accents-summary-20261002.json),
+[whole-ride audit](evidence/ride-accents-audit-20261002.json.gz),
+[historical audit](evidence/historical-impact-audit-20261002.json.gz).
+Raw frames stay local under `generated/ride-accents-20261002/` and
+`generated/beat-salience-history-20261002/`. Reproduce with
+`study_historical_impacts.ts`, `study_ride_accents.ts`, and
+`report_ride_accents.py` in `scripts/gallery/`.
+
+Validation: 36 accent replays, 29 historical/current replays, five positive
+probes plus one negative control, **64 tests passing in five files**, and browser
+verification of the linked Tiki passage (native replay loaded, music advanced,
+no page errors). The repository TypeScript check still reports 251 diagnostics;
+none are in the added investigation files. No global clean-build claim.

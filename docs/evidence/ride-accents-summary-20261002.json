@@ -1,0 +1,4323 @@
+{
+  "schema": "line.ride-accent-investigation.v1",
+  "harnessSha256": "d5683f2aa39c38e07040f1aea50d0f3b1a94f0a92c49292f53b9020c0bec093c",
+  "observerSha256": "1d7784b59b05abee01a59221e577a1eecc3c32cd6058f895e98f47e19bb33f8f",
+  "sourceAuditSha256": "1637b64027a73dc7c0bbc2f68b2cf2d087362e7a91d968d22d146d8726ebe0c2",
+  "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+  "notes": [
+    "No new scalar aesthetic score. Threshold sweeps are descriptive sensitivity checks, not tuned acceptance bars.",
+    "Body mean correction detects translation/turning; point RMS also retains opposing corrections cancelled in that mean. Relative RMS includes rotation and articulation, not only undesirable motion.",
+    "Mean correction exactly reproduces the independently saved full-ride diagnostic within 1e-8.",
+    "Stored velocity at f+1 contains the solver response at f plus gravity; directResponseInsideScoreGate reports window membership and grounding at f+1, not causal attribution of all later consequences.",
+    "Guide collision in the same or preceding two frames is association. Only the separately reported deletion assays establish local causation.",
+    "A peak outside the landing window is not automatically unwanted. Some are intentional useful transfers or music accents missing from the contact specification.",
+    "Raw counts include repeated ordinary geometries; unique=true separately deduplicates by track hash. Neither sample is an independent randomized experiment."
+  ],
+  "summaries": [
+    {
+      "version": "ordinary",
+      "unique": false,
+      "tracks": 12,
+      "beats": 945,
+      "strongBeats": 696,
+      "thresholds": [
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 557,
+          "before": 216,
+          "after": 341,
+          "withRecentGuideCollision": 436,
+          "slowingDown": 149,
+          "outsideAllLandingScoreWindows": 557,
+          "nextFrameAirborne": 351
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 366,
+          "before": 144,
+          "after": 222,
+          "withRecentGuideCollision": 356,
+          "slowingDown": 37,
+          "outsideAllLandingScoreWindows": 366,
+          "nextFrameAirborne": 266
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 154,
+          "before": 65,
+          "after": 89,
+          "withRecentGuideCollision": 49,
+          "slowingDown": 100,
+          "outsideAllLandingScoreWindows": 154,
+          "nextFrameAirborne": 56
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 16,
+          "before": 10,
+          "after": 6,
+          "withRecentGuideCollision": 16,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 16,
+          "nextFrameAirborne": 14
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 74,
+          "before": 20,
+          "after": 54,
+          "withRecentGuideCollision": 3,
+          "slowingDown": 68,
+          "outsideAllLandingScoreWindows": 74,
+          "nextFrameAirborne": 7
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 0,
+          "before": 0,
+          "after": 0,
+          "withRecentGuideCollision": 0,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 0,
+          "nextFrameAirborne": 0
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 373,
+          "before": 144,
+          "after": 229,
+          "withRecentGuideCollision": 315,
+          "slowingDown": 78,
+          "outsideAllLandingScoreWindows": 373,
+          "nextFrameAirborne": 242
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 280,
+          "before": 112,
+          "after": 168,
+          "withRecentGuideCollision": 274,
+          "slowingDown": 22,
+          "outsideAllLandingScoreWindows": 280,
+          "nextFrameAirborne": 196
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 94,
+          "before": 36,
+          "after": 58,
+          "withRecentGuideCollision": 42,
+          "slowingDown": 56,
+          "outsideAllLandingScoreWindows": 94,
+          "nextFrameAirborne": 45
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 16,
+          "before": 10,
+          "after": 6,
+          "withRecentGuideCollision": 16,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 16,
+          "nextFrameAirborne": 14
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 43,
+          "before": 4,
+          "after": 39,
+          "withRecentGuideCollision": 3,
+          "slowingDown": 40,
+          "outsideAllLandingScoreWindows": 43,
+          "nextFrameAirborne": 4
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 0,
+          "before": 0,
+          "after": 0,
+          "withRecentGuideCollision": 0,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 0,
+          "nextFrameAirborne": 0
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 13,
+          "before": 3,
+          "after": 10,
+          "withRecentGuideCollision": 4,
+          "slowingDown": 9,
+          "outsideAllLandingScoreWindows": 13,
+          "nextFrameAirborne": 3
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 4,
+          "before": 3,
+          "after": 1,
+          "withRecentGuideCollision": 4,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 4,
+          "nextFrameAirborne": 3
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 13,
+          "before": 3,
+          "after": 10,
+          "withRecentGuideCollision": 4,
+          "slowingDown": 9,
+          "outsideAllLandingScoreWindows": 13,
+          "nextFrameAirborne": 3
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 4,
+          "before": 3,
+          "after": 1,
+          "withRecentGuideCollision": 4,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 4,
+          "nextFrameAirborne": 3
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 9,
+          "before": 0,
+          "after": 9,
+          "withRecentGuideCollision": 0,
+          "slowingDown": 9,
+          "outsideAllLandingScoreWindows": 9,
+          "nextFrameAirborne": 0
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 0,
+          "before": 0,
+          "after": 0,
+          "withRecentGuideCollision": 0,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 0,
+          "nextFrameAirborne": 0
+        }
+      ],
+      "nontranslationalPeaks": 201
+    },
+    {
+      "version": "ordinary",
+      "unique": true,
+      "tracks": 6,
+      "beats": 485,
+      "strongBeats": 394,
+      "thresholds": [
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 257,
+          "before": 90,
+          "after": 167,
+          "withRecentGuideCollision": 210,
+          "slowingDown": 61,
+          "outsideAllLandingScoreWindows": 257,
+          "nextFrameAirborne": 137
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 182,
+          "before": 60,
+          "after": 122,
+          "withRecentGuideCollision": 178,
+          "slowingDown": 17,
+          "outsideAllLandingScoreWindows": 182,
+          "nextFrameAirborne": 106
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 64,
+          "before": 27,
+          "after": 37,
+          "withRecentGuideCollision": 23,
+          "slowingDown": 40,
+          "outsideAllLandingScoreWindows": 64,
+          "nextFrameAirborne": 22
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 8,
+          "before": 4,
+          "after": 4,
+          "withRecentGuideCollision": 8,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 8,
+          "nextFrameAirborne": 6
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 28,
+          "before": 8,
+          "after": 20,
+          "withRecentGuideCollision": 1,
+          "slowingDown": 26,
+          "outsideAllLandingScoreWindows": 28,
+          "nextFrameAirborne": 3
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 0,
+          "before": 0,
+          "after": 0,
+          "withRecentGuideCollision": 0,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 0,
+          "nextFrameAirborne": 0
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 179,
+          "before": 58,
+          "after": 121,
+          "withRecentGuideCollision": 155,
+          "slowingDown": 34,
+          "outsideAllLandingScoreWindows": 179,
+          "nextFrameAirborne": 94
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 142,
+          "before": 46,
+          "after": 96,
+          "withRecentGuideCollision": 140,
+          "slowingDown": 10,
+          "outsideAllLandingScoreWindows": 142,
+          "nextFrameAirborne": 78
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 40,
+          "before": 14,
+          "after": 26,
+          "withRecentGuideCollision": 18,
+          "slowingDown": 24,
+          "outsideAllLandingScoreWindows": 40,
+          "nextFrameAirborne": 17
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 8,
+          "before": 4,
+          "after": 4,
+          "withRecentGuideCollision": 8,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 8,
+          "nextFrameAirborne": 6
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 17,
+          "before": 2,
+          "after": 15,
+          "withRecentGuideCollision": 1,
+          "slowingDown": 16,
+          "outsideAllLandingScoreWindows": 17,
+          "nextFrameAirborne": 2
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 0,
+          "before": 0,
+          "after": 0,
+          "withRecentGuideCollision": 0,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 0,
+          "nextFrameAirborne": 0
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 5,
+          "before": 1,
+          "after": 4,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 3,
+          "outsideAllLandingScoreWindows": 5,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 2,
+          "before": 1,
+          "after": 1,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 2,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 5,
+          "before": 1,
+          "after": 4,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 3,
+          "outsideAllLandingScoreWindows": 5,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 2,
+          "before": 1,
+          "after": 1,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 2,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 3,
+          "before": 0,
+          "after": 3,
+          "withRecentGuideCollision": 0,
+          "slowingDown": 3,
+          "outsideAllLandingScoreWindows": 3,
+          "nextFrameAirborne": 0
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 0,
+          "before": 0,
+          "after": 0,
+          "withRecentGuideCollision": 0,
+          "slowingDown": 0,
+          "outsideAllLandingScoreWindows": 0,
+          "nextFrameAirborne": 0
+        }
+      ],
+      "nontranslationalPeaks": 99
+    },
+    {
+      "version": "previous",
+      "unique": false,
+      "tracks": 12,
+      "beats": 945,
+      "strongBeats": 696,
+      "thresholds": [
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 400,
+          "before": 106,
+          "after": 294,
+          "withRecentGuideCollision": 268,
+          "slowingDown": 206,
+          "outsideAllLandingScoreWindows": 400,
+          "nextFrameAirborne": 155
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 213,
+          "before": 55,
+          "after": 158,
+          "withRecentGuideCollision": 185,
+          "slowingDown": 70,
+          "outsideAllLandingScoreWindows": 213,
+          "nextFrameAirborne": 97
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 198,
+          "before": 48,
+          "after": 150,
+          "withRecentGuideCollision": 91,
+          "slowingDown": 142,
+          "outsideAllLandingScoreWindows": 198,
+          "nextFrameAirborne": 55
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 44,
+          "before": 10,
+          "after": 34,
+          "withRecentGuideCollision": 32,
+          "slowingDown": 24,
+          "outsideAllLandingScoreWindows": 44,
+          "nextFrameAirborne": 14
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 101,
+          "before": 23,
+          "after": 78,
+          "withRecentGuideCollision": 32,
+          "slowingDown": 84,
+          "outsideAllLandingScoreWindows": 101,
+          "nextFrameAirborne": 18
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 8,
+          "before": 3,
+          "after": 5,
+          "withRecentGuideCollision": 6,
+          "slowingDown": 7,
+          "outsideAllLandingScoreWindows": 8,
+          "nextFrameAirborne": 3
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 279,
+          "before": 57,
+          "after": 222,
+          "withRecentGuideCollision": 192,
+          "slowingDown": 142,
+          "outsideAllLandingScoreWindows": 279,
+          "nextFrameAirborne": 110
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 174,
+          "before": 38,
+          "after": 136,
+          "withRecentGuideCollision": 148,
+          "slowingDown": 60,
+          "outsideAllLandingScoreWindows": 174,
+          "nextFrameAirborne": 79
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 143,
+          "before": 26,
+          "after": 117,
+          "withRecentGuideCollision": 70,
+          "slowingDown": 104,
+          "outsideAllLandingScoreWindows": 143,
+          "nextFrameAirborne": 40
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 43,
+          "before": 9,
+          "after": 34,
+          "withRecentGuideCollision": 31,
+          "slowingDown": 23,
+          "outsideAllLandingScoreWindows": 43,
+          "nextFrameAirborne": 13
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 77,
+          "before": 14,
+          "after": 63,
+          "withRecentGuideCollision": 27,
+          "slowingDown": 67,
+          "outsideAllLandingScoreWindows": 77,
+          "nextFrameAirborne": 14
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 7,
+          "before": 2,
+          "after": 5,
+          "withRecentGuideCollision": 5,
+          "slowingDown": 6,
+          "outsideAllLandingScoreWindows": 7,
+          "nextFrameAirborne": 2
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 87,
+          "before": 8,
+          "after": 79,
+          "withRecentGuideCollision": 44,
+          "slowingDown": 71,
+          "outsideAllLandingScoreWindows": 87,
+          "nextFrameAirborne": 18
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 42,
+          "before": 4,
+          "after": 38,
+          "withRecentGuideCollision": 31,
+          "slowingDown": 28,
+          "outsideAllLandingScoreWindows": 42,
+          "nextFrameAirborne": 13
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 67,
+          "before": 6,
+          "after": 61,
+          "withRecentGuideCollision": 28,
+          "slowingDown": 58,
+          "outsideAllLandingScoreWindows": 67,
+          "nextFrameAirborne": 12
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 22,
+          "before": 2,
+          "after": 20,
+          "withRecentGuideCollision": 15,
+          "slowingDown": 15,
+          "outsideAllLandingScoreWindows": 22,
+          "nextFrameAirborne": 7
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 42,
+          "before": 5,
+          "after": 37,
+          "withRecentGuideCollision": 14,
+          "slowingDown": 39,
+          "outsideAllLandingScoreWindows": 42,
+          "nextFrameAirborne": 5
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 6,
+          "before": 1,
+          "after": 5,
+          "withRecentGuideCollision": 4,
+          "slowingDown": 5,
+          "outsideAllLandingScoreWindows": 6,
+          "nextFrameAirborne": 2
+        }
+      ],
+      "nontranslationalPeaks": 168
+    },
+    {
+      "version": "previous",
+      "unique": true,
+      "tracks": 12,
+      "beats": 945,
+      "strongBeats": 696,
+      "thresholds": [
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 400,
+          "before": 106,
+          "after": 294,
+          "withRecentGuideCollision": 268,
+          "slowingDown": 206,
+          "outsideAllLandingScoreWindows": 400,
+          "nextFrameAirborne": 155
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 213,
+          "before": 55,
+          "after": 158,
+          "withRecentGuideCollision": 185,
+          "slowingDown": 70,
+          "outsideAllLandingScoreWindows": 213,
+          "nextFrameAirborne": 97
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 198,
+          "before": 48,
+          "after": 150,
+          "withRecentGuideCollision": 91,
+          "slowingDown": 142,
+          "outsideAllLandingScoreWindows": 198,
+          "nextFrameAirborne": 55
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 44,
+          "before": 10,
+          "after": 34,
+          "withRecentGuideCollision": 32,
+          "slowingDown": 24,
+          "outsideAllLandingScoreWindows": 44,
+          "nextFrameAirborne": 14
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 101,
+          "before": 23,
+          "after": 78,
+          "withRecentGuideCollision": 32,
+          "slowingDown": 84,
+          "outsideAllLandingScoreWindows": 101,
+          "nextFrameAirborne": 18
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 8,
+          "before": 3,
+          "after": 5,
+          "withRecentGuideCollision": 6,
+          "slowingDown": 7,
+          "outsideAllLandingScoreWindows": 8,
+          "nextFrameAirborne": 3
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 279,
+          "before": 57,
+          "after": 222,
+          "withRecentGuideCollision": 192,
+          "slowingDown": 142,
+          "outsideAllLandingScoreWindows": 279,
+          "nextFrameAirborne": 110
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 174,
+          "before": 38,
+          "after": 136,
+          "withRecentGuideCollision": 148,
+          "slowingDown": 60,
+          "outsideAllLandingScoreWindows": 174,
+          "nextFrameAirborne": 79
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 143,
+          "before": 26,
+          "after": 117,
+          "withRecentGuideCollision": 70,
+          "slowingDown": 104,
+          "outsideAllLandingScoreWindows": 143,
+          "nextFrameAirborne": 40
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 43,
+          "before": 9,
+          "after": 34,
+          "withRecentGuideCollision": 31,
+          "slowingDown": 23,
+          "outsideAllLandingScoreWindows": 43,
+          "nextFrameAirborne": 13
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 77,
+          "before": 14,
+          "after": 63,
+          "withRecentGuideCollision": 27,
+          "slowingDown": 67,
+          "outsideAllLandingScoreWindows": 77,
+          "nextFrameAirborne": 14
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 7,
+          "before": 2,
+          "after": 5,
+          "withRecentGuideCollision": 5,
+          "slowingDown": 6,
+          "outsideAllLandingScoreWindows": 7,
+          "nextFrameAirborne": 2
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 87,
+          "before": 8,
+          "after": 79,
+          "withRecentGuideCollision": 44,
+          "slowingDown": 71,
+          "outsideAllLandingScoreWindows": 87,
+          "nextFrameAirborne": 18
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 42,
+          "before": 4,
+          "after": 38,
+          "withRecentGuideCollision": 31,
+          "slowingDown": 28,
+          "outsideAllLandingScoreWindows": 42,
+          "nextFrameAirborne": 13
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 67,
+          "before": 6,
+          "after": 61,
+          "withRecentGuideCollision": 28,
+          "slowingDown": 58,
+          "outsideAllLandingScoreWindows": 67,
+          "nextFrameAirborne": 12
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 22,
+          "before": 2,
+          "after": 20,
+          "withRecentGuideCollision": 15,
+          "slowingDown": 15,
+          "outsideAllLandingScoreWindows": 22,
+          "nextFrameAirborne": 7
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 42,
+          "before": 5,
+          "after": 37,
+          "withRecentGuideCollision": 14,
+          "slowingDown": 39,
+          "outsideAllLandingScoreWindows": 42,
+          "nextFrameAirborne": 5
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 6,
+          "before": 1,
+          "after": 5,
+          "withRecentGuideCollision": 4,
+          "slowingDown": 5,
+          "outsideAllLandingScoreWindows": 6,
+          "nextFrameAirborne": 2
+        }
+      ],
+      "nontranslationalPeaks": 168
+    },
+    {
+      "version": "current",
+      "unique": false,
+      "tracks": 12,
+      "beats": 945,
+      "strongBeats": 696,
+      "thresholds": [
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 329,
+          "before": 109,
+          "after": 220,
+          "withRecentGuideCollision": 218,
+          "slowingDown": 186,
+          "outsideAllLandingScoreWindows": 329,
+          "nextFrameAirborne": 158
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 186,
+          "before": 70,
+          "after": 116,
+          "withRecentGuideCollision": 169,
+          "slowingDown": 75,
+          "outsideAllLandingScoreWindows": 186,
+          "nextFrameAirborne": 117
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 131,
+          "before": 36,
+          "after": 95,
+          "withRecentGuideCollision": 49,
+          "slowingDown": 101,
+          "outsideAllLandingScoreWindows": 131,
+          "nextFrameAirborne": 37
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 34,
+          "before": 12,
+          "after": 22,
+          "withRecentGuideCollision": 30,
+          "slowingDown": 17,
+          "outsideAllLandingScoreWindows": 34,
+          "nextFrameAirborne": 20
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 41,
+          "before": 10,
+          "after": 31,
+          "withRecentGuideCollision": 5,
+          "slowingDown": 36,
+          "outsideAllLandingScoreWindows": 41,
+          "nextFrameAirborne": 7
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 2,
+          "before": 1,
+          "after": 1,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 2,
+          "outsideAllLandingScoreWindows": 2,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 219,
+          "before": 79,
+          "after": 140,
+          "withRecentGuideCollision": 169,
+          "slowingDown": 112,
+          "outsideAllLandingScoreWindows": 219,
+          "nextFrameAirborne": 121
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 162,
+          "before": 62,
+          "after": 100,
+          "withRecentGuideCollision": 147,
+          "slowingDown": 67,
+          "outsideAllLandingScoreWindows": 162,
+          "nextFrameAirborne": 101
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 78,
+          "before": 22,
+          "after": 56,
+          "withRecentGuideCollision": 40,
+          "slowingDown": 56,
+          "outsideAllLandingScoreWindows": 78,
+          "nextFrameAirborne": 30
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 34,
+          "before": 12,
+          "after": 22,
+          "withRecentGuideCollision": 30,
+          "slowingDown": 17,
+          "outsideAllLandingScoreWindows": 34,
+          "nextFrameAirborne": 20
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 26,
+          "before": 6,
+          "after": 20,
+          "withRecentGuideCollision": 3,
+          "slowingDown": 25,
+          "outsideAllLandingScoreWindows": 26,
+          "nextFrameAirborne": 2
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 2,
+          "before": 1,
+          "after": 1,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 2,
+          "outsideAllLandingScoreWindows": 2,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 41,
+          "before": 11,
+          "after": 30,
+          "withRecentGuideCollision": 28,
+          "slowingDown": 27,
+          "outsideAllLandingScoreWindows": 41,
+          "nextFrameAirborne": 17
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 28,
+          "before": 9,
+          "after": 19,
+          "withRecentGuideCollision": 27,
+          "slowingDown": 14,
+          "outsideAllLandingScoreWindows": 28,
+          "nextFrameAirborne": 16
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 30,
+          "before": 7,
+          "after": 23,
+          "withRecentGuideCollision": 18,
+          "slowingDown": 22,
+          "outsideAllLandingScoreWindows": 30,
+          "nextFrameAirborne": 12
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 17,
+          "before": 5,
+          "after": 12,
+          "withRecentGuideCollision": 17,
+          "slowingDown": 9,
+          "outsideAllLandingScoreWindows": 17,
+          "nextFrameAirborne": 11
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 11,
+          "before": 2,
+          "after": 9,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 11,
+          "outsideAllLandingScoreWindows": 11,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 2,
+          "before": 1,
+          "after": 1,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 2,
+          "outsideAllLandingScoreWindows": 2,
+          "nextFrameAirborne": 1
+        }
+      ],
+      "nontranslationalPeaks": 147
+    },
+    {
+      "version": "current",
+      "unique": true,
+      "tracks": 12,
+      "beats": 945,
+      "strongBeats": 696,
+      "thresholds": [
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 329,
+          "before": 109,
+          "after": 220,
+          "withRecentGuideCollision": 218,
+          "slowingDown": 186,
+          "outsideAllLandingScoreWindows": 329,
+          "nextFrameAirborne": 158
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 186,
+          "before": 70,
+          "after": 116,
+          "withRecentGuideCollision": 169,
+          "slowingDown": 75,
+          "outsideAllLandingScoreWindows": 186,
+          "nextFrameAirborne": 117
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 131,
+          "before": 36,
+          "after": 95,
+          "withRecentGuideCollision": 49,
+          "slowingDown": 101,
+          "outsideAllLandingScoreWindows": 131,
+          "nextFrameAirborne": 37
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 34,
+          "before": 12,
+          "after": 22,
+          "withRecentGuideCollision": 30,
+          "slowingDown": 17,
+          "outsideAllLandingScoreWindows": 34,
+          "nextFrameAirborne": 20
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 41,
+          "before": 10,
+          "after": 31,
+          "withRecentGuideCollision": 5,
+          "slowingDown": 36,
+          "outsideAllLandingScoreWindows": 41,
+          "nextFrameAirborne": 7
+        },
+        {
+          "absolute": 0.5,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 2,
+          "before": 1,
+          "after": 1,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 2,
+          "outsideAllLandingScoreWindows": 2,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 219,
+          "before": 79,
+          "after": 140,
+          "withRecentGuideCollision": 169,
+          "slowingDown": 112,
+          "outsideAllLandingScoreWindows": 219,
+          "nextFrameAirborne": 121
+        },
+        {
+          "absolute": 1,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 162,
+          "before": 62,
+          "after": 100,
+          "withRecentGuideCollision": 147,
+          "slowingDown": 67,
+          "outsideAllLandingScoreWindows": 162,
+          "nextFrameAirborne": 101
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 78,
+          "before": 22,
+          "after": 56,
+          "withRecentGuideCollision": 40,
+          "slowingDown": 56,
+          "outsideAllLandingScoreWindows": 78,
+          "nextFrameAirborne": 30
+        },
+        {
+          "absolute": 1,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 34,
+          "before": 12,
+          "after": 22,
+          "withRecentGuideCollision": 30,
+          "slowingDown": 17,
+          "outsideAllLandingScoreWindows": 34,
+          "nextFrameAirborne": 20
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 26,
+          "before": 6,
+          "after": 20,
+          "withRecentGuideCollision": 3,
+          "slowingDown": 25,
+          "outsideAllLandingScoreWindows": 26,
+          "nextFrameAirborne": 2
+        },
+        {
+          "absolute": 1,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 2,
+          "before": 1,
+          "after": 1,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 2,
+          "outsideAllLandingScoreWindows": 2,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": false,
+          "peaks": 41,
+          "before": 11,
+          "after": 30,
+          "withRecentGuideCollision": 28,
+          "slowingDown": 27,
+          "outsideAllLandingScoreWindows": 41,
+          "nextFrameAirborne": 17
+        },
+        {
+          "absolute": 2,
+          "ratio": 0.5,
+          "strongOnly": true,
+          "peaks": 28,
+          "before": 9,
+          "after": 19,
+          "withRecentGuideCollision": 27,
+          "slowingDown": 14,
+          "outsideAllLandingScoreWindows": 28,
+          "nextFrameAirborne": 16
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": false,
+          "peaks": 30,
+          "before": 7,
+          "after": 23,
+          "withRecentGuideCollision": 18,
+          "slowingDown": 22,
+          "outsideAllLandingScoreWindows": 30,
+          "nextFrameAirborne": 12
+        },
+        {
+          "absolute": 2,
+          "ratio": 1,
+          "strongOnly": true,
+          "peaks": 17,
+          "before": 5,
+          "after": 12,
+          "withRecentGuideCollision": 17,
+          "slowingDown": 9,
+          "outsideAllLandingScoreWindows": 17,
+          "nextFrameAirborne": 11
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": false,
+          "peaks": 11,
+          "before": 2,
+          "after": 9,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 11,
+          "outsideAllLandingScoreWindows": 11,
+          "nextFrameAirborne": 1
+        },
+        {
+          "absolute": 2,
+          "ratio": 2,
+          "strongOnly": true,
+          "peaks": 2,
+          "before": 1,
+          "after": 1,
+          "withRecentGuideCollision": 2,
+          "slowingDown": 2,
+          "outsideAllLandingScoreWindows": 2,
+          "nextFrameAirborne": 1
+        }
+      ],
+      "nontranslationalPeaks": 147
+    }
+  ],
+  "causal": [
+    {
+      "id": "current-luna_bala_44s-101",
+      "section": 75,
+      "frame": 1703,
+      "time": 42.575,
+      "negativeControl": true,
+      "removed": [
+        751058,
+        751059,
+        751060,
+        751061,
+        751062,
+        751063,
+        751064,
+        751065,
+        751066,
+        751067,
+        751068,
+        751069,
+        751070,
+        751071,
+        751072,
+        751073,
+        751074,
+        751075,
+        751076,
+        751077
+      ],
+      "firstRemovedContact": 1706,
+      "firstDivergence": null,
+      "prefixMaxError": 0,
+      "horizon": 1705,
+      "previousCompleteImpact": {
+        "t": 42.38,
+        "original": 0.5404991186162165,
+        "alternative": 0.5404991186162165
+      },
+      "limitation": "Guide deletion is a local causal assay, not a valid replacement or proof the next landing remains achievable. Later trajectory is intentionally not qualified.",
+      "atPeak": {
+        "frame": 1703,
+        "pointError": 0,
+        "original": {
+          "frame": 1703,
+          "meanImpulse": 1.807281071937354,
+          "pointRmsImpulse": 2.06067084203144,
+          "relativeRmsImpulse": 0.9899997203108367,
+          "speedBefore": 7.559716524396704,
+          "speedAfter": 7.4257518180539845,
+          "speedGain": -0.13396470634271918,
+          "headingDegrees": -13.815978423349236,
+          "directionCorrection": 1.806755305910522,
+          "incoming": [
+            7.361666449178908,
+            -1.719063995396967
+          ],
+          "effective": [
+            6.618750871496256,
+            -3.366589812317443
+          ],
+          "airborne": false,
+          "contacts": [
+            "main:NOSE",
+            "main:STRING",
+            "main:RHAND",
+            "main:LHAND",
+            "main:LFOOT"
+          ],
+          "lineIds": [
+            751032,
+            751034,
+            751030
+          ],
+          "visibleImpulse": 1.813565540760808,
+          "scoreWindows": [],
+          "physicalWindows": [
+            74
+          ],
+          "nextFrameAirborne": true,
+          "nextFrameScoredStep": 0,
+          "directResponseInsideScoreGate": false
+        },
+        "withoutSelectedGuide": {
+          "meanImpulse": 1.807281071937354,
+          "pointRmsImpulse": 2.06067084203144,
+          "relativeRmsImpulse": 0.9899997203108367,
+          "speedBefore": 7.559716524396704,
+          "speedAfter": 7.4257518180539845,
+          "speedGain": -0.13396470634271918,
+          "headingDegrees": -13.815978423349236,
+          "directionCorrection": 1.806755305910522,
+          "incoming": [
+            7.361666449178908,
+            -1.719063995396967
+          ],
+          "effective": [
+            6.618750871496256,
+            -3.366589812317443
+          ]
+        }
+      }
+    },
+    {
+      "id": "current-luna_bala_44s-202",
+      "section": 26,
+      "frame": 639,
+      "time": 15.975,
+      "negativeControl": false,
+      "removed": [
+        261046,
+        261047,
+        261048,
+        261049,
+        261050,
+        261051,
+        261052,
+        261053,
+        261054
+      ],
+      "firstRemovedContact": 638,
+      "firstDivergence": 638,
+      "prefixMaxError": 0,
+      "horizon": 641,
+      "previousCompleteImpact": {
+        "t": 15.67,
+        "original": 0.526386805709673,
+        "alternative": 0.526386805709673
+      },
+      "nextAuthoredTime": 16.21,
+      "nextOriginalImpact": 0.6505821249871373,
+      "nextTarget": 0.659,
+      "limitation": "Guide deletion is a local causal assay, not a valid replacement or proof the next landing remains achievable. Later trajectory is intentionally not qualified.",
+      "atPeak": {
+        "frame": 639,
+        "pointError": 5.251659547988311,
+        "original": {
+          "frame": 639,
+          "meanImpulse": 2.7904885828925434,
+          "pointRmsImpulse": 3.784894034904392,
+          "relativeRmsImpulse": 2.5570679154455824,
+          "speedBefore": 10.594594968642284,
+          "speedAfter": 10.072364123494804,
+          "speedGain": -0.5222308451474795,
+          "headingDegrees": 15.248803501860435,
+          "directionCorrection": 2.7501711369947337,
+          "incoming": [
+            10.524408372643848,
+            1.2174855052132971
+          ],
+          "effective": [
+            9.34893867302147,
+            3.7483149179796555
+          ],
+          "airborne": false,
+          "contacts": [
+            "guide:STRING",
+            "guide:SHOULDER",
+            "guide:RHAND",
+            "guide:LHAND",
+            "guide:LFOOT",
+            "guide:RFOOT"
+          ],
+          "lineIds": [
+            261046,
+            261050,
+            261048,
+            261047
+          ],
+          "visibleImpulse": 3.7191620295615717,
+          "scoreWindows": [],
+          "physicalWindows": [],
+          "nextFrameAirborne": true,
+          "nextFrameScoredStep": 0,
+          "directResponseInsideScoreGate": false
+        },
+        "withoutSelectedGuide": {
+          "meanImpulse": 0.12344233467931766,
+          "pointRmsImpulse": 0.27552015755689546,
+          "relativeRmsImpulse": 0.2463196038261994,
+          "speedBefore": 10.397332826258562,
+          "speedAfter": 10.339934875280889,
+          "speedGain": -0.05739795097767342,
+          "headingDegrees": 0.6039073370673548,
+          "directionCorrection": 0.10928717806195562,
+          "incoming": [
+            10.35127900388458,
+            0.9775238532803768
+          ],
+          "effective": [
+            10.283317280850346,
+            1.0805734248141714
+          ]
+        }
+      }
+    },
+    {
+      "id": "current-luna_bala_44s-303",
+      "section": 15,
+      "frame": 398,
+      "time": 9.95,
+      "negativeControl": false,
+      "removed": [
+        151061,
+        151062,
+        151063,
+        151064,
+        151065,
+        151066,
+        151067,
+        151068,
+        151069,
+        151070,
+        151071,
+        151072,
+        151073,
+        151074,
+        151075,
+        151076,
+        151077,
+        151078,
+        151079,
+        151080,
+        151081,
+        151082,
+        151083,
+        151084,
+        151085,
+        151086,
+        151087,
+        151088,
+        151089,
+        151090,
+        151091,
+        151092,
+        151093,
+        151094,
+        151095,
+        151096
+      ],
+      "firstRemovedContact": 397,
+      "firstDivergence": 397,
+      "prefixMaxError": 0,
+      "horizon": 400,
+      "previousCompleteImpact": {
+        "t": 9.67,
+        "original": 0.3542367965080011,
+        "alternative": 0.3542367965080011
+      },
+      "nextAuthoredTime": 10.21,
+      "nextOriginalImpact": 0.3388096254824549,
+      "nextTarget": 0.358,
+      "limitation": "Guide deletion is a local causal assay, not a valid replacement or proof the next landing remains achievable. Later trajectory is intentionally not qualified.",
+      "atPeak": {
+        "frame": 398,
+        "pointError": 7.333075839175308,
+        "original": {
+          "frame": 398,
+          "meanImpulse": 2.3015795403272716,
+          "pointRmsImpulse": 3.294574987129926,
+          "relativeRmsImpulse": 2.357319657019187,
+          "speedBefore": 10.76073507667129,
+          "speedAfter": 10.562897475630068,
+          "speedGain": -0.19783760104122194,
+          "headingDegrees": 12.347141099155637,
+          "directionCorrection": 2.2976029134021743,
+          "incoming": [
+            10.669690242661469,
+            1.3968283774173906
+          ],
+          "effective": [
+            9.938075302436497,
+            3.579030925232947
+          ],
+          "airborne": true,
+          "contacts": [
+            "guide:BUTT",
+            "guide:SHOULDER",
+            "guide:RFOOT",
+            "guide:RHAND",
+            "guide:LHAND"
+          ],
+          "lineIds": [
+            151080,
+            151082,
+            151064,
+            151079,
+            151081,
+            151072,
+            151071,
+            151061,
+            151084,
+            151070,
+            151066,
+            151063,
+            151083,
+            151069,
+            151062,
+            151085,
+            151067,
+            151068,
+            151065,
+            151086
+          ],
+          "visibleImpulse": 2.9237298096415496,
+          "scoreWindows": [],
+          "physicalWindows": [],
+          "nextFrameAirborne": true,
+          "nextFrameScoredStep": 0,
+          "directResponseInsideScoreGate": false
+        },
+        "withoutSelectedGuide": {
+          "meanImpulse": 0.034080439106449256,
+          "pointRmsImpulse": 0.2700194368302777,
+          "relativeRmsImpulse": 0.26786007529389655,
+          "speedBefore": 10.07256892590041,
+          "speedAfter": 10.0988924864018,
+          "speedGain": 0.02632356050139073,
+          "headingDegrees": 0.12296798678712627,
+          "directionCorrection": 0.021645957359377983,
+          "incoming": [
+            10.067601028661178,
+            0.31631360184933327
+          ],
+          "effective": [
+            10.093207714339163,
+            0.33880302110100047
+          ]
+        }
+      }
+    },
+    {
+      "id": "ordinary-amor_na_praia_46s-101",
+      "section": 40,
+      "frame": 927,
+      "time": 23.175,
+      "negativeControl": false,
+      "removed": [
+        401052,
+        401053,
+        401054,
+        401055,
+        401056,
+        401057,
+        401058,
+        401059,
+        401060
+      ],
+      "firstRemovedContact": 926,
+      "firstDivergence": 926,
+      "prefixMaxError": 0,
+      "horizon": 929,
+      "previousCompleteImpact": {
+        "t": 22.85,
+        "original": 0.518402415001691,
+        "alternative": 0.518402415001691
+      },
+      "nextAuthoredTime": 23.4,
+      "nextOriginalImpact": 0.6185262110120041,
+      "nextTarget": 0.624,
+      "limitation": "Guide deletion is a local causal assay, not a valid replacement or proof the next landing remains achievable. Later trajectory is intentionally not qualified.",
+      "atPeak": {
+        "frame": 927,
+        "pointError": 5.58039567162632,
+        "original": {
+          "frame": 927,
+          "meanImpulse": 2.3315107234588193,
+          "pointRmsImpulse": 3.3771317202038036,
+          "relativeRmsImpulse": 2.4431693355154973,
+          "speedBefore": 11.734818352814695,
+          "speedAfter": 11.792386689687413,
+          "speedGain": 0.05756833687271801,
+          "headingDegrees": 11.371075783290387,
+          "directionCorrection": 2.334636458224801,
+          "incoming": [
+            11.717419369419076,
+            -0.638784075192255
+          ],
+          "effective": [
+            11.670332898396131,
+            1.6922511278559682
+          ],
+          "airborne": true,
+          "contacts": [
+            "guide:SHOULDER",
+            "guide:RHAND",
+            "guide:LHAND"
+          ],
+          "lineIds": [
+            401054,
+            401053,
+            401055
+          ],
+          "visibleImpulse": 2.7382822364962873,
+          "scoreWindows": [],
+          "physicalWindows": [],
+          "nextFrameAirborne": true,
+          "nextFrameScoredStep": 0,
+          "directResponseInsideScoreGate": false
+        },
+        "withoutSelectedGuide": {
+          "meanImpulse": 0.06544961582830579,
+          "pointRmsImpulse": 0.23851239282551343,
+          "relativeRmsImpulse": 0.22935672939610735,
+          "speedBefore": 11.125168923375686,
+          "speedAfter": 11.167761623050676,
+          "speedGain": 0.0425926996749908,
+          "headingDegrees": 0.25544204159568173,
+          "directionCorrection": 0.049694338224595166,
+          "incoming": [
+            11.064722175829653,
+            -1.1581479807639539
+          ],
+          "effective": [
+            11.112156197870112,
+            -1.113051797276455
+          ]
+        }
+      }
+    },
+    {
+      "id": "current-tiki_tiki_48s-303",
+      "section": 15,
+      "frame": 498,
+      "time": 12.45,
+      "negativeControl": false,
+      "removed": [
+        151024,
+        151025,
+        151026,
+        151027,
+        151028,
+        151029,
+        151030,
+        151031,
+        151032,
+        151033,
+        151034,
+        151035,
+        151036,
+        151037
+      ],
+      "firstRemovedContact": 496,
+      "firstDivergence": 496,
+      "prefixMaxError": 0,
+      "horizon": 500,
+      "previousCompleteImpact": {
+        "t": 12.18,
+        "original": 0.7020197952794647,
+        "alternative": 0.7020197952794647
+      },
+      "nextAuthoredTime": 12.617,
+      "nextOriginalImpact": 0.6400140764247553,
+      "nextTarget": 0.65742,
+      "limitation": "Guide deletion is a local causal assay, not a valid replacement or proof the next landing remains achievable. Later trajectory is intentionally not qualified.",
+      "atPeak": {
+        "frame": 498,
+        "pointError": 8.755498876212414,
+        "original": {
+          "frame": 498,
+          "meanImpulse": 4.237557326995065,
+          "pointRmsImpulse": 5.710372811269456,
+          "relativeRmsImpulse": 3.827723284684497,
+          "speedBefore": 10.957263778596628,
+          "speedAfter": 10.124827243724946,
+          "speedGain": -0.8324365348716825,
+          "headingDegrees": 22.75122224621147,
+          "directionCorrection": 4.185677743979213,
+          "incoming": [
+            10.947857668247556,
+            0.45391848336328927
+          ],
+          "effective": [
+            9.166818862923114,
+            4.299018335577538
+          ],
+          "airborne": false,
+          "contacts": [
+            "guide:NOSE",
+            "guide:STRING",
+            "guide:BUTT",
+            "guide:SHOULDER",
+            "guide:RHAND",
+            "guide:LHAND",
+            "guide:LFOOT",
+            "guide:RFOOT"
+          ],
+          "lineIds": [
+            151028,
+            151032,
+            151033,
+            151031,
+            151029,
+            151034,
+            151030
+          ],
+          "visibleImpulse": 5.838282895640004,
+          "scoreWindows": [],
+          "physicalWindows": [],
+          "nextFrameAirborne": true,
+          "nextFrameScoredStep": 0,
+          "directResponseInsideScoreGate": false
+        },
+        "withoutSelectedGuide": {
+          "meanImpulse": 0.05878064971410946,
+          "pointRmsImpulse": 0.1722290726249575,
+          "relativeRmsImpulse": 0.16188788922102865,
+          "speedBefore": 10.866638132780215,
+          "speedAfter": 10.860411798659426,
+          "speedGain": -0.006226334120789545,
+          "headingDegrees": 0.30827379429142565,
+          "directionCorrection": 0.05845003050874658,
+          "incoming": [
+            10.8665657929461,
+            0.0396506792733059
+          ],
+          "effective": [
+            10.859969091741883,
+            0.09805999628724749
+          ]
+        }
+      }
+    },
+    {
+      "id": "current-amour_de_ma_vie_44s-101",
+      "section": 14,
+      "frame": 309,
+      "time": 7.725,
+      "negativeControl": false,
+      "removed": [
+        141022,
+        141023,
+        141024,
+        141025,
+        141026,
+        141027,
+        141028
+      ],
+      "firstRemovedContact": 308,
+      "firstDivergence": 308,
+      "prefixMaxError": 0,
+      "horizon": 311,
+      "previousCompleteImpact": {
+        "t": 7.22,
+        "original": 0.7344261241787556,
+        "alternative": 0.7344261241787556
+      },
+      "nextAuthoredTime": 7.88,
+      "nextOriginalImpact": 0.1829591532840643,
+      "nextTarget": 1,
+      "limitation": "Guide deletion is a local causal assay, not a valid replacement or proof the next landing remains achievable. Later trajectory is intentionally not qualified.",
+      "atPeak": {
+        "frame": 309,
+        "pointError": 8.034039585711128,
+        "original": {
+          "frame": 309,
+          "meanImpulse": 2.169506369866173,
+          "pointRmsImpulse": 3.0250938230008604,
+          "relativeRmsImpulse": 2.1081828073172537,
+          "speedBefore": 10.902014391164178,
+          "speedAfter": 10.690791061952426,
+          "speedGain": -0.21122332921175158,
+          "headingDegrees": 11.478459868748676,
+          "directionCorrection": 2.1629180452174883,
+          "incoming": [
+            10.733040532060537,
+            -1.9120038499690601
+          ],
+          "effective": [
+            10.687700864901748,
+            0.2570287001490404
+          ],
+          "airborne": false,
+          "contacts": [
+            "guide:TAIL",
+            "guide:BUTT",
+            "guide:PEG"
+          ],
+          "lineIds": [
+            141024,
+            141022,
+            141023
+          ],
+          "visibleImpulse": 2.3915671467769406,
+          "scoreWindows": [],
+          "physicalWindows": [
+            13
+          ],
+          "nextFrameAirborne": true,
+          "nextFrameScoredStep": 0,
+          "directResponseInsideScoreGate": false
+        },
+        "withoutSelectedGuide": {
+          "meanImpulse": 0.04638872624936577,
+          "pointRmsImpulse": 0.21142116012904763,
+          "relativeRmsImpulse": 0.2062692246246972,
+          "speedBefore": 11.039515418347348,
+          "speedAfter": 11.00265836893288,
+          "speedGain": -0.036857049414468435,
+          "headingDegrees": 0.14644167514506343,
+          "directionCorrection": 0.0281686790953852,
+          "incoming": [
+            10.649134964337614,
+            -2.90978095107706
+          ],
+          "effective": [
+            10.62095883106205,
+            -2.8729296358132026
+          ]
+        }
+      }
+    }
+  ],
+  "history": [
+    {
+      "id": "arc-850-852-luna_bala_44s",
+      "song": "luna_bala_44s",
+      "era": "arc-850-852",
+      "seed": 260908011,
+      "path": "archives/arc-850-852/luna_bala_44s/inputs/luna_bala_44s/track.json",
+      "sourceSha256": "39aecb71ca830b6f1ce48f65d919fe0c995f64553ec949d2fa169c52b2a6301b",
+      "jolt": -15,
+      "provenance": {
+        "compilePath": "archives/arc-850-852/luna_bala_44s/inputs/luna_bala_44s/compile.json",
+        "compileSha256": "5fdae70a6b0bbc5eb61f1e2e69bf38b34a040548c1de5c4457a2a0ea472ea40d",
+        "gitSha": "5c397b51da11ac42422af6504ad8db1ff4042719",
+        "historicalProductionScore": 902.9910860958853,
+        "specSha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265",
+        "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+        "analysisSha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5",
+        "identity": "Archived compile hashes match saved geometry, report, current spec and audio."
+      },
+      "trackHash": "74b8811b2eb7e3a0ad2b64aa6d8cf4c14a9a36bd27049e567622b8004e865da4",
+      "replayChecks": {
+        "savedContactsMatched": 75,
+        "maxTraceError": null,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1780,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Original full trace absent: contact-frame replay parity does not prove full historical trajectory parity."
+      },
+      "all": {
+        "n": 75,
+        "landingOffsetMs": {
+          "n": 75,
+          "median": 35.000000000003695,
+          "p90": 49.99999999999716
+        },
+        "peakOffsetMs": {
+          "n": 75,
+          "median": 75.00000000000284,
+          "p90": 140.00000000000057
+        },
+        "firstTwoPhysicalShare": {
+          "n": 75,
+          "median": 0.3106605847926507,
+          "p90": 0.4380555826267202
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 14,
+        "strongerLaterAccent": 11,
+        "lateToLandingRatio": {
+          "n": 75,
+          "median": 0.4115346964781602,
+          "p90": 1.1275860105498052
+        }
+      },
+      "strong": {
+        "n": 29,
+        "landingOffsetMs": {
+          "n": 29,
+          "median": 39.99999999999915,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 29,
+          "median": 90.00000000000341,
+          "p90": 130.0000000000008
+        },
+        "firstTwoPhysicalShare": {
+          "n": 29,
+          "median": 0.30407669567346146,
+          "p90": 0.4090100432039138
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 1,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 29,
+          "median": 0.5020409943487308,
+          "p90": 0.7459384199992831
+        }
+      }
+    },
+    {
+      "id": "arc-850-852-amor_na_praia_46s",
+      "song": "amor_na_praia_46s",
+      "era": "arc-850-852",
+      "seed": 260908011,
+      "path": "archives/arc-850-852/amor_na_praia_46s/inputs/amor_na_praia_46s/track.json",
+      "sourceSha256": "be318f572875dda8516b7612342f2fe01686f90f4a9d0d6508257ba1c58d6b56",
+      "jolt": -15,
+      "provenance": {
+        "compilePath": "archives/arc-850-852/amor_na_praia_46s/inputs/amor_na_praia_46s/compile.json",
+        "compileSha256": "1cd4594f17d0af247ae53cc60f2ebb7befd2daee93d260ae8cc40ab8a33337ee",
+        "gitSha": "5c397b51da11ac42422af6504ad8db1ff4042719",
+        "historicalProductionScore": 915.0054988825236,
+        "specSha256": "8b0478d8769d5b62b789fe6b2a2188a8c306bfff9af79bbff743a9082d7dc8b3",
+        "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+        "analysisSha256": "6824bfb4be0508dde12e051a88e765320f8ea86d2a210e0d7b77e4012cd4b5c7",
+        "identity": "Archived compile hashes match saved geometry, report, current spec and audio."
+      },
+      "trackHash": "ed2fde28f50dd138b1e1d498aeac1a5985f74cffa1e25ed7c16159d245f598fa",
+      "replayChecks": {
+        "savedContactsMatched": 78,
+        "maxTraceError": null,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1860,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Original full trace absent: contact-frame replay parity does not prove full historical trajectory parity."
+      },
+      "all": {
+        "n": 78,
+        "landingOffsetMs": {
+          "n": 78,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000426
+        },
+        "peakOffsetMs": {
+          "n": 78,
+          "median": 100.00000000000142,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 78,
+          "median": 0.2561311363273124,
+          "p90": 0.43447820401812226
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 10,
+        "strongerLaterAccent": 12,
+        "lateToLandingRatio": {
+          "n": 78,
+          "median": 0.4911206396272938,
+          "p90": 1.247172467982832
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 100.00000000000142,
+          "p90": 134.99999999999977
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.25051541191428967,
+          "p90": 0.37620496407215315
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 2,
+        "strongerLaterAccent": 2,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.43399506401658744,
+          "p90": 0.7678587569814663
+        }
+      }
+    },
+    {
+      "id": "arc-850-852-tiki_tiki_48s",
+      "song": "tiki_tiki_48s",
+      "era": "arc-850-852",
+      "seed": 260908011,
+      "path": "archives/arc-850-852/tiki_tiki_48s/inputs/tiki_tiki_48s/track.json",
+      "sourceSha256": "88533f61cae24f4abb79bd2c603ffbc5ffd96e3eea2806e7d28b25fbb812782d",
+      "jolt": -15,
+      "provenance": {
+        "compilePath": "archives/arc-850-852/tiki_tiki_48s/inputs/tiki_tiki_48s/compile.json",
+        "compileSha256": "54f0ca28eaad27017e0b3a3d6704afa0e33bfddc0c75ff3bf82c9611fe33e13c",
+        "gitSha": "5c397b51da11ac42422af6504ad8db1ff4042719",
+        "historicalProductionScore": 822.5694013505636,
+        "specSha256": "483ae3b178628242b140ba4c5dc375eca35c205fed3cc11a6a7f7b64d8b019ea",
+        "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+        "analysisSha256": "fc551c8b35c312ac9f0463bd1bd155d4c416f177513e7123678d5b68b29f528f",
+        "identity": "Archived compile hashes match saved geometry, report, current spec and audio."
+      },
+      "trackHash": "2be17d7a1aefe3a4279dac0890c2da9adfb0d85d0f9f5853f0a6da1067a7f00e",
+      "replayChecks": {
+        "savedContactsMatched": 77,
+        "maxTraceError": null,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1940,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Original full trace absent: contact-frame replay parity does not prove full historical trajectory parity."
+      },
+      "all": {
+        "n": 77,
+        "landingOffsetMs": {
+          "n": 77,
+          "median": 34.99999999999659,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 77,
+          "median": 94.99999999999886,
+          "p90": 159.9999999999966
+        },
+        "firstTwoPhysicalShare": {
+          "n": 77,
+          "median": 0.29195954846626015,
+          "p90": 0.45418116465771896
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 14,
+        "strongerLaterAccent": 12,
+        "lateToLandingRatio": {
+          "n": 77,
+          "median": 0.27141729462465203,
+          "p90": 2.155609366567674
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 39.99999999999915,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 95.00000000000242,
+          "p90": 140.00000000000057
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.29195954846626015,
+          "p90": 0.45281788227488207
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 4,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.12999120334572062,
+          "p90": 0.7012926096313479
+        }
+      }
+    },
+    {
+      "id": "arc-v3-910-luna_bala_44s",
+      "song": "luna_bala_44s",
+      "era": "arc-v3-910",
+      "seed": 260908011,
+      "path": "archives/arc-v3-910/luna_bala_44s/inputs/luna_bala_44s/track.json",
+      "sourceSha256": "011182774450cc97cfcc0c49be6e698627b92c18f1acd4281bb112f5603fe10e",
+      "jolt": -15,
+      "provenance": {
+        "compilePath": "archives/arc-v3-910/luna_bala_44s/inputs/luna_bala_44s/compile.json",
+        "compileSha256": "d551f9f76de8eda7a3f5b0cb03ef149f059a969dea0e9fcb2f9f2c216d81ecb7",
+        "gitSha": "f2a88b73d6102255908a435411e67330205cf558",
+        "historicalProductionScore": 905.3429268881207,
+        "specSha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265",
+        "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+        "analysisSha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5",
+        "identity": "Archived compile hashes match saved geometry, report, current spec and audio."
+      },
+      "trackHash": "2c3e30f4e3e730c279b3d9e5becfc43e44e1b2aebeff09ad15b292564ad2a932",
+      "replayChecks": {
+        "savedContactsMatched": 75,
+        "maxTraceError": null,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1780,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Original full trace absent: contact-frame replay parity does not prove full historical trajectory parity."
+      },
+      "all": {
+        "n": 75,
+        "landingOffsetMs": {
+          "n": 75,
+          "median": 39.99999999999915,
+          "p90": 49.99999999999982
+        },
+        "peakOffsetMs": {
+          "n": 75,
+          "median": 89.99999999999986,
+          "p90": 144.99999999999602
+        },
+        "firstTwoPhysicalShare": {
+          "n": 75,
+          "median": 0.3095097511431075,
+          "p90": 0.4681881056043733
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 11,
+        "strongerLaterAccent": 12,
+        "lateToLandingRatio": {
+          "n": 75,
+          "median": 0.4631609122666769,
+          "p90": 1.191786169010212
+        }
+      },
+      "strong": {
+        "n": 29,
+        "landingOffsetMs": {
+          "n": 29,
+          "median": 39.99999999999915,
+          "p90": 49.99999999999716
+        },
+        "peakOffsetMs": {
+          "n": 29,
+          "median": 99.99999999999432,
+          "p90": 135.00000000000156
+        },
+        "firstTwoPhysicalShare": {
+          "n": 29,
+          "median": 0.3095097511431075,
+          "p90": 0.45405593429443986
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 1,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 29,
+          "median": 0.5039113666907042,
+          "p90": 0.8126544043038957
+        }
+      }
+    },
+    {
+      "id": "july-06-amor",
+      "song": "amor_na_praia_46s",
+      "era": "july-06",
+      "seed": 946078916,
+      "path": "generated/produce/_paritycheck/s946078916.track.json",
+      "sourceSha256": "90db0fbc60d7f4fdd67cfcbc68472a18f70d1260d9a81c96b52fa8d6dfccb138",
+      "jolt": -15,
+      "provenance": {
+        "uploadPath": "generated/_parity_inbox/amor_na_praia_46s/amor_na_praia_46s-s946078916/upload.json",
+        "upload": {
+          "project": "line",
+          "song": "amor_na_praia_46s",
+          "video": "video.mp4",
+          "created_at": "2026-07-06T21:46:33Z",
+          "values": {
+            "seed": 946078916,
+            "rep": 0
+          },
+          "meta": {
+            "git_sha": "paritytest",
+            "generator_host": "wyss-ThinkStation-P620",
+            "score": 663.2,
+            "revolutions": 8.81,
+            "standTimePct": 2.69,
+            "budget": 1000000
+          }
+        },
+        "renderLogPath": "generated/produce/_paritycheck/amor_na_praia_46s-s946078916.render.log",
+        "reportSha256": "8deac7771746321dd909f8d8927be6aeeafab865f82cfb563a1e9e885f57c60a",
+        "identity": "Render log names this saved track; upload date July 6 and seed agree. Historical git marker is paritytest, not a compiler hash; no original audio hash or full trace survives here. All authored target times and replayed contact frames are checked below."
+      },
+      "trackHash": "90db0fbc60d7f4fdd67cfcbc68472a18f70d1260d9a81c96b52fa8d6dfccb138",
+      "replayChecks": {
+        "savedContactsMatched": 78,
+        "maxTraceError": null,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1860,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Original full trace absent: contact-frame replay parity does not prove full historical trajectory parity."
+      },
+      "all": {
+        "n": 78,
+        "landingOffsetMs": {
+          "n": 78,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 78,
+          "median": 74.99999999999929,
+          "p90": 125
+        },
+        "firstTwoPhysicalShare": {
+          "n": 78,
+          "median": 0.42545694250268984,
+          "p90": 0.6231887505446244
+        },
+        "impactBelow80Percent": 60,
+        "impactBelow50Percent": 15,
+        "bounceNeighborhoods": 8,
+        "strongerLaterAccent": 3,
+        "lateToLandingRatio": {
+          "n": 78,
+          "median": 0.07122303586490299,
+          "p90": 0.2683693666339722
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 74.99999999999929,
+          "p90": 99.99999999999964
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.4400692973505149,
+          "p90": 0.6438128396537139
+        },
+        "impactBelow80Percent": 55,
+        "impactBelow50Percent": 15,
+        "bounceNeighborhoods": 6,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.07100004931020704,
+          "p90": 0.13926121013172157
+        }
+      }
+    },
+    {
+      "id": "current-luna_bala_44s-101",
+      "song": "luna_bala_44s",
+      "era": "current",
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-production.json",
+      "sourceSha256": "d8913dd2f0227321675d1954689f9acd80243f3c81b23d0e602f1ce518c393f9",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265",
+        "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+        "analysisSha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5"
+      },
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "replayChecks": {
+        "savedContactsMatched": 75,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1780,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 75,
+        "landingOffsetMs": {
+          "n": 75,
+          "median": 39.99999999999915,
+          "p90": 49.99999999999982
+        },
+        "peakOffsetMs": {
+          "n": 75,
+          "median": 95.00000000000064,
+          "p90": 150.00000000000034
+        },
+        "firstTwoPhysicalShare": {
+          "n": 75,
+          "median": 0.2853366331269601,
+          "p90": 0.45315603173715835
+        },
+        "impactBelow80Percent": 4,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 22,
+        "strongerLaterAccent": 6,
+        "lateToLandingRatio": {
+          "n": 75,
+          "median": 0.1726707354065945,
+          "p90": 0.8756914674044014
+        }
+      },
+      "strong": {
+        "n": 29,
+        "landingOffsetMs": {
+          "n": 29,
+          "median": 39.99999999999915,
+          "p90": 45.000000000001705
+        },
+        "peakOffsetMs": {
+          "n": 29,
+          "median": 95.00000000000064,
+          "p90": 140.00000000000057
+        },
+        "firstTwoPhysicalShare": {
+          "n": 29,
+          "median": 0.28859468968796254,
+          "p90": 0.41569198622282305
+        },
+        "impactBelow80Percent": 3,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 3,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 29,
+          "median": 0.20732414914597622,
+          "p90": 0.5832186758408977
+        }
+      }
+    },
+    {
+      "id": "ordinary-luna_bala_44s-101",
+      "song": "luna_bala_44s",
+      "era": "ordinary",
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-baseline.json",
+      "sourceSha256": "cb16456a7b975942a50ea77c68db5578459d17f5a237c69f3bf1b3608069cf95",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265",
+        "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+        "analysisSha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5"
+      },
+      "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+      "replayChecks": {
+        "savedContactsMatched": 75,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1780,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 75,
+        "landingOffsetMs": {
+          "n": 75,
+          "median": 39.99999999999915,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 75,
+          "median": 89.99999999999986,
+          "p90": 155.00000000000026
+        },
+        "firstTwoPhysicalShare": {
+          "n": 75,
+          "median": 0.3229628084108173,
+          "p90": 0.4703255933172607
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 10,
+        "strongerLaterAccent": 7,
+        "lateToLandingRatio": {
+          "n": 75,
+          "median": 0.24369622155902493,
+          "p90": 0.9436298314902375
+        }
+      },
+      "strong": {
+        "n": 29,
+        "landingOffsetMs": {
+          "n": 29,
+          "median": 39.99999999999915,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 29,
+          "median": 94.99999999999886,
+          "p90": 134.999999999998
+        },
+        "firstTwoPhysicalShare": {
+          "n": 29,
+          "median": 0.3139090327548494,
+          "p90": 0.4616949237781485
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 0,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 29,
+          "median": 0.1868009896504459,
+          "p90": 0.5983400444597067
+        }
+      }
+    },
+    {
+      "id": "current-luna_bala_44s-202",
+      "song": "luna_bala_44s",
+      "era": "current",
+      "seed": 202,
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-202/luna_bala_44s-202-production.json",
+      "sourceSha256": "6fc35ddfc1cc77ef0063d013c6f5557885985fc89d0b0fad734ef4b45c0ca045",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265",
+        "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+        "analysisSha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5"
+      },
+      "trackHash": "218f32afa6c2b620fad38f7c44258101cc360b824bc33ae124bc8f3503b9352b",
+      "replayChecks": {
+        "savedContactsMatched": 75,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1780,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 75,
+        "landingOffsetMs": {
+          "n": 75,
+          "median": 35.00000000000014,
+          "p90": 49.99999999999982
+        },
+        "peakOffsetMs": {
+          "n": 75,
+          "median": 89.99999999999986,
+          "p90": 169.99999999999994
+        },
+        "firstTwoPhysicalShare": {
+          "n": 75,
+          "median": 0.3094120268968532,
+          "p90": 0.49661902483945936
+        },
+        "impactBelow80Percent": 3,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 17,
+        "strongerLaterAccent": 4,
+        "lateToLandingRatio": {
+          "n": 75,
+          "median": 0.17014412188167294,
+          "p90": 0.8927050726179916
+        }
+      },
+      "strong": {
+        "n": 29,
+        "landingOffsetMs": {
+          "n": 29,
+          "median": 35.000000000003695,
+          "p90": 49.99999999999716
+        },
+        "peakOffsetMs": {
+          "n": 29,
+          "median": 95.00000000000064,
+          "p90": 150.00000000000213
+        },
+        "firstTwoPhysicalShare": {
+          "n": 29,
+          "median": 0.29401179548760326,
+          "p90": 0.4336961529166771
+        },
+        "impactBelow80Percent": 1,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 2,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 29,
+          "median": 0.13065552540475203,
+          "p90": 0.7666205013961416
+        }
+      }
+    },
+    {
+      "id": "ordinary-luna_bala_44s-202",
+      "song": "luna_bala_44s",
+      "era": "ordinary",
+      "seed": 202,
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-202/luna_bala_44s-202-baseline.json",
+      "sourceSha256": "55b53d825f5339756849ff8f97b57f4c6680cc6fbb0d7591a592c1953042c8cb",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265",
+        "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+        "analysisSha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5"
+      },
+      "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+      "replayChecks": {
+        "savedContactsMatched": 75,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1780,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 75,
+        "landingOffsetMs": {
+          "n": 75,
+          "median": 39.99999999999915,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 75,
+          "median": 89.99999999999986,
+          "p90": 155.00000000000026
+        },
+        "firstTwoPhysicalShare": {
+          "n": 75,
+          "median": 0.3229628084108173,
+          "p90": 0.4703255933172607
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 10,
+        "strongerLaterAccent": 7,
+        "lateToLandingRatio": {
+          "n": 75,
+          "median": 0.24369622155902493,
+          "p90": 0.9436298314902375
+        }
+      },
+      "strong": {
+        "n": 29,
+        "landingOffsetMs": {
+          "n": 29,
+          "median": 39.99999999999915,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 29,
+          "median": 94.99999999999886,
+          "p90": 134.999999999998
+        },
+        "firstTwoPhysicalShare": {
+          "n": 29,
+          "median": 0.3139090327548494,
+          "p90": 0.4616949237781485
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 0,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 29,
+          "median": 0.1868009896504459,
+          "p90": 0.5983400444597067
+        }
+      }
+    },
+    {
+      "id": "current-luna_bala_44s-303",
+      "song": "luna_bala_44s",
+      "era": "current",
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-303/luna_bala_44s-303-production.json",
+      "sourceSha256": "7c46e3aec03c5f96422da360d3293f5916d02a19099c20ba526473d4c7bf12ce",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265",
+        "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+        "analysisSha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5"
+      },
+      "trackHash": "8c9badc84ddd7d632516d081df01c3ccfd94d0f1828c7fe3ad42641c0921948c",
+      "replayChecks": {
+        "savedContactsMatched": 75,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1780,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 75,
+        "landingOffsetMs": {
+          "n": 75,
+          "median": 35.00000000000014,
+          "p90": 50.00000000000027
+        },
+        "peakOffsetMs": {
+          "n": 75,
+          "median": 80.00000000000007,
+          "p90": 169.99999999999994
+        },
+        "firstTwoPhysicalShare": {
+          "n": 75,
+          "median": 0.3008834616423417,
+          "p90": 0.49669091984091746
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 23,
+        "strongerLaterAccent": 7,
+        "lateToLandingRatio": {
+          "n": 75,
+          "median": 0.1713332667529051,
+          "p90": 0.9691583338374635
+        }
+      },
+      "strong": {
+        "n": 29,
+        "landingOffsetMs": {
+          "n": 29,
+          "median": 35.000000000003695,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 29,
+          "median": 94.99999999999886,
+          "p90": 155.00000000000114
+        },
+        "firstTwoPhysicalShare": {
+          "n": 29,
+          "median": 0.26886640551150764,
+          "p90": 0.551079075130583
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 3,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 29,
+          "median": 0.09932035505472932,
+          "p90": 0.7582023216936844
+        }
+      }
+    },
+    {
+      "id": "ordinary-luna_bala_44s-303",
+      "song": "luna_bala_44s",
+      "era": "ordinary",
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-303/luna_bala_44s-303-baseline.json",
+      "sourceSha256": "2df44dcab3bae242f7009451893d18cc4f4ba7dcf48547da29eaeb667f097f7a",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "6097c64ff9404cf7d220f469f318879aa92a853e0e289d000e149dbb373bb265",
+        "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+        "analysisSha256": "5aa7966850766c79fb04ae490f43f611067a512f34dfb4cb95a95f5149374fc5"
+      },
+      "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+      "replayChecks": {
+        "savedContactsMatched": 75,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1780,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 75,
+        "landingOffsetMs": {
+          "n": 75,
+          "median": 39.99999999999915,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 75,
+          "median": 89.99999999999986,
+          "p90": 155.00000000000026
+        },
+        "firstTwoPhysicalShare": {
+          "n": 75,
+          "median": 0.3229628084108173,
+          "p90": 0.4703255933172607
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 10,
+        "strongerLaterAccent": 7,
+        "lateToLandingRatio": {
+          "n": 75,
+          "median": 0.24369622155902493,
+          "p90": 0.9436298314902375
+        }
+      },
+      "strong": {
+        "n": 29,
+        "landingOffsetMs": {
+          "n": 29,
+          "median": 39.99999999999915,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 29,
+          "median": 94.99999999999886,
+          "p90": 134.999999999998
+        },
+        "firstTwoPhysicalShare": {
+          "n": 29,
+          "median": 0.3139090327548494,
+          "p90": 0.4616949237781485
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 0,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 29,
+          "median": 0.1868009896504459,
+          "p90": 0.5983400444597067
+        }
+      }
+    },
+    {
+      "id": "current-amor_na_praia_46s-101",
+      "song": "amor_na_praia_46s",
+      "era": "current",
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json",
+      "sourceSha256": "5ba29e1907ea4a404558c7fb0b9dd1496c3bfa0b28289e60ed1c6b986eb26dd2",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "8b0478d8769d5b62b789fe6b2a2188a8c306bfff9af79bbff743a9082d7dc8b3",
+        "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+        "analysisSha256": "6824bfb4be0508dde12e051a88e765320f8ea86d2a210e0d7b77e4012cd4b5c7"
+      },
+      "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+      "replayChecks": {
+        "savedContactsMatched": 78,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1860,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 78,
+        "landingOffsetMs": {
+          "n": 78,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000426
+        },
+        "peakOffsetMs": {
+          "n": 78,
+          "median": 100.00000000000142,
+          "p90": 165.00000000000003
+        },
+        "firstTwoPhysicalShare": {
+          "n": 78,
+          "median": 0.3004914470662834,
+          "p90": 0.4374773071447019
+        },
+        "impactBelow80Percent": 1,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 17,
+        "strongerLaterAccent": 5,
+        "lateToLandingRatio": {
+          "n": 78,
+          "median": 0.21263690723873335,
+          "p90": 0.855211729638118
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 49.999999999998934,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 100.00000000000142,
+          "p90": 150.00000000000213
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.3060043449099848,
+          "p90": 0.43425856901486154
+        },
+        "impactBelow80Percent": 1,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 9,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.2101056211431985,
+          "p90": 0.61339700872671
+        }
+      }
+    },
+    {
+      "id": "ordinary-amor_na_praia_46s-101",
+      "song": "amor_na_praia_46s",
+      "era": "ordinary",
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-baseline.json",
+      "sourceSha256": "4ef945ef05ec84250fb6dcc2132012a62f68f46d1b137f1b29ada114a634cc66",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "8b0478d8769d5b62b789fe6b2a2188a8c306bfff9af79bbff743a9082d7dc8b3",
+        "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+        "analysisSha256": "6824bfb4be0508dde12e051a88e765320f8ea86d2a210e0d7b77e4012cd4b5c7"
+      },
+      "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+      "replayChecks": {
+        "savedContactsMatched": 78,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1860,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 78,
+        "landingOffsetMs": {
+          "n": 78,
+          "median": 49.999999999998934,
+          "p90": 50.00000000000426
+        },
+        "peakOffsetMs": {
+          "n": 78,
+          "median": 100.00000000000142,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 78,
+          "median": 0.31288638405991387,
+          "p90": 0.4871265124535762
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 10,
+        "strongerLaterAccent": 7,
+        "lateToLandingRatio": {
+          "n": 78,
+          "median": 0.46616254110507677,
+          "p90": 0.927920147303521
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 50.00000000000071,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 100.00000000000142,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.3102043331698288,
+          "p90": 0.46340853743185245
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 3,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.3810813217514244,
+          "p90": 0.705662421137067
+        }
+      }
+    },
+    {
+      "id": "current-amor_na_praia_46s-202",
+      "song": "amor_na_praia_46s",
+      "era": "current",
+      "seed": 202,
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/amor_na_praia_46s-202-production.json",
+      "sourceSha256": "123a460db0dfecec9b19f4559d7e50bb5be6aa64c26c6c9d09f27a6c6c111ed2",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "8b0478d8769d5b62b789fe6b2a2188a8c306bfff9af79bbff743a9082d7dc8b3",
+        "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+        "analysisSha256": "6824bfb4be0508dde12e051a88e765320f8ea86d2a210e0d7b77e4012cd4b5c7"
+      },
+      "trackHash": "cf9fe39f96d11ef3028b71a421d8bbcaaa895385e4d176023ea4ca3bb9531148",
+      "replayChecks": {
+        "savedContactsMatched": 78,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1860,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 78,
+        "landingOffsetMs": {
+          "n": 78,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 78,
+          "median": 99.99999999999964,
+          "p90": 165.00000000000003
+        },
+        "firstTwoPhysicalShare": {
+          "n": 78,
+          "median": 0.257826665198949,
+          "p90": 0.4794008552355529
+        },
+        "impactBelow80Percent": 4,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 17,
+        "strongerLaterAccent": 8,
+        "lateToLandingRatio": {
+          "n": 78,
+          "median": 0.17563686791461947,
+          "p90": 1.0819259674552817
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 99.99999999999787,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.2645658309870245,
+          "p90": 0.45886988959859315
+        },
+        "impactBelow80Percent": 4,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 11,
+        "strongerLaterAccent": 2,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.1618671135566069,
+          "p90": 0.4402333332617035
+        }
+      }
+    },
+    {
+      "id": "ordinary-amor_na_praia_46s-202",
+      "song": "amor_na_praia_46s",
+      "era": "ordinary",
+      "seed": 202,
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/amor_na_praia_46s-202-baseline.json",
+      "sourceSha256": "1ccc3f2a396b8d8aa44553bf9b6b7659d786448c9d46dc933f365b653cc547b7",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "8b0478d8769d5b62b789fe6b2a2188a8c306bfff9af79bbff743a9082d7dc8b3",
+        "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+        "analysisSha256": "6824bfb4be0508dde12e051a88e765320f8ea86d2a210e0d7b77e4012cd4b5c7"
+      },
+      "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+      "replayChecks": {
+        "savedContactsMatched": 78,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1860,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 78,
+        "landingOffsetMs": {
+          "n": 78,
+          "median": 49.999999999998934,
+          "p90": 50.00000000000426
+        },
+        "peakOffsetMs": {
+          "n": 78,
+          "median": 100.00000000000142,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 78,
+          "median": 0.31288638405991387,
+          "p90": 0.4871265124535762
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 10,
+        "strongerLaterAccent": 7,
+        "lateToLandingRatio": {
+          "n": 78,
+          "median": 0.46616254110507677,
+          "p90": 0.927920147303521
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 50.00000000000071,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 100.00000000000142,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.3102043331698288,
+          "p90": 0.46340853743185245
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 3,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.3810813217514244,
+          "p90": 0.705662421137067
+        }
+      }
+    },
+    {
+      "id": "current-amor_na_praia_46s-303",
+      "song": "amor_na_praia_46s",
+      "era": "current",
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/amor_na_praia_46s-303-production.json",
+      "sourceSha256": "1324d2fd64b1fe20fecf3590052f4fb6ea31024cf6e784eccdf103ca764190db",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "8b0478d8769d5b62b789fe6b2a2188a8c306bfff9af79bbff743a9082d7dc8b3",
+        "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+        "analysisSha256": "6824bfb4be0508dde12e051a88e765320f8ea86d2a210e0d7b77e4012cd4b5c7"
+      },
+      "trackHash": "19ddcf0a60253ef638e1a36b4eb2f1bcd06bd8fc1b6a6dc6de49fe394acb02b1",
+      "replayChecks": {
+        "savedContactsMatched": 78,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1860,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 78,
+        "landingOffsetMs": {
+          "n": 78,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000426
+        },
+        "peakOffsetMs": {
+          "n": 78,
+          "median": 100.00000000000142,
+          "p90": 165.00000000000003
+        },
+        "firstTwoPhysicalShare": {
+          "n": 78,
+          "median": 0.24918845502012102,
+          "p90": 0.5125254584489431
+        },
+        "impactBelow80Percent": 7,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 7,
+        "lateToLandingRatio": {
+          "n": 78,
+          "median": 0.16096819778472682,
+          "p90": 0.7832777844287281
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 49.99999999999716,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 100.00000000000142,
+          "p90": 150.00000000000568
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.25089810493132175,
+          "p90": 0.42783124828808083
+        },
+        "impactBelow80Percent": 6,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 11,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.1621929042797565,
+          "p90": 0.5745464828688851
+        }
+      }
+    },
+    {
+      "id": "ordinary-amor_na_praia_46s-303",
+      "song": "amor_na_praia_46s",
+      "era": "ordinary",
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/amor_na_praia_46s-303-baseline.json",
+      "sourceSha256": "e5e14d9be01bd697915b8f82ea50d369ad0ea46b2365ae33025a51515336c616",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "8b0478d8769d5b62b789fe6b2a2188a8c306bfff9af79bbff743a9082d7dc8b3",
+        "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+        "analysisSha256": "6824bfb4be0508dde12e051a88e765320f8ea86d2a210e0d7b77e4012cd4b5c7"
+      },
+      "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+      "replayChecks": {
+        "savedContactsMatched": 78,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1860,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 78,
+        "landingOffsetMs": {
+          "n": 78,
+          "median": 49.999999999998934,
+          "p90": 50.00000000000426
+        },
+        "peakOffsetMs": {
+          "n": 78,
+          "median": 100.00000000000142,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 78,
+          "median": 0.31288638405991387,
+          "p90": 0.4871265124535762
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 10,
+        "strongerLaterAccent": 7,
+        "lateToLandingRatio": {
+          "n": 78,
+          "median": 0.46616254110507677,
+          "p90": 0.927920147303521
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 50.00000000000071,
+          "p90": 50.00000000000071
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 100.00000000000142,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.3102043331698288,
+          "p90": 0.46340853743185245
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 3,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.3810813217514244,
+          "p90": 0.705662421137067
+        }
+      }
+    },
+    {
+      "id": "current-tiki_tiki_48s-101",
+      "song": "tiki_tiki_48s",
+      "era": "current",
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+      "sourceSha256": "ec0f508d2f36d071dfcd1e0c799b2d5256b0a1e92b2853e927627552369b68be",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "483ae3b178628242b140ba4c5dc375eca35c205fed3cc11a6a7f7b64d8b019ea",
+        "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+        "analysisSha256": "fc551c8b35c312ac9f0463bd1bd155d4c416f177513e7123678d5b68b29f528f"
+      },
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "replayChecks": {
+        "savedContactsMatched": 77,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1940,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 77,
+        "landingOffsetMs": {
+          "n": 77,
+          "median": 35.00000000000014,
+          "p90": 49.99999999999716
+        },
+        "peakOffsetMs": {
+          "n": 77,
+          "median": 89.99999999999986,
+          "p90": 147.9999999999997
+        },
+        "firstTwoPhysicalShare": {
+          "n": 77,
+          "median": 0.33724931452947615,
+          "p90": 0.5501089716888884
+        },
+        "impactBelow80Percent": 1,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 27,
+        "strongerLaterAccent": 14,
+        "lateToLandingRatio": {
+          "n": 77,
+          "median": 0.12355127758816178,
+          "p90": 1.54334943308147
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 39.99999999999915,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 90.00000000000341,
+          "p90": 144.99999999999602
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.3324046190349289,
+          "p90": 0.5501089716888884
+        },
+        "impactBelow80Percent": 1,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 2,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.04609418086187202,
+          "p90": 0.6371098024112146
+        }
+      }
+    },
+    {
+      "id": "ordinary-tiki_tiki_48s-101",
+      "song": "tiki_tiki_48s",
+      "era": "ordinary",
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-baseline.json",
+      "sourceSha256": "b52d1e402f604187e82c44f5cba3659526dcd794d83da6a8b485dcfa3db88592",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "483ae3b178628242b140ba4c5dc375eca35c205fed3cc11a6a7f7b64d8b019ea",
+        "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+        "analysisSha256": "fc551c8b35c312ac9f0463bd1bd155d4c416f177513e7123678d5b68b29f528f"
+      },
+      "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+      "replayChecks": {
+        "savedContactsMatched": 77,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1940,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 77,
+        "landingOffsetMs": {
+          "n": 77,
+          "median": 39.99999999999915,
+          "p90": 49.99999999999716
+        },
+        "peakOffsetMs": {
+          "n": 77,
+          "median": 74.99999999999574,
+          "p90": 115.00000000000199
+        },
+        "firstTwoPhysicalShare": {
+          "n": 77,
+          "median": 0.39852770184030245,
+          "p90": 0.5753820754717416
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 14,
+        "lateToLandingRatio": {
+          "n": 77,
+          "median": 0.27135746800546917,
+          "p90": 3.414935114401351
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 39.99999999999915,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 79.9999999999983,
+          "p90": 115.00000000000199
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.38128520681604233,
+          "p90": 0.5006252487719306
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 4,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.19486767300894953,
+          "p90": 0.6826593140886594
+        }
+      }
+    },
+    {
+      "id": "current-tiki_tiki_48s-202",
+      "song": "tiki_tiki_48s",
+      "era": "current",
+      "seed": 202,
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/tiki_tiki_48s-202-production.json",
+      "sourceSha256": "7131ce1b80cb42b0327ffbcc5f46f9caf937f7125376bf738f569dd595166367",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "483ae3b178628242b140ba4c5dc375eca35c205fed3cc11a6a7f7b64d8b019ea",
+        "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+        "analysisSha256": "fc551c8b35c312ac9f0463bd1bd155d4c416f177513e7123678d5b68b29f528f"
+      },
+      "trackHash": "9a0630ad8bcf17274dc26e11143f430838b24ce66f3808c03660c42a61dbc2a8",
+      "replayChecks": {
+        "savedContactsMatched": 77,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1940,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 77,
+        "landingOffsetMs": {
+          "n": 77,
+          "median": 32.999999999999474,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 77,
+          "median": 70.00000000000028,
+          "p90": 146.0000000000008
+        },
+        "firstTwoPhysicalShare": {
+          "n": 77,
+          "median": 0.3622638745584678,
+          "p90": 0.6003530396310973
+        },
+        "impactBelow80Percent": 5,
+        "impactBelow50Percent": 1,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 14,
+        "lateToLandingRatio": {
+          "n": 77,
+          "median": 0.10903513636598998,
+          "p90": 2.1703923058165704
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 35.00000000000014,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 70.00000000000028,
+          "p90": 140.00000000000057
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.3403123164999749,
+          "p90": 0.5794503540993796
+        },
+        "impactBelow80Percent": 5,
+        "impactBelow50Percent": 1,
+        "bounceNeighborhoods": 6,
+        "strongerLaterAccent": 2,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.06761670607932614,
+          "p90": 0.49550911724572455
+        }
+      }
+    },
+    {
+      "id": "ordinary-tiki_tiki_48s-202",
+      "song": "tiki_tiki_48s",
+      "era": "ordinary",
+      "seed": 202,
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/tiki_tiki_48s-202-baseline.json",
+      "sourceSha256": "a6962c604320950aa9d83fbd0b25c8f4b298e2cc35171be0a8efd222d7831322",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "483ae3b178628242b140ba4c5dc375eca35c205fed3cc11a6a7f7b64d8b019ea",
+        "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+        "analysisSha256": "fc551c8b35c312ac9f0463bd1bd155d4c416f177513e7123678d5b68b29f528f"
+      },
+      "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+      "replayChecks": {
+        "savedContactsMatched": 77,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1940,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 77,
+        "landingOffsetMs": {
+          "n": 77,
+          "median": 39.99999999999915,
+          "p90": 49.99999999999716
+        },
+        "peakOffsetMs": {
+          "n": 77,
+          "median": 74.99999999999574,
+          "p90": 115.00000000000199
+        },
+        "firstTwoPhysicalShare": {
+          "n": 77,
+          "median": 0.39852770184030245,
+          "p90": 0.5753820754717416
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 14,
+        "lateToLandingRatio": {
+          "n": 77,
+          "median": 0.27135746800546917,
+          "p90": 3.414935114401351
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 39.99999999999915,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 79.9999999999983,
+          "p90": 115.00000000000199
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.38128520681604233,
+          "p90": 0.5006252487719306
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 4,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.19486767300894953,
+          "p90": 0.6826593140886594
+        }
+      }
+    },
+    {
+      "id": "current-tiki_tiki_48s-303",
+      "song": "tiki_tiki_48s",
+      "era": "current",
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json",
+      "sourceSha256": "cda9527c6145159168bfe34b0bb83d571b213c81f26ac925ef417e8d98048394",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "483ae3b178628242b140ba4c5dc375eca35c205fed3cc11a6a7f7b64d8b019ea",
+        "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+        "analysisSha256": "fc551c8b35c312ac9f0463bd1bd155d4c416f177513e7123678d5b68b29f528f"
+      },
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "replayChecks": {
+        "savedContactsMatched": 77,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1940,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 77,
+        "landingOffsetMs": {
+          "n": 77,
+          "median": 31.00000000000236,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 77,
+          "median": 79.9999999999983,
+          "p90": 135.00000000000156
+        },
+        "firstTwoPhysicalShare": {
+          "n": 77,
+          "median": 0.32788590357912034,
+          "p90": 0.5129683552672148
+        },
+        "impactBelow80Percent": 2,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 21,
+        "strongerLaterAccent": 12,
+        "lateToLandingRatio": {
+          "n": 77,
+          "median": 0.10787079840733454,
+          "p90": 1.54334943308147
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 31.00000000000591,
+          "p90": 48.00000000000182
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 81.99999999999719,
+          "p90": 125
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.3205402025273334,
+          "p90": 0.5023241212568309
+        },
+        "impactBelow80Percent": 2,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 11,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.06466912496054282,
+          "p90": 0.4914417914996665
+        }
+      }
+    },
+    {
+      "id": "ordinary-tiki_tiki_48s-303",
+      "song": "tiki_tiki_48s",
+      "era": "ordinary",
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-baseline.json",
+      "sourceSha256": "46a508a672c45468c507e5467c4546b4efdff7412793c69d5ccbdd5a9be8a490",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "483ae3b178628242b140ba4c5dc375eca35c205fed3cc11a6a7f7b64d8b019ea",
+        "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+        "analysisSha256": "fc551c8b35c312ac9f0463bd1bd155d4c416f177513e7123678d5b68b29f528f"
+      },
+      "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+      "replayChecks": {
+        "savedContactsMatched": 77,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1940,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 77,
+        "landingOffsetMs": {
+          "n": 77,
+          "median": 39.99999999999915,
+          "p90": 49.99999999999716
+        },
+        "peakOffsetMs": {
+          "n": 77,
+          "median": 74.99999999999574,
+          "p90": 115.00000000000199
+        },
+        "firstTwoPhysicalShare": {
+          "n": 77,
+          "median": 0.39852770184030245,
+          "p90": 0.5753820754717416
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 14,
+        "lateToLandingRatio": {
+          "n": 77,
+          "median": 0.27135746800546917,
+          "p90": 3.414935114401351
+        }
+      },
+      "strong": {
+        "n": 61,
+        "landingOffsetMs": {
+          "n": 61,
+          "median": 39.99999999999915,
+          "p90": 48.99999999999949
+        },
+        "peakOffsetMs": {
+          "n": 61,
+          "median": 79.9999999999983,
+          "p90": 115.00000000000199
+        },
+        "firstTwoPhysicalShare": {
+          "n": 61,
+          "median": 0.38128520681604233,
+          "p90": 0.5006252487719306
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 4,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 61,
+          "median": 0.19486767300894953,
+          "p90": 0.6826593140886594
+        }
+      }
+    },
+    {
+      "id": "current-amour_de_ma_vie_44s-101",
+      "song": "amour_de_ma_vie_44s",
+      "era": "current",
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-production.json",
+      "sourceSha256": "3cfbf14dc1728412c397f29ce55888e55435a101c9c1ec6919bf842385347efd",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "0c901a2fe25ca7c3fa647c77bd787ac90c0ee7a039b727207f2ff7f6a7e0005a",
+        "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+        "analysisSha256": "e665ebafccc25ebf8b36d675f86d12a9276459cc1ca2755749038a2261714cd5"
+      },
+      "trackHash": "a7b97c400289b46172ac61c93abf9cb68cc28f7141dd9d082cf4ac871c0e472b",
+      "replayChecks": {
+        "savedContactsMatched": 85,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1802,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 85,
+        "landingOffsetMs": {
+          "n": 85,
+          "median": 25.299999999999656,
+          "p90": 45.000000000001705
+        },
+        "peakOffsetMs": {
+          "n": 85,
+          "median": 94.99999999999886,
+          "p90": 150.00000000000568
+        },
+        "firstTwoPhysicalShare": {
+          "n": 85,
+          "median": 0.2970982985001577,
+          "p90": 0.45523346221898126
+        },
+        "impactBelow80Percent": 14,
+        "impactBelow50Percent": 3,
+        "bounceNeighborhoods": 20,
+        "strongerLaterAccent": 5,
+        "lateToLandingRatio": {
+          "n": 85,
+          "median": 0.03689966013504609,
+          "p90": 0.6710298176550844
+        }
+      },
+      "strong": {
+        "n": 81,
+        "landingOffsetMs": {
+          "n": 81,
+          "median": 26.99999999999747,
+          "p90": 44.99999999999993
+        },
+        "peakOffsetMs": {
+          "n": 81,
+          "median": 94.99999999999886,
+          "p90": 150.00000000000568
+        },
+        "firstTwoPhysicalShare": {
+          "n": 81,
+          "median": 0.29892803492265313,
+          "p90": 0.4473635260483742
+        },
+        "impactBelow80Percent": 14,
+        "impactBelow50Percent": 3,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 3,
+        "lateToLandingRatio": {
+          "n": 81,
+          "median": 0,
+          "p90": 0.5565369082000065
+        }
+      }
+    },
+    {
+      "id": "ordinary-amour_de_ma_vie_44s-101",
+      "song": "amour_de_ma_vie_44s",
+      "era": "ordinary",
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-baseline.json",
+      "sourceSha256": "2b28764a39bc4c82f53e6c9ad117b2a7889528c8e4ba510a884a99c8b5e2dc41",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "0c901a2fe25ca7c3fa647c77bd787ac90c0ee7a039b727207f2ff7f6a7e0005a",
+        "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+        "analysisSha256": "e665ebafccc25ebf8b36d675f86d12a9276459cc1ca2755749038a2261714cd5"
+      },
+      "trackHash": "0e1aa273202c3da8ca9b357132dd889b69e322367a8974b8a99729499dba9917",
+      "replayChecks": {
+        "savedContactsMatched": 85,
+        "maxTraceError": 0,
+        "maxIntegratorError": 2.4980018054066022e-15,
+        "terminus": {
+          "frame": 1802,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 85,
+        "landingOffsetMs": {
+          "n": 85,
+          "median": 31.299999999999883,
+          "p90": 46.09999999999914
+        },
+        "peakOffsetMs": {
+          "n": 85,
+          "median": 80.00000000000185,
+          "p90": 139.19999999999888
+        },
+        "firstTwoPhysicalShare": {
+          "n": 85,
+          "median": 0.30331147317015456,
+          "p90": 0.4811871158265291
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 5,
+        "lateToLandingRatio": {
+          "n": 85,
+          "median": 0.13249637879118203,
+          "p90": 0.8602293761170339
+        }
+      },
+      "strong": {
+        "n": 81,
+        "landingOffsetMs": {
+          "n": 81,
+          "median": 34.9999999999997,
+          "p90": 46.09999999999914
+        },
+        "peakOffsetMs": {
+          "n": 81,
+          "median": 80.00000000000185,
+          "p90": 134.99999999999977
+        },
+        "firstTwoPhysicalShare": {
+          "n": 81,
+          "median": 0.30331147317015456,
+          "p90": 0.4811871158265291
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 14,
+        "strongerLaterAccent": 2,
+        "lateToLandingRatio": {
+          "n": 81,
+          "median": 0,
+          "p90": 0.7094928061171377
+        }
+      }
+    },
+    {
+      "id": "current-amour_de_ma_vie_44s-202",
+      "song": "amour_de_ma_vie_44s",
+      "era": "current",
+      "seed": 202,
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-production.json",
+      "sourceSha256": "52c24710559d15bb8b498722a5b5555221d1834541f15d93479362f6c53a1ebb",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "0c901a2fe25ca7c3fa647c77bd787ac90c0ee7a039b727207f2ff7f6a7e0005a",
+        "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+        "analysisSha256": "e665ebafccc25ebf8b36d675f86d12a9276459cc1ca2755749038a2261714cd5"
+      },
+      "trackHash": "7f61f3ce5b0ebb08fa3c1b0ec7c042f6b6665401dd90596a913b2e419a875656",
+      "replayChecks": {
+        "savedContactsMatched": 85,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.942890293094024e-15,
+        "terminus": {
+          "frame": 1802,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 85,
+        "landingOffsetMs": {
+          "n": 85,
+          "median": 22.700000000000387,
+          "p90": 44.9999999999946
+        },
+        "peakOffsetMs": {
+          "n": 85,
+          "median": 89.99999999999986,
+          "p90": 150.00000000000014
+        },
+        "firstTwoPhysicalShare": {
+          "n": 85,
+          "median": 0.29726892165955504,
+          "p90": 0.4446780583595341
+        },
+        "impactBelow80Percent": 28,
+        "impactBelow50Percent": 4,
+        "bounceNeighborhoods": 29,
+        "strongerLaterAccent": 4,
+        "lateToLandingRatio": {
+          "n": 85,
+          "median": 0.033812222906055,
+          "p90": 0.7211081421595957
+        }
+      },
+      "strong": {
+        "n": 81,
+        "landingOffsetMs": {
+          "n": 81,
+          "median": 24.99999999999858,
+          "p90": 44.9999999999946
+        },
+        "peakOffsetMs": {
+          "n": 81,
+          "median": 89.99999999999986,
+          "p90": 149.99999999999858
+        },
+        "firstTwoPhysicalShare": {
+          "n": 81,
+          "median": 0.29726892165955504,
+          "p90": 0.4446780583595341
+        },
+        "impactBelow80Percent": 28,
+        "impactBelow50Percent": 4,
+        "bounceNeighborhoods": 26,
+        "strongerLaterAccent": 2,
+        "lateToLandingRatio": {
+          "n": 81,
+          "median": 0,
+          "p90": 0.5707316722636162
+        }
+      }
+    },
+    {
+      "id": "ordinary-amour_de_ma_vie_44s-202",
+      "song": "amour_de_ma_vie_44s",
+      "era": "ordinary",
+      "seed": 202,
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-baseline.json",
+      "sourceSha256": "aab40265d53abcb6326f19e3bf88b972317beecc747a0e648ed5ae54a3413e9c",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "0c901a2fe25ca7c3fa647c77bd787ac90c0ee7a039b727207f2ff7f6a7e0005a",
+        "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+        "analysisSha256": "e665ebafccc25ebf8b36d675f86d12a9276459cc1ca2755749038a2261714cd5"
+      },
+      "trackHash": "9fbf11a4d1ab681184783b6ed5eb1d08bec2873fbd87471d879bbb32ba64711e",
+      "replayChecks": {
+        "savedContactsMatched": 85,
+        "maxTraceError": 0,
+        "maxIntegratorError": 2.4980018054066022e-15,
+        "terminus": {
+          "frame": 1802,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 85,
+        "landingOffsetMs": {
+          "n": 85,
+          "median": 30.000000000001137,
+          "p90": 49.999999999998934
+        },
+        "peakOffsetMs": {
+          "n": 85,
+          "median": 80.00000000000185,
+          "p90": 120.000000000001
+        },
+        "firstTwoPhysicalShare": {
+          "n": 85,
+          "median": 0.31237764623187336,
+          "p90": 0.5168287912450384
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 25,
+        "strongerLaterAccent": 5,
+        "lateToLandingRatio": {
+          "n": 85,
+          "median": 0.08056301317457826,
+          "p90": 0.8931198898613147
+        }
+      },
+      "strong": {
+        "n": 81,
+        "landingOffsetMs": {
+          "n": 81,
+          "median": 30.000000000001137,
+          "p90": 46.09999999999914
+        },
+        "peakOffsetMs": {
+          "n": 81,
+          "median": 80.00000000000185,
+          "p90": 119.99999999999744
+        },
+        "firstTwoPhysicalShare": {
+          "n": 81,
+          "median": 0.31237764623187336,
+          "p90": 0.5168287912450384
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 23,
+        "strongerLaterAccent": 1,
+        "lateToLandingRatio": {
+          "n": 81,
+          "median": 0,
+          "p90": 0.7849495334413198
+        }
+      }
+    },
+    {
+      "id": "current-amour_de_ma_vie_44s-303",
+      "song": "amour_de_ma_vie_44s",
+      "era": "current",
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-production.json",
+      "sourceSha256": "6a777202ef63e6e3a652b774d0b5b5d83438a1c03f45a387fb0ebca05032e23a",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "0c901a2fe25ca7c3fa647c77bd787ac90c0ee7a039b727207f2ff7f6a7e0005a",
+        "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+        "analysisSha256": "e665ebafccc25ebf8b36d675f86d12a9276459cc1ca2755749038a2261714cd5"
+      },
+      "trackHash": "46cca64f2bcd8fcf302793e514305135d03fd354501e29a434fe64d8bcf2b533",
+      "replayChecks": {
+        "savedContactsMatched": 85,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1802,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 85,
+        "landingOffsetMs": {
+          "n": 85,
+          "median": 25.000000000005684,
+          "p90": 44.9999999999946
+        },
+        "peakOffsetMs": {
+          "n": 85,
+          "median": 93.1999999999995,
+          "p90": 160.00000000000014
+        },
+        "firstTwoPhysicalShare": {
+          "n": 85,
+          "median": 0.2403214147879031,
+          "p90": 0.4288733122817247
+        },
+        "impactBelow80Percent": 23,
+        "impactBelow50Percent": 5,
+        "bounceNeighborhoods": 20,
+        "strongerLaterAccent": 8,
+        "lateToLandingRatio": {
+          "n": 85,
+          "median": 0.036510772473479836,
+          "p90": 0.8908486753606591
+        }
+      },
+      "strong": {
+        "n": 81,
+        "landingOffsetMs": {
+          "n": 81,
+          "median": 25.000000000005684,
+          "p90": 44.9999999999946
+        },
+        "peakOffsetMs": {
+          "n": 81,
+          "median": 94.99999999999886,
+          "p90": 160.00000000000014
+        },
+        "firstTwoPhysicalShare": {
+          "n": 81,
+          "median": 0.22182032525887865,
+          "p90": 0.4288733122817247
+        },
+        "impactBelow80Percent": 22,
+        "impactBelow50Percent": 5,
+        "bounceNeighborhoods": 16,
+        "strongerLaterAccent": 5,
+        "lateToLandingRatio": {
+          "n": 81,
+          "median": 0,
+          "p90": 0.7789623342446326
+        }
+      }
+    },
+    {
+      "id": "ordinary-amour_de_ma_vie_44s-303",
+      "song": "amour_de_ma_vie_44s",
+      "era": "ordinary",
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-baseline.json",
+      "sourceSha256": "694c95d85eb2ae98d7f3526cf73d32b9a6d83c4732c32e45d9e827b36765e687",
+      "jolt": -15,
+      "provenance": {
+        "specSha256": "0c901a2fe25ca7c3fa647c77bd787ac90c0ee7a039b727207f2ff7f6a7e0005a",
+        "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+        "analysisSha256": "e665ebafccc25ebf8b36d675f86d12a9276459cc1ca2755749038a2261714cd5"
+      },
+      "trackHash": "f2cc3695c713dc04e796b74db2e2ec3e7ddc54336ad541c7af1113594740468c",
+      "replayChecks": {
+        "savedContactsMatched": 85,
+        "maxTraceError": 0,
+        "maxIntegratorError": 1.0547118733938987e-15,
+        "terminus": {
+          "frame": 1802,
+          "reason": "endOfSpec"
+        },
+        "limitation": "Full saved trace exactly reproduced."
+      },
+      "all": {
+        "n": 85,
+        "landingOffsetMs": {
+          "n": 85,
+          "median": 34.80000000000061,
+          "p90": 46.09999999999914
+        },
+        "peakOffsetMs": {
+          "n": 85,
+          "median": 84.99999999999997,
+          "p90": 130.00000000000256
+        },
+        "firstTwoPhysicalShare": {
+          "n": 85,
+          "median": 0.3114724416753242,
+          "p90": 0.49931845016349996
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 22,
+        "strongerLaterAccent": 2,
+        "lateToLandingRatio": {
+          "n": 85,
+          "median": 0.09642781763966209,
+          "p90": 0.8099715393322883
+        }
+      },
+      "strong": {
+        "n": 81,
+        "landingOffsetMs": {
+          "n": 81,
+          "median": 34.9999999999997,
+          "p90": 46.09999999999914
+        },
+        "peakOffsetMs": {
+          "n": 81,
+          "median": 85.00000000000085,
+          "p90": 129.9999999999999
+        },
+        "firstTwoPhysicalShare": {
+          "n": 81,
+          "median": 0.30874250884512094,
+          "p90": 0.4835628025402515
+        },
+        "impactBelow80Percent": 0,
+        "impactBelow50Percent": 0,
+        "bounceNeighborhoods": 19,
+        "strongerLaterAccent": 0,
+        "lateToLandingRatio": {
+          "n": 81,
+          "median": 0,
+          "p90": 0.7652991919783328
+        }
+      }
+    }
+  ],
+  "artifacts": {
+    "generated/ride-accents-20261002/audit.json.gz": "38999c3c2ac93986b2be695264726f9c32ac4392a3af6041f84e18849bbeff43",
+    "generated/beat-salience-history-20261002/audit.json.gz": "28202d05da2d4ae77e484b86c81ac800d4f4af5541a5fa807bcd4d18959c276d"
+  },
+  "reporterSha256": "0327b4d8b6a1642deb1bd3f7c9460a56671c918227fd45041339084d6d453b68"
+}

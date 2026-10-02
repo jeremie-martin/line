@@ -85,7 +85,7 @@ async function openResult(path,job,initialTime=0){
  try{
   const url=new URL(path,location.href),m=await checked(url.href,signal),cells=[m.cells.find(c=>c.method==='production')];if(!cells[0])throw new Error('Missing automatic arrangement');
   const data=await Promise.all(cells.map(c=>checked(new URL(c.path,url).href,signal,c.sha256)));data.forEach(r=>{if(r.planSha256!==m.planSha256)throw new Error('Mismatched plan identity');});
-  const prior=libraryEntries.find(e=>new URL(e.manifest??'',location.href).href===url.href)?.priorManifest;
+  const libraryEntry=libraryEntries.find(e=>new URL(e.manifest??'',location.href).href===url.href),prior=libraryEntry?.priorManifest;
   previousUrl=prior?new URL(prior,location.href):undefined;
   $('comparison-control').hidden=!prior;if(!prior)$('comparison').checked=false;
   const prepared=await Promise.all(data.map((r,i)=>prepareView(r,cells[i].sha256,signal)));if(token!==opening)return;
@@ -110,7 +110,8 @@ async function openResult(path,job,initialTime=0){
   if(song==='amour_de_ma_vie_44s'&&ride.seed===303)moments.push(['Reported acceleration · 9.4s',8.7]);
   if(song==='amour_de_ma_vie_44s'&&ride.seed===101)moments.push(['Reported acceleration · 5.95s',5.3]);
   if(song==='tiki_tiki_48s'&&ride.seed===101)moments.push(['Reported acceleration · 15.32s',14.7]);
-  $('review-moments').replaceChildren(...moments.map(([label,t])=>{const b=el('button',label);b.onclick=()=>{pause();seek(t);};return b;}));
+  const reviewMoments=libraryEntry?.moments??moments.map(([title,at])=>({title,at}));
+  $('review-moments').replaceChildren(...reviewMoments.map(({title,at,reason})=>{const b=el('button',title);b.title=reason??'';b.onclick=()=>{pause();seek(at);};return b;}));
   seek(initialTime);
   let audioFailure;
   try{
@@ -137,6 +138,10 @@ async function loadLibrary(){try{
  if(params.has('collection'))data=await checked(collection.href);
  else{const response=await fetch(collection.href);if(!response.ok)throw new Error('The review collection is being generated.');data=await response.json();}
  libraryEntries=data.entries;
+ let collectionNote=$('collection-note');
+ if(!collectionNote){collectionNote=el('p');collectionNote.id='collection-note';$('library').before(collectionNote);}
+ collectionNote.textContent=data.description??'';collectionNote.hidden=!data.description;
+ $('generate').querySelector('button[type=submit]').textContent=data.contract?'Generate with validated compiler':'Generate a track';
  $('library').replaceChildren(...data.entries.map(entry=>{const c=card(`${entry.title} · ${entry.seed}`,entry.error??entry.status??'Saved automatic arrangement');if(entry.manifest){const b=el('button','Open ride');b.onclick=()=>openResult(entry.manifest);c.append(b);}return c;}));
  if(params.has('review')){
   const {createInteractionReview}=await import('./interaction-review.js');

@@ -1,0 +1,67 @@
+{
+  "schema": "line.contact-impact-review-passages.v1",
+  "candidateCommit": "7cbf50c329b041e1133090cd05af07d5c5734593",
+  "selection": "Known owner passages plus one native-verified upper receiver; these are review pointers, not hand-arranged tracks or an exhaustive quality selection. All twenty complete tracks remain visible.",
+  "cases": [
+    {
+      "song": "tiki_tiki_48s",
+      "seed": 303,
+      "moments": [
+        {
+          "title": "Former upper rival \u00b7 remaining weak strikes",
+          "at": 11.95,
+          "reason": "Owner-reported extra at 12.45 s is absent, but intended responses at 12.175 and 13.05 remain weaker than requested. Compare the entire sequence, not just the removed extra."
+        },
+        {
+          "title": "Clean lower landing comparison",
+          "at": 13.55,
+          "reason": "The approved 13.925 s lower strike remains precisely timed; new measured strength 0.728, previous 0.650."
+        }
+      ]
+    },
+    {
+      "song": "tiki_tiki_48s",
+      "seed": 101,
+      "moments": [
+        {
+          "title": "Beat-aligned upper receiver",
+          "at": 12.7,
+          "reason": "An opposing curve is selected by the public compiler without an upper-hit instruction. The shared account observes 0.720 at 13.075 s against 0.760, with zero frame offset."
+        }
+      ]
+    },
+    {
+      "song": "amor_na_praia_46s",
+      "seed": 101,
+      "moments": [
+        {
+          "title": "Former sustained speed-up",
+          "at": 7.6,
+          "reason": "Compare the owner-rejected 7.85\u20138.15 s engagement and its continuation. Local and whole-engagement gains remain separately measured."
+        }
+      ]
+    },
+    {
+      "song": "amor_na_praia_46s",
+      "seed": 202,
+      "moments": [
+        {
+          "title": "Unresolved head-first strike",
+          "at": 8.75,
+          "reason": "The rejected visual configuration remains similar. New strength 0.647 versus previous 0.664, against a requested 1.0. Better timing does not establish better felt clarity."
+        }
+      ]
+    },
+    {
+      "song": "luna_bala_44s",
+      "seed": 101,
+      "moments": [
+        {
+          "title": "Quiet opening \u00b7 still imperfect",
+          "at": 0,
+          "reason": "All requested early onsets now align, with fewer/lower extra responses, but several strengths remain above the 0.06 target. Do not claim perfectly smooth motion."
+        }
+      ]
+    }
+  ]
+}

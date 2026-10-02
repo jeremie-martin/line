@@ -112,12 +112,14 @@ async function openResult(path,job,initialTime=0){
   if(song==='tiki_tiki_48s'&&ride.seed===101)moments.push(['Reported acceleration · 15.32s',14.7]);
   $('review-moments').replaceChildren(...moments.map(([label,t])=>{const b=el('button',label);b.onclick=()=>{pause();seek(t);};return b;}));
   seek(initialTime);
+  let audioFailure;
   try{
    const c=m.plan.cases[0],blob=await verifiedAudio(c,signal);if(token!==opening)return;
    audioObjectUrl=URL.createObjectURL(blob);audio.src=audioObjectUrl;audio.dataset.source=c.audioPath;audio.dataset.sha256=c.audioSha256;audio.load();audio.onloadedmetadata=()=>{if(token===opening)audio.currentTime=seconds;};audio.playbackRate=+$('rate').value;$('play').disabled=false;
-  }catch(e){if(signal.aborted||token!==opening)return;status(e.message+'; the saved ride can still be scrubbed.',true);}
+  }catch(e){if(signal.aborted||token!==opening)return;audioFailure=e.message+'; the saved ride can still be scrubbed.';status(audioFailure,true);}
   await loadMovie(m,url,signal,token);
   if(token===opening&&$('comparison').checked)await comparisonChanged();
+  if(token===opening&&audioFailure)status(audioFailure,true);
  }catch(e){if(signal.aborted||token!==opening)return;$('result-note').textContent='Could not open result: '+e.message;$('result-note').classList.add('error');}
 }
 $('movie').onplay=pause;

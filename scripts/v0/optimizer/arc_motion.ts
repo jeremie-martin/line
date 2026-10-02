@@ -65,6 +65,9 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Explicit experimental ruler; absent means the qualified landing contract. */
   impactContract?:typeof CONTACT_IMPACT_CONTRACT.id;
   impactSearch?:ImpactSearchOptions;
+  /** Prepare physical contact before its authored response time. Musical
+   * targets and construction requests remain at their original timestamps. */
+  impactPreparationFrames?:number;
   /** Explicit motion research/production mode; absent in frozen ordinary/V5 defaults. */
   motionQuality?:MotionSearchOptions;
   /** Explicit repertoire search options. Production defaults are unchanged. */
@@ -284,6 +287,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   if(!validProfileControls(options))throw new Error('invalid profile controls');
   if(options.impactContract!==undefined&&options.impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
+  if(options.impactPreparationFrames!==undefined&&(!options.impactContract||!Number.isSafeInteger(options.impactPreparationFrames)||options.impactPreparationFrames<0||options.impactPreparationFrames>2))throw new Error('invalid impact preparation');
   arcMainSteps(1,options.subdivisions,options.faces);
   spec=normalizeCompilerTimeline(spec);
   validateSpec(spec);
@@ -302,7 +306,10 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const impactCount=Math.max(1,gaps.filter(g=>g.targets.impact!==undefined).length);
   const axisFrames=Object.fromEntries(['air','speed','amplitude'].map(axis=>[axis,gaps.reduce((n,g)=>n+(g.targets[axis as keyof typeof g.targets]===undefined?0:g.endFrame-g.startFrame),0)]));
   const rng=makeRng(seed);
-  const planned=scheduleNativeContacts(gaps.map(g=>({...g,targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
+  const preparation=options.impactPreparationFrames??0;
+  const planned=scheduleNativeContacts(gaps.map(g=>({...g,
+    startFrame:g.startFrame?g.startFrame-preparation:0,endFrame:g.endsWithContact?g.endFrame-preparation:g.endFrame,
+    targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
   const fixed=spec.start||(spec.preroll??PREROLL.DEFAULT_S)<=0?resolveStartState(spec):null;
   const speed=authoredSpeedToPx(gaps[0].targets.speed??.55);
   const pitch=rad(options.startPitch??8.59436692696);

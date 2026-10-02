@@ -17,7 +17,7 @@ export async function createInteractionReview({url, checked, open, seek, time}) 
   const previous=el('button','Previous'),next=el('button','Next'),select=el('select');select.id='interaction-passage';select.setAttribute('aria-label','Study passage');
   data.clips.forEach((c,i)=>{const o=el('option',`${i+1}. ${c.title}`);o.value=c.id;select.append(o);});
   nav.append(previous,select,next);
-  const context=el('p'),question=el('p');question.className='interaction-question';
+  const context=el('p'),question=el('p'),targets=el('p');question.className='interaction-question';targets.className='interaction-targets';
   const full=el('a','Open full automatic track ↗');
   const details=el('details'),summary=el('summary','Compare the measurements');details.append(summary);
   const explanation=el('p','Dashed lines are authored beats. Orange markers on A show response peaks not directly credited by the landing gate. Raw response and the established 0–1 impact scale are different quantities. Counts are observations, not quality scores.');
@@ -31,7 +31,7 @@ export async function createInteractionReview({url, checked, open, seek, time}) 
   const mark=el('button','Mark current time'),clear=el('button','Clear marked times'),download=el('button','Export observations');
   const feedback=el('div');feedback.className='interaction-nav';feedback.append(mark,clear,download);
   const marks=el('p'),saved=el('p','Notes stay in this browser. Export them if you want to share or keep a copy.');saved.className='interaction-save';
-  root.append(heading,intro,nav,context,question,full);
+  root.append(heading,intro,nav,context,question,targets,full);
   const observations=el('section');observations.id='interaction-observations';observations.append(details,noteLabel,notes,feedback,marks,saved);
   document.getElementById('result').before(root);document.body.classList.add('interaction-review-mode');
   document.querySelector('#result > .transport').after(observations);
@@ -49,13 +49,14 @@ export async function createInteractionReview({url, checked, open, seek, time}) 
   mark.onclick=()=>{if(!bound)return;annotation().times.push(Math.round(time()*40)/40);annotation().times=[...new Set(annotation().times)].sort((a,b)=>a-b);save();showNotes();};
   clear.onclick=()=>{annotation().times=[];save();showNotes();};
   download.onclick=()=>{
-    save();const blob=new Blob([JSON.stringify({schema:'line.interaction-feedback.v1',panelSha256:data.panelSha256,candidatesSha256:data.candidatesSha256,study:source.pathname,annotations},null,2)+'\n'],{type:'application/json'});
+    save();const blob=new Blob([JSON.stringify({schema:'line.interaction-feedback.v1',panelSha256:data.panelSha256,candidatesSha256:data.candidatesSha256,ownerFeedbackSha256:data.ownerFeedbackSha256,study:source.pathname,annotations},null,2)+'\n'],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='interaction-observations.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   };
   function renderText(){
     select.value=selected.id;const i=data.clips.indexOf(selected);previous.disabled=i===0;next.disabled=i===data.clips.length-1;
     context.textContent=`${selected.song.replaceAll('_',' ')} · seed ${selected.seed} · focus ${selected.focus.map(t=>t.toFixed(2)).join('–')} s. `+(selected.ownerFeedback??'This passage has no recorded owner judgment.');
     question.textContent=selected.question;
+    targets.textContent='Authored impact → current measured impact (0–1): '+selected.beats.map(b=>`${b.time.toFixed(3)} s: ${b.target.toFixed(3)} → ${b.impact.toFixed(3)}`).join(' · ')+'. These values use the existing landing measure; they do not establish how clear the strike feels.';
     const fullUrl=new URL('production.html',location.href);fullUrl.searchParams.set('data',selected.manifest);fullUrl.searchParams.set('t',String(selected.range[0]));full.href=fullUrl.href;
     showNotes();
   }

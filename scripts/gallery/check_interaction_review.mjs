@@ -27,8 +27,9 @@ try {
   assert.equal(+(await page.locator('#seek').getAttribute('min')),Math.floor(clip.range[0]*40)/40);
   assert.equal(+(await page.locator('#seek').getAttribute('max')),Math.ceil(clip.range[1]*40)/40);
   assert.equal(await page.locator('#interaction-observations details').getAttribute('hidden'),null);
+  for(const b of clip.beats)assert.ok((await page.locator('.interaction-targets').textContent()).includes(`${b.target.toFixed(3)} → ${b.impact.toFixed(3)}`));
  }
- checks.push({allPassagesLoad:data.clips.length,nativeRecordsBound:true,excerptRanges:true});
+ checks.push({allPassagesLoad:data.clips.length,nativeRecordsBound:true,excerptRanges:true,authoredAndMeasuredImpactsDisplayed:true});
  await choose('merged-hits');await seek(14.95);
  await page.locator('#interaction-notes').fill('Browser validation note');
  await page.getByRole('button',{name:'Mark current time',exact:true}).click();
@@ -37,6 +38,7 @@ try {
  const download=page.waitForEvent('download');await page.getByRole('button',{name:'Export observations',exact:true}).click();
  const exported=JSON.parse(readFileSync(await (await download).path()));
  assert.equal(exported.panelSha256,data.panelSha256);assert.equal(exported.candidatesSha256,data.candidatesSha256);
+ assert.equal(exported.ownerFeedbackSha256,data.ownerFeedbackSha256);
  assert.deepEqual(exported.annotations['merged-hits'].times,[14.95]);
  assert.equal(exported.annotations['merged-hits'].trackHash,data.clips.find(c=>c.id==='merged-hits').trackHash);
  await page.reload();await ready();assert.equal(await page.locator('#interaction-notes').inputValue(),'Browser validation note');

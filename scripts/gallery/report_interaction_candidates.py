@@ -1,4 +1,5 @@
 """Summarize the declared comparison, retaining failures and parameter sensitivity."""
+import copy
 import gzip
 import hashlib
 import json
@@ -21,13 +22,37 @@ findings = {
     'ripple-receiver': 'Both candidates identify the extra receiver response before the next landing. This is a previously measured causal guide example, not a new owner judgment.',
     'inverted-contact': 'The default methods each report one interaction here. The recorded pose is a brief inverted contact, not a demonstrated sustained overhead slide.',
     'luna-opening': 'Some low-impact activity is divided by empty contact frames or by pulse thresholds. A later physical peak can also move the pulse onset outside the provisional beat association window.',
-    'tiki-opening': 'The established landing near 0.975 s has a body-response peak below the default 0.5 pulse floor. Contact episodes retain it. This exposes a measurement limitation; the physical ride has not changed.',
+    'tiki-opening': 'The established landing at 0.950 s has a body-response peak below the default 0.5 pulse floor. Contact episodes retain it. This exposes a measurement limitation; the physical ride has not changed.',
     'sustained-guidance': 'Actual contact continues through the focus. The pulse method can mark local fluctuations inside that same engagement; the count changes with its parameters. The open question is whether these feel like guidance or distinct accents.',
     'amour-strong': 'A tiny contact at 5.55 s gets the contact-based beat match; the stronger engagement at 5.60 s is unmatched. Pulse matching instead associates the stronger response with that beat. This tests whether first contact is a useful musical onset.',
 }
-review = {k: v for k, v in audit.items() if k != 'runs'}
+review = copy.deepcopy({k: v for k, v in audit.items() if k != 'runs'})
 for clip in review['clips']:
     clip['finding'] = findings.get(clip['id'], 'This contextual control was selected using authored targets before running the candidates. Listen for whether their grouping and timing describe the interaction you perceive.')
+# Owner review is appended after the declared experiment. Do not rewrite the
+# original panel, its pre-execution judgments, or the derived observations.
+feedback_path = out / 'interaction-panel-feedback-20261002.json'
+feedback_bytes = feedback_path.read_bytes()
+assert hashlib.sha256(feedback_bytes).hexdigest() == Path(str(feedback_path)+'.sha256').read_text().strip()
+feedback = json.loads(feedback_bytes)
+assert feedback['panelSha256'] == audit['panelSha256']
+review['ownerFeedbackSha256'] = hashlib.sha256(feedback_bytes).hexdigest()
+for note in feedback['clips']:
+    clip = next(c for c in review['clips'] if c['id'] == note['id'])
+    assert clip['trackHash'] == note['trackHash']
+    clip['ownerFeedbackAtDeclaration'] = clip['ownerFeedback']
+    clip['ownerFeedback'] = note['summary']
+    clip['question'] = 'Review focus: ' + note['reviewFocus']
+for clip in review['clips']:
+    if clip['id'] == 'sustained-guidance':
+        clip['title'] = 'Sustained contact with unwanted speed gain'
+        clip['finding'] = 'The owner rejects the unexplained speed-up here. This is a negative motion example, not an approved smooth-guidance control. Contact is continuous; small individual response peaks do not establish acceptable motion.'
+    elif clip['id'] == 'amor-strong':
+        clip['finding'] = 'The owner does not perceive an impactful strike near 9.2 s. The request is 1.0 and the current landing measure is about 0.689. Both its strength shortfall and the character of the contact require attention; this does not disqualify inverted riding generally.'
+    elif clip['id'] == 'ripple-receiver':
+        clip['finding'] = 'The owner welcomes this separate upper-receiver pattern, provided it is deliberately synchronized and its impact matches the musical request. The current response is a previously measured causal guide example.'
+    elif clip['id'] == 'amour-strong':
+        clip['finding'] += ' The owner finds the difficult passage not so bad overall; that is not a precise endorsement of either onset interpretation.'
 review['reporterSha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 review_bytes = (json.dumps(review, separators=(',', ':')) + '\n').encode()
 (source / 'review.json').write_bytes(review_bytes)
@@ -50,6 +75,7 @@ for i, m in enumerate(runs[0]['matchingSensitivity']):
     selected = [r['matchingSensitivity'][i] for r in runs]
     matching.append({k: m[k] for k in ['method', 'clock', 'tolerance']} | {'matchedBeats': sum(len(s['pairs']) for s in selected)})
 summary = {'schema': audit['schema'], 'panelSha256': audit['panelSha256'], 'auditSha256': hashlib.sha256(payload).hexdigest(),
+           'ownerFeedbackSha256': review['ownerFeedbackSha256'],
            'reviewSha256': hashlib.sha256(review_bytes).hexdigest(), 'runs': len(runs),
            'authoredBeats': sum(len(r['beats']) for r in runs), 'totals': totals, 'variants': variants,
            'matchingSensitivity': matching, 'notes': audit['notes'],

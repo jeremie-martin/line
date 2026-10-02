@@ -2,7 +2,8 @@
   "schema": "line.interaction-candidates.v1",
   "panelSha256": "4f92e172c8d545fe78805f03a1f6cd22cfdafd4c4aa1ec842f9d36fa6e4057d8",
   "auditSha256": "86bde0abe3a4dc60df3e19f990e82a99ee6e85e2d7e2f544699b7b458aa743f1",
-  "reviewSha256": "b2a8cd9228a99eaffbd95e310c7b67a75865a2ef78b516b66995a9a7d4c7a3fd",
+  "ownerFeedbackSha256": "f35de8a25df7cf04df5e23038da5fe4249bf2c63664a33a12db746dd2245f1fa",
+  "reviewSha256": "20b8a0f2c187b9e7eb6a1c6fe7571fa8f519c60bd2a69b5f6fa5f66aaae3f5c1",
   "runs": 12,
   "authoredBeats": 945,
   "totals": {
@@ -280,7 +281,7 @@
         12.3,
         12.8
       ],
-      "ownerFeedback": "Owner confirmed the distracting upper hit around 12.45 s.",
+      "ownerFeedback": "An upper hit before the beat is present. Upper hits are welcome when intentionally synchronized and measured for their actual impactfulness.",
       "counts": {
         "landing": 2,
         "contact": 4,
@@ -506,7 +507,7 @@
         13.88,
         14.15
       ],
-      "ownerFeedback": "Owner found the landing around 13.95 s cleaner and better defined.",
+      "ownerFeedback": "Strong positive reference: a very clean, neat, precise and well-defined lower landing.",
       "counts": {
         "landing": 1,
         "contact": 1,
@@ -701,7 +702,7 @@
         13.9,
         14.4
       ],
-      "ownerFeedback": "Owner values this separated transfer; this does not imply every part needs to count as a musical hit.",
+      "ownerFeedback": "The upper receiver dampens the felt impactfulness here. Separate upper receivers remain a valued pattern overall.",
       "counts": {
         "landing": 1,
         "contact": 2,
@@ -907,7 +908,7 @@
         14.78,
         15.05
       ],
-      "ownerFeedback": "Owner sees two separate interactions and welcomes the possibility of an intentional upper musical strike.",
+      "ownerFeedback": "Agrees that two surfaces are being combined into one reported impact. Jumping into another receiver should be treated as a separate interaction.",
       "counts": {
         "landing": 1,
         "contact": 2,
@@ -1112,7 +1113,7 @@
         42.3,
         42.8
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Agrees with the identified split-response problem. No additional strength rating was given.",
       "counts": {
         "landing": 1,
         "contact": 3,
@@ -1336,7 +1337,7 @@
         15.82,
         16.3
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Strongly likes jumping into a separate upper receiver. This would be especially appealing if intentionally aligned to the beat and requested impact; the current example is not. The pattern should appear with variety, not everywhere.",
       "counts": {
         "landing": 2,
         "contact": 3,
@@ -1548,7 +1549,7 @@
           ]
         }
       ],
-      "finding": "Both candidates identify the extra receiver response before the next landing. This is a previously measured causal guide example, not a new owner judgment."
+      "finding": "The owner welcomes this separate upper-receiver pattern, provided it is deliberately synchronized and its impact matches the musical request. The current response is a previously measured causal guide example."
     },
     {
       "id": "inverted-contact",
@@ -1754,7 +1755,7 @@
         0,
         1.8
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Finds the opening insufficiently smooth and somewhat messy; uncertain about the control rail. Wonders about authored impact levels and would welcome an even smoother quiet opening.",
       "counts": {
         "landing": 3,
         "contact": 6,
@@ -1994,7 +1995,7 @@
         0,
         1.8
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Strongly appreciates the smooth opening and the similar character of older Tiki starts. Quiet passages should feel very smooth; not all music should be smooth.",
       "counts": {
         "landing": 1,
         "contact": 5,
@@ -2193,17 +2194,17 @@
           "peaks": []
         }
       ],
-      "finding": "The established landing near 0.975 s has a body-response peak below the default 0.5 pulse floor. Contact episodes retain it. This exposes a measurement limitation; the physical ride has not changed."
+      "finding": "The established landing at 0.950 s has a body-response peak below the default 0.5 pulse floor. Contact episodes retain it. This exposes a measurement limitation; the physical ride has not changed."
     },
     {
       "id": "sustained-guidance",
-      "title": "Sustained guidance with a low response peak",
+      "title": "Sustained contact with unwanted speed gain",
       "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
       "focus": [
         7.85,
         8.15
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Rejects the unexplained speed-up while the rider initially travels slightly upward. Sustained guidance can be appropriate, but this is not an approved smooth example. Can still feel the two preceding impacts, perhaps not strongly enough, while uncertain about their targets. Friction or an engine quirk is a hypothesis, not an established cause from viewing.",
       "counts": {
         "landing": 1,
         "contact": 1,
@@ -2381,7 +2382,7 @@
           "peaks": []
         }
       ],
-      "finding": "Actual contact continues through the focus. The pulse method can mark local fluctuations inside that same engagement; the count changes with its parameters. The open question is whether these feel like guidance or distinct accents."
+      "finding": "The owner rejects the unexplained speed-up here. This is a negative motion example, not an approved smooth-guidance control. Contact is continuous; small individual response peaks do not establish acceptable motion."
     },
     {
       "id": "amour-strong",
@@ -2391,7 +2392,7 @@
         5.11,
         5.81
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Tentatively considers this a difficult specification and not so bad, with possible improvement. Does not supply a precise judgment about the tiny first contact or the event onset.",
       "counts": {
         "landing": 2,
         "contact": 3,
@@ -2589,7 +2590,7 @@
           ]
         }
       ],
-      "finding": "A tiny contact at 5.55 s gets the contact-based beat match; the stronger engagement at 5.60 s is unmatched. Pulse matching instead associates the stronger response with that beat. This tests whether first contact is a useful musical onset."
+      "finding": "A tiny contact at 5.55 s gets the contact-based beat match; the stronger engagement at 5.60 s is unmatched. Pulse matching instead associates the stronger response with that beat. This tests whether first contact is a useful musical onset. The owner finds the difficult passage not so bad overall; that is not a precise endorsement of either onset interpretation."
     },
     {
       "id": "amor-strong",
@@ -2599,7 +2600,7 @@
         9,
         9.7
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Strong negative example near 9.2 s: the head-down/backward-looking arrival does not feel like an impactful strike. Challenges what the impact number represents here. This is not a general rejection of inverted riding.",
       "counts": {
         "landing": 2,
         "contact": 2,
@@ -2796,7 +2797,7 @@
           ]
         }
       ],
-      "finding": "This contextual control was selected using authored targets before running the candidates. Listen for whether their grouping and timing describe the interaction you perceive."
+      "finding": "The owner does not perceive an impactful strike near 9.2 s. The request is 1.0 and the current landing measure is about 0.689. Both its strength shortfall and the character of the contact require attention; this does not disqualify inverted riding generally."
     },
     {
       "id": "luna-strong",
@@ -2806,7 +2807,7 @@
         28.1,
         28.8
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Not the cleanest or most obvious ground slam, but much better than the preceding Amor example.",
       "counts": {
         "landing": 2,
         "contact": 2,
@@ -3019,7 +3020,7 @@
         6.87,
         7.57
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Positive reference: impacts are not especially strong, yet much more well-defined and aligned with the intended meaning of impact. Appreciates the simple upright ground contact without a control rail.",
       "counts": {
         "landing": 1,
         "contact": 1,
@@ -3211,7 +3212,7 @@
         10.44,
         11.14
       ],
-      "ownerFeedback": null,
+      "ownerFeedback": "Reports unwanted acceleration that makes the motion feel fuzzy. Otherwise tentatively considers the difficult passage not so bad and is uncertain about its requested impact levels.",
       "counts": {
         "landing": 2,
         "contact": 2,

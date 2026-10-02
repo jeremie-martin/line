@@ -1,0 +1,1349 @@
+{
+  "schema": "line.interaction-feedback-checks.v1",
+  "harnessSha256": "e623f4664f38fb90aa7e014e0d71cd2371284b32a6638dcd99d821b7ba2a932f",
+  "feedbackSha256": "f35de8a25df7cf04df5e23038da5fe4249bf2c63664a33a12db746dd2245f1fa",
+  "panelSha256": "4f92e172c8d545fe78805f03a1f6cd22cfdafd4c4aa1ec842f9d36fa6e4057d8",
+  "sourceAuditSha256": "1637b64027a73dc7c0bbc2f68b2cf2d087362e7a91d968d22d146d8726ebe0c2",
+  "sourceFramesSha256": "a2ce9b591c98a9593a5da3cdc7ff95d96380ad1664196e0b0442089a156479b5",
+  "sourceKinematicsSha256": "4d788dac3154897bd467ac28a1a0ec69d003ab239a27bb90d2ae133e77969a65",
+  "requested": [
+    {
+      "id": "upper-rival",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "focus": [
+        12.3,
+        12.8
+      ],
+      "beats": [
+        {
+          "time": 11.746,
+          "target": 0.63764,
+          "actualFrame": 471,
+          "measured": 0.5165019527949034
+        },
+        {
+          "time": 12.18,
+          "target": 0.76,
+          "actualFrame": 489,
+          "measured": 0.7020197952794647
+        },
+        {
+          "time": 12.617,
+          "target": 0.65742,
+          "actualFrame": 506,
+          "measured": 0.6400140764247553
+        },
+        {
+          "time": 13.05,
+          "target": 0.76,
+          "actualFrame": 524,
+          "measured": 0.6447401235893879
+        }
+      ]
+    },
+    {
+      "id": "clean-landing",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "focus": [
+        13.88,
+        14.15
+      ],
+      "beats": [
+        {
+          "time": 13.482,
+          "target": 0.63442,
+          "actualFrame": 541,
+          "measured": 0.5619426901182019
+        },
+        {
+          "time": 13.91,
+          "target": 0.7176800000000001,
+          "actualFrame": 557,
+          "measured": 0.6741366601270953
+        }
+      ]
+    },
+    {
+      "id": "open-transfer",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "focus": [
+        13.9,
+        14.4
+      ],
+      "beats": [
+        {
+          "time": 13.482,
+          "target": 0.63442,
+          "actualFrame": 541,
+          "measured": 0.6534568511230786
+        },
+        {
+          "time": 13.91,
+          "target": 0.7176800000000001,
+          "actualFrame": 558,
+          "measured": 0.7052553108574833
+        },
+        {
+          "time": 14.78,
+          "target": 0.73976,
+          "actualFrame": 593,
+          "measured": 0.7185199319264748
+        }
+      ]
+    },
+    {
+      "id": "merged-hits",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "focus": [
+        14.78,
+        15.05
+      ],
+      "beats": [
+        {
+          "time": 14.78,
+          "target": 0.73976,
+          "actualFrame": 593,
+          "measured": 0.7185199319264748
+        },
+        {
+          "time": 15.229,
+          "target": 0.74,
+          "actualFrame": 611,
+          "measured": 0.6830721717379381
+        }
+      ]
+    },
+    {
+      "id": "split-lower",
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "focus": [
+        42.3,
+        42.8
+      ],
+      "beats": [
+        {
+          "time": 41.83,
+          "target": 0.761,
+          "actualFrame": 1675,
+          "measured": 0.7337764575457588
+        },
+        {
+          "time": 42.38,
+          "target": 0.542,
+          "actualFrame": 1697,
+          "measured": 0.5404991186162165
+        }
+      ]
+    },
+    {
+      "id": "ripple-receiver",
+      "trackHash": "218f32afa6c2b620fad38f7c44258101cc360b824bc33ae124bc8f3503b9352b",
+      "focus": [
+        15.82,
+        16.3
+      ],
+      "beats": [
+        {
+          "time": 15.67,
+          "target": 0.57,
+          "actualFrame": 627,
+          "measured": 0.526386805709673
+        },
+        {
+          "time": 16.21,
+          "target": 0.659,
+          "actualFrame": 649,
+          "measured": 0.6505821249871373
+        },
+        {
+          "time": 16.76,
+          "target": 0.663,
+          "actualFrame": 672,
+          "measured": 0.6471241970924212
+        }
+      ]
+    },
+    {
+      "id": "inverted-contact",
+      "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+      "focus": [
+        21.75,
+        22.05
+      ],
+      "beats": [
+        {
+          "time": 21.2,
+          "target": 0.579,
+          "actualFrame": 850,
+          "measured": 0.558807686329185
+        },
+        {
+          "time": 21.75,
+          "target": 0.56,
+          "actualFrame": 872,
+          "measured": 0.48138935901752544
+        },
+        {
+          "time": 22.3,
+          "target": 0.506,
+          "actualFrame": 894,
+          "measured": 0.46975792507230846
+        }
+      ]
+    },
+    {
+      "id": "luna-opening",
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "focus": [
+        0,
+        1.8
+      ],
+      "beats": [
+        {
+          "time": 0.39,
+          "target": 0.06,
+          "actualFrame": 17,
+          "measured": 0.06079753430555534
+        },
+        {
+          "time": 0.81,
+          "target": 0.06,
+          "actualFrame": 34,
+          "measured": 0.08263620803053098
+        },
+        {
+          "time": 1.32,
+          "target": 0.06,
+          "actualFrame": 53,
+          "measured": 0.06118984556250494
+        },
+        {
+          "time": 1.9,
+          "target": 0.06,
+          "actualFrame": 78,
+          "measured": 0.10506543378215615
+        }
+      ]
+    },
+    {
+      "id": "tiki-opening",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "focus": [
+        0,
+        1.8
+      ],
+      "beats": [
+        {
+          "time": 0.94,
+          "target": 0.02,
+          "actualFrame": 38,
+          "measured": 0.04118736861017771
+        },
+        {
+          "time": 1.81,
+          "target": 0.02,
+          "actualFrame": 73,
+          "measured": 0.04135548916286648
+        }
+      ]
+    },
+    {
+      "id": "sustained-guidance",
+      "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+      "focus": [
+        7.85,
+        8.15
+      ],
+      "beats": [
+        {
+          "time": 7.34,
+          "target": 0.781,
+          "actualFrame": 295,
+          "measured": 0.735630919601118
+        },
+        {
+          "time": 7.66,
+          "target": 0.784,
+          "actualFrame": 308,
+          "measured": 0.7744655431101333
+        }
+      ]
+    },
+    {
+      "id": "amour-strong",
+      "trackHash": "7f61f3ce5b0ebb08fa3c1b0ec7c042f6b6665401dd90596a913b2e419a875656",
+      "focus": [
+        5.11,
+        5.81
+      ],
+      "beats": [
+        {
+          "time": 4.55,
+          "target": 0.786,
+          "actualFrame": 183,
+          "measured": 0.526315772312193
+        },
+        {
+          "time": 5.21,
+          "target": 1,
+          "actualFrame": 209,
+          "measured": 0.9346159597601132
+        },
+        {
+          "time": 5.5293,
+          "target": 0.928,
+          "actualFrame": 222,
+          "measured": 0.9334285656541588
+        },
+        {
+          "time": 5.88,
+          "target": 0.842,
+          "actualFrame": 236,
+          "measured": 0.6468113456194672
+        },
+        {
+          "time": 6.1852,
+          "target": 0.935,
+          "actualFrame": 249,
+          "measured": 0.909134428381392
+        }
+      ]
+    },
+    {
+      "id": "amor-strong",
+      "trackHash": "cf9fe39f96d11ef3028b71a421d8bbcaaa895385e4d176023ea4ca3bb9531148",
+      "focus": [
+        9,
+        9.7
+      ],
+      "beats": [
+        {
+          "time": 9.1,
+          "target": 1,
+          "actualFrame": 366,
+          "measured": 0.6885950968822188
+        },
+        {
+          "time": 9.65,
+          "target": 0.541,
+          "actualFrame": 388,
+          "measured": 0.4667176036307797
+        },
+        {
+          "time": 10.2,
+          "target": 0.613,
+          "actualFrame": 410,
+          "measured": 0.557422939400913
+        }
+      ]
+    },
+    {
+      "id": "luna-strong",
+      "trackHash": "8c9badc84ddd7d632516d081df01c3ccfd94d0f1828c7fe3ad42641c0921948c",
+      "focus": [
+        28.1,
+        28.8
+      ],
+      "beats": [
+        {
+          "time": 27.66,
+          "target": 0.332,
+          "actualFrame": 1107,
+          "measured": 0.2850277889375006
+        },
+        {
+          "time": 28.2,
+          "target": 1,
+          "actualFrame": 1130,
+          "measured": 1
+        },
+        {
+          "time": 28.76,
+          "target": 0.332,
+          "actualFrame": 1152,
+          "measured": 0.32925263977720737
+        },
+        {
+          "time": 29.3,
+          "target": 0.313,
+          "actualFrame": 1174,
+          "measured": 0.3434365471828085
+        }
+      ]
+    },
+    {
+      "id": "tiki-contrast",
+      "trackHash": "9a0630ad8bcf17274dc26e11143f430838b24ce66f3808c03660c42a61dbc2a8",
+      "focus": [
+        6.87,
+        7.57
+      ],
+      "beats": [
+        {
+          "time": 6.97,
+          "target": 0.60784,
+          "actualFrame": 279,
+          "measured": 0.6551450403287299
+        },
+        {
+          "time": 7.83,
+          "target": 0.5545599999999999,
+          "actualFrame": 314,
+          "measured": 0.63082535383197
+        }
+      ]
+    },
+    {
+      "id": "amour-contrast",
+      "trackHash": "46cca64f2bcd8fcf302793e514305135d03fd354501e29a434fe64d8bcf2b533",
+      "focus": [
+        10.44,
+        11.14
+      ],
+      "beats": [
+        {
+          "time": 9.88,
+          "target": 0.832,
+          "actualFrame": 396,
+          "measured": 0.6641842017970321
+        },
+        {
+          "time": 10.2081,
+          "target": 0.502,
+          "actualFrame": 409,
+          "measured": 0.3499315165604263
+        },
+        {
+          "time": 10.54,
+          "target": 1,
+          "actualFrame": 422,
+          "measured": 0.9294247663030428
+        },
+        {
+          "time": 10.8902,
+          "target": 0.945,
+          "actualFrame": 437,
+          "measured": 0.9174888217537496
+        },
+        {
+          "time": 11.22,
+          "target": 0.857,
+          "actualFrame": 449,
+          "measured": 0.8429173135488517
+        },
+        {
+          "time": 11.52,
+          "target": 0.935,
+          "actualFrame": 461,
+          "measured": 0.9030684306184542
+        }
+      ]
+    },
+    {
+      "id": "amor-quiet",
+      "trackHash": "19ddcf0a60253ef638e1a36b4eb2f1bcd06bd8fc1b6a6dc6de49fe394acb02b1",
+      "focus": [
+        24.4,
+        25.1
+      ],
+      "beats": [
+        {
+          "time": 23.95,
+          "target": 0.612,
+          "actualFrame": 960,
+          "measured": 0.617667009919584
+        },
+        {
+          "time": 24.5,
+          "target": 0.45,
+          "actualFrame": 982,
+          "measured": 0.46238707941163165
+        },
+        {
+          "time": 25.05,
+          "target": 0.599,
+          "actualFrame": 1004,
+          "measured": 0.5990513393681772
+        },
+        {
+          "time": 25.6,
+          "target": 0.606,
+          "actualFrame": 1026,
+          "measured": 0.5514351690365665
+        }
+      ]
+    }
+  ],
+  "speedChecks": [
+    {
+      "id": "sustained-guidance",
+      "from": 314,
+      "to": 326,
+      "intervalIncludesBothEndpointFrames": true,
+      "speedBefore": 7.152907970933071,
+      "speedAfter": 9.115652800247586,
+      "solverGain": 2.4252138774559526,
+      "gravityGain": -0.4624690481414371,
+      "windows": [
+        {
+          "frames": 1,
+          "from": 325,
+          "to": 325,
+          "solverGain": 0.5436427329198974,
+          "gravityGain": -0.01792514796195377
+        },
+        {
+          "frames": 4,
+          "from": 316,
+          "to": 319,
+          "solverGain": 1.1692485572423035,
+          "gravityGain": -0.19121878479535237
+        },
+        {
+          "frames": 10,
+          "from": 316,
+          "to": 325,
+          "solverGain": 2.218507448141196,
+          "gravityGain": -0.30521836769784283
+        }
+      ],
+      "maxTraceError": 0,
+      "groups": {
+        "StepUpdate": {
+          "updates": 13,
+          "pointKineticProxyChange": -3.515119803613807,
+          "bodySpeedChange": -0.4624690481413207,
+          "projection": 0,
+          "friction": 0
+        },
+        "ConstraintUpdate": {
+          "updates": 1768,
+          "pointKineticProxyChange": -2.236675266340889,
+          "bodySpeedChange": -0.9890695630970647,
+          "projection": 0,
+          "friction": 0
+        },
+        "guideCollision": {
+          "updates": 131,
+          "pointKineticProxyChange": 18.570237392545295,
+          "bodySpeedChange": 3.430056783144364,
+          "projection": -1.3900556127111727,
+          "friction": 19.960293005256453
+        },
+        "mainCollision": {
+          "updates": 112,
+          "pointKineticProxyChange": -0.08336956165351594,
+          "bodySpeedChange": -0.015773342591462125,
+          "projection": -0.08336956165345595,
+          "friction": 0
+        }
+      },
+      "limitation": "Ordered collision-update decomposition on the unchanged ride, not a counterfactual valid alternative or calibrated mechanical energy. Body and sled constraints redistribute motion."
+    },
+    {
+      "id": "amour-contrast",
+      "from": 418,
+      "to": 445,
+      "intervalIncludesBothEndpointFrames": true,
+      "speedBefore": 10.338656053101355,
+      "speedAfter": 11.522517535547728,
+      "solverGain": -0.8592146207381948,
+      "gravityGain": 2.0430761031845694,
+      "windows": [
+        {
+          "frames": 1,
+          "from": 440,
+          "to": 440,
+          "solverGain": 0.9490152749496641,
+          "gravityGain": 0.02532745968724548
+        },
+        {
+          "frames": 4,
+          "from": 440,
+          "to": 443,
+          "solverGain": 1.6668427065736147,
+          "gravityGain": 0.20099827559986494
+        },
+        {
+          "frames": 10,
+          "from": 418,
+          "to": 427,
+          "solverGain": 0.56005548821879,
+          "gravityGain": 0.29963162203999083
+        }
+      ],
+      "maxTraceError": 0,
+      "groups": {
+        "StepUpdate": {
+          "updates": 28,
+          "pointKineticProxyChange": 22.398432787273904,
+          "bodySpeedChange": 2.0430761031840277,
+          "projection": 0,
+          "friction": 0
+        },
+        "ConstraintUpdate": {
+          "updates": 3808,
+          "pointKineticProxyChange": -10.186157120291284,
+          "bodySpeedChange": -0.6350850522212514,
+          "projection": 0,
+          "friction": 0
+        },
+        "mainCollision": {
+          "updates": 37,
+          "pointKineticProxyChange": -18.04105188656721,
+          "bodySpeedChange": 0,
+          "projection": -18.04105188656719,
+          "friction": 0
+        },
+        "guideCollision": {
+          "updates": 148,
+          "pointKineticProxyChange": 18.107280199820984,
+          "bodySpeedChange": -0.2241295685164033,
+          "projection": -49.3558378118686,
+          "friction": 67.46311801168956
+        }
+      },
+      "limitation": "Ordered collision-update decomposition on the unchanged ride, not a counterfactual valid alternative or calibrated mechanical energy. Body and sled constraints redistribute motion."
+    }
+  ],
+  "strikeChecks": [
+    {
+      "id": "clean-landing",
+      "target": 0.7176800000000001,
+      "measured": 0.6741366601270953,
+      "authoredTime": 13.91,
+      "actualFrame": 557,
+      "steps": [
+        {
+          "frame": 557,
+          "scoredStep": 0.1970321480311534
+        },
+        {
+          "frame": 558,
+          "scoredStep": 0.5945611960766221
+        },
+        {
+          "frame": 559,
+          "scoredStep": 1.1043276121951566
+        },
+        {
+          "frame": 560,
+          "scoredStep": 0.8856793935576106
+        },
+        {
+          "frame": 561,
+          "scoredStep": 0.8469043115207743
+        },
+        {
+          "frame": 562,
+          "scoredStep": 1.2513244352473556
+        },
+        {
+          "frame": 563,
+          "scoredStep": 0.20990268733089595
+        }
+      ],
+      "frames": [
+        {
+          "frame": 555,
+          "meanResponse": 0.0663307925591473,
+          "headingDegrees": 0.30985944107856095,
+          "speedBefore": 11.60835140239416,
+          "speedAfter": 11.629597559753448,
+          "contacts": [],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -40.22603242295163
+        },
+        {
+          "frame": 556,
+          "meanResponse": 0.0477137019419938,
+          "headingDegrees": 0.23150774685464642,
+          "speedBefore": 11.71798949560549,
+          "speedAfter": 11.723795930171882,
+          "contacts": [],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -33.30136271343061
+        },
+        {
+          "frame": 557,
+          "meanResponse": 0.7618768168094912,
+          "headingDegrees": -3.645201675226885,
+          "speedBefore": 11.814721964868054,
+          "speedAfter": 11.663450543517017,
+          "contacts": [
+            "main:TAIL"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -15.302510512443083
+        },
+        {
+          "frame": 558,
+          "meanResponse": 1.341120727801513,
+          "headingDegrees": -6.290067323540885,
+          "speedBefore": 11.746683179031029,
+          "speedAfter": 11.298792258890712,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:LFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 5.999411887616516
+        },
+        {
+          "frame": 559,
+          "meanResponse": 1.1558497914301702,
+          "headingDegrees": -5.421078850597846,
+          "speedBefore": 11.366870894267937,
+          "speedAfter": 10.88851394933323,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:STRING",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 6.439375328870678
+        },
+        {
+          "frame": 560,
+          "meanResponse": 1.0631175669896777,
+          "headingDegrees": -5.403021132275498,
+          "speedBefore": 10.94350897587995,
+          "speedAfter": 10.633367402061126,
+          "contacts": [
+            "main:NOSE",
+            "main:STRING",
+            "main:RHAND",
+            "main:LHAND",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 9.470946452919117
+        },
+        {
+          "frame": 561,
+          "meanResponse": 1.4266848039566458,
+          "headingDegrees": -7.680300641204916,
+          "speedBefore": 10.675128052711964,
+          "speedAfter": 10.576738272046331,
+          "contacts": [
+            "main:NOSE",
+            "main:RHAND",
+            "main:LHAND",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 12.954051559173
+        },
+        {
+          "frame": 562,
+          "meanResponse": 0.3838041001949213,
+          "headingDegrees": -2.0753335836339724,
+          "speedBefore": 10.598223729486781,
+          "speedAfter": 10.58921893363214,
+          "contacts": [
+            "main:NOSE"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 14.64873019357628
+        },
+        {
+          "frame": 563,
+          "meanResponse": 0.2813551478693511,
+          "headingDegrees": -1.492887204019654,
+          "speedBefore": 10.607260255690345,
+          "speedAfter": 10.55082272573248,
+          "contacts": [
+            "main:NOSE"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 14.73046439995636
+        },
+        {
+          "frame": 564,
+          "meanResponse": 0.17568880528062475,
+          "headingDegrees": -0.9503771477415326,
+          "speedBefore": 10.567193347024599,
+          "speedAfter": 10.553648162348129,
+          "contacts": [],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 15.615811139340403
+        },
+        {
+          "frame": 565,
+          "meanResponse": 0.05552062637191415,
+          "headingDegrees": 0.23483844587416677,
+          "speedBefore": 10.570003397906447,
+          "speedAfter": 10.604636951061712,
+          "contacts": [],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 15.938310752334328
+        }
+      ]
+    },
+    {
+      "id": "amor-strong",
+      "target": 1,
+      "measured": 0.6885950968822188,
+      "authoredTime": 9.1,
+      "actualFrame": 366,
+      "steps": [
+        {
+          "frame": 366,
+          "scoredStep": 0.2546846813275444
+        },
+        {
+          "frame": 367,
+          "scoredStep": 1.1920023955783883
+        },
+        {
+          "frame": 368,
+          "scoredStep": 0.9444296358147682
+        },
+        {
+          "frame": 369,
+          "scoredStep": 0.8910341983486247
+        },
+        {
+          "frame": 370,
+          "scoredStep": 0.8014939463396902
+        },
+        {
+          "frame": 371,
+          "scoredStep": 0.6065356116629047
+        },
+        {
+          "frame": 372,
+          "scoredStep": 0.5087125123888331
+        }
+      ],
+      "frames": [
+        {
+          "frame": 364,
+          "meanResponse": 0.008532168136431005,
+          "headingDegrees": -0.03687453196867962,
+          "speedBefore": 13.126697360658804,
+          "speedAfter": 13.127889383592764,
+          "contacts": [],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": -132.73260209363016
+        },
+        {
+          "frame": 365,
+          "meanResponse": 0.4578370986340778,
+          "headingDegrees": 0.6013074408162628,
+          "speedBefore": 13.25736290445376,
+          "speedAfter": 12.820447720507929,
+          "contacts": [
+            "main:SHOULDER"
+          ],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": -129.14942143471427
+        },
+        {
+          "frame": 366,
+          "meanResponse": 1.4930293856234873,
+          "headingDegrees": -5.987084813578679,
+          "speedBefore": 12.952183951091815,
+          "speedAfter": 12.245908521787072,
+          "contacts": [
+            "main:PEG",
+            "main:BUTT",
+            "main:SHOULDER",
+            "main:RHAND",
+            "main:LHAND"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -126.7122606066191
+        },
+        {
+          "frame": 367,
+          "meanResponse": 1.5366638576752876,
+          "headingDegrees": -5.246729938598258,
+          "speedBefore": 12.366141606705513,
+          "speedAfter": 11.273856409996213,
+          "contacts": [
+            "main:PEG",
+            "main:TAIL",
+            "main:BUTT",
+            "main:SHOULDER",
+            "main:RHAND",
+            "main:LHAND"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -123.19149388218433
+        },
+        {
+          "frame": 368,
+          "meanResponse": 1.4198175198957739,
+          "headingDegrees": -5.457260806955503,
+          "speedBefore": 11.383490848758582,
+          "speedAfter": 10.413284051772361,
+          "contacts": [
+            "main:TAIL",
+            "main:BUTT",
+            "main:SHOULDER",
+            "main:RHAND",
+            "main:LHAND",
+            "main:PEG"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -121.48942863374947
+        },
+        {
+          "frame": 369,
+          "meanResponse": 1.2683494149267145,
+          "headingDegrees": -5.428010635866984,
+          "speedBefore": 10.511334582720673,
+          "speedAfter": 9.67677490588697,
+          "contacts": [
+            "main:PEG",
+            "main:TAIL",
+            "main:BUTT",
+            "main:SHOULDER"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -123.40803584542589
+        },
+        {
+          "frame": 370,
+          "meanResponse": 1.3186013933526497,
+          "headingDegrees": -4.785921852724115,
+          "speedBefore": 9.762932265068628,
+          "speedAfter": 8.691966080207084,
+          "contacts": [
+            "main:PEG",
+            "main:BUTT",
+            "main:SHOULDER"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -120.70987706464946
+        },
+        {
+          "frame": 371,
+          "meanResponse": 1.1198035025928164,
+          "headingDegrees": -4.663476323351028,
+          "speedBefore": 8.767786091517069,
+          "speedAfter": 7.875158783814323,
+          "contacts": [
+            "main:PEG",
+            "main:SHOULDER"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -114.92825741049688
+        },
+        {
+          "frame": 372,
+          "meanResponse": 0.2948761970740176,
+          "headingDegrees": -0.17748452963035322,
+          "speedBefore": 7.941043279496808,
+          "speedAfter": 7.647156803195465,
+          "contacts": [
+            "main:PEG",
+            "main:SHOULDER"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -100.71986452014525
+        },
+        {
+          "frame": 373,
+          "meanResponse": 0.19298243208988117,
+          "headingDegrees": 0.9813420291407429,
+          "speedBefore": 7.715889335058947,
+          "speedAfter": 7.8553953365458336,
+          "contacts": [],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -86.42576348735236
+        },
+        {
+          "frame": 374,
+          "meanResponse": 0.019644210344396743,
+          "headingDegrees": 0.0015703481371905927,
+          "speedBefore": 7.930133597240015,
+          "speedAfter": 7.949776602185474,
+          "contacts": [],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": -73.35348249095189
+        }
+      ]
+    },
+    {
+      "id": "luna-strong",
+      "target": 1,
+      "measured": 1,
+      "authoredTime": 28.2,
+      "actualFrame": 1130,
+      "steps": [
+        {
+          "frame": 1130,
+          "scoredStep": 0.15475357411913576
+        },
+        {
+          "frame": 1131,
+          "scoredStep": 0.7946911936807844
+        },
+        {
+          "frame": 1132,
+          "scoredStep": 1.4059576582994606
+        },
+        {
+          "frame": 1133,
+          "scoredStep": 1.8431486078406958
+        },
+        {
+          "frame": 1134,
+          "scoredStep": 0.9875945885443814
+        },
+        {
+          "frame": 1135,
+          "scoredStep": 0.965151550718179
+        },
+        {
+          "frame": 1136,
+          "scoredStep": 2.006355292350987
+        }
+      ],
+      "frames": [
+        {
+          "frame": 1128,
+          "meanResponse": 0.015085049049681408,
+          "headingDegrees": 0.05773206073076731,
+          "speedBefore": 12.908821180483024,
+          "speedAfter": 12.901174359319887,
+          "contacts": [],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": 108.20014040201119
+        },
+        {
+          "frame": 1129,
+          "meanResponse": 0.01761610998234044,
+          "headingDegrees": 0.054749287804376934,
+          "speedBefore": 13.001444887942116,
+          "speedAfter": 12.988949695232545,
+          "contacts": [],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": 111.89914549098096
+        },
+        {
+          "frame": 1130,
+          "meanResponse": 0.949279178063113,
+          "headingDegrees": -4.136148873303467,
+          "speedBefore": 13.090926369987807,
+          "speedAfter": 12.958818100531538,
+          "contacts": [
+            "main:NOSE",
+            "main:STRING"
+          ],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": 116.4870084853549
+        },
+        {
+          "frame": 1131,
+          "meanResponse": 1.631450454599337,
+          "headingDegrees": -6.983203591366849,
+          "speedBefore": 13.051929305910024,
+          "speedAfter": 12.57617016503913,
+          "contacts": [
+            "main:NOSE",
+            "main:STRING",
+            "main:RHAND",
+            "main:LHAND"
+          ],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": 120.87155325214192
+        },
+        {
+          "frame": 1132,
+          "meanResponse": 2.0342731130627665,
+          "headingDegrees": -9.217555654617785,
+          "speedBefore": 12.652461671727304,
+          "speedAfter": 12.313915766722735,
+          "contacts": [
+            "main:STRING",
+            "main:RHAND",
+            "main:LHAND"
+          ],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": 125.81876685783953
+        },
+        {
+          "frame": 1133,
+          "meanResponse": 1.1575687598606537,
+          "headingDegrees": -5.371182950081548,
+          "speedBefore": 12.366170924246937,
+          "speedAfter": 12.31368087929472,
+          "contacts": [
+            "main:STRING",
+            "main:RHAND",
+            "main:LHAND"
+          ],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": 133.08716636245677
+        },
+        {
+          "frame": 1134,
+          "meanResponse": 1.4802166910257348,
+          "headingDegrees": -5.518068881358552,
+          "speedBefore": 12.352411562355817,
+          "speedAfter": 11.411900656420247,
+          "contacts": [
+            "main:STRING",
+            "main:SHOULDER",
+            "main:RHAND",
+            "main:LHAND"
+          ],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": 142.5980618430053
+        },
+        {
+          "frame": 1135,
+          "meanResponse": 2.5091681601465687,
+          "headingDegrees": -11.610342778830264,
+          "speedBefore": 11.43655598448798,
+          "speedAfter": 10.203411903334501,
+          "contacts": [
+            "main:STRING",
+            "main:RHAND",
+            "main:LHAND",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": 159.86760676411632
+        },
+        {
+          "frame": 1136,
+          "meanResponse": 0.37102483346651305,
+          "headingDegrees": -1.6130176368524538,
+          "speedBefore": 10.195516226283166,
+          "speedAfter": 10.42662631004084,
+          "contacts": [
+            "main:STRING"
+          ],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": -179.01173119814248
+        },
+        {
+          "frame": 1137,
+          "meanResponse": 0.3931738044261281,
+          "headingDegrees": 0.9468606113530195,
+          "speedBefore": 10.416773197229539,
+          "speedAfter": 10.76883932413842,
+          "contacts": [],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": -159.2537643893422
+        },
+        {
+          "frame": 1138,
+          "meanResponse": 0.22511238289743657,
+          "headingDegrees": 1.1980666020679762,
+          "speedBefore": 10.764762402453886,
+          "speedAfter": 10.766399898942948,
+          "contacts": [],
+          "shoulderBelowButt": true,
+          "sledAngleDegrees": -141.4064240392732
+        }
+      ]
+    },
+    {
+      "id": "tiki-contrast",
+      "target": 0.60784,
+      "measured": 0.6551450403287299,
+      "authoredTime": 6.97,
+      "actualFrame": 279,
+      "steps": [
+        {
+          "frame": 279,
+          "scoredStep": 0.15205156128851569
+        },
+        {
+          "frame": 280,
+          "scoredStep": 0.9158486735838338
+        },
+        {
+          "frame": 281,
+          "scoredStep": 1.5256299461279554
+        },
+        {
+          "frame": 282,
+          "scoredStep": 1.5176510750394265
+        },
+        {
+          "frame": 283,
+          "scoredStep": 0.39052658640751436
+        },
+        {
+          "frame": 284,
+          "scoredStep": 0.23276724030091575
+        },
+        {
+          "frame": 285,
+          "scoredStep": 0.21186997173375063
+        }
+      ],
+      "frames": [
+        {
+          "frame": 277,
+          "meanResponse": 0.0027810523522903813,
+          "headingDegrees": 0.015190598831561356,
+          "speedBefore": 9.575599237041784,
+          "speedAfter": 9.576734264586507,
+          "contacts": [],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 2.7216653991175614
+        },
+        {
+          "frame": 278,
+          "meanResponse": 0.0032467654307099694,
+          "headingDegrees": 0.017177027824276908,
+          "speedBefore": 9.665907722294989,
+          "speedAfter": 9.667371615663926,
+          "contacts": [],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 1.8689603800854313
+        },
+        {
+          "frame": 279,
+          "meanResponse": 1.1316470422517895,
+          "headingDegrees": -6.412837372826109,
+          "speedBefore": 9.758913364708487,
+          "speedAfter": 9.393630671476172,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 4.237321446596474
+        },
+        {
+          "frame": 280,
+          "meanResponse": 1.7319437326936822,
+          "headingDegrees": -10.448215519294308,
+          "speedBefore": 9.470468308938063,
+          "speedAfter": 9.089760490252338,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 4.38119330424542
+        },
+        {
+          "frame": 281,
+          "meanResponse": 1.7608078152817508,
+          "headingDegrees": -10.91453686693853,
+          "speedBefore": 9.139758607970617,
+          "speedAfter": 8.649475451786662,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:RHAND",
+            "main:LHAND",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 4.584971356971818
+        },
+        {
+          "frame": 282,
+          "meanResponse": 0.5664092501190809,
+          "headingDegrees": -3.7428530861041245,
+          "speedBefore": 8.670159686719538,
+          "speedAfter": 8.629527324584839,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:RHAND",
+            "main:LHAND",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 4.812029547318962
+        },
+        {
+          "frame": 283,
+          "meanResponse": 0.4082799409974693,
+          "headingDegrees": -2.706164027073936,
+          "speedBefore": 8.6423405088404,
+          "speedAfter": 8.618669943819,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 5.104326821571362
+        },
+        {
+          "frame": 284,
+          "meanResponse": 0.3867860250070578,
+          "headingDegrees": -2.5696009266168525,
+          "speedBefore": 8.626768309840536,
+          "speedAfter": 8.62225964651211,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 5.480687198896297
+        },
+        {
+          "frame": 285,
+          "meanResponse": 0.20517605963308774,
+          "headingDegrees": -1.3587449854702889,
+          "speedBefore": 8.626061093132611,
+          "speedAfter": 8.639725715038503,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 5.93098461619979
+        },
+        {
+          "frame": 286,
+          "meanResponse": 0.04198497787863717,
+          "headingDegrees": 0.1417359962671463,
+          "speedBefore": 8.64292408990724,
+          "speedAfter": 8.679030908430788,
+          "contacts": [
+            "main:TAIL",
+            "main:NOSE",
+            "main:LFOOT",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 6.131555892262989
+        },
+        {
+          "frame": 287,
+          "meanResponse": 0.06260237823982685,
+          "headingDegrees": 0.17133337237470964,
+          "speedBefore": 8.686194443286889,
+          "speedAfter": 8.743115065351686,
+          "contacts": [
+            "main:TAIL",
+            "main:RFOOT"
+          ],
+          "shoulderBelowButt": false,
+          "sledAngleDegrees": 6.214148209168844
+        }
+      ]
+    }
+  ]
+}

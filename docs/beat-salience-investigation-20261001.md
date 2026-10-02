@@ -646,7 +646,7 @@ sampling is 25 ms; sub-frame precision is not inferred from these observations.
    13.95 s. Raising C's valley fraction to 0.85 splits it into two. Counting
    every local maximum is not an adequate explanation of a musical strike.
 3. **Quiet contact must not disappear merely because it is quiet.** Tiki 101's
-   established landing near 0.975 s has a body-response peak of about 0.40 and
+   established landing at 0.950 s has a body-response peak of about 0.40 and
    disappears under C's default 0.5 floor. B retains it. Across the swept pulse
    settings, the Tiki opening has 0–5 overlapping pulses and Luna's has 1–9.
    This concerns detection, before any question of strength calibration.
@@ -738,7 +738,7 @@ then determine which interval and onset correspond to an intended musical
 interaction. This is a direction to test, not an already-validated hybrid
 formula. Strong guidance, separate upper strikes and quiet lower landings must
 remain representable by the same account; a surplus marker alone cannot become
-a penalty. The next owner check is the sustained-guidance example above, with
+a penalty. At delivery, the next owner check was the sustained-guidance example above, with
 the weak-touch Amour case available as a second disagreement if useful. Existing
 positive and negative Tiki judgments need not be relabeled.
 
@@ -757,3 +757,135 @@ Run `node --import tsx scripts/gallery/study_interaction_candidates.ts`, then
 server running, use `node scripts/gallery/check_interaction_review.mjs`.
 The raw replay archive, saved production records, browser screenshots and media
 remain local. Code and the compact derived evidence are retained in Git.
+
+## Owner review of the sixteen passages
+
+The owner subsequently reviewed the panel in conversation. Their feedback is
+saved as [paraphrases bound to the panel and track identities](evidence/interaction-panel-feedback-20261002.json).
+The original declared panel and candidate audit remain byte-for-byte unchanged.
+The dashboard layers the later feedback over that historical record and now
+shows authored impact targets alongside the current measured values. The second
+review link did point to passage 10 in the same sixteen-passage collection.
+
+### What the feedback establishes
+
+- **Passage 2 is a strong positive reference:** a clean, precise, well-defined
+  lower landing. Passage 14 is also positively judged for clarity despite not
+  feeling especially strong. Preserve what the original impact definition and
+  ordinary lower support already do well.
+- **Upper receivers remain strongly desired.** The owner welcomes passages 1
+  and 6 as patterns if the upper hits intentionally satisfy musical timing and
+  strength. The lower-to-upper transfer in passage 3 currently dampens the felt
+  impact; that is not a request to remove the pattern. Passages 4 and 5 confirm
+  the identified split/merged-response concerns. Jumping to another receiver
+  should not silently contribute to the earlier strike.
+- **Quiet passages should feel very smooth.** Luna's opening is too messy for
+  the owner, while Tiki's smoothness is appreciated. Possible specification edits
+  were discussed tentatively, not requested. Current targets are already low:
+  Luna **0.06** and Tiki **0.02**. The first three Luna impacts measure 0.0608,
+  0.0826 and 0.0612; Tiki's first two measure 0.0412 and 0.0414. Low scored impact
+  alone does not establish calm motion throughout the passage.
+- **Passage 10 is rejected for unexplained acceleration.** It must not be used
+  as an owner-approved smooth-guidance control. Sustained guidance itself remains
+  welcome. The owner can feel the two preceding strikes, perhaps not strongly
+  enough, but was unsure of their targets: requested **0.781/0.784**, measured
+  **0.7356/0.7745**. The feedback does not give a precise intensity calibration.
+- **Passage 12 is a negative example of perceived impact.** Around 9.2 s its
+  arrival/body posture and response do not communicate an impactful strike to
+  the owner. Passage 13 is preferred to it, though less clear than desired.
+  This is not a rejection of upside-down riding generally. The native stills
+  and saved poses also show an inverted configuration in passage 13.
+- **Passages 11 and 15 retain uncertainty.** Passage 11 is judged tentatively
+  not so bad for a difficult request, not a precise endorsement of one onset
+  interpretation. Passage 15 has an unwanted speed-up and fuzzy motion, with
+  otherwise tentative judgment. No new feedback was supplied for 7 or 16.
+
+### The current window and the new strength counterexample
+
+`IMPACT_WINDOW` is six. The implementation evaluates frames from the detected
+landing through `landing + 6`, inclusive: **seven sampled contributions**, ending
+150 ms after touchdown at 40 Hz. It sums midpoint body speed times absolute
+heading change on sled-contacted frames. The window is an integration horizon,
+not a requirement that a strong impact last that long; a short response can
+contribute strongly. Event recognition separately imposes sled-contact and
+persistence conditions, relevant to upper/body-side and brief interactions.
+
+The two-surface Tiki case shows why a fixed horizon can mix distinct engagements.
+The clean positive example also spans several frames, so simply reducing every
+impact to a single peak would lose an established positive control. First isolate
+the physical interaction, then test how its response should contribute to strength.
+
+| Passage | Authored beat | Requested impact | Current measured impact | Owner judgment |
+| --- | ---: | ---: | ---: | --- |
+| 2: Tiki 303 | 13.910 s | 0.71768 | 0.67414 | Very clean and well-defined |
+| 12: Amor 202 | 9.100 s | 1.00000 | 0.68860 | Does not feel like an impactful strike |
+| 13: Luna 303 | 28.200 s | 1.00000 | 1.00000 | Better than 12, still not the cleanest |
+| 14: Tiki 202 | 6.970 s | 0.60784 | 0.65515 | Clear and aligned with intended impact |
+
+Passage 12 already misses its requested strength; it is not a perfect-score
+example. However, its measured magnitude is similar to the clean passage 2 and
+clear passage 14. The body-response peaks in the original landing windows are
+also similar for 12 and 2, about **1.54 and 1.43** respectively. This is evidence
+against treating either aggregate turn or peak body correction alone as a
+sufficient account of felt strike quality. The current scalar is doing a real
+redirection measurement, but that measurement does not settle the owner's concern.
+
+Saved contact evidence for passage 12 starts with a shoulder contact at 9.125 s,
+then PEG and body contacts, with some TAIL contact during the scored period.
+Several consecutive redirections contribute. The evidence records posture,
+response and per-frame score terms; it does not establish a universal penalty
+for body contact, backwards arrival or inversion. In particular, the owner
+prefers passage 13 despite its inverted configuration. Contact preparation,
+posture, response progression and a distinct musical strike need to be studied
+together, preserving those counterexamples.
+
+### Speed-up verification on the unchanged rides
+
+The [bounded follow-up](evidence/interaction-feedback-checks-20261002.json)
+uses the saved gravity-separated series and replays passages 10 and 15 with the
+original reference engine. Every saved rider point through the observation end
+matches exactly; the ordered update reconstruction also reproduces the native
+body velocities. All lines are normal type 0. No engine or geometry was changed.
+
+For passage 10, frames 314–326 (7.850–8.150 s, both endpoint frames included):
+
+- Body speed rises **7.1529 → 9.1157** world units/frame, approximately **27.4%**.
+- The gravity steps contribute **−0.4625** to speed; contact/constraint solving
+  contributes **+2.4252**. Their sum exactly reproduces the speed change.
+- In the ordered collision decomposition, guide position projection contributes
+  **−1.3901** and guide friction contributes **+19.9603** to the mean all-point
+  kinetic proxy. The friction correction is the positive source in that split.
+  Constraints and main contact offset some of the resulting motion.
+- The largest one-frame speed gain beyond gravity is only **0.5436**, while ten
+  consecutive frames accumulate **2.2185**. A small per-frame response cap did
+  not make this a valid smooth-guidance control.
+
+The collision quantities are ordered changes in mean `0.5 × |pos − prevPos|²`,
+not calibrated physical energy. They describe actual solver updates, not a claim
+that deleting the guide would preserve the next musical contact. This is the
+same upstream friction mechanism previously identified, now verified on this
+newly reviewed saved ride rather than assumed from resemblance.
+
+Passage 15 provides a complementary counterexample to passage-wide averaging.
+Across sampled frames 10.450–11.125 s, the net non-gravity speed correction is
+**−0.8592**, but the four-frame window **11.000–11.075 s** gains **+1.6668** from
+contact/constraint response and only **+0.2010** from gravity. Earlier slowing
+conceals that later local boost in a longer average. Guide friction also adds
+positive all-point kinetic proxy over the inspected passage, partly offset by
+projection; redistribution means this cannot be identified one-for-one with
+every instantaneous body-speed change.
+
+The roadmap now includes both whole-engagement accumulation and local speed
+bursts, plus the clear-versus-unclear strike comparison. It preserves valued
+upper receivers and avoids an upright-only rule. This feedback supplies enough
+direction for the proposed sustained campaign without another prerequisite
+labeling round; uncertain intensity and onset judgments remain explicitly open.
+
+Reproduce the bounded checks with
+`LR_ENGINE=wasm node --import tsx scripts/gallery/study_interaction_feedback.ts`.
+The reporter consumes the separately hashed owner-feedback record without
+changing the original experiment. Browser checks pass for all sixteen passages,
+including the displayed requested/measured values, notes, playback, mobile layout
+and artifact mismatch rejection. TypeScript retains the same 251 existing
+diagnostics, none in the new study. This follow-up changes review context and
+documentation, not the compiler, specification, physics or score.

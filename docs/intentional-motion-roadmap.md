@@ -65,8 +65,11 @@ sensitivity, and counterexamples to both new candidates. The review reuses the
 production player and verifies that its observations belong to the loaded ride.
 No replacement impact definition, compiler objective or benchmark was adopted.
 The next decision is still about perceptual meaning, particularly quiet contact,
-sustained guidance and a weak first touch before a stronger response. The owner
-has been asked about one sustained-guidance passage; the answer remains open.
+sustained guidance and a weak first touch before a stronger response. The owner's
+subsequent [passage feedback](beat-salience-investigation-20261001.md#owner-review-of-the-sixteen-passages)
+rejects the sustained-contact example's unexplained speed-up. It is now a negative
+motion example, not an approved smooth-guidance control. The weak-touch onset
+interpretation remains unresolved.
 
 Start with a declared panel of roughly twelve to sixteen short passages, retaining
 their musical lead-in and continuation and links to the full tracks. Include:
@@ -192,8 +195,10 @@ Compiler behavior, contact/impact definitions and frozen benchmarks are unchange
 **Status: proposed on October 2, after delivery of the sixteen-passage comparison.**
 This is the next campaign for discussion, not a claim that its implementation
 has started or that a replacement impact definition has been accepted. The owner
-plans to review the outstanding passage before bed. Incorporate that feedback
-when it arrives; preserve uncertainty if their judgment is ambiguous.
+has now reviewed the panel; the [recorded feedback](evidence/interaction-panel-feedback-20261002.json)
+and [follow-up measurements](evidence/interaction-feedback-checks-20261002.json)
+sharpen the requirements below. No further labeling round is needed to start the
+proposed campaign. Preserve the few remaining uncertain interpretations.
 
 ### Outcome and working scope
 
@@ -237,6 +242,19 @@ Use the new guidance feedback to constrain how sustained engagement is treated.
 Keep the quiet openings and weak preliminary Amour touch as counterexamples.
 The owner is judging what the ride communicates; they are not being asked to
 design an algorithm or select numeric thresholds.
+
+The latest review adds three decisive requirements. Passage 10 is rejected for
+non-gravitational acceleration, despite its relatively small individual response
+peaks. Passage 12's head-down/body-side engagement does not communicate a strong
+strike; its score of 0.689 against 1.0 is already imperfect, but the owner is
+also challenging what that magnitude means. Passages 2 and 14 are positive
+references for a clean, well-defined impact, and 13 is preferred to 12 despite
+remaining less clean than desired. This does not establish an upright-only rule.
+Separate upper receivers are explicitly welcomed in passages 1 and 6 when their
+timing and felt strength fulfill the music. Very quiet motion remains valuable:
+the current Luna and Tiki opening targets are already 0.06 and 0.02 respectively.
+Do not edit those specifications to conceal current motion limitations. Optional
+future artistic changes to their targets are a separate authoring decision.
 
 Declare the development panel and selection criteria before tuning the compiler.
 Include ordinary/open contacts, paired guides, separate receivers, folds, ripples,
@@ -283,6 +301,19 @@ from provenance labels. Segment identities alone must not produce impacts;
 physical changes caused by retessellation must be measured rather than assumed
 away. Preserve native frame conventions and gravity separation.
 
+The current impact window is six native frame intervals, evaluated inclusively
+at seven timestamps. A short response can already contribute strongly; merely
+shortening that window is not the objective. Preserve the successful redirection
+measurement where it describes one coherent strike, while preventing a later,
+separate receiver from contributing to it. Conversely, test whether distributed
+turning/body contact can accumulate a misleadingly strong value, as the owner
+reports for passage 12. Contact posture and motion are explanatory observations,
+not grounds for globally excluding inverted or upper strikes.
+Passages 12 and 2 measure similarly (0.689 versus 0.674) despite very different
+owner judgments of strike clarity; retain that direct comparison. Passage 13
+also has an inverted configuration but is preferred to 12. Neither a larger
+response peak nor an upright-pose rule is established as the solution.
+
 Keep event identity, timing and strength separately inspectable. Preserve the
 old calibrated landing measure where it is meaningful, but do not blindly apply
 its normalization to body-side impacts. Test candidate strength summaries against
@@ -309,6 +340,15 @@ three linked capabilities:
 3. A separate upper receiver deliberately carrying an authored musical strike,
    with entry, release and continuation checked. An upper hit cannot simply be
    called a beat because it already exists near one.
+
+For guidance, check cumulative speed gain over the entire engagement as well as
+individual bursts. The rejected passage 10 gains about 27% body speed while
+gravity slows it; guide friction is the positive term in a replay-verified
+collision-update decomposition. A chain of small responses can therefore be
+unacceptable even without one large jolt. Passage 15 adds a local speed-up that
+would be hidden by the net correction over its longer passage. Preserve the
+whole-interval and local observations together, without making every physical
+correction or useful contact undesirable.
 
 Test across different incoming speeds, approach angles, musical spacing and
 construction contexts. Compare alternate contact preparations and receiver

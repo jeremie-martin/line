@@ -1,0 +1,102 @@
+{
+  "schema": "line.interaction-panel-owner-feedback.v1",
+  "date": "2026-10-02",
+  "panelSha256": "4f92e172c8d545fe78805f03a1f6cd22cfdafd4c4aa1ec842f9d36fa6e4057d8",
+  "reviewSha256AtFeedback": "b2a8cd9228a99eaffbd95e310c7b67a75865a2ef78b516b66995a9a7d4c7a3fd",
+  "source": "Owner conversation review of the sixteen native passages, after the proposed sustained campaign roadmap. Summaries below are paraphrases, not verbatim labels or numeric ratings.",
+  "principles": [
+    "Preserve the physically meaningful, successful parts of the established landing-impact definition.",
+    "Short strikes can be impactful; a fixed window must not combine separate receiver engagements. This does not imply every clean impact should last one frame.",
+    "Separate upper receivers and potentially inverted riding remain welcome, with appropriate musical timing and strength.",
+    "Very quiet passages should be genuinely smooth; smoothness is not a universal goal.",
+    "Unwanted speed gain and weakly perceived strikes are different observations that both matter.",
+    "No new passage-specific feedback was given for items 7 and 16.",
+    "Possible future specification edits were discussed tentatively; this feedback does not request changing current targets or frozen benchmark inputs."
+  ],
+  "clips": [
+    {
+      "id": "upper-rival",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "summary": "An upper hit before the beat is present. Upper hits are welcome when intentionally synchronized and measured for their actual impactfulness.",
+      "reviewFocus": "Make the upper hit an intentional musical interaction with appropriate strength."
+    },
+    {
+      "id": "clean-landing",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "summary": "Strong positive reference: a very clean, neat, precise and well-defined lower landing.",
+      "reviewFocus": "Preserve this coherent, well-defined strike."
+    },
+    {
+      "id": "open-transfer",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "summary": "The upper receiver dampens the felt impactfulness here. Separate upper receivers remain a valued pattern overall.",
+      "reviewFocus": "Preserve the transfer while clarifying its musical role and felt impact."
+    },
+    {
+      "id": "merged-hits",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "summary": "Agrees that two surfaces are being combined into one reported impact. Jumping into another receiver should be treated as a separate interaction.",
+      "reviewFocus": "Distinguish the lower engagement from the later upper receiver."
+    },
+    {
+      "id": "split-lower",
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "summary": "Agrees with the identified split-response problem. No additional strength rating was given.",
+      "reviewFocus": "Account for the distinct physical responses without inventing a rating."
+    },
+    {
+      "id": "ripple-receiver",
+      "trackHash": "218f32afa6c2b620fad38f7c44258101cc360b824bc33ae124bc8f3503b9352b",
+      "summary": "Strongly likes jumping into a separate upper receiver. This would be especially appealing if intentionally aligned to the beat and requested impact; the current example is not. The pattern should appear with variety, not everywhere.",
+      "reviewFocus": "Retain the appealing upper receiver and make its impact musically intentional."
+    },
+    {
+      "id": "luna-opening",
+      "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+      "summary": "Finds the opening insufficiently smooth and somewhat messy; uncertain about the control rail. Wonders about authored impact levels and would welcome an even smoother quiet opening.",
+      "reviewFocus": "Explain the existing quiet targets and preserve genuinely calm motion."
+    },
+    {
+      "id": "tiki-opening",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "summary": "Strongly appreciates the smooth opening and the similar character of older Tiki starts. Quiet passages should feel very smooth; not all music should be smooth.",
+      "reviewFocus": "Preserve this quiet character and show the authored impact levels."
+    },
+    {
+      "id": "sustained-guidance",
+      "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+      "summary": "Rejects the unexplained speed-up while the rider initially travels slightly upward. Sustained guidance can be appropriate, but this is not an approved smooth example. Can still feel the two preceding impacts, perhaps not strongly enough, while uncertain about their targets. Friction or an engine quirk is a hypothesis, not an established cause from viewing.",
+      "reviewFocus": "Investigate the unwanted speed gain separately from the musical strikes."
+    },
+    {
+      "id": "amour-strong",
+      "trackHash": "7f61f3ce5b0ebb08fa3c1b0ec7c042f6b6665401dd90596a913b2e419a875656",
+      "summary": "Tentatively considers this a difficult specification and not so bad, with possible improvement. Does not supply a precise judgment about the tiny first contact or the event onset.",
+      "reviewFocus": "Keep the onset interpretation open; do not infer a precise new owner label."
+    },
+    {
+      "id": "amor-strong",
+      "trackHash": "cf9fe39f96d11ef3028b71a421d8bbcaaa895385e4d176023ea4ca3bb9531148",
+      "summary": "Strong negative example near 9.2 s: the head-down/backward-looking arrival does not feel like an impactful strike. Challenges what the impact number represents here. This is not a general rejection of inverted riding.",
+      "reviewFocus": "Explain why this response fails to communicate a distinct strike."
+    },
+    {
+      "id": "luna-strong",
+      "trackHash": "8c9badc84ddd7d632516d081df01c3ccfd94d0f1828c7fe3ad42641c0921948c",
+      "summary": "Not the cleanest or most obvious ground slam, but much better than the preceding Amor example.",
+      "reviewFocus": "Retain the relative preference while investigating strike definition."
+    },
+    {
+      "id": "tiki-contrast",
+      "trackHash": "9a0630ad8bcf17274dc26e11143f430838b24ce66f3808c03660c42a61dbc2a8",
+      "summary": "Positive reference: impacts are not especially strong, yet much more well-defined and aligned with the intended meaning of impact. Appreciates the simple upright ground contact without a control rail.",
+      "reviewFocus": "Preserve clarity independently of the magnitude of the impact number."
+    },
+    {
+      "id": "amour-contrast",
+      "trackHash": "46cca64f2bcd8fcf302793e514305135d03fd354501e29a434fe64d8bcf2b533",
+      "summary": "Reports unwanted acceleration that makes the motion feel fuzzy. Otherwise tentatively considers the difficult passage not so bad and is uncertain about its requested impact levels.",
+      "reviewFocus": "Investigate the speed-up and display targets without assuming a precise impact judgment."
+    }
+  ]
+}

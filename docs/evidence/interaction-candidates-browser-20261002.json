@@ -1,12 +1,13 @@
 {
   "schema": "line.interaction-review-checks.v1",
-  "reviewSha256": "b2a8cd9228a99eaffbd95e310c7b67a75865a2ef78b516b66995a9a7d4c7a3fd",
-  "scriptSha256": "9b7a30df285dd2627168fbd1049f5f29e31fa286ab692dc65f1c9b8e21e66716",
+  "reviewSha256": "20b8a0f2c187b9e7eb6a1c6fe7571fa8f519c60bd2a69b5f6fa5f66aaae3f5c1",
+  "scriptSha256": "627adcc3f76957ac0f72223c4df2bbf9c77ab89f230a1678184facb8f371a70c",
   "checks": [
     {
       "allPassagesLoad": 16,
       "nativeRecordsBound": true,
-      "excerptRanges": true
+      "excerptRanges": true,
+      "authoredAndMeasuredImpactsDisplayed": true
     },
     {
       "notesIsolatedByPassage": true,

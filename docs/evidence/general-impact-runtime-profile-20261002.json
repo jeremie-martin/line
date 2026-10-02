@@ -1,0 +1,147 @@
+{
+  "schema": "line.contact-impact-runtime-profile.v1",
+  "compilerCommit": "7cbf50c329b041e1133090cd05af07d5c5734593",
+  "case": "canonical-afterglow_turn-single-paired",
+  "seed": 101,
+  "physicsFrames": 2933477,
+  "trackHash": "ffa5f8c973ed984bc9b1d199738158d5fb211a8a74ac258301a3918f0711c564",
+  "identicalTrackAndMeteredWork": true,
+  "profilePath": "generated/general-impact-20261002/frozen-cpu-profile/compile.cpuprofile",
+  "profileSha256": "f9bfa06f0d92cc4c14d1e985910875995a00dd97469340843da5b4bfb678097e",
+  "samples": 139978,
+  "inclusiveModuleSamplePercent": {
+    "scripts/gallery/evaluate_contact_panel.ts": 87.29014559430767,
+    "scripts/v0/optimizer/handoff.ts": 86.77006386717913,
+    "scripts/v0/optimizer/production_repertoire.ts": 86.76649187729501,
+    "scripts/v0/optimizer/arc_motion.ts": 86.45358556344569,
+    "scripts/v0/optimizer/arc_attempts.ts": 86.45287116546886,
+    "scripts/lib/native_motion/engine.ts": 38.93540413493549,
+    "scripts/lib/detector.ts": 24.582434382545827,
+    "scripts/v0/optimizer/arc_pair_response.ts": 14.440126305562302,
+    "scripts/v0/optimizer/arc_refinement.ts": 6.451728128705939,
+    "scripts/lib/contact_impact.ts": 5.942362371229764,
+    "scripts/v0/optimizer/arc_geometry.ts": 5.520867564903056,
+    "scripts/v0/optimizer/impact_search.ts": 5.0536512880595525,
+    "scripts/v0/optimizer/arc_value.ts": 3.989198302590407,
+    "scripts/v0/optimizer/arc_memory.ts": 3.7813084913343524,
+    "scripts/v0/optimizer/connected_arcs.ts": 2.163197073825887,
+    "scripts/v0/optimizer/repertoire_layout.ts": 1.9910271614110788,
+    "scripts/v0/optimizer/repertoire_candidate.ts": 1.9717384160368059,
+    "scripts/v0/optimizer/repertoire_realization.ts": 1.8960122304933633,
+    "scripts/v0/core/measure.ts": 1.4530854848619068,
+    "scripts/v0/optimizer/motion_quality.ts": 1.4459415050936575,
+    "scripts/v0/optimizer/arc_control_policy.ts": 1.4030776264841618,
+    "scripts/v0/optimizer/motion_objective.ts": 1.075168955121519,
+    "scripts/v0/optimizer/arc_motion_control.ts": 0.8744231236337139,
+    "scripts/v0/core/substrate.ts": 0.2243209647230279,
+    "scripts/v0/optimizer/repertoire_search.ts": 0.20360342339510495
+  },
+  "largestExclusiveSamplePercent": [
+    {
+      "url": "",
+      "function": "(garbage collector)",
+      "percent": 12.106902513252082
+    },
+    {
+      "url": "wasm://wasm/00066132",
+      "function": "wasm-function[42]",
+      "percent": 10.9124290960008
+    },
+    {
+      "url": "scripts/v0/optimizer/arc_motion.ts",
+      "function": "",
+      "percent": 9.825829773250081
+    },
+    {
+      "url": "wasm://wasm/00066132",
+      "function": "wasm-function[36]",
+      "percent": 7.758362028318736
+    },
+    {
+      "url": "wasm://wasm/00066132",
+      "function": "wasm-function[32]",
+      "percent": 7.370443926902799
+    },
+    {
+      "url": "scripts/lib/detector.ts",
+      "function": "detect",
+      "percent": 6.149537784508994
+    },
+    {
+      "url": "scripts/v0/optimizer/arc_value.ts",
+      "function": "arcFutureValue",
+      "percent": 3.9027561473945904
+    },
+    {
+      "url": "scripts/lib/contact_impact.ts",
+      "function": "",
+      "percent": 3.8748946262984183
+    },
+    {
+      "url": "wasm://wasm/00066132",
+      "function": "wasm-function[39]",
+      "percent": 2.546114389404049
+    },
+    {
+      "url": "scripts/lib/native_motion/engine.ts",
+      "function": "getRawFrameAtFrame",
+      "percent": 2.2067753504122076
+    },
+    {
+      "url": "scripts/v0/optimizer/arc_geometry.ts",
+      "function": "motionArc",
+      "percent": 2.1874866050379347
+    },
+    {
+      "url": "scripts/v0/optimizer/arc_memory.ts",
+      "function": "proposeControls",
+      "percent": 2.0881852862592694
+    },
+    {
+      "url": "",
+      "function": "set TextDecoder",
+      "percent": 1.6816928374458844
+    },
+    {
+      "url": "scripts/v0/optimizer/arc_memory.ts",
+      "function": "",
+      "percent": 1.380216891225764
+    },
+    {
+      "url": "scripts/v0/optimizer/repertoire_realization.ts",
+      "function": "inspectConstruction",
+      "percent": 1.2173341525096801
+    },
+    {
+      "url": "scripts/lib/detector.ts",
+      "function": "signedAngleDeg",
+      "percent": 1.207332580834131
+    },
+    {
+      "url": "scripts/v0/optimizer/arc_control_policy.ts",
+      "function": "arcControlProposals",
+      "percent": 1.1416079669662376
+    },
+    {
+      "url": "scripts/v0/optimizer/connected_arcs.ts",
+      "function": "parseArcPolicyArtifact",
+      "percent": 1.138035977082113
+    },
+    {
+      "url": "scripts/v0/optimizer/arc_geometry.ts",
+      "function": "__name",
+      "percent": 1.0430210461643972
+    },
+    {
+      "url": "scripts/v0/optimizer/arc_geometry.ts",
+      "function": "",
+      "percent": 1.0280186886510738
+    }
+  ],
+  "interpretation": [
+    "V8 sampled stacks under concurrent machine load; these proportions are explanatory observations, not a controlled throughput comparison. Inclusive paths overlap and must not be added.",
+    "The shared impact module occurs in about 5.94% of sampled stacks. Native physics, trajectory detection and garbage collection dominate; the new account is not the main runtime cost on this case.",
+    "Repeated trajectory materialization/allocation is a supported direction for later profiling and parity-preserving efficiency work. This single profile does not establish that a specific cache change will improve all cases.",
+    "No compiler changes follow the evaluation freeze. Profiling reproduces both the complete track and physics count exactly."
+  ]
+}

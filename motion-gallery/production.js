@@ -1,8 +1,11 @@
 import {prepareView} from './replay.js';
+import {createContactImpactReview} from './contact-impact-review.js';
 const $=id=>document.getElementById(id),audio=$('audio');
 const names={arcs:'Arcs',fold:'Folds',serpentine:'S sweeps',scallops:'Ripples',terraces:'Terraces',scattered:'Scattered'};
 let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,audioObjectUrl,libraryEntries=[],interactionReview;
 const audioCache=new Map();
+const impactReview=createContactImpactReview({seek:t=>{pause();$('movie').pause();seek(t);}});
+const scoreName=r=>r.impactContract?'Experimental impact quality':'Landing score';
 // Range controls serialize with reduced precision. Preserve the policy default
 // until the artist actually changes it, including for exact request cache reuse.
 let guidedBalance=Number($('balance').defaultValue);
@@ -31,6 +34,7 @@ function draw(){
  if(a&&b)entry.view.draw(canvas,{x:a[0]+(b[0]-a[0])*t,y:a[1]+(b[1]-a[1])*t,w:canvas.clientWidth,h:canvas.clientHeight,z:+$('zoom').value,r:Math.min(2,devicePixelRatio)},at,$('inspect').checked);
  });
  interactionReview?.draw(seconds);
+ impactReview.draw(seconds);
 }
 function passageLink(updateHistory=true){if(!manifestUrl)return;const url=new URL(location.href);url.searchParams.set('data',manifestUrl.pathname);url.searchParams.set('t',seconds.toFixed(3));if($('comparison').checked)url.searchParams.set('compare','previous');else url.searchParams.delete('compare');$('passage-link').href=url.href;if(updateHistory)history.replaceState(null,'',url);}
 function seek(t){seconds=Math.max(+$('seek').min,Math.min(+$('seek').max,t));if(audio.readyState>=1)audio.currentTime=seconds;draw();passageLink();}
@@ -55,7 +59,7 @@ async function comparisonChanged(){
  }
  const shown=$('comparison').checked&&!!views[1];
  $('comparison-ride').hidden=!shown;$('rides').classList.toggle('comparing',shown);
- const r=records[1];if(r)$('reference-metrics').textContent=`Musical score ${fmt(r.score.score,1)} · ${r.valid?'complete':'incomplete'}`;
+ const r=records[1];if(r)$('reference-metrics').textContent=`${scoreName(r)} ${fmt(r.score.score,1)} · ${r.valid?'complete':'incomplete'}`;
  draw();passageLink();
 }
 $('comparison').onchange=comparisonChanged;
@@ -74,6 +78,7 @@ async function loadMovie(m,url,signal,token){
 }
 async function openResult(path,job,initialTime=0){
  interactionReview?.clear();
+ impactReview.clear();
  const token=++opening;controller?.abort();controller=new AbortController();const {signal}=controller;pause();clearMovie();status('');currentJob=job;views=[];records=[];manifestUrl=undefined;seconds=0;$('result').hidden=false;$('play').disabled=true;$('seek').disabled=true;$('render').hidden=true;$('timeline').replaceChildren();$('observations').replaceChildren();$('review-moments').replaceChildren();$('motion-summary').textContent='';$('result-title').textContent='Loading saved track…';$('result-note').textContent='Verifying artifacts and native rider playback…';$('record-link').removeAttribute('href');
  previousUrl=undefined;$('comparison-control').hidden=true;$('comparison').disabled=true;$('comparison-ride').hidden=true;$('rides').classList.remove('comparing');
  for(const id of ['production','reference']){const c=$(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}audio.removeAttribute('src');audio.load();if(audioObjectUrl){URL.revokeObjectURL(audioObjectUrl);audioObjectUrl=undefined;}delete audio.dataset.source;delete audio.dataset.sha256;
@@ -87,7 +92,9 @@ async function openResult(path,job,initialTime=0){
   records=data;views=prepared;manifest=m;manifestUrl=url;const [ride]=cells,p=ride.production;
   $('comparison').disabled=false;
   $('result-title').textContent=`${m.plan.cases[0].title} · seed ${ride.seed}`;$('result-note').textContent=p.qualified?'Complete ride · every requested construction fulfilled.':ride.valid?'Complete ride · some requested constructions were not fulfilled.':`Incomplete ride · ${ride.failure?.reason??p.constructionFailure??'see saved diagnostics'}`;$('result-note').classList.toggle('error',!p.qualified);
-  $('production-metrics').textContent=`Musical score ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} requests · ${fmt(ride.compileMs/1000,1)} s`;
+  $('production-metrics').textContent=`${scoreName(ride)} ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} requests · ${fmt(ride.compileMs/1000,1)} s`;
+  if(ride.impactContract)$('result-note').textContent='Experimental automatic arrangement. '+$('result-note').textContent;
+  impactReview.bind(data[0]);
   interactionReview?.bind(data[0],cells[0].sha256,url);
   $('seek').min=interactionReview?.range?.[0]??0;
   $('seek').max=interactionReview?.range?.[1]??Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;

@@ -32,3 +32,24 @@ it('uses the same impact account in automatic construction, replay and review wi
 it('rejects unknown measurement contracts explicitly',()=>{
   expect(()=>compileHandoff(spec,101,{budget:180000,impactContract:'unknown' as any})).toThrow('unknown impact contract');
 });
+
+it('measures a real opposing receiver on its body-contact onset without changing the incoming history',async()=>{
+  const {createArcEngine}=await import('../scripts/v0/optimizer/arc_engine.ts');
+  const {motionArc}=await import('../scripts/v0/optimizer/arc_geometry.ts');
+  const {extractRawTrajectory,detect}=await import('../scripts/lib/detector.ts');
+  const {impactFrames,evaluateMusicalImpacts}=await import('../scripts/v0/optimizer/impact_search.ts');
+  const {findAuthoredContactNearFrame}=await import('../scripts/v0/core/substrate.ts');
+  const start={position:{x:0,y:0},velocity:{x:6,y:-3}},base=createArcEngine(start,[]);
+  base.prepareCollisionTrace(10);const free=base.getRider(10),trace=base.readCollisionTrace()[0];
+  const lines=motionArc(Object.values(trace),free.velocity,
+    {entry:0,turn:15,exit:35,support:8,bias:0,offset:.2,contactSide:-1},1000,false,0,false,24,4,{guides:false});
+  const engine=createArcEngine(start,lines),raw=extractRawTrajectory(engine,25);
+  expect(engine.getRider(9).ballisticState()).toEqual(base.getRider(9).ballisticState());
+  expect(raw.frames.every(f=>!f.riderEjected&&!f.sledBroken)).toBe(true);
+  expect(raw.frames[11].sledContacts).toEqual([]);expect(engine.hasContactAtFrame(11)).toBe(true);
+  expect(findAuthoredContactNearFrame(detect(raw),11,1)).toBeUndefined();
+  const measured=evaluateMusicalImpacts(impactFrames(engine,raw.frames),[{frame:11,impact:.55}],25,true);
+  expect(measured.valid).toBe(true);expect(measured.account.matches[0].offset).toBe(0);
+  expect(measured.events[0].strength).toBeGreaterThan(.5);expect(measured.account.unmatchedEvents).toEqual([]);
+  expect(lines.every(l=>l.type===0)).toBe(true);
+});

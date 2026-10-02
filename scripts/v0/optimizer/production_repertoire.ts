@@ -11,6 +11,7 @@ import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit,getPhysicsFram
 import type {Spec} from '../types.ts';
 import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
 import {impactFrames,evaluateMusicalImpacts} from './impact_search.ts';
+import {CONTACT_IMPACT_SEARCH_PROFILE} from './contact_impact_profile.ts';
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../../lib/_lr_engine_wasm.ts?production-repertoire-audit',import.meta.url).href);
 export type RepertoireOptions={budget:number;creative?:CreativePreferences;plan?:ProductionPlan;phraseBoundaries?:number[];impactContract?:typeof CONTACT_IMPACT_CONTRACT.id};
@@ -23,7 +24,8 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   const allowance=budget-replay,searchOptions=repertoireSearchOptions(spec,plan,allowance);
   if(options.impactContract!==undefined){
     if(options.impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
-    searchOptions.impactContract=options.impactContract;
+    const {id:_id,...profile}=CONTACT_IMPACT_SEARCH_PROFILE;
+    Object.assign(searchOptions,profile,{impactContract:options.impactContract});
   }
   const styles=searchOptions.sectionStyles!;
   const result=compileArcMotion(spec,seed,searchOptions);
@@ -55,5 +57,6 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   }finally{dispose();setPhysicsFrameLimit(null);}
   if(physicalFrames>budget)throw new Error('production repertoire exceeded its whole-compile allowance');
   return {result:{...result,budget,stats:{...result.stats,sim_frames:physicalFrames}},plan,styles,fragmentSections,railGuides,realization,motion,
-    valid:complete(result),qualified:complete(result)&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals};
+    valid:complete(result),qualified:complete(result)&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals,
+    ...(options.impactContract?{impactSearchProfile:CONTACT_IMPACT_SEARCH_PROFILE}:{})};
 }

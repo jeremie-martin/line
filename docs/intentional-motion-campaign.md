@@ -800,3 +800,29 @@ frames per song for very little gain. Keep its evidence rather than silently
 spending that work in production. Contact preparation by one frame is promising;
 two frames is less effective in the initial matched panel. Later trials remain
 development evidence, and the eight reserved arrangements are still unexamined.
+
+### Candidate selected for complete evaluation
+
+The last two declared development studies contain 84 full-song runs, all valid
+and fulfilled. The selected profile uses one-frame contact preparation, 24
+opposing-surface proposals, 64 coordinated interval samples and a 0.64
+whole-engagement gain preference. The [selection record](evidence/general-impact-search-selection-20261002.json) preserves every outcome and the tradeoff.
+The weaker 0.04 gain preference scores about 15.4 experimental quality points
+higher, but leaves roughly twelve times as much measured excess gain. The
+selected configuration keeps precise impacts while addressing the rejected
+non-gravitational boosts more strongly. No artistic approval is inferred.
+
+The shared contract and selected compiler will now be frozen before evaluation.
+In addition to twelve regenerated development songs, generate the eight reserved
+arrangements and their unchanged-compiler baselines. Run the original complete
+460-case V6 compatibility suite. A separate post-selection stress run will also
+apply the experimental account/compiler to those 460 musical/construction inputs;
+its results are explicitly not V6 scores and cannot be used to retune this
+candidate. This broadens the capability check beyond the four production songs.
+
+Native review checks pass for all twelve initial pilot songs, verified audio,
+seeking, restart, rapid selection, mobile layout and the unaffected validated
+default. Renaming segment IDs preserves all fifteen complete physical assays
+exactly. Subdivision of the same straight surfaces changes native collisions in
+all thirty trials; those altered outcomes are retained, rather than attributing
+physical changes to an ID-sensitive detector.

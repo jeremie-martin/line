@@ -356,8 +356,9 @@ body-point movement is likewise diagnostic, not automatically a flaw.
 
 This establishes several concrete instances of the owner's mechanism, not that
 it explains most of the perceived problem. Weak intended hits, split support
-responses, musical context and camera presentation remain relevant. The specific
-Tiki listening check is pending; technical work does not depend on the reply.
+responses, musical context and camera presentation remain relevant. The owner
+subsequently confirmed the Tiki listening example; see the follow-up below for
+the positive comparison and clarified intent.
 
 Keep the landing metric and frozen benchmark. Use complementary observations
 for landing concentration, extra accent dominance/timing, body response, and
@@ -381,3 +382,186 @@ probes plus one negative control, **64 tests passing in five files**, and browse
 verification of the linked Tiki passage (native replay loaded, music advanced,
 no page errors). The repository TypeScript check still reports 251 diagnostics;
 none are in the added investigation files. No global clean-build claim.
+
+## October 2 follow-up: welcome upper receivers and merged impacts
+
+### Owner feedback and intended outcome
+
+The owner confirmed Tiki 303 at **12.45 s** as the distracting upper hit, and
+identified the landing around **13.95 s** as cleaner and better defined. They
+also explicitly welcomed Tiki 101's separate lower-to-upper transfers around
+**14.2 s and 14.95 s**. The second transfer illustrates a musically ambiguous
+second hit, not a request to remove that kind of movement.
+
+The desired result includes both smooth guidance toward a later musical hit
+and deliberate musical strikes against upper geometry. A receiver without a
+parallel lower rail is an attractive possibility. Sustained inverted sled
+riding would be another valuable possibility. Strong steering is not inherently
+bad, and overhead geometry need not always be smooth. The question is whether
+the interaction delivers the intended musical experience.
+
+This clarification broadens the earlier proposed direction of gentler receiver
+engagement. Smoothing every upper collision would discard something the owner
+wants. Counting every contact as another beat would also be inappropriate.
+Keep the established landing impact reference while investigating physical
+interactions and their musical attribution separately. No new roadmap, aesthetic
+scalar, search penalty, benchmark, or production policy is introduced here.
+
+### Named examples, native replay and exact score accounting
+
+The new study replays the two saved Tiki tracks, reproducing **all ten point
+positions at every frame exactly** through the specification duration. Every
+nearby scored impact also reproduces. All segments are normal, non-accelerating
+lines. Native-renderer screenshots show the actual rider and track; the browser
+reported no page errors.
+
+| Passage | Actual physical interaction | What the current system records |
+| --- | --- | --- |
+| Tiki 303, 12.400–12.500 s | Upper receiver; peak correction 4.238 at 12.450, turn 22.75° in that frame | No scored landing window contains the peak. Detector emits a kick at 12.475; the next landing is 12.650. |
+| Tiki 303, 13.925–14.075 s | Continuous lower contact; peak correction 1.427, maximum one-frame turn 7.68° | One landing at 13.925, impact **0.674**, target **0.718**. No guide in this section. |
+| Tiki 101, 13.950–14.350 s | Lower contact through 14.125, then upper receiver from 14.200–14.350; one late lower tail touch at 14.350 | Lower landing impact **0.705**, target **0.718**. Upper contact is shoulder/hands, outside that score window. No separate upper landing event. |
+| Tiki 101, 14.825–15.025 s | Lower contact 14.825–14.875; one frame without contact; upper receiver 14.925–15.025 | One lower landing with impact **0.719**, target **0.740**. Part of the upper interaction enters this same number. No separate upper landing event. |
+
+These physical corrections are body-mean velocity changes, not the scored
+impact unit or a calibrated perceptual scale. The 14.200 transfer's peak is
+1.162 with a maximum one-frame turn of 6.35°. The 14.925 receiver's peak is
+1.776 at 14.975, with a maximum turn of 9.69°. The preceding lower contact's
+peak is 2.490. Different intensities alone do not decide which interaction is
+artistically appropriate.
+
+In the last example, the score uses stored frames **593–599**
+(14.825–14.975 s). Its nonzero raw redirection contributions are:
+
+| Stored frame / time | Raw contribution | Physical interpretation of preceding solver frame |
+| --- | ---: | --- |
+| 593 / 14.825 | 0.171 | Arrival term before the lower collision response |
+| 594 / 14.850 | 0.346 | Lower contact |
+| 595 / 14.875 | 2.225 | Lower contact |
+| 598 / 14.950 | 1.202 | Upper contact |
+| 599 / 14.975 | 1.481 | Upper contact |
+
+The authored beat is **14.780 s**: the lower contact starts 45 ms later, the
+upper contact starts 145 ms later, and its physical peak is 195 ms later.
+There is no separate authored contact at the upper hit; the next is 15.229 s.
+That does not establish whether the music contains an attractive subdivision
+there, but it shows what this specification is actually asking the compiler to
+hit.
+
+The engine's stored velocity at frame `f+1` contains the response at `f` plus
+gravity. These timestamps are kept explicit. The scalar is gated by sled
+contact at the stored frame: there are zero contributions at frames 596 and
+597. The strongest upper response at frame 599 is not directly included on
+the next frame, which is airborne and outside this window. Thus the upper
+interaction is **partly merged and partly omitted**, rather than simply absent.
+
+The 14.925 receiver first meets hands and shoulder; STRING contact occurs at
+14.950 and 14.975. Two grounded frames out of the five-frame persistence window
+do not produce a separate detector event after this short airborne interval.
+Neither the compiler section boundary nor the appearance of a second surface
+automatically creates a musical target.
+
+### Local causal checks
+
+Three receiver-deletion probes preserve all ten rider-point positions exactly
+until the first removed collision. Each measures the complete original landing
+window and stops before the next original landing. These are attribution
+experiments, **not replacement tracks** or proofs that a continuation works.
+
+| Removed guide | First divergence | Earlier landing impact, original → altered |
+| --- | ---: | ---: |
+| Tiki 101, section 19 | 14.200 s | **0.705255 → 0.705255** |
+| Tiki 101, section 20 | 14.925 s | **0.718520 → 0.363197** |
+| Tiki 303, section 15 | 12.400 s | **0.702020 → 0.702020** |
+
+For Tiki 101 section 20, the lower contact and its incoming state are identical,
+but removing the later upper receiver removes **49.45%** of the recorded raw
+landing impact (5.424825 → 2.742140). This verifies the attribution problem
+causally, rather than inferring it only from nearby collision IDs. It does not
+show that deleting the receiver sounds or looks better. The owner likes the
+possibility of this second interaction.
+
+The positive Tiki 303 comparison is also informative: its cleaner lower
+landing spreads over seven contact frames and has more than one local response
+maximum. "Minimize peak width" or "allow only one local maximum" would not
+capture the owner's distinction. What is mechanically clear in this case is
+one continuous lower-surface engagement, without an intervening upper receiver.
+
+![Native views and physical/score timelines](evidence/interaction-roles-examples-20261002.png)
+
+Orange shading marks contact with the surface discussed in each panel; in the
+clean lower example it marks the lower surface. Gray is the contribution inside
+existing landing windows at its stored-frame timestamp. It is not a second
+independent measurement of physical impulse.
+
+### Can an upper hit already count as an impact?
+
+Yes, in some circumstances. The current detector checks **which rider points
+contact**, airborne duration, and persistence. It does not require the surface
+to be below the rider. The landing scalar uses velocity redirection and sled
+contact, without a world-up or surface-normal restriction. A synthetic 180°
+rotation of the same contact/velocity sequence preserves both its landing event
+and impact exactly. This checks the measurement contract, not realizability
+under the actual gravity or capability of the current search.
+
+Persistent contact after more than five airborne frames can be a landing.
+Persistent contact after a shorter flight is a bounce; the authored-event
+contract accepts that only for detector-limited short target intervals. Body-only
+contacts and brief sled touches follow other paths. Consequently an upper
+receiver can be recognized as a landing, missed as a distinct event, or partly
+absorbed into an earlier impact window. "Upper" and "guide" are not synonyms
+for "unscored."
+
+A geometric screen across **36 saved records / 30 distinct tracks** finds 105
+brief inverted-contact runs, counting repeated ordinary tracks. It requires
+the body mean below both ski endpoints, shoulder below butt, and an actual
+TAIL/NOSE collision. The longest run is four frames. This strict screen excludes
+tilted and vertical configurations and can include a pivot on one ski endpoint
+or simultaneous contact with another surface. Native inspection of the looser
+Tiki 303 candidate at 7.975 s shows why position-only screening is insufficient:
+the rider is rotated around a contact, not demonstrating a sustained overhead
+slide. **Repeatable, intentional inverted riding remains unvalidated**, not
+ruled out.
+
+### What this establishes for the next discussion
+
+The visual concern is concrete and has at least two mechanisms: a forceful
+interaction outside the scored windows, and two separate surface engagements
+contributing to one otherwise accurate landing score. A high scalar score does
+not establish that the intended musical hit is individually clear.
+
+The compiler currently plans a construction interval from one authored contact
+to the next. It checks the starting contact, the achieved impact, interval
+motion and construction fulfillment; it rejects extra detected landings. It
+does not independently assign musical intent to every upper collision within
+that construction. This explains how the observed behavior can pass its
+existing checks without implying that the new geometry itself is unsuitable.
+
+Useful further measurements should preserve actual point/surface contacts,
+free-flight intervals, turning and response timing, alongside existing impact.
+Then we can distinguish a lower musical strike, a deliberate upper musical
+strike, and guidance between strikes in concrete examples. These are intended
+uses to investigate, not a new mandatory specification schema or an automatic
+classification already solved by this study. An artist should not have to
+manually assign every rail.
+
+Remaining questions include how to identify perceptually distinct interactions
+without counting continuous sliding as repeated impacts, how to assess body-side
+versus sled-side upper hits, and how to target an upper musical strike while
+retaining safe, expressive continuation. We have not established that one scalar
+or one threshold answers those questions. Preserve the well-calibrated lower
+landing reference and the owner's welcome transfers while investigating them.
+
+Evidence: [summary](evidence/interaction-roles-summary-20261002.json),
+[focused audit](evidence/interaction-roles-audit-20261002.json.gz).
+Reproduce with `scripts/gallery/study_interaction_roles.ts` and
+`scripts/gallery/report_interaction_roles.py`. With the dashboard server running,
+`scripts/gallery/capture_interaction_roles.mjs` captures the figure's native
+screenshots at zoom 3 and records their checksums. They are saved locally under
+`generated/tiki-interactions-20261002/`. The full raw replay corpus stays local.
+
+Validation: two exact full-duration replays, all nearby impact sums reproduced,
+three causal probes, the orientation contract assay, the 36-record pose screen,
+and **63 tests passing in four files**. TypeScript with
+`--allowImportingTsExtensions` still reports the existing 251 diagnostics; none
+are in the new study. No compiler, physics, scoring, specification or playback
+behavior changed.

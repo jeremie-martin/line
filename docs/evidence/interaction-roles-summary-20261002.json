@@ -1,0 +1,2308 @@
+{
+  "schema": "line.interaction-roles-study.v1",
+  "sourceAuditSha256": "5fdd3b73631475f791d7a59d64600bae227be933df3387d3181ef61d93a76ae5",
+  "notes": [
+    "Owner confirmed Tiki 303 12.45 s as a distracting upper hit, and 13.95 s as a cleaner landing.",
+    "Owner welcomes separate lower-to-upper transfers, including Tiki 101 around 14.2 s and 14.95 s; they should not be banned by these diagnostics.",
+    "Episode groups use recorded construction section/rail ONLY as collision provenance. They do not define musical intent, an aesthetic primitive, or a perceptual event.",
+    "Physical correction at f enters stored velocity at f+1 plus gravity. Score steps show their true stored-frame timestamp; score-window partitions are not independent physical force attribution.",
+    "Pose screen requires body mean below BOTH ski endpoints, shoulder below butt, and actual TAIL/NOSE contact. This is a screen, not proof of sustained inverted sliding.",
+    "The synthetic rotation contract establishes orientation-independent measurement, not physical realizability."
+  ],
+  "nativeStills": {
+    "errors": [],
+    "zoom": 3,
+    "nativeRenderer": true,
+    "shots": [
+      {
+        "seed": 101,
+        "time": 14.05,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json",
+        "name": "detail-101-14.050.png",
+        "sha256": "a1b78d854d69bb084362f514b8a69c7eb383f19038d3cf437d32eb01ca1608a2"
+      },
+      {
+        "seed": 101,
+        "time": 14.25,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json",
+        "name": "detail-101-14.250.png",
+        "sha256": "e757c17a81f0e5cf91412293890c21f097c365ed8cffc59b3734229e09e090c5"
+      },
+      {
+        "seed": 101,
+        "time": 14.85,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json",
+        "name": "detail-101-14.850.png",
+        "sha256": "fdd139696d418a924d7939a82decdd7ae30dd05035f608bbce0b3c9745f053d7"
+      },
+      {
+        "seed": 101,
+        "time": 14.95,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json",
+        "name": "detail-101-14.950.png",
+        "sha256": "86e37f7de09b311b8e5663d785277f6bba0e197c46f98a3fa73e8370a6fc987b"
+      },
+      {
+        "seed": 101,
+        "time": 14.975,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json",
+        "name": "detail-101-14.975.png",
+        "sha256": "6544cd2cc601e4da7eb98a3c7e19ffad694572185a53990e916b8822d83e0dfb"
+      },
+      {
+        "seed": 303,
+        "time": 7.975,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/manifest.json",
+        "name": "detail-303-7.975.png",
+        "sha256": "637dbaefd7ddf3f2e66698156d013e8c1c6a205e42e1c3d6f826e0b432a56150"
+      },
+      {
+        "seed": 303,
+        "time": 12.45,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/manifest.json",
+        "name": "detail-303-12.450.png",
+        "sha256": "df235670a52c28d4093075bf794fea8e15d3b21c0a492ede7e57867011ea55a4"
+      },
+      {
+        "seed": 303,
+        "time": 13.95,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/manifest.json",
+        "name": "detail-303-13.950.png",
+        "sha256": "ff1b62515946aadbd5769a199bdcc3667fb6e6ca0d0ac538d956f1f1045fa77e"
+      },
+      {
+        "seed": 303,
+        "time": 14.025,
+        "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/manifest.json",
+        "name": "detail-303-14.025.png",
+        "sha256": "879cfe3ff2b73064836f67192ea59df43991582ff3c88797e317465802beb378"
+      }
+    ]
+  },
+  "focused": [
+    {
+      "seed": 101,
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+      "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+      "artifactSha256": "ec0f508d2f36d071dfcd1e0c799b2d5256b0a1e92b2853e927627552369b68be",
+      "maxTraceError": 0,
+      "beats": [
+        {
+          "index": 14,
+          "authoredTime": 12.18,
+          "actualFrame": 488,
+          "impact": 0.7623656593530996,
+          "target": 0.76,
+          "steps": [
+            {
+              "frame": 488,
+              "value": 0.1477217566606999,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 489,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 490,
+              "value": 0.9243266308353935,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 491,
+              "value": 0.29345769866624155,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "guide:SHOULDER"
+              ]
+            },
+            {
+              "frame": 492,
+              "value": 1.2506964329648795,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:STRING",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 493,
+              "value": 3.13965820898869,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 494,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:TAIL"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 15,
+          "authoredTime": 12.617,
+          "actualFrame": 506,
+          "impact": 0.6480520790217175,
+          "target": 0.65742,
+          "steps": [
+            {
+              "frame": 506,
+              "value": 0.1440022467236307,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 507,
+              "value": 0.6396243144354127,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 508,
+              "value": 0.27222558523943907,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:PEG",
+                "main:NOSE"
+              ]
+            },
+            {
+              "frame": 509,
+              "value": 0.3902660358211923,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:PEG",
+                "guide:TAIL",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 510,
+              "value": 0.9215752576404928,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:TAIL",
+                "guide:SHOULDER",
+                "guide:PEG"
+              ]
+            },
+            {
+              "frame": 511,
+              "value": 1.339888971983867,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:PEG",
+                "guide:TAIL",
+                "guide:SHOULDER"
+              ]
+            },
+            {
+              "frame": 512,
+              "value": 1.1852107847699331,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:PEG",
+                "guide:BUTT",
+                "guide:RHAND",
+                "guide:LHAND",
+                "guide:TAIL",
+                "guide:SHOULDER"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 16,
+          "authoredTime": 13.05,
+          "actualFrame": 524,
+          "impact": 0.7443577024960927,
+          "target": 0.76,
+          "steps": [
+            {
+              "frame": 524,
+              "value": 0.09398664812323049,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 525,
+              "value": 0.41774915371354654,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 526,
+              "value": 0.6087651825881155,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 527,
+              "value": 2.8047480087072905,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 528,
+              "value": 1.694651660713316,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 529,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:TAIL"
+              ]
+            },
+            {
+              "frame": 530,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": []
+            }
+          ]
+        },
+        {
+          "index": 17,
+          "authoredTime": 13.482,
+          "actualFrame": 541,
+          "impact": 0.6534568511230786,
+          "target": 0.63442,
+          "steps": [
+            {
+              "frame": 541,
+              "value": 0.14808686118597822,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 542,
+              "value": 1.6344447272435203,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 543,
+              "value": 1.9134018510651618,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 544,
+              "value": 1.2376657864845821,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 545,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 546,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 547,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": []
+            }
+          ]
+        },
+        {
+          "index": 18,
+          "authoredTime": 13.91,
+          "actualFrame": 558,
+          "impact": 0.7052553108574833,
+          "target": 0.7176800000000001,
+          "steps": [
+            {
+              "frame": 558,
+              "value": 0.18140103223424087,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 559,
+              "value": 0.2378474316405484,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE"
+              ]
+            },
+            {
+              "frame": 560,
+              "value": 0.5845602475625788,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 561,
+              "value": 0.6040351746474284,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 562,
+              "value": 1.648642417211762,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 563,
+              "value": 1.1842302616388658,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 564,
+              "value": 0.883961032038573,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 19,
+          "authoredTime": 14.78,
+          "actualFrame": 593,
+          "impact": 0.7185199319264748,
+          "target": 0.73976,
+          "steps": [
+            {
+              "frame": 593,
+              "value": 0.17101869301097072,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 594,
+              "value": 0.34612589364525964,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 595,
+              "value": 2.224995709755559,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 596,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 597,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 598,
+              "value": 1.201570203945054,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:RHAND",
+                "guide:LHAND",
+                "guide:SHOULDER"
+              ]
+            },
+            {
+              "frame": 599,
+              "value": 1.481114985688042,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:STRING",
+                "guide:SHOULDER",
+                "guide:RHAND",
+                "guide:LHAND"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 20,
+          "authoredTime": 15.229,
+          "actualFrame": 611,
+          "impact": 0.6830721717379381,
+          "target": 0.74,
+          "steps": [
+            {
+              "frame": 611,
+              "value": 0.20291313744972925,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 612,
+              "value": 2.03569348883129,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 613,
+              "value": 1.724590288433863,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 614,
+              "value": 0.9277006512737397,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 615,
+              "value": 0.2662973306328117,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE"
+              ]
+            },
+            {
+              "frame": 616,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:NOSE"
+              ]
+            },
+            {
+              "frame": 617,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": []
+            }
+          ]
+        }
+      ],
+      "episodes": [
+        {
+          "group": "15:main",
+          "holes": 0,
+          "first": 488,
+          "last": 493,
+          "contactFrames": [
+            488,
+            489,
+            490,
+            491,
+            492,
+            493
+          ],
+          "points": [
+            "NOSE",
+            "LFOOT",
+            "RFOOT",
+            "TAIL",
+            "STRING",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 3.330142970864092,
+          "maxFrameTurn": 16.965880096189547
+        },
+        {
+          "group": "15:guide",
+          "holes": 0,
+          "first": 490,
+          "last": 490,
+          "contactFrames": [
+            490
+          ],
+          "points": [
+            "SHOULDER"
+          ],
+          "peakCorrection": 0.5183392820215454,
+          "maxFrameTurn": 2.090229320443597
+        },
+        {
+          "group": "16:main",
+          "holes": 0,
+          "first": 506,
+          "last": 508,
+          "contactFrames": [
+            506,
+            507,
+            508
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 0.8379754683582756,
+          "maxFrameTurn": 4.127217727466028
+        },
+        {
+          "group": "16:guide",
+          "holes": 0,
+          "first": 507,
+          "last": 512,
+          "contactFrames": [
+            507,
+            508,
+            509,
+            510,
+            511,
+            512
+          ],
+          "points": [
+            "PEG",
+            "TAIL",
+            "SHOULDER",
+            "BUTT",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.1876711365905617,
+          "maxFrameTurn": 5.922029427706313
+        },
+        {
+          "group": "17:main",
+          "holes": 0,
+          "first": 524,
+          "last": 528,
+          "contactFrames": [
+            524,
+            525,
+            526,
+            527,
+            528
+          ],
+          "points": [
+            "NOSE",
+            "STRING",
+            "LFOOT",
+            "RFOOT",
+            "TAIL",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 2.9736713066126885,
+          "maxFrameTurn": 14.79069915595422
+        },
+        {
+          "group": "18:main",
+          "holes": 0,
+          "first": 541,
+          "last": 544,
+          "contactFrames": [
+            541,
+            542,
+            543,
+            544
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 2.1165740468178567,
+          "maxFrameTurn": 10.519304956521207
+        },
+        {
+          "group": "19:main",
+          "holes": 0,
+          "first": 558,
+          "last": 565,
+          "contactFrames": [
+            558,
+            559,
+            560,
+            561,
+            562,
+            563,
+            564,
+            565
+          ],
+          "points": [
+            "NOSE",
+            "STRING",
+            "RFOOT",
+            "LFOOT",
+            "TAIL",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.8243237963408412,
+          "maxFrameTurn": 9.8077601034369
+        },
+        {
+          "group": "19:main",
+          "holes": 0,
+          "first": 574,
+          "last": 574,
+          "contactFrames": [
+            574
+          ],
+          "points": [
+            "TAIL"
+          ],
+          "peakCorrection": 0.02593846208411951,
+          "maxFrameTurn": 0.13247603546327452
+        },
+        {
+          "group": "19:guide",
+          "holes": 0,
+          "first": 568,
+          "last": 574,
+          "contactFrames": [
+            568,
+            569,
+            570,
+            571,
+            572,
+            573,
+            574
+          ],
+          "points": [
+            "SHOULDER",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.1622945734207908,
+          "maxFrameTurn": 6.349382412670444
+        },
+        {
+          "group": "20:main",
+          "holes": 0,
+          "first": 593,
+          "last": 595,
+          "contactFrames": [
+            593,
+            594,
+            595
+          ],
+          "points": [
+            "NOSE",
+            "STRING",
+            "LFOOT",
+            "RFOOT"
+          ],
+          "peakCorrection": 2.489501752935012,
+          "maxFrameTurn": 12.651267548281053
+        },
+        {
+          "group": "20:guide",
+          "holes": 0,
+          "first": 597,
+          "last": 601,
+          "contactFrames": [
+            597,
+            598,
+            599,
+            600,
+            601
+          ],
+          "points": [
+            "RHAND",
+            "LHAND",
+            "SHOULDER",
+            "STRING",
+            "LFOOT",
+            "RFOOT"
+          ],
+          "peakCorrection": 1.775599893184219,
+          "maxFrameTurn": 9.686360686190042
+        },
+        {
+          "group": "21:main",
+          "holes": 0,
+          "first": 611,
+          "last": 615,
+          "contactFrames": [
+            611,
+            612,
+            613,
+            614,
+            615
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 2.270844294821516,
+          "maxFrameTurn": 10.923074765194293
+        },
+        {
+          "group": "15:main",
+          "holes": 1,
+          "first": 488,
+          "last": 493,
+          "contactFrames": [
+            488,
+            489,
+            490,
+            491,
+            492,
+            493
+          ],
+          "points": [
+            "NOSE",
+            "LFOOT",
+            "RFOOT",
+            "TAIL",
+            "STRING",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 3.330142970864092,
+          "maxFrameTurn": 16.965880096189547
+        },
+        {
+          "group": "15:guide",
+          "holes": 1,
+          "first": 490,
+          "last": 490,
+          "contactFrames": [
+            490
+          ],
+          "points": [
+            "SHOULDER"
+          ],
+          "peakCorrection": 0.5183392820215454,
+          "maxFrameTurn": 2.090229320443597
+        },
+        {
+          "group": "16:main",
+          "holes": 1,
+          "first": 506,
+          "last": 508,
+          "contactFrames": [
+            506,
+            507,
+            508
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 0.8379754683582756,
+          "maxFrameTurn": 4.127217727466028
+        },
+        {
+          "group": "16:guide",
+          "holes": 1,
+          "first": 507,
+          "last": 512,
+          "contactFrames": [
+            507,
+            508,
+            509,
+            510,
+            511,
+            512
+          ],
+          "points": [
+            "PEG",
+            "TAIL",
+            "SHOULDER",
+            "BUTT",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.1876711365905617,
+          "maxFrameTurn": 5.922029427706313
+        },
+        {
+          "group": "17:main",
+          "holes": 1,
+          "first": 524,
+          "last": 528,
+          "contactFrames": [
+            524,
+            525,
+            526,
+            527,
+            528
+          ],
+          "points": [
+            "NOSE",
+            "STRING",
+            "LFOOT",
+            "RFOOT",
+            "TAIL",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 2.9736713066126885,
+          "maxFrameTurn": 14.79069915595422
+        },
+        {
+          "group": "18:main",
+          "holes": 1,
+          "first": 541,
+          "last": 544,
+          "contactFrames": [
+            541,
+            542,
+            543,
+            544
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 2.1165740468178567,
+          "maxFrameTurn": 10.519304956521207
+        },
+        {
+          "group": "19:main",
+          "holes": 1,
+          "first": 558,
+          "last": 565,
+          "contactFrames": [
+            558,
+            559,
+            560,
+            561,
+            562,
+            563,
+            564,
+            565
+          ],
+          "points": [
+            "NOSE",
+            "STRING",
+            "RFOOT",
+            "LFOOT",
+            "TAIL",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.8243237963408412,
+          "maxFrameTurn": 9.8077601034369
+        },
+        {
+          "group": "19:main",
+          "holes": 1,
+          "first": 574,
+          "last": 574,
+          "contactFrames": [
+            574
+          ],
+          "points": [
+            "TAIL"
+          ],
+          "peakCorrection": 0.02593846208411951,
+          "maxFrameTurn": 0.13247603546327452
+        },
+        {
+          "group": "19:guide",
+          "holes": 1,
+          "first": 568,
+          "last": 574,
+          "contactFrames": [
+            568,
+            569,
+            570,
+            571,
+            572,
+            573,
+            574
+          ],
+          "points": [
+            "SHOULDER",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.1622945734207908,
+          "maxFrameTurn": 6.349382412670444
+        },
+        {
+          "group": "20:main",
+          "holes": 1,
+          "first": 593,
+          "last": 595,
+          "contactFrames": [
+            593,
+            594,
+            595
+          ],
+          "points": [
+            "NOSE",
+            "STRING",
+            "LFOOT",
+            "RFOOT"
+          ],
+          "peakCorrection": 2.489501752935012,
+          "maxFrameTurn": 12.651267548281053
+        },
+        {
+          "group": "20:guide",
+          "holes": 1,
+          "first": 597,
+          "last": 601,
+          "contactFrames": [
+            597,
+            598,
+            599,
+            600,
+            601
+          ],
+          "points": [
+            "RHAND",
+            "LHAND",
+            "SHOULDER",
+            "STRING",
+            "LFOOT",
+            "RFOOT"
+          ],
+          "peakCorrection": 1.775599893184219,
+          "maxFrameTurn": 9.686360686190042
+        },
+        {
+          "group": "21:main",
+          "holes": 1,
+          "first": 611,
+          "last": 615,
+          "contactFrames": [
+            611,
+            612,
+            613,
+            614,
+            615
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 2.270844294821516,
+          "maxFrameTurn": 10.923074765194293
+        }
+      ],
+      "events": [
+        {
+          "frame": 488,
+          "type": "landing",
+          "airborneFrom": 476
+        },
+        {
+          "frame": 490,
+          "type": "bounce",
+          "airborneFrom": 489
+        },
+        {
+          "frame": 506,
+          "type": "landing",
+          "airborneFrom": 494
+        },
+        {
+          "frame": 524,
+          "type": "landing",
+          "airborneFrom": 513
+        },
+        {
+          "frame": 541,
+          "type": "landing",
+          "airborneFrom": 529
+        },
+        {
+          "frame": 558,
+          "type": "landing",
+          "airborneFrom": 545
+        },
+        {
+          "frame": 574,
+          "type": "flyThrough",
+          "airborneFrom": 566,
+          "contactFraction": 0.2
+        },
+        {
+          "frame": 593,
+          "type": "landing",
+          "airborneFrom": 575
+        },
+        {
+          "frame": 611,
+          "type": "landing",
+          "airborneFrom": 600
+        }
+      ],
+      "assays": [
+        {
+          "section": 19,
+          "first": 568,
+          "end": 580,
+          "firstDivergence": 568,
+          "prefixMaxError": 0,
+          "alternativeTerminus": {
+            "frame": 580,
+            "reason": "endOfSpec"
+          },
+          "precedingBeat": 18,
+          "originalImpact": 0.7052553108574833,
+          "withoutGuideImpact": 0.7052553108574833,
+          "rawBefore": 5.324677596973999,
+          "rawAfter": 5.324677596973999,
+          "limitation": "Local guide deletion only. Same incoming state, full original landing window; no claim of a viable continuation or perceptual improvement.",
+          "removedSegments": 95
+        },
+        {
+          "section": 20,
+          "first": 597,
+          "end": 609,
+          "firstDivergence": 597,
+          "prefixMaxError": 0,
+          "alternativeTerminus": {
+            "frame": 609,
+            "reason": "endOfSpec"
+          },
+          "precedingBeat": 19,
+          "originalImpact": 0.7185199319264748,
+          "withoutGuideImpact": 0.363197390253217,
+          "rawBefore": 5.424825486044885,
+          "rawAfter": 2.7421402964117885,
+          "limitation": "Local guide deletion only. Same incoming state, full original landing window; no claim of a viable continuation or perceptual improvement.",
+          "removedSegments": 73
+        }
+      ]
+    },
+    {
+      "seed": 303,
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json",
+      "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+      "artifactSha256": "cda9527c6145159168bfe34b0bb83d571b213c81f26ac925ef417e8d98048394",
+      "maxTraceError": 0,
+      "beats": [
+        {
+          "index": 14,
+          "authoredTime": 12.18,
+          "actualFrame": 489,
+          "impact": 0.7020197952794647,
+          "target": 0.76,
+          "steps": [
+            {
+              "frame": 489,
+              "value": 0.19924754629453192,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 490,
+              "value": 0.1965385995003401,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE"
+              ]
+            },
+            {
+              "frame": 491,
+              "value": 0.35186583647320746,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 492,
+              "value": 0.7287131764312914,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 493,
+              "value": 0.9940882555379087,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 494,
+              "value": 2.8297960401226776,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 495,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:TAIL"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 15,
+          "authoredTime": 12.617,
+          "actualFrame": 506,
+          "impact": 0.6400140764247553,
+          "target": 0.65742,
+          "steps": [
+            {
+              "frame": 506,
+              "value": 0.23766817830617387,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 507,
+              "value": 1.46279749978569,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 508,
+              "value": 0.030149161905321242,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE"
+              ]
+            },
+            {
+              "frame": 509,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 510,
+              "value": 0.40383388638459516,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 511,
+              "value": 1.478420042312736,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:PEG",
+                "guide:TAIL"
+              ]
+            },
+            {
+              "frame": 512,
+              "value": 1.2192375083123874,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:PEG",
+                "guide:TAIL",
+                "guide:SHOULDER"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 16,
+          "authoredTime": 13.05,
+          "actualFrame": 524,
+          "impact": 0.6447401235893879,
+          "target": 0.76,
+          "steps": [
+            {
+              "frame": 524,
+              "value": 0.1336905156266455,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 525,
+              "value": 2.0792005723589018,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 526,
+              "value": 0.8455525686542784,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE"
+              ]
+            },
+            {
+              "frame": 527,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:STRING"
+              ]
+            },
+            {
+              "frame": 528,
+              "value": 0.41710650511225283,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 529,
+              "value": 1.392237771347799,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:PEG",
+                "guide:TAIL"
+              ]
+            },
+            {
+              "frame": 530,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "guide:PEG"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 17,
+          "authoredTime": 13.482,
+          "actualFrame": 541,
+          "impact": 0.5619426901182019,
+          "target": 0.63442,
+          "steps": [
+            {
+              "frame": 541,
+              "value": 0.1437415274254859,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 542,
+              "value": 0.21867923597919098,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:STRING",
+                "main:RHAND"
+              ]
+            },
+            {
+              "frame": 543,
+              "value": 1.6977356869703817,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:STRING",
+                "main:SHOULDER",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT"
+              ]
+            },
+            {
+              "frame": 544,
+              "value": 2.1825108600173655,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:STRING",
+                "main:BUTT",
+                "main:SHOULDER",
+                "main:RHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 545,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:STRING",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 546,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 547,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": []
+            }
+          ]
+        },
+        {
+          "index": 18,
+          "authoredTime": 13.91,
+          "actualFrame": 557,
+          "impact": 0.6741366601270953,
+          "target": 0.7176800000000001,
+          "steps": [
+            {
+              "frame": 557,
+              "value": 0.1970321480311534,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 558,
+              "value": 0.5945611960766221,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL"
+              ]
+            },
+            {
+              "frame": 559,
+              "value": 1.1043276121951566,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:LFOOT"
+              ]
+            },
+            {
+              "frame": 560,
+              "value": 0.8856793935576106,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:STRING",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 561,
+              "value": 0.8469043115207743,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:STRING",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 562,
+              "value": 1.2513244352473556,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 563,
+              "value": 0.20990268733089595,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 19,
+          "authoredTime": 14.78,
+          "actualFrame": 592,
+          "impact": 0.7535706972303355,
+          "target": 0.73976,
+          "steps": [
+            {
+              "frame": 592,
+              "value": 0.1329890177474888,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 593,
+              "value": 0.370509726054538,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL"
+              ]
+            },
+            {
+              "frame": 594,
+              "value": 2.454027442073635,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:BUTT",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 595,
+              "value": 2.3887169582188506,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:NOSE",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT",
+                "main:TAIL"
+              ]
+            },
+            {
+              "frame": 596,
+              "value": 0.34321561999452105,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:RHAND",
+                "main:LHAND"
+              ]
+            },
+            {
+              "frame": 597,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:NOSE"
+              ]
+            },
+            {
+              "frame": 598,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": []
+            }
+          ]
+        },
+        {
+          "index": 20,
+          "authoredTime": 15.229,
+          "actualFrame": 611,
+          "impact": 0.7382745053416965,
+          "target": 0.74,
+          "steps": [
+            {
+              "frame": 611,
+              "value": 0.1793304504411842,
+              "airborne": false,
+              "previousSolverContacts": []
+            },
+            {
+              "frame": 612,
+              "value": 1.6889254459734904,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 613,
+              "value": 1.011713501912384,
+              "airborne": false,
+              "previousSolverContacts": [
+                "main:TAIL",
+                "main:NOSE",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 614,
+              "value": 1.3090088570238905,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:PEG",
+                "main:RHAND",
+                "main:LHAND",
+                "main:LFOOT",
+                "main:RFOOT"
+              ]
+            },
+            {
+              "frame": 615,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "main:TAIL"
+              ]
+            },
+            {
+              "frame": 616,
+              "value": 1.3849942599788596,
+              "airborne": false,
+              "previousSolverContacts": [
+                "guide:SHOULDER"
+              ]
+            },
+            {
+              "frame": 617,
+              "value": 0,
+              "airborne": true,
+              "previousSolverContacts": [
+                "guide:PEG"
+              ]
+            }
+          ]
+        }
+      ],
+      "episodes": [
+        {
+          "group": "14:guide",
+          "holes": 0,
+          "first": 480,
+          "last": 482,
+          "contactFrames": [
+            480,
+            481,
+            482
+          ],
+          "points": [
+            "STRING",
+            "SHOULDER",
+            "RHAND",
+            "LHAND",
+            "RFOOT"
+          ],
+          "peakCorrection": 1.1166575647207586,
+          "maxFrameTurn": 5.3109773293433165
+        },
+        {
+          "group": "15:main",
+          "holes": 0,
+          "first": 489,
+          "last": 494,
+          "contactFrames": [
+            489,
+            490,
+            491,
+            492,
+            493,
+            494
+          ],
+          "points": [
+            "NOSE",
+            "TAIL",
+            "LFOOT",
+            "RFOOT",
+            "STRING",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 3.122764037918181,
+          "maxFrameTurn": 15.21155174003572
+        },
+        {
+          "group": "15:guide",
+          "holes": 0,
+          "first": 496,
+          "last": 500,
+          "contactFrames": [
+            496,
+            497,
+            498,
+            499,
+            500
+          ],
+          "points": [
+            "SHOULDER",
+            "STRING",
+            "NOSE",
+            "BUTT",
+            "RHAND",
+            "LHAND",
+            "LFOOT",
+            "RFOOT"
+          ],
+          "peakCorrection": 4.237557326995065,
+          "maxFrameTurn": 22.75122224621147
+        },
+        {
+          "group": "16:main",
+          "holes": 0,
+          "first": 506,
+          "last": 508,
+          "contactFrames": [
+            506,
+            507,
+            508
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 1.617946988094767,
+          "maxFrameTurn": 8.30449957819605
+        },
+        {
+          "group": "16:guide",
+          "holes": 0,
+          "first": 510,
+          "last": 512,
+          "contactFrames": [
+            510,
+            511,
+            512
+          ],
+          "points": [
+            "PEG",
+            "TAIL",
+            "SHOULDER"
+          ],
+          "peakCorrection": 1.5052934612654707,
+          "maxFrameTurn": 7.34006919062885
+        },
+        {
+          "group": "17:main",
+          "holes": 0,
+          "first": 524,
+          "last": 526,
+          "contactFrames": [
+            524,
+            525,
+            526
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 2.244164179846786,
+          "maxFrameTurn": 10.726293342316035
+        },
+        {
+          "group": "17:guide",
+          "holes": 0,
+          "first": 528,
+          "last": 529,
+          "contactFrames": [
+            528,
+            529
+          ],
+          "points": [
+            "PEG",
+            "TAIL"
+          ],
+          "peakCorrection": 1.2707287973987302,
+          "maxFrameTurn": 6.416793620843697
+        },
+        {
+          "group": "18:main",
+          "holes": 0,
+          "first": 541,
+          "last": 544,
+          "contactFrames": [
+            541,
+            542,
+            543,
+            544
+          ],
+          "points": [
+            "STRING",
+            "RHAND",
+            "SHOULDER",
+            "LHAND",
+            "LFOOT",
+            "BUTT",
+            "RFOOT"
+          ],
+          "peakCorrection": 2.8076695839917694,
+          "maxFrameTurn": 13.136664041085243
+        },
+        {
+          "group": "19:main",
+          "holes": 0,
+          "first": 557,
+          "last": 563,
+          "contactFrames": [
+            557,
+            558,
+            559,
+            560,
+            561,
+            562,
+            563
+          ],
+          "points": [
+            "TAIL",
+            "NOSE",
+            "LFOOT",
+            "STRING",
+            "RFOOT",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.4266848039566458,
+          "maxFrameTurn": 7.680300641204916
+        },
+        {
+          "group": "20:main",
+          "holes": 0,
+          "first": 592,
+          "last": 596,
+          "contactFrames": [
+            592,
+            593,
+            594,
+            595,
+            596
+          ],
+          "points": [
+            "TAIL",
+            "NOSE",
+            "BUTT",
+            "LFOOT",
+            "RFOOT",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 2.7693063047461024,
+          "maxFrameTurn": 13.357848093534058
+        },
+        {
+          "group": "21:main",
+          "holes": 0,
+          "first": 611,
+          "last": 614,
+          "contactFrames": [
+            611,
+            612,
+            613,
+            614
+          ],
+          "points": [
+            "TAIL",
+            "NOSE",
+            "LFOOT",
+            "RFOOT",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.9678266084447933,
+          "maxFrameTurn": 9.963554870567272
+        },
+        {
+          "group": "21:guide",
+          "holes": 0,
+          "first": 613,
+          "last": 613,
+          "contactFrames": [
+            613
+          ],
+          "points": [
+            "PEG"
+          ],
+          "peakCorrection": 1.4971608120761057,
+          "maxFrameTurn": 8.416465176965218
+        },
+        {
+          "group": "21:guide",
+          "holes": 0,
+          "first": 615,
+          "last": 616,
+          "contactFrames": [
+            615,
+            616
+          ],
+          "points": [
+            "SHOULDER",
+            "PEG"
+          ],
+          "peakCorrection": 1.5678236206604823,
+          "maxFrameTurn": 6.592135150605885
+        },
+        {
+          "group": "14:guide",
+          "holes": 1,
+          "first": 480,
+          "last": 482,
+          "contactFrames": [
+            480,
+            481,
+            482
+          ],
+          "points": [
+            "STRING",
+            "SHOULDER",
+            "RHAND",
+            "LHAND",
+            "RFOOT"
+          ],
+          "peakCorrection": 1.1166575647207586,
+          "maxFrameTurn": 5.3109773293433165
+        },
+        {
+          "group": "15:main",
+          "holes": 1,
+          "first": 489,
+          "last": 494,
+          "contactFrames": [
+            489,
+            490,
+            491,
+            492,
+            493,
+            494
+          ],
+          "points": [
+            "NOSE",
+            "TAIL",
+            "LFOOT",
+            "RFOOT",
+            "STRING",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 3.122764037918181,
+          "maxFrameTurn": 15.21155174003572
+        },
+        {
+          "group": "15:guide",
+          "holes": 1,
+          "first": 496,
+          "last": 500,
+          "contactFrames": [
+            496,
+            497,
+            498,
+            499,
+            500
+          ],
+          "points": [
+            "SHOULDER",
+            "STRING",
+            "NOSE",
+            "BUTT",
+            "RHAND",
+            "LHAND",
+            "LFOOT",
+            "RFOOT"
+          ],
+          "peakCorrection": 4.237557326995065,
+          "maxFrameTurn": 22.75122224621147
+        },
+        {
+          "group": "16:main",
+          "holes": 1,
+          "first": 506,
+          "last": 508,
+          "contactFrames": [
+            506,
+            507,
+            508
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 1.617946988094767,
+          "maxFrameTurn": 8.30449957819605
+        },
+        {
+          "group": "16:guide",
+          "holes": 1,
+          "first": 510,
+          "last": 512,
+          "contactFrames": [
+            510,
+            511,
+            512
+          ],
+          "points": [
+            "PEG",
+            "TAIL",
+            "SHOULDER"
+          ],
+          "peakCorrection": 1.5052934612654707,
+          "maxFrameTurn": 7.34006919062885
+        },
+        {
+          "group": "17:main",
+          "holes": 1,
+          "first": 524,
+          "last": 526,
+          "contactFrames": [
+            524,
+            525,
+            526
+          ],
+          "points": [
+            "NOSE",
+            "STRING"
+          ],
+          "peakCorrection": 2.244164179846786,
+          "maxFrameTurn": 10.726293342316035
+        },
+        {
+          "group": "17:guide",
+          "holes": 1,
+          "first": 528,
+          "last": 529,
+          "contactFrames": [
+            528,
+            529
+          ],
+          "points": [
+            "PEG",
+            "TAIL"
+          ],
+          "peakCorrection": 1.2707287973987302,
+          "maxFrameTurn": 6.416793620843697
+        },
+        {
+          "group": "18:main",
+          "holes": 1,
+          "first": 541,
+          "last": 544,
+          "contactFrames": [
+            541,
+            542,
+            543,
+            544
+          ],
+          "points": [
+            "STRING",
+            "RHAND",
+            "SHOULDER",
+            "LHAND",
+            "LFOOT",
+            "BUTT",
+            "RFOOT"
+          ],
+          "peakCorrection": 2.8076695839917694,
+          "maxFrameTurn": 13.136664041085243
+        },
+        {
+          "group": "19:main",
+          "holes": 1,
+          "first": 557,
+          "last": 563,
+          "contactFrames": [
+            557,
+            558,
+            559,
+            560,
+            561,
+            562,
+            563
+          ],
+          "points": [
+            "TAIL",
+            "NOSE",
+            "LFOOT",
+            "STRING",
+            "RFOOT",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.4266848039566458,
+          "maxFrameTurn": 7.680300641204916
+        },
+        {
+          "group": "20:main",
+          "holes": 1,
+          "first": 592,
+          "last": 596,
+          "contactFrames": [
+            592,
+            593,
+            594,
+            595,
+            596
+          ],
+          "points": [
+            "TAIL",
+            "NOSE",
+            "BUTT",
+            "LFOOT",
+            "RFOOT",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 2.7693063047461024,
+          "maxFrameTurn": 13.357848093534058
+        },
+        {
+          "group": "21:main",
+          "holes": 1,
+          "first": 611,
+          "last": 614,
+          "contactFrames": [
+            611,
+            612,
+            613,
+            614
+          ],
+          "points": [
+            "TAIL",
+            "NOSE",
+            "LFOOT",
+            "RFOOT",
+            "RHAND",
+            "LHAND"
+          ],
+          "peakCorrection": 1.9678266084447933,
+          "maxFrameTurn": 9.963554870567272
+        },
+        {
+          "group": "21:guide",
+          "holes": 1,
+          "first": 613,
+          "last": 616,
+          "contactFrames": [
+            613,
+            615,
+            616
+          ],
+          "points": [
+            "PEG",
+            "SHOULDER"
+          ],
+          "peakCorrection": 1.5678236206604823,
+          "maxFrameTurn": 8.416465176965218
+        }
+      ],
+      "events": [
+        {
+          "frame": 489,
+          "type": "landing",
+          "airborneFrom": 481
+        },
+        {
+          "frame": 499,
+          "type": "kick",
+          "angleDeg": 23.641229489982972
+        },
+        {
+          "frame": 506,
+          "type": "landing",
+          "airborneFrom": 499
+        },
+        {
+          "frame": 510,
+          "type": "bounce",
+          "airborneFrom": 509
+        },
+        {
+          "frame": 524,
+          "type": "landing",
+          "airborneFrom": 513
+        },
+        {
+          "frame": 541,
+          "type": "landing",
+          "airborneFrom": 530
+        },
+        {
+          "frame": 557,
+          "type": "landing",
+          "airborneFrom": 545
+        },
+        {
+          "frame": 592,
+          "type": "landing",
+          "airborneFrom": 564
+        },
+        {
+          "frame": 611,
+          "type": "landing",
+          "airborneFrom": 597
+        }
+      ],
+      "assays": [
+        {
+          "section": 15,
+          "first": 496,
+          "end": 505,
+          "firstDivergence": 496,
+          "prefixMaxError": 0,
+          "alternativeTerminus": {
+            "frame": 505,
+            "reason": "endOfSpec"
+          },
+          "precedingBeat": 14,
+          "originalImpact": 0.7020197952794647,
+          "withoutGuideImpact": 0.7020197952794647,
+          "rawBefore": 5.3002494543599585,
+          "rawAfter": 5.3002494543599585,
+          "limitation": "Local guide deletion only. Same incoming state, full original landing window; no claim of a viable continuation or perceptual improvement.",
+          "removedSegments": 14
+        }
+      ]
+    }
+  ],
+  "poseScreen": {
+    "records": 36,
+    "uniqueTracks": 30,
+    "episodesIncludingRepeatedTracks": 105,
+    "longestConsecutiveFrames": 4,
+    "limitation": "Brief inverted-contact candidates, not proof of sustained overhead skiing. This pose screen excludes tilted/vertical variants and uses saved tracks rather than a new search."
+  },
+  "contract": [
+    {
+      "sign": 1,
+      "events": [
+        {
+          "frame": 10,
+          "type": "landing",
+          "airborneFrom": 0
+        },
+        {
+          "frame": 11,
+          "type": "kick",
+          "angleDeg": 22.918311805232932
+        }
+      ],
+      "impact": 0.26490066225165565
+    },
+    {
+      "sign": -1,
+      "events": [
+        {
+          "frame": 10,
+          "type": "landing",
+          "airborneFrom": 0
+        },
+        {
+          "frame": 11,
+          "type": "kick",
+          "angleDeg": 22.918311805232932
+        }
+      ],
+      "impact": 0.2649006622516556
+    }
+  ]
+}

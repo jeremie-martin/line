@@ -16,7 +16,7 @@ export type ArcControlContext = {
   releaseReserveFrames?:number;
 };
 type ControlDefinition = {
-  family: 'core' | 'guide' | 'expressive' | 'exit';
+  family: 'core' | 'guide' | 'expressive' | 'exit' | 'topology';
   min: number; max: number; tolerance: number;
   coordinate: Step; response?: Step; newton?: Step; repair?: Step;
   searchDefault?: (c: ArcMotionControl, channel?: number) => number;
@@ -28,6 +28,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
  * an entry here; memo identity and method key lists derive from this registry.
  * Search defaults intentionally do not materialize omitted geometry fields. */
 export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinition>> = {
+  contactSide:{family:'topology',min:-1,max:1,tolerance:0,coordinate:2,normalize:v=>v<0?-1:1},
   entry: {family: 'core', min: -75, max: 85, tolerance: 2, coordinate: 3, response: 2, repair: 1},
   turn: {family: 'core', min: -120, max: 120, tolerance: 4, coordinate: 8, response: 5, repair: 3,
     normalize: (v, _c, context) => clamp(v, -120, context.bidirectional ? 120 : 15)},
@@ -67,6 +68,9 @@ export const ARC_EXPRESSIVE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DE
 
 /** Disabled guides have no meaningful clearance, coverage or flare coordinates. */
 export function arcControlActive(key:ControlKey,guides=true,style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'compactFoldProposals'|'compactProfileProposals'>):boolean {
+  // Transfer fulfillment currently specifies the forward support followed by
+  // its separated receiver. An opposing opening uses the paired constructor.
+  if(key==='contactSide')return style?.railLayout!=='transfer';
   if(key==='profileEnd')return style?.compactProfileProposals===true&&!!style.profile&&style.profile!=='fold'&&style.railLayout==='transfer';
   if(key.startsWith('receiver'))return guides&&style?.observedReceiver===true&&style.railLayout==='transfer';
   if(key==='foldBias')return style?.compactFoldProposals===true&&style.profile==='fold'&&style.railLayout==='transfer'&&style.independentGuide===true;

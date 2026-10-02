@@ -68,6 +68,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Prepare physical contact before its authored response time. Musical
    * targets and construction requests remain at their original timestamps. */
   impactPreparationFrames?:number;
+  opposingEntryProposals?:number;
   /** Explicit motion research/production mode; absent in frozen ordinary/V5 defaults. */
   motionQuality?:MotionSearchOptions;
   /** Explicit repertoire search options. Production defaults are unchanged. */
@@ -289,6 +290,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   if(options.impactContract!==undefined&&options.impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
   validateImpactSearchOptions(options.impactSearch);
   if(options.impactSearch&&!options.impactContract)throw new Error('impact search options require their measurement contract');
+  if(options.opposingEntryProposals!==undefined&&(!options.impactContract||!Number.isSafeInteger(options.opposingEntryProposals)||options.opposingEntryProposals<0||options.opposingEntryProposals>64))throw new Error('invalid opposing-entry allowance');
   if(options.impactPreparationFrames!==undefined&&(!options.impactContract||!Number.isSafeInteger(options.impactPreparationFrames)||options.impactPreparationFrames<0||options.impactPreparationFrames>2))throw new Error('invalid impact preparation');
   arcMainSteps(1,options.subdivisions,options.faces);
   spec=normalizeCompilerTimeline(spec);
@@ -372,6 +374,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
   const policyRolloutStats={proposals:0,accepted:0,fallbacks:0,physicsFrames:0};
   const coupledIntervalWork:Array<{index:number;proposals:number;viable:number;accepted:number;physicsFrames:number;before:number;after:number}>=[];
   const observedReceiverWork={attempts:0,viable:0,physicsFrames:0,failures:{} as Record<string,number>};
+  const opposingEntryWork={attempts:0,viable:0,physicsFrames:0,failures:{} as Record<string,number>};
   const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic','compactFold','compactProfile'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
   const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
   const constructionImprovement:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number;before:number|null;after:number|null}>=[];
@@ -599,7 +602,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
           added=[...main,...receiver.guide];child=addArc(supportEngine,receiver.guide);
           const parent=prefixes.get(engine);if(parent)prefixes.set(child,{parent,lines:added});
         }else{
-          added=fragments?.lines??motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options);
+          const receivers=c.contactSide===-1?Object.values(trace):points;
+          added=fragments?.lines??motionArc(receivers,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options);
           child=addArc(engine,added);
         }
         if(!added.length)return null;
@@ -846,6 +850,21 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
         try{if(evaluate(k>0&&k<=policy.length?policy[k-1]:k===0?center:genericInitial(k)))accounting.viable++;}
         finally{accounting.physicsFrames+=getPhysicsFrameCount()-began;}
         if(k%10===9)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
+      }
+      if(i>0&&initial>0&&options.railLayout!=='transfer'&&(options.opposingEntryProposals??0)>0){
+        // Offer the same curve constructor from the opposite contact side.
+        // Both sides compete under the same musical/physical checks; there is
+        // no scheduled upper-hit request or different strength definition.
+        const began=getPhysicsFrameCount(),beforeFailures={...failures};
+        try{for(let k=0;k<options.opposingEntryProposals!;k++){
+          const c=k===0?center:genericInitial(k);opposingEntryWork.attempts++;
+          if(evaluate({...c,contactSide:-1,entry:2*incoming-c.entry,turn:-c.turn,exit:2*incoming-c.exit,
+            ...(c.foldBend===undefined?{}:{foldBend:-c.foldBend}),...(c.guideTilt===undefined?{}:{guideTilt:-c.guideTilt})}))opposingEntryWork.viable++;
+          if(k%8===7)Engine.retainOnly([...protectedEngines,...(best?[engine,best.child]:[engine])]);
+        }}finally{
+          opposingEntryWork.physicsFrames+=getPhysicsFrameCount()-began;
+          for(const [key,count]of Object.entries(failures))opposingEntryWork.failures[key]=(opposingEntryWork.failures[key]??0)+count-(beforeFailures[key]??0);
+        }
       }
       if(options.compactFoldProposals&&options.profile==='fold'&&options.railLayout==='transfer'&&initial>0){
         const anchor=best?.c??near[0]?.c??center;
@@ -1495,6 +1514,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions,con
       selectionLoss+=motionResiduals(intervalMotionSummary(observed,contact.frame,next-1),impact,options.motionQuality).reduce((n,r)=>n+r*r,0)/contacts.length;
     }
   }
-  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,coupledIntervalWork,transitionRevisionWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats,terminalSelectionStats,...(impactEvaluation?{impactEvaluation,impactTrajectoryLoss}:{}),guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,teacherRows,initialProposalWork,observedReceiverWork,...(options.opposingEntryProposals?{opposingEntryWork}:{}),coupledIntervalWork,transitionRevisionWork,constructionImprovement,failure,budget:finalBudget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,policyRolloutStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats,terminalSelectionStats,...(impactEvaluation?{impactEvaluation,impactTrajectoryLoss}:{}),guidanceReduction:guidanceReduction?.stats??null,constructionFrames,...(forkEvidence?{forkEvidence}:{})};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

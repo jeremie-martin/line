@@ -11,6 +11,9 @@ export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:Rai
   railLayout?:'paired'|'transfer';independentGuide?:boolean;alignedFoldEntry?:boolean};
 export type ArcSectionStyle=Omit<ArcGeometryStyle,'contour'>&{subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
+  /** Active normal of the receiving surface: +1 ordinary, -1 opposing.
+   * This is a physical construction choice, not a distinct impact category. */
+  contactSide?:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number;
   guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
   receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number;
@@ -38,9 +41,11 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   const steps=arcMainSteps(c.support,subdivisions,style?.faces);
   const alignedFold=style?.alignedFoldEntry&&profile==='fold'&&style.profileStart===0&&(style.profileStrength??1)===1;
   const entry=rad(c.entry+(alignedFold?c.turn:0)), n={x:Math.sin(entry),y:-Math.cos(entry)}, t={x:Math.cos(entry),y:Math.sin(entry)};
-  const point=points.reduce((a,b)=>a.x*n.x+a.y*n.y<b.x*n.x+b.y*n.y?a:b);
+  const side=c.contactSide??1;
+  if(side!==1&&side!==-1)throw new Error('invalid receiving surface side');
+  const point=points.reduce((a,b)=>side*(a.x*n.x+a.y*n.y)<side*(b.x*n.x+b.y*n.y)?a:b);
   const speed=Math.hypot(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
-  const anchor={x:point.x+n.x*c.offset,y:point.y+n.y*c.offset};
+  const anchor={x:point.x+side*n.x*c.offset,y:point.y+side*n.y*c.offset};
   let x=anchor.x-approach*t.x,y=anchor.y-approach*t.y;
   const lines:TrackLine[]=[];
   lines.push(makeSolidLine(id++,x,y,anchor.x,anchor.y));x=anchor.x;y=anchor.y;
@@ -89,7 +94,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
       const index=i+2,prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];
       const a=Math.atan2(next.y-prev.y,next.x-prev.x);
       const separation=c.guideFlare===undefined?clearance:clamp(clearance+c.guideFlare*i/Math.max(1,vertices.length-3),6,30);
-      return{x:p.x+separation*Math.sin(a),y:p.y-separation*Math.cos(a)};
+      return{x:p.x+side*separation*Math.sin(a),y:p.y-side*separation*Math.cos(a)};
     });
     const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+Math.hypot(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
     const length=distances.at(-1)!,from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
@@ -108,6 +113,12 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
       for(let i=1;i<clipped.length;i++)lines.push(makeSolidLine(id++,clipped[i-1].x,clipped[i-1].y,clipped[i].x,clipped[i].y));
     }
   }
+  const orient=(main:TrackLine[],guide:TrackLine[])=>{
+    if(side===1)return [...main,...guide];
+    const reverse=(chain:TrackLine[])=>{const first=chain[0]?.id??0;return chain.slice().reverse().map((l,i)=>
+      makeSolidLine(first+i,l.x2,l.y2,l.x1,l.y1));};
+    return [...reverse(main),...reverse(guide)];
+  };
   if(style?.railLayout==='transfer'){
     const main=lines.slice(0,mainCount),extent=clamp(c.mainEnd??.7,.2,1);
     let remaining=main.slice(1).reduce((n,l)=>n+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)*extent;
@@ -117,7 +128,8 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
       if(remaining>=length){retained.push(line);remaining-=length;}
       else{retained.push({...line,x2:lerp(line.x1,line.x2,remaining/length),y2:lerp(line.y1,line.y2,remaining/length)});break;}
     }
-    return [...retained,...lines.slice(mainCount)];
+    return orient(retained,lines.slice(mainCount));
   }
-  return contour?railContours(lines,contour,id):lines;
+  const oriented=side===1?lines:orient(lines.slice(0,mainCount),lines.slice(mainCount));
+  return contour?railContours(oriented,contour,id):oriented;
 }

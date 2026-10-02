@@ -88,7 +88,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     save('track.json',result.track);save('report.json',result.report);
     if(impactEvaluation)save('contact-impacts.json',{evaluation:impactEvaluation,grade,historicalGrade});
     save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,proposalDecision:result.proposalDecision,
-      failure:result.failure,refinement:result.refinementStats,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
+      failure:result.failure,refinement:result.refinementStats,opposingEntryWork:result.opposingEntryWork,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
     save('budget-telemetry.json',budgetTelemetry??{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
       preparationFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.preparationFrames,0)??composition?.preparationFrames??0,constructionFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.physicalFrames-a.preparationFrames,0)??result.stats.sim_frames,compositionStages:composition?.attempts,
       includes:production?'All automatic search and compiler replay work. An explicitly requested reference is accounted separately. Independent evaluation and rendering are separate.':

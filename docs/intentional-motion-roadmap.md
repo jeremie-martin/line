@@ -23,8 +23,11 @@ record of the delivered campaign.
 
 This section records the owner's latest direction and supersedes the earlier
 end-only artistic review cadence for the **next** campaign. The delivered roadmap
-below remains a historical record. The next long compiler campaign is not yet
-defined; first work together more closely on the meaning of contact and impact.
+below remains a historical record. A proposed sustained campaign is now recorded
+[below](#proposed-next-campaign-clear-musical-interactions-in-automatic-tracks),
+following the owner's request for five to seven hours of ambitious work. Its
+opening stage incorporates the early contact/impact review before choosing a
+working interpretation.
 Do not turn the newly observed failure modes into a collection of unrelated
 penalties, special cases or song-specific corrections.
 
@@ -183,6 +186,251 @@ direct comparison links and switching seeds during a delayed previous load also
 pass, without stale results replacing the selected ride. In the TypeScript check,
 the existing 251 diagnostics remain, with none in the changed files.
 Compiler behavior, contact/impact definitions and frozen benchmarks are unchanged.
+
+## Proposed next campaign: clear musical interactions in automatic tracks
+
+**Status: proposed on October 2, after delivery of the sixteen-passage comparison.**
+This is the next campaign for discussion, not a claim that its implementation
+has started or that a replacement impact definition has been accepted. The owner
+plans to review the outstanding passage before bed. Incorporate that feedback
+when it arrives; preserve uncertainty if their judgment is ambiguous.
+
+### Outcome and working scope
+
+Aim to deliver **an integrated automatic compiler candidate and complete musical
+tracks whose intended strikes are clearer, while preserving expressive guidance,
+upper receivers, quiet landings and the existing visual variety**. Measurements,
+construction, search and independent review must describe the same physical
+interactions. The shared implementation should make later geometry easier to
+introduce. A successful isolated detector or hand-arranged clip does not finish
+this campaign.
+
+Plan roughly **five to seven hours of sustained work**, carrying experiments
+through to integration, full-song evaluation and delivery. The allocations below
+are estimates and can move with the evidence. Reserve the final evaluation and
+delivery period early; do not consume it with another last-minute mechanism.
+If an experiment fails, retain its evidence, diagnose the failure and continue
+with a revised approach within this scope. A failed first implementation does
+not establish a physical or conceptual ceiling.
+
+The current production compiler is `5b031f7e` with source fingerprint
+`ed4d38b5a55f4b7e06a56c87c2e23b6b9758f4f07f491f8e17b30ac1973ce043`.
+The current comparison code/evidence is `cee60646`. Frozen V6 is **835.6161** on
+460/460 canonical runs; the already exposed confirmation result is **795.5303**
+on 295/296 valid/fulfilled runs. Those numbers refer to the existing contract,
+not to a new interpretation of musical interactions.
+
+| Stage | Effort guide | Required result |
+| --- | --- | --- |
+| 1. Turn the review into testable requirements | 25–40 minutes | Recorded judgments, counterexamples, development inputs and reserved checks |
+| 2. Build and challenge a shared interaction observer | 60–75 minutes | A versioned working interpretation, its failure cases and an independently measured baseline |
+| 3. Establish physical control in bounded construction experiments | 60–75 minutes | Replayed strike/guidance/receiver examples with checked continuation and measured cost |
+| 4. Integrate and improve the automatic compiler | 90–120 minutes | A complete compiler candidate producing uncurated full tracks through the public path |
+| 5. Freeze and evaluate the candidate | 60–80 minutes | Paired musical/physical results, reserved outcomes, failures, cost and regression analysis |
+| 6. Deliver a coherent native review | 20–30 minutes | Complete songs, focused comparisons, concise findings, committed code and compact evidence |
+
+### 1. Turn the review into testable requirements
+
+Start from the owner's existing judgments, particularly the distracting Tiki 303
+upper collision, its clean lower landing, and the welcome Tiki 101 transfers.
+Use the new guidance feedback to constrain how sustained engagement is treated.
+Keep the quiet openings and weak preliminary Amour touch as counterexamples.
+The owner is judging what the ride communicates; they are not being asked to
+design an algorithm or select numeric thresholds.
+
+Declare the development panel and selection criteria before tuning the compiler.
+Include ordinary/open contacts, paired guides, separate receivers, folds, ripples,
+S sweeps, terraces and scatter, in quiet and energetic contexts. Keep the
+sixteen-passage comparison as development evidence. Reserve complete new runs
+for post-selection checks. The earlier campaign reserved four production songs
+at seeds 919 and 1021; verify that those eight arrangements are still unexamined
+before using them. If they have since been exposed, declare replacements before
+examining outputs. These are new arrangements of known music, not unseen songs.
+
+Record concrete questions a definition must answer:
+
+- Which interaction carries an authored beat, and what is its meaningful onset?
+- Is a lower strike followed by an upper receiver one interaction or two?
+- Is a response inside ongoing contact a strike or continuing guidance?
+- How are quiet touches retained without every tiny contact stealing the beat?
+- Is the same interpretation usable for sled-side and body-side upper contacts?
+
+If an answer is uncertain, retain that case as ambiguous and report how candidate
+decisions change across plausible interpretations. Do not invent an owner label.
+Existing judgments provide enough definite cases to continue autonomous work.
+
+### 2. Build and challenge a shared interaction observer
+
+Keep the actual contact history and time-resolved rider response together. Extend
+the existing observation path rather than creating separate physics replays for
+each diagnostic. Inputs can include contacting rider points, geometric contact
+location/direction, free flight, whole-body and sled response, and duration.
+Construction IDs and the words "main" or "guide" remain provenance, not definitions
+of an impact. A meaningful response cannot be determined solely by the first
+contact frame or by a global peak floor.
+
+Test a small number of mechanistically distinct interpretations. For example,
+compare grouping by physically continuous engagement with grouping by a distinct
+change in the rider's response, and determine where combining that evidence is
+necessary. Do not combine every prototype into an unprincipled formula. Retain
+an explicit uncertain result where the evidence does not distinguish them.
+
+Verify the known clean multi-peak landing, the two-surface Tiki interaction,
+the tiny-touch/strong-response Amour example, quiet contacts, sustained steering,
+simultaneous contacts and contact interruptions. Check boundary placement,
+threshold sensitivity, observation-coordinate transformations and independence
+from provenance labels. Segment identities alone must not produce impacts;
+physical changes caused by retessellation must be measured rather than assumed
+away. Preserve native frame conventions and gravity separation.
+
+Keep event identity, timing and strength separately inspectable. Preserve the
+old calibrated landing measure where it is meaningful, but do not blindly apply
+its normalization to body-side impacts. Test candidate strength summaries against
+known lower strikes and physically interpretable upper responses; label any
+uncalibrated scale honestly. Do not fit a universal perceived-intensity scale
+from one or two owner comparisons. Merely matching all authored beats or reducing
+the number of unmatched observations cannot select the model.
+
+Version and record a working measurement definition before using it to optimize
+the compiler, then evaluate the existing compiler under that definition. A later
+definition revision requires a new baseline and new comparisons under the same
+revision. This prevents moving the ruler during search. It is a research contract
+until the evidence and artistic review support production adoption.
+
+### 3. Establish physical control in bounded construction experiments
+
+Use saved incoming states and the existing connected/scattered builders to test
+three linked capabilities:
+
+1. A distinct lower strike whose measured strength belongs to that engagement,
+   with its timing, following guide and exit checked separately.
+2. Substantial guidance that redirects the rider smoothly enough to prepare the
+   next musical strike, preserving the requested shape and useful speed change.
+3. A separate upper receiver deliberately carrying an authored musical strike,
+   with entry, release and continuation checked. An upper hit cannot simply be
+   called a beat because it already exists near one.
+
+Test across different incoming speeds, approach angles, musical spacing and
+construction contexts. Compare alternate contact preparations and receiver
+placements from the same incoming state. Reuse causal deletion/perturbation
+probes where they clarify attribution. Every locally promising result must be
+replayed from the unchanged prefix and continued through subsequent contacts;
+a local scalar gain can otherwise conceal a broken or musically worse suffix.
+
+The upper-receiver experiment must expose the current architectural assumption
+that an interval's opening lower contact owns the musical event. If necessary,
+use a bounded pair of neighboring intervals so the receiver can fulfill the
+appropriate authored target. Keep this a shared construction/search extension,
+not a second compiler or a song-specific placement rule. Brief body-side hits,
+inverted sled contact and sustained upside-down skiing are distinct capability
+claims; do not use one as evidence for another. Sustained inverted riding is an
+optional extension after the core strike/receiver problem works.
+
+### 4. Integrate and improve the automatic compiler
+
+Integrate the promising interpretation and physical proposals through the common
+repertoire/search path, using the existing control registry, contact observer,
+receiver builder and bounded neighboring-interval refinement where appropriate.
+Factor shared observations once and give the independent whole-track checker
+the same definition, with tests against cold native replay. Avoid accumulating
+separate song/geometry penalties and duplicate evaluators.
+
+The compiler should select and realize the musical interaction deliberately.
+For an experimental policy that admits upper musical receivers, declare its
+small seeded choice rule and feasibility criteria before search. Artists should
+still supply music, a seed and broad preferences. They should not have to assign
+each rail or author extra beats. Requests must remain fixed during a matched
+comparison: budget growth or search failure cannot reroll a difficult plan into
+an easier one. A new policy's results must be distinguished from improvements to
+the realization of an unchanged plan.
+
+Direct search toward the physical response associated with the intended beat,
+while evaluating the incoming approach, guidance and following musical passage.
+Do not obtain a better impact number by borrowing a later collision. Equally,
+do not make all off-beat contact undesirable: transfers and continuous steering
+are valuable, and unresolved perceptual cases are not automatic penalties.
+Targeted improvements should come from better geometry and coordinated approach,
+contact and release, as well as appropriate candidate selection.
+
+Use small paired experiments for development, then expand the promising changes.
+Reuse verified observations and immutable prefixes. Meter every proposal, failed
+attempt, observer and reconstruction inside the shared compiler allowance;
+report independent judgment separately. Profile overhead before adding expensive
+work to every speculative branch. The previous impact campaign demonstrated
+that promising local searches can exhaust the full-track budget when invoked
+indiscriminately; carry that evidence forward.
+
+Keep normal type 0 lines, native physics, meaningful shape engagement and visual
+variety. Reject apparent progress obtained by turning every passage into open
+flight, flattening the shapes, deleting welcome receivers or producing repetitive
+easy tracks. Cleanup should accompany changed ownership and retired paths, not
+expand into an unrelated repository rewrite. A simpler coherent design can
+justify a small measured tradeoff; inspect it over enough paired runs rather
+than rejecting it over a one-point fluctuation.
+
+### 5. Freeze and evaluate the candidate
+
+Freeze source and configuration before reserved evaluation. Evaluate full tracks
+and the following passage, not just the named windows. Include missed requests,
+competing responses, uncertain associations, impact and timing error, all other
+musical axes, construction fulfillment, motion, failures and actual search work.
+Report paired results by song, construction and context, including worst changes.
+Tracks/seeds, not thousands of contacts from the same ride, are the independent
+units for claims about robustness. Retain every scheduled outcome and zero-valued
+invalid run.
+
+Keep frozen V6 intact as a historical and compatibility comparison. Run its
+complete 460-case canonical evaluation for applicable compiler changes under
+the original task, plus relevant existing motion/fulfillment checks. If a new
+interaction policy or event definition changes the task, its outputs cannot be
+called comparable V6 scores merely because the music is unchanged. Evaluate that
+candidate under the separately versioned working definition with an unchanged
+baseline and fixed requests. Report both accounts where meaningful.
+
+Do not invent a successor headline target before establishing what it measures.
+V6's 850 ambition remains useful only for that unchanged contract. If a successor
+benchmark is warranted, its definitions, inputs, aggregation and baseline must
+be frozen before headline optimization; benchmark expansion is not required to
+finish this campaign. Physical musical clarity and useful compiler capability
+must improve, not merely a score produced by a different ruler.
+
+Generate the twelve complete production tracks through the actual automatic
+entry point, then run the reserved checks without further selecting on them.
+Cold replay must confirm saved trajectories and input identity. If a candidate
+does not qualify, preserve it as an explicitly experimental review alongside its
+failures; do not silently replace the validated production default. A failed
+qualification does not erase the implemented capabilities or end the inquiry.
+
+### 6. Deliver a coherent native review
+
+Use the existing production dashboard, with current automatic and candidate
+automatic tracks clearly identified. Provide full songs plus a few links to
+consequential differences: a cleaner intended strike, preserved quiet contact,
+useful strong guidance, and a deliberate upper receiver if achieved. Playback
+uses the real rider, actual lines and verified audio. Vertical renders are not
+part of this campaign unless requested.
+
+Deliver the shared implementation, reproducible experiments, complete evaluation,
+remaining failure cases and a concise explanation of which claims are measured
+and which still need artistic judgment. Commit and push code, documentation and
+compact evidence; keep the large replay/media archive local. Record unfinished
+ambitions explicitly. Reaching the allocated time does not establish success.
+
+### Autonomy and scope boundaries
+
+After the campaign is approved, execute all stages without stopping after each
+small feature, geometry, plot or test. Routine engineering decisions, bounded
+experiments and revisions proceed independently. If the owner is unavailable,
+continue implementing, measuring and presenting provisional candidates under
+documented assumptions; absence of feedback does not settle an artistic question.
+Keep unresolved interpretations visible and defer any claim of perceptual
+validation. Do not let an unresolved example block unrelated constructive work.
+
+The five-to-seven-hour ambition is to connect understanding to improved complete
+rides. It is not a promise to solve every form of inverted riding, perfect all
+geometries, design a broad authoring taxonomy, or establish a universal aesthetic
+metric in one session. Those extensions should build on the demonstrated shared
+mechanism and the owner's review of the resulting songs.
 
 ## The outcome
 

@@ -4,6 +4,7 @@
 import {createHash} from 'node:crypto';
 import type {DriftReport} from '../types.ts';
 import type {ArcMotionOptions} from './arc_options.ts';
+import {validRide} from './ride_validity.ts';
 
 type Outcome = {
   track: unknown; rows: any[]; report: DriftReport; failure: unknown; trajectoryLoss?: number; selectionLoss?: number;
@@ -15,12 +16,9 @@ type Outcome = {
   transitionRevisionWork: unknown; constructionImprovement: unknown;
 };
 
-const complete = (r: Outcome) => r.impactEvaluation ? r.impactEvaluation.valid : r.report.terminus.reason === 'endOfSpec' &&
-  !r.report.off_beat_landings.length && r.report.contacts.every(c => c.status === 'hit');
-
 export function arcAttemptTelemetry(result: Outcome, options: ArcMotionOptions) {
   const requests = options.constructionRequests;
-  const isComplete = complete(result) && (!requests || (!result.failure && result.rows.length === Object.keys(requests).length));
+  const isComplete = validRide(result) && (!requests || (!result.failure && result.rows.length === Object.keys(requests).length));
   const record = {
     name: 'search' as const, selected: true, start: 0, constructionEnd: result.constructionFrames,
     end: result.stats.sim_frames, complete: isComplete, loss: result.trajectoryLoss,

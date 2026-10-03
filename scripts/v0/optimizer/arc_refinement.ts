@@ -6,12 +6,12 @@ import { measureGapAxes } from '../core/measure.ts';
 import { createArcEngine } from './arc_engine.ts';
 import type {MusicalImpactEvaluation} from './impact_search.ts';
 import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
+import {validRide} from './ride_validity.ts';
 import type { ArcMotionOptions, IntervalOverrides } from './arc_options.ts';
 import type { IntervalResult } from './arc_interval.ts';
 
 export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3): number {
-  if (report.terminus.reason !== 'endOfSpec' || report.off_beat_landings.length ||
-      report.contacts.some(c => c.status !== 'hit')) return Infinity;
+  if (!validRide({report})) return Infinity;
   let loss = 0, weight = 0;
   for (const axis of ['air', 'speed', 'impact', 'amplitude'] as const) {
     const values = report.gaps.flatMap(g => g.axes[axis] ? [g.axes[axis]!.error] : []);
@@ -27,7 +27,8 @@ export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3):
  * time; impacts represent events. No benchmark IDs or benchmark code are used. */
 export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3, impacts?:MusicalImpactEvaluation) {
   const regrets=Array(gaps.length+1).fill(0);
-  if(report.terminus.reason!=='endOfSpec'||(impacts?!impacts.valid:report.off_beat_landings.length||report.contacts.some(c=>c.status!=='hit')))return {loss:Infinity,regrets};
+  // The account's survival flag comes from the caller, so survival is checked here too.
+  if(report.terminus.reason!=='endOfSpec'||!validRide({report,impactEvaluation:impacts}))return {loss:Infinity,regrets};
   return arcDetectedTrajectoryObjective(detect(raw),gaps,amplitudeWeight,impacts);
 }
 

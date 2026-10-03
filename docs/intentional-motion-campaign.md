@@ -790,10 +790,12 @@ to every complete-track account. For the earlier geometry-only perturbations,
 72 of 300 non-baseline trials survive, but none fulfill all following musical
 requests; 228 eject. Survival and musical completion are distinct results.
 
-A further explanatory study over 42 existing tracks challenges whole-body response
+A further [explanatory study over 42 existing tracks](evidence/general-impact-coherence-challenge-20261002.json) challenges whole-body response
 coherence as a strength modifier. It weakens the positive clean landing more than
-the rejected head-first example, and does not improve broad calibration. Do not
-adopt it as a posture workaround. The named perceptual discrepancy remains open.
+the rejected head-first example. Mild L1 weighting slightly improves mean rank
+correlation on the four discriminating sets (0.8052 to 0.8077) but lowers the
+all-six-set average (0.7208 to 0.7183). It does not repair the decisive perceptual
+contrast; do not adopt it as a posture workaround. The discrepancy remains open.
 
 The first broad whole-track refinement ablation uses roughly 1.2 million extra
 frames per song for very little gain. Keep its evidence rather than silently

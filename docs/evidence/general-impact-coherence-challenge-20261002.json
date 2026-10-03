@@ -1,0 +1,652 @@
+{
+  "schema": "line.impact-coherence-challenge.v1",
+  "sourcePath": "generated/general-impact-20261002/coherence-study/results.json.gz",
+  "sourceSha256": "3c6d62f2bbe43da2e1e0cfe585a58dab092be87000ebcc7f431114d8a5b9b912",
+  "plan": {
+    "schema": "line.impact-coherence-study.v1",
+    "sourceSha256": "17beec16876d740d8e857e7a2a1d758a9a7e482ac2911b5674004047eb10a143",
+    "harnessSha256": "e3f48508b3b0aad737dbfc1406dbfc910b186f9589e8cb759ecf0d313a4f67c8",
+    "definitions": [
+      {
+        "id": "working",
+        "power": 0
+      },
+      {
+        "id": "l1-0.5",
+        "norm": "l1",
+        "power": 0.5
+      },
+      {
+        "id": "l1-1",
+        "norm": "l1",
+        "power": 1
+      },
+      {
+        "id": "l1-2",
+        "norm": "l1",
+        "power": 2
+      },
+      {
+        "id": "rms-0.5",
+        "norm": "rms",
+        "power": 0.5
+      },
+      {
+        "id": "rms-1",
+        "norm": "rms",
+        "power": 1
+      },
+      {
+        "id": "rms-2",
+        "norm": "rms",
+        "power": 2
+      }
+    ],
+    "hypothesis": "A response shared by the body points may communicate a clearer strike than predominantly internal/rotational deformation. Test mean-vector over mean-length or RMS-length of per-point solver velocity changes. Do not gate on rider orientation or contact role.",
+    "decision": "Inspect the rejected head-first passage against both positive lower landing and preferred inverted passage, and all 90 historical labels. A favorable named example alone cannot select the formula."
+  },
+  "completeTracks": 42,
+  "historical": [
+    {
+      "set": "impact_lab_v2",
+      "labels": 22,
+      "variants": [
+        {
+          "id": "working",
+          "matched": 22,
+          "rankCorrelation": 0.7763238719614567
+        },
+        {
+          "id": "l1-0.5",
+          "matched": 22,
+          "rankCorrelation": 0.7803137890713907
+        },
+        {
+          "id": "l1-1",
+          "matched": 22,
+          "rankCorrelation": 0.7831637298642008
+        },
+        {
+          "id": "l1-2",
+          "matched": 22,
+          "rankCorrelation": 0.7261649140079999
+        },
+        {
+          "id": "rms-0.5",
+          "matched": 22,
+          "rankCorrelation": 0.7768938601200187
+        },
+        {
+          "id": "rms-1",
+          "matched": 22,
+          "rankCorrelation": 0.7409846061306121
+        },
+        {
+          "id": "rms-2",
+          "matched": 22,
+          "rankCorrelation": 0.6845557784329732
+        }
+      ]
+    },
+    {
+      "set": "climb_terrace",
+      "labels": 15,
+      "variants": [
+        {
+          "id": "working",
+          "matched": 15,
+          "rankCorrelation": 0.9486832980505139
+        },
+        {
+          "id": "l1-0.5",
+          "matched": 15,
+          "rankCorrelation": 0.9449186817884087
+        },
+        {
+          "id": "l1-1",
+          "matched": 15,
+          "rankCorrelation": 0.8997432866431461
+        },
+        {
+          "id": "l1-2",
+          "matched": 15,
+          "rankCorrelation": 0.8733909728084096
+        },
+        {
+          "id": "rms-0.5",
+          "matched": 15,
+          "rankCorrelation": 0.9298602167399878
+        },
+        {
+          "id": "rms-1",
+          "matched": 15,
+          "rankCorrelation": 0.8997432866431461
+        },
+        {
+          "id": "rms-2",
+          "matched": 15,
+          "rankCorrelation": 0.8112748044836735
+        }
+      ]
+    },
+    {
+      "set": "rolling_drop",
+      "labels": 16,
+      "variants": [
+        {
+          "id": "working",
+          "matched": 16,
+          "rankCorrelation": 0.60052195452807
+        },
+        {
+          "id": "l1-0.5",
+          "matched": 16,
+          "rankCorrelation": 0.5945466116969449
+        },
+        {
+          "id": "l1-1",
+          "matched": 16,
+          "rankCorrelation": 0.6094849687747577
+        },
+        {
+          "id": "l1-2",
+          "matched": 16,
+          "rankCorrelation": 0.5825959260346948
+        },
+        {
+          "id": "rms-0.5",
+          "matched": 16,
+          "rankCorrelation": 0.578114418911351
+        },
+        {
+          "id": "rms-1",
+          "matched": 16,
+          "rankCorrelation": 0.6199418187292265
+        },
+        {
+          "id": "rms-2",
+          "matched": 16,
+          "rankCorrelation": 0.6094849687747577
+        }
+      ]
+    },
+    {
+      "set": "staircase",
+      "labels": 14,
+      "variants": [
+        {
+          "id": "working",
+          "matched": 14,
+          "rankCorrelation": 0.8952725315226376
+        },
+        {
+          "id": "l1-0.5",
+          "matched": 14,
+          "rankCorrelation": 0.911098056069755
+        },
+        {
+          "id": "l1-1",
+          "matched": 14,
+          "rankCorrelation": 0.8523175363233192
+        },
+        {
+          "id": "l1-2",
+          "matched": 14,
+          "rankCorrelation": 0.7709291243667158
+        },
+        {
+          "id": "rms-0.5",
+          "matched": 14,
+          "rankCorrelation": 0.911098056069755
+        },
+        {
+          "id": "rms-1",
+          "matched": 14,
+          "rankCorrelation": 0.863621482428403
+        },
+        {
+          "id": "rms-2",
+          "matched": 14,
+          "rankCorrelation": 0.8003193842399337
+        }
+      ]
+    },
+    {
+      "set": "shelter_impact_2m",
+      "labels": 6,
+      "variants": [
+        {
+          "id": "working",
+          "matched": 6,
+          "rankCorrelation": 0.802377419802878
+        },
+        {
+          "id": "l1-0.5",
+          "matched": 6,
+          "rankCorrelation": 0.802377419802878
+        },
+        {
+          "id": "l1-1",
+          "matched": 6,
+          "rankCorrelation": 0.802377419802878
+        },
+        {
+          "id": "l1-2",
+          "matched": 6,
+          "rankCorrelation": 0.802377419802878
+        },
+        {
+          "id": "rms-0.5",
+          "matched": 6,
+          "rankCorrelation": 0.802377419802878
+        },
+        {
+          "id": "rms-1",
+          "matched": 6,
+          "rankCorrelation": 0.802377419802878
+        },
+        {
+          "id": "rms-2",
+          "matched": 6,
+          "rankCorrelation": 0.802377419802878
+        }
+      ]
+    },
+    {
+      "set": "believer_impact_2m",
+      "labels": 17,
+      "variants": [
+        {
+          "id": "working",
+          "matched": 17,
+          "rankCorrelation": 0.3015113445777636
+        },
+        {
+          "id": "l1-0.5",
+          "matched": 17,
+          "rankCorrelation": 0.2763853991962833
+        },
+        {
+          "id": "l1-1",
+          "matched": 17,
+          "rankCorrelation": 0.3015113445777636
+        },
+        {
+          "id": "l1-2",
+          "matched": 17,
+          "rankCorrelation": 0.3015113445777636
+        },
+        {
+          "id": "rms-0.5",
+          "matched": 17,
+          "rankCorrelation": 0.251259453814803
+        },
+        {
+          "id": "rms-1",
+          "matched": 17,
+          "rankCorrelation": 0.2010075630518424
+        },
+        {
+          "id": "rms-2",
+          "matched": 17,
+          "rankCorrelation": 0.1507556722888818
+        }
+      ]
+    }
+  ],
+  "namedExamples": [
+    {
+      "id": "current-tiki_tiki_48s-303",
+      "frame": 557,
+      "label": "approved clean lower landing",
+      "variants": [
+        {
+          "id": "working",
+          "event": {
+            "contactStart": 557,
+            "onset": 557,
+            "end": 562,
+            "peakFrame": 561,
+            "raw": 4.909760568708915,
+            "strength": 0.6502994130740285,
+            "responsePeak": 1.4243695080854442,
+            "complete": true,
+            "coherence": 1
+          }
+        },
+        {
+          "id": "l1-0.5",
+          "event": {
+            "contactStart": 557,
+            "onset": 557,
+            "end": 562,
+            "peakFrame": 561,
+            "raw": 4.349138604704329,
+            "strength": 0.5760448483052092,
+            "responsePeak": 1.4243695080854442,
+            "complete": true,
+            "coherence": 0.8858148058018217
+          }
+        },
+        {
+          "id": "l1-1",
+          "event": {
+            "contactStart": 557,
+            "onset": 557,
+            "end": 562,
+            "peakFrame": 561,
+            "raw": 3.8700026893435204,
+            "strength": 0.5125831376613934,
+            "responsePeak": 1.4243695080854442,
+            "complete": true,
+            "coherence": 0.788226357514861
+          }
+        },
+        {
+          "id": "l1-2",
+          "event": {
+            "contactStart": 557,
+            "onset": 557,
+            "end": 562,
+            "peakFrame": 561,
+            "raw": 3.105258295998998,
+            "strength": 0.4112924895362911,
+            "responsePeak": 1.4243695080854442,
+            "complete": true,
+            "coherence": 0.6324663397619745
+          }
+        },
+        {
+          "id": "rms-0.5",
+          "event": {
+            "contactStart": 557,
+            "onset": 557,
+            "end": 562,
+            "peakFrame": 561,
+            "raw": 4.0075559793078135,
+            "strength": 0.5308021164646111,
+            "responsePeak": 1.4243695080854442,
+            "complete": true,
+            "coherence": 0.8162426503746296
+          }
+        },
+        {
+          "id": "rms-1",
+          "event": {
+            "contactStart": 557,
+            "onset": 557,
+            "end": 562,
+            "peakFrame": 561,
+            "raw": 3.277677551470289,
+            "strength": 0.43412947701593235,
+            "responsePeak": 1.4243695080854442,
+            "complete": true,
+            "coherence": 0.6675839902173064
+          }
+        },
+        {
+          "id": "rms-2",
+          "event": {
+            "contactStart": 557,
+            "onset": 557,
+            "end": 562,
+            "peakFrame": 561,
+            "raw": 2.205566370599906,
+            "strength": 0.2921279961059478,
+            "responsePeak": 1.4243695080854442,
+            "complete": true,
+            "coherence": 0.449220759288449
+          }
+        }
+      ]
+    },
+    {
+      "id": "current-amor_na_praia_46s-202",
+      "frame": 366,
+      "label": "rejected head-first response",
+      "variants": [
+        {
+          "id": "working",
+          "event": {
+            "contactStart": 365,
+            "onset": 366,
+            "end": 371,
+            "peakFrame": 366,
+            "raw": 5.015487586608824,
+            "strength": 0.6643029916038178,
+            "responsePeak": 1.316529053776796,
+            "complete": true,
+            "coherence": 1
+          }
+        },
+        {
+          "id": "l1-0.5",
+          "event": {
+            "contactStart": 365,
+            "onset": 366,
+            "end": 371,
+            "peakFrame": 366,
+            "raw": 4.882487414353296,
+            "strength": 0.646687074748781,
+            "responsePeak": 1.316529053776796,
+            "complete": true,
+            "coherence": 0.9734821051874131
+          }
+        },
+        {
+          "id": "l1-1",
+          "event": {
+            "contactStart": 365,
+            "onset": 366,
+            "end": 371,
+            "peakFrame": 366,
+            "raw": 4.75630527276009,
+            "strength": 0.6299742083125948,
+            "responsePeak": 1.316529053776796,
+            "complete": true,
+            "coherence": 0.9483236057565486
+          }
+        },
+        {
+          "id": "l1-2",
+          "event": {
+            "contactStart": 365,
+            "onset": 366,
+            "end": 371,
+            "peakFrame": 366,
+            "raw": 4.522502223852617,
+            "strength": 0.5990069170665717,
+            "responsePeak": 1.316529053776796,
+            "complete": true,
+            "coherence": 0.9017073905092575
+          }
+        },
+        {
+          "id": "rms-0.5",
+          "event": {
+            "contactStart": 365,
+            "onset": 366,
+            "end": 371,
+            "peakFrame": 366,
+            "raw": 4.7504488328448256,
+            "strength": 0.6291985209065994,
+            "responsePeak": 1.316529053776796,
+            "complete": true,
+            "coherence": 0.9471559346549591
+          }
+        },
+        {
+          "id": "rms-1",
+          "event": {
+            "contactStart": 365,
+            "onset": 366,
+            "end": 371,
+            "peakFrame": 366,
+            "raw": 4.509234426819351,
+            "strength": 0.5972495929562054,
+            "responsePeak": 1.316529053776796,
+            "complete": true,
+            "coherence": 0.8990620251675727
+          }
+        },
+        {
+          "id": "rms-2",
+          "event": {
+            "contactStart": 365,
+            "onset": 366,
+            "end": 371,
+            "peakFrame": 366,
+            "raw": 4.087865553179486,
+            "strength": 0.5414391461164882,
+            "responsePeak": 1.316529053776796,
+            "complete": true,
+            "coherence": 0.8150484838391273
+          }
+        }
+      ]
+    },
+    {
+      "id": "current-luna_bala_44s-303",
+      "frame": 1130,
+      "label": "preferred inverted response",
+      "variants": [
+        {
+          "id": "working",
+          "event": {
+            "contactStart": 1130,
+            "onset": 1130,
+            "end": 1135,
+            "peakFrame": 1135,
+            "raw": 8.044617849516362,
+            "strength": 1,
+            "responsePeak": 2.192547575368368,
+            "complete": true,
+            "coherence": 1
+          }
+        },
+        {
+          "id": "l1-0.5",
+          "event": {
+            "contactStart": 1130,
+            "onset": 1130,
+            "end": 1135,
+            "peakFrame": 1135,
+            "raw": 7.633087267714044,
+            "strength": 1,
+            "responsePeak": 2.192547575368368,
+            "complete": true,
+            "coherence": 0.9488439861904617
+          }
+        },
+        {
+          "id": "l1-1",
+          "event": {
+            "contactStart": 1130,
+            "onset": 1130,
+            "end": 1135,
+            "peakFrame": 1135,
+            "raw": 7.248727256190294,
+            "strength": 0.9600963253232178,
+            "responsePeak": 2.192547575368368,
+            "complete": true,
+            "coherence": 0.9010654566551081
+          }
+        },
+        {
+          "id": "l1-2",
+          "event": {
+            "contactStart": 1130,
+            "onset": 1130,
+            "end": 1135,
+            "peakFrame": 1135,
+            "raw": 6.553809215827125,
+            "strength": 0.8680542007718047,
+            "responsePeak": 2.192547575368368,
+            "complete": true,
+            "coherence": 0.814682479444457
+          }
+        },
+        {
+          "id": "rms-0.5",
+          "event": {
+            "contactStart": 1130,
+            "onset": 1130,
+            "end": 1135,
+            "peakFrame": 1135,
+            "raw": 7.429563451985999,
+            "strength": 0.9840481393358939,
+            "responsePeak": 2.192547575368368,
+            "complete": true,
+            "coherence": 0.9235446096961163
+          }
+        },
+        {
+          "id": "rms-1",
+          "event": {
+            "contactStart": 1130,
+            "onset": 1130,
+            "end": 1135,
+            "peakFrame": 1135,
+            "raw": 6.877866791729421,
+            "strength": 0.9109757340038968,
+            "responsePeak": 2.192547575368368,
+            "complete": true,
+            "coherence": 0.8549650114384134
+          }
+        },
+        {
+          "id": "rms-2",
+          "event": {
+            "contactStart": 1130,
+            "onset": 1130,
+            "end": 1135,
+            "peakFrame": 1135,
+            "raw": 5.9349941558892105,
+            "strength": 0.7860919411773789,
+            "responsePeak": 2.192547575368368,
+            "complete": true,
+            "coherence": 0.7377596135590231
+          }
+        }
+      ]
+    }
+  ],
+  "decision": "Do not adopt. The response-coherence modifiers reduce the approved clean lower landing more than the rejected head-first case. Mild L1 weighting slightly improves mean rank correlation on the four discriminating sets (0.8052 to 0.8077), remains below the historical landing measure (0.8282), and lowers the all-six-set average (0.7208 to 0.7183). This small mixed calibration change does not repair the decisive perceptual contrast. No upright-only rule is justified.",
+  "meanRankCorrelations": [
+    {
+      "id": "working",
+      "fourDiscriminatingSets": 0.8052004140156696,
+      "allSixSets": 0.7207817367405533
+    },
+    {
+      "id": "l1-0.5",
+      "fourDiscriminatingSets": 0.8077192846566248,
+      "allSixSets": 0.7182733262709434
+    },
+    {
+      "id": "l1-1",
+      "fourDiscriminatingSets": 0.7861773804013559,
+      "allSixSets": 0.7080997143310109
+    },
+    {
+      "id": "l1-2",
+      "fourDiscriminatingSets": 0.738270234304455,
+      "allSixSets": 0.676161616933077
+    },
+    {
+      "id": "rms-0.5",
+      "fourDiscriminatingSets": 0.7989916379602782,
+      "allSixSets": 0.7082672375764656
+    },
+    {
+      "id": "rms-1",
+      "fourDiscriminatingSets": 0.7810727984828469,
+      "allSixSets": 0.6879460294643513
+    },
+    {
+      "id": "rms-2",
+      "fourDiscriminatingSets": 0.7264087339828345,
+      "allSixSets": 0.6431280046705163
+    }
+  ]
+}

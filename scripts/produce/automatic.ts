@@ -1,5 +1,6 @@
 /** Automatic production enters through compileHandoff.
  * npm run produce:automatic -- --song=luna_bala_44s --seed=101 --out=DIR
+ * --budget defaults to the length-scaled production allowance.
  * A gallery job instead supplies --request=FILE. No manual windows or seed selection. */
 import assert from 'node:assert/strict';
 import {existsSync,mkdirSync,readFileSync} from 'node:fs';
@@ -20,11 +21,11 @@ if(requestedContract!=='landing'&&!IMPACT_ACCOUNT_IDS.includes(requestedContract
 const impactContract=requestedContract==='landing'?undefined:requestedContract as ImpactAccountId;
 if(!arg('out'))throw new Error('--out required; outputs are preserved rather than overwritten');
 const request=validateAutomaticProductionRequest(arg('request')?JSON.parse(readFileSync(resolve(arg('request')!),'utf8')):
- {mode:'production',song:arg('song','luna_bala_44s'),seed:Number(arg('seed','101')),budget:Number(arg('budget','3000000')),
- referenceBudget:Number(arg('reference-budget','0')),creative:arg('creative')?JSON.parse(arg('creative')!):{}});
+ {mode:'production',song:arg('song','luna_bala_44s'),seed:Number(arg('seed','101')),...(arg('budget')?{budget:Number(arg('budget'))}:{}),
+ creative:arg('creative')?JSON.parse(arg('creative')!):{}});
 const out=resolve(arg('out')!);mkdirSync(out,{recursive:true});
 if(existsSync(join(out,'manifest.json')))throw new Error('completed output already exists; choose a fresh directory');
-const {song,seed,budget,referenceBudget,creative}=request,title=repertoireSongs.find(s=>s.id===song)!.title;
+const {song,seed,budget,creative}=request,title=repertoireSongs.find(s=>s.id===song)!.title;
 const compilerRoot=resolve(arg('compiler-root','.')!);
 const compiler=galleryCompilerIdentity(compilerRoot),judge=judgeIdentity(),jolt=resolveJoltMs();
 const enginePath='engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
@@ -40,7 +41,6 @@ const methodDetails={production:{title:'Automatic arrangement',description:'The 
 const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,jolt,impactContract,
  cases:[c],seeds:[seed],budgets:[budget],methods:['production'],methodDetails,request};
 const planSha256=writeGalleryJson(out,'plan.json',plan);
-if(referenceBudget)throw new Error('the ordinary reference compiler is retired; omit --reference-budget');
 const began=performance.now(),checkpoint=compileHandoff(spec,seed,{budget,creative,impactContract,phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
 const repertoire=checkpoint.repertoire!;
 const {result,...production}=repertoire;

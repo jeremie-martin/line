@@ -150,7 +150,9 @@ harness.
 
 Only on validated measures:
 
-- a scale-free, incumbent-preserving budget schedule;
+- a scale-free, incumbent-preserving budget schedule (default allowance now
+  scales with ride length; the width schedule is still saturating caps; see
+  docs/research/compiler-budget-20261004.md);
 - lookahead value per frame;
 - learned models retrained on disjoint data, or removed;
 - extensibility proven by adding a geometry family through the registry.
@@ -227,4 +229,13 @@ Only on validated measures:
     `register.ts`, `budget_telemetry.ts`, `budget_estimator.ts` (with its model)
     and `budget_model.ts`, about 7,100 lines.
   - Typecheck errors: 0.
-
+- 2026-10-04: **Budget study** (docs/research/compiler-budget-20261004.md).
+  - Every search width saturates by about 0.52M on 45 s songs, and the
+    saturated search costs 1,200–1,550 frames per ride frame.
+  - Ablations: A1 (no value model) and A2 (no construction policies) are both
+    slightly worse, so both are kept.
+  - Rejected: R1 (refine every section), K1 (recalibrated allowance) and P1
+    (fair-share pacing of local search).
+  - Adopted, S1: the default allowance is 1,700 frames per ride frame
+    (`production_budget.ts`), so long songs are not starved. It is neutral on
+    the panel; requests may omit `budget`.

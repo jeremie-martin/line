@@ -12,6 +12,7 @@ Links to documents that are no longer in the tree resolve at tag
 | [production-repertoire-feedback-20261001.md](production-repertoire-feedback-20261001.md) | the owner's feedback on automatic arrangements |
 | [intentional-motion-roadmap.md](intentional-motion-roadmap.md) | the last roadmap before the rework, including the owner's impact-definition requirements |
 | [strike-definition-20261004.md](strike-definition-20261004.md) | **the strike account (line.strike.v1)**: definition, rationale, evidence and limits |
+| [compiler-budget-20261004.md](compiler-budget-20261004.md) | how the compile budget is spent; ablations A1/A2; rejected R1/K1/P1; the length-scaled default allowance |
 | [general-impact-results-20261003.md](general-impact-results-20261003.md) | `line.contact-impact.v1` delivery: results, tradeoffs, limitations |
 
 The October 3 independent audit corrects several claims in these documents:

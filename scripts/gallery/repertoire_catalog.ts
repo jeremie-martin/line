@@ -1,5 +1,6 @@
 /** Concrete starting arrangements. They are editable examples, not musical rules. */
 import {creativePreferences,type CreativePreferences} from '../v0/optimizer/repertoire_policy.ts';
+import {productionBudget} from '../v0/optimizer/production_budget.ts';
 import {compositionCatalog,validateRepertoirePlan,type RepertoirePlan} from '../v0/optimizer/repertoire_plan.ts';
 export const repertoireSongs=[
  {id:'luna_bala_44s',title:'Luna Bala',duration:44},
@@ -35,18 +36,19 @@ export function validateRepertoireRequest(input:any):RepertoireRequest{
 export const repertoireCatalog={songs:repertoireSongs,recipes:compositionCatalog,presets:repertoirePresets};
 
 /** Automatic production uses broad preferences, never manually placed passages. */
-export type AutomaticProductionRequest={mode:'production';song:string;seed:number;budget:number;referenceBudget:number;creative:CreativePreferences};
+/** `budget` is optional on input and defaults to the length-scaled production allowance. */
+export type AutomaticProductionRequest={mode:'production';song:string;seed:number;budget:number;creative:CreativePreferences};
 export type GalleryRequest=RepertoireRequest|AutomaticProductionRequest;
 export function validateAutomaticProductionRequest(input:any):AutomaticProductionRequest{
  if(!input||input.mode!=='production'||Object.keys(input).some(k=>!['mode','song','seed','budget','referenceBudget','creative'].includes(k)))throw new Error('invalid automatic production request');
  if(!repertoireSongs.some(s=>s.id===input.song))throw new Error('unsupported production song');
  if(!Number.isSafeInteger(input.seed)||input.seed<0||input.seed>2147483647)throw new Error('seed must be a non-negative 31-bit integer');
  const song=repertoireSongs.find(s=>s.id===input.song)!;
- if(!Number.isSafeInteger(input.budget)||input.budget<12*(Math.round(song.duration*40)+21)||input.budget>5000000)throw new Error('production allowance must cover search and replay, up to 5,000,000 frames');
- // Historical comparison studies can opt in; ordinary production makes one ride.
- const referenceBudget=input.referenceBudget??0;
- if(!Number.isSafeInteger(referenceBudget)||(referenceBudget!==0&&referenceBudget<20000)||referenceBudget>5000000)throw new Error('invalid ordinary reference allowance');
- return {mode:'production',song:input.song,seed:input.seed,budget:input.budget,referenceBudget,creative:creativePreferences(input.creative)};
+ const budget=input.budget??productionBudget(song.duration);
+ if(!Number.isSafeInteger(budget)||budget<12*(Math.round(song.duration*40)+21)||budget>4*productionBudget(song.duration))throw new Error('production allowance must cover search and replay, up to four times the standard allowance');
+ // Requests saved before the ordinary reference compiler was retired carry a zero reference allowance.
+ if((input.referenceBudget??0)!==0)throw new Error('the ordinary reference compiler is retired');
+ return {mode:'production',song:input.song,seed:input.seed,budget,creative:creativePreferences(input.creative)};
 }
 export const isAutomatic=(r:GalleryRequest):r is AutomaticProductionRequest=>'mode' in r&&r.mode==='production';
 export const requestSong=(r:GalleryRequest)=>isAutomatic(r)?r.song:r.composition.song;

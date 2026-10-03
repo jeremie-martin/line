@@ -100,7 +100,7 @@ Known limits of the strike account:
 
 - **V6** (`benchmark/v6`, `npm run sentinel`) is a frozen regression sentinel.
   - It has 460 canonical runs: a fixed-construction panel and an automatic
-    panel, with a 3M-frame budget.
+    panel, with a fixed 3M-frame budget.
   - It is frozen by outputs: `npm run parity:judge -- --all` must reproduce
     every stored score.
   - **It is not a target.** It is inversely related to measured hit clarity,
@@ -131,7 +131,10 @@ Known limits of the strike account:
     responses; `arc_geometry.ts`: contours, wave and faceted arcs, used by the
     gallery catalog).
 - **Budget rules are saturating caps tuned to V4.**
-  - The caps are in `connected_arcs.ts` and `repertoire_search.ts`.
+  - The caps are in `connected_arcs.ts` and `repertoire_search.ts`. Every
+    width saturates by about 0.52M frames on 45 s songs, and the default
+    allowance (`production_budget.ts`, 1,700 frames per ride frame) runs them
+    saturated.
   - Lookahead uses about 74% of the physics frames.
   - Results are not monotone in budget.
 - **Duplication.**

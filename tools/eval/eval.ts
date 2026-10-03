@@ -17,7 +17,8 @@ import {makeRng} from '../../scripts/lib/rng.ts';
 import {compilerIdentity} from '../../scripts/lib/compiler_identity.ts';
 
 const SONGS = ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'amour_de_ma_vie_44s'];
-const DEFAULT_BUDGET = 3_000_000;
+// 'standard' is the length-scaled production allowance; a number fixes it for every song.
+const DEFAULT_BUDGET = 'standard';
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 type Case = {id: string; song: string; seed: number; perturbation: number | null};
 export const PANEL: Case[] = [
@@ -36,11 +37,12 @@ function perturb(spec: any, p: number) {
   return {...spec, contacts};
 }
 
-async function worker(caseId: string, mode: string, out: string, budget: number) {
+async function worker(caseId: string, mode: string, out: string, requested: string) {
   const c = PANEL.find(x => x.id === caseId)!;
   const {loadMusicCase} = await import('../../scripts/produce/music_artifacts.ts');
   const {resolveJoltMs} = await import('../../scripts/produce/jolt.ts');
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
+  const {productionBudget} = await import('../../scripts/v0/optimizer/production_budget.ts');
   const {replayGalleryTrack} = await import('../../scripts/gallery/artifacts.ts');
   const {observe} = await import('../measure/observe.ts');
   const {beatRows} = await import('../measure/measures.ts');
@@ -48,6 +50,7 @@ async function worker(caseId: string, mode: string, out: string, budget: number)
   const loaded = await loadMusicCase({song: c.song, title: c.song, moments: []}, resolveJoltMs());
   const spec = c.perturbation ? perturb(loaded.spec, c.perturbation) : loaded.spec;
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};
+  const budget = requested === 'standard' ? productionBudget(spec.duration) : Number(requested);
   const began = performance.now();
   const contract = mode === 'landing' ? undefined : 'line.strike.v1';
   const cp = compileHandoff(spec, c.seed, {budget, creative: {}, ...(contract ? {impactContract: contract as any} : {}),
@@ -100,9 +103,10 @@ function bootstrap(perSong: Map<string, number>, draws = 4000) {
 }
 
 const command = process.argv[2];
-if (command === 'worker') await worker(arg('case')!, arg('mode', 'strike')!, arg('out')!, Number(arg('budget', String(DEFAULT_BUDGET))));
+if (command === 'worker') await worker(arg('case')!, arg('mode', 'strike')!, arg('out')!, arg('budget', DEFAULT_BUDGET)!);
 else if (command === 'run') {
-  const budget = Number(arg('budget', String(DEFAULT_BUDGET))), name = arg('name')!, mode = arg('mode', 'strike')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
+  const budget = arg('budget', DEFAULT_BUDGET)!, name = arg('name')!, mode = arg('mode', 'strike')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
+  if (budget !== 'standard' && !(Number(budget) > 0)) throw new Error('--budget is standard or a frame count');
   mkdirSync(join(dir, 'cells'), {recursive: true});
   const identity = compilerIdentity('.');
   if (existsSync(join(dir, 'run.json'))) {

@@ -2,11 +2,11 @@
 import { FPS, type Spec } from "../v0/types.ts";
 import { K_BOUNCE_LANDING } from "../lib/detector.ts";
 
-// Felt-jolt beat alignment (production default, matches run.ts): the slam the
-// viewer feels trails first contact by ~2-3 frames, so shifting every contact
-// earlier puts the slam — not the touch — on the beat. LR_JOLT_OFFSET_MS
-// overrides; 0 disables. This is an authoring-layer transform; the golden suite
-// stays offset-free by calling compileHandoff directly.
+// Felt-jolt alignment between the audio beat and the compiled contacts:
+// contact time = authored time − ms/1000, so a positive offset makes contacts
+// earlier and a negative one later. The default −15 ms (contacts 15 ms after the
+// beat) is the owner's choice by ear from an A/B of 0 / −15 / −25 ms on Tiki
+// (June 15). LR_JOLT_OFFSET_MS overrides; 0 disables. Authoring-layer only.
 export const JOLT_DEFAULT_MS = -15;
 
 export function resolveJoltMs(): number {

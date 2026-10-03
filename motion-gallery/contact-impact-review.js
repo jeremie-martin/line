@@ -7,7 +7,7 @@ export function createContactImpactReview({seek}){
  const description=node('p'),chart=node('div'),summary=node('p'),label=node('label'),small=node('input');
  chart.className='contact-impact-chart';small.type='checkbox';label.append(small,document.createTextNode(' Include very small extra responses'));
  const table=node('table'),head=node('thead'),heading=node('tr');
- for(const title of ['Interaction','Target time','Observed time','Offset','Wanted strength','Measured strength'])heading.append(node('th',title));
+ for(const title of ['Interaction','Target time','Observed time','Offset','Peak','Wanted strength','Measured strength'])heading.append(node('th',title));
  head.append(heading);const body=node('tbody');table.append(head,body);const wrap=node('div');wrap.className='table-wrap';wrap.append(table);
  host.append(description,summary,chart,label,wrap);document.getElementById('motion-detail').before(host);
  let record,cursor,extent=1;
@@ -18,12 +18,13 @@ export function createContactImpactReview({seek}){
   for(const [i,target]of targets.entries()){
    const match=account.matches.find(m=>m.target===i),event=match?events[match.event]:undefined;
    rows.push({time:target.frame/40,label:`Beat ${i+1}`,target:target.frame/40,actual:event?.onset/40,
-    offset:match?match.offset*25:undefined,wanted:target.impact,strength:event?.strength});
+    offset:match?match.offset*25:undefined,peak:event?.peakFrame!==undefined?(event.peakFrame-target.frame)*25:undefined,wanted:target.impact,strength:event?.strength});
   }
-  for(const i of account.unmatchedEvents){const e=events[i];if(small.checked||e.strength>=.05)rows.push({time:e.onset/40,label:'Extra response',actual:e.onset/40,strength:e.strength});}
+  for(const i of account.unmatchedEvents){const e=events[i];if(small.checked||e.strength>=.05)rows.push({time:e.onset/40,label:e.kind==='strike'?'Extra strike':'Extra response',actual:e.onset/40,strength:e.strength});}
   body.replaceChildren(...rows.sort((a,b)=>a.time-b.time).map(r=>{
    const tr=node('tr'),link=node('button',r.label);link.onclick=()=>seek(Math.max(0,r.time-.2));const cell=node('td');cell.append(link);tr.append(cell);
-   for(const value of [fmt(r.target),fmt(r.actual),Number.isFinite(r.offset)?`${r.offset>0?'+':''}${r.offset} ms`:'—',fmt(r.wanted),fmt(r.strength)])tr.append(node('td',value));
+   const ms=v=>Number.isFinite(v)?`${v>0?'+':''}${v} ms`:'—';
+   for(const value of [fmt(r.target),fmt(r.actual),ms(r.offset),ms(r.peak),fmt(r.wanted),fmt(r.strength)])tr.append(node('td',value));
    return tr;
   }));
  };
@@ -33,7 +34,7 @@ export function createContactImpactReview({seek}){
   bind(r){
    if(!r.impactEvaluation)return;
    record=r;extent=r.case.durationFrames/40;const {events,targets,account}=r.impactEvaluation;
-   host.hidden=false;description.textContent='Experimental measurement. Gray marks show requested beats; blue marks show matched responses; orange marks show extra responses. All event strengths contribute to the account, including small responses hidden from the table. Click the chart or a row to inspect the actual ride.';
+   host.hidden=false;description.textContent=`${r.impactEvaluation.contract}. Gray marks show requested beats;`+' '+' blue marks show matched responses; orange marks show extra responses. All event strengths contribute to the account, including small responses hidden from the table. Click the chart or a row to inspect the actual ride.';
    const onsetRms=25*Math.sqrt(account.matches.reduce((n,m)=>n+m.offset*m.offset,0)/Math.max(1,account.matches.length));
    summary.textContent=`${account.matches.length}/${targets.length} beats matched · strength RMS ${fmt(Math.sqrt(account.strengthMse))} · onset RMS ${fmt(onsetRms,1)} ms · extra-response RMS ${fmt(Math.sqrt(account.extraMse))}. These are separate observations, not an aesthetic rating.`;
    const svg=svgNode('svg',{viewBox:'0 0 1000 170',role:'img','aria-label':'Requested beats and measured impact strengths through the complete song'});

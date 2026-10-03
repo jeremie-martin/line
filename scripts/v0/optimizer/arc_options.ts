@@ -5,7 +5,7 @@
  * - connectedArcOptions(): the base allocation, scaled by ride length and budget;
  * - repertoireSearchOptions(): repertoire plans (some fields only for
  *   intentional plans);
- * - CONTACT_IMPACT_SEARCH_PROFILE: only with the contact-impact contract;
+ * - impactSearchProfile(contract): only with an impact account;
  * - constructionStyle(): the geometry style of each section.
  *
  * IntervalOverrides are set only inside the compiler, per interval search
@@ -145,7 +145,7 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
 
-  // --- CONTACT_IMPACT_SEARCH_PROFILE (contact-impact contract only) --------------
+  // --- impactSearchProfile(contract) (with an impact account only) --------------
   /** Impact account the compiler optimizes; absent means the frozen landing ruler. */
   impactContract?: ImpactAccountId;
   impactSearch?: ImpactSearchOptions;

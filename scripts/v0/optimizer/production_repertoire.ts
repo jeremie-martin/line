@@ -10,7 +10,7 @@ import {motionSamples,summarizeMotion} from './motion_quality.ts';
 import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit,getPhysicsFrameCount} from '../../lib/detector.ts';
 import type {Spec} from '../types.ts';
 import {impactAccount,type ImpactAccountId} from './impact_accounts.ts';
-import {CONTACT_IMPACT_SEARCH_PROFILE} from './contact_impact_profile.ts';
+import {impactSearchProfile} from './contact_impact_profile.ts';
 import {validRide} from './ride_validity.ts';
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../../lib/_lr_engine_wasm.ts?production-repertoire-audit',import.meta.url).href);
@@ -23,7 +23,7 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   const allowance=budget-replay,searchOptions=repertoireSearchOptions(spec,plan,allowance);
   if(options.impactContract!==undefined){
     impactAccount(options.impactContract);
-    const {id:_id,...profile}=CONTACT_IMPACT_SEARCH_PROFILE;
+    const {id:_id,...profile}=impactSearchProfile(options.impactContract);
     Object.assign(searchOptions,profile,{impactContract:options.impactContract});
   }
   const styles=searchOptions.sectionStyles!;
@@ -57,5 +57,5 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   if(physicalFrames>budget)throw new Error('production repertoire exceeded its whole-compile allowance');
   return {result:{...result,budget,stats:{...result.stats,sim_frames:physicalFrames}},plan,styles,fragmentSections,railGuides,realization,motion,
     valid:validRide(result),qualified:validRide(result)&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals,
-    ...(options.impactContract?{impactSearchProfile:CONTACT_IMPACT_SEARCH_PROFILE}:{})};
+    ...(options.impactContract?{impactSearchProfile:impactSearchProfile(options.impactContract)}:{})};
 }

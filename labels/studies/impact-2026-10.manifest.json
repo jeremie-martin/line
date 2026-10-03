@@ -1,0 +1,1251 @@
+{
+ "schema": "line.label-study.v1",
+ "id": "impact-2026-10",
+ "created": "2026-10-03T19:54:46.652Z",
+ "instructions": "Each clip loops 1.5 s around one musical beat, with the music. Judge what you see and hear; there are no right answers.",
+ "questions": [
+  {
+   "id": "hits",
+   "text": "How many distinct hits do you see in the clip?",
+   "options": [
+    "0",
+    "1",
+    "2",
+    "3+"
+   ]
+  },
+  {
+   "id": "strength",
+   "text": "How hard is the hit on the beat?",
+   "options": [
+    "none",
+    "very soft",
+    "soft",
+    "medium",
+    "hard",
+    "very hard"
+   ]
+  },
+  {
+   "id": "clarity",
+   "text": "How clean is it?",
+   "options": [
+    "clean",
+    "a bit messy",
+    "messy"
+   ]
+  },
+  {
+   "id": "timing",
+   "text": "When does the hit land relative to the beat?",
+   "options": [
+    "early",
+    "on the beat",
+    "late",
+    "no hit"
+   ]
+  }
+ ],
+ "clips": [
+  {
+   "id": "c001",
+   "record": "/generated/label-studies/impact-2026-10/records/7e2b4941f5f735c1.json",
+   "recordSha256": "7f61828df558ce2086240a65eddb06602bebca3c45b8942a1b625137ce13868d",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 6.97,
+   "start": 6.22,
+   "end": 7.72
+  },
+  {
+   "id": "c002",
+   "record": "/generated/label-studies/impact-2026-10/records/3068f1f7e1e914e3.json",
+   "recordSha256": "93712aa840759f92fb0a2dbfb352d7e7b79c38dcb2d7a989680182109840a80a",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 3.89,
+   "start": 3.14,
+   "end": 4.640000000000001
+  },
+  {
+   "id": "c003",
+   "record": "/generated/label-studies/impact-2026-10/records/5ff6bad016b0351a.json",
+   "recordSha256": "b4bec18dbeb99d37d30070b2d113c32d03a8ee3cd890dbb6105511c4d2d3977f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 8.7,
+   "start": 7.949999999999999,
+   "end": 9.45
+  },
+  {
+   "id": "c004",
+   "record": "/generated/label-studies/impact-2026-10/records/8235c469cfc1c3b6.json",
+   "recordSha256": "a4a622f069f3df45155b6492825ac0aa9a046675ec7a2e077cf8d6c352f9a12a",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 26.09,
+   "start": 25.34,
+   "end": 26.84
+  },
+  {
+   "id": "c005",
+   "record": "/generated/label-studies/impact-2026-10/records/d9694f844710c7fe.json",
+   "recordSha256": "d5ee9738a96a6f21e1acd8f7c42100ae1c2c1eda80b5b51ed2baafae01059ab2",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 13.5227,
+   "start": 12.7727,
+   "end": 14.2727
+  },
+  {
+   "id": "c006",
+   "record": "/generated/label-studies/impact-2026-10/records/cded55801d2e5180.json",
+   "recordSha256": "967fa3fe09d3b52967d41d7293c2c3c3a76cd81d6afdf2413e69bb521fd74eee",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 22.56,
+   "start": 21.81,
+   "end": 23.31
+  },
+  {
+   "id": "c007",
+   "record": "/generated/label-studies/impact-2026-10/records/8defd6b5aaca0980.json",
+   "recordSha256": "e1a5da41fa610149eef364374c003ebfe643b90df6dfe70843d97d14b8b0319a",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 4.48,
+   "start": 3.7300000000000004,
+   "end": 5.23
+  },
+  {
+   "id": "c008",
+   "record": "/generated/label-studies/impact-2026-10/records/8defd6b5aaca0980.json",
+   "recordSha256": "e1a5da41fa610149eef364374c003ebfe643b90df6dfe70843d97d14b8b0319a",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 37.78,
+   "start": 37.03,
+   "end": 38.53
+  },
+  {
+   "id": "c009",
+   "record": "/generated/label-studies/impact-2026-10/records/d9694f844710c7fe.json",
+   "recordSha256": "d5ee9738a96a6f21e1acd8f7c42100ae1c2c1eda80b5b51ed2baafae01059ab2",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 38.55,
+   "start": 37.8,
+   "end": 39.3
+  },
+  {
+   "id": "c010",
+   "record": "/generated/label-studies/impact-2026-10/records/2fe4511bc72fbffa.json",
+   "recordSha256": "05fa17a4c38076db1c9ed865dd6f5fa65945486625efe5cc862df06d6b704b0f",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 44.3,
+   "start": 43.55,
+   "end": 45.05
+  },
+  {
+   "id": "c011",
+   "record": "/generated/label-studies/impact-2026-10/records/ad43ef1991979e3e.json",
+   "recordSha256": "ab93f555e9fbab2ac8a110b1b7d6a653521f9bd9552688fa3afd20356b438742",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 15.15,
+   "start": 14.4,
+   "end": 15.9
+  },
+  {
+   "id": "c012",
+   "record": "/generated/label-studies/impact-2026-10/records/790dd300e6c2bda9.json",
+   "recordSha256": "a59993a5ca5cc522a909c0256eb5001c2adc6205125340f7e51be4d79f852997",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 40.87,
+   "start": 40.12,
+   "end": 41.62
+  },
+  {
+   "id": "c013",
+   "record": "/generated/label-studies/impact-2026-10/records/2af1f6c505268b8e.json",
+   "recordSha256": "40813ddeaec0da0e8e3cf98f227c9920a0a7fd9f1063a20855c757200cd715f1",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 24.35,
+   "start": 23.6,
+   "end": 25.1
+  },
+  {
+   "id": "c014",
+   "record": "/generated/label-studies/impact-2026-10/records/16a18a31b2eae558.json",
+   "recordSha256": "e22fe6dbc7772bb383cdb3e8a11dcc99c19bbb71c9fcfae29dcea42e8818e8da",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 23.22,
+   "start": 22.47,
+   "end": 23.97
+  },
+  {
+   "id": "c015",
+   "record": "/generated/label-studies/impact-2026-10/records/2fe4511bc72fbffa.json",
+   "recordSha256": "05fa17a4c38076db1c9ed865dd6f5fa65945486625efe5cc862df06d6b704b0f",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 17.35,
+   "start": 16.6,
+   "end": 18.1
+  },
+  {
+   "id": "c016",
+   "record": "/generated/label-studies/impact-2026-10/records/d9694f844710c7fe.json",
+   "recordSha256": "d5ee9738a96a6f21e1acd8f7c42100ae1c2c1eda80b5b51ed2baafae01059ab2",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 18.54,
+   "start": 17.79,
+   "end": 19.29
+  },
+  {
+   "id": "c017",
+   "record": "/generated/label-studies/impact-2026-10/records/4c89c9a69167ccfe.json",
+   "recordSha256": "329c0c454ae2fa0ebe59c73c7b93f37220c1348c0970349d4c8f83ebd11ed075",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 40.74,
+   "start": 39.99,
+   "end": 41.49
+  },
+  {
+   "id": "c018",
+   "record": "/generated/label-studies/impact-2026-10/records/d9694f844710c7fe.json",
+   "recordSha256": "d5ee9738a96a6f21e1acd8f7c42100ae1c2c1eda80b5b51ed2baafae01059ab2",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 39.88,
+   "start": 39.13,
+   "end": 40.63
+  },
+  {
+   "id": "c019",
+   "record": "/generated/label-studies/impact-2026-10/records/2668dbbfa9bce9cc.json",
+   "recordSha256": "403a85efbd415de4a70b3c7828b1e6d929ce9755c6036bf16aa524cc21456aab",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 13.5227,
+   "start": 12.7727,
+   "end": 14.2727
+  },
+  {
+   "id": "c020",
+   "record": "/generated/label-studies/impact-2026-10/records/8f658a8e36205c69.json",
+   "recordSha256": "889cbf04be0bea681ce3bdb3207eee66827dd47587779bd3cd345cd7ec3ca04e",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 11.31,
+   "start": 10.56,
+   "end": 12.06
+  },
+  {
+   "id": "c021",
+   "record": "/generated/label-studies/impact-2026-10/records/daf52132837c8f5f.json",
+   "recordSha256": "9981e262e08841bac08ef1f877f81acef0d1fa0ee0fd7ef94ee5fee260d096df",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 16.927,
+   "start": 16.177,
+   "end": 17.677
+  },
+  {
+   "id": "c022",
+   "record": "/generated/label-studies/impact-2026-10/records/2af1f6c505268b8e.json",
+   "recordSha256": "40813ddeaec0da0e8e3cf98f227c9920a0a7fd9f1063a20855c757200cd715f1",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 22.187,
+   "start": 21.437,
+   "end": 22.937
+  },
+  {
+   "id": "c023",
+   "record": "/generated/label-studies/impact-2026-10/records/5ff6bad016b0351a.json",
+   "recordSha256": "b4bec18dbeb99d37d30070b2d113c32d03a8ee3cd890dbb6105511c4d2d3977f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 47.05,
+   "start": 46.3,
+   "end": 47.8
+  },
+  {
+   "id": "c024",
+   "record": "/generated/label-studies/impact-2026-10/records/8235c469cfc1c3b6.json",
+   "recordSha256": "a4a622f069f3df45155b6492825ac0aa9a046675ec7a2e077cf8d6c352f9a12a",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 9.619,
+   "start": 8.869,
+   "end": 10.369
+  },
+  {
+   "id": "c025",
+   "record": "/generated/label-studies/impact-2026-10/records/842dbf4eb51804fa.json",
+   "recordSha256": "c2716f6cdc24b813815f9e6d156b49dc0968c13a00ba7928b359fff81705a50f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 25.22,
+   "start": 24.47,
+   "end": 25.97
+  },
+  {
+   "id": "c026",
+   "record": "/generated/label-studies/impact-2026-10/records/7e2b4941f5f735c1.json",
+   "recordSha256": "7f61828df558ce2086240a65eddb06602bebca3c45b8942a1b625137ce13868d",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 30.44,
+   "start": 29.69,
+   "end": 31.19
+  },
+  {
+   "id": "c027",
+   "record": "/generated/label-studies/impact-2026-10/records/2fe4511bc72fbffa.json",
+   "recordSha256": "05fa17a4c38076db1c9ed865dd6f5fa65945486625efe5cc862df06d6b704b0f",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 42.65,
+   "start": 41.9,
+   "end": 43.4
+  },
+  {
+   "id": "c028",
+   "record": "/generated/label-studies/impact-2026-10/records/25376b2d40a3aa15.json",
+   "recordSha256": "01e8cbdb8da73a9ffd0175592df6a23c56668d9785acbd9df61e9a0dcb39bb07",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 4.46,
+   "start": 3.71,
+   "end": 5.21
+  },
+  {
+   "id": "c029",
+   "record": "/generated/label-studies/impact-2026-10/records/ad43ef1991979e3e.json",
+   "recordSha256": "ab93f555e9fbab2ac8a110b1b7d6a653521f9bd9552688fa3afd20356b438742",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 12.95,
+   "start": 12.2,
+   "end": 13.7
+  },
+  {
+   "id": "c030",
+   "record": "/generated/label-studies/impact-2026-10/records/7a486adde3e20a23.json",
+   "recordSha256": "259d9c93e96612980cdd260e3a83fe5080b91855899df6632c91b24ef84c5d2b",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 32.02,
+   "start": 31.270000000000003,
+   "end": 32.77
+  },
+  {
+   "id": "c031",
+   "record": "/generated/label-studies/impact-2026-10/records/77c29475a3972152.json",
+   "recordSha256": "efa896538f4dd3d1abb3b848b1688d3106a483c2f8a39d8bff96f3c19f92686e",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 17.35,
+   "start": 16.6,
+   "end": 18.1
+  },
+  {
+   "id": "c032",
+   "record": "/generated/label-studies/impact-2026-10/records/842dbf4eb51804fa.json",
+   "recordSha256": "c2716f6cdc24b813815f9e6d156b49dc0968c13a00ba7928b359fff81705a50f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 37.4,
+   "start": 36.65,
+   "end": 38.15
+  },
+  {
+   "id": "c033",
+   "record": "/generated/label-studies/impact-2026-10/records/3068f1f7e1e914e3.json",
+   "recordSha256": "93712aa840759f92fb0a2dbfb352d7e7b79c38dcb2d7a989680182109840a80a",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 9.21,
+   "start": 8.46,
+   "end": 9.96
+  },
+  {
+   "id": "c034",
+   "record": "/generated/label-studies/impact-2026-10/records/9ab12f3f506dfcc8.json",
+   "recordSha256": "31bbe59ca3e81decae386e07ffc40117d90197ed24f3c6cccbd7cd362eb31f0e",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 36.969,
+   "start": 36.219,
+   "end": 37.719
+  },
+  {
+   "id": "c035",
+   "record": "/generated/label-studies/impact-2026-10/records/7a486adde3e20a23.json",
+   "recordSha256": "259d9c93e96612980cdd260e3a83fe5080b91855899df6632c91b24ef84c5d2b",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 6.43,
+   "start": 5.68,
+   "end": 7.18
+  },
+  {
+   "id": "c036",
+   "record": "/generated/label-studies/impact-2026-10/records/8c2176cd846d6915.json",
+   "recordSha256": "827c6266d54b17e04ee7c90e3aafeb7dc54ebc25e02f73434469c2ddb7b2e881",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 39.88,
+   "start": 39.13,
+   "end": 40.63
+  },
+  {
+   "id": "c037",
+   "record": "/generated/label-studies/impact-2026-10/records/8235c469cfc1c3b6.json",
+   "recordSha256": "a4a622f069f3df45155b6492825ac0aa9a046675ec7a2e077cf8d6c352f9a12a",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 26.95,
+   "start": 26.2,
+   "end": 27.7
+  },
+  {
+   "id": "c038",
+   "record": "/generated/label-studies/impact-2026-10/records/3068f1f7e1e914e3.json",
+   "recordSha256": "93712aa840759f92fb0a2dbfb352d7e7b79c38dcb2d7a989680182109840a80a",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 39.22,
+   "start": 38.47,
+   "end": 39.97
+  },
+  {
+   "id": "c039",
+   "record": "/generated/label-studies/impact-2026-10/records/4d8dc1022920a591.json",
+   "recordSha256": "12717f7df4e255d2e089801929062a7493137c7ebf41c01395302dcfb0cabc6c",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 28.76,
+   "start": 28.01,
+   "end": 29.51
+  },
+  {
+   "id": "c040",
+   "record": "/generated/label-studies/impact-2026-10/records/8c2176cd846d6915.json",
+   "recordSha256": "827c6266d54b17e04ee7c90e3aafeb7dc54ebc25e02f73434469c2ddb7b2e881",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 25.214,
+   "start": 24.464,
+   "end": 25.964
+  },
+  {
+   "id": "c041",
+   "record": "/generated/label-studies/impact-2026-10/records/d9694f844710c7fe.json",
+   "recordSha256": "d5ee9738a96a6f21e1acd8f7c42100ae1c2c1eda80b5b51ed2baafae01059ab2",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 41.89,
+   "start": 41.14,
+   "end": 42.64
+  },
+  {
+   "id": "c042",
+   "record": "/generated/label-studies/impact-2026-10/records/9ab12f3f506dfcc8.json",
+   "recordSha256": "31bbe59ca3e81decae386e07ffc40117d90197ed24f3c6cccbd7cd362eb31f0e",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 16.927,
+   "start": 16.177,
+   "end": 17.677
+  },
+  {
+   "id": "c043",
+   "record": "/generated/label-studies/impact-2026-10/records/3068f1f7e1e914e3.json",
+   "recordSha256": "93712aa840759f92fb0a2dbfb352d7e7b79c38dcb2d7a989680182109840a80a",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 8.55,
+   "start": 7.800000000000001,
+   "end": 9.3
+  },
+  {
+   "id": "c044",
+   "record": "/generated/label-studies/impact-2026-10/records/1563d0815afc5f2d.json",
+   "recordSha256": "9646f01c7d805c373cad76f41fe25babc8f1a19d1ce7b7db94f3a793b67cea76",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 22.187,
+   "start": 21.437,
+   "end": 22.937
+  },
+  {
+   "id": "c045",
+   "record": "/generated/label-studies/impact-2026-10/records/ede97229b4b4f3f7.json",
+   "recordSha256": "e43c380449f24b757514150aa02ed45129c69e5220f811df017a0025389963af",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 37.78,
+   "start": 37.03,
+   "end": 38.53
+  },
+  {
+   "id": "c046",
+   "record": "/generated/label-studies/impact-2026-10/records/466e598469f00bcd.json",
+   "recordSha256": "55a1ec416abb15eb93f6683c36fadbb1c336f3b80d7d979c6523ba8a10eddfd0",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 42.1,
+   "start": 41.35,
+   "end": 42.85
+  },
+  {
+   "id": "c047",
+   "record": "/generated/label-studies/impact-2026-10/records/1563d0815afc5f2d.json",
+   "recordSha256": "9646f01c7d805c373cad76f41fe25babc8f1a19d1ce7b7db94f3a793b67cea76",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 27.83,
+   "start": 27.08,
+   "end": 28.58
+  },
+  {
+   "id": "c048",
+   "record": "/generated/label-studies/impact-2026-10/records/2ca1d245cecb3621.json",
+   "recordSha256": "a4253eb0903b37a2b03f78d843baa01081c83450c2396b4442373f2842787c2e",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 8.06,
+   "start": 7.3100000000000005,
+   "end": 8.81
+  },
+  {
+   "id": "c049",
+   "record": "/generated/label-studies/impact-2026-10/records/7a486adde3e20a23.json",
+   "recordSha256": "259d9c93e96612980cdd260e3a83fe5080b91855899df6632c91b24ef84c5d2b",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 41.83,
+   "start": 41.08,
+   "end": 42.58
+  },
+  {
+   "id": "c050",
+   "record": "/generated/label-studies/impact-2026-10/records/25376b2d40a3aa15.json",
+   "recordSha256": "01e8cbdb8da73a9ffd0175592df6a23c56668d9785acbd9df61e9a0dcb39bb07",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 9.65,
+   "start": 8.9,
+   "end": 10.4
+  },
+  {
+   "id": "c051",
+   "record": "/generated/label-studies/impact-2026-10/records/ede97229b4b4f3f7.json",
+   "recordSha256": "e43c380449f24b757514150aa02ed45129c69e5220f811df017a0025389963af",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 18.4,
+   "start": 17.65,
+   "end": 19.15
+  },
+  {
+   "id": "c052",
+   "record": "/generated/label-studies/impact-2026-10/records/3068f1f7e1e914e3.json",
+   "recordSha256": "93712aa840759f92fb0a2dbfb352d7e7b79c38dcb2d7a989680182109840a80a",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 16.8577,
+   "start": 16.1077,
+   "end": 17.6077
+  },
+  {
+   "id": "c053",
+   "record": "/generated/label-studies/impact-2026-10/records/4d8dc1022920a591.json",
+   "recordSha256": "12717f7df4e255d2e089801929062a7493137c7ebf41c01395302dcfb0cabc6c",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 6.97,
+   "start": 6.22,
+   "end": 7.72
+  },
+  {
+   "id": "c054",
+   "record": "/generated/label-studies/impact-2026-10/records/e5a09659c726d92c.json",
+   "recordSha256": "9e103c87fed953bb9ce52f6beb395ba9266883c62c0840a69d1e06389286f7fe",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 25.05,
+   "start": 24.3,
+   "end": 25.8
+  },
+  {
+   "id": "c055",
+   "record": "/generated/label-studies/impact-2026-10/records/7e2b4941f5f735c1.json",
+   "recordSha256": "7f61828df558ce2086240a65eddb06602bebca3c45b8942a1b625137ce13868d",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 33.92,
+   "start": 33.17,
+   "end": 34.67
+  },
+  {
+   "id": "c056",
+   "record": "/generated/label-studies/impact-2026-10/records/de737e166734bd6d.json",
+   "recordSha256": "b43ef5494190f618dfe550ceffb3b054fa45b92a9120501eefe32c211a1ff214",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 26.02,
+   "start": 25.27,
+   "end": 26.77
+  },
+  {
+   "id": "c057",
+   "record": "/generated/label-studies/impact-2026-10/records/8235c469cfc1c3b6.json",
+   "recordSha256": "a4a622f069f3df45155b6492825ac0aa9a046675ec7a2e077cf8d6c352f9a12a",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 32.18,
+   "start": 31.43,
+   "end": 32.93
+  },
+  {
+   "id": "c058",
+   "record": "/generated/label-studies/impact-2026-10/records/8c2176cd846d6915.json",
+   "recordSha256": "827c6266d54b17e04ee7c90e3aafeb7dc54ebc25e02f73434469c2ddb7b2e881",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 22.2099,
+   "start": 21.4599,
+   "end": 22.9599
+  },
+  {
+   "id": "c059",
+   "record": "/generated/label-studies/impact-2026-10/records/790dd300e6c2bda9.json",
+   "recordSha256": "a59993a5ca5cc522a909c0256eb5001c2adc6205125340f7e51be4d79f852997",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 34.78,
+   "start": 34.03,
+   "end": 35.53
+  },
+  {
+   "id": "c060",
+   "record": "/generated/label-studies/impact-2026-10/records/761dde8335441f50.json",
+   "recordSha256": "ed0f18ae9d616b80ca393ec51efe4b768143d57651dd545e334facd78875bd55",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 29.89,
+   "start": 29.14,
+   "end": 30.64
+  },
+  {
+   "id": "c061",
+   "record": "/generated/label-studies/impact-2026-10/records/8c2176cd846d6915.json",
+   "recordSha256": "827c6266d54b17e04ee7c90e3aafeb7dc54ebc25e02f73434469c2ddb7b2e881",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 5.21,
+   "start": 4.46,
+   "end": 5.96
+  },
+  {
+   "id": "c062",
+   "record": "/generated/label-studies/impact-2026-10/records/ad43ef1991979e3e.json",
+   "recordSha256": "ab93f555e9fbab2ac8a110b1b7d6a653521f9bd9552688fa3afd20356b438742",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 16.8,
+   "start": 16.05,
+   "end": 17.55
+  },
+  {
+   "id": "c063",
+   "record": "/generated/label-studies/impact-2026-10/records/2ca1d245cecb3621.json",
+   "recordSha256": "a4253eb0903b37a2b03f78d843baa01081c83450c2396b4442373f2842787c2e",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 41.83,
+   "start": 41.08,
+   "end": 42.58
+  },
+  {
+   "id": "c064",
+   "record": "/generated/label-studies/impact-2026-10/records/842dbf4eb51804fa.json",
+   "recordSha256": "c2716f6cdc24b813815f9e6d156b49dc0968c13a00ba7928b359fff81705a50f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 30.44,
+   "start": 29.69,
+   "end": 31.19
+  },
+  {
+   "id": "c065",
+   "record": "/generated/label-studies/impact-2026-10/records/790dd300e6c2bda9.json",
+   "recordSha256": "a59993a5ca5cc522a909c0256eb5001c2adc6205125340f7e51be4d79f852997",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 45.31,
+   "start": 44.56,
+   "end": 46.06
+  },
+  {
+   "id": "c066",
+   "record": "/generated/label-studies/impact-2026-10/records/842dbf4eb51804fa.json",
+   "recordSha256": "c2716f6cdc24b813815f9e6d156b49dc0968c13a00ba7928b359fff81705a50f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 47.05,
+   "start": 46.3,
+   "end": 47.8
+  },
+  {
+   "id": "c067",
+   "record": "/generated/label-studies/impact-2026-10/records/842dbf4eb51804fa.json",
+   "recordSha256": "c2716f6cdc24b813815f9e6d156b49dc0968c13a00ba7928b359fff81705a50f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 15.66,
+   "start": 14.91,
+   "end": 16.41
+  },
+  {
+   "id": "c068",
+   "record": "/generated/label-studies/impact-2026-10/records/daf52132837c8f5f.json",
+   "recordSha256": "9981e262e08841bac08ef1f877f81acef0d1fa0ee0fd7ef94ee5fee260d096df",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 31.31,
+   "start": 30.56,
+   "end": 32.06
+  },
+  {
+   "id": "c069",
+   "record": "/generated/label-studies/impact-2026-10/records/2ca1d245cecb3621.json",
+   "recordSha256": "a4253eb0903b37a2b03f78d843baa01081c83450c2396b4442373f2842787c2e",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 16.76,
+   "start": 16.01,
+   "end": 17.51
+  },
+  {
+   "id": "c070",
+   "record": "/generated/label-studies/impact-2026-10/records/466e598469f00bcd.json",
+   "recordSha256": "55a1ec416abb15eb93f6683c36fadbb1c336f3b80d7d979c6523ba8a10eddfd0",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 33.85,
+   "start": 33.1,
+   "end": 34.6
+  },
+  {
+   "id": "c071",
+   "record": "/generated/label-studies/impact-2026-10/records/7e2b4941f5f735c1.json",
+   "recordSha256": "7f61828df558ce2086240a65eddb06602bebca3c45b8942a1b625137ce13868d",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 43.57,
+   "start": 42.82,
+   "end": 44.32
+  },
+  {
+   "id": "c072",
+   "record": "/generated/label-studies/impact-2026-10/records/2ca1d245cecb3621.json",
+   "recordSha256": "a4253eb0903b37a2b03f78d843baa01081c83450c2396b4442373f2842787c2e",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 3.2,
+   "start": 2.45,
+   "end": 3.95
+  },
+  {
+   "id": "c073",
+   "record": "/generated/label-studies/impact-2026-10/records/947c3c1a303f1a26.json",
+   "recordSha256": "9f23a57e4cfd1848cba44b7322c3b0f4d0f62d5bc38b2bae2d4f709a6b06a23d",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 33.85,
+   "start": 33.1,
+   "end": 34.6
+  },
+  {
+   "id": "c074",
+   "record": "/generated/label-studies/impact-2026-10/records/4c89c9a69167ccfe.json",
+   "recordSha256": "329c0c454ae2fa0ebe59c73c7b93f37220c1348c0970349d4c8f83ebd11ed075",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 26.57,
+   "start": 25.82,
+   "end": 27.32
+  },
+  {
+   "id": "c075",
+   "record": "/generated/label-studies/impact-2026-10/records/780ba1d195a32673.json",
+   "recordSha256": "7fc0ca3238a9846d577de0d85d43f5e353a51bd3a911259d2988ba03fce2dc83",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 31.1,
+   "start": 30.35,
+   "end": 31.85
+  },
+  {
+   "id": "c076",
+   "record": "/generated/label-studies/impact-2026-10/records/2ca1d245cecb3621.json",
+   "recordSha256": "a4253eb0903b37a2b03f78d843baa01081c83450c2396b4442373f2842787c2e",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 8.58,
+   "start": 7.83,
+   "end": 9.33
+  },
+  {
+   "id": "c077",
+   "record": "/generated/label-studies/impact-2026-10/records/16a18a31b2eae558.json",
+   "recordSha256": "e22fe6dbc7772bb383cdb3e8a11dcc99c19bbb71c9fcfae29dcea42e8818e8da",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 3.512,
+   "start": 2.762,
+   "end": 4.2620000000000005
+  },
+  {
+   "id": "c078",
+   "record": "/generated/label-studies/impact-2026-10/records/7e2b4941f5f735c1.json",
+   "recordSha256": "7f61828df558ce2086240a65eddb06602bebca3c45b8942a1b625137ce13868d",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 13.05,
+   "start": 12.3,
+   "end": 13.8
+  },
+  {
+   "id": "c079",
+   "record": "/generated/label-studies/impact-2026-10/records/8c91ebbfa971e73d.json",
+   "recordSha256": "0fff84eb55e6a03d4b20a59f1eedf50655c65c3b2f2c289126e03efaa929ccf2",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 32.02,
+   "start": 31.270000000000003,
+   "end": 32.77
+  },
+  {
+   "id": "c080",
+   "record": "/generated/label-studies/impact-2026-10/records/2e7a9c442fe107af.json",
+   "recordSha256": "c39ea5fa1b3ae281a534d84fd6e55b95a678d092d67750209e5711b337b72d6c",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 23.84,
+   "start": 23.09,
+   "end": 24.59
+  },
+  {
+   "id": "c081",
+   "record": "/generated/label-studies/impact-2026-10/records/4d8dc1022920a591.json",
+   "recordSha256": "12717f7df4e255d2e089801929062a7493137c7ebf41c01395302dcfb0cabc6c",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 5.74,
+   "start": 4.99,
+   "end": 6.49
+  },
+  {
+   "id": "c082",
+   "record": "/generated/label-studies/impact-2026-10/records/3068f1f7e1e914e3.json",
+   "recordSha256": "93712aa840759f92fb0a2dbfb352d7e7b79c38dcb2d7a989680182109840a80a",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 40.55,
+   "start": 39.8,
+   "end": 41.3
+  },
+  {
+   "id": "c083",
+   "record": "/generated/label-studies/impact-2026-10/records/761dde8335441f50.json",
+   "recordSha256": "ed0f18ae9d616b80ca393ec51efe4b768143d57651dd545e334facd78875bd55",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 19.5338,
+   "start": 18.7838,
+   "end": 20.2838
+  },
+  {
+   "id": "c084",
+   "record": "/generated/label-studies/impact-2026-10/records/466e598469f00bcd.json",
+   "recordSha256": "55a1ec416abb15eb93f6683c36fadbb1c336f3b80d7d979c6523ba8a10eddfd0",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 25.6,
+   "start": 24.85,
+   "end": 26.35
+  },
+  {
+   "id": "c085",
+   "record": "/generated/label-studies/impact-2026-10/records/761dde8335441f50.json",
+   "recordSha256": "ed0f18ae9d616b80ca393ec51efe4b768143d57651dd545e334facd78875bd55",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 43.88,
+   "start": 43.13,
+   "end": 44.63
+  },
+  {
+   "id": "c086",
+   "record": "/generated/label-studies/impact-2026-10/records/de737e166734bd6d.json",
+   "recordSha256": "b43ef5494190f618dfe550ceffb3b054fa45b92a9120501eefe32c211a1ff214",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 17.85,
+   "start": 17.1,
+   "end": 18.6
+  },
+  {
+   "id": "c087",
+   "record": "/generated/label-studies/impact-2026-10/records/780ba1d195a32673.json",
+   "recordSha256": "7fc0ca3238a9846d577de0d85d43f5e353a51bd3a911259d2988ba03fce2dc83",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 43.75,
+   "start": 43,
+   "end": 44.5
+  },
+  {
+   "id": "c088",
+   "record": "/generated/label-studies/impact-2026-10/records/df891d921049743b.json",
+   "recordSha256": "0e14245731a7bd21bc8ebd42cda8cee6d65b450eea3bc1042c7c4ffc7047a3a9",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 28.9,
+   "start": 28.15,
+   "end": 29.65
+  },
+  {
+   "id": "c089",
+   "record": "/generated/label-studies/impact-2026-10/records/df891d921049743b.json",
+   "recordSha256": "0e14245731a7bd21bc8ebd42cda8cee6d65b450eea3bc1042c7c4ffc7047a3a9",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 15.15,
+   "start": 14.4,
+   "end": 15.9
+  },
+  {
+   "id": "c090",
+   "record": "/generated/label-studies/impact-2026-10/records/16a18a31b2eae558.json",
+   "recordSha256": "e22fe6dbc7772bb383cdb3e8a11dcc99c19bbb71c9fcfae29dcea42e8818e8da",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 1.2,
+   "start": 0.44999999999999996,
+   "end": 1.95
+  },
+  {
+   "id": "c091",
+   "record": "/generated/label-studies/impact-2026-10/records/4d8dc1022920a591.json",
+   "recordSha256": "12717f7df4e255d2e089801929062a7493137c7ebf41c01395302dcfb0cabc6c",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 7.5,
+   "start": 6.75,
+   "end": 8.25
+  },
+  {
+   "id": "c092",
+   "record": "/generated/label-studies/impact-2026-10/records/2ca1d245cecb3621.json",
+   "recordSha256": "a4253eb0903b37a2b03f78d843baa01081c83450c2396b4442373f2842787c2e",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 6.43,
+   "start": 5.68,
+   "end": 7.18
+  },
+  {
+   "id": "c093",
+   "record": "/generated/label-studies/impact-2026-10/records/2668dbbfa9bce9cc.json",
+   "recordSha256": "403a85efbd415de4a70b3c7828b1e6d929ce9755c6036bf16aa524cc21456aab",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 6.56,
+   "start": 5.81,
+   "end": 7.31
+  },
+  {
+   "id": "c094",
+   "record": "/generated/label-studies/impact-2026-10/records/5ff6bad016b0351a.json",
+   "recordSha256": "b4bec18dbeb99d37d30070b2d113c32d03a8ee3cd890dbb6105511c4d2d3977f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 42.7,
+   "start": 41.95,
+   "end": 43.45
+  },
+  {
+   "id": "c095",
+   "record": "/generated/label-studies/impact-2026-10/records/842dbf4eb51804fa.json",
+   "recordSha256": "c2716f6cdc24b813815f9e6d156b49dc0968c13a00ba7928b359fff81705a50f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 1.81,
+   "start": 1.06,
+   "end": 2.56
+  },
+  {
+   "id": "c096",
+   "record": "/generated/label-studies/impact-2026-10/records/1377775065aa4d91.json",
+   "recordSha256": "fb283a2f4382bd2cd7bc170c0b849076aadca169ee27ab4e4931e650bd4e9bf2",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 34.2,
+   "start": 33.45,
+   "end": 34.95
+  },
+  {
+   "id": "c097",
+   "record": "/generated/label-studies/impact-2026-10/records/3ee3dcb88c20c24c.json",
+   "recordSha256": "28ea1fd5913b12a966b97dd0264ab74852bfc27180e78d9b6fb82ab612694586",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 10.2,
+   "start": 9.45,
+   "end": 10.95
+  },
+  {
+   "id": "c098",
+   "record": "/generated/label-studies/impact-2026-10/records/947c3c1a303f1a26.json",
+   "recordSha256": "9f23a57e4cfd1848cba44b7322c3b0f4d0f62d5bc38b2bae2d4f709a6b06a23d",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 12.4,
+   "start": 11.65,
+   "end": 13.15
+  },
+  {
+   "id": "c099",
+   "record": "/generated/label-studies/impact-2026-10/records/2668dbbfa9bce9cc.json",
+   "recordSha256": "403a85efbd415de4a70b3c7828b1e6d929ce9755c6036bf16aa524cc21456aab",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 14.56,
+   "start": 13.81,
+   "end": 15.31
+  },
+  {
+   "id": "c100",
+   "record": "/generated/label-studies/impact-2026-10/records/16a18a31b2eae558.json",
+   "recordSha256": "e22fe6dbc7772bb383cdb3e8a11dcc99c19bbb71c9fcfae29dcea42e8818e8da",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 43.88,
+   "start": 43.13,
+   "end": 44.63
+  },
+  {
+   "id": "c101",
+   "record": "/generated/label-studies/impact-2026-10/records/5ff6bad016b0351a.json",
+   "recordSha256": "b4bec18dbeb99d37d30070b2d113c32d03a8ee3cd890dbb6105511c4d2d3977f",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 4.42,
+   "start": 3.67,
+   "end": 5.17
+  },
+  {
+   "id": "c102",
+   "record": "/generated/label-studies/impact-2026-10/records/daf52132837c8f5f.json",
+   "recordSha256": "9981e262e08841bac08ef1f877f81acef0d1fa0ee0fd7ef94ee5fee260d096df",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 19.13,
+   "start": 18.38,
+   "end": 19.88
+  },
+  {
+   "id": "c103",
+   "record": "/generated/label-studies/impact-2026-10/records/daf52132837c8f5f.json",
+   "recordSha256": "9981e262e08841bac08ef1f877f81acef0d1fa0ee0fd7ef94ee5fee260d096df",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 5.29,
+   "start": 4.54,
+   "end": 6.04
+  },
+  {
+   "id": "c104",
+   "record": "/generated/label-studies/impact-2026-10/records/8c91ebbfa971e73d.json",
+   "recordSha256": "0fff84eb55e6a03d4b20a59f1eedf50655c65c3b2f2c289126e03efaa929ccf2",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 18.4,
+   "start": 17.65,
+   "end": 19.15
+  },
+  {
+   "id": "c105",
+   "record": "/generated/label-studies/impact-2026-10/records/df891d921049743b.json",
+   "recordSha256": "0e14245731a7bd21bc8ebd42cda8cee6d65b450eea3bc1042c7c4ffc7047a3a9",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 6.9,
+   "start": 6.15,
+   "end": 7.65
+  },
+  {
+   "id": "c106",
+   "record": "/generated/label-studies/impact-2026-10/records/7e2b4941f5f735c1.json",
+   "recordSha256": "7f61828df558ce2086240a65eddb06602bebca3c45b8942a1b625137ce13868d",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 46.18,
+   "start": 45.43,
+   "end": 46.93
+  },
+  {
+   "id": "c107",
+   "record": "/generated/label-studies/impact-2026-10/records/7e2b4941f5f735c1.json",
+   "recordSha256": "7f61828df558ce2086240a65eddb06602bebca3c45b8942a1b625137ce13868d",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 26.09,
+   "start": 25.34,
+   "end": 26.84
+  },
+  {
+   "id": "c108",
+   "record": "/generated/label-studies/impact-2026-10/records/790dd300e6c2bda9.json",
+   "recordSha256": "a59993a5ca5cc522a909c0256eb5001c2adc6205125340f7e51be4d79f852997",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 11.746,
+   "start": 10.996,
+   "end": 12.496
+  },
+  {
+   "id": "c109",
+   "record": "/generated/label-studies/impact-2026-10/records/2e7a9c442fe107af.json",
+   "recordSha256": "c39ea5fa1b3ae281a534d84fd6e55b95a678d092d67750209e5711b337b72d6c",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 33.65,
+   "start": 32.9,
+   "end": 34.4
+  },
+  {
+   "id": "c110",
+   "record": "/generated/label-studies/impact-2026-10/records/8235c469cfc1c3b6.json",
+   "recordSha256": "a4a622f069f3df45155b6492825ac0aa9a046675ec7a2e077cf8d6c352f9a12a",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 20,
+   "start": 19.25,
+   "end": 20.75
+  },
+  {
+   "id": "c111",
+   "record": "/generated/label-studies/impact-2026-10/records/77c29475a3972152.json",
+   "recordSha256": "efa896538f4dd3d1abb3b848b1688d3106a483c2f8a39d8bff96f3c19f92686e",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 3.59,
+   "start": 2.84,
+   "end": 4.34
+  },
+  {
+   "id": "c112",
+   "record": "/generated/label-studies/impact-2026-10/records/7e2b4941f5f735c1.json",
+   "recordSha256": "7f61828df558ce2086240a65eddb06602bebca3c45b8942a1b625137ce13868d",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 25.22,
+   "start": 24.47,
+   "end": 25.97
+  },
+  {
+   "id": "c113",
+   "record": "/generated/label-studies/impact-2026-10/records/516e35b42ffd6989.json",
+   "recordSha256": "bc0f631d80b1f9e639224aba8ce314f7898ff1cca47d9389e84d691049b0babc",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 2.51,
+   "start": 1.7599999999999998,
+   "end": 3.26
+  },
+  {
+   "id": "c114",
+   "record": "/generated/label-studies/impact-2026-10/records/790dd300e6c2bda9.json",
+   "recordSha256": "a59993a5ca5cc522a909c0256eb5001c2adc6205125340f7e51be4d79f852997",
+   "audio": "/productions/tiki_tiki_48s/audio.mp3",
+   "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
+   "beat": 5.29,
+   "start": 4.54,
+   "end": 6.04
+  },
+  {
+   "id": "c115",
+   "record": "/generated/label-studies/impact-2026-10/records/ad43ef1991979e3e.json",
+   "recordSha256": "ab93f555e9fbab2ac8a110b1b7d6a653521f9bd9552688fa3afd20356b438742",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 38.8,
+   "start": 38.05,
+   "end": 39.55
+  },
+  {
+   "id": "c116",
+   "record": "/generated/label-studies/impact-2026-10/records/947c3c1a303f1a26.json",
+   "recordSha256": "9f23a57e4cfd1848cba44b7322c3b0f4d0f62d5bc38b2bae2d4f709a6b06a23d",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 20.1,
+   "start": 19.35,
+   "end": 20.85
+  },
+  {
+   "id": "c117",
+   "record": "/generated/label-studies/impact-2026-10/records/4c89c9a69167ccfe.json",
+   "recordSha256": "329c0c454ae2fa0ebe59c73c7b93f37220c1348c0970349d4c8f83ebd11ed075",
+   "audio": "/productions/luna_bala_44s/audio.mp3",
+   "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
+   "beat": 37.36,
+   "start": 36.61,
+   "end": 38.11
+  },
+  {
+   "id": "c118",
+   "record": "/generated/label-studies/impact-2026-10/records/ad43ef1991979e3e.json",
+   "recordSha256": "ab93f555e9fbab2ac8a110b1b7d6a653521f9bd9552688fa3afd20356b438742",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 39.9,
+   "start": 39.15,
+   "end": 40.65
+  },
+  {
+   "id": "c119",
+   "record": "/generated/label-studies/impact-2026-10/records/df891d921049743b.json",
+   "recordSha256": "0e14245731a7bd21bc8ebd42cda8cee6d65b450eea3bc1042c7c4ffc7047a3a9",
+   "audio": "/productions/amor_na_praia_46s/audio.mp3",
+   "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
+   "beat": 16.8,
+   "start": 16.05,
+   "end": 17.55
+  },
+  {
+   "id": "c120",
+   "record": "/generated/label-studies/impact-2026-10/records/16a18a31b2eae558.json",
+   "recordSha256": "e22fe6dbc7772bb383cdb3e8a11dcc99c19bbb71c9fcfae29dcea42e8818e8da",
+   "audio": "/productions/amour_de_ma_vie_44s/audio.mp3",
+   "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
+   "beat": 7.22,
+   "start": 6.47,
+   "end": 7.97
+  }
+ ]
+}

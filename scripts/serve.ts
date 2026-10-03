@@ -8,9 +8,10 @@ import {createServer, type IncomingMessage, type ServerResponse} from 'node:http
 import {createReadStream, statSync} from 'node:fs';
 import {extname, normalize, resolve, sep} from 'node:path';
 import {createRepertoireApi} from './gallery/repertoire_api.ts';
+import {createLabelsApi} from './gallery/labels_api.ts';
 
 const PORT = Number(process.env.PORT ?? 8767), HOST = process.env.HOST ?? '127.0.0.1';
-const ROOT = resolve(process.cwd()), api = createRepertoireApi();
+const ROOT = resolve(process.cwd()), api = createRepertoireApi(), labels = createLabelsApi();
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mp4': 'video/mp4', '.webm': 'video/webm',
@@ -47,7 +48,7 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, url: URL) {
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
-    if (await api(req, res, url)) return;
+    if (await api(req, res, url) || await labels(req, res, url)) return;
     if (url.pathname === '/') {res.writeHead(302, {Location: '/motion-gallery/production.html'}).end(); return;}
     serveStatic(req, res, url);
   } catch (e) {

@@ -36,7 +36,7 @@ export function guidanceSearch(s: IntervalSearch) {
   const origin = s.best;
   const receiverActive = options.observedReceiver && origin.c.receiverFlight !== undefined;
   const irrelevantGuide = new Set(['clearance', 'guideStart', 'guideEnd', 'guideTilt', 'guideFlare']);
-  const responseKeys = arcMethodKeys('response', !!options.expressive, false, options.guides,
+  const responseKeys = arcMethodKeys('response', true, false, options.guides,
     {...options, observedReceiver: receiverActive}).filter(key => !receiverActive || !irrelevantGuide.has(key));
   const wantedResponse = Math.min(options.guidanceSamples ?? 48, options.responseSamples ?? 0);
   const responseRound = 2 * responseKeys.length + 3;
@@ -45,8 +45,7 @@ export function guidanceSearch(s: IntervalSearch) {
   const count = (options.guidanceSamples ?? 48) - responseAllowance;
   let keys: ControlKey[] = options.guidance === 'span' ? ['guideStart', 'guideEnd'] :
     options.guidance === 'clearance' ? ['clearance'] : ['clearance', 'guideStart', 'guideEnd'];
-  if (options.guidanceJoint) keys.push(...ARC_CORE_KEYS);
-  if (options.expressive) keys.push(...ARC_EXPRESSIVE_KEYS);
+  keys.push(...ARC_CORE_KEYS, ...ARC_EXPRESSIVE_KEYS);
   if (options.independentGuide) keys.push('guideTilt');
   if (options.observedReceiver && origin.c.receiverFlight !== undefined)
     keys.push('receiverFlight', 'receiverEntry', 'receiverTurn', 'receiverExit', 'receiverDuration');
@@ -60,14 +59,14 @@ export function guidanceSearch(s: IntervalSearch) {
  * `origin`, followed by coordinate steps around the current best. */
 function guideShapeSearch(s: IntervalSearch, origin: any, keys: ControlKey[], count: number) {
   const {options, support} = s;
-  const broad = options.guidanceJoint ? Math.min(24, Math.ceil(count / 3)) : count / 2;
+  const broad = Math.min(24, Math.ceil(count / 3));
   for (let k = 0; keys.length && k < count; k++) {
     const frac = (n: number) => ((k + 1) * n) % 1;
     let c: ArcMotionControl;
     if (k < broad) {
       c = {...origin.c};
       if (options.guidance !== 'span') c.clearance = k === 0 ? 12 : 8 + 16 * frac(.61803398875);
-      if (options.expressive && k > 0) {
+      if (k > 0) {
         c.turnFraction = .15 + .65 * frac(.2718281828);
         c.bend = -35 + 70 * frac(.1415926535);
         c.guideFlare = -12 + 24 * frac(.5772156649);

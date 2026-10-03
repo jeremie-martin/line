@@ -3,8 +3,9 @@
 import type {ArcMotionOptions} from './arc_motion.ts';
 import type {ArcGeometryStyle} from './arc_geometry.ts';
 type GeometryOptions=Pick<ArcGeometryStyle,'profile'|'profileStart'|'foldAngle'|'faces'|'contour'>&{wave?:boolean;subdivisions?:number};
-type GuideOptions=Pick<ArcMotionOptions,'pruneGuidance'|'guides'|'channel'>;
-/** Historical gallery settings, shown with each recipe; the compiler no longer reads them. */
+/** pruneGuidance and SearchOptions are historical gallery settings, shown
+ * with each recipe; the compiler no longer reads them. */
+type GuideOptions=Pick<ArcMotionOptions,'guides'|'channel'>&{pruneGuidance?:boolean};
 type SearchOptions={policyPreview?:boolean};
 type ArcRecipe=GeometryOptions&GuideOptions&SearchOptions;
 type Method = {title:string;description:string;geometry?:GeometryOptions;guidance?:GuideOptions;search?:SearchOptions;archived?:boolean;studyOnly?:boolean};

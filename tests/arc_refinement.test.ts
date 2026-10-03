@@ -6,10 +6,9 @@ import type { Spec, TrackLine } from '../scripts/v0/types.ts';
 const spec: Spec = {duration: 4, preroll: 5, jitter: 0,
   contacts: [.6, 1.2, 1.8, 2.4, 3, 3.6].map(t => ({t, impact: .4})),
   axes: {air: () => .5, speed: () => .5}};
-const base = {budget: 200000, samples: 100, channel: 12, radius: 24, bidirectional: true,
+const base = {budget: 200000, samples: 100, channel: 12, radius: 24,
   impactWeight: 1, amplitudeWeight: 1 / 3, arrivalMode: 'speed', arrivalWeight: .3,
-  headingWeight: .3, qualityRetries: 2, guidance: 'clearance' as const, guidanceSamples: 24,
-  pruneGuidance: true};
+  headingWeight: .3, qualityRetries: 2, guidance: 'clearance' as const, guidanceSamples: 24};
 
 it('retains a valid complete incumbent while charging every refinement proposal', () => {
   const initial = compileArcMotion(spec, 17, base);
@@ -55,9 +54,7 @@ it('expresses additional curvature and guide separation as connected normal curv
 });
 
 it('allocates longer planning from measured construction work within the same hard meter', () => {
-  const result = compileArcMotion(spec, 19, {...base, adaptivePlanning: true,
-    lookaheadWidth: 3, lookaheadSamples: 24, lookaheadObjective: 'terminal',
-    strictHorizon: true, reuseContinuations: true});
+  const result = compileArcMotion(spec, 19, {...base, lookaheadWidth: 3, lookaheadSamples: 24});
   expect(result.planningDecisions.some(d => d.depth === 2)).toBe(true);
   expect(result.planningDecisions.every(d => d.observedConstructionRate > 0)).toBe(true);
   expect(result.lookaheadStats.physicsFrames).toBeGreaterThan(0);
@@ -66,23 +63,9 @@ it('allocates longer planning from measured construction work within the same ha
 });
 
 it('fits joint responses for expressive curves and validates proposals in the real engine', () => {
-  const result = compileArcMotion(spec, 21, {...base, expressive: true,
-    guidanceSamples: 96, guidanceJoint: true, responseSamples: 70});
+  const result = compileArcMotion(spec, 21, {...base, guidanceSamples: 96, responseSamples: 70});
   expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
   expect(result.stats.viable_candidate_samples).toBeGreaterThan(0);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
   expect(result.track.lines.every(l => l.type === 0)).toBe(true);
-});
-
-it('reuses only retained physical prefixes with exact outputs and unchanged physics charging', () => {
-  const options = {...base, expressive: true, guidanceSamples: 96, guidanceJoint: true,
-    responseSamples: 70, lookaheadWidth: 3, lookaheadSamples: 32,
-    strictHorizon: true, reuseContinuations: true, refineAttempts: 4,
-    refineMode: 'reflow' as const};
-  const original = compileArcMotion(spec, 23, options);
-  const cached = compileArcMotion(spec, 23, {...options, cachePrefixReads: true});
-  expect(cached.track).toEqual(original.track);
-  expect(cached.report).toEqual(original.report);
-  expect(cached.stats).toEqual(original.stats);
-  expect(cached.refinementStats).toEqual(original.refinementStats);
 });

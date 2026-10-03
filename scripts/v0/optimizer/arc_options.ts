@@ -33,19 +33,9 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   budget: number;
   /** Proposal and coordinate-search evaluations per interval. */
   samples?: number;
-  /** Measure the final objective at the authored end; still validate the grace. */
-  authoredHorizon?: boolean;
-  /** Retain useful search pressure beyond the public amplitude cap. */
-  amplitudeOverflow?: 'raw' | 'log';
-  /** Preserve the proposal mix within the slots a local probe can evaluate. */
-  budgetedProposals?: boolean;
-  /** Rank already simulated complete alternatives by the full authored loss. */
-  terminalSelection?: boolean;
   /** Guide clearance and smoothing radius of the constructed curves. */
   channel?: number;
   radius?: number;
-  /** Allow the impact turn in either direction. */
-  bidirectional?: boolean;
   /** Objective weights. */
   impactWeight?: number;
   amplitudeWeight?: number;
@@ -59,35 +49,13 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   /** Guide controls searched after the core curve, and their allowance. */
   guidance?: 'span' | 'clearance' | 'full';
   guidanceSamples?: number;
-  /** Preserve distinct expressive geometry in learned and memory proposals. */
-  controlDiversity?: 'inherited' | 'geometry';
-  /** Lookahead: candidates probed, samples per continuation, and the value used. */
+  /** Lookahead: candidates probed and samples per continuation. */
   lookaheadWidth?: number;
   lookaheadSamples?: number;
-  lookaheadObjective?: 'local' | 'terminal';
   /** Multiple of the construction rate kept in reserve when planning. */
   reserveFactor?: number;
-  /** Rank alternatives by their lookahead value and warm-start from it. */
-  reuseContinuations?: boolean;
-  /** Remove guide segments the final ride never touches. */
-  pruneGuidance?: boolean;
-  /** Search core and expressive controls together with the guide. */
-  guidanceJoint?: boolean;
-  expressive?: boolean;
-  /** Keep the inherited five-frame turn representable during refinement. */
-  preserveTurnTiming?: boolean;
   /** Finite-difference response evaluations within the guidance allowance. */
   responseSamples?: number;
-  /** Widen and deepen lookahead from the measured spare work per frame. */
-  adaptivePlanning?: boolean;
-  /** A continuation without a complete branch counts as failed. */
-  strictHorizon?: boolean;
-  /** Reuse the measured prefix trajectory when replaying candidates. */
-  cachePrefixReads?: boolean;
-  /** Reuse completed evaluations within the same physical search prefix. */
-  memoCandidates?: boolean;
-  /** Reuse complete measurements across searches with identical geometry prefixes. */
-  reuseEvaluations?: boolean;
   /** Reduce local work if observed construction cost outgrows remaining capacity. */
   budgetAdaptiveLocal?: boolean;
   /** Replace the preceding truncated span once its contact boundary is measured. */
@@ -193,20 +161,18 @@ export const EVALUATION_IDENTITY = {
   channel: 'key', radius: 'key', faces: 'key', profile: 'key', profileStrength: 'key', profileStart: 'key',
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
   amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', arrivalMode: 'key', headingWeight: 'key',
-  completeBoundary: 'key', authoredHorizon: 'key', amplitudeOverflow: 'key', terminalSelection: 'key', valueGuidanceWeight: 'key',
+  completeBoundary: 'key', valueGuidanceWeight: 'key',
   constructionRequests: 'keySection', motionQuality: 'key', impactContract: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence', observedReceiver: 'keyPresence',
 
-  bidirectional: 'fixed', preserveTurnTiming: 'fixed', compactFoldProposals: 'fixed', constructionRecovery: 'fixed',
-  constructionAwareArrival: 'fixed', cachePrefixReads: 'fixed', impactPreparationFrames: 'fixed', sectionStyles: 'fixed',
+  compactFoldProposals: 'fixed', constructionRecovery: 'fixed',
+  constructionAwareArrival: 'fixed', impactPreparationFrames: 'fixed', sectionStyles: 'fixed',
 
   arrivalReference: 'noReuse',
 
-  budget: 'search', samples: 'search', budgetedProposals: 'search', qualityRetries: 'search', guidance: 'search',
-  guidanceSamples: 'search', controlDiversity: 'search', lookaheadWidth: 'search', lookaheadSamples: 'search',
-  lookaheadObjective: 'search', reserveFactor: 'search', reuseContinuations: 'search', pruneGuidance: 'search',
-  guidanceJoint: 'search', expressive: 'search', responseSamples: 'search', adaptivePlanning: 'search', strictHorizon: 'search',
-  memoCandidates: 'search', reuseEvaluations: 'search', budgetAdaptiveLocal: 'search', memorySamples: 'search',
+  budget: 'search', samples: 'search', qualityRetries: 'search', guidance: 'search',
+  guidanceSamples: 'search', lookaheadWidth: 'search', lookaheadSamples: 'search',
+  reserveFactor: 'search', responseSamples: 'search', budgetAdaptiveLocal: 'search', memorySamples: 'search',
   memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search', continuationValueWeight: 'search',
   initialRecoverySamples: 'search', memoryScope: 'search', collectTrajectoryLoss: 'search', constructionProposals: 'search',
   transitionRevision: 'search', wholeTrackRefinement: 'search', refineTailSections: 'search', refineAttempts: 'search',

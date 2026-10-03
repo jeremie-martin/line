@@ -20,10 +20,10 @@ it('keeps every authored dimension, omitted topology and signed zero in evaluati
 it('normalizes against the actual interval without mutating or materializing optional geometry', () => {
   const supplied = {...control, entry: 100, turn: 110, exit: -100, support: 100, bias: 4, offset: -5};
   const bounded = normalizeArcControl(supplied, {span: 20});
-  expect(bounded).toEqual({...control, entry: 85, turn: 15, exit: -80, support: 16, bias: 2, offset: -2});
+  expect(bounded).toEqual({...control, entry: 85, turn: 110, exit: -80, support: 16, bias: 2, offset: -2});
   expect(supplied.support).toBe(100);
   expect(Object.keys(bounded)).toEqual(Object.keys(control));
-  expect(normalizeArcControl(supplied, {span: 20, bidirectional: true}).turn).toBe(110);
+  expect(normalizeArcControl({...supplied, turn: -130}, {span: 20}).turn).toBe(-120);
   expect(normalizeArcControl(supplied, {span: 20, independentExit: true}).exitBias).toBe(2);
   expect(normalizeArcControl(supplied, {span: 20, independentExit: true, exitRefinementOnly: true}).exitBias).toBeUndefined();
 });
@@ -32,7 +32,7 @@ it('lets explicit search timing represent the inherited long arc exactly', () =>
   const long = {...control, support: 200};
   const points = [{x: 0, y: 0}, {x: 1, y: 0}], velocity = {x: 6, y: 1};
   const explicit = normalizeArcControl({...long, turnFraction: arcControlValue(long, 'turnFraction')},
-    {span: 220, preserveTurnTiming: true});
+    {span: 220});
   expect(motionArc(points, velocity, explicit, 1000, false, 12)).toEqual(motionArc(points, velocity, long, 1000, false, 12));
   expect(arcControlValue(control, 'clearance')).toBe(12);
   expect(arcControlValue(control, 'clearance', 0)).toBe(0);

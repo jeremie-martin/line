@@ -1,11 +1,12 @@
 import {expect,it} from 'vitest';
 import {compileArcMotion,motionArc} from '../scripts/v0/optimizer/arc_motion.ts';
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
+import {arcRailGroups} from '../scripts/v0/optimizer/arc_guidance.ts';
 import {disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-const options={samples:32,channel:12,radius:24,bidirectional:true,impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3};
+const options={samples:32,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3};
 
 it('keeps completed intervals after every remaining backtracking alternative fails',()=>{
   const input={...spec,duration:2.5,contacts:[.6,1.2,1.35,1.95].map(t=>({t,impact:.4}))};
@@ -27,8 +28,12 @@ it('keeps accepted reflow controls synchronized with the geometry used by later 
     const row=r.rows[i],velocity=getRiderMetered(engine,row.frame).velocity;
     engine.prepareCollisionTrace(row.frame);getRiderMetered(engine,row.frame);
     const trace=engine.readCollisionTrace()[0],points=['PEG','TAIL','NOSE','STRING'].map(k=>trace[k]);
-    const actual=r.track.lines.filter(l=>group(l)===i);
-    expect(motionArc(points,velocity,row.control,1000+i*10000,false,12,false,24)).toEqual(actual);
-    expect(row.lines).toBe(actual.length);dispose();
+    const rebuilt=arcRailGroups(motionArc(points,velocity,row.control,1000+i*10000,false,12,false,24)).get(i)!;
+    const actual=arcRailGroups(r.track.lines.filter(l=>group(l)===i)).get(i)!;
+    expect(actual[0]).toEqual(rebuilt[0]);
+    // Guide pruning keeps only a contiguous, unchanged part of the rebuilt guide.
+    const guide=new Map((rebuilt[1]??[]).map(l=>[l.id,l]));
+    for(const line of actual[1]??[])expect(guide.get(line.id)).toEqual(line);
+    expect(row.lines).toBe(rebuilt.flat().length);dispose();
   }}finally{dispose();}
 });

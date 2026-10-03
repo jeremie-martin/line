@@ -50,7 +50,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const outgoing = planned.find(g => g.startFrame === (i === 0 ? 0 : frame)) ??
     {index: gaps.length, startFrame: frame, endFrame: horizon, endsWithContact: false, targets: {}};
   const targets = outgoing.targets;
-  const objectiveEnd = options.authoredHorizon ? Math.min(horizon, duration) : horizon;
+  const objectiveEnd = Math.min(horizon, duration);
 
   const beforeState = getRiderMetered(engine, frame - 1).ballisticState(), before = JSON.stringify(beforeState);
   const velocity = getRiderMetered(engine, frame).velocity;
@@ -58,9 +58,9 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   getRiderMetered(engine, frame);
   const trace = engine.readCollisionTrace()[0];
   const points = ['PEG', 'TAIL', 'NOSE', 'STRING'].map(key => trace[key]);
-  const prefixRaw = options.cachePrefixReads || options.impactContract ? extractRawTrajectory(engine, frame - 1) : null;
+  const prefixRaw = extractRawTrajectory(engine, frame - 1);
   const account = options.impactContract ? impactAccount(options.impactContract) : undefined;
-  const prefixImpactFrames = account ? account.observe(engine, prefixRaw!.frames, beforeState) : undefined;
+  const prefixImpactFrames = account ? account.observe(engine, prefixRaw.frames, beforeState) : undefined;
   const impactPrefix = account ? account.prefix(prefixImpactFrames!) as any : undefined;
   const localImpactTargets = account
     ? impactTargets.filter(t => t.frame >= frame - account.matchFrames && t.frame <= horizon + account.matchFrames)
@@ -85,7 +85,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const memo = selectMemo(ctx, engine, i, options);
   const priorGap = i > 0 ? gaps[contacts[i].gap] : undefined;
   const priorAxes = options.completeBoundary && priorGap
-    ? objectiveAxes(options, detect(prefixRaw ?? extractRawTrajectory(engine, frame - 1)), priorGap, frame - 1) : undefined;
+    ? objectiveAxes(detect(prefixRaw), priorGap, frame - 1) : undefined;
   const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;
   const controlContext = {...options, span: constructionSpan, releaseReserveFrames: options.impactSearch?.releaseFrames};
 
@@ -122,37 +122,35 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
 
 export type IntervalSearch = NonNullable<ReturnType<typeof openInterval>>;
 
-/** The candidate memo for this search. Measurements are shared between
- * searches only from an identical physical prefix with an identical memo
- * context (see EVALUATION_IDENTITY), never while an arrival reference is set
- * or a different future-value model is in use; at most 32 such contexts are
- * kept, most recently used last. */
+/** The candidate memo for this search: a fresh one, or the memo of an
+ * earlier search shared from an identical physical prefix with an identical
+ * memo context (see EVALUATION_IDENTITY), never while an arrival reference
+ * is set or a different future-value model is in use; at most 32 such
+ * contexts are kept, most recently used last. */
 function selectMemo(ctx: ArcCompileContext, engine: Engine, i: number, options: IntervalOptions) {
   const {prefixes, prefixKey, memoContexts} = ctx.lineage;
-  let memo = options.memoCandidates ? new Map<string, any>() : null;
+  let memo = new Map<string, any>();
   const prefix = prefixes.get(engine);
-  if (options.reuseEvaluations && prefix && !options.arrivalReference &&
+  if (prefix && !options.arrivalReference &&
     (!options.futureValueModel || options.futureValueModel === ctx.options.futureValueModel)) {
     const context = prefixKey(prefix) + '|' + evaluationContext(options, i);
     const saved = memoContexts.get(context);
     if (saved) {
       memo = saved;
       memoContexts.delete(context);
-    } else memo = new Map();
-    memoContexts.set(context, memo!);
+    }
+    memoContexts.set(context, memo);
     while (memoContexts.size > 32) memoContexts.delete(memoContexts.keys().next().value!);
   }
   return memo;
 }
 
-/** Span axes of `g` over [g.startFrame, rangeEnd]; with amplitude overflow a
- * capped amplitude keeps its raw (or logarithmic) excess as search pressure. */
-export function objectiveAxes(options: IntervalOptions, det: ReturnType<typeof detect>, g: Gap, rangeEnd: number) {
+/** Span axes of `g` over [g.startFrame, rangeEnd]; a capped amplitude keeps
+ * its raw excess as search pressure. */
+export function objectiveAxes(det: ReturnType<typeof detect>, g: Gap, rangeEnd: number) {
   const axes = measureGapAxes(det, g, [], rangeEnd);
-  if (options.amplitudeOverflow && g.targets.amplitude !== undefined && axes.amplitude === 1) {
-    const rawAmplitude = measureAmplitudePeakPx(det, g, rangeEnd)! / CALIB.AMPLITUDE_CAP;
-    axes.amplitude = options.amplitudeOverflow === 'raw' ? rawAmplitude : 1 + Math.log(rawAmplitude);
-  }
+  if (g.targets.amplitude !== undefined && axes.amplitude === 1)
+    axes.amplitude = measureAmplitudePeakPx(det, g, rangeEnd)! / CALIB.AMPLITUDE_CAP;
   return axes;
 }
 

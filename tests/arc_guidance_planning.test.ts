@@ -6,7 +6,7 @@ import { extractRawTrajectory, resetFrameCount, setPhysicsFrameLimit } from '../
 import type { Spec, TrackLine } from '../scripts/v0/types.ts';
 
 const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-const options={budget:65000,samples:100,channel:12,radius:24,bidirectional:true,impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,qualityRetries:2};
+const options={budget:65000,samples:100,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,qualityRetries:2};
 const chains=(lines:TrackLine[])=>{const result:TrackLine[][]=[[]];for(const l of lines){const p=result.at(-1)!.at(-1);if(p&&(p.x2!==l.x1||p.y2!==l.y1))result.push([]);result.at(-1)!.push(l);}return result;};
 
 it('expresses single, partial and paired guidance as substantial connected normal curves',()=>{
@@ -35,15 +35,17 @@ it('changes late-arc easing while retaining the impact-section support geometry 
   expect(b.every(chain=>chain.length>10)).toBe(true);
 });
 
-it('removes redundant rails with exact physical replay and unchanged frame charging',()=>{
-  const full=compileArcMotion(spec,17,options),trimmed=compileArcMotion(spec,17,{...options,pruneGuidance:true});
+it('removes redundant rails and replays the pruned track to the authored end',()=>{
+  // The final stage also requires the pruned track's fixed-engine replay to
+  // equal the searched ride exactly ('fixed-engine replay mismatch' otherwise).
+  const trimmed=compileArcMotion(spec,17,options);
   expect(trimmed.guidanceReduction!.removedSegments).toBeGreaterThan(0);
-  expect(trimmed.track.lines.length).toBeLessThan(full.track.lines.length);
-  expect(trimmed.report).toEqual(full.report);
-  expect(trimmed.stats.sim_frames).toBe(full.stats.sim_frames);
-  const replay=(track:any)=>extractRawTrajectory(new Engine().setStart(track.startPosition,track.riders[0].startVelocity).addLine(track.lines),track.duration);
+  const track:any=trimmed.track;
   resetFrameCount();setPhysicsFrameLimit(null);
-  try{expect(replay(trimmed.track)).toEqual(replay(full.track));}finally{disposeAllWasmEnginesForStudy();}
+  try{
+    const raw=extractRawTrajectory(new Engine().setStart(track.startPosition,track.riders[0].startVelocity).addLine(track.lines),track.duration);
+    expect(raw.frames).toHaveLength(track.duration+1);
+  }finally{disposeAllWasmEnginesForStudy();}
 });
 
 it('requires an already metered complete trajectory before inspecting collisions',()=>{
@@ -51,7 +53,7 @@ it('requires an already metered complete trajectory before inspecting collisions
 });
 
 it('charges lookahead, carries a complete physical contract and reproduces selected geometry',()=>{
-  const config={...options,guidance:'full' as const,guidanceSamples:24,lookaheadWidth:3,lookaheadSamples:24,pruneGuidance:true};
+  const config={...options,guidance:'full' as const,guidanceSamples:24,lookaheadWidth:3,lookaheadSamples:24};
   const a=compileArcMotion(spec,17,config),b=compileArcMotion(spec,17,config);
   expect(a.lookaheadStats.probes).toBeGreaterThan(0);expect(a.lookaheadStats.physicsFrames).toBeGreaterThan(0);
   expect(a.stats.sim_frames).toBeLessThanOrEqual(options.budget);expect(a.failure).toBeNull();
@@ -60,9 +62,9 @@ it('charges lookahead, carries a complete physical contract and reproduces selec
 });
 
 it('evaluates a deeper continuation tree with joint guide refinement inside the same meter',()=>{
-  // Adaptive planning deepens the continuation tree when the allowance affords it.
+  // Planning deepens the continuation tree when the allowance affords it.
   const budget=100000;
-  const result=compileArcMotion(spec,18,{...options,budget,guidance:'full',guidanceSamples:24,guidanceJoint:true,lookaheadWidth:3,lookaheadSamples:20,adaptivePlanning:true,lookaheadObjective:'terminal',reuseContinuations:true,pruneGuidance:true});
+  const result=compileArcMotion(spec,18,{...options,budget,guidance:'full',guidanceSamples:24,lookaheadWidth:3,lookaheadSamples:20});
   expect(result.lookaheadStats.maxDepth).toBe(2);
   expect(result.lookaheadStats.continuationNodes).toBeGreaterThan(result.lookaheadStats.probes);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(budget);

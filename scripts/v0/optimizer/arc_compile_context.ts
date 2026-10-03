@@ -76,7 +76,7 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
   const start = fixed ?? {position: {x: 0, y: 0}, velocity: {x: speed * Math.cos(pitch), y: speed * Math.sin(pitch)}};
 
   const hasFragments = Object.values(options.constructionRequests ?? {}).some(r => r.construction === 'scattered');
-  const lineage = createArcLineage(start, !!options.reuseEvaluations || hasFragments, hasFragments);
+  const lineage = createArcLineage(start, hasFragments);
   const contacts = [{frame: 1, gap: -1}, ...planned.filter(g => g.endsWithContact).map(g => ({frame: g.endFrame, gap: g.index}))];
 
   const controlMemory = new ArcControlMemory(), constructionMemories = new Map<string, ArcControlMemory>();

@@ -15,9 +15,9 @@ it('applies a bounded log-value correction and preserves the prior exactly at ze
 });
 it('reproduces physical tracks and frame accounting with a zero-strength wrapper',()=>{
   const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-  const options={budget:40000,samples:32,channel:12,radius:24,bidirectional:true,impactWeight:1,amplitudeWeight:1/3,
-    arrivalWeight:.3,headingWeight:.3,guidance:'clearance' as const,guidanceJoint:true,guidanceSamples:48,responseSamples:46,
-    expressive:true,completeBoundary:true,valueGuidanceWeight:.25,futureValueModel:base};
+  const options={budget:40000,samples:32,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,
+    arrivalWeight:.3,headingWeight:.3,guidance:'clearance' as const,guidanceSamples:48,responseSamples:46,
+    completeBoundary:true,valueGuidanceWeight:.25,futureValueModel:base};
   const plain=compileArcMotion(spec,17,options),zero=compileArcMotion(spec,17,{...options,futureValueModel:{...corrected,residualStrength:0}});
   expect(zero.track).toEqual(plain.track);expect(zero.stats).toEqual(plain.stats);
   const enabled=compileArcMotion(spec,17,{...options,futureValueModel:corrected});

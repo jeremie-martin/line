@@ -21,8 +21,8 @@ export type ArcMotionControl={entry:number; turn:number; exit:number; support:nu
   profileEnd?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
-export function normalizeArcTurnFraction(fraction:number,support:number,preserveImplicit=false):number{
-  return clamp(fraction,preserveImplicit?Math.min(.1,5/support):.1,.85);
+export function normalizeArcTurnFraction(fraction:number,support:number):number{
+  return clamp(fraction,Math.min(.1,5/support),.85);
 }
 
 /** A fixed number of long physical faces is independent of support duration.

@@ -6,9 +6,9 @@ type ControlKey = keyof ArcMotionControl;
 type Step = number | ((support: number) => number);
 type SearchMethod = 'coordinate' | 'response' | 'newton' | 'repair';
 export type ArcControlContext = {
-  span: number; bidirectional?: boolean; channel?: number; guides?: boolean;
+  span: number; channel?: number; guides?: boolean;
   profile?: string; foldAngle?:number; profileStrength?: number; profileStart?: number;
-  preserveTurnTiming?: boolean; independentExit?: boolean; exitRefinementOnly?: boolean;
+  independentExit?: boolean; exitRefinementOnly?: boolean;
   railLayout?:'paired'|'transfer';independentGuide?:boolean;
   observedReceiver?:boolean;compactFoldProposals?:boolean;
   responseGuideExtent?:boolean;
@@ -30,8 +30,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinition>> = {
   contactSide:{family:'topology',min:-1,max:1,tolerance:0,coordinate:2,normalize:v=>v<0?-1:1},
   entry: {family: 'core', min: -75, max: 85, tolerance: 2, coordinate: 3, response: 2, repair: 1},
-  turn: {family: 'core', min: -120, max: 120, tolerance: 4, coordinate: 8, response: 5, repair: 3,
-    normalize: (v, _c, context) => clamp(v, -120, context.bidirectional ? 120 : 15)},
+  turn: {family: 'core', min: -120, max: 120, tolerance: 4, coordinate: 8, response: 5, repair: 3},
   exit: {family: 'core', min: -80, max: 85, tolerance: 4, coordinate: 10, response: 6, repair: 3},
   support: {family: 'core', min: 2, max: Infinity, tolerance: 1,
     coordinate: s => Math.max(1, s * .18), response: s => Math.max(.6, s * .1),
@@ -45,7 +44,7 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
   guideEnd: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15, response:.06, repair:.04, searchDefault: () => 1},
   turnFraction: {family: 'expressive', min: .1, max: .85, tolerance: .06, coordinate: .12, response: .08, repair: .06,
     searchDefault: c => Math.min(5, c.support * .5) / c.support,
-    normalize: (v, c, context) => normalizeArcTurnFraction(v, c.support, context.preserveTurnTiming)},
+    normalize: (v, c) => normalizeArcTurnFraction(v, c.support)},
   bend: {family: 'expressive', min: -60, max: 60, tolerance: 5, coordinate: 10, response: 7, repair: 5},
   guideFlare: {family: 'expressive', min: -16, max: 16, tolerance: 2, coordinate: 4, response: 2.5, repair: 2},
   exitBias: {family: 'exit', min: -3, max: 3, tolerance: .3, coordinate: .5, response: .4,

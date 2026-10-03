@@ -70,11 +70,11 @@ it('keeps a deliberate face count across support lengths and verifies physical c
   expect(arcMainSteps(10)).toBe(40);
 });
 
-it('searches fixed faces without bypassing real geometry or memo identity',()=>{
+it('searches fixed faces without bypassing real geometry',()=>{
   const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-  const options={budget:25000,samples:24,channel:12,radius:24,bidirectional:true,pruneGuidance:true,memoCandidates:true,faces:3};
-  const a=compileArcMotion(spec,17,options),b=compileArcMotion(spec,17,{...options,reuseEvaluations:true});
-  expect(a.track).toEqual(b.track);expect(a.stats.sim_frames).toBeLessThanOrEqual(options.budget);
+  const options={budget:25000,samples:24,channel:12,radius:24,faces:3};
+  const a=compileArcMotion(spec,17,options);
+  expect(a.stats.sim_frames).toBeLessThanOrEqual(options.budget);
   expect(a.rows.length).toBeGreaterThan(0);
   for(const row of a.rows)expect(a.track.lines.filter(l=>l.id>=1000+a.rows.indexOf(row)*10000&&l.id<1004+a.rows.indexOf(row)*10000)).toHaveLength(4);
 });
@@ -140,14 +140,13 @@ it('keeps ribbon rungs unique and their collision normals facing upstream',()=>{
   expect(()=>railContours([{...input[0],type:1}],'teeth',1001)).toThrow('normal lines');
   expect(()=>railContours([makeSolidLine(0,0,0,0,0)],'teeth',1)).toThrow('nondegenerate');
 });
-it.each(MOTION_PROFILES)('searches and independently replays %s within the same budget, with memo parity',method=>{
+it.each(MOTION_PROFILES)('searches and independently replays %s within the same budget',method=>{
   const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-  const options={budget:25000,samples:24,channel:12,radius:24,bidirectional:true,pruneGuidance:true,memoCandidates:true,...galleryArcOptions(method)};
+  const options={budget:25000,samples:24,channel:12,radius:24,...galleryArcOptions(method)};
   const result=compileArcMotion(spec,17,options);
   expect(result.track.lines.length).toBeGreaterThan(0);
   expect(result.track.lines.every(l=>l.type===0)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
-  expect(compileArcMotion(spec,17,{...options,reuseEvaluations:true}).track).toEqual(result.track);
 });
 
 it.each(RAIL_CONTOURS)('repeats the complete %s structure across the rail',kind=>{
@@ -158,17 +157,8 @@ it.each(RAIL_CONTOURS)('repeats the complete %s structure across the rail',kind=
   }
 });
 
-it('offers full paired guides independently of archived contour experiments',async()=>{
+it('offers paired guides independently of archived contour experiments',async()=>{
   const {galleryActiveMethods}=await import('../scripts/gallery/methods.ts');
   expect(galleryActiveMethods).toContain('paired');
   for(const method of RAIL_CONTOURS)expect(galleryActiveMethods).not.toContain(method);
-  const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-  const options={budget:25000,samples:24,channel:12,radius:24,bidirectional:true,pruneGuidance:true};
-  const trimmed=compileArcMotion(spec,17,options),full=compileArcMotion(spec,17,{...options,...galleryArcOptions('paired')});
-  expect(full.guidanceReduction).toBeNull();
-  expect(trimmed.guidanceReduction.removedSegments).toBeGreaterThan(0);
-  expect(full.track.lines.length).toBeGreaterThan(trimmed.track.lines.length);
-  expect(full.stats.sim_frames).toBe(trimmed.stats.sim_frames);
-  const retained=new Map(full.track.lines.map(l=>[l.id,l]));
-  for(const line of trimmed.track.lines)expect(retained.get(line.id)).toEqual(line);
 });

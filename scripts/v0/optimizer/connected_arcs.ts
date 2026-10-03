@@ -60,10 +60,10 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
     policySamples: Math.round(32 * proposalGuidanceSamples / 160),
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
-    // Rank unprobed arrivals with the model, then use its value at the
-    // simulated continuation boundary. Do not blend it into the root twice.
-    // Calibrate model influence directly, independently of curve-search allocation.
-    valueSelection: false, valueWeight: .45,
+    // Rank unprobed arrivals with the model; its value at the simulated
+    // continuation boundary is weighted separately below. Calibrate model
+    // influence directly, independently of curve-search allocation.
+    valueWeight: .45,
     // Let the learned arrival estimate guide geometry refinement before planning.
     valueGuidanceWeight: .25,
     continuationValueWeight: .5 * planningGuidanceSamples / 96 };

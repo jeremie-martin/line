@@ -81,7 +81,6 @@ export type ArcMotionOptions= Omit<ArcGeometryStyle,'contour'|'alignedFoldEntry'
   terminalSelection?:boolean;
   /** Keep the inherited five-frame turn representable during refinement. */
   preserveTurnTiming?:boolean;
-  refineIndependentExit?:boolean;
   /** Measure the final objective at the authored end; still validate the grace. */
   authoredHorizon?:boolean;
   /** Retain useful search pressure beyond the public amplitude cap. */
@@ -123,28 +122,17 @@ export type ArcMotionOptions= Omit<ArcGeometryStyle,'contour'|'alignedFoldEntry'
   expressive?:boolean;
   localOnly?:boolean;
   arrivalReference?:any;
-  boundaryWeight?:number;
   refineAttempts?:number;
   refineSamples?:number;
   refineGuidanceSamples?:number;
   refineWidth?:number;
-  refineBoundaryWeight?:number;
-  refineSelection?:'regret'|'rate';
   refineMode?:'translate'|'reflow';
   adaptivePlanning?:boolean;
   strictHorizon?:boolean;
   directControls?:ArcMotionControl[];
-  refineDirect?:boolean;
-  refineRebuildSamples?:number;
-  refineRebuildGuidanceSamples?:number;
   /** Spend remaining work on the ending without reconstructing a long suffix. */
   refineTailSections?:number;
-  /** Whole-track error can originate in the preceding approach. */
-  refineUpstream?:boolean;
-  refineExpressive?:boolean;
   responseSamples?:number;
-  refineFollowSamples?:number;
-  refineUseAlternatives?:boolean;
   cachePrefixReads?:boolean;
   /** Reuse completed evaluations only within the same physical search prefix. */
   memoCandidates?:boolean;
@@ -159,8 +147,7 @@ export type ArcMotionOptions= Omit<ArcGeometryStyle,'contour'|'alignedFoldEntry'
   continuationValueWeight?:number;
   valueWeight?:number;
   /** Blend learned arrival value into local geometry optimization as well as ranking. */
-  valueGuidanceWeight?:number;
-  valueSelection?:boolean};
+  valueGuidanceWeight?:number};
 
 export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
   const result=compileArcMotionOnce(spec,seed,options);
@@ -501,7 +488,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         const tail=state.points.TAIL,nose=state.points.NOSE,dx=nose.x-tail.x,dy=nose.y-tail.y;
         const angularRate=(dx*(nose.vy-tail.vy)-dy*(nose.vx-tail.vx))/Math.max(1,dx*dx+dy*dy);
         if(options.arrivalReference){
-          const target=options.arrivalReference,weight=Math.sqrt((options.boundaryWeight??1)/10);
+          const target=options.arrivalReference,weight=Math.sqrt(1/10);
           const here=state.points.PEG,there=target.state.points.PEG;
           for(const key of Object.keys(state.points)){
             const a=state.points[key],b=target.state.points[key];
@@ -940,7 +927,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
           lookaheadStats.maxDepth=Math.max(lookaheadStats.maxDepth,future?.depth??0);
           const terminal=options.lookaheadObjective==='terminal'||depth>1;
           let value=future?(terminal?candidate.localCost:candidate.cost)+(terminal?future.value:future.localValue):Infinity;
-          if(future&&options.valueSelection&&candidate.predictedFuture!==undefined)value+=(options.valueWeight??.5)*(candidate.localCost+candidate.predictedFuture-value);
           if(options.reuseContinuations){candidate.lookaheadValue=value;candidate.futureControl=future?.control;}
           probes.push({control:candidate.c,currentCost:candidate.cost,localCost:candidate.localCost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null,predictedFuture:candidate.predictedFuture});
           if(future&&(!winner||value<winner.value))winner={candidate,value,futureControl:future.control};

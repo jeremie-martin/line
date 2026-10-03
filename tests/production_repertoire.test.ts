@@ -57,8 +57,8 @@ it.each(['reflow','translate'] as const)('refines mixed constructions with %s an
  const {arcRailGroups}=await import('../scripts/v0/optimizer/arc_guidance.ts');
  const {sliceTimeline,effectiveAxes,axesAtFrame}=await import('../scripts/v0/core/substrate.ts');
  const plan=planIntentionalRepertoire(spec,101,{repertoire:['scattered']});
- const result=compileArcMotion(spec,101,{...repertoireSearchOptions(spec,plan,200000),constructionBudget:130000,
-  refineAttempts:2,refineDirect:true,refineSamples:0,refineWidth:2,refineMode,wholeTrackRefinement:true});
+ const result=compileArcMotion(spec,101,{...repertoireSearchOptions(spec,plan,200000),
+  refineAttempts:2,refineSamples:0,refineWidth:2,refineMode,wholeTrackRefinement:true});
  expect(result.failure).toBeNull();expect(result.refinementStats.frames).toBeGreaterThan(0);
  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
  const durationFrames=120,contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));

@@ -4,7 +4,6 @@ import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFra
 import type { DriftReport, TrackLine, Gap } from '../types.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { createArcEngine } from './arc_engine.ts';
-import { arcMethodKeys, arcControlStep, arcControlValue } from './arc_motion_control.ts';
 import type {MusicalImpactEvaluation} from './impact_search.ts';
 import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
 
@@ -69,7 +68,6 @@ export type ArcRefinementInput = {
   report: (raw: any, lines: TrackLine[]) => DriftReport;
   objective?: (raw:any, report:DriftReport, engine:Engine) => {loss:number;regrets:number[]};
   validate?: (engine:Engine,lines:TrackLine[],raw:any,rows:any[])=>boolean;
-  from?:number;
   engines?: {create:(lines:TrackLine[])=>Engine;add:(base:Engine,lines:TrackLine[])=>Engine;detach:(base:Engine)=>Engine};
 };
 
@@ -98,19 +96,16 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const width = options.refineWidth ?? 4, samples = options.refineSamples ?? 48;
       const regret = contacts.map((contact, i) => {
         let error = objective?.regrets[i]??0;
-        // A missed landing target can require a different incoming state. Offer
-        // its preceding approach too; complete replay still decides acceptance.
-        if(options.refineUpstream)error+=objective?.regrets[i+1]??0;
         if(!objective)for (const gap of incumbentReport.gaps) for (const [axis, value] of Object.entries(gap.axes)) {
           if (!value) continue;
           const belongs = axis === 'impact' ? gap.gap_index === contact.gap : gap.gap_index === i;
           if (belongs) error += value.error ** 2 * (axis === 'amplitude' ? (options.amplitudeWeight ?? 1 / 3) : 1);
         }
         const span = (contacts[i + 1]?.frame ?? end + 1) - contact.frame;
-        const estimate = contact.frame + span * (samples + (options.refineGuidanceSamples??24) + 8) + (end - contact.frame + 1) * width * (1 + (options.refineFollowSamples ?? 0) * 1.25);
-        const priority = error / (1 + tries[i]) / (options.refineSelection === 'rate' ? estimate : 1);
+        const estimate = contact.frame + span * (samples + (options.refineGuidanceSamples??24) + 8) + (end - contact.frame + 1) * width;
+        const priority = error / (1 + tries[i]);
         return {index: i, error, estimate, priority};
-      }).filter(x => x.index>=Math.max(input.from??0,options.refineTailSections===undefined?0:contacts.length-options.refineTailSections)&&x.error > 0 && getPhysicsFrameCount() + x.estimate <= ceiling)
+      }).filter(x => x.index>=Math.max(0,options.refineTailSections===undefined?0:contacts.length-options.refineTailSections)&&x.error > 0 && getPhysicsFrameCount() + x.estimate <= ceiling)
         .sort((a, b) => b.priority - a.priority || a.index - b.index);
       if (!regret.length) break;
       const selected = regret[0], i = selected.index, frame = contacts[i].frame;
@@ -123,21 +118,10 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const before = JSON.stringify(getRiderMetered(base, frame - 1).ballisticState());
       const boundary = getRiderMetered(incumbent, horizon);
       const reference = {position: boundary.position, velocity: boundary.velocity, state: boundary.ballisticState()};
-      const control = sourceRows[i].control;
-      const style={...options,...options.sectionStyles?.[i]};
-      const directKeys=arcMethodKeys('repair',!!(options.expressive||options.refineExpressive),false,style.guides,style);
-      const scale = Math.pow(.5, Math.floor((tries[i] - 1) / 2));
-      const directControls = directKeys.flatMap(key => [-1, 1].map(sign => ({...control,
-        [key]: arcControlValue(control,key,options.channel) + sign * arcControlStep(key,'repair',control.support) * scale})));
-      const retainedControls = options.refineUseAlternatives ? input.alternatives?.[i]?.map(a => a.c) : undefined;
-      const searchResult = search(base, i, {directControls: retainedControls?.length ? retainedControls : options.refineDirect ? directControls : undefined, warmStart: sourceRows[i].control, localOnly: true,
+      const searchResult = search(base, i, {warmStart: sourceRows[i].control, localOnly: true,
         samples, guidanceSamples: options.refineGuidanceSamples ?? 24,
         arrivalWeight: 0, headingWeight: 0, arrivalReference: input.objective&&i+1===contacts.length?undefined:reference,
-        independentExit:options.refineIndependentExit??options.independentExit,
-        exitRefinementOnly:options.refineIndependentExit?true:options.exitRefinementOnly,
-        minExitSupport:options.refineIndependentExit?12:options.minExitSupport,
-        completeGuidanceBudget:input.objective?true:options.completeGuidanceBudget,
-        boundaryWeight: options.refineBoundaryWeight ?? 1}, [incumbent]);
+        completeGuidanceBudget:input.objective?true:options.completeGuidanceBudget}, [incumbent]);
       if (!searchResult) {Engine.retainOnly([incumbent]); continue;}
       const candidates = searchResult.candidates.slice().sort((a: any, b: any) => a.cost - b.cost);
       const offered = new Set<string>(); let evaluated = 0;
@@ -161,10 +145,8 @@ export function refineArcTrack(input: ArcRefinementInput) {
         if (options.refineMode === 'reflow') {
           for (let j = i + 1; j < contacts.length; j++) {
             const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
-            let next = search(child, j, {samples: options.refineFollowSamples ?? 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,...(!planned&&options.constructionRequests?{warmIncoming:sourceRows[j].incoming}:{})}, [incumbent, base]);
-            if(!next?.best&&(options.refineRebuildSamples??0)>0)next=search(child,j,{samples:options.refineRebuildSamples,
-              guidanceSamples:options.refineRebuildGuidanceSamples??12,warmStart:sourceRows[j].control,
-              ...(options.refineRebuildGuidanceSamples!==undefined?{warmIncoming:sourceRows[j].incoming}:{})},[incumbent,base]);
+            // Rebuild the suffix from its recorded (or planned) controls only.
+            const next = search(child, j, {samples: 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,...(!planned&&options.constructionRequests?{warmIncoming:sourceRows[j].incoming}:{})}, [incumbent, base]);
             if (!next?.best) {completed = false; break;}
             proposed.push(...next.best.lines); child = operations.detach(next.best.child);
             proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,

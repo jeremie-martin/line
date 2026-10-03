@@ -1,9 +1,0 @@
-{
-  "schema": "line.benchmark-v2.study-provenance.v1",
-  "artifact": "benchmark/v2/studies/menu-certification.json",
-  "artifactSha256": "ceee37a87aa3f23b15f323a698ea57338884cc3b7df56e29fc6c7b4d385e7d57",
-  "generatedAt": "2026-07-21T23:21:57.329Z",
-  "runtimeSeconds": 146.502,
-  "workers": 48,
-  "command": "node --import tsx scripts/benchmark/validate_independent_reference.ts"
-}

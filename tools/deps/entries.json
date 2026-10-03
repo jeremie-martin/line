@@ -1,0 +1,21 @@
+{
+  "comment": "The product's entry points. Code unreachable from these is deleted (history keeps it).",
+  "entries": [
+    "scripts/produce/automatic.ts",
+    "scripts/produce/production_library.ts",
+    "scripts/produce/render_repertoire.ts",
+    "scripts/gallery/repertoire_api.ts",
+    "scripts/gallery/build_renderer.mjs",
+    "scripts/serve.ts",
+    "scripts/benchmark/v6.ts",
+    "benchmark/v6/*.ts",
+    "motion-gallery/production.js",
+    "scripts/gallery/check_production_ui.mjs",
+    "motion-gallery/replay.js",
+    "motion-gallery/contact-impact-review.js",
+    "scripts/v0/bench/sim_trace.ts",
+    "productions/*/spec.ts",
+    "tools/**/*.ts",
+    "tools/**/*.mjs"
+  ]
+}

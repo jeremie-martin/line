@@ -5,7 +5,7 @@ import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {spawn} from 'node:child_process';
 import {loadCatalog} from '../../benchmark/v6/model.ts';
-import {verifyFrozen} from '../../benchmark/v6/contract.ts';
+import {judgeIdentity} from '../../benchmark/v6/contract.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
 import {requestScore,summarize} from '../../benchmark/v6/evaluator.ts';
 import {caseSpec,sha} from '../../benchmark/v4/model.ts';
@@ -14,7 +14,7 @@ import {inspectRepertoireLayout as inspectRepertoire} from '../v0/optimizer/repe
 import {replayV6} from '../../benchmark/v6/replay.ts';
 import {arcRailGroups} from '../v0/optimizer/arc_rail_groups.ts';
 const arg=(k:string,d?:string)=>process.argv.find(a=>a.startsWith('--'+k+'='))?.slice(k.length+3)??d;
-const command=process.argv[2],catalog=loadCatalog(),frozen=verifyFrozen();
+const command=process.argv[2],catalog=loadCatalog(),frozen=judgeIdentity();
 const read=(p:string)=>{const b=readFileSync(p);assert.equal(sha(b),readFileSync(p+'.sha256','utf8').trim());return JSON.parse(b.toString());};
 if(command==='worker'){
  const out=resolve(arg('out')!),runPlan=read(join(out,'plan.json')),id=arg('id')!,seed=Number(arg('seed'));
@@ -86,7 +86,7 @@ if(command==='worker'){
      completed++;if(completed%8===0)console.log(JSON.stringify({completed,total:cases.length*seeds.length}));
    }
  }));
- assert.deepEqual(galleryCompilerIdentity(compilerRoot),compiler,'compiler changed during V6 run');assert.deepEqual(verifyFrozen(),frozen);
+ assert.deepEqual(galleryCompilerIdentity(compilerRoot),compiler,'compiler changed during V6 run');assert.deepEqual(judgeIdentity(),frozen);
  assert.equal(sha(readFileSync(import.meta.filename)),plan.executionSha256,'V6 runner changed during execution');
  const rows=cases.flatMap(c=>seeds.map(seed=>read(join(out,'cells',c.id+'-'+seed+'.json'))));
  for(const row of rows)assert.equal(row.planSha256,planHash);

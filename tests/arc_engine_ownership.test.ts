@@ -30,7 +30,7 @@ it('preserves caller-owned judge engines across successful and failed compilatio
     const spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
     try{
       for(let i=0;i<2;i++){
-        const result=compileHandoff(spec,17,{budget:30000});
+        const result=compileHandoff(spec,17,{budget:30000,creative:{}});
         assert.ok(result.stats.sim_frames<=30000);
         assert.deepEqual([capture(caller),capture(sibling)],before);
         assert.throws(()=>compileArcMotion(spec,17,{budget:30000,controlPolicy:()=>{throw new Error('injected proposal failure');}}),/injected/);

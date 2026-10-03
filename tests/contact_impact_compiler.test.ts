@@ -30,7 +30,7 @@ it('uses the same impact account in automatic construction, replay and review wi
   expect(repeat.physicalFrames).toBe(r.physicalFrames);
 });
 it('rejects unknown measurement contracts explicitly',()=>{
-  expect(()=>compileHandoff(spec,101,{budget:180000,impactContract:'unknown' as any})).toThrow('unknown impact contract');
+  expect(()=>compileHandoff(spec,101,{budget:180000,creative:{},impactContract:'unknown' as any})).toThrow('unknown impact contract');
 });
 
 it('measures a real opposing receiver on its body-contact onset without changing the incoming history',async()=>{

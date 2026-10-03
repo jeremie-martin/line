@@ -1,4 +1,4 @@
-/** Small local job queue for the creative workspace. Compilers run in isolated
+/** Small local job queue for automatic production requests. Compilers run in isolated
  * child processes; their WASM ownership and work meters never overlap in-server. */
 import type {IncomingMessage,ServerResponse} from 'node:http';
 import {spawn,execFileSync,type ChildProcess} from 'node:child_process';
@@ -6,6 +6,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,readdirSync,writeFileSync,renameSync,openSync,closeSync} from 'node:fs';
 import {join,resolve,relative} from 'node:path';
 import {resolveJoltMs} from '../produce/seed.ts';
+import {compilerIdentity} from '../lib/compiler_identity.ts';
 import {loadSelect} from '../produce/config.ts';
 import {repertoireCatalog,validateGalleryRequest,isAutomatic,requestSong,type GalleryRequest} from './repertoire_catalog.ts';
 const hash=(data:string|Buffer)=>createHash('sha256').update(data).digest('hex');
@@ -36,11 +37,9 @@ export function createRepertoireApi(root=process.cwd()){
  function identity(request:GalleryRequest){
   // Includes untracked compiler sources and engine bytes, plus the authored inputs,
   // jolt environment and all of the shared artifact harness. Never cache by title.
-  const compiler=execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',
-   'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts";console.log(compilerCandidateIdentity("wasm").candidateFingerprint)'],
-   {cwd:root,encoding:'utf8',env:{...process.env,LR_ENGINE:'wasm'}}).trim();
-  const paths=['scripts/produce/repertoire.ts','scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
-   'scripts/gallery/artifacts.ts','scripts/gallery/repertoire_cache.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
+  const compiler=compilerIdentity(root).candidateFingerprint;
+  const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
+   'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
    ...readdirSync(join(root,'productions',requestSong(request))).filter(p=>/\.(ts|json)$/.test(p)).map(p=>`productions/${requestSong(request)}/${p}`)];
   const cfg=loadSelect(join(root,'productions',requestSong(request)));
   return hash(JSON.stringify({request,compiler,jolt:resolveJoltMs(),spec:hash(readFileSync(cfg.spec)),audio:hash(readFileSync(cfg.audio)),render:cfg.render,files:paths.map(p=>[p,hash(readFileSync(join(root,p)))])}));
@@ -55,7 +54,7 @@ export function createRepertoireApi(root=process.cwd()){
   try{let args:string[];
   if(item.render){
    args=['--import','tsx','scripts/produce/render_repertoire.ts',`--study=${join(dir,'output')}`];job.render='rendering';job.renderError=undefined;
-  }else{job.identity=identity(job.request);args=['--import','tsx',isAutomatic(job.request)?'scripts/produce/automatic.ts':'scripts/produce/repertoire.ts',`--request=${join(dir,'request.json')}`,`--out=${join(dir,'output')}`];job.status='compiling';}
+  }else{job.identity=identity(job.request);args=['--import','tsx','scripts/produce/automatic.ts',`--request=${join(dir,'request.json')}`,`--out=${join(dir,'output')}`];job.status='compiling';}
   persist(job);const fd=openSync(join(dir,item.render?'render.log':'compile.log'),'a');
   const child=spawn(process.execPath,args,{cwd:root,env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore',fd,fd],detached:true});closeSync(fd);
   active.set(item.render,{...item,child});let finished=false;
@@ -82,7 +81,7 @@ export function createRepertoireApi(root=process.cwd()){
    if(req.method==='GET'&&action==='jobs'){json(res,{jobs:[...jobs.values()].sort((a,b)=>b.created.localeCompare(a.created))});return true;}
    if(req.method==='POST'&&action==='validate'){json(res,{request:validateGalleryRequest(await body(req))});return true;}
    if(req.method==='POST'&&action==='compile'){
-    const request=validateGalleryRequest(await body(req));const key=identity(request);
+    const request=validateGalleryRequest(await body(req));if(!isAutomatic(request))throw new Error('only automatic arrangements are supported');const key=identity(request);
     const existing=[...jobs.values()].find(j=>j.identity===key&&['queued','compiling','complete'].includes(j.status)&&
      (j.status!=='complete'||completeArtifacts(directory(j.id))));
     if(existing){json(res,{job:existing,reused:true});return true;}

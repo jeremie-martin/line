@@ -1,9 +1,0 @@
-{
-  "schema": "line.benchmark-v2.study-provenance.v1",
-  "artifact": "benchmark/v2/studies/power-grid.json",
-  "artifactSha256": "9191b3862585e0a6dc928b0eff8f2f853aefdae33c2ea8a6b36e1f3ca2c9465e",
-  "generatedAt": "2026-07-11T19:17:31.884Z",
-  "runtimeSeconds": 1574.576,
-  "workers": 48,
-  "command": "node --import tsx scripts/benchmark/study_power_grid.ts"
-}

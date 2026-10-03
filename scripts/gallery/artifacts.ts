@@ -1,19 +1,15 @@
 /** Shared identity, artifact writing and fixed-engine replay for gallery studies. */
-import {execFileSync} from 'node:child_process';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {sha,type Case} from '../../benchmark/v3/model.ts';
 import {evaluateDetection} from '../../benchmark/v4/evaluator.ts';
 import {detect,extractRawTrajectory} from '../lib/detector.ts';
 import {CONTACT_IMPACT_CONTRACT} from '../lib/contact_impact.ts';
+import {compilerIdentity} from '../lib/compiler_identity.ts';
 import {impactFrames,evaluateMusicalImpacts} from '../v0/optimizer/impact_search.ts';
 const {LineRiderEngine:Engine,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../lib/_lr_engine_wasm.ts?gallery-artifact-replay',import.meta.url).href);
-export function galleryCompilerIdentity(root:string){
-  return JSON.parse(execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',
-    'import {compilerCandidateIdentity} from "./scripts/v0/benchmark_v2/compiler_identity.ts"; const {trackedChanges,...identity}=compilerCandidateIdentity("wasm"); console.log(JSON.stringify(identity));'],
-    {cwd:root,encoding:'utf8',maxBuffer:16*1024*1024}));
-}
+export const galleryCompilerIdentity=(root:string)=>compilerIdentity(root);
 export const galleryHarnessIdentity=(paths:string[])=>Object.fromEntries(paths.map(p=>[p,sha(readFileSync(p))]));
 export function writeGalleryJson(out:string,name:string,value:unknown){
   const body=JSON.stringify(value)+'\n';writeFileSync(resolve(out,name),body);writeFileSync(resolve(out,name+'.sha256'),sha(body)+'\n');return sha(body);

@@ -1,50 +1,28 @@
-/** Public compiler routing and compatibility APIs.
- * Ordinary supported WASM requests use coherent normal arcs. The legacy prefix
- * search remains available for other axes, reference engines and diagnostic
- * options. Existing requests retain exactly the same routing conditions.
- */
-import { FPS, type Spec } from "../types.ts";
-import type { CompileCheckpoint } from "./types.ts";
+/** The compiler's public entry point: a music spec plus either seeded creative
+ * preferences (automatic arrangement) or an explicit construction plan. */
+import {FPS,type Spec} from '../types.ts';
+import type {CompileCheckpoint} from './types.ts';
 import type {CreativePreferences,ProductionPlan} from './repertoire_policy.ts';
 import type {compileArcMotion} from './arc_motion.ts';
-import type {compileProductionRepertoire} from './production_repertoire.ts';
+import {compileProductionRepertoire} from './production_repertoire.ts';
 import type {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
-import {CompileBudgetTelemetryRecorder} from './budget_telemetry.ts';
+import {CompileBudgetTelemetryRecorder,type BudgetTelemetryLevel} from './budget_telemetry.ts';
 import {sliceTimeline} from '../core/substrate.ts';
-// Reference-engine checkouts need no WASM artifacts or arc models. Load the arc
-// graph only for the engine selection that can dispatch to it (as in _lr_engine).
-const arcBackend = (process.env.LR_ENGINE ?? "wasm") === "wasm"
-  ? await import("./connected_arcs.ts") : undefined;
-const repertoireBackend = (process.env.LR_ENGINE ?? "wasm") === "wasm"
-  ? await import('./production_repertoire.ts') : undefined;
-import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler_input.ts";
-import { compileLegacyHandoff, compileHandoffFromSnapshot,
-  type CompileHandoffOptions, type HandoffNodeSnapshot } from "./legacy_handoff.ts";
-
-// Preserve diagnostic and snapshot imports used by existing studies. New studies
-// of the old search should import legacy_handoff.ts explicitly.
-export * from "./legacy_handoff.ts";
-
-export function handoffBackend(userSpec: Spec, opts: CompileHandoffOptions): "arcs" | "legacy" {
-  return (process.env.LR_ENGINE ?? "wasm") === "wasm" &&
-    Object.entries(opts).every(([key, value]) => value === undefined || key === "budget" || key === "budgetTelemetry") &&
-    Object.keys(userSpec.axes).every(axis => ["air", "speed", "amplitude"].includes(axis)) &&
-    userSpec.contacts.length > 0 && userSpec.contacts.every(c => Math.round(c.t * FPS) >= 6) &&
-    opts.budget > 4 * (Math.round(userSpec.duration * FPS) + 20) ? "arcs" : "legacy";
-}
+import {normalizeCompilerTimeline,validateCompilerTelemetry} from './compiler_input.ts';
+type CompileHandoffOptions={budget:number;budgetTelemetry?:BudgetTelemetryLevel};
 
 export type ProductionCompileOptions=CompileHandoffOptions&{creative?:CreativePreferences;constructionPlan?:ProductionPlan;phraseBoundaries?:number[];impactContract?:typeof CONTACT_IMPACT_CONTRACT.id};
 export type ProductionCheckpoint=CompileCheckpoint&{construction?:ReturnType<typeof compileArcMotion>;repertoire?:ReturnType<typeof compileProductionRepertoire>};
 export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompileOptions): ProductionCheckpoint {
   userSpec = normalizeCompilerTimeline(userSpec);
   validateCompilerTelemetry(opts.budgetTelemetry);
-  if(opts.creative!==undefined||opts.constructionPlan!==undefined||opts.impactContract!==undefined){
-    if(!repertoireBackend)throw new Error('creative production currently requires the WASM engine');
+  {
+    if(opts.creative===undefined&&opts.constructionPlan===undefined)throw new Error('compileHandoff requires creative preferences or an explicit construction plan');
     if(Object.keys(userSpec.axes).some(axis=>!['air','speed','amplitude'].includes(axis)))throw new Error('creative production supports air, speed and amplitude axes');
     if(opts.creative!==undefined&&opts.constructionPlan!==undefined)throw new Error('choose creative preferences or an explicit construction plan');
     if(opts.constructionPlan!==undefined&&opts.phraseBoundaries!==undefined)throw new Error('explicit plans already contain their phrase boundaries');
     if(Object.entries(opts).some(([key,value])=>value!==undefined&&!['budget','budgetTelemetry','creative','constructionPlan','phraseBoundaries','impactContract'].includes(key)))throw new Error('legacy search options cannot be combined with creative production');
-    const repertoire=repertoireBackend.compileProductionRepertoire(userSpec,seed,{budget:opts.budget,creative:opts.creative,plan:opts.constructionPlan,phraseBoundaries:opts.phraseBoundaries,impactContract:opts.impactContract});
+    const repertoire=compileProductionRepertoire(userSpec,seed,{budget:opts.budget,creative:opts.creative,plan:opts.constructionPlan,phraseBoundaries:opts.phraseBoundaries,impactContract:opts.impactContract});
     const {result,physicalFrames,searchTotals}=repertoire,duration=Math.round(userSpec.duration*FPS);
     const recorder=new CompileBudgetTelemetryRecorder({level:opts.budgetTelemetry??'summary',
       gaps:sliceTimeline(userSpec.contacts.map(c=>Math.round(c.t*FPS)),duration),durationFrames:duration,
@@ -65,47 +43,4 @@ export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompile
         validation_retries:0,polish_iterations:0,total_committed_cost:costs.reduce((n,c)=>n+c,0),committed_costs_per_gap:costs,sim_frames:physicalFrames,
         ballistic_micro_sim_frames:0,budget_exhausted:result.searchBudgetExhausted,first_completion_frame:repertoire.valid?physicalFrames:null}};
   }
-  return handoffBackend(userSpec, opts) === "arcs"
-    ? arcBackend!.compileConnectedArcs(userSpec, seed, opts)
-    : compileLegacyHandoff(userSpec, seed, opts);
-}
-
-/** Build a budget->checkpoint curve as N INDEPENDENT full runs from scratch (no
- *  anytime sharing) — the single place that defines "a curve is one compile per
- *  budget, merging the shared opts". `runOne` is the per-budget compile call. */
-function budgetCurve(
-  budgets: number[],
-  opts: Omit<CompileHandoffOptions, "budget">,
-  runOne: (o: CompileHandoffOptions) => CompileCheckpoint,
-): CompileCheckpoint[] {
-  return budgets.map((budget) => runOne({ ...opts, budget }));
-}
-
-/** Diagnostic helper: a budget->checkpoint curve as N independent `compileHandoff` runs. */
-export function compileBudgetCurve(
-  userSpec: Spec,
-  seed: number,
-  budgets: number[],
-  opts: Omit<CompileHandoffOptions, "budget"> = {},
-): CompileCheckpoint[] {
-  return budgetCurve(budgets, opts, (o) => compileHandoff(userSpec, seed, o));
-}
-
-/** Snapshot-resumed variant of `compileBudgetCurve` (N independent suffix runs). */
-export function compileBudgetCurveFromSnapshot(
-  userSpec: Spec,
-  seed: number,
-  snapshot: HandoffNodeSnapshot,
-  budgets: number[],
-  opts: Omit<CompileHandoffOptions, "budget"> = {},
-): CompileCheckpoint[] {
-  return budgetCurve(budgets, opts, (o) => compileHandoffFromSnapshot(userSpec, seed, snapshot, o));
-}
-
-/** Find the checkpoint for `budget` in a `compileBudgetCurve*` result; throws if
- *  absent. Shared by the diagnostic oracle/probe scripts. */
-export function checkpointAt(curve: CompileCheckpoint[], budget: number): CompileCheckpoint {
-  const found = curve.find((c) => c.budget === budget);
-  if (found === undefined) throw new Error(`missing checkpoint for budget ${budget}`);
-  return found;
 }

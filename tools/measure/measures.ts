@@ -65,11 +65,12 @@ function impulses(o: Obs) {
     for (const [px, py, qx, qy] of fr.points) {x += px - qx; y += py - qy;}
     com.push([x / 10, y / 10]);
   }
-  for (let f = 0; f + 1 < n; f++) {
-    impulse[f] = Math.hypot(com[f + 1][0] - com[f][0], com[f + 1][1] - com[f][1] - G);
+  // The solve of frame f changes velocity from frame f-1 to f: zero when nothing touches.
+  for (let f = 1; f < n; f++) {
+    impulse[f] = Math.hypot(com[f][0] - com[f - 1][0], com[f][1] - com[f - 1][1] - G);
     let worst = 0;
     for (let p = 0; p < 10; p++) {
-      const [a, b, c, d] = o.frames[f].points[p], [e, g, h, i] = o.frames[f + 1].points[p];
+      const [a, b, c, d] = o.frames[f - 1].points[p], [e, g, h, i] = o.frames[f].points[p];
       worst = Math.max(worst, Math.hypot((e - h) - (a - c), (g - i) - (b - d) - G));
     }
     jolt[f] = worst;

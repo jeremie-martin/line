@@ -275,7 +275,7 @@ async function dumpForensics(
                     const canvas = n.canvas;
                     const webgl = (function () {
                       const c = document.createElement("canvas");
-                      const gl = c.getContext("webgl") || c.getContext("experimental-webgl");
+                      const gl = (c.getContext("webgl") || c.getContext("experimental-webgl")) as WebGLRenderingContext | null;
                       if (!gl) return { ok: false };
                       const dbg = gl.getExtension && gl.getExtension("WEBGL_debug_renderer_info");
                       return {

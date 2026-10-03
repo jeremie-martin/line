@@ -37,7 +37,7 @@ export function cameraSidecarToRenderPlan(sidecar: CameraSidecar | null | undefi
   const zoomKeyframes = zoom.keyframes.map(([frame, log2Zoom]) => [frame, log2Zoom] as [number, number]);
   return {
     zoomKeyframes,
-    autoZoom: denseLinearZoomFromLog2Keyframes(zoomKeyframes, sidecar.durationFrames),
+    autoZoom: denseLinearZoomFromLog2Keyframes(zoomKeyframes, sidecar!.durationFrames),
     zoomSmoothing: zoom.smoothingFrames ?? 0,
   };
 }

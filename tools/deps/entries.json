@@ -24,7 +24,8 @@
     "mirror/**",
     "remotion/src/**",
     "vendor/**",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "scripts/types/*.d.ts"
   ],
   "assetsComment": "Loaded by path at runtime (browser bundle, Line Rider app mirror, Remotion compositions) or by tooling; not import-reachable."
 }

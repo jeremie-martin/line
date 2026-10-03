@@ -11,7 +11,7 @@ import { arcConstructionMemoryKey, type ArcControlMemory } from './arc_memory.ts
 import { arcSpanLoss } from './arc_boundary.ts';
 import { CONTACT_IMPACT_CONTRACT, contactImpactPrefix } from '../../lib/contact_impact.ts';
 import { impactFrames } from './impact_search.ts';
-import type { ArcMotionOptions } from './arc_motion.ts';
+import { evaluationContext, type IntervalOptions, type IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -24,9 +24,9 @@ export type Fragments = {lines: TrackLine[]; guideIds: number[]};
 
 /** Compile options with the per-call overrides and the section style applied,
  * plus the learned policy and arrival preferences this interval implies. */
-export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overrides: Partial<ArcMotionOptions>) {
+export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overrides: IntervalOverrides) {
   const compileOptions = ctx.options;
-  const options: ArcMotionOptions = {...compileOptions, ...overrides, ...compileOptions.sectionStyles?.[i]};
+  const options: IntervalOptions = {...compileOptions, ...overrides, ...compileOptions.sectionStyles?.[i]};
   const constructionPolicy = i > 0 ? options.constructionPolicies?.[arcConstructionMemoryKey(options)] : undefined;
   if (constructionPolicy) options.controlPolicy = constructionPolicy;
   const nextRequest = options.constructionRequests?.[i + 1];
@@ -43,7 +43,7 @@ export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overri
  * targets, nominal support and turn. Returns null when the interval is too
  * short to hold a support. The calm-impact multiplier is applied to
  * `options.impactWeight` here. */
-export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, options: ArcMotionOptions,
+export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, options: IntervalOptions,
   controlMemory: ArcControlMemory, protectedEngines: Engine[]) {
   const {contacts, end, planned, gaps, duration, impactTargets} = ctx;
   const {frame, gap} = contacts[i], next = contacts[i + 1]?.frame ?? end + 1, horizon = next - 1;
@@ -123,20 +123,17 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
 export type IntervalSearch = NonNullable<ReturnType<typeof openInterval>>;
 
 /** The candidate memo for this search. Measurements are shared between
- * searches only from an identical physical prefix with identical evaluation
- * settings; at most 32 such contexts are kept, most recently used last. */
-function selectMemo(ctx: ArcCompileContext, engine: Engine, i: number, options: ArcMotionOptions) {
+ * searches only from an identical physical prefix with an identical memo
+ * context (see EVALUATION_IDENTITY), never while an arrival reference is set
+ * or a different future-value model is in use; at most 32 such contexts are
+ * kept, most recently used last. */
+function selectMemo(ctx: ArcCompileContext, engine: Engine, i: number, options: IntervalOptions) {
   const {prefixes, prefixKey, memoContexts} = ctx.lineage;
   let memo = options.memoCandidates ? new Map<string, any>() : null;
   const prefix = prefixes.get(engine);
   if (options.reuseEvaluations && prefix && !options.arrivalReference &&
     (!options.futureValueModel || options.futureValueModel === ctx.options.futureValueModel)) {
-    const context = prefixKey(prefix) + '|' + JSON.stringify([i, options.channel, options.radius, options.faces, options.profile,
-      options.profileStrength, options.profileStart, options.rippleCycles, options.foldAngle, options.guides, options.railLayout,
-      options.independentGuide, options.amplitudeWeight, options.impactWeight, options.arrivalWeight, options.arrivalMode,
-      options.headingWeight, options.completeBoundary, options.authoredHorizon, options.amplitudeOverflow, options.terminalSelection,
-      options.valueGuidanceWeight, options.constructionRequests?.[i], options.motionQuality, options.impactContract, options.impactSearch,
-      !!options.futureValueModel, !!options.observedReceiver]);
+    const context = prefixKey(prefix) + '|' + evaluationContext(options, i);
     const saved = memoContexts.get(context);
     if (saved) {
       memo = saved;
@@ -150,7 +147,7 @@ function selectMemo(ctx: ArcCompileContext, engine: Engine, i: number, options: 
 
 /** Span axes of `g` over [g.startFrame, rangeEnd]; with amplitude overflow a
  * capped amplitude keeps its raw (or logarithmic) excess as search pressure. */
-export function objectiveAxes(options: ArcMotionOptions, det: ReturnType<typeof detect>, g: Gap, rangeEnd: number) {
+export function objectiveAxes(options: IntervalOptions, det: ReturnType<typeof detect>, g: Gap, rangeEnd: number) {
   const axes = measureGapAxes(det, g, [], rangeEnd);
   if (options.amplitudeOverflow && g.targets.amplitude !== undefined && axes.amplitude === 1) {
     const rawAmplitude = measureAmplitudePeakPx(det, g, rangeEnd)! / CALIB.AMPLITUDE_CAP;

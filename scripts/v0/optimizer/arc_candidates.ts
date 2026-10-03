@@ -1,7 +1,7 @@
 /** Ranking, arrival diversity and restoration of measured interval
  * candidates, shared by lookahead planning and interval commitment. */
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import type { ArcMotionOptions } from './arc_motion.ts';
+import type { ArcMotionOptions } from './arc_options.ts';
 
 /** Candidate cost with its learned future value blended in by `valueWeight`. */
 export function valueRank(options: ArcMotionOptions, c: any) {

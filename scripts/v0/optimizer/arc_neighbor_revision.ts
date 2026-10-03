@@ -8,19 +8,9 @@ import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlValue, arcControlStep, arcMethodKeys } from './arc_motion_control.ts';
 import { refineArcPair, type PairMeasurement } from './arc_pair_response.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
-import type { ArcMotionOptions } from './arc_motion.ts';
+import { transitionRevisionSettings } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import type { ArcSequence } from './arc_sequence.ts';
-
-/** Transition revision settings with their defaults, or undefined when off. */
-export function transitionRevisionSettings(options: ArcMotionOptions) {
-  const revision = options.transitionRevision
-    ? {errorThreshold: .12, width: 3, samples: 48, guidanceSamples: 96, responseSamples: 88, ...options.transitionRevision} : undefined;
-  if (revision && (!Number.isFinite(revision.errorThreshold) || revision.errorThreshold < 0 ||
-    ![revision.width, revision.samples, revision.guidanceSamples, revision.responseSamples].every(v => Number.isSafeInteger(v) && v >= 0) ||
-    revision.width > 12)) throw new Error('invalid transition revision');
-  return revision;
-}
 
 /** When interval `i` misses its targets by more than the error threshold and
  * the remaining work allows, re-search it from each retained alternative of

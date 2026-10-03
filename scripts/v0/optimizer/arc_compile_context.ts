@@ -8,7 +8,7 @@ import { makeRng } from '../../lib/rng.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { ArcControlMemory, arcConstructionMemoryKey } from './arc_memory.ts';
 import { createArcLineage } from './arc_lineage.ts';
-import type { ArcMotionOptions } from './arc_motion.ts';
+import type { ArcMotionOptions } from './arc_options.ts';
 
 const rad = (x: number) => x * Math.PI / 180;
 

@@ -10,7 +10,7 @@ import { searchInterval, type IntervalResult } from './arc_interval.ts';
 import { distinctArrival, restoreCandidate } from './arc_candidates.ts';
 import { planLookahead } from './arc_lookahead.ts';
 import { reviseTransition, refineCoupledPair } from './arc_neighbor_revision.ts';
-import type { ArcMotionOptions } from './arc_motion.ts';
+import type { IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -78,7 +78,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
  * falls below the observed construction rate. */
 function intervalAllowance(ctx: ArcCompileContext, seq: ArcSequence, i: number) {
   const {options, contacts, end, budget, work} = ctx;
-  const overrides: Partial<ArcMotionOptions> = seq.pendingControl?.index === i ? {warmStart: seq.pendingControl.control} : {};
+  const overrides: IntervalOverrides = seq.pendingControl?.index === i ? {warmStart: seq.pendingControl.control} : {};
   // Normalize the observed rate back to the full local allocation, so an
   // emergency reduction does not falsely make later full searches look cheap.
   let localScale = 1;

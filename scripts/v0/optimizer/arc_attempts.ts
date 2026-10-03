@@ -3,7 +3,7 @@
  * production gallery artifacts, which store it alongside each track. */
 import {createHash} from 'node:crypto';
 import type {DriftReport} from '../types.ts';
-import type {ArcMotionOptions} from './arc_motion.ts';
+import type {ArcMotionOptions} from './arc_options.ts';
 
 type Outcome = {
   track: unknown; rows: any[]; report: DriftReport; failure: unknown; trajectoryLoss?: number; selectionLoss?: number;

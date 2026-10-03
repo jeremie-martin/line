@@ -6,6 +6,8 @@ import { measureGapAxes } from '../core/measure.ts';
 import { createArcEngine } from './arc_engine.ts';
 import type {MusicalImpactEvaluation} from './impact_search.ts';
 import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
+import type { ArcMotionOptions, IntervalOverrides } from './arc_options.ts';
+import type { IntervalResult } from './arc_interval.ts';
 
 export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3): number {
   if (report.terminus.reason !== 'endOfSpec' || report.off_beat_landings.length ||
@@ -63,8 +65,8 @@ export type ArcRefinementInput = {
   engine: Engine; lines: TrackLine[]; rows: any[]; alternatives?: any[][];
   contacts: Array<{frame: number; gap: number}>; end: number;
   start: {position: {x: number; y: number}; velocity: {x: number; y: number}};
-  budget: number; options: any;
-  search: (engine: Engine, index: number, overrides: any, protectedEngines: Engine[]) => any;
+  budget: number; options: ArcMotionOptions;
+  search: (engine: Engine, index: number, overrides: IntervalOverrides, protectedEngines: Engine[]) => IntervalResult | null;
   report: (raw: any, lines: TrackLine[]) => DriftReport;
   objective?: (raw:any, report:DriftReport, engine:Engine) => {loss:number;regrets:number[]};
   validate?: (engine:Engine,lines:TrackLine[],raw:any,rows:any[])=>boolean;
@@ -123,7 +125,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const searchResult = search(base, i, {warmStart: sourceRows[i].control, localOnly: true,
         samples, guidanceSamples: options.refineGuidanceSamples ?? 24,
         arrivalWeight: 0, headingWeight: 0, arrivalReference: input.objective && i + 1 === contacts.length ? undefined : reference,
-        completeGuidanceBudget: input.objective ? true : options.completeGuidanceBudget}, [incumbent.engine]);
+        ...(input.objective ? {completeGuidanceBudget: true} : {})}, [incumbent.engine]);
       if (!searchResult) {
         Engine.retainOnly([incumbent.engine]);
         continue;

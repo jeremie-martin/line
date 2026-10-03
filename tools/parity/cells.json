@@ -1,12 +1,12 @@
 {
  "schema": "line.parity-cells.v1",
  "references": {
-  "default": "generated/intentional-motion/v6-candidate-8 (compiler 5b031f7e, reproduced exactly at 7e2a3dfb)",
-  "contact": "generated/general-impact-20261002/complete-contact-panel (compiler 7cbf50c3 == 7e2a3dfb)"
+  "landing": "generated/intentional-motion/v6-candidate-8 (compiler 5b031f7e, reproduced exactly at 7e2a3dfb)",
+  "strike": "recorded at the strike account adoption (line.strike.v1, strike search profile v1)"
  },
  "cells": [
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_luna_bala_44s-arcs-paired",
    "seed": 101,
    "panel": "fixed",
@@ -18,7 +18,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_luna_bala_44s-fold-paired",
    "seed": 303,
    "panel": "fixed",
@@ -30,7 +30,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_luna_bala_44s-scallops-paired",
    "seed": 303,
    "panel": "fixed",
@@ -42,7 +42,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_luna_bala_44s-scattered-paired",
    "seed": 303,
    "panel": "fixed",
@@ -54,7 +54,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_luna_bala_44s-serpentine-paired",
    "seed": 303,
    "panel": "fixed",
@@ -66,7 +66,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_luna_bala_44s-single-paired",
    "seed": 303,
    "panel": "fixed",
@@ -78,7 +78,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_luna_bala_44s-terraces-paired",
    "seed": 404,
    "panel": "fixed",
@@ -90,7 +90,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_amor_na_praia_46s-arcs-transfer",
    "seed": 202,
    "panel": "fixed",
@@ -102,7 +102,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_amor_na_praia_46s-fold-transfer",
    "seed": 202,
    "panel": "fixed",
@@ -114,7 +114,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_amor_na_praia_46s-terraces-transfer",
    "seed": 101,
    "panel": "fixed",
@@ -126,7 +126,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_amor_na_praia_46s-fold-paired",
    "seed": 202,
    "panel": "fixed",
@@ -138,7 +138,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_amor_na_praia_46s-scattered-paired",
    "seed": 101,
    "panel": "fixed",
@@ -150,7 +150,7 @@
    "fulfilled": 3
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_amor_na_praia_46s-automatic",
    "seed": 101,
    "panel": "automatic",
@@ -162,7 +162,7 @@
    "fulfilled": 78
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_luna_bala_44s-automatic",
    "seed": 101,
    "panel": "automatic",
@@ -174,7 +174,7 @@
    "fulfilled": 75
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_tiki_tiki_48s-automatic",
    "seed": 202,
    "panel": "automatic",
@@ -186,7 +186,7 @@
    "fulfilled": 77
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-music_amour_de_ma_vie_short_44s-automatic",
    "seed": 404,
    "panel": "automatic",
@@ -198,7 +198,7 @@
    "fulfilled": 85
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-bridge_frontier_dense_recovery-automatic",
    "seed": 101,
    "panel": "automatic",
@@ -210,7 +210,7 @@
    "fulfilled": 123
   },
   {
-   "mode": "default",
+   "mode": "landing",
    "id": "canonical-bridge_frontier_pickup_progression-automatic",
    "seed": 101,
    "panel": "automatic",
@@ -222,54 +222,54 @@
    "fulfilled": 110
   },
   {
-   "mode": "contact",
+   "mode": "strike",
    "id": "canonical-music_luna_bala_44s-arcs-paired",
    "seed": 303,
    "panel": "fixed",
-   "trackHash": "fd53db1ddc935db8905acc162e8604a3116c76e189a70788b3e934bb533d380f",
-   "physicalFrames": 2288765,
-   "quality": 875.9981,
-   "loss": 0.0010763549261401167
+   "trackHash": "71888993ace2ca967f466811928bb401311a69352ec72bf6d32e0e94d08278c0",
+   "physicalFrames": 2303367,
+   "quality": 848.2062,
+   "loss": 0.0020672411094827775
   },
   {
-   "mode": "contact",
+   "mode": "strike",
    "id": "canonical-music_luna_bala_44s-fold-paired",
    "seed": 303,
    "panel": "fixed",
-   "trackHash": "e3fe61bec84b4a93a0bf9a955306d6e953eb15d90676ec6154c9a64faef1164b",
-   "physicalFrames": 2318354,
-   "quality": 869.3324,
-   "loss": 0.0009543774935045249
+   "trackHash": "5c9462f56e2ca06c7c434c1db6f92f7b04a2a1edee15b7034720305f8ceb26eb",
+   "physicalFrames": 2339425,
+   "quality": 839.6844,
+   "loss": 0.002152371800472818
   },
   {
-   "mode": "contact",
+   "mode": "strike",
    "id": "canonical-music_luna_bala_44s-scattered-paired",
    "seed": 404,
    "panel": "fixed",
-   "trackHash": "beab9b98f3accba63dd2e5ae586c839dda9c46bb24207e6315bf7e261b9261cf",
-   "physicalFrames": 2265696,
-   "quality": 850.7765,
-   "loss": 0.001410685453037497
+   "trackHash": "6731974c96eb3962fc89b2deb401c4063f5fe0863fb04241eefa3066e7e548da",
+   "physicalFrames": 2300879,
+   "quality": 828.093,
+   "loss": 0.002673405434977232
   },
   {
-   "mode": "contact",
+   "mode": "strike",
    "id": "canonical-music_luna_bala_44s-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "9169bf03b9f7cd0b74d8dab1566f47b7d853ce252b282132d2f04634fed5125c",
-   "physicalFrames": 2125985,
-   "quality": 811.6774,
-   "loss": 0.0026201479045136243
+   "trackHash": "dffa3655474417e43067110aeb378202ff494ccc5cb13424ab1f674ed50018b4",
+   "physicalFrames": 2062240,
+   "quality": 720.2587,
+   "loss": 0.013592071411383867
   },
   {
-   "mode": "contact",
+   "mode": "strike",
    "id": "canonical-music_tiki_tiki_48s-automatic",
    "seed": 202,
    "panel": "automatic",
-   "trackHash": "2e37b3f77cc27f801a66bca12691918095a968ede475065f967437990581018d",
-   "physicalFrames": 2281703,
-   "quality": 708.33,
-   "loss": 0.010787119355919042
+   "trackHash": "6d5ebde421939d611d5e8e2989d82b408309cecad4ab253ae8050ef458e5575a",
+   "physicalFrames": 2416434,
+   "quality": 686.4764,
+   "loss": 0.016347150702466853
   }
  ]
 }

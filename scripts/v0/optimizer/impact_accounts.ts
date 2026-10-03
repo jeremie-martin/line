@@ -4,12 +4,12 @@
  * go through `impactAccount(id)`, so a measurement change is one registry entry and
  * never a scattered set of branches. Observation reads only already simulated
  * frames: it never steps physics.
- *  - line.contact-impact.v1: experimental account of the October 2 campaign.
- *  - line.strike.v1: centre-of-mass strikes (scripts/lib/strike_impact.ts). */
-import {CONTACT_IMPACT_CONTRACT, contactImpactPrefix, continueContactImpacts, accountContactImpacts,
-  contactSpeedGains, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';
+ *  - line.strike.v1: centre-of-mass strikes (scripts/lib/strike_impact.ts), the
+ *    product's impact account. (line.contact-impact.v1, its predecessor, is kept
+ *    only as a research diagnostic in tools/measure.) */
+export const DEFAULT_IMPACT_ACCOUNT = 'line.strike.v1';
+import {CONTACT_IMPACT_CONTRACT, accountContactImpacts, contactSpeedGains, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';
 import {STRIKE_CONTRACT, observeStrikes, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes} from '../../lib/strike_impact.ts';
-import {impactFrames, evaluateMusicalImpacts} from './impact_search.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
 /** Per-frame observation shared by every account: contact plus the speed-gain terms. */
@@ -28,15 +28,6 @@ export type ImpactAccount = {
  * final replay, production and review). */
 export type ImpactEvaluation = {contract: string; events: ContactImpactEvent[]; targets: readonly ImpactTarget[];
   account: ReturnType<typeof accountContactImpacts>; valid: boolean; speedGains: ReturnType<typeof contactSpeedGains>};
-
-const contactV1: ImpactAccount = {
-  id: CONTACT_IMPACT_CONTRACT.id, matchFrames: CONTACT_IMPACT_CONTRACT.matchFrames,
-  observe: (engine, raw, terminal) => impactFrames(engine, raw, terminal),
-  prefix: observed => contactImpactPrefix(observed as any),
-  continue: (prefix, observed) => continueContactImpacts(prefix as any, observed as any),
-  account: (events, targets) => accountContactImpacts(events, targets),
-  evaluate: (observed, targets, duration, survived) => evaluateMusicalImpacts(observed as any, targets, duration, survived),
-};
 
 const strikeV1: ImpactAccount = {
   id: STRIKE_CONTRACT.id, matchFrames: CONTACT_IMPACT_CONTRACT.matchFrames,
@@ -61,7 +52,7 @@ const strikeV1: ImpactAccount = {
   },
 };
 
-const ACCOUNTS: Record<string, ImpactAccount> = {[contactV1.id]: contactV1, [strikeV1.id]: strikeV1};
+const ACCOUNTS: Record<string, ImpactAccount> = {[strikeV1.id]: strikeV1};
 export const IMPACT_ACCOUNT_IDS = Object.keys(ACCOUNTS);
 export type ImpactAccountId = keyof typeof ACCOUNTS;
 export function impactAccount(id: string): ImpactAccount {

@@ -1,7 +1,7 @@
 /** Structural-change safety net. Structural steps must leave every parity cell
  * byte-identical: same track hash, same physics-frame count, same judgment.
  *
- *   node --import tsx tools/parity/parity.ts compile [--mode=default|contact] [--jobs=23]
+ *   node --import tsx tools/parity/parity.ts compile [--mode=landing|strike] [--jobs=23]
  *   node --import tsx tools/parity/parity.ts judge   [--all]
  *
  * `compile` recompiles the committed cells in fresh processes.
@@ -18,7 +18,7 @@ import {loadCatalog} from '../../benchmark/v6/model.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
 import {caseSpec, sha} from '../../benchmark/v4/model.ts';
 
-type Cell = {mode: 'default' | 'contact'; id: string; seed: number; panel: string; trackHash: string; physicalFrames: number;
+type Cell = {mode: 'landing' | 'strike'; id: string; seed: number; panel: string; trackHash: string; physicalFrames: number;
   score?: number; musicalScore?: number; valid?: boolean; fulfilled?: number; quality?: number; loss?: number};
 const root = new URL('.', import.meta.url).pathname;
 const cellsPath = join(root, 'cells.json');
@@ -26,7 +26,7 @@ const doc = JSON.parse(readFileSync(cellsPath, 'utf8')) as {cells: Cell[]};
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
 const trackFile = (c: Cell) => join(root, 'tracks', `${c.mode}-${c.id}-${c.seed}.json.gz`);
-const CONTACT = 'line.contact-impact.v1';
+const STRIKE = 'line.strike.v1';
 
 function caseOf(cell: {id: string}) {
   const catalog = loadCatalog(), c = catalog.cases.find((c: any) => c.id === cell.id)!;
@@ -38,7 +38,7 @@ async function compileWorker(index: number, out: string) {
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
   const began = performance.now();
   const checkpoint = compileHandoff(caseSpec(music), cell.seed, {budget: policy.budget,
-    ...(cell.mode === 'contact' ? {impactContract: CONTACT} : {}),
+    ...(cell.mode === 'strike' ? {impactContract: STRIKE} : {}),
     ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})});
   writeFileSync(out, JSON.stringify({trackHash: sha(JSON.stringify(checkpoint.track)), physicalFrames: checkpoint.stats.sim_frames,
     compileMs: performance.now() - began, track: checkpoint.track}));
@@ -46,14 +46,14 @@ async function compileWorker(index: number, out: string) {
 
 async function judgeTrack(cell: Cell, track: any) {
   const {c, music} = caseOf(cell);
-  if (cell.mode === 'default') {
+  if (cell.mode === 'landing') {
     const {judgeV6Track} = await import('./v6_cell.ts');
     const j = judgeV6Track(track, c, music, cell.seed);
     return {score: j.score, musicalScore: j.musicalScore, valid: j.valid, fulfilled: j.fulfilled};
   }
   const {replayGalleryTrack} = await import('../../scripts/gallery/artifacts.ts');
   const {contactImpactGrade} = await import('../../scripts/gallery/contact_impact_grade.ts');
-  const replay = replayGalleryTrack(track, music, true, CONTACT), impact = replay.impactEvaluation!;
+  const replay = replayGalleryTrack(track, music, true, STRIKE), impact = replay.impactEvaluation!;
   return {quality: contactImpactGrade(replay.grade, impact).score.score, loss: impact.account.loss};
 }
 
@@ -104,7 +104,7 @@ else if (command === 'compile') {
     const run = JSON.parse(readFileSync(join(ref, 'run.json'), 'utf8'));
     for (const row of run.rows) {
       if (row.executionError) continue;
-      const cell = {mode: 'default', id: row.id, seed: row.seed} as Cell;
+      const cell = {mode: 'landing', id: row.id, seed: row.seed} as Cell;
       const actual = await judgeTrack(cell, JSON.parse(readFileSync(join(ref, 'tracks', `${row.id}-${row.seed}.json`), 'utf8')));
       const diff = compare(row, actual, ['score', 'musicalScore', 'valid', 'fulfilled']);
       if (diff.length) failures.push(`stored ${row.id} #${row.seed}: ${diff.join('; ')}`);

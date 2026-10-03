@@ -5,7 +5,7 @@ const names={arcs:'Arcs',fold:'Folds',serpentine:'S sweeps',scallops:'Ripples',t
 let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,audioObjectUrl,libraryEntries=[],interactionReview;
 const audioCache=new Map();
 const impactReview=createContactImpactReview({seek:t=>{pause();$('movie').pause();seek(t);}});
-const scoreName=r=>r.impactContract?'Experimental impact quality':'Landing score';
+const scoreName=r=>r.impactContract?'Impact quality ('+r.impactContract+')':'Landing score (previous objective)';
 // Range controls serialize with reduced precision. Preserve the policy default
 // until the artist actually changes it, including for exact request cache reuse.
 let guidedBalance=Number($('balance').defaultValue);
@@ -93,7 +93,7 @@ async function openResult(path,job,initialTime=0){
   $('comparison').disabled=false;
   $('result-title').textContent=`${m.plan.cases[0].title} · seed ${ride.seed}`;$('result-note').textContent=p.qualified?'Complete ride · every requested construction fulfilled.':ride.valid?'Complete ride · some requested constructions were not fulfilled.':`Incomplete ride · ${ride.failure?.reason??p.constructionFailure??'see saved diagnostics'}`;$('result-note').classList.toggle('error',!p.qualified);
   $('production-metrics').textContent=`${scoreName(ride)} ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} requests · ${fmt(ride.compileMs/1000,1)} s`;
-  if(ride.impactContract)$('result-note').textContent='Experimental automatic arrangement. '+$('result-note').textContent;
+  if(!ride.impactContract)$('result-note').textContent='Previous landing objective, kept for comparison. '+$('result-note').textContent;
   impactReview.bind(data[0]);
   interactionReview?.bind(data[0],cells[0].sha256,url);
   $('seek').min=interactionReview?.range?.[0]??0;
@@ -141,7 +141,7 @@ async function loadLibrary(){try{
  let collectionNote=$('collection-note');
  if(!collectionNote){collectionNote=el('p');collectionNote.id='collection-note';$('library').before(collectionNote);}
  collectionNote.textContent=data.description??'';collectionNote.hidden=!data.description;
- $('generate').querySelector('button[type=submit]').textContent=data.contract?'Generate with validated compiler':'Generate a track';
+ $('generate').querySelector('button[type=submit]').textContent='Generate a track';
  $('library').replaceChildren(...data.entries.map(entry=>{const c=card(`${entry.title} · ${entry.seed}`,entry.error??entry.status??'Saved automatic arrangement');if(entry.manifest){const b=el('button','Open ride');b.onclick=()=>openResult(entry.manifest);c.append(b);}return c;}));
  if(params.has('review')){
   const {createInteractionReview}=await import('./interaction-review.js');

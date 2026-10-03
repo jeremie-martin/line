@@ -11,10 +11,13 @@ import {validateAutomaticProductionRequest,repertoireSongs} from '../gallery/rep
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {loadMusicCase,saveMusicCell} from './music_artifacts.ts';
 import {resolveJoltMs} from './seed.ts';
-import {IMPACT_ACCOUNT_IDS,type ImpactAccountId} from '../v0/optimizer/impact_accounts.ts';
+import {IMPACT_ACCOUNT_IDS,DEFAULT_IMPACT_ACCOUNT,type ImpactAccountId} from '../v0/optimizer/impact_accounts.ts';
 const arg=(key:string,d?:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3)??d;
-const impactContract=arg('impact-contract') as ImpactAccountId|undefined;
-if(impactContract!==undefined&&!IMPACT_ACCOUNT_IDS.includes(impactContract))throw new Error(`unknown impact contract; known: ${IMPACT_ACCOUNT_IDS.join(', ')}`);
+// The product optimizes the strike account; 'landing' requests the previous landing
+// objective (frozen V6 ruler), kept temporarily for side-by-side review.
+const requestedContract=arg('impact-contract',DEFAULT_IMPACT_ACCOUNT)!;
+if(requestedContract!=='landing'&&!IMPACT_ACCOUNT_IDS.includes(requestedContract))throw new Error(`unknown impact contract; known: ${IMPACT_ACCOUNT_IDS.join(', ')}, landing`);
+const impactContract=requestedContract==='landing'?undefined:requestedContract as ImpactAccountId;
 if(!arg('out'))throw new Error('--out required; outputs are preserved rather than overwritten');
 const request=validateAutomaticProductionRequest(arg('request')?JSON.parse(readFileSync(resolve(arg('request')!),'utf8')):
  {mode:'production',song:arg('song','luna_bala_44s'),seed:Number(arg('seed','101')),budget:Number(arg('budget','3000000')),

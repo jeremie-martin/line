@@ -1,6 +1,6 @@
 /** Behavioural evaluation of the production compiler, with songs as the unit.
  *
- *   node --import tsx tools/eval/eval.ts run    --name=DIR [--mode=default|contact|strike] [--jobs=24]
+ *   node --import tsx tools/eval/eval.ts run    --name=DIR [--mode=strike|landing] [--jobs=24]
  *   node --import tsx tools/eval/eval.ts report --name=DIR [--against=DIR]
  *
  * Panel: each production song × 4 arrangement seeds (distinct plans, so distinct
@@ -17,7 +17,7 @@ import {makeRng} from '../../scripts/lib/rng.ts';
 import {compilerIdentity} from '../../scripts/lib/compiler_identity.ts';
 
 const SONGS = ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'amour_de_ma_vie_44s'];
-const BUDGET = 3_000_000, CONTACT = 'line.contact-impact.v1';
+const BUDGET = 3_000_000;
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 type Case = {id: string; song: string; seed: number; perturbation: number | null};
 export const PANEL: Case[] = [
@@ -49,12 +49,11 @@ async function worker(caseId: string, mode: string, out: string) {
   const spec = c.perturbation ? perturb(loaded.spec, c.perturbation) : loaded.spec;
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};
   const began = performance.now();
-  const contract = ({contact: CONTACT, strike: 'line.strike.v1'} as Record<string, string>)[mode];
+  const contract = mode === 'landing' ? undefined : 'line.strike.v1';
   const cp = compileHandoff(spec, c.seed, {budget: BUDGET, creative: {}, ...(contract ? {impactContract: contract as any} : {}),
     phraseBoundaries: loaded.musicCase.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter((t: any) => Number.isFinite(t))});
   const compileMs = performance.now() - began, r = cp.repertoire!;
   const frozen = replayGalleryTrack(cp.track, music, false).grade;
-  const contact = replayGalleryTrack(cp.track, music, false, CONTACT).impactEvaluation!;
   const targets = music.contacts, observation = observe(cp.track, music.durationFrames, targets);
   const strikes = detectStrikes(strikeFrames(observation)).filter(e => e.onset <= music.durationFrames);
   const strike = accountStrikes(strikes, targets);
@@ -63,7 +62,7 @@ async function worker(caseId: string, mode: string, out: string) {
   writeFileSync(out, JSON.stringify({case: c, mode, trackHash: createHash('sha256').update(JSON.stringify(cp.track)).digest('hex'),
     physicalFrames: r.physicalFrames, compileMs, complete: r.valid, fulfilled: r.qualified,
     frozen: {valid: frozen.score.valid, score: frozen.score.score, axes: frozen.score.components},
-    contact: {valid: contact.valid, loss: contact.account.loss, strengthMse: contact.account.strengthMse, timingMse: contact.account.timingMse, extraMse: contact.account.extraMse},
+    contact: {loss: observation.contactAccount.loss, strengthMse: observation.contactAccount.strengthMse, timingMse: observation.contactAccount.timingMse, extraMse: observation.contactAccount.extraMse},
     strike: {loss: strike.loss, strengthMse: strike.strengthMse, timingMse: strike.timingMse, extraMse: strike.extraMse, missing: strike.missingTargets.length},
     motion: r.motion.full, beats}));
 }
@@ -101,9 +100,9 @@ function bootstrap(perSong: Map<string, number>, draws = 4000) {
 }
 
 const command = process.argv[2];
-if (command === 'worker') await worker(arg('case')!, arg('mode', 'default')!, arg('out')!);
+if (command === 'worker') await worker(arg('case')!, arg('mode', 'strike')!, arg('out')!);
 else if (command === 'run') {
-  const name = arg('name')!, mode = arg('mode', 'default')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
+  const name = arg('name')!, mode = arg('mode', 'strike')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
   mkdirSync(join(dir, 'cells'), {recursive: true});
   const identity = compilerIdentity('.');
   if (existsSync(join(dir, 'run.json'))) {

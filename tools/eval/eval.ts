@@ -1,6 +1,6 @@
 /** Behavioural evaluation of the production compiler, with songs as the unit.
  *
- *   node --import tsx tools/eval/eval.ts run    --name=DIR [--mode=default|contact] [--jobs=24]
+ *   node --import tsx tools/eval/eval.ts run    --name=DIR [--mode=default|contact|strike] [--jobs=24]
  *   node --import tsx tools/eval/eval.ts report --name=DIR [--against=DIR]
  *
  * Panel: each production song × 4 arrangement seeds (distinct plans, so distinct
@@ -49,7 +49,8 @@ async function worker(caseId: string, mode: string, out: string) {
   const spec = c.perturbation ? perturb(loaded.spec, c.perturbation) : loaded.spec;
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};
   const began = performance.now();
-  const cp = compileHandoff(spec, c.seed, {budget: BUDGET, creative: {}, ...(mode === 'contact' ? {impactContract: CONTACT} : {}),
+  const contract = ({contact: CONTACT, strike: 'line.strike.v1'} as Record<string, string>)[mode];
+  const cp = compileHandoff(spec, c.seed, {budget: BUDGET, creative: {}, ...(contract ? {impactContract: contract as any} : {}),
     phraseBoundaries: loaded.musicCase.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter((t: any) => Number.isFinite(t))});
   const compileMs = performance.now() - began, r = cp.repertoire!;
   const frozen = replayGalleryTrack(cp.track, music, false).grade;

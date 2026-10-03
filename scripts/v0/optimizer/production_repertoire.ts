@@ -32,7 +32,7 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   let physicalFrames=result.stats.sim_frames;
   const fragmentSections=plan.requests.filter(r=>r.construction==='scattered'&&r.section<result.rows.length).map(r=>r.section);
   const railGuides:Record<number,number[]>=Object.fromEntries(fragmentSections.map(i=>[i,result.rows[i].railGuides??[]]));
-  const searchTotals={samples:result.samples,viable:result.stats.viable_candidate_samples,backtracks:result.backtracks,rebuilds:result.engineRebuilds??result.backtracks+2};
+  const searchTotals={samples:result.samples,viable:result.stats.viable_candidate_samples,backtracks:result.backtracks,rebuilds:result.backtracks+2};
   const work:Array<{stage:string;allowance:number;physicalFrames:number;complete:boolean}>=[{stage:'shared-search',allowance,physicalFrames,complete:complete(result)}];
   const constructionFailure=complete(result)?null:result.failure?.reason??'incomplete';
   const fragmented=new Set(fragmentSections);

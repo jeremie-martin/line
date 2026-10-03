@@ -3,7 +3,8 @@
 import type {ArcMotionOptions} from './arc_motion.ts';
 type GeometryOptions=Pick<ArcMotionOptions,'profile'|'profileStart'|'foldAngle'|'faces'|'contour'|'wave'|'subdivisions'>;
 type GuideOptions=Pick<ArcMotionOptions,'pruneGuidance'|'guides'|'channel'>;
-type SearchOptions=Pick<ArcMotionOptions,'policyPreview'>;
+/** Historical gallery settings, shown with each recipe; the compiler no longer reads them. */
+type SearchOptions={policyPreview?:boolean};
 type ArcRecipe=GeometryOptions&GuideOptions&SearchOptions;
 type Method = {title:string;description:string;geometry?:GeometryOptions;guidance?:GuideOptions;search?:SearchOptions;archived?:boolean;studyOnly?:boolean};
 export const railRecipes = {

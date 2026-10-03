@@ -33,7 +33,7 @@ it('preserves caller-owned judge engines across successful and failed compilatio
         const result=compileHandoff(spec,17,{budget:30000,creative:{}});
         assert.ok(result.stats.sim_frames<=30000);
         assert.deepEqual([capture(caller),capture(sibling)],before);
-        assert.throws(()=>compileArcMotion(spec,17,{budget:30000,controlPolicy:()=>{throw new Error('injected proposal failure');}}),/injected/);
+        assert.throws(()=>compileArcMotion(spec,17,{budget:30000,futureValueModel:{featureSchema:'invalid'}}),/future-value feature mismatch/);
         // Exercise allocation after cleanup: stale handles must not alias it.
         new Engine().setStart({x:-999,y:500},{x:0,y:0}).getRider(10);
         global.gc();await new Promise(r=>setTimeout(r,0));

@@ -34,7 +34,7 @@ function loadConstructionArtifact(){
 }
 export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:number):ArcMotionOptions{
  const artifact=plan.policy===INTENTIONAL_REPERTOIRE_POLICY?loadConstructionArtifact():undefined;
- return {...connectedArcOptions(spec,allowance),policyPreview:false,
+ return {...connectedArcOptions(spec,allowance),
   ...(plan.policy===INTENTIONAL_REPERTOIRE_POLICY?{
    motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},constructionProposals:true,constructionRecovery:true,
    // Preserve ordinary guidance where its physical assumptions apply. Active

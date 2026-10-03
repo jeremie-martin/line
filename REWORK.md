@@ -79,7 +79,7 @@ The October 3 audit (memory note `codex-era-audit-2026-10-03`) found:
 Each phase ends with a gate. Phases 0–2 must be byte-identical on the parity
 harness.
 
-### Phase 0 — Safety net
+### Phase 0 — Safety net (done)
 
 - **Parity harness** (`npm run parity`):
   - Fixed V6 cells covering every fixed family and the automatic panel,
@@ -91,7 +91,7 @@ harness.
 - **Typecheck:** a `typecheck` script that works, with the error count
   recorded as a ceiling that only goes down.
 
-### Phase 1 — Prune
+### Phase 1 — Prune (done)
 
 - Archive the unreachable code: studies, probes, old benchmark runners,
   galleries and dashboards that are not the production player, and
@@ -102,7 +102,7 @@ harness.
   actually exists.
 - **Gate:** parity, judge parity, live tests and typecheck ceiling.
 
-### Phase 2 — Restructure
+### Phase 2 — Restructure (done; geometry registry and judge/compiler file separation remain)
 
 - **Separate the contract.** Measurement (detector, impact rulers, scoring,
   layout checks) moves out of the compiler into `contract/`. It has an
@@ -118,7 +118,7 @@ harness.
 - **Replace the legacy-schema telemetry shim** with native telemetry.
 - **Gate:** parity (identical tracks), judge parity.
 
-### Phase 3 — Measurement foundation (with the owner)
+### Phase 3 — Measurement foundation (done: line.strike.v1, decided by physics and evidence at the owner's request; blind labelling remains available)
 
 - **Candidate sync measures:**
   - the renewal fix;
@@ -131,7 +131,7 @@ harness.
 - **Adopt one impact definition** only if it wins on holdout. It then becomes
   the single ruler for both the compiler and evaluation.
 
-### Phase 4 — Evaluation foundation
+### Phase 4 — Evaluation foundation (done except held-out new music, which needs new songs)
 
 - One evaluation command:
   - **Songs as units:** bootstrap intervals; completion and quality reported
@@ -146,7 +146,7 @@ harness.
   - competing hits;
   - every ruler's value.
 
-### Phase 5 — Compiler quality
+### Phase 5 — Compiler quality (in progress)
 
 Only on validated measures:
 

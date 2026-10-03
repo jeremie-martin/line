@@ -1,8 +1,0 @@
-{
-  "schema": "line.arc-compressed-policy.v1",
-  "compression": "gzip-file",
-  "file": "arc_control_policy_model.json.gz",
-  "uncompressedBytes": 243143468,
-  "sha256": "44d6cb631ce8c97ebcda5ab76caed9a7d507c59707ab925d47b5929e5059d854",
-  "compressedSha256": "0957c983e5fbb8da2200e344eca5f0042b414028c9a05b07c8e35140529bb010"
-}

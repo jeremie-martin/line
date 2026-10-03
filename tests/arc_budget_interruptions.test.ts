@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
 import { compileArcMotion } from '../scripts/v0/optimizer/arc_motion.ts';
-import { compileConnectedArcs } from '../scripts/v0/optimizer/connected_arcs.ts';
 import type { Spec } from '../scripts/v0/types.ts';
 
 const spec: Spec = { duration: 4, preroll: 5, jitter: 0,
@@ -40,15 +39,6 @@ it('commits a validated final curve without spending another frame to remember i
   expect(result.report.off_beat_landings).toHaveLength(0);
   expect(result.report.terminus.reason).toBe('endOfSpec');
   expect(result.stats.sim_frames).toBeLessThanOrEqual(5050);
-});
-
-it('reports exhausted search truthfully even when its retained track completes', () => {
-  const result = compileConnectedArcs(spec, 17, {budget: 2400});
-  expect(result.report.contacts.every(c => c.status === 'hit')).toBe(true);
-  expect(result.stats.budget_exhausted).toBe(true);
-  expect(result.budgetTelemetry?.compile.budget_exhausted).toBe(true);
-  expect(result.budgetTelemetry?.compile.hard_overrun_frames).toBe(0);
-  expect(result.budgetTelemetry?.compile.total_spent_frames).toBe(result.stats.sim_frames);
 });
 
 it('propagates non-budget evaluation errors', () => {

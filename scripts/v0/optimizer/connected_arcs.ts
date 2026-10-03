@@ -1,18 +1,12 @@
-/** Public integration of measured, connected normal-line arc construction. */
+/** Base search configuration for arc construction, scaled by ride length and frame budget. */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
-import { compileArcMotion, type ArcMotionOptions } from "./arc_motion.ts";
+import type { ArcMotionOptions } from "./arc_motion.ts";
 import futureValueModel from "./arc_value_model.json" with { type: "json" };
-import { resetPerCompileState } from "../core/compile_lifecycle.ts";
-import { sliceTimeline } from "../core/substrate.ts";
-import { CompileBudgetTelemetryRecorder, type BudgetTelemetryLevel } from "./budget_telemetry.ts";
-import type { CompileCheckpoint, Spec } from "./types.ts";
-import { normalizeCompilerTimeline, validateCompilerTelemetry } from "./compiler_input.ts";
+import type { Spec } from "../types.ts";
 
-// This is a data artifact; reading it directly also avoids expanding the large
-// model into generated JavaScript and source maps in development tooling.
-let controlPolicy: any;
+/** Reads a JSON model artifact, expanding a checksummed gzip companion file. */
 export function parseArcPolicyArtifact(bytes:Buffer|string,artifactUrl?:URL):any {
   const artifact=JSON.parse(bytes.toString());
   if(artifact.schema!=="line.arc-compressed-policy.v1")return artifact;
@@ -27,8 +21,6 @@ export function parseArcPolicyArtifact(bytes:Buffer|string,artifactUrl?:URL):any
     throw new Error("arc policy archive checksum mismatch");
   return JSON.parse(raw.toString());
 }
-const policyUrl=new URL("./arc_control_policy_model.json",import.meta.url);
-const loadControlPolicy = () => controlPolicy ??= parseArcPolicyArtifact(readFileSync(policyUrl),policyUrl);
 
 /** Production allocation from ride length and frame budget. Research can spread
  * this configuration and override a mechanism without duplicating shipped defaults. */
@@ -66,9 +58,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     completeBoundary: guidanceSamples > 0,
     memorySamples: Math.round(4 * planningGuidanceSamples / 96),
     memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
-    // Resolve only the selected policy. Research can replace this factory with
-    // another artifact without retaining an unused copy of the default model.
-    controlPolicy: guidanceSamples ? loadControlPolicy : undefined, policySamples: Math.round(32 * proposalGuidanceSamples / 160),
+    policySamples: Math.round(32 * proposalGuidanceSamples / 160),
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Rank unprobed arrivals with the model, then use its value at the
     // simulated continuation boundary. Do not blend it into the root twice.
@@ -77,45 +67,4 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     // Let the learned arrival estimate guide geometry refinement before planning.
     valueGuidanceWeight: .25,
     continuationValueWeight: .5 * planningGuidanceSamples / 96 };
-}
-
-export function compileConnectedArcs(spec: Spec, seed: number,
-  options: { budget: number; budgetTelemetry?: BudgetTelemetryLevel }): CompileCheckpoint & {construction:ReturnType<typeof compileArcMotion>} {
-  spec = normalizeCompilerTimeline(spec);
-  validateCompilerTelemetry(options.budgetTelemetry);
-  resetPerCompileState();
-  const searchOptions = connectedArcOptions(spec, options.budget);
-  const duration = Math.round(spec.duration * 40);
-  const samples = searchOptions.samples!;
-  const result = compileArcMotion(spec, seed, searchOptions);
-  const { track, report } = result, total = result.stats.sim_frames;
-  const gaps = sliceTimeline(spec.contacts.map(c => Math.round(c.t * 40)), duration);
-  const valid = report.contacts.every(c => c.status === "hit") &&
-    !report.off_beat_landings.length && report.terminus.reason === "endOfSpec";
-  const exhausted = result.searchBudgetExhausted || result.failure?.reason === "budget";
-  const recorder = new CompileBudgetTelemetryRecorder({ level: options.budgetTelemetry ?? "summary",
-    gaps, durationFrames: duration, hardBudgetFrames: options.budget, policyBudgetFrames: options.budget,
-    model: { name: "connected-arcs/v6", source: "arc_motion.ts learned and measured curve proposals, complete boundaries and adaptive construction",
-      interceptFrames: 0, contactFrames: 0, durationFrameScale: samples } });
-  for (const [index, attempt] of result.attempts.entries()) {
-    const episode = recorder.startEpisode({ lane: "initial", searchSeed: seed, frontierHasFallbackLane: false,
-      anchorGapIndex: 0, startTotalSpentFrames: attempt.start, ceilingTotalSpentFrames: options.budget, includeStartup: false });
-    recorder.setActiveCandidateWork({ actualCandidateSamples: attempt.samples, viableCandidates: attempt.viableCandidates,
-      candidateSamplesByStream: { normal: attempt.samples } });
-    for (const commit of attempt.commits) recorder.observeActiveEpisode(Math.min(commit.index, gaps.length), commit.spent);
-    recorder.recordEvaluation({ totalSpentFrames: attempt.end, gapIndex: attempt.complete ? gaps.length : attempt.gapCommits,
-      terminal: attempt.complete, origin: "frontier", firstTimeSearchNode: true,
-      terminalTrackKey: attempt.trackHash, registerImproved: attempt.complete && (index === 0 || attempt.selected) });
-    recorder.endEpisode(attempt.end, attempt.exhausted ? "budget_capture" : "compile_finished");
-    recorder.recordSegment("initial_search", attempt.start, attempt.constructionEnd, attempt.name + "_construction_complete", episode);
-    recorder.recordSegment("finalization", attempt.constructionEnd, attempt.end, "cold_replay_complete", episode);
-  }
-  const costs = report.gaps.map(g => Object.values(g.axes).reduce((s, a) => s + (a?.error ?? 0) ** 2, 0));
-  return { budget: options.budget, track, report, construction:result,
-    budgetTelemetry: recorder.snapshot(total, exhausted, result.firstCompletionFrame, result.firstCompletionFrame),
-    stats: { actual_candidate_samples: result.samples, viable_candidate_samples: result.stats.viable_candidate_samples, engine_rebuilds: result.engineRebuilds ?? result.backtracks + 2,
-      gap_commits: result.stats.gap_commits, gap_backtracks: result.backtracks,
-      validation_retries: 0, polish_iterations: 0, total_committed_cost: costs.reduce((s, c) => s + c, 0),
-      committed_costs_per_gap: costs, sim_frames: total, ballistic_micro_sim_frames: 0,
-      budget_exhausted: exhausted, first_completion_frame: result.firstCompletionFrame } };
 }

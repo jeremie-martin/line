@@ -45,7 +45,7 @@ report('Strength of the hit on the beat (none … very hard)', r => ordinal('str
   'contact-impact v1': r => m(r).v1?.strength ?? 0, 'v1 + renewal fix': r => m(r).r1?.strength ?? 0,
   'external impulse (peak)': r => m(r).impulse.hit, 'largest point jolt': r => m(r).impulse.maxJolt});
 report('Clarity (messy … clean)', r => ordinal('clarity', r.label.clarity), {
-  'impulse clarity': r => m(r).impulse.clarity ?? 1e6, '−strong extra hits (R1)': r => -m(r).extrasR1.filter((e: any) => e.strength >= .25).length,
+  '−competitor / hit impulse': r => -m(r).impulse.competitor / Math.max(1e-9, m(r).impulse.hit), '−strong extra hits (R1)': r => -m(r).extrasR1.filter((e: any) => e.strength >= .25).length,
   '−hidden contacted bend': r => -m(r).hiddenBend, '−competing impulse': r => -m(r).impulse.competitor});
 report('Distinct hits seen in the clip', r => ordinal('hits', r.label.hits), {
   'R1 events (matched + extras)': r => (m(r).r1 ? 1 : 0) + m(r).extrasR1.length, 'R1 strong events': r => (m(r).r1 ? 1 : 0) + m(r).extrasR1.filter((e: any) => e.strength >= .25).length});

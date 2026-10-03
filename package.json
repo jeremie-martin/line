@@ -20,7 +20,9 @@
     "build:wasm": "cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml && wasm-opt --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext -O3 engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm -o engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm",
     "measure": "node --import tsx tools/measure/observe.ts && node --import tsx tools/measure/measures.ts",
     "labels:study": "node --import tsx tools/measure/label_study.ts",
-    "labels:analyze": "node --import tsx tools/measure/analyze_labels.ts"
+    "labels:analyze": "node --import tsx tools/measure/analyze_labels.ts",
+    "eval": "node --import tsx tools/eval/eval.ts run",
+    "eval:report": "node --import tsx tools/eval/eval.ts report"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

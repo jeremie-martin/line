@@ -130,7 +130,7 @@ if (import.meta.filename === process.argv[1]) {
   writeFileSync('generated/measure/beats.json', JSON.stringify(rows));
   const quantile = (xs: number[], q: number) => {const s = xs.filter(Number.isFinite).sort((a, b) => a - b); return s.length ? s[Math.min(s.length - 1, Math.floor(q * s.length))] : NaN;};
   const ms = (x: number) => (x * 1000 / FPS).toFixed(0);
-  console.log('set           beats  peak-late med/p90 ms  centroid med  onset med  clarity med  extras>=.25/beat  hidden bend/beat  |r1-req| strong');
+  console.log('set           beats  peak-late med/p90 ms  centroid med  onset med  contested strong  extras>=.25/beat  hidden bend/beat  |r1-req| strong');
   for (const set of ['july', 'current', 'experimental']) {
     const s = rows.filter(r => r.set === set), strong = s.filter(r => (r.requested ?? 0) >= .6);
     const peaks = s.map(r => r.r1?.peak).filter((x): x is number => x != null);
@@ -138,7 +138,7 @@ if (import.meta.filename === process.argv[1]) {
       `${ms(quantile(peaks, .5))}/${ms(quantile(peaks, .9))}`.padStart(16),
       ms(quantile(s.map(r => r.r1?.centroid ?? NaN), .5)).padStart(12),
       ms(quantile(s.map(r => r.r1?.onset ?? NaN), .5)).padStart(10),
-      quantile(strong.map(r => r.impulse.clarity ?? NaN), .5).toFixed(2).padStart(12),
+      (strong.filter(r => r.impulse.competitor >= .5 * r.impulse.hit).length / strong.length).toFixed(2).padStart(16),
       (s.reduce((n, r) => n + r.extrasR1.filter(e => e.strength >= .25).length, 0) / s.length).toFixed(2).padStart(17),
       (s.reduce((n, r) => n + r.hiddenBend, 0) / s.length).toFixed(2).padStart(17),
       quantile(strong.map(r => r.r1 ? Math.abs(r.r1.strength - r.requested) : NaN), .5).toFixed(3).padStart(16));

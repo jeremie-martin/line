@@ -198,3 +198,16 @@ Only on validated measures:
   - One validity predicate (`ride_validity.ts`).
   - Every commit: parity byte-identical, output fingerprints of all 23 cells
     identical apart from deliberately dropped telemetry, typecheck 16.
+- 2026-10-04: **Phase 2 gate passed.** The full V6 sentinel at 5eea516e is
+  identical to the stored reference on all 460 runs (track hash, frames and
+  score; headline 835.616).
+- 2026-10-04: **Strike account.**
+  - `line.strike.v1` (`scripts/lib/strike_impact.ts`;
+    docs/research/strike-definition-20261004.md) is integrated through the
+    impact-account registry.
+  - Its search profile: preparation 2, which was accepted; H1 and H2 were
+    rejected.
+  - Paired against the default: strike loss −0.21, strong extra strikes
+    −0.32/beat, contested strong beats −20 pp (to 5%, July 3%), late peaks
+    −11 pp, at +0.67 M frames.
+

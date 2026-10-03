@@ -1,9 +1,11 @@
 /** Concrete gallery choices, not a new specification language. The same search
  * evaluates every arc variant's emitted collision geometry. */
 import type {ArcMotionOptions} from './arc_motion.ts';
-type GeometryOptions=Pick<ArcMotionOptions,'profile'|'profileStart'|'foldAngle'|'faces'|'contour'|'wave'|'subdivisions'>;
+import type {ArcGeometryStyle} from './arc_geometry.ts';
+type GeometryOptions=Pick<ArcGeometryStyle,'profile'|'profileStart'|'foldAngle'|'faces'|'contour'>&{wave?:boolean;subdivisions?:number};
 type GuideOptions=Pick<ArcMotionOptions,'pruneGuidance'|'guides'|'channel'>;
-type SearchOptions=Pick<ArcMotionOptions,'policyPreview'>;
+/** Historical gallery settings, shown with each recipe; the compiler no longer reads them. */
+type SearchOptions={policyPreview?:boolean};
 type ArcRecipe=GeometryOptions&GuideOptions&SearchOptions;
 type Method = {title:string;description:string;geometry?:GeometryOptions;guidance?:GuideOptions;search?:SearchOptions;archived?:boolean;studyOnly?:boolean};
 export const railRecipes = {

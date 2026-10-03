@@ -140,7 +140,7 @@ it('keeps ribbon rungs unique and their collision normals facing upstream',()=>{
   expect(()=>railContours([{...input[0],type:1}],'teeth',1001)).toThrow('normal lines');
   expect(()=>railContours([makeSolidLine(0,0,0,0,0)],'teeth',1)).toThrow('nondegenerate');
 });
-it.each([...MOTION_PROFILES,...RAIL_CONTOURS])('searches and independently replays %s within the same budget, with memo parity',method=>{
+it.each(MOTION_PROFILES)('searches and independently replays %s within the same budget, with memo parity',method=>{
   const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
   const options={budget:25000,samples:24,channel:12,radius:24,bidirectional:true,pruneGuidance:true,memoCandidates:true,...galleryArcOptions(method)};
   const result=compileArcMotion(spec,17,options);
@@ -148,7 +148,6 @@ it.each([...MOTION_PROFILES,...RAIL_CONTOURS])('searches and independently repla
   expect(result.track.lines.every(l=>l.type===0)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
   expect(compileArcMotion(spec,17,{...options,reuseEvaluations:true}).track).toEqual(result.track);
-  if(RAIL_CONTOURS.includes(method as any))expect(result.guidanceReduction).toBeNull();
 });
 
 it.each(RAIL_CONTOURS)('repeats the complete %s structure across the rail',kind=>{

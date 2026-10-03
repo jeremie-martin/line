@@ -20,7 +20,7 @@ it('adjusts adjacent native intervals without losing timing, normal lines or the
  const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
  const result=compileArcMotion(spec,17,{budget:300000,samples:80,channel:12,radius:24,bidirectional:true,
   impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,
-  lookaheadWidth:3,lookaheadSamples:24,lookaheadDepth:1,reuseContinuations:true,completeBoundary:true,
+  lookaheadWidth:3,lookaheadSamples:24,reuseContinuations:true,completeBoundary:true,
   memoCandidates:true,reuseEvaluations:true,guidance:'clearance',guidanceSamples:24,coupledIntervalSamples:64});
  expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
  expect(result.report.off_beat_landings).toHaveLength(0);expect(result.report.terminus.reason).toBe('endOfSpec');

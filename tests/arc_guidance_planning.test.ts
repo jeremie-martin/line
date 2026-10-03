@@ -60,10 +60,12 @@ it('charges lookahead, carries a complete physical contract and reproduces selec
 });
 
 it('evaluates a deeper continuation tree with joint guide refinement inside the same meter',()=>{
-  const result=compileArcMotion(spec,18,{...options,guidance:'full',guidanceSamples:24,guidanceJoint:true,lookaheadWidth:3,lookaheadSamples:20,lookaheadDepth:2,lookaheadBranching:2,lookaheadObjective:'terminal',reuseContinuations:true,pruneGuidance:true});
+  // Adaptive planning deepens the continuation tree when the allowance affords it.
+  const budget=100000;
+  const result=compileArcMotion(spec,18,{...options,budget,guidance:'full',guidanceSamples:24,guidanceJoint:true,lookaheadWidth:3,lookaheadSamples:20,adaptivePlanning:true,lookaheadObjective:'terminal',reuseContinuations:true,pruneGuidance:true});
   expect(result.lookaheadStats.maxDepth).toBe(2);
   expect(result.lookaheadStats.continuationNodes).toBeGreaterThan(result.lookaheadStats.probes);
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(budget);
   expect(result.failure).toBeNull();expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
   expect(result.report.off_beat_landings).toHaveLength(0);
 });

@@ -13,6 +13,7 @@ import {guideFootprint} from '../v0/optimizer/arc_guide_choice.ts';
 import {inspectRailContacts} from '../gallery/contacts.ts';
 import {replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
 import {verifyMainConstruction} from '../gallery/verify_construction.ts';
+import {validRide} from '../v0/optimizer/ride_validity.ts';
 import {applyJolt} from './seed.ts';
 import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
@@ -49,7 +50,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     const inspection=inspectRailContacts({method,railLayout,railGuides,track:result.track},collisionIds!);
     const usage=railLayout==='connected'?guideFootprint(result.track.lines):{supportSections:inspection.summary.supportSections!,guideSections:inspection.summary.guideSections,
       guideLength:result.track.lines.filter((l:any)=>inspection.guideIds.has(l.id)).reduce((sum:number,l:any)=>sum+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)};
-    const valid=impactEvaluation?impactEvaluation.valid:result.report.terminus.reason==='endOfSpec'&&!result.report.off_beat_landings.length&&result.report.contacts.every((x:any)=>x.status==='hit');
+    const valid=validRide({report:result.report,impactEvaluation});
     assert.equal(valid,grade.score.valid,'compiler and independent judge disagree');
     const loss=impactEvaluation?result.impactTrajectoryLoss:result.trajectoryLoss;
     if(valid&&loss!==undefined)assert.ok(Math.abs(Math.sqrt(loss)-grade.score.weightedAxisRms!)<1e-10,'target adapter changed the objective');
@@ -87,7 +88,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     const save=(name:string,value:unknown)=>writeGalleryJson(dir,name,value);
     save('track.json',result.track);save('report.json',result.report);
     if(impactEvaluation)save('contact-impacts.json',{evaluation:impactEvaluation,grade,historicalGrade});
-    save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,proposalDecision:result.proposalDecision,
+    save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,
       failure:result.failure,refinement:result.refinementStats,opposingEntryWork:result.opposingEntryWork,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
     save('budget-telemetry.json',budgetTelemetry??{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
       preparationFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.preparationFrames,0)??composition?.preparationFrames??0,constructionFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.physicalFrames-a.preparationFrames,0)??result.stats.sim_frames,compositionStages:composition?.attempts,

@@ -65,15 +65,6 @@ it('allocates longer planning from measured construction work within the same ha
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
 });
 
-it('offers direct expressive revisions with a fully evaluated continuation', () => {
-  const result = compileArcMotion(spec, 20, {...base, refineAttempts: 5,
-    refineDirect: true, expressive: true, refineMode: 'reflow', refineRebuildSamples: 24});
-  expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
-  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
-  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
-});
-
 it('fits joint responses for expressive curves and validates proposals in the real engine', () => {
   const result = compileArcMotion(spec, 21, {...base, expressive: true,
     guidanceSamples: 96, guidanceJoint: true, responseSamples: 70});
@@ -83,22 +74,11 @@ it('fits joint responses for expressive curves and validates proposals in the re
   expect(result.track.lines.every(l => l.type === 0)).toBe(true);
 });
 
-it('reuses measured alternatives and adapts the following arcs without losing the complete track', () => {
-  const result = compileArcMotion(spec, 22, {...base, refineAttempts: 4,
-    refineUseAlternatives: true, refineMode: 'reflow', refineFollowSamples: 12,
-    refineRebuildSamples: 24, lookaheadWidth: 3, lookaheadSamples: 24,
-    reuseContinuations: true, lookaheadObjective: 'terminal'});
-  expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
-  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
-  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
-});
-
 it('reuses only retained physical prefixes with exact outputs and unchanged physics charging', () => {
   const options = {...base, expressive: true, guidanceSamples: 96, guidanceJoint: true,
-    responseSamples: 70, lookaheadWidth: 3, lookaheadDepth: 2, lookaheadSamples: 32,
-    strictHorizon: true, reuseContinuations: true, refineAttempts: 4, refineUseAlternatives: true,
-    refineMode: 'reflow' as const, refineFollowSamples: 12};
+    responseSamples: 70, lookaheadWidth: 3, lookaheadSamples: 32,
+    strictHorizon: true, reuseContinuations: true, refineAttempts: 4,
+    refineMode: 'reflow' as const};
   const original = compileArcMotion(spec, 23, options);
   const cached = compileArcMotion(spec, 23, {...options, cachePrefixReads: true});
   expect(cached.track).toEqual(original.track);

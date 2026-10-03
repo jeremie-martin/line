@@ -11,6 +11,7 @@ Links to documents that are no longer in the tree resolve at tag
 | [motion-quality-investigation-20261001.md](motion-quality-investigation-20261001.md) | friction-driven speed bursts on normal lines, calm openings, separated-rail transfers |
 | [production-repertoire-feedback-20261001.md](production-repertoire-feedback-20261001.md) | the owner's feedback on automatic arrangements |
 | [intentional-motion-roadmap.md](intentional-motion-roadmap.md) | the last roadmap before the rework, including the owner's impact-definition requirements |
+| [strike-definition-20261004.md](strike-definition-20261004.md) | **the strike account (line.strike.v1)**: definition, rationale, evidence and limits |
 | [general-impact-results-20261003.md](general-impact-results-20261003.md) | `line.contact-impact.v1` delivery: results, tradeoffs, limitations |
 
 The October 3 independent audit corrects several claims in these documents:

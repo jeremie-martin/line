@@ -32,7 +32,7 @@ type Rejection = {reason: string; near?: Near};
  * Returns the measured candidate, or null when it is rejected; a valid
  * candidate with a lower optimization cost becomes `s.best`. */
 export function evaluate(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments) {
-  const observed = !!s.options.observedReceiver && c.receiverFlight !== undefined && !fragments;
+  const observed = c.receiverFlight !== undefined && !fragments;
   if (!observed) return evaluateCandidate(s, c, fragments);
   const work = s.ctx.work.observedReceiverWork, began = getPhysicsFrameCount();
   work.attempts++;
@@ -66,7 +66,7 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   const saved = memo.get(key);
   if (saved) return reuseMeasurement(s, c, saved);
   const reject = (reason: string, near?: Near) => {
-    if (options.observedReceiver && c.receiverFlight !== undefined)
+    if (c.receiverFlight !== undefined)
       work.observedReceiverWork.failures[reason] = (work.observedReceiverWork.failures[reason] ?? 0) + 1;
     memo.set(key, {reason, near});
     s.failures[reason] = (s.failures[reason] ?? 0) + 1;
@@ -115,7 +115,7 @@ function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: any) {
 function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments): {added: TrackLine[]; child: Engine} | Rejection {
   const {ctx, options, i, engine} = s;
   const {add, prefixes} = ctx.lineage;
-  if (options.observedReceiver && c.receiverFlight !== undefined && options.railLayout === 'transfer' && !fragments) {
+  if (c.receiverFlight !== undefined && options.railLayout === 'transfer' && !fragments) {
     const main = motionArc(s.points, s.velocity, c, 1000 + i * 10000, false, options.channel, false, options.radius, undefined, {...options, guides: false});
     const supportEngine = add(engine, main), id = Math.max(...main.map(l => l.id)) + 1;
     const receiver = observedReceiver(supportEngine, main, s.frame, Math.min(s.horizon, ctx.duration), c, id, options, i === ctx.contacts.length - 1);
@@ -167,8 +167,7 @@ function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine
       ? (frame: number) => child.getAllContactLineIdsAtFrame(frame) : undefined;
     const fulfillment = inspectConstructionWindow(request, added, new Set(guideIds), raw.frames, allContacts);
     if (!fulfillment.fulfilled) {
-      const near = options.constructionRecovery ? {c, deficit: constructionDeficit(fulfillment)} : undefined;
-      return {reason: 'construction:' + fulfillment.reasons.join(','), near} as Rejection;
+      return {reason: 'construction:' + fulfillment.reasons.join(','), near: {c, deficit: constructionDeficit(fulfillment)}} as Rejection;
     }
   }
   return {state, raw, det, observedImpacts, impactEvents, impactAccount, impactMatch, request};

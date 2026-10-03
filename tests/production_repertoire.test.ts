@@ -20,10 +20,10 @@ it('rejects incompatible diagnostic routes instead of silently running legacy se
 });
 
 it('realizes a shaped final impact near the music boundary using the existing physical outro',async()=>{
-  const {planRepertoire}=await import('../scripts/v0/optimizer/repertoire_policy.ts');
+  const {planIntentionalRepertoire}=await import('../scripts/v0/optimizer/intentional_repertoire.ts');
   const ending={...spec,contacts:[.6,1.2,1.8,2.4,2.95].map(t=>({t,impact:.4}))};
-  const plan=planRepertoire(ending,101);
-  for(const r of plan.requests){r.construction='arcs';r.guidance='optional';}
+  const plan=planIntentionalRepertoire(ending,101);
+  for(const r of plan.requests){r.construction='arcs';r.guidance='optional';delete r.railLayout;}
   Object.assign(plan.requests.at(-1)!,{construction:'scallops',guidance:'required'});
   plan.phrases=plan.requests.slice(1).map(r=>({first:r.section,count:1,construction:r.construction,guidance:r.guidance}));
   const compiled=compileHandoff(ending,101,{budget:120000,constructionPlan:plan}),r=compiled.repertoire!;
@@ -41,14 +41,15 @@ it('can end with actual contact fragments and preserves caller-owned judge engin
   expect(r.physicalFrames).toBeLessThanOrEqual(180000);
   expect(caller.getRider(10).ballisticState()).toEqual(before);
 });
-it('rejects ambiguous creative inputs and mismatched plan seeds',async()=>{
+it('rejects ambiguous creative inputs, mismatched plan seeds and non-intentional plans',async()=>{
  const {planRepertoire}=await import('../scripts/v0/optimizer/repertoire_policy.ts');const plan=planRepertoire(spec,101);
  expect(()=>compileHandoff(spec,202,{budget:50000,constructionPlan:plan})).toThrow('seed differ');
+ expect(()=>compileHandoff(spec,101,{budget:50000,constructionPlan:plan})).toThrow('intentional repertoire plans only');
  expect(()=>compileHandoff(spec,101,{budget:50000,constructionPlan:plan,creative:{}})).toThrow('preferences or');
  expect(()=>compileHandoff({...spec,axes:{...spec.axes,elevation:()=>.5}},101,{budget:50000,creative:{}})).toThrow('supports air');
 });
 
-it.each(['reflow','translate'] as const)('refines mixed constructions with %s and preserves functional requests',async(refineMode)=>{
+it('refines mixed constructions and preserves functional requests',async()=>{
  const {compileArcMotion}=await import('../scripts/v0/optimizer/arc_motion.ts');
  const {planIntentionalRepertoire}=await import('../scripts/v0/optimizer/intentional_repertoire.ts');
  const {repertoireSearchOptions}=await import('../scripts/v0/optimizer/repertoire_search.ts');
@@ -58,7 +59,7 @@ it.each(['reflow','translate'] as const)('refines mixed constructions with %s an
  const {sliceTimeline,effectiveAxes,axesAtFrame}=await import('../scripts/v0/core/substrate.ts');
  const plan=planIntentionalRepertoire(spec,101,{repertoire:['scattered']});
  const result=compileArcMotion(spec,101,{...repertoireSearchOptions(spec,plan,200000),
-  refineAttempts:2,refineSamples:0,refineWidth:2,refineMode,wholeTrackRefinement:true});
+  refineAttempts:2,refineSamples:0,refineWidth:2});
  expect(result.failure).toBeNull();expect(result.refinementStats.frames).toBeGreaterThan(0);
  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
  const durationFrames=120,contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));

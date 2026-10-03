@@ -79,10 +79,9 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
   const lineage = createArcLineage(start, hasFragments);
   const contacts = [{frame: 1, gap: -1}, ...planned.filter(g => g.endsWithContact).map(g => ({frame: g.endFrame, gap: g.index}))];
 
-  const controlMemory = new ArcControlMemory(), constructionMemories = new Map<string, ArcControlMemory>();
+  const constructionMemories = new Map<string, ArcControlMemory>();
   /** Learned responses stay local to their physical constructor and guide permission. */
   const memoryFor = (index: number) => {
-    if (options.memoryScope !== 'construction') return controlMemory;
     const key = arcConstructionMemoryKey({...options, ...options.sectionStyles?.[index]});
     let memory = constructionMemories.get(key);
     if (!memory) {

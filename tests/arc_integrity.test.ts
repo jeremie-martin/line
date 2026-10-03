@@ -17,7 +17,7 @@ it('keeps completed intervals after every remaining backtracking alternative fai
   expect(r.track.lines.length).toBeGreaterThan(0);expect(r.stats.sim_frames).toBeLessThanOrEqual(20000);
 });
 it('keeps accepted reflow controls synchronized with the geometry used by later repairs',()=>{
-  const r=compileArcMotion(spec,17,{...options,budget:200000,samples:24,qualityRetries:2,guidance:'clearance',guidanceSamples:24,refineAttempts:4,refineMode:'reflow',refineWidth:3});
+  const r=compileArcMotion(spec,17,{...options,budget:200000,samples:24,qualityRetries:2,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
   expect(r.refinementStats.counts.accepted).toBeGreaterThan(0);
   expect(r.report.contacts.every(c=>c.status==='hit')).toBe(true);
   expect(r.refinementStats.finalLoss).toBeLessThanOrEqual(r.refinementStats.initialLoss);

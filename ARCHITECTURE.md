@@ -15,7 +15,8 @@ spec (beats, impacts, air/speed/amplitude targets)
 
 1. **Entry.** `compileHandoff` (`scripts/v0/optimizer/handoff.ts`) accepts a
    spec and either creative preferences (automatic arrangement) or an explicit
-   construction plan. Nothing else is supported.
+   intentional construction plan (`line.repertoire-policy.v2`, as in the V6
+   fixed panel). Nothing else is supported.
 2. **Plan.** `planIntentionalRepertoire` (`intentional_repertoire.ts`, built on
    `repertoire_policy.ts`) chooses a construction for each support section:
    open arc, guided shape (arcs, folds, ripples, serpentines, terraces), or

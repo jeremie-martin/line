@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
 import { compileArcMotion, motionArc } from '../scripts/v0/optimizer/arc_motion.ts';
-import { arcTrajectoryLoss } from '../scripts/v0/optimizer/arc_refinement.ts';
 import type { Spec, TrackLine } from '../scripts/v0/types.ts';
 
 const spec: Spec = {duration: 4, preroll: 5, jitter: 0,
@@ -18,18 +17,18 @@ it('retains a valid complete incumbent while charging every refinement proposal'
   expect(result.refinementStats.frames).toBeGreaterThan(0);
   expect(result.stats.sim_frames).toBeGreaterThan(initial.stats.sim_frames);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
-  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
-  expect(arcTrajectoryLoss(result.report)).toBeLessThanOrEqual(arcTrajectoryLoss(initial.report));
-  expect(result.refinementStats.finalLoss).toBeCloseTo(arcTrajectoryLoss(result.report), 12);
+  expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
+  expect(result.trajectoryLoss).toBeLessThanOrEqual(initial.trajectoryLoss);
+  expect(result.refinementStats.finalLoss).toBeCloseTo(result.trajectoryLoss, 12);
   const repeated = compileArcMotion(spec, 17, options);
   expect(result.track).toEqual(repeated.track); expect(result.stats).toEqual(repeated.stats);
 });
 
 it('reconstructs a continuation with the original curve controls and preserves the incumbent', () => {
-  const result = compileArcMotion(spec, 18, {...base, refineAttempts: 4, refineMode: 'reflow', refineWidth: 3});
+  const result = compileArcMotion(spec, 18, {...base, refineAttempts: 4, refineWidth: 3});
   expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
   expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
-  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
+  expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
 });
 
@@ -58,13 +57,13 @@ it('allocates longer planning from measured construction work within the same ha
   expect(result.planningDecisions.some(d => d.depth === 2)).toBe(true);
   expect(result.planningDecisions.every(d => d.observedConstructionRate > 0)).toBe(true);
   expect(result.lookaheadStats.physicsFrames).toBeGreaterThan(0);
-  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
+  expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
 });
 
 it('fits joint responses for expressive curves and validates proposals in the real engine', () => {
   const result = compileArcMotion(spec, 21, {...base, guidanceSamples: 96, responseSamples: 70});
-  expect(Number.isFinite(arcTrajectoryLoss(result.report))).toBe(true);
+  expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
   expect(result.stats.viable_candidate_samples).toBeGreaterThan(0);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
   expect(result.track.lines.every(l => l.type === 0)).toBe(true);

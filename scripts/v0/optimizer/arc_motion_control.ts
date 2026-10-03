@@ -10,7 +10,7 @@ export type ArcControlContext = {
   profile?: string; foldAngle?:number; profileStrength?: number; profileStart?: number;
   independentExit?: boolean; exitRefinementOnly?: boolean;
   railLayout?:'paired'|'transfer';independentGuide?:boolean;
-  observedReceiver?:boolean;compactFoldProposals?:boolean;
+  observedReceiver?:boolean;
   responseGuideExtent?:boolean;
   compactProfileProposals?:boolean;
   releaseReserveFrames?:number;
@@ -66,13 +66,13 @@ export const ARC_CORE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITI
 export const ARC_EXPRESSIVE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'expressive');
 
 /** Disabled guides have no meaningful clearance, coverage or flare coordinates. */
-export function arcControlActive(key:ControlKey,guides=true,style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'compactFoldProposals'|'compactProfileProposals'>):boolean {
+export function arcControlActive(key:ControlKey,guides=true,style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'compactProfileProposals'>):boolean {
   // Transfer fulfillment currently specifies the forward support followed by
   // its separated receiver. An opposing opening uses the paired constructor.
   if(key==='contactSide')return style?.railLayout!=='transfer';
   if(key==='profileEnd')return style?.compactProfileProposals===true&&!!style.profile&&style.profile!=='fold'&&style.railLayout==='transfer';
   if(key.startsWith('receiver'))return guides&&style?.observedReceiver===true&&style.railLayout==='transfer';
-  if(key==='foldBias')return style?.compactFoldProposals===true&&style.profile==='fold'&&style.railLayout==='transfer'&&style.independentGuide===true;
+  if(key==='foldBias')return style?.profile==='fold'&&style.railLayout==='transfer'&&style.independentGuide===true;
   if(key==='foldTiming')return style?.profile==='fold'&&style?.independentGuide===true&&style?.railLayout==='transfer';
   if(key==='foldBend')return style?.profile==='fold'&&style?.independentGuide===true;
   if(key==='guideTilt')return guides&&style?.independentGuide===true;
@@ -120,7 +120,7 @@ export function arcControlStep(key: ControlKey, method: SearchMethod, support: n
   return typeof step === 'number' ? step : step(support);
 }
 
-export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true, style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'compactFoldProposals'|'responseGuideExtent'|'compactProfileProposals'>): ControlKey[] {
+export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true, style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'responseGuideExtent'|'compactProfileProposals'>): ControlKey[] {
   return ARC_CONTROL_KEYS.filter(key => {
     const definition = ARC_CONTROL_DEFINITIONS[key];
     // Extent response has mixed measured results. Keep the controlled experiment

@@ -26,7 +26,7 @@ export function refineCommittedTrack(ctx: ArcCompileContext, seq: ArcSequence) {
     contacts, end, start, budget, options,
     search: (engine, i, overrides, protectedEngines) => searchInterval(ctx, engine, i, overrides, protectedEngines),
     report: ctx.reportFor,
-    objective: options.wholeTrackRefinement ? wholeTrackObjective(ctx, requests) : undefined,
+    objective: wholeTrackObjective(ctx, requests),
     validate: requests.length ? constructionValidator(requests) : undefined,
     engines: requests.length ? {create: lineage.rebuild, add: lineage.add, detach: lineage.detach} : undefined});
   seq.lines.splice(0, seq.lines.length, ...refined.lines);

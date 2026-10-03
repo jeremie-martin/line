@@ -61,7 +61,7 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
   const report = ctx.reportFor(raw, lines);
   const impactEvaluation = finalImpactFrames
     ? ruler!.evaluate(finalImpactFrames, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
-  const trajectoryLoss = options.collectTrajectoryLoss ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight).loss : undefined;
+  const trajectoryLoss = arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight).loss;
   const impactTrajectoryLoss = impactEvaluation
     ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impactEvaluation).loss : undefined;
   const selectionLoss = completeSelectionLoss(ctx, raw, finalImpactFrames, impactTrajectoryLoss ?? trajectoryLoss);

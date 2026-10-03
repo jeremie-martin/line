@@ -22,14 +22,16 @@ export type Near = {c: ArcMotionControl; deficit: number};
 export type Fragments = {lines: TrackLine[]; guideIds: number[]};
 
 /** Compile options with the per-call overrides and the section style applied,
- * plus the learned policy and arrival preferences this interval implies. */
+ * plus the learned policy and arrival preferences this interval implies:
+ * before a quiet unguided or transfer catch, arrival is passive and neither
+ * the heading prior nor the learned future value applies. */
 export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overrides: IntervalOverrides) {
   const compileOptions = ctx.options;
   const options: IntervalOptions = {...compileOptions, ...overrides, ...compileOptions.sectionStyles?.[i]};
   const constructionPolicy = i > 0 ? options.constructionPolicies?.[arcConstructionMemoryKey(options)] : undefined;
   if (constructionPolicy) options.controlPolicy = constructionPolicy;
   const nextRequest = options.constructionRequests?.[i + 1];
-  if (options.constructionAwareArrival && nextRequest && (nextRequest.context?.quiet ?? 0) < .5 &&
+  if (nextRequest && (nextRequest.context?.quiet ?? 0) < .5 &&
     (nextRequest.guidance === 'forbidden' || nextRequest.railLayout === 'transfer')) {
     options.futureValueModel = undefined;
     if (options.arrivalMode !== 'kinetic') options.arrivalMode = 'passive';
@@ -87,7 +89,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const priorAxes = options.completeBoundary && priorGap
     ? objectiveAxes(detect(prefixRaw), priorGap, frame - 1) : undefined;
   const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;
-  const controlContext = {...options, span: constructionSpan, releaseReserveFrames: options.impactSearch?.releaseFrames};
+  const controlContext = {...options, observedReceiver: true, span: constructionSpan, releaseReserveFrames: options.impactSearch?.releaseFrames};
 
   // These describe the immutable incoming prefix already measured above.
   // Reusing them avoids a new physics read after committing the search budget.

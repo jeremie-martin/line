@@ -13,7 +13,7 @@ import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { trimUnusedArcGuides, arcRailGroups } from './arc_guidance.ts';
 import { refineArcTrack, arcWholeTrajectoryObjective, arcDetectedTrajectoryObjective } from './arc_refinement.ts';
 import { arcPolicyArrival, arcControlProposals } from './arc_control_policy.ts';
-import { arcResponseStep, arcSecantUpdate } from './arc_response.ts';
+import { arcResponseStep } from './arc_response.ts';
 import { ArcControlMemory, arcConstructionMemoryKey, allocateArcProposalSlots, type ArcControlExample } from './arc_memory.ts';
 import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
@@ -59,14 +59,10 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Cover contact geometry before a first fully realized candidate exists. */
   constructionProposals?:boolean;
   constructionRecovery?:boolean;
-  /** Bounded exploration of better physically valid but not yet realized shapes. */
-  constructionImprovementSamples?:number;
   observedReceiver?:boolean;
   compactFoldProposals?:boolean;
-  compactProfileProposals?:boolean;
   /** Native joint adjustment of neighboring supports, within the shared budget. */
   coupledIntervalSamples?:number;
-  genericProposalFraction?:number;
   constructionAwareArrival?:boolean;
   /** Research composition by support index (startup is zero). Applied to every
    * proposal, lookahead and rebuilt continuation. Omitted sections inherit the
@@ -78,9 +74,6 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   constructionPolicies?:Readonly<Record<string,any>>;
   /** Preserve distinct expressive geometry in learned and memory proposals. */
   controlDiversity?:'inherited'|'geometry';
-  /** Reuse measured response directions between complete finite differences. */
-  responseSecantSteps?:number;
-  responseGuideExtent?:boolean;
   wholeTrackRefinement?:boolean;
   /** Rank already simulated complete alternatives by the full authored loss. */
   terminalSelection?:boolean;
@@ -93,14 +86,6 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   amplitudeOverflow?:'raw'|'log';
   /** Preserve the proposal mix within the slots a local probe can evaluate. */
   budgetedProposals?:boolean;
-  /** Correct discrete flight counts using support-length proposals. */
-  airProjection?:number;
-  /** Minimum distinct release-frame difference in a planning shortlist. */
-  releaseDiversity?:number;
-  /** Search late-arc easing independently of the initial impact-section easing. */
-  independentExit?:boolean;
-  exitRefinementOnly?:boolean;
-  minExitSupport?:number;
   /** Give unusable response-round remainders back to coordinate exploration. */
   completeGuidanceBudget?:boolean;
   /** Keep learned responses local to their physical geometry and guide permission. */
@@ -113,7 +98,6 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   arrivalWeight?:number;
   flow?:boolean;
   startPitch?:number;
-  solver?:string;
   channel?:number;
   wave?:boolean;
   /** Research: straight facets per support frame; ordinary smooth arcs use four. */
@@ -131,19 +115,10 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   guidanceSamples?:number;
   lookaheadWidth?:number;
   lookaheadSamples?:number;
-  /** Explicit local correction allowance for simulated continuation probes. */
-  continuationGuidanceSamples?:number;
-  continuationResponseSamples?:number;
-  /** Extra measured response for profiled or transfer continuations only. */
-  constructionContinuationSamples?:number;
   collectTrajectoryLoss?:boolean;
-  lookaheadWeight?:number;
-  lookaheadWarmStart?:boolean;
   warmStart?:ArcMotionControl;
   warmIncoming?:number;
   pruneGuidance?:boolean;
-  lookaheadDepth?:number;
-  lookaheadBranching?:number;
   lookaheadObjective?:'local'|'terminal';
   reserveFactor?:number;
   reuseContinuations?:boolean;
@@ -160,9 +135,6 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   refineSelection?:'regret'|'rate';
   refineMode?:'translate'|'reflow';
   adaptivePlanning?:boolean;
-  planningDepth?:number;
-  planningWidth?:number;
-  planningSamples?:number;
   strictHorizon?:boolean;
   directControls?:ArcMotionControl[];
   refineDirect?:boolean;
@@ -174,8 +146,6 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   refineUpstream?:boolean;
   refineExpressive?:boolean;
   responseSamples?:number;
-  responseDamping?:number;
-  responseScale?:number;
   refineFollowSamples?:number;
   refineUseAlternatives?:boolean;
   cachePrefixReads?:boolean;
@@ -201,15 +171,12 @@ export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions)
 }
 
 function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
-  if(options.constructionContinuationSamples!==undefined&&(!Number.isSafeInteger(options.constructionContinuationSamples)||options.constructionContinuationSamples<0))throw new Error('invalid construction continuation allowance');
   if(options.refineTailSections!==undefined&&(!Number.isSafeInteger(options.refineTailSections)||options.refineTailSections<1))throw new Error('invalid refinement tail window');
   const revision=options.transitionRevision?{errorThreshold:.12,width:3,samples:48,guidanceSamples:96,responseSamples:88,...options.transitionRevision}:undefined;
   if(revision&&(!Number.isFinite(revision.errorThreshold)||revision.errorThreshold<0||
     ![revision.width,revision.samples,revision.guidanceSamples,revision.responseSamples].every(v=>Number.isSafeInteger(v)&&v>=0)||revision.width>12))throw new Error('invalid transition revision');
   if(options.initialRecoverySamples!==undefined&&(!Number.isSafeInteger(options.initialRecoverySamples)||options.initialRecoverySamples<0||options.initialRecoverySamples>320))throw new Error('invalid initialization recovery allowance');
-  if(options.constructionImprovementSamples!==undefined&&(!Number.isSafeInteger(options.constructionImprovementSamples)||options.constructionImprovementSamples<0||options.constructionImprovementSamples>4096))throw new Error('invalid construction improvement allowance');
   if(options.coupledIntervalSamples!==undefined&&(!Number.isSafeInteger(options.coupledIntervalSamples)||options.coupledIntervalSamples<0||options.coupledIntervalSamples>512))throw new Error('invalid coupled interval allowance');
-  if(options.genericProposalFraction!==undefined&&(!Number.isFinite(options.genericProposalFraction)||options.genericProposalFraction<0||options.genericProposalFraction>1))throw new Error('invalid generic proposal fraction');
   if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(options.budget)||options.budget<=0)throw new Error('invalid arc compiler input');
   if(!validProfileControls(options))throw new Error('invalid profile controls');
   if(options.impactContract!==undefined&&options.impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
@@ -395,18 +362,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         options.impactWeight=(options.impactWeight??2)*(1+(options.motionQuality.calmImpactMultiplier-1)*Math.max(0,1-impact/.2));
       const turn=impact===undefined?5:deg(impactToRawPx(impact)/Math.max(3,pace));
       let best:any=null;const candidates:any[]=[];const failures:Record<string,number>={};
-      type Near={c:ArcMotionControl;deficit:number;loss?:number;residuals?:number[]};
-      let lastRepair:Near|undefined;
-      const near:Near[]=[],promising:Near[]=[];
+      type Near={c:ArcMotionControl;deficit:number};
+      const near:Near[]=[];
       const rememberNear=(candidate:Near)=>{
-        if(candidate.loss!==undefined){
-          const merit=(r:Near)=>r.loss!+.04*r.deficit*r.deficit;
-          const similar=promising.findIndex(n=>arcControlsSimilar(n.c,candidate.c));
-          if(similar<0||merit(candidate)<merit(promising[similar])){
-            if(similar>=0)promising.splice(similar,1);
-            promising.push(candidate);promising.sort((a,b)=>merit(a)-merit(b));promising.length=Math.min(12,promising.length);
-          }
-        }
         const similar=near.findIndex(n=>arcControlsSimilar(n.c,candidate.c));
         if(similar>=0){if(near[similar].deficit<=candidate.deficit)return;near.splice(similar,1);}
         near.push(candidate);near.sort((a,b)=>a.deficit-b.deficit);near.length=Math.min(near.length,12);
@@ -416,7 +374,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&(!options.futureValueModel||options.futureValueModel===compileOptions.futureValueModel)){
         const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,options.railLayout,options.independentGuide,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.completeBoundary,options.authoredHorizon,options.amplitudeOverflow,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,options.impactContract,options.impactSearch,!!options.futureValueModel,!!options.constructionImprovementSamples,!!options.alignedFoldEntry,!!options.observedReceiver]);
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.completeBoundary,options.authoredHorizon,options.amplitudeOverflow,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,options.impactContract,options.impactSearch,!!options.futureValueModel,!!options.alignedFoldEntry,!!options.observedReceiver]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -436,14 +394,13 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       const priorLoss=priorAxes&&priorGap?arcSpanLoss(priorAxes,priorGap.targets,options.amplitudeWeight??1):0;
       const controlContext={...options,span:constructionSpan,releaseReserveFrames:options.impactSearch?.releaseFrames};
       const evaluateCandidate=(c:ArcMotionControl,fragments?:{lines:TrackLine[];guideIds:number[]})=>{
-        lastRepair=undefined;
         c=normalizeArcControl(c,controlContext);
         const key=memo?arcControlMemoKey(c,options.channel)+(fragments?'|fragments':''):'';
         samples++;
         const saved=memo?.get(key);
         if(saved){
           memoHits++;
-          if(saved.reason){if(saved.near){rememberNear(saved.near);lastRepair=saved.near;}memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
+          if(saved.reason){if(saved.near)rememberNear(saved.near);memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
           viableCandidates++;candidates.push({...saved.candidate,c});
           // Never reuse saved wrappers: retainOnly may already have freed them.
           // Rebuild from validated geometry; subsequent simulations stay metered.
@@ -485,7 +442,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         const impactMatch=impactAccount?.matches.find(m=>m.target===currentImpactTarget);
         if(options.impactContract&&i>0&&!impactMatch)return reject('missed_impact');
         const request=options.constructionRequests?.[i];
-        let unfinished:{reason:string;near:Near}|undefined;
         if(request&&(request.construction==='scattered'?!!fragments:request.guidance==='required'||request.construction!=='arcs')){
           const guideIds=fragments?.guideIds??(arcRailGroups(added).get(i)![1]??[]).map(l=>l.id);
           const allContacts=request.context||request.railLayout==='transfer'?(frame:number)=>child.getAllContactLineIdsAtFrame(frame):undefined;
@@ -493,8 +449,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
           if(!fulfillment.fulfilled){
             const nearby=options.constructionRecovery?{c,deficit:constructionDeficit(fulfillment)}:undefined;
             const reason='construction:'+fulfillment.reasons.join(',');
-            if(options.constructionImprovementSamples){unfinished={reason,near:{c,deficit:constructionDeficit(fulfillment)}};}
-            else{if(nearby)rememberNear(nearby);return reject(reason,nearby);}
+            if(nearby)rememberNear(nearby);return reject(reason,nearby);
           }
         }
         const achieved=measureGapAxes(det,{...outgoing,startFrame:i===0?0:frame,endFrame:objectiveEnd},added,objectiveEnd);
@@ -523,8 +478,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         const motionErrors=motion?motionResiduals(motion,motionImpact,options.motionQuality!):[];
         const motionCost=motionErrors.reduce((n,r)=>n+r*r,0);
         residuals.push(...motionErrors);cost+=motionCost;
-        const repairResiduals=options.constructionImprovementSamples?[...residuals,.2*(unfinished?.near.deficit??0)]:undefined;
-        if(unfinished){unfinished.near.loss=cost;unfinished.near.residuals=repairResiduals;lastRepair=unfinished.near;rememberNear(unfinished.near);return reject(unfinished.reason,unfinished.near);}
         const localCost=cost,priorStart=residuals.length;
         const finalVelocity=raw.frames.at(-1)!.velocity;
         if(i<contacts.length-1&&finalVelocity.x<1)return reject('unusable_arrival');
@@ -572,7 +525,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
           i<contacts.length-1?options.valueGuidanceWeight??0:0);
         const result={child,lines:added,c,cost,localCost,residuals:guided.residuals,optimizationCost:guided.cost,
-          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds,motion,motionCost,repairResiduals,localResiduals:residuals.slice(0,priorStart),arrivalResiduals:residuals.slice(priorStart)};
+          achieved,actualImpact,terminalLoss,release,railGuides:fragments?.guideIds,motion,motionCost,localResiduals:residuals.slice(0,priorStart),arrivalResiduals:residuals.slice(priorStart)};
         const {child:_child,...measurement}=result;
         candidates.push({lines:added,c,cost,localCost,measurement,
           searchCost:cost,residuals,heading,endSpeed,pose,valueFeatures,predictedFuture,terminalLoss,meta:{achieved,impact:actualImpact,release:result.release,lines:added.length,railGuides:fragments?.guideIds,motion,motionCost}});
@@ -611,7 +564,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       const remembered=controlMemory.proposeControls(inputFeatures,incoming,span,options.memorySamples??0,options.controlDiversity,options.constructionProposals&&options.railLayout==='transfer'?'both':'relative');
       const responses=controlMemory.proposeResponses(inputFeatures,incoming,span,
         [targets.air,targets.speed,targets.amplitude,impact],options.memoryResponseSamples??0,
-        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:options.responseDamping??.0002,axisWeights:responseAxisWeights},options.controlDiversity);
+        {amplitude:options.amplitudeWeight??1,impact:options.impactWeight??2,damping:.0002,axisWeights:responseAxisWeights},options.controlDiversity);
       // Startup has a different physical-state distribution from a later catch.
       // Its optional learned proposals still pass the ordinary interval search.
       const proposalModel=i===0?options.controlPolicy?.startupModel:options.controlPolicy;
@@ -619,7 +572,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       // The inherited model already covers ordinary arcs. Reserve new geometry
       // proposals where its training constructor differs from this request.
       const novelConstructor=!!options.profile||options.railLayout==='transfer';
-      const reservedGeneric=options.constructionProposals?Math.ceil(initial*(options.genericProposalFraction??(novelConstructor?.25:0))):0;
+      const reservedGeneric=options.constructionProposals?Math.ceil(initial*(novelConstructor?.25:0)):0;
       const counts=options.budgetedProposals?allocateArcProposalSlots(requested,Math.max(0,initial-1-reservedGeneric)):requested;
       const policy=counts[0]?arcControlProposals(policyInputFeatures,incoming,span,proposalModel,counts[0],options.controlDiversity):[];
       const learnedEnd=policy.length,memoryEnd=learnedEnd+Math.min(remembered.length,counts[1]);
@@ -693,22 +646,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         }
         Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
       }
-      if(options.compactProfileProposals&&options.profile&&options.profile!=='fold'&&options.railLayout==='transfer'&&initial>0){
-        // Separate the duration of a complete motif from its later runout.
-        // A long air/speed demand need not stretch every reversal across the
-        // whole support. Native traversal and shape checks remain mandatory.
-        const anchor=best?.c??near[0]?.c??center;
-        if(anchor)for(let k=0;k<16;k++){
-          const frac=(n:number)=>((k+1)*n)%1,mainEnd=.8+.2*frac(.5698402910);
-          const duration=support*[.6,.9,1.2,1.5][Math.floor(k/4)]/mainEnd;
-          const control={...anchor,support:duration,profileEnd:[.2,.35,.6,1][k%4],mainEnd,
-            turnFraction:Math.min(5,duration*.3)/duration,exit:-20+40*frac(.7548776662)};
-          const accounting=initialProposalWork.compactProfile,began=getPhysicsFrameCount();accounting.attempts++;
-          try{if(evaluate(control))accounting.viable++;}
-          finally{accounting.physicsFrames+=getPhysicsFrameCount()-began;}
-        }
-        Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
-      }
       if(options.observedReceiver&&options.railLayout==='transfer'&&initial>0){
         const anchor=best?.c??near[0]?.c??center;
         if(anchor)for(let k=0;k<12;k++){
@@ -736,71 +673,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
           }
         }finally{record.physicalFrames=getPhysicsFrameCount()-began;record.bestConstructionDeficit=near[0]?.deficit??null;record.failures={...failures};}
       }
-      if(promising.length&&(options.constructionImprovementSamples??0)>0){
-        const began=getPhysicsFrameCount(),record={index:i,frame,proposals:0,viable:0,physicalFrames:0,before:best?.localCost??null,after:best?.localCost??null};
-        constructionImprovement.push(record);
-        const keys=arcMethodKeys('response',true,false,options.guides,options);
-        try{
-          // Joint finite responses can cross a coupled construction boundary
-          // that single-coordinate moves cannot. Rejected shapes remain only
-          // measurements; the ordinary evaluator alone admits valid geometry.
-          const probe=(control:ArcMotionControl)=>{
-            record.proposals++;const r=evaluate(control);if(r)record.viable++;
-            return r?{c:r.c,deficit:0,loss:r.localCost,residuals:r.repairResiduals}:lastRepair;
-          };
-          let round=0;
-          while(record.proposals+2*keys.length+3<=Math.floor(options.constructionImprovementSamples!*.6)){
-            const pool=round%2?near:promising,origin=pool[Math.floor(round/2)%Math.min(4,pool.length)];
-            const trust=Math.pow(.7,Math.floor(round/4)),constraintScale=Math.pow(2,round%6);round++;
-            if(!origin.residuals)break;
-            const weighted=(r:number[])=>r.map((value,i)=>i===r.length-1?value*constraintScale:value);
-            const originResiduals=weighted(origin.residuals);
-            const scale=(key:keyof ArcMotionControl)=>arcControlStep(key,'response',origin.c.support)*trust;
-            const jac=originResiduals.map(()=>Array(keys.length).fill(0));
-            keys.forEach((key,d)=>{
-              const value=arcControlValue(origin.c,key,options.channel),step=scale(key);
-              const a=probe({...origin.c,[key]:value+step}),b=probe({...origin.c,[key]:value-step});
-              const ar=a?.residuals?weighted(a.residuals):undefined,br=b?.residuals?weighted(b.residuals):undefined;
-              for(let j=0;j<jac.length;j++)jac[j][d]=ar&&br?(ar[j]-br[j])/2:ar?ar[j]-originResiduals[j]:br?originResiduals[j]-br[j]:0;
-            });
-            const delta=arcResponseStep(jac,originResiduals,.002);
-            if(delta)for(const fraction of [1,.5,.25]){
-              const c={...origin.c};keys.forEach((key,d)=>c[key]=arcControlValue(c,key,options.channel)+fraction*scale(key)*clamp(delta[d],-3,3));probe(c);
-            }
-            Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
-          }
-          for(let k=record.proposals;k<options.constructionImprovementSamples!;k++){
-            let proposal=genericInitial(initial+(options.initialRecoverySamples??0)+k+1);
-            if(k%4!==3){
-              const trial=k-Math.floor(k/4),key=keys[Math.floor(trial/2)%keys.length];
-              const anchor=promising[Math.floor(trial/(2*keys.length))%Math.min(4,promising.length)].c;
-              const step=arcControlStep(key,'coordinate',anchor.support)*Math.pow(.7,Math.floor(trial/(8*keys.length)));
-              proposal={...anchor,[key]:arcControlValue(anchor,key,options.channel)+(trial%2?-1:1)*step};
-            }
-            record.proposals++;if(evaluate(proposal))record.viable++;
-            if(k%10===9)Engine.retainOnly([...protectedEngines,engine,...(best?[best.child]:[])]);
-          }
-        }finally{record.physicalFrames=getPhysicsFrameCount()-began;record.after=best?.localCost??null;}
-      }
       if(best){
         const keys=ARC_CORE_KEYS;
-        let local=initial;
-        if(options.solver==='newton'){
-          for(let iteration=0;iteration<4&&local+2*keys.length+3<max;iteration++){
-            const origin=best, scale=keys.map(key=>arcControlStep(key,'newton',options.constructionProposals?origin.c.support:support));
-            const jac=origin.residuals.map(()=>Array(keys.length).fill(0));
-            for(let d=0;d<keys.length;d++){
-              const key=keys[d], a=evaluate({...origin.c,[key]:origin.c[key]+scale[d]}),b=evaluate({...origin.c,[key]:origin.c[key]-scale[d]});local+=2;
-              for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
-            }
-            const delta=arcResponseStep(jac,origin.residuals,.002);
-            for(const damping of [1,.5,.25]){
-              if(delta){const c={...origin.c};keys.forEach((key,d)=>c[key]=arcControlValue(c,key,options.channel)+damping*scale[d]*clamp(delta[d],-4,4));evaluate(c);}local++;
-            }
-            Engine.retainOnly([...protectedEngines,engine,best.child]);
-          }
-        }
-        for(let k=local;k<max;k++){
+        for(let k=initial;k<max;k++){
           const key=keys[Math.floor((k-initial)/2)%keys.length],round=Math.floor((k-initial)/(2*keys.length)),sign=k%2===0?-1:1;
           const candidate={...best.c,[key]:best.c[key]+sign*arcControlStep(key,'coordinate',options.constructionProposals?best.c.support:support)*Math.pow(.65,Math.floor(round/2))};
           evaluate(candidate);
@@ -809,10 +684,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       }
       if(best&&options.guidance){
         const origin=best;
-        const exitEnabled=options.independentExit&&best.c.support>=(options.minExitSupport??0);
         const receiverActive=options.observedReceiver&&best.c.receiverFlight!==undefined;
         const irrelevantGuide=new Set(['clearance','guideStart','guideEnd','guideTilt','guideFlare']);
-        const responseKeys=arcMethodKeys('response',!!options.expressive,!!exitEnabled,options.guides,
+        const responseKeys=arcMethodKeys('response',!!options.expressive,false,options.guides,
           {...options,observedReceiver:receiverActive}).filter(key=>!receiverActive||!irrelevantGuide.has(key));
         const wantedResponse=Math.min(options.guidanceSamples??48,options.responseSamples??0);
         const responseRound=2*responseKeys.length+3;
@@ -824,7 +698,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         if(options.independentGuide)keys.push('guideTilt');
         if(options.observedReceiver&&best.c.receiverFlight!==undefined)
           keys.push('receiverFlight','receiverEntry','receiverTurn','receiverExit','receiverDuration');
-        if(exitEnabled)keys.push('exitBias');
         keys=keys.filter(key=>arcControlActive(key,options.guides,options));
         if(receiverActive)keys=keys.filter(key=>!irrelevantGuide.has(key));
         const broad=options.guidanceJoint?Math.min(24,Math.ceil(count/3)):count/2;
@@ -837,31 +710,27 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
             if(options.expressive&&k>0){c.turnFraction=.15+.65*frac(.2718281828);c.bend=-35+70*frac(.1415926535);c.guideFlare=-12+24*frac(.5772156649);}
             if(options.independentGuide&&k>0)c.guideTilt=-15+30*frac(.9159655941);
             if(options.railLayout==='transfer'&&k>0)c.mainEnd=.3+.6*frac(.6931471806);
-            if(exitEnabled)c.exitBias=k>0?-2+4*frac(.9159655941):c.exitBias??c.bias;
             if(options.guidance!=='clearance'){
               c.guideStart=k%3===0?0:frac(.41421356237)*.7;
               c.guideEnd=k===0?0:k%3===1?1:Math.max(c.guideStart,frac(.73205080757));
             }
           }else{
             const key=keys[Math.floor(k/2)%keys.length],step=arcControlStep(key,'coordinate',options.constructionProposals?best.c.support:support);
-            c={...best.c,...(exitEnabled?{exitBias:best.c.exitBias??best.c.bias}:{}),[key]:arcControlValue(best.c,key,options.channel)+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
+            c={...best.c,[key]:arcControlValue(best.c,key,options.channel)+(k%2===0?-1:1)*step*Math.pow(.6,Math.floor((k-broad)/(keys.length*4)))};
           }
           evaluate(c);if(k%8===7)Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
-        let responseUsed=0, trust=options.responseScale??1;
-        let secant:{jac:number[][];trust:number;uses:number}|null=null;
-        while(responseUsed+(secant?3:2*responseKeys.length+3)<=responseAllowance){
-          const origin=exitEnabled?{...best,c:{...best.c,exitBias:best.c.exitBias??best.c.bias}}:best,scale=(key:keyof ArcMotionControl)=>arcControlStep(key,'response',options.constructionProposals?origin.c.support:support);
+        let responseUsed=0, trust=1;
+        while(responseUsed+2*responseKeys.length+3<=responseAllowance){
+          const origin=best,scale=(key:keyof ArcMotionControl)=>arcControlStep(key,'response',options.constructionProposals?origin.c.support:support);
           const value=(key:keyof ArcMotionControl)=>arcControlValue(origin.c,key,options.channel);
-          const reused=secant!==null;
-          const jac=reused?secant!.jac:origin.residuals.map(()=>Array(responseKeys.length).fill(0));
-          if(reused)trust=secant!.trust;
-          if(!reused)responseKeys.forEach((key,d)=>{
+          const jac=origin.residuals.map(()=>Array(responseKeys.length).fill(0));
+          responseKeys.forEach((key,d)=>{
             const step=scale(key)*trust;
             const a=evaluate({...origin.c,[key]:value(key)+step}),b=evaluate({...origin.c,[key]:value(key)-step});responseUsed+=2;
             for(let r=0;r<jac.length;r++)jac[r][d]=a&&b?(a.residuals[r]-b.residuals[r])/2:a?a.residuals[r]-origin.residuals[r]:b?origin.residuals[r]-b.residuals[r]:0;
           });
-          if(!reused&&(options.memoryResponseSamples??0)>0){
+          if((options.memoryResponseSamples??0)>0){
             controlMemory.rememberResponse({features:inputFeatures,incoming,span,
               control:{...origin.c,...Object.fromEntries(responseKeys.map(key=>[key,value(key)]))},
               targets:[targets.air,targets.speed,targets.amplitude,impact],keys:responseKeys.slice(),
@@ -870,34 +739,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
               scale:responseKeys.map(key=>scale(key)*trust),
               loss:origin.residuals.slice(0,4).reduce((sum:number,v:number)=>sum+v*v,0)});
           }
-          const delta=arcResponseStep(jac,origin.residuals,options.responseDamping??.0002);
+          const delta=arcResponseStep(jac,origin.residuals,.0002);
           for(const fraction of [1,.5,.25]){
             if(delta){const c={...origin.c};responseKeys.forEach((key,d)=>c[key]=value(key)+fraction*scale(key)*trust*clamp(delta[d],-3,3));evaluate(c);}responseUsed++;
           }
           const improving=best.optimizationCost<origin.optimizationCost-1e-12;
-          const previousUses:number=secant?.uses??0;
-          if(improving&&(options.responseSecantSteps??0)>0&&previousUses<options.responseSecantSteps!){
-            const displacement=responseKeys.map(key=>((best.c[key]??value(key))-value(key))/(scale(key)*trust));
-            const updated=arcSecantUpdate(jac,displacement,best.residuals.map((v:number,r:number)=>v-origin.residuals[r]));
-            secant=updated?{jac:updated,trust,uses:previousUses+1}:null;
-          }else secant=null;
           if(!improving)trust*=.5;
           Engine.retainOnly([...protectedEngines,engine,best.child]);
         }
-      }
-      for(let pass=0;best&&targets.air!==undefined&&pass<(options.airProjection??0);pass++){
-        const origin=best,measuredSamples=objectiveEnd-(i===0?0:frame)+1;
-        const airborne=origin.achieved.air*measuredSamples;
-        const wanted=Math.round(targets.air*(outgoing.endFrame-outgoing.startFrame+1));
-        const counts=outgoing.endsWithContact?[wanted,wanted-1]:[wanted];
-        const first=origin.c.turnFraction===undefined?Math.min(options.wave?6:5,origin.c.support*.5):origin.c.support*origin.c.turnFraction;
-        for(const count of counts)for(const fraction of [.6,1,1.4]){
-          const delta=clamp((airborne-count)*fraction,-Math.max(2,.2*span),Math.max(2,.2*span));
-          if(Math.abs(delta)<.05)continue;
-          const adjusted=Math.max(2,origin.c.support+delta);
-          evaluate({...origin.c,support:adjusted,turnFraction:first/adjusted});
-        }
-        Engine.retainOnly([...protectedEngines,engine,best.child]);
       }
       }
       } catch(error) {
@@ -931,7 +780,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
     };
     const valueRank=(c:any)=>c.predictedFuture===undefined?c.cost:c.cost+(options.valueWeight??.5)*(c.localCost+c.predictedFuture-c.cost);
     const distinctArrival=(a:any,b:any)=>Math.abs(a.heading-b.heading)>4||Math.abs(a.endSpeed-b.endSpeed)>.4||
-      Math.abs(a.pose-b.pose)>7||Math.abs(a.meta.release-b.meta.release)>(options.releaseDiversity??2);
+      Math.abs(a.pose-b.pose)>7||Math.abs(a.meta.release-b.meta.release)>2;
     const distinct=(candidates:any[],width:number)=>{
       const result:any[]=[];
       for(const candidate of candidates.slice().sort((a,b)=>valueRank(a)-valueRank(b))){
@@ -940,16 +789,11 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       }
       return result;
     };
-    const continuationGuidance=(index:number)=>{
-      const style=options.sectionStyles?.[index],ordinary=options.continuationGuidanceSamples??Math.min(12,options.guidanceSamples??48);
-      return options.constructionContinuationSamples&&(style?.profile||style?.railLayout==='transfer')
-        ?Math.max(ordinary,options.constructionContinuationSamples):ordinary;
-    };
+    const continuationGuidance=Math.min(12,options.guidanceSamples??48);
     const continuation=(base:Engine,index:number,depth:number,probeSamples:number,protectedEngines:Engine[]):any=>{
       const searched=searchInterval(base,index,{samples:probeSamples,
-        constructionImprovementSamples:0,
-        guidanceSamples:continuationGuidance(index),
-        responseSamples:options.continuationResponseSamples??options.responseSamples},protectedEngines);
+        guidanceSamples:continuationGuidance,
+        responseSamples:options.responseSamples},protectedEngines);
       lookaheadStats.continuationNodes++;
       if(!searched?.best)return null;
       const anchor=searched.best;
@@ -971,12 +815,12 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       }
       let winner:any=null, completed=0;
       try {
-      for(const candidate of distinct(searched.candidates,options.lookaheadBranching??2)){
+      for(const candidate of distinct(searched.candidates,2)){
         const branch=addArc(base,candidate.lines);
         const tail=continuation(branch,index+1,depth-1,probeSamples,[...protectedEngines,base,anchor.child]);
         if(tail){
           completed++;
-          const value=candidate.localCost+(options.lookaheadWeight??1)*tail.value;
+          const value=candidate.localCost+tail.value;
           if(!winner||value<winner.value)winner={value,localValue:value,control:candidate.c,depth:1+tail.depth};
         }
         Engine.retainOnly([...protectedEngines,base,anchor.child]);
@@ -1063,21 +907,21 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       const {candidates,failures,frame,next,horizon,gap,outgoing,targets,incoming,pace,center,support}=interval;
       let lookahead:any=null;
       if(best&&(options.lookaheadWidth??0)>1&&i+1<contacts.length){
-        let width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32,depth=Math.max(1,options.lookaheadDepth??1);
-        const probeRate=(index:number)=>options.constructionContinuationSamples?1+continuationGuidance(index)/probeSamples:options.continuationGuidanceSamples===undefined?1.4:
-          1+options.continuationGuidanceSamples/probeSamples;
+        let width=options.lookaheadWidth!, probeSamples=options.lookaheadSamples??32,depth=1;
+        // Estimated evaluations per continuation sample, counting its local correction.
+        const probeRate=1.4;
         const nominalRate=(options.samples??160)+(options.guidance?options.guidanceSamples??48:0);
         const constructionReserveRate=(options.adaptivePlanning?Math.max(nominalRate,observedConstructionRate):nominalRate)*(options.reserveFactor??1.1);
         if(options.adaptivePlanning){
           const remaining=Math.max(1,end-frame),rate=(budget-getPhysicsFrameCount()-2*(end+1))/remaining;
           const localAllowance=Math.max(0,rate-constructionReserveRate)*(next-frame);
-          for(let d=Math.min(options.planningDepth??2,contacts.length-i-1);d>=1;d--){
+          for(let d=Math.min(2,contacts.length-i-1);d>=1;d--){
             let framesPerProbe=0;
-            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(options.lookaheadBranching??2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*(probeRate(i+k+1)+6*(options.airProjection??0)/probeSamples);
+            for(let k=0;k<d;k++)framesPerProbe+=Math.pow(2,k)*((contacts[i+k+2]?.frame??end+1)-contacts[i+k+1].frame)*probeRate;
             const affordable=localAllowance/Math.max(1,framesPerProbe);
             if(affordable<width*probeSamples)continue;
-            width=Math.max(width,Math.min(options.planningWidth??5,Math.floor(affordable/probeSamples)));
-            probeSamples=Math.max(probeSamples,Math.min(options.planningSamples??48,Math.floor(affordable/width)));
+            width=Math.max(width,Math.min(5,Math.floor(affordable/probeSamples)));
+            probeSamples=Math.max(probeSamples,Math.min(48,Math.floor(affordable/width)));
             depth=d;break;
           }
           planningDecisions.push({index:i,frame,observedConstructionRate,constructionReserveRate,localAllowance,width,probeSamples,depth});
@@ -1091,7 +935,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
           if(probes.length>=width&&winner)break;
           const reserve=options.adaptivePlanning?(end-frame)*constructionReserveRate:(end-frame)*nominalRate*(options.reserveFactor??1.1);
           let probeAllowance=0;
-          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(options.lookaheadBranching??2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*(probeRate(i+d+1)+6*(options.airProjection??0)/probeSamples);
+          for(let d=0;d<depth&&i+d+1<contacts.length;d++)probeAllowance+=Math.pow(2,d)*((contacts[i+d+2]?.frame??end+1)-contacts[i+d+1].frame)*probeSamples*probeRate;
           if(getPhysicsFrameCount()+reserve+probeAllowance>budget-2*(end+1))break;
           const branch=addArc(engine,candidate.lines);
           const future=continuation(branch,i+1,depth,probeSamples,[engine,original.child]);
@@ -1099,7 +943,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
           if(!future)lookaheadStats.failedProbes++;
           lookaheadStats.maxDepth=Math.max(lookaheadStats.maxDepth,future?.depth??0);
           const terminal=options.lookaheadObjective==='terminal'||depth>1;
-          let value=future?(terminal?candidate.localCost:candidate.cost)+(options.lookaheadWeight??1)*(terminal?future.value:future.localValue):Infinity;
+          let value=future?(terminal?candidate.localCost:candidate.cost)+(terminal?future.value:future.localValue):Infinity;
           if(future&&options.valueSelection&&candidate.predictedFuture!==undefined)value+=(options.valueWeight??.5)*(candidate.localCost+candidate.predictedFuture-value);
           if(options.reuseContinuations){candidate.lookaheadValue=value;candidate.futureControl=future?.control;}
           probes.push({control:candidate.c,currentCost:candidate.cost,localCost:candidate.localCost,futureCost:future?.value??null,depth:future?.depth??0,value:Number.isFinite(value)?value:null,predictedFuture:candidate.predictedFuture});
@@ -1117,7 +961,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
           best=restoreCandidate(c,addArc(engine,c.lines));
           lookaheadStats.changedChoices++;
         }
-        if(winner&&options.lookaheadWarmStart!==false)pendingControl={index:i+1,control:winner.futureControl};
+        if(winner)pendingControl={index:i+1,control:winner.futureControl};
         lookaheadStats.physicsFrames+=getPhysicsFrameCount()-startFrames;
         lookahead={probes,selected:winner?.candidate.c??original.c};
       }
@@ -1128,7 +972,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         if(getPhysicsFrameCount()+reserve+estimated<budget-2*(end+1)){
           const styles=[i,i+1].map(index=>({...options,...options.sectionStyles?.[index]}));
           const initialControls=[original.c,initialNext] as ArcMotionControl[];
-          const dimensions=initialControls.flatMap((c,which)=>arcMethodKeys('response',!!options.expressive,!!options.independentExit,styles[which].guides,
+          const dimensions=initialControls.flatMap((c,which)=>arcMethodKeys('response',!!options.expressive,false,styles[which].guides,
             {...styles[which],observedReceiver:!!options.observedReceiver&&c.receiverFlight!==undefined}).map(key=>({which,key})));
           const coordinates=(controls:ArcMotionControl[])=>dimensions.map(({which,key})=>arcControlValue(controls[which],key,options.channel));
           const scales=dimensions.map(({which,key})=>arcControlStep(key,'response',initialControls[which].support));

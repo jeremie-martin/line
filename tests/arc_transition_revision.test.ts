@@ -6,7 +6,7 @@ it('revisits a preceding native construction with a valid combined result and on
  const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map((t,i)=>({t,impact:i%2?.7:.2})),axes:{air:()=>.5,speed:()=>.5}};
  const options={budget:300000,samples:80,channel:12,radius:24,bidirectional:true,
   impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,
-  lookaheadWidth:3,lookaheadSamples:24,lookaheadDepth:1,reuseContinuations:true,completeBoundary:true,
+  lookaheadWidth:3,lookaheadSamples:24,reuseContinuations:true,completeBoundary:true,
   memoCandidates:true,reuseEvaluations:true,guidance:'clearance' as const,guidanceSamples:24};
  const result=compileArcMotion(spec,17,{...options,transitionRevision:{errorThreshold:0,width:3,samples:48,guidanceSamples:48,responseSamples:40}});
  expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);

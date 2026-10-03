@@ -96,7 +96,7 @@ it('reuses measured alternatives and adapts the following arcs without losing th
 
 it('reuses only retained physical prefixes with exact outputs and unchanged physics charging', () => {
   const options = {...base, expressive: true, guidanceSamples: 96, guidanceJoint: true,
-    responseSamples: 70, lookaheadWidth: 3, lookaheadDepth: 2, lookaheadSamples: 32,
+    responseSamples: 70, lookaheadWidth: 3, lookaheadSamples: 32,
     strictHorizon: true, reuseContinuations: true, refineAttempts: 4, refineUseAlternatives: true,
     refineMode: 'reflow' as const, refineFollowSamples: 12};
   const original = compileArcMotion(spec, 23, options);

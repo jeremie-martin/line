@@ -7,12 +7,6 @@ import type {Spec} from '../scripts/v0/types.ts';
 const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 const options={samples:32,channel:12,radius:24,bidirectional:true,impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3};
 
-it('retains a fully completed recursive branch when a sibling exhausts the allowance',()=>{
-  const r=compileArcMotion(spec,17,{...options,budget:6000,lookaheadWidth:3,lookaheadSamples:8,lookaheadDepth:2,strictHorizon:true,reserveFactor:0,guidance:'clearance',guidanceSamples:32});
-  expect(r.budgetInterruptions).toContainEqual({phase:'continuation',index:2,frame:48,viable:1,retained:true});
-  expect(r.rows.some(row=>row.lookahead?.probes.some((p:any)=>p.depth===2&&p.value!==null))).toBe(true);
-  expect(r.failure?.reason).toBe('budget');expect(r.stats.sim_frames).toBeLessThanOrEqual(6000);
-});
 it('keeps completed intervals after every remaining backtracking alternative fails',()=>{
   const input={...spec,duration:2.5,contacts:[.6,1.2,1.35,1.95].map(t=>({t,impact:.4}))};
   const r=compileArcMotion(input,17,{...options,samples:16,budget:20000});

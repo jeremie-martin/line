@@ -19,7 +19,7 @@ it.each([
 });
 it('keeps the hard limit and cold replay checks with planning and reuse enabled',()=>{
   const r=compileArcMotion(spec,17,{...options,budget:6000,memoCandidates:true,
-    lookaheadWidth:3,lookaheadSamples:8,lookaheadDepth:2,strictHorizon:true,reuseContinuations:true});
+    lookaheadWidth:3,lookaheadSamples:8,strictHorizon:true,reuseContinuations:true});
   expect(r.candidateMemo.hits).toBeGreaterThan(0);
   expect(r.stats.sim_frames).toBeLessThanOrEqual(6000);
   expect(r.track.lines.every(l=>l.type===0)).toBe(true);

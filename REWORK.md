@@ -210,4 +210,21 @@ Only on validated measures:
   - Paired against the default: strike loss −0.21, strong extra strikes
     −0.32/beat, contested strong beats −20 pp (to 5%, July 3%), late peaks
     −11 pp, at +0.67 M frames.
+- 2026-10-04: **Strike adopted as the product objective.**
+  - The registry holds `line.strike.v1` only; contact-impact v1 is now a
+    research diagnostic.
+  - Production, dashboard jobs and the library default to strike, with
+    `landing` as a temporary comparison mode.
+  - Parity gained strike cells.
+  - The review library was regenerated: 12/12 fulfilled.
+  - Motion checks all pass.
+  - Perturbed panel against the old default: peak lag −47 ms, contested beats
+    −24 pp, strike loss −0.20.
+- 2026-10-04: **Old schema retired.**
+  - `CompileStats` is lean (types.ts went from 1,743 to about 830 lines), and
+    a native work record replaced the budget-telemetry shim.
+  - Deleted: `selective_backtracking.ts`, `repair_branch_bound.ts`,
+    `register.ts`, `budget_telemetry.ts`, `budget_estimator.ts` (with its model)
+    and `budget_model.ts`, about 7,100 lines.
+  - Typecheck errors: 0.
 

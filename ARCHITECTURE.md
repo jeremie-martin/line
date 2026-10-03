@@ -50,32 +50,51 @@ spec (beats, impacts, air/speed/amplitude targets)
    - layout fulfillment, i.e. whether each requested construction actually
      happened (`repertoire_layout.ts`);
    - motion summaries (`motion_quality.ts`);
-   - in contact-impact mode, the shared impact account (`impact_search.ts`
-     over `scripts/lib/contact_impact.ts`).
+   - the strike impact account, recomputed independently and required to
+     equal the compiler's (`impact_accounts.ts` over
+     `scripts/lib/strike_impact.ts`).
 5. **Review.** `scripts/produce/automatic.ts` writes a manifest of track, report
    and evidence that `motion-gallery/production.html` plays with the real rider
    and the music. `render_repertoire.ts` renders vertical video when wanted.
 
 ## Measurement
 
-Two impact rulers coexist on purpose until Phase 3 picks one:
+**The product's impact objective is the strike account, `line.strike.v1`.**
+It lives in `scripts/lib/strike_impact.ts`; the definition, its rationale and
+the evidence are in `docs/research/strike-definition-20261004.md`.
 
-| ruler | definition | used by |
-|---|---|---|
-| frozen landing impact | strength = turn of the rider's centre-of-mass velocity × speed, summed over the contacted frames from sled touchdown to 6 frames after (~150 ms); scored ÷ 7.55, clamped to [0, 1] (`docs/research/impact_definition.md`) | V6 judge, default compiler |
-| `line.contact-impact.v1` | same strength formula; separate impacts start at a contact by any rider point, and a contact-free frame separates two impacts; timing is the onset; matched to beats with penalties for unmatched hits | `--impact-contract=` mode |
+- **Signal.** Everything derives from the velocity of the rider's 10-point
+  centre of mass, which is exactly ballistic in free flight.
+- **Identity.** Contact acceleration identifies events: every touchdown, plus
+  any renewed strike within continuous contact. Steering is not an event.
+- **Timing.** Events are timed at their half-rise.
+- **Strength.** Centre-of-mass redirection on the established 0–1 scale.
+- **Matching.** Events are matched one-to-one to beats; unmatched strikes cost
+  their strength squared.
 
-Known measurement issues (Phase 3):
+The compiler uses accounts only through `impact_accounts.ts`. Search,
+refinement, terminal selection, the final replay, production and the review
+all observe and account through one interface. Its search profile is in
+`contact_impact_profile.ts` (preparation 2, chosen on the song-level
+evaluation).
 
-- **Timing at onset.** v1 times a hit at its onset; the visible peak still
-  lags about 54 ms.
-- **Renewal blind spot.** A strike after a weak hit, while the rider stays in
-  contact, is never counted. The compiler already exploits this.
-- **Strength scale.** Neither ruler is validated beyond about 68
-  discriminating felt labels, and v1's strength agrees slightly worse with
-  those labels than the frozen ruler.
-- **Clarity.** Neither ruler separates a clean landing from a head-first grind
-  of equal strength.
+Two other rulers remain on purpose:
+
+- **Frozen V6 landing impact** (`docs/research/impact_definition.md`).
+  - It is used only by the V6 judge (`benchmark/v6`).
+  - It is also used by the `landing` compile mode, which is the previous
+    objective, kept temporarily so the owner can compare.
+- **`line.contact-impact.v1`**, the strike account's predecessor. It is a
+  research diagnostic in `tools/measure` only.
+
+Known limits of the strike account:
+
+- **Strength scale.** It is validated perceptually only on lower landings,
+  using the June/July felt labels.
+- **Head-on stops.** They are detected as events but under-read in strength
+  (a stop is not a redirection).
+- **Quiet requests.** Requests below about 0.05 sit near the floor of any
+  gentle touchdown; quiet beats read about 0.03–0.05 strong.
 
 ## Evaluation
 
@@ -87,6 +106,8 @@ Known measurement issues (Phase 3):
   - **It is not a target.** It is inversely related to measured hit clarity,
     its gains were mostly completions, and all of its inputs were used to
     train the learned models.
+  - It compiles in `landing` mode. Its 460-run regression check passed at the
+    end of Phase 2 (identical to the stored reference).
 - **`npm run eval`** (`tools/eval`) is the behavioural evaluation.
   - It compiles the production songs × 4 arrangement seeds, plus perturbed
     authorings, and pairs runs by case.
@@ -96,11 +117,11 @@ Known measurement issues (Phase 3):
     optimize: the renewal-fixed strength, peak timing and contested beats
     from the 10-point external impulse.
   - Held-out new music is still missing; it needs new songs.
-- **`tools/measure`** holds the candidate per-beat measures, and
-  `labels/studies` holds the blind owner labels used to choose among them
-  (Phase 3).
+- **`tools/measure`** holds the per-beat measures across rulers (`measures.ts`)
+  and the motion check of a review library (`motion_check.ts`).
+- **`labels/studies`** holds the blind owner labels.
 
-## Known structural problems (Phase 2)
+## Known structural problems (next)
 
 - **Compiler leftovers after the split.**
   - Some production options are constants (for example `reuseEvaluations`,
@@ -113,12 +134,15 @@ Known measurement issues (Phase 3):
   - The caps are in `connected_arcs.ts` and `repertoire_search.ts`.
   - Lookahead uses about 74% of the physics frames.
   - Results are not monotone in budget.
-- **Retired-schema telemetry.** The `budget_telemetry.ts` / `budget_estimator.ts`
-  shim re-expresses results in a schema from the old compiler.
 - **Duplication.**
   - There are two physics engine copies: `engine-rs` (judge) and
     `scripts/lib/native_motion` (compiler facilities).
 - **Judge and compiler share files.** These are `types.ts`, `repertoire_layout.ts`
   and `motion_quality.ts`, and line-to-section attribution relies on the line-ID
-  numbering convention `floor((id − 1000) / 10000)`.
+  numbering convention `floor((id − 1000) / 10000)`. Since V6 is frozen by its
+  outputs, these files can now be cleaned safely, provided `npm run parity:judge`
+  stays green.
+- **Two impact objectives during review.** The `landing` compile mode stays
+  only until the owner has compared it with strike. Then it, and the
+  landing-specific validity rules in `arc_evaluate.ts`, go.
 - **Geometry families are not modular.** A new profile touches about 10 files.

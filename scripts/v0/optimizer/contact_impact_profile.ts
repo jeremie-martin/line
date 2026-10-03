@@ -16,7 +16,7 @@ export const CONTACT_IMPACT_SEARCH_PROFILE = Object.freeze({
 /** Search configuration for line.strike.v1. */
 export const STRIKE_SEARCH_PROFILE = Object.freeze({
   id: 'line.strike-search.v1',
-  impactPreparationFrames: 1,
+  impactPreparationFrames: 2,
   opposingEntryProposals: 24,
   coupledIntervalSamples: 64,
   impactSearch: Object.freeze({engagementGainWeight: .64}),

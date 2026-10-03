@@ -24,17 +24,27 @@ spec (beats, impacts, air/speed/amplitude targets)
    and it uses the requested impact and speed (for example, calm passages
    favour open arcs). An explicit plan bypasses this step (V6 fixed panel).
 3. **Construct.** `compileProductionRepertoire` (`production_repertoire.ts`)
-   gives one total physics allowance to `compileArcMotion` (`arc_motion.ts`).
-   For each section that function:
-   - proposes geometry from several sources: the parametric centre, learned
-     retrieval (`arc_control_policy.ts` and the construction models), memory of
-     earlier sections, response directions, and observed receivers;
-   - refines it with coordinate and joint-response steps;
-   - looks ahead to the next landing;
+   gives one total physics allowance to `compileArcMotion` (`arc_motion.ts`),
+   configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section
+   by section (`arc_sequence.ts`); for each section it:
+   - proposes geometry (`arc_proposals.ts`) from several sources: the
+     parametric centre, learned retrieval (`arc_control_policy.ts` and the
+     construction models), memory of earlier sections, response directions,
+     and observed receivers;
+   - measures each proposal by native replay from the section's physical
+     start (`arc_evaluate.ts`, state in `arc_interval_state.ts`);
+   - refines the best with coordinate, guide and joint-response steps
+     (`arc_local_search.ts`);
+   - looks ahead to the next landing (`arc_lookahead.ts`) and may revisit the
+     previous or next section (`arc_neighbor_revision.ts`);
    - backtracks when a later section becomes infeasible;
-   - finishes with terminal selection and ending refinement.
+   - finishes with terminal selection and ending refinement
+     (`arc_complete_refinement.ts`, `arc_refinement.ts`), then a cold replay
+     checked against an independent engine (`arc_finalize.ts`).
 
-   Every evaluation is native physics, charged to the allowance.
+   Every evaluation is native physics, charged to the allowance. Measurements
+   are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)
+   classifies every option by whether it can change a measurement.
 4. **Validate.** The finished track is replayed on a separate engine instance.
    That replay produces:
    - layout fulfillment, i.e. whether each requested construction actually
@@ -82,9 +92,13 @@ Known measurement issues (Phase 3):
 
 ## Known structural problems (Phase 2)
 
-- **`compileArcMotionOnce` is a single 1,242-line closure.**
-  - `ArcMotionOptions` has 134 fields, 17 of which are never set.
-  - Its memo key is a hand-maintained list of 38 options.
+- **Compiler leftovers after the split** (branch `rework/compiler-split`).
+  - Some production options are constants (for example `reuseEvaluations`,
+    `memoCandidates`, `cachePrefixReads` are always true) but remain options.
+  - Helper modules still accept research knobs the compiler no longer sets
+    (`arc_motion_control.ts`: independent exit, compact profiles, guide-extent
+    responses; `arc_geometry.ts`: contours, wave and faceted arcs, used by the
+    gallery catalog).
 - **Budget rules are saturating caps tuned to V4.**
   - The caps are in `connected_arcs.ts` and `repertoire_search.ts`.
   - Lookahead uses about 74% of the physics frames.
@@ -97,7 +111,6 @@ Known measurement issues (Phase 3):
 - **Duplication.**
   - There are two physics engine copies: `engine-rs` (judge) and
     `scripts/lib/native_motion` (compiler facilities).
-  - The validity predicate is copied 3×.
 - **Judge and compiler share files.** These are `types.ts`, `repertoire_layout.ts`
   and `motion_quality.ts`, and line-to-section attribution relies on the line-ID
   numbering convention `floor((id − 1000) / 10000)`.

@@ -171,3 +171,14 @@ Only on validated measures:
     ARCHITECTURE, WORKING and CLAUDE.
   - Tracked files went from about 3,900 to about 1,450.
   - Typecheck: 16 errors. Parity holds and all tests pass.
+- 2026-10-03: **Phase 2, compiler split** (branch `rework/compiler-split`).
+  - 61 research-only options removed: interval options went from 145 to 84
+    (77 production fields, 7 set only inside the compiler); one search
+    attempt instead of the preview/completion-first attempt layer.
+  - `compileArcMotionOnce` (1,242 lines) is split into stage modules with
+    explicit state; `arc_motion.ts` went from 1,519 to 56 lines.
+  - Production configuration is declared separately from per-interval
+    overrides; the memo context is derived from `EVALUATION_IDENTITY`.
+  - One validity predicate (`ride_validity.ts`).
+  - Every commit: parity byte-identical, output fingerprints of all 23 cells
+    identical apart from deliberately dropped telemetry, typecheck 16.

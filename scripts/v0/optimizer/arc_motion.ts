@@ -15,9 +15,12 @@ import { arcAttemptTelemetry } from './arc_attempts.ts';
 import type { Spec } from '../types.ts';
 export type { ArcMotionOptions, SectionStyle, IntervalOverrides, IntervalOptions } from './arc_options.ts';
 
-export function compileArcMotion(spec:Spec,seed:number,options:ArcMotionOptions){
-  const result=compileArcMotionOnce(spec,seed,options);
-  return {...result,...arcAttemptTelemetry(result,options),budget:options.budget};
+/** Compiles `spec` into connected arc geometry within `options.budget`
+ * physics frames. The result carries the track, its report, the committed
+ * rows and the search telemetry. */
+export function compileArcMotion(spec: Spec, seed: number, options: ArcMotionOptions) {
+  const result = compileArcMotionOnce(spec, seed, options);
+  return {...result, ...arcAttemptTelemetry(result, options), budget: options.budget};
 }
 
 /** One complete search: validate, construct interval by interval, refine

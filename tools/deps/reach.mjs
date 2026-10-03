@@ -16,7 +16,7 @@ const ROOT = resolve(import.meta.dirname, '../..');
 const ts = createRequire(join(ROOT, 'package.json'))('typescript');
 const tracked = execSync('git ls-files', {cwd: ROOT, maxBuffer: 1 << 28}).toString().split('\n').filter(Boolean);
 const CODE = /\.(ts|mts|mjs|js|cjs)$/;
-const files = tracked.filter(f => CODE.test(f) && !/^(node_modules|vendor|remotion\/node_modules)\//.test(f));
+const files = tracked.filter(f => CODE.test(f) && !/^(node_modules|remotion\/node_modules)\//.test(f));
 const fileSet = new Set(tracked.filter(f => CODE.test(f)));
 const tryResolve = base => [base, base + '.ts', base + '.mts', base + '.mjs', base + '.js', base + '/index.ts', base + '/index.js',
   ...(base.endsWith('.js') ? [base.slice(0, -3) + '.ts'] : [])].find(c => fileSet.has(c)) ?? null;
@@ -51,11 +51,12 @@ const closure = entries => {
 };
 const glob = p => {const re = new RegExp('^' + p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*\*/g, '§').replace(/\*/g, '[^/]*').replace(/§/g, '.*') + '$');
   return files.filter(f => re.test(f));};
-const entries = JSON.parse(readFileSync(join(ROOT, 'tools/deps/entries.json'), 'utf8')).entries.flatMap(glob);
+const declared = JSON.parse(readFileSync(join(ROOT, 'tools/deps/entries.json'), 'utf8'));
+const entries = declared.entries.flatMap(glob), assets = new Set((declared.assets ?? []).flatMap(glob));
 const live = closure(entries);
 const sum = list => list.reduce((n, f) => n + (lines[f] ?? 0), 0);
 const code = files.filter(f => !isTest(f));
-const dead = code.filter(f => !live.has(f));
+const dead = code.filter(f => !live.has(f) && !assets.has(f));
 console.log(`entries ${entries.length}  live ${code.filter(f => live.has(f)).length} files / ${sum(code.filter(f => live.has(f)))} lines  ` +
   `unreachable ${dead.length} files / ${sum(dead)} lines`);
 if (process.argv.includes('--list')) for (const f of dead) console.log('dead  ' + f);
@@ -74,3 +75,4 @@ if (why) {
   const path = []; for (let f = why; f; f = parent.get(f)) path.unshift(f);
   console.log(parent.has(why) ? path.join('\n  <- '.replace('<-', '->')) : `${why} is unreachable`);
 }
+if (dead.length) process.exitCode = 1;

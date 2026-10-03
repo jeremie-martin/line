@@ -17,5 +17,13 @@
     "productions/*/spec.ts",
     "tools/**/*.ts",
     "tools/**/*.mjs"
-  ]
+  ],
+  "assets": [
+    "unpacked/**",
+    "mirror/**",
+    "remotion/src/**",
+    "vendor/**",
+    "vitest.config.ts"
+  ],
+  "assetsComment": "Loaded by path at runtime (browser bundle, Line Rider app mirror, Remotion compositions) or by tooling; not import-reachable."
 }

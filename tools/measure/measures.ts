@@ -12,6 +12,7 @@ import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';
 import {CONTACT_IMPACT_CONTRACT as C, accountContactImpacts, type ContactImpactEvent} from '../../scripts/lib/contact_impact.ts';
 import {OUT} from './observe.ts';
+import {strikeFrames, detectStrikes, accountStrikes} from './strike.ts';
 
 const G = 0.175, FPS = 40, VERY_STRONG = 7.55;
 type Obs = any;
@@ -81,6 +82,8 @@ function impulses(o: Obs) {
 export function beatRows(o: Obs) {
   const frames: Frame[] = o.observed.map((r: number[], frame: number) => ({frame, contact: !!r[0], bend: r[1], response: r[2]}));
   const v1 = detectEvents(frames, 'min'), r1 = detectEvents(frames, 'new');
+  const strikes = detectStrikes(strikeFrames(o)).filter(e => e.onset <= o.durationFrames);
+  const strikeAccount = accountStrikes(strikes, o.targets.map((t: any) => ({frame: t.frame, impact: t.impact})));
   const duration = o.durationFrames, targets = o.targets.map((t: any) => ({frame: t.frame, impact: t.impact}));
   const accV1 = accountContactImpacts(v1.filter(e => e.onset <= duration), targets);
   const r1Kept = r1.filter(e => e.onset <= duration), accR1 = accountContactImpacts(r1Kept, targets);
@@ -113,7 +116,10 @@ export function beatRows(o: Obs) {
     if (window) for (let f = window.onset; f <= window.end; f++) for (const [, p] of o.frames[f]?.collisions ?? []) contactPoints.add(p);
     const pts = o.frames[Math.max(0, F)]?.points, axis = pts ? [pts[2][0] - pts[1][0], pts[2][1] - pts[1][1]] : [1, 0];
     const vel = o.frames[Math.max(0, F)]?.v ?? [1, 0];
-    rows.push({source: o.id, set: o.set, song: o.song, seed: o.seed, beat: i, frame: F, t: o.targets[i].t, requested: t.impact ?? null,
+    const sm = strikeAccount.matches.find((m: any) => m.target === i), se = sm ? strikes[sm.event] : undefined;
+    const strike = {matched: se ? {onset: se.onset - F, peak: se.peakFrame - F, strength: se.strength, kind: se.kind} : null,
+      extras: strikes.filter((e, k) => strikeAccount.unmatchedEvents.includes(k) && e.onset >= lo && e.onset < hi).map(e => ({onset: e.onset - F, strength: e.strength}))};
+    rows.push({strike, source: o.id, set: o.set, song: o.song, seed: o.seed, beat: i, frame: F, t: o.targets[i].t, requested: t.impact ?? null,
       frozen: landing?.raw == null ? null : Math.min(1, landing.raw / VERY_STRONG), frozenLanding: landing ? landing.frame - F : null,
       v1: timing(m1), r1: timing(mR),
       impulse: {hit: hit.w, at: hit.at < 0 ? null : hit.at - F, competitor, clarity: competitor > 1e-9 ? hit.w / competitor : null, maxJolt: Math.max(...jolt.slice(Math.max(0, near[0]), near[1] + 1))},
@@ -131,6 +137,15 @@ if (import.meta.filename === process.argv[1]) {
   writeFileSync('generated/measure/beats.json', JSON.stringify(rows));
   const quantile = (xs: number[], q: number) => {const s = xs.filter(Number.isFinite).sort((a, b) => a - b); return s.length ? s[Math.min(s.length - 1, Math.floor(q * s.length))] : NaN;};
   const ms = (x: number) => (x * 1000 / FPS).toFixed(0);
+  console.log('strike account:  set  beats  unmatched-beats  onset med ms  strong extra/beat  |strength-req| strong  |strength-req| quiet');
+  for (const set of ['july', 'current', 'experimental']) {
+    const s = rows.filter(r => r.set === set), strong = s.filter(r => (r.requested ?? 0) >= .6), quiet = s.filter(r => (r.requested ?? 1) <= .15);
+    console.log(set.padEnd(14), String(s.length).padStart(6), String(s.filter(r => !r.strike.matched).length).padStart(10),
+      ms(quantile(s.map(r => r.strike.matched?.onset ?? NaN), .5)).padStart(12),
+      (s.reduce((n, r) => n + r.strike.extras.filter((e: any) => e.strength >= .25).length, 0) / s.length).toFixed(2).padStart(14),
+      quantile(strong.map(r => r.strike.matched ? Math.abs(r.strike.matched.strength - r.requested) : NaN), .5).toFixed(3).padStart(18),
+      quantile(quiet.map(r => r.strike.matched ? Math.abs(r.strike.matched.strength - r.requested) : NaN), .5).toFixed(3).padStart(18));
+  }
   console.log('set           beats  peak-late med/p90 ms  centroid med  onset med  contested strong  extras>=.25/beat  hidden bend/beat  |r1-req| strong');
   for (const set of ['july', 'current', 'experimental']) {
     const s = rows.filter(r => r.set === set), strong = s.filter(r => (r.requested ?? 0) >= .6);

@@ -44,6 +44,7 @@ async function worker(caseId: string, mode: string, out: string) {
   const {replayGalleryTrack} = await import('../../scripts/gallery/artifacts.ts');
   const {observe} = await import('../measure/observe.ts');
   const {beatRows} = await import('../measure/measures.ts');
+  const {strikeFrames, detectStrikes, accountStrikes} = await import('../measure/strike.ts');
   const loaded = await loadMusicCase({song: c.song, title: c.song, moments: []}, resolveJoltMs());
   const spec = c.perturbation ? perturb(loaded.spec, c.perturbation) : loaded.spec;
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};
@@ -54,12 +55,15 @@ async function worker(caseId: string, mode: string, out: string) {
   const frozen = replayGalleryTrack(cp.track, music, false).grade;
   const contact = replayGalleryTrack(cp.track, music, false, CONTACT).impactEvaluation!;
   const targets = music.contacts, observation = observe(cp.track, music.durationFrames, targets);
+  const strikes = detectStrikes(strikeFrames(observation)).filter(e => e.onset <= music.durationFrames);
+  const strike = accountStrikes(strikes, targets);
   const beats = beatRows({id: c.id, set: mode, song: c.song, seed: c.seed, durationFrames: music.durationFrames,
     targets: spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact})), ...observation});
   writeFileSync(out, JSON.stringify({case: c, mode, trackHash: createHash('sha256').update(JSON.stringify(cp.track)).digest('hex'),
     physicalFrames: r.physicalFrames, compileMs, complete: r.valid, fulfilled: r.qualified,
     frozen: {valid: frozen.score.valid, score: frozen.score.score, axes: frozen.score.components},
     contact: {valid: contact.valid, loss: contact.account.loss, strengthMse: contact.account.strengthMse, timingMse: contact.account.timingMse, extraMse: contact.account.extraMse},
+    strike: {loss: strike.loss, strengthMse: strike.strengthMse, timingMse: strike.timingMse, extraMse: strike.extraMse, missing: strike.missingTargets.length},
     motion: r.motion.full, beats}));
 }
 
@@ -79,6 +83,10 @@ function summarize(cell: any) {
     'strong extra hits / beat': mean(b.map((r: any) => r.extrasR1.filter((e: any) => e.strength >= .25).length)),
     'hidden contacted bend / beat': mean(b.map((r: any) => r.hiddenBend)),
     'contact-impact loss': cell.contact.loss,
+    'strike loss': cell.strike?.loss ?? NaN,
+    'strike strength rms': cell.strike ? Math.sqrt(cell.strike.strengthMse) : NaN,
+    'strike extra (mse)': cell.strike?.extraMse ?? NaN,
+    'strong extra strikes / beat': mean(b.map((r: any) => r.strike ? r.strike.extras.filter((e: any) => e.strength >= .25).length : NaN)),
     'burst excess (100 ms)': cell.motion?.bursts?.[1]?.excessIntegral ?? NaN,
     'physics frames (M)': cell.physicalFrames / 1e6, 'compile s': cell.compileMs / 1000,
   };

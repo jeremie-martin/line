@@ -21,6 +21,9 @@ const mean=(a:number[])=>a.reduce((n,x)=>n+x,0)/Math.max(1,a.length);
 const quantile=(a:number[],p:number)=>{const sorted=[...a].sort((a,b)=>a-b);return sorted[Math.round((sorted.length-1)*p)]??null;};
 function summary(rows:any[]){
  const paired=rows.filter(r=>!r.executionError);
+ const changes=(field:string)=>({improved:paired.filter(r=>r.candidate[field]<r.baseline[field]-1e-12).length,
+  unchanged:paired.filter(r=>Math.abs(r.candidate[field]-r.baseline[field])<=1e-12).length,
+  regressed:paired.filter(r=>r.candidate[field]>r.baseline[field]+1e-12).length});
  return {scheduled:rows.length,distinctMusicalInputs:new Set(rows.map(r=>r.sourceId)).size,
   distinctCandidateTracks:new Set(rows.map(r=>r.trackHash).filter(Boolean)).size,
   validFulfilled:rows.filter(r=>r.candidate.valid&&r.candidate.fulfilled).length,
@@ -34,7 +37,10 @@ function summary(rows:any[]){
   meanTimingMse:{baseline:mean(paired.map(r=>r.baseline.timingMse)),candidate:mean(paired.map(r=>r.candidate.timingMse))},
   meanExtraMse:{baseline:mean(paired.map(r=>r.baseline.extraMse)),candidate:mean(paired.map(r=>r.candidate.extraMse))},
   gainExcess:{baseline:mean(paired.map(r=>r.baseline.gainExcessSum)),candidate:mean(paired.map(r=>r.candidate.gainExcessSum))},
+  pairedChanges:{impactLoss:changes('loss'),strengthMse:changes('strengthMse'),timingMse:changes('timingMse'),extraMse:changes('extraMse')},
   missingRequests:paired.reduce((n,r)=>n+r.candidate.missing,0),
+  compilerStopReasons:Object.fromEntries([...new Set<string>(paired.map(r=>r.failure?.reason).filter(Boolean))]
+   .map(reason=>[reason,paired.filter(r=>r.failure?.reason===reason).length])),
   meanCompilerFrames:mean(paired.map(r=>r.physicalFrames)),maximumCompilerFrames:Math.max(...paired.map(r=>r.physicalFrames)),
   medianCompileMs:quantile(paired.map(r=>r.compileMs),.5)};
 }
@@ -46,10 +52,12 @@ const result={schema:'line.contact-impact-final-evaluation.v1',compiler:experime
   nativePhysicsFingerprint:compat.plan.compiler.engineArtifactFingerprint,frozenJudge:compat.plan.judge},
  experimental:{summary:summary(experimental.rows),byPanel:group('panel'),byFamily:group('family'),failures,
   rows:experimental.rows.map((r:any)=>({id:r.id,seed:r.seed,sourceId:r.sourceId,panel:r.panel,family:r.family,
-   baseline:r.baseline,candidate:r.candidate,physicalFrames:r.physicalFrames,compileMs:r.compileMs,trackHash:r.trackHash,executionError:r.executionError}))},
+   baseline:r.baseline,candidate:r.candidate,physicalFrames:r.physicalFrames,compileMs:r.compileMs,trackHash:r.trackHash,
+   compilerStop:r.failure,constructionFailure:r.constructionFailure,executionError:r.executionError}))},
  interpretation:['The compatibility run uses the unchanged historical V6 task; the experimental run does not produce comparable V6 headline scores.',
   'Experimental quality is an unweighted descriptive mean over these 460 runs, not a newly frozen benchmark aggregation. Invalid/unfulfilled outcomes contribute zero.',
   'Inputs are known catalog music and fixed construction requests. These post-selection outcomes did not tune the candidate. The separately reserved eight arrangements are reported in the production evidence.',
+  'A recorded compiler search stop may coexist with a valid, fulfilled saved track. Physical completion and cold musical/construction judgment determine validity; compiler stop reasons remain disclosed separately.',
   'Shared event accounting improves measurable musical control but does not establish complete perceptual calibration. Retain head-first clarity and quiet/strong error exceptions for artistic review.',
   'The validated production default remains unchanged. The new contract and search profile are explicitly experimental.'],harnessSha256:sha(readFileSync(import.meta.filename))};
 const output=resolve(arg('out','docs/evidence/general-impact-final-evaluation-20261002.json')!);

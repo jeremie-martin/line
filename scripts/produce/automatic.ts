@@ -10,7 +10,7 @@ import {judgeIdentity} from '../../benchmark/v6/contract.ts';
 import {validateAutomaticProductionRequest,repertoireSongs} from '../gallery/repertoire_catalog.ts';
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {loadMusicCase,saveMusicCell} from './music_artifacts.ts';
-import {resolveJoltMs} from './seed.ts';
+import {resolveJoltMs} from './jolt.ts';
 import {IMPACT_ACCOUNT_IDS,DEFAULT_IMPACT_ACCOUNT,type ImpactAccountId} from '../v0/optimizer/impact_accounts.ts';
 const arg=(key:string,d?:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3)??d;
 // The product optimizes the strike account; 'landing' requests the previous landing
@@ -32,7 +32,7 @@ assert.equal(sha(readFileSync(join(compilerRoot,enginePath))),sha(readFileSync(e
 const {compileHandoff}:typeof import('../v0/optimizer/handoff.ts')=await import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/handoff.ts')).href);
 const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
  'scripts/gallery/artifacts.ts','scripts/gallery/contact_impact_grade.ts','scripts/lib/contact_impact.ts','scripts/v0/optimizer/impact_search.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts',
- 'scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
+ 'scripts/produce/jolt.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
  'scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/motion_profiles.ts','scripts/v0/optimizer/arc_motion_control.ts'];
 const harness=galleryHarnessIdentity(paths);
 const {spec,musicCase:c}=await loadMusicCase({song,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt);
@@ -41,13 +41,13 @@ const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compi
  cases:[c],seeds:[seed],budgets:[budget],methods:['production'],methodDetails,request};
 const planSha256=writeGalleryJson(out,'plan.json',plan);
 if(referenceBudget)throw new Error('the ordinary reference compiler is retired; omit --reference-budget');
-const began=performance.now(),checkpoint=compileHandoff(spec,seed,{budget,creative,impactContract,budgetTelemetry:'summary',phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
+const began=performance.now(),checkpoint=compileHandoff(spec,seed,{budget,creative,impactContract,phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
 const repertoire=checkpoint.repertoire!;
 const {result,...production}=repertoire;
 const phrases=repertoire.plan.phrases.map(p=>{const requests=repertoire.plan.requests.slice(p.first,p.first+p.count);return {...p,title:p.construction,
  window:[requests[0].frame/40,Math.min(spec.duration,requests.at(-1)!.next/40)],sections:requests.map(r=>r.section)};});
 const alternative=saveMusicCell({out,planSha256,c,method:'production',seed,budget,allowance:budget,result,reference:null,referenceTrace:null,
- compileMs,physicalFrames:repertoire.physicalFrames,production,styles:repertoire.styles,phrases,budgetTelemetry:checkpoint.budgetTelemetry});
+ compileMs,physicalFrames:repertoire.physicalFrames,production,styles:repertoire.styles,phrases,work:checkpoint.work});
 assert.deepEqual(galleryCompilerIdentity(compilerRoot),compiler,'compiler changed during generation');assert.deepEqual(judgeIdentity(),judge);assert.deepEqual(galleryHarnessIdentity(paths),harness);
 const current=await loadMusicCase({song,title,moments:[]},jolt);for(const key of ['specSha256','audioSha256','analysisSha256'] as const)assert.equal(current.musicCase[key],c[key],'authored input changed during generation');
 const cells=[alternative.cell],accounting={actualCompilationFrames:repertoire.physicalFrames,productionFrames:repertoire.physicalFrames,productionAllowance:budget,

@@ -14,7 +14,7 @@ import {inspectRailContacts} from '../gallery/contacts.ts';
 import {replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
 import {verifyMainConstruction} from '../gallery/verify_construction.ts';
 import {validRide} from '../v0/optimizer/ride_validity.ts';
-import {applyJolt} from './seed.ts';
+import {applyJolt} from './jolt.ts';
 import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
 import {contactImpactGrade} from '../gallery/contact_impact_grade.ts';
@@ -36,9 +36,9 @@ export async function loadMusicCase(definition:any,jolt:number){
 }
 /** Keep the established cell/manifest contract shared by both native and production renderers. */
 export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:string;seed:number;budget:number;allowance:number;
- result:any;reference:any;referenceTrace:any;compileMs:number;physicalFrames:number;composition?:any;production?:any;budgetTelemetry?:any;
+ result:any;reference:any;referenceTrace:any;compileMs:number;physicalFrames:number;composition?:any;production?:any;work?:any;
  styles?:any;phrases?:any[];geometry?:string;geometryStyle?:any;subdivisions?:number;faces?:number;profile?:string;strength?:number}){
- const {out,planSha256,c,method,seed,budget,allowance,result,reference,referenceTrace,compileMs,physicalFrames,composition,production,budgetTelemetry,
+ const {out,planSha256,c,method,seed,budget,allowance,result,reference,referenceTrace,compileMs,physicalFrames,composition,production,work,
  styles={},phrases=[],geometry,geometryStyle={},subdivisions,faces,profile,strength}=args;
     const validationStarted=performance.now();
     const {grade:historicalGrade,trace,collisionIds,impactEvaluation}=replayGalleryTrack(result.track,c as unknown as Case,true,result.impactEvaluation?.contract);
@@ -90,10 +90,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     if(impactEvaluation)save('contact-impacts.json',{evaluation:impactEvaluation,grade,historicalGrade});
     save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,
       failure:result.failure,refinement:result.refinementStats,opposingEntryWork:result.opposingEntryWork,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
-    save('budget-telemetry.json',budgetTelemetry??{schema:'line.musical-direction-budget.v1',budget:allowance,physicalFrames,
-      preparationFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.preparationFrames,0)??composition?.preparationFrames??0,constructionFrames:composition?.attempts?.reduce((n:number,a:any)=>n+a.physicalFrames-a.preparationFrames,0)??result.stats.sim_frames,compositionStages:composition?.attempts,
-      includes:production?'All automatic search and compiler replay work. An explicitly requested reference is accounted separately. Independent evaluation and rendering are separate.':
-        'All search and cold replay work for this alternative, plus prefix preparation. Baseline creation is accounted once in the comparison set. Independent evaluation and rendering are separate.'});
+    save('work.json',work??{schema:'line.compile-work.v1',allowance,physicalFrames,exhausted:false,stages:[]});
     const cell={id,caseId:c.id,method,railLayout,railGuides,seed,jitter:c.jitter,budget,allowance,score:grade.score,
       ...(impactEvaluation?{impactContract:impactEvaluation.contract,impactEvaluation,historicalGrade}:{}),
       compileMs,physicalFrames,...(production?{production}:{}),validationMs:performance.now()-validationStarted,lines:result.track.lines.length,

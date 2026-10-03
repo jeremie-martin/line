@@ -39,7 +39,7 @@ function perturb(spec: any, p: number) {
 async function worker(caseId: string, mode: string, out: string) {
   const c = PANEL.find(x => x.id === caseId)!;
   const {loadMusicCase} = await import('../../scripts/produce/music_artifacts.ts');
-  const {resolveJoltMs} = await import('../../scripts/produce/seed.ts');
+  const {resolveJoltMs} = await import('../../scripts/produce/jolt.ts');
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
   const {replayGalleryTrack} = await import('../../scripts/gallery/artifacts.ts');
   const {observe} = await import('../measure/observe.ts');

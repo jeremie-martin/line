@@ -16,7 +16,7 @@ import {
   type RenderZoomPlan,
 } from "./v0/core/camera.ts";
 import { secToFrame, type Contact, type Spec, type SpecBeatPunch } from "./v0/types.ts";
-import { applyJolt } from "./produce/seed.ts";
+import { applyJolt } from "./produce/jolt.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {

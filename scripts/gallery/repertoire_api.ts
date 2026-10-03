@@ -5,7 +5,7 @@ import {spawn,execFileSync,type ChildProcess} from 'node:child_process';
 import {createHash,randomUUID} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,readdirSync,writeFileSync,renameSync,openSync,closeSync} from 'node:fs';
 import {join,resolve,relative} from 'node:path';
-import {resolveJoltMs} from '../produce/seed.ts';
+import {resolveJoltMs} from '../produce/jolt.ts';
 import {compilerIdentity} from '../lib/compiler_identity.ts';
 import {loadSelect} from '../produce/config.ts';
 import {repertoireCatalog,validateGalleryRequest,isAutomatic,requestSong,type GalleryRequest} from './repertoire_catalog.ts';
@@ -39,7 +39,7 @@ export function createRepertoireApi(root=process.cwd()){
   // jolt environment and all of the shared artifact harness. Never cache by title.
   const compiler=compilerIdentity(root).candidateFingerprint;
   const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
-   'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/seed.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
+   'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/jolt.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
    ...readdirSync(join(root,'productions',requestSong(request))).filter(p=>/\.(ts|json)$/.test(p)).map(p=>`productions/${requestSong(request)}/${p}`)];
   const cfg=loadSelect(join(root,'productions',requestSong(request)));
   return hash(JSON.stringify({request,compiler,jolt:resolveJoltMs(),spec:hash(readFileSync(cfg.spec)),audio:hash(readFileSync(cfg.audio)),render:cfg.render,files:paths.map(p=>[p,hash(readFileSync(join(root,p)))])}));

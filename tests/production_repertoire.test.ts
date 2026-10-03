@@ -8,15 +8,15 @@ it('routes creative production explicitly and meters every stage, including fina
   expect(r.physicalFrames).toBe(r.work.reduce((n,s)=>n+s.physicalFrames,0));
   expect(r.physicalFrames).toBeLessThanOrEqual(50000);
   expect(first.stats.sim_frames).toBe(r.physicalFrames);
-  expect(first.budgetTelemetry?.compile.total_spent_frames).toBe(r.physicalFrames);
-  expect(first.budgetTelemetry?.compile.hard_overrun_frames).toBe(0);
+  expect(first.work.physicalFrames).toBe(r.physicalFrames);
+  expect(first.work.stages).toEqual(r.work);
   expect(r.work.at(-1)!.stage).toBe('realization-replay');
   expect(first.track.lines.every(l=>l.type===0)).toBe(true);
-  const repeat=compileHandoff(spec,101,{budget:50000,creative:{variation:0},budgetTelemetry:'off'});
-  expect(repeat.track).toEqual(first.track);expect(repeat.stats.sim_frames).toBe(first.stats.sim_frames);expect(repeat.budgetTelemetry).toBeNull();
+  const repeat=compileHandoff(spec,101,{budget:50000,creative:{variation:0}});
+  expect(repeat.track).toEqual(first.track);expect(repeat.stats.sim_frames).toBe(first.stats.sim_frames);
 });
 it('rejects incompatible diagnostic routes instead of silently running legacy search',()=>{
-  expect(()=>compileHandoff(spec,101,{budget:50000,creative:{},polish:false})).toThrow('legacy search options');
+  expect(()=>compileHandoff(spec,101,{budget:50000,creative:{},polish:false})).toThrow('unknown compile options');
 });
 
 it('realizes a shaped final impact near the music boundary using the existing physical outro',async()=>{

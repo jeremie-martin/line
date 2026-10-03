@@ -19,11 +19,10 @@ it('sorts contacts with their impact targets without mutating the authored input
   expect(result.track).toEqual(normal.track);expect(result.report).toEqual(normal.report);
   expect(result.stats).toEqual(normal.stats);expect(reversed.contacts).toEqual(saved);
   expect(normalizeCompilerTimeline(spec)).toBe(spec);
-  expect(normal.budgetTelemetry!.compile.first_terminal_total_spent_frames).toBe(normal.stats.first_completion_frame);
-  expect(normal.budgetTelemetry!.compile.first_improving_terminal_total_spent_frames).toBe(normal.stats.first_completion_frame);
+  expect(normal.work.physicalFrames).toBe(normal.stats.sim_frames);
 });
-it('validates telemetry consistently before doing physical search',()=>{
-  expect(()=>compileHandoff(spec,17,{budget:30000,creative:{},budgetTelemetry:'invalid' as any})).toThrow('budgetTelemetry');
+it('rejects unknown compile options before doing physical search',()=>{
+  expect(()=>compileHandoff(spec,17,{budget:30000,creative:{},budgetTelemetry:'summary'} as any)).toThrow('unknown compile options: budgetTelemetry');
 });
 it('rejects a replay-only arc allowance with a compiler-level explanation',()=>{
   expect(()=>compileArcMotion(spec,17,{budget:362})).toThrow('construction work');

@@ -15,9 +15,3 @@ export function normalizeCompilerTimeline(spec: Spec): Spec {
   if (spec.contacts.every((c, i) => i === 0 || spec.contacts[i - 1].t <= c.t)) return spec;
   return {...spec, contacts: spec.contacts.slice().sort((a, b) => a.t - b.t)};
 }
-
-export function validateCompilerTelemetry(level: string | undefined): void {
-  if (level !== undefined && !['off', 'summary', 'trace'].includes(level)) {
-    throw new Error('budgetTelemetry must be off|summary|trace');
-  }
-}

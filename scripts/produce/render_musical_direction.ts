@@ -51,7 +51,7 @@ try{
     const work=join(root,'render-work',id);mkdirSync(work,{recursive:true});
     const spectrumBase=await ensureSpectrum(resolve(c.audioPath),c.id,join(work,'spectrum.log'));
     const folder=await renderBundle({specPath:resolve(c.source),trackPath,reportPath,
-      budgetTelemetryPath:join(root,id,'budget-telemetry.json'),audioPath:resolve(c.audioPath),spectrumBase,
+      workPath:join(root,id,'work.json'),audioPath:resolve(c.audioPath),spectrumBase,
       seed:cell.seed,song:id,project:'musical-direction-review',metrics:cell.metrics,render:c.render,budget:cell.allowance??cell.budget,
       jolt:manifest.plan.jolt,outDir:join(root,'videos'),workDir:work,gitSha:manifest.plan.compiler.head,host:hostname()});
     const full=join(folder,'video.mp4'),fullProbe=check(full),excerpt=join(folder,'excerpt.mp4');

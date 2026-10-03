@@ -171,3 +171,20 @@ Only on validated measures:
     ARCHITECTURE, WORKING and CLAUDE.
   - Tracked files went from about 3,900 to about 1,450.
   - Typecheck: 16 errors. Parity holds and all tests pass.
+- 2026-10-03: **Phase 2 started.**
+  - The unused 102 MB arc policy and the ordinary compile route are removed;
+    parity holds and is faster (88 → 81 s).
+  - A focused agent is splitting `arc_motion.ts` on branch
+    `rework/compiler-split`.
+- 2026-10-03: **Phase 3 and 4 instruments.**
+  - `tools/measure` (observations plus candidate per-beat measures).
+  - A blind labelling study, `impact-2026-10`: 120 clips, waiting for owner
+    labels.
+  - `tools/eval`: a song-level behavioural evaluation.
+  - Reading:
+    - "Contested strong beats" separates the eras cleanly: July 0%, current
+      28%, experimental 5%.
+    - Contact mode against the default, paired: contested −19 pp, strong extra
+      hits −0.25/beat and late peaks −6 pp, holding on perturbed inputs too.
+      It costs +39% physics.
+

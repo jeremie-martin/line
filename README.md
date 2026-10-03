@@ -28,6 +28,9 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 | `npm run library` | (re)generate the production review library |
 | `npm run render -- --study=DIR` | render vertical videos for a compiled study (optional) |
 | `npm run sentinel -- --out=DIR` | run the frozen V6 benchmark as a regression sentinel |
+| `npm run eval -- --name=DIR [--mode=contact]` | song-level behavioural evaluation (~90 s); `npm run eval:report -- --name=DIR [--against=DIR]` |
+| `npm run measure` | replay reference rides and compute candidate per-beat impact measures |
+| `npm run labels:study` / `labels:analyze` | build a blind labelling study / compare measures with the owner's labels |
 
 ## Checks
 
@@ -51,9 +54,9 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 | `benchmark/v6/` | frozen V6 judge (+ the V3–V5 modules it is built from) |
 | `productions/` | the four production songs: spec, audio, render settings |
 | `beats/` | music analysis inputs and extraction scripts |
-| `labels/` | the owner's felt-impact labels (perceptual ground truth) |
+| `labels/` | the owner's felt-impact labels and blind labelling studies (perceptual ground truth) |
 | `engine-rs/` | the Rust physics engine (judge); `vendor/lr-core` is the JS reference |
-| `tools/` | parity harness, reachability guard |
+| `tools/` | parity harness, reachability guard, measurement instruments, behavioural evaluation |
 | `docs/research/` | the investigations and owner feedback the next phases build on |
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for how the compiler works and

@@ -77,8 +77,18 @@ Known measurement issues (Phase 3):
   - **It is not a target.** It is inversely related to measured hit clarity,
     its gains were mostly completions, and all of its inputs were used to
     train the learned models.
-- **Phase 4** replaces chasing a single score with an evaluation built on
-  songs as units, real perturbations and held-out music.
+- **`npm run eval`** (`tools/eval`) is the behavioural evaluation.
+  - It compiles the production songs × 4 arrangement seeds, plus perturbed
+    authorings, and pairs runs by case.
+  - Intervals come from resampling songs, and completion is reported
+    separately from quality.
+  - It reports every ruler, including measures the compiler does not
+    optimize: the renewal-fixed strength, peak timing and contested beats
+    from the 10-point external impulse.
+  - Held-out new music is still missing; it needs new songs.
+- **`tools/measure`** holds the candidate per-beat measures, and
+  `labels/studies` holds the blind owner labels used to choose among them
+  (Phase 3).
 
 ## Known structural problems (Phase 2)
 

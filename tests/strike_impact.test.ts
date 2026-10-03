@@ -2,7 +2,7 @@ import {expect, it} from 'vitest';
 import {detectStrikes, observeStrikes, strikePrefix, continueStrikes, accountStrikes, STRIKE_CONTRACT, type StrikeFrame} from '../scripts/lib/strike_impact.ts';
 
 const frames = (J: number[], contact: boolean[] = J.map(j => j > 0), bend = J.map(j => j)): StrikeFrame[] =>
-  J.map((j, i) => ({frame: 100 + i, contact: contact[i], J: j, bend: bend[i]}));
+  J.map((j, i) => ({frame: 100 + i, contact: contact[i], J: j, bend: bend[i], solverGain: 0, gravityGain: 0, speedBefore: 1}));
 const air = (n: number) => Array(n).fill(0);
 
 it('measures nothing in free flight: the centre of mass is ballistic', () => {

@@ -32,7 +32,10 @@ import {accountContactImpacts, type ContactImpactEvent, type ImpactTarget} from 
 export const STRIKE_CONTRACT = Object.freeze({
   id: 'line.strike.v1', gravity: 0.175, floor: 0.8, valley: 0.5, spacing: 4, halfRise: 0.5, window: 6, veryStrong: 7.55,
 } as const);
-export type StrikeFrame = {frame: number; contact: boolean; J: number; bend: number};
+export type StrikeFrame = {frame: number; contact: boolean; J: number; bend: number;
+  /** Speed change not explained by gravity, the gravity-only change, and the speed before the solve
+   * (same meaning as the contact-impact frames, so the speed-gain account is shared). */
+  solverGain: number; gravityGain: number; speedBefore: number};
 export type StrikeEvent = ContactImpactEvent & {kind: 'touchdown' | 'strike'; peakJ: number};
 type Vec = {x: number; y: number};
 type PointState = {x: number; y: number; prevX: number; prevY: number};
@@ -56,7 +59,9 @@ export function observeStrikes(first: number, velocities: readonly Vec[], contac
   for (let k = 1; k < velocities.length; k++) {
     const a = velocities[k - 1], b = velocities[k], frame = first + k - 1;
     if (![a.x, a.y, b.x, b.y].every(Number.isFinite)) throw new Error('nonfinite strike observation');
-    out.push({frame, contact: contactAt(frame), J: Math.hypot(b.x - a.x, b.y - a.y - c.gravity), bend: redirection(a, b)});
+    const free = Math.hypot(a.x, a.y + c.gravity), before = Math.hypot(a.x, a.y);
+    out.push({frame, contact: contactAt(frame), J: Math.hypot(b.x - a.x, b.y - a.y - c.gravity), bend: redirection(a, b),
+      solverGain: Math.hypot(b.x, b.y) - free, gravityGain: free - before, speedBefore: before});
   }
   return out;
 }
@@ -114,4 +119,12 @@ export function continueStrikes(prefix: StrikePrefix, frames: readonly StrikeFra
 
 export function accountStrikes(events: readonly StrikeEvent[], targets: readonly ImpactTarget[]) {
   return {...accountContactImpacts(events, targets), contract: STRIKE_CONTRACT.id};
+}
+
+/** Complete evaluation of a ride: events up to the authored end, the account, and
+ * validity (survived, every beat matched, every matched event fully observed). */
+export function evaluateStrikes(frames: readonly StrikeFrame[], targets: readonly ImpactTarget[], duration: number, survived: boolean) {
+  const events = detectStrikes(frames).filter(e => e.onset <= duration), account = accountStrikes(events, targets);
+  return {contract: STRIKE_CONTRACT.id, events, targets, account,
+    valid: survived && account.complete && account.matches.every(m => events[m.event].complete)};
 }

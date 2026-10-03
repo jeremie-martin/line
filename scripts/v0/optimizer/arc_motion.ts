@@ -43,7 +43,9 @@ const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:disposeJudge} =
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const deg=(x:number)=>x*180/Math.PI;
-export type ArcMotionOptions= ArcGeometryStyle & {
+/** Per-section construction style: the geometry fields constructionStyle() emits. */
+export type SectionStyle=Omit<ArcSectionStyle,'subdivisions'|'alignedFoldEntry'>;
+export type ArcMotionOptions= Omit<ArcGeometryStyle,'contour'|'alignedFoldEntry'> & {
   budget:number;
   /** Explicit experimental ruler; absent means the qualified landing contract. */
   impactContract?:typeof CONTACT_IMPACT_CONTRACT.id;
@@ -67,7 +69,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   /** Research composition by support index (startup is zero). Applied to every
    * proposal, lookahead and rebuilt continuation. Omitted sections inherit the
    * global settings; this changes construction, never the musical specification. */
-  sectionStyles?:Record<number,ArcSectionStyle>;
+  sectionStyles?:Record<number,SectionStyle>;
   /** Physical construction requirements participate in every proposal and continuation. */
   constructionRequests?:Record<number,ConstructionRequest>;
   constructionExamples?:Readonly<Record<string,readonly ArcControlExample[]>>;
@@ -96,12 +98,7 @@ export type ArcMotionOptions= ArcGeometryStyle & {
   completeBoundary?:boolean;
   samples?:number;
   arrivalWeight?:number;
-  flow?:boolean;
-  startPitch?:number;
   channel?:number;
-  wave?:boolean;
-  /** Research: straight facets per support frame; ordinary smooth arcs use four. */
-  subdivisions?:number;
   radius?:number;
   arrivalMode?:string;
   bidirectional?:boolean;
@@ -184,7 +181,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
   if(options.impactSearch&&!options.impactContract)throw new Error('impact search options require their measurement contract');
   if(options.opposingEntryProposals!==undefined&&(!options.impactContract||!Number.isSafeInteger(options.opposingEntryProposals)||options.opposingEntryProposals<0||options.opposingEntryProposals>64))throw new Error('invalid opposing-entry allowance');
   if(options.impactPreparationFrames!==undefined&&(!options.impactContract||!Number.isSafeInteger(options.impactPreparationFrames)||options.impactPreparationFrames<0||options.impactPreparationFrames>2))throw new Error('invalid impact preparation');
-  arcMainSteps(1,options.subdivisions,options.faces);
+  arcMainSteps(1,undefined,options.faces);
   spec=normalizeCompilerTimeline(spec);
   validateSpec(spec);
   resetFrameCount();const budget=options.budget,duration=Math.round(spec.duration*40),end=duration+20;
@@ -202,7 +199,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
     targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
   const fixed=spec.start||(spec.preroll??PREROLL.DEFAULT_S)<=0?resolveStartState(spec):null;
   const speed=authoredSpeedToPx(gaps[0].targets.speed??.55);
-  const pitch=rad(options.startPitch??8.59436692696);
+  const pitch=rad(8.59436692696);
   const start=fixed??{position:{x:0,y:0},velocity:{x:speed*Math.cos(pitch),y:speed*Math.sin(pitch)}};
 
   type Prefix={parent?:Prefix;lines?:TrackLine[];key?:string};
@@ -297,14 +294,13 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
     for(const [key,style] of Object.entries(options.sectionStyles)){
       const index=Number(key);
       if(!Number.isSafeInteger(index)||String(index)!==key||index<0||index>=contacts.length||
-        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','subdivisions','faces','profile','profileStrength','profileStart','rippleCycles','foldAngle','railLayout','independentGuide','alignedFoldEntry'].includes(k))||
+        !style||typeof style!=='object'||Array.isArray(style)||Object.keys(style).some(k=>!['guides','faces','profile','profileStrength','profileStart','rippleCycles','foldAngle','railLayout','independentGuide'].includes(k))||
         (style.railLayout!==undefined&&!['paired','transfer'].includes(style.railLayout))||
         (style.independentGuide!==undefined&&typeof style.independentGuide!=='boolean')||
         (style.guides!==undefined&&typeof style.guides!=='boolean')||
-        !validProfileControls({...options,...style})||
-        (style.subdivisions!==undefined&&(!Number.isFinite(style.subdivisions)||style.subdivisions<=0||style.subdivisions>4)))
+        !validProfileControls({...options,...style}))
         throw new Error('invalid section style');
-      arcMainSteps(1,style.subdivisions??options.subdivisions,style.faces??options.faces);
+      arcMainSteps(1,undefined,style.faces??options.faces);
     }
   }
   try{
@@ -373,8 +369,8 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       let memo=options.memoCandidates?new Map<string,any>():null;
       const prefix=prefixes.get(engine);
       if(options.reuseEvaluations&&prefix&&!options.arrivalReference&&(!options.futureValueModel||options.futureValueModel===compileOptions.futureValueModel)){
-        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.contour,options.guides,options.railLayout,options.independentGuide,
-          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.completeBoundary,options.authoredHorizon,options.amplitudeOverflow,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,options.impactContract,options.impactSearch,!!options.futureValueModel,!!options.alignedFoldEntry,!!options.observedReceiver]);
+        const context=prefixKey(prefix)+'|'+JSON.stringify([i,options.channel,options.radius,options.faces,options.profile,options.profileStrength,options.profileStart,options.rippleCycles,options.foldAngle,options.guides,options.railLayout,options.independentGuide,
+          options.amplitudeWeight,options.impactWeight,options.arrivalWeight,options.arrivalMode,options.headingWeight,options.completeBoundary,options.authoredHorizon,options.amplitudeOverflow,options.terminalSelection,options.valueGuidanceWeight,options.constructionRequests?.[i],options.motionQuality,options.impactContract,options.impactSearch,!!options.futureValueModel,!!options.observedReceiver]);
         const saved=memoContexts.get(context);
         if(saved){memo=saved;memoContexts.delete(context);}else memo=new Map();
         memoContexts.set(context,memo!);
@@ -412,7 +408,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         const reject=(reason:string,near?:Near)=>{if(options.observedReceiver&&c.receiverFlight!==undefined)observedReceiverWork.failures[reason]=(observedReceiverWork.failures[reason]??0)+1;memo?.set(key,{reason,near});failures[reason]=(failures[reason]??0)+1;return null;};
         let added:TrackLine[],child:Engine;
         if(options.observedReceiver&&c.receiverFlight!==undefined&&options.railLayout==='transfer'&&!fragments){
-          const main=motionArc(points,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions,{...options,guides:false});
+          const main=motionArc(points,velocity,c,1000+i*10000,false,options.channel,false,options.radius,undefined,{...options,guides:false});
           const supportEngine=addArc(engine,main),id=Math.max(...main.map(l=>l.id))+1;
           const receiver=observedReceiver(supportEngine,main,frame,Math.min(horizon,duration),c,id,options,i===contacts.length-1);
           if(!receiver)return reject('receiver_no_window');
@@ -420,7 +416,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
           const parent=prefixes.get(engine);if(parent)prefixes.set(child,{parent,lines:added});
         }else{
           const receivers=c.contactSide===-1?Object.values(trace):points;
-          added=fragments?.lines??motionArc(receivers,velocity,c,1000+i*10000,options.flow,options.channel,options.wave,options.radius,options.subdivisions,options);
+          added=fragments?.lines??motionArc(receivers,velocity,c,1000+i*10000,false,options.channel,false,options.radius,undefined,options);
           child=addArc(engine,added);
         }
         if(!added.length)return null;
@@ -554,7 +550,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       // Guide permission, not an inactive clearance setting, determines which
       // initialization is physically appropriate for an unguided support.
       const guidedInitialization=options.guides!==false&&!!options.channel;
-      center=options.flow||guidedInitialization?{entry:incoming-.5,turn:-turn/(options.wave?2:1),exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
+      center=guidedInitialization?{entry:incoming-.5,turn:-turn,exit:clamp(incoming-turn,-70,70),support,bias:0,offset:.1}:{entry:incoming-Math.min(12,turn*.3),turn:-Math.min(35,turn*.7),exit:clamp(incoming-25,-40,45),support,bias:0,offset:.1};
       if(options.bidirectional&&guidedInitialization&&incoming<15){center.turn=Math.abs(center.turn);center.exit=clamp(incoming+turn,-70,70);}
       const max=options.samples??160,initial=options.localOnly?0:Math.min(80,Math.ceil(max/2));
       // Calm landing emphasis changes impact units between adjacent intervals.
@@ -585,7 +581,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       }
       const genericInitial=(k:number)=>{
         const frac=(n:number)=>((k+1)*n)%1;
-        const control:ArcMotionControl={entry:incoming-((options.flow||guidedInitialization)&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(options.flow?110:60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5,
+        const control:ArcMotionControl={entry:incoming-(guidedInitialization&&k%2===0?(-1+frac(.61803398875)*6):(2+frac(.61803398875)*Math.min(32,turn+10))),turn:(options.bidirectional&&k%4<2?1:-1)*frac(.41421356237)*Math.min(60,turn+25),exit:-45+frac(.73205080757)*110,support:support*(.45+frac(.2360679775)*1.2),bias:-1.5+3*frac(.6457513111),offset:-.25+frac(.3166247903)*1.5,
           ...(options.railLayout==='transfer'?{mainEnd:.3+.65*frac(.6931471806)}:{})};
         if(options.constructionProposals&&options.guides!==false&&options.independentGuide&&k%4!==0){
           // Contact geometry is needed to FIND feasible constructions, not only
@@ -1104,7 +1100,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
   raw=extractRawTrajectory(coldEngine,end);
   // Structured rails are indivisible: guide-only pruning would tear their contours.
   const fragments=new Set(Object.values(options.constructionRequests??{}).filter(r=>r.construction==='scattered').map(r=>r.section));
-  const guidanceReduction=options.pruneGuidance&&!options.contour?trimUnusedArcGuides(lines,coldEngine,end,0,fragments):null;
+  const guidanceReduction=options.pruneGuidance?trimUnusedArcGuides(lines,coldEngine,end,0,fragments):null;
   if(guidanceReduction){
     const requests=Object.values(options.constructionRequests??{}).filter(r=>r.context||r.railLayout==='transfer');
     if(requests.length){

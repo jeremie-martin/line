@@ -113,5 +113,5 @@ export function continueStrikes(prefix: StrikePrefix, frames: readonly StrikeFra
 }
 
 export function accountStrikes(events: readonly StrikeEvent[], targets: readonly ImpactTarget[]) {
-  return {contract: STRIKE_CONTRACT.id, ...accountContactImpacts(events, targets)};
+  return {...accountContactImpacts(events, targets), contract: STRIKE_CONTRACT.id};
 }

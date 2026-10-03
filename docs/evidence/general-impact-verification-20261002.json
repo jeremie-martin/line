@@ -186,5 +186,19 @@
     ],
     "errors": []
   },
-  "archive": "Raw logs, traces, tracks, screenshots and experimental outputs remain local under generated/general-impact-20261002."
+  "archive": "Raw logs, traces, tracks, screenshots and experimental outputs remain local under generated/general-impact-20261002.",
+  "additionalMotionTests": {
+    "testFiles": 2,
+    "testsPassed": 7,
+    "failures": 0,
+    "logSha256": "af59f772e175eb61d3ae7f8869333d15a00bb26dec55ef762f2710701a42ed21"
+  },
+  "independentMotionReplay": {
+    "tracks": 36,
+    "maximumTraceError": 0,
+    "evidence": "docs/evidence/general-impact-motion-qualification-20261002.json",
+    "frozenPhysicalSubchecksPassed": true,
+    "historicalTaskQualificationPassed": false,
+    "interpretation": "The unchanged qualifier also requires historical landing validity and a further 40% reduction in historical opening-impact error. The new task does not pass those criteria; no qualification is inferred from its passing physical subchecks."
+  }
 }

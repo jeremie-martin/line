@@ -1,0 +1,5225 @@
+{
+  "schema": "line.contact-impact-motion-audit.v1",
+  "judge": {
+    "schema": "line.benchmark-v6.freeze.v1",
+    "judge": {
+      "v5": {
+        "schema": "line.benchmark-v5.freeze.v1",
+        "judge": {
+          "v4": {
+            "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "files": {
+              "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+              "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+              "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+              "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+              "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+              "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+              "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+              "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+              "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+              "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+              "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+              "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+              "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+              "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+              "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+              "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+              "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+              "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+              "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+            }
+          },
+          "files": {
+            "benchmark/v5/policy.ts": "c1bad1623f3e5bbc6f25bb30451bb9d08dbd4ba728593a90acc2810ba47ef594",
+            "benchmark/v5/model.ts": "d30420a41621c3bd3daa1d7285b3bd556dc885e5c15b48e9f0c8511695e3952d",
+            "benchmark/v5/evaluator.ts": "a506cc3e0c104fad19b760638e3b27b757062e7176b54c1f52ffa546e9a4ed97",
+            "benchmark/v5/contract.ts": "5d199928db3b934ff3b550184db21915b4817bb275748999590784edb248ef4b",
+            "benchmark/v5/catalog.json.gz": "da26bbd351e8061e2a75ced2bd18fcebd7267a5806ca3b8953f41f77850c49b8",
+            "benchmark/v5/catalog.lock.json": "2529b6fc39b5cd29e40b8e0888a408291f2ef8ba1ca7a5b8022188757d70f648",
+            "scripts/v0/optimizer/repertoire_realization.ts": "54b17ac4f198cd03b2fe04d47bce4b333eb73e0501e22f897c229eeebcb8d67b",
+            "scripts/v0/optimizer/arc_rail_groups.ts": "b5c409289f2bc926e7a769ec1b586344ad88ed4b1784438870ce5ea7aa55b03c"
+          }
+        }
+      },
+      "files": {
+        "benchmark/v6/policy.ts": "2df671976e3705e9c5699649a7fcae601dcc1a31b285f82a3103fd47d989719d",
+        "benchmark/v6/model.ts": "58c0686187274883f73dc84cd176efad65727d2fbc25e9c447b26c001aca4cfb",
+        "benchmark/v6/evaluator.ts": "3494e169f3907a9fb108a9d74129ff3de37936094a305b9c87620d822f2674df",
+        "benchmark/v6/contract.ts": "5a9427a5b491b97b184cd38f4d28d19d41f97bc79d2db498e36c7cf36c5617f9",
+        "benchmark/v6/replay.ts": "26b8419dcdb80ffc5f2b01fe6aa0aad1230fa48b69bf04a5aa959ea2eca1772b",
+        "benchmark/v6/catalog.json.gz": "e0ffa07caa5c4216eca159d6de9bf78500aaa3c2669a582e3894640f824e0ecb",
+        "benchmark/v6/catalog.lock.json": "9abf808b1ae8615530622b8aa1f6a46b66074a9173277c00058bacda2c0f61d0",
+        "scripts/v0/optimizer/repertoire_layout.ts": "8b1e6b574b0591eee517bdb5c6c4a4342ecff3e382b553ee2ef56d16b3c8edcd",
+        "scripts/v0/optimizer/motion_quality.ts": "7dea806aca18befa3d272587b83001717b095337f1b0ed9aa052c9916a23df6c"
+      }
+    }
+  },
+  "sources": {
+    "pairs": {
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/comparison/pairs.json",
+      "sha256": "a2aeb0e922033ce12f6b9ece7f0e6e19acd84f8fe6ed6f04fc19715784f200e5"
+    },
+    "ordinary": {
+      "path": "/home/wyss/line/generated/beat-salience-20261001/audit.json",
+      "sha256": "1637b64027a73dc7c0bbc2f68b2cf2d087362e7a91d968d22d146d8726ebe0c2"
+    }
+  },
+  "harness": {
+    "scripts/gallery/audit_contact_motion.ts": "0597a53980017f427c4f28a4833226909c7738ea1e40e50e16101afebf3cb4fe",
+    "scripts/v0/optimizer/motion_quality.ts": "7dea806aca18befa3d272587b83001717b095337f1b0ed9aa052c9916a23df6c",
+    "benchmark/v6/production_qualification.ts": "efff6d9882357c2ee8afda5738aa41711446f8c5e960c141fe5b92934466c6a0"
+  },
+  "interpretation": "Independent native replay of all 12 paired development songs plus 12 ordinary references. The unchanged historical qualifier includes old impact validity/strength requirements, so it is a historical-task diagnostic, not qualification of the new impact contract. Physical burst and calm-motion criteria retain their frozen values. No compiler retuning follows this audit.",
+  "historicalQualification": {
+    "schema": "line.production-motion-qualification.v1",
+    "passed": false,
+    "completion": [
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "valid": false,
+        "fulfilled": true,
+        "passed": false
+      }
+    ],
+    "bursts": [
+      {
+        "frames": 1,
+        "before": 0.001063690224353413,
+        "after": 0.00038898560449105764,
+        "limit": 0.0005318451121767065,
+        "reduction": 0.6343055566506584,
+        "passed": true
+      },
+      {
+        "frames": 4,
+        "before": 0.0003410164071920459,
+        "after": 0,
+        "limit": 0.00017050820359602295,
+        "reduction": 1,
+        "passed": true
+      },
+      {
+        "frames": 10,
+        "before": 0.0002922965122603354,
+        "after": 0,
+        "limit": 0.0001461482561301677,
+        "reduction": 1,
+        "passed": true
+      }
+    ],
+    "windows": [
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "from": 9.1,
+        "to": 9.7,
+        "maxExcess": 0,
+        "maximum": 0.1976179425882041,
+        "passed": false
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "from": 15.05,
+        "to": 15.65,
+        "maxExcess": 0,
+        "maximum": 0.40196150992622925,
+        "passed": false
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "from": 5.7,
+        "to": 6.25,
+        "maxExcess": 0,
+        "maximum": 1.1965526938642927,
+        "passed": false
+      }
+    ],
+    "quiet": [
+      {
+        "song": "luna_bala_44s",
+        "metric": "absoluteCorrection",
+        "reference": 8.214242486329631,
+        "actual": 10.337113067305362,
+        "limit": 11.089227356545003,
+        "passed": true
+      },
+      {
+        "song": "luna_bala_44s",
+        "metric": "directionCorrection",
+        "reference": 23.12703636752602,
+        "actual": 19.820692428141605,
+        "limit": 31.22149909616013,
+        "passed": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "metric": "absoluteCorrection",
+        "reference": 2.4472019640581717,
+        "actual": 2.2238971862170622,
+        "limit": 3.303722651478532,
+        "passed": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "metric": "directionCorrection",
+        "reference": 22.55708542367849,
+        "actual": 23.64940173752934,
+        "limit": 30.452065321965964,
+        "passed": true
+      }
+    ],
+    "impacts": {
+      "tracks": [
+        {
+          "song": "luna_bala_44s",
+          "seed": 101,
+          "before": 0.022567197874840315,
+          "after": 0.05633662225554842
+        },
+        {
+          "song": "luna_bala_44s",
+          "seed": 202,
+          "before": 0.0063078944174423035,
+          "after": 0.03582288385607418
+        },
+        {
+          "song": "luna_bala_44s",
+          "seed": 303,
+          "before": 0.006250505685182237,
+          "after": 0.03571309083858854
+        },
+        {
+          "song": "tiki_tiki_48s",
+          "seed": 101,
+          "before": 0.0191691742774544,
+          "after": 0.022557971888132935
+        },
+        {
+          "song": "tiki_tiki_48s",
+          "seed": 202,
+          "before": 0.0191691742774544,
+          "after": 0.022557971888132935
+        },
+        {
+          "song": "tiki_tiki_48s",
+          "seed": 303,
+          "before": 0.0191691742774544,
+          "after": 0.022557971888132935
+        }
+      ],
+      "before": 0.015438853468304677,
+      "after": 0.03259108543576832,
+      "limit": 0.009263312080982807,
+      "passed": false
+    },
+    "denominators": {
+      "tracks": 12,
+      "quietTracks": 6,
+      "ordinaryReferences": 12
+    },
+    "interpretation": "Frozen known-song motion criteria; not a universal aesthetic rating. Every scheduled replacement participates, including incomplete results."
+  },
+  "physicalChecks": {
+    "bursts": [
+      {
+        "frames": 1,
+        "before": 0.001063690224353413,
+        "after": 0.00038898560449105764,
+        "limit": 0.0005318451121767065,
+        "reduction": 0.6343055566506584,
+        "passed": true
+      },
+      {
+        "frames": 4,
+        "before": 0.0003410164071920459,
+        "after": 0,
+        "limit": 0.00017050820359602295,
+        "reduction": 1,
+        "passed": true
+      },
+      {
+        "frames": 10,
+        "before": 0.0002922965122603354,
+        "after": 0,
+        "limit": 0.0001461482561301677,
+        "reduction": 1,
+        "passed": true
+      }
+    ],
+    "quiet": [
+      {
+        "song": "luna_bala_44s",
+        "metric": "absoluteCorrection",
+        "reference": 8.214242486329631,
+        "actual": 10.337113067305362,
+        "limit": 11.089227356545003,
+        "passed": true
+      },
+      {
+        "song": "luna_bala_44s",
+        "metric": "directionCorrection",
+        "reference": 23.12703636752602,
+        "actual": 19.820692428141605,
+        "limit": 31.22149909616013,
+        "passed": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "metric": "absoluteCorrection",
+        "reference": 2.4472019640581717,
+        "actual": 2.2238971862170622,
+        "limit": 3.303722651478532,
+        "passed": true
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "metric": "directionCorrection",
+        "reference": 22.55708542367849,
+        "actual": 23.64940173752934,
+        "limit": 30.452065321965964,
+        "passed": true
+      }
+    ],
+    "windows": [
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "from": 9.1,
+        "to": 9.7,
+        "maxExcess": 0,
+        "maximum": 0.1976179425882041,
+        "physicalBandPassed": true,
+        "historicalTaskPassed": false
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "from": 15.05,
+        "to": 15.65,
+        "maxExcess": 0,
+        "maximum": 0.40196150992622925,
+        "physicalBandPassed": true,
+        "historicalTaskPassed": false
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "from": 5.7,
+        "to": 6.25,
+        "maxExcess": 0,
+        "maximum": 1.1965526938642927,
+        "physicalBandPassed": true,
+        "historicalTaskPassed": false
+      }
+    ]
+  },
+  "checks": [
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json",
+      "artifactSha256": "5ba29e1907ea4a404558c7fb0b9dd1496c3bfa0b28289e60ed1c6b986eb26dd2",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/amor_na_praia_46s-202-production.json",
+      "artifactSha256": "123a460db0dfecec9b19f4559d7e50bb5be6aa64c26c6c9d09f27a6c6c111ed2",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/amor_na_praia_46s-303-production.json",
+      "artifactSha256": "1324d2fd64b1fe20fecf3590052f4fb6ea31024cf6e784eccdf103ca764190db",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-production.json",
+      "artifactSha256": "3cfbf14dc1728412c397f29ce55888e55435a101c9c1ec6919bf842385347efd",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-production.json",
+      "artifactSha256": "52c24710559d15bb8b498722a5b5555221d1834541f15d93479362f6c53a1ebb",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-production.json",
+      "artifactSha256": "6a777202ef63e6e3a652b774d0b5b5d83438a1c03f45a387fb0ebca05032e23a",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-production.json",
+      "artifactSha256": "d8913dd2f0227321675d1954689f9acd80243f3c81b23d0e602f1ce518c393f9",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-202/luna_bala_44s-202-production.json",
+      "artifactSha256": "6fc35ddfc1cc77ef0063d013c6f5557885985fc89d0b0fad734ef4b45c0ca045",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-303/luna_bala_44s-303-production.json",
+      "artifactSha256": "7c46e3aec03c5f96422da360d3293f5916d02a19099c20ba526473d4c7bf12ce",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+      "artifactSha256": "ec0f508d2f36d071dfcd1e0c799b2d5256b0a1e92b2853e927627552369b68be",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/tiki_tiki_48s-202-production.json",
+      "artifactSha256": "7131ce1b80cb42b0327ffbcc5f46f9caf937f7125376bf738f569dd595166367",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json",
+      "artifactSha256": "cda9527c6145159168bfe34b0bb83d571b213c81f26ac925ef417e8d98048394",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-baseline.json",
+      "artifactSha256": "cb16456a7b975942a50ea77c68db5578459d17f5a237c69f3bf1b3608069cf95",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-202/luna_bala_44s-202-baseline.json",
+      "artifactSha256": "55b53d825f5339756849ff8f97b57f4c6680cc6fbb0d7591a592c1953042c8cb",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/luna_bala_44s-303/luna_bala_44s-303-baseline.json",
+      "artifactSha256": "2df44dcab3bae242f7009451893d18cc4f4ba7dcf48547da29eaeb667f097f7a",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-baseline.json",
+      "artifactSha256": "4ef945ef05ec84250fb6dcc2132012a62f68f46d1b137f1b29ada114a634cc66",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/amor_na_praia_46s-202-baseline.json",
+      "artifactSha256": "1ccc3f2a396b8d8aa44553bf9b6b7659d786448c9d46dc933f365b653cc547b7",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/amor_na_praia_46s-303-baseline.json",
+      "artifactSha256": "e5e14d9be01bd697915b8f82ea50d369ad0ea46b2365ae33025a51515336c616",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-baseline.json",
+      "artifactSha256": "b52d1e402f604187e82c44f5cba3659526dcd794d83da6a8b485dcfa3db88592",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/tiki_tiki_48s-202-baseline.json",
+      "artifactSha256": "a6962c604320950aa9d83fbd0b25c8f4b298e2cc35171be0a8efd222d7831322",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-baseline.json",
+      "artifactSha256": "46a508a672c45468c507e5467c4546b4efdff7412793c69d5ccbdd5a9be8a490",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-baseline.json",
+      "artifactSha256": "2b28764a39bc4c82f53e6c9ad117b2a7889528c8e4ba510a884a99c8b5e2dc41",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-baseline.json",
+      "artifactSha256": "aab40265d53abcb6326f19e3bf88b972317beecc747a0e648ed5ae54a3413e9c",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "baseline",
+      "path": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-baseline.json",
+      "artifactSha256": "694c95d85eb2ae98d7f3526cf73d32b9a6d83c4732c32e45d9e827b36765e687",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": true,
+      "experimentalValid": null
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json",
+      "artifactSha256": "939b11c0e90e468cf2bd7dab578c27fd53ea8023a16b4dbf8942046c5eca0d4c",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/amor_na_praia_46s-202/amor_na_praia_46s-202-production.json",
+      "artifactSha256": "86c92a4305e1ef817e51ab8c76dbedb15b7b789e67cd892ee83ce164a337e49a",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/amor_na_praia_46s-303/amor_na_praia_46s-303-production.json",
+      "artifactSha256": "9c23625cee87c328cb8fe2b3167608f6084a14d8b55ad942c247c54f5f78e718",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-production.json",
+      "artifactSha256": "0bc79e9f3d4ef5a3512ec2cad59a34c793b112227239d8ab5dd37ef1a054e9e8",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-production.json",
+      "artifactSha256": "db21d571fb3a7da1a6ad04e7226786bf814d590a6fda64cf113b82d79c5c6e1b",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-production.json",
+      "artifactSha256": "0ad3bdceabc585aa042ac3544c82c0042a912990a0ed65309438f5eacc56080f",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/luna_bala_44s-101/luna_bala_44s-101-production.json",
+      "artifactSha256": "bddb313c4dcbc077d35cf764effc333671a707673038aa8d79a1b69115db95d5",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/luna_bala_44s-202/luna_bala_44s-202-production.json",
+      "artifactSha256": "a5f27e068bf0d8f53ee3874603e8ccf84ec9eaee796153acc2237003eb7e8d51",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/luna_bala_44s-303/luna_bala_44s-303-production.json",
+      "artifactSha256": "61ac056b0394fb45ca619e8222d0112a1dbe3b61356a8cf4114bd3bad0d0a8d5",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json",
+      "artifactSha256": "47d865b42acae6bd1c8069f80a1597a8d0e46b55c57327482e7a06a9f9639de4",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/tiki_tiki_48s-202/tiki_tiki_48s-202-production.json",
+      "artifactSha256": "b31826ac47fabc3eaf1fa428881c0b41ab691f8249d1dd3dd25ae929a29748b8",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    },
+    {
+      "set": "candidate",
+      "path": "/home/wyss/line/generated/general-impact-20261002/final-production/development/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json",
+      "artifactSha256": "7ee2cf403c09ba4f8cb89c38e2e2c1edf6eff4f181eac1ad06b6588e30dcdae3",
+      "maxTraceError": 0,
+      "fulfilled": true,
+      "historicalValid": false,
+      "experimentalValid": true
+    }
+  ],
+  "observations": {
+    "baseline": [
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "a7ba2182e3b1c82772ca71bf866eed4ed25f62ba1116257be1b863240f571ada",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.9346281658458224,
+              "maxRelative": 0.10250809089639384,
+              "maxExcess": 0.022867779253058385,
+              "excessIntegral": 0.022867779253058385,
+              "peakFrame": 1624,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.5569756420775498,
+              "maxRelative": 0.1958651107481948,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.218507448141196,
+              "maxRelative": 0.3040581196844079,
+              "maxExcess": 0.02960936795455993,
+              "excessIntegral": 0.0029609367954559927,
+              "peakFrame": 325,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            }
+          ],
+          "solverGain": -65.43444680021757,
+          "gravityGain": 69.70148275962868,
+          "positiveCorrection": 78.85140889044318,
+          "absoluteCorrection": 223.1372645811034,
+          "directionCorrection": 545.3645208943975,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 222.67407288653493,
+          "laterDirectionCorrection": 543.1382767378745
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.1452542084884456,
+              "maxRelative": 0.018791808081263253,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.17002737377196286,
+              "maxRelative": 0.02213719473154472,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.18545260208496295,
+              "maxRelative": 0.023972842411663975,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.2350493527395088,
+          "gravityGain": 3.239564815071007,
+          "positiveCorrection": 1.5154471655733524,
+          "absoluteCorrection": 5.2659436838862135,
+          "directionCorrection": 21.381692174745492,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 4.802751989317779,
+          "laterDirectionCorrection": 19.15544801822232
+        },
+        "openingImpactRms": 0.020030323754569385,
+        "windows": []
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "cf9fe39f96d11ef3028b71a421d8bbcaaa895385e4d176023ea4ca3bb9531148",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0339833334773498,
+              "maxRelative": 0.09865034320557298,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.6755437474784394,
+              "maxRelative": 0.17212135663869932,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.0410883176310826,
+              "maxRelative": 0.2872993118928935,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -85.70225909559231,
+          "gravityGain": 88.55152832465593,
+          "positiveCorrection": 66.57500774694847,
+          "absoluteCorrection": 218.85227458948907,
+          "directionCorrection": 534.2768164663504,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 218.3890828949206,
+          "laterDirectionCorrection": 532.0505723098271
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.1452542084884456,
+              "maxRelative": 0.018791808081263253,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.17002737377196286,
+              "maxRelative": 0.02213719473154472,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.18545260208496295,
+              "maxRelative": 0.023972842411663975,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.3193667798539988,
+          "gravityGain": 3.0355708349669657,
+          "positiveCorrection": 1.5918495443966538,
+          "absoluteCorrection": 5.503065868647306,
+          "directionCorrection": 22.52764852003454,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 5.0398741740788715,
+          "laterDirectionCorrection": 20.301404363511367
+        },
+        "openingImpactRms": 0.020246232173461314,
+        "windows": []
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "19ddcf0a60253ef638e1a36b4eb2f1bcd06bd8fc1b6a6dc6de49fe394acb02b1",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0738740698258642,
+              "maxRelative": 0.12182906139148829,
+              "maxExcess": 0.008128130080218843,
+              "excessIntegral": 0.008128130080218843,
+              "peakFrame": 1732,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.7043550095260613,
+              "maxRelative": 0.18794730425016942,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.8585092588489358,
+              "maxRelative": 0.2958236873013957,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -84.1898858943535,
+          "gravityGain": 87.45539915960185,
+          "positiveCorrection": 71.73699165661925,
+          "absoluteCorrection": 227.66386920759228,
+          "directionCorrection": 536.8290312550353,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 227.2006775130238,
+          "laterDirectionCorrection": 534.6027870985122
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.1452542084884456,
+              "maxRelative": 0.018791808081263253,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.17002737377196286,
+              "maxRelative": 0.02213719473154472,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.18545260208496295,
+              "maxRelative": 0.023972842411663975,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.3193667798539988,
+          "gravityGain": 3.0355708349669657,
+          "positiveCorrection": 1.5918495443966538,
+          "absoluteCorrection": 5.503065868647306,
+          "directionCorrection": 22.52764852003454,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 5.0398741740788715,
+          "laterDirectionCorrection": 20.301404363511367
+        },
+        "openingImpactRms": 0.020246232173461314,
+        "windows": []
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "a7b97c400289b46172ac61c93abf9cb68cc28f7141dd9d082cf4ac871c0e472b",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.1308282018681783,
+              "maxRelative": 0.11371790674960494,
+              "maxExcess": 0.08394325627472621,
+              "excessIntegral": 0.10341871995617336,
+              "peakFrame": 1605,
+              "exceedanceFrames": 2,
+              "episodes": 2
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.1477401042031534,
+              "maxRelative": 0.2048673637724898,
+              "maxExcess": 0.05102731925389081,
+              "excessIntegral": 0.024334023991473774,
+              "peakFrame": 296,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.9922903570026698,
+              "maxRelative": 0.4506170734994134,
+              "maxExcess": 0.253085367497067,
+              "excessIntegral": 0.06691892250512929,
+              "peakFrame": 10,
+              "exceedanceFrames": 4,
+              "episodes": 2
+            }
+          ],
+          "solverGain": -38.426772103519255,
+          "gravityGain": 44.544746335359825,
+          "positiveCorrection": 117.28382912267898,
+          "absoluteCorrection": 272.99443034887656,
+          "directionCorrection": 717.6699079477154,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 271.09310557140145,
+          "laterDirectionCorrection": 715.4012504245447
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.6041246300162566,
+              "maxRelative": 0.11371790674960494,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.1825813944253838,
+              "maxRelative": 0.19761108696333451,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.253085367497067,
+              "maxRelative": 0.4506170734994134,
+              "maxExcess": 0.253085367497067,
+              "excessIntegral": 0.04193052646176012,
+              "peakFrame": 10,
+              "exceedanceFrames": 2,
+              "episodes": 1
+            }
+          ],
+          "solverGain": 0.021620874822931846,
+          "gravityGain": 6.821992188158174,
+          "positiveCorrection": 4.518843475886577,
+          "absoluteCorrection": 9.016066076950223,
+          "directionCorrection": 28.87300770875163,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 7.114741299475022,
+          "laterDirectionCorrection": 26.604350185580888
+        },
+        "openingImpactRms": 0.06462811294751866,
+        "windows": [
+          {
+            "from": 5.7,
+            "to": 6.25,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 23,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 0.982440386359686,
+                  "maxRelative": 0.0993483265570914,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 0.7043834541622562,
+                  "maxRelative": 0.06820340525822972,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 1.2151490961941462,
+                  "maxRelative": 0.10575800435511562,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": 0.2839438296033041,
+              "gravityGain": -0.9502957062613433,
+              "positiveCorrection": 2.5365714998976827,
+              "absoluteCorrection": 4.789199170192061,
+              "directionCorrection": 11.964499467301161,
+              "laterFrames": 23,
+              "laterAbsoluteCorrection": 4.789199170192061,
+              "laterDirectionCorrection": 11.964499467301161
+            }
+          }
+        ]
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "7f61f3ce5b0ebb08fa3c1b0ec7c042f6b6665401dd90596a913b2e419a875656",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.1308645119722343,
+              "maxRelative": 0.12044673706940134,
+              "maxExcess": 0.03621334484004479,
+              "excessIntegral": 0.04292588015936216,
+              "peakFrame": 344,
+              "exceedanceFrames": 2,
+              "episodes": 2
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.210016716009159,
+              "maxRelative": 0.21735089065544172,
+              "maxExcess": 0.17642328619191838,
+              "excessIntegral": 0.06727012466926235,
+              "peakFrame": 347,
+              "exceedanceFrames": 4,
+              "episodes": 4
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 3.2746036003925187,
+              "maxRelative": 0.4292033658764982,
+              "maxExcess": 0.18324164431987677,
+              "excessIntegral": 0.04578763907375496,
+              "peakFrame": 350,
+              "exceedanceFrames": 4,
+              "episodes": 2
+            }
+          ],
+          "solverGain": -86.18182520928423,
+          "gravityGain": 92.37095516895585,
+          "positiveCorrection": 94.51236720608969,
+          "absoluteCorrection": 275.20655962146355,
+          "directionCorrection": 711.5442563502537,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 272.79018419985545,
+          "laterDirectionCorrection": 709.2865524327867
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.6022336853470067,
+              "maxRelative": 0.12044673706940134,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.2590488295568383,
+              "maxRelative": 0.20391732102797464,
+              "maxExcess": 0.009048829556838278,
+              "excessIntegral": 0.0022622073892095695,
+              "peakFrame": 9,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.146016829382491,
+              "maxRelative": 0.4292033658764982,
+              "maxExcess": 0.14601682938249105,
+              "excessIntegral": 0.014601682938249105,
+              "peakFrame": 10,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            }
+          ],
+          "solverGain": -2.8881188749696616,
+          "gravityGain": 9.768229807705417,
+          "positiveCorrection": 3.902534330342018,
+          "absoluteCorrection": 10.693187535653697,
+          "directionCorrection": 25.07596437882226,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 8.27681211404562,
+          "laterDirectionCorrection": 22.81826046135528
+        },
+        "openingImpactRms": 0.0709591041153608,
+        "windows": []
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "46cca64f2bcd8fcf302793e514305135d03fd354501e29a434fe64d8bcf2b533",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0414641470707853,
+              "maxRelative": 0.14157420007416963,
+              "maxExcess": 0.14768692481439305,
+              "excessIntegral": 0.2719902910816092,
+              "peakFrame": 414,
+              "exceedanceFrames": 5,
+              "episodes": 5
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.0406557294279146,
+              "maxRelative": 0.2277691676329873,
+              "maxExcess": 0.2438509409739371,
+              "excessIntegral": 0.06096273524348428,
+              "peakFrame": 416,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.86645395924098,
+              "maxRelative": 0.4259609799583329,
+              "maxExcess": 0.14124022327051655,
+              "excessIntegral": 0.04440868656503243,
+              "peakFrame": 171,
+              "exceedanceFrames": 6,
+              "episodes": 3
+            }
+          ],
+          "solverGain": -76.52086073231546,
+          "gravityGain": 81.35248843766706,
+          "positiveCorrection": 104.88868485271078,
+          "absoluteCorrection": 286.2982304377373,
+          "directionCorrection": 753.0271215265731,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 284.48027315283093,
+          "laterDirectionCorrection": 750.8428121674509
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.7078710003708482,
+              "maxRelative": 0.14157420007416963,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.1388458381649365,
+              "maxRelative": 0.2277691676329873,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.1298048997916643,
+              "maxRelative": 0.4259609799583329,
+              "maxExcess": 0.12980489979166432,
+              "excessIntegral": 0.012980489979166432,
+              "peakFrame": 10,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            }
+          ],
+          "solverGain": -3.6336696245518487,
+          "gravityGain": 9.703426584486335,
+          "positiveCorrection": 4.858301921550627,
+          "absoluteCorrection": 13.350273467653103,
+          "directionCorrection": 33.20221771071791,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 11.532316182746726,
+          "laterDirectionCorrection": 31.01790835159572
+        },
+        "openingImpactRms": 0.027608049775965583,
+        "windows": [
+          {
+            "from": 9.1,
+            "to": 9.7,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 25,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 0.14114684156328927,
+                  "maxRelative": 0.013608823275226563,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 0.34118438613261404,
+                  "maxRelative": 0.03319023852835424,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 0.07534354175604463,
+                  "maxRelative": 0.007329380311917792,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": -0.9184942939218246,
+              "gravityGain": 0.01879128491366089,
+              "positiveCorrection": 0.4301680483172685,
+              "absoluteCorrection": 1.7788303905563616,
+              "directionCorrection": 5.748533809800077,
+              "laterFrames": 25,
+              "laterAbsoluteCorrection": 1.7788303905563616,
+              "laterDirectionCorrection": 5.748533809800077
+            }
+          }
+        ]
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "3e6f0fb66cb750b252c1b3e28a144e19705d33757156c37cf5ec8919674e8031",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.9839407134625251,
+              "maxRelative": 0.10167073198593195,
+              "maxExcess": 0.016168873678120033,
+              "excessIntegral": 0.016168873678120033,
+              "peakFrame": 1677,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.912392916042002,
+              "maxRelative": 0.20123362796610345,
+              "maxExcess": 0.011723594149010363,
+              "excessIntegral": 0.002930898537252591,
+              "peakFrame": 1398,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.8283321437624434,
+              "maxRelative": 0.19238824162653365,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -66.33202835088358,
+          "gravityGain": 70.67568453888707,
+          "positiveCorrection": 64.7088634715063,
+          "absoluteCorrection": 195.74975529389636,
+          "directionCorrection": 492.0898768687557,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 195.27116253745774,
+          "laterDirectionCorrection": 489.57656118484806
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.5825468103694016,
+              "maxRelative": 0.07509411685987641,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.4266365038385391,
+              "maxRelative": 0.05543921527323531,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.2698846912476016,
+              "maxRelative": 0.03569199054754208,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.7645818203991572,
+          "gravityGain": 3.0415885360235437,
+          "positiveCorrection": 2.7116439616045644,
+          "absoluteCorrection": 8.187869743608287,
+          "directionCorrection": 23.903522394676607,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 7.709276987169656,
+          "laterDirectionCorrection": 21.39020671076884
+        },
+        "openingImpactRms": 0.022567197874840315,
+        "windows": []
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "218f32afa6c2b620fad38f7c44258101cc360b824bc33ae124bc8f3503b9352b",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.9945515408636343,
+              "maxRelative": 0.09629015204071642,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.9654963102920853,
+              "maxRelative": 0.20036438669309162,
+              "maxExcess": 0.0035744910191457535,
+              "excessIntegral": 0.0008936227547864384,
+              "peakFrame": 1049,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.969348052492352,
+              "maxRelative": 0.20075703661037467,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -92.24732342538508,
+          "gravityGain": 96.38054566025633,
+          "positiveCorrection": 56.79086894606032,
+          "absoluteCorrection": 205.82906131750553,
+          "directionCorrection": 504.0800288103475,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 205.35046856106692,
+          "laterDirectionCorrection": 501.56671312643977
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.11361785999787344,
+              "maxRelative": 0.01393141513598876,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.19638402441672742,
+              "maxRelative": 0.02510449759240223,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.12707464496401322,
+              "maxRelative": 0.016113019133898534,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.876743764784159,
+          "gravityGain": 3.2285020954714305,
+          "positiveCorrection": 1.4929257344692202,
+          "absoluteCorrection": 5.862595233722599,
+          "directionCorrection": 23.16390977261976,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 5.384002477283969,
+          "laterDirectionCorrection": 20.65059408871199
+        },
+        "openingImpactRms": 0.0063078944174423035,
+        "windows": []
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "8c9badc84ddd7d632516d081df01c3ccfd94d0f1828c7fe3ad42641c0921948c",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0113782736730794,
+              "maxRelative": 0.10141925081847301,
+              "maxExcess": 0.014153126069384125,
+              "excessIntegral": 0.014153126069384125,
+              "peakFrame": 1394,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.7601379425053274,
+              "maxRelative": 0.18190780868978032,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.6530697459693293,
+              "maxRelative": 0.18458238515163897,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -74.99094005571547,
+          "gravityGain": 78.63543485139402,
+          "positiveCorrection": 63.158179690661,
+          "absoluteCorrection": 201.30729943703773,
+          "directionCorrection": 495.6271142406312,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 200.8287066805991,
+          "laterDirectionCorrection": 493.1137985567235
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.11699733321493078,
+              "maxRelative": 0.014350875735413366,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.19638402441672742,
+              "maxRelative": 0.02510449759240223,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.12707464496401322,
+              "maxRelative": 0.016113019133898534,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.891296924967577,
+          "gravityGain": 3.227919012949272,
+          "positiveCorrection": 1.4942084372918236,
+          "absoluteCorrection": 5.879713799551224,
+          "directionCorrection": 23.209964302435218,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 5.401121043112594,
+          "laterDirectionCorrection": 20.696648618527448
+        },
+        "openingImpactRms": 0.006250505685182237,
+        "windows": []
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "89cf821b04d8d807a7116e1441c2a02de9d29a2dd8dfa9e94de8121bd16ebcd8",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.084903595386507,
+              "maxRelative": 0.10030046344261878,
+              "maxExcess": 0.0030511454380637293,
+              "excessIntegral": 0.0030511454380637293,
+              "peakFrame": 667,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.8835704432568452,
+              "maxRelative": 0.2065626327377663,
+              "maxExcess": 0.05984229040350675,
+              "excessIntegral": 0.030366230202464484,
+              "peakFrame": 668,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.0517728576003194,
+              "maxRelative": 0.23527000882522628,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -69.08423061895317,
+          "gravityGain": 70.64901310448656,
+          "positiveCorrection": 70.89647645287165,
+          "absoluteCorrection": 210.87718352469642,
+          "directionCorrection": 608.7766648280852,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 210.409891032747,
+          "laterDirectionCorrection": 606.7946317753485
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.0908464979202801,
+              "maxRelative": 0.01142363302881406,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.18138794343252052,
+              "maxRelative": 0.02373954273858918,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.10307706163072439,
+              "maxRelative": 0.013484464447146249,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.207720289626077,
+          "gravityGain": 1.5614499885391577,
+          "positiveCorrection": 0.9177552289677475,
+          "absoluteCorrection": 3.043230747561572,
+          "directionCorrection": 23.297547954108907,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 2.5759382556121286,
+          "laterDirectionCorrection": 21.315514901371966
+        },
+        "openingImpactRms": 0.0191691742774544,
+        "windows": [
+          {
+            "from": 15.05,
+            "to": 15.65,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 25,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 0.05063122375614881,
+                  "maxRelative": 0.004696746142916946,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 0.15036542345120196,
+                  "maxRelative": 0.013948472310759416,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 0.110956986721785,
+                  "maxRelative": 0.010185566916318983,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": -1.1893264619528292,
+              "gravityGain": 1.8913599453187224,
+              "positiveCorrection": 0.3983589388736206,
+              "absoluteCorrection": 1.9860443397000704,
+              "directionCorrection": 7.0893486701917485,
+              "laterFrames": 25,
+              "laterAbsoluteCorrection": 1.9860443397000704,
+              "laterDirectionCorrection": 7.0893486701917485
+            }
+          }
+        ]
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "9a0630ad8bcf17274dc26e11143f430838b24ce66f3808c03660c42a61dbc2a8",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0821912604306458,
+              "maxRelative": 0.09985792098147622,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.1331626572776496,
+              "maxRelative": 0.1950705811283515,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.9057276998037214,
+              "maxRelative": 0.25298168314727526,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -82.79476643747198,
+          "gravityGain": 84.19800380268146,
+          "positiveCorrection": 65.85211080888745,
+          "absoluteCorrection": 214.49898805524694,
+          "directionCorrection": 571.8518214524819,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 214.03169556329746,
+          "laterDirectionCorrection": 569.8697883997448
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.0908464979202801,
+              "maxRelative": 0.01142363302881406,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.18138794343252052,
+              "maxRelative": 0.02373954273858918,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.10307706163072439,
+              "maxRelative": 0.013484464447146249,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.207720289626077,
+          "gravityGain": 1.5614499885391577,
+          "positiveCorrection": 0.9177552289677475,
+          "absoluteCorrection": 3.043230747561572,
+          "directionCorrection": 23.297547954108907,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 2.5759382556121286,
+          "laterDirectionCorrection": 21.315514901371966
+        },
+        "openingImpactRms": 0.0191691742774544,
+        "windows": []
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "method": "production",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "cbae888536323e368f7a51a53acd37a1de8c1a1a6dcd07762d235ef032dc19b4",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.000174462602855,
+              "maxRelative": 0.10729980625090511,
+              "maxExcess": 0.06804373697592192,
+              "excessIntegral": 0.09982600565115674,
+              "peakFrame": 894,
+              "exceedanceFrames": 2,
+              "episodes": 2
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.600200599677951,
+              "maxRelative": 0.18739826864828577,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.991145696039478,
+              "maxRelative": 0.22941919544768263,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -86.19401017668359,
+          "gravityGain": 87.29105153850296,
+          "positiveCorrection": 65.47897529418888,
+          "absoluteCorrection": 217.15196076506084,
+          "directionCorrection": 581.985497897371,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 216.68466827311136,
+          "laterDirectionCorrection": 580.003464844634
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.0908464979202801,
+              "maxRelative": 0.01142363302881406,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.18138794343252052,
+              "maxRelative": 0.02373954273858918,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.10307706163072439,
+              "maxRelative": 0.013484464447146249,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.207720289626077,
+          "gravityGain": 1.5614499885391577,
+          "positiveCorrection": 0.9177552289677475,
+          "absoluteCorrection": 3.043230747561572,
+          "directionCorrection": 23.297547954108907,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 2.5759382556121286,
+          "laterDirectionCorrection": 21.315514901371966
+        },
+        "openingImpactRms": 0.0191691742774544,
+        "windows": []
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.5452555350040758,
+              "maxRelative": 0.15900227423795915,
+              "maxExcess": 0.5734106086280656,
+              "excessIntegral": 0.8696976191839566,
+              "peakFrame": 1373,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.2381946484735593,
+              "maxRelative": 0.23708882652011157,
+              "maxExcess": 0.35013043108733855,
+              "excessIntegral": 0.08753260777183464,
+              "peakFrame": 1523,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.1834200330177875,
+              "maxRelative": 0.20079899573622112,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -24.654184126346333,
+          "gravityGain": 27.44400367280525,
+          "positiveCorrection": 76.64481769932684,
+          "absoluteCorrection": 177.94381952499975,
+          "directionCorrection": 511.6130648494538,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 177.3664167059364,
+          "laterDirectionCorrection": 509.31600015007336
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.2961595316979384,
+              "maxRelative": 0.03675243877368722,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.3109525663170185,
+              "maxRelative": 0.04076128396653245,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.27254933935362047,
+              "maxRelative": 0.03572718870876776,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -3.0121382447285114,
+          "gravityGain": 2.9641617149027795,
+          "positiveCorrection": 2.60105212080056,
+          "absoluteCorrection": 8.214242486329631,
+          "directionCorrection": 23.12703636752602,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 7.6368396672662575,
+          "laterDirectionCorrection": 20.829971668145614
+        },
+        "openingImpactRms": 0.0027896727800738996,
+        "windows": []
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.5452555350040758,
+              "maxRelative": 0.15900227423795915,
+              "maxExcess": 0.5734106086280656,
+              "excessIntegral": 0.8696976191839566,
+              "peakFrame": 1373,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.2381946484735593,
+              "maxRelative": 0.23708882652011157,
+              "maxExcess": 0.35013043108733855,
+              "excessIntegral": 0.08753260777183464,
+              "peakFrame": 1523,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.1834200330177875,
+              "maxRelative": 0.20079899573622112,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -24.654184126346333,
+          "gravityGain": 27.44400367280525,
+          "positiveCorrection": 76.64481769932684,
+          "absoluteCorrection": 177.94381952499975,
+          "directionCorrection": 511.6130648494538,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 177.3664167059364,
+          "laterDirectionCorrection": 509.31600015007336
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.2961595316979384,
+              "maxRelative": 0.03675243877368722,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.3109525663170185,
+              "maxRelative": 0.04076128396653245,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.27254933935362047,
+              "maxRelative": 0.03572718870876776,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -3.0121382447285114,
+          "gravityGain": 2.9641617149027795,
+          "positiveCorrection": 2.60105212080056,
+          "absoluteCorrection": 8.214242486329631,
+          "directionCorrection": 23.12703636752602,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 7.6368396672662575,
+          "laterDirectionCorrection": 20.829971668145614
+        },
+        "openingImpactRms": 0.0027896727800738996,
+        "windows": []
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "ff959e523cbf05e169e8252b44206cfb82266af8903e906fcd19a38effa36994",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.5452555350040758,
+              "maxRelative": 0.15900227423795915,
+              "maxExcess": 0.5734106086280656,
+              "excessIntegral": 0.8696976191839566,
+              "peakFrame": 1373,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.2381946484735593,
+              "maxRelative": 0.23708882652011157,
+              "maxExcess": 0.35013043108733855,
+              "excessIntegral": 0.08753260777183464,
+              "peakFrame": 1523,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 2.1834200330177875,
+              "maxRelative": 0.20079899573622112,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -24.654184126346333,
+          "gravityGain": 27.44400367280525,
+          "positiveCorrection": 76.64481769932684,
+          "absoluteCorrection": 177.94381952499975,
+          "directionCorrection": 511.6130648494538,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 177.3664167059364,
+          "laterDirectionCorrection": 509.31600015007336
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.2961595316979384,
+              "maxRelative": 0.03675243877368722,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.3109525663170185,
+              "maxRelative": 0.04076128396653245,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.27254933935362047,
+              "maxRelative": 0.03572718870876776,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -3.0121382447285114,
+          "gravityGain": 2.9641617149027795,
+          "positiveCorrection": 2.60105212080056,
+          "absoluteCorrection": 8.214242486329631,
+          "directionCorrection": 23.12703636752602,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 7.6368396672662575,
+          "laterDirectionCorrection": 20.829971668145614
+        },
+        "openingImpactRms": 0.0027896727800738996,
+        "windows": []
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0131897473187301,
+              "maxRelative": 0.10142550815498748,
+              "maxExcess": 0.0118175929086195,
+              "excessIntegral": 0.0118175929086195,
+              "peakFrame": 282,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.8908270240633787,
+              "maxRelative": 0.2582938218822109,
+              "maxExcess": 0.39282653295902237,
+              "excessIntegral": 0.14005830121894947,
+              "peakFrame": 319,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 3.6814922546403386,
+              "maxRelative": 0.5463181219867589,
+              "maxExcess": 1.6598721912684153,
+              "excessIntegral": 0.6541589583122561,
+              "peakFrame": 325,
+              "exceedanceFrames": 9,
+              "episodes": 2
+            }
+          ],
+          "solverGain": -13.786718807939662,
+          "gravityGain": 17.302630658539137,
+          "positiveCorrection": 96.76646014821108,
+          "absoluteCorrection": 207.31963910436218,
+          "directionCorrection": 598.1039769925665,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 206.86256282648975,
+          "laterDirectionCorrection": 596.0789927647781
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.2211900205775006,
+              "maxRelative": 0.028141594973177628,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.1898618004523609,
+              "maxRelative": 0.024262883725930644,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.23645206390315643,
+              "maxRelative": 0.030272876186431215,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.0924537749198855,
+          "gravityGain": 2.6504820653340326,
+          "positiveCorrection": 1.8001948592924606,
+          "absoluteCorrection": 5.692843493504807,
+          "directionCorrection": 23.069779161022872,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 5.235767215632407,
+          "laterDirectionCorrection": 21.044794933234513
+        },
+        "openingImpactRms": 0.011291077867748795,
+        "windows": []
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0131897473187301,
+              "maxRelative": 0.10142550815498748,
+              "maxExcess": 0.0118175929086195,
+              "excessIntegral": 0.0118175929086195,
+              "peakFrame": 282,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.8908270240633787,
+              "maxRelative": 0.2582938218822109,
+              "maxExcess": 0.39282653295902237,
+              "excessIntegral": 0.14005830121894947,
+              "peakFrame": 319,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 3.6814922546403386,
+              "maxRelative": 0.5463181219867589,
+              "maxExcess": 1.6598721912684153,
+              "excessIntegral": 0.6541589583122561,
+              "peakFrame": 325,
+              "exceedanceFrames": 9,
+              "episodes": 2
+            }
+          ],
+          "solverGain": -13.786718807939662,
+          "gravityGain": 17.302630658539137,
+          "positiveCorrection": 96.76646014821108,
+          "absoluteCorrection": 207.31963910436218,
+          "directionCorrection": 598.1039769925665,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 206.86256282648975,
+          "laterDirectionCorrection": 596.0789927647781
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.2211900205775006,
+              "maxRelative": 0.028141594973177628,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.1898618004523609,
+              "maxRelative": 0.024262883725930644,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.23645206390315643,
+              "maxRelative": 0.030272876186431215,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.0924537749198855,
+          "gravityGain": 2.6504820653340326,
+          "positiveCorrection": 1.8001948592924606,
+          "absoluteCorrection": 5.692843493504807,
+          "directionCorrection": 23.069779161022872,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 5.235767215632407,
+          "laterDirectionCorrection": 21.044794933234513
+        },
+        "openingImpactRms": 0.011291077867748795,
+        "windows": []
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "f5e6d6852b41e82c94825fdc542ef1832c27d0b07ebc2bbc19593247b11aa1f1",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0131897473187301,
+              "maxRelative": 0.10142550815498748,
+              "maxExcess": 0.0118175929086195,
+              "excessIntegral": 0.0118175929086195,
+              "peakFrame": 282,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.8908270240633787,
+              "maxRelative": 0.2582938218822109,
+              "maxExcess": 0.39282653295902237,
+              "excessIntegral": 0.14005830121894947,
+              "peakFrame": 319,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 3.6814922546403386,
+              "maxRelative": 0.5463181219867589,
+              "maxExcess": 1.6598721912684153,
+              "excessIntegral": 0.6541589583122561,
+              "peakFrame": 325,
+              "exceedanceFrames": 9,
+              "episodes": 2
+            }
+          ],
+          "solverGain": -13.786718807939662,
+          "gravityGain": 17.302630658539137,
+          "positiveCorrection": 96.76646014821108,
+          "absoluteCorrection": 207.31963910436218,
+          "directionCorrection": 598.1039769925665,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 206.86256282648975,
+          "laterDirectionCorrection": 596.0789927647781
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.2211900205775006,
+              "maxRelative": 0.028141594973177628,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.1898618004523609,
+              "maxRelative": 0.024262883725930644,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.23645206390315643,
+              "maxRelative": 0.030272876186431215,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -2.0924537749198855,
+          "gravityGain": 2.6504820653340326,
+          "positiveCorrection": 1.8001948592924606,
+          "absoluteCorrection": 5.692843493504807,
+          "directionCorrection": 23.069779161022872,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 5.235767215632407,
+          "laterDirectionCorrection": 21.044794933234513
+        },
+        "openingImpactRms": 0.011291077867748795,
+        "windows": []
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.1792261024976671,
+              "maxRelative": 0.10823325684863606,
+              "maxExcess": 0.08449480636067341,
+              "excessIntegral": 0.18997799542014127,
+              "peakFrame": 527,
+              "exceedanceFrames": 5,
+              "episodes": 5
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.3755702015887312,
+              "maxRelative": 0.25569134332513904,
+              "maxExcess": 0.5174156229505815,
+              "excessIntegral": 0.3506219522483093,
+              "peakFrame": 1680,
+              "exceedanceFrames": 5,
+              "episodes": 4
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.8951842423661223,
+              "maxRelative": 0.2417657138793506,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -22.238958021590395,
+          "gravityGain": 23.36813432745329,
+          "positiveCorrection": 108.92370799476865,
+          "absoluteCorrection": 240.08637401112816,
+          "directionCorrection": 666.4443852877076,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 239.67546239410223,
+          "laterDirectionCorrection": 664.845449412409
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.08459213362894502,
+              "maxRelative": 0.01102403568664081,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.0960615019117057,
+              "maxRelative": 0.012518722247060137,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.11535098473559646,
+              "maxRelative": 0.01460917559812309,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.3337028848796493,
+          "gravityGain": 1.6203431095641632,
+          "positiveCorrection": 0.5567495395892612,
+          "absoluteCorrection": 2.4472019640581717,
+          "directionCorrection": 22.557085423678494,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 2.036290347032266,
+          "laterDirectionCorrection": 20.958149548379957
+        },
+        "openingImpactRms": 0.012553002985429846,
+        "windows": [
+          {
+            "from": 15.05,
+            "to": 15.65,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 25,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 0.713165659064785,
+                  "maxRelative": 0.06874971850835235,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 1.5103027903714477,
+                  "maxRelative": 0.15531029287126766,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 1.294348287845775,
+                  "maxRelative": 0.1341298726644049,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": -0.6491297469725303,
+              "gravityGain": -0.16561233790108432,
+              "positiveCorrection": 1.9780524563827857,
+              "absoluteCorrection": 4.605234659738102,
+              "directionCorrection": 9.40455175522239,
+              "laterFrames": 25,
+              "laterAbsoluteCorrection": 4.605234659738102,
+              "laterDirectionCorrection": 9.40455175522239
+            }
+          }
+        ]
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.1792261024976671,
+              "maxRelative": 0.10823325684863606,
+              "maxExcess": 0.08449480636067341,
+              "excessIntegral": 0.18997799542014127,
+              "peakFrame": 527,
+              "exceedanceFrames": 5,
+              "episodes": 5
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.3755702015887312,
+              "maxRelative": 0.25569134332513904,
+              "maxExcess": 0.5174156229505815,
+              "excessIntegral": 0.3506219522483093,
+              "peakFrame": 1680,
+              "exceedanceFrames": 5,
+              "episodes": 4
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.8951842423661223,
+              "maxRelative": 0.2417657138793506,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -22.238958021590395,
+          "gravityGain": 23.36813432745329,
+          "positiveCorrection": 108.92370799476865,
+          "absoluteCorrection": 240.08637401112816,
+          "directionCorrection": 666.4443852877076,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 239.67546239410223,
+          "laterDirectionCorrection": 664.845449412409
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.08459213362894502,
+              "maxRelative": 0.01102403568664081,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.0960615019117057,
+              "maxRelative": 0.012518722247060137,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.11535098473559646,
+              "maxRelative": 0.01460917559812309,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.3337028848796493,
+          "gravityGain": 1.6203431095641632,
+          "positiveCorrection": 0.5567495395892612,
+          "absoluteCorrection": 2.4472019640581717,
+          "directionCorrection": 22.557085423678494,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 2.036290347032266,
+          "laterDirectionCorrection": 20.958149548379957
+        },
+        "openingImpactRms": 0.012553002985429846,
+        "windows": []
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "2f5eaddd5d6e6214380a93d5a2932bca260ea0fa13c97fb9531feb6f53e94333",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.1792261024976671,
+              "maxRelative": 0.10823325684863606,
+              "maxExcess": 0.08449480636067341,
+              "excessIntegral": 0.18997799542014127,
+              "peakFrame": 527,
+              "exceedanceFrames": 5,
+              "episodes": 5
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.3755702015887312,
+              "maxRelative": 0.25569134332513904,
+              "maxExcess": 0.5174156229505815,
+              "excessIntegral": 0.3506219522483093,
+              "peakFrame": 1680,
+              "exceedanceFrames": 5,
+              "episodes": 4
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.8951842423661223,
+              "maxRelative": 0.2417657138793506,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -22.238958021590395,
+          "gravityGain": 23.36813432745329,
+          "positiveCorrection": 108.92370799476865,
+          "absoluteCorrection": 240.08637401112816,
+          "directionCorrection": 666.4443852877076,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 239.67546239410223,
+          "laterDirectionCorrection": 664.845449412409
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.08459213362894502,
+              "maxRelative": 0.01102403568664081,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.0960615019117057,
+              "maxRelative": 0.012518722247060137,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.11535098473559646,
+              "maxRelative": 0.01460917559812309,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.3337028848796493,
+          "gravityGain": 1.6203431095641632,
+          "positiveCorrection": 0.5567495395892612,
+          "absoluteCorrection": 2.4472019640581717,
+          "directionCorrection": 22.557085423678494,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 2.036290347032266,
+          "laterDirectionCorrection": 20.958149548379957
+        },
+        "openingImpactRms": 0.012553002985429846,
+        "windows": []
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "0e1aa273202c3da8ca9b357132dd889b69e322367a8974b8a99729499dba9917",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.938565228630356,
+              "maxRelative": 0.2048339732388765,
+              "maxExcess": 0.9921571704467609,
+              "excessIntegral": 2.614426538554603,
+              "peakFrame": 652,
+              "exceedanceFrames": 9,
+              "episodes": 9
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.954002227952886,
+              "maxRelative": 0.4155613686692759,
+              "maxExcess": 1.1947098910270053,
+              "excessIntegral": 3.911103618962559,
+              "peakFrame": 379,
+              "exceedanceFrames": 41,
+              "episodes": 15
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 4.902762730045945,
+              "maxRelative": 0.9454348304001904,
+              "maxExcess": 2.6380138257059027,
+              "excessIntegral": 6.171351042989586,
+              "peakFrame": 13,
+              "exceedanceFrames": 62,
+              "episodes": 13
+            }
+          ],
+          "solverGain": 31.105620248315596,
+          "gravityGain": -25.31683541542838,
+          "positiveCorrection": 184.42906188318454,
+          "absoluteCorrection": 337.7525035180539,
+          "directionCorrection": 824.3531016351584,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 335.8963493984718,
+          "laterDirectionCorrection": 823.2656142827472
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.7094506671261573,
+              "maxRelative": 0.0979954442859205,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.3319925216975745,
+              "maxRelative": 0.4155613686692759,
+              "maxExcess": 1.0819925216975745,
+              "excessIntegral": 1.0645052970251099,
+              "peakFrame": 10,
+              "exceedanceFrames": 7,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 4.638013825705903,
+              "maxRelative": 0.9454348304001904,
+              "maxExcess": 2.6380138257059027,
+              "excessIntegral": 1.7239647517805876,
+              "peakFrame": 13,
+              "exceedanceFrames": 9,
+              "episodes": 1
+            }
+          ],
+          "solverGain": 0.8052650337702456,
+          "gravityGain": 5.684213510023161,
+          "positiveCorrection": 7.112349133028414,
+          "absoluteCorrection": 13.419433232286583,
+          "directionCorrection": 26.232252855145003,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 11.56327911270439,
+          "laterDirectionCorrection": 25.144765502733886
+        },
+        "openingImpactRms": 0.01584616755535873,
+        "windows": [
+          {
+            "from": 5.7,
+            "to": 6.25,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 23,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 0.4513418471940245,
+                  "maxRelative": 0.03820423260709798,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 0.34693560413667335,
+                  "maxRelative": 0.029366673182475097,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 0.15956948453221287,
+                  "maxRelative": 0.013070918393082307,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": -2.7217564101908263,
+              "gravityGain": 1.5293959990285018,
+              "positiveCorrection": 0.9516549188628343,
+              "absoluteCorrection": 4.625066247916495,
+              "directionCorrection": 11.813172392471182,
+              "laterFrames": 23,
+              "laterAbsoluteCorrection": 4.625066247916495,
+              "laterDirectionCorrection": 11.813172392471182
+            }
+          }
+        ]
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "9fbf11a4d1ab681184783b6ed5eb1d08bec2873fbd87471d879bbb32ba64711e",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.6441094384020918,
+              "maxRelative": 0.15978701534798836,
+              "maxExcess": 0.6151713642904331,
+              "excessIntegral": 2.211909677749766,
+              "peakFrame": 1081,
+              "exceedanceFrames": 11,
+              "episodes": 11
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.3713116122683537,
+              "maxRelative": 0.4231508705225016,
+              "maxExcess": 1.1069832139066387,
+              "excessIntegral": 2.6912236187873635,
+              "peakFrame": 9,
+              "exceedanceFrames": 30,
+              "episodes": 11
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 5.269301563699648,
+              "maxRelative": 0.8428762408706273,
+              "maxExcess": 2.9248061535583227,
+              "excessIntegral": 4.053244310320503,
+              "peakFrame": 1770,
+              "exceedanceFrames": 34,
+              "episodes": 7
+            }
+          ],
+          "solverGain": 28.982862612726237,
+          "gravityGain": -21.739251327353998,
+          "positiveCorrection": 182.5467703742817,
+          "absoluteCorrection": 336.1106781358365,
+          "directionCorrection": 816.9110173318226,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 334.2403337299971,
+          "laterDirectionCorrection": 815.8094755175943
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.751602821323667,
+              "maxRelative": 0.10365445541330982,
+              "maxExcess": 0.0016028213236669586,
+              "excessIntegral": 0.0016028213236669586,
+              "peakFrame": 9,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.3569832139066387,
+              "maxRelative": 0.4231508705225016,
+              "maxExcess": 1.1069832139066387,
+              "excessIntegral": 0.8652443349999246,
+              "peakFrame": 9,
+              "exceedanceFrames": 5,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 4.394687467625779,
+              "maxRelative": 0.8428762408706273,
+              "maxExcess": 2.394687467625779,
+              "excessIntegral": 1.3105513977516658,
+              "peakFrame": 14,
+              "exceedanceFrames": 8,
+              "episodes": 1
+            }
+          ],
+          "solverGain": 1.7637889066458072,
+          "gravityGain": 3.900052935132461,
+          "positiveCorrection": 5.716006386720774,
+          "absoluteCorrection": 9.66822386679574,
+          "directionCorrection": 27.992713026126992,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 7.7978794609564215,
+          "laterDirectionCorrection": 26.89117121189879
+        },
+        "openingImpactRms": 0.00790853940135921,
+        "windows": []
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "method": "baseline",
+        "valid": true,
+        "fulfilled": true,
+        "trackHash": "f2cc3695c713dc04e796b74db2e2ec3e7ddc54336ad541c7af1113594740468c",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.936761653265835,
+              "maxRelative": 0.19681913473932888,
+              "maxExcess": 0.9527304736597869,
+              "excessIntegral": 3.8130643508218403,
+              "peakFrame": 441,
+              "exceedanceFrames": 12,
+              "episodes": 12
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.744807325348358,
+              "maxRelative": 0.39996586480608215,
+              "maxExcess": 0.9806563272900117,
+              "excessIntegral": 1.6016858130350686,
+              "peakFrame": 10,
+              "exceedanceFrames": 15,
+              "episodes": 9
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 4.484489271407712,
+              "maxRelative": 0.8073305715412343,
+              "maxExcess": 1.9605544722632011,
+              "excessIntegral": 2.4423059782622127,
+              "peakFrame": 13,
+              "exceedanceFrames": 40,
+              "episodes": 11
+            }
+          ],
+          "solverGain": 35.417263754516746,
+          "gravityGain": -30.11260432799024,
+          "positiveCorrection": 193.23163665963267,
+          "absoluteCorrection": 351.0460095647489,
+          "directionCorrection": 836.2888722690561,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 349.22811249014075,
+          "laterDirectionCorrection": 835.213684282711
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.6607352716174422,
+              "maxRelative": 0.09220973454209394,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 2.2306563272900117,
+              "maxRelative": 0.39996586480608215,
+              "maxExcess": 0.9806563272900117,
+              "excessIntegral": 0.85381278943494,
+              "peakFrame": 10,
+              "exceedanceFrames": 5,
+              "episodes": 1
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 3.960554472263201,
+              "maxRelative": 0.8073305715412343,
+              "maxExcess": 1.9605544722632011,
+              "excessIntegral": 1.201042107737019,
+              "peakFrame": 13,
+              "exceedanceFrames": 9,
+              "episodes": 1
+            }
+          ],
+          "solverGain": 2.2902316430496867,
+          "gravityGain": 4.254200812846998,
+          "positiveCorrection": 5.178896017217873,
+          "absoluteCorrection": 8.06756039138606,
+          "directionCorrection": 26.170720043907192,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 6.2496633167778635,
+          "laterDirectionCorrection": 25.0955320575621
+        },
+        "openingImpactRms": 0.01539065732485769,
+        "windows": [
+          {
+            "from": 9.1,
+            "to": 9.7,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 25,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 1.1039076484284784,
+                  "maxRelative": 0.09521507723817985,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 1.765758586470863,
+                  "maxRelative": 0.16241438809117204,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 1.8502162481023667,
+                  "maxRelative": 0.17144785937911017,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": 1.340991907915848,
+              "gravityGain": -0.8959046751349291,
+              "positiveCorrection": 4.15175489396251,
+              "absoluteCorrection": 6.962517880009171,
+              "directionCorrection": 13.990598221336224,
+              "laterFrames": 25,
+              "laterAbsoluteCorrection": 6.962517880009171,
+              "laterDirectionCorrection": 13.990598221336224
+            }
+          }
+        ]
+      }
+    ],
+    "candidate": [
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 101,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "356e5eb2591d4c13ad296d2aa866ce3c604dd590609818aaca3ccd5a8a38afa4",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.9424811276170288,
+              "maxRelative": 0.10428967225787035,
+              "maxExcess": 0.03876639996248554,
+              "excessIntegral": 0.03876639996248554,
+              "peakFrame": 279,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.0248313302862044,
+              "maxRelative": 0.104163744407781,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.047461585735899,
+              "maxRelative": 0.11011346512186627,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -91.48820828806892,
+          "gravityGain": 96.51073503208916,
+          "positiveCorrection": 52.895175649429184,
+          "absoluteCorrection": 197.27855958692726,
+          "directionCorrection": 474.34230068530076,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 197.07154086465988,
+          "laterDirectionCorrection": 473.39566984016506
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.29130480432107486,
+              "maxRelative": 0.03819053161197768,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.19170411782759267,
+              "maxRelative": 0.02485674568225171,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.33044056513451636,
+              "maxRelative": 0.04421181763439135,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -3.6145544927751594,
+          "gravityGain": 4.455325596736162,
+          "positiveCorrection": 1.8167523307345101,
+          "absoluteCorrection": 7.24805915424418,
+          "directionCorrection": 22.130264127595836,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 7.041040431976823,
+          "laterDirectionCorrection": 21.183633282460004
+        },
+        "openingImpactRms": 0.041308728655446735,
+        "windows": []
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 202,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "d85410d2c976dd726f5e1bec1466a7e1f610c62f6ede940d632751062944cf12",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.9205461601264364,
+              "maxRelative": 0.10099840784663414,
+              "maxExcess": 0.007839246957484391,
+              "excessIntegral": 0.007839246957484391,
+              "peakFrame": 299,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.9302193516287733,
+              "maxRelative": 0.09633322138698489,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.9645014130465626,
+              "maxRelative": 0.10204184415095013,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -117.66841364476014,
+          "gravityGain": 121.06333198655946,
+          "positiveCorrection": 46.84957062092281,
+          "absoluteCorrection": 211.3675548866054,
+          "directionCorrection": 461.22908640324977,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 211.16053616433808,
+          "laterDirectionCorrection": 460.28245555811395
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.29130480432107486,
+              "maxRelative": 0.03819053161197768,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.19170411782759267,
+              "maxRelative": 0.02485674568225171,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.33044056513451636,
+              "maxRelative": 0.04421181763439135,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -3.701186698204058,
+          "gravityGain": 4.417270198058389,
+          "positiveCorrection": 1.6789366186787573,
+          "absoluteCorrection": 7.059059935561573,
+          "directionCorrection": 22.181912821850847,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 6.852041213294216,
+          "laterDirectionCorrection": 21.23528197671501
+        },
+        "openingImpactRms": 0.040526611627884034,
+        "windows": []
+      },
+      {
+        "song": "amor_na_praia_46s",
+        "seed": 303,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "0b2dc9fb7978d3a3c6dcd314cf74a7f0bb375008c2c8c45c70a37beaa119147d",
+        "durationFrames": 1840,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1840,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0733475480521104,
+              "maxRelative": 0.09841946622129416,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.7291917820814096,
+              "maxRelative": 0.1812743497439157,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.80084585761586,
+              "maxRelative": 0.1887859780569847,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -90.69141691648343,
+          "gravityGain": 91.80191838323975,
+          "positiveCorrection": 51.69740189994265,
+          "absoluteCorrection": 194.08622071636896,
+          "directionCorrection": 461.7683747583094,
+          "laterFrames": 1833,
+          "laterAbsoluteCorrection": 193.87920199410158,
+          "laterDirectionCorrection": 460.8217439131735
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.29130480432107486,
+              "maxRelative": 0.03819053161197768,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.19170411782759267,
+              "maxRelative": 0.02485674568225171,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.33044056513451636,
+              "maxRelative": 0.04421181763439135,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -3.701186698204058,
+          "gravityGain": 4.417270198058389,
+          "positiveCorrection": 1.6789366186787573,
+          "absoluteCorrection": 7.059059935561573,
+          "directionCorrection": 22.181912821850847,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 6.852041213294216,
+          "laterDirectionCorrection": 21.23528197671501
+        },
+        "openingImpactRms": 0.040526611627884034,
+        "windows": []
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 101,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "34bee39705e1d159ec3814866e3a0a013e4028e76ecfb6a9625de3a5796f49b7",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0918758802980957,
+              "maxRelative": 0.10461648599435482,
+              "maxExcess": 0.04818198261067552,
+              "excessIntegral": 0.06523138264617978,
+              "peakFrame": 213,
+              "exceedanceFrames": 3,
+              "episodes": 3
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.6655198507153894,
+              "maxRelative": 0.16716649675652204,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.7849236178205938,
+              "maxRelative": 0.17717206876986308,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -92.25065364489981,
+          "gravityGain": 97.31442430368784,
+          "positiveCorrection": 76.59324360250083,
+          "absoluteCorrection": 245.43714084990148,
+          "directionCorrection": 661.4760584699085,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 245.36406802341548,
+          "laterDirectionCorrection": 661.0506485384425
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.31376919923775404,
+              "maxRelative": 0.04790469483195843,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.7609527204337585,
+              "maxRelative": 0.14768999267188904,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.7516915066458454,
+              "maxRelative": 0.1497482236361945,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -4.904998998796087,
+          "gravityGain": 12.63117714586991,
+          "positiveCorrection": 2.822572041450613,
+          "absoluteCorrection": 10.550143081697312,
+          "directionCorrection": 20.19314724520331,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 10.477070255211324,
+          "laterDirectionCorrection": 19.76773731373739
+        },
+        "openingImpactRms": 0.05048430816240403,
+        "windows": [
+          {
+            "from": 5.7,
+            "to": 6.25,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 23,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 0.5178416435498061,
+                  "maxRelative": 0.050999748977255586,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 1.1965526938642927,
+                  "maxRelative": 0.11784275711551305,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 1.4245042416761375,
+                  "maxRelative": 0.14029261579757715,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": -0.8488163133263313,
+              "gravityGain": -0.020238007342321396,
+              "positiveCorrection": 1.725244215042343,
+              "absoluteCorrection": 4.299304743411017,
+              "directionCorrection": 12.855357141044903,
+              "laterFrames": 23,
+              "laterAbsoluteCorrection": 4.299304743411017,
+              "laterDirectionCorrection": 12.855357141044903
+            }
+          }
+        ]
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 202,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "f6751d2329dfb9be18f9071ae67a0cb5ba615b6528c4289954f794f626a4c0a8",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0554732339073034,
+              "maxRelative": 0.10814947434184259,
+              "maxExcess": 0.07634756999129289,
+              "excessIntegral": 0.07634756999129289,
+              "peakFrame": 470,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.4102154766777435,
+              "maxRelative": 0.1340866411453162,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.449866960468098,
+              "maxRelative": 0.14494628164208329,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -115.57532455766125,
+          "gravityGain": 121.14439027926574,
+          "positiveCorrection": 65.33489234506825,
+          "absoluteCorrection": 246.2451092477979,
+          "directionCorrection": 637.0513544617711,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 245.67450182685198,
+          "laterDirectionCorrection": 636.6819278501621
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.22304107754071367,
+              "maxRelative": 0.04095060742810803,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.5553871760472155,
+              "maxRelative": 0.11020149426505367,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.4846166497980846,
+              "maxRelative": 0.09692332995961692,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.2421618785926132,
+          "gravityGain": 7.489876272675954,
+          "positiveCorrection": 1.6028564959517864,
+          "absoluteCorrection": 4.447874870496186,
+          "directionCorrection": 18.302590918461974,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 3.877267449550236,
+          "laterDirectionCorrection": 17.93316430685287
+        },
+        "openingImpactRms": 0.0693404923478913,
+        "windows": []
+      },
+      {
+        "song": "amour_de_ma_vie_44s",
+        "seed": 303,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "039a1a361b779e6f44133636db71b4d33d05ae05546112934be8295b88265993",
+        "durationFrames": 1782,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1782,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.1466561039363992,
+              "maxRelative": 0.10188103418221964,
+              "maxExcess": 0.01946074277063503,
+              "excessIntegral": 0.02202010462626003,
+              "peakFrame": 161,
+              "exceedanceFrames": 2,
+              "episodes": 2
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.54977277303529,
+              "maxRelative": 0.14839981570836358,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.5137988428101767,
+              "maxRelative": 0.14431664771952743,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -129.63161340948622,
+          "gravityGain": 134.56461393966796,
+          "positiveCorrection": 66.93010106711385,
+          "absoluteCorrection": 263.49181554371364,
+          "directionCorrection": 617.914994949769,
+          "laterFrames": 1775,
+          "laterAbsoluteCorrection": 263.362397551777,
+          "laterDirectionCorrection": 617.4834411424279
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.2983110147113317,
+              "maxRelative": 0.04123348703269705,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.5032457107811803,
+              "maxRelative": 0.09471155814668175,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.6477539188639518,
+              "maxRelative": 0.12870607419909094,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -4.105293164587192,
+          "gravityGain": 9.95571430389139,
+          "positiveCorrection": 2.0716031276104436,
+          "absoluteCorrection": 8.24849941980808,
+          "directionCorrection": 17.549765407087094,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 8.119081427871356,
+          "laterDirectionCorrection": 17.118211599745916
+        },
+        "openingImpactRms": 0.08984587374413414,
+        "windows": [
+          {
+            "from": 9.1,
+            "to": 9.7,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 25,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 0.08289570694201842,
+                  "maxRelative": 0.00773007087847623,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 0.1976179425882041,
+                  "maxRelative": 0.018892079495342537,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 0.17443990895618455,
+                  "maxRelative": 0.017126040306065456,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": -5.160973521875272,
+              "gravityGain": 3.1075970026649813,
+              "positiveCorrection": 0.32300551604178374,
+              "absoluteCorrection": 5.80698455395884,
+              "directionCorrection": 8.278078676771312,
+              "laterFrames": 25,
+              "laterAbsoluteCorrection": 5.80698455395884,
+              "laterDirectionCorrection": 8.278078676771312
+            }
+          }
+        ]
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 101,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "a92b6c0b83cc8a9f09fb3f94530ed9f3ce2ae1a3b8642303bcc03dfa6c54dae6",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.9946877891322643,
+              "maxRelative": 0.09583073045800217,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.2403319869586493,
+              "maxRelative": 0.13039448564844267,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.6230334097537966,
+              "maxRelative": 0.15080845614420305,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -88.11667353618019,
+          "gravityGain": 91.72922462004487,
+          "positiveCorrection": 52.82499758783139,
+          "absoluteCorrection": 193.76666871184293,
+          "directionCorrection": 418.8283092944968,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 193.38760158593064,
+          "laterDirectionCorrection": 417.4034784188721
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.17968228629102523,
+              "maxRelative": 0.025095342460255583,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.3931602542876593,
+              "maxRelative": 0.055525333785046184,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.5650179146553302,
+              "maxRelative": 0.0918570004777606,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -8.018879330941878,
+          "gravityGain": 8.185067096389162,
+          "positiveCorrection": 1.9817470013061174,
+          "absoluteCorrection": 11.982373333554115,
+          "directionCorrection": 20.568050646848874,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 11.603306207641861,
+          "laterDirectionCorrection": 19.14321977122408
+        },
+        "openingImpactRms": 0.05633662225554842,
+        "windows": []
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 202,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "b200fb3199258cea9c37ae38ab28e808b6f4d77cfc7b13e66161a10a0d03873b",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0552238610013944,
+              "maxRelative": 0.09951375866264607,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.014589032333065,
+              "maxRelative": 0.10092088395791685,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.2691204186437872,
+              "maxRelative": 0.1309802581656741,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -112.47226663720271,
+          "gravityGain": 116.60622992718476,
+          "positiveCorrection": 41.725892296831745,
+          "absoluteCorrection": 195.92405123086644,
+          "directionCorrection": 429.768689621647,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 195.54498410495415,
+          "laterDirectionCorrection": 428.3438587460222
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.21098462101185245,
+              "maxRelative": 0.02673959526815459,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.1718871382496312,
+              "maxRelative": 0.026130335081062057,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.18296555604344,
+              "maxRelative": 0.02374255174479338,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -6.8505452537958735,
+          "gravityGain": 7.445477284547437,
+          "positiveCorrection": 1.4786428668266698,
+          "absoluteCorrection": 9.807830987449218,
+          "directionCorrection": 19.233029540875364,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 9.428763861536961,
+          "laterDirectionCorrection": 17.808198665250575
+        },
+        "openingImpactRms": 0.03582288385607418,
+        "windows": []
+      },
+      {
+        "song": "luna_bala_44s",
+        "seed": 303,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "8594b736c0abcbd012901e4a380bc1dd5a553226d2d44e312d08240307d852c7",
+        "durationFrames": 1760,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1760,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.0736808416767882,
+              "maxRelative": 0.09996951644480513,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.0246939828801498,
+              "maxRelative": 0.10561454468273787,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.0956113651553885,
+              "maxRelative": 0.11732087721966761,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -89.41277888803333,
+          "gravityGain": 92.6190889598699,
+          "positiveCorrection": 47.339216698381755,
+          "absoluteCorrection": 184.09121228479682,
+          "directionCorrection": 432.64238427602675,
+          "laterFrames": 1753,
+          "laterAbsoluteCorrection": 183.7121451588846,
+          "laterDirectionCorrection": 431.21755340040204
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.10386672658482432,
+              "maxRelative": 0.013478280742179698,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.1718871382496312,
+              "maxRelative": 0.026130335081062057,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.18296555604344,
+              "maxRelative": 0.02374255174479338,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -6.697634367976847,
+          "gravityGain": 7.4397155590452195,
+          "positiveCorrection": 1.261750256467951,
+          "absoluteCorrection": 9.221134880912755,
+          "directionCorrection": 19.660997096700576,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 8.842067755000496,
+          "laterDirectionCorrection": 18.236166221075788
+        },
+        "openingImpactRms": 0.03571309083858854,
+        "windows": []
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 101,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "5e5cc4fd8467bfbe0d03645de39f47dfbd4d82753682e38e8d8969cc7947e4a8",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.9663801203550371,
+              "maxRelative": 0.09100730668797626,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.0927827046980294,
+              "maxRelative": 0.1182239404200603,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.2674271979671214,
+              "maxRelative": 0.1367714777146739,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -81.1051109873718,
+          "gravityGain": 84.33353516076377,
+          "positiveCorrection": 51.28729877485481,
+          "absoluteCorrection": 183.67970853708064,
+          "directionCorrection": 505.4776715199827,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 183.31184903194983,
+          "laterDirectionCorrection": 504.091605652415
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.06708821642234408,
+              "maxRelative": 0.008502831469996232,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.07184985408699784,
+              "maxRelative": 0.009117730715383514,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.08900773308290333,
+              "maxRelative": 0.011282934583354918,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.0340210777565186,
+          "gravityGain": 1.3171857781655882,
+          "positiveCorrection": 0.5949380542302718,
+          "absoluteCorrection": 2.2238971862170622,
+          "directionCorrection": 23.649401737529338,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 1.8560376810861712,
+          "laterDirectionCorrection": 22.263335869961793
+        },
+        "openingImpactRms": 0.022557971888132935,
+        "windows": [
+          {
+            "from": 15.05,
+            "to": 15.65,
+            "summary": {
+              "schema": "line.motion-observation.v1",
+              "frames": 25,
+              "bursts": [
+                {
+                  "frames": 1,
+                  "absolute": 0.75,
+                  "relative": 0.1,
+                  "maximum": 0.2928327665634747,
+                  "maxRelative": 0.026224483652211375,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 4,
+                  "absolute": 1.25,
+                  "relative": 0.2,
+                  "maximum": 0.40196150992622925,
+                  "maxRelative": 0.04169031756408556,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                },
+                {
+                  "frames": 10,
+                  "absolute": 2,
+                  "relative": 0.3,
+                  "maximum": 0.39574799802601035,
+                  "maxRelative": 0.041045869581103574,
+                  "maxExcess": 0,
+                  "excessIntegral": 0,
+                  "peakFrame": null,
+                  "exceedanceFrames": 0,
+                  "episodes": 0
+                }
+              ],
+              "solverGain": -1.699918617989077,
+              "gravityGain": 2.661404331626077,
+              "positiveCorrection": 0.7751564007619134,
+              "absoluteCorrection": 3.250231419512904,
+              "directionCorrection": 5.382181084608282,
+              "laterFrames": 25,
+              "laterAbsoluteCorrection": 3.250231419512904,
+              "laterDirectionCorrection": 5.382181084608282
+            }
+          }
+        ]
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 202,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "a042fcbfe25534089299df4eb5e53977c11e2bcd07ac6552c0d04c919d67717b",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 1.01733065770385,
+              "maxRelative": 0.1003540519793526,
+              "maxExcess": 0.002823262115825065,
+              "excessIntegral": 0.002823262115825065,
+              "peakFrame": 891,
+              "exceedanceFrames": 1,
+              "episodes": 1
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 1.3809555003005585,
+              "maxRelative": 0.1399345461036114,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.4295426674140117,
+              "maxRelative": 0.14485796555847552,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -101.15404159184718,
+          "gravityGain": 102.84248322254473,
+          "positiveCorrection": 50.54689905302358,
+          "absoluteCorrection": 202.24783969789408,
+          "directionCorrection": 491.45209650100963,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 201.8799801927632,
+          "laterDirectionCorrection": 490.06603063344215
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.06708821642234408,
+              "maxRelative": 0.008502831469996232,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.07184985408699784,
+              "maxRelative": 0.009117730715383514,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.08900773308290333,
+              "maxRelative": 0.011282934583354918,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.0340210777565186,
+          "gravityGain": 1.3171857781655882,
+          "positiveCorrection": 0.5949380542302718,
+          "absoluteCorrection": 2.2238971862170622,
+          "directionCorrection": 23.649401737529338,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 1.8560376810861712,
+          "laterDirectionCorrection": 22.263335869961793
+        },
+        "openingImpactRms": 0.022557971888132935,
+        "windows": []
+      },
+      {
+        "song": "tiki_tiki_48s",
+        "seed": 303,
+        "method": "production",
+        "valid": false,
+        "fulfilled": true,
+        "trackHash": "d67657210f8c637f345e7a7f348aab99e61d996d569707453bf42d25b136de36",
+        "durationFrames": 1920,
+        "full": {
+          "schema": "line.motion-observation.v1",
+          "frames": 1920,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.9726059354910159,
+              "maxRelative": 0.09989650220500679,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.955101366484925,
+              "maxRelative": 0.11498485162218257,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 1.05022790586046,
+              "maxRelative": 0.11654959960603278,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -108.53662880205424,
+          "gravityGain": 110.66233550944959,
+          "positiveCorrection": 41.79185505215078,
+          "absoluteCorrection": 192.12033890635578,
+          "directionCorrection": 493.54781008318,
+          "laterFrames": 1913,
+          "laterAbsoluteCorrection": 191.75247940122486,
+          "laterDirectionCorrection": 492.1617442156125
+        },
+        "opening": {
+          "schema": "line.motion-observation.v1",
+          "frames": 120,
+          "bursts": [
+            {
+              "frames": 1,
+              "absolute": 0.75,
+              "relative": 0.1,
+              "maximum": 0.06708821642234408,
+              "maxRelative": 0.008502831469996232,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 4,
+              "absolute": 1.25,
+              "relative": 0.2,
+              "maximum": 0.07184985408699784,
+              "maxRelative": 0.009117730715383514,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            },
+            {
+              "frames": 10,
+              "absolute": 2,
+              "relative": 0.3,
+              "maximum": 0.08900773308290333,
+              "maxRelative": 0.011282934583354918,
+              "maxExcess": 0,
+              "excessIntegral": 0,
+              "peakFrame": null,
+              "exceedanceFrames": 0,
+              "episodes": 0
+            }
+          ],
+          "solverGain": -1.0340210777565186,
+          "gravityGain": 1.3171857781655882,
+          "positiveCorrection": 0.5949380542302718,
+          "absoluteCorrection": 2.2238971862170622,
+          "directionCorrection": 23.649401737529338,
+          "laterFrames": 113,
+          "laterAbsoluteCorrection": 1.8560376810861712,
+          "laterDirectionCorrection": 22.263335869961793
+        },
+        "openingImpactRms": 0.022557971888132935,
+        "windows": []
+      }
+    ]
+  },
+  "sourceArtifact": {
+    "path": "generated/general-impact-20261002/motion-qualification/audit.json",
+    "sha256": "b6c2bda3a1c71c6f0a9e02613080b924412088d62912852876b1571c2e7d474b"
+  }
+}

@@ -240,3 +240,12 @@ Only on validated measures:
   - Adopted, S1: the default allowance is 1,700 frames per ride frame
     (`production_budget.ts`), so long songs are not starved. It is neutral on
     the panel; requests may omit `budget`.
+- 2026-10-04: **Review library regenerated** with the current compiler
+  (`generated/production-repertoire/library-strike-s1`; the earlier strike
+  library predates the work record, so it cannot render).
+  - 12/12 fulfilled; published to the dashboard against library-candidate-8.
+  - Motion check: 4- and 10-frame burst burdens 0, reported windows and
+    openings pass. **The 1-frame burden ratio is 0.52 against a 0.50 limit**
+    (the earlier strike draw was 0.34). It is driven by amour #303 (142 vs
+    the previous library's 272) and tiki #303, a draw-to-draw difference: a
+    single-frame spike is also what a strong requested hit looks like.

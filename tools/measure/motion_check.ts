@@ -40,7 +40,7 @@ let failures = 0;
 for (const frames of [1, 4, 10]) {
   const before = burden(rows.old, frames), after = burden(rows.next, frames), passed = after <= before * (1 - policy.qualification.burstExcessReduction) + 1e-9;
   failures += passed ? 0 : 1;
-  console.log(`burst burden ${String(frames).padStart(2)}-frame: previous ${before.toFixed(4)} -> ${after.toFixed(4)}  ${passed ? 'pass' : 'FAIL'}`);
+  console.log(`burst burden ${String(frames).padStart(2)}-frame: previous ${before.toFixed(5)} -> ${after.toFixed(5)} (ratio ${(after / before).toFixed(2)})  ${passed ? 'pass' : 'FAIL'}`);
 }
 for (const w of reportedWindows) {
   const r = rows.next.find(r => r.song === w.song && r.seed === w.seed)!, band = window(r.samples, w.from, w.to).bursts.find((b: any) => b.frames === 4)!;

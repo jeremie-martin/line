@@ -45,7 +45,37 @@ function draw() {
   state.view.draw(canvas, {x: a[0] + (b[0] - a[0]) * k, y: a[1] + (b[1] - a[1]) * k,
     w: canvas.clientWidth, h: canvas.clientHeight, z: 1.6, r: Math.min(2, devicePixelRatio)}, at);
   $('flash').classList.toggle('on', $('beat-light').checked && Math.abs(state.t - state.clip.beat) < 0.06);
+  drawTimeline();
 }
+/** Every beat the specification places in the clip, the marked one unmistakable,
+ * and the playhead, drawn in the same animation frame as the ride. */
+const timeline = $('timeline');
+function drawTimeline() {
+  const clip = state.clip, r = Math.min(2, devicePixelRatio), w = timeline.clientWidth, h = timeline.clientHeight;
+  if (!clip || !w) return;
+  if (timeline.width !== Math.round(w * r)) {timeline.width = Math.round(w * r); timeline.height = Math.round(h * r);}
+  const g = timeline.getContext('2d'), pad = 14, x = t => pad + (t - clip.start) / (clip.end - clip.start) * (w - 2 * pad), base = 34;
+  g.setTransform(r, 0, 0, r, 0, 0); g.clearRect(0, 0, w, h);
+  g.strokeStyle = '#d9e0d5'; g.lineWidth = 2; g.beginPath(); g.moveTo(pad, base); g.lineTo(w - pad, base); g.stroke();
+  g.font = '11px system-ui'; g.textAlign = 'center';
+  for (const t of clip.beats ?? [clip.beat]) {
+    const marked = Math.abs(t - clip.beat) < 1e-9, near = Math.abs(state.t - t) < 0.05;
+    g.strokeStyle = marked ? '#146b55' : near ? '#162924' : '#9aa8a3'; g.lineWidth = marked ? 4 : 2;
+    g.beginPath(); g.moveTo(x(t), base - (marked ? 16 : 10)); g.lineTo(x(t), base + (marked ? 16 : 10)); g.stroke();
+    if (near) {g.fillStyle = marked ? '#146b55' : '#162924'; g.beginPath(); g.arc(x(t), base, marked ? 7 : 5, 0, 7); g.fill();}
+    if (marked) {g.fillStyle = '#146b55'; g.fillText('this beat', x(t), 11);}
+  }
+  g.fillStyle = '#63736e'; g.textAlign = 'left'; g.fillText(`${(clip.start - clip.beat).toFixed(2)} s`, 2, h - 3);
+  g.textAlign = 'right'; g.fillText(`+${(clip.end - clip.beat).toFixed(2)} s`, w - 2, h - 3);
+  g.strokeStyle = '#d35400'; g.lineWidth = 2; g.beginPath(); g.moveTo(x(state.t), 4); g.lineTo(x(state.t), h - 14); g.stroke();
+}
+const scrub = event => {
+  if (!state.clip) return;
+  const rect = timeline.getBoundingClientRect(), pad = 14, f = (event.clientX - rect.left - pad) / (rect.width - 2 * pad);
+  pause(); state.t = state.clip.start + Math.max(0, Math.min(1, f)) * (state.clip.end - state.clip.start); draw();
+};
+timeline.addEventListener('pointerdown', e => {timeline.setPointerCapture(e.pointerId); scrub(e);});
+timeline.addEventListener('pointermove', e => {if (timeline.hasPointerCapture(e.pointerId)) scrub(e);});
 function tick(now) {
   if (state.playing && state.clip) {
     if (state.slow) state.t += (now - state.last) / 1000 / 4; else state.t = audio.currentTime;

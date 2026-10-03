@@ -67,13 +67,14 @@ const clips = [], key = [];
 for (const [index, r] of order.entries()) {
   if (!audio.has(r.song)) {const path = `productions/${r.song}/audio.mp3`; audio.set(r.song, {path: '/' + path, sha256: sha(readFileSync(path))});}
   const clipId = `c${String(index + 1).padStart(3, '0')}`, rec = recordFor.get(r.source)!, a = audio.get(r.song)!;
+  const start = Math.max(0, r.t - 0.75), end = r.t + 0.75, {targets} = await songSpec(r.song);
   clips.push({id: clipId, record: rec.path, recordSha256: rec.sha256, audio: a.path, audioSha256: a.sha256,
-    beat: r.t, start: Math.max(0, r.t - 0.75), end: r.t + 0.75});
+    beat: r.t, start, end, beats: targets.map((x: any) => x.t).filter((t: number) => t >= start - 1e-9 && t <= end + 1e-9)});
   key.push({clip: clipId, source: r.source, set: r.set, song: r.song, seed: r.seed, beat: r.beat, frame: r.frame, t: r.t,
     requested: r.requested, reason: reasons.get(r.source + '#' + r.beat), split: rng() < .7 ? 'design' : 'holdout', measures: r});
 }
 const manifest = {schema: 'line.label-study.v1', id, created: new Date().toISOString(),
-  instructions: 'Each clip loops 1.5 s around one musical beat, with the music. Judge what you see and hear; there are no right answers.',
+  instructions: 'Each clip loops 1.5 s around one beat of the specification. The timeline shows every specified beat in the clip; judge only the marked one. Leave "n/a" when unsure.',
   questions: [
     {id: 'hits', text: 'How many distinct hits do you see in the clip?', options: ['0', '1', '2', '3+']},
     {id: 'strength', text: 'How hard is the hit on the beat?', options: ['none', 'very soft', 'soft', 'medium', 'hard', 'very hard']},

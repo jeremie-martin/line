@@ -2,7 +2,7 @@
  "schema": "line.label-study.v1",
  "id": "impact-2026-10",
  "created": "2026-10-03T19:54:46.652Z",
- "instructions": "Each clip loops 1.5 s around one musical beat, marked by the green light (it flashes on that beat; other beats may fall inside the clip). Judge only the marked beat. Leave \"n/a\" when unsure; there are no right answers.",
+ "instructions": "Each clip loops 1.5 s around one beat of the specification. The timeline below the ride shows every specified beat in the clip (grey) and the marked beat (green, \"this beat\"); judge only the marked one. Hits on the grey beats are expected. Leave \"n/a\" when unsure.",
  "questions": [
   {
    "id": "hits",
@@ -59,7 +59,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 6.97,
    "start": 6.22,
-   "end": 7.72
+   "end": 7.72,
+   "beats": [
+    6.97
+   ]
   },
   {
    "id": "c002",
@@ -69,7 +72,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 3.89,
    "start": 3.14,
-   "end": 4.640000000000001
+   "end": 4.640000000000001,
+   "beats": [
+    3.2,
+    3.512,
+    3.89,
+    4.55
+   ]
   },
   {
    "id": "c003",
@@ -79,7 +88,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 8.7,
    "start": 7.949999999999999,
-   "end": 9.45
+   "end": 9.45,
+   "beats": [
+    8.7
+   ]
   },
   {
    "id": "c004",
@@ -89,7 +101,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 26.09,
    "start": 25.34,
-   "end": 26.84
+   "end": 26.84,
+   "beats": [
+    26.09
+   ]
   },
   {
    "id": "c005",
@@ -99,7 +114,14 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 13.5227,
    "start": 12.7727,
-   "end": 14.2727
+   "end": 14.2727,
+   "beats": [
+    12.8871,
+    13.22,
+    13.5227,
+    13.89,
+    14.2222
+   ]
   },
   {
    "id": "c006",
@@ -109,7 +131,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 22.56,
    "start": 21.81,
-   "end": 23.31
+   "end": 23.31,
+   "beats": [
+    21.89,
+    22.2099,
+    22.56,
+    23.22
+   ]
   },
   {
    "id": "c007",
@@ -119,7 +147,10 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 4.48,
    "start": 3.7300000000000004,
-   "end": 5.23
+   "end": 5.23,
+   "beats": [
+    4.48
+   ]
   },
   {
    "id": "c008",
@@ -129,7 +160,11 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 37.78,
    "start": 37.03,
-   "end": 38.53
+   "end": 38.53,
+   "beats": [
+    37.36,
+    37.78
+   ]
   },
   {
    "id": "c009",
@@ -139,7 +174,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 38.55,
    "start": 37.8,
-   "end": 39.3
+   "end": 39.3,
+   "beats": [
+    37.88,
+    38.55,
+    39.22
+   ]
   },
   {
    "id": "c010",
@@ -149,7 +189,11 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 44.3,
    "start": 43.55,
-   "end": 45.05
+   "end": 45.05,
+   "beats": [
+    43.75,
+    44.3
+   ]
   },
   {
    "id": "c011",
@@ -159,7 +203,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 15.15,
    "start": 14.4,
-   "end": 15.9
+   "end": 15.9,
+   "beats": [
+    14.6,
+    15.15,
+    15.7
+   ]
   },
   {
    "id": "c012",
@@ -169,7 +218,11 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 40.87,
    "start": 40.12,
-   "end": 41.62
+   "end": 41.62,
+   "beats": [
+    40.441,
+    40.87
+   ]
   },
   {
    "id": "c013",
@@ -179,7 +232,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 24.35,
    "start": 23.6,
-   "end": 25.1
+   "end": 25.1,
+   "beats": [
+    24.35
+   ]
   },
   {
    "id": "c014",
@@ -189,7 +245,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 23.22,
    "start": 22.47,
-   "end": 23.97
+   "end": 23.97,
+   "beats": [
+    22.56,
+    23.22,
+    23.873
+   ]
   },
   {
    "id": "c015",
@@ -199,7 +260,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 17.35,
    "start": 16.6,
-   "end": 18.1
+   "end": 18.1,
+   "beats": [
+    16.8,
+    17.35,
+    17.9
+   ]
   },
   {
    "id": "c016",
@@ -209,7 +275,14 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 18.54,
    "start": 17.79,
-   "end": 19.29
+   "end": 19.29,
+   "beats": [
+    17.89,
+    18.187,
+    18.54,
+    18.8459,
+    19.22
+   ]
   },
   {
    "id": "c017",
@@ -219,7 +292,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 40.74,
    "start": 39.99,
-   "end": 41.49
+   "end": 41.49,
+   "beats": [
+    40.2,
+    40.74,
+    41.29
+   ]
   },
   {
    "id": "c018",
@@ -229,7 +307,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 39.88,
    "start": 39.13,
-   "end": 40.63
+   "end": 40.63,
+   "beats": [
+    39.22,
+    39.88,
+    40.55
+   ]
   },
   {
    "id": "c019",
@@ -239,7 +322,14 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 13.5227,
    "start": 12.7727,
-   "end": 14.2727
+   "end": 14.2727,
+   "beats": [
+    12.8871,
+    13.22,
+    13.5227,
+    13.89,
+    14.2222
+   ]
   },
   {
    "id": "c020",
@@ -249,7 +339,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 11.31,
    "start": 10.56,
-   "end": 12.06
+   "end": 12.06,
+   "beats": [
+    10.76,
+    11.31,
+    11.85
+   ]
   },
   {
    "id": "c021",
@@ -259,7 +354,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 16.927,
    "start": 16.177,
-   "end": 17.677
+   "end": 17.677,
+   "beats": [
+    16.53,
+    16.927,
+    17.39
+   ]
   },
   {
    "id": "c022",
@@ -269,7 +369,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 22.187,
    "start": 21.437,
-   "end": 22.937
+   "end": 22.937,
+   "beats": [
+    21.74,
+    22.187,
+    22.61
+   ]
   },
   {
    "id": "c023",
@@ -279,7 +384,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 47.05,
    "start": 46.3,
-   "end": 47.8
+   "end": 47.8,
+   "beats": [
+    47.05
+   ]
   },
   {
    "id": "c024",
@@ -289,7 +397,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 9.619,
    "start": 8.869,
-   "end": 10.369
+   "end": 10.369,
+   "beats": [
+    9.619
+   ]
   },
   {
    "id": "c025",
@@ -299,7 +410,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 25.22,
    "start": 24.47,
-   "end": 25.97
+   "end": 25.97,
+   "beats": [
+    25.22
+   ]
   },
   {
    "id": "c026",
@@ -309,7 +423,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 30.44,
    "start": 29.69,
-   "end": 31.19
+   "end": 31.19,
+   "beats": [
+    30.009,
+    30.44,
+    30.877
+   ]
   },
   {
    "id": "c027",
@@ -319,7 +438,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 42.65,
    "start": 41.9,
-   "end": 43.4
+   "end": 43.4,
+   "beats": [
+    42.1,
+    42.65,
+    43.2
+   ]
   },
   {
    "id": "c028",
@@ -329,7 +453,10 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 4.46,
    "start": 3.71,
-   "end": 5.21
+   "end": 5.21,
+   "beats": [
+    4.46
+   ]
   },
   {
    "id": "c029",
@@ -339,7 +466,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 12.95,
    "start": 12.2,
-   "end": 13.7
+   "end": 13.7,
+   "beats": [
+    12.4,
+    12.95,
+    13.5
+   ]
   },
   {
    "id": "c030",
@@ -349,7 +481,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 32.02,
    "start": 31.270000000000003,
-   "end": 32.77
+   "end": 32.77,
+   "beats": [
+    31.48,
+    32.02,
+    32.56
+   ]
   },
   {
    "id": "c031",
@@ -359,7 +496,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 17.35,
    "start": 16.6,
-   "end": 18.1
+   "end": 18.1,
+   "beats": [
+    16.8,
+    17.35,
+    17.9
+   ]
   },
   {
    "id": "c032",
@@ -369,7 +511,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 37.4,
    "start": 36.65,
-   "end": 38.15
+   "end": 38.15,
+   "beats": [
+    36.969,
+    37.4,
+    37.834
+   ]
   },
   {
    "id": "c033",
@@ -379,7 +526,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 9.21,
    "start": 8.46,
-   "end": 9.96
+   "end": 9.96,
+   "beats": [
+    8.55,
+    8.8497,
+    9.21,
+    9.88
+   ]
   },
   {
    "id": "c034",
@@ -389,7 +542,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 36.969,
    "start": 36.219,
-   "end": 37.719
+   "end": 37.719,
+   "beats": [
+    36.53,
+    36.969,
+    37.4
+   ]
   },
   {
    "id": "c035",
@@ -399,7 +557,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 6.43,
    "start": 5.68,
-   "end": 7.18
+   "end": 7.18,
+   "beats": [
+    5.74,
+    6.43,
+    6.97
+   ]
   },
   {
    "id": "c036",
@@ -409,7 +572,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 39.88,
    "start": 39.13,
-   "end": 40.63
+   "end": 40.63,
+   "beats": [
+    39.22,
+    39.88,
+    40.55
+   ]
   },
   {
    "id": "c037",
@@ -419,7 +587,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 26.95,
    "start": 26.2,
-   "end": 27.7
+   "end": 27.7,
+   "beats": [
+    26.95
+   ]
   },
   {
    "id": "c038",
@@ -429,7 +600,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 39.22,
    "start": 38.47,
-   "end": 39.97
+   "end": 39.97,
+   "beats": [
+    38.55,
+    39.22,
+    39.88
+   ]
   },
   {
    "id": "c039",
@@ -439,7 +615,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 28.76,
    "start": 28.01,
-   "end": 29.51
+   "end": 29.51,
+   "beats": [
+    28.2,
+    28.76,
+    29.3
+   ]
   },
   {
    "id": "c040",
@@ -449,7 +630,11 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 25.214,
    "start": 24.464,
-   "end": 25.964
+   "end": 25.964,
+   "beats": [
+    25.214,
+    25.9
+   ]
   },
   {
    "id": "c041",
@@ -459,7 +644,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 41.89,
    "start": 41.14,
-   "end": 42.64
+   "end": 42.64,
+   "beats": [
+    41.21,
+    41.89,
+    42.55
+   ]
   },
   {
    "id": "c042",
@@ -469,7 +659,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 16.927,
    "start": 16.177,
-   "end": 17.677
+   "end": 17.677,
+   "beats": [
+    16.53,
+    16.927,
+    17.39
+   ]
   },
   {
    "id": "c043",
@@ -479,7 +674,14 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 8.55,
    "start": 7.800000000000001,
-   "end": 9.3
+   "end": 9.3,
+   "beats": [
+    7.88,
+    8.1937,
+    8.55,
+    8.8497,
+    9.21
+   ]
   },
   {
    "id": "c044",
@@ -489,7 +691,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 22.187,
    "start": 21.437,
-   "end": 22.937
+   "end": 22.937,
+   "beats": [
+    21.74,
+    22.187,
+    22.61
+   ]
   },
   {
    "id": "c045",
@@ -499,7 +706,11 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 37.78,
    "start": 37.03,
-   "end": 38.53
+   "end": 38.53,
+   "beats": [
+    37.36,
+    37.78
+   ]
   },
   {
    "id": "c046",
@@ -509,7 +720,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 42.1,
    "start": 41.35,
-   "end": 42.85
+   "end": 42.85,
+   "beats": [
+    41.55,
+    42.1,
+    42.65
+   ]
   },
   {
    "id": "c047",
@@ -519,7 +735,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 27.83,
    "start": 27.08,
-   "end": 28.58
+   "end": 28.58,
+   "beats": [
+    27.83
+   ]
   },
   {
    "id": "c048",
@@ -529,7 +748,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 8.06,
    "start": 7.3100000000000005,
-   "end": 8.81
+   "end": 8.81,
+   "beats": [
+    7.5,
+    8.06,
+    8.58
+   ]
   },
   {
    "id": "c049",
@@ -539,7 +763,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 41.83,
    "start": 41.08,
-   "end": 42.58
+   "end": 42.58,
+   "beats": [
+    41.29,
+    41.83,
+    42.38
+   ]
   },
   {
    "id": "c050",
@@ -549,7 +778,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 9.65,
    "start": 8.9,
-   "end": 10.4
+   "end": 10.4,
+   "beats": [
+    9.1,
+    9.65,
+    10.2
+   ]
   },
   {
    "id": "c051",
@@ -559,7 +793,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 18.4,
    "start": 17.65,
-   "end": 19.15
+   "end": 19.15,
+   "beats": [
+    17.85,
+    18.4,
+    18.94
+   ]
   },
   {
    "id": "c052",
@@ -569,7 +808,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 16.8577,
    "start": 16.1077,
-   "end": 17.6077
+   "end": 17.6077,
+   "beats": [
+    16.1843,
+    16.55,
+    16.8577
+   ]
   },
   {
    "id": "c053",
@@ -579,7 +823,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 6.97,
    "start": 6.22,
-   "end": 7.72
+   "end": 7.72,
+   "beats": [
+    6.43,
+    6.97,
+    7.5
+   ]
   },
   {
    "id": "c054",
@@ -589,7 +838,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 25.05,
    "start": 24.3,
-   "end": 25.8
+   "end": 25.8,
+   "beats": [
+    24.5,
+    25.05,
+    25.6
+   ]
   },
   {
    "id": "c055",
@@ -599,7 +853,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 33.92,
    "start": 33.17,
-   "end": 34.67
+   "end": 34.67,
+   "beats": [
+    33.483,
+    33.92,
+    34.351
+   ]
   },
   {
    "id": "c056",
@@ -609,7 +868,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 26.02,
    "start": 25.27,
-   "end": 26.77
+   "end": 26.77,
+   "beats": [
+    25.48,
+    26.02,
+    26.57
+   ]
   },
   {
    "id": "c057",
@@ -619,7 +883,11 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 32.18,
    "start": 31.43,
-   "end": 32.93
+   "end": 32.93,
+   "beats": [
+    32.18,
+    32.618
+   ]
   },
   {
    "id": "c058",
@@ -629,7 +897,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 22.2099,
    "start": 21.4599,
-   "end": 22.9599
+   "end": 22.9599,
+   "beats": [
+    21.5568,
+    21.89,
+    22.2099,
+    22.56
+   ]
   },
   {
    "id": "c059",
@@ -639,7 +913,11 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 34.78,
    "start": 34.03,
-   "end": 35.53
+   "end": 35.53,
+   "beats": [
+    34.351,
+    34.78
+   ]
   },
   {
    "id": "c060",
@@ -649,7 +927,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 29.89,
    "start": 29.14,
-   "end": 30.64
+   "end": 30.64,
+   "beats": [
+    29.22,
+    29.89,
+    30.55
+   ]
   },
   {
    "id": "c061",
@@ -659,7 +942,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 5.21,
    "start": 4.46,
-   "end": 5.96
+   "end": 5.96,
+   "beats": [
+    4.55,
+    5.21,
+    5.5293,
+    5.88
+   ]
   },
   {
    "id": "c062",
@@ -669,7 +958,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 16.8,
    "start": 16.05,
-   "end": 17.55
+   "end": 17.55,
+   "beats": [
+    16.25,
+    16.8,
+    17.35
+   ]
   },
   {
    "id": "c063",
@@ -679,7 +973,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 41.83,
    "start": 41.08,
-   "end": 42.58
+   "end": 42.58,
+   "beats": [
+    41.29,
+    41.83,
+    42.38
+   ]
   },
   {
    "id": "c064",
@@ -689,7 +988,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 30.44,
    "start": 29.69,
-   "end": 31.19
+   "end": 31.19,
+   "beats": [
+    30.009,
+    30.44,
+    30.877
+   ]
   },
   {
    "id": "c065",
@@ -699,7 +1003,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 45.31,
    "start": 44.56,
-   "end": 46.06
+   "end": 46.06,
+   "beats": [
+    45.31
+   ]
   },
   {
    "id": "c066",
@@ -709,7 +1016,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 47.05,
    "start": 46.3,
-   "end": 47.8
+   "end": 47.8,
+   "beats": [
+    47.05
+   ]
   },
   {
    "id": "c067",
@@ -719,7 +1029,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 15.66,
    "start": 14.91,
-   "end": 16.41
+   "end": 16.41,
+   "beats": [
+    15.229,
+    15.66,
+    16.068
+   ]
   },
   {
    "id": "c068",
@@ -729,7 +1044,11 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 31.31,
    "start": 30.56,
-   "end": 32.06
+   "end": 32.06,
+   "beats": [
+    30.877,
+    31.31
+   ]
   },
   {
    "id": "c069",
@@ -739,7 +1058,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 16.76,
    "start": 16.01,
-   "end": 17.51
+   "end": 17.51,
+   "beats": [
+    16.21,
+    16.76,
+    17.3
+   ]
   },
   {
    "id": "c070",
@@ -749,7 +1073,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 33.85,
    "start": 33.1,
-   "end": 34.6
+   "end": 34.6,
+   "beats": [
+    33.3,
+    33.85,
+    34.4
+   ]
   },
   {
    "id": "c071",
@@ -759,7 +1088,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 43.57,
    "start": 42.82,
-   "end": 44.32
+   "end": 44.32,
+   "beats": [
+    43.57
+   ]
   },
   {
    "id": "c072",
@@ -769,7 +1101,11 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 3.2,
    "start": 2.45,
-   "end": 3.95
+   "end": 3.95,
+   "beats": [
+    2.65,
+    3.2
+   ]
   },
   {
    "id": "c073",
@@ -779,7 +1115,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 33.85,
    "start": 33.1,
-   "end": 34.6
+   "end": 34.6,
+   "beats": [
+    33.3,
+    33.85,
+    34.4
+   ]
   },
   {
    "id": "c074",
@@ -789,7 +1130,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 26.57,
    "start": 25.82,
-   "end": 27.32
+   "end": 27.32,
+   "beats": [
+    26.02,
+    26.57,
+    27.12
+   ]
   },
   {
    "id": "c075",
@@ -799,7 +1145,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 31.1,
    "start": 30.35,
-   "end": 31.85
+   "end": 31.85,
+   "beats": [
+    30.55,
+    31.1,
+    31.65
+   ]
   },
   {
    "id": "c076",
@@ -809,7 +1160,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 8.58,
    "start": 7.83,
-   "end": 9.33
+   "end": 9.33,
+   "beats": [
+    8.06,
+    8.58,
+    9.13
+   ]
   },
   {
    "id": "c077",
@@ -819,7 +1175,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 3.512,
    "start": 2.762,
-   "end": 4.2620000000000005
+   "end": 4.2620000000000005,
+   "beats": [
+    3.2,
+    3.512,
+    3.89
+   ]
   },
   {
    "id": "c078",
@@ -829,7 +1190,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 13.05,
    "start": 12.3,
-   "end": 13.8
+   "end": 13.8,
+   "beats": [
+    12.617,
+    13.05,
+    13.482
+   ]
   },
   {
    "id": "c079",
@@ -839,7 +1205,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 32.02,
    "start": 31.270000000000003,
-   "end": 32.77
+   "end": 32.77,
+   "beats": [
+    31.48,
+    32.02,
+    32.56
+   ]
   },
   {
    "id": "c080",
@@ -849,7 +1220,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 23.84,
    "start": 23.09,
-   "end": 24.59
+   "end": 24.59,
+   "beats": [
+    23.3,
+    23.84,
+    24.39
+   ]
   },
   {
    "id": "c081",
@@ -859,7 +1235,11 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 5.74,
    "start": 4.99,
-   "end": 6.49
+   "end": 6.49,
+   "beats": [
+    5.74,
+    6.43
+   ]
   },
   {
    "id": "c082",
@@ -869,7 +1249,12 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 40.55,
    "start": 39.8,
-   "end": 41.3
+   "end": 41.3,
+   "beats": [
+    39.88,
+    40.55,
+    41.21
+   ]
   },
   {
    "id": "c083",
@@ -879,7 +1264,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 19.5338,
    "start": 18.7838,
-   "end": 20.2838
+   "end": 20.2838,
+   "beats": [
+    18.8459,
+    19.22,
+    19.5338,
+    19.89
+   ]
   },
   {
    "id": "c084",
@@ -889,7 +1280,11 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 25.6,
    "start": 24.85,
-   "end": 26.35
+   "end": 26.35,
+   "beats": [
+    25.05,
+    25.6
+   ]
   },
   {
    "id": "c085",
@@ -899,7 +1294,11 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 43.88,
    "start": 43.13,
-   "end": 44.63
+   "end": 44.63,
+   "beats": [
+    43.21,
+    43.88
+   ]
   },
   {
    "id": "c086",
@@ -909,7 +1308,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 17.85,
    "start": 17.1,
-   "end": 18.6
+   "end": 18.6,
+   "beats": [
+    17.3,
+    17.85,
+    18.4
+   ]
   },
   {
    "id": "c087",
@@ -919,7 +1323,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 43.75,
    "start": 43,
-   "end": 44.5
+   "end": 44.5,
+   "beats": [
+    43.2,
+    43.75,
+    44.3
+   ]
   },
   {
    "id": "c088",
@@ -929,7 +1338,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 28.9,
    "start": 28.15,
-   "end": 29.65
+   "end": 29.65,
+   "beats": [
+    28.35,
+    28.9,
+    29.45
+   ]
   },
   {
    "id": "c089",
@@ -939,7 +1353,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 15.15,
    "start": 14.4,
-   "end": 15.9
+   "end": 15.9,
+   "beats": [
+    14.6,
+    15.15,
+    15.7
+   ]
   },
   {
    "id": "c090",
@@ -949,7 +1368,11 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 1.2,
    "start": 0.44999999999999996,
-   "end": 1.95
+   "end": 1.95,
+   "beats": [
+    0.54,
+    1.2
+   ]
   },
   {
    "id": "c091",
@@ -959,7 +1382,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 7.5,
    "start": 6.75,
-   "end": 8.25
+   "end": 8.25,
+   "beats": [
+    6.97,
+    7.5,
+    8.06
+   ]
   },
   {
    "id": "c092",
@@ -969,7 +1397,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 6.43,
    "start": 5.68,
-   "end": 7.18
+   "end": 7.18,
+   "beats": [
+    5.74,
+    6.43,
+    6.97
+   ]
   },
   {
    "id": "c093",
@@ -979,7 +1412,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 6.56,
    "start": 5.81,
-   "end": 7.31
+   "end": 7.31,
+   "beats": [
+    5.88,
+    6.1852,
+    6.56,
+    7.22
+   ]
   },
   {
    "id": "c094",
@@ -989,7 +1428,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 42.7,
    "start": 41.95,
-   "end": 43.45
+   "end": 43.45,
+   "beats": [
+    42.7
+   ]
   },
   {
    "id": "c095",
@@ -999,7 +1441,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 1.81,
    "start": 1.06,
-   "end": 2.56
+   "end": 2.56,
+   "beats": [
+    1.81
+   ]
   },
   {
    "id": "c096",
@@ -1009,7 +1454,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 34.2,
    "start": 33.45,
-   "end": 34.95
+   "end": 34.95,
+   "beats": [
+    33.65,
+    34.2,
+    34.74
+   ]
   },
   {
    "id": "c097",
@@ -1019,7 +1469,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 10.2,
    "start": 9.45,
-   "end": 10.95
+   "end": 10.95,
+   "beats": [
+    9.65,
+    10.2,
+    10.75
+   ]
   },
   {
    "id": "c098",
@@ -1029,7 +1484,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 12.4,
    "start": 11.65,
-   "end": 13.15
+   "end": 13.15,
+   "beats": [
+    11.85,
+    12.4,
+    12.95
+   ]
   },
   {
    "id": "c099",
@@ -1039,7 +1499,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 14.56,
    "start": 13.81,
-   "end": 15.31
+   "end": 15.31,
+   "beats": [
+    13.89,
+    14.2222,
+    14.56,
+    15.23
+   ]
   },
   {
    "id": "c100",
@@ -1049,7 +1515,11 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 43.88,
    "start": 43.13,
-   "end": 44.63
+   "end": 44.63,
+   "beats": [
+    43.21,
+    43.88
+   ]
   },
   {
    "id": "c101",
@@ -1059,7 +1529,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 4.42,
    "start": 3.67,
-   "end": 5.17
+   "end": 5.17,
+   "beats": [
+    4.42
+   ]
   },
   {
    "id": "c102",
@@ -1069,7 +1542,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 19.13,
    "start": 18.38,
-   "end": 19.88
+   "end": 19.88,
+   "beats": [
+    18.704,
+    19.13,
+    19.577
+   ]
   },
   {
    "id": "c103",
@@ -1079,7 +1557,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 5.29,
    "start": 4.54,
-   "end": 6.04
+   "end": 6.04,
+   "beats": [
+    5.29
+   ]
   },
   {
    "id": "c104",
@@ -1089,7 +1570,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 18.4,
    "start": 17.65,
-   "end": 19.15
+   "end": 19.15,
+   "beats": [
+    17.85,
+    18.4,
+    18.94
+   ]
   },
   {
    "id": "c105",
@@ -1099,7 +1585,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 6.9,
    "start": 6.15,
-   "end": 7.65
+   "end": 7.65,
+   "beats": [
+    6.36,
+    6.9,
+    7.34
+   ]
   },
   {
    "id": "c106",
@@ -1109,7 +1600,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 46.18,
    "start": 45.43,
-   "end": 46.93
+   "end": 46.93,
+   "beats": [
+    46.18
+   ]
   },
   {
    "id": "c107",
@@ -1119,7 +1613,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 26.09,
    "start": 25.34,
-   "end": 26.84
+   "end": 26.84,
+   "beats": [
+    26.09
+   ]
   },
   {
    "id": "c108",
@@ -1129,7 +1626,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 11.746,
    "start": 10.996,
-   "end": 12.496
+   "end": 12.496,
+   "beats": [
+    11.31,
+    11.746,
+    12.18
+   ]
   },
   {
    "id": "c109",
@@ -1139,7 +1641,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 33.65,
    "start": 32.9,
-   "end": 34.4
+   "end": 34.4,
+   "beats": [
+    33.11,
+    33.65,
+    34.2
+   ]
   },
   {
    "id": "c110",
@@ -1149,7 +1656,12 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 20,
    "start": 19.25,
-   "end": 20.75
+   "end": 20.75,
+   "beats": [
+    19.577,
+    20,
+    20.442
+   ]
   },
   {
    "id": "c111",
@@ -1159,7 +1671,11 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 3.59,
    "start": 2.84,
-   "end": 4.34
+   "end": 4.34,
+   "beats": [
+    3.05,
+    3.59
+   ]
   },
   {
    "id": "c112",
@@ -1169,7 +1685,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 25.22,
    "start": 24.47,
-   "end": 25.97
+   "end": 25.97,
+   "beats": [
+    25.22
+   ]
   },
   {
    "id": "c113",
@@ -1179,7 +1698,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 2.51,
    "start": 1.7599999999999998,
-   "end": 3.26
+   "end": 3.26,
+   "beats": [
+    1.96,
+    2.51,
+    3.05
+   ]
   },
   {
    "id": "c114",
@@ -1189,7 +1713,10 @@
    "audioSha256": "86ed1a2982c9b0b17a807c5e3d21ac46fee10c6e1be8be0b369c54a5e5236363",
    "beat": 5.29,
    "start": 4.54,
-   "end": 6.04
+   "end": 6.04,
+   "beats": [
+    5.29
+   ]
   },
   {
    "id": "c115",
@@ -1199,7 +1726,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 38.8,
    "start": 38.05,
-   "end": 39.55
+   "end": 39.55,
+   "beats": [
+    38.25,
+    38.8,
+    39.35
+   ]
   },
   {
    "id": "c116",
@@ -1209,7 +1741,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 20.1,
    "start": 19.35,
-   "end": 20.85
+   "end": 20.85,
+   "beats": [
+    19.55,
+    20.1,
+    20.65
+   ]
   },
   {
    "id": "c117",
@@ -1219,7 +1756,12 @@
    "audioSha256": "a6b7ab4bfe39f2053649b00f4b5978749558ff239ca876c732434b3e4ad3f4ce",
    "beat": 37.36,
    "start": 36.61,
-   "end": 38.11
+   "end": 38.11,
+   "beats": [
+    36.94,
+    37.36,
+    37.78
+   ]
   },
   {
    "id": "c118",
@@ -1229,7 +1771,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 39.9,
    "start": 39.15,
-   "end": 40.65
+   "end": 40.65,
+   "beats": [
+    39.35,
+    39.9,
+    40.45
+   ]
   },
   {
    "id": "c119",
@@ -1239,7 +1786,12 @@
    "audioSha256": "06598c42eb0bdbf2cd190f201a4b19f581685535acbbc8e3c15e36623bb6abbd",
    "beat": 16.8,
    "start": 16.05,
-   "end": 17.55
+   "end": 17.55,
+   "beats": [
+    16.25,
+    16.8,
+    17.35
+   ]
   },
   {
    "id": "c120",
@@ -1249,7 +1801,13 @@
    "audioSha256": "bfc9211bbf1b4ba2fe656b889a3cba199f6b8d3f8f6ad58ee7a9e8eba2cfffac",
    "beat": 7.22,
    "start": 6.47,
-   "end": 7.97
+   "end": 7.97,
+   "beats": [
+    6.56,
+    7.22,
+    7.5523,
+    7.88
+   ]
   }
  ]
 }

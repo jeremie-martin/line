@@ -17,7 +17,8 @@
     "finalDiagnostics": 251,
     "addedNormalizedDiagnostics": {},
     "removedNormalizedDiagnostics": {},
-    "qualification": "The repository does not have a clean full typecheck. All 251 diagnostics predate this campaign; compare multiplicities after removing line/column positions."
+    "qualification": "The repository does not have a clean full typecheck. All 251 diagnostics predate this campaign; compare multiplicities after removing line/column positions.",
+    "finalLogSha256": "86306ee01b7ca42cdd703b44f32cbdc41ef78df9ac55e369fe5f75139d0a13cc"
   },
   "browser": {
     "schema": "line.contact-impact-browser-checks.v1",
@@ -200,5 +201,25 @@
     "frozenPhysicalSubchecksPassed": true,
     "historicalTaskQualificationPassed": false,
     "interpretation": "The unchanged qualifier also requires historical landing validity and a further 40% reduction in historical opening-impact error. The new task does not pass those criteria; no qualification is inferred from its passing physical subchecks."
+  },
+  "completePanels": {
+    "historicalV6": {
+      "scheduled": 460,
+      "identicalTracksAndScores": 460,
+      "executionErrors": 0
+    },
+    "experimental": {
+      "scheduled": 460,
+      "validFulfilled": 458,
+      "executionErrors": 0,
+      "coldAccountAndConstructionParity": 460,
+      "evidence": "docs/evidence/general-impact-final-evaluation-20261002.json"
+    },
+    "budgetDiagnostic": {
+      "scheduled": 8,
+      "validFulfilled": 8,
+      "executionErrors": 0,
+      "evidence": "docs/evidence/general-impact-budget-diagnostic-20261002.json"
+    }
   }
 }

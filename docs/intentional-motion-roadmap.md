@@ -192,13 +192,20 @@ Compiler behavior, contact/impact definitions and frozen benchmarks are unchange
 
 ## Active campaign: clear musical interactions in automatic tracks
 
-**Status: approved in full; implementation started October 2 at 21:15 UTC.**
-The six stages below are authorized as one sustained campaign. A replacement
-impact definition remains provisional until its evidence is evaluated. The owner
+**Status: all six stages executed and delivered October 3; the new impact
+contract remains experimental.** See the [complete delivery report](general-impact-results-20261003.md),
+including 20 complete production songs, 458/460 successful experimental catalog
+runs, the two budget failures and unresolved perceptual calibration. The
+validated default and all 460 original V6 tracks/scores remain unchanged.
+
+The six stages below were authorized as one sustained campaign beginning
+October 2 at 21:15 UTC. The replacement definition remains provisional pending
+stronger perceptual evidence. The owner
 has now reviewed the panel; the [recorded feedback](evidence/interaction-panel-feedback-20261002.json)
 and [follow-up measurements](evidence/interaction-feedback-checks-20261002.json)
 sharpen the requirements below. No further labeling round is needed to start the
-campaign. Preserve the few remaining uncertain interpretations.
+campaign. Preserve the few remaining uncertain interpretations. The plan below
+is retained as approved; results and remaining ambitions are recorded separately.
 
 ### Outcome and working scope
 

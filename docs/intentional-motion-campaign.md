@@ -719,14 +719,14 @@ evaluation without treating intermediate diagnostic success as completion.
 | Requirements and declared development/reserved inputs | Complete; declaration committed before metric comparison |
 | General impact identity, timing and strength | Provisional shared v1 baselined before compiler tuning; perceptual limitations retained |
 | Controlled physical experiments and continuation | 315 geometry replays and 45 same-state, full-continuation branches recorded |
-| Shared automatic compiler integration and improvement | Integrated through public automatic production; 12/12 first-pilot songs valid/fulfilled; search ablations active |
-| Frozen candidate, complete tracks and reserved evaluation | Twenty paired songs complete; both 460-input panels running |
-| Native music review, evidence and delivery | Twenty-track native review delivered and browser-checked; final panel evidence pending |
+| Shared automatic compiler integration and improvement | Complete; selected shared profile `7cbf50c3`, with ablations and rejected alternatives preserved |
+| Frozen candidate, complete tracks and reserved evaluation | Complete; 20/20 candidate production songs, 460/460 exact V6 compatibility, 458/460 experimental catalog cases valid/fulfilled |
+| Native music review, evidence and delivery | Twenty-track native review delivered and browser-checked; final report records research limitations and budget failures |
 
 Known owner judgments, including unresolved examples, remain in the separately
 hashed October 2 feedback record. No artist-facing catalog of hit types is being
-introduced. The working definition will be versioned and baselined before search
-is tuned against it; any revision requires repeating that baseline. Large raw
+introduced. The working definition was versioned and baselined before search
+was tuned against it; any revision requires repeating that baseline. Large raw
 traces and render assets stay local.
 
 ### Working definition and physical checkpoint
@@ -857,3 +857,43 @@ pass for all twenty songs, chart/table seeking, rapid switching, restart, mobile
 layout and audio-identity rejection. The integration panel passes 230 tests in
 69 suites. Full TypeScript checking retains the same 251 pre-existing diagnostics
 and introduces none. Large traces, media and test logs remain local.
+
+### Final complete evaluation and delivery — October 3
+
+All six stages are delivered. The [final report](general-impact-results-20261003.md)
+links complete outcomes, the native review, reproducible tools, rejected ideas
+and outstanding perceptual questions. The selected source remains `7cbf50c3`;
+the original V6 run reproduces all 460 tracks and scores exactly at 835.6161.
+
+The separate experimental catalog completes 458/460 valid and fulfilled, with
+zero execution errors, 19 musical inputs and 316 distinct physical tracks.
+Fixed constructions pass 384/384; automatic arrangements pass 74/76. Its
+unweighted descriptive quality is 780.6122 under the new account, compared with
+411.7073 for the unchanged baseline remeasured under that same account. This
+is not a V6 score or a newly frozen benchmark headline. All 460 pairs improve
+total impact loss, timing error and extra-response error, while 111 have worse
+strength error. Two completed terraces-transfer cases lose overall quality,
+and two budget failures retain their zero scores.
+
+The failures are sparse lowline seed 303 (one missing target, 82/83 sections)
+and frontier pickup progression seed 202 (thirteen missing targets, 98/111
+sections). The unchanged compiler completes all four seeds of each input in a
+separate five-million-frame diagnostic. Both failed runs recover at about
+3.49 million actual frames, but earlier geometry changes and two other scores
+regress. This is a budget sensitivity result, not replacement qualification or
+proof that an extra half-million frames would complete the identical prefixes.
+No source/profile change follows final evaluation.
+
+Independent motion replay reproduces all 36 development/reference traces
+exactly. Frozen physical burst, reported-window and quiet-motion comparisons
+pass. The historical joint qualifier still fails its old impact criteria,
+which are preserved alongside these physical subchecks. Seven additional motion
+tests pass, bringing the selected integration/physical panels to 237 passing
+tests. Head-first clarity, continuous-contact resolution and individual quiet
+or strong errors remain explicit limitations. Production adoption is not claimed.
+
+Code and compact evidence are committed and pushed; the full archive remains
+local in `generated/general-impact-20261002/`. The dashboard exposes twenty
+complete candidate songs and their automatic baselines with the shared account,
+verified music and focused examples. Vertical render/effect migration remains
+outside this native-review delivery.

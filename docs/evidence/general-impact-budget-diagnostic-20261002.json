@@ -1,0 +1,1700 @@
+{
+  "schema": "line.contact-impact-budget-diagnostic.v1",
+  "plan": {
+    "schema": "line.contact-impact-complete-panel-plan.v1",
+    "compilerRoot": "/tmp/line-contact-impact-selected-7cbf50c3",
+    "compiler": {
+      "head": "7cbf50c329b041e1133090cd05af07d5c5734593",
+      "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+      "compilerSourceFingerprint": "719d0e2081074b33fbb50f1968240d07eb7d23233af346b3a535209d758ade86",
+      "compilerSourceFiles": [
+        "engine-rs/.gitignore",
+        "engine-rs/Cargo.lock",
+        "engine-rs/Cargo.toml",
+        "engine-rs/README.md",
+        "engine-rs/src/abi.rs",
+        "engine-rs/src/engine.rs",
+        "engine-rs/src/frame.rs",
+        "engine-rs/src/grid.rs",
+        "engine-rs/src/kernel.rs",
+        "engine-rs/src/lib.rs",
+        "engine-rs/src/line.rs",
+        "package-lock.json",
+        "package.json",
+        "scripts/lib/_lr_engine.ts",
+        "scripts/lib/_lr_engine_record.ts",
+        "scripts/lib/_lr_engine_wasm.ts",
+        "scripts/lib/adapt.ts",
+        "scripts/lib/arc.ts",
+        "scripts/lib/arcLines.ts",
+        "scripts/lib/beam_prune.ts",
+        "scripts/lib/beam_search.ts",
+        "scripts/lib/contact_impact.ts",
+        "scripts/lib/detector.ts",
+        "scripts/lib/export.ts",
+        "scripts/lib/metrics.ts",
+        "scripts/lib/moves.ts",
+        "scripts/lib/native_motion/Cargo.lock",
+        "scripts/lib/native_motion/Cargo.toml",
+        "scripts/lib/native_motion/README.md",
+        "scripts/lib/native_motion/engine.ts",
+        "scripts/lib/native_motion/engine.wasm",
+        "scripts/lib/native_motion/manifest.json",
+        "scripts/lib/native_motion/manifest.json.sha256",
+        "scripts/lib/native_motion/src/abi.rs",
+        "scripts/lib/native_motion/src/engine.rs",
+        "scripts/lib/native_motion/src/frame.rs",
+        "scripts/lib/native_motion/src/grid.rs",
+        "scripts/lib/native_motion/src/kernel.rs",
+        "scripts/lib/native_motion/src/lib.rs",
+        "scripts/lib/native_motion/src/line.rs",
+        "scripts/lib/precise_landings.ts",
+        "scripts/lib/primitive.ts",
+        "scripts/lib/primitive_search.ts",
+        "scripts/lib/ride.ts",
+        "scripts/lib/rng.ts",
+        "scripts/lib/rotation.ts",
+        "scripts/lib/route.ts",
+        "scripts/lib/search.ts",
+        "scripts/lib/tune.ts",
+        "scripts/lib/update_types.ts",
+        "scripts/v0/arc.ts",
+        "scripts/v0/arc_placement.ts",
+        "scripts/v0/core/ballistic_launch.ts",
+        "scripts/v0/core/ballistic_micro_sim.ts",
+        "scripts/v0/core/ballistic_projection.ts",
+        "scripts/v0/core/ballistic_trace.ts",
+        "scripts/v0/core/beats.ts",
+        "scripts/v0/core/camera.ts",
+        "scripts/v0/core/candidate.ts",
+        "scripts/v0/core/compile_lifecycle.ts",
+        "scripts/v0/core/curves.ts",
+        "scripts/v0/core/exit_read.ts",
+        "scripts/v0/core/measure.ts",
+        "scripts/v0/core/polish.ts",
+        "scripts/v0/core/substrate.ts",
+        "scripts/v0/core/support_geometry.ts",
+        "scripts/v0/core/trace.ts",
+        "scripts/v0/optimizer/README.md",
+        "scripts/v0/optimizer/aim.ts",
+        "scripts/v0/optimizer/aim_impact_model.json",
+        "scripts/v0/optimizer/aim_impact_pool_value_model.json",
+        "scripts/v0/optimizer/air_policy.ts",
+        "scripts/v0/optimizer/arc_actuator.ts",
+        "scripts/v0/optimizer/arc_attempts.ts",
+        "scripts/v0/optimizer/arc_boundary.ts",
+        "scripts/v0/optimizer/arc_composition.ts",
+        "scripts/v0/optimizer/arc_control.ts",
+        "scripts/v0/optimizer/arc_control_policy.ts",
+        "scripts/v0/optimizer/arc_control_policy_model.json",
+        "scripts/v0/optimizer/arc_control_policy_model.json.gz",
+        "scripts/v0/optimizer/arc_control_policy_model.json.sha256",
+        "scripts/v0/optimizer/arc_engine.ts",
+        "scripts/v0/optimizer/arc_geometry.ts",
+        "scripts/v0/optimizer/arc_guidance.ts",
+        "scripts/v0/optimizer/arc_guide_choice.ts",
+        "scripts/v0/optimizer/arc_guide_study.ts",
+        "scripts/v0/optimizer/arc_memory.ts",
+        "scripts/v0/optimizer/arc_model.ts",
+        "scripts/v0/optimizer/arc_motion.ts",
+        "scripts/v0/optimizer/arc_motion_control.ts",
+        "scripts/v0/optimizer/arc_pair_response.ts",
+        "scripts/v0/optimizer/arc_probe.ts",
+        "scripts/v0/optimizer/arc_proposal.ts",
+        "scripts/v0/optimizer/arc_rail_groups.ts",
+        "scripts/v0/optimizer/arc_refinement.ts",
+        "scripts/v0/optimizer/arc_response.ts",
+        "scripts/v0/optimizer/arc_value.ts",
+        "scripts/v0/optimizer/arc_value_model.json",
+        "scripts/v0/optimizer/arc_value_model.json.sha256",
+        "scripts/v0/optimizer/arc_vector_model.ts",
+        "scripts/v0/optimizer/budget_estimator.ts",
+        "scripts/v0/optimizer/budget_estimator_model.json",
+        "scripts/v0/optimizer/budget_model.ts",
+        "scripts/v0/optimizer/budget_telemetry.ts",
+        "scripts/v0/optimizer/compiler_input.ts",
+        "scripts/v0/optimizer/connected_arcs.ts",
+        "scripts/v0/optimizer/contact_composition.ts",
+        "scripts/v0/optimizer/contact_fragments.ts",
+        "scripts/v0/optimizer/contact_impact_profile.ts",
+        "scripts/v0/optimizer/contact_interval.ts",
+        "scripts/v0/optimizer/contact_phase.ts",
+        "scripts/v0/optimizer/contact_transition.ts",
+        "scripts/v0/optimizer/deadline.ts",
+        "scripts/v0/optimizer/handoff.ts",
+        "scripts/v0/optimizer/impact_policy.ts",
+        "scripts/v0/optimizer/impact_response_model.ts",
+        "scripts/v0/optimizer/impact_search.ts",
+        "scripts/v0/optimizer/intentional_repertoire.ts",
+        "scripts/v0/optimizer/kinematic_support.ts",
+        "scripts/v0/optimizer/legacy_handoff.ts",
+        "scripts/v0/optimizer/motion_objective.ts",
+        "scripts/v0/optimizer/motion_profiles.ts",
+        "scripts/v0/optimizer/motion_quality.ts",
+        "scripts/v0/optimizer/native_motion.ts",
+        "scripts/v0/optimizer/native_motion_schedule.ts",
+        "scripts/v0/optimizer/native_pointwise_energy.ts",
+        "scripts/v0/optimizer/node.ts",
+        "scripts/v0/optimizer/normal_contacts.ts",
+        "scripts/v0/optimizer/normal_motion.ts",
+        "scripts/v0/optimizer/normal_pointwise_projection.ts",
+        "scripts/v0/optimizer/objective.ts",
+        "scripts/v0/optimizer/objective_control.ts",
+        "scripts/v0/optimizer/observed_receiver.ts",
+        "scripts/v0/optimizer/polish.ts",
+        "scripts/v0/optimizer/production_repertoire.ts",
+        "scripts/v0/optimizer/rail_contours.ts",
+        "scripts/v0/optimizer/rail_recipes.ts",
+        "scripts/v0/optimizer/readiness.ts",
+        "scripts/v0/optimizer/readiness_base_features.ts",
+        "scripts/v0/optimizer/readiness_features.ts",
+        "scripts/v0/optimizer/readiness_model.json",
+        "scripts/v0/optimizer/readiness_model_artifact.ts",
+        "scripts/v0/optimizer/readiness_scoring.ts",
+        "scripts/v0/optimizer/register.ts",
+        "scripts/v0/optimizer/repair_branch_bound.ts",
+        "scripts/v0/optimizer/repertoire_candidate.ts",
+        "scripts/v0/optimizer/repertoire_composition.ts",
+        "scripts/v0/optimizer/repertoire_context.ts",
+        "scripts/v0/optimizer/repertoire_feasibility.ts",
+        "scripts/v0/optimizer/repertoire_layout.ts",
+        "scripts/v0/optimizer/repertoire_plan.ts",
+        "scripts/v0/optimizer/repertoire_policy.ts",
+        "scripts/v0/optimizer/repertoire_policy_model.json",
+        "scripts/v0/optimizer/repertoire_policy_model.json.gz",
+        "scripts/v0/optimizer/repertoire_realization.ts",
+        "scripts/v0/optimizer/repertoire_search.ts",
+        "scripts/v0/optimizer/sample.ts",
+        "scripts/v0/optimizer/selective_backtracking.ts",
+        "scripts/v0/optimizer/sim_frames.ts",
+        "scripts/v0/optimizer/solver.ts",
+        "scripts/v0/optimizer/types.ts",
+        "scripts/v0/score.ts",
+        "scripts/v0/trajectory/curve_resolution.ts",
+        "scripts/v0/trajectory/native_catch_history.ts",
+        "scripts/v0/trajectory/precontact_multicontact_history.ts",
+        "scripts/v0/types.ts",
+        "tsconfig.json"
+      ],
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "8c5a73ad440c63f04817699d35e0fbf6ad74fdb1da6f09c120fd3f05f0109db6"
+    },
+    "baseline": "/home/wyss/line/generated/intentional-motion/v6-candidate-8",
+    "baselineRunSha256": "fec2b2a83f756af390622169f3b411200b2a14094fc5c61ad2daee262b16758c",
+    "ids": [
+      "canonical-bridge_sparse_lowline-automatic",
+      "canonical-bridge_frontier_pickup_progression-automatic"
+    ],
+    "seeds": [
+      101,
+      202,
+      303,
+      404
+    ],
+    "budget": 5000000,
+    "contract": {
+      "id": "line.contact-impact.v1",
+      "status": "experimental",
+      "responseFrames": 6,
+      "onsetFraction": 0.2,
+      "renewalValley": 0.4,
+      "veryStrong": 7.55,
+      "matchFrames": 4,
+      "quantizationFrames": 0.5
+    },
+    "judge": {
+      "schema": "line.benchmark-v6.freeze.v1",
+      "judge": {
+        "v5": {
+          "schema": "line.benchmark-v5.freeze.v1",
+          "judge": {
+            "v4": {
+              "inputSha256": "fb3c6c42f780a1ada2b6392dea59074be37ab0437d5cc84070c829a60139d7ef",
+              "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+              "files": {
+                "benchmark/v4/contract.ts": "81b016f5b229542c9f82720b9eae0ec43fb706ec997bf0a45d40b07f90a4449f",
+                "benchmark/v4/model.ts": "efe11b2dceaa17e3cbe2aae27f1beb3c2310999aadfdcf522ac36c2e6c1c8676",
+                "benchmark/v4/policy.ts": "13898358ce175f02d71f4d73733addcf6e9f6e8ed8866af994e796da56d2bba7",
+                "benchmark/v4/evaluator.ts": "3dbc241881509cbb73d0d70bf570865309bcae98982cf0887b7902702170253e",
+                "benchmark/v4/catalog.lock.json": "cdfaa384737264b05ad1b6126f2334bbcfce82fa0b0c701a98d286882c2894e0",
+                "benchmark/v4/specifications.json.gz": "6e3791d9aa85f37857b2e3a9b0c3fba58a3b8847cb340608e034ceef9ba0980a",
+                "benchmark/v3/model.ts": "ef352828b179ed162dfafc706d7fbe8a96d2ec868effde9da05efc719eb496fb",
+                "benchmark/v3/policy.ts": "b486710c9350c45b42c026f0c2eec12a717768e86ce84b899af4bca60b015dc0",
+                "benchmark/v3/evaluator.ts": "49d0d6663680c339ac0f98ed562327ca0a436af97eb1c8a6e46662011bc250ea",
+                "benchmark/v3/catalog.lock.json": "0c3f3e6fb1863072549a3103b12f86d9e8c5416b4fe2b746d2396a1994c0377b",
+                "benchmark/v3/specifications.json.gz": "2dcd3891032b067c53eab7a0df30ef6797a932cf6607782db5e5e27d97a78f28",
+                "scripts/v0/core/substrate.ts": "da83ed8217e75676bda5997eb363f65023b0b4fd76915ad5b025e518bb4e7b13",
+                "scripts/v0/core/measure.ts": "4419c9de10a8d9f095d10a3c640f80c05010270bb61909a4bdc811921fd703fe",
+                "scripts/v0/types.ts": "8db7ff7e066ddfbc95195c27c2e8905f0a5bd0ee88f86ec6717bc6c115f8c6a0",
+                "scripts/v0/score.ts": "cf42bbaa5c4b7ee8f9f9f783896f564b5340753c3a30af5e895047edee2c223d",
+                "scripts/lib/_lr_engine.ts": "ca4e0f3b984a122c6f5ae3c4a3bfb252cc6be5b1c7f89b5dd659f27e26ae0a0a",
+                "scripts/lib/_lr_engine_wasm.ts": "298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b",
+                "scripts/lib/detector.ts": "8d85982b40beb4e7c531ca14a2df0812743e29f48b164fed0776f77e23179473",
+                "scripts/lib/update_types.ts": "b7b4b117e877b0f61439ddf776182031149ae88a2cba62b808459689eed2cfa2"
+              }
+            },
+            "files": {
+              "benchmark/v5/policy.ts": "c1bad1623f3e5bbc6f25bb30451bb9d08dbd4ba728593a90acc2810ba47ef594",
+              "benchmark/v5/model.ts": "d30420a41621c3bd3daa1d7285b3bd556dc885e5c15b48e9f0c8511695e3952d",
+              "benchmark/v5/evaluator.ts": "a506cc3e0c104fad19b760638e3b27b757062e7176b54c1f52ffa546e9a4ed97",
+              "benchmark/v5/contract.ts": "5d199928db3b934ff3b550184db21915b4817bb275748999590784edb248ef4b",
+              "benchmark/v5/catalog.json.gz": "da26bbd351e8061e2a75ced2bd18fcebd7267a5806ca3b8953f41f77850c49b8",
+              "benchmark/v5/catalog.lock.json": "2529b6fc39b5cd29e40b8e0888a408291f2ef8ba1ca7a5b8022188757d70f648",
+              "scripts/v0/optimizer/repertoire_realization.ts": "54b17ac4f198cd03b2fe04d47bce4b333eb73e0501e22f897c229eeebcb8d67b",
+              "scripts/v0/optimizer/arc_rail_groups.ts": "b5c409289f2bc926e7a769ec1b586344ad88ed4b1784438870ce5ea7aa55b03c"
+            }
+          }
+        },
+        "files": {
+          "benchmark/v6/policy.ts": "2df671976e3705e9c5699649a7fcae601dcc1a31b285f82a3103fd47d989719d",
+          "benchmark/v6/model.ts": "58c0686187274883f73dc84cd176efad65727d2fbc25e9c447b26c001aca4cfb",
+          "benchmark/v6/evaluator.ts": "3494e169f3907a9fb108a9d74129ff3de37936094a305b9c87620d822f2674df",
+          "benchmark/v6/contract.ts": "5a9427a5b491b97b184cd38f4d28d19d41f97bc79d2db498e36c7cf36c5617f9",
+          "benchmark/v6/replay.ts": "26b8419dcdb80ffc5f2b01fe6aa0aad1230fa48b69bf04a5aa959ea2eca1772b",
+          "benchmark/v6/catalog.json.gz": "e0ffa07caa5c4216eca159d6de9bf78500aaa3c2669a582e3894640f824e0ecb",
+          "benchmark/v6/catalog.lock.json": "9abf808b1ae8615530622b8aa1f6a46b66074a9173277c00058bacda2c0f61d0",
+          "scripts/v0/optimizer/repertoire_layout.ts": "8b1e6b574b0591eee517bdb5c6c4a4342ecff3e382b553ee2ef56d16b3c8edcd",
+          "scripts/v0/optimizer/motion_quality.ts": "7dea806aca18befa3d272587b83001717b095337f1b0ed9aa052c9916a23df6c"
+        }
+      }
+    },
+    "harnessSha256": "9c498acb2f6a6a163c09d3810d56ce8ea7e6ed5f9256897030cf72d455210672",
+    "purpose": "Post-selection budget diagnostic across every original seed of each failed input. No compiler changes, substitution, new qualification or selection from these outcomes. A changed allowance can change early search choices; this is not continuation of the same prefix.",
+    "comparisonRunSha256": "fa7d0622475a45ddeaa48eab3827a0a4bdbbd28cec3fd1b0bc84ff0c161be7e5",
+    "diagnosticHarnessSha256": "319cce66350c8d7f5122503cdbb0b21758f4aad3163b3d8d0122f1b6773b78fc"
+  },
+  "rows": [
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 101,
+      "before": {
+        "candidate": {
+          "quality": 483.5145,
+          "valid": true,
+          "loss": 0.027231390563759925,
+          "strengthMse": 0.015508378069505504,
+          "timingMse": 0.001524390243902439,
+          "extraMse": 0.010198622250351983,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 3,
+          "gainExcessSum": 1.5641609259468157,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.21872720419824154,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.154717056482163,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.16501936420844654,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 2985040,
+        "trackHash": "2081bb1baee1f4b99e41dd0a4281185201bceed1463aa3f5b69650bf837dd6f6"
+      },
+      "after": {
+        "id": "canonical-bridge_sparse_lowline-automatic",
+        "seed": 101,
+        "sourceId": "bridge_sparse_lowline",
+        "panel": "automatic",
+        "family": "sparse_transition",
+        "planSha256": "de5dfc9281ba8d45b10641e847578a7dca03e2bbd8a593fc3cc684df87e41a1e",
+        "baseline": {
+          "quality": 269.1916,
+          "valid": true,
+          "loss": 0.3027982041120527,
+          "strengthMse": 0.01094291261932031,
+          "timingMse": 0.023628048780487805,
+          "extraMse": 0.26822724271224463,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 66,
+          "gainExcessSum": 56.45908731125553,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.1280673143680082,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.06095839563464567,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.5502710278690427,
+              "weight": 0.3333333333333333
+            }
+          }
+        },
+        "candidate": {
+          "quality": 490.3251,
+          "valid": true,
+          "loss": 0.031732794975869325,
+          "strengthMse": 0.01542783933223925,
+          "timingMse": 0.0019054878048780487,
+          "extraMse": 0.014399467838752025,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 4,
+          "gainExcessSum": 1.482953040346458,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.22843850909838684,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.10638837211157798,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.17813701180796013,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 3468904,
+        "compileMs": 145023.33676099998,
+        "trackHash": "b0787f93381e193e481a0521205f8c0a83e69a3f188a14e07a78b2abfd2c9bfe",
+        "failure": null,
+        "constructionFailure": null,
+        "executionError": null
+      },
+      "firstChangedSection": 0
+    },
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 202,
+      "before": {
+        "candidate": {
+          "quality": 552.6477,
+          "valid": true,
+          "loss": 0.02804756165437668,
+          "strengthMse": 0.010222172311993991,
+          "timingMse": 0.0009527439024390244,
+          "extraMse": 0.016872645439943663,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 3,
+          "gainExcessSum": 1.0850066909457015,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.15841550419669062,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.11313200468422353,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.16747406263173018,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 2989666,
+        "trackHash": "63560587b634459d95cb3d3b2c5ee8cb6168eee04f14243c320f85357ea84b65"
+      },
+      "after": {
+        "id": "canonical-bridge_sparse_lowline-automatic",
+        "seed": 202,
+        "sourceId": "bridge_sparse_lowline",
+        "panel": "automatic",
+        "family": "sparse_transition",
+        "planSha256": "de5dfc9281ba8d45b10641e847578a7dca03e2bbd8a593fc3cc684df87e41a1e",
+        "baseline": {
+          "quality": 281.8799,
+          "valid": true,
+          "loss": 0.28592038723901203,
+          "strengthMse": 0.008801345150722655,
+          "timingMse": 0.020007621951219513,
+          "extraMse": 0.25711142013706983,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 56,
+          "gainExcessSum": 28.96749628083939,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.10249782657398948,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.06496780949724314,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.5347152393929053,
+              "weight": 0.3333333333333333
+            }
+          }
+        },
+        "candidate": {
+          "quality": 531.6142,
+          "valid": true,
+          "loss": 0.02932114658965155,
+          "strengthMse": 0.013079361613325336,
+          "timingMse": 0.0009527439024390244,
+          "extraMse": 0.015289041073887186,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 2,
+          "gainExcessSum": 1.2982854635961405,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.16901641399540301,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.1302526266527139,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.17123418639293833,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 3675356,
+        "compileMs": 143254.198814,
+        "trackHash": "dc3ca2bc0e9008627ebcc502d8b44f3ae26bbde78d3661cc9c442cd227d457ee",
+        "failure": null,
+        "constructionFailure": null,
+        "executionError": null
+      },
+      "firstChangedSection": 12
+    },
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 303,
+      "before": {
+        "candidate": {
+          "quality": 0,
+          "valid": false,
+          "loss": 0.03777166424931968,
+          "strengthMse": 0.010675484590079321,
+          "timingMse": 0.0022865853658536584,
+          "extraMse": 0.012614472342167187,
+          "missing": 1,
+          "targets": 82,
+          "extraAboveQuarterScale": 2,
+          "gainExcessSum": 0.7466054528595484,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.24744304428749084,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.14890780572266518,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.19434933560297982,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": false
+        },
+        "physicalFrames": 2999991,
+        "trackHash": "736a59173812010176ee23ccfc46cfd1772995b3070c455ca23ee0e11363d8fe"
+      },
+      "after": {
+        "id": "canonical-bridge_sparse_lowline-automatic",
+        "seed": 303,
+        "sourceId": "bridge_sparse_lowline",
+        "panel": "automatic",
+        "family": "sparse_transition",
+        "planSha256": "de5dfc9281ba8d45b10641e847578a7dca03e2bbd8a593fc3cc684df87e41a1e",
+        "baseline": {
+          "quality": 242.5013,
+          "valid": true,
+          "loss": 0.35754792354477793,
+          "strengthMse": 0.010038404745299706,
+          "timingMse": 0.031440548780487805,
+          "extraMse": 0.3160689700189904,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 80,
+          "gainExcessSum": 36.758383810459435,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.11590056508770469,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.07324235059496804,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.5979531114935166,
+              "weight": 0.3333333333333333
+            }
+          }
+        },
+        "candidate": {
+          "quality": 558.0556,
+          "valid": true,
+          "loss": 0.020648893465974642,
+          "strengthMse": 0.009918012000462186,
+          "timingMse": 0.001714939024390244,
+          "extraMse": 0.00901594244112221,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 1,
+          "gainExcessSum": 0.4073508491145681,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.18474608028953168,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.09494231607464007,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.14369722845613495,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 3495190,
+        "compileMs": 129992.779423,
+        "trackHash": "def11964f82947e7beee0e7e6c87dcf87e33ed41f077f2d2e3adc160a3fb91a3",
+        "failure": null,
+        "constructionFailure": null,
+        "executionError": null
+      },
+      "firstChangedSection": 16
+    },
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 404,
+      "before": {
+        "candidate": {
+          "quality": 430.4218,
+          "valid": true,
+          "loss": 0.05357721212435826,
+          "strengthMse": 0.020345661462733554,
+          "timingMse": 0.0009527439024390244,
+          "extraMse": 0.03227880675918568,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 5,
+          "gainExcessSum": 0.8152383359693343,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.2502749933797688,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.13049390196678579,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.231467518508231,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 2999997,
+        "trackHash": "ed3e17aa0486cb676b63ce36489a3477b891a99b8b0764561039e76fa3986bef"
+      },
+      "after": {
+        "id": "canonical-bridge_sparse_lowline-automatic",
+        "seed": 404,
+        "sourceId": "bridge_sparse_lowline",
+        "panel": "automatic",
+        "family": "sparse_transition",
+        "planSha256": "de5dfc9281ba8d45b10641e847578a7dca03e2bbd8a593fc3cc684df87e41a1e",
+        "baseline": {
+          "quality": 239.4271,
+          "valid": true,
+          "loss": 0.3657639498782747,
+          "strengthMse": 0.008606952730773958,
+          "timingMse": 0.017339939024390245,
+          "extraMse": 0.3398170581231105,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 80,
+          "gainExcessSum": 57.644958547799504,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.10951537703648379,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.07346120640776369,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.6047842176167254,
+              "weight": 0.3333333333333333
+            }
+          }
+        },
+        "candidate": {
+          "quality": 484.2313,
+          "valid": true,
+          "loss": 0.03990762571518221,
+          "strengthMse": 0.02207786612967067,
+          "timingMse": 0.0022865853658536584,
+          "extraMse": 0.015543174219657882,
+          "missing": 0,
+          "targets": 82,
+          "extraAboveQuarterScale": 4,
+          "gainExcessSum": 2.3974032178088835,
+          "components": {
+            "air": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.20251235288697536,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 83,
+              "weightSum": 2400,
+              "rmsError": 0.1329969842700759,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 82,
+              "weightSum": 82,
+              "rmsError": 0.19976893080552394,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 3655950,
+        "compileMs": 132747.920246,
+        "trackHash": "c9f2eaf7c5eb185d61269368235874b4fe859e2bf908cfd0a517b253293c52d2",
+        "failure": null,
+        "constructionFailure": null,
+        "executionError": null
+      },
+      "firstChangedSection": 15
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 101,
+      "before": {
+        "candidate": {
+          "quality": 509.1544,
+          "valid": true,
+          "loss": 0.02448670820742093,
+          "strengthMse": 0.014836713140776165,
+          "timingMse": 0.002556818181818182,
+          "extraMse": 0.007093176884826582,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 0,
+          "gainExcessSum": 2.1173750449443633,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.18936920099661536,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.15837697178437612,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.1564822935907476,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 2999078,
+        "trackHash": "a94903b3a2c6f9b43f11166aa4939c504d899c24f54047b924d6254647b7c1e2"
+      },
+      "after": {
+        "id": "canonical-bridge_frontier_pickup_progression-automatic",
+        "seed": 101,
+        "sourceId": "bridge_frontier_pickup_progression",
+        "panel": "automatic",
+        "family": "rapid_pickup_frontier",
+        "planSha256": "de5dfc9281ba8d45b10641e847578a7dca03e2bbd8a593fc3cc684df87e41a1e",
+        "baseline": {
+          "quality": 293.0054,
+          "valid": true,
+          "loss": 0.26315526499236236,
+          "strengthMse": 0.018790946044212116,
+          "timingMse": 0.023863636363636365,
+          "extraMse": 0.22050068258451389,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 73,
+          "gainExcessSum": 61.3118019780651,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.10806011605389619,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.08782993875076271,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.5129866128783113,
+              "weight": 0.3333333333333333
+            }
+          }
+        },
+        "candidate": {
+          "quality": 492.2606,
+          "valid": true,
+          "loss": 0.026368172889780574,
+          "strengthMse": 0.017450126865203225,
+          "timingMse": 0.0014204545454545455,
+          "extraMse": 0.007497591479122804,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 1,
+          "gainExcessSum": 1.713604162607573,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.18478193113467484,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.18350172849383006,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.1623827973948613,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 4199529,
+        "compileMs": 188059.595336,
+        "trackHash": "f574a7acde0c5c128f0e7dc8830913096058b01fef6710d68f3acbcf8f013995",
+        "failure": null,
+        "constructionFailure": null,
+        "executionError": null
+      },
+      "firstChangedSection": 19
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 202,
+      "before": {
+        "candidate": {
+          "quality": 0,
+          "valid": false,
+          "loss": 0.1444697972571943,
+          "strengthMse": 0.0146077862101899,
+          "timingMse": 0.002130681818181818,
+          "extraMse": 0.009549511047004402,
+          "missing": 13,
+          "targets": 110,
+          "extraAboveQuarterScale": 2,
+          "gainExcessSum": 1.388244193725002,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.30271455859208984,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 1.1774888054334351,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.38009182740121406,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": false
+        },
+        "physicalFrames": 2999895,
+        "trackHash": "75bb8136af7872cef6bbfbeeaebed85b2ab3e01dcb478d96543698df89948f22"
+      },
+      "after": {
+        "id": "canonical-bridge_frontier_pickup_progression-automatic",
+        "seed": 202,
+        "sourceId": "bridge_frontier_pickup_progression",
+        "panel": "automatic",
+        "family": "rapid_pickup_frontier",
+        "planSha256": "de5dfc9281ba8d45b10641e847578a7dca03e2bbd8a593fc3cc684df87e41a1e",
+        "baseline": {
+          "quality": 306.0407,
+          "valid": true,
+          "loss": 0.238678890498156,
+          "strengthMse": 0.020484440438281404,
+          "timingMse": 0.03366477272727273,
+          "extraMse": 0.18452967733260187,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 65,
+          "gainExcessSum": 57.052997819480865,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.1221602696294288,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.0962415474090134,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.48854773615088626,
+              "weight": 0.3333333333333333
+            }
+          }
+        },
+        "candidate": {
+          "quality": 528.6616,
+          "valid": true,
+          "loss": 0.03222199177463079,
+          "strengthMse": 0.016967280296600506,
+          "timingMse": 0.002840909090909091,
+          "extraMse": 0.012413802387121189,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 2,
+          "gainExcessSum": 1.3184745723185451,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.1787800211176425,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.10951985518959247,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.1795048516743511,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 3493105,
+        "compileMs": 141870.506638,
+        "trackHash": "8c4fafc19211247a7bb2e8fe29f267609acc1d9e61bed3a62c1e7c14342bd405",
+        "failure": null,
+        "constructionFailure": null,
+        "executionError": null
+      },
+      "firstChangedSection": 17
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 303,
+      "before": {
+        "candidate": {
+          "quality": 503.5976,
+          "valid": true,
+          "loss": 0.031966556778679614,
+          "strengthMse": 0.016315711072473222,
+          "timingMse": 0.002130681818181818,
+          "extraMse": 0.013520163888024569,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 4,
+          "gainExcessSum": 1.3011973024219827,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.19453292679742593,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.13572541083461667,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.17879193711876276,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 2997404,
+        "trackHash": "e00084c13f79c4fb967808e4498cac57f4c3468798515982b14866bf02e35fb2"
+      },
+      "after": {
+        "id": "canonical-bridge_frontier_pickup_progression-automatic",
+        "seed": 303,
+        "sourceId": "bridge_frontier_pickup_progression",
+        "panel": "automatic",
+        "family": "rapid_pickup_frontier",
+        "planSha256": "de5dfc9281ba8d45b10641e847578a7dca03e2bbd8a593fc3cc684df87e41a1e",
+        "baseline": {
+          "quality": 0,
+          "valid": false,
+          "loss": 0.2878094504331882,
+          "strengthMse": 0.01718056951606939,
+          "timingMse": 0.036931818181818184,
+          "extraMse": 0.21551524455348242,
+          "missing": 2,
+          "targets": 110,
+          "extraAboveQuarterScale": 67,
+          "gainExcessSum": 46.124383821048696,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.13616326503332213,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.07079150859685233,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.5364787511478792,
+              "weight": 0.3333333333333333
+            }
+          }
+        },
+        "candidate": {
+          "quality": 522.8649,
+          "valid": true,
+          "loss": 0.028319883552758926,
+          "strengthMse": 0.014982037556235646,
+          "timingMse": 0.0019886363636363634,
+          "extraMse": 0.011349209632886914,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 3,
+          "gainExcessSum": 1.7037986357656631,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.18737182320481494,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.12413278838168935,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.16828512576207955,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 3818163,
+        "compileMs": 167364.912539,
+        "trackHash": "0df90da4cd14edf47e3c1d17366efbb741ebd5b9ccaa6f525c94afc350d5a727",
+        "failure": null,
+        "constructionFailure": null,
+        "executionError": null
+      },
+      "firstChangedSection": 11
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 404,
+      "before": {
+        "candidate": {
+          "quality": 509.8595,
+          "valid": true,
+          "loss": 0.028356470669944067,
+          "strengthMse": 0.01728085254829392,
+          "timingMse": 0.0026988636363636364,
+          "extraMse": 0.008376754485286514,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 2,
+          "gainExcessSum": 1.3935848756602545,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.20373214158112626,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.12335927213559185,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.16839379641169702,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 2994659,
+        "trackHash": "ad765304a80ac1d85d34a53d9cd5ca8df70d54ce5858670569a2e4f1a447ca5a"
+      },
+      "after": {
+        "id": "canonical-bridge_frontier_pickup_progression-automatic",
+        "seed": 404,
+        "sourceId": "bridge_frontier_pickup_progression",
+        "panel": "automatic",
+        "family": "rapid_pickup_frontier",
+        "planSha256": "de5dfc9281ba8d45b10641e847578a7dca03e2bbd8a593fc3cc684df87e41a1e",
+        "baseline": {
+          "quality": 276.1194,
+          "valid": true,
+          "loss": 0.29108645877291367,
+          "strengthMse": 0.013779570786016273,
+          "timingMse": 0.023295454545454546,
+          "extraMse": 0.25401143344144284,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 77,
+          "gainExcessSum": 71.82446193743918,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.11419396018963557,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.08003029517281145,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.5395242893261745,
+              "weight": 0.3333333333333333
+            }
+          }
+        },
+        "candidate": {
+          "quality": 510.7031,
+          "valid": true,
+          "loss": 0.030873564911070232,
+          "strengthMse": 0.016625355939931575,
+          "timingMse": 0.002840909090909091,
+          "extraMse": 0.011407299880229567,
+          "missing": 0,
+          "targets": 110,
+          "extraAboveQuarterScale": 5,
+          "gainExcessSum": 1.565586900634351,
+          "components": {
+            "air": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.18483789386751462,
+              "weight": 0.3333333333333333
+            },
+            "speed": {
+              "observations": 111,
+              "weightSum": 2400,
+              "rmsError": 0.14008945980561033,
+              "weight": 0.3333333333333333
+            },
+            "impact": {
+              "observations": 110,
+              "weightSum": 110,
+              "rmsError": 0.17570875024047675,
+              "weight": 0.3333333333333333
+            }
+          },
+          "fulfilled": true
+        },
+        "physicalFrames": 3683406,
+        "compileMs": 148226.064778,
+        "trackHash": "9d39c8f4fd21d4f85923fd8e03cf786024e70b2b6263ccb8c83abaece7ea3c1e",
+        "failure": null,
+        "constructionFailure": null,
+        "executionError": null
+      },
+      "firstChangedSection": 7
+    }
+  ],
+  "interpretation": "All three-million-frame outcomes remain unchanged and every scheduled five-million-frame diagnostic is retained. Lower loss at a different allowance does not qualify the original candidate or demonstrate a monotonic budget response.",
+  "sourceArtifact": {
+    "path": "generated/general-impact-20261002/budget-diagnostic/run.json",
+    "sha256": "3a6f11463c4c0a9acf15506e64cac43752b84b57b53895defee4925fd104d38c"
+  },
+  "originalFailureDetails": [
+    {
+      "id": "canonical-bridge_sparse_lowline-automatic",
+      "seed": 303,
+      "sourceSha256": "aef021d96b3b09b88a771d63c90b70ab9b4151fe12cdbf2b15993525af83647d",
+      "missingTargets": [
+        {
+          "index": 81,
+          "frame": 2307,
+          "impact": 0.1
+        }
+      ],
+      "requestedSections": 83,
+      "fulfilledSections": 82,
+      "unfulfilledSections": [
+        {
+          "section": 82,
+          "construction": "scattered",
+          "guidance": "optional",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-contact-fragmentation"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        }
+      ]
+    },
+    {
+      "id": "canonical-bridge_frontier_pickup_progression-automatic",
+      "seed": 202,
+      "sourceSha256": "0a8b881a0d4d2ebebb704d6fc1a8fa613783e13a96fd8043b6d8c991b2cc53aa",
+      "missingTargets": [
+        {
+          "index": 97,
+          "frame": 2105,
+          "impact": 0.18
+        },
+        {
+          "index": 98,
+          "frame": 2113,
+          "impact": 0.92
+        },
+        {
+          "index": 99,
+          "frame": 2137,
+          "impact": 0.35
+        },
+        {
+          "index": 100,
+          "frame": 2161,
+          "impact": 0.68
+        },
+        {
+          "index": 101,
+          "frame": 2185,
+          "impact": 0.8
+        },
+        {
+          "index": 102,
+          "frame": 2209,
+          "impact": 0.74
+        },
+        {
+          "index": 103,
+          "frame": 2233,
+          "impact": 0.27
+        },
+        {
+          "index": 104,
+          "frame": 2257,
+          "impact": 0.54
+        },
+        {
+          "index": 105,
+          "frame": 2273,
+          "impact": 0.18
+        },
+        {
+          "index": 106,
+          "frame": 2281,
+          "impact": 0.92
+        },
+        {
+          "index": 107,
+          "frame": 2305,
+          "impact": 0.35
+        },
+        {
+          "index": 108,
+          "frame": 2329,
+          "impact": 0.68
+        },
+        {
+          "index": 109,
+          "frame": 2353,
+          "impact": 0.8
+        }
+      ],
+      "requestedSections": 111,
+      "fulfilledSections": 98,
+      "unfulfilledSections": [
+        {
+          "section": 98,
+          "construction": "scallops",
+          "guidance": "required",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "missing-separated-transfer",
+            "insubstantial-shape",
+            "missing-engaged-transfer-reversals"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0,
+          "transfer": {
+            "lastMain": -1,
+            "firstReceive": -1,
+            "receivingFrames": 0,
+            "uncoveredReceivingFrames": 0,
+            "freeBetween": 0,
+            "receivingClearance": 0,
+            "engagedTurns": 0,
+            "contactTurning": 0,
+            "contactReversals": 0
+          }
+        },
+        {
+          "section": 99,
+          "construction": "arcs",
+          "guidance": "forbidden",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 100,
+          "construction": "arcs",
+          "guidance": "forbidden",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 101,
+          "construction": "arcs",
+          "guidance": "forbidden",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 102,
+          "construction": "scattered",
+          "guidance": "optional",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-contact-fragmentation"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 103,
+          "construction": "scattered",
+          "guidance": "optional",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-contact-fragmentation"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 104,
+          "construction": "scattered",
+          "guidance": "optional",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-contact-fragmentation"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 105,
+          "construction": "scattered",
+          "guidance": "optional",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-contact-fragmentation"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 106,
+          "construction": "scattered",
+          "guidance": "optional",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-contact-fragmentation"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 107,
+          "construction": "scattered",
+          "guidance": "optional",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-contact-fragmentation"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 108,
+          "construction": "scallops",
+          "guidance": "required",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-shaped-reversals"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 109,
+          "construction": "scallops",
+          "guidance": "required",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-shaped-reversals"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        },
+        {
+          "section": 110,
+          "construction": "fold",
+          "guidance": "required",
+          "fulfilled": false,
+          "reasons": [
+            "invalid-normal-geometry",
+            "missing-main-rail",
+            "unused-or-missing-guide",
+            "insubstantial-shape",
+            "bypassed-shape",
+            "missing-fold-corners"
+          ],
+          "mainSegments": 0,
+          "guideSegments": 0,
+          "mainContactFrames": 0,
+          "guideContactFrames": 0,
+          "mainLength": 0,
+          "guideLength": 0,
+          "turning": 0,
+          "turnReversals": 0,
+          "orderedTraversal": [
+            null,
+            null,
+            null
+          ],
+          "contactedMainSegments": 0
+        }
+      ]
+    }
+  ]
+}

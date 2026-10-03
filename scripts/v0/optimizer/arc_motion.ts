@@ -19,6 +19,7 @@ import { arcSpanLoss, arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { createArcEngine } from './arc_engine.ts';
+import { createArcCompileContext } from './arc_compile_context.ts';
 import { arcAttemptTelemetry } from './arc_attempts.ts';
 import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, normalizeArcControl, arcControlMemoKey, arcControlValue, arcControlStep, arcMethodKeys, arcControlActive, arcControlsSimilar } from './arc_motion_control.ts';
 import { authoredSpeedToPx, impactToRawPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
@@ -175,87 +176,14 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
   if(duration<1)throw new Error('arc duration must cover at least one frame');
   if(budget<=2*(end+1))throw new Error('arc budget must cover two complete replays and construction work');
   try{
-  const frames=spec.contacts.map(c=>Math.round(c.t*40));
-  const impactTargets=spec.contacts.map((c,i)=>({frame:frames[i],impact:c.impact}));
-  const gaps=sliceTimeline(frames,duration);
-  for(const g of gaps){g.targets=effectiveAxes(g,spec);if(g.endsWithContact&&spec.contacts[g.index].impact!==undefined)g.targets.impact=spec.contacts[g.index].impact;}
-  const rng=makeRng(seed);
-  const preparation=options.impactPreparationFrames??0;
-  const planned=scheduleNativeContacts(gaps.map(g=>({...g,
-    startFrame:g.startFrame?g.startFrame-preparation:0,endFrame:g.endsWithContact?g.endFrame-preparation:g.endFrame,
-    targets:{...g.targets,...sampleGapTargets(g.targets,spec.jitter??CALIB.SIGMA,rng)}})));
-  const fixed=spec.start||(spec.preroll??PREROLL.DEFAULT_S)<=0?resolveStartState(spec):null;
-  const speed=authoredSpeedToPx(gaps[0].targets.speed??.55);
-  const pitch=rad(8.59436692696);
-  const start=fixed??{position:{x:0,y:0},velocity:{x:speed*Math.cos(pitch),y:speed*Math.sin(pitch)}};
-
-  type Prefix={parent?:Prefix;lines?:TrackLine[];key?:string};
-  const hasFragments=Object.values(options.constructionRequests??{}).some(r=>r.construction==='scattered');
-  const trackPrefixes=options.reuseEvaluations||hasFragments;
-  const prefixes=new WeakMap<Engine,Prefix>(),rootPrefix:Prefix={key:'root'};
-  const memoContexts=new Map<string,Map<string,any>>();
-  const prefixKey=(node:Prefix):string=>node.key??=createHash('sha256').update(prefixKey(node.parent!)+'\n'+JSON.stringify(node.lines,(_key,value)=>Object.is(value,-0)?'-0':value)).digest('hex');
-  const addArc=(parent:Engine,geometry:TrackLine[])=>{
-    const child=parent.addLine(geometry),prefix=prefixes.get(parent);
-    if(trackPrefixes&&prefix)prefixes.set(child,{parent:prefix,lines:geometry});
-    return child;
-  };
-  const detachArc=(source:Engine)=>{
-    const child=source.detach(),prefix=prefixes.get(source);
-    if(prefix)prefixes.set(child,prefix);return child;
-  };
-  const rebuildArc=(geometry:TrackLine[])=>{
-    const result=createArcEngine(start,geometry);
-    if(trackPrefixes){
-      let prefix=rootPrefix;const groups:TrackLine[][]=[];
-      for(const line of geometry){
-        const group=Math.floor((line.id-1000)/10000),last=groups.at(-1);
-        if(!last||Math.floor((last[0].id-1000)/10000)!==group)groups.push([line]);else last.push(line);
-      }
-      for(const lines of groups)prefix={parent:prefix,lines};prefixes.set(result,prefix);
-    }
-    return result;
-  };
-  // Share immutable observed prefixes across intervals and search branches.
-  // No whole source ride or repeated suffix is needed to build scattered contacts.
-  const observers=new WeakMap<Prefix,any>();
-  if(hasFragments)observers.set(rootPrefix,contactObserver(start));
-  const observerFor=(engine:Engine)=>{
-    const prefix=prefixes.get(engine);if(!prefix)throw new Error('contact construction requires physical prefix lineage');
-    const missing:Prefix[]=[];let current=prefix;
-    while(!observers.has(current)){missing.push(current);if(!current.parent)throw new Error('missing contact observer root');current=current.parent;}
-    let observer=observers.get(current);
-    for(const p of missing.reverse()){observer=extendContactObserver(observer,p.lines!);observers.set(p,observer);}
-    return observer;
-  };
+  const ctx=createArcCompileContext(spec,seed,options);
+  const {frames,impactTargets,gaps,planned,start,contacts,hasFragments,lineage,work,memoryFor,futureFeatures,reportFor}=ctx;
+  const {prefixes,memoContexts,prefixKey,observers,observerFor}=lineage;
+  const addArc=lineage.add,detachArc=lineage.detach,rebuildArc=lineage.rebuild;
+  const {budgetInterruptions,planningDecisions,lookaheadStats,transitionRevisionWork,fragmentStats,coupledIntervalWork,observedReceiverWork,
+    opposingEntryWork,initialProposalWork,initializationRecovery,constructionImprovement,qualityRetries}=work;
   let engine:any=rebuildArc([]);
-  const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;let backtracks=0;
-  let samples=0,viableCandidates=0,memoHits=0,memoRejectedHits=0;const qualityRetries=new Map<number,number>();
-  let refinementStats:any=null, terminalSelectionStats:any=null, observedConstructionRate=0;
-  let searchBudgetExhausted=false;
-  const budgetInterruptions:Array<{phase:'local'|'planning'|'continuation'|'revision';index:number;frame:number;viable:number;retained:boolean}>=[];
-  const planningDecisions:any[]=[];
-  const reportFor=(trajectory:any,geometry:TrackLine[])=>buildDriftReport(detect(trajectory),spec,gaps,frames,duration,[],gaps.map(g=>({lines:geometry.filter(l=>Math.floor((l.id-1000)/10000)===g.index+1)})) as any,gaps.map(g=>g.targets));
-  const lookaheadStats={probes:0,changedChoices:0,failedProbes:0,physicsFrames:0,continuationNodes:0,maxDepth:0};
-  const transitionRevisionWork:Array<{index:number;error:number;proposals:number;viable:number;accepted:boolean;before:number;after:number;physicsFrames:number}>=[];
-  const fragmentStats={intervals:0,probes:0,observationFrames:0,replayFrames:0};
-  const coupledIntervalWork:Array<{index:number;proposals:number;viable:number;accepted:number;physicsFrames:number;before:number;after:number}>=[];
-  const observedReceiverWork={attempts:0,viable:0,physicsFrames:0,failures:{} as Record<string,number>};
-  const opposingEntryWork={attempts:0,viable:0,physicsFrames:0,failures:{} as Record<string,number>};
-  const initialProposalWork=Object.fromEntries(['center','learned','memory','response','generic','compactFold','compactProfile'].map(k=>[k,{attempts:0,viable:0,physicsFrames:0}]));
-  const initializationRecovery:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number}>=[];
-  const constructionImprovement:Array<{index:number;frame:number;proposals:number;viable:number;physicalFrames:number;before:number|null;after:number|null}>=[];
-  const controlMemory=new ArcControlMemory(),constructionMemories=new Map<string,ArcControlMemory>();
-  const memoryFor=(index:number)=>{
-    if(options.memoryScope!=='construction')return controlMemory;
-    const style={...options,...options.sectionStyles?.[index]};
-    const key=arcConstructionMemoryKey(style);
-    let memory=constructionMemories.get(key);if(!memory){
-      memory=new ArcControlMemory();
-      for(const example of options.constructionExamples?.[key]??[])memory.rememberControl(example);
-      constructionMemories.set(key,memory);
-    }return memory;
-  };
+  const lines:TrackLine[]=[],rows:any[]=[],steps:any[]=[];let failure:any=null,raw:any=null;
   let pendingControl:{index:number;control:ArcMotionControl}|null=null;
   let deepestPrefix={lines:[] as TrackLine[],rows:[] as any[]};
   const backtrack=()=>{
@@ -268,14 +196,13 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       const choice=step.choices.shift();
       lines.push(...choice.lines);
       disposeSearch();engine=rebuildArc(lines);
-      rows.push({...old,...choice.meta,control:choice.c,cost:choice.cost,spent:getPhysicsFrameCount()});steps.push(step);backtracks++;
+      rows.push({...old,...choice.meta,control:choice.c,cost:choice.cost,spent:getPhysicsFrameCount()});steps.push(step);work.backtracks++;
       if(options.reuseContinuations&&choice.futureControl)pendingControl={index:rows.length,control:choice.futureControl};
       return rows.length-1;
     }
     return null;
   };
   setPhysicsFrameLimit(budget-2*(end+1));
-  const contacts=[{frame:1,gap:-1},...planned.filter(g=>g.endsWithContact).map(g=>({frame:g.endFrame,gap:g.index}))];
   if(options.sectionStyles){
     if(typeof options.sectionStyles!=='object'||Array.isArray(options.sectionStyles))throw new Error('invalid section styles');
     for(const [key,style] of Object.entries(options.sectionStyles)){
@@ -292,14 +219,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
   }
   try{
     const compileOptions=options;
-    const futureFeatures=(arrival:number[],i:number,count=2)=>{
-      const features=[...arrival];
-      for(let k=1;k<=count;k++){
-        const contact=contacts[i+k],target=contact?planned.find(g=>g.startFrame===contact.frame)?.targets:undefined;
-        features.push(contact?((contacts[i+k+1]?.frame??end+1)-contact.frame)/40:0,contact?(gaps[contact.gap]?.targets.impact??-1):-1,target?.air??-1,target?.speed??-1,target?.amplitude??-1);
-      }
-      return features;
-    };
     // A selected continuation must carry its own measured residuals and motion,
     // not inherit those of the previously preferred local geometry. Engine
     // wrappers are rebuilt separately because search cleanup can free them.
@@ -379,12 +298,12 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       const evaluateCandidate=(c:ArcMotionControl,fragments?:{lines:TrackLine[];guideIds:number[]})=>{
         c=normalizeArcControl(c,controlContext);
         const key=memo?arcControlMemoKey(c,options.channel)+(fragments?'|fragments':''):'';
-        samples++;
+        work.samples++;
         const saved=memo?.get(key);
         if(saved){
-          memoHits++;
-          if(saved.reason){if(saved.near)rememberNear(saved.near);memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
-          viableCandidates++;candidates.push({...saved.candidate,c});
+          work.memoHits++;
+          if(saved.reason){if(saved.near)rememberNear(saved.near);work.memoRejectedHits++;failures[saved.reason]=(failures[saved.reason]??0)+1;return null;}
+          work.viableCandidates++;candidates.push({...saved.candidate,c});
           // Never reuse saved wrappers: retainOnly may already have freed them.
           // Rebuild from validated geometry; subsequent simulations stay metered.
           // A measurement from an earlier search must compete in this search.
@@ -502,7 +421,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         const finalState=state.points;
         const heading=deg(Math.atan2(finalVelocity.y,finalVelocity.x)),endSpeed=Math.hypot(finalVelocity.x,finalVelocity.y);
         const pose=deg(Math.atan2(finalState.NOSE.y-finalState.TAIL.y,finalState.NOSE.x-finalState.TAIL.x));
-        viableCandidates++;
+        work.viableCandidates++;
         const valueFeatures=options.futureValueModel?futureFeatures(arcArrivalFeatures(state,heading,endSpeed,pose,angularRate,horizon-(release??frame)),i):undefined;
         const predictedFuture=options.futureValueModel?arcFutureValue(valueFeatures!,options.futureValueModel):undefined;
         const guided=arcValueGuidance(cost,localCost,residuals,priorStart,predictedFuture,
@@ -734,7 +653,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       }
       } catch(error) {
         if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
-        searchBudgetExhausted=true;
+        work.searchBudgetExhausted=true;
         budgetInterruptions.push({phase:'local',index:i,frame,viable:candidates.length,retained:!!best});
         // Every retained candidate already passed the complete interval replay.
         // Discard only the interrupted probe, preserving the best valid geometry.
@@ -810,7 +729,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       }
       } catch(error) {
         if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
-        searchBudgetExhausted=true;
+        work.searchBudgetExhausted=true;
         budgetInterruptions.push({phase:'continuation',index,frame:contacts[index].frame,viable:completed,retained:!!winner});
         Engine.retainOnly([...protectedEngines,base,anchor.child]);
         // A completed branch remains usable when exploration of a sibling stops.
@@ -829,13 +748,13 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       if(options.budgetAdaptiveLocal){
         const nominal=(options.samples??160)+(options.guidance?options.guidanceSamples??48:0);
         const remaining=Math.max(1,end-contacts[i].frame),available=(budget-getPhysicsFrameCount()-2*(end+1))/remaining;
-        localScale=clamp(available/(Math.max(nominal*.7,observedConstructionRate||nominal)*1.1),.05,1);
+        localScale=clamp(available/(Math.max(nominal*.7,work.observedConstructionRate||nominal)*1.1),.05,1);
         overrides.samples=Math.max(12,Math.floor((options.samples??160)*localScale));
         overrides.guidanceSamples=Math.floor((options.guidanceSamples??48)*localScale);
         overrides.responseSamples=Math.floor((options.responseSamples??0)*localScale);
       }
       let interval=searchInterval(engine,i,overrides);
-      if(interval){const rate=(getPhysicsFrameCount()-localStart)/Math.max(1,interval.next-interval.frame)/localScale;observedConstructionRate=observedConstructionRate ? .8*observedConstructionRate+.2*rate : rate;}
+      if(interval){const rate=(getPhysicsFrameCount()-localStart)/Math.max(1,interval.next-interval.frame)/localScale;work.observedConstructionRate=work.observedConstructionRate ? .8*work.observedConstructionRate+.2*rate : rate;}
       pendingControl=null;
       if(!interval){failure={frame:contacts[i].frame,reason:'contact_spacing'};break;}
       const previous=steps[i-1];
@@ -846,7 +765,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         const impact=interval.gap>=0?gaps[interval.gap].targets.impact:undefined;
         if(impact!==undefined&&measured.actualImpact!==undefined)errors.push(measured.actualImpact-impact);
         const error=Math.sqrt(errors.reduce((n,v)=>n+v*v,0)/Math.max(1,errors.length));
-        const reserve=(end-interval.frame)*Math.max((options.samples??160)+(options.guidanceSamples??0),observedConstructionRate);
+        const reserve=(end-interval.frame)*Math.max((options.samples??160)+(options.guidanceSamples??0),work.observedConstructionRate);
         const estimate=interval.frame+(interval.next-interval.frame)*(revision.samples+revision.guidanceSamples+96);
         if(error>revision.errorThreshold&&getPhysicsFrameCount()+estimate+reserve<budget-2*(end+1)){
           const began=getPhysicsFrameCount(),original=interval,base=rebuildArc(lines.slice(0,previous.lineStart));
@@ -871,7 +790,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
             }
           }catch(error){
             if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
-            searchBudgetExhausted=true;
+            work.searchBudgetExhausted=true;
             budgetInterruptions.push({phase:'revision',index:i,frame:interval.frame,viable:record.viable,retained:true});
           }
           if(winner){
@@ -894,7 +813,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         // Estimated evaluations per continuation sample, counting its local correction.
         const probeRate=1.4;
         const nominalRate=(options.samples??160)+(options.guidance?options.guidanceSamples??48:0);
-        const constructionReserveRate=(options.adaptivePlanning?Math.max(nominalRate,observedConstructionRate):nominalRate)*(options.reserveFactor??1.1);
+        const constructionReserveRate=(options.adaptivePlanning?Math.max(nominalRate,work.observedConstructionRate):nominalRate)*(options.reserveFactor??1.1);
         if(options.adaptivePlanning){
           const remaining=Math.max(1,end-frame),rate=(budget-getPhysicsFrameCount()-2*(end+1))/remaining;
           const localAllowance=Math.max(0,rate-constructionReserveRate)*(next-frame);
@@ -907,7 +826,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
             probeSamples=Math.max(probeSamples,Math.min(48,Math.floor(affordable/width)));
             depth=d;break;
           }
-          planningDecisions.push({index:i,frame,observedConstructionRate,constructionReserveRate,localAllowance,width,probeSamples,depth});
+          planningDecisions.push({index:i,frame,observedConstructionRate:work.observedConstructionRate,constructionReserveRate,localAllowance,width,probeSamples,depth});
         }
         let shortlist=distinct(candidates,options.reuseContinuations?Math.max(12,width):width);
         if(options.futureValueModel){const original=candidates.find(c=>JSON.stringify(c.c)===JSON.stringify(best.c));if(original)shortlist=[original,...shortlist.filter(c=>c!==original)];}
@@ -934,7 +853,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         }
         } catch(error) {
           if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
-          searchBudgetExhausted=true;
+          work.searchBudgetExhausted=true;
           budgetInterruptions.push({phase:'planning',index:i,frame,viable:probes.length,retained:true});
           Engine.retainOnly([engine,original.child]);
         }
@@ -949,7 +868,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       }
       if(best&&pendingControl?.index===i+1&&(options.coupledIntervalSamples??0)>0){
         const original=best,initialNext=pendingControl.control;
-        const remaining=Math.max(1,end-frame),reserve=remaining*Math.max((options.samples??160)+(options.guidanceSamples??0),observedConstructionRate);
+        const remaining=Math.max(1,end-frame),reserve=remaining*Math.max((options.samples??160)+(options.guidanceSamples??0),work.observedConstructionRate);
         const estimated=(options.coupledIntervalSamples!+1)*Math.max(1,(contacts[i+2]?.frame??end+1)-frame);
         if(getPhysicsFrameCount()+reserve+estimated<budget-2*(end+1)){
           const styles=[i,i+1].map(index=>({...options,...options.sectionStyles?.[index]}));
@@ -993,7 +912,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
             }
           }catch(error){
             if(!(error instanceof PhysicsFrameLimitExceeded))throw error;
-            searchBudgetExhausted=true;Engine.retainOnly([engine,original.child]);
+            work.searchBudgetExhausted=true;Engine.retainOnly([engine,original.child]);
           }finally{record.physicsFrames=getPhysicsFrameCount()-began;coupledIntervalWork.push(record);}
         }
       }
@@ -1017,7 +936,7 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
         if(!original||candidates.some(c=>typeof c.terminalLoss!=='number'||Number.isNaN(c.terminalLoss)))throw new Error('missing complete-trajectory candidate loss');
         const selected=candidates.reduce((a,b)=>b.terminalLoss<a.terminalLoss-1e-15?b:a,original);
         const changed=selected!==original;
-        terminalSelectionStats={candidates:candidates.length,initialLoss:original.terminalLoss,finalLoss:selected.terminalLoss,changed};
+        work.terminalSelectionStats={candidates:candidates.length,initialLoss:original.terminalLoss,finalLoss:selected.terminalLoss,changed};
         if(changed){
           terminalChildLines=selected.lines;
           best=restoreCandidate(selected,best.child);
@@ -1074,9 +993,9 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       const refined=refineArcTrack({engine,lines,rows,alternatives:steps.map(s=>s.choices),contacts,end,start,budget:budget,options,search:searchInterval,report:reportFor,
         objective,validate,engines:requests.length?{create:rebuildArc,add:addArc,detach:detachArc}:undefined});
       lines.splice(0,lines.length,...refined.lines);rows.splice(0,rows.length,...refined.rows);
-      engine=refined.engine;refinementStats=refined.stats;
+      engine=refined.engine;work.refinementStats=refined.stats;
     }
-  }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;searchBudgetExhausted=true;failure={reason:'budget'};}
+  }catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;work.searchBudgetExhausted=true;failure={reason:'budget'};}
   if(failure&&deepestPrefix.rows.length>rows.length){
     lines.splice(0,lines.length,...deepestPrefix.lines);rows.splice(0,rows.length,...deepestPrefix.rows);
   }
@@ -1139,6 +1058,6 @@ function compileArcMotionOnce(spec:Spec,seed:number,options:ArcMotionOptions){
       selectionLoss+=motionResiduals(intervalMotionSummary(observed,contact.frame,next-1),impact,options.motionQuality).reduce((n,r)=>n+r*r,0)/contacts.length;
     }
   }
-  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,initialProposalWork,observedReceiverWork,...(options.opposingEntryProposals?{opposingEntryWork}:{}),coupledIntervalWork,transitionRevisionWork,constructionImprovement,failure,budget:budget,searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:memoHits,rejectedHits:memoRejectedHits},samples,backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats,terminalSelectionStats,...(impactEvaluation?{impactEvaluation,impactTrajectoryLoss}:{}),guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
+  return{track:buildTrackJson(lines,end,start),report,...(hasFragments?{fragmentStats}:{}),...(options.initialRecoverySamples?{initializationRecovery}:{}),stats:{viable_candidate_samples:work.viableCandidates,sim_frames:getPhysicsFrameCount(),gap_commits:report.contacts.filter(c=>c.status==='hit').length},rows,initialProposalWork,observedReceiverWork,...(options.opposingEntryProposals?{opposingEntryWork}:{}),coupledIntervalWork,transitionRevisionWork,constructionImprovement,failure,budget:budget,searchBudgetExhausted:work.searchBudgetExhausted,budgetInterruptions,candidateMemo:{hits:work.memoHits,rejectedHits:work.memoRejectedHits},samples:work.samples,backtracks:work.backtracks,qualityRetries:Object.fromEntries(qualityRetries),lookaheadStats,trajectoryLoss,selectionLoss,planningDecisions,refinementStats:work.refinementStats,terminalSelectionStats:work.terminalSelectionStats,...(impactEvaluation?{impactEvaluation,impactTrajectoryLoss}:{}),guidanceReduction:guidanceReduction?.stats??null,constructionFrames};
   }finally{disposeSearch();disposeJudge();setPhysicsFrameLimit(null);}
 }

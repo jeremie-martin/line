@@ -17,7 +17,7 @@ import {makeRng} from '../../scripts/lib/rng.ts';
 import {compilerIdentity} from '../../scripts/lib/compiler_identity.ts';
 
 const SONGS = ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'amour_de_ma_vie_44s'];
-const BUDGET = 3_000_000;
+const DEFAULT_BUDGET = 3_000_000;
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 type Case = {id: string; song: string; seed: number; perturbation: number | null};
 export const PANEL: Case[] = [
@@ -36,7 +36,7 @@ function perturb(spec: any, p: number) {
   return {...spec, contacts};
 }
 
-async function worker(caseId: string, mode: string, out: string) {
+async function worker(caseId: string, mode: string, out: string, budget: number) {
   const c = PANEL.find(x => x.id === caseId)!;
   const {loadMusicCase} = await import('../../scripts/produce/music_artifacts.ts');
   const {resolveJoltMs} = await import('../../scripts/produce/jolt.ts');
@@ -50,7 +50,7 @@ async function worker(caseId: string, mode: string, out: string) {
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};
   const began = performance.now();
   const contract = mode === 'landing' ? undefined : 'line.strike.v1';
-  const cp = compileHandoff(spec, c.seed, {budget: BUDGET, creative: {}, ...(contract ? {impactContract: contract as any} : {}),
+  const cp = compileHandoff(spec, c.seed, {budget, creative: {}, ...(contract ? {impactContract: contract as any} : {}),
     phraseBoundaries: loaded.musicCase.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter((t: any) => Number.isFinite(t))});
   const compileMs = performance.now() - began, r = cp.repertoire!;
   const frozen = replayGalleryTrack(cp.track, music, false).grade;
@@ -100,21 +100,21 @@ function bootstrap(perSong: Map<string, number>, draws = 4000) {
 }
 
 const command = process.argv[2];
-if (command === 'worker') await worker(arg('case')!, arg('mode', 'strike')!, arg('out')!);
+if (command === 'worker') await worker(arg('case')!, arg('mode', 'strike')!, arg('out')!, Number(arg('budget', String(DEFAULT_BUDGET))));
 else if (command === 'run') {
-  const name = arg('name')!, mode = arg('mode', 'strike')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
+  const budget = Number(arg('budget', String(DEFAULT_BUDGET))), name = arg('name')!, mode = arg('mode', 'strike')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
   mkdirSync(join(dir, 'cells'), {recursive: true});
   const identity = compilerIdentity('.');
   if (existsSync(join(dir, 'run.json'))) {
     const prior = JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8'));
-    if (prior.identity.candidateFingerprint !== identity.candidateFingerprint || prior.mode !== mode) throw new Error('existing run has a different compiler or mode');
-  } else writeFileSync(join(dir, 'run.json'), JSON.stringify({mode, identity, budget: BUDGET, panel: PANEL}, null, 1));
+    if (prior.identity.candidateFingerprint !== identity.candidateFingerprint || prior.mode !== mode || prior.budget !== budget) throw new Error('existing run has a different compiler, mode or budget');
+  } else writeFileSync(join(dir, 'run.json'), JSON.stringify({mode, identity, budget, panel: PANEL}, null, 1));
   const queue = PANEL.filter(c => !existsSync(join(dir, 'cells', c.id + '.json'))), began = performance.now();
   await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
     while (queue.length) {
       const c = queue.shift()!;
       const code = await new Promise<number | null>((done, reject) => {
-        const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--case=${c.id}`, `--mode=${mode}`, `--out=${join(dir, 'cells', c.id + '.json')}`],
+        const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--case=${c.id}`, `--mode=${mode}`, `--budget=${budget}`, `--out=${join(dir, 'cells', c.id + '.json')}`],
           {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
         child.once('error', reject); child.once('exit', done);
       });

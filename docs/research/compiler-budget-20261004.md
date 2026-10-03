@@ -33,6 +33,8 @@ a 45 s song at 0.75M, where one compile in five ran out before the end.
 | R1 | whole-track refinement over every section, 64 attempts (was: last section, 12) | every ruler unchanged within ±0.002, +0.3M frames | rejected: leftover budget at 3M does not buy quality through refinement |
 | K1 | allowance ÷ 4 (calibrate to the real cost) | 0.75M: completion 81% → 100%, but only 0.35M used and strike strength rms +0.022 (guidance switches off below allowance 80); 1.5M unchanged; 3M identical | rejected: the width schedule has cliffs, so no single constant calibrates it |
 | P1 | per-section fair-share pacing of local search (share of remaining work ∝ ride frames covered; never binds before a valid candidate) | 3M byte-identical; 0.75M: no completion gain, contested +0.019; 1.5M: completion −6 pp authored, −12 pp perturbed | rejected: low-budget failures are not early sections starving later ones |
+| L1 | lookahead off | every compile completes on about 0.7M frames (−1.65M, −78 s), but strike loss +0.007, contested beats +2.4 pp (perturbed +3.8 pp), R1 strength rms +0.020 | rejected: lookahead earns its 70% share |
+| P2 | planning reserve factor 1.2 (saturated value 0.7, which reserves less than the observed construction rate) | 0.75M: completion +19 pp authored but −12 pp perturbed; standard: contested +1.7 pp, strike loss +0.002 authored | rejected: low-budget completion is chaotic under this knob |
 | S1 | default allowance = 1,700 frames per ride frame (`production_budget.ts`), 3.0–3.3M on the panel | neutral within noise on every ruler (largest: perturbed strike loss +0.002 [0.000, 0.004]); compile time unchanged or lower | **adopted** as the length-scaled default, a generalisation fix the fixed panel cannot show |
 
 ## What remains open
@@ -44,5 +46,10 @@ a 45 s song at 0.75M, where one compile in five ran out before the end.
 - At the standard allowance about 20–30% of the budget goes unspent, and none
   of R1's extra refinement turned it into quality. Unspent budget is
   therefore saved compile time, not lost quality.
-- Robustness below about 1,000 frames per ride frame is unsolved; K1 shows a
-  cheaper configuration completes reliably there at some cost in strength.
+- Robustness below about 1,000 frames per ride frame is unsolved. K1 and L1
+  show that the search without lookahead completes reliably on about 380
+  frames per ride frame. The failures come from lookahead spending what later
+  sections need, but neither the reserve factor (P2) nor fair-share pacing
+  (P1) fixes it cleanly. A principled fix would make lookahead strictly
+  anytime: run every section once without lookahead first, then spend the
+  remainder on lookahead revisions of the complete incumbent.

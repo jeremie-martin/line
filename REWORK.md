@@ -234,8 +234,9 @@ Only on validated measures:
     saturated search costs 1,200–1,550 frames per ride frame.
   - Ablations: A1 (no value model) and A2 (no construction policies) are both
     slightly worse, so both are kept.
-  - Rejected: R1 (refine every section), K1 (recalibrated allowance) and P1
-    (fair-share pacing of local search).
+  - Rejected: R1 (refine every section), K1 (recalibrated allowance), P1
+    (fair-share pacing of local search), L1 (lookahead off: −1.65M frames
+    but strike loss +0.007) and P2 (reserve factor 1.2).
   - Adopted, S1: the default allowance is 1,700 frames per ride frame
     (`production_budget.ts`), so long songs are not starved. It is neutral on
     the panel; requests may omit `budget`.

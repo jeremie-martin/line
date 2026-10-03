@@ -1,14 +1,14 @@
 {
   "schema": "line.production-library.v1",
-  "plan": "/generated/intentional-motion/library-candidate-8/collection-plan.json",
+  "plan": "/generated/production-repertoire/library-strike/collection-plan.json",
   "entries": [
     {
       "id": "luna_bala_44s-101",
       "title": "Luna Bala",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-101/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/luna_bala_44s-101/manifest.json",
-      "score": 855.1466,
+      "manifest": "/generated/production-repertoire/library-strike/luna_bala_44s-101/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-101/manifest.json",
+      "score": 777.8216,
       "video": false,
       "seed": 101,
       "settings": {
@@ -16,7 +16,7 @@
         "song": "luna_bala_44s",
         "seed": 101,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -35,9 +35,9 @@
       "id": "luna_bala_44s-202",
       "title": "Luna Bala",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-202/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/luna_bala_44s-202/manifest.json",
-      "score": 805.0358,
+      "manifest": "/generated/production-repertoire/library-strike/luna_bala_44s-202/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-202/manifest.json",
+      "score": 738.8195,
       "video": false,
       "seed": 202,
       "settings": {
@@ -45,7 +45,7 @@
         "song": "luna_bala_44s",
         "seed": 202,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -64,9 +64,9 @@
       "id": "luna_bala_44s-303",
       "title": "Luna Bala",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-303/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/luna_bala_44s-303/manifest.json",
-      "score": 873.3229,
+      "manifest": "/generated/production-repertoire/library-strike/luna_bala_44s-303/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/luna_bala_44s-303/manifest.json",
+      "score": 739.2019,
       "video": false,
       "seed": 303,
       "settings": {
@@ -74,7 +74,7 @@
         "song": "luna_bala_44s",
         "seed": 303,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -93,9 +93,9 @@
       "id": "amor_na_praia_46s-101",
       "title": "Amor na Praia",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/amor_na_praia_46s-101/manifest.json",
-      "score": 864.6937,
+      "manifest": "/generated/production-repertoire/library-strike/amor_na_praia_46s-101/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/manifest.json",
+      "score": 752.7878,
       "video": false,
       "seed": 101,
       "settings": {
@@ -103,7 +103,7 @@
         "song": "amor_na_praia_46s",
         "seed": 101,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -122,9 +122,9 @@
       "id": "amor_na_praia_46s-202",
       "title": "Amor na Praia",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/amor_na_praia_46s-202/manifest.json",
-      "score": 798.7276,
+      "manifest": "/generated/production-repertoire/library-strike/amor_na_praia_46s-202/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/manifest.json",
+      "score": 740.5438,
       "video": false,
       "seed": 202,
       "settings": {
@@ -132,7 +132,7 @@
         "song": "amor_na_praia_46s",
         "seed": 202,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -151,9 +151,9 @@
       "id": "amor_na_praia_46s-303",
       "title": "Amor na Praia",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/amor_na_praia_46s-303/manifest.json",
-      "score": 798.0328,
+      "manifest": "/generated/production-repertoire/library-strike/amor_na_praia_46s-303/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/manifest.json",
+      "score": 728.1579,
       "video": false,
       "seed": 303,
       "settings": {
@@ -161,7 +161,7 @@
         "song": "amor_na_praia_46s",
         "seed": 303,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -180,9 +180,9 @@
       "id": "tiki_tiki_48s-101",
       "title": "Tiki Tiki",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/tiki_tiki_48s-101/manifest.json",
-      "score": 840.6198,
+      "manifest": "/generated/production-repertoire/library-strike/tiki_tiki_48s-101/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/manifest.json",
+      "score": 710.7112,
       "video": false,
       "seed": 101,
       "settings": {
@@ -190,7 +190,7 @@
         "song": "tiki_tiki_48s",
         "seed": 101,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -209,9 +209,9 @@
       "id": "tiki_tiki_48s-202",
       "title": "Tiki Tiki",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/tiki_tiki_48s-202/manifest.json",
-      "score": 768.068,
+      "manifest": "/generated/production-repertoire/library-strike/tiki_tiki_48s-202/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/manifest.json",
+      "score": 697.3429,
       "video": false,
       "seed": 202,
       "settings": {
@@ -219,7 +219,7 @@
         "song": "tiki_tiki_48s",
         "seed": 202,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -238,9 +238,9 @@
       "id": "tiki_tiki_48s-303",
       "title": "Tiki Tiki",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/tiki_tiki_48s-303/manifest.json",
-      "score": 790.7037,
+      "manifest": "/generated/production-repertoire/library-strike/tiki_tiki_48s-303/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/manifest.json",
+      "score": 639.1616,
       "video": false,
       "seed": 303,
       "settings": {
@@ -248,7 +248,7 @@
         "song": "tiki_tiki_48s",
         "seed": 303,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -265,11 +265,11 @@
     },
     {
       "id": "amour_de_ma_vie_44s-101",
-      "title": "L\u2019amour de ma vie",
+      "title": "L’amour de ma vie",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-101/manifest.json",
-      "score": 599.4869,
+      "manifest": "/generated/production-repertoire/library-strike/amour_de_ma_vie_44s-101/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/manifest.json",
+      "score": 618.7305,
       "video": false,
       "seed": 101,
       "settings": {
@@ -277,7 +277,7 @@
         "song": "amour_de_ma_vie_44s",
         "seed": 101,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -294,11 +294,11 @@
     },
     {
       "id": "amour_de_ma_vie_44s-202",
-      "title": "L\u2019amour de ma vie",
+      "title": "L’amour de ma vie",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-202/manifest.json",
-      "score": 580.895,
+      "manifest": "/generated/production-repertoire/library-strike/amour_de_ma_vie_44s-202/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/manifest.json",
+      "score": 572.3211,
       "video": false,
       "seed": 202,
       "settings": {
@@ -306,7 +306,7 @@
         "song": "amour_de_ma_vie_44s",
         "seed": 202,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",
@@ -323,11 +323,11 @@
     },
     {
       "id": "amour_de_ma_vie_44s-303",
-      "title": "L\u2019amour de ma vie",
+      "title": "L’amour de ma vie",
       "status": "Fulfilled",
-      "manifest": "/generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/manifest.json",
-      "priorManifest": "/generated/production-repertoire/library-qualified/amour_de_ma_vie_44s-303/manifest.json",
-      "score": 586.8174,
+      "manifest": "/generated/production-repertoire/library-strike/amour_de_ma_vie_44s-303/manifest.json",
+      "priorManifest": "/generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/manifest.json",
+      "score": 585.2658,
       "video": false,
       "seed": 303,
       "settings": {
@@ -335,7 +335,7 @@
         "song": "amour_de_ma_vie_44s",
         "seed": 303,
         "budget": 3000000,
-        "referenceBudget": 750000,
+        "referenceBudget": 0,
         "creative": {
           "repertoire": [
             "arcs",

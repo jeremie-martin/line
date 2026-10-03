@@ -8,7 +8,13 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "allowJs": false,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["scripts/**/*.ts", "productions/**/*.ts"]
+  "include": [
+    "scripts/**/*.ts",
+    "productions/**/*.ts",
+    "benchmark/**/*.ts",
+    "tools/**/*.ts"
+  ]
 }

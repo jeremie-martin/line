@@ -17,7 +17,7 @@ import type { ConstructionRequest } from './repertoire_policy.ts';
 import type { MotionSearchOptions } from './motion_objective.ts';
 import { validProfileControls } from './motion_profiles.ts';
 import { arcMainSteps } from './arc_geometry.ts';
-import { CONTACT_IMPACT_CONTRACT } from '../../lib/contact_impact.ts';
+import { impactAccount, type ImpactAccountId } from './impact_accounts.ts';
 import { validateImpactSearchOptions, type ImpactSearchOptions } from './impact_search.ts';
 
 /** Geometry style of one section: the fields constructionStyle() produces
@@ -146,8 +146,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   constructionPolicies?: Readonly<Record<string, any>>;
 
   // --- CONTACT_IMPACT_SEARCH_PROFILE (contact-impact contract only) --------------
-  /** Explicit experimental ruler; absent means the qualified landing contract. */
-  impactContract?: typeof CONTACT_IMPACT_CONTRACT.id;
+  /** Impact account the compiler optimizes; absent means the frozen landing ruler. */
+  impactContract?: ImpactAccountId;
   impactSearch?: ImpactSearchOptions;
   /** Prepare physical contact before its authored response time. Musical
    * targets and construction requests remain at their original timestamps. */
@@ -247,7 +247,7 @@ export function validateArcOptions(seed: number, options: ArcMotionOptions) {
     options.coupledIntervalSamples < 0 || options.coupledIntervalSamples > 512)) throw new Error('invalid coupled interval allowance');
   if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(options.budget) || options.budget <= 0) throw new Error('invalid arc compiler input');
   if (!validProfileControls(options)) throw new Error('invalid profile controls');
-  if (options.impactContract !== undefined && options.impactContract !== CONTACT_IMPACT_CONTRACT.id) throw new Error('unknown impact contract');
+  if (options.impactContract !== undefined) impactAccount(options.impactContract);
   validateImpactSearchOptions(options.impactSearch);
   if (options.impactSearch && !options.impactContract) throw new Error('impact search options require their measurement contract');
   if (options.opposingEntryProposals !== undefined && (!options.impactContract || !Number.isSafeInteger(options.opposingEntryProposals) ||

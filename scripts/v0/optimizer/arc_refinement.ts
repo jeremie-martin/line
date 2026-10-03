@@ -4,7 +4,7 @@ import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFra
 import type { DriftReport, TrackLine, Gap } from '../types.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { createArcEngine } from './arc_engine.ts';
-import type {MusicalImpactEvaluation} from './impact_search.ts';
+import type {ImpactEvaluation as MusicalImpactEvaluation} from './impact_accounts.ts';
 import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
 import {validRide} from './ride_validity.ts';
 import type { ArcMotionOptions, IntervalOverrides } from './arc_options.ts';

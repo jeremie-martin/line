@@ -9,8 +9,7 @@ import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcPolicyArrival } from './arc_control_policy.ts';
 import { arcConstructionMemoryKey, type ArcControlMemory } from './arc_memory.ts';
 import { arcSpanLoss } from './arc_boundary.ts';
-import { CONTACT_IMPACT_CONTRACT, contactImpactPrefix } from '../../lib/contact_impact.ts';
-import { impactFrames } from './impact_search.ts';
+import { impactAccount } from './impact_accounts.ts';
 import { evaluationContext, type IntervalOptions, type IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 
@@ -60,10 +59,11 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const trace = engine.readCollisionTrace()[0];
   const points = ['PEG', 'TAIL', 'NOSE', 'STRING'].map(key => trace[key]);
   const prefixRaw = options.cachePrefixReads || options.impactContract ? extractRawTrajectory(engine, frame - 1) : null;
-  const prefixImpactFrames = options.impactContract ? impactFrames(engine, prefixRaw!.frames, beforeState) : undefined;
-  const impactPrefix = prefixImpactFrames ? contactImpactPrefix(prefixImpactFrames) : undefined;
-  const localImpactTargets = options.impactContract
-    ? impactTargets.filter(t => t.frame >= frame - CONTACT_IMPACT_CONTRACT.matchFrames && t.frame <= horizon + CONTACT_IMPACT_CONTRACT.matchFrames)
+  const account = options.impactContract ? impactAccount(options.impactContract) : undefined;
+  const prefixImpactFrames = account ? account.observe(engine, prefixRaw!.frames, beforeState) : undefined;
+  const impactPrefix = account ? account.prefix(prefixImpactFrames!) as any : undefined;
+  const localImpactTargets = account
+    ? impactTargets.filter(t => t.frame >= frame - account.matchFrames && t.frame <= horizon + account.matchFrames)
     : [];
   const currentImpactTarget = localImpactTargets.findIndex(t => t === impactTargets[gap]);
   const incoming = deg(Math.atan2(velocity.y, velocity.x)), pace = Math.hypot(velocity.x, velocity.y);

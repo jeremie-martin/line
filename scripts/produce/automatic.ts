@@ -11,10 +11,10 @@ import {validateAutomaticProductionRequest,repertoireSongs} from '../gallery/rep
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {loadMusicCase,saveMusicCell} from './music_artifacts.ts';
 import {resolveJoltMs} from './seed.ts';
-import {CONTACT_IMPACT_CONTRACT} from '../lib/contact_impact.ts';
+import {IMPACT_ACCOUNT_IDS,type ImpactAccountId} from '../v0/optimizer/impact_accounts.ts';
 const arg=(key:string,d?:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3)??d;
-const impactContract=arg('impact-contract') as typeof CONTACT_IMPACT_CONTRACT.id|undefined;
-if(impactContract!==undefined&&impactContract!==CONTACT_IMPACT_CONTRACT.id)throw new Error('unknown impact contract');
+const impactContract=arg('impact-contract') as ImpactAccountId|undefined;
+if(impactContract!==undefined&&!IMPACT_ACCOUNT_IDS.includes(impactContract))throw new Error(`unknown impact contract; known: ${IMPACT_ACCOUNT_IDS.join(', ')}`);
 if(!arg('out'))throw new Error('--out required; outputs are preserved rather than overwritten');
 const request=validateAutomaticProductionRequest(arg('request')?JSON.parse(readFileSync(resolve(arg('request')!),'utf8')):
  {mode:'production',song:arg('song','luna_bala_44s'),seed:Number(arg('seed','101')),budget:Number(arg('budget','3000000')),

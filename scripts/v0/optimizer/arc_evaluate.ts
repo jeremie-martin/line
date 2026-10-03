@@ -19,8 +19,8 @@ import { motionSamples, effectiveBodyVelocity, MOTION_BANDS } from './motion_qua
 import { constructionDeficit } from './repertoire_feasibility.ts';
 import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
 import { observedReceiver } from './observed_receiver.ts';
-import { CONTACT_IMPACT_CONTRACT, continueContactImpacts, accountContactImpacts } from '../../lib/contact_impact.ts';
-import { impactFrames, evaluateMusicalImpacts, impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
+import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
+import { impactAccount as impactAccountFor } from './impact_accounts.ts';
 import { objectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -153,10 +153,11 @@ function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine
     return {reason: 'offbeat'} as Rejection;
   if (i < contacts.length - 1 && s.releaseFrames > 0 && !raw.frames.slice(-s.releaseFrames).every(f => f.sledContacts.length === 0))
     return {reason: 'late_release'} as Rejection;
-  const observedImpacts = options.impactContract ? impactFrames(child, raw.frames.slice(frame), state) : undefined;
-  const impactEvents = observedImpacts ? continueContactImpacts(s.impactPrefix!, observedImpacts)
-    .filter(e => e.onset >= frame - CONTACT_IMPACT_CONTRACT.matchFrames && e.onset <= Math.min(duration, horizon)) : undefined;
-  const impactAccount = impactEvents ? accountContactImpacts(impactEvents, s.localImpactTargets) : undefined;
+  const ruler = options.impactContract ? impactAccountFor(options.impactContract) : undefined;
+  const observedImpacts = ruler ? ruler.observe(child, raw.frames.slice(frame), state) : undefined;
+  const impactEvents = observedImpacts ? ruler!.continue(s.impactPrefix!, observedImpacts)
+    .filter(e => e.onset >= frame - ruler!.matchFrames && e.onset <= Math.min(duration, horizon)) : undefined;
+  const impactAccount = impactEvents ? ruler!.account(impactEvents, s.localImpactTargets) : undefined;
   const impactMatch = impactAccount?.matches.find(m => m.target === s.currentImpactTarget);
   if (options.impactContract && i > 0 && !impactMatch) return {reason: 'missed_impact'} as Rejection;
   const request = options.constructionRequests?.[i];
@@ -198,9 +199,9 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   residuals.push(impact === undefined ? 0 : Math.sqrt(options.impactWeight ?? 2) * (actualImpact! - impact));
   if (impactEvents && impactAccount) {
     const extra = impactSearchResiduals(impactEvents, impactAccount, s.currentImpactTarget < 0 ? undefined : s.currentImpactTarget,
-      frame - CONTACT_IMPACT_CONTRACT.matchFrames, i < contacts.length - 1 ? next - CONTACT_IMPACT_CONTRACT.matchFrames : duration + 1,
+      frame - impactAccountFor(options.impactContract!).matchFrames, i < contacts.length - 1 ? next - impactAccountFor(options.impactContract!).matchFrames : duration + 1,
       options.impactSearch);
-    extra.push(...engagementGainResiduals([...s.impactPrefix!.pending, ...observedImpacts!], frame, Math.min(duration, horizon), options.impactSearch));
+    extra.push(...engagementGainResiduals([...s.impactPrefix!.pending, ...observedImpacts!] as any, frame, Math.min(duration, horizon), options.impactSearch));
     residuals.push(...extra);
     cost += extra.reduce((sum, r) => sum + r * r, 0);
   }
@@ -287,7 +288,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const tail = state.points.TAIL, nose = state.points.NOSE, dx = nose.x - tail.x, dy = nose.y - tail.y;
   const angularRate = (dx * (nose.vy - tail.vy) - dy * (nose.vx - tail.vx)) / Math.max(1, dx * dx + dy * dy);
   const terminalImpacts = options.impactContract && options.terminalSelection && i === contacts.length - 1
-    ? evaluateMusicalImpacts([...s.prefixImpactFrames!, ...observedImpacts!], impactTargets, duration, true) : undefined;
+    ? impactAccountFor(options.impactContract).evaluate([...s.prefixImpactFrames!, ...observedImpacts!], impactTargets, duration, true) : undefined;
   const terminalLoss = options.terminalSelection && i === contacts.length - 1
     ? arcDetectedTrajectoryObjective(det, gaps, options.amplitudeWeight, terminalImpacts).loss + motionCost / contacts.length : undefined;
   const release = raw.frames.slice().reverse().find(f => f.sledContacts.length)?.frame;

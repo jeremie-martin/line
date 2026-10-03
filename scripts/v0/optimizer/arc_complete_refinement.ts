@@ -9,7 +9,8 @@ import { arcRailGroups } from './arc_guidance.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
 import { motionSamples } from './motion_quality.ts';
 import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
-import { impactFrames, evaluateMusicalImpacts, engagementGainResiduals } from './impact_search.ts';
+import { engagementGainResiduals } from './impact_search.ts';
+import { impactAccount } from './impact_accounts.ts';
 import { searchInterval } from './arc_interval.ts';
 import type { ConstructionRequest } from './repertoire_policy.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
@@ -51,11 +52,12 @@ function constructionValidator(requests: ConstructionRequest[]) {
 function wholeTrackObjective(ctx: ArcCompileContext, requests: ConstructionRequest[]) {
   const {options, contacts, duration, gaps, impactTargets} = ctx;
   return (raw: any, report: any, candidate: Engine) => {
-    const physical = options.impactContract ? impactFrames(candidate, raw.frames) : undefined;
-    const impacts = physical ? evaluateMusicalImpacts(physical, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
+    const ruler = options.impactContract ? impactAccount(options.impactContract) : undefined;
+    const physical = ruler ? ruler.observe(candidate, raw.frames) : undefined;
+    const impacts = physical ? ruler!.evaluate(physical, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
     const whole = arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impacts);
     if (physical && Number.isFinite(whole.loss)) for (const request of requests) {
-      const extra = engagementGainResiduals(physical, request.frame, request.next - 1, options.impactSearch)
+      const extra = engagementGainResiduals(physical as any, request.frame, request.next - 1, options.impactSearch)
         .reduce((n, v) => n + v * v, 0) / contacts.length;
       whole.loss += extra;
       whole.regrets[request.section] += extra;

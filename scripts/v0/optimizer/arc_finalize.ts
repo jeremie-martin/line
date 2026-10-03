@@ -11,7 +11,8 @@ import { arcWholeTrajectoryObjective } from './arc_refinement.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
 import { motionSamples } from './motion_quality.ts';
 import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
-import { impactFrames, evaluateMusicalImpacts, engagementGainResiduals } from './impact_search.ts';
+import { engagementGainResiduals } from './impact_search.ts';
+import { impactAccount } from './impact_accounts.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
@@ -44,13 +45,14 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
   const coldEngine = createArcEngine(start, lines);
   const raw = extractRawTrajectory(coldEngine, end);
   const guidanceReduction = pruneUntouchedGuides(ctx, lines, coldEngine, raw);
-  const finalImpactFrames = options.impactContract ? impactFrames(coldEngine, raw.frames) : undefined;
+  const ruler = options.impactContract ? impactAccount(options.impactContract) : undefined;
+  const finalImpactFrames = ruler ? ruler.observe(coldEngine, raw.frames) : undefined;
   disposeSearch();
   try {
     const base = new Judge().setStart(start.position, start.velocity), judge = lines.length ? base.addLine(lines) : base;
     const replay = extractRawTrajectory(judge, end);
     if (JSON.stringify(replay) !== JSON.stringify(raw)) throw new Error('fixed-engine replay mismatch');
-    if (finalImpactFrames && JSON.stringify(impactFrames(judge, replay.frames)) !== JSON.stringify(finalImpactFrames))
+    if (finalImpactFrames && JSON.stringify(ruler!.observe(judge, replay.frames)) !== JSON.stringify(finalImpactFrames))
       throw new Error('fixed-engine impact observation mismatch');
   } finally {
     disposeJudge();
@@ -58,7 +60,7 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
   }
   const report = ctx.reportFor(raw, lines);
   const impactEvaluation = finalImpactFrames
-    ? evaluateMusicalImpacts(finalImpactFrames, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
+    ? ruler!.evaluate(finalImpactFrames, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
   const trajectoryLoss = options.collectTrajectoryLoss ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight).loss : undefined;
   const impactTrajectoryLoss = impactEvaluation
     ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impactEvaluation).loss : undefined;
@@ -126,7 +128,7 @@ function completeSelectionLoss(ctx: ArcCompileContext, raw: any, finalImpactFram
   let selectionLoss = loss;
   if (selectionLoss !== undefined && finalImpactFrames) for (const [i, contact] of contacts.entries()) {
     const next = contacts[i + 1]?.frame ?? duration + 1;
-    selectionLoss += engagementGainResiduals(finalImpactFrames, contact.frame, next - 1, options.impactSearch)
+    selectionLoss += engagementGainResiduals(finalImpactFrames as any, contact.frame, next - 1, options.impactSearch)
       .reduce((n, v) => n + v * v, 0) / contacts.length;
   }
   if (selectionLoss !== undefined && options.motionQuality) {

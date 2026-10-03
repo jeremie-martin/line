@@ -5,13 +5,13 @@ import type {CompileCheckpoint} from './types.ts';
 import type {CreativePreferences,ProductionPlan} from './repertoire_policy.ts';
 import type {compileArcMotion} from './arc_motion.ts';
 import {compileProductionRepertoire} from './production_repertoire.ts';
-import type {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
+import type {ImpactAccountId} from './impact_accounts.ts';
 import {CompileBudgetTelemetryRecorder,type BudgetTelemetryLevel} from './budget_telemetry.ts';
 import {sliceTimeline} from '../core/substrate.ts';
 import {normalizeCompilerTimeline,validateCompilerTelemetry} from './compiler_input.ts';
 type CompileHandoffOptions={budget:number;budgetTelemetry?:BudgetTelemetryLevel};
 
-export type ProductionCompileOptions=CompileHandoffOptions&{creative?:CreativePreferences;constructionPlan?:ProductionPlan;phraseBoundaries?:number[];impactContract?:typeof CONTACT_IMPACT_CONTRACT.id};
+export type ProductionCompileOptions=CompileHandoffOptions&{creative?:CreativePreferences;constructionPlan?:ProductionPlan;phraseBoundaries?:number[];impactContract?:ImpactAccountId};
 export type ProductionCheckpoint=CompileCheckpoint&{construction?:ReturnType<typeof compileArcMotion>;repertoire?:ReturnType<typeof compileProductionRepertoire>};
 export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompileOptions): ProductionCheckpoint {
   userSpec = normalizeCompilerTimeline(userSpec);

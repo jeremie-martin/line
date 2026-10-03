@@ -15,5 +15,6 @@ native track also matches the untouched published JavaScript engine exactly.
 To rebuild `engine.wasm`, run Cargo with this directory's manifest for the
 `wasm32-unknown-unknown` release target, then copy `lr_engine.wasm` from that
 target directory to `engine.wasm` and update the manifest's generated hashes.
-Re-run `scripts/benchmark/audit_planner_backend.ts` against this directory after
-any backend change. Source and WASM bytes are included in compiler snapshots.
+After any backend change, `npm run parity` must stay byte-identical (the audit
+script used when this backend was accepted is at tag archive/pre-rework-2026-10-03).
+Source and WASM bytes are included in the compiler identity.

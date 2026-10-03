@@ -158,3 +158,16 @@ Only on validated measures:
 ## Log
 
 - 2026-10-03: branch and tag created; plan written.
+- 2026-10-03: **Phase 0 done.** Parity harness: 23 cells, plus judge parity on
+  483 stored tracks. Typecheck works (255 errors).
+- 2026-10-03: **Phase 1 done.**
+  - The V6 freeze moved from source hashes to outputs.
+  - Retired: the legacy compiler, the ordinary route, studies and probes,
+    V2–V5 runners and data, old dashboards, 210 dead tests and 137 npm
+    scripts.
+  - The server went from 1,952 to 70 lines.
+  - Compiler identity is now git-based.
+  - Docs went from 425 files to 43: owner-feedback research plus README,
+    ARCHITECTURE, WORKING and CLAUDE.
+  - Tracked files went from about 3,900 to about 1,450.
+  - Typecheck: 16 errors. Parity holds and all tests pass.

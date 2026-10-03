@@ -1,42 +1,21 @@
 node_modules/
 
-# Derived/test artifacts — reproducible by running scripts/
-shakedown/
+# Derived artifacts (reproducible): compiler outputs, studies, renders, caches
 generated/
-!generated/
-generated/*
-!generated/verify-optimizer/
-!generated/verify-optimizer/*.json
-!generated/verify-compiler-behavior/
-!generated/verify-compiler-behavior/*.json
+shakedown/
 coverage/
 .cache/
 .vitest/
 playwright-report/
 test-results/
-bench/music/
-bench/v2/tracks/
-bench/v2/records.jsonl
-bench/v2/per_beat.csv
-benchmark-results/**/*.local.json
-benchmark-results/**/*.tmp.json
-# Benchmark V2 run artifacts are reproducible and can be very large.
-# Keep the directory marker, but do not stage generated run outputs.
-benchmark/v2/runs/*
-!benchmark/v2/runs/.gitkeep
-# Calibration inputs are also regenerated locally from benchmark runs.
-benchmark/v2/studies/inputs/
-# Pairing arms and historical archived runs are likewise raw, reproducible
-# payloads. Keep these directory-scoped so compact study summaries and contract
-# records elsewhere in benchmark/v2 remain reviewable.
-benchmark/v2/studies/arms/*
-benchmark/v2/archive/**/runs/*
-# Snapshot tarballs are raw replay inputs even when an archival command writes
-# them beside, rather than inside, its runs directory.
-benchmark/v2/archive/**/*-compiler-snapshot.tar.gz
-new/
+remotion/public/*.overlay.json
+remotion/public/*.spectrum.json
+__pycache__/
+*.pyc
+*.log
+.DS_Store
 
-# Large binaries — audio/video sources, archives, vendored repos
+# Large binaries: audio/video sources, archives, vendored analysis repos
 *.webm
 *.mp4
 *.mp3
@@ -46,43 +25,19 @@ new/
 *.zip
 beats/adtof_repo/
 beats/stems/htdemucs/
+/archives/
 
-# Python bytecode caches
-__pycache__/
-*.pyc
-
-# Render overlay data + music spectrum are regenerated (make_overlay_data.ts / make_spectrum.py)
-remotion/public/*.overlay.json
-remotion/public/*.spectrum.json
-
-.DS_Store
-*.log
-.wip-archive/
-
-# Local assistant/session metadata
-.claude/projects/
-.claude/scheduled_tasks.lock
-
-# throwaway optimizer probes
+# Local scratch and session metadata
 scripts/v0/_probe*.ts
-
-# per-host produce cursor (resume state; not shared across machines)
-productions/*/.produce-cursor-*.json
-
-# git worktrees (full repo copies — keep out of git + test/file scans)
-.matrix-worktrees/
-scripts/__pycache__/
-
-# throwaway session logs + root-level probe/compile outputs (not project files)
 *.txtsession
 /overnight-session.txt
 /detection.json
 /track.json
 /shelter_65s.json
+/new/
+.claude/projects/
+.claude/scheduled_tasks.lock
+.matrix-worktrees/
 
-# Long-carrier replication evidence is intentionally external to the checkout.
-# The CLIs reject these paths too; this is a last-resort guard for old/manual files.
-/long-carrier-replication*/
-
-# Large campaign archives stay local; push source and compact evidence instead.
-/archives/
+# Per-host resume state
+productions/*/.produce-cursor-*.json

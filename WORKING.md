@@ -1,0 +1,54 @@
+# Working rules
+
+These rules replace the earlier campaign workflow. They exist so that every
+result in this repository can be trusted, compared and reproduced.
+
+## Every change is one of two kinds
+
+**Structural** means refactoring, deleting, moving, tooling or performance work
+that must not change what the compiler produces.
+
+- Gate: `npm run parity` (23 cells byte-identical) and `npm run parity:judge`.
+- Also: `npm test`, `npm run typecheck` (the count must not rise) and
+  `npm run reach` (zero unreachable code).
+- A structural commit that changes any track hash is a bug.
+
+**Behavioural** means anything that changes tracks.
+
+1. State the hypothesis and the measure **before** running it.
+2. Compare paired, song by song, against the current default.
+3. Report completion separately from quality, with an interval over songs,
+   not a point estimate over seeds that reproduce the same track.
+4. Report the result under **every** ruler, not only the one optimized, so
+   self-grading is visible. Disclose any ruler the change makes worse.
+5. If accepted, update the parity references in the same commit with
+   `npm run parity -- --update` and say why they changed.
+
+## Measures before objectives
+
+- A measure becomes something the compiler optimizes only after it agrees with
+  the owner's blind judgments on held-out passages.
+- Until then it is a diagnostic. Changing a measure means a new contract
+  identity and a remeasured baseline.
+
+## Lean by default
+
+- Delete rather than flag off. Experiments live on branches, not as options in
+  production modules.
+- Every learned artifact needs its provenance, its size and an ablation, and it
+  must be trained on data disjoint from what evaluates it.
+- No study scripts in the main tree. A study that matters becomes a dated
+  document in `docs/research/` with its evidence; its code stays on its branch.
+
+## Documents
+
+Keep `README.md`, `ARCHITECTURE.md` and this file current with the code. When
+they disagree with the code, the documents are the bug. `REWORK.md` holds the
+plan and its log.
+
+## Compute
+
+- The machine has 64 cores and 62 GB of RAM.
+- Parity uses 23 parallel compiles, and a full sentinel run takes about 30
+  minutes at 24 jobs.
+- Do not rerun the full sentinel for structural changes; parity is the gate.

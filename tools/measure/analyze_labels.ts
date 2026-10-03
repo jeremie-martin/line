@@ -30,7 +30,7 @@ const spearman = (a: number[], b: number[]) => {
   let sxy = 0, sxx = 0, syy = 0; for (let i = 0; i < n; i++) {sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) ** 2; syy += (y[i] - my) ** 2;}
   return {rho: sxy / Math.sqrt(sxx * syy), n};
 };
-const ordinal = (q: string, value: string) => ({
+const ordinal = (q: string, value: string) => value === 'n/a' ? NaN : ({
   strength: ['none', 'very soft', 'soft', 'medium', 'hard', 'very hard'], clarity: ['messy', 'a bit messy', 'clean'], hits: ['0', '1', '2', '3+'],
 } as Record<string, string[]>)[q].indexOf(value);
 const m = (r: any) => r.key.measures;

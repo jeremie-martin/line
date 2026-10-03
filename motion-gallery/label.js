@@ -36,7 +36,6 @@ function renderQuestions() {
     }
     set.append(legend, row); form.append(set);
   }
-  $('next').disabled = !state.manifest.questions.every(q => state.answers[q.id]);
 }
 
 function draw() {
@@ -76,7 +75,7 @@ async function open(index) {
   const token = ++state.token, clips = state.manifest.clips;
   state.index = Math.max(0, Math.min(index, clips.length - 1));
   const clip = state.clip = clips[state.index];
-  state.answers = {}; $('note').value = ''; renderQuestions();
+  state.answers = Object.fromEntries(state.manifest.questions.map(q => [q.id, q.options[0]])); $('note').value = ''; renderQuestions();
   $('progress').textContent = `${state.labeled.size} labeled · clip ${state.index + 1} / ${clips.length}`;
   $('back').disabled = state.index === 0;
   pause(); state.view = null; status('Loading…');

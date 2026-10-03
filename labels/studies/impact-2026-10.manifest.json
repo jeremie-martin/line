@@ -2,12 +2,13 @@
  "schema": "line.label-study.v1",
  "id": "impact-2026-10",
  "created": "2026-10-03T19:54:46.652Z",
- "instructions": "Each clip loops 1.5 s around one musical beat, with the music. Judge what you see and hear; there are no right answers.",
+ "instructions": "Each clip loops 1.5 s around one musical beat, marked by the green light (it flashes on that beat; other beats may fall inside the clip). Judge only the marked beat. Leave \"n/a\" when unsure; there are no right answers.",
  "questions": [
   {
    "id": "hits",
-   "text": "How many distinct hits do you see in the clip?",
+   "text": "How many distinct hits do you see around the marked beat (between the previous and next beats)?",
    "options": [
+    "n/a",
     "0",
     "1",
     "2",
@@ -16,8 +17,9 @@
   },
   {
    "id": "strength",
-   "text": "How hard is the hit on the beat?",
+   "text": "How hard is the hit on the marked beat?",
    "options": [
+    "n/a",
     "none",
     "very soft",
     "soft",
@@ -28,8 +30,9 @@
   },
   {
    "id": "clarity",
-   "text": "How clean is it?",
+   "text": "How clean is the marked beat's hit?",
    "options": [
+    "n/a",
     "clean",
     "a bit messy",
     "messy"
@@ -37,8 +40,9 @@
   },
   {
    "id": "timing",
-   "text": "When does the hit land relative to the beat?",
+   "text": "When does that hit land relative to the marked beat?",
    "options": [
+    "n/a",
     "early",
     "on the beat",
     "late",

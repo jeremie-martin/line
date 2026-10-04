@@ -3,7 +3,7 @@
  * its arrival (speed, incidence against the first line touched, speed into the
  * surface, sled pitch against the surface).
  *
- *   node --import tsx tools/measure/strong_beats.ts --run=generated/eval/<name> [--min=0.6] */
+ *   node --import tsx tools/measure/strong_beats.ts --run=generated/eval/<name> [--min=0.6] [--max=1] */
 import {readFileSync, readdirSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';
@@ -11,7 +11,7 @@ import {observe} from './observe.ts';
 import {strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V3_CONTRACT} from './strike.ts';
 
 const arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
-const run = arg('run', ''), min = Number(arg('min', '0.6'));
+const run = arg('run', ''), min = Number(arg('min', '0.6')), max = Number(arg('max', '1'));
 const deg = (r: number) => r * 180 / Math.PI;
 const rows: any[] = [];
 for (const f of readdirSync(join(run, 'cells')).filter(f => f.endsWith('.json'))) {
@@ -22,7 +22,7 @@ for (const f of readdirSync(join(run, 'cells')).filter(f => f.endsWith('.json'))
   const o: any = observe(track, duration, targets), lines = new Map(track.lines.map((l: any) => [l.id, l]));
   const events = detectStrikes(strikeMotionFrames(o), STRIKE_V3_CONTRACT).filter(e => e.onset <= duration), account = accountStrikes(events, targets, STRIKE_V3_CONTRACT);
   for (const m of account.matches) {
-    const t = targets[m.target]; if ((t.impact ?? 0) < min) continue;
+    const t = targets[m.target]; if ((t.impact ?? 0) < min || (t.impact ?? 0) > max) continue;
     const e = events[m.event], f0 = e.contactStart, hit = o.frames[f0].collisions[0];
     if (!hit || f0 < 1) continue;
     const l: any = lines.get(hit[0]), P = o.frames[f0 - 1].points;
@@ -34,9 +34,11 @@ for (const f of readdirSync(join(run, 'cells')).filter(f => f.endsWith('.json'))
   }
 }
 const q = (xs: number[], p: number) => {const s = xs.slice().sort((a, b) => a - b); return s[Math.floor(p * (s.length - 1))];};
-const show = (label: string, r: any[]) => console.log(`${label.padEnd(26)} n ${String(r.length).padStart(4)}  strength p50 ${q(r.map(x => x.strength), .5).toFixed(2)}  ` +
+const show = (label: string, r: any[]) => r.length && console.log(`${label.padEnd(26)} n ${String(r.length).padStart(4)}  strength p50 ${q(r.map(x => x.strength), .5).toFixed(2)}  ` +
   `requested p50 ${q(r.map(x => x.requested), .5).toFixed(2)}  speed ${q(r.map(x => x.speed), .5).toFixed(1)}  into surface ${q(r.map(x => x.normal), .5).toFixed(2)}  ` +
   `incidence ${q(r.map(x => x.incidence), .5).toFixed(0)}°  sled-surface ${q(r.map(x => x.pitch), .5).toFixed(0)}°`);
-show(`all (requested ≥ ${min})`, rows);
+show(`all (requested ${min}–${max})`, rows);
+const air = rows.filter(r => r.normal < 1.5);
+show('into surface < 1.5', air);
 for (const [a, b] of [[0, 3], [3, 4.5], [4.5, 6], [6, 99]]) show(`into surface ${a}–${b}`, rows.filter(r => r.normal >= a && r.normal < b));
 for (const [a, b] of [[0, 10], [10, 25], [25, 90]]) show(`sled-surface ${a}–${b}°`, rows.filter(r => r.pitch >= a && r.pitch < b));

@@ -15,6 +15,7 @@ Links to documents that are no longer in the tree resolve at tag
 | [impact-candidates-20261004.md](impact-candidates-20261004.md) | research impact-strength candidates (surface arrival, spin toggle, energy as a negative result), probes, segmentation findings and the pairs that would discriminate them |
 | [compiler-budget-20261004.md](compiler-budget-20261004.md) | how the compile budget is spent; ablations A1/A2; rejected R1/K1/P1; the length-scaled default allowance |
 | [general-impact-results-20261003.md](general-impact-results-20261003.md) | `line.contact-impact.v1` delivery: results, tradeoffs, limitations |
+| [scorecard-blind-spots-20261005.md](scorecard-blind-spots-20261005.md) | rider behaviours no scorecard row measures (pose at strong hits, body contact, pass-throughs, spin), by era; proposed guard rows |
 
 The October 3 independent audit corrects several claims in these documents:
 

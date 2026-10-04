@@ -40,7 +40,7 @@ type Example = {metric: string; ride: string; frame: number; note: string};
  * did not collide with that frame: the drawn line passes through the rider.
  * Spatial hash over the lines; strict side test with a 0.5 px margin; `depth`
  * is how far past the line the point ends. */
-function passThroughs(track: any, o: any, last: number) {
+export function passThroughs(track: any, o: any, last: number) {
   const cell = 64, grid = new Map<string, any[]>();
   for (const l of track.lines) {
     if (l.type === 2) continue;   // scenery never collides
@@ -151,7 +151,7 @@ export function blindSpots(r: Ride, examples: Example[] = []) {
   for (const f of kicks.filter(f => !nearBeat(f, 4)).slice(0, 2)) ex('off-beat kick', f, `+${(speed[f] - Math.hypot(V(f - 1)[0], V(f - 1)[1] + G)).toFixed(2)} px/frame`);
   const through = passThroughs(r.track, o, last), throughEpisodes = runs(Array.from({length: last + 1}, (_, f) => through.some(t => t.frame === f)));
   const deepEpisodes = runs(Array.from({length: last + 1}, (_, f) => through.some(t => t.frame === f && t.depth >= 3)));
-  for (const [a] of throughEpisodes.slice(0, 2)) ex('pass-through', a, through.filter(t => t.frame === a).map(t => t.point).join(','));
+  for (const [a] of deepEpisodes.slice(0, 2)) ex('pass-through ≥3 px', a, `points ${through.filter(t => t.frame === a).map(t => t.point).join(',')}`);
   const postEnd = complete ? crashAfterEnd(r.track, D, 120) : null;
   if (postEnd !== null) ex('crash after end', D + postEnd, `${postEnd} frames after the end`);
 
@@ -215,6 +215,7 @@ export function blindSpots(r: Ride, examples: Example[] = []) {
     'wobbles / min': wobbles / minutes,
     'body contact s/min': body.filter(Boolean).length / FPS / minutes,
     'body drags ≥6f': drags.length,
+    'body drag s/min': drags.reduce((n, [a, b]) => n + b - a + 1, 0) / FPS / minutes,
     'body contact on a roof s/min': roofFrames / FPS / minutes,
     'body-only contact s/min': body.filter((b, f) => b && !sledTouch(f)).length / FPS / minutes,
     'stall frames (<2 px/f) %': 100 * share(slow.slice(FPS)),
@@ -238,6 +239,7 @@ export function blindSpots(r: Ride, examples: Example[] = []) {
     'strong: |φ|>120° %': 100 * share(strong.map(h => h.flipped)),
     'strong: inverted body-first %': 100 * share(strong.map(h => h.inverted && h.kind === 'body')),
     'strong: backward %': 100 * share(strong.map(h => h.backward)),
+    'strong: inverted or backward %': 100 * share(strong.map(h => h.inverted || h.backward)),
     'quiet: extras ≥0.1 / quiet beat': quietBeats ? quietExtras / quietBeats : NaN,
     'quiet: turn °/frame': quietFrames ? quietTurn / quietFrames : NaN,
     'quiet: kicks / quiet beat': quietBeats ? quietKicks / quietBeats : NaN,

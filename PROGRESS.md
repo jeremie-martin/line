@@ -35,5 +35,5 @@ A change is adopted only if the whole picture improves.
 | 00:20 | Agent A: pose-matched catches, guided dive | Nothing beyond L1. Physics frontier: slams cost speed, sharper turns crash. |
 | 00:22 | Per-gap analysis | Air and speed errors concentrate in the densest, strongest song. Achievable strength is about 0.06–0.9. |
 | 00:26 | **Fresh-seed confirmation of L1 + L9** | **Holds:** strong bias +0.03 / +0.02, speed rms −0.025 / −0.023. |
-| 00:40 | Learned models without / with more samples | Both still help under v3; more samples null. Retraining on v3 is a follow-up. |
-| 00:45 | Agent C: why "L'amour de ma vie" is hard | Running. |
+| 00:33 | Learned models without / with more samples | Both still help under v3; more samples null. Retraining on v3 is a follow-up. |
+| 00:35 | Agent C: why "L'amour de ma vie" is hard | Running. |

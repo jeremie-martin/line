@@ -7,6 +7,9 @@
  * `compile` recompiles the committed cells in fresh processes.
  * `judge` re-scores the committed reference tracks; `--all` additionally
  * re-scores every stored V6 reference track under generated/ (local data).
+ * Cells with a `budget` compile at that allowance instead of the V6 budget, where
+ * budget-gated options take other values; they pin the track hash and frame
+ * count only (no stored track, no judgment).
  * Expected values come from tools/parity/cells.json. A deliberate behaviour
  * change updates them with `compile --update`, in its own commit. */
 import {readFileSync, writeFileSync, mkdtempSync, existsSync} from 'node:fs';
@@ -18,7 +21,7 @@ import {loadCatalog} from '../../benchmark/v6/model.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
 import {caseSpec, sha} from '../../benchmark/v4/model.ts';
 
-type Cell = {mode: 'landing' | 'strike'; id: string; seed: number; panel: string; trackHash: string; physicalFrames: number;
+type Cell = {mode: 'landing' | 'strike'; id: string; seed: number; panel: string; budget?: number; trackHash: string; physicalFrames: number;
   score?: number; musicalScore?: number; valid?: boolean; fulfilled?: number; quality?: number; loss?: number};
 const root = new URL('.', import.meta.url).pathname;
 const cellsPath = join(root, 'cells.json');
@@ -37,7 +40,7 @@ async function compileWorker(index: number, out: string) {
   const cell = doc.cells[index], {c, music} = caseOf(cell), requested = c.plans[cell.seed];
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
   const began = performance.now();
-  const checkpoint = compileHandoff(caseSpec(music), cell.seed, {budget: policy.budget,
+  const checkpoint = compileHandoff(caseSpec(music), cell.seed, {budget: cell.budget ?? policy.budget,
     ...(cell.mode === 'strike' ? {impactContract: STRIKE} : {}),
     ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})});
   writeFileSync(out, JSON.stringify({trackHash: sha(JSON.stringify(checkpoint.track)), physicalFrames: checkpoint.stats.sim_frames,
@@ -75,13 +78,13 @@ else if (command === 'compile') {
           {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
         child.once('error', reject); child.once('exit', done);
       });
-      const name = `${c.mode} ${c.id} #${c.seed}`;
+      const name = `${c.mode} ${c.id} #${c.seed}${c.budget ? ` @${c.budget}` : ''}`;
       if (code !== 0 || !existsSync(out)) {failures.push(`${name}: worker exited ${code}`); continue;}
       const r = JSON.parse(readFileSync(out, 'utf8'));
       const diff = compare(c, r, ['trackHash', 'physicalFrames']);
       if (flag('update') && diff.length) {
-        Object.assign(c, {trackHash: r.trackHash, physicalFrames: r.physicalFrames}, await judgeTrack(c, r.track));
-        writeFileSync(trackFile(c), gzipSync(JSON.stringify(r.track)));
+        Object.assign(c, {trackHash: r.trackHash, physicalFrames: r.physicalFrames}, c.budget ? {} : await judgeTrack(c, r.track));
+        if (!c.budget) writeFileSync(trackFile(c), gzipSync(JSON.stringify(r.track)));
       }
       console.log(`${diff.length ? 'DIFF' : 'same'}  ${name}  ${(r.compileMs / 1000).toFixed(0)}s${diff.length ? '  ' + diff.join('; ') : ''}`);
       if (diff.length && !flag('update')) failures.push(`${name}: ${diff.join('; ')}`);
@@ -93,12 +96,12 @@ else if (command === 'compile') {
   process.exit(failures.length ? 1 : 0);
 } else if (command === 'judge') {
   const failures: string[] = [];
-  for (const cell of doc.cells) {
+  for (const cell of doc.cells.filter(c => !c.budget)) {
     const actual = await judgeTrack(cell, JSON.parse(gunzipSync(readFileSync(trackFile(cell))).toString()));
     const diff = compare(cell, actual, ['score', 'musicalScore', 'valid', 'fulfilled', 'quality', 'loss']);
     if (diff.length) failures.push(`${cell.mode} ${cell.id} #${cell.seed}: ${diff.join('; ')}`);
   }
-  let checked = doc.cells.length;
+  let checked = doc.cells.filter(c => !c.budget).length;
   if (flag('all')) {
     const ref = 'generated/intentional-motion/v6-candidate-8';
     const run = JSON.parse(readFileSync(join(ref, 'run.json'), 'utf8'));

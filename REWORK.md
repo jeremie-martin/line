@@ -249,3 +249,16 @@ Only on validated measures:
     (the earlier strike draw was 0.34). It is driven by amour #303 (142 vs
     the previous library's 272) and tiki #303, a draw-to-draw difference: a
     single-frame spike is also what a strong requested hit looks like.
+- 2026-10-04: **Constant options removed** (structural, branch
+  rework/constant-options, merged).
+  - Interval options went from 84 to 58: 17 constant base options, 9
+    repertoire and intentional-plan flags, `arrivalMode` (now an internal
+    passive-arrival flag), and `guidance` narrowed to 'clearance'.
+  - Research knobs were removed from `arc_motion_control.ts`. v1 plans are
+    rejected explicitly.
+  - Tests went from 266 to 255; each deleted case only compared a removed
+    option on and off.
+  - Parity now also pins 18 low-budget cells (150k and 750k), where the
+    budget-gated options take other values. All 41 cells and judge parity
+    pass.
+- 2026-10-04: The review library is rendered (12/12 videos).

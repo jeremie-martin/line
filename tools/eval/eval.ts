@@ -126,9 +126,9 @@ function bootstrap(perSong: Map<string, number>, draws = 4000) {
 }
 
 const command = process.argv[2];
-if (command === 'worker') await worker(arg('case')!, arg('mode', 'strike2')!, arg('out')!, arg('budget', DEFAULT_BUDGET)!);
+if (command === 'worker') await worker(arg('case')!, arg('mode', 'strike3')!, arg('out')!, arg('budget', DEFAULT_BUDGET)!);
 else if (command === 'run') {
-  const budget = arg('budget', DEFAULT_BUDGET)!, name = arg('name')!, mode = arg('mode', 'strike2')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
+  const budget = arg('budget', DEFAULT_BUDGET)!, name = arg('name')!, mode = arg('mode', 'strike3')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
   if (budget !== 'standard' && !(Number(budget) > 0)) throw new Error('--budget is standard or a frame count');
   mkdirSync(join(dir, 'cells'), {recursive: true});
   const identity = compilerIdentity('.');

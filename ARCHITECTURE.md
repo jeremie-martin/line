@@ -60,7 +60,7 @@ spec (beats, impacts, air/speed/amplitude targets)
 
 ## Measurement
 
-**The product's impact objective is the strike account, `line.strike.v2`.**
+**The product's impact objective is the strike account, `line.strike.v3`.**
 It lives in `scripts/lib/strike_impact.ts`; the definition, its rationale and
 the evidence are in `docs/research/strike-definition-20261004.md`.
 
@@ -77,11 +77,14 @@ the evidence are in `docs/research/strike-definition-20261004.md`.
   - A long smooth bend counts little.
   - Chosen on the owner's blind pair judgments: 46 of 63 decisive pairs,
     against 31 of 63 for v1's redirection strength.
+- **Opposite pushes (v3).** A push reversed by more than 120° from the
+  current impact's peak push (a floor hit, then the upper rail) starts a new
+  impact. An unrequested second hit therefore costs as an extra.
 - **Matching.** Events are matched one-to-one to beats; unmatched strikes cost
   their strength squared.
 
-`line.strike.v1` (the same events, but strength = centre-of-mass redirection)
-stays as a comparison until the owner has reviewed v2 rides.
+`line.strike.v2` (without the opposite-push rule) and `line.strike.v1`
+(strength = centre-of-mass redirection) stay as comparisons.
 
 The compiler uses accounts only through `impact_accounts.ts`. Search,
 refinement, terminal selection, the final replay, production and the review
@@ -102,8 +105,6 @@ Known limits of the strike account:
 
 - **Strength scale.** The pair judgments validate ordering, not the absolute
   scale. The owner has never called a compiled hit harder than "medium".
-- **Separate impacts.** A floor hit followed within a few frames by an upper hit
-  is visually two impacts. The current event rule may fuse them.
 - **Quiet requests.** Requests below about 0.05 sit near the floor of any
   gentle touchdown; quiet beats read about 0.03–0.05 strong.
 

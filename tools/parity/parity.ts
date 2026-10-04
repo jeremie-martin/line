@@ -1,7 +1,7 @@
 /** Structural-change safety net. Structural steps must leave every parity cell
  * byte-identical: same track hash, same physics-frame count, same judgment.
  *
- *   node --import tsx tools/parity/parity.ts compile [--mode=landing|strike|strike2] [--jobs=23]
+ *   node --import tsx tools/parity/parity.ts compile [--mode=landing|strike|strike2|strike3] [--jobs=23]
  *   node --import tsx tools/parity/parity.ts judge   [--all]
  *
  * `compile` recompiles the committed cells in fresh processes.
@@ -21,7 +21,7 @@ import {loadCatalog} from '../../benchmark/v6/model.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
 import {caseSpec, sha} from '../../benchmark/v4/model.ts';
 
-type Cell = {mode: 'landing' | 'strike' | 'strike2'; id: string; seed: number; panel: string; budget?: number; trackHash: string; physicalFrames: number;
+type Cell = {mode: 'landing' | 'strike' | 'strike2' | 'strike3'; id: string; seed: number; panel: string; budget?: number; trackHash: string; physicalFrames: number;
   score?: number; musicalScore?: number; valid?: boolean; fulfilled?: number; quality?: number; loss?: number};
 const root = new URL('.', import.meta.url).pathname;
 const cellsPath = join(root, 'cells.json');
@@ -29,7 +29,7 @@ const doc = JSON.parse(readFileSync(cellsPath, 'utf8')) as {cells: Cell[]};
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
 const trackFile = (c: Cell) => join(root, 'tracks', `${c.mode}-${c.id}-${c.seed}.json.gz`);
-const CONTRACTS: Record<string, string> = {strike: 'line.strike.v1', strike2: 'line.strike.v2'};
+const CONTRACTS: Record<string, string> = {strike: 'line.strike.v1', strike2: 'line.strike.v2', strike3: 'line.strike.v3'};
 
 function caseOf(cell: {id: string}) {
   const catalog = loadCatalog(), c = catalog.cases.find((c: any) => c.id === cell.id)!;

@@ -13,7 +13,7 @@
  *    rail) are separate impacts, so an unrequested second hit costs as an extra.
  *  (line.contact-impact.v1, their predecessor, is kept only as a research
  *  diagnostic in tools/measure.) */
-export const DEFAULT_IMPACT_ACCOUNT = 'line.strike.v2';
+export const DEFAULT_IMPACT_ACCOUNT = 'line.strike.v3';
 import {CONTACT_IMPACT_CONTRACT, accountContactImpacts, contactSpeedGains, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';
 import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT, observeStrikes, observeMotion, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes,
   type StrikeContract} from '../../lib/strike_impact.ts';

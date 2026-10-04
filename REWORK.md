@@ -316,3 +316,16 @@ Only on validated measures:
     completion, peak timing, contested beats, air/speed/amplitude rms, bursts
     or compile cost.
   - Adopted as default only if all hold on both panels.
+- 2026-10-04 night: **H-v3 result** (s3-a against s2-base).
+  - Primary goals passed on both panels: double impacts per beat −0.13 / −0.16;
+    v3 loss −0.011 / −0.021; strong extra impacts per beat −0.08 / −0.10.
+  - Completion, timing, contested beats, bursts and air are unchanged or better.
+  - **Two guards regressed on the authored panel only:** v2 strength rms
+    +0.008 [0.002, 0.016] and speed rms +0.007 [0.001, 0.012]. Amplitude was
+    mixed (−0.005 / +0.011). The pre-registered rule therefore strictly fails.
+  - **Adopted anyway, as an explicit exception:** the owner asked directly for
+    double hits to be fixed; they fall about 75%; the regressions are small.
+    The likely cause is that rail bounces were helping the compiler reach
+    strength and speed targets.
+  - Recovering both guards is compiler hypothesis H-1.
+  - The default account and eval mode are now v3; parity gained 11 strike3 cells.

@@ -123,8 +123,11 @@ export function planLookahead(ctx: ArcCompileContext, seq: ArcSequence, i: numbe
  * widens and deepens the tree when the work available per remaining frame,
  * beyond the reserved construction rate, affords it. */
 function planningAllocation(ctx: ArcCompileContext, i: number, frame: number, next: number) {
-  const {options, contacts, end, budget, work} = ctx;
+  const {options, contacts, end, budget, work, gaps} = ctx;
   let width = options.lookaheadWidth!, probeSamples = options.lookaheadSamples ?? 32, depth = 1;
+  // An interval leading into a strong ask may widen further: arrival and catch must be found together.
+  const from = options.impactSearch?.steepArrivalFrom, nextAsk = contacts[i + 1] ? gaps[contacts[i + 1].gap]?.targets.impact ?? 0 : 0;
+  const boost = from !== undefined && nextAsk >= from ? options.impactSearch?.strongLookahead ?? 1 : 1;
   const nominalRate = (options.samples ?? 160) + (options.guidance ? options.guidanceSamples ?? 48 : 0);
   const constructionReserveRate = Math.max(nominalRate, work.observedConstructionRate) * (options.reserveFactor ?? 1.1);
   const remaining = Math.max(1, end - frame), rate = (budget - getPhysicsFrameCount() - 2 * (end + 1)) / remaining;
@@ -135,8 +138,8 @@ function planningAllocation(ctx: ArcCompileContext, i: number, frame: number, ne
       framesPerProbe += Math.pow(2, k) * ((contacts[i + k + 2]?.frame ?? end + 1) - contacts[i + k + 1].frame) * PROBE_RATE;
     const affordable = localAllowance / Math.max(1, framesPerProbe);
     if (affordable < width * probeSamples) continue;
-    width = Math.max(width, Math.min(5, Math.floor(affordable / probeSamples)));
-    probeSamples = Math.max(probeSamples, Math.min(48, Math.floor(affordable / width)));
+    width = Math.max(width, Math.min(Math.round(5 * boost), Math.floor(affordable / probeSamples)));
+    probeSamples = Math.max(probeSamples, Math.min(Math.round(48 * boost), Math.floor(affordable / width)));
     depth = d;
     break;
   }

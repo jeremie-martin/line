@@ -297,3 +297,12 @@ Only on validated measures:
   - Problem 1 (measuring) is done apart from the absolute scale and the
     separation of floor-then-ceiling hits. Problem 2 (producing strong hits)
     is next.
+  - The review library was regenerated under v2
+    (`generated/production-repertoire/library-strike-v2`): 12/12 fulfilled,
+    published to the dashboard.
+  - Motion check: the 4- and 10-frame burst burdens fell by 90–100%, and the
+    windows and openings pass. The 1-frame burden ratio is 1.06, which fails
+    the halving rule.
+  - The 1-frame rule counts single-frame speed GAINS (kicks), not slams. There
+    are only 13 such frames in 12 rides, about half away from any beat: a
+    small item to watch in problem 2.

@@ -14,11 +14,9 @@ export type ArcMotionControl={entry:number; turn:number; exit:number; support:nu
   /** Active normal of the receiving surface: +1 ordinary, -1 opposing.
    * This is a physical construction choice, not a distinct impact category. */
   contactSide?:number;
-  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; exitBias?:number;
+  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number;
   guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
-  receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number;
-  /** Fraction of the profiled duration occupied by a complete smooth motif. */
-  profileEnd?:number};
+  receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
 export function normalizeArcTurnFraction(fraction:number,support:number):number{
@@ -65,11 +63,10 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     }
     const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);
     const easing=(z:number,bias=c.bias)=>bias>=0?Math.pow(z,1+bias):1-Math.pow(1-z,1-bias);
-    let a=rad(time<first?c.entry+c.turn*(wave?Math.sin(Math.PI*u):easing(u)):lerp(c.entry+(wave?0:c.turn),c.exit,easing(w,c.exitBias??c.bias)));
+    let a=rad(time<first?c.entry+c.turn*(wave?Math.sin(Math.PI*u):easing(u)):lerp(c.entry+(wave?0:c.turn),c.exit,easing(w)));
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):
-      c.profileEnd!==undefined?clamp((time-profileFirst)/Math.max(.01,(c.support-profileFirst)*c.profileEnd),0,1):
       style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles,
       {start:rad(c.entry+c.turn),exit:rad(c.exit),foldAngle:c.foldBend??style?.foldAngle});
     // Fixed angular folds have actual corners. Applying a smooth-curve radius

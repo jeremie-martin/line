@@ -82,10 +82,10 @@ it('transfers a weighted response through physical residual units before applyin
 it('can preserve demonstrated support duration when only the following flight grows',()=>{
  const memory=new ArcControlMemory(),control={entry:10,turn:20,exit:30,support:12,bias:0,offset:0};
  memory.rememberControl({control,features:[0],incoming:15,span:24});
- const proposals=memory.proposeControls([0],25,240,4,'geometry','both');
+ const proposals=memory.proposeControls([0],25,240,4,'both');
  expect(proposals.map(c=>c.support)).toEqual([120,12]);
  expect(proposals.every(c=>c.entry===20&&c.exit===40)).toBe(true);
- expect(memory.proposeControls([0],25,240,4,'geometry').map(c=>c.support)).toEqual([120]);
+ expect(memory.proposeControls([0],25,240,4).map(c=>c.support)).toEqual([120]);
 });
 
 it('does not retain a calm passage impact preference when reusing its response elsewhere',()=>{

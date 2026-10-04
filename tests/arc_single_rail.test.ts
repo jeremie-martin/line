@@ -1,6 +1,6 @@
 import {it,expect} from 'vitest';
 import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';
-import {normalizeArcControl,arcMethodKeys,arcControlMemoKey} from '../scripts/v0/optimizer/arc_motion_control.ts';
+import {normalizeArcControl,arcResponseKeys,arcControlMemoKey} from '../scripts/v0/optimizer/arc_motion_control.ts';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],velocity={x:9,y:2};
@@ -13,15 +13,13 @@ it('enforces no guides even when proposals explicitly request full close guidanc
     if(!profile)expect(forced).toEqual(expected);
   }
 });
-it('canonicalizes inactive guide variables and excludes their response and repair probes',()=>{
+it('canonicalizes inactive guide variables and excludes their response probes',()=>{
   const a=normalizeArcControl({...control,clearance:8,guideStart:.2,guideEnd:.9,guideFlare:5},{span:40,guides:false});
   const b=normalizeArcControl({...control,clearance:26,guideStart:0,guideEnd:1,guideFlare:-12},{span:40,guides:false});
   expect(a).toEqual(control);expect(arcControlMemoKey(a,12)).toEqual(arcControlMemoKey(b,12));
-  for(const method of ['response','repair'] as const){
-    const active=arcMethodKeys(method,true,true,false);
-    expect(active).toContain('bend');expect(active).toContain('turnFraction');
-    for(const key of ['clearance','guideStart','guideEnd','guideFlare'])expect(active).not.toContain(key);
-  }
+  const active=arcResponseKeys(false);
+  expect(active).toContain('bend');expect(active).toContain('turnFraction');
+  for(const key of ['clearance','guideStart','guideEnd','guideFlare'])expect(active).not.toContain(key);
 });
 it('searches single rails from scratch through lookahead and replay without emitting guides',()=>{
   const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};

@@ -1,7 +1,7 @@
 import {expect, it} from 'vitest';
 import {motionArc, type ArcMotionControl} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {ARC_CONTROL_KEYS, ARC_CORE_KEYS, normalizeArcControl, arcControlMemoKey,
-  arcControlValue, arcMethodKeys, arcControlStep} from '../scripts/v0/optimizer/arc_motion_control.ts';
+  arcControlValue, arcResponseKeys, arcControlStep} from '../scripts/v0/optimizer/arc_motion_control.ts';
 
 const control: ArcMotionControl = {entry: 5, turn: -20, exit: -10, support: 12, bias: 0, offset: .1};
 
@@ -24,8 +24,6 @@ it('normalizes against the actual interval without mutating or materializing opt
   expect(supplied.support).toBe(100);
   expect(Object.keys(bounded)).toEqual(Object.keys(control));
   expect(normalizeArcControl({...supplied, turn: -130}, {span: 20}).turn).toBe(-120);
-  expect(normalizeArcControl(supplied, {span: 20, independentExit: true}).exitBias).toBe(2);
-  expect(normalizeArcControl(supplied, {span: 20, independentExit: true, exitRefinementOnly: true}).exitBias).toBeUndefined();
 });
 
 it('lets explicit search timing represent the inherited long arc exactly', () => {
@@ -36,23 +34,17 @@ it('lets explicit search timing represent the inherited long arc exactly', () =>
   expect(motionArc(points, velocity, explicit, 1000, false, 12)).toEqual(motionArc(points, velocity, long, 1000, false, 12));
   expect(arcControlValue(control, 'clearance')).toBe(12);
   expect(arcControlValue(control, 'clearance', 0)).toBe(0);
-  expect(arcControlValue({...control, bias: -.4}, 'exitBias')).toBe(-.4);
+  expect(arcControlValue({...control, bias: -.4}, 'foldBias')).toBe(-.4);
 });
 
-it('offers only supported dimensions to each solver and keeps optional shape controls opt-in', () => {
-  const basic = arcMethodKeys('response', false), expressive = arcMethodKeys('response', true, true);
-  expect(basic).toEqual([...ARC_CORE_KEYS, 'clearance']);
-  expect(expressive).toContain('bend'); expect(expressive).toContain('exitBias');
-  expect(expressive).not.toContain('guideEnd');
-  for (const method of ['response', 'repair'] as const) {
-    for (const key of arcMethodKeys(method, true, true)) expect(arcControlStep(key, method, 20)).toBeGreaterThan(0);
-  }
-  for(const method of ['response','repair'] as const){
-    expect(arcMethodKeys(method,true,false,true,{independentGuide:true})).not.toContain('guideStart');
-    expect(arcMethodKeys(method,true,false,true,{independentGuide:true,responseGuideExtent:true})).toEqual(expect.arrayContaining(['guideStart','guideEnd']));
-    expect(arcMethodKeys(method,true,false,false,{independentGuide:true,responseGuideExtent:true})).not.toContain('guideStart');
-    expect(arcControlStep('guideEnd',method,20)).toBeGreaterThan(0);
-  }
-  expect(arcControlStep('support', 'newton', 3)).toBe(1);
+it('offers response search only active dimensions that have a response step', () => {
+  expect(arcResponseKeys()).toEqual([...ARC_CORE_KEYS, 'clearance', 'turnFraction', 'bend', 'guideFlare']);
+  const transfer = arcResponseKeys(true, {independentGuide: true, railLayout: 'transfer', observedReceiver: true});
+  expect(transfer).toEqual(expect.arrayContaining(['guideTilt', 'mainEnd', 'receiverFlight']));
+  for (const key of transfer) expect(arcControlStep(key, 'response', 20)).toBeGreaterThan(0);
+  expect(arcResponseKeys(true, {independentGuide: true})).not.toContain('guideStart');
+  expect(arcResponseKeys(false, {independentGuide: true})).not.toContain('guideTilt');
+  expect(arcControlStep('guideEnd', 'coordinate', 20)).toBeGreaterThan(0);
+  expect(() => arcControlStep('guideEnd', 'response', 20)).toThrow('no response step');
   expect(arcControlStep('support', 'response', 3)).toBe(.6);
 });

@@ -4,7 +4,7 @@
  * Every step is an ordinary measured evaluation. */
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcResponseStep } from './arc_response.ts';
-import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, arcControlValue, arcControlStep, arcMethodKeys, arcControlActive } from './arc_motion_control.ts';
+import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, arcControlValue, arcControlStep, arcResponseKeys, arcControlActive } from './arc_motion_control.ts';
 import { evaluate } from './arc_evaluate.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
@@ -36,8 +36,7 @@ export function guidanceSearch(s: IntervalSearch) {
   const origin = s.best;
   const receiverActive = origin.c.receiverFlight !== undefined;
   const irrelevantGuide = new Set(['clearance', 'guideStart', 'guideEnd', 'guideTilt', 'guideFlare']);
-  const responseKeys = arcMethodKeys('response', true, false, options.guides,
-    {...options, observedReceiver: receiverActive}).filter(key => !receiverActive || !irrelevantGuide.has(key));
+  const responseKeys = arcResponseKeys(options.guides, {...options, observedReceiver: receiverActive}).filter(key => !receiverActive || !irrelevantGuide.has(key));
   const wantedResponse = Math.min(options.guidanceSamples ?? 48, options.responseSamples ?? 0);
   const responseRound = 2 * responseKeys.length + 3;
   const responseAllowance = options.completeGuidanceBudget

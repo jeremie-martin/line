@@ -5,7 +5,7 @@
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
-import { arcControlValue, arcControlStep, arcMethodKeys } from './arc_motion_control.ts';
+import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
 import { refineArcPair, type PairMeasurement } from './arc_pair_response.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
 import { transitionRevisionSettings } from './arc_options.ts';
@@ -91,7 +91,7 @@ export function refineCoupledPair(ctx: ArcCompileContext, seq: ArcSequence, i: n
 
   const styles = [i, i + 1].map(index => ({...options, ...options.sectionStyles?.[index]}));
   const initialControls = [original.c, initialNext] as ArcMotionControl[];
-  const dimensions = initialControls.flatMap((c, which) => arcMethodKeys('response', true, false, styles[which].guides,
+  const dimensions = initialControls.flatMap((c, which) => arcResponseKeys(styles[which].guides,
     {...styles[which], observedReceiver: c.receiverFlight !== undefined}).map(key => ({which, key})));
   const coordinates = (controls: ArcMotionControl[]) => dimensions.map(({which, key}) => arcControlValue(controls[which], key, options.channel));
   const scales = dimensions.map(({which, key}) => arcControlStep(key, 'response', initialControls[which].support));

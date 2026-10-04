@@ -7,7 +7,7 @@ import { getPhysicsFrameCount } from '../../lib/detector.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
-import { arcControlValue, arcControlStep, arcMethodKeys } from './arc_motion_control.ts';
+import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
 import { evaluate } from './arc_evaluate.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
@@ -77,12 +77,11 @@ export function genericControl(s: IntervalSearch, k: number): ArcMotionControl {
 export function proposeInitialControls(s: IntervalSearch) {
   const {options, i, incoming, span, targets, impact, initial, controlMemory} = s;
   s.center = centerControl(s);
-  const remembered = controlMemory.proposeControls(s.inputFeatures, incoming, span, options.memorySamples ?? 0, 'geometry',
+  const remembered = controlMemory.proposeControls(s.inputFeatures, incoming, span, options.memorySamples ?? 0,
     options.railLayout === 'transfer' ? 'both' : 'relative');
   const responses = controlMemory.proposeResponses(s.inputFeatures, incoming, span,
     [targets.air, targets.speed, targets.amplitude, impact], options.memoryResponseSamples ?? 0,
-    {amplitude: options.amplitudeWeight ?? 1, impact: options.impactWeight ?? 2, damping: .0002, axisWeights: s.responseAxisWeights},
-    'geometry');
+    {amplitude: options.amplitudeWeight ?? 1, impact: options.impactWeight ?? 2, damping: .0002, axisWeights: s.responseAxisWeights});
   // Startup has a different physical-state distribution from a later catch.
   // Its optional learned proposals still pass the ordinary interval search.
   const proposalModel = i === 0 ? options.controlPolicy?.startupModel : options.controlPolicy;
@@ -92,7 +91,7 @@ export function proposeInitialControls(s: IntervalSearch) {
   const novelConstructor = !!options.profile || options.railLayout === 'transfer';
   const reservedGeneric = Math.ceil(initial * (novelConstructor ? .25 : 0));
   const counts = allocateArcProposalSlots(requested, Math.max(0, initial - 1 - reservedGeneric));
-  const policy = counts[0] ? arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0], 'geometry') : [];
+  const policy = counts[0] ? arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0]) : [];
   const learnedEnd = policy.length, memoryEnd = learnedEnd + Math.min(remembered.length, counts[1]);
   policy.push(...remembered.slice(0, counts[1]), ...responses.slice(0, counts[2]));
   if (options.warmStart) {
@@ -184,7 +183,7 @@ export function recoverInitialization(s: IntervalSearch) {
     for (let k = 1; k <= options.initialRecoverySamples!; k++) {
       let proposal = genericControl(s, k);
       if (s.near.length && k % 3 !== 0) {
-        const keys = arcMethodKeys('response', true, false, options.guides, {...options, observedReceiver: true});
+        const keys = arcResponseKeys(options.guides, {...options, observedReceiver: true});
         const trial = Math.floor(k * 2 / 3), key = keys[Math.floor(trial / 2) % keys.length];
         const anchor = s.near[Math.floor(trial / (2 * keys.length)) % Math.min(4, s.near.length)].c;
         const step = arcControlStep(key, 'coordinate', anchor.support) * Math.pow(.65, Math.floor(trial / (6 * keys.length)));

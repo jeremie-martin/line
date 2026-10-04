@@ -16,9 +16,8 @@ it('keeps guide topology and expressive shape alternatives in both proposal sour
     return {features, controlReference: reference};
   });
   const model = {featureSchema: ARC_POLICY_SCHEMA, featureCount: 57, exemplars};
-  expect(arcControlProposals(features, 5, 20, model, 6, 'inherited')).toHaveLength(1);
-  expect(arcControlProposals(features, 5, 20, model, 6, 'geometry')).toEqual(controls);
-  expect(memory.proposeControls(features, 5, 20, 6, 'geometry')).toEqual(controls);
+  expect(arcControlProposals(features, 5, 20, model, 6)).toEqual(controls);
+  expect(memory.proposeControls(features, 5, 20, 6)).toEqual(controls);
   expect(arcControlsSimilar(control, {...control})).toBe(true);
   expect(arcControlsSimilar(control, {...control, guideEnd: 1})).toBe(false);
 });

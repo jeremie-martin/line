@@ -4,73 +4,69 @@ import { normalizeArcTurnFraction, type ArcMotionControl } from './arc_geometry.
 
 type ControlKey = keyof ArcMotionControl;
 type Step = number | ((support: number) => number);
-type SearchMethod = 'coordinate' | 'response' | 'newton' | 'repair';
+type SearchMethod = 'coordinate' | 'response';
+/** Section style of the interval a control is built for. `observedReceiver`
+ * marks controls that may carry a receiver placed from the observed flight. */
 export type ArcControlContext = {
   span: number; channel?: number; guides?: boolean;
   profile?: string; foldAngle?:number; profileStrength?: number; profileStart?: number;
-  independentExit?: boolean; exitRefinementOnly?: boolean;
   railLayout?:'paired'|'transfer';independentGuide?:boolean;
   observedReceiver?:boolean;
-  responseGuideExtent?:boolean;
-  compactProfileProposals?:boolean;
   releaseReserveFrames?:number;
 };
 type ControlDefinition = {
-  family: 'core' | 'guide' | 'expressive' | 'exit' | 'topology';
+  family: 'core' | 'guide' | 'expressive' | 'topology';
   min: number; max: number; tolerance: number;
-  coordinate: Step; response?: Step; newton?: Step; repair?: Step;
+  coordinate: Step; response?: Step;
   searchDefault?: (c: ArcMotionControl, channel?: number) => number;
   normalize?: (value: number, c: ArcMotionControl, context: ArcControlContext) => number;
 };
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 /** Search contract for every authored control. Adding a geometry field requires
- * an entry here; memo identity and method key lists derive from this registry.
- * Search defaults intentionally do not materialize omitted geometry fields. */
+ * an entry here; memo identity and response key lists derive from this registry.
+ * Search defaults intentionally do not materialize omitted geometry fields.
+ * Guide extents have no response step: they are searched by coordinates only. */
 export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinition>> = {
   contactSide:{family:'topology',min:-1,max:1,tolerance:0,coordinate:2,normalize:v=>v<0?-1:1},
-  entry: {family: 'core', min: -75, max: 85, tolerance: 2, coordinate: 3, response: 2, repair: 1},
-  turn: {family: 'core', min: -120, max: 120, tolerance: 4, coordinate: 8, response: 5, repair: 3},
-  exit: {family: 'core', min: -80, max: 85, tolerance: 4, coordinate: 10, response: 6, repair: 3},
+  entry: {family: 'core', min: -75, max: 85, tolerance: 2, coordinate: 3, response: 2},
+  turn: {family: 'core', min: -120, max: 120, tolerance: 4, coordinate: 8, response: 5},
+  exit: {family: 'core', min: -80, max: 85, tolerance: 4, coordinate: 10, response: 6},
   support: {family: 'core', min: 2, max: Infinity, tolerance: 1,
     coordinate: s => Math.max(1, s * .18), response: s => Math.max(.6, s * .1),
-    newton: s => Math.max(1, s * .1), repair: s => Math.max(.5, s * .06),
     normalize: (v, _c, context) => clamp(v, 2, Math.max(2, context.span - (context.releaseReserveFrames??4)))},
-  bias: {family: 'core', min: -2, max: 2, tolerance: .3, coordinate: .5, response: .25, repair: .2},
-  offset: {family: 'core', min: -2, max: 3, tolerance: .2, coordinate: .4, response: .2, repair: .1},
-  clearance: {family: 'guide', min: 6, max: 30, tolerance: 1, coordinate: 2, response: 1.5, repair: 1,
+  bias: {family: 'core', min: -2, max: 2, tolerance: .3, coordinate: .5, response: .25},
+  offset: {family: 'core', min: -2, max: 3, tolerance: .2, coordinate: .4, response: .2},
+  clearance: {family: 'guide', min: 6, max: 30, tolerance: 1, coordinate: 2, response: 1.5,
     searchDefault: (_c, channel) => channel ?? 12},
-  guideStart: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15, response:.06, repair:.04},
-  guideEnd: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15, response:.06, repair:.04, searchDefault: () => 1},
-  turnFraction: {family: 'expressive', min: .1, max: .85, tolerance: .06, coordinate: .12, response: .08, repair: .06,
+  guideStart: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15},
+  guideEnd: {family: 'guide', min: 0, max: 1, tolerance: .08, coordinate: .15, searchDefault: () => 1},
+  turnFraction: {family: 'expressive', min: .1, max: .85, tolerance: .06, coordinate: .12, response: .08,
     searchDefault: c => Math.min(5, c.support * .5) / c.support,
     normalize: (v, c) => normalizeArcTurnFraction(v, c.support)},
-  bend: {family: 'expressive', min: -60, max: 60, tolerance: 5, coordinate: 10, response: 7, repair: 5},
-  guideFlare: {family: 'expressive', min: -16, max: 16, tolerance: 2, coordinate: 4, response: 2.5, repair: 2},
-  exitBias: {family: 'exit', min: -3, max: 3, tolerance: .3, coordinate: .5, response: .4,
-    searchDefault: c => c.bias},
-  guideTilt: {family:'guide',min:-25,max:25,tolerance:2,coordinate:5,response:3,repair:2},
-  foldBias: {family:'expressive',min:-6,max:6,tolerance:.3,coordinate:1,response:.6,repair:.4,searchDefault:c=>c.bias},
-  foldTiming: {family:'expressive',min:0,max:1,tolerance:.05,coordinate:.2,response:.15,repair:.1},
-  foldBend: {family:'expressive',min:-65,max:65,tolerance:3,coordinate:8,response:5,repair:3,searchDefault:()=>30},
-  mainEnd: {family:'expressive',min:.2,max:1,tolerance:.04,coordinate:.12,response:.08,repair:.04,searchDefault:()=>.7},
-  receiverFlight: {family:'guide',min:1,max:12,tolerance:.5,coordinate:2,response:1,repair:1},
-  receiverEntry: {family:'guide',min:-25,max:45,tolerance:2,coordinate:5,response:3,repair:2},
-  receiverTurn: {family:'guide',min:-90,max:90,tolerance:4,coordinate:10,response:6,repair:4},
-  receiverExit: {family:'guide',min:-100,max:100,tolerance:4,coordinate:10,response:6,repair:4},
-  receiverDuration: {family:'guide',min:.1,max:1,tolerance:.05,coordinate:.15,response:.08,repair:.05,searchDefault:()=>.65},
-  profileEnd: {family:'expressive',min:.1,max:1,tolerance:.05,coordinate:.15,response:.08,repair:.06,searchDefault:()=>1},
+  bend: {family: 'expressive', min: -60, max: 60, tolerance: 5, coordinate: 10, response: 7},
+  guideFlare: {family: 'expressive', min: -16, max: 16, tolerance: 2, coordinate: 4, response: 2.5},
+  guideTilt: {family:'guide',min:-25,max:25,tolerance:2,coordinate:5,response:3},
+  foldBias: {family:'expressive',min:-6,max:6,tolerance:.3,coordinate:1,response:.6,searchDefault:c=>c.bias},
+  foldTiming: {family:'expressive',min:0,max:1,tolerance:.05,coordinate:.2,response:.15},
+  foldBend: {family:'expressive',min:-65,max:65,tolerance:3,coordinate:8,response:5,searchDefault:()=>30},
+  mainEnd: {family:'expressive',min:.2,max:1,tolerance:.04,coordinate:.12,response:.08,searchDefault:()=>.7},
+  receiverFlight: {family:'guide',min:1,max:12,tolerance:.5,coordinate:2,response:1},
+  receiverEntry: {family:'guide',min:-25,max:45,tolerance:2,coordinate:5,response:3},
+  receiverTurn: {family:'guide',min:-90,max:90,tolerance:4,coordinate:10,response:6},
+  receiverExit: {family:'guide',min:-100,max:100,tolerance:4,coordinate:10,response:6},
+  receiverDuration: {family:'guide',min:.1,max:1,tolerance:.05,coordinate:.15,response:.08,searchDefault:()=>.65},
 };
 export const ARC_CONTROL_KEYS = Object.keys(ARC_CONTROL_DEFINITIONS) as readonly ControlKey[];
 export const ARC_CORE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'core');
 export const ARC_EXPRESSIVE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'expressive');
+type ControlStyle = Pick<ArcControlContext, 'profile' | 'profileStrength' | 'profileStart' | 'railLayout' | 'independentGuide' | 'observedReceiver'>;
 
 /** Disabled guides have no meaningful clearance, coverage or flare coordinates. */
-export function arcControlActive(key:ControlKey,guides=true,style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'compactProfileProposals'>):boolean {
+export function arcControlActive(key:ControlKey,guides=true,style?:ControlStyle):boolean {
   // Transfer fulfillment currently specifies the forward support followed by
   // its separated receiver. An opposing opening uses the paired constructor.
   if(key==='contactSide')return style?.railLayout!=='transfer';
-  if(key==='profileEnd')return style?.compactProfileProposals===true&&!!style.profile&&style.profile!=='fold'&&style.railLayout==='transfer';
   if(key.startsWith('receiver'))return guides&&style?.observedReceiver===true&&style.railLayout==='transfer';
   if(key==='foldBias')return style?.profile==='fold'&&style.railLayout==='transfer'&&style.independentGuide===true;
   if(key==='foldTiming')return style?.profile==='fold'&&style?.independentGuide===true&&style?.railLayout==='transfer';
@@ -88,9 +84,6 @@ export function normalizeArcControl(control: ArcMotionControl, context: ArcContr
     const definition = ARC_CONTROL_DEFINITIONS[key];
     if(!arcControlActive(key,context.guides,context)){delete c[key];continue;}
     if(key==='foldBend'&&c[key]===undefined)c[key]=context.foldAngle??50;
-    // Independent probing must freeze late easing before changing entry bias.
-    if (key === 'exitBias' && context.independentExit && !context.exitRefinementOnly && c[key] === undefined)
-      c[key] = c.bias;
     const value = c[key];
     if (value === undefined && definition.family !== 'core') continue;
     c[key] = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);
@@ -112,23 +105,16 @@ export function arcControlValue(c: ArcMotionControl, key: ControlKey, channel?: 
   return c[key] ?? ARC_CONTROL_DEFINITIONS[key].searchDefault?.(c, channel) ?? 0;
 }
 
-/** Construction steps use nominal support; repair steps use incumbent support. */
+/** The step of `key` for `method`; support-scaled steps use the given support. */
 export function arcControlStep(key: ControlKey, method: SearchMethod, support: number): number {
-  const definition = ARC_CONTROL_DEFINITIONS[key];
-  const step = method === 'newton' ? definition.newton ?? definition.response : definition[method];
+  const step = ARC_CONTROL_DEFINITIONS[key][method];
   if (step === undefined) throw new Error(`arc control ${key} has no ${method} step`);
   return typeof step === 'number' ? step : step(support);
 }
 
-export function arcMethodKeys(method: 'response' | 'repair', expressive: boolean, independentExit = false, guides = true, style?:Pick<ArcControlContext,'profile'|'profileStrength'|'profileStart'|'railLayout'|'independentGuide'|'observedReceiver'|'responseGuideExtent'|'compactProfileProposals'>): ControlKey[] {
-  return ARC_CONTROL_KEYS.filter(key => {
-    const definition = ARC_CONTROL_DEFINITIONS[key];
-    // Extent response has mixed measured results. Keep the controlled experiment
-    // explicit; adding dimensions also changes allocation among response rounds.
-    if((key==='guideStart'||key==='guideEnd')&&(!style?.independentGuide||!style.responseGuideExtent))return false;
-    return arcControlActive(key,guides,style) && definition[method] !== undefined && (definition.family !== 'expressive' || expressive) &&
-      (definition.family !== 'exit' || independentExit);
-  });
+/** The active controls that finite-difference response search adjusts. */
+export function arcResponseKeys(guides = true, style?: ControlStyle): ControlKey[] {
+  return ARC_CONTROL_KEYS.filter(key => arcControlActive(key, guides, style) && ARC_CONTROL_DEFINITIONS[key].response !== undefined);
 }
 
 export type ArcControlReference = {control: ArcMotionControl; incoming: number; span: number};

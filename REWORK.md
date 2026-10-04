@@ -146,7 +146,30 @@ harness.
   - competing hits;
   - every ruler's value.
 
-### Phase 5 — Compiler quality (in progress)
+### Current focus (owner, 2026-10-04): measuring impact, separately from producing it
+
+Two problems, worked on in order:
+
+1. **Measuring impact (now).** Does the number agree with what the owner sees
+   as a big or small impact, upper hits included? Whether the compiler can
+   produce a hit is irrelevant here. The owner's description:
+   - impact = contact visibly changes the rider's motion: direction, speed
+     (a head-on stop is a very big impact) or spin;
+   - faster gives a stronger impact;
+   - a clean impact is short and locatable in time; a long smooth bend is not
+     the impact he values;
+   - a bottom hit followed by an upper hit is two impacts.
+
+   Candidate: the change of the rider's rigid-body motion (centre-of-mass
+   velocity and spin) over a short window, with sharpness reported beside it.
+   It is validated by blind pairwise comparisons chosen where the candidate
+   and the current measure disagree. It is adopted only if it matches the
+   owner better.
+2. **Producing impact (after 1).** The compiler reaches strong hits where the
+   music asks, including dense beats, for example by using control rails to
+   gain speed before a hit.
+
+### Phase 5 — Compiler quality (paused until the impact measure is validated)
 
 Only on validated measures:
 

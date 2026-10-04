@@ -443,3 +443,5 @@ Only on validated measures:
     - speed rms unchanged: the v3 adoption's regression (0.075 → 0.094)
       is recovered by L1, which closes H-1;
     - air rms +0.004 to +0.006; +0.4M physics frames; completion 100%.
+  - Rejected: upright penalty before every catch (null; very strong −0.028
+    authored).

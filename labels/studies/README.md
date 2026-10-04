@@ -31,3 +31,6 @@ checks; `tools/measure/select_pairs.ts`). Answer at
 strike), 7 spin pairs (candidate with vs without spin), 7 window pairs (50 ms vs whole
 event) and 3 checks. Answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-pairs-2026-10b`.
+`impact-pairs-2026-10c` is round 3: 9 pairs arrival-with-spin (`c_arrive_spin`) vs whole-body
+change in 50 ms, 8 pairs whole event vs 50 ms, 6 pairs with vs without spin, 3 checks. Answer at
+`http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-pairs-2026-10c`.

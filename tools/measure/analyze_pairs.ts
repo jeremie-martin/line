@@ -13,7 +13,7 @@ const studies = arg('studies')!.split(',');
 const values = new Map<string, Record<string, number>>();
 for (const path of arg('rows')!.split(',')) for (const line of readFileSync(path, 'utf8').trim().split('\n')) {
   const r = JSON.parse(line), id = `${r.set}~${r.song}~${r.seed}~${r.onset}`;
-  values.set(id, {...values.get(id), ...Object.fromEntries(Object.entries(r).filter(([, v]) => typeof v === 'number'))});
+  values.set(id, {...values.get(id), ...Object.fromEntries(Object.entries(r).filter(([, v]) => typeof v === 'number')) as Record<string, number>});
 }
 const measures = (arg('measures') ?? 'strike,strength,travel,whole,mcOwn,c_arrive,c_arrive_spin,c_loss').split(',');
 

@@ -58,8 +58,9 @@ for (let i = 0; i < 20000 && pairs.filter(p => p.kind === 'check').length < nChe
   if (x[A] - y[A] >= .4 && x[B] - y[B] >= .3) {take(x); take(y); pairs.push({kind: 'check', measures: [A, B], x, y});}
 }
 const order = pairs.map((_, i) => i).sort(() => rnd() - .5);
-const hit = (r: any): Record<string, any> => ({set: r.set, song: r.song, seed: r.seed, frame: r.onset, strike: +r.strike.toFixed(3), strength: +r.strength.toFixed(3),
-  travel: +r.travel.toFixed(3), whole: +r.whole.toFixed(3), sharpness: +r.sharpness.toFixed(2), spinShare: +r.spinShare.toFixed(2)});
+// Every numeric measure of the hit is kept in the key for later scoring.
+const hit = (r: any): Record<string, any> => ({set: r.set, song: r.song, seed: r.seed, frame: r.onset,
+  ...Object.fromEntries(Object.entries(r).filter(([k, v]) => typeof v === 'number' && !['seed', 'onset'].includes(k)).map(([k, v]) => [k, +(v as number).toFixed(3)]))});
 const key = order.map((i, n) => {
   const p = pairs[i], flip = rnd() < .5;
   return {pair: n + 1, kind: p.kind, measures: p.measures, left: hit(flip ? p.y : p.x), right: hit(flip ? p.x : p.y),

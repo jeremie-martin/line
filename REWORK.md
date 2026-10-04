@@ -422,3 +422,13 @@ Only on validated measures:
     native_motion/engine.ts, used by the v2/v3 observation). It allocates
     no point states; the arithmetic order is unchanged. Compile 75 s → 60 s
     per ride (−20%), byte-identical: parity passes on all 63 cells.
+  - Robustness at half budget (1.5M), tonight's profile against the same code
+    with its options off:
+    - completion +6 pp authored; strong bias +0.036 / +0.030;
+    - head-down strong arrivals −10 pp; contested −1 pp.
+    - The hardest song (amour) loses one perturbed ride in each version at
+      this budget: low-budget completion there is fragile either way.
+  - Housekeeping: unused steepArrivalWeight removed (parity unchanged).
+    Shared eval summaries (tools/eval/summary.ts), the night report
+    (tools/report, motion-gallery/night.html) and shared clip rendering
+    added.

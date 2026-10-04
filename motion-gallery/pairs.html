@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pair study · line</title><link rel="stylesheet" href="label.css"><link rel="stylesheet" href="pairs.css"></head>
+<body>
+<header><strong>Pair study</strong><span id="progress"></span></header>
+<main>
+  <p id="prompt"></p>
+  <p id="instructions"></p>
+  <div class="pair">
+    <figure><video id="left" muted loop playsinline preload="auto"></video><figcaption>A</figcaption></figure>
+    <figure><video id="right" muted loop playsinline preload="auto"></video><figcaption>B</figcaption></figure>
+  </div>
+  <div class="controls">
+    <button id="slow" aria-pressed="false">Half speed</button>
+    <button id="sound" aria-pressed="false">Sound</button>
+  </div>
+  <div class="choices" id="choices">
+    <button class="choice" data-v="left">A slams more</button>
+    <button class="choice" data-v="right">B slams more</button>
+    <button class="choice" data-v="same">About the same</button>
+    <button class="choice" data-v="neither">Neither feels like a slam</button>
+  </div>
+  <textarea id="note" rows="2" placeholder="Optional note about this pair"></textarea>
+  <div class="nav"><button id="back">Back</button><button id="skip">Skip</button><button id="next" class="primary">Save &amp; next</button></div>
+  <p id="status" role="status"></p>
+</main>
+<script type="module" src="pairs.js"></script>
+</body></html>

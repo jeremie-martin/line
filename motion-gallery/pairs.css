@@ -1,0 +1,7 @@
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.pair{grid-template-columns:1fr}}
+figure{margin:0;display:grid;gap:4px;min-width:0}
+video{width:100%;aspect-ratio:16/9;background:#fff;border:1px solid var(--line);border-radius:10px;display:block}
+figcaption{text-align:center;font-weight:600}
+#prompt{margin:4px 0 0}
+#choices{margin:10px 0}

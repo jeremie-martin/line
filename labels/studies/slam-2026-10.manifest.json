@@ -1,0 +1,70 @@
+{
+ "study": "slam-2026-10",
+ "kind": "pairs",
+ "hitAt": 1,
+ "length": 1.8,
+ "prompt": "Both hits are on beats that ask for a strong hit, and the current measure rates them about equally strong. Which one feels more like the rider slamming into the ground?",
+ "questions": [
+  {
+   "id": "slam",
+   "options": [
+    "left",
+    "right",
+    "same",
+    "neither"
+   ]
+  }
+ ],
+ "clips": [
+  {
+   "id": "pair1",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair1-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair1-right.mp4"
+  },
+  {
+   "id": "pair2",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair2-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair2-right.mp4"
+  },
+  {
+   "id": "pair3",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair3-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair3-right.mp4"
+  },
+  {
+   "id": "pair4",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair4-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair4-right.mp4"
+  },
+  {
+   "id": "pair5",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair5-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair5-right.mp4"
+  },
+  {
+   "id": "pair6",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair6-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair6-right.mp4"
+  },
+  {
+   "id": "pair7",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair7-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair7-right.mp4"
+  },
+  {
+   "id": "pair8",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair8-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair8-right.mp4"
+  },
+  {
+   "id": "pair9",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair9-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair9-right.mp4"
+  },
+  {
+   "id": "pair10",
+   "left": "/generated/label-studies/slam-2026-10/clips/pair10-left.mp4",
+   "right": "/generated/label-studies/slam-2026-10/clips/pair10-right.mp4"
+  }
+ ]
+}

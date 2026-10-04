@@ -1,6 +1,6 @@
 /** Behavioural evaluation of the production compiler, with songs as the unit.
  *
- *   node --import tsx tools/eval/eval.ts run    --name=DIR [--mode=strike3|strike2|strike|landing] [--budget=standard|N] [--jobs=24]
+ *   node --import tsx tools/eval/eval.ts run    --name=DIR [--mode=strike3|strike2|strike|landing] [--budget=standard|N] [--panel=dev|confirm] [--jobs=24]
  *   node --import tsx tools/eval/eval.ts report --name=DIR [--against=DIR]
  *
  * Panel: each production song × 4 arrangement seeds (distinct plans, so distinct
@@ -22,10 +22,15 @@ const SONGS = ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'amour_de_
 const DEFAULT_BUDGET = 'standard';
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 type Case = {id: string; song: string; seed: number; perturbation: number | null};
-export const PANEL: Case[] = [
-  ...SONGS.flatMap(song => [101, 202, 303, 404].map(seed => ({id: `${song}~${seed}`, song, seed, perturbation: null}))),
-  ...SONGS.flatMap(song => [1, 2].map(p => ({id: `${song}~101~p${p}`, song, seed: 101, perturbation: p}))),
+const panel = (seeds: number[], perturbed: number[]): Case[] => [
+  ...SONGS.flatMap(song => seeds.map(seed => ({id: `${song}~${seed}`, song, seed, perturbation: null}))),
+  ...SONGS.flatMap(song => perturbed.map(p => ({id: `${song}~${seeds[0]}~p${p}`, song, seed: seeds[0], perturbation: p}))),
 ];
+/** dev: the panel decisions were made on. confirm: fresh arrangement seeds and
+ * perturbations, for checking that adopted changes hold beyond dev. */
+export const PANELS: Record<string, Case[]> = {dev: panel([101, 202, 303, 404], [1, 2]), confirm: panel([505, 606, 707, 808], [3, 4])};
+export const PANEL = PANELS.dev;
+const findCase = (id: string) => Object.values(PANELS).flat().find(x => x.id === id)!;
 
 /** Small, musically plausible authoring perturbation: the questions it asks are
  * whether quality survives inputs the compiler and its models have not seen. */
@@ -39,7 +44,7 @@ function perturb(spec: any, p: number) {
 }
 
 async function worker(caseId: string, mode: string, out: string, requested: string) {
-  const c = PANEL.find(x => x.id === caseId)!;
+  const c = findCase(caseId);
   const {loadMusicCase} = await import('../../scripts/produce/music_artifacts.ts');
   const {resolveJoltMs} = await import('../../scripts/produce/jolt.ts');
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
@@ -77,6 +82,8 @@ async function worker(caseId: string, mode: string, out: string, requested: stri
   writeFileSync(out, JSON.stringify({case: c, mode, trackHash: createHash('sha256').update(JSON.stringify(cp.track)).digest('hex'),
     physicalFrames: r.physicalFrames, compileMs, complete: r.valid, fulfilled: r.qualified,
     frozen: {valid: frozen.score.valid, score: frozen.score.score, axes: frozen.score.components},
+    // Per gap and axis (air, speed, amplitude): [gap, axis, target, achieved], signed errors recoverable.
+    gaps: frozen.observations.filter((o: any) => o.axis !== 'impact').map((o: any) => [o.gap, o.axis, +o.target.toFixed(4), o.achieved === null ? null : +o.achieved.toFixed(4)]),
     contact: {loss: observation.contactAccount.loss, strengthMse: observation.contactAccount.strengthMse, timingMse: observation.contactAccount.timingMse, extraMse: observation.contactAccount.extraMse},
     strike: {loss: strike.loss, strengthMse: strike.strengthMse, timingMse: strike.timingMse, extraMse: strike.extraMse, missing: strike.missingTargets.length},
     impact: {loss: impact.loss, strengthMse: impact.strengthMse, timingMse: impact.timingMse, extraMse: impact.extraMse, missing: impact.missingTargets.length,
@@ -143,14 +150,16 @@ const command = process.argv[2];
 if (command === 'worker') await worker(arg('case')!, arg('mode', 'strike3')!, arg('out')!, arg('budget', DEFAULT_BUDGET)!);
 else if (command === 'run') {
   const budget = arg('budget', DEFAULT_BUDGET)!, name = arg('name')!, mode = arg('mode', 'strike3')!, jobs = Number(arg('jobs', '24')), dir = resolve('generated/eval', name);
+  const panelName = arg('panel', 'dev')!, cases = PANELS[panelName];
+  if (!cases) throw new Error(`--panel is one of ${Object.keys(PANELS).join(', ')}`);
   if (budget !== 'standard' && !(Number(budget) > 0)) throw new Error('--budget is standard or a frame count');
   mkdirSync(join(dir, 'cells'), {recursive: true});
   const identity = compilerIdentity('.');
   if (existsSync(join(dir, 'run.json'))) {
     const prior = JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8'));
-    if (prior.identity.candidateFingerprint !== identity.candidateFingerprint || prior.mode !== mode || prior.budget !== budget) throw new Error('existing run has a different compiler, mode or budget');
-  } else writeFileSync(join(dir, 'run.json'), JSON.stringify({mode, identity, budget, panel: PANEL}, null, 1));
-  const queue = PANEL.filter(c => !existsSync(join(dir, 'cells', c.id + '.json'))), began = performance.now();
+    if (prior.identity.candidateFingerprint !== identity.candidateFingerprint || prior.mode !== mode || prior.budget !== budget || (prior.panelName ?? 'dev') !== panelName) throw new Error('existing run has a different compiler, mode, budget or panel');
+  } else writeFileSync(join(dir, 'run.json'), JSON.stringify({mode, identity, budget, panelName, panel: cases}, null, 1));
+  const queue = cases.filter(c => !existsSync(join(dir, 'cells', c.id + '.json'))), began = performance.now();
   await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
     while (queue.length) {
       const c = queue.shift()!;
@@ -163,7 +172,7 @@ else if (command === 'run') {
     }
   }));
   if (JSON.stringify(compilerIdentity('.')) !== JSON.stringify(identity)) throw new Error('compiler changed during the run');
-  console.log(`${name}: ${readdirSync(join(dir, 'cells')).filter(f => f.endsWith('.json')).length}/${PANEL.length} cells in ${((performance.now() - began) / 1000).toFixed(0)} s`);
+  console.log(`${name}: ${readdirSync(join(dir, 'cells')).filter(f => f.endsWith('.json')).length}/${cases.length} cells in ${((performance.now() - began) / 1000).toFixed(0)} s`);
 } else if (command === 'report') {
   const load = (name: string) => {
     const dir = resolve('generated/eval', name), cells = new Map<string, any>();

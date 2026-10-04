@@ -365,3 +365,20 @@ Only on validated measures:
     - headroom 0.5 + impact weight 1.5: mixed, air +0.005.
     - L1's steep-arrival speed formula already does this bookkeeping for
       strong catches.
+  - Rejected T1 (search aims at most 0.85): strong strength fell, no guard
+    improved. The search is not trading guards for unreachable requests.
+  - Agent A (exp/catch-pose): pose-matched catches add nothing on top of L1.
+    An arrival prior on sled pitch makes things worse (contested +4 pp).
+    Physics: a slam at an angle loses speed (tan(incidence/2) per unit of
+    impact), which the spec's speed target charges for; sharper turns crash.
+    Past L1, strength trades against speed and survival: a frontier.
+  - **Confirmation on fresh seeds** (`--panel=confirm`: seeds 505–808,
+    perturbations 3–4), L1 + L9 against the same code with both off:
+    - v3 strong bias +0.031 / +0.023; v3 loss −0.005 / −0.007;
+    - speed rms −0.025 / −0.023; contested and air neutral.
+    - The gains generalize beyond the dev panel.
+  - Per-gap diagnosis (s3-l9b): air and speed errors concentrate in the
+    densest, most strongly asked song (amour: air rms 0.105, speed 0.135,
+    against about 0.06 elsewhere) and around strong asks. Measured
+    strength spans about 0.06 (gentlest touchdown) to about 0.9 (hardest
+    survived hit), narrower than the authored 0–1 scale.

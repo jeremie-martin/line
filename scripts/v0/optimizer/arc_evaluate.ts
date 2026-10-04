@@ -247,7 +247,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     // This is a proposal prior; actual native continuation decides merit.
     const impulse = impactToRawPx(nextImpact), arrivalSpeed = passive ? Math.hypot(nextSpeed, impulse) : nextSpeed;
     const desiredArrival = clamp(15 + deg(passive ? Math.atan2(impulse, nextSpeed) : impulse / nextSpeed), 20, 70);
-    const weight = Math.sqrt(steep ? options.impactSearch?.steepArrivalWeight ?? options.arrivalWeight ?? 0 : options.arrivalWeight ?? 0);
+    const weight = Math.sqrt(options.arrivalWeight ?? 0);
     const r1 = options.passiveArrival || steep ? weight * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
     const r2 = weight * (Math.hypot(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     // A steep arrival must not come head-down or backward: the sled's nose-to-tail

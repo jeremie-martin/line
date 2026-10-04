@@ -89,8 +89,22 @@ the evidence are in `docs/research/strike-definition-20261004.md`.
 The compiler uses accounts only through `impact_accounts.ts`. Search,
 refinement, terminal selection, the final replay, production and the review
 all observe and account through one interface. Its search profile is in
-`contact_impact_profile.ts` (preparation 2, chosen on the song-level
-evaluation).
+`contact_impact_profile.ts`, chosen on the song-level evaluation (REWORK.md
+log):
+
+- **Preparation:** 2 frames.
+- **Steep arrival before strong asks (≥ 0.6):** the catch before a strong
+  beat gets a steep, ask-driven arrival heading and speed.
+- **Upright arrival:** that steep arrival must not come head-down or
+  backward.
+- **Wider lookahead:** ×1.3 for the interval leading into a strong ask.
+
+Measured limits (docs/research/producing-impact-brief-20261004.md):
+
+- **Achievable strength.** About 0.06 (the gentlest touchdown) to about 0.9
+  (the hardest hit the rider survives, `tools/measure/survival_envelope.ts`).
+- **The frontier past the adopted changes.** A slam at an angle costs speed,
+  which the spec's speed target charges for, and sharper turns crash.
 
 Two other rulers remain on purpose:
 
@@ -121,6 +135,15 @@ Known limits of the strike account:
   - It compiles in `landing` mode. Its 460-run regression check passed at the
     end of Phase 2 (identical to the stored reference).
 - **`npm run eval`** (`tools/eval`) is the behavioural evaluation.
+  - Panels: `--panel=dev`, the one decisions were made on, and
+    `--panel=confirm`, with fresh seeds and perturbations, for checking that
+    an adopted change generalizes.
+  - Every run is scored under every account (v1, v2, v3).
+  - Guard rows from the blind-spot audit: head-down/backward strong
+    arrivals, body drag, off-beat kicks.
+  - Each cell keeps per-beat and per-gap data and the compiled track
+    (`.track.json.gz`).
+  - `tools/eval/summary.ts` holds the shared summaries.
   - It compiles the production songs × 4 arrangement seeds, plus perturbed
     authorings, and pairs runs by case.
   - Intervals come from resampling songs, and completion is reported
@@ -129,6 +152,9 @@ Known limits of the strike account:
     optimize: the renewal-fixed strength, peak timing and contested beats
     from the 10-point external impulse.
   - Held-out new music is still missing; it needs new songs.
+- **`tools/report`** builds the overnight results page
+  (`motion-gallery/night.html`): `night.ts` writes the data, `clips.ts`
+  cuts before/after clips, `morning_study.ts` builds blind pair keys.
 - **`tools/measure`** holds the per-beat measures across rulers (`measures.ts`)
   and the motion check of a review library (`motion_check.ts`).
 - **`labels/studies`** holds the blind owner labels.

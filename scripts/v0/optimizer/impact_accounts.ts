@@ -53,7 +53,9 @@ function strikeAccount(c: StrikeContract): ImpactAccount {
       if (from > last) return head;
       if (motion) {
         const motions = [];
-        for (let f = from - 1; f <= last; f++) motions.push(bodyMotion(engine.getRider(f).ballisticState()));
+        // The native engine reads whole-body motion without allocating point states.
+        const read = typeof engine.bodyMotionAt === 'function' ? (f: number) => engine.bodyMotionAt(f) : (f: number) => bodyMotion(engine.getRider(f).ballisticState());
+        for (let f = from - 1; f <= last; f++) motions.push(read(f));
         return [...head, ...observeMotion(from, motions, contact, c)];
       }
       const velocities = [];

@@ -405,3 +405,20 @@ Only on validated measures:
     - strong arrivals inverted/backward 29% → 15% (perturbed 31% → 15%);
     - body drag −0.14 s/min;
     - impact and every guard neutral; fresh-seed panel impact-neutral.
+  - Rejected: uprightArrival 2 (authored inverted −4.6 pp more, air +0.004);
+    calm multiplier 2.2 (quiet −0.016, very strong −0.015 / −0.023).
+  - Agent C (exp/amour), why amour is hard:
+    - The spec asks more: 77 of 85 beats strong, 47% of asks ≥ 0.9, 26 gaps
+      under 14 frames. Consecutive strong hits about 13 frames apart sit
+      near a momentum limit (the centre-of-mass part is capped near 0.34
+      strength); delivered strength is about 0.6 in every song at such
+      spacing.
+    - Air overshoot is a construction trade (catch, ride 6–8, fly 17–19).
+    - The intro speed targets cannot be reached from the authored start.
+    - Not budget-bound: 1.5× allowance gave no gain, with zero interruptions.
+    - Rejected: gap-length-weighted search residuals; lookahead deepened to
+      40 frames.
+  - **Structural: native whole-body read** (`bodyMotionAt` in
+    native_motion/engine.ts, used by the v2/v3 observation). It allocates
+    no point states; the arithmetic order is unchanged. Compile 75 s → 60 s
+    per ride (−20%), byte-identical: parity passes on all 63 cells.

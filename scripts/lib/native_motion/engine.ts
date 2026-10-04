@@ -327,6 +327,27 @@ export class LineRiderEngine {
       contactCount,
     };
   }
+  /** Whole-body motion of an already simulated frame without allocating point
+   * states: centre-of-mass velocity, angular momentum about the centre (unit masses)
+   * and radius of gyration. Same arithmetic, in the same order, as bodyMotion() in
+   * scripts/lib/strike_impact.ts over ballisticState(), so results are identical. */
+  bodyMotionAt(frame: number): {v: {x: number; y: number}; L: number; R: number} {
+    ex.get_state_map(this.h, frame);
+    const state = scratch(), n = RIDER_POINT_IDS.length;
+    if (n !== 10) throw new Error('strike observation expects the ten rider points');
+    let cx = 0, cy = 0, vx = 0, vy = 0;
+    for (let index = 0; index < n; index++) {
+      const o = (index + 2) * RIDER_POINT_STRIDE;
+      cx += state[o]; cy += state[o + 1]; vx += state[o] - state[o + 2]; vy += state[o + 1] - state[o + 3];
+    }
+    cx /= 10; cy /= 10; vx /= 10; vy /= 10;
+    let L = 0, R2 = 0;
+    for (let index = 0; index < n; index++) {
+      const o = (index + 2) * RIDER_POINT_STRIDE, rx = state[o] - cx, ry = state[o + 1] - cy;
+      L += rx * (state[o + 1] - state[o + 3] - vy) - ry * (state[o] - state[o + 2] - vx); R2 += rx * rx + ry * ry;
+    }
+    return {v: {x: vx, y: vy}, L, R: Math.sqrt(R2 / 10)};
+  }
   // deno-lint-ignore no-explicit-any
   getRider(frame: number): any {
     // Lean path: the kernel computes the BODY average + the two binding fsu in

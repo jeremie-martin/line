@@ -37,3 +37,6 @@ A change is adopted only if the whole picture improves.
 | 00:26 | **Fresh-seed confirmation of L1 + L9** | **Holds:** strong bias +0.03 / +0.02, speed rms −0.025 / −0.023. |
 | 00:33 | Learned models without / with more samples | Both still help under v3; more samples null. Retraining on v3 is a follow-up. |
 | 00:35 | Agent C: why "L'amour de ma vie" is hard | Running. |
+| 00:50 | Calm impact multiplier 3 | Mixed (quiet better, authored strong worse): not adopted. |
+| 00:55 | **Blind-spot audit** (agent) | Found L1 had raised head-down or backward strong arrivals (24% → 31%; July 13%). New guard rows. |
+| 01:10 | **Upright steep arrival adopted** | Head-down or backward strong arrivals 30% → 15%, impact unchanged. |

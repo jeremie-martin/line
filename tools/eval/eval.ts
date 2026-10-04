@@ -74,6 +74,23 @@ async function worker(caseId: string, mode: string, out: string, requested: stri
   // ...and under v3, where a floor-then-rail double contact is two impacts.
   const impacts3 = detectStrikes(motionFrames, STRIKE_V3_CONTRACT).filter(e => e.onset <= music.durationFrames);
   const impact3 = accountStrikes(impacts3, targets, STRIKE_V3_CONTRACT);
+  // Guards from the blind-spot audit (docs/research/scorecard-blind-spots-20261005.md).
+  const pt = (f: number, i: number) => observation.frames[f].points[i], NOSE = 2, TAIL = 1, BODY = [4, 5, 6, 7];
+  const vel = (f: number) => {let x = 0, y = 0; for (const [a, b, c2, d] of observation.frames[f].points) {x += a - c2; y += b - d;} return [x / 10, y / 10];};
+  const strongPose = impact3.matches.filter((m: any) => (targets[m.target].impact ?? 0) >= .6).map((m: any) => {
+    const f0 = impacts3[m.event].contactStart, ax = pt(f0, NOSE)[0] - pt(f0, TAIL)[0], ay = pt(f0, NOSE)[1] - pt(f0, TAIL)[1], [vx, vy] = vel(Math.max(0, f0 - 1));
+    return Math.abs(Math.atan2(ay, ax)) > Math.PI / 2 || ax * vx + ay * vy < 0;
+  });
+  const last = Math.min(music.durationFrames, observation.frames.length - 1);
+  let dragFrames = 0, run = 0, kicks = 0;
+  for (let f = 1; f <= last; f++) {
+    const body = observation.frames[f].collisions.some((x: number[]) => BODY.includes(x[1]));
+    run = body ? run + 1 : 0; if (run === 6) dragFrames += 6; else if (run > 6) dragFrames++;
+    const [px, py] = vel(f - 1), before = Math.hypot(px, py + .175), gain = Math.hypot(...vel(f)) - before;
+    if (gain > Math.max(.75, .1 * before) && !targets.some((t: any) => Math.abs(t.frame - f) <= 4)) kicks++;
+  }
+  const guards = {strongInverted: strongPose.length ? strongPose.filter(Boolean).length / strongPose.length : NaN,
+    dragSecondsPerMinute: dragFrames / 40 / (last / 40 / 60), offBeatKicks: kicks};
   const strongExtras = (account: any, events: any[]) => account.unmatchedEvents.filter((i: number) => events[i].strength >= .25).length;
   const beats = beatRows({id: c.id, set: mode, song: c.song, seed: c.seed, durationFrames: music.durationFrames,
     targets: spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact})), ...observation});
@@ -93,7 +110,7 @@ async function worker(caseId: string, mode: string, out: string, requested: stri
       // Per beat: requested, the matched impact's strength and onset offset (null when missing).
       perBeat: targets.map((t: any, j: number) => {const m = impact3.matches.find((x: any) => x.target === j);
         return [t.impact ?? null, m ? +impacts3[m.event].strength.toFixed(4) : null, m ? impacts3[m.event].onset - t.frame : null];})},
-    motion: r.motion.full, beats}));
+    motion: r.motion.full, guards, beats}));
 }
 
 const median = (xs: number[]) => {const s = xs.filter(Number.isFinite).sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : NaN;};
@@ -131,6 +148,9 @@ function summarize(cell: any) {
       return {'v3 strong bias (req>=0.6)': bias(band(.6, 2)), 'v3 strong rms (req>=0.6)': rms(band(.6, 2)),
         'v3 very strong bias (req>=0.8)': bias(band(.8, 2)), 'v3 quiet bias (req<0.15)': bias(band(0, .15))};
     })(),
+    'strong arrivals inverted/backward': cell.guards?.strongInverted ?? NaN,
+    'body drag s/min': cell.guards?.dragSecondsPerMinute ?? NaN,
+    'off-beat kicks / ride': cell.guards?.offBeatKicks ?? NaN,
     'air rms': cell.frozen.axes?.air?.rmsError ?? NaN,
     'speed rms': cell.frozen.axes?.speed?.rmsError ?? NaN,
     'amplitude rms': cell.frozen.axes?.amplitude?.rmsError ?? NaN,

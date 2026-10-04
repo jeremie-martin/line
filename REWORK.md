@@ -389,3 +389,19 @@ Only on validated measures:
       rms +0.096), so kept.
     - Policy samples 32: null, rejected.
     - Retraining on v3 needs the archived training pipeline: a follow-up.
+  - Calm impact multiplier 3 (quiet asks): quiet bias −0.024 / −0.036, but
+    authored strong bias −0.013 and v3 loss +0.004. Mixed, not adopted.
+  - **Blind-spot audit** (docs/research/scorecard-blind-spots-20261005.md,
+    tools/measure/blind_spots.ts):
+    - L1 raised head-down or backward strong arrivals from 24% to 31%
+      (July 13%), invisible to the scorecard; the owner's one explicit
+      negative example was such an arrival.
+    - Also: more body drag than July; 6–8 pass-throughs of 3 px or more per
+      ride; the motion check's 1-frame rule counts body-on-sled motion.
+    - The eval gains three guard rows: strong arrivals inverted/backward,
+      body drag s/min, off-beat kicks per ride.
+  - **Adopted, uprightArrival 1** (the steep arrival penalizes a head-down
+    or backward sled; search profile v4), against s3-l9c:
+    - strong arrivals inverted/backward 29% → 15% (perturbed 31% → 15%);
+    - body drag −0.14 s/min;
+    - impact and every guard neutral; fresh-seed panel impact-neutral.

@@ -250,8 +250,17 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     const weight = Math.sqrt(steep ? options.impactSearch?.steepArrivalWeight ?? options.arrivalWeight ?? 0 : options.arrivalWeight ?? 0);
     const r1 = options.passiveArrival || steep ? weight * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
     const r2 = weight * (Math.hypot(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
-    residuals.push(r1, r2);
-    cost += r1 * r1 + r2 * r2;
+    // A steep arrival must not come head-down or backward: the sled's nose-to-tail
+    // axis past vertical, or pointing against the travel (uprightArrival).
+    let r3 = 0;
+    if (steep && options.impactSearch?.uprightArrival && state?.points) {
+      const ax = state.points.NOSE.x - state.points.TAIL.x, ay = state.points.NOSE.y - state.points.TAIL.y, len = Math.hypot(ax, ay) || 1;
+      const backward = Math.max(0, -(ax * finalVelocity.x + ay * finalVelocity.y) / (len * (Math.hypot(finalVelocity.x, finalVelocity.y) || 1)));
+      const inverted = Math.max(0, -ax / len);   // past vertical: the nose points backward on screen
+      r3 = weight * options.impactSearch.uprightArrival * (backward + inverted);
+    }
+    residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []));
+    cost += r1 * r1 + r2 * r2 + r3 * r3;
   }
   const steepNext = i < contacts.length - 1 && options.impactSearch?.steepArrivalFrom !== undefined &&
     (gaps[contacts[i + 1].gap].targets.impact ?? 0) >= options.impactSearch.steepArrivalFrom;

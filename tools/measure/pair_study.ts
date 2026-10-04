@@ -11,6 +11,7 @@ import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {execFileSync, spawn} from 'node:child_process';
 import {ensureMirror} from '../../scripts/produce/render.ts';
+import {songSpec} from './observe.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const study = arg('study')!, key = JSON.parse(readFileSync(arg('key')!, 'utf8'));
@@ -47,9 +48,20 @@ for (const p of key) for (const s of ['left', 'right'] as const) {
     '-vf', 'scale=960:540', '-c:v', 'libx264', '-crf', '22', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k',
     '-movflags', '+faststart', join(clips, `pair${p.pair}-${s}.mp4`)]);
 }
+// Each side carries the specification beats inside its clip (seconds from clip
+// start, with the requested strength); the judged hit is at hitAt.
+const specs = new Map<string, Awaited<ReturnType<typeof songSpec>>>();
+for (const song of new Set(key.flatMap((p: any) => [p.a.song, p.b.song]))) specs.set(song as string, await songSpec(song as string));
+const beats = (h: any) => {
+  const start = h.frame / 40 - BEFORE;
+  return specs.get(h.song)!.targets.filter((t: any) => t.frame / 40 >= start && t.frame / 40 <= start + LENGTH)
+    .map((t: any) => ({t: +(t.frame / 40 - start).toFixed(4), impact: t.impact ?? null}));
+};
 writeFileSync(join(out, 'manifest.json'), JSON.stringify({study, kind: 'pairs', hitAt: BEFORE, length: LENGTH,
   prompt: 'Both hits are on beats that ask for a strong hit, and the current measure rates them about equally strong. Which one feels more like the rider slamming into the ground?',
   questions: [{id: 'slam', options: ['left', 'right', 'same', 'neither']}],
-  clips: key.map((p: any) => ({id: `pair${p.pair}`, left: `/${clips}/pair${p.pair}-left.mp4`, right: `/${clips}/pair${p.pair}-right.mp4`}))}, null, 1));
+  clips: key.map((p: any) => ({id: `pair${p.pair}`,
+    left: {src: `/${clips}/pair${p.pair}-left.mp4`, beats: beats(side(p, 'left'))},
+    right: {src: `/${clips}/pair${p.pair}-right.mp4`, beats: beats(side(p, 'right'))}}))}, null, 1));
 console.log(`${study}: ${key.length} pairs in ${resolve(out)}`);
 process.exit(0);

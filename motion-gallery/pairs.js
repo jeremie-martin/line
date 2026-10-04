@@ -1,17 +1,73 @@
-/** Blind pair study: two looping clips side by side, one choice per pair.
+/** Blind pair study: two clips side by side on one clock (both judged hits are
+ * at the same moment), a light that is on while the judged hit happens, and a
+ * timeline of each clip's specification beats that can be dragged to scrub.
  * Sides are assigned by the study key, which the page never sees. Answers are
  * stored server-side (POST /api/labels/<study>) so a session can resume. */
 const $ = id => document.getElementById(id);
 const study = new URLSearchParams(location.search).get('study') ?? 'slam-2026-10';
-const state = {manifest: null, index: 0, choice: null, labeled: new Set(), shownAt: 0};
+const state = {manifest: null, index: 0, choice: null, labeled: new Set(), shownAt: 0, playing: true};
 const status = (text, error = false) => {$('status').textContent = text; $('status').classList.toggle('error', error);};
-const videos = [$('left'), $('right')];
+const sides = ['left', 'right'], video = s => $(s), master = () => $('left');
+const LIT = [-0.05, 0.12];   // seconds around the judged hit during which the light is on
+
+function drawTimeline(side) {
+  const m = state.manifest, clip = m.clips[state.index][side], canvas = $(side + '-timeline'), t = video(side).currentTime;
+  const r = Math.min(2, devicePixelRatio), w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== Math.round(w * r)) {canvas.width = Math.round(w * r); canvas.height = Math.round(h * r);}
+  const g = canvas.getContext('2d'), pad = 14, x = s => pad + s / m.length * (w - 2 * pad), base = 36;
+  g.setTransform(r, 0, 0, r, 0, 0); g.clearRect(0, 0, w, h);
+  g.strokeStyle = '#d9e0d5'; g.lineWidth = 2; g.beginPath(); g.moveTo(pad, base); g.lineTo(w - pad, base); g.stroke();
+  g.font = '11px system-ui'; g.textAlign = 'center';
+  for (const b of clip.beats) {
+    const judged = Math.abs(b.t - m.hitAt) < 1e-6, size = 5 + 11 * (b.impact ?? .5), near = Math.abs(t - b.t) < .06;
+    g.strokeStyle = judged ? '#146b55' : near ? '#162924' : '#9aa8a3'; g.lineWidth = judged ? 4 : 2;
+    g.beginPath(); g.moveTo(x(b.t), base - size); g.lineTo(x(b.t), base + size); g.stroke();
+    if (judged) {g.fillStyle = '#146b55'; g.fillText('this hit', x(b.t), 11);}
+  }
+  g.fillStyle = '#63736e'; g.textAlign = 'left'; g.fillText(`−${m.hitAt.toFixed(1)} s`, 2, h - 3);
+  g.textAlign = 'right'; g.fillText(`+${(m.length - m.hitAt).toFixed(1)} s`, w - 2, h - 3);
+  g.strokeStyle = '#d35400'; g.lineWidth = 2; g.beginPath(); g.moveTo(x(t), 4); g.lineTo(x(t), h - 14); g.stroke();
+}
+function draw() {
+  const m = state.manifest; if (!m) return;
+  for (const side of sides) {
+    const d = video(side).currentTime - m.hitAt, lit = d >= LIT[0] && d <= LIT[1], stage = video(side).parentElement;
+    stage.querySelector('.led').classList.toggle('on', lit); stage.classList.toggle('hit', lit);
+    drawTimeline(side);
+  }
+}
+function tick() {
+  const m = state.manifest;
+  if (m && state.playing) {
+    const t = master().currentTime;
+    if (t >= m.length - 0.03 || master().ended) seek(0, true);
+    else if (Math.abs(video('right').currentTime - t) > 0.04) video('right').currentTime = t;
+  }
+  draw(); requestAnimationFrame(tick);
+}
+function seek(t, keepPlaying = false) {
+  for (const side of sides) video(side).currentTime = t;
+  if (keepPlaying && state.playing) for (const side of sides) video(side).play().catch(() => {});
+}
+function setPlaying(on) {
+  state.playing = on; $('play').textContent = on ? 'Pause' : 'Play';
+  for (const side of sides) on ? video(side).play().catch(() => status('Press Play to start (the browser blocked autoplay).')) : video(side).pause();
+}
+for (const side of sides) {
+  const canvas = $(side + '-timeline');
+  const scrub = e => {
+    const rect = canvas.getBoundingClientRect(), pad = 14, f = (e.clientX - rect.left - pad) / (rect.width - 2 * pad);
+    setPlaying(false); seek(Math.max(0, Math.min(1, f)) * state.manifest.length);
+  };
+  canvas.addEventListener('pointerdown', e => {canvas.setPointerCapture(e.pointerId); scrub(e);});
+  canvas.addEventListener('pointermove', e => {if (canvas.hasPointerCapture(e.pointerId)) scrub(e);});
+}
 
 function show() {
   const clip = state.manifest.clips[state.index];
   state.choice = null; state.shownAt = performance.now(); $('note').value = '';
-  $('left').src = clip.left; $('right').src = clip.right;
-  for (const v of videos) {v.playbackRate = $('slow').getAttribute('aria-pressed') === 'true' ? .5 : 1; v.play().catch(() => {});}
+  for (const side of sides) {video(side).src = clip[side].src; video(side).muted = side !== state.sound; video(side).playbackRate = $('slow').getAttribute('aria-pressed') === 'true' ? .5 : 1;}
+  setPlaying(true);
   for (const b of $('choices').children) b.classList.remove('on');
   $('progress').textContent = `Pair ${state.index + 1} of ${state.manifest.clips.length} · ${state.labeled.size} answered`;
   $('back').disabled = state.index === 0;
@@ -32,13 +88,19 @@ $('choices').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   state.choice = b.dataset.v; for (const x of $('choices').children) x.classList.toggle('on', x === b);
 };
+$('play').onclick = () => setPlaying(!state.playing);
 $('slow').onclick = e => {
   const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', String(on));
-  for (const v of videos) v.playbackRate = on ? .5 : 1;
+  for (const side of sides) video(side).playbackRate = on ? .5 : 1;
 };
+// The two clips are different song moments, so only one soundtrack plays: off → A → B.
+const SOUND = ['off', 'left', 'right'];
 $('sound').onclick = e => {
-  const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', String(on));
-  for (const v of videos) {v.muted = !on; v.currentTime = 0; v.play().catch(() => {});}
+  const next = SOUND[(SOUND.indexOf(state.sound ?? 'off') + 1) % SOUND.length]; state.sound = next;
+  e.currentTarget.textContent = next === 'off' ? 'Sound' : `Sound: ${next === 'left' ? 'A' : 'B'}`;
+  e.currentTarget.setAttribute('aria-pressed', String(next !== 'off'));
+  for (const side of sides) video(side).muted = side !== next;
+  if (next !== 'off' && !state.playing) setPlaying(true);
 };
 $('next').onclick = () => save(false);
 $('skip').onclick = () => save(true);
@@ -48,7 +110,7 @@ try {
   state.manifest = await (await fetch(`/generated/label-studies/${study}/manifest.json`)).json();
   state.labeled = new Set((await (await fetch(`/api/labels/${study}`)).json()).labeled ?? []);
   $('prompt').textContent = state.manifest.prompt;
-  $('instructions').textContent = `Clips are ${state.manifest.length} s and loop; the hit lands at ${state.manifest.hitAt} s. Sound and half speed apply to both clips.`;
+  $('instructions').textContent = `The light comes on while the hit you are judging happens (at ${state.manifest.hitAt} s of a ${state.manifest.length} s loop); it is the tall green mark on each timeline. Drag a timeline to scrub both clips.`;
   state.index = Math.max(0, state.manifest.clips.findIndex(c => !state.labeled.has(c.id)));
-  show();
+  show(); requestAnimationFrame(tick);
 } catch (error) {status(`Cannot load study ${study}: ${error.message}`, true);}

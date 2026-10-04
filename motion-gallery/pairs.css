@@ -1,7 +1,13 @@
-.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:640px){.pair{grid-template-columns:1fr}}
+main{max-width:1100px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){.pair{grid-template-columns:1fr}}
 figure{margin:0;display:grid;gap:4px;min-width:0}
-video{width:100%;aspect-ratio:16/9;background:#fff;border:1px solid var(--line);border-radius:10px;display:block}
-figcaption{text-align:center;font-weight:600}
+.stage{position:relative;aspect-ratio:16/9;border-radius:10px}
+video{width:100%;height:100%;object-fit:contain;display:block}
+.led{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:#fff;transition:background .05s,box-shadow .05s}
+.led.on{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 6px rgba(20,107,85,.25)}
+.stage.hit{outline:3px solid var(--accent);outline-offset:-3px}
+.tag{position:absolute;top:8px;left:12px;font-weight:700;font-size:18px;color:var(--muted)}
+.timeline{width:100%;height:64px;display:block;touch-action:none;cursor:ew-resize}
 #prompt{margin:4px 0 0}
 #choices{margin:10px 0}

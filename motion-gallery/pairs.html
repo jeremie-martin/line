@@ -7,10 +7,17 @@
   <p id="prompt"></p>
   <p id="instructions"></p>
   <div class="pair">
-    <figure><video id="left" muted loop playsinline preload="auto"></video><figcaption>A</figcaption></figure>
-    <figure><video id="right" muted loop playsinline preload="auto"></video><figcaption>B</figcaption></figure>
+    <figure>
+      <div class="stage"><video id="left" muted playsinline preload="auto"></video><span class="led" aria-hidden="true"></span><span class="tag">A</span></div>
+      <canvas class="timeline" id="left-timeline" aria-label="Beats in clip A; drag to scrub"></canvas>
+    </figure>
+    <figure>
+      <div class="stage"><video id="right" muted playsinline preload="auto"></video><span class="led" aria-hidden="true"></span><span class="tag">B</span></div>
+      <canvas class="timeline" id="right-timeline" aria-label="Beats in clip B; drag to scrub"></canvas>
+    </figure>
   </div>
   <div class="controls">
+    <button id="play">Pause</button>
     <button id="slow" aria-pressed="false">Half speed</button>
     <button id="sound" aria-pressed="false">Sound</button>
   </div>

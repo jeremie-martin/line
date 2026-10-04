@@ -18,53 +18,417 @@
  "clips": [
   {
    "id": "pair1",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair1-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair1-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair1-left.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.1
+     },
+     {
+      "t": 0.7,
+      "impact": 1
+     },
+     {
+      "t": 1,
+      "impact": 0.957
+     },
+     {
+      "t": 1.4,
+      "impact": 1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair1-right.mp4",
+    "beats": [
+     {
+      "t": 0.3,
+      "impact": 1
+     },
+     {
+      "t": 0.6,
+      "impact": 0.957
+     },
+     {
+      "t": 1,
+      "impact": 1
+     },
+     {
+      "t": 1.65,
+      "impact": 0.786
+     }
+    ]
+   }
   },
   {
    "id": "pair2",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair2-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair2-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair2-left.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.786
+     },
+     {
+      "t": 1,
+      "impact": 1
+     },
+     {
+      "t": 1.325,
+      "impact": 0.928
+     },
+     {
+      "t": 1.675,
+      "impact": 0.842
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair2-right.mp4",
+    "beats": [
+     {
+      "t": 0.3,
+      "impact": 1
+     },
+     {
+      "t": 0.6,
+      "impact": 0.957
+     },
+     {
+      "t": 1,
+      "impact": 1
+     },
+     {
+      "t": 1.65,
+      "impact": 0.786
+     }
+    ]
+   }
   },
   {
    "id": "pair3",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair3-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair3-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair3-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.377
+     },
+     {
+      "t": 1,
+      "impact": 0.844
+     },
+     {
+      "t": 1.55,
+      "impact": 0.338
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair3-right.mp4",
+    "beats": [
+     {
+      "t": 0.725,
+      "impact": 0.825
+     },
+     {
+      "t": 1,
+      "impact": 0.937
+     },
+     {
+      "t": 1.375,
+      "impact": 0.825
+     },
+     {
+      "t": 1.675,
+      "impact": 0.767
+     }
+    ]
+   }
   },
   {
    "id": "pair4",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair4-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair4-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair4-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.76
+     },
+     {
+      "t": 0.55,
+      "impact": 0.67398
+     },
+     {
+      "t": 1,
+      "impact": 0.76
+     },
+     {
+      "t": 1.4,
+      "impact": 0.7411399999999999
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair4-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.377
+     },
+     {
+      "t": 1,
+      "impact": 0.844
+     },
+     {
+      "t": 1.55,
+      "impact": 0.338
+     }
+    ]
+   }
   },
   {
    "id": "pair5",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair5-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair5-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair5-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.65252
+     },
+     {
+      "t": 0.575,
+      "impact": 0.5693333333333334
+     },
+     {
+      "t": 1,
+      "impact": 0.78
+     },
+     {
+      "t": 1.425,
+      "impact": 0.5976533333333334
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair5-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.335
+     },
+     {
+      "t": 1,
+      "impact": 0.887
+     },
+     {
+      "t": 1.525,
+      "impact": 0.761
+     }
+    ]
+   }
   },
   {
    "id": "pair6",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair6-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair6-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair6-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 1
+     },
+     {
+      "t": 1,
+      "impact": 0.76
+     },
+     {
+      "t": 1.45,
+      "impact": 0.63764
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair6-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.76
+     },
+     {
+      "t": 0.575,
+      "impact": 0.65742
+     },
+     {
+      "t": 1,
+      "impact": 0.76
+     },
+     {
+      "t": 1.425,
+      "impact": 0.63442
+     }
+    ]
+   }
   },
   {
    "id": "pair7",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair7-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair7-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair7-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.354
+     },
+     {
+      "t": 1,
+      "impact": 0.877
+     },
+     {
+      "t": 1.55,
+      "impact": 0.763
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair7-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.759
+     },
+     {
+      "t": 1,
+      "impact": 0.843
+     },
+     {
+      "t": 1.55,
+      "impact": 0.338
+     }
+    ]
+   }
   },
   {
    "id": "pair8",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair8-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair8-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair8-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.358
+     },
+     {
+      "t": 1,
+      "impact": 0.899
+     },
+     {
+      "t": 1.55,
+      "impact": 0.345
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair8-right.mp4",
+    "beats": [
+     {
+      "t": 0.475,
+      "impact": 0.763
+     },
+     {
+      "t": 1,
+      "impact": 0.849
+     },
+     {
+      "t": 1.55,
+      "impact": 0.771
+     }
+    ]
+   }
   },
   {
    "id": "pair9",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair9-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair9-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair9-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.7209000000000001
+     },
+     {
+      "t": 1,
+      "impact": 0.76
+     },
+     {
+      "t": 1.425,
+      "impact": 0.7077066666666667
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair9-right.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 0.788
+     },
+     {
+      "t": 0.35,
+      "impact": 0.943
+     },
+     {
+      "t": 0.675,
+      "impact": 1
+     },
+     {
+      "t": 1,
+      "impact": 0.945
+     },
+     {
+      "t": 1.35,
+      "impact": 0.829
+     },
+     {
+      "t": 1.65,
+      "impact": 0.877
+     }
+    ]
+   }
   },
   {
    "id": "pair10",
-   "left": "/generated/label-studies/slam-2026-10/clips/pair10-left.mp4",
-   "right": "/generated/label-studies/slam-2026-10/clips/pair10-right.mp4"
+   "left": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair10-left.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.796
+     },
+     {
+      "t": 1,
+      "impact": 0.93
+     },
+     {
+      "t": 1.325,
+      "impact": 0.835
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/slam-2026-10/clips/pair10-right.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.6
+     },
+     {
+      "t": 1,
+      "impact": 0.9
+     },
+     {
+      "t": 1.675,
+      "impact": 0.9
+     }
+    ]
+   }
   }
  ]
 }

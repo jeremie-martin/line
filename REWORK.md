@@ -354,3 +354,14 @@ Only on validated measures:
     - contested strong beats −0.8 / −0.2 pp (earns back most of L1's cost);
     - +0.32M frames and +20 s compile per ride.
     - At ×1.6 the gain was similar for +100 s, so it was held.
+  - Agent B (exp/sharp-catch, against the pre-L1 base):
+    - Catches are already sharp (turn done in 2.8 frames); sharper or larger
+      turns mostly crash (42–81%).
+    - Energy audit: passages are not energy-bound; the real speed bill of a
+      strong hit is about 5× smaller than first estimated.
+    - Arrival-speed headroom 0.5 helped on that base (+0.015 strong bias).
+  - Rejected on top of L1 + L9 (against s3-l9):
+    - headroom 0.5: speed rms +0.010, very strong −0.037;
+    - headroom 0.5 + impact weight 1.5: mixed, air +0.005.
+    - L1's steep-arrival speed formula already does this bookkeeping for
+      strong catches.

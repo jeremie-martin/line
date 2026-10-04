@@ -29,3 +29,5 @@ A change is adopted only if the whole picture improves.
 | 00:10 | Diagnosis | Strong hits are mostly sled-tip strikes plus spin (sled 39° to the surface), not slams. Quiet overshoot comes from sled pitch too. |
 | 00:30 | Lookahead boost into strong asks (L9) 1.6 / 1.3 | 1.6: small gain, +100 s per compile. 1.3: strong bias +0.009, contested −0.8 pp, +20 s. |
 | 00:40 | Agent B: sharp catch turn, energy audit | Catches are already sharp, and sharper ones crash. Passages are not energy-bound. **Arrival-speed headroom** is a new lever. |
+| 00:55 | **L9 adopted** (×1.3) | Committed with re-recorded parity. |
+| 01:10 | Headroom on top of L1 + L9 | Rejected: no gain; L1 already covers it. |

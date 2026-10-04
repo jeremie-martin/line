@@ -2,7 +2,7 @@
  * account in scripts/lib/strike_impact.ts — one implementation for research,
  * compiler and judge. */
 import {observeStrikes, observeMotion, STRIKE_V2_CONTRACT, type StrikeFrame} from '../../scripts/lib/strike_impact.ts';
-export {detectStrikes, accountStrikes, STRIKE_CONTRACT, STRIKE_V2_CONTRACT} from '../../scripts/lib/strike_impact.ts';
+export {detectStrikes, accountStrikes, STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../../scripts/lib/strike_impact.ts';
 
 export function strikeFrames(o: any): StrikeFrame[] {
   const velocities = o.frames.map((f: any) => {

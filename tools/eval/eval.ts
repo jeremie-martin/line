@@ -46,14 +46,14 @@ async function worker(caseId: string, mode: string, out: string, requested: stri
   const {replayGalleryTrack} = await import('../../scripts/gallery/artifacts.ts');
   const {observe} = await import('../measure/observe.ts');
   const {beatRows} = await import('../measure/measures.ts');
-  const {strikeFrames, strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V2_CONTRACT} = await import('../measure/strike.ts');
+  const {strikeFrames, strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} = await import('../measure/strike.ts');
   const loaded = await loadMusicCase({song: c.song, title: c.song, moments: []}, resolveJoltMs());
   const spec = c.perturbation ? perturb(loaded.spec, c.perturbation) : loaded.spec;
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};
   const budget = requested === 'standard' ? productionBudget(spec.duration) : Number(requested);
   const began = performance.now();
-  const contract = ({landing: undefined, strike: 'line.strike.v1', strike2: 'line.strike.v2'} as Record<string, string | undefined>)[mode];
-  if (!(mode in {landing: 1, strike: 1, strike2: 1})) throw new Error('mode is landing, strike or strike2');
+  const contract = ({landing: undefined, strike: 'line.strike.v1', strike2: 'line.strike.v2', strike3: 'line.strike.v3'} as Record<string, string | undefined>)[mode];
+  if (!(mode in {landing: 1, strike: 1, strike2: 1, strike3: 1})) throw new Error('mode is landing, strike, strike2 or strike3');
   const cp = compileHandoff(spec, c.seed, {budget, creative: {}, ...(contract ? {impactContract: contract as any} : {}),
     phraseBoundaries: loaded.musicCase.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter((t: any) => Number.isFinite(t))});
   const compileMs = performance.now() - began, r = cp.repertoire!;
@@ -62,8 +62,12 @@ async function worker(caseId: string, mode: string, out: string, requested: stri
   const strikes = detectStrikes(strikeFrames(observation)).filter(e => e.onset <= music.durationFrames);
   const strike = accountStrikes(strikes, targets);
   // Every run is also scored under v2 (whole-body motion change), whatever it optimized.
-  const impacts = detectStrikes(strikeMotionFrames(observation), STRIKE_V2_CONTRACT).filter(e => e.onset <= music.durationFrames);
+  const motionFrames = strikeMotionFrames(observation);
+  const impacts = detectStrikes(motionFrames, STRIKE_V2_CONTRACT).filter(e => e.onset <= music.durationFrames);
   const impact = accountStrikes(impacts, targets, STRIKE_V2_CONTRACT);
+  // ...and under v3, where a floor-then-rail double contact is two impacts.
+  const impacts3 = detectStrikes(motionFrames, STRIKE_V3_CONTRACT).filter(e => e.onset <= music.durationFrames);
+  const impact3 = accountStrikes(impacts3, targets, STRIKE_V3_CONTRACT);
   const strongExtras = (account: any, events: any[]) => account.unmatchedEvents.filter((i: number) => events[i].strength >= .25).length;
   const beats = beatRows({id: c.id, set: mode, song: c.song, seed: c.seed, durationFrames: music.durationFrames,
     targets: spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact})), ...observation});
@@ -74,6 +78,8 @@ async function worker(caseId: string, mode: string, out: string, requested: stri
     strike: {loss: strike.loss, strengthMse: strike.strengthMse, timingMse: strike.timingMse, extraMse: strike.extraMse, missing: strike.missingTargets.length},
     impact: {loss: impact.loss, strengthMse: impact.strengthMse, timingMse: impact.timingMse, extraMse: impact.extraMse, missing: impact.missingTargets.length,
       strongExtras: strongExtras(impact, impacts), beats: targets.length},
+    impact3: {loss: impact3.loss, strengthMse: impact3.strengthMse, extraMse: impact3.extraMse, strongExtras: strongExtras(impact3, impacts3),
+      splits: impacts3.filter(e => e.strength >= .2).length - impacts.filter(e => e.strength >= .2).length, beats: targets.length},
     motion: r.motion.full, beats}));
 }
 
@@ -101,6 +107,12 @@ function summarize(cell: any) {
     'impact strength rms (v2)': cell.impact ? Math.sqrt(cell.impact.strengthMse) : NaN,
     'impact extra (v2, mse)': cell.impact?.extraMse ?? NaN,
     'strong extra impacts / beat (v2)': cell.impact ? cell.impact.strongExtras / cell.impact.beats : NaN,
+    'impact loss (v3)': cell.impact3?.loss ?? NaN,
+    'strong extra impacts / beat (v3)': cell.impact3 ? cell.impact3.strongExtras / cell.impact3.beats : NaN,
+    'double impacts / beat (v3 − v2)': cell.impact3 ? cell.impact3.splits / cell.impact3.beats : NaN,
+    'air rms': cell.frozen.axes?.air?.rmsError ?? NaN,
+    'speed rms': cell.frozen.axes?.speed?.rmsError ?? NaN,
+    'amplitude rms': cell.frozen.axes?.amplitude?.rmsError ?? NaN,
     'burst excess (100 ms)': cell.motion?.bursts?.[1]?.excessIntegral ?? NaN,
     'physics frames (M)': cell.physicalFrames / 1e6, 'compile s': cell.compileMs / 1000,
   };

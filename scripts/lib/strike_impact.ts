@@ -1,5 +1,6 @@
-/** line.strike.v1 / v2 — the impact account: what the eye reads as a hit on the beat.
- * v2 differs only in strength (below); events, timing and matching are shared.
+/** line.strike.v1 / v2 / v3 — the impact account: what the eye reads as a hit on the beat.
+ * v2 differs from v1 only in strength (below). v3 is v2 plus one identity rule:
+ * opposite pushes are separate impacts (below).
  *
  * Everything derives from one physical signal: the rider's 10-point centre of mass
  * (equal point masses), whose velocity is exactly ballistic whenever nothing
@@ -16,6 +17,12 @@
  *    after the previous peak, whose preceding valley is at most `valley` × that
  *    NEW peak. A strike after a weak touch is never hidden; the solver's
  *    frame-to-frame contact chatter is fused, as the eye fuses it.
+ *  - Opposite pushes (v3): inside an engagement a new event also starts at a frame
+ *    whose contact push (the travel part of the impulse, at least `floor`) points
+ *    more than acos(−`reversalCos`) away from the push at the current event's
+ *    peak (also at least `floor`): a floor hit followed by an upper-rail hit is
+ *    two impacts, as the eye sees it, however close together. A corner (about
+ *    90°) does not split.
  *  - Steering: contact that never forms such a peak is not an event and costs
  *    nothing in this account (unwanted speed gain is accounted separately).
  * Timing: the half-rise frame, where J first reaches half of the event's peak —
@@ -42,12 +49,14 @@
 import {accountContactImpacts, type ContactImpactEvent, type ImpactTarget} from './contact_impact.ts';
 
 export type StrikeContract = Readonly<{id: string; gravity: number; floor: number; valley: number; spacing: number;
-  halfRise: number; window: number; veryStrong: number; strength: 'redirection' | 'motion'; strengthWindow: number}>;
+  halfRise: number; window: number; veryStrong: number; strength: 'redirection' | 'motion'; strengthWindow: number;
+  split: 'none' | 'reversal'; reversalCos: number}>;
 export const STRIKE_CONTRACT: StrikeContract = Object.freeze({
   id: 'line.strike.v1', gravity: 0.175, floor: 0.8, valley: 0.5, spacing: 4, halfRise: 0.5, window: 6, veryStrong: 7.55,
-  strength: 'redirection', strengthWindow: 0,
+  strength: 'redirection', strengthWindow: 0, split: 'none', reversalCos: 0,
 });
 export const STRIKE_V2_CONTRACT: StrikeContract = Object.freeze({...STRIKE_CONTRACT, id: 'line.strike.v2', strength: 'motion', strengthWindow: 2});
+export const STRIKE_V3_CONTRACT: StrikeContract = Object.freeze({...STRIKE_V2_CONTRACT, id: 'line.strike.v3', split: 'reversal', reversalCos: -.5});
 export type StrikeFrame = {frame: number; contact: boolean; J: number; bend: number;
   /** v2 only: the whole-body contact impulse (travel x, travel y, spin) in px/frame. */
   impulse?: readonly [number, number, number];
@@ -120,7 +129,18 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
     // Walk the local maxima of the smoothed force in order. A maximum either renews
     // (a new strike) or, if it is higher than the current strike's peak, moves it.
     let peak = first;
+    const push = (i: number) => {
+      const p = frames[i].impulse;
+      if (!p) throw new Error('opposite-push separation needs whole-body impulses (observeMotion)');
+      return p;
+    };
     for (let i = first + 1; i <= last; i++) {
+      if (c.split === 'reversal' && i > peak) {
+        const a = push(peak), b = push(i), na = Math.hypot(a[0], a[1]), nb = Math.hypot(b[0], b[1]);
+        if (na >= c.floor && nb >= c.floor && (a[0] * b[0] + a[1] * b[1]) / (na * nb) < c.reversalCos) {
+          starts.push({at: i, kind: 'strike'}); peak = i; continue;
+        }
+      }
       const value = S(i);
       if (!(value >= S(i - 1) && (i === last || value > S(i + 1)))) continue;
       let trough = peak;

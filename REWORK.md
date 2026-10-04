@@ -306,3 +306,13 @@ Only on validated measures:
   - The 1-frame rule counts single-frame speed GAINS (kicks), not slams. There
     are only 13 such frames in 12 rides, about half away from any beat: a
     small item to watch in problem 2.
+- 2026-10-04 night: **Pre-registered H-v3** (double hits). Under line.strike.v3,
+  opposite pushes (floor then upper rail) are separate impacts.
+  - Measurement check: on rides with rails, 94% of the added splits start on an
+    opposite-facing surface; July (no rails) has none; the count is insensitive
+    to the threshold (107°–135°: 181–189).
+  - Hypothesis: compiling with v3 instead of v2 reduces double impacts per beat
+    (v3 − v2) and v3 loss, with no worse-than-noise change in v2 strength rms,
+    completion, peak timing, contested beats, air/speed/amplitude rms, bursts
+    or compile cost.
+  - Adopted as default only if all hold on both panels.

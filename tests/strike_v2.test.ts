@@ -31,3 +31,18 @@ it('v2 strengths equal the research measure the owner judged, with v1 events and
   expect(research.map(r => r.onset)).toEqual(e2.map(e => e.onset));
   for (const [i, r] of research.entries()) expect(e2[i].strength).toBeCloseTo(Math.min(1, r.strength), 9);
 });
+
+it('v3 separates opposite pushes (floor then upper rail) and leaves a single push alone', async () => {
+  const {detectStrikes, STRIKE_V3_CONTRACT: V3, STRIKE_V2_CONTRACT: V2} = await import('../scripts/lib/strike_impact.ts');
+  const frame = (f: number, contact: boolean, push: [number, number]) => ({frame: f, contact, J: Math.hypot(...push), bend: 0, solverGain: 0, gravityGain: 0,
+    speedBefore: 0, impulse: [push[0], push[1], 0] as const});
+  const air = (f: number) => frame(f, false, [0, 0]);
+  // Floor push up (−y), then 2 frames later an upper rail pushing down (+y), all in one contact run.
+  const bounce = [air(0), frame(1, true, [0, -2]), frame(2, true, [0, -.3]), frame(3, true, [.2, 1.6]), frame(4, true, [0, .2]), air(5)];
+  expect(detectStrikes(bounce, V2)).toHaveLength(1);
+  const e = detectStrikes(bounce, V3);
+  expect(e).toHaveLength(2); expect(e[1].contactStart).toBe(3); expect(e[0].strength).toBeCloseTo(2.3 / 7.55, 6);
+  // A corner (push turns 90°) stays one impact.
+  const corner = [air(0), frame(1, true, [0, -2]), frame(2, true, [-1.8, 0]), air(3)];
+  expect(detectStrikes(corner, V3)).toHaveLength(1);
+});

@@ -9,11 +9,13 @@
  *  - line.strike.v2: the same events, timing and matching; strength = the change of
  *    the rider's whole-body motion (travel and spin) within 50 ms, chosen on the
  *    owner's blind pair judgments.
+ *  - line.strike.v3: v2 plus one identity rule: opposite pushes (floor then upper
+ *    rail) are separate impacts, so an unrequested second hit costs as an extra.
  *  (line.contact-impact.v1, their predecessor, is kept only as a research
  *  diagnostic in tools/measure.) */
 export const DEFAULT_IMPACT_ACCOUNT = 'line.strike.v2';
 import {CONTACT_IMPACT_CONTRACT, accountContactImpacts, contactSpeedGains, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';
-import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, observeStrikes, observeMotion, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes,
+import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT, observeStrikes, observeMotion, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes,
   type StrikeContract} from '../../lib/strike_impact.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
@@ -35,7 +37,7 @@ export type ImpactEvaluation = {contract: string; events: ContactImpactEvent[]; 
   account: ReturnType<typeof accountContactImpacts>; valid: boolean; speedGains: ReturnType<typeof contactSpeedGains>};
 
 function strikeAccount(c: StrikeContract): ImpactAccount {
-  const motion = c.strength === 'motion';
+  const motion = c.strength === 'motion' || c.split === 'reversal';
   return {
     id: c.id, matchFrames: CONTACT_IMPACT_CONTRACT.matchFrames,
     observe(engine, raw) {
@@ -67,9 +69,9 @@ function strikeAccount(c: StrikeContract): ImpactAccount {
     },
   };
 }
-const strikeV1 = strikeAccount(STRIKE_CONTRACT), strikeV2 = strikeAccount(STRIKE_V2_CONTRACT);
+const strikeV1 = strikeAccount(STRIKE_CONTRACT), strikeV2 = strikeAccount(STRIKE_V2_CONTRACT), strikeV3 = strikeAccount(STRIKE_V3_CONTRACT);
 
-const ACCOUNTS: Record<string, ImpactAccount> = {[strikeV1.id]: strikeV1, [strikeV2.id]: strikeV2};
+const ACCOUNTS: Record<string, ImpactAccount> = {[strikeV1.id]: strikeV1, [strikeV2.id]: strikeV2, [strikeV3.id]: strikeV3};
 export const IMPACT_ACCOUNT_IDS = Object.keys(ACCOUNTS);
 export type ImpactAccountId = keyof typeof ACCOUNTS;
 export function impactAccount(id: string): ImpactAccount {

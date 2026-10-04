@@ -26,7 +26,8 @@ const readJson = (p: string) => JSON.parse(readFileSync(p, 'utf8'));
 export type Source = {set: string; song: string; seed: number; track: any; origin: string};
 
 /** The reference sets: July (cleaner impacts, owner's memory), the previous
- * landing-objective library (candidate-8) and the strike review library. */
+ * landing-objective library (candidate-8), the strike v1 review library and the
+ * strike v2 review library. */
 export function sources(sets: string[]): Source[] {
   const out: Source[] = [];
   if (sets.includes('july')) {
@@ -39,6 +40,10 @@ export function sources(sets: string[]): Source[] {
   if (sets.includes('current')) for (const song of SONGS) for (const seed of [101, 202, 303]) {
     const path = `generated/intentional-motion/library-candidate-8/${song}-${seed}/${song}-${seed}-production.json`;
     if (existsSync(path)) out.push({set: 'current', song, seed, track: readJson(path).track, origin: path});
+  }
+  if (sets.includes('strike2')) for (const song of SONGS) for (const seed of [101, 202, 303]) {
+    const path = `generated/production-repertoire/library-strike-v2/${song}-${seed}/${song}-${seed}-production.json`;
+    if (existsSync(path)) out.push({set: 'strike2', song, seed, track: readJson(path).track, origin: path});
   }
   if (sets.includes('strike')) for (const song of SONGS) for (const seed of [101, 202, 303]) {
     const path = `generated/production-repertoire/library-strike-s1/${song}-${seed}/${song}-${seed}-production.json`;
@@ -88,6 +93,8 @@ if (import.meta.filename === process.argv[1]) {
     index.push({id, set: s.set, song: s.song, seed: s.seed, origin: s.origin, trackHash: result.trackHash});
     console.log(`${id}  frames ${result.frames.length}  terminus ${result.terminus.reason}`);
   }
-  writeFileSync(join(OUT, 'index.json'), JSON.stringify(index, null, 1));
+  // Keep the index entries of sets not observed in this run.
+  const prior = existsSync(join(OUT, 'index.json')) ? JSON.parse(readFileSync(join(OUT, 'index.json'), 'utf8')).filter((r: any) => !sets.includes(r.set)) : [];
+  writeFileSync(join(OUT, 'index.json'), JSON.stringify([...prior, ...index], null, 1));
   process.exit(0);
 }

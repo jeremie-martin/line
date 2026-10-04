@@ -1,0 +1,146 @@
+[
+ {
+  "id": "current~amor_na_praia_46s~101",
+  "origin": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json"
+ },
+ {
+  "id": "current~amor_na_praia_46s~202",
+  "origin": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-202/amor_na_praia_46s-202-production.json"
+ },
+ {
+  "id": "current~amor_na_praia_46s~303",
+  "origin": "generated/intentional-motion/library-candidate-8/amor_na_praia_46s-303/amor_na_praia_46s-303-production.json"
+ },
+ {
+  "id": "current~amour_de_ma_vie_44s~101",
+  "origin": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-production.json"
+ },
+ {
+  "id": "current~amour_de_ma_vie_44s~202",
+  "origin": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-production.json"
+ },
+ {
+  "id": "current~amour_de_ma_vie_44s~303",
+  "origin": "generated/intentional-motion/library-candidate-8/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-production.json"
+ },
+ {
+  "id": "current~luna_bala_44s~101",
+  "origin": "generated/intentional-motion/library-candidate-8/luna_bala_44s-101/luna_bala_44s-101-production.json"
+ },
+ {
+  "id": "current~luna_bala_44s~202",
+  "origin": "generated/intentional-motion/library-candidate-8/luna_bala_44s-202/luna_bala_44s-202-production.json"
+ },
+ {
+  "id": "current~luna_bala_44s~303",
+  "origin": "generated/intentional-motion/library-candidate-8/luna_bala_44s-303/luna_bala_44s-303-production.json"
+ },
+ {
+  "id": "current~tiki_tiki_48s~101",
+  "origin": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json"
+ },
+ {
+  "id": "current~tiki_tiki_48s~202",
+  "origin": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-202/tiki_tiki_48s-202-production.json"
+ },
+ {
+  "id": "current~tiki_tiki_48s~303",
+  "origin": "generated/intentional-motion/library-candidate-8/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json"
+ },
+ {
+  "id": "july~amor_na_praia_46s~946078916",
+  "origin": "generated/reference/july-2026-07/amor_na_praia_46s-946078916.track.json"
+ },
+ {
+  "id": "july~amor_na_praia_46s~946078955",
+  "origin": "generated/reference/july-2026-07/amor_na_praia_46s-946078955.track.json"
+ },
+ {
+  "id": "july~amor_na_praia_46s~946078960",
+  "origin": "generated/reference/july-2026-07/amor_na_praia_46s-946078960.track.json"
+ },
+ {
+  "id": "july~amor_na_praia_46s~946078962",
+  "origin": "generated/reference/july-2026-07/amor_na_praia_46s-946078962.track.json"
+ },
+ {
+  "id": "july~amor_na_praia_46s~946078975",
+  "origin": "generated/reference/july-2026-07/amor_na_praia_46s-946078975.track.json"
+ },
+ {
+  "id": "july~luna_bala_44s~946081256",
+  "origin": "generated/reference/july-2026-07/luna_bala_44s-946081256.track.json"
+ },
+ {
+  "id": "july~luna_bala_44s~946081264",
+  "origin": "generated/reference/july-2026-07/luna_bala_44s-946081264.track.json"
+ },
+ {
+  "id": "july~luna_bala_44s~946081317",
+  "origin": "generated/reference/july-2026-07/luna_bala_44s-946081317.track.json"
+ },
+ {
+  "id": "july~luna_bala_44s~946081319",
+  "origin": "generated/reference/july-2026-07/luna_bala_44s-946081319.track.json"
+ },
+ {
+  "id": "july~tiki_tiki_48s~946081399",
+  "origin": "generated/reference/july-2026-07/tiki_tiki_48s-946081399.track.json"
+ },
+ {
+  "id": "july~tiki_tiki_48s~946081427",
+  "origin": "generated/reference/july-2026-07/tiki_tiki_48s-946081427.track.json"
+ },
+ {
+  "id": "july~tiki_tiki_48s~946081437",
+  "origin": "generated/reference/july-2026-07/tiki_tiki_48s-946081437.track.json"
+ },
+ {
+  "id": "strike~amor_na_praia_46s~101",
+  "origin": "generated/production-repertoire/library-strike-s1/amor_na_praia_46s-101/amor_na_praia_46s-101-production.json"
+ },
+ {
+  "id": "strike~amor_na_praia_46s~202",
+  "origin": "generated/production-repertoire/library-strike-s1/amor_na_praia_46s-202/amor_na_praia_46s-202-production.json"
+ },
+ {
+  "id": "strike~amor_na_praia_46s~303",
+  "origin": "generated/production-repertoire/library-strike-s1/amor_na_praia_46s-303/amor_na_praia_46s-303-production.json"
+ },
+ {
+  "id": "strike~amour_de_ma_vie_44s~101",
+  "origin": "generated/production-repertoire/library-strike-s1/amour_de_ma_vie_44s-101/amour_de_ma_vie_44s-101-production.json"
+ },
+ {
+  "id": "strike~amour_de_ma_vie_44s~202",
+  "origin": "generated/production-repertoire/library-strike-s1/amour_de_ma_vie_44s-202/amour_de_ma_vie_44s-202-production.json"
+ },
+ {
+  "id": "strike~amour_de_ma_vie_44s~303",
+  "origin": "generated/production-repertoire/library-strike-s1/amour_de_ma_vie_44s-303/amour_de_ma_vie_44s-303-production.json"
+ },
+ {
+  "id": "strike~luna_bala_44s~101",
+  "origin": "generated/production-repertoire/library-strike-s1/luna_bala_44s-101/luna_bala_44s-101-production.json"
+ },
+ {
+  "id": "strike~luna_bala_44s~202",
+  "origin": "generated/production-repertoire/library-strike-s1/luna_bala_44s-202/luna_bala_44s-202-production.json"
+ },
+ {
+  "id": "strike~luna_bala_44s~303",
+  "origin": "generated/production-repertoire/library-strike-s1/luna_bala_44s-303/luna_bala_44s-303-production.json"
+ },
+ {
+  "id": "strike~tiki_tiki_48s~101",
+  "origin": "generated/production-repertoire/library-strike-s1/tiki_tiki_48s-101/tiki_tiki_48s-101-production.json"
+ },
+ {
+  "id": "strike~tiki_tiki_48s~202",
+  "origin": "generated/production-repertoire/library-strike-s1/tiki_tiki_48s-202/tiki_tiki_48s-202-production.json"
+ },
+ {
+  "id": "strike~tiki_tiki_48s~303",
+  "origin": "generated/production-repertoire/library-strike-s1/tiki_tiki_48s-303/tiki_tiki_48s-303-production.json"
+ }
+]

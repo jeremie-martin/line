@@ -34,3 +34,15 @@ event) and 3 checks. Answer at
 `impact-pairs-2026-10c` is round 3: 9 pairs arrival-with-spin (`c_arrive_spin`) vs whole-body
 change in 50 ms, 8 pairs whole event vs 50 ms, 6 pairs with vs without spin, 3 checks. Answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-pairs-2026-10c`.
+
+## Sources (reproducibility)
+
+`sources/` holds everything needed to rebuild and re-score the studies without
+`generated/`:
+- the source track of every ride a study judged (`<set>~<song>~<seed>.track.json.gz`,
+  index with original paths in `sources/index.json`);
+- the per-event measure tables the pair studies were scored with
+  (`motion-change-20261004.jsonl.gz` with the window fix,
+  `impact-candidates-20261004.jsonl.gz`).
+
+Re-score with `node --import tsx tools/measure/analyze_pairs.ts --studies=impact-pairs-2026-10,impact-pairs-2026-10b,impact-pairs-2026-10c --rows=<the two tables, gunzipped>`.

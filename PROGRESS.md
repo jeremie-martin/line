@@ -22,12 +22,12 @@ A change is adopted only if the whole picture improves.
 
 | time | change | result |
 |---|---|---|
-| 22:50 | v3 as the objective | Adopted. Double impacts −0.13 per beat; speed rms +0.007 (authored only). |
-| 23:20 | Seed catch turn in 2 frames; impact weight 2; release reserve 3 | Rejected: null, or impact gain paid for with speed. |
-| 23:30 | Survival envelope (instrument) | The strongest single hit the rider survives is about 0.9; 1.0 is out of reach. |
-| 23:45 | **L1, steep arrival before strong asks** | **Adopted.** Strong bias +0.02, speed rms −0.014 / −0.022; contested beats +1 pp. |
-| 00:10 | Diagnosis | Strong hits are mostly sled-tip strikes plus spin (sled 39° to the surface), not slams. Quiet overshoot comes from sled pitch too. |
-| 00:30 | Lookahead boost into strong asks (L9) 1.6 / 1.3 | 1.6: small gain, +100 s per compile. 1.3: strong bias +0.009, contested −0.8 pp, +20 s. |
-| 00:40 | Agent B: sharp catch turn, energy audit | Catches are already sharp, and sharper ones crash. Passages are not energy-bound. **Arrival-speed headroom** is a new lever. |
-| 00:55 | **L9 adopted** (×1.3) | Committed with re-recorded parity. |
-| 01:10 | Headroom on top of L1 + L9 | Rejected: no gain; L1 already covers it. |
+| 22:55 | v3 as the objective | Adopted. Double impacts −0.13 per beat; speed rms +0.007 (authored only). |
+| 23:05 | Seed catch turn in 2 frames; impact weight 2; release reserve 3 | Rejected: null, or impact gain paid for with speed. |
+| 23:10 | Survival envelope (instrument) | The strongest single hit the rider survives is about 0.9; 1.0 is out of reach. |
+| 23:29 | **L1, steep arrival before strong asks** | **Adopted.** Strong bias +0.02, speed rms −0.014 / −0.022; contested beats +1 pp. |
+| 23:45 | Diagnosis | Strong hits are mostly sled-tip strikes plus spin (sled 39° to the surface), not slams. Quiet overshoot comes from sled pitch too. |
+| 23:41 | Lookahead boost into strong asks (L9) 1.6 / 1.3 | 1.6: small gain, +100 s per compile. 1.3: strong bias +0.009, contested −0.8 pp, +20 s. |
+| 23:55 | Agent B: sharp catch turn, energy audit | Catches are already sharp, and sharper ones crash. Passages are not energy-bound. **Arrival-speed headroom** is a new lever. |
+| 00:03 | **L9 adopted** (×1.3) | Committed with re-recorded parity. |
+| 00:13 | Headroom on top of L1 + L9 | Rejected: no gain; L1 already covers it. |

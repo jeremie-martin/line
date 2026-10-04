@@ -224,3 +224,48 @@ decisive pairs (one-sided sign-test p against chance):
   the next event (741 of 4,130 events). The values used to select both rounds
   carried that bug; the scores above use the fixed values, and "as shown" is
   reported beside them.
+
+## Round 3 and adoption of line.strike.v2 (2026-10-04)
+
+Round 3 (impact-pairs-2026-10c) had 26 pairs aimed at separating the
+candidates; 24 were decisive.
+- **Owner's notes:** a floor hit followed by an upper hit is two impacts, and
+  he didn't like the upper hit there; "A looks cleaner and better defined".
+- **Failed check.** In one check pair every measure rated a previous-library
+  hit about twice as strong as a July hit, and the owner chose the July hit.
+  Across all rounds, 9 of 10 checks matched.
+
+All rounds, 63 decisive pairs:
+
+| measure | right |
+|---|---|
+| strike v1 | 31/63 (chance) |
+| whole-body change, 50 ms, with spin (`strength`) | 46/63 |
+| whole-body change, whole event, with spin | 46/63 |
+| arrival with spin (`c_arrive_spin`) | 45/63 |
+| whole-body change without spin | 42/63 |
+| arrival without spin | 41/63 |
+
+- **Spin.** When adding spin was the only difference, the version with it won
+  12 : 4 (p ≈ 0.04).
+- **Window and framing.** 50 ms vs whole event: 13 : 13. Arrival vs
+  whole-body change: 5 : 4.
+- **Choice.** The owner cannot separate the window lengths, so 50 ms was
+  chosen on principle: it matches "clean = short" and resists the long-bend
+  accumulation that v1 rewards.
+
+**line.strike.v2** keeps v1's events, timing and matching, with strength =
+the largest whole-body motion change (travel and spin) within 2 frames over
+the event's first 6 frames, ÷ 7.55. A test (`tests/strike_v2.test.ts`) proves
+it equals the research measure the owner judged to 1e-9 on a compiled ride.
+
+**Compiler under v2 (strike2-a against strike-v1-base, standard allowance;
+hypothesis stated before running):**
+- v2 impact loss 0.078 → 0.037; v2 strength rms 0.25 → 0.15 (both panels).
+- Completion unchanged.
+- Peak lag −9 ms; contested strong beats −1.6 pp (perturbed −2.1 pp).
+- Strong extra impacts counted with v2 are neutral; counted with the old
+  redirection kernels they are +0.04–0.06 per beat.
+- v1 loss worse (+0.036), as expected.
+
+v2 is now the product default. v1 stays as a comparison.

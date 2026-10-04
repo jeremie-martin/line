@@ -14,7 +14,7 @@ import {loadMusicCase,saveMusicCell} from './music_artifacts.ts';
 import {resolveJoltMs} from './jolt.ts';
 import {IMPACT_ACCOUNT_IDS,DEFAULT_IMPACT_ACCOUNT,type ImpactAccountId} from '../v0/optimizer/impact_accounts.ts';
 const arg=(key:string,d?:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3)??d;
-// The product optimizes the strike account; 'landing' requests the previous landing
+// The product optimizes the strike account (v2 by default); 'landing' requests the previous landing
 // objective (frozen V6 ruler), kept temporarily for side-by-side review.
 const requestedContract=arg('impact-contract',DEFAULT_IMPACT_ACCOUNT)!;
 if(requestedContract!=='landing'&&!IMPACT_ACCOUNT_IDS.includes(requestedContract))throw new Error(`unknown impact contract; known: ${IMPACT_ACCOUNT_IDS.join(', ')}, landing`);

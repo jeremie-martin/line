@@ -60,18 +60,28 @@ spec (beats, impacts, air/speed/amplitude targets)
 
 ## Measurement
 
-**The product's impact objective is the strike account, `line.strike.v1`.**
+**The product's impact objective is the strike account, `line.strike.v2`.**
 It lives in `scripts/lib/strike_impact.ts`; the definition, its rationale and
 the evidence are in `docs/research/strike-definition-20261004.md`.
 
-- **Signal.** Everything derives from the velocity of the rider's 10-point
-  centre of mass, which is exactly ballistic in free flight.
+- **Signal.** The rider's whole-body motion: the velocity of its 10-point
+  centre of mass, exactly ballistic in free flight, and its angular momentum
+  about that centre.
 - **Identity.** Contact acceleration identifies events: every touchdown, plus
   any renewed strike within continuous contact. Steering is not an event.
 - **Timing.** Events are timed at their half-rise.
-- **Strength.** Centre-of-mass redirection on the established 0–1 scale.
+- **Strength.** How much the hit changes the rider's whole-body motion, its
+  travel (direction and speed) and its spin, within 50 ms, on the established
+  0–1 scale (7.55 px/frame = 1).
+  - A head-on stop counts as fully as a turn.
+  - A long smooth bend counts little.
+  - Chosen on the owner's blind pair judgments: 46 of 63 decisive pairs,
+    against 31 of 63 for v1's redirection strength.
 - **Matching.** Events are matched one-to-one to beats; unmatched strikes cost
   their strength squared.
+
+`line.strike.v1` (the same events, but strength = centre-of-mass redirection)
+stays as a comparison until the owner has reviewed v2 rides.
 
 The compiler uses accounts only through `impact_accounts.ts`. Search,
 refinement, terminal selection, the final replay, production and the review
@@ -90,10 +100,10 @@ Two other rulers remain on purpose:
 
 Known limits of the strike account:
 
-- **Strength scale.** It is validated perceptually only on lower landings,
-  using the June/July felt labels.
-- **Head-on stops.** They are detected as events but under-read in strength
-  (a stop is not a redirection).
+- **Strength scale.** The pair judgments validate ordering, not the absolute
+  scale. The owner has never called a compiled hit harder than "medium".
+- **Separate impacts.** A floor hit followed within a few frames by an upper hit
+  is visually two impacts. The current event rule may fuse them.
 - **Quiet requests.** Requests below about 0.05 sit near the floor of any
   gentle touchdown; quiet beats read about 0.03–0.05 strong.
 
@@ -152,7 +162,8 @@ Known limits of the strike account:
   numbering convention `floor((id − 1000) / 10000)`. Since V6 is frozen by its
   outputs, these files can now be cleaned safely, provided `npm run parity:judge`
   stays green.
-- **Two impact objectives during review.** The `landing` compile mode stays
-  only until the owner has compared it with strike. Then it, and the
-  landing-specific validity rules in `arc_evaluate.ts`, go.
+- **Three impact objectives during review.** The `landing` compile mode (V6
+  sentinel and comparison) and `line.strike.v1` stay only until the owner has
+  reviewed v2 rides. Then v1, and later `landing` with the landing-specific
+  validity rules in `arc_evaluate.ts`, go.
 - **Geometry families are not modular.** A new profile touches about 10 files.

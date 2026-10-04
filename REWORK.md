@@ -285,3 +285,15 @@ Only on validated measures:
     budget-gated options take other values. All 41 cells and judge parity
     pass.
 - 2026-10-04: The review library is rendered (12/12 videos).
+- 2026-10-04: **Impact measured as the owner sees it: line.strike.v2.**
+  - Owner blind pair studies: 3 rounds, 77 pairs (`labels/studies/impact-pairs-*`).
+  - Strike v1's strength matched the owner on 31 of 63 decisive pairs, which
+    is chance.
+  - The whole-body motion change (travel and spin) within 50 ms matched on
+    46 of 63; spin mattered (12 : 4).
+  - v2 is the product default: v2 impact loss 0.078 → 0.037, with no
+    completion or timing cost.
+  - Parity gained 11 strike2 cells (52 in all).
+  - Problem 1 (measuring) is done apart from the absolute scale and the
+    separation of floor-then-ceiling hits. Problem 2 (producing strong hits)
+    is next.

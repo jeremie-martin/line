@@ -1,7 +1,7 @@
 /** Structural-change safety net. Structural steps must leave every parity cell
  * byte-identical: same track hash, same physics-frame count, same judgment.
  *
- *   node --import tsx tools/parity/parity.ts compile [--mode=landing|strike] [--jobs=23]
+ *   node --import tsx tools/parity/parity.ts compile [--mode=landing|strike|strike2] [--jobs=23]
  *   node --import tsx tools/parity/parity.ts judge   [--all]
  *
  * `compile` recompiles the committed cells in fresh processes.
@@ -21,7 +21,7 @@ import {loadCatalog} from '../../benchmark/v6/model.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
 import {caseSpec, sha} from '../../benchmark/v4/model.ts';
 
-type Cell = {mode: 'landing' | 'strike'; id: string; seed: number; panel: string; budget?: number; trackHash: string; physicalFrames: number;
+type Cell = {mode: 'landing' | 'strike' | 'strike2'; id: string; seed: number; panel: string; budget?: number; trackHash: string; physicalFrames: number;
   score?: number; musicalScore?: number; valid?: boolean; fulfilled?: number; quality?: number; loss?: number};
 const root = new URL('.', import.meta.url).pathname;
 const cellsPath = join(root, 'cells.json');
@@ -29,7 +29,7 @@ const doc = JSON.parse(readFileSync(cellsPath, 'utf8')) as {cells: Cell[]};
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
 const trackFile = (c: Cell) => join(root, 'tracks', `${c.mode}-${c.id}-${c.seed}.json.gz`);
-const STRIKE = 'line.strike.v1';
+const CONTRACTS: Record<string, string> = {strike: 'line.strike.v1', strike2: 'line.strike.v2'};
 
 function caseOf(cell: {id: string}) {
   const catalog = loadCatalog(), c = catalog.cases.find((c: any) => c.id === cell.id)!;
@@ -41,7 +41,7 @@ async function compileWorker(index: number, out: string) {
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
   const began = performance.now();
   const checkpoint = compileHandoff(caseSpec(music), cell.seed, {budget: cell.budget ?? policy.budget,
-    ...(cell.mode === 'strike' ? {impactContract: STRIKE} : {}),
+    ...(CONTRACTS[cell.mode] ? {impactContract: CONTRACTS[cell.mode] as any} : {}),
     ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})});
   writeFileSync(out, JSON.stringify({trackHash: sha(JSON.stringify(checkpoint.track)), physicalFrames: checkpoint.stats.sim_frames,
     compileMs: performance.now() - began, track: checkpoint.track}));
@@ -56,7 +56,7 @@ async function judgeTrack(cell: Cell, track: any) {
   }
   const {replayGalleryTrack} = await import('../../scripts/gallery/artifacts.ts');
   const {contactImpactGrade} = await import('../../scripts/gallery/contact_impact_grade.ts');
-  const replay = replayGalleryTrack(track, music, true, STRIKE), impact = replay.impactEvaluation!;
+  const replay = replayGalleryTrack(track, music, true, CONTRACTS[cell.mode] as any), impact = replay.impactEvaluation!;
   return {quality: contactImpactGrade(replay.grade, impact).score.score, loss: impact.account.loss};
 }
 
@@ -82,7 +82,7 @@ else if (command === 'compile') {
       if (code !== 0 || !existsSync(out)) {failures.push(`${name}: worker exited ${code}`); continue;}
       const r = JSON.parse(readFileSync(out, 'utf8'));
       const diff = compare(c, r, ['trackHash', 'physicalFrames']);
-      if (flag('update') && diff.length) {
+      if (flag('update') && (diff.length || c.trackHash === undefined)) {
         Object.assign(c, {trackHash: r.trackHash, physicalFrames: r.physicalFrames}, c.budget ? {} : await judgeTrack(c, r.track));
         if (!c.budget) writeFileSync(trackFile(c), gzipSync(JSON.stringify(r.track)));
       }

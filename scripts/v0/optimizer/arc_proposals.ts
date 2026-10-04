@@ -7,7 +7,7 @@ import { getPhysicsFrameCount } from '../../lib/detector.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
-import { arcControlValue, arcControlStep, arcMethodKeys } from './arc_motion_control.ts';
+import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
 import { evaluate } from './arc_evaluate.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
@@ -20,12 +20,12 @@ const guidedInitialization = (s: IntervalSearch) => s.options.guides !== false &
 /** The parametric starting curve: enter along the incoming direction and
  * turn by the angle the requested impact implies. */
 export function centerControl(s: IntervalSearch): ArcMotionControl {
-  const {incoming, turn, support, options} = s;
+  const {incoming, turn, support} = s;
   const guided = guidedInitialization(s);
   const center = guided
     ? {entry: incoming - .5, turn: -turn, exit: clamp(incoming - turn, -70, 70), support, bias: 0, offset: .1}
     : {entry: incoming - Math.min(12, turn * .3), turn: -Math.min(35, turn * .7), exit: clamp(incoming - 25, -40, 45), support, bias: 0, offset: .1};
-  if (options.bidirectional && guided && incoming < 15) {
+  if (guided && incoming < 15) {
     center.turn = Math.abs(center.turn);
     center.exit = clamp(incoming + turn, -70, 70);
   }
@@ -40,13 +40,13 @@ export function genericControl(s: IntervalSearch, k: number): ArcMotionControl {
   const frac = (n: number) => ((k + 1) * n) % 1;
   const control: ArcMotionControl = {
     entry: incoming - (guidedInitialization(s) && k % 2 === 0 ? (-1 + frac(.61803398875) * 6) : (2 + frac(.61803398875) * Math.min(32, turn + 10))),
-    turn: (options.bidirectional && k % 4 < 2 ? 1 : -1) * frac(.41421356237) * Math.min(60, turn + 25),
+    turn: (k % 4 < 2 ? 1 : -1) * frac(.41421356237) * Math.min(60, turn + 25),
     exit: -45 + frac(.73205080757) * 110,
     support: support * (.45 + frac(.2360679775) * 1.2),
     bias: -1.5 + 3 * frac(.6457513111),
     offset: -.25 + frac(.3166247903) * 1.5,
     ...(options.railLayout === 'transfer' ? {mainEnd: .3 + .65 * frac(.6931471806)} : {})};
-  if (options.constructionProposals && options.guides !== false && options.independentGuide && k % 4 !== 0) {
+  if (options.guides !== false && options.independentGuide && k % 4 !== 0) {
     // Contact geometry is needed to FIND feasible constructions, not only
     // to refine an already valid one. Keep every fourth inherited sample.
     control.clearance = 8 + 14 * frac(.7548776662);
@@ -62,7 +62,7 @@ export function genericControl(s: IntervalSearch, k: number): ArcMotionControl {
       control.entry = incoming - control.turn - (1 + frac(.61803398875) * Math.min(25, turn + 5));
     }
   }
-  if (options.observedReceiver && options.railLayout === 'transfer' && k % 2 === 1) {
+  if (options.railLayout === 'transfer' && k % 2 === 1) {
     control.receiverFlight = 1 + Math.floor(5 * frac(.2718281828));
     control.receiverEntry = -5 + 30 * frac(.7548776662);
     control.receiverTurn = -40 + 80 * frac(.5698402910);
@@ -77,12 +77,11 @@ export function genericControl(s: IntervalSearch, k: number): ArcMotionControl {
 export function proposeInitialControls(s: IntervalSearch) {
   const {options, i, incoming, span, targets, impact, initial, controlMemory} = s;
   s.center = centerControl(s);
-  const remembered = controlMemory.proposeControls(s.inputFeatures, incoming, span, options.memorySamples ?? 0, options.controlDiversity,
-    options.constructionProposals && options.railLayout === 'transfer' ? 'both' : 'relative');
+  const remembered = controlMemory.proposeControls(s.inputFeatures, incoming, span, options.memorySamples ?? 0,
+    options.railLayout === 'transfer' ? 'both' : 'relative');
   const responses = controlMemory.proposeResponses(s.inputFeatures, incoming, span,
     [targets.air, targets.speed, targets.amplitude, impact], options.memoryResponseSamples ?? 0,
-    {amplitude: options.amplitudeWeight ?? 1, impact: options.impactWeight ?? 2, damping: .0002, axisWeights: s.responseAxisWeights},
-    options.controlDiversity);
+    {amplitude: options.amplitudeWeight ?? 1, impact: options.impactWeight ?? 2, damping: .0002, axisWeights: s.responseAxisWeights});
   // Startup has a different physical-state distribution from a later catch.
   // Its optional learned proposals still pass the ordinary interval search.
   const proposalModel = i === 0 ? options.controlPolicy?.startupModel : options.controlPolicy;
@@ -90,9 +89,9 @@ export function proposeInitialControls(s: IntervalSearch) {
   // The inherited model already covers ordinary arcs. Reserve new geometry
   // proposals where its training constructor differs from this request.
   const novelConstructor = !!options.profile || options.railLayout === 'transfer';
-  const reservedGeneric = options.constructionProposals ? Math.ceil(initial * (novelConstructor ? .25 : 0)) : 0;
-  const counts = options.budgetedProposals ? allocateArcProposalSlots(requested, Math.max(0, initial - 1 - reservedGeneric)) : requested;
-  const policy = counts[0] ? arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0], options.controlDiversity) : [];
+  const reservedGeneric = Math.ceil(initial * (novelConstructor ? .25 : 0));
+  const counts = allocateArcProposalSlots(requested, Math.max(0, initial - 1 - reservedGeneric));
+  const policy = counts[0] ? arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0]) : [];
   const learnedEnd = policy.length, memoryEnd = learnedEnd + Math.min(remembered.length, counts[1]);
   policy.push(...remembered.slice(0, counts[1]), ...responses.slice(0, counts[2]));
   if (options.warmStart) {
@@ -141,7 +140,7 @@ export function proposeOpposingEntries(s: IntervalSearch) {
 /** Short folded entries before a long runout, for folded transfer layouts. */
 export function proposeCompactFolds(s: IntervalSearch) {
   const {options, support} = s;
-  if (!(options.compactFoldProposals && options.profile === 'fold' && options.railLayout === 'transfer' && s.initial > 0)) return;
+  if (!(options.profile === 'fold' && options.railLayout === 'transfer' && s.initial > 0)) return;
   const anchor = s.best?.c ?? s.near[0]?.c ?? s.center;
   if (anchor) for (let k = 0; k < 16; k++) {
     const frac = (n: number) => ((k + 1) * n) % 1, duration = Math.max(2, support * (.65 + .7 * frac(.4384471872)));
@@ -162,7 +161,7 @@ export function proposeCompactFolds(s: IntervalSearch) {
 /** Receiving-curve variations around the best (or nearest) transfer support. */
 export function proposeObservedReceivers(s: IntervalSearch) {
   const {options} = s;
-  if (!(options.observedReceiver && options.railLayout === 'transfer' && s.initial > 0)) return;
+  if (!(options.railLayout === 'transfer' && s.initial > 0)) return;
   const anchor = s.best?.c ?? s.near[0]?.c ?? s.center;
   if (anchor) for (let k = 0; k < 12; k++) {
     const frac = (n: number) => ((k + 1) * n) % 1;
@@ -183,8 +182,8 @@ export function recoverInitialization(s: IntervalSearch) {
   try {
     for (let k = 1; k <= options.initialRecoverySamples!; k++) {
       let proposal = genericControl(s, k);
-      if (options.constructionRecovery && s.near.length && k % 3 !== 0) {
-        const keys = arcMethodKeys('response', true, false, options.guides, options);
+      if (s.near.length && k % 3 !== 0) {
+        const keys = arcResponseKeys(options.guides, {...options, observedReceiver: true});
         const trial = Math.floor(k * 2 / 3), key = keys[Math.floor(trial / 2) % keys.length];
         const anchor = s.near[Math.floor(trial / (2 * keys.length)) % Math.min(4, s.near.length)].c;
         const step = arcControlStep(key, 'coordinate', anchor.support) * Math.pow(.65, Math.floor(trial / (6 * keys.length)));

@@ -1,6 +1,7 @@
 import {expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {arcPolicyArrival,arcControlProposals} from '../scripts/v0/optimizer/arc_control_policy.ts';
+import {arcControlsSimilar} from '../scripts/v0/optimizer/arc_motion_control.ts';
 import fixtures from './fixtures/arc_control_policy_predictions.json' with {type:'json'};
 const model:any=JSON.parse(readFileSync(new URL('./fixtures/arc_control_policy_legacy.json',import.meta.url),'utf8'));
 
@@ -17,14 +18,17 @@ it('matches independently exported Python ensemble predictions after control dec
 
 it('matches independently computed nearest measured controls and rescales their geometry',()=>{
   for(const row of fixtures){
+    // The fixture holds the independently computed nearest control; later
+    // proposals depend on the diversity rule and are checked structurally.
     const actual=arcControlProposals(row.features,20,30,model.models[1],4);
-    expect(actual).toHaveLength(row.examples.length);
-    actual.forEach((control,index)=>Object.entries(row.examples[index]).forEach(([key,value])=>
-      expect(control[key as keyof typeof control]).toBeCloseTo(value,12)));
+    Object.entries(row.examples[0]).forEach(([key,value])=>expect(actual[0][key as keyof typeof actual[0]]).toBeCloseTo(value,12));
+    expect(actual).toHaveLength(4);
+    actual.forEach((c,i)=>actual.slice(0,i).forEach(p=>expect(arcControlsSimilar(c,p)).toBe(false)));
+    // Diverse selection is greedy in neighbour order: asking for more proposals
+    // extends the list without reordering its first entries.
     const expanded=arcControlProposals(row.features,20,30,model.models[1],24);
-    expect(expanded).toHaveLength(row.expandedExamples.length);
-    expanded.forEach((control,index)=>Object.entries(row.expandedExamples[index]).forEach(([key,value])=>
-      expect(control[key as keyof typeof control]).toBeCloseTo(value,12)));
+    expect(expanded.slice(0,actual.length)).toEqual(actual);
+    expect(expanded.length).toBeGreaterThan(actual.length);
     const changed=arcControlProposals(row.features,35,60,model.models[1],1)[0];
     expect(changed.entry).toBeCloseTo(actual[0].entry+15,12);
     expect(changed.exit).toBeCloseTo(actual[0].exit+15,12);

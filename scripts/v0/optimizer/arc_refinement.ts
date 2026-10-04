@@ -10,19 +10,6 @@ import {validRide} from './ride_validity.ts';
 import type { ArcMotionOptions, IntervalOverrides } from './arc_options.ts';
 import type { IntervalResult } from './arc_interval.ts';
 
-export function arcTrajectoryLoss(report: DriftReport, amplitudeWeight = 1 / 3): number {
-  if (!validRide({report})) return Infinity;
-  let loss = 0, weight = 0;
-  for (const axis of ['air', 'speed', 'impact', 'amplitude'] as const) {
-    const values = report.gaps.flatMap(g => g.axes[axis] ? [g.axes[axis]!.error] : []);
-    if (!values.length) continue;
-    if (values.some(v => !Number.isFinite(v))) return Infinity;
-    const w = axis === 'amplitude' ? amplitudeWeight : 1;
-    loss += w * values.reduce((s, v) => s + v * v, 0) / values.length; weight += w;
-  }
-  return weight ? loss / weight : 0;
-}
-
 /** Compiler objective over the whole authored timeline. Span axes represent
  * time; impacts represent events. No benchmark IDs or benchmark code are used. */
 export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3, impacts?:MusicalImpactEvaluation) {
@@ -69,7 +56,7 @@ export type ArcRefinementInput = {
   budget: number; options: ArcMotionOptions;
   search: (engine: Engine, index: number, overrides: IntervalOverrides, protectedEngines: Engine[]) => IntervalResult | null;
   report: (raw: any, lines: TrackLine[]) => DriftReport;
-  objective?: (raw:any, report:DriftReport, engine:Engine) => {loss:number;regrets:number[]};
+  objective: (raw:any, report:DriftReport, engine:Engine) => {loss:number;regrets:number[]};
   validate?: (engine:Engine,lines:TrackLine[],raw:any,rows:any[])=>boolean;
   engines?: {create:(lines:TrackLine[])=>Engine;add:(base:Engine,lines:TrackLine[])=>Engine;detach:(base:Engine)=>Engine};
 };
@@ -77,7 +64,7 @@ export type ArcRefinementInput = {
 type EngineOperations = NonNullable<ArcRefinementInput['engines']>;
 type Objective = {loss: number; regrets: number[]};
 /** The complete track currently kept by refinement, with its measurements. */
-type Incumbent = {engine: Engine; lines: TrackLine[]; rows: any[]; report: DriftReport; objective?: Objective; loss: number};
+type Incumbent = {engine: Engine; lines: TrackLine[]; rows: any[]; report: DriftReport; objective: Objective; loss: number};
 
 const sectionOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
 
@@ -93,9 +80,9 @@ export function refineArcTrack(input: ArcRefinementInput) {
   const lines = input.lines.slice(), rows = input.rows.slice();
   const initialRaw = extractRawTrajectory(input.engine, end);
   const initialReport = report(initialRaw, lines);
-  const initialObjective = input.objective?.(initialRaw, initialReport, input.engine);
+  const initialObjective = input.objective(initialRaw, initialReport, input.engine);
   const incumbent: Incumbent = {engine: input.engine, lines, rows, report: initialReport, objective: initialObjective,
-    loss: initialObjective?.loss ?? arcTrajectoryLoss(initialReport, options.amplitudeWeight)};
+    loss: initialObjective.loss};
   // Body-only strikes may have no historical sled-landing measurement. The
   // shared account checks their authored targets independently.
   const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes)
@@ -125,13 +112,13 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const reference = {position: boundary.position, velocity: boundary.velocity, state: boundary.ballisticState()};
       const searchResult = search(base, i, {warmStart: sourceRows[i].control, localOnly: true,
         samples, guidanceSamples: options.refineGuidanceSamples ?? 24,
-        arrivalWeight: 0, headingWeight: 0, arrivalReference: input.objective && i + 1 === contacts.length ? undefined : reference,
-        ...(input.objective ? {completeGuidanceBudget: true} : {})}, [incumbent.engine]);
+        arrivalWeight: 0, headingWeight: 0, arrivalReference: i + 1 === contacts.length ? undefined : reference,
+        completeGuidanceBudget: true}, [incumbent.engine]);
       if (!searchResult) {
         Engine.retainOnly([incumbent.engine]);
         continue;
       }
-      const attemptState = {i, horizon, base, prefix, sourceLines, sourceRows, searchResult, reference};
+      const attemptState = {i, base, prefix, sourceRows, searchResult};
       const candidates = searchResult.candidates.slice().sort((a: any, b: any) => a.cost - b.cost);
       const offered = new Set<string>();
       let evaluated = 0;
@@ -168,9 +155,8 @@ export function refineArcTrack(input: ArcRefinementInput) {
           Engine.retainOnly([incumbent.engine, base]);
           continue;
         }
-        const candidateObjective = input.objective?.(candidateRaw, candidateReport, child);
-        const candidateLoss = observationContract(candidateReport) === expectedObservations
-          ? candidateObjective?.loss ?? arcTrajectoryLoss(candidateReport, options.amplitudeWeight) : Infinity;
+        const candidateObjective = input.objective(candidateRaw, candidateReport, child);
+        const candidateLoss = observationContract(candidateReport) === expectedObservations ? candidateObjective.loss : Infinity;
         if (Number.isFinite(candidateLoss)) counts.complete++;
         if (candidateLoss + 1e-12 < incumbent.loss) {
           Object.assign(incumbent, {engine: operations.detach(child), lines: proposed, rows: proposedRows,
@@ -195,14 +181,8 @@ export function refineArcTrack(input: ArcRefinementInput) {
  * the refinement window with positive regret whose estimated cost fits. */
 function refinementTargets(input: ArcRefinementInput, incumbent: Incumbent, tries: number[], samples: number, width: number, ceiling: number) {
   const {contacts, end, options} = input;
-  const objective = incumbent.objective;
   return contacts.map((contact, i) => {
-    let error = objective?.regrets[i] ?? 0;
-    if (!objective) for (const gap of incumbent.report.gaps) for (const [axis, value] of Object.entries(gap.axes)) {
-      if (!value) continue;
-      const belongs = axis === 'impact' ? gap.gap_index === contact.gap : gap.gap_index === i;
-      if (belongs) error += value.error ** 2 * (axis === 'amplitude' ? (options.amplitudeWeight ?? 1 / 3) : 1);
-    }
+    const error = incumbent.objective.regrets[i];
     const span = (contacts[i + 1]?.frame ?? end + 1) - contact.frame;
     const estimate = contact.frame + span * (samples + (options.refineGuidanceSamples ?? 24) + 8) + (end - contact.frame + 1) * width;
     const priority = error / (1 + tries[i]);
@@ -212,42 +192,32 @@ function refinementTargets(input: ArcRefinementInput, incumbent: Incumbent, trie
     .sort((a, b) => b.priority - a.priority || a.index - b.index);
 }
 
-type AttemptState = {i: number; horizon: number; base: Engine; prefix: TrackLine[]; sourceLines: TrackLine[]; sourceRows: any[];
-  searchResult: any; reference: {position: {x: number; y: number}}};
+type AttemptState = {i: number; base: Engine; prefix: TrackLine[]; sourceRows: any[]; searchResult: any};
 
-/** The complete track obtained by replacing support i with `candidate`. In
- * reflow mode each later support is rebuilt from its recorded (or planned)
- * control; otherwise later geometry is translated to the new arrival point.
- * Returns null when a rebuilt support has no valid arc. */
+/** The complete track obtained by replacing support i with `candidate`: each
+ * later support is rebuilt from its recorded (or planned) control. Returns
+ * null when a rebuilt support has no valid arc. */
 function completeRevision(input: ArcRefinementInput, operations: EngineOperations, attempt: AttemptState, candidate: any, incumbent: Engine) {
   const {contacts, options, search} = input;
-  const {i, horizon, base, prefix, sourceLines, sourceRows, searchResult, reference} = attempt;
+  const {i, base, prefix, sourceRows, searchResult} = attempt;
   let child = operations.add(base, candidate.lines), proposed = [...prefix, ...candidate.lines];
   const proposedRows = sourceRows.slice();
   proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost,
     incoming: searchResult.incoming, span: searchResult.span, features: searchResult.inputFeatures,
     ...candidate.meta, lookahead: null, spent: getPhysicsFrameCount()};
-  if (options.refineMode === 'reflow') {
-    for (let j = i + 1; j < contacts.length; j++) {
-      const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
-      const next = search(child, j, {samples: 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,
-        ...(!planned && options.constructionRequests ? {warmIncoming: sourceRows[j].incoming} : {})}, [incumbent, base]);
-      if (!next?.best) return null;
-      proposed.push(...next.best.lines);
-      child = operations.detach(next.best.child);
-      proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
-        incoming: next.incoming, span: next.span, features: next.inputFeatures,
-        achieved: next.best.achieved, impact: next.best.actualImpact,
-        release: next.best.release, lines: next.best.lines.length, railGuides: next.best.railGuides,
-        failures: next.failures, lookahead: null, spent: getPhysicsFrameCount()};
-      Engine.retainOnly([incumbent, base, child]);
-    }
-  } else {
-    const arrival = getRiderMetered(child, horizon).position;
-    const dx = arrival.x - reference.position.x, dy = arrival.y - reference.position.y;
-    const suffix = sourceLines.filter(l => sectionOf(l) > i).map(l => ({...l, x1: l.x1 + dx, x2: l.x2 + dx, y1: l.y1 + dy, y2: l.y2 + dy}));
-    proposed.push(...suffix);
-    child = operations.add(child, suffix);
+  for (let j = i + 1; j < contacts.length; j++) {
+    const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
+    const next = search(child, j, {samples: 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,
+      ...(!planned && options.constructionRequests ? {warmIncoming: sourceRows[j].incoming} : {})}, [incumbent, base]);
+    if (!next?.best) return null;
+    proposed.push(...next.best.lines);
+    child = operations.detach(next.best.child);
+    proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
+      incoming: next.incoming, span: next.span, features: next.inputFeatures,
+      achieved: next.best.achieved, impact: next.best.actualImpact,
+      release: next.best.release, lines: next.best.lines.length, railGuides: next.best.railGuides,
+      failures: next.failures, lookahead: null, spent: getPhysicsFrameCount()};
+    Engine.retainOnly([incumbent, base, child]);
   }
   return {child, proposed, proposedRows};
 }

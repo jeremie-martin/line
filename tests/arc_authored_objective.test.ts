@@ -9,8 +9,8 @@ import type {Spec} from '../scripts/v0/types.ts';
 
 it('measures the authored ending while physically validating the complete survival grace',()=>{
   const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-  const result=compileArcMotion(spec,17,{budget:65000,samples:100,channel:12,radius:24,bidirectional:true,
-    impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,authoredHorizon:true});
+  const result=compileArcMotion(spec,17,{budget:65000,samples:100,channel:12,radius:24,
+    impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3});
   expect(result.failure).toBeNull();
   expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
   expect(result.report.off_beat_landings).toEqual([]);

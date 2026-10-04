@@ -31,12 +31,6 @@ export type ArcResponseExample = ArcControlExample & {
   axisWeights?: number[];
 };
 
-export function arcControlSimilar(a: ArcMotionControl, b: ArcMotionControl): boolean {
-  return Math.abs(a.turn - b.turn) < 4 && Math.abs(a.entry - b.entry) < 2 &&
-    Math.abs(a.exit - b.exit) < 4 && Math.abs(a.support - b.support) < 1 &&
-    (a.exitBias===undefined&&b.exitBias===undefined||Math.abs((a.exitBias??a.bias)-(b.exitBias??b.bias))<.3);
-}
-
 const distance = (a: number[], b: number[]) => a.reduce((sum, value, k) =>
   sum + (value - b[k]) ** 2 * (k >= 47 ? 4 : k < 7 ? 2 : 1), 0);
 const adapted = arcReferencedControl;
@@ -54,7 +48,7 @@ export class ArcControlMemory {
     if (this.responses.length > 384) this.responses.shift();
   }
 
-  proposeControls(features: number[], incoming: number, span: number, count: number, diversity: 'inherited' | 'geometry' = 'inherited', duration:'relative'|'both'='relative'): ArcMotionControl[] {
+  proposeControls(features: number[], incoming: number, span: number, count: number, duration:'relative'|'both'='relative'): ArcMotionControl[] {
     if (count <= 0) return [];
     const nearest = this.controls.map(m => ({m, distance: distance(m.features, features)}))
       .sort((a, b) => a.distance - b.distance);
@@ -64,7 +58,7 @@ export class ArcControlMemory {
       // flight grows. Offer both hypotheses; native evaluation decides.
       const proposals=[adapted(m,incoming,span),...(duration==='both'?[adapted(m,incoming,m.span)]:[])];
       for(const control of proposals){
-        if (selected.some(p => diversity === 'geometry' ? arcControlsSimilar(control, p) : arcControlSimilar(control, p))) continue;
+        if (selected.some(p => arcControlsSimilar(control, p))) continue;
         selected.push(control);
         if (selected.length >= count) return selected;
       }
@@ -74,7 +68,7 @@ export class ArcControlMemory {
 
   proposeResponses(features: number[], incoming: number, span: number,
     wanted: Array<number | undefined>, count: number,
-    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]}, diversity: 'inherited' | 'geometry' = 'inherited'): ArcMotionControl[] {
+    weights: {amplitude: number; impact: number; damping: number; axisWeights?: number[]}): ArcMotionControl[] {
     if (count <= 0) return [];
     const nearest = this.responses.map(m => ({m, distance: distance(m.features, features)}))
       .sort((a, b) => a.distance - b.distance || a.m.loss - b.m.loss);
@@ -102,7 +96,7 @@ export class ArcControlMemory {
         control[key] = (control[key] as number) + m.scale[d] *
           (key === 'support' ? span / m.span : 1) * clamp(delta[d]);
       });
-      if (selected.some(p => diversity === 'geometry' ? arcControlsSimilar(control, p) : arcControlSimilar(control, p))) continue;
+      if (selected.some(p => arcControlsSimilar(control, p))) continue;
       selected.push(control);
       if (selected.length >= count) break;
     }

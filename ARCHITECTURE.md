@@ -15,7 +15,8 @@ spec (beats, impacts, air/speed/amplitude targets)
 
 1. **Entry.** `compileHandoff` (`scripts/v0/optimizer/handoff.ts`) accepts a
    spec and either creative preferences (automatic arrangement) or an explicit
-   construction plan. Nothing else is supported.
+   intentional construction plan (`line.repertoire-policy.v2`, as in the V6
+   fixed panel). Nothing else is supported.
 2. **Plan.** `planIntentionalRepertoire` (`intentional_repertoire.ts`, built on
    `repertoire_policy.ts`) chooses a construction for each support section:
    open arc, guided shape (arcs, folds, ripples, serpentines, terraces), or
@@ -124,12 +125,18 @@ Known limits of the strike account:
 ## Known structural problems (next)
 
 - **Compiler leftovers after the split.**
-  - Some production options are constants (for example `reuseEvaluations`,
-    `memoCandidates`, `cachePrefixReads` are always true) but remain options.
-  - Helper modules still accept research knobs the compiler no longer sets
-    (`arc_motion_control.ts`: independent exit, compact profiles, guide-extent
-    responses; `arc_geometry.ts`: contours, wave and faceted arcs, used by the
-    gallery catalog).
+  - Options that were constant in every production plan are gone (branch
+    `rework/constant-options`). What remains varies with the allowance, the
+    section or the interval: `guidance`, `budgetAdaptiveLocal`,
+    `completeBoundary`, `futureValueModel`, `lookaheadWidth`,
+    `initialRecoverySamples` and the sample counts.
+  - Numeric settings that production never varies (weights, `channel`,
+    `radius`, `qualityRetries`, the refinement and memory allowances) are
+    still options, because tests set other values.
+  - `arc_geometry.ts` still accepts the `flow` and `wave` arguments and rail
+    contours, which no production caller uses; the gallery catalog lists the
+    wave and contour recipes (contours archived). Faceted arcs (`subdivisions`)
+    are live.
 - **Budget rules are saturating caps tuned to V4.**
   - The caps are in `connected_arcs.ts` and `repertoire_search.ts`. Every
     width saturates by about 0.52M frames on 45 s songs, and the default

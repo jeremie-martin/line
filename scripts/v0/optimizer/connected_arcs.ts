@@ -44,14 +44,11 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
   const responseSamples = Math.floor(guidanceSamples * 161 / 176);
   const lookaheadSamples = Math.max(8, Math.round(planningBreadth * .2));
   return { budget, samples,
-    authoredHorizon: true, amplitudeOverflow: 'raw', budgetedProposals: true, terminalSelection: true,
-    channel: 12, radius: 24, bidirectional: true, impactWeight: 1,
-    amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
+    channel: 12, radius: 24, impactWeight: 1,
+    amplitudeWeight: 1 / 3, arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
-    controlDiversity: "geometry", lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples, lookaheadObjective: "terminal",
-    reserveFactor: .7 + .7 * (1 - planningGuidanceSamples / 96), reuseContinuations: true, pruneGuidance: true,
-    guidanceJoint: true, expressive: true, preserveTurnTiming: true, responseSamples,
-    adaptivePlanning: true, strictHorizon: true, cachePrefixReads: true, memoCandidates: true, reuseEvaluations: true,
+    lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples,
+    reserveFactor: .7 + .7 * (1 - planningGuidanceSamples / 96), responseSamples,
     budgetAdaptiveLocal: guidanceSamples > 0,
     // Complete-span correction needs the joint search's room to adjust the
     // approach. Preserve the measured low-allowance curve search otherwise.

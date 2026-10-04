@@ -32,21 +32,19 @@ function loadConstructionArtifact(){
  }
  return constructionArtifact;
 }
+/** Production search configuration. Only intentional (v2) plans are realized:
+ * every production and benchmark plan is one, and the construction policies,
+ * memory and refinement below assume their contexts. */
 export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:number):ArcMotionOptions{
- const artifact=plan.policy===INTENTIONAL_REPERTOIRE_POLICY?loadConstructionArtifact():undefined;
+ if(plan.policy!==INTENTIONAL_REPERTOIRE_POLICY)throw new Error('the compiler realizes intentional repertoire plans only');
+ const artifact=loadConstructionArtifact();
  return {...connectedArcOptions(spec,allowance),
-  ...(plan.policy===INTENTIONAL_REPERTOIRE_POLICY?{
-   motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},constructionProposals:true,constructionRecovery:true,
-   // Preserve ordinary guidance where its physical assumptions apply. Active
-   // mixed transitions use native continuation and explicit catch preparation.
-   constructionAwareArrival:true,observedReceiver:true,compactFoldProposals:true,
-   transitionRevision:{errorThreshold:.12},
-   // Preserve the complete ride while using spare work to improve its ending.
-   wholeTrackRefinement:true,refineTailSections:1,refineAttempts:12,
-   refineSamples:64,refineGuidanceSamples:96,refineWidth:4,refineMode:'reflow',
-   memorySamples:16,policySamples:16,constructionExamples:artifact!.examples,constructionPolicies:artifact!.policies,
-  }:{}),
-  initialRecoverySamples:160,memoryScope:'construction',collectTrajectoryLoss:true,
+  motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},
+  transitionRevision:{errorThreshold:.12},
+  // Preserve the complete ride while using spare work to improve its ending.
+  refineTailSections:1,refineAttempts:12,refineSamples:64,refineGuidanceSamples:96,refineWidth:4,
+  memorySamples:16,policySamples:16,constructionExamples:artifact.examples,constructionPolicies:artifact.policies,
+  initialRecoverySamples:160,
   sectionStyles:Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)])),
   constructionRequests:Object.fromEntries(plan.requests.map(r=>[r.section,r])),
  };

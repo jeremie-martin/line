@@ -13,9 +13,9 @@ type StartState = {position: {x: number; y: number}; velocity: {x: number; y: nu
 
 const sectionOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
 
-/** `trackPrefixes` records lineage for every engine; contact observers are
- * only kept when the plan contains scattered fragment sections. */
-export function createArcLineage(start: StartState, trackPrefixes: boolean, hasFragments: boolean) {
+/** Lineage is recorded for every engine; contact observers are only kept
+ * when the plan contains scattered fragment sections. */
+export function createArcLineage(start: StartState, hasFragments: boolean) {
   const prefixes = new WeakMap<Engine, Prefix>();
   const rootPrefix: Prefix = {key: 'root'};
   const memoContexts = new Map<string, Map<string, any>>();
@@ -26,7 +26,7 @@ export function createArcLineage(start: StartState, trackPrefixes: boolean, hasF
 
   const add = (parent: Engine, geometry: TrackLine[]) => {
     const child = parent.addLine(geometry), prefix = prefixes.get(parent);
-    if (trackPrefixes && prefix) prefixes.set(child, {parent: prefix, lines: geometry});
+    if (prefix) prefixes.set(child, {parent: prefix, lines: geometry});
     return child;
   };
 
@@ -38,17 +38,15 @@ export function createArcLineage(start: StartState, trackPrefixes: boolean, hasF
 
   const rebuild = (geometry: TrackLine[]) => {
     const result = createArcEngine(start, geometry);
-    if (trackPrefixes) {
-      let prefix = rootPrefix;
-      const groups: TrackLine[][] = [];
-      for (const line of geometry) {
-        const last = groups.at(-1);
-        if (!last || sectionOf(last[0]) !== sectionOf(line)) groups.push([line]);
-        else last.push(line);
-      }
-      for (const lines of groups) prefix = {parent: prefix, lines};
-      prefixes.set(result, prefix);
+    let prefix = rootPrefix;
+    const groups: TrackLine[][] = [];
+    for (const line of geometry) {
+      const last = groups.at(-1);
+      if (!last || sectionOf(last[0]) !== sectionOf(line)) groups.push([line]);
+      else last.push(line);
     }
+    for (const lines of groups) prefix = {parent: prefix, lines};
+    prefixes.set(result, prefix);
     return result;
   };
 

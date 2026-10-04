@@ -3,8 +3,7 @@
  * ArcMotionOptions is what a compile is called with. In production every
  * field comes from one of four places:
  * - connectedArcOptions(): the base allocation, scaled by ride length and budget;
- * - repertoireSearchOptions(): repertoire plans (some fields only for
- *   intentional plans);
+ * - repertoireSearchOptions(): intentional repertoire plans;
  * - impactSearchProfile(contract): only with an impact account;
  * - constructionStyle(): the geometry style of each section.
  *
@@ -33,61 +32,29 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   budget: number;
   /** Proposal and coordinate-search evaluations per interval. */
   samples?: number;
-  /** Measure the final objective at the authored end; still validate the grace. */
-  authoredHorizon?: boolean;
-  /** Retain useful search pressure beyond the public amplitude cap. */
-  amplitudeOverflow?: 'raw' | 'log';
-  /** Preserve the proposal mix within the slots a local probe can evaluate. */
-  budgetedProposals?: boolean;
-  /** Rank already simulated complete alternatives by the full authored loss. */
-  terminalSelection?: boolean;
   /** Guide clearance and smoothing radius of the constructed curves. */
   channel?: number;
   radius?: number;
-  /** Allow the impact turn in either direction. */
-  bidirectional?: boolean;
   /** Objective weights. */
   impactWeight?: number;
   amplitudeWeight?: number;
-  /** Arrival priors toward the next catch: 'speed' targets speed only;
-   * 'passive' and 'kinetic' also target heading for unguided catches. */
-  arrivalMode?: string;
+  /** Arrival priors toward the next catch: the speed prior (with heading too
+   * for a passive arrival, see IntervalOptions) and the heading-band prior. */
   arrivalWeight?: number;
   headingWeight?: number;
   /** Retries of a committed interval that misses its speed target by over 0.3. */
   qualityRetries?: number;
-  /** Guide controls searched after the core curve, and their allowance. */
-  guidance?: 'span' | 'clearance' | 'full';
+  /** Clearance, shape and core controls searched jointly after the core
+   * curve, and their allowance; absent when the allowance has none. */
+  guidance?: 'clearance';
   guidanceSamples?: number;
-  /** Preserve distinct expressive geometry in learned and memory proposals. */
-  controlDiversity?: 'inherited' | 'geometry';
-  /** Lookahead: candidates probed, samples per continuation, and the value used. */
+  /** Lookahead: candidates probed and samples per continuation. */
   lookaheadWidth?: number;
   lookaheadSamples?: number;
-  lookaheadObjective?: 'local' | 'terminal';
   /** Multiple of the construction rate kept in reserve when planning. */
   reserveFactor?: number;
-  /** Rank alternatives by their lookahead value and warm-start from it. */
-  reuseContinuations?: boolean;
-  /** Remove guide segments the final ride never touches. */
-  pruneGuidance?: boolean;
-  /** Search core and expressive controls together with the guide. */
-  guidanceJoint?: boolean;
-  expressive?: boolean;
-  /** Keep the inherited five-frame turn representable during refinement. */
-  preserveTurnTiming?: boolean;
   /** Finite-difference response evaluations within the guidance allowance. */
   responseSamples?: number;
-  /** Widen and deepen lookahead from the measured spare work per frame. */
-  adaptivePlanning?: boolean;
-  /** A continuation without a complete branch counts as failed. */
-  strictHorizon?: boolean;
-  /** Reuse the measured prefix trajectory when replaying candidates. */
-  cachePrefixReads?: boolean;
-  /** Reuse completed evaluations within the same physical search prefix. */
-  memoCandidates?: boolean;
-  /** Reuse complete measurements across searches with identical geometry prefixes. */
-  reuseEvaluations?: boolean;
   /** Reduce local work if observed construction cost outgrows remaining capacity. */
   budgetAdaptiveLocal?: boolean;
   /** Replace the preceding truncated span once its contact boundary is measured. */
@@ -104,43 +71,26 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   /** Weight of the learned value at an unresolved continuation leaf. */
   continuationValueWeight?: number;
 
-  // --- repertoireSearchOptions(): all repertoire plans ---------------------------
+  // --- repertoireSearchOptions(): intentional repertoire plans --------------------
   /** Generic samples to keep searching an interval with no valid curve yet. */
   initialRecoverySamples?: number;
-  /** Keep learned responses local to their physical geometry and guide permission. */
-  memoryScope?: 'construction';
-  /** Report the whole authored-trajectory loss of the final track. */
-  collectTrajectoryLoss?: boolean;
   /** Geometry style by support index (startup is zero), applied to every
    * proposal, lookahead and rebuilt continuation of that section. */
   sectionStyles?: Record<number, SectionStyle>;
   /** Physical construction requirements by support index. */
   constructionRequests?: Record<number, ConstructionRequest>;
-
-  // --- repertoireSearchOptions(): intentional plans --------------------------------
   /** Motion-quality residuals and the calm-impact weighting. */
   motionQuality?: MotionSearchOptions;
-  /** Cover contact geometry before a first fully realized candidate exists. */
-  constructionProposals?: boolean;
-  /** Recover from unfulfilled constructions around the closest attempts. */
-  constructionRecovery?: boolean;
-  /** Passive arrival priors before quiet unguided or transfer catches. */
-  constructionAwareArrival?: boolean;
-  /** Transfer receivers placed from the observed free flight. */
-  observedReceiver?: boolean;
-  /** Short folded entries before a long runout, for folded transfers. */
-  compactFoldProposals?: boolean;
   /** Revisit the preceding choice when the current interval misses its targets. */
   transitionRevision?: {errorThreshold?: number; width?: number; samples?: number; guidanceSamples?: number; responseSamples?: number};
-  /** Complete-track refinement with the whole authored objective. */
-  wholeTrackRefinement?: boolean;
-  /** Spend remaining work on the ending without reconstructing a long suffix. */
+  /** Complete-track refinement with the whole authored objective: attempts,
+   * samples and width; refineTailSections spends the remaining work on the
+   * ending without reconstructing a long suffix. */
   refineTailSections?: number;
   refineAttempts?: number;
   refineSamples?: number;
   refineGuidanceSamples?: number;
   refineWidth?: number;
-  refineMode?: 'translate' | 'reflow';
   /** Learned construction memory and policies, by construction memory key. */
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
@@ -176,8 +126,10 @@ export type IntervalOverrides = Partial<Pick<ArcMotionOptions,
 };
 
 /** Options of one interval search: configuration, overrides and section
- * style, plus the learned policy derived for that section. */
-export type IntervalOptions = ArcMotionOptions & IntervalOverrides & {controlPolicy?: any};
+ * style, plus what resolveIntervalOptions derives for that section: the
+ * learned policy, and whether the next catch is prepared passively (arrival
+ * heading as well as speed). */
+export type IntervalOptions = ArcMotionOptions & IntervalOverrides & {controlPolicy?: any; passiveArrival?: boolean};
 
 /** How an interval option relates to a memoized evaluation, i.e. the
  * measurement of one control from one physical prefix:
@@ -192,25 +144,22 @@ type EvaluationRole = 'key' | 'keyPresence' | 'keySection' | 'fixed' | 'search' 
 export const EVALUATION_IDENTITY = {
   channel: 'key', radius: 'key', faces: 'key', profile: 'key', profileStrength: 'key', profileStart: 'key',
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
-  amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', arrivalMode: 'key', headingWeight: 'key',
-  completeBoundary: 'key', authoredHorizon: 'key', amplitudeOverflow: 'key', terminalSelection: 'key', valueGuidanceWeight: 'key',
+  amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
+  completeBoundary: 'key', valueGuidanceWeight: 'key',
   constructionRequests: 'keySection', motionQuality: 'key', impactContract: 'key', impactSearch: 'key',
-  futureValueModel: 'keyPresence', observedReceiver: 'keyPresence',
+  futureValueModel: 'keyPresence',
 
-  bidirectional: 'fixed', preserveTurnTiming: 'fixed', compactFoldProposals: 'fixed', constructionRecovery: 'fixed',
-  constructionAwareArrival: 'fixed', cachePrefixReads: 'fixed', impactPreparationFrames: 'fixed', sectionStyles: 'fixed',
+  impactPreparationFrames: 'fixed', sectionStyles: 'fixed',
 
   arrivalReference: 'noReuse',
 
-  budget: 'search', samples: 'search', budgetedProposals: 'search', qualityRetries: 'search', guidance: 'search',
-  guidanceSamples: 'search', controlDiversity: 'search', lookaheadWidth: 'search', lookaheadSamples: 'search',
-  lookaheadObjective: 'search', reserveFactor: 'search', reuseContinuations: 'search', pruneGuidance: 'search',
-  guidanceJoint: 'search', expressive: 'search', responseSamples: 'search', adaptivePlanning: 'search', strictHorizon: 'search',
-  memoCandidates: 'search', reuseEvaluations: 'search', budgetAdaptiveLocal: 'search', memorySamples: 'search',
+  budget: 'search', samples: 'search', qualityRetries: 'search', guidance: 'search',
+  guidanceSamples: 'search', lookaheadWidth: 'search', lookaheadSamples: 'search',
+  reserveFactor: 'search', responseSamples: 'search', budgetAdaptiveLocal: 'search', memorySamples: 'search',
   memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search', continuationValueWeight: 'search',
-  initialRecoverySamples: 'search', memoryScope: 'search', collectTrajectoryLoss: 'search', constructionProposals: 'search',
-  transitionRevision: 'search', wholeTrackRefinement: 'search', refineTailSections: 'search', refineAttempts: 'search',
-  refineSamples: 'search', refineGuidanceSamples: 'search', refineWidth: 'search', refineMode: 'search',
+  initialRecoverySamples: 'search',
+  transitionRevision: 'search', refineTailSections: 'search', refineAttempts: 'search',
+  refineSamples: 'search', refineGuidanceSamples: 'search', refineWidth: 'search',
   constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search',
   coupledIntervalSamples: 'search', warmStart: 'search', warmIncoming: 'search', directControls: 'search', localOnly: 'search',
   completeGuidanceBudget: 'search', controlPolicy: 'search',

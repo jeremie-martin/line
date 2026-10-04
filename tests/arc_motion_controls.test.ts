@@ -16,9 +16,8 @@ it('keeps guide topology and expressive shape alternatives in both proposal sour
     return {features, controlReference: reference};
   });
   const model = {featureSchema: ARC_POLICY_SCHEMA, featureCount: 57, exemplars};
-  expect(arcControlProposals(features, 5, 20, model, 6, 'inherited')).toHaveLength(1);
-  expect(arcControlProposals(features, 5, 20, model, 6, 'geometry')).toEqual(controls);
-  expect(memory.proposeControls(features, 5, 20, 6, 'geometry')).toEqual(controls);
+  expect(arcControlProposals(features, 5, 20, model, 6)).toEqual(controls);
+  expect(memory.proposeControls(features, 5, 20, 6)).toEqual(controls);
   expect(arcControlsSimilar(control, {...control})).toBe(true);
   expect(arcControlsSimilar(control, {...control, guideEnd: 1})).toBe(false);
 });
@@ -28,8 +27,8 @@ it('reuses a measured trajectory without forcing a demonstration or losing field
     contacts: [.6, 1.2, 1.8, 2.4, 3, 3.6].map(t => ({t, impact: .4})),
     axes: {air: () => .5, speed: () => .5}};
   const options = {budget: 100000, samples: 80, channel: 12, radius: 24,
-    bidirectional: true, impactWeight: 1, amplitudeWeight: 1 / 3,
-    arrivalMode: 'speed', arrivalWeight: .3, headingWeight: .3, pruneGuidance: true};
+    impactWeight: 1, amplitudeWeight: 1 / 3,
+    arrivalWeight: .3, headingWeight: .3};
   const original = compileArcMotion(spec, 17, options);
   expect(original.failure).toBeNull();
   const replay = compileArcMotion(spec, 17, {...options, samples: 8, memorySamples: 2,

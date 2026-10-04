@@ -130,7 +130,7 @@ function backtrack(ctx: ArcCompileContext, seq: ArcSequence): number | null {
     seq.rows.push({...old, ...choice.meta, control: choice.c, cost: choice.cost, spent: getPhysicsFrameCount()});
     seq.steps.push(step);
     ctx.work.backtracks++;
-    if (ctx.options.reuseContinuations && choice.futureControl) seq.pendingControl = {index: seq.rows.length, control: choice.futureControl};
+    if (choice.futureControl) seq.pendingControl = {index: seq.rows.length, control: choice.futureControl};
     return seq.rows.length - 1;
   }
   return null;
@@ -139,8 +139,8 @@ function backtrack(ctx: ArcCompileContext, seq: ArcSequence): number | null {
 /** On the final interval, choose among the already simulated complete
  * alternatives by whole-trajectory loss; this costs no physics. */
 function selectTerminal(ctx: ArcCompileContext, i: number, interval: IntervalResult, best: any) {
-  const {options, contacts, work} = ctx;
-  if (!(options.terminalSelection && i === contacts.length - 1)) return {best, childLines: null};
+  const {contacts, work} = ctx;
+  if (i !== contacts.length - 1) return {best, childLines: null};
   const candidates = interval.candidates;
   const original = candidates.find(c => JSON.stringify(c.c) === JSON.stringify(best.c));
   // Infinity is a measured invalid complete trajectory (for example a
@@ -165,8 +165,8 @@ function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, int
   seq.failure = null;
   const alternatives: any[] = [];
   const planRank = (c: any) => c.lookaheadValue === undefined ? 1 : Number.isFinite(c.lookaheadValue) ? 0 : 2;
-  for (const candidate of candidates.sort((a, b) => options.reuseContinuations
-    ? (planRank(a) - planRank(b) || ((a.lookaheadValue ?? a.cost) - (b.lookaheadValue ?? b.cost))) : a.cost - b.cost)) {
+  for (const candidate of candidates.sort((a, b) =>
+    planRank(a) - planRank(b) || ((a.lookaheadValue ?? a.cost) - (b.lookaheadValue ?? b.cost)))) {
     if (alternatives.every(a => distinctArrival(a, candidate))) alternatives.push(candidate);
     if (alternatives.length >= 12) break;
   }

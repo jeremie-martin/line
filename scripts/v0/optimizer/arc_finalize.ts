@@ -61,7 +61,7 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
   const report = ctx.reportFor(raw, lines);
   const impactEvaluation = finalImpactFrames
     ? ruler!.evaluate(finalImpactFrames, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
-  const trajectoryLoss = options.collectTrajectoryLoss ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight).loss : undefined;
+  const trajectoryLoss = arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight).loss;
   const impactTrajectoryLoss = impactEvaluation
     ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impactEvaluation).loss : undefined;
   const selectionLoss = completeSelectionLoss(ctx, raw, finalImpactFrames, impactTrajectoryLoss ?? trajectoryLoss);
@@ -80,18 +80,17 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
     qualityRetries: Object.fromEntries(work.qualityRetries), lookaheadStats: work.lookaheadStats, trajectoryLoss, selectionLoss,
     planningDecisions: work.planningDecisions, refinementStats: work.refinementStats, terminalSelectionStats: work.terminalSelectionStats,
     ...(impactEvaluation ? {impactEvaluation, impactTrajectoryLoss} : {}),
-    guidanceReduction: guidanceReduction?.stats ?? null, constructionFrames,
+    guidanceReduction: guidanceReduction.stats, constructionFrames,
   };
 }
 
-/** Removes guide segments the final ride never touches (when pruning is on).
- * Fragment sections have no guide rail; a contextual or transfer construction
- * that pruning would leave unfulfilled keeps its full guide. */
+/** Removes guide segments the final ride never touches. Fragment sections
+ * have no guide rail; a contextual or transfer construction that pruning
+ * would leave unfulfilled keeps its full guide. */
 function pruneUntouchedGuides(ctx: ArcCompileContext, lines: TrackLine[], coldEngine: Engine, raw: any) {
   const {options, end} = ctx;
   const fragments = new Set(Object.values(options.constructionRequests ?? {}).filter(r => r.construction === 'scattered').map(r => r.section));
-  const guidanceReduction = options.pruneGuidance ? trimUnusedArcGuides(lines, coldEngine, end, fragments) : null;
-  if (!guidanceReduction) return null;
+  const guidanceReduction = trimUnusedArcGuides(lines, coldEngine, end, fragments);
   const requests = Object.values(options.constructionRequests ?? {}).filter(r => r.context || r.railLayout === 'transfer');
   if (requests.length) {
     const contacts = raw.frames.map((f: {frame: number; position: {x: number; y: number}}) =>

@@ -8,7 +8,9 @@ const study = new URLSearchParams(location.search).get('study') ?? 'slam-2026-10
 const state = {manifest: null, index: 0, choice: null, labeled: new Set(), shownAt: 0, playing: true};
 const status = (text, error = false) => {$('status').textContent = text; $('status').classList.toggle('error', error);};
 const sides = ['left', 'right'], video = s => $(s), master = () => $('left');
-const LIT = [-0.05, 0.12];   // seconds around the judged hit during which the light is on
+const LIT = [-0.05, 0.12];
+// The first study (slam-2026-10) predates per-study choices.
+const SLAM = [['left', 'A slams more'], ['right', 'B slams more'], ['same', 'About the same'], ['neither', 'Neither feels like a slam']];   // seconds around the judged hit during which the light is on
 
 function drawTimeline(side) {
   const m = state.manifest, clip = m.clips[state.index][side], canvas = $(side + '-timeline'), t = video(side).currentTime;
@@ -18,12 +20,15 @@ function drawTimeline(side) {
   g.setTransform(r, 0, 0, r, 0, 0); g.clearRect(0, 0, w, h);
   g.strokeStyle = '#d9e0d5'; g.lineWidth = 2; g.beginPath(); g.moveTo(pad, base); g.lineTo(w - pad, base); g.stroke();
   g.font = '11px system-ui'; g.textAlign = 'center';
+  // Beats of the specification (tick size = requested strength); the judged hit
+  // is always marked at hitAt, whether or not a beat falls exactly there.
   for (const b of clip.beats) {
-    const judged = Math.abs(b.t - m.hitAt) < 1e-6, size = 5 + 11 * (b.impact ?? .5), near = Math.abs(t - b.t) < .06;
-    g.strokeStyle = judged ? '#146b55' : near ? '#162924' : '#9aa8a3'; g.lineWidth = judged ? 4 : 2;
+    const size = 5 + 11 * (b.impact ?? .5), near = Math.abs(t - b.t) < .06;
+    g.strokeStyle = near ? '#162924' : '#9aa8a3'; g.lineWidth = 2;
     g.beginPath(); g.moveTo(x(b.t), base - size); g.lineTo(x(b.t), base + size); g.stroke();
-    if (judged) {g.fillStyle = '#146b55'; g.fillText('this hit', x(b.t), 11);}
   }
+  g.strokeStyle = '#146b55'; g.lineWidth = 4; g.beginPath(); g.moveTo(x(m.hitAt), base - 18); g.lineTo(x(m.hitAt), base + 18); g.stroke();
+  g.fillStyle = '#146b55'; g.fillText('this hit', x(m.hitAt), 11);
   g.fillStyle = '#63736e'; g.textAlign = 'left'; g.fillText(`−${m.hitAt.toFixed(1)} s`, 2, h - 3);
   g.textAlign = 'right'; g.fillText(`+${(m.length - m.hitAt).toFixed(1)} s`, w - 2, h - 3);
   g.strokeStyle = '#d35400'; g.lineWidth = 2; g.beginPath(); g.moveTo(x(t), 4); g.lineTo(x(t), h - 14); g.stroke();
@@ -77,7 +82,7 @@ async function save(skipped) {
   const clip = state.manifest.clips[state.index];
   if (!skipped && !state.choice) {status('Choose an answer, or Skip.', true); return;}
   const response = await fetch(`/api/labels/${study}`, {method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({clip: clip.id, skipped, answers: skipped ? null : {slam: state.choice}, note: $('note').value,
+    body: JSON.stringify({clip: clip.id, skipped, answers: skipped ? null : {[state.manifest.questions[0].id]: state.choice}, note: $('note').value,
       viewMs: Math.round(performance.now() - state.shownAt), at: new Date().toISOString()})});
   if (!response.ok) {status(`Not saved: ${(await response.json()).error ?? response.status}`, true); return;}
   if (!skipped) state.labeled.add(clip.id);
@@ -110,7 +115,10 @@ try {
   state.manifest = await (await fetch(`/generated/label-studies/${study}/manifest.json`)).json();
   state.labeled = new Set((await (await fetch(`/api/labels/${study}`)).json()).labeled ?? []);
   $('prompt').textContent = state.manifest.prompt;
-  $('instructions').textContent = `The light comes on while the hit you are judging happens (at ${state.manifest.hitAt} s of a ${state.manifest.length} s loop); it is the tall green mark on each timeline. Drag a timeline to scrub both clips.`;
+  for (const [v, text] of state.manifest.choices ?? SLAM) {
+    const b = document.createElement('button'); b.className = 'choice'; b.dataset.v = v; b.textContent = text; $('choices').appendChild(b);
+  }
+  $('instructions').textContent = `The light comes on while the hit you are judging happens (at ${state.manifest.hitAt} s of a ${state.manifest.length} s loop); it is the green mark on each timeline; grey ticks are the song's beats (taller = stronger requested hit). Drag a timeline to scrub both clips.`;
   state.index = Math.max(0, state.manifest.clips.findIndex(c => !state.labeled.has(c.id)));
   show(); requestAnimationFrame(tick);
 } catch (error) {status(`Cannot load study ${study}: ${error.message}`, true);}

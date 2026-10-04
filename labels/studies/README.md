@@ -21,3 +21,9 @@ strike strength; sides in the key). Answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=slam-2026-10`. The clips are plain
 landscape renders (no overlay), rebuilt by
 `node --import tsx tools/measure/pair_study.ts --key=labels/studies/slam-2026-10.key.json --study=slam-2026-10`.
+
+`impact-pairs-2026-10` asks which of two hits is the bigger impact (24 pairs: 20
+where the strike strength and the candidate whole-body motion change of
+`tools/measure/motion_change.ts` disagree most, 4 where both agree strongly as
+checks; `tools/measure/select_pairs.ts`). Answer at
+`http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-pairs-2026-10`.

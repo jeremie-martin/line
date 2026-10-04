@@ -38,15 +38,15 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   /** Objective weights. */
   impactWeight?: number;
   amplitudeWeight?: number;
-  /** Arrival priors toward the next catch: 'speed' targets speed only;
-   * 'passive' and 'kinetic' also target heading for unguided catches. */
-  arrivalMode?: string;
+  /** Arrival priors toward the next catch: the speed prior (with heading too
+   * for a passive arrival, see IntervalOptions) and the heading-band prior. */
   arrivalWeight?: number;
   headingWeight?: number;
   /** Retries of a committed interval that misses its speed target by over 0.3. */
   qualityRetries?: number;
-  /** Guide controls searched after the core curve, and their allowance. */
-  guidance?: 'span' | 'clearance' | 'full';
+  /** Clearance, shape and core controls searched jointly after the core
+   * curve, and their allowance; absent when the allowance has none. */
+  guidance?: 'clearance';
   guidanceSamples?: number;
   /** Lookahead: candidates probed and samples per continuation. */
   lookaheadWidth?: number;
@@ -126,8 +126,10 @@ export type IntervalOverrides = Partial<Pick<ArcMotionOptions,
 };
 
 /** Options of one interval search: configuration, overrides and section
- * style, plus the learned policy derived for that section. */
-export type IntervalOptions = ArcMotionOptions & IntervalOverrides & {controlPolicy?: any};
+ * style, plus what resolveIntervalOptions derives for that section: the
+ * learned policy, and whether the next catch is prepared passively (arrival
+ * heading as well as speed). */
+export type IntervalOptions = ArcMotionOptions & IntervalOverrides & {controlPolicy?: any; passiveArrival?: boolean};
 
 /** How an interval option relates to a memoized evaluation, i.e. the
  * measurement of one control from one physical prefix:
@@ -142,7 +144,7 @@ type EvaluationRole = 'key' | 'keyPresence' | 'keySection' | 'fixed' | 'search' 
 export const EVALUATION_IDENTITY = {
   channel: 'key', radius: 'key', faces: 'key', profile: 'key', profileStrength: 'key', profileStart: 'key',
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
-  amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', arrivalMode: 'key', headingWeight: 'key',
+  amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
   completeBoundary: 'key', valueGuidanceWeight: 'key',
   constructionRequests: 'keySection', motionQuality: 'key', impactContract: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence',

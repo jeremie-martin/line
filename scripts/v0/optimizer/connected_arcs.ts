@@ -45,7 +45,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
   const lookaheadSamples = Math.max(8, Math.round(planningBreadth * .2));
   return { budget, samples,
     channel: 12, radius: 24, impactWeight: 1,
-    amplitudeWeight: 1 / 3, arrivalMode: "speed", arrivalWeight: .3,
+    amplitudeWeight: 1 / 3, arrivalWeight: .3,
     headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
     lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples,
     reserveFactor: .7 + .7 * (1 - planningGuidanceSamples / 96), responseSamples,

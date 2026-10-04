@@ -34,7 +34,7 @@ export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overri
   if (nextRequest && (nextRequest.context?.quiet ?? 0) < .5 &&
     (nextRequest.guidance === 'forbidden' || nextRequest.railLayout === 'transfer')) {
     options.futureValueModel = undefined;
-    if (options.arrivalMode !== 'kinetic') options.arrivalMode = 'passive';
+    options.passiveArrival = true;
     options.headingWeight = 0;
   }
   return options;

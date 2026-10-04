@@ -28,7 +28,7 @@ it('reuses a measured trajectory without forcing a demonstration or losing field
     axes: {air: () => .5, speed: () => .5}};
   const options = {budget: 100000, samples: 80, channel: 12, radius: 24,
     impactWeight: 1, amplitudeWeight: 1 / 3,
-    arrivalMode: 'speed', arrivalWeight: .3, headingWeight: .3};
+    arrivalWeight: .3, headingWeight: .3};
   const original = compileArcMotion(spec, 17, options);
   expect(original.failure).toBeNull();
   const replay = compileArcMotion(spec, 17, {...options, samples: 8, memorySamples: 2,

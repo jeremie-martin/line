@@ -5,7 +5,7 @@ import type {Spec} from '../scripts/v0/types.ts';
 it('revisits a preceding native construction with a valid combined result and one shared budget',()=>{
  const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map((t,i)=>({t,impact:i%2?.7:.2})),axes:{air:()=>.5,speed:()=>.5}};
  const options={budget:300000,samples:80,channel:12,radius:24,
-  impactWeight:1,amplitudeWeight:1/3,arrivalMode:'speed',arrivalWeight:.3,headingWeight:.3,
+  impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,
   lookaheadWidth:3,lookaheadSamples:24,completeBoundary:true,
   guidance:'clearance' as const,guidanceSamples:24};
  const result=compileArcMotion(spec,17,{...options,transitionRevision:{errorThreshold:0,width:3,samples:48,guidanceSamples:48,responseSamples:40}});

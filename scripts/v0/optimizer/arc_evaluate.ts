@@ -238,16 +238,14 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
   if (i < contacts.length - 1 && (options.arrivalWeight ?? 0) > 0) {
     const nextImpact = gaps[contacts[i + 1].gap].targets.impact ?? 0;
     const nextSpeed = authoredSpeedToPx(planned[contacts[i + 1].gap + 1]?.targets.speed ?? targets.speed ?? .55);
-    const passive = options.arrivalMode === 'kinetic' ||
-      options.arrivalMode === 'passive' && options.constructionRequests?.[i + 1]?.guidance === 'forbidden';
+    const passive = options.passiveArrival && options.constructionRequests?.[i + 1]?.guidance === 'forbidden';
     // A passive catch redirects incoming speed into the next surface.
-    // Prepare kinetic headroom for an unguided landing; the experimental
-    // kinetic mode also tests this preparation before guided constructions.
+    // Prepare kinetic headroom for an unguided landing.
     // This is a proposal prior; actual native continuation decides merit.
     const impulse = impactToRawPx(nextImpact), arrivalSpeed = passive ? Math.hypot(nextSpeed, impulse) : nextSpeed;
     const desiredArrival = clamp(15 + deg(passive ? Math.atan2(impulse, nextSpeed) : impulse / nextSpeed), 20, 70);
     const weight = Math.sqrt(options.arrivalWeight ?? 0);
-    const r1 = options.arrivalMode === 'speed' ? 0 : weight * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45;
+    const r1 = options.passiveArrival ? weight * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
     const r2 = weight * (Math.hypot(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     residuals.push(r1, r2);
     cost += r1 * r1 + r2 * r2;

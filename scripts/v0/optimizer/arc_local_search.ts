@@ -42,9 +42,7 @@ export function guidanceSearch(s: IntervalSearch) {
   const responseAllowance = options.completeGuidanceBudget
     ? Math.floor(wantedResponse / responseRound) * responseRound : wantedResponse >= responseRound ? wantedResponse : 0;
   const count = (options.guidanceSamples ?? 48) - responseAllowance;
-  let keys: ControlKey[] = options.guidance === 'span' ? ['guideStart', 'guideEnd'] :
-    options.guidance === 'clearance' ? ['clearance'] : ['clearance', 'guideStart', 'guideEnd'];
-  keys.push(...ARC_CORE_KEYS, ...ARC_EXPRESSIVE_KEYS);
+  let keys: ControlKey[] = ['clearance', ...ARC_CORE_KEYS, ...ARC_EXPRESSIVE_KEYS];
   if (options.independentGuide) keys.push('guideTilt');
   if (receiverActive) keys.push('receiverFlight', 'receiverEntry', 'receiverTurn', 'receiverExit', 'receiverDuration');
   keys = keys.filter(key => arcControlActive(key, options.guides, {...options, observedReceiver: receiverActive}));
@@ -63,7 +61,7 @@ function guideShapeSearch(s: IntervalSearch, origin: any, keys: ControlKey[], co
     let c: ArcMotionControl;
     if (k < broad) {
       c = {...origin.c};
-      if (options.guidance !== 'span') c.clearance = k === 0 ? 12 : 8 + 16 * frac(.61803398875);
+      c.clearance = k === 0 ? 12 : 8 + 16 * frac(.61803398875);
       if (k > 0) {
         c.turnFraction = .15 + .65 * frac(.2718281828);
         c.bend = -35 + 70 * frac(.1415926535);
@@ -71,10 +69,6 @@ function guideShapeSearch(s: IntervalSearch, origin: any, keys: ControlKey[], co
       }
       if (options.independentGuide && k > 0) c.guideTilt = -15 + 30 * frac(.9159655941);
       if (options.railLayout === 'transfer' && k > 0) c.mainEnd = .3 + .6 * frac(.6931471806);
-      if (options.guidance !== 'clearance') {
-        c.guideStart = k % 3 === 0 ? 0 : frac(.41421356237) * .7;
-        c.guideEnd = k === 0 ? 0 : k % 3 === 1 ? 1 : Math.max(c.guideStart, frac(.73205080757));
-      }
     } else {
       const best = s.best;
       const key = keys[Math.floor(k / 2) % keys.length];

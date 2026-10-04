@@ -16,7 +16,8 @@ it('keeps old proposals, memory, future-value inputs and physical work unchanged
   const a=compileArcMotion(spec,17,{...options,controlPolicy:empty});seen.length=0;
   const b=compileArcMotion(spec,17,{...options,controlPolicy:long});
   expect(b.track).toEqual(a.track);expect(b.stats).toEqual(a.stats);
-  expect(seen.length).toBe(6);expect(seen.every(f=>f.length===67)).toBe(true);
+  // One call per searched catch (six); backtracking searches some catches again.
+  expect(seen.length).toBe(6+b.backtracks);expect(b.backtracks).toBe(1);expect(seen.every(f=>f.length===67)).toBe(true);
   expect(seen[0][50]).toBeCloseTo(.2);expect(seen[0][55]).toBeCloseTo(.2+.6/25);expect(seen[0][60]).toBeCloseTo(.8);expect(seen[0][65]).toBeCloseTo(.8);
   expect(seen.at(-1)!.slice(52)).toEqual([0,-1,-1,-1,-1,0,-1,-1,-1,-1,0,-1,-1,-1,-1]);
 });

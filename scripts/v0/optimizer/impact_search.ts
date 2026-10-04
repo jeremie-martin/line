@@ -6,12 +6,14 @@ import {CONTACT_IMPACT_CONTRACT, observeContactImpacts, detectContactImpacts, ac
 import {effectiveBodyVelocity} from './motion_quality.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
-export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number; releaseFrames?:number};
+/** steepArrivalFrom: from this requested impact on, the arrival into the next catch
+ * gets the steep, ask-driven heading and speed prior (as unguided catches do). */
+export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number; releaseFrames?:number; steepArrivalFrom?: number};
 export function validateImpactSearchOptions(options:ImpactSearchOptions|undefined){
   if(!options)return;
   for(const [key,value] of Object.entries(options)){
-    if(!['extraWeight','timingWeight','engagementGainWeight','releaseFrames'].includes(key)||!Number.isFinite(value)||value<0||
-      (key==='releaseFrames'&&(!Number.isSafeInteger(value)||value>6)))throw new Error('invalid impact search options');
+    if(!['extraWeight','timingWeight','engagementGainWeight','releaseFrames','steepArrivalFrom'].includes(key)||!Number.isFinite(value)||value<0||
+      (key==='releaseFrames'&&(!Number.isSafeInteger(value)||value>6))||(key==='steepArrivalFrom'&&value>1))throw new Error('invalid impact search options');
   }
 }
 export type MusicalImpactEvaluation = ReturnType<typeof evaluateMusicalImpacts>;

@@ -432,3 +432,14 @@ Only on validated measures:
     Shared eval summaries (tools/eval/summary.ts), the night report
     (tools/report, motion-gallery/night.html) and shared clip rendering
     added.
+  - Rejected: air weight 1.5 in the search (air −0.003 / −0.007 but strong
+    bias −0.010 / −0.014): a dial for the owner, not a free gain.
+  - **Headline, evening → tonight**, under the owner-validated measure, on
+    four panels (dev and fresh seeds × authored and perturbed):
+    - impact loss 0.092–0.097 → 0.033–0.038;
+    - strong bias −0.28 → −0.13; very strong −0.35 → −0.17;
+    - double impacts about 0.11 → under 0.01 per beat; contested −2 to −3 pp;
+    - peak lag −5 to −9 ms; head-down strong arrivals about 22% → 15%;
+    - speed rms unchanged: the v3 adoption's regression (0.075 → 0.094)
+      is recovered by L1, which closes H-1;
+    - air rms +0.004 to +0.006; +0.4M physics frames; completion 100%.

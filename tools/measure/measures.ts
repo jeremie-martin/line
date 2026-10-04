@@ -138,7 +138,7 @@ if (import.meta.filename === process.argv[1]) {
   const quantile = (xs: number[], q: number) => {const s = xs.filter(Number.isFinite).sort((a, b) => a - b); return s.length ? s[Math.min(s.length - 1, Math.floor(q * s.length))] : NaN;};
   const ms = (x: number) => (x * 1000 / FPS).toFixed(0);
   console.log('strike account:  set  beats  unmatched-beats  onset med ms  strong extra/beat  |strength-req| strong  |strength-req| quiet');
-  for (const set of ['july', 'current', 'experimental']) {
+  for (const set of ['july', 'current', 'strike']) {
     const s = rows.filter(r => r.set === set), strong = s.filter(r => (r.requested ?? 0) >= .6), quiet = s.filter(r => (r.requested ?? 1) <= .15);
     console.log(set.padEnd(14), String(s.length).padStart(6), String(s.filter(r => !r.strike.matched).length).padStart(10),
       ms(quantile(s.map(r => r.strike.matched?.onset ?? NaN), .5)).padStart(12),
@@ -147,7 +147,7 @@ if (import.meta.filename === process.argv[1]) {
       quantile(quiet.map(r => r.strike.matched ? Math.abs(r.strike.matched.strength - r.requested) : NaN), .5).toFixed(3).padStart(18));
   }
   console.log('set           beats  peak-late med/p90 ms  centroid med  onset med  contested strong  extras>=.25/beat  hidden bend/beat  |r1-req| strong');
-  for (const set of ['july', 'current', 'experimental']) {
+  for (const set of ['july', 'current', 'strike']) {
     const s = rows.filter(r => r.set === set), strong = s.filter(r => (r.requested ?? 0) >= .6);
     const peaks = s.map(r => r.r1?.peak).filter((x): x is number => x != null);
     console.log(set.padEnd(13), String(s.length).padStart(5),

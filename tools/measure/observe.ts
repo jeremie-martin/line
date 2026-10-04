@@ -3,7 +3,7 @@
  * detector's landing events with the frozen impact value, and the experimental
  * contact-impact evaluation. Output feeds tools/measure/measures.ts.
  *
- *   node --import tsx tools/measure/observe.ts [--sets=july,current,experimental]
+ *   node --import tsx tools/measure/observe.ts [--sets=july,current,strike]
  *
  * Writes generated/measure/observations/<set>~<song>~<seed>.json.gz
  * (+ an index.json listing the sources and their track hashes). */
@@ -25,8 +25,8 @@ const readJson = (p: string) => JSON.parse(readFileSync(p, 'utf8'));
 
 export type Source = {set: string; song: string; seed: number; track: any; origin: string};
 
-/** The three reference sets: July (cleaner impacts, owner's memory), the current
- * default automatic library, and the experimental contact-impact candidates. */
+/** The reference sets: July (cleaner impacts, owner's memory), the previous
+ * landing-objective library (candidate-8) and the strike review library. */
 export function sources(sets: string[]): Source[] {
   const out: Source[] = [];
   if (sets.includes('july')) {
@@ -40,11 +40,9 @@ export function sources(sets: string[]): Source[] {
     const path = `generated/intentional-motion/library-candidate-8/${song}-${seed}/${song}-${seed}-production.json`;
     if (existsSync(path)) out.push({set: 'current', song, seed, track: readJson(path).track, origin: path});
   }
-  if (sets.includes('experimental')) for (const entry of readJson('motion-gallery/impact-review.json').entries) {
-    const manifest = readJson(entry.manifest.replace(/^\//, '')), cell = manifest.cells.find((c: any) => c.method === 'production');
-    const dir = entry.manifest.replace(/^\//, '').replace(/\/manifest\.json$/, '');
-    const record = readJson(join(dir, cell.path));
-    out.push({set: 'experimental', song: entry.song ?? record.case?.id ?? cell.caseId, seed: entry.seed ?? cell.seed, track: record.track, origin: join(dir, cell.path)});
+  if (sets.includes('strike')) for (const song of SONGS) for (const seed of [101, 202, 303]) {
+    const path = `generated/production-repertoire/library-strike-s1/${song}-${seed}/${song}-${seed}-production.json`;
+    if (existsSync(path)) out.push({set: 'strike', song, seed, track: readJson(path).track, origin: path});
   }
   return out;
 }
@@ -79,7 +77,7 @@ export function observe(track: any, durationFrames: number, targets: Array<{fram
 }
 
 if (import.meta.filename === process.argv[1]) {
-  const sets = (process.argv.find(a => a.startsWith('--sets='))?.slice(7) ?? 'july,current,experimental').split(',');
+  const sets = (process.argv.find(a => a.startsWith('--sets='))?.slice(7) ?? 'july,current,strike').split(',');
   mkdirSync(OUT, {recursive: true});
   const index = [];
   for (const s of sources(sets)) {

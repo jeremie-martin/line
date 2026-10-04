@@ -41,4 +41,4 @@ A change is adopted only if the whole picture improves.
 | 00:48 | **Blind-spot audit** (agent) | Found L1 had raised head-down or backward strong arrivals (24% → 31%; July 13%). New guard rows. |
 | 00:57 | **Upright steep arrival adopted** | Head-down or backward strong arrivals 30% → 15%, impact unchanged. |
 | 01:15 | Agent C: why "L'amour de ma vie" is hard | The spec asks near a momentum limit (back-to-back ≥ 0.9 hits 13 frames apart); intro speed unreachable; not budget-bound. Questions for the owner. |
-| 01:25 | **Compile speed-up** (structural) | Native whole-body read: 75 s → 60 s per ride, byte-identical. |
+| 01:16 | **Compile speed-up** (structural) | Native whole-body read: 75 s → 60 s per ride, byte-identical. |

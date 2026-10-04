@@ -45,4 +45,4 @@ A change is adopted only if the whole picture improves.
 | 01:22 | Night report tooling | Data generator, page, honest before/after clips, scale clips, blind-study key builder. |
 | 01:31 | Half-budget robustness | Tonight's profile also helps at 1.5M (completion +6 pp authored, strong bias +0.03). |
 | 01:42 | Visual check | Before: a head-down tumble (0.54). After: an upright slam into a V (0.88). The numbers match what the eye sees. |
-| 01:55 | **Headline, evening → tonight (all four panels, owner-validated measure)** | Impact loss 0.092 → 0.037 (−60%); strong shortfall −0.28 → −0.13; double impacts 0.11 → <0.01; head-down strong arrivals 22% → 15%; speed unchanged; air +0.005; completion 100%. |
+| 01:50 | **Headline, evening → tonight (all four panels, owner-validated measure)** | Impact loss 0.092 → 0.037 (−60%); strong shortfall −0.28 → −0.13; double impacts 0.11 → <0.01; head-down strong arrivals 22% → 15%; speed unchanged; air +0.005; completion 100%. |

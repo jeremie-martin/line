@@ -16,6 +16,7 @@
     "scripts/v0/bench/sim_trace.ts",
     "motion-gallery/label.js",
     "motion-gallery/pairs.js",
+    "motion-gallery/night.js",
     "productions/*/spec.ts",
     "tools/**/*.ts",
     "tools/**/*.mjs"

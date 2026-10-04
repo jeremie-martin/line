@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Overnight results · line</title><link rel="stylesheet" href="label.css"><link rel="stylesheet" href="night.css"></head>
+<body>
+<header><strong>Overnight results</strong><span id="stamp"></span></header>
+<main>
+  <section id="summary"></section>
+
+  <section>
+    <h2>Scorecard</h2>
+    <p class="note">Each column is one compiler on the same 24 rides (4 songs × 4 arrangement seeds, plus perturbed specs). Values are song means; brackets are 95% song-bootstrap intervals (4 songs, so wide). The last column is the paired change from the first column; green moves in the good direction beyond noise, red in the bad.</p>
+    <div class="controls" id="scorecard-controls"></div>
+    <div class="table-wrap"><table id="scorecard"></table></div>
+  </section>
+
+  <section>
+    <h2>Requested vs achieved impact</h2>
+    <p class="note">Mean achieved strength (line.strike.v3) for each band of requested strength, authored specs. The diagonal is a perfect match. The shaded band is what a clean ride can physically deliver: about 0.06 (the gentlest touchdown) to about 0.9 (the hardest hit the rider survives).</p>
+    <canvas id="curve" width="900" height="420"></canvas>
+    <div class="legend" id="curve-legend"></div>
+  </section>
+
+  <section>
+    <h2>Per song</h2>
+    <div class="table-wrap"><table id="songs"></table></div>
+  </section>
+
+  <section>
+    <h2>Watch: the same beat, evening vs tonight</h2>
+    <p class="note">Plain landscape renders, same song, seed and beat. The light marks the judged hit (at 1 s of a 1.8 s loop). Labels show the request and each ride's measured strength.</p>
+    <div class="controls"><button id="slow" aria-pressed="false">Half speed</button></div>
+    <div id="clips"></div>
+  </section>
+
+  <section>
+    <h2>What was tried tonight</h2>
+    <div class="table-wrap"><table id="experiments"></table></div>
+  </section>
+
+  <section id="questions"></section>
+</main>
+<script type="module" src="night.js"></script>
+</body></html>

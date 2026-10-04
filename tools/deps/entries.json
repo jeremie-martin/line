@@ -15,6 +15,7 @@
     "motion-gallery/contact-impact-review.js",
     "scripts/v0/bench/sim_trace.ts",
     "motion-gallery/label.js",
+    "motion-gallery/pairs.js",
     "productions/*/spec.ts",
     "tools/**/*.ts",
     "tools/**/*.mjs"

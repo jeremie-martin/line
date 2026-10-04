@@ -7,12 +7,14 @@ import {effectiveBodyVelocity} from './motion_quality.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
 /** steepArrivalFrom: from this requested impact on, the arrival into the next catch
- * gets the steep, ask-driven heading and speed prior (as unguided catches do). */
-export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number; releaseFrames?:number; steepArrivalFrom?: number};
+ * gets the steep, ask-driven heading and speed prior (as unguided catches do), with
+ * weight steepArrivalWeight (default: the ordinary arrival weight). */
+export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number; releaseFrames?:number;
+  steepArrivalFrom?: number; steepArrivalWeight?: number};
 export function validateImpactSearchOptions(options:ImpactSearchOptions|undefined){
   if(!options)return;
   for(const [key,value] of Object.entries(options)){
-    if(!['extraWeight','timingWeight','engagementGainWeight','releaseFrames','steepArrivalFrom'].includes(key)||!Number.isFinite(value)||value<0||
+    if(!['extraWeight','timingWeight','engagementGainWeight','releaseFrames','steepArrivalFrom','steepArrivalWeight'].includes(key)||!Number.isFinite(value)||value<0||
       (key==='releaseFrames'&&(!Number.isSafeInteger(value)||value>6))||(key==='steepArrivalFrom'&&value>1))throw new Error('invalid impact search options');
   }
 }

@@ -332,3 +332,18 @@ Only on validated measures:
     viable catches or speed effects are untested alternatives.
   - Recovering both guards is compiler hypothesis H-1.
   - The default account and eval mode are now v3; parity gained 11 strike3 cells.
+- 2026-10-04 night: **Compiler experiments under v3** (each against s3-base,
+  both panels):
+  - Rejected: H-1a (catch turn seeded in 2 frames: null), H-1b (impact weight
+    2: strong bias +0.02 but speed rms +0.026), L6 (release reserve 3: null,
+    contested +0.7 pp), L1 at weight 1 (no better than 0.3, air +0.008).
+  - **Adopted, L1 (steep, ask-driven arrival prior before asks ≥ 0.6):**
+    - v3 strong bias +0.020 / +0.024, very strong +0.033 / +0.024;
+    - v2 strength rms −0.015 / −0.015; v3 loss −0.004 / −0.002;
+    - speed rms −0.014 / −0.022;
+    - contested strong beats +1.1 / +1.0 pp (the only cost; v3 strong extras
+      unchanged);
+    - air, bursts and frames within noise.
+  - Survival envelope: the strongest single hit the rider survives is about
+    0.9 on a flat floor; a 1.0 request is physically out of reach for a clean
+    hit (an absolute-scale question for the owner).

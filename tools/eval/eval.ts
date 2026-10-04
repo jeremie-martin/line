@@ -1,6 +1,6 @@
 /** Behavioural evaluation of the production compiler, with songs as the unit.
  *
- *   node --import tsx tools/eval/eval.ts run    --name=DIR [--mode=strike|landing] [--jobs=24]
+ *   node --import tsx tools/eval/eval.ts run    --name=DIR [--mode=strike3|strike2|strike|landing] [--budget=standard|N] [--jobs=24]
  *   node --import tsx tools/eval/eval.ts report --name=DIR [--against=DIR]
  *
  * Panel: each production song × 4 arrangement seeds (distinct plans, so distinct
@@ -9,6 +9,7 @@
  * budget. The report keeps completion separate from quality, gives every ruler
  * (frozen landing score, contact-impact account, sync measures, motion, cost),
  * and resamples songs, not seeds, for its intervals. */
+import {gzipSync} from 'node:zlib';
 import {readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {spawn} from 'node:child_process';
@@ -71,6 +72,8 @@ async function worker(caseId: string, mode: string, out: string, requested: stri
   const strongExtras = (account: any, events: any[]) => account.unmatchedEvents.filter((i: number) => events[i].strength >= .25).length;
   const beats = beatRows({id: c.id, set: mode, song: c.song, seed: c.seed, durationFrames: music.durationFrames,
     targets: spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact})), ...observation});
+  // The compiled track, for diagnosis without recompiling.
+  writeFileSync(out.replace(/\.json$/, '.track.json.gz'), gzipSync(JSON.stringify(cp.track)));
   writeFileSync(out, JSON.stringify({case: c, mode, trackHash: createHash('sha256').update(JSON.stringify(cp.track)).digest('hex'),
     physicalFrames: r.physicalFrames, compileMs, complete: r.valid, fulfilled: r.qualified,
     frozen: {valid: frozen.score.valid, score: frozen.score.score, axes: frozen.score.components},
@@ -160,11 +163,11 @@ else if (command === 'run') {
     }
   }));
   if (JSON.stringify(compilerIdentity('.')) !== JSON.stringify(identity)) throw new Error('compiler changed during the run');
-  console.log(`${name}: ${readdirSync(join(dir, 'cells')).length}/${PANEL.length} cells in ${((performance.now() - began) / 1000).toFixed(0)} s`);
+  console.log(`${name}: ${readdirSync(join(dir, 'cells')).filter(f => f.endsWith('.json')).length}/${PANEL.length} cells in ${((performance.now() - began) / 1000).toFixed(0)} s`);
 } else if (command === 'report') {
   const load = (name: string) => {
     const dir = resolve('generated/eval', name), cells = new Map<string, any>();
-    for (const f of readdirSync(join(dir, 'cells'))) {const c = JSON.parse(readFileSync(join(dir, 'cells', f), 'utf8')); cells.set(c.case.id, c);}
+    for (const f of readdirSync(join(dir, 'cells')).filter(f => f.endsWith('.json'))) {const c = JSON.parse(readFileSync(join(dir, 'cells', f), 'utf8')); cells.set(c.case.id, c);}
     return {run: JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8')), cells};
   };
   const a = load(arg('name')!), b = arg('against') ? load(arg('against')!) : null;

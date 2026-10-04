@@ -325,7 +325,10 @@ Only on validated measures:
     mixed (−0.005 / +0.011). The pre-registered rule therefore strictly fails.
   - **Adopted anyway, as an explicit exception:** the owner asked directly for
     double hits to be fixed; they fall about 75%; the regressions are small.
-    The likely cause is that rail bounces were helping the compiler reach
-    strength and speed targets.
+    The cause is unexplained. The history brief
+    (docs/research/producing-impact-brief-20261004.md) finds the rail push is
+    the bigger push in only 15 of 111 doubles, and re-scoring the library under
+    v3 costs a median of 0.00. So "rail bounces helped" is not supported; fewer
+    viable catches or speed effects are untested alternatives.
   - Recovering both guards is compiler hypothesis H-1.
   - The default account and eval mode are now v3; parity gained 11 strike3 cells.

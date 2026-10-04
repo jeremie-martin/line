@@ -79,7 +79,10 @@ async function worker(caseId: string, mode: string, out: string, requested: stri
     impact: {loss: impact.loss, strengthMse: impact.strengthMse, timingMse: impact.timingMse, extraMse: impact.extraMse, missing: impact.missingTargets.length,
       strongExtras: strongExtras(impact, impacts), beats: targets.length},
     impact3: {loss: impact3.loss, strengthMse: impact3.strengthMse, extraMse: impact3.extraMse, strongExtras: strongExtras(impact3, impacts3),
-      splits: impacts3.filter(e => e.strength >= .2).length - impacts.filter(e => e.strength >= .2).length, beats: targets.length},
+      splits: impacts3.filter(e => e.strength >= .2).length - impacts.filter(e => e.strength >= .2).length, beats: targets.length,
+      // Per beat: requested, the matched impact's strength and onset offset (null when missing).
+      perBeat: targets.map((t: any, j: number) => {const m = impact3.matches.find((x: any) => x.target === j);
+        return [t.impact ?? null, m ? +impacts3[m.event].strength.toFixed(4) : null, m ? impacts3[m.event].onset - t.frame : null];})},
     motion: r.motion.full, beats}));
 }
 
@@ -110,6 +113,14 @@ function summarize(cell: any) {
     'impact loss (v3)': cell.impact3?.loss ?? NaN,
     'strong extra impacts / beat (v3)': cell.impact3 ? cell.impact3.strongExtras / cell.impact3.beats : NaN,
     'double impacts / beat (v3 − v2)': cell.impact3 ? cell.impact3.splits / cell.impact3.beats : NaN,
+    ...(() => {
+      // Per-beat v3 strength by requested band (beats without a matched impact excluded).
+      const rows = (cell.impact3?.perBeat ?? []).filter((r: any) => r[0] != null && r[1] != null);
+      const band = (a: number, b: number) => rows.filter((r: any) => r[0] >= a && r[0] < b);
+      const bias = (xs: any[]) => mean(xs.map((r: any) => r[1] - r[0])), rms = (xs: any[]) => Math.sqrt(mean(xs.map((r: any) => (r[1] - r[0]) ** 2)));
+      return {'v3 strong bias (req>=0.6)': bias(band(.6, 2)), 'v3 strong rms (req>=0.6)': rms(band(.6, 2)),
+        'v3 very strong bias (req>=0.8)': bias(band(.8, 2)), 'v3 quiet bias (req<0.15)': bias(band(0, .15))};
+    })(),
     'air rms': cell.frozen.axes?.air?.rmsError ?? NaN,
     'speed rms': cell.frozen.axes?.speed?.rmsError ?? NaN,
     'amplitude rms': cell.frozen.axes?.amplitude?.rmsError ?? NaN,

@@ -347,3 +347,10 @@ Only on validated measures:
   - Survival envelope: the strongest single hit the rider survives is about
     0.9 on a flat floor; a 1.0 request is physically out of reach for a clean
     hit (an absolute-scale question for the owner).
+  - Rejected: L1 thresholds 0.4 and 0.75 (0.6 is bracketed).
+  - **Adopted, L9 (lookahead width and sample caps ×1.3 for the interval
+    leading into a strong ask), against s3-l1:**
+    - v3 strong bias +0.009 / +0.005; v3 loss −0.005 / −0.001;
+    - contested strong beats −0.8 / −0.2 pp (earns back most of L1's cost);
+    - +0.32M frames and +20 s compile per ride.
+    - At ×1.6 the gain was similar for +100 s, so it was held.

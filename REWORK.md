@@ -382,3 +382,10 @@ Only on validated measures:
     against about 0.06 elsewhere) and around strong asks. Measured
     strength spans about 0.06 (gentlest touchdown) to about 0.9 (hardest
     survived hit), narrower than the authored 0–1 scale.
+  - Learned models under v3 (against s3-l9b):
+    - A1′, no value model: slightly worse (strong bias −0.007, air +0.005,
+      speed +0.009), so kept.
+    - A2′, no construction policies: much worse (completion −12.5 pp, speed
+      rms +0.096), so kept.
+    - Policy samples 32: null, rejected.
+    - Retraining on v3 needs the archived training pipeline: a follow-up.

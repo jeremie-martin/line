@@ -162,3 +162,34 @@ landing (`tools/measure/hit_anatomy.ts`, `labels/studies/slam-2026-10.*`).
   "medium"**, including beats requested at 1.0 and measured at 0.8. The top of
   the 0–1 scale (7.55 px/frame of redirection) is not what the owner calls
   hard, or the compiler never produces such hits.
+
+## Impact pair study, round 1 (impact-pairs-2026-10, 2026-10-04)
+
+The owner's description of impact (contact visibly changes the rider's motion,
+a head-on stop is a very big impact, faster is stronger, clean = short,
+spin changes count) gave a candidate strength: the largest change of the
+rider's rigid-body motion within 50 ms (`tools/measure/motion_change.ts`).
+Its parameters (2-frame window, ÷ 7.55) were fixed before any answer.
+
+24 blind pairs (`tools/measure/select_pairs.ts`): 20 where strike strength
+and the candidate disagree most, and 4 checks where both agree strongly.
+
+- **Checks:** 4/4 as both measures predict.
+- **Disagreements:** candidate 9, strike 6, about the same 4, neither 1.
+  On decisive answers that is p ≈ 0.30 (sign test).
+- **Agreement with the owner** (checks included, 19 decisive pairs):
+  - strike 10/19;
+  - candidate 13/19, and the same without the spin term;
+  - candidate over the whole event 12/19.
+- **"About the same" pairs:** the candidate's relative gaps were 0.21–0.55,
+  strike's 0.30–0.89.
+- **Owner's note (pair 9):** the faster hit looked bigger, consistent with a
+  velocity-change measure.
+
+The candidate leads but not decisively. Round 2 (impact-pairs-2026-10b, fresh
+hits) has three blocks:
+- confirmation, 10 pairs, candidate vs strike;
+- spin, 7 pairs, candidate with vs without spin, at small margins because spin
+  rarely changes the ranking;
+- window, 7 pairs, 50 ms vs whole event;
+- plus 3 checks.

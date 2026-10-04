@@ -27,3 +27,7 @@ where the strike strength and the candidate whole-body motion change of
 `tools/measure/motion_change.ts` disagree most, 4 where both agree strongly as
 checks; `tools/measure/select_pairs.ts`). Answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-pairs-2026-10`.
+`impact-pairs-2026-10b` is round 2 on fresh hits: 10 confirmation pairs (candidate vs
+strike), 7 spin pairs (candidate with vs without spin), 7 window pairs (50 ms vs whole
+event) and 3 checks. Answer at
+`http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-pairs-2026-10b`.

@@ -128,3 +128,37 @@ that the v1-optimized compiler still leaves strikes that v1 could not see.
   physical and perceptual choices, not fitted to the owner's labels.
   Sensitivity to them is reported by the evaluation and should be checked
   before tuning anything against them.
+
+## Owner pair study (slam-2026-10, 2026-10-04)
+
+Ten blind pairs of strong-requested hits from the strike library, matched on
+strike strength: a body-first or guide-rail hit against a clean upright sled
+landing (`tools/measure/hit_anatomy.ts`, `labels/studies/slam-2026-10.*`).
+
+- **Which slams more:** body-first 4 (three of them guide or ceiling), clean
+  sled 2, about the same 3, neither 1. Contact type does not explain weak
+  hits. The definition is unchanged.
+- **Owner's notes:**
+  - A hit that only continues motion already under way ("we were already
+    rotating, then a very subtle bump that doesn't change much") reads as
+    weak, even at strike 0.82.
+  - A rotation reversal or a sudden change of direction reads as an impact
+    without any slam.
+  - A bump on the curled front of the sled can be a valid medium impact.
+- **Spin:** the magnitude of the change in body spin does not predict the
+  choices. Hits chosen as slamming more include abrupt stops with almost no
+  spin change.
+- **October strength labels** (impact-2026-10, n = 26 with a strength, tie
+  averaged Spearman, 95% bootstrap intervals):
+
+  | measure | ρ | 95% interval |
+  |---|---|---|
+  | strike | 0.28 | [−0.09, 0.61] |
+  | frozen landing | 0.25 | [−0.18, 0.60] |
+  | approach speed into the line | 0.21 | [−0.17, 0.55] |
+  | spin change | ≈ 0 | |
+
+  No measure is separable on these labels. **No clip was felt harder than
+  "medium"**, including beats requested at 1.0 and measured at 0.8. The top of
+  the 0–1 scale (7.55 px/frame of redirection) is not what the owner calls
+  hard, or the compiler never produces such hits.

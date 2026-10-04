@@ -58,7 +58,7 @@ for (let i = 0; i < 20000 && pairs.filter(p => p.kind === 'check').length < nChe
   if (x[A] - y[A] >= .4 && x[B] - y[B] >= .3) {take(x); take(y); pairs.push({kind: 'check', measures: [A, B], x, y});}
 }
 const order = pairs.map((_, i) => i).sort(() => rnd() - .5);
-const hit = (r: any) => ({set: r.set, song: r.song, seed: r.seed, frame: r.onset, strike: +r.strike.toFixed(3), strength: +r.strength.toFixed(3),
+const hit = (r: any): Record<string, any> => ({set: r.set, song: r.song, seed: r.seed, frame: r.onset, strike: +r.strike.toFixed(3), strength: +r.strength.toFixed(3),
   travel: +r.travel.toFixed(3), whole: +r.whole.toFixed(3), sharpness: +r.sharpness.toFixed(2), spinShare: +r.spinShare.toFixed(2)});
 const key = order.map((i, n) => {
   const p = pairs[i], flip = rnd() < .5;

@@ -193,3 +193,34 @@ hits) has three blocks:
   rarely changes the ranking;
 - window, 7 pairs, 50 ms vs whole event;
 - plus 3 checks.
+
+## Impact pair study, rounds 1 + 2 (51 pairs, 39 decisive)
+
+Scored by `tools/measure/analyze_pairs.ts`. Agreement with the owner on
+decisive pairs (one-sided sign-test p against chance):
+
+| measure | right | p |
+|---|---|---|
+| strike (product, `line.strike.v1`) | 15/39 | 0.95 |
+| whole-body motion change, 50 ms (motion_change, fixed) | 31/39 | < 0.001 |
+| same, as shown with the window bug | 29/39 | 0.002 |
+| same, whole event | 30/39 | 0.001 |
+| `c_arrive` (arrival into the surface; designed blind) | 29/39 | 0.002 |
+| `c_arrive_spin` | 31/39 | < 0.001 |
+| consistency checks | 7/7 | |
+
+- **Strike against the candidate family.** Head to head, on pairs where strike
+  and the fixed candidate disagree: 4 : 20 for the candidate. Round 2's
+  confirmation block alone: strike right 5 of 20.
+- **Verdict.** The current product strength disagrees with the owner. Its
+  flaws are known from probes: it accumulates redirection over long smooth
+  bends (r60 bend at v8 → 0.72) and is blind to head-on stops (0.19).
+- **Among the candidates.** They are not yet separable: head to head they
+  disagree on only 2–13 decisive pairs.
+- **Hints only (n = 4–5):**
+  - with spin 4/5 against without 1/5;
+  - whole event 3/4 against 50 ms 1/4.
+- **Bug disclosure.** Before the fix, the motion_change window could run into
+  the next event (741 of 4,130 events). The values used to select both rounds
+  carried that bug; the scores above use the fixed values, and "as shown" is
+  reported beside them.

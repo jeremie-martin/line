@@ -10,7 +10,10 @@
  * solver's sequential-correction residual (median 0.003 px/frame, at most about
  * 0.3, against about 0.2 typical and 1.5 peak in contact).
  *
- * For each strike event (identity and timing from scripts/lib/strike_impact.ts):
+ * For each strike event (identity and timing from scripts/lib/strike_impact.ts),
+ * over the event's own frames from onset (at most 6; before 2026-10-04 evening the
+ * window ignored the event's end and could count the next landing, which affected
+ * 741 of 4,130 events, including the values shown in impact-pairs-2026-10 and -10b):
  *   strength  = the largest |impulse summed over a WINDOW-frame span| in the
  *               event, ÷ 7.55 like the strike account;
  *   travel    = the same without the spin part;
@@ -56,10 +59,12 @@ export type Change = {onset: number; peak: number; strike: number; strength: num
 export function motionChanges(o: any): Change[] {
   const imp = bodyImpulses(o), events = detectStrikes(strikeFrames(o));
   return events.map((e: any) => {
-    const from = Math.max(1, e.onset), to = Math.min(imp.length - 1, e.onset + 5);
+    // The event's own frames only (at most 6 from onset): a later landing must not
+    // count toward this one. A 1-frame event is its own window.
+    const from = Math.max(1, e.onset), to = Math.min(imp.length - 1, e.onset + 5, e.end);
     let best = {x: 0, y: 0, s: 0}, bestTravel = 0, at = from;
-    for (let a = from; a + WINDOW - 1 <= to; a++) {
-      const w = sum(imp.slice(a, a + WINDOW));
+    for (let a = from; a + Math.min(WINDOW, to - from + 1) - 1 <= to; a++) {
+      const w = sum(imp.slice(a, a + Math.min(WINDOW, to - from + 1)));
       if (size(w) > size(best)) {best = w; at = a;}
       bestTravel = Math.max(bestTravel, size(w, false));
     }

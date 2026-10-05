@@ -9,7 +9,13 @@ import { distinctCandidates, restoreCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import type { ArcSequence } from './arc_sequence.ts';
 
-type Continuation = {value: number; localValue: number; control: any; depth: number};
+type Continuation = {value: number; localValue: number; control: any; depth: number; pureValue: number};
+
+/** Research hook (exp/retrain-v3): when set, every planning probe is recorded
+ * with its value features and a label free of the learned future model (the
+ * leaf keeps its heuristic arrival prior). Decisions are unchanged. */
+export let valueProbeSink: any[] | null = null;
+export function setValueProbeSink(sink: any[] | null) { valueProbeSink = sink; }
 
 /** Estimated evaluations per continuation sample, counting its local correction. */
 const PROBE_RATE = 1.4;
@@ -37,11 +43,11 @@ export function continuation(ctx: ArcCompileContext, base: Engine, index: number
       for (const candidate of searched.candidates) {
         const value = candidate.predictedFuture === undefined ? candidate.cost :
           candidate.cost + weight * (candidate.localCost + candidate.predictedFuture - candidate.cost);
-        if (!winner || value < winner.value) winner = {value, localValue: candidate.localCost, control: candidate.c, depth: 1};
+        if (!winner || value < winner.value) winner = {value, localValue: candidate.localCost, control: candidate.c, depth: 1, pureValue: anchor.cost};
       }
       if (winner) return winner;
     }
-    return {value: anchor.cost, localValue: anchor.localCost, control: anchor.c, depth: 1};
+    return {value: anchor.cost, localValue: anchor.localCost, control: anchor.c, depth: 1, pureValue: anchor.cost};
   }
   let winner: Continuation | null = null, completed = 0;
   try {
@@ -51,7 +57,8 @@ export function continuation(ctx: ArcCompileContext, base: Engine, index: number
       if (tail) {
         completed++;
         const value = candidate.localCost + tail.value;
-        if (!winner || value < winner.value) winner = {value, localValue: value, control: candidate.c, depth: 1 + tail.depth};
+        if (!winner || value < winner.value) winner = {value, localValue: value, control: candidate.c, depth: 1 + tail.depth,
+          pureValue: candidate.localCost + tail.pureValue};
       }
       Engine.retainOnly([...protectedEngines, base, anchor.child]);
     }
@@ -100,6 +107,9 @@ export function planLookahead(ctx: ArcCompileContext, seq: ArcSequence, i: numbe
       candidate.futureControl = future?.control;
       probes.push({control: candidate.c, currentCost: candidate.cost, localCost: candidate.localCost, futureCost: future?.value ?? null,
         depth: future?.depth ?? 0, value: Number.isFinite(value) ? value : null, predictedFuture: candidate.predictedFuture});
+      if (valueProbeSink && candidate.valueFeatures) valueProbeSink.push({index: i, contacts: contacts.length, features: candidate.valueFeatures,
+        localCost: candidate.localCost, futureCost: future?.value ?? null, pureFuture: future?.pureValue ?? null, depth: future?.depth ?? 0,
+        requestedDepth: depth, predictedFuture: candidate.predictedFuture, original: candidate === original});
       if (future && (!winner || value < winner.value)) winner = {candidate, value, futureControl: future.control};
       Engine.retainOnly([seq.engine, original.child]);
     }

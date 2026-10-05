@@ -145,7 +145,254 @@
       "commit": "c3c2db80",
       "run": "q10-deeper-rollout",
       "hypothesis": "Trade two-branch depth-two continuation for single-branch depth-three continuation at comparable tree work, retaining root diversity.",
-      "status": "running"
+      "status": "not adopted",
+      "result": {
+        "authoredImpact3LossDelta": 0.004,
+        "perturbedImpact3LossDelta": -0.001,
+        "authoredStrongBiasDelta": -0.011,
+        "perturbedStrongBiasDelta": 0.006,
+        "authoredAirRmsDelta": 0.004,
+        "perturbedAirRmsDelta": 0.006
+      },
+      "interpretation": "The depth-for-branching trade worsens authored strength and air tracking, with mixed perturbed results."
+    },
+    {
+      "id": "Q11",
+      "branch": "exp/quality-fixed-tessellation-20261005",
+      "commit": "c2a6eff8",
+      "run": "q11-fixed-tessellation",
+      "hypothesis": "Keep a curve\u2019s segment count fixed at its nominal duration during duration refinement to remove one source of discontinuous response. Preserve explicit faceted styles.",
+      "status": "not adopted",
+      "baseline": "q11-baseline-remeasured",
+      "baselineCheck": "Shared geometry source affects the evaluator fingerprint; all 24 baseline tracks were explicitly remeasured and every measured result is exactly unchanged.",
+      "interpretation": "No convincing complete-ride improvement; quiet strength bias and air error increase. The geometry-sharing identity was explicitly remeasured, with exact unchanged baseline measurements.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": 0.000555,
+          "v3 strong bias (req>=0.6)": -0.000614,
+          "v3 very strong bias (req>=0.8)": 0.000381,
+          "v3 quiet bias (req<0.15)": 0.009208,
+          "body drag s/min": -0.037288,
+          "strong arrivals inverted/backward": -0.005028,
+          "air rms": 0.002084,
+          "speed rms": 0.000624,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": -0.009498
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.000804,
+          "v3 strong bias (req>=0.6)": 0.001668,
+          "v3 very strong bias (req>=0.8)": -0.020435,
+          "v3 quiet bias (req<0.15)": 0.001848,
+          "body drag s/min": -0.039403,
+          "strong arrivals inverted/backward": 0.008085,
+          "air rms": 0.000516,
+          "speed rms": 0.000419,
+          "burst excess (100 ms)": 0.002573,
+          "physics frames (M)": 0.006955
+        }
+      }
+    },
+    {
+      "id": "Q12",
+      "branch": "exp/quality-differential-20261005",
+      "commit": "6c5aed45",
+      "run": "q12-differential",
+      "hypothesis": "Use unused response-round samples for differences between viable controls with the same topology, giving joint directions derived from measured feasible geometry.",
+      "status": "not adopted",
+      "interpretation": "Small mean loss gains coexist with weaker very strong impacts, more dragging on perturbations and greater authored burst excess. Not adopted.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": -0.000618,
+          "v3 strong bias (req>=0.6)": -0.001988,
+          "v3 very strong bias (req>=0.8)": -0.014775,
+          "v3 quiet bias (req<0.15)": 0.003146,
+          "body drag s/min": 0.06943,
+          "strong arrivals inverted/backward": 0.007355,
+          "air rms": 0.003094,
+          "speed rms": -0.000137,
+          "burst excess (100 ms)": 0.0039,
+          "physics frames (M)": 0.011532
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.001311,
+          "v3 strong bias (req>=0.6)": 0.01179,
+          "v3 very strong bias (req>=0.8)": -0.004985,
+          "v3 quiet bias (req<0.15)": -0.009174,
+          "body drag s/min": 0.37647,
+          "strong arrivals inverted/backward": 0.00214,
+          "air rms": -0.003153,
+          "speed rms": -0.002828,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.034878
+        }
+      }
+    },
+    {
+      "id": "Q13",
+      "branch": "exp/quality-response-trust-20261005",
+      "commit": "ce526719",
+      "run": "q13-response-trust",
+      "hypothesis": "Shrink the response trust radius when the response step itself fails, even if coordinate probes improved the candidate.",
+      "status": "not adopted",
+      "interpretation": "Shrinking after failed joint steps does not improve the complete authored rides; quiet strength rises above request.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": 0.001928,
+          "v3 strong bias (req>=0.6)": -0.009174,
+          "v3 very strong bias (req>=0.8)": -0.007991,
+          "v3 quiet bias (req<0.15)": 0.010162,
+          "body drag s/min": 0.115425,
+          "strong arrivals inverted/backward": -0.018696,
+          "air rms": 0.001524,
+          "speed rms": 0.000873,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.000868
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.000596,
+          "v3 strong bias (req>=0.6)": 0.003447,
+          "v3 very strong bias (req>=0.8)": -0.011724,
+          "v3 quiet bias (req<0.15)": 0.009182,
+          "body drag s/min": -0.053198,
+          "strong arrivals inverted/backward": -0.01214,
+          "air rms": 0.003481,
+          "speed rms": 0.001269,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": -0.011969
+        }
+      }
+    },
+    {
+      "id": "Q14",
+      "branch": "exp/quality-steeper-20261006",
+      "commit": "2bc77264",
+      "run": "q14-steeper",
+      "hypothesis": "Prepare steeper downward arrivals before strong asks, keeping the existing speed target, upright constraint and actual continuation judge.",
+      "status": "not adopted",
+      "interpretation": "Very strong hits improve, but body dragging rises by roughly 1.1\u20131.5 seconds per minute and older impact rulers worsen. This is a physical tradeoff, not an unqualified gain.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": -0.00017,
+          "v3 strong bias (req>=0.6)": 0.013106,
+          "v3 very strong bias (req>=0.8)": 0.016862,
+          "v3 quiet bias (req<0.15)": 0.001553,
+          "body drag s/min": 1.124561,
+          "strong arrivals inverted/backward": 0.006645,
+          "air rms": 0.004916,
+          "speed rms": 0.000806,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.005584
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.002547,
+          "v3 strong bias (req>=0.6)": 0.017537,
+          "v3 very strong bias (req>=0.8)": 0.024398,
+          "v3 quiet bias (req<0.15)": -0.008203,
+          "body drag s/min": 1.45705,
+          "strong arrivals inverted/backward": 0.002209,
+          "air rms": 0.003213,
+          "speed rms": 0.004856,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.00852
+        }
+      }
+    },
+    {
+      "id": "Q15",
+      "branch": "exp/quality-consistent-horizon-20261006",
+      "commit": "b5553945",
+      "run": "q15-consistent-horizon",
+      "hypothesis": "Retain the selected two-interval continuation during joint refinement and use the same leaf valuation.",
+      "status": "not adopted",
+      "interpretation": "The first coherent-horizon trial weakens very strong hits and increases authored impact loss. Keep the underlying horizon mismatch under investigation rather than adopt this execution.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": 0.0015,
+          "v3 strong bias (req>=0.6)": -0.004321,
+          "v3 very strong bias (req>=0.8)": -0.014988,
+          "v3 quiet bias (req<0.15)": 0.007764,
+          "body drag s/min": -0.146749,
+          "strong arrivals inverted/backward": 0.017138,
+          "air rms": 0.000325,
+          "speed rms": -0.000706,
+          "burst excess (100 ms)": 0.000534,
+          "physics frames (M)": 0.0445
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.000561,
+          "v3 strong bias (req>=0.6)": -0.000228,
+          "v3 very strong bias (req>=0.8)": -0.02291,
+          "v3 quiet bias (req<0.15)": -0.009308,
+          "body drag s/min": 0.3449,
+          "strong arrivals inverted/backward": 0.002714,
+          "air rms": 0.00279,
+          "speed rms": -0.000815,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.09896
+        }
+      }
+    },
+    {
+      "id": "Q16",
+      "branch": "exp/quality-scatter-alternatives-20261006",
+      "commit": "41f0866c",
+      "run": "q16-scatter-alternatives",
+      "hypothesis": "Retain four distinct, physically replayed scattered arrivals for continuation search instead of the first viable carrier reconstruction.",
+      "status": "confirmation running",
+      "interpretation": "Retaining physically replayed scattered alternatives improves mean impact loss on authored and perturbed development cases under v1/v2/v3, with mixed guard changes and roughly 0.17\u20130.25M more physics frames. Reserved confirmation running; not yet promoted.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": -0.00084,
+          "v3 strong bias (req>=0.6)": 0.001927,
+          "v3 very strong bias (req>=0.8)": 0.006068,
+          "v3 quiet bias (req<0.15)": 0.000197,
+          "body drag s/min": 0.149667,
+          "strong arrivals inverted/backward": -0.012772,
+          "air rms": 0.00162,
+          "speed rms": -0.002488,
+          "burst excess (100 ms)": 0.00381,
+          "physics frames (M)": 0.167356
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.003754,
+          "v3 strong bias (req>=0.6)": 0.010039,
+          "v3 very strong bias (req>=0.8)": 0.008996,
+          "v3 quiet bias (req<0.15)": -0.00244,
+          "body drag s/min": -0.105836,
+          "strong arrivals inverted/backward": 0.028479,
+          "air rms": 0.002514,
+          "speed rms": -0.00107,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.247454
+        }
+      }
+    },
+    {
+      "id": "Q17",
+      "branch": "exp/quality-landing-capacity-20261006",
+      "commit": "aa4f95a4",
+      "status": "complete feasibility study",
+      "hypothesis": "Characterize local catch capacity from exact saved prefixes at larger local allowance.",
+      "result": "All 179 strong-request saved impacts reproduce exactly across four seed-101 rides. Extra local search improves mean strength bias by 0.007\u20130.015 per song, before testing any continuation. Two scattered searches lose a previously verified valid construction; these are independently reproduced and investigated in Q19.",
+      "caveat": "Extra work and fixed-prefix local outcomes, not improved complete tracks."
+    },
+    {
+      "id": "Q18",
+      "branch": "exp/quality-staged-lookahead-20261006",
+      "commit": "c0a76b65",
+      "run": "q18-staged-lookahead",
+      "status": "running",
+      "hypothesis": "Broader one-interval physical screening followed by deeper continuation of promising roots, at comparable approximate tree work and unchanged total allowance."
+    },
+    {
+      "id": "Q19",
+      "branch": "exp/quality-fragment-incumbent-20261006",
+      "commit": "c56cb97d",
+      "run": "q19-fragment-incumbent",
+      "status": "running",
+      "hypothesis": "Keep already validated scattered candidates from the exact prefix/objective memo while reconstructing new carriers.",
+      "reproduction": "Q17 loses Tiki section 59 and Luna section 42. This version retains both at exactly their prior measured impacts, 0.494 and 0.708 (rounded)."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -173,5 +420,6 @@
       "localJointStepImprovements": 260,
       "interpretation": "Most local improvement comes from actual coordinate probes. This motivates a better use of their measured progress, not the claim that joint steps have no value."
     }
-  }
+  },
+  "evidence": "docs/research/quality-20261005-evidence.json"
 }

@@ -2,6 +2,11 @@
  * arc future-value model from the production compiler under line.strike.v3.
  *
  *   node --import tsx tools/research/value_collect.ts run --out=DIR [--seeds=1] [--jobs=16] [--budget=standard|N] [--limit=N]
+ *       [--catalog=v4|v6transfer] [--only=FILE]
+ *
+ * --only=FILE restricts the work to the `id~seed` compiles listed in FILE (a JSON
+ * array), e.g. the sources of an earlier construction artifact, so a later round
+ * collects exactly the same compiles with only the searching policies changed.
  *
  * Training data: benchmark/v4 catalog cases, EXCLUDING every group derived from
  * the evaluation songs (luna_bala, amor_na_praia, tiki_tiki, amour_de_ma_vie),
@@ -9,7 +14,7 @@
  * 57 value features, its local cost, and the continuation label with the
  * learned leaf prior removed (`pureFuture`), see arc_lookahead.ts. */
 import {gzipSync} from 'node:zlib';
-import {writeFileSync, mkdirSync, existsSync} from 'node:fs';
+import {readFileSync, writeFileSync, mkdirSync, existsSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
@@ -68,13 +73,15 @@ else if (command === 'run') {
   const dir = resolve(arg('out')!), jobs = Number(arg('jobs', '16')), seeds = Number(arg('seeds', '1')), budget = arg('budget', 'standard')!;
   const cases = (await trainingCases()).slice(0, Number(arg('limit', '1000')));
   mkdirSync(dir, {recursive: true});
+  const only = arg('only') ? new Set<string>(JSON.parse(readFileSync(arg('only')!, 'utf8'))) : null;
   // Explicit-plan cases compile at their catalog plan seeds.
   const work = cases.flatMap((c: any) => Array.from({length: seeds}, (_, k) => ({id: c.id, seed: c.plans ? Number(Object.keys(c.plans)[k]) : 101 * (k + 1)})))
+    .filter(w => !only || only.has(`${w.id}~${w.seed}`))
     .filter(w => !existsSync(join(dir, `${w.id}~${w.seed}.json.gz`)));
   // Longest rides first, so the tail of the run stays parallel.
   const length = new Map(cases.map((c: any) => [c.id, c.durationFrames]));
   work.sort((a, b) => length.get(b.id)! - length.get(a.id)!);
-  writeFileSync(join(dir, 'plan.json'), JSON.stringify({excludedGroups: EVAL_GROUPS, budget, seeds, cases: cases.map((c: any) => c.id)}, null, 1));
+  writeFileSync(join(dir, 'plan.json'), JSON.stringify({excludedGroups: EVAL_GROUPS, budget, seeds, cases: cases.map((c: any) => c.id), ...(only ? {only: [...only]} : {})}, null, 1));
   let next = 0, done = 0;
   await Promise.all(Array.from({length: jobs}, async () => {
     while (next < work.length) {

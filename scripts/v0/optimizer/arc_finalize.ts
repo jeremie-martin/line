@@ -7,11 +7,8 @@ import { buildTrackJson } from '../core/substrate.ts';
 import type { TrackLine } from '../types.ts';
 import { createArcEngine } from './arc_engine.ts';
 import { trimUnusedArcGuides, arcRailGroups } from './arc_guidance.ts';
-import { arcWholeTrajectoryObjective } from './arc_refinement.ts';
+import { arcWholeTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
-import { motionSamples } from './motion_quality.ts';
-import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
-import { engagementGainResiduals } from './impact_search.ts';
 import { impactAccount } from './impact_accounts.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 
@@ -61,10 +58,12 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
   const report = ctx.reportFor(raw, lines);
   const impactEvaluation = finalImpactFrames
     ? ruler!.evaluate(finalImpactFrames, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
-  const trajectoryLoss = arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight).loss;
-  const impactTrajectoryLoss = impactEvaluation
-    ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impactEvaluation).loss : undefined;
-  const selectionLoss = completeSelectionLoss(ctx, raw, finalImpactFrames, impactTrajectoryLoss ?? trajectoryLoss);
+  const trajectory = arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight);
+  const trajectoryLoss = trajectory.loss;
+  const impactTrajectory = impactEvaluation
+    ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impactEvaluation) : undefined;
+  const impactTrajectoryLoss = impactTrajectory?.loss;
+  const selectionLoss = arcSelectionObjective(ctx, raw, finalImpactFrames, impactTrajectory ?? trajectory).loss;
   return {
     track: buildTrackJson(lines, end, start), report,
     ...(ctx.hasFragments ? {fragmentStats: work.fragmentStats} : {}),
@@ -120,26 +119,3 @@ function pruneUntouchedGuides(ctx: ArcCompileContext, lines: TrackLine[], coldEn
   return guidanceReduction;
 }
 
-/** The authored trajectory loss plus, per support, the engagement-gain and
- * motion terms that interval search optimized (each averaged over supports). */
-function completeSelectionLoss(ctx: ArcCompileContext, raw: any, finalImpactFrames: any[] | undefined, loss: number | undefined) {
-  const {options, contacts, duration, gaps} = ctx;
-  let selectionLoss = loss;
-  if (selectionLoss !== undefined && finalImpactFrames) for (const [i, contact] of contacts.entries()) {
-    const next = contacts[i + 1]?.frame ?? duration + 1;
-    selectionLoss += engagementGainResiduals(finalImpactFrames as any, contact.frame, next - 1, options.impactSearch)
-      .reduce((n, v) => n + v * v, 0) / contacts.length;
-  }
-  if (selectionLoss !== undefined && options.motionQuality) {
-    const observed = motionSamples(raw.frames, 1, duration);
-    for (const [i, contact] of contacts.entries()) {
-      const next = contacts[i + 1]?.frame ?? duration + 1, request = options.constructionRequests?.[i];
-      const samples = observed.filter(s => s.frame >= contact.frame && s.frame < next);
-      if (!samples.length) continue;
-      const impact = contact.gap >= 0 ? gaps[contact.gap].targets.impact : request?.context?.nextImpact ?? undefined;
-      selectionLoss += motionResiduals(intervalMotionSummary(observed, contact.frame, next - 1), impact, options.motionQuality)
-        .reduce((n, r) => n + r * r, 0) / contacts.length;
-    }
-  }
-  return selectionLoss;
-}

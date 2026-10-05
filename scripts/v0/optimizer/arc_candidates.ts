@@ -5,7 +5,7 @@ import type { ArcMotionOptions } from './arc_options.ts';
 
 /** Candidate cost with its learned future value blended in by `valueWeight`. */
 export function valueRank(options: ArcMotionOptions, c: any) {
-  return c.predictedFuture === undefined ? c.cost : c.cost + (options.valueWeight ?? .5) * (c.localCost + c.predictedFuture - c.cost);
+  return c.predictedFuture === undefined ? c.cost : c.cost + (options.valueWeight ?? .5) * c.predictedFuture;
 }
 
 /** Arrivals that differ in heading, speed, pose or release frame. */

@@ -183,8 +183,8 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   const {ctx, options, i, frame, next, horizon, targets, impact, gap} = s;
   const {contacts, duration, gaps} = ctx;
   const {det, raw, state, impactEvents, impactAccount, impactMatch, observedImpacts, request} = traced;
-  const achieved = measureGapAxes(det, {...s.outgoing, startFrame: i === 0 ? 0 : frame, endFrame: s.objectiveEnd}, added, s.objectiveEnd);
-  const measuredObjective = objectiveAxes(det, {...s.outgoing, startFrame: i === 0 ? 0 : frame}, s.objectiveEnd);
+  const achieved = measureGapAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, added, s.objectiveEnd);
+  const measuredObjective = objectiveAxes(det, s.outgoing, s.objectiveEnd);
   const residuals: number[] = ['air', 'speed', 'amplitude'].map(key => targets[key as keyof typeof targets] === undefined ? 0 :
     ((measuredObjective as any)[key] - (targets as any)[key]) * Math.sqrt(key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1));
   let cost = residuals.reduce((sum, x) => sum + x * x, 0);

@@ -120,7 +120,10 @@ Robustness:
 
 ## 6. Follow-ups
 
-- Retrain the learned construction policies and the value model on the v3
-  objective. Both still help; their training pipeline is archived.
+- A second collection round for the construction policies, with the new
+  policies themselves searching, removes the old artifact's indirect
+  influence on the collected data.
+- The value model earns about 0.005 and was trained partly on the
+  evaluation songs: delete it, or replace it with the disjoint retrain.
 - New, held-out music.
 - Retire `landing` mode and strike v1/v2 once the owner is satisfied.

@@ -166,5 +166,12 @@
   "title": "Learned models retrained under v3 on data disjoint from the eval songs",
   "verdict": "adopted",
   "detail": "The V6-era artifacts were trained partly on the evaluation songs. Rebuilt construction policies: impact loss −0.007, strong bias +0.015, air −0.005 on all four panels; body drag +30% (explicit exception). The value-model retrain was no better (old, retrained, constant and none are within 0.01), so it is not adopted."
+ },
+ {
+  "time": "05:00",
+  "area": "agent",
+  "title": "Construction policies, round 2 (collected with the v3 policies)",
+  "verdict": "rejected",
+  "detail": "Impact loss −0.003 on all four panels (half of round 1's gain), but body drag +0.5 to +0.95 s/min more on the main panel. Diminishing returns, and the body-drag trade is the owner's call."
  }
 ]

@@ -489,4 +489,13 @@ Only on validated measures:
     - Exceptions, explicit: body drag +0.4 to +0.5 s/min (about +30%) and
       quiet bias +0.010 (fresh seeds, authored).
     - The archive is 10.3 MB, beside the 8.5 MB V6-era one.
+- 2026-10-05: **Construction policies, round 2** (collected with the round-1
+  v3 policies searching; agent, exp/policy-round2): not adopted.
+  - Impact loss −0.003 on all four panels, about half of round 1's gain.
+  - Body drag +0.5 / +0.95 s/min (dev), on top of round 1's +0.4–0.5; quiet
+    bias +0.019 (fresh seeds, perturbed).
+  - Diminishing returns, and the body-drag trade needs the owner's ruling.
+  - Round 1 retrains byte-identically from its sources
+    (tools/research/construction_v3_round1_sources.json); the round-2
+    archive (sha256 a19c42b3…) stays out of git.
 

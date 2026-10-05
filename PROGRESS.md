@@ -55,6 +55,8 @@ A change is adopted only if the whole picture improves.
 | 03:56 | **Final compiler: headline, evening → tonight (all four panels)** | Impact loss 0.092–0.097 → 0.028–0.031 (about −68%); strong shortfall −0.28 → −0.11; double impacts gone; competing hits 3–5% → about 1%; peaks 3–9 ms earlier; air and speed unchanged or better; head-down strong arrivals 22% → 12–15%. Costs: body drag +0.1 to +0.6 s/min, +0.35M physics frames. Completion 100%. |
 | 04:26 | Deliverables refreshed | Dashboard data, clips, scale clips, 22-pair blind study, production library (12/12) with videos. |
 
+| 05:00 | Construction policies, round 2 | Not adopted: impact −0.003 only, body drag +25–48% more. Diminishing returns. |
+
 ## Where to look in the morning
 
 - **Dashboard:** `npm run serve`, then http://127.0.0.1:8767/motion-gallery/night.html

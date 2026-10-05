@@ -28,7 +28,7 @@ Dashboard: `npm run serve`, then http://127.0.0.1:8767/motion-gallery/night.html
 
 ## 2. The compiler (every change: hypothesis first, both panels, every ruler)
 
-Adopted, in order (search profile `line.strike-search.v4`,
+Adopted, in order (search profile `line.strike-search.v5`,
 `scripts/v0/optimizer/contact_impact_profile.ts`):
 
 1. **v3 as the objective.** Double impacts per beat −0.13.
@@ -42,6 +42,11 @@ Adopted, in order (search profile `line.strike-search.v4`,
    impact unchanged. This was found by a blind-spot audit of the scorecard:
    step 2 had raised them, and no row showed it.
 5. **Native whole-body read.** Compile time −20%, byte-identical.
+6. **Construction policies rebuilt under v3 on songs disjoint from the
+   evaluation panel.** The V6-era ones were trained partly on the evaluation
+   songs. Impact loss −0.007, strong bias +0.015, air −0.005 on all four
+   panels; body drag +30% is the explicit cost. The value-model retrain was
+   no better, so it is not adopted.
 
 Tried and set aside, each measured: catch turn seeded in 2 frames; impact
 weight 2; release reserve 3; L1 at weight 1 and thresholds 0.4 / 0.75;
@@ -59,17 +64,18 @@ owner-validated measure.
 
 | | evening | tonight |
 |---|---|---|
-| impact loss (v3) | 0.092–0.097 | 0.033–0.038 |
-| strong beats: strength − request | −0.28 | −0.13 |
-| very strong beats | about −0.35 | about −0.17 |
-| floor-then-rail double impacts / beat | about 0.11 | < 0.01 |
-| strong beats with a competing hit | 3–5% | 1–2% |
-| hit peak after the beat (median) | 22–27 ms | 13–22 ms |
-| strong hits arriving head-down / backward | about 22% | 15% |
-| speed rms | 0.075–0.084 | 0.072–0.076 |
-| air rms | 0.066–0.068 | 0.071–0.073 |
+| impact loss (v3) | 0.092–0.097 | 0.028–0.031 |
+| strong beats: strength − request | −0.28 | −0.11 to −0.12 |
+| very strong beats | about −0.35 | −0.14 to −0.15 |
+| floor-then-rail double impacts / beat | about 0.11 | about 0 |
+| strong beats with a competing hit | 3–5% | 0.6–1.7% |
+| hit peak after the beat (median) | 22–27 ms | 16–19 ms |
+| strong hits arriving head-down / backward | about 22% | 12–15% |
+| speed rms | 0.075–0.084 | 0.069–0.073 |
+| air rms | 0.066–0.068 | 0.066–0.068 |
+| body drag (s/min) | 1.4–1.9 | 2.0–2.3 |
 | completion | 100% | 100% |
-| physics frames per ride | about 2.35M | about 2.7M |
+| physics frames per ride | about 2.3M | about 2.7M |
 
 Robustness:
 - At half budget (1.5M) tonight's profile still helps: completion +6 pp

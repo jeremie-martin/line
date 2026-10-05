@@ -99,6 +99,9 @@ log):
 - **Upright arrival:** that steep arrival must not come head-down or
   backward.
 - **Wider lookahead:** ×1.3 for the interval leading into a strong ask.
+- **Construction policies:** v3's own, rebuilt under v3 on songs disjoint
+  from the evaluation panel (`repertoire_policy_model_v3.json`; trainer in
+  `tools/research`). v1/v2 and landing keep the V6-era policies.
 
 Measured limits (docs/research/producing-impact-brief-20261004.md):
 

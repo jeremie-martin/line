@@ -10,7 +10,7 @@ import { authoredSpeedToPx, impactToRawPx, type TrackLine } from '../types.ts';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { arcRailGroups } from './arc_guidance.ts';
-import { arcDetectedTrajectoryObjective } from './arc_refinement.ts';
+import { arcDetectedTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
 import { normalizeArcControl, arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';
@@ -294,10 +294,12 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity} = measured;
   const tail = state.points.TAIL, nose = state.points.NOSE, dx = nose.x - tail.x, dy = nose.y - tail.y;
   const angularRate = (dx * (nose.vy - tail.vy) - dy * (nose.vx - tail.vx)) / Math.max(1, dx * dx + dy * dy);
-  const terminalImpacts = options.impactContract && i === contacts.length - 1
-    ? impactAccountFor(options.impactContract).evaluate([...s.prefixImpactFrames!, ...observedImpacts!], impactTargets, duration, true) : undefined;
+  const terminalPhysical = options.impactContract && i === contacts.length - 1
+    ? [...s.prefixImpactFrames!, ...observedImpacts!] : undefined;
+  const terminalImpacts = terminalPhysical
+    ? impactAccountFor(options.impactContract!).evaluate(terminalPhysical, impactTargets, duration, true) : undefined;
   const terminalLoss = i === contacts.length - 1
-    ? arcDetectedTrajectoryObjective(det, gaps, options.amplitudeWeight, terminalImpacts).loss + motionCost / contacts.length : undefined;
+    ? arcSelectionObjective(ctx, raw, terminalPhysical, arcDetectedTrajectoryObjective(det, gaps, options.amplitudeWeight, terminalImpacts)).loss : undefined;
   const release = raw.frames.slice().reverse().find(f => f.sledContacts.length)?.frame;
   const finalState = state.points;
   const heading = deg(Math.atan2(finalVelocity.y, finalVelocity.x)), endSpeed = Math.hypot(finalVelocity.x, finalVelocity.y);

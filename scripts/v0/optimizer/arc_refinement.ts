@@ -1,53 +1,10 @@
 /** Improve complete physical arc tracks; every offered continuation is simulated. */
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFrameLimitExceeded, detect } from '../../lib/detector.ts';
-import type { DriftReport, TrackLine, Gap } from '../types.ts';
-import { measureGapAxes } from '../core/measure.ts';
+import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
+import type { DriftReport, TrackLine } from '../types.ts';
 import { createArcEngine } from './arc_engine.ts';
-import type {ImpactEvaluation as MusicalImpactEvaluation} from './impact_accounts.ts';
-import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
-import {validRide} from './ride_validity.ts';
 import type { ArcMotionOptions, IntervalOverrides } from './arc_options.ts';
 import type { IntervalResult } from './arc_interval.ts';
-
-/** Compiler objective over the whole authored timeline. Span axes represent
- * time; impacts represent events. No benchmark IDs or benchmark code are used. */
-export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3, impacts?:MusicalImpactEvaluation) {
-  const regrets=Array(gaps.length+1).fill(0);
-  // The account's survival flag comes from the caller, so survival is checked here too.
-  if(report.terminus.reason!=='endOfSpec'||!validRide({report,impactEvaluation:impacts}))return {loss:Infinity,regrets};
-  return arcDetectedTrajectoryObjective(detect(raw),gaps,amplitudeWeight,impacts);
-}
-
-/** Whole authored-axis loss for an already detected physical trajectory. */
-export function arcDetectedTrajectoryObjective(det:ReturnType<typeof detect>,gaps:Gap[],amplitudeWeight=1/3,impacts?:MusicalImpactEvaluation){
-  const regrets=Array(gaps.length+1).fill(0),measured=gaps.map(g=>measureGapAxes(det,g,[],g.endFrame));
-  let loss=0,normalizer=0;
-  for(const axis of ['air','speed','amplitude','impact'] as const){
-    if(axis==='impact'&&impacts){
-      const {account,events,targets}=impacts,mass=Math.max(1,targets.length);
-      if(!impacts.valid)return {loss:Infinity,regrets};
-      normalizer+=1;loss+=account.loss;
-      for(const match of account.matches)regrets[match.target+1]+=match.loss/mass;
-      for(const i of account.unmatchedEvents){
-        const event=events[i],gap=gaps.find(g=>event.onset>=g.startFrame&&event.onset<g.endFrame)??gaps.at(-1);
-        if(gap)regrets[gap.index]+=(event.raw/CONTACT_IMPACT_CONTRACT.veryStrong)**2/mass;
-      }
-      continue;
-    }
-    const targeted=gaps.filter(g=>g.targets[axis]!==undefined);
-    if(!targeted.length)continue;
-    const importance=axis==='amplitude'?amplitudeWeight:1;
-    const mass=targeted.reduce((s,g)=>s+(axis==='impact'?1:g.endFrame-g.startFrame),0);
-    normalizer+=importance;
-    for(const g of targeted){
-      const value=measured[g.index][axis];if(value===undefined||!Number.isFinite(value))return {loss:Infinity,regrets};
-      const contribution=importance*(axis==='impact'?1:g.endFrame-g.startFrame)*(value-g.targets[axis]!)**2/mass;
-      loss+=contribution;regrets[axis==='impact'?g.index+1:g.index]+=contribution;
-    }
-  }
-  return {loss:normalizer?loss/normalizer:0,regrets:regrets.map(v=>normalizer?v/normalizer:0)};
-}
 
 export type ArcRefinementInput = {
   engine: Engine; lines: TrackLine[]; rows: any[]; alternatives?: any[][];

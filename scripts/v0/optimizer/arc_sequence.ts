@@ -77,7 +77,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const chosen: typeof offered = [];
     for (const proposal of offered) {
       if (chosen.every(other => distinctArrival(other.candidate, proposal.candidate))) chosen.push(proposal);
-      if (chosen.length >= (i === contacts.length - 1 ? 1 : 4)) break;
+      if (chosen.length >= (i === contacts.length - 1 ? 1 : 8)) break;
     }
     const nextBeam: Node[] = [];
     for (const proposal of chosen) {

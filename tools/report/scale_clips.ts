@@ -15,7 +15,8 @@ import {cutClip} from '../measure/clip_render.ts';
 const arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const out = arg('out', 'generated/report/night'), G = .175, rad = (d: number) => d * Math.PI / 180;
 const PROBES = [{v: 6, theta: 15, label: 'medium'}, {v: 8, theta: 30, label: 'a typical strong hit tonight'},
-  {v: 8, theta: 45, label: 'the hardest hit the rider survives'}, {v: 10, theta: 45, label: 'harder: the rider crashes'}];
+  {v: 8, theta: 45, label: 'near the limit at 45°'}, {v: 10, theta: 45, label: 'harder at 45°: the rider crashes'},
+  {v: 9, theta: 80, label: 'a near-vertical drop: maximal and survived'}];
 
 function track(v: number, theta: number) {
   const vx = v * Math.cos(rad(theta)), vy = v * Math.sin(rad(theta)), px = 6 * vx, py = 6 * vy + .5 * G * 36 + 12;

@@ -24,7 +24,7 @@ A change is adopted only if the whole picture improves.
 |---|---|---|
 | 22:55 | v3 as the objective | Adopted. Double impacts −0.13 per beat; speed rms +0.007 (authored only). |
 | 23:05 | Seed catch turn in 2 frames; impact weight 2; release reserve 3 | Rejected: null, or impact gain paid for with speed. |
-| 23:10 | Survival envelope (instrument) | The strongest single hit the rider survives is about 0.9; 1.0 is out of reach. |
+| 23:10 | Survival envelope (instrument) | Coarse grid: about 0.9 survivable at 45°. Corrected at 02:25 by a fine grid: a near-vertical drop survives 1.0. |
 | 23:29 | **L1, steep arrival before strong asks** | **Adopted.** Strong bias +0.02, speed rms −0.014 / −0.022; contested beats +1 pp. |
 | 23:45 | Diagnosis | Strong hits are mostly sled-tip strikes plus spin (sled 39° to the surface), not slams. Quiet overshoot comes from sled pitch too. |
 | 23:41 | Lookahead boost into strong asks (L9) 1.6 / 1.3 | 1.6: small gain, +100 s per compile. 1.3: strong bias +0.009, contested −0.8 pp, +20 s. |

@@ -39,7 +39,7 @@
   "area": "instrument",
   "title": "Survival envelope",
   "verdict": "finding",
-  "detail": "On a flat floor the strongest hit the rider survives reads about 0.9; above about 6.5 px/frame into the surface the rider crashes; no 1.0 hit survives."
+  "detail": "Survival depends on how the rider meets the floor: at 45° the rider crashes above about 0.9, but a near-vertical drop onto flat ground survives even 1.0. The first coarse grid wrongly implied 0.9 was the ceiling; the code review caught it."
  },
  {
   "time": "23:15",
@@ -145,5 +145,19 @@
   "title": "Native whole-body read",
   "verdict": "adopted",
   "detail": "Compile 75 s → 60 s per ride, byte-identical (parity on all 63 cells)."
+ },
+ {
+  "time": "02:10",
+  "area": "agent",
+  "title": "Pressing rail for dense strong runs",
+  "verdict": "rejected",
+  "detail": "A roof that forces the descent breaks the sled–body binding or removes the hit. In dense runs, descent refills each hit's speed bill almost exactly. A gravity-ride continuation was null on the panel."
+ },
+ {
+  "time": "02:15",
+  "area": "review",
+  "title": "Code review of tonight's changes",
+  "verdict": "finding",
+  "detail": "No correctness bug in product code. Corrected: spin evidence (8 : 3, not 12 : 4), v1/v2 compile modes back on the evening profile, upright judged by its own test, the survival ceiling (1.0 survives a near-vertical drop), plus tool-safety fixes and tests."
  }
 ]

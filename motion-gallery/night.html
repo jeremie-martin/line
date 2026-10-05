@@ -15,14 +15,14 @@
 
   <section>
     <h2>Requested vs achieved impact</h2>
-    <p class="note">Mean achieved strength (line.strike.v3) for each band of requested strength, authored specs. The diagonal is a perfect match. The shaded band is what a clean ride can physically deliver: about 0.06 (the gentlest touchdown) to about 0.9 (the hardest hit the rider survives).</p>
+    <p class="note">Mean achieved strength (line.strike.v3) for each band of requested strength, authored specs. The diagonal is a perfect match. The shaded band runs from about 0.06 (the gentlest touchdown) to 0.9 (about the limit of a 45° hit); an isolated near-vertical drop can go higher.</p>
     <canvas id="curve" width="900" height="420"></canvas>
     <div class="legend" id="curve-legend"></div>
   </section>
 
   <section>
     <h2>What the strength scale means</h2>
-    <p class="note">Single hits on a flat floor at rising speed into the surface, measured with the product's impact measure. Above about 0.9 the rider does not survive a clean hit, so requests near 1.0 cannot be met as asked.</p>
+    <p class="note">Single hits on a flat floor at rising speed into the surface, measured with the product's impact measure. Survival depends on how the rider meets the floor: at 45° the rider crashes above about 0.9, but a near-vertical drop onto flat ground survives even a maximal hit (about 9 px/frame into the floor). In dense passages, time and energy, not survival, cap strength near 0.6–0.7.</p>
     <div id="scale" class="scale"></div>
   </section>
 

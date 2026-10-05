@@ -102,8 +102,11 @@ log):
 
 Measured limits (docs/research/producing-impact-brief-20261004.md):
 
-- **Achievable strength.** About 0.06 (the gentlest touchdown) to about 0.9
-  (the hardest hit the rider survives, `tools/measure/survival_envelope.ts`).
+- **Achievable strength.** About 0.06 at the bottom (the gentlest
+  touchdown) and 1.0 at the top for an isolated near-vertical drop onto flat
+  ground. At 45° the rider crashes above about 0.9
+  (`tools/measure/survival_envelope.ts --fine`). In dense passages, time and
+  energy cap strength near 0.6–0.7.
 - **The frontier past the adopted changes.** A slam at an angle costs speed,
   which the spec's speed target charges for, and sharper turns crash.
 

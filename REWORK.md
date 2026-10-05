@@ -452,3 +452,24 @@ Only on validated measures:
     - air rms +0.004 to +0.006; +0.4M physics frames; completion 100%.
   - Rejected: upright penalty before every catch (null; very strong −0.028
     authored).
+- 2026-10-05: **Code review of tonight's changes** (agent; no correctness bug in
+  product code), fixes in 85b09cf3 and 6736cf38:
+  - per-account search profiles: v1/v2 back to the evening profile, so
+    `--mode=strike` reproduces the evening product;
+  - evidence corrected: spin 8 : 3 (p ≈ 0.11), not 12 : 4; v1's 31/63 is on
+    disagreement-selected pairs (head to head 22 : 7); the upright change is
+    judged by its own geometric test, about 22% → 15% against the evening;
+  - tool safety (clip cache key, unmatched beats, case-set checks, ties) and
+    tests (v2/v3 incremental = cold; native read exact).
+  - **Survival corrected.** The fine grid (`survival_envelope.ts --fine`)
+    shows a near-vertical drop onto flat ground surviving strength 1.00
+    (about 9 px/frame into the floor); at 45° the rider crashes above about
+    0.9. "1.0 is out of physical reach" was wrong. Dense passages are capped
+    by time and energy (about 0.6–0.7), not survival.
+- 2026-10-05: **Pressing rail (agent, exp/pressing-rail)**, negative:
+  - a roof that forces the descent breaks the sled–body binding or removes
+    the hit;
+  - in dense runs, descent refills each hit's speed bill almost exactly;
+  - a gravity-ride continuation was null on the panel, so rejected;
+  - a strong hit costs about 6 px/frame of speed per unit of strength.
+

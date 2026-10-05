@@ -14,7 +14,7 @@
  "summary": [
   "Your three rounds of blind pair judgments settled what impact means: how much a hit changes the rider's whole-body motion (its direction, speed and spin) within 50 ms. On pairs chosen where the measures disagree, the old measure agreed with you 31 times out of 63 and the new one 46 (head to head 22 : 7). A floor-then-rail bounce now counts as two impacts, as you see it.",
   "Overnight, the compiler was tuned against that measure, one hypothesis at a time, judged on every measure on two panels and confirmed on fresh arrangement seeds. Compared with this evening's product, on all four panels: impact loss −60%, strong beats much closer to their request, double impacts almost gone, fewer head-down arrivals into strong hits, and speed accuracy unchanged. The cost: air accuracy about 0.005 worse and about 15% more physics per ride.",
-  "The rest of the gap is mostly physics or the spec itself. The rider does not survive a clean hit much above 0.9, the gentlest touchdown reads about 0.06, and the densest song asks for back-to-back maximum hits faster than gravity can supply the momentum. Those are questions for you, below."
+  "The rest of the gap is mostly physics or the spec itself. A slam costs speed that the spec also asks for, and in the densest song strong hits come about 13 frames apart, faster than gravity can refill the speed each one spends. That caps dense strong runs near 0.6–0.7, although an isolated near-vertical drop survives a maximal hit. The gentlest touchdown reads about 0.06. Those are questions for you, below."
  ],
  "cards": [
   {
@@ -35,7 +35,7 @@
   }
  ],
  "questions": [
-  "Scale: should a request of 1.0 mean the hardest hit the rider survives (about 0.9 today), and 0 the gentlest touchdown (about 0.06)? Today both ends of the 0–1 scale are out of physical reach, so the extremes always miss.",
+  "Scale: isolated maximal hits are physically possible, but in dense runs time and energy cap strength near 0.6–0.7, and the quietest asks sit below the gentlest touchdown (about 0.06). Keep the scale as authored, with these limits known, or map each request onto what its passage can reach?",
   "L’amour de ma vie asks for back-to-back hits of 0.9 or more about 13 frames apart, its intro asks for speed the start cannot give, and its tail asks for low air with a strong hit on every beat. Re-author, or treat these as stretch goals?",
   "Air against impact: weighting air 1.5× recovers this evening's air accuracy but gives back about a third of tonight's strong-beat gain. Which matters more to you?",
   "Lines passing visibly through the rider (6–8 per ride, July none) and the rider's body dragging along rails: worth fixing? A short look at the examples would tell.",

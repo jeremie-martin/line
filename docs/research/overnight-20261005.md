@@ -79,10 +79,14 @@ Robustness:
 
 ## 4. What limits the rest (physics and spec, measured)
 
-- **Survival.** A clean, surviving hit reads at most about 0.9; the gentlest
-  touchdown reads about 0.06 (`tools/measure/survival_envelope.ts`,
-  `tools/report/scale_clips.ts`). So both ends of the authored 0–1 scale are
-  out of reach.
+- **Survival depends on how the rider meets the floor.**
+  - At 45° the rider crashes above about 0.9.
+  - An isolated near-vertical drop onto flat ground survives even a maximal
+    hit, about 9 px/frame into the floor (`tools/measure/survival_envelope.ts
+    --fine`, `tools/report/scale_clips.ts`). A first coarse grid wrongly
+    suggested 0.9 was the ceiling; the code review caught it.
+  - The gentlest touchdown reads about 0.06, so very quiet asks always read
+    a little strong.
 - **The speed bill.** A slam at an angle costs speed (tan(i/2) per unit of
   impact), which the spec's speed targets charge for; sharper turns crash.
   Past the adopted changes, strength trades against speed and survival.
@@ -93,8 +97,12 @@ Robustness:
 
 ## 5. For the owner
 
-1. **Scale:** should 1.0 mean the hardest hit the rider survives, and 0 the
-   gentlest touchdown?
+1. **Scale:**
+   - Isolated maximal hits are physically possible (a near-vertical drop).
+   - Inside dense runs, time and energy cap strength near 0.6–0.7, and the
+     quietest asks sit below the gentlest touchdown (about 0.06).
+   - Keep the scale as authored, with these limits known, or map requests
+     onto what each passage can reach?
 2. **L'amour de ma vie:** re-author its densest strong runs, intro speed and
    low-air tail, or keep them as stretch goals?
 3. **Air against impact:** air weight 1.5 recovers the evening's air

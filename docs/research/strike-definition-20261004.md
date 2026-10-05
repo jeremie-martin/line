@@ -239,7 +239,7 @@ All rounds, 63 decisive pairs:
 
 | measure | right |
 |---|---|
-| strike v1 | 31/63 (chance) |
+| strike v1 | 31/63 (pairs chosen where the measures disagree; head to head v2 wins 22 : 7) |
 | whole-body change, 50 ms, with spin (`strength`) | 46/63 |
 | whole-body change, whole event, with spin | 46/63 |
 | arrival with spin (`c_arrive_spin`) | 45/63 |
@@ -247,7 +247,8 @@ All rounds, 63 decisive pairs:
 | arrival without spin | 41/63 |
 
 - **Spin.** When adding spin was the only difference, the version with it won
-  12 : 4 (p ≈ 0.04).
+  8 : 3 (p ≈ 0.11), supported but weakly. The earlier "12 : 4" counted 5 pairs
+  twice (code review, 2026-10-05).
 - **Window and framing.** 50 ms vs whole event: 13 : 13. Arrival vs
   whole-body change: 5 : 4.
 - **Choice.** The owner cannot separate the window lengths, so 50 ms was
@@ -269,3 +270,24 @@ hypothesis stated before running):**
 - v1 loss worse (+0.036), as expected.
 
 v2 is now the product default. v1 stays as a comparison.
+
+## line.strike.v3: opposite pushes are separate impacts (2026-10-04)
+
+The owner sees a floor hit followed by an upper-rail hit as two impacts, and
+disliked the second one.
+
+- **Rule.** Inside a contact engagement, a frame whose contact push (the
+  travel part of the whole-body impulse, at least `floor`) points more than
+  120° away from the push at the current event's reference frame (its start,
+  or the highest smoothed peak so far) starts a new impact. A corner (about
+  90°) does not split.
+- **Physical check.**
+  - On rides with rails, 94% of the added splits start on an
+    opposite-facing surface.
+  - July, which has no rails, has none.
+  - The count is insensitive to the threshold (107°–135°).
+- **Effect as the objective:** double impacts per beat −0.13 / −0.16. The
+  unrequested second hit now costs as an extra.
+- **Tests.** `tests/strike_v2.test.ts` checks the split, the corner, and
+  incremental against cold detection across a split.
+

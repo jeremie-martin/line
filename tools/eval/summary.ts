@@ -34,8 +34,8 @@ export function summarize(cell: any) {
     'strong extra impacts / beat (v3)': cell.impact3 ? cell.impact3.strongExtras / cell.impact3.beats : NaN,
     'double impacts / beat (v3 − v2)': cell.impact3 ? cell.impact3.splits / cell.impact3.beats : NaN,
     ...(() => {
-      // Per-beat v3 strength by requested band (beats without a matched impact excluded).
-      const rows = (cell.impact3?.perBeat ?? []).filter((r: any) => r[0] != null && r[1] != null);
+      // Per-beat v3 strength by requested band; a beat with no matched impact counts as strength 0.
+      const rows = (cell.impact3?.perBeat ?? []).filter((r: any) => r[0] != null).map((r: any) => [r[0], r[1] ?? 0]);
       const band = (a: number, b: number) => rows.filter((r: any) => r[0] >= a && r[0] < b);
       const bias = (xs: any[]) => mean(xs.map((r: any) => r[1] - r[0])), rms = (xs: any[]) => Math.sqrt(mean(xs.map((r: any) => (r[1] - r[0]) ** 2)));
       return {'v3 strong bias (req>=0.6)': bias(band(.6, 2)), 'v3 strong rms (req>=0.6)': rms(band(.6, 2)),
@@ -69,6 +69,10 @@ export function loadRun(name: string): Run {
 /** Per-song mean of a metric over the cells passing `filter`; with `diff`, the
  * mean paired difference against the same cases of another run. */
 export function songValues(run: Run, metric: string, filter: (c: any) => boolean, diff?: Run) {
+  if (diff) {
+    const a = [...run.cells.values()].filter(filter).map((c: any) => c.case.id).sort(), b = [...diff.cells.values()].filter(filter).map((c: any) => c.case.id).sort();
+    if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error('paired runs must cover the same cases (same panel, complete runs)');
+  }
   const m = new Map<string, number>();
   for (const song of SONGS) {
     const xs = [...run.cells.values()].filter(filter).filter((c: any) => c.case.song === song).map((c: any) => {

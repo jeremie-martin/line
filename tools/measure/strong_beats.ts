@@ -7,7 +7,7 @@
 import {readFileSync, readdirSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';
-import {observe} from './observe.ts';
+import {observe, songSpec} from './observe.ts';
 import {strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V3_CONTRACT} from './strike.ts';
 
 const arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
@@ -17,8 +17,8 @@ const rows: any[] = [];
 for (const f of readdirSync(join(run, 'cells')).filter(f => f.endsWith('.json'))) {
   const cell = JSON.parse(readFileSync(join(run, 'cells', f), 'utf8'));
   const track = JSON.parse(gunzipSync(readFileSync(join(run, 'cells', f.replace(/\.json$/, '.track.json.gz')))).toString());
-  const targets = cell.beats.map((b: any) => ({frame: b.frame ?? Math.round(b.t * 40), impact: b.requested}));
-  const duration = Math.max(...targets.map((t: any) => t.frame)) + 1;
+  const targets = cell.beats.map((b: any) => ({frame: b.frame ?? Math.round(b.t * 40), impact: b.requested ?? undefined}));
+  const duration = (await songSpec(cell.case.song)).durationFrames;
   const o: any = observe(track, duration, targets), lines = new Map(track.lines.map((l: any) => [l.id, l]));
   const events = detectStrikes(strikeMotionFrames(o), STRIKE_V3_CONTRACT).filter(e => e.onset <= duration), account = accountStrikes(events, targets, STRIKE_V3_CONTRACT);
   for (const m of account.matches) {

@@ -1,8 +1,10 @@
 /** The default compile allowance, in physics frames, scales with ride length.
- * The production search at full width spends 1,200–1,550 frames per ride frame
- * on the evaluation panel (2026-10-04); a fixed allowance would starve long
- * songs (a 3-minute song at 3M frames matches a 45 s song at 0.75M, where one
- * compile in five ran out before the end). */
+ * The production search at full width spent 1,200–1,550 frames per ride frame on
+ * the evaluation panel (2026-10-04); the line.strike.v3 search profile spends up to
+ * the whole allowance on the densest song, by design (the planner uses what is
+ * left), and still completes. A fixed allowance would starve long songs (a
+ * 3-minute song at 3M frames matches a 45 s song at 0.75M, where one compile in
+ * five ran out before the end). */
 export const BUDGET_PER_RIDE_FRAME = 1700;
 
 /** Allowance for a ride of `seconds`, covering every frame through the end

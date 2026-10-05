@@ -20,7 +20,8 @@
  *  - Opposite pushes (v3): inside an engagement a new event also starts at a frame
  *    whose contact push (the travel part of the impulse, at least `floor`) points
  *    more than acos(−`reversalCos`) away from the push at the current event's
- *    peak (also at least `floor`): a floor hit followed by an upper-rail hit is
+ *    reference frame (also at least `floor`): its start, until a higher smoothed
+ *    maximum moves the reference to that peak. a floor hit followed by an upper-rail hit is
  *    two impacts, as the eye sees it, however close together. A corner (about
  *    90°) does not split.
  *  - Steering: contact that never forms such a peak is not an event and costs
@@ -135,7 +136,7 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
       return p;
     };
     for (let i = first + 1; i <= last; i++) {
-      if (c.split === 'reversal' && i > peak) {
+      if (c.split === 'reversal') {
         const a = push(peak), b = push(i), na = Math.hypot(a[0], a[1]), nb = Math.hypot(b[0], b[1]);
         if (na >= c.floor && nb >= c.floor && (a[0] * b[0] + a[1] * b[1]) / (na * nb) < c.reversalCos) {
           starts.push({at: i, kind: 'strike'}); peak = i; continue;
@@ -157,7 +158,7 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
       for (let i = s.at; i <= stop; i++) {raw += frames[i].bend; if (frames[i].J > frames[top].J) top = i;}
       let half = s.at;
       while (half < top && frames[half].J < c.halfRise * frames[top].J) half++;
-      if (c.strength === 'motion') raw = motionChange(frames, half, Math.min(stop, half + c.window - 1), c.strengthWindow);
+      if (c.strength === 'motion') raw = motionChange(frames, half, stop, c.strengthWindow);
       events.push({kind: s.kind, contactStart: frames[s.at].frame, onset: frames[half].frame, end: frames[stop].frame,
         peakFrame: frames[top].frame, peakJ: frames[top].J, responsePeak: frames[top].J, raw, strength: Math.min(1, raw / c.veryStrong),
         complete: stop - s.at + 1 === c.window || stop < last || last + 1 < frames.length});

@@ -1,17 +1,38 @@
 {
  "title": "Overnight: impact measured as you see it, and a compiler that delivers more of it",
- "stageLabels": {"evening": "Evening (v1)", "v3": "New measure only", "final": "Tonight"},
- "songTitles": {"luna_bala_44s": "Luna Bala", "amor_na_praia_46s": "Amor na Praia", "tiki_tiki_48s": "Tiki Tiki", "amour_de_ma_vie_44s": "L’amour de ma vie"},
+ "stageLabels": {
+  "evening": "Evening (v1)",
+  "v3": "New measure only",
+  "final": "Tonight"
+ },
+ "songTitles": {
+  "luna_bala_44s": "Luna Bala",
+  "amor_na_praia_46s": "Amor na Praia",
+  "tiki_tiki_48s": "Tiki Tiki",
+  "amour_de_ma_vie_44s": "L’amour de ma vie"
+ },
  "summary": [
-  "Your three rounds of blind pair judgments settled what impact means: how much a hit changes the rider's whole-body motion (its direction, speed and spin) within 50 ms. The old measure agreed with you no better than chance (31/63); the new one agreed on 46/63. A floor-then-rail bounce now counts as two impacts, as you see it.",
+  "Your three rounds of blind pair judgments settled what impact means: how much a hit changes the rider's whole-body motion (its direction, speed and spin) within 50 ms. On pairs chosen where the measures disagree, the old measure agreed with you 31 times out of 63 and the new one 46 (head to head 22 : 7). A floor-then-rail bounce now counts as two impacts, as you see it.",
   "Overnight, the compiler was tuned against that measure, one hypothesis at a time, judged on every measure on two panels and confirmed on fresh arrangement seeds. Compared with this evening's product, on all four panels: impact loss −60%, strong beats much closer to their request, double impacts almost gone, fewer head-down arrivals into strong hits, and speed accuracy unchanged. The cost: air accuracy about 0.005 worse and about 15% more physics per ride.",
   "The rest of the gap is mostly physics or the spec itself. The rider does not survive a clean hit much above 0.9, the gentlest touchdown reads about 0.06, and the densest song asks for back-to-back maximum hits faster than gravity can supply the momentum. Those are questions for you, below."
  ],
  "cards": [
-  {"title": "The measure (line.strike.v3)", "text": "Strength = whole-body motion change, travel and spin, in 50 ms. Floor-then-rail opposite pushes are separate impacts. Chosen on your blind pairs; proven equal to the judged measure."},
-  {"title": "Steep, upright arrivals", "text": "Before a strong beat the rider now arrives steep and fast, but not head-down: strong-beat shortfall −0.03 on top of the new objective, speed error −0.02, head-down strong arrivals 30% → 15%."},
-  {"title": "Search where it matters", "text": "The lookahead widens ×1.3 into strong beats (+0.3M frames). A native read of the rider's motion makes every compile 20% faster, byte-identical."},
-  {"title": "Tried and set aside", "text": "Pose-matched catches, sharper turns, guided dives, speed headroom, more weight on impact or air or quiet beats, more learned proposals: each measured, each a trade or null (see the ledger)."}
+  {
+   "title": "The measure (line.strike.v3)",
+   "text": "Strength = whole-body motion change, travel and spin, in 50 ms. Floor-then-rail opposite pushes are separate impacts. Chosen on your blind pairs; proven equal to the judged measure."
+  },
+  {
+   "title": "Steep, upright arrivals",
+   "text": "Before a strong beat the rider now arrives steep and fast, but not head-down: strong-beat shortfall −0.03 on top of the new objective, speed error −0.02, head-down strong arrivals about 22% → 15% against the evening (judged by the same geometric test as the penalty, so your eye is the real check)."
+  },
+  {
+   "title": "Search where it matters",
+   "text": "The lookahead widens ×1.3 into strong beats (+0.3M frames). A native read of the rider's motion makes every compile 20% faster, byte-identical."
+  },
+  {
+   "title": "Tried and set aside",
+   "text": "Pose-matched catches, sharper turns, guided dives, speed headroom, more weight on impact or air or quiet beats, more learned proposals: each measured, each a trade or null (see the ledger)."
+  }
  ],
  "questions": [
   "Scale: should a request of 1.0 mean the hardest hit the rider survives (about 0.9 today), and 0 the gentlest touchdown (about 0.06)? Today both ends of the 0–1 scale are out of physical reach, so the extremes always miss.",

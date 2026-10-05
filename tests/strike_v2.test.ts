@@ -1,7 +1,7 @@
 import {it, expect} from 'vitest';
 import {compileHandoff} from '../scripts/v0/optimizer/handoff.ts';
 import {impactAccount} from '../scripts/v0/optimizer/impact_accounts.ts';
-import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT} from '../scripts/lib/strike_impact.ts';
+import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../scripts/lib/strike_impact.ts';
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
 import {extractRawTrajectory} from '../scripts/lib/detector.ts';
 import {motionChanges} from '../tools/measure/motion_change.ts';
@@ -45,4 +45,25 @@ it('v3 separates opposite pushes (floor then upper rail) and leaves a single pus
   // A corner (push turns 90°) stays one impact.
   const corner = [air(0), frame(1, true, [0, -2]), frame(2, true, [-1.8, 0]), air(3)];
   expect(detectStrikes(corner, V3)).toHaveLength(1);
+});
+
+it('v2/v3 incremental detection equals cold detection, across an opposite-push split', async () => {
+  const {detectStrikes, strikePrefix, continueStrikes, STRIKE_V2_CONTRACT: V2, STRIKE_V3_CONTRACT: V3} = await import('../scripts/lib/strike_impact.ts');
+  const frame = (f: number, contact: boolean, push: [number, number], spin = 0) => ({frame: f, contact, J: Math.hypot(...push), bend: .1, solverGain: 0, gravityGain: 0,
+    speedBefore: 5, impulse: [push[0], push[1], spin] as const});
+  const pushes: Array<[number, number] | null> = [null, null, [0, -2], [0, -.3], [.2, 1.6], [0, .2], null, null, [.5, -1.2], [.1, -.9], [0, -.2], null, [-1, 1.5], [0, -2.2], null];
+  const all = pushes.map((p, f) => frame(f, !!p, p ?? [0, 0], f % 3 === 0 ? .3 : 0));
+  for (const c of [V2, V3]) {
+    const cold = detectStrikes(all, c);
+    for (let cut = 1; cut < all.length; cut++) expect(continueStrikes(strikePrefix(all.slice(0, cut), c), all.slice(cut), c)).toEqual(cold);
+  }
+  expect(detectStrikes(all, V3).length).toBeGreaterThan(detectStrikes(all, V2).length);
+});
+
+it('the native whole-body read equals bodyMotion over ballisticState exactly', async () => {
+  const {bodyMotion} = await import('../scripts/lib/strike_impact.ts');
+  const track = compileHandoff(spec, 101, {budget: 180000, creative: {}, impactContract: STRIKE_V3_CONTRACT.id}).track;
+  const engine = createArcEngine({position: track.startPosition, velocity: track.riders[0].startVelocity}, track.lines);
+  extractRawTrajectory(engine, 120);
+  for (let f = 0; f <= 120; f++) expect((engine as any).bodyMotionAt(f)).toEqual(bodyMotion(engine.getRider(f).ballisticState()));
 });

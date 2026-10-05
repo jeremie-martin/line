@@ -54,7 +54,8 @@ for (const block of [...new Set(rows.map(r => r.block))]) report(`block ${block}
 console.log('\nhead to head on decisive pairs where the two measures disagree:');
 const decisive = rows.filter(r => r.choice === 'left' || r.choice === 'right');
 for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
-  const a = all[i], b = all[j], split = decisive.filter(r => Math.sign(r.L[a] - r.R[a]) !== Math.sign(r.L[b] - r.R[b]));
+  const a = all[i], b = all[j], usable = (r: Row, m: string) => Number.isFinite(r.L[m]) && Number.isFinite(r.R[m]) && r.L[m] !== r.R[m];
+  const split = decisive.filter(r => usable(r, a) && usable(r, b) && Math.sign(r.L[a] - r.R[a]) !== Math.sign(r.L[b] - r.R[b]));
   const winsA = split.filter(r => (r.L[a] > r.R[a] ? 'left' : 'right') === r.choice).length;
   if (split.length) console.log(`  ${a.padEnd(14)} ${String(winsA).padStart(2)} : ${String(split.length - winsA).padEnd(2)} ${b}`);
 }

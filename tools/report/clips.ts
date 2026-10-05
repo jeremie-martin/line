@@ -29,23 +29,24 @@ for (const [id, a] of A.cells) {
 const gain = (x: Beat) => Math.abs(x.before - x.requested) - Math.abs(x.after - x.requested);
 const strong = beats.filter(x => x.requested >= .6), picked: Array<Beat & {why: string}> = [];
 const take = (x: Beat | undefined, why: string) => {if (x && !picked.some(p => p.id === x.id && p.beat === x.beat)) picked.push({...x, why});};
-// Largest improvements, at most one per song.
-for (const x of [...strong].sort((p, q) => gain(q) - gain(p))) if (picked.filter(p => p.why === 'largest improvement').length < 4 && !picked.some(p => p.song === x.song)) take(x, 'largest improvement');
-for (let k = 0; k < 2; k++) take(strong[Math.floor(rng() * strong.length)], 'random strong beat');
+// Largest improvements (at most one per song), as many random strong beats, the worst regression.
+for (const x of [...strong].sort((p, q) => gain(q) - gain(p))) if (picked.filter(p => p.why === 'largest improvement').length < 3 && !picked.some(p => p.song === x.song)) take(x, 'largest improvement');
+for (let k = 0; k < 3; k++) take(strong[Math.floor(rng() * strong.length)], 'random strong beat');
 take([...strong].sort((p, q) => gain(p) - gain(q))[0], 'worst regression');
 take([...beats.filter(x => x.requested < .15)].sort((p, q) => gain(q) - gain(p))[0], 'quiet beat, largest improvement');
 
 const tracks = new Map<string, {song: string; track: any}>();
+// Renders are cached by run and case, so another pair of runs never reuses them.
 for (const p of picked) for (const [key, run] of [['before', before], ['after', after]]) {
-  const rid = `${key}~${p.id}`;
+  const rid = `${run}~${p.id}`;
   if (!tracks.has(rid)) tracks.set(rid, {song: p.song, track: JSON.parse(gunzipSync(readFileSync(join('generated/eval', run, 'cells', p.id + '.track.json.gz'))).toString())});
 }
 await renderRides(tracks, join(out, 'rides'), 8);
 mkdirSync(join(out, 'clips'), {recursive: true});
 const pairs = picked.map((p, n) => {
-  const clip = (key: string, frame: number) => {const file = join(out, 'clips', `${n + 1}-${key}.mp4`); cutClip(join(out, 'rides', `${key}~${p.id}.mp4`), frame, file); return '/' + file;};
+  const clip = (key: string, run: string, frame: number) => {const file = join(out, 'clips', `${n + 1}-${key}.mp4`); cutClip(join(out, 'rides', `${run}~${p.id}.mp4`), frame, file); return '/' + file;};
   return {title: `${TITLES[p.song] ?? p.song} · seed ${p.seed} · ${(p.frame / 40).toFixed(2)} s · request ${p.requested.toFixed(2)} (${p.why})`,
-    why: p.why, requested: p.requested, before: {src: clip('before', p.fb), strength: p.before}, after: {src: clip('after', p.fa), strength: p.after}};
+    why: p.why, requested: p.requested, before: {src: clip('before', before, p.fb), strength: p.before}, after: {src: clip('after', after, p.fa), strength: p.after}};
 });
 writeFileSync(join(out, 'clips.json'), JSON.stringify({before, after, beforeLabel: arg('before-label', 'Evening'), afterLabel: arg('after-label', 'Tonight'), hitAt: CLIP_BEFORE, pairs}, null, 1));
 console.log(`${pairs.length} clip pairs in ${out}`);

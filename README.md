@@ -37,7 +37,7 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 
 | command | what it guards |
 |---|---|
-| `npm run parity` | structural changes leave 23 compiled reference cells byte-identical (~90 s) |
+| `npm run parity` | structural changes leave 63 compiled reference cells byte-identical (all compile modes, plus 150k/750k budgets; ~2.5 min) |
 | `npm run parity:judge [-- --all]` | the V6 judge reproduces every stored score (this *is* the V6 freeze) |
 | `npm test` | unit and integration tests (~2.5 min) |
 | `npm run typecheck` | TypeScript; the error count may only go down |

@@ -220,7 +220,7 @@ v2-like events at ≥ 0.8 (`labels/studies/sources/impact-candidates-20261004.js
 - **Strong hits now:** 0.59 when they touch a guide, 0.61 when they do not.
 - **Next:** audit by construction first, at zero compiles. Change weights only: the owner values variety.
 
-**L8 — Spin.** v2 counts ΔL, and the owner preferred spin 12 : 4. But spin moves `c_arrive_spin` more than
+**L8 — Spin.** v2 counts ΔL, and the owner preferred spin 8 : 3 (corrected from a double-counted 12 : 4). But spin moves `c_arrive_spin` more than
 0.1 above `c_arrive` on only 75 of 3,236 events. Probe it inside L0. Low priority.
 
 ## 4. The floor-then-rail double contact

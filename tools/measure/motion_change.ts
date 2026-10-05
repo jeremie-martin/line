@@ -1,4 +1,4 @@
-/** Candidate impact strength (research; the product still uses line.strike.v1):
+/** Candidate impact strength (research; the product account line.strike.v2/v3 adopted it):
  * how much contact changes the rider's whole-body motion, its travel (centre of
  * mass velocity, direction and speed) and its spin (angular momentum about the
  * centre of mass), over a short window.

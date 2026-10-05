@@ -8,8 +8,8 @@ Dashboard: `npm run serve`, then http://127.0.0.1:8767/motion-gallery/night.html
 
 | | old (v1, redirection) | new (v2/v3, whole-body change) |
 |---|---|---|
-| agreement on decisive pairs (3 rounds) | 31/63 (chance) | 46/63 |
-| spin counted | no | yes (12 : 4 in its favour when it was the only difference) |
+| agreement on decisive pairs (3 rounds; pairs chosen where measures disagree) | 31/63 | 46/63 (head to head 22 : 7) |
+| spin counted | no | yes (8 : 3 when it was the only difference; p ≈ 0.11, weak) |
 
 - **line.strike.v2:** strength is the largest change of the rider's
   whole-body motion (centre-of-mass velocity, direction and speed, plus spin
@@ -36,7 +36,9 @@ Adopted, in order (search profile `line.strike-search.v4`,
    +0.02, speed rms −0.02; confirmed on fresh seeds (+0.03 / +0.02).
 3. **Lookahead ×1.3 into strong beats.** Strong bias +0.009, contested
    −0.8 pp, +0.3M frames.
-4. **Upright arrival.** Head-down or backward strong arrivals 30% → 15%;
+4. **Upright arrival.** Head-down or backward strong arrivals 30% → 15%
+   (about 22% → 15% against the evening). This is judged by the same geometric
+   test as the penalty, so the owner's look is the real check;
    impact unchanged. This was found by a blind-spot audit of the scorecard:
    step 2 had raised them, and no row showed it.
 5. **Native whole-body read.** Compile time −20%, byte-identical.

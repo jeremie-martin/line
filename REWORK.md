@@ -287,10 +287,13 @@ Only on validated measures:
 - 2026-10-04: The review library is rendered (12/12 videos).
 - 2026-10-04: **Impact measured as the owner sees it: line.strike.v2.**
   - Owner blind pair studies: 3 rounds, 77 pairs (`labels/studies/impact-pairs-*`).
-  - Strike v1's strength matched the owner on 31 of 63 decisive pairs, which
-    is chance.
+  - Strike v1's strength matched the owner on 31 of 63 decisive pairs. The
+    pairs were chosen where the measures disagree; head to head, v2 won
+    22 : 7.
   - The whole-body motion change (travel and spin) within 50 ms matched on
-    46 of 63; spin mattered (12 : 4).
+    46 of 63. Spin: 8 : 3 where it was the only difference (p ≈ 0.11, so
+    supported but weakly; an earlier "12 : 4" counted 5 pairs twice, as the
+    code review found).
   - v2 is the product default: v2 impact loss 0.078 → 0.037, with no
     completion or timing cost.
   - Parity gained 11 strike2 cells (52 in all).
@@ -402,7 +405,11 @@ Only on validated measures:
       body drag s/min, off-beat kicks per ride.
   - **Adopted, uprightArrival 1** (the steep arrival penalizes a head-down
     or backward sled; search profile v4), against s3-l9c:
-    - strong arrivals inverted/backward 29% → 15% (perturbed 31% → 15%);
+    - strong arrivals inverted/backward 29% → 15% (perturbed 31% → 15%;
+      against the evening product about 22% → 15%). This is judged by the
+      same geometric test as the penalty (the review's point), and the
+      owner evidence is one disliked example; perceptual confirmation is
+      pending;
     - body drag −0.14 s/min;
     - impact and every guard neutral; fresh-seed panel impact-neutral.
   - Rejected: uprightArrival 2 (authored inverted −4.6 pp more, air +0.004);

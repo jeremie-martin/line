@@ -76,7 +76,8 @@ the evidence are in `docs/research/strike-definition-20261004.md`.
   - A head-on stop counts as fully as a turn.
   - A long smooth bend counts little.
   - Chosen on the owner's blind pair judgments: 46 of 63 decisive pairs,
-    against 31 of 63 for v1's redirection strength.
+    against 31 of 63 for v1's redirection strength, on pairs chosen where the
+    measures disagree (head to head, 22 : 7).
 - **Opposite pushes (v3).** A push reversed by more than 120° from the
   current impact's peak push (a floor hit, then the upper rail) starts a new
   impact. An unrequested second hit therefore costs as an extra.
@@ -154,7 +155,8 @@ Known limits of the strike account:
   - Held-out new music is still missing; it needs new songs.
 - **`tools/report`** builds the overnight results page
   (`motion-gallery/night.html`): `night.ts` writes the data, `clips.ts`
-  cuts before/after clips, `morning_study.ts` builds blind pair keys.
+  cuts before/after clips, `scale_clips.ts` shows the strength scale
+  physically, `morning_study.ts` builds blind pair keys.
 - **`tools/measure`** holds the per-beat measures across rulers (`measures.ts`)
   and the motion check of a review library (`motion_check.ts`).
 - **`labels/studies`** holds the blind owner labels.
@@ -189,8 +191,9 @@ Known limits of the strike account:
   numbering convention `floor((id − 1000) / 10000)`. Since V6 is frozen by its
   outputs, these files can now be cleaned safely, provided `npm run parity:judge`
   stays green.
-- **Three impact objectives during review.** The `landing` compile mode (V6
-  sentinel and comparison) and `line.strike.v1` stay only until the owner has
-  reviewed v2 rides. Then v1, and later `landing` with the landing-specific
-  validity rules in `arc_evaluate.ts`, go.
+- **Comparison objectives.** Besides the product's v3, the `landing` compile
+  mode (the V6 sentinel) and `line.strike.v1`/`v2` (with the evening search
+  profile, so `--mode=strike` reproduces the evening product) remain for
+  comparison. They go, with the landing-specific validity rules in
+  `arc_evaluate.ts`, once the owner is satisfied.
 - **Geometry families are not modular.** A new profile touches about 10 files.

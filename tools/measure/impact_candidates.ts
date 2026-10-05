@@ -1,6 +1,6 @@
 /** Research candidates for impact strength, beside line.strike.v1 (`strike`)
  * and the rigid-motion-change candidate (tools/measure/motion_change.ts). The
- * product still uses line.strike.v1; nothing here is an objective. Rationale,
+ * product account is line.strike.v3; nothing here is an objective. Rationale,
  * failure modes and evidence: docs/research/impact-candidates-20261004.md.
  *
  * Signals (10-point centre of mass, equal masses, exactly ballistic in flight):

@@ -235,12 +235,12 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
 function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: number}, state: any, residuals: number[], cost: number) {
   const {ctx, options, i, targets} = s;
   const {contacts, gaps, planned} = ctx;
+  const nextImpact = i < contacts.length - 1 ? gaps[contacts[i + 1].gap].targets.impact ?? 0 : 0;
+  // A strong next ask gets the same steep, kinetic arrival prior as a passive catch:
+  // a whole-body hit needs speed into the surface, which a shallow arrival lacks.
+  const steep = i < contacts.length - 1 && options.impactSearch?.steepArrivalFrom !== undefined && nextImpact >= options.impactSearch.steepArrivalFrom;
   if (i < contacts.length - 1 && (options.arrivalWeight ?? 0) > 0) {
-    const nextImpact = gaps[contacts[i + 1].gap].targets.impact ?? 0;
     const nextSpeed = authoredSpeedToPx(planned[contacts[i + 1].gap + 1]?.targets.speed ?? targets.speed ?? .55);
-    // A strong next ask gets the same steep, kinetic arrival prior as a passive catch:
-    // a whole-body hit needs speed into the surface, which a shallow arrival lacks.
-    const steep = options.impactSearch?.steepArrivalFrom !== undefined && nextImpact >= options.impactSearch.steepArrivalFrom;
     const passive = (options.passiveArrival && options.constructionRequests?.[i + 1]?.guidance === 'forbidden') || steep;
     // A passive catch redirects incoming speed into the next surface.
     // Prepare kinetic headroom for an unguided landing.
@@ -262,9 +262,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []));
     cost += r1 * r1 + r2 * r2 + r3 * r3;
   }
-  const steepNext = i < contacts.length - 1 && options.impactSearch?.steepArrivalFrom !== undefined &&
-    (gaps[contacts[i + 1].gap].targets.impact ?? 0) >= options.impactSearch.steepArrivalFrom;
-  if (i < contacts.length - 1 && (options.headingWeight ?? 0) > 0 && !steepNext) {
+  if (i < contacts.length - 1 && (options.headingWeight ?? 0) > 0 && !steep) {
     const angle = deg(Math.atan2(finalVelocity.y, finalVelocity.x));
     const r = Math.sqrt(options.headingWeight!) * Math.max(0, Math.abs(angle - 15) - 30) / 30;
     residuals.push(r);

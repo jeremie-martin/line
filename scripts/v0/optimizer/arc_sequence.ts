@@ -38,14 +38,39 @@ export function startSequence(ctx: ArcCompileContext): ArcSequence {
 export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   const {contacts, options, budget, end, work} = ctx;
   type Node = {seq: ArcSequence; localCost: number};
+  type Offer = {parent: Node; interval: IntervalResult; candidate: any; localCost: number; rank: number};
   let beam: Node[] = [{seq, localCost: 0}], observedRate = 0;
+  const frontier: Offer[][] = [];
+  let deepest = {lines: seq.lines.slice(), rows: seq.rows.slice()};
+  const choose = (offers: Offer[], width: number) => {
+    const selected: Offer[] = [];
+    for (const proposal of offers) {
+      if (selected.every(other => distinctArrival(other.candidate, proposal.candidate))) selected.push(proposal);
+      if (selected.length >= width) break;
+    }
+    return selected;
+  };
+  const materialize = (offers: Offer[], index: number, rebuild: boolean, protectedEngines: Engine[]) => {
+    const nodes: Node[] = [];
+    for (const proposal of offers) {
+      const parent = proposal.parent.seq;
+      const parentEngine = rebuild ? ctx.lineage.rebuild(parent.lines) : parent.engine;
+      const nextSeq: ArcSequence = {...parent, engine: parentEngine, lines: parent.lines.slice(), rows: parent.rows.slice(),
+        steps: parent.steps.slice(), pendingControl: null, failure: null};
+      const child = ctx.lineage.add(parentEngine, proposal.candidate.lines);
+      commitInterval(ctx, nextSeq, index, {...proposal.interval, candidates: [proposal.candidate]},
+        restoreCandidate(proposal.candidate, child), null, null, [...protectedEngines, ...nodes.map(b => b.seq.engine)]);
+      nodes.push({seq: nextSeq, localCost: proposal.localCost});
+    }
+    return nodes;
+  };
   for (let i = 0; i < contacts.length; i++) {
     const frame = contacts[i].frame, remaining = Math.max(1, end - frame);
     const rate = (budget - getPhysicsFrameCount() - 2 * (end + 1)) / remaining;
     const nominal = (options.samples ?? 80) + (options.guidanceSamples ?? 0);
     const localScale = clamp(rate / (Math.max(nominal * .7, observedRate || nominal) * beam.length * 1.1), .05, 1);
     const protectedEngines = beam.map(b => b.seq.engine);
-    const offered: Array<{parent: Node; interval: IntervalResult; candidate: any; localCost: number; rank: number}> = [];
+    const offered: Offer[] = [];
     const began = getPhysicsFrameCount();
     let searched = 0;
     try {
@@ -69,28 +94,39 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
       work.budgetInterruptions.push({phase: 'planning', index: i, frame, viable: offered.length, retained: !!offered.length});
       Engine.retainOnly(protectedEngines);
     }
-    if (!offered.length) {seq.failure = {frame, reason: 'beam_no_arc'}; return;}
+    if (!offered.length) {
+      let previous = i - 1;
+      while (previous >= 0 && !frontier[previous]?.length) previous--;
+      if (previous < 0 || work.searchBudgetExhausted) {
+        seq.deepestPrefix = deepest;
+        seq.failure = {frame, reason: 'beam_no_arc'};
+        return;
+      }
+      const retained = frontier[previous];
+      frontier[previous] = [];
+      frontier.length = previous + 1;
+      beam = materialize(retained, previous, true, []);
+      Object.assign(seq, beam[0].seq);
+      Engine.retainOnly(beam.map(b => b.seq.engine));
+      work.backtracks++;
+      i = previous;
+      continue;
+    }
     const measuredRate = (getPhysicsFrameCount() - began) / Math.max(1, searched * localScale * ((contacts[i + 1]?.frame ?? end + 1) - frame));
     observedRate = observedRate ? .8 * observedRate + .2 * measuredRate : measuredRate;
     work.observedConstructionRate = observedRate;
     offered.sort((a, b) => a.rank - b.rank);
-    const chosen: typeof offered = [];
-    for (const proposal of offered) {
-      if (chosen.every(other => distinctArrival(other.candidate, proposal.candidate))) chosen.push(proposal);
-      if (chosen.length >= (i === contacts.length - 1 ? 1 : 8)) break;
-    }
-    const nextBeam: Node[] = [];
-    for (const proposal of chosen) {
-      const parent = proposal.parent.seq;
-      const nextSeq: ArcSequence = {...parent, lines: parent.lines.slice(), rows: parent.rows.slice(), steps: parent.steps.slice(), pendingControl: null};
-      const child = ctx.lineage.add(parent.engine, proposal.candidate.lines);
-      commitInterval(ctx, nextSeq, i, proposal.interval, restoreCandidate(proposal.candidate, child), null, null,
-        [...protectedEngines, ...nextBeam.map(b => b.seq.engine)]);
-      nextBeam.push({seq: nextSeq, localCost: proposal.localCost});
-    }
-    beam = nextBeam;
+    const chosen = choose(offered, i === contacts.length - 1 ? 1 : 8);
+    // A bounded beam stack keeps the next distinct alternatives at each of
+    // four recent boundaries. Only a physical dead end reopens one; its cold
+    // prefix and all renewed search remain charged to the ordinary meter.
+    frontier[i] = choose(offered.filter(p => !chosen.includes(p)), 8).map(p =>
+      ({...p, interval: {...p.interval, best: null, candidates: [p.candidate]}}));
+    for (let j = 0; j < i - 3; j++) frontier[j] = [];
+    beam = materialize(chosen, i, false, protectedEngines);
     Object.assign(seq, beam[0].seq);
     Engine.retainOnly(beam.map(b => b.seq.engine));
+    if (seq.rows.length > deepest.rows.length) deepest = {lines: seq.lines.slice(), rows: seq.rows.slice()};
     work.planningDecisions.push({index:i, frame, beamWidth:beam.length, offered:offered.length, localScale, physicsFrames:getPhysicsFrameCount()-began});
   }
 }

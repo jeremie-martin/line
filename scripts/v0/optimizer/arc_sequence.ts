@@ -3,11 +3,11 @@
  * backtracking to an earlier retained alternative when an interval has no
  * valid arc. The committed track and engine live in an explicit sequence. */
 import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSearch } from '../../lib/native_motion/engine.ts';
-import { getPhysicsFrameCount } from '../../lib/detector.ts';
+import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { TrackLine } from '../types.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
-import { distinctArrival, restoreCandidate } from './arc_candidates.ts';
+import { distinctArrival, distinctCandidates, valueRank, restoreCandidate } from './arc_candidates.ts';
 import { planLookahead } from './arc_lookahead.ts';
 import { reviseTransition, refineCoupledPair } from './arc_neighbor_revision.ts';
 import type { IntervalOverrides } from './arc_options.ts';
@@ -36,40 +36,62 @@ export function startSequence(ctx: ArcCompileContext): ArcSequence {
 /** Searches and commits every interval. Backtracking resumes after the
  * re-committed interval; `seq.failure` records why the sequence stopped early. */
 export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
-  const {contacts, work} = ctx;
+  const {contacts, options, budget, end, work} = ctx;
+  type Node = {seq: ArcSequence; localCost: number};
+  let beam: Node[] = [{seq, localCost: 0}], observedRate = 0;
   for (let i = 0; i < contacts.length; i++) {
-    const localStart = getPhysicsFrameCount();
-    const {overrides, localScale} = intervalAllowance(ctx, seq, i);
-    let interval = searchInterval(ctx, seq.engine, i, overrides);
-    if (interval) {
-      const rate = (getPhysicsFrameCount() - localStart) / Math.max(1, interval.next - interval.frame) / localScale;
-      work.observedConstructionRate = work.observedConstructionRate ? .8 * work.observedConstructionRate + .2 * rate : rate;
-    }
-    seq.pendingControl = null;
-    if (!interval) {
-      seq.failure = {frame: contacts[i].frame, reason: 'contact_spacing'};
-      break;
-    }
-    interval = reviseTransition(ctx, seq, i, interval);
-    const planned = planLookahead(ctx, seq, i, interval, interval.best);
-    const best = refineCoupledPair(ctx, seq, i, interval, planned.best);
-    const retry = qualityRetry(ctx, seq, interval, best);
-    if (retry !== null) {
-      i = retry;
-      continue;
-    }
-    if (!best) {
-      const {frame, failures, incoming, pace, center} = interval;
-      seq.failure = {frame, reason: 'no_arc', failures, incoming, pace, center};
-      const retry = backtrack(ctx, seq);
-      if (retry !== null) {
-        i = retry;
-        continue;
+    const frame = contacts[i].frame, remaining = Math.max(1, end - frame);
+    const rate = (budget - getPhysicsFrameCount() - 2 * (end + 1)) / remaining;
+    const nominal = (options.samples ?? 80) + (options.guidanceSamples ?? 0);
+    const localScale = clamp(rate / (Math.max(nominal * .7, observedRate || nominal) * beam.length * 1.1), .05, 1);
+    const protectedEngines = beam.map(b => b.seq.engine);
+    const offered: Array<{parent: Node; interval: IntervalResult; candidate: any; localCost: number; rank: number}> = [];
+    const began = getPhysicsFrameCount();
+    let searched = 0;
+    try {
+      for (const parent of beam) {
+        const interval = searchInterval(ctx, parent.seq.engine, i, {
+          samples: Math.max(12, Math.floor((options.samples ?? 80) * localScale)),
+          guidanceSamples: Math.floor((options.guidanceSamples ?? 0) * localScale),
+          responseSamples: Math.floor((options.responseSamples ?? 0) * localScale),
+        }, protectedEngines);
+        searched++;
+        if (!interval?.best) continue;
+        const candidates = i === contacts.length - 1 ? interval.candidates : distinctCandidates(options, interval.candidates, 8);
+        for (const candidate of candidates) offered.push({parent, interval, candidate,
+          localCost: parent.localCost + candidate.localCost,
+          rank: i === contacts.length - 1 ? candidate.terminalLoss : parent.localCost + valueRank(options, candidate)});
+        Engine.retainOnly(protectedEngines);
       }
-      break;
+    } catch (error) {
+      if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
+      work.searchBudgetExhausted = true;
+      work.budgetInterruptions.push({phase: 'planning', index: i, frame, viable: offered.length, retained: !!offered.length});
+      Engine.retainOnly(protectedEngines);
     }
-    const terminal = selectTerminal(ctx, i, interval, best);
-    commitInterval(ctx, seq, i, interval, terminal.best, terminal.childLines, planned.lookahead);
+    if (!offered.length) {seq.failure = {frame, reason: 'beam_no_arc'}; return;}
+    const measuredRate = (getPhysicsFrameCount() - began) / Math.max(1, searched * localScale * ((contacts[i + 1]?.frame ?? end + 1) - frame));
+    observedRate = observedRate ? .8 * observedRate + .2 * measuredRate : measuredRate;
+    work.observedConstructionRate = observedRate;
+    offered.sort((a, b) => a.rank - b.rank);
+    const chosen: typeof offered = [];
+    for (const proposal of offered) {
+      if (chosen.every(other => distinctArrival(other.candidate, proposal.candidate))) chosen.push(proposal);
+      if (chosen.length >= (i === contacts.length - 1 ? 1 : 4)) break;
+    }
+    const nextBeam: Node[] = [];
+    for (const proposal of chosen) {
+      const parent = proposal.parent.seq;
+      const nextSeq: ArcSequence = {...parent, lines: parent.lines.slice(), rows: parent.rows.slice(), steps: parent.steps.slice(), pendingControl: null};
+      const child = ctx.lineage.add(parent.engine, proposal.candidate.lines);
+      commitInterval(ctx, nextSeq, i, proposal.interval, restoreCandidate(proposal.candidate, child), null, null,
+        [...protectedEngines, ...nextBeam.map(b => b.seq.engine)]);
+      nextBeam.push({seq: nextSeq, localCost: proposal.localCost});
+    }
+    beam = nextBeam;
+    Object.assign(seq, beam[0].seq);
+    Engine.retainOnly(beam.map(b => b.seq.engine));
+    work.planningDecisions.push({index:i, frame, beamWidth:beam.length, offered:offered.length, localScale, physicsFrames:getPhysicsFrameCount()-began});
   }
 }
 
@@ -159,7 +181,7 @@ function selectTerminal(ctx: ArcCompileContext, i: number, interval: IntervalRes
  * for backtracking, remembers the control, extends lines and engine, and
  * appends the row. */
 function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, interval: IntervalResult, best: any,
-  terminalChildLines: TrackLine[] | null, lookahead: any) {
+  terminalChildLines: TrackLine[] | null, lookahead: any, protectedEngines: Engine[] = []) {
   const {options, memoryFor} = ctx;
   const {candidates, failures, frame, next, horizon, incoming} = interval;
   seq.failure = null;
@@ -179,7 +201,7 @@ function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, int
   if (terminalChildLines) best.child = ctx.lineage.add(seq.engine, terminalChildLines);
   seq.lines.push(...best.lines);
   seq.engine = ctx.lineage.detach(best.child);
-  Engine.retainOnly([seq.engine]);
+  Engine.retainOnly([...protectedEngines, seq.engine]);
   const selectedMeta = candidates.find(c => c.lines === best.lines)?.meta;
   seq.rows.push({frame, next, incoming, span: interval.span, features: interval.inputFeatures, cost: best.cost, control: best.c,
     achieved: best.achieved, impact: best.actualImpact, release: best.release, lines: best.lines.length,

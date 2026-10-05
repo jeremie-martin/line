@@ -9,7 +9,8 @@ const COLORS = {evening: '#b0703a', v3: '#6c7fb8', final: '#146b55'};
 
 function verdict(row, s) {
   // Paired change beyond noise in the good direction is green, in the bad direction red.
-  if (!Number.isFinite(s.diff) || (s.diffLo <= 0 && s.diffHi >= 0)) return 'flat';
+  // A zero-width interval means a single song (no resampling): never call it a change.
+  if (!Number.isFinite(s.diff) || (s.diffLo <= 0 && s.diffHi >= 0) || s.diffLo === s.diffHi) return 'flat';
   if (row.better === 'lower') return s.diff < 0 ? 'good' : 'bad';
   if (row.better === 'higher') return s.diff > 0 ? 'good' : 'bad';
   const ref = row.stages[0].value; return Math.abs(s.value) < Math.abs(ref) ? 'good' : 'bad';

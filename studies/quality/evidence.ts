@@ -30,7 +30,11 @@ const paths:any={Q1:['/tmp/line-quality-20261005','q1-response-blocks'],Q2:['/tm
  Q27:['/tmp/line-quality-steeper-20261006','q27-scatter-contract'],
  Q28:['/tmp/line-quality-incidence-20261005','q28-impact-priority'],
  Q30:['/tmp/line-quality-continuation-20261005','q30-authored-spans'],
+ Q31:['/tmp/line-quality-incidence-20261005','q31-shared-objective'],
+ Q33:['/tmp/line-quality-continuation-20261005','q33-consistent-beam'],
+ Q34:['/tmp/line-quality-steeper-20261006','q34-beam-complete-objective'],
  Q32:['/tmp/line-quality-value-20261005','q32-beam-stack'],
+ 'Q32-recheck48':['/tmp/line-quality-value-20261005','q32-beam-stack-recheck','/tmp/line-quality-review-20261006/generated/eval/quality-fresh-baseline'],
  'Q4-blind':['/tmp/line-quality-continuation-20261005','q4-value-blind'],
  'Q4-geometry':['/tmp/line-quality-incidence-20261005','q4-value-geometry']};
 const evidence:any={schema:'line.compiler-campaign-evidence.v1',baseline:{plan:baseline.run,planSha256:digest(baseline.run)},runs:{}};

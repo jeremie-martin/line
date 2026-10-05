@@ -46,3 +46,10 @@ change in 50 ms, 8 pairs whole event vs 50 ms, 6 pairs with vs without spin, 3 c
   `impact-candidates-20261004.jsonl.gz`).
 
 Re-score with `node --import tsx tools/measure/analyze_pairs.ts --studies=impact-pairs-2026-10,impact-pairs-2026-10b,impact-pairs-2026-10c --rows=<the two tables, gunzipped>`.
+
+`night-pairs-2026-10-05` checks the overnight compiler perceptually: 16 random strong
+beats (this evening's product against tonight's, same song, seed and beat, sides
+shuffled; not selected by any measure) and 6 pairs where exactly one side arrives
+head-down or backward (the check the upright-arrival change needs). Built by
+`tools/report/morning_study.ts`. Answer at
+`http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05`.

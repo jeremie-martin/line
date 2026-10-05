@@ -148,6 +148,16 @@ Known limits of the strike account:
   - Every run is scored under every account (v1, v2, v3).
   - Guard rows from the blind-spot audit: head-down/backward strong
     arrivals, body drag, off-beat kicks.
+  - `tools/eval/inputs.ts` resolves authoring and timing before compilation.
+    `records.ts` binds every result to that immutable plan and verifies the saved
+    track hash. `loadRun` requires exactly the declared panel; only resume may
+    inspect a partial run. Worker failure and an incomplete ride are distinct.
+  - Measurement code has a separate fingerprint from the historical compiler.
+    It follows imported dependencies and records both replay engine artifacts.
+    Paired reports and studies require identical resolved inputs and measurement
+    fingerprints. The report displays both compiler and evaluator provenance.
+  - `measure.ts` is the one cold measurement path for compilation and explicit
+    remeasurement. Old formats never enter the current cache implicitly.
   - Each cell keeps per-beat and per-gap data and the compiled track
     (`.track.json.gz`).
   - `tools/eval/summary.ts` holds the shared summaries.
@@ -157,7 +167,14 @@ Known limits of the strike account:
     separately from quality.
   - It reports every ruler, including measures the compiler does not
     optimize: the renewal-fixed strength, peak timing and contested beats
-    from the 10-point external impulse.
+    from the 10-point external impulse. R1 bend peaks are labeled R1, not v3.
+    V3 opposite-push boundaries come directly from the detector, with both
+    adjacent strengths; no difference of thresholded event counts is used.
+    These diagnostics do not change the optimized impact contract.
+  - Every matched v3 hit records onset, force peak, first contact and its arrival
+    posture. The blind selector consumes that same first-contact observation;
+    clip centering remains at onset. Existing study IDs cannot be overwritten.
+    Review render reuse checks track, authoring, rendering inputs and movie bytes.
   - Held-out new music is still missing; it needs new songs.
 - **`tools/report`** builds the overnight results page
   (`motion-gallery/night.html`): `night.ts` writes the data, `clips.ts`
@@ -203,3 +220,11 @@ Known limits of the strike account:
   comparison. They go, with the landing-specific validity rules in
   `arc_evaluate.ts`, once the owner is satisfied.
 - **Geometry families are not modular.** A new profile touches about 10 files.
+
+Production collections declare their timing offset and resolved song identities.
+Every saved member must agree with the collection's compiler, request and input
+identity before it can be indexed or reused. Render and index phases use saved
+inputs; compilation also checks them against current inputs. Failed jobs remain
+visible and the batch exits unsuccessfully.
+Concurrent jobs settle before the batch releases its directory lock or stops a
+shared rendering server, including when a worker fails.

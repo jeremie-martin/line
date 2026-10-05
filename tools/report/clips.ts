@@ -7,23 +7,24 @@
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';
-import {loadRun} from '../eval/summary.ts';
-import {renderRides, cutClip, CLIP_BEFORE} from '../measure/clip_render.ts';
+import {loadRun,assertPairedRuns} from '../eval/records.ts';
+import {renderRides, cutClip, assertReviewSources, CLIP_BEFORE} from '../measure/clip_render.ts';
 import {makeRng} from '../../scripts/lib/rng.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const before = arg('before')!, after = arg('after')!, out = arg('out', 'generated/report/night')!, rng = makeRng(Number(arg('seed', '7')));
 const A = loadRun(before), B = loadRun(after);
+assertPairedRuns(A, B);
 const TITLES: Record<string, string> = {luna_bala_44s: 'Luna Bala', amor_na_praia_46s: 'Amor na Praia', tiki_tiki_48s: 'Tiki Tiki', amour_de_ma_vie_44s: 'L’amour de ma vie'};
 
 type Beat = {id: string; song: string; seed: number; beat: number; frame: number; requested: number; before: number; after: number; fb: number; fa: number};
 const beats: Beat[] = [];
 for (const [id, a] of A.cells) {
   const b = B.cells.get(id); if (!b || a.case.perturbation) continue;
-  a.impact3.perBeat.forEach((r: any[], j: number) => {
+  a.impact3.perBeat.forEach((r: any, j: number) => {
     const s = b.impact3.perBeat[j], frame = a.beats[j]?.frame ?? Math.round(a.beats[j].t * 40);
-    if (r[0] == null || r[1] == null || s[1] == null) return;
-    beats.push({id, song: a.case.song, seed: a.case.seed, beat: j, frame, requested: r[0], before: r[1], after: s[1], fb: frame + r[2], fa: frame + s[2]});
+    if (r.requested == null || r.hit?.strength == null || s.hit?.strength == null) return;
+    beats.push({id, song: a.case.song, seed: a.case.seed, beat: j, frame, requested: r.requested, before: r.hit?.strength, after: s.hit?.strength, fb: frame + r.hit.offset, fa: frame + s.hit.offset});
   });
 }
 const gain = (x: Beat) => Math.abs(x.before - x.requested) - Math.abs(x.after - x.requested);
@@ -39,6 +40,7 @@ const tracks = new Map<string, {song: string; track: any}>();
 // Renders are cached by run and case, so another pair of runs never reuses them.
 for (const p of picked) for (const [key, run] of [['before', before], ['after', after]]) {
   const rid = `${run}~${p.id}`;
+  assertReviewSources(p.song, (run === before ? A : B).cells.get(p.id).case.input);
   if (!tracks.has(rid)) tracks.set(rid, {song: p.song, track: JSON.parse(gunzipSync(readFileSync(join('generated/eval', run, 'cells', p.id + '.track.json.gz'))).toString())});
 }
 await renderRides(tracks, join(out, 'rides'), 8);

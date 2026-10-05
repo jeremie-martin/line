@@ -45,14 +45,14 @@ A change is adopted only if the whole picture improves.
 | 01:22 | Night report tooling | Data generator, page, honest before/after clips, scale clips, blind-study key builder. |
 | 01:31 | Half-budget robustness | Tonight's profile also helps at 1.5M (completion +6 pp authored, strong bias +0.03). |
 | 01:42 | Visual check | Before: a head-down tumble (0.54). After: an upright slam into a V (0.88). The numbers match what the eye sees. |
-| 01:50 | **Headline, evening → tonight (all four panels, owner-validated measure)** | Impact loss 0.092 → 0.037 (−60%); strong shortfall −0.28 → −0.13; double impacts 0.11 → <0.01; head-down strong arrivals 22% → 15%; speed unchanged; air +0.005; completion 100%. |
+| 01:50 | **Headline, evening → tonight (all four panels, impact account plus independent diagnostics)** | Impact loss 0.092 → 0.037 (−60%); strong shortfall −0.28 → −0.13; double impacts 0.11 → <0.01; head-down strong arrivals 22% → 15%; speed unchanged; air +0.005; completion 100%. |
 | 02:13 | **Code review** (agent) | No product bug. Evidence corrected (spin 8 : 3, not 12 : 4; upright judged by its own test). v1/v2 back on the evening profile. Tool fixes and tests. |
 | 02:10 | Pressing rail (agent) | Negative: a forcing roof breaks the rider or removes the hit; dense runs already refill each hit's speed bill. |
 | 02:23 | **Survival corrected** | A fine grid shows a near-vertical drop surviving 1.0; at 45° the limit is about 0.9. |
 | 02:24 | Agent: retrain learned models on v3 | Running (feasibility first). |
 | 02:38 | Morning deliverables | Dashboard data, honest before/after clips (evening → tonight), scale clips, a blind 22-pair study for the owner. |
 | 03:37 | **Learned construction policies rebuilt under v3** (agent) | The old artifacts had been trained partly on the evaluation songs. The rebuild on disjoint songs is better on all four panels: impact loss −0.007, strong +0.015, air −0.005; body drag +30%. Adopted for v3. The value-model retrain was no better, so it is not adopted. |
-| 03:56 | **Final compiler: headline, evening → tonight (all four panels)** | Impact loss 0.092–0.097 → 0.028–0.031 (about −68%); strong shortfall −0.28 → −0.11; double impacts gone; competing hits 3–5% → about 1%; peaks 3–9 ms earlier; air and speed unchanged or better; head-down strong arrivals 22% → 12–15%. Costs: body drag +0.1 to +0.6 s/min, +0.35M physics frames. Completion 100%. |
+| 03:56 | **Final compiler: headline, evening → tonight (all four panels)** | Impact loss 0.092–0.097 → 0.028–0.031 (about −68%); strong shortfall −0.28 → −0.11; opposite-push pairs greatly reduced (direct-count correction below); competing hits 3–5% → about 1%; peaks 3–9 ms earlier; air and speed unchanged or better; head-down strong arrivals 22% → 12–15%. Costs: body drag +0.1 to +0.6 s/min, +0.35M physics frames. Completion 100%. |
 | 04:26 | Deliverables refreshed | Dashboard data, clips, scale clips, 22-pair blind study, production library (12/12) with videos. |
 
 | 05:00 | Construction policies, round 2 | Not adopted: impact −0.003 only, body drag +25–48% more. Diminishing returns. |
@@ -60,7 +60,14 @@ A change is adopted only if the whole picture improves.
 ## Where to look in the morning
 
 - **Dashboard:** `npm run serve`, then http://127.0.0.1:8767/motion-gallery/night.html
-- **Blind check (about 10 min):** http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05
+- **Corrected blind check (about 10 min):** http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05-contact
 - **Production page:** tonight's rides, with "compare previous" showing this evening's.
 - **Written report:** `docs/research/overnight-20261005.md`. Ledger: `REWORK.md`.
 
+
+Evidence correction (2026-10-05): earlier “double impacts” figures based on
+v3-minus-v2 thresholded counts are historical proxies, not literal counts.
+The corrected overnight report uses direct opposite-push boundaries and counts
+adjacent pairs with both strengths ≥0.2. R1 bend-peak timing remains a separate
+diagnostic. See `docs/research/overnight-20261005.md` for the remeasurement,
+preserved evidence and corrected blind-study sampling.

@@ -13,8 +13,8 @@
  },
  "summary": [
   "Your three rounds of blind pair judgments settled what impact means: how much a hit changes the rider's whole-body motion (its direction, speed and spin) within 50 ms. On pairs chosen where the measures disagree, the old measure agreed with you 31 times out of 63 and the new one 46 (head to head 22 : 7). A floor-then-rail bounce now counts as two impacts, as you see it.",
-  "Overnight, the compiler was tuned against that measure, one hypothesis at a time, judged on every measure on two panels and confirmed on fresh arrangement seeds. Compared with this evening's product, on all four panels: impact loss −67 to −70%, strong beats much closer to their request (shortfall −0.28 → −0.11), double impacts gone, competing hits on strong beats down to about 1%, fewer head-down arrivals into strong hits, and air and speed accuracy unchanged or better. The costs: more body contact along rails (body drag about +0.1 to +0.6 s/min) and about 15% more physics per ride.",
-  "The rest of the gap is mostly physics or the spec itself. A slam costs speed that the spec also asks for, and in the densest song strong hits come about 13 frames apart, faster than gravity can refill the speed each one spends. That caps dense strong runs near 0.6–0.7, although an isolated near-vertical drop survives a maximal hit. The gentlest touchdown reads about 0.06. Those are questions for you, below."
+  "Overnight, the compiler was tuned against that measure, one hypothesis at a time, judged on every measure on two panels and confirmed on fresh arrangement seeds. Compared with this evening's product, on all four panels: impact loss −67 to −70%, strong beats much closer to their request (shortfall −0.28 → −0.11), opposite-push pairs with both hits ≥0.2 reduced from 414 to 9 across the paired panels, competing hits on strong beats down to about 1%, fewer head-down arrivals into strong hits, and air and speed accuracy unchanged or better. The costs: more body contact along rails (body drag about +0.1 to +0.6 s/min) and about 15% more physics per ride.",
+  "Further improvement is still an open compiler problem. The experiments found strength/speed/survival tradeoffs and dense runs delivering about 0.6–0.7, but this is an observed operating range, not a proved physical ceiling. The quietest sampled touchdowns were about 0.06. The isolated flat-floor probes below show that a near-vertical drop can survive a maximal hit; they do not establish universal limits."
  ],
  "cards": [
   {
@@ -35,11 +35,11 @@
   }
  ],
  "questions": [
-  "Scale: isolated maximal hits are physically possible, but in dense runs time and energy cap strength near 0.6–0.7, and the quietest asks sit below the gentlest touchdown (about 0.06). Keep the scale as authored, with these limits known, or map each request onto what its passage can reach?",
+  "Scale: the probes show that isolated maximal hits can survive, while current dense passages usually deliver less. Keep the authored scale as stretch goals, or investigate passage-specific reachability further before considering any remapping?",
   "L’amour de ma vie asks for back-to-back hits of 0.9 or more about 13 frames apart, its intro asks for speed the start cannot give, and its tail asks for low air with a strong hit on every beat. Re-author, or treat these as stretch goals?",
   "Air against impact: weighting air 1.5× recovers this evening's air accuracy but gives back about a third of tonight's strong-beat gain. Which matters more to you?",
   "Body contact along rails rose with the rebuilt construction policies (about 1.6 → 2.1 s/min of the rider's body dragging on lines). Is that visible or objectionable to you? If so, it becomes a guard the search must respect.",
   "Lines passing visibly through the rider (6–8 per ride, July none) and the rider's body dragging along rails: worth fixing? A short look at the examples would tell.",
-  "When you have ten minutes, a blind pair session: 22 pairs comparing this evening's and tonight's hits on random strong beats, plus a few head-down against upright arrivals. Open http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05"
+  "A fresh blind check uses the same first-contact posture observation as the scorecard, while centering each clip on impact onset. It preserves the previous study and answers. Open http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05-contact"
  ]
 }

@@ -18,7 +18,7 @@
   "area": "measure",
   "title": "line.strike.v3: floor-then-rail opposite pushes are two impacts",
   "verdict": "adopted",
-  "detail": "94% of added splits start on an opposite-facing surface; July (no rails) has none. Double impacts per beat −0.13 / −0.16. Speed rms +0.007 (authored only): an explicit, logged exception."
+  "detail": "94% of added splits start on an opposite-facing surface; July (no rails) has none. The original net-count diagnostic was misleading; the corrected scorecard now counts opposite-push boundaries and adjacent ≥0.2 pairs directly. Speed rms +0.007 (authored only): an explicit, logged exception."
  },
  {
   "time": "23:05",
@@ -173,5 +173,12 @@
   "title": "Construction policies, round 2 (collected with the v3 policies)",
   "verdict": "rejected",
   "detail": "Impact loss −0.003 on all four panels (half of round 1's gain), but body drag +0.5 to +0.95 s/min more on the main panel. Diminishing returns, and the body-drag trade is the owner's call."
+ },
+ {
+  "time": "reconfirmation",
+  "area": "evidence",
+  "title": "Input identity, complete panels, and explicit diagnostics",
+  "verdict": "confirmed",
+  "detail": "All 64 original panels are complete and have the expected timing. Cold replay preserves the reported impact gains. Direct opposite-push counts across the paired evening/final panels: 863 → 58 boundaries; both hits ≥0.2: 414 → 9. R1 timing remains an independent bend diagnostic. A fresh blind study samples posture at first contact, exactly as the scorecard does."
  }
 ]

@@ -291,3 +291,10 @@ disliked the second one.
 - **Tests.** `tests/strike_v2.test.ts` checks the split, the corner, and
   incremental against cold detection across a split.
 
+
+Evidence correction (2026-10-05): earlier “double impacts” figures based on
+v3-minus-v2 thresholded counts are historical proxies, not literal counts.
+The corrected overnight report uses direct opposite-push boundaries and counts
+adjacent pairs with both strengths ≥0.2. R1 bend-peak timing remains a separate
+diagnostic. See `docs/research/overnight-20261005.md` for the remeasurement,
+preserved evidence and corrected blind-study sampling.

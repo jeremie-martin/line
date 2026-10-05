@@ -7,7 +7,7 @@ export function createContactImpactReview({seek}){
  const description=node('p'),chart=node('div'),summary=node('p'),label=node('label'),small=node('input');
  chart.className='contact-impact-chart';small.type='checkbox';label.append(small,document.createTextNode(' Include very small extra responses'));
  const table=node('table'),head=node('thead'),heading=node('tr');
- for(const title of ['Interaction','Target time','Observed time','Offset','Peak','Wanted strength','Measured strength'])heading.append(node('th',title));
+ for(const title of ['Interaction','Target time','Observed time','Onset offset','Contact-force peak offset','Wanted strength','Measured strength'])heading.append(node('th',title));
  head.append(heading);const body=node('tbody');table.append(head,body);const wrap=node('div');wrap.className='table-wrap';wrap.append(table);
  host.append(description,summary,chart,label,wrap);document.getElementById('motion-detail').before(host);
  let record,cursor,extent=1;

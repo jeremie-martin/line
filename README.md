@@ -70,3 +70,19 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 See [ARCHITECTURE.md](ARCHITECTURE.md) for how the compiler works and
 [WORKING.md](WORKING.md) for the rules of changing it. Everything removed during
 the rework remains available at tag `archive/pre-rework-2026-10-03`.
+
+Evaluation evidence is a complete declared panel. `npm run eval` records the
+resolved timing offset, authoring identity and measurement code before compiling;
+resuming validates those inputs and every saved track. Worker failures return a
+nonzero exit status. Reports refuse missing cells and comparisons with different
+inputs or measurement code. An incomplete *ride* remains a measured outcome.
+
+To remeasure saved tracks under current diagnostics, preserve the old directory
+and use `node --import tsx tools/eval/remeasure.ts --from=OLD --name=NEW
+--jolt-ms=-15`. This does not recompile or alter tracks. It checks saved beat
+requests and frozen axis observations before accepting current authoring. Runs
+without saved tracks remain historical tables, not current comparable evidence.
+
+Evaluation, production batches and blind-study generation allow one writer per output directory. A hard
+interruption leaves `.generation.lock` with its owner PID; verify that process
+has stopped before removing the lock and resuming.

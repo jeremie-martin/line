@@ -10,7 +10,7 @@ const COLORS = {evening: '#b0703a', v3: '#6c7fb8', final: '#146b55'};
 function verdict(row, s) {
   // Paired change beyond noise in the good direction is green, in the bad direction red.
   // A zero-width interval means a single song (no resampling): never call it a change.
-  if (!Number.isFinite(s.diff) || (s.diffLo <= 0 && s.diffHi >= 0) || s.diffLo === s.diffHi) return 'flat';
+  if (s.songs < 2 || !Number.isFinite(s.diff) || (s.diffLo <= 0 && s.diffHi >= 0) || s.diffLo === s.diffHi) return 'flat';
   if (row.better === 'lower') return s.diff < 0 ? 'good' : 'bad';
   if (row.better === 'higher') return s.diff > 0 ? 'good' : 'bad';
   const ref = row.stages[0].value; return Math.abs(s.value) < Math.abs(ref) ? 'good' : 'bad';
@@ -21,13 +21,14 @@ function scorecard(data, which, panel) {
   t.replaceChildren();
   if (!block) {t.append(el('tr', {}, el('td', {}, 'No data for this panel.'))); return;}
   const last = stages.length - 1;
+  $('compiler-identities').textContent = stages.map(s => `${labelOf(data, s.key)}: ${s.identity.head.slice(0, 10)}/${s.identity.candidateFingerprint.slice(0, 10)} · ${s.mode} · jolt ${s.jolt} ms · evaluator ${s.evaluator.slice(0, 12)}`).join(' | ');
   t.append(el('thead', {}, el('tr', {}, el('th', {}, 'Measure'), ...stages.map(s => el('th', {}, labelOf(data, s.key))), el('th', {}, `${labelOf(data, stages[last].key)} − ${labelOf(data, stages[0].key)}`))));
   const body = el('tbody'); let group = '';
   for (const row of block.rows) {
     if (row.group !== group) {group = row.group; body.append(el('tr', {class: 'group'}, el('td', {colspan: String(stages.length + 2)}, group)));}
     const f = row.digits ?? 3, d = row.stages[last];
     body.append(el('tr', {}, el('td', {}, row.label),
-      ...row.stages.map(s => el('td', {}, fmt(s.value, f), el('br'), el('span', {class: 'ci'}, `[${fmt(s.lo, f)}, ${fmt(s.hi, f)}]`))),
+      ...row.stages.map(s => el('td', {}, fmt(s.value, f), el('br'), el('span', {class: 'ci'}, `[${fmt(s.lo, f)}, ${fmt(s.hi, f)}] · ${s.songs} songs`))),
       el('td', {class: verdict(row, d)}, `${d.diff >= 0 ? '+' : ''}${fmt(d.diff, f)}`, el('br'), el('span', {class: 'ci'}, `[${fmt(d.diffLo, f)}, ${fmt(d.diffHi, f)}]`))));
   }
   t.append(body);

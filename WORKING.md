@@ -17,7 +17,8 @@ that must not change what the compiler produces.
 
 1. State the hypothesis and the measure **before** running it.
 2. Compare paired, song by song, against the current default.
-3. Report completion separately from quality, with an interval over songs,
+3. Require the complete declared panel and identical resolved inputs before
+   paired comparisons. Report completion separately from quality, with an interval over songs,
    not a point estimate over seeds that reproduce the same track.
 4. Report the result under **every** ruler, not only the one optimized, so
    self-grading is visible. Disclose any ruler the change makes worse.
@@ -35,6 +36,10 @@ that must not change what the compiler produces.
 
 - Delete rather than flag off. Experiments live on branches, not as options in
   production modules.
+- Evidence keeps compiler provenance separate from measurement provenance.
+  Remeasure saved tracks explicitly; do not relabel old measurements or silently
+  reuse a run after changing its timing offset. Preserve published blind studies
+  and answers under their original IDs.
 - Every learned artifact needs its provenance, its size and an ablation, and it
   must be trained on data disjoint from what evaluates it.
 - Reusable research and report tools live in `tools/measure`, `tools/eval` and

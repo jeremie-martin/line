@@ -10,19 +10,21 @@
     <h2>Scorecard</h2>
     <p class="note">Each column is one compiler on the same 24 rides (4 songs × 4 arrangement seeds, plus perturbed specs). Values are song means; brackets are 95% song-bootstrap intervals (4 songs, so wide). The last column is the paired change from the first column; green moves in the good direction beyond noise, red in the bad.</p>
     <div class="controls" id="scorecard-controls"></div>
+    <p class="note" id="compiler-identities"></p>
     <div class="table-wrap"><table id="scorecard"></table></div>
+    <p class="note">Opposite-push boundaries are counted directly by v3; the thresholded row requires both adjacent hits to reach 0.2. These describe detector events, not a complete perceptual definition of double hits. R1 bend-peak timing is a separate redirection diagnostic, not v3’s contact-force peak or whole-body strength. Posture is sampled at first contact; clips are centered on impact onset.</p>
   </section>
 
   <section>
     <h2>Requested vs achieved impact</h2>
-    <p class="note">Mean achieved strength (line.strike.v3) for each band of requested strength, authored specs. The diagonal is a perfect match. The shaded band runs from about 0.06 (the gentlest touchdown) to 0.9 (about the limit of a 45° hit); an isolated near-vertical drop can go higher.</p>
+    <p class="note">Mean achieved strength (line.strike.v3) for each band of requested strength, authored specs. Unmatched beats contribute zero. The diagonal is a perfect match. The shaded band runs from about 0.06 (the gentlest sampled touchdown) to 0.9 (the sampled 45° transition); an isolated near-vertical drop can go higher.</p>
     <canvas id="curve" width="900" height="420"></canvas>
     <div class="legend" id="curve-legend"></div>
   </section>
 
   <section>
     <h2>What the strength scale means</h2>
-    <p class="note">Single hits on a flat floor at rising speed into the surface, measured with the product's impact measure. Survival depends on how the rider meets the floor: at 45° the rider crashes above about 0.9, but a near-vertical drop onto flat ground survives even a maximal hit (about 9 px/frame into the floor). In dense passages, time and energy, not survival, cap strength near 0.6–0.7.</p>
+    <p class="note">Single hits on a flat floor at rising speed into the surface, measured with the product's impact measure. Survival depends on how the rider meets the floor: at 45° the rider crashes above about 0.9, but a near-vertical drop onto flat ground survives even a maximal hit (about 9 px/frame into the floor). The current compiler delivers about 0.6–0.7 in the densest passages. This observed range is not a proved physical ceiling.</p>
     <div id="scale" class="scale"></div>
   </section>
 

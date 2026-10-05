@@ -1,0 +1,980 @@
+{
+ "study": "night-pairs-2026-10-05-contact",
+ "kind": "pairs",
+ "hitAt": 1,
+ "length": 1.8,
+ "prompt": "Which one is the bigger impact? Judge only the hit marked by the light; other moments in the clip don't count.",
+ "choices": [
+  [
+   "left",
+   "A is the bigger impact"
+  ],
+  [
+   "right",
+   "B is the bigger impact"
+  ],
+  [
+   "same",
+   "About the same"
+  ],
+  [
+   "neither",
+   "Neither looks like an impact"
+  ]
+ ],
+ "questions": [
+  {
+   "id": "bigger",
+   "options": [
+    "left",
+    "right",
+    "same",
+    "neither"
+   ]
+  }
+ ],
+ "clips": [
+  {
+   "id": "pair1",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair1-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.519
+     },
+     {
+      "t": 0.975,
+      "impact": 0.624
+     },
+     {
+      "t": 1.525,
+      "impact": 0.612
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair1-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.519
+     },
+     {
+      "t": 1,
+      "impact": 0.624
+     },
+     {
+      "t": 1.55,
+      "impact": 0.612
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair2",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair2-left.mp4",
+    "beats": [
+     {
+      "t": 0.275,
+      "impact": 0.6
+     },
+     {
+      "t": 0.95,
+      "impact": 0.9
+     },
+     {
+      "t": 1.6,
+      "impact": 0.6
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair2-right.mp4",
+    "beats": [
+     {
+      "t": 0.325,
+      "impact": 0.6
+     },
+     {
+      "t": 1,
+      "impact": 0.9
+     },
+     {
+      "t": 1.65,
+      "impact": 0.6
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair3",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair3-left.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.76
+     },
+     {
+      "t": 0.525,
+      "impact": 0.67398
+     },
+     {
+      "t": 0.975,
+      "impact": 0.76
+     },
+     {
+      "t": 1.375,
+      "impact": 0.7411399999999999
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair3-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.76
+     },
+     {
+      "t": 0.55,
+      "impact": 0.67398
+     },
+     {
+      "t": 1,
+      "impact": 0.76
+     },
+     {
+      "t": 1.4,
+      "impact": 0.7411399999999999
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair4",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair4-left.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.67398
+     },
+     {
+      "t": 0.6,
+      "impact": 0.76
+     },
+     {
+      "t": 1,
+      "impact": 0.7411399999999999
+     },
+     {
+      "t": 1.475,
+      "impact": 0.7425200000000001
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair4-right.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.67398
+     },
+     {
+      "t": 0.6,
+      "impact": 0.76
+     },
+     {
+      "t": 1,
+      "impact": 0.7411399999999999
+     },
+     {
+      "t": 1.475,
+      "impact": 0.7425200000000001
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair5",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair5-left.mp4",
+    "beats": [
+     {
+      "t": 0.325,
+      "impact": 0.786
+     },
+     {
+      "t": 0.975,
+      "impact": 1
+     },
+     {
+      "t": 1.3,
+      "impact": 0.928
+     },
+     {
+      "t": 1.65,
+      "impact": 0.842
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair5-right.mp4",
+    "beats": [
+     {
+      "t": 0.3,
+      "impact": 0.786
+     },
+     {
+      "t": 0.95,
+      "impact": 1
+     },
+     {
+      "t": 1.275,
+      "impact": 0.928
+     },
+     {
+      "t": 1.625,
+      "impact": 0.842
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair6",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair6-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.57
+     },
+     {
+      "t": 0.975,
+      "impact": 0.659
+     },
+     {
+      "t": 1.525,
+      "impact": 0.663
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair6-right.mp4",
+    "beats": [
+     {
+      "t": 0.475,
+      "impact": 0.57
+     },
+     {
+      "t": 1,
+      "impact": 0.659
+     },
+     {
+      "t": 1.55,
+      "impact": 0.663
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair7",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair7-left.mp4",
+    "beats": [
+     {
+      "t": 0.575,
+      "impact": 0.49676
+     },
+     {
+      "t": 1,
+      "impact": 0.7223999999999999
+     },
+     {
+      "t": 1.45,
+      "impact": 0.64732
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair7-right.mp4",
+    "beats": [
+     {
+      "t": 0.575,
+      "impact": 0.49676
+     },
+     {
+      "t": 1,
+      "impact": 0.7223999999999999
+     },
+     {
+      "t": 1.45,
+      "impact": 0.64732
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair8",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair8-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.518
+     },
+     {
+      "t": 1,
+      "impact": 0.606
+     },
+     {
+      "t": 1.55,
+      "impact": 0.582
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair8-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.518
+     },
+     {
+      "t": 1,
+      "impact": 0.606
+     },
+     {
+      "t": 1.55,
+      "impact": 0.582
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair9",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair9-left.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 1
+     },
+     {
+      "t": 0.35,
+      "impact": 0.928
+     },
+     {
+      "t": 0.7,
+      "impact": 0.842
+     },
+     {
+      "t": 1,
+      "impact": 0.935
+     },
+     {
+      "t": 1.375,
+      "impact": 0.482
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair9-right.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 1
+     },
+     {
+      "t": 0.35,
+      "impact": 0.928
+     },
+     {
+      "t": 0.7,
+      "impact": 0.842
+     },
+     {
+      "t": 1,
+      "impact": 0.935
+     },
+     {
+      "t": 1.375,
+      "impact": 0.482
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair10",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair10-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.88
+     },
+     {
+      "t": 0.975,
+      "impact": 0.607
+     },
+     {
+      "t": 1.525,
+      "impact": 0.744
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair10-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.88
+     },
+     {
+      "t": 0.975,
+      "impact": 0.607
+     },
+     {
+      "t": 1.525,
+      "impact": 0.744
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair11",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair11-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.65252
+     },
+     {
+      "t": 0.575,
+      "impact": 0.5693333333333334
+     },
+     {
+      "t": 1,
+      "impact": 0.78
+     },
+     {
+      "t": 1.425,
+      "impact": 0.5976533333333334
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair11-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.65252
+     },
+     {
+      "t": 0.575,
+      "impact": 0.5693333333333334
+     },
+     {
+      "t": 1,
+      "impact": 0.78
+     },
+     {
+      "t": 1.425,
+      "impact": 0.5976533333333334
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair12",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair12-left.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.76
+     },
+     {
+      "t": 0.55,
+      "impact": 0.63764
+     },
+     {
+      "t": 0.975,
+      "impact": 0.76
+     },
+     {
+      "t": 1.425,
+      "impact": 0.65742
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair12-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.76
+     },
+     {
+      "t": 0.575,
+      "impact": 0.63764
+     },
+     {
+      "t": 1,
+      "impact": 0.76
+     },
+     {
+      "t": 1.45,
+      "impact": 0.65742
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair13",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair13-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.343
+     },
+     {
+      "t": 1,
+      "impact": 0.777
+     },
+     {
+      "t": 1.4,
+      "impact": 0.653
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair13-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.343
+     },
+     {
+      "t": 1.025,
+      "impact": 0.777
+     },
+     {
+      "t": 1.425,
+      "impact": 0.653
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair14",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair14-left.mp4",
+    "beats": [
+     {
+      "t": 0.05,
+      "impact": 0.788
+     },
+     {
+      "t": 0.375,
+      "impact": 0.943
+     },
+     {
+      "t": 0.7,
+      "impact": 1
+     },
+     {
+      "t": 1.025,
+      "impact": 0.945
+     },
+     {
+      "t": 1.375,
+      "impact": 0.829
+     },
+     {
+      "t": 1.675,
+      "impact": 0.877
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair14-right.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.788
+     },
+     {
+      "t": 0.325,
+      "impact": 0.943
+     },
+     {
+      "t": 0.65,
+      "impact": 1
+     },
+     {
+      "t": 0.975,
+      "impact": 0.945
+     },
+     {
+      "t": 1.325,
+      "impact": 0.829
+     },
+     {
+      "t": 1.625,
+      "impact": 0.877
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair15",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair15-left.mp4",
+    "beats": [
+     {
+      "t": 0.4,
+      "impact": 0.744
+     },
+     {
+      "t": 0.95,
+      "impact": 0.759
+     },
+     {
+      "t": 1.5,
+      "impact": 0.843
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair15-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.744
+     },
+     {
+      "t": 0.975,
+      "impact": 0.759
+     },
+     {
+      "t": 1.525,
+      "impact": 0.843
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair16",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair16-left.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.529
+     },
+     {
+      "t": 0.65,
+      "impact": 0.824
+     },
+     {
+      "t": 0.975,
+      "impact": 0.937
+     },
+     {
+      "t": 1.325,
+      "impact": 0.991
+     },
+     {
+      "t": 1.625,
+      "impact": 0.94
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair16-right.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 0.529
+     },
+     {
+      "t": 0.675,
+      "impact": 0.824
+     },
+     {
+      "t": 1,
+      "impact": 0.937
+     },
+     {
+      "t": 1.35,
+      "impact": 0.991
+     },
+     {
+      "t": 1.65,
+      "impact": 0.94
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair17",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair17-left.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.78
+     },
+     {
+      "t": 0.975,
+      "impact": 0.66
+     },
+     {
+      "t": 1.425,
+      "impact": 0.6076266666666668
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair17-right.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.78
+     },
+     {
+      "t": 0.975,
+      "impact": 0.66
+     },
+     {
+      "t": 1.425,
+      "impact": 0.6076266666666668
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair18",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair18-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.5976533333333334
+     },
+     {
+      "t": 0.575,
+      "impact": 0.64812
+     },
+     {
+      "t": 1,
+      "impact": 0.6061866666666668
+     },
+     {
+      "t": 1.425,
+      "impact": 0.76744
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair18-right.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.5976533333333334
+     },
+     {
+      "t": 0.55,
+      "impact": 0.64812
+     },
+     {
+      "t": 0.975,
+      "impact": 0.6061866666666668
+     },
+     {
+      "t": 1.4,
+      "impact": 0.76744
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair19",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair19-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.521
+     },
+     {
+      "t": 0.975,
+      "impact": 0.616
+     },
+     {
+      "t": 1.525,
+      "impact": 0.57
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair19-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.521
+     },
+     {
+      "t": 0.975,
+      "impact": 0.616
+     },
+     {
+      "t": 1.525,
+      "impact": 0.57
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair20",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair20-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.582
+     },
+     {
+      "t": 0.975,
+      "impact": 0.614
+     },
+     {
+      "t": 1.525,
+      "impact": 0.474
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair20-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.582
+     },
+     {
+      "t": 0.975,
+      "impact": 0.614
+     },
+     {
+      "t": 1.525,
+      "impact": 0.474
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair21",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair21-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.353
+     },
+     {
+      "t": 0.975,
+      "impact": 0.749
+     },
+     {
+      "t": 1.525,
+      "impact": 0.347
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair21-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.353
+     },
+     {
+      "t": 0.975,
+      "impact": 0.749
+     },
+     {
+      "t": 1.525,
+      "impact": 0.347
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair22",
+   "left": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair22-left.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.832
+     },
+     {
+      "t": 0.325,
+      "impact": 0.502
+     },
+     {
+      "t": 0.675,
+      "impact": 1
+     },
+     {
+      "t": 1.025,
+      "impact": 0.945
+     },
+     {
+      "t": 1.35,
+      "impact": 0.857
+     },
+     {
+      "t": 1.65,
+      "impact": 0.935
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/night-pairs-2026-10-05-contact/clips/pair22-right.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.832
+     },
+     {
+      "t": 0.325,
+      "impact": 0.502
+     },
+     {
+      "t": 0.675,
+      "impact": 1
+     },
+     {
+      "t": 1.025,
+      "impact": 0.945
+     },
+     {
+      "t": 1.35,
+      "impact": 0.857
+     },
+     {
+      "t": 1.65,
+      "impact": 0.935
+     }
+    ]
+   }
+  }
+ ]
+}

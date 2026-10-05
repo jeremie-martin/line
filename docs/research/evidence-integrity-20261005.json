@@ -1,0 +1,3524 @@
+{
+  "schema": "line.evidence-integrity.v1",
+  "date": "2026-10-05",
+  "reviewedHead": "91e4a23c",
+  "classification": "structural; compiler tracks, work and scoring contracts unchanged",
+  "evaluator": "2d7ae2e08471a0342b4bbfc2a8faeebaee3524a57dcbf2774a5df5f85f61fd31",
+  "inventory": {
+    "historicalRuns": 64,
+    "completeHistoricalCells": 1536,
+    "remeasuredRuns": 33,
+    "remeasuredTracks": 792,
+    "tableOnlyRunsPreservedLocally": 31
+  },
+  "runs": [
+    {
+      "name": "a1-novalue",
+      "cells": 24,
+      "planSha256": "5b7caebb2e163e19a5e9698b96c949399f5825330a07c5bf608bf64344738968",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "0340c6a73c2ca10b75ed88bbe5ac422a3470daed",
+        "dirtySha256": "9860a875bb2fd20db71ae281f4dfcbbc5d8b4094e1d6da51f080932cbd7285a9",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "d2592cdb49d336d198c3f89511cf2cc455e39f8353779d5e2288d04590f09cc1"
+      },
+      "source": {
+        "runSha256": "8cc29f47d13d161245e4d0f4db6450bc240ae1802fc95644fca4fe707cc2fbc9",
+        "cellsSha256": "f64b8a4e3dc75983066af852ea8ce6fa3d001037b9fabba15c41ff36f1853223"
+      }
+    },
+    {
+      "name": "a2-nopolicy",
+      "cells": 24,
+      "planSha256": "01a58a5bb9234f64acf7f29c30ce580bafa9150b3a09001348ea79f756d47476",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "0340c6a73c2ca10b75ed88bbe5ac422a3470daed",
+        "dirtySha256": "52a86ef1a3a7e09701638022291bed05cf27dcaf339cf2475bfe96de81438ebe",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "b3dd1aa777daa1cde76548f1e77630776d38028c2495ca679e2639f577742e9d"
+      },
+      "source": {
+        "runSha256": "43e784b701657cde4f4a6e4d201eefcd725a068d43ad90dad670fc3aef21a95a",
+        "cellsSha256": "3a2950520cd21a55a14785672a8bbd2400dfe5c8ab83b6cdf6f8c855b350f826"
+      }
+    },
+    {
+      "name": "air15",
+      "cells": 24,
+      "planSha256": "d42521c95ddc7d1d1a9308c19417a1a1d3acd3b9751a57124239f6101a6af281",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "e20e7728df3a235aff3e026feda00e71056ea697",
+        "dirtySha256": "b17d8f659435c14f97bd71fd89a064ee844b4c66ceba8f7cd281722ddc7b8517",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "f92101e7a3acd7f490a3cbb53c6d84c7c385a92c5258272c7d32c9139eeee76a"
+      },
+      "source": {
+        "runSha256": "2720f078a1f1915de6a03ff9c0ebfbb2f2ef1d5e8dfeba7f8abbc1b193280244",
+        "cellsSha256": "489557bfd217fe431986ca4041a69cf6793e3c2f4133a779cdeb2a17e2a7f433"
+      }
+    },
+    {
+      "name": "b15-final",
+      "cells": 24,
+      "planSha256": "d8dfddd243a6f38f34aab142f76d4bd10a2a0976114fbbd3bf9dabdf9fb3ff9c",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "404b6365003dcf70a62a2b2d701ff9d229fdf082",
+        "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "978674f50fcb9ef93c62fa99d6252a0c3b9075bad90c76195b54f9bbdef36547"
+      },
+      "source": {
+        "runSha256": "e7471c13ae78f095e55aa0bcb7ee4f7ce51d1980d6fdaa02cab3a9962beec536",
+        "cellsSha256": "937a3c1ea47bb016ae4e20fff36adab398e504a63590c0dc118ed9f24d5bfddd"
+      }
+    },
+    {
+      "name": "b15-off",
+      "cells": 24,
+      "planSha256": "2a117c581aecb3b4fded1c0e746329395f0ceb554825f929ac72a62e441089b4",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "404b6365003dcf70a62a2b2d701ff9d229fdf082",
+        "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "740e434bae7662adad0077f72a728fc433a0ffce4e02ce26f26f8b4cf23f72c7"
+      },
+      "source": {
+        "runSha256": "e642a330473e12afe483da5fda81d703bd63b6431c4630392e39c24ff623db62",
+        "cellsSha256": "99e24225d20799cd2dfd7e797323b04606fe50b2289a29655d553026c6e828cc"
+      }
+    },
+    {
+      "name": "c-c",
+      "cells": 24,
+      "planSha256": "b383a8342a0633c669b1c5a3549c9e1f2273a7f08dea52e227e833883a54f0b5",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "fb51fed02b82f9ab620a4518327691e284516ea7",
+        "dirtySha256": "8081433f5cbc877dc7d32651209552d9bc15cda0b8773d8f86b8fd939b519397",
+        "untracked": 2,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "e2baae51f70eaf9089dd2303a30f934cf032f8eeb160916fd23b1cf4c73fb82e"
+      },
+      "source": {
+        "runSha256": "98ba894d0f08c8f13174f465c9d9a0a526b57bb87b2bb838ac47670a89cc2ef5",
+        "cellsSha256": "2d30103583855a34211297dae24f532bdd59d9ff4712641810c059fb70fe33af"
+      }
+    },
+    {
+      "name": "c-l9",
+      "cells": 24,
+      "planSha256": "dfd3d2c4bf2e43673014c809a3ea1492df0ce4c405ed4029836725b64dd12f67",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "69c55fdf16b12e4b4e274d9ee18806185b114747",
+        "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "d3e294f8d6e27e8fe93695f8baff812040cc64bfae3a10ce99de98c272c2b9b2"
+      },
+      "source": {
+        "runSha256": "934c2f270762aaa295aaa2e00235f2de4b0e5e957cd7b0be6f22e083479eb71a",
+        "cellsSha256": "860606bf2840676f9695a2f214d73d99abef82b654fd59d14e2f0fed6c092041"
+      }
+    },
+    {
+      "name": "c-off",
+      "cells": 24,
+      "planSha256": "25fcfdc4e85fc38663341494b785bbec36cdd265ad97a26064d600dc85c354b3",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "69c55fdf16b12e4b4e274d9ee18806185b114747",
+        "dirtySha256": "c68cf26642f5461c184f7f48bbfd634ccbc136dde5115fe228497fa7991335ef",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "4bb06f7822fd0906f02e07e1f768e8b75f9ba58959a746d03b1e025953f6b700"
+      },
+      "source": {
+        "runSha256": "db935aebff5454f5a3e3e6cba185eaeafaba9b9812793fb5501903308d95fee6",
+        "cellsSha256": "0593cb12f54c3092b22ba08a1441121263b1afdd9a34427a0cae17495f75b4e5"
+      }
+    },
+    {
+      "name": "c-up1",
+      "cells": 24,
+      "planSha256": "9175f1eb55aad94f84375124ac0f2ddcd688f1ac80adc35fcea9a02d292c1254",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "7d03027094b1887b1e299ab5d5f8a333059ed62e",
+        "dirtySha256": "450d00b4b0842bd70f5a2ee1a6407d7e4f173088d806634b3fe41816b63fda2e",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "f484d6e9e9a9b9874785c4698520d8f83c788da5265bc60ecf86aade7b6397ec"
+      },
+      "source": {
+        "runSha256": "36526a6d7b888e8fc18a90569c039caee8120cf8f236061758e82110c0a8a635",
+        "cellsSha256": "1845769da597552ffefe65b9c1959ce07bb94d06756ad779f19a2eb496b54fdf"
+      }
+    },
+    {
+      "name": "calm22",
+      "cells": 24,
+      "planSha256": "e550acc0e6f3e3f4be6c9456ec8e4c7161b69bbe785198ca3eef87d655fad8b0",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "46707d6cf04bfe13ce8d6e55035081ab9d6549f9",
+        "dirtySha256": "96ceb28bcbc4669cbba84f1e98f8398bc1845cb250b67a21ae9c3a513e8c7b18",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "60d97160f705822aa0cdefcf9a3bf3aaaf22b8b77e22ba2051eed81ac36c342d"
+      },
+      "source": {
+        "runSha256": "057188d43e6e3d9aa653d3b6fd792cf708a1acea8681c6672bcf6ca4b94e1170",
+        "cellsSha256": "e4ab863f1597caaf5374e431fa425b2d7ba0a0506319ca3484ce7c533652c456"
+      }
+    },
+    {
+      "name": "calm3",
+      "cells": 24,
+      "planSha256": "9adf42025a64ba3a530d6d67c3850b3baf840110b86fd55f9fc1402c4fcdc430",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "7d03027094b1887b1e299ab5d5f8a333059ed62e",
+        "dirtySha256": "d62de6bd4ed3ef67114e8d47dee0a7e50c95074d01cd0c3a1717d7a931c6804a",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "6222d658b89eda7ef37a45390f333ae830a662bdfbe16cf1ec245df474e746fd"
+      },
+      "source": {
+        "runSha256": "8512efef56e37ae3b94693c760da55982e3e6a9451c244697204eebefc0bec93",
+        "cellsSha256": "fb28a022598cf51d632702cc577b88a74aae2ca28969f679670cbd18f3b5d350"
+      }
+    },
+    {
+      "name": "ev-conf",
+      "cells": 24,
+      "planSha256": "71c4d0139005c189a935e86045f4f446207057bb682b18e4ed9cbb3276ef8307",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "8adc736f0653007ec11cf306210c5ca2c904fa50",
+        "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "81b2573b60fbad037ba83981e916432db000594210b0aafd47e3c4d0cf127000"
+      },
+      "source": {
+        "runSha256": "ed1eac37aa7df15d2ee565a608d5f9d77f982ef7b26089828569d4404c7ea728",
+        "cellsSha256": "828242171bb77d6135ae79a0c50d5ef3da07cb093c61cca48ff65743d3c06e10"
+      }
+    },
+    {
+      "name": "ev-dev",
+      "cells": 24,
+      "planSha256": "fc3ce910b194525934c671784acf6d3c91b75fc878653443a6c78f07c4407f87",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "8adc736f0653007ec11cf306210c5ca2c904fa50",
+        "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "81b2573b60fbad037ba83981e916432db000594210b0aafd47e3c4d0cf127000"
+      },
+      "source": {
+        "runSha256": "327cd5f793864dd9243f2679f3ca1edaa47d6fd4e1093cd695a27ca62b823a36",
+        "cellsSha256": "5bce6e1358ca137858c3802fa90d2f25b17e65ff127994eae271b7a3e4bf2e64"
+      }
+    },
+    {
+      "name": "hr05",
+      "cells": 24,
+      "planSha256": "5fab94761f7da256db6e7662da7ac315703c2f2d7239eb2dce8a50502ee1cc2b",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "f72531e5ac8df16ec7d220ddc9d0fc2636fe9f0e",
+        "dirtySha256": "434f40c2ec44acef4639b071f98419821735826b95b70baf094a40257198f2a1",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "1ef564a48f47999e0c76907baa6bb18bc9d666b93afd2496d5c49cab358e5186"
+      },
+      "source": {
+        "runSha256": "bfb80112b8e08dbeb260d404609d45b0309dc0301f106e1d42eb9b8fb6824946",
+        "cellsSha256": "fb980d88b7fb29ae7d34a50830e3265d45b5570c12c5225b3f9f8b26cddb2d2d"
+      }
+    },
+    {
+      "name": "hr05-iw15",
+      "cells": 24,
+      "planSha256": "a7b05546f2cada396274cf11726b345a32a2e8bed335591f628401bd8aeac70e",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "f72531e5ac8df16ec7d220ddc9d0fc2636fe9f0e",
+        "dirtySha256": "dda592b73ead6febaac8999514902a6363fe29395f785fa12f2b0d6573ab4a5e",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "ba4b9cbb123ee57b77ae0c04d969953afc6a74d0a94d8e2da038c4b8efad1132"
+      },
+      "source": {
+        "runSha256": "482031fd14156938391cf6a092954ab388dee55da21c2a4b832feeb89fc5823d",
+        "cellsSha256": "969a6deaf6bf2392a0804531bd4cf719a5190c021522a04ce1718abc256d27bb"
+      }
+    },
+    {
+      "name": "l1-from.4",
+      "cells": 24,
+      "planSha256": "5f550b9582b2399b0c2f3d4bac96597091ac9df8269a39f03d762bb986554680",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "bed1e7e4a49ecc8a63058793fa773b2992ed95b2",
+        "dirtySha256": "140f72c2de7bf5c55f6bdff0c66d879efb8e9deaf85caac0a9cfecc21faf8ee8",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "c1fff3b92a710e553d1e361535b1ae8be5640533389e9626669a7405c584db39"
+      },
+      "source": {
+        "runSha256": "cda4918f1b52492deb11e546bf752615141dd5ccefaac3977dd694249d0e83d5",
+        "cellsSha256": "ff6d10f7d0cd1a61bd868f56aeab99b627f596ff4b9e86416d2de7ad87326fb1"
+      }
+    },
+    {
+      "name": "l1-from.75",
+      "cells": 24,
+      "planSha256": "e15260250aa4626859e8a8812d64edd9d121b328e1efbac84fbefdb747bea6a4",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "bed1e7e4a49ecc8a63058793fa773b2992ed95b2",
+        "dirtySha256": "f8911f3d5122ae9a96142e3dc99a0d9d57335cce7173edb374a81695cf3c8d42",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "1929e6f4e4c56bbad71acabda43f7cd6140648a73ad6824ab3fdd42638fdb07f"
+      },
+      "source": {
+        "runSha256": "290c9b600cfc8812c85957cb854a896fc73409164e90b2e4d3bfc6a0ce0dacd8",
+        "cellsSha256": "f8bcbb612ae6574b4eb13df6c2aed7ba39fea3548e0e4f770ec4c75e05769afa"
+      }
+    },
+    {
+      "name": "l9-look13",
+      "cells": 24,
+      "planSha256": "1c2d3c591e11df77f1e5b4fa9f248e40c20eddc9e1269ad4e8ec798966dfcfdb",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "ec0e35765a16598744d25b4fb53a91a89b74a8f8",
+        "dirtySha256": "0a6e5eb33560ab04c9017a69b81416c41fd0274e4bb83d9cb62016212f208e7b",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "144e77b30032c89c7eb913ade526e582f4077a989734e61c5f565d304577bc9c"
+      },
+      "source": {
+        "runSha256": "fe536e4b07af0ae5b183b6e931b5172d85ab2fba8b28be173ae6299f6bafd4fe",
+        "cellsSha256": "941eb4aeb8495871365bc7c4e6f15fd84daef038978e2790ca1e967562bf0a85"
+      }
+    },
+    {
+      "name": "l9-look16",
+      "cells": 24,
+      "planSha256": "b04f8541c3ba57a11139c3385936fde893d550fd8439e30d1aa3c36756ec9e07",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "6a18b852a1d51769095f847cb78f1ea92981fe3f",
+        "dirtySha256": "61c860f2d635f58e337aa2d35eec6d33a0f0d5ee76f38733476bad1fceb1a0f0",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "e7cd4653aaa3c3c7a287e58a84b854cead8c1cc3f97d48eafd7c87e768a129a4"
+      },
+      "source": {
+        "runSha256": "5f1d4096b5ed1a48e0e43852800a77d82f44bf31d77716765771ca887f62494a",
+        "cellsSha256": "684684e776f32c3860279f071adb0c904639c1990129de6f79325321ca5c3840"
+      }
+    },
+    {
+      "name": "p32",
+      "cells": 24,
+      "planSha256": "500f6263e0f33f9fd6dda5df8dd8c09027ecf2e1dfcf26239ab53adb77996e27",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "0340c6a73c2ca10b75ed88bbe5ac422a3470daed",
+        "dirtySha256": "6dedcabd0237ec07c2fdf172ba356f070f84c946bd7d2a6f6c1450071f1dabd9",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "e7d04a45a0481cc1d4191fef7d17f9c4e7258c6c3581a493c0cd3347ba3dcda9"
+      },
+      "source": {
+        "runSha256": "c423a5da9d84d2ccf4a7de888696abd244d7bcaca9d1e837ed7d91e693aaddd6",
+        "cellsSha256": "2271cefeb2bcdc587a96ff02af698df4fb80b74b89d8cdc138f9b6dff118ed3f"
+      }
+    },
+    {
+      "name": "s3-base",
+      "cells": 24,
+      "planSha256": "7feff2d2b38ca77903e6c2834b79cc83d93de6693f72ddb5a7285476ce05dcb7",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "bb8eab27f5e5078f9c066c35db026e398c6308fb",
+        "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "dfb0a67842a36c551dc912e1614dee09cf9d4c94c3e397d7c5e551718d4823ea"
+      },
+      "source": {
+        "runSha256": "d45899d04d01e01232db62d1411a9c023d04375f04a0c6905df56c0120d0d47d",
+        "cellsSha256": "9fc85bd489dd4fa288da140d2fb52dc13e40455836ac646cc186770c81a65f9d"
+      }
+    },
+    {
+      "name": "s3-c",
+      "cells": 24,
+      "planSha256": "3380046269f9d3b7ed18e4eb98dea352ed50e5b36dcf8d4b37ba980f52b69834",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "fb51fed02b82f9ab620a4518327691e284516ea7",
+        "dirtySha256": "8081433f5cbc877dc7d32651209552d9bc15cda0b8773d8f86b8fd939b519397",
+        "untracked": 2,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "e2baae51f70eaf9089dd2303a30f934cf032f8eeb160916fd23b1cf4c73fb82e"
+      },
+      "source": {
+        "runSha256": "35a60f657aa3cb1b43041cbe4d896f9750c8cfde02a67bd08733fe5bdebe0e80",
+        "cellsSha256": "e618726031c5c96899c91d018e34be6f7ddc287ea557fd8eb5484ecb028e1125"
+      }
+    },
+    {
+      "name": "s3-l1",
+      "cells": 24,
+      "planSha256": "27acdf9cf960ca68c0ca5b1e39a5b909b00a744d1e4ce35abe24cc91c4f2b8df",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "6a18b852a1d51769095f847cb78f1ea92981fe3f",
+        "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "a264801a4db3dcfad559c68509e7efe95eb344e62b38c36aa935525e9555399d"
+      },
+      "source": {
+        "runSha256": "719480ef9f28333aeefb7916820a5e64d8ce2a738f75da4ec950ebd4fdc7293e",
+        "cellsSha256": "bf6cecfd3dc2e31eead28b946cf1f0eb2815a1f52e94845064b7a2cf4b0297bc"
+      }
+    },
+    {
+      "name": "s3-l9",
+      "cells": 24,
+      "planSha256": "3894c330d1e8083eed3a119e72e0f88202fdfba9db3d17a7c132d8510bf867b9",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "f72531e5ac8df16ec7d220ddc9d0fc2636fe9f0e",
+        "dirtySha256": "296bed47fada1d04075f6bba0d76129c57f9135b7370225c07e7d1dee8594ed2",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "949c4b1cc3a821eb42db565f2b1baa42a2ceb8da7b6cf6b6b63c51d0f1671d40"
+      },
+      "source": {
+        "runSha256": "646c84aa1bced741dde937d7f93aa6b483758bfe489f23f1575d152ae3cba71e",
+        "cellsSha256": "f63116283595a887d8ceabc8b9b024f2bedab0c0b3d624e3c4a57e574918b5d8"
+      }
+    },
+    {
+      "name": "s3-l9b",
+      "cells": 24,
+      "planSha256": "bffef0b06180e4ec9a6bc2ed2a2cee626e467ad6634a663a6a89abf8301a29fc",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "69c55fdf16b12e4b4e274d9ee18806185b114747",
+        "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "d3e294f8d6e27e8fe93695f8baff812040cc64bfae3a10ce99de98c272c2b9b2"
+      },
+      "source": {
+        "runSha256": "ae465683aca3ff2e977a432b9ac958e189b6bae3a1b3eae78fb57e8bee9c318c",
+        "cellsSha256": "a8156f39c07e045a260211e2db5dd996c0a80a4f245c515098e25c1eadb60dca"
+      }
+    },
+    {
+      "name": "s3-l9c",
+      "cells": 24,
+      "planSha256": "436e205a0419eb0bcc1c9e3ad99a689758abb7d5ab6ac9e9d33ef7ccc78efc02",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "7d03027094b1887b1e299ab5d5f8a333059ed62e",
+        "dirtySha256": "f2d07d65cbb5b80f2dd5087d2ed2959d2f3e6b5e1ac13cf607231273f1b32060",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "1cf6b9c2ace6a65294435d77ba77ee50f241351ef3573cc2d3af8c439cb6f29d"
+      },
+      "source": {
+        "runSha256": "1810ecb682d87febb125b780695788b103f09644e349a48e8bcd555d34911752",
+        "cellsSha256": "eab981dce5688284b8aa83183411a0a1bec7c12cacb8d7adcd75ea926973c1a3"
+      }
+    },
+    {
+      "name": "s3-up1",
+      "cells": 24,
+      "planSha256": "ef5c1ea017814d4200b829208c6383c86b695f40d75a96e65ff3e9e9644f6787",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "46707d6cf04bfe13ce8d6e55035081ab9d6549f9",
+        "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "2ac8408e8a9fbb731f19634897e937f5d19328dd4eb1fa7157a29fb72efb71a4"
+      },
+      "source": {
+        "runSha256": "61aedf29bfa2382b5bcd49eddbd17b91c3c4818d289e20ba031c746322999315",
+        "cellsSha256": "d174fc4b88ff6b940cb35ecfcd68b79a03cb062d1fd27f61ccb41dd803e9b5d7"
+      }
+    },
+    {
+      "name": "t1-cap085",
+      "cells": 24,
+      "planSha256": "54fe1ee908b2029a5ef3153aed508b07b70c77bc5b383192bcbbe6759ed04198",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "69c55fdf16b12e4b4e274d9ee18806185b114747",
+        "dirtySha256": "e9137f980aa8a37d994bca1065d9720f167837aee799a3b656219295cca8c72f",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "9d216ae49daf288f8961cbaefb9877f44b1e2da061443b9c266ab4fa81c56823"
+      },
+      "source": {
+        "runSha256": "95c028bfffc0d8dbd115820bf7fb6e690bf641e7c6b9f6cebeb3a73bd477e67c",
+        "cellsSha256": "bedc786eb012a4914b628e748dc75c126d6dc67af45506b0b141a49274eafc42"
+      }
+    },
+    {
+      "name": "up-all",
+      "cells": 24,
+      "planSha256": "0ec749c49b9d41b809959363859e7cb8d1b6a33bff7a5afe903cc498e952008b",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "39e80d84708ef792f02b8a28e7db011780e79d1a",
+        "dirtySha256": "b530d2b1020d633949342352678e876af7dcbb76004583fdaca442c65a8bc0e4",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "1bcf515016e0c41a39d7498eef437bf9e18dfca819136b7775a5eee535853c14"
+      },
+      "source": {
+        "runSha256": "33cb7c8f3649c2e865aba28d4e4e5418b41253eddbae65384562f7ba98698b0d",
+        "cellsSha256": "26ab43f2f33f7f10e0ccfc43526b824292cf6ec4359c29d246312364de524dd0"
+      }
+    },
+    {
+      "name": "up1",
+      "cells": 24,
+      "planSha256": "724beb1b18535f5d6694e564c5b7e8c03d2c14dbdd94b759196430a7c33e994a",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "7d03027094b1887b1e299ab5d5f8a333059ed62e",
+        "dirtySha256": "9315e20c39d91f7171fd484e773165240d1efe9febfefb64bfb79dbb20d090c1",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "ea0be99e9a145a582a7983dd44b204c6a68fc69cc006359f1d0c359394aa867d"
+      },
+      "source": {
+        "runSha256": "4c29dcc6855d1ec2e532dd4dc5f32afff9f30b3efb8f1510d69d133b829a49ae",
+        "cellsSha256": "e4c820b6f3ecc948c79431a5389b33656e686c26039247c8a3115cdbf451940d"
+      }
+    },
+    {
+      "name": "up2",
+      "cells": 24,
+      "planSha256": "4b741f58c863ab873d9b8ca8840a9cb792ad61285995b790a217b582e7c384f5",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "46707d6cf04bfe13ce8d6e55035081ab9d6549f9",
+        "dirtySha256": "1849253f3711883ae0bfc8a93ee1957b198840300e28d28140ce0ac5c5778df9",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "1a24152f17b4c3651d83e14bed7e3daa5dbfd8a1fb1face47c3fd9a62abdf3ca"
+      },
+      "source": {
+        "runSha256": "110709d5676b270d32d5018f8b374d4ebcc2af3e07c0e1a6eb7cf466c7909abe",
+        "cellsSha256": "f124a3c540c518dd00adb0a0df360a06e69a02bea34610391ac13bffb02f672f"
+      }
+    },
+    {
+      "name": "v3-conf",
+      "cells": 24,
+      "planSha256": "e63aebb2905fd8998999eb666fe70d178602b818dbe7fbbfaddd0963504b1158",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "8adc736f0653007ec11cf306210c5ca2c904fa50",
+        "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "81b2573b60fbad037ba83981e916432db000594210b0aafd47e3c4d0cf127000"
+      },
+      "source": {
+        "runSha256": "890f87dd09f9621e697d90286b3bbd3f688bff08e6009026fe2bea895e13895e",
+        "cellsSha256": "160aedc30ed71c20dc1195f66b416c6b5dc07e83704e3cae9a5e2c21628ff4ac"
+      }
+    },
+    {
+      "name": "v3-dev",
+      "cells": 24,
+      "planSha256": "0e7223a70773447142288f915d900baeacffb1ab8c2f69feedd2eb5efece569c",
+      "compiler": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "8adc736f0653007ec11cf306210c5ca2c904fa50",
+        "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "81b2573b60fbad037ba83981e916432db000594210b0aafd47e3c4d0cf127000"
+      },
+      "source": {
+        "runSha256": "70b1bdc971b70b54370887cf60b58711fe78158c8cd572b28b17645538848bb7",
+        "cellsSha256": "97e4a68a3a04db66df7acda575b26e2d793be1ba9b73aa0a34f095ff5cbe4505"
+      }
+    }
+  ],
+  "correctedDiagnostics": {
+    "definition": "Direct v3 opposite-push boundaries; thresholded subset requires both adjacent event strengths >=0.2. Not an exhaustive perceptual definition of double impacts.",
+    "before": {
+      "beats": 3780,
+      "boundaries": 863,
+      "bothAtLeastPoint2": 414
+    },
+    "after": {
+      "beats": 3780,
+      "boundaries": 58,
+      "bothAtLeastPoint2": 9
+    }
+  },
+  "impactLossReduction": [
+    {
+      "set": "dev",
+      "panel": "authored",
+      "before": 0.09170194476295299,
+      "after": 0.02878909813471188,
+      "reductionPercent": 68.605793247754
+    },
+    {
+      "set": "dev",
+      "panel": "perturbed",
+      "before": 0.0926760619810298,
+      "after": 0.030840877273350414,
+      "reductionPercent": 66.72185177693098
+    },
+    {
+      "set": "confirm",
+      "panel": "authored",
+      "before": 0.09743293147940262,
+      "after": 0.031113623185387684,
+      "reductionPercent": 68.06662520262451
+    },
+    {
+      "set": "confirm",
+      "panel": "perturbed",
+      "before": 0.0936559444400161,
+      "after": 0.02776777402212642,
+      "reductionPercent": 70.35129570455523
+    }
+  ],
+  "report": {
+    "stages": [
+      {
+        "key": "evening",
+        "run": "ev-dev",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "8adc736f0653007ec11cf306210c5ca2c904fa50",
+          "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "81b2573b60fbad037ba83981e916432db000594210b0aafd47e3c4d0cf127000"
+        },
+        "mode": "strike",
+        "jolt": -15,
+        "evaluator": "2d7ae2e08471a0342b4bbfc2a8faeebaee3524a57dcbf2774a5df5f85f61fd31"
+      },
+      {
+        "key": "v3",
+        "run": "v3-dev",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "8adc736f0653007ec11cf306210c5ca2c904fa50",
+          "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "81b2573b60fbad037ba83981e916432db000594210b0aafd47e3c4d0cf127000"
+        },
+        "mode": "strike3",
+        "jolt": -15,
+        "evaluator": "2d7ae2e08471a0342b4bbfc2a8faeebaee3524a57dcbf2774a5df5f85f61fd31"
+      },
+      {
+        "key": "final",
+        "run": "s3-c",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "fb51fed02b82f9ab620a4518327691e284516ea7",
+          "dirtySha256": "8081433f5cbc877dc7d32651209552d9bc15cda0b8773d8f86b8fd939b519397",
+          "untracked": 2,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "e2baae51f70eaf9089dd2303a30f934cf032f8eeb160916fd23b1cf4c73fb82e"
+        },
+        "mode": "strike3",
+        "jolt": -15,
+        "evaluator": "2d7ae2e08471a0342b4bbfc2a8faeebaee3524a57dcbf2774a5df5f85f61fd31"
+      }
+    ],
+    "confirmStages": [
+      {
+        "key": "evening",
+        "run": "ev-conf",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "8adc736f0653007ec11cf306210c5ca2c904fa50",
+          "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "81b2573b60fbad037ba83981e916432db000594210b0aafd47e3c4d0cf127000"
+        },
+        "mode": "strike",
+        "jolt": -15,
+        "evaluator": "2d7ae2e08471a0342b4bbfc2a8faeebaee3524a57dcbf2774a5df5f85f61fd31"
+      },
+      {
+        "key": "v3",
+        "run": "v3-conf",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "8adc736f0653007ec11cf306210c5ca2c904fa50",
+          "dirtySha256": "d1fdbb6fedcee8f32392fdd2f4313da5fca7f9679a991393a494e58f16f76de5",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "81b2573b60fbad037ba83981e916432db000594210b0aafd47e3c4d0cf127000"
+        },
+        "mode": "strike3",
+        "jolt": -15,
+        "evaluator": "2d7ae2e08471a0342b4bbfc2a8faeebaee3524a57dcbf2774a5df5f85f61fd31"
+      },
+      {
+        "key": "final",
+        "run": "c-c",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "fb51fed02b82f9ab620a4518327691e284516ea7",
+          "dirtySha256": "8081433f5cbc877dc7d32651209552d9bc15cda0b8773d8f86b8fd939b519397",
+          "untracked": 2,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "e2baae51f70eaf9089dd2303a30f934cf032f8eeb160916fd23b1cf4c73fb82e"
+        },
+        "mode": "strike3",
+        "jolt": -15,
+        "evaluator": "2d7ae2e08471a0342b4bbfc2a8faeebaee3524a57dcbf2774a5df5f85f61fd31"
+      }
+    ],
+    "dev": [
+      {
+        "panel": "authored",
+        "title": "Authored specs",
+        "rows": [
+          {
+            "group": "Impact",
+            "metric": "impact loss (v3)",
+            "label": "Impact loss (strength, timing, extras)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.09170194476295299,
+                "lo": 0.056083521151107055,
+                "hi": 0.1497237587867279,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.0427972415810582,
+                "lo": 0.021961548205452524,
+                "hi": 0.08018202308999238,
+                "songs": 4,
+                "diff": -0.04890470318189478,
+                "diffLo": -0.0695417356967355,
+                "diffHi": -0.034121972945654534
+              },
+              {
+                "key": "final",
+                "value": 0.02878909813471188,
+                "lo": 0.012757959415752505,
+                "hi": 0.05476150898992736,
+                "songs": 4,
+                "diff": -0.06291284662824112,
+                "diffLo": -0.09496224979680054,
+                "diffHi": -0.043325561735354554
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 strong bias (req>=0.6)",
+            "label": "Strong beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": -0.2789191990478493,
+                "lo": -0.33219393262987007,
+                "hi": -0.23737384181864235,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": -0.15884724048041204,
+                "lo": -0.22378638392857142,
+                "hi": -0.1208734426713948,
+                "songs": 4,
+                "diff": 0.12007195856743727,
+                "diffLo": 0.10845860389610386,
+                "diffHi": 0.1337880952380952
+              },
+              {
+                "key": "final",
+                "value": -0.11023350593383176,
+                "lo": -0.16780216149591154,
+                "hi": -0.07542660383597885,
+                "songs": 4,
+                "diff": 0.16868569311401754,
+                "diffLo": 0.15011510603757938,
+                "diffHi": 0.19000138888888884
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 very strong bias (req>=0.8)",
+            "label": "Very strong beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": -0.368702306547619,
+                "lo": -0.3902433779761904,
+                "hi": -0.344259375,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": -0.20807745535714284,
+                "lo": -0.25920595238095234,
+                "hi": -0.15694895833333333,
+                "songs": 4,
+                "diff": 0.16062485119047618,
+                "diffLo": 0.1234424107142857,
+                "diffHi": 0.19780729166666663
+              },
+              {
+                "key": "final",
+                "value": -0.13802034970238095,
+                "lo": -0.19716261160714285,
+                "hi": -0.09619062499999997,
+                "songs": 4,
+                "diff": 0.2306819568452381,
+                "diffLo": 0.18977399553571425,
+                "diffHi": 0.26078541666666666
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 quiet bias (req<0.15)",
+            "label": "Quiet beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.0594094742063492,
+                "lo": 0.04267430555555554,
+                "hi": 0.07494439484126984,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.05781934523809524,
+                "lo": 0.05261517857142857,
+                "hi": 0.06461249999999999,
+                "songs": 4,
+                "diff": -0.0015901289682539663,
+                "diffLo": -0.019032192460317458,
+                "diffHi": 0.021938194444444448
+              },
+              {
+                "key": "final",
+                "value": 0.056990376984126984,
+                "lo": 0.04864722222222222,
+                "hi": 0.06803224206349207,
+                "songs": 4,
+                "diff": -0.002419097222222221,
+                "diffLo": -0.010888194444444445,
+                "diffHi": 0.0072093750000000005
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "opposite-push boundaries / beat (v3)",
+            "label": "Opposite-push boundaries per beat (v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.21397761552173317,
+                "lo": 0.14185897435897438,
+                "hi": 0.31499811463046756,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.02060814185814186,
+                "lo": 0.008203463203463202,
+                "hi": 0.039935064935064934,
+                "songs": 4,
+                "diff": -0.1933694736635913,
+                "diffLo": -0.27349170437405734,
+                "diffHi": -0.1305128205128205
+              },
+              {
+                "key": "final",
+                "value": 0.01227948522066169,
+                "lo": 0.004913419913419913,
+                "hi": 0.02147631779984721,
+                "songs": 4,
+                "diff": -0.20169813030107148,
+                "diffLo": -0.29194004524886874,
+                "diffHi": -0.13378205128205128
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "opposite-push pairs >=0.2 / beat (v3)",
+            "label": "Opposite-push pairs per beat (both ≥0.2, v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.09529416661769602,
+                "lo": 0.05705128205128204,
+                "hi": 0.15058446455505278,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.004411764705882353,
+                "lo": 0,
+                "hi": 0.013235294117647059,
+                "songs": 4,
+                "diff": -0.09088240191181368,
+                "diffLo": -0.13734917043740574,
+                "diffHi": -0.05705128205128204
+              },
+              {
+                "key": "final",
+                "value": 0,
+                "lo": 0,
+                "hi": 0,
+                "songs": 4,
+                "diff": -0.09529416661769602,
+                "diffLo": -0.15058446455505278,
+                "diffHi": -0.05705128205128204
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "contested strong beats",
+            "label": "Strong beats with a competing hit",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.04131902868604996,
+                "lo": 0.015267927501970055,
+                "hi": 0.06737012987012987,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.015323415256925894,
+                "lo": 0.009093915343915343,
+                "hi": 0.026665464165464163,
+                "songs": 4,
+                "diff": -0.025995613429124067,
+                "diffLo": -0.04667207792207792,
+                "diffHi": -0.005319148936170213
+              },
+              {
+                "key": "final",
+                "value": 0.007305194805194806,
+                "lo": 0,
+                "hi": 0.021915584415584416,
+                "songs": 4,
+                "diff": -0.03401383388085515,
+                "diffLo": -0.052759740259740256,
+                "diffHi": -0.015267927501970055
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "R1 bend peak lag ms (median)",
+            "label": "R1 bend peak after the beat (ms, median)",
+            "better": "lower",
+            "digits": 1,
+            "stages": [
+              {
+                "key": "evening",
+                "value": 25,
+                "lo": 25,
+                "hi": 25,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 14.0625,
+                "lo": 4.6875,
+                "hi": 21.875,
+                "songs": 4,
+                "diff": -10.9375,
+                "diffLo": -20.3125,
+                "diffHi": -3.125
+              },
+              {
+                "key": "final",
+                "value": 17.1875,
+                "lo": 6.25,
+                "hi": 25,
+                "songs": 4,
+                "diff": -7.8125,
+                "diffLo": -18.75,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "complete",
+            "label": "Rides completed",
+            "better": "higher",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "final",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "air rms",
+            "label": "Air error (rms)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.06588887085130955,
+                "lo": 0.053223071818385384,
+                "hi": 0.0846276255535864,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.07144005552411299,
+                "lo": 0.054493196733965896,
+                "hi": 0.09364837963743435,
+                "songs": 4,
+                "diff": 0.00555118467280343,
+                "diffLo": 0.0007728631500534483,
+                "diffHi": 0.01002251997420965
+              },
+              {
+                "key": "final",
+                "value": 0.06627861913226216,
+                "lo": 0.05164392590575037,
+                "hi": 0.08745189697852479,
+                "songs": 4,
+                "diff": 0.0003897482809526007,
+                "diffLo": -0.003618884449423319,
+                "diffHi": 0.0033841352638472495
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "speed rms",
+            "label": "Speed error (rms)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.07492844784125191,
+                "lo": 0.05914545882514005,
+                "hi": 0.1003110568812829,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.09357209104574546,
+                "lo": 0.07105586674972497,
+                "hi": 0.13336401109561638,
+                "songs": 4,
+                "diff": 0.018643643204493545,
+                "diffLo": 0.010131388557518346,
+                "diffHi": 0.0328807252610988
+              },
+              {
+                "key": "final",
+                "value": 0.0726443869271008,
+                "lo": 0.05683455976569452,
+                "hi": 0.10204522981948635,
+                "songs": 4,
+                "diff": -0.00228406091415112,
+                "diffLo": -0.008354709741167164,
+                "diffHi": 0.0028213975330033
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "amplitude rms",
+            "label": "Amplitude error (rms, one song)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.12636462253766648,
+                "lo": 0.12636462253766648,
+                "hi": 0.12636462253766648,
+                "songs": 1,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.1194753184458454,
+                "lo": 0.1194753184458454,
+                "hi": 0.1194753184458454,
+                "songs": 1,
+                "diff": -0.006889304091821088,
+                "diffLo": -0.006889304091821088,
+                "diffHi": -0.006889304091821088
+              },
+              {
+                "key": "final",
+                "value": 0.13000094994316103,
+                "lo": 0.13000094994316103,
+                "hi": 0.13000094994316103,
+                "songs": 1,
+                "diff": 0.003636327405494539,
+                "diffLo": 0.003636327405494539,
+                "diffHi": 0.003636327405494539
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "strong arrivals inverted/backward",
+            "label": "Strong arrivals head-down/backward at first contact (v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.22279101168728827,
+                "lo": 0.1948953823953824,
+                "hi": 0.25878609422492405,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.23652495062069528,
+                "lo": 0.2000591016548463,
+                "hi": 0.2719155844155844,
+                "songs": 4,
+                "diff": 0.01373393893340702,
+                "diffLo": -0.02231279358938934,
+                "diffHi": 0.06026785714285716
+              },
+              {
+                "key": "final",
+                "value": 0.12121931703048724,
+                "lo": 0.09077380952380952,
+                "hi": 0.15221314589665655,
+                "songs": 4,
+                "diff": -0.10157169465680105,
+                "diffLo": -0.10676291793313071,
+                "diffHi": -0.09477756286266925
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "body drag s/min",
+            "label": "Body dragging on lines (s/min)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 1.4356655321329235,
+                "lo": 0.6445775691699605,
+                "hi": 2.367582070707071,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 1.4486694961389255,
+                "lo": 1.0444972826086956,
+                "hi": 2.117917455808081,
+                "songs": 4,
+                "diff": 0.013003964006002053,
+                "diffLo": -0.3678130947152687,
+                "diffHi": 0.540062079124579
+              },
+              {
+                "key": "final",
+                "value": 2.07300187106573,
+                "lo": 1.1846127717391304,
+                "hi": 3.4428661616161618,
+                "songs": 4,
+                "diff": 0.6373363389328064,
+                "diffLo": 0.09001358695652181,
+                "diffHi": 1.1846590909090908
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "burst excess (100 ms)",
+            "label": "Unwanted speed-ups (100 ms bursts)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0,
+                "lo": 0,
+                "hi": 0,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.000337855868256947,
+                "lo": 0,
+                "hi": 0.001013567604770841,
+                "songs": 4,
+                "diff": 0.000337855868256947,
+                "diffLo": 0,
+                "diffHi": 0.001013567604770841
+              },
+              {
+                "key": "final",
+                "value": 0,
+                "lo": 0,
+                "hi": 0,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Cost",
+            "metric": "physics frames (M)",
+            "label": "Physics frames per ride (M)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 2.370961375,
+                "lo": 2.23757525,
+                "hi": 2.5043474999999997,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 2.4707045625,
+                "lo": 2.2939655,
+                "hi": 2.7110579375,
+                "songs": 4,
+                "diff": 0.09974318750000008,
+                "diffLo": -0.008237187499999965,
+                "diffHi": 0.25107650000000015
+              },
+              {
+                "key": "final",
+                "value": 2.74225875,
+                "lo": 2.512509,
+                "hi": 2.9720085,
+                "songs": 4,
+                "diff": 0.37129737500000004,
+                "diffLo": 0.27493375000000003,
+                "diffHi": 0.467661
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "panel": "perturbed",
+        "title": "Perturbed specs",
+        "rows": [
+          {
+            "group": "Impact",
+            "metric": "impact loss (v3)",
+            "label": "Impact loss (strength, timing, extras)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.0926760619810298,
+                "lo": 0.05916332028747294,
+                "hi": 0.15304977916046997,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.04049173344079121,
+                "lo": 0.02133298472642984,
+                "hi": 0.07266347648014085,
+                "songs": 4,
+                "diff": -0.05218432854023859,
+                "diffLo": -0.07871149472787432,
+                "diffHi": -0.03573618584966541
+              },
+              {
+                "key": "final",
+                "value": 0.030840877273350414,
+                "lo": 0.013852401877123926,
+                "hi": 0.056459480817733235,
+                "songs": 4,
+                "diff": -0.061835184707679396,
+                "diffLo": -0.09461680659956859,
+                "diffHi": -0.04224043921616674
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 strong bias (req>=0.6)",
+            "label": "Strong beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": -0.28457099457079804,
+                "lo": -0.3455297765236405,
+                "hi": -0.23883889930754232,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": -0.1655246881151261,
+                "lo": -0.22031610526431783,
+                "hi": -0.12797934174825382,
+                "songs": 4,
+                "diff": 0.11904630645567195,
+                "diffLo": 0.1064321951837916,
+                "diffHi": 0.12723305535205537
+              },
+              {
+                "key": "final",
+                "value": -0.12037070533708491,
+                "lo": -0.18276305189607403,
+                "hi": -0.07841555505656014,
+                "songs": 4,
+                "diff": 0.16420028923371316,
+                "diffLo": 0.13948763010540183,
+                "diffHi": 0.18156006604506608
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 very strong bias (req>=0.8)",
+            "label": "Very strong beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": -0.3535529771241864,
+                "lo": -0.3968948196878696,
+                "hi": -0.3102111345605031,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": -0.23155062619288502,
+                "lo": -0.2698125028148094,
+                "hi": -0.2024837109326816,
+                "songs": 4,
+                "diff": 0.12200235093130132,
+                "diffLo": 0.09053293269230767,
+                "diffHi": 0.14619441823899365
+              },
+              {
+                "key": "final",
+                "value": -0.14452325947111969,
+                "lo": -0.2110521423135243,
+                "hi": -0.10335780460200407,
+                "songs": 4,
+                "diff": 0.20902971765306666,
+                "diffLo": 0.16600334556254356,
+                "diffHi": 0.25205608974358973
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 quiet bias (req<0.15)",
+            "label": "Quiet beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.08845381946622151,
+                "lo": 0.07105346195752629,
+                "hi": 0.10585417697491672,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.07079796629161833,
+                "lo": 0.06455100715573256,
+                "hi": 0.07704492542750409,
+                "songs": 4,
+                "diff": -0.01765585317460318,
+                "diffLo": -0.03906200396825397,
+                "diffHi": 0.0013055555555555468
+              },
+              {
+                "key": "final",
+                "value": 0.0715414186725707,
+                "lo": 0.05222141032086737,
+                "hi": 0.08499048649872624,
+                "songs": 4,
+                "diff": -0.016912400793650802,
+                "diffLo": -0.027380357142857154,
+                "diffHi": -0.0064444444444444506
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "opposite-push boundaries / beat (v3)",
+            "label": "Opposite-push boundaries per beat (v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.24343509431744725,
+                "lo": 0.15783549783549783,
+                "hi": 0.38029029793735675,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.009325184619302266,
+                "lo": 0.003246753246753247,
+                "hi": 0.015317035905271201,
+                "songs": 4,
+                "diff": -0.234109909698145,
+                "diffLo": -0.36380825057295646,
+                "diffHi": -0.148008658008658
+              },
+              {
+                "key": "final",
+                "value": 0.01551477933830875,
+                "lo": 0.008203463203463204,
+                "hi": 0.02526395173453997,
+                "songs": 4,
+                "diff": -0.2279203149791385,
+                "diffLo": -0.3566080977845684,
+                "diffHi": -0.14792207792207793
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "opposite-push pairs >=0.2 / beat (v3)",
+            "label": "Opposite-push pairs per beat (both ≥0.2, v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.11539485024779142,
+                "lo": 0.05571428571428571,
+                "hi": 0.1987394957983193,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.004760631525337408,
+                "lo": 0.0016233766233766235,
+                "hi": 0.006580086580086581,
+                "songs": 4,
+                "diff": -0.11063421872245402,
+                "diffLo": -0.19270435446906034,
+                "diffHi": -0.049134199134199134
+              },
+              {
+                "key": "final",
+                "value": 0.004956709956709957,
+                "lo": 0,
+                "hi": 0.01,
+                "songs": 4,
+                "diff": -0.11043814029108145,
+                "diffLo": -0.19711611917494268,
+                "diffHi": -0.0458008658008658
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "contested strong beats",
+            "label": "Strong beats with a competing hit",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.029587280674237194,
+                "lo": 0.01469404186795491,
+                "hi": 0.044986772486772485,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.0035714285714285713,
+                "lo": 0,
+                "hi": 0.010714285714285714,
+                "songs": 4,
+                "diff": -0.026015852102808622,
+                "diffLo": -0.037337662337662336,
+                "diffHi": -0.01469404186795491
+              },
+              {
+                "key": "final",
+                "value": 0.008571428571428572,
+                "lo": 0,
+                "hi": 0.017142857142857144,
+                "songs": 4,
+                "diff": -0.021015852102808624,
+                "diffLo": -0.03343073593073593,
+                "diffHi": -0.012781803542673107
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "R1 bend peak lag ms (median)",
+            "label": "R1 bend peak after the beat (ms, median)",
+            "better": "lower",
+            "digits": 1,
+            "stages": [
+              {
+                "key": "evening",
+                "value": 21.875,
+                "lo": 15.625,
+                "hi": 25,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 12.5,
+                "lo": 0,
+                "hi": 25,
+                "songs": 4,
+                "diff": -9.375,
+                "diffLo": -18.75,
+                "diffHi": 0
+              },
+              {
+                "key": "final",
+                "value": 18.75,
+                "lo": 12.5,
+                "hi": 25,
+                "songs": 4,
+                "diff": -3.125,
+                "diffLo": -9.375,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "complete",
+            "label": "Rides completed",
+            "better": "higher",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "final",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "air rms",
+            "label": "Air error (rms)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.06707996278125739,
+                "lo": 0.050283448997158725,
+                "hi": 0.09051684311467448,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.07312882570943269,
+                "lo": 0.05589497838303562,
+                "hi": 0.09802637296157633,
+                "songs": 4,
+                "diff": 0.006048862928175299,
+                "diffLo": 0.0007454493746675596,
+                "diffHi": 0.012790474927882526
+              },
+              {
+                "key": "final",
+                "value": 0.06793155042812964,
+                "lo": 0.05028015288127764,
+                "hi": 0.0938841306121684,
+                "songs": 4,
+                "diff": 0.0008515876468722554,
+                "diffLo": -0.0007679267251591744,
+                "diffHi": 0.0030262739086917307
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "speed rms",
+            "label": "Speed error (rms)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.07740176858026006,
+                "lo": 0.05452789631723784,
+                "hi": 0.11329989902808933,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.09529568369506018,
+                "lo": 0.0723643663542872,
+                "hi": 0.13291952818468297,
+                "songs": 4,
+                "diff": 0.017893915114800138,
+                "diffLo": 0.00960427151703605,
+                "diffHi": 0.02383678333528934
+              },
+              {
+                "key": "final",
+                "value": 0.07230620949220481,
+                "lo": 0.05892368527505927,
+                "hi": 0.0972199806177101,
+                "songs": 4,
+                "diff": -0.0050955590880552406,
+                "diffLo": -0.016079918410379212,
+                "diffHi": 0.006247066266607216
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "amplitude rms",
+            "label": "Amplitude error (rms, one song)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.13505907699670452,
+                "lo": 0.13505907699670452,
+                "hi": 0.13505907699670452,
+                "songs": 1,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.1275289536349537,
+                "lo": 0.1275289536349537,
+                "hi": 0.1275289536349537,
+                "songs": 1,
+                "diff": -0.007530123361750823,
+                "diffLo": -0.007530123361750823,
+                "diffHi": -0.007530123361750823
+              },
+              {
+                "key": "final",
+                "value": 0.12230999114999783,
+                "lo": 0.12230999114999783,
+                "hi": 0.12230999114999783,
+                "songs": 1,
+                "diff": -0.012749085846706698,
+                "diffLo": -0.012749085846706698,
+                "diffHi": -0.012749085846706698
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "strong arrivals inverted/backward",
+            "label": "Strong arrivals head-down/backward at first contact (v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.18643503638068853,
+                "lo": 0.15360389610389608,
+                "hi": 0.20954968944099378,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.17906833353844223,
+                "lo": 0.14947802197802199,
+                "hi": 0.2064428053830228,
+                "songs": 4,
+                "diff": -0.007366702842246321,
+                "diffLo": -0.04369019416573765,
+                "diffHi": 0.0246969696969697
+              },
+              {
+                "key": "final",
+                "value": 0.13197540332051202,
+                "lo": 0.09863895363895364,
+                "hi": 0.17163790567323176,
+                "songs": 4,
+                "diff": -0.05445963306017654,
+                "diffLo": -0.07357753357753359,
+                "diffHi": -0.03230913561076604
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "body drag s/min",
+            "label": "Body dragging on lines (s/min)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 1.8664824193017129,
+                "lo": 1.141813858695652,
+                "hi": 2.883522727272728,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 1.4042822930390866,
+                "lo": 0.6273777173913042,
+                "hi": 2.3126183712121215,
+                "songs": 4,
+                "diff": -0.46220012626262624,
+                "diffLo": -0.8984375,
+                "diffHi": -0.10937500000000008
+              },
+              {
+                "key": "final",
+                "value": 1.9741470410628021,
+                "lo": 1.1868824110671936,
+                "hi": 3.1858428030303036,
+                "songs": 4,
+                "diff": 0.10766462176108921,
+                "diffLo": -0.31475076855511636,
+                "diffHi": 0.4754577020202021
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "burst excess (100 ms)",
+            "label": "Unwanted speed-ups (100 ms bursts)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0,
+                "lo": 0,
+                "hi": 0,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.0026935050526219403,
+                "lo": 0,
+                "hi": 0.008080515157865821,
+                "songs": 4,
+                "diff": 0.0026935050526219403,
+                "diffLo": 0,
+                "diffHi": 0.008080515157865821
+              },
+              {
+                "key": "final",
+                "value": 0,
+                "lo": 0,
+                "hi": 0,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Cost",
+            "metric": "physics frames (M)",
+            "label": "Physics frames per ride (M)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 2.3505678750000003,
+                "lo": 2.1615907500000002,
+                "hi": 2.539545,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 2.4104351250000002,
+                "lo": 2.1985520000000003,
+                "hi": 2.6990423750000003,
+                "songs": 4,
+                "diff": 0.05986725000000004,
+                "diffLo": -0.045518499999999906,
+                "diffHi": 0.16525299999999998
+              },
+              {
+                "key": "final",
+                "value": 2.676348375,
+                "lo": 2.43881725,
+                "hi": 2.9138795,
+                "songs": 4,
+                "diff": 0.3257805,
+                "diffLo": 0.26682800000000007,
+                "diffHi": 0.3743344999999999
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "confirm": [
+      {
+        "panel": "authored",
+        "title": "Authored specs",
+        "rows": [
+          {
+            "group": "Impact",
+            "metric": "impact loss (v3)",
+            "label": "Impact loss (strength, timing, extras)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.09743293147940262,
+                "lo": 0.06259016458488506,
+                "hi": 0.15802442160061014,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.04375258541176931,
+                "lo": 0.02323849495482396,
+                "hi": 0.08125412300239282,
+                "songs": 4,
+                "diff": -0.053680346067633306,
+                "diffLo": -0.07677029859821732,
+                "diffHi": -0.039351669630061106
+              },
+              {
+                "key": "final",
+                "value": 0.031113623185387684,
+                "lo": 0.015474264617812683,
+                "hi": 0.058205224306866865,
+                "songs": 4,
+                "diff": -0.06631930829401493,
+                "diffLo": -0.09981919729374326,
+                "diffHi": -0.04698531394999217
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 strong bias (req>=0.6)",
+            "label": "Strong beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": -0.28569427692259475,
+                "lo": -0.337843161525974,
+                "hi": -0.24083168756332318,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": -0.166306188544513,
+                "lo": -0.22600186688311685,
+                "hi": -0.1298428230890465,
+                "songs": 4,
+                "diff": 0.11938808837808171,
+                "diffLo": 0.10695539988601821,
+                "diffHi": 0.13622083333333332
+              },
+              {
+                "key": "final",
+                "value": -0.11819443212840154,
+                "lo": -0.1752207255687575,
+                "hi": -0.08671725363756613,
+                "songs": 4,
+                "diff": 0.16749984479419322,
+                "diffLo": 0.1525154479828682,
+                "diffHi": 0.18773189484126984
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 very strong bias (req>=0.8)",
+            "label": "Very strong beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": -0.3529683035714286,
+                "lo": -0.3889543898809523,
+                "hi": -0.32387343749999997,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": -0.22676268601190475,
+                "lo": -0.2700786830357143,
+                "hi": -0.2017552083333333,
+                "songs": 4,
+                "diff": 0.1262056175595238,
+                "diffLo": 0.11478831845238095,
+                "diffHi": 0.13779427083333334
+              },
+              {
+                "key": "final",
+                "value": -0.14962239583333334,
+                "lo": -0.20294739583333332,
+                "hi": -0.10877916666666668,
+                "songs": 4,
+                "diff": 0.20334590773809524,
+                "diffLo": 0.18205543154761905,
+                "diffHi": 0.22115625
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 quiet bias (req<0.15)",
+            "label": "Quiet beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.0599592757936508,
+                "lo": 0.02718125,
+                "hi": 0.08456463293650793,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.0429203373015873,
+                "lo": 0.021596527777777777,
+                "hi": 0.06223234126984127,
+                "songs": 4,
+                "diff": -0.017038938492063498,
+                "diffLo": -0.026741765873015876,
+                "diffHi": -0.007336111111111116
+              },
+              {
+                "key": "final",
+                "value": 0.05457698412698413,
+                "lo": 0.029222916666666664,
+                "hi": 0.06837619047619048,
+                "songs": 4,
+                "diff": -0.005382291666666668,
+                "diffLo": -0.016042708333333336,
+                "diffHi": 0.0013541666666666684
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "opposite-push boundaries / beat (v3)",
+            "label": "Opposite-push boundaries per beat (v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.2182395300777654,
+                "lo": 0.13444805194805196,
+                "hi": 0.3314385369532428,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.025743961920432507,
+                "lo": 0.0065584415584415585,
+                "hi": 0.05614630467571644,
+                "songs": 4,
+                "diff": -0.19249556815733287,
+                "diffLo": -0.2752922322775264,
+                "diffHi": -0.1278896103896104
+              },
+              {
+                "key": "final",
+                "value": 0.017711308299543593,
+                "lo": 0.007307692307692307,
+                "hi": 0.029717341482047365,
+                "songs": 4,
+                "diff": -0.20052822177822177,
+                "diffLo": -0.3001602564102564,
+                "diffHi": -0.12865384615384615
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "opposite-push pairs >=0.2 / beat (v3)",
+            "label": "Opposite-push pairs per beat (both ≥0.2, v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.11168850757086052,
+                "lo": 0.06685064935064935,
+                "hi": 0.1746417797888386,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.006617647058823529,
+                "lo": 0,
+                "hi": 0.019852941176470587,
+                "songs": 4,
+                "diff": -0.10507086051203698,
+                "diffLo": -0.154788838612368,
+                "diffHi": -0.06685064935064935
+              },
+              {
+                "key": "final",
+                "value": 0.0023586707410236823,
+                "lo": 0,
+                "hi": 0.00487012987012987,
+                "songs": 4,
+                "diff": -0.10932983682983682,
+                "diffLo": -0.17243589743589743,
+                "diffHi": -0.06522727272727273
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "contested strong beats",
+            "label": "Strong beats with a competing hit",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.049690004144791376,
+                "lo": 0.018617021276595744,
+                "hi": 0.08076298701298701,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.018073657036422993,
+                "lo": 0.011408730158730158,
+                "hi": 0.025904946117712074,
+                "songs": 4,
+                "diff": -0.03161634710836838,
+                "diffLo": -0.05722402597402597,
+                "diffHi": -0.006008668242710794
+              },
+              {
+                "key": "final",
+                "value": 0.016946791880302518,
+                "lo": 0.009093915343915343,
+                "hi": 0.031535594035594035,
+                "songs": 4,
+                "diff": -0.032743212264488855,
+                "diffLo": -0.06022036474164134,
+                "diffHi": -0.003607503607503608
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "R1 bend peak lag ms (median)",
+            "label": "R1 bend peak after the beat (ms, median)",
+            "better": "lower",
+            "digits": 1,
+            "stages": [
+              {
+                "key": "evening",
+                "value": 26.5625,
+                "lo": 25,
+                "hi": 29.6875,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 17.1875,
+                "lo": 6.25,
+                "hi": 25,
+                "songs": 4,
+                "diff": -9.375,
+                "diffLo": -18.75,
+                "diffHi": 0
+              },
+              {
+                "key": "final",
+                "value": 17.1875,
+                "lo": 9.375,
+                "hi": 25,
+                "songs": 4,
+                "diff": -9.375,
+                "diffLo": -15.625,
+                "diffHi": -3.125
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "complete",
+            "label": "Rides completed",
+            "better": "higher",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "final",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "air rms",
+            "label": "Air error (rms)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.0667654253562546,
+                "lo": 0.05296792441936792,
+                "hi": 0.08574479490000127,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.07204655205397782,
+                "lo": 0.05679744376545687,
+                "hi": 0.09278460663114634,
+                "songs": 4,
+                "diff": 0.005281126697723228,
+                "diffLo": 0.002463376299333923,
+                "diffHi": 0.007639829478775436
+              },
+              {
+                "key": "final",
+                "value": 0.06556165170956697,
+                "lo": 0.0544853235156869,
+                "hi": 0.08353564419168455,
+                "songs": 4,
+                "diff": -0.0012037736466876249,
+                "diffLo": -0.003924946389694229,
+                "diffHi": 0.0015550186503924574
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "speed rms",
+            "label": "Speed error (rms)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.08362252621127544,
+                "lo": 0.06237111109229128,
+                "hi": 0.11623820278590254,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.09873209623471134,
+                "lo": 0.07139550308769343,
+                "hi": 0.1428376367910361,
+                "songs": 4,
+                "diff": 0.015109570023435909,
+                "diffLo": 0.00902439199540216,
+                "diffHi": 0.026599434005133555
+              },
+              {
+                "key": "final",
+                "value": 0.07204284473829053,
+                "lo": 0.058521359562086026,
+                "hi": 0.09840262197500049,
+                "songs": 4,
+                "diff": -0.011579681472984894,
+                "diffLo": -0.019675814794997568,
+                "diffHi": -0.003483548150972222
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "amplitude rms",
+            "label": "Amplitude error (rms, one song)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.1275348804230102,
+                "lo": 0.1275348804230102,
+                "hi": 0.1275348804230102,
+                "songs": 1,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.11113066485141088,
+                "lo": 0.11113066485141088,
+                "hi": 0.11113066485141088,
+                "songs": 1,
+                "diff": -0.01640421557159931,
+                "diffLo": -0.01640421557159931,
+                "diffHi": -0.01640421557159931
+              },
+              {
+                "key": "final",
+                "value": 0.1151163062613088,
+                "lo": 0.1151163062613088,
+                "hi": 0.1151163062613088,
+                "songs": 1,
+                "diff": -0.01241857416170138,
+                "diffLo": -0.01241857416170138,
+                "diffHi": -0.01241857416170138
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "strong arrivals inverted/backward",
+            "label": "Strong arrivals head-down/backward at first contact (v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.2434417311411992,
+                "lo": 0.22606382978723405,
+                "hi": 0.2558847402597403,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.25108401006007386,
+                "lo": 0.1708829365079365,
+                "hi": 0.30423632218844987,
+                "songs": 4,
+                "diff": 0.007642278918874668,
+                "diffLo": -0.08134920634920635,
+                "diffHi": 0.07667864050842776
+              },
+              {
+                "key": "final",
+                "value": 0.1335740574437383,
+                "lo": 0.07961309523809523,
+                "hi": 0.17216427189831443,
+                "songs": 4,
+                "diff": -0.10986767369746092,
+                "diffLo": -0.17099567099567098,
+                "diffHi": -0.054711246200607896
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "body drag s/min",
+            "label": "Body dragging on lines (s/min)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 1.6822181850204947,
+                "lo": 0.7496294466403162,
+                "hi": 3.076677097057532,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 1.541914560002196,
+                "lo": 0.904891304347826,
+                "hi": 2.5828598484848486,
+                "songs": 4,
+                "diff": -0.1403036250182989,
+                "diffLo": -0.5101215963987701,
+                "diffHi": 0.1552618577075099
+              },
+              {
+                "key": "final",
+                "value": 2.27378060496267,
+                "lo": 1.5193614130434783,
+                "hi": 3.3328598484848486,
+                "songs": 4,
+                "diff": 0.5915624199421754,
+                "diffLo": -0.036366266835016786,
+                "diffHi": 1.2194911067193677
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "burst excess (100 ms)",
+            "label": "Unwanted speed-ups (100 ms bursts)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.0011277895727678684,
+                "lo": 0,
+                "hi": 0.0033833687183036053,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.001972395073757592,
+                "lo": 0,
+                "hi": 0.005917185221272776,
+                "songs": 4,
+                "diff": 0.0008446055009897237,
+                "diffLo": 0,
+                "diffHi": 0.002533816502969171
+              },
+              {
+                "key": "final",
+                "value": 0.0002714986927433473,
+                "lo": 0,
+                "hi": 0.0008144960782300419,
+                "songs": 4,
+                "diff": -0.0008562908800245211,
+                "diffLo": -0.0033833687183036053,
+                "diffHi": 0.0008144960782300419
+              }
+            ]
+          },
+          {
+            "group": "Cost",
+            "metric": "physics frames (M)",
+            "label": "Physics frames per ride (M)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 2.3378353125,
+                "lo": 2.1885422500000002,
+                "hi": 2.487128375,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 2.409711375,
+                "lo": 2.2275815,
+                "hi": 2.6737445,
+                "songs": 4,
+                "diff": 0.07187606250000006,
+                "diffLo": -0.01259056249999993,
+                "diffHi": 0.18917950000000008
+              },
+              {
+                "key": "final",
+                "value": 2.6447806875,
+                "lo": 2.440701125,
+                "hi": 2.8488602500000004,
+                "songs": 4,
+                "diff": 0.3069453750000001,
+                "diffLo": 0.2245353125000001,
+                "diffHi": 0.3817573125
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "panel": "perturbed",
+        "title": "Perturbed specs",
+        "rows": [
+          {
+            "group": "Impact",
+            "metric": "impact loss (v3)",
+            "label": "Impact loss (strength, timing, extras)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.0936559444400161,
+                "lo": 0.06065543964850397,
+                "hi": 0.1539767922605948,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.03786975532578151,
+                "lo": 0.01931880386646183,
+                "hi": 0.06912848188672259,
+                "songs": 4,
+                "diff": -0.055786189114234594,
+                "diffLo": -0.0846418580458855,
+                "diffHi": -0.04088029339333479
+              },
+              {
+                "key": "final",
+                "value": 0.02776777402212642,
+                "lo": 0.011325036710920777,
+                "hi": 0.052769241529965275,
+                "songs": 4,
+                "diff": -0.06588817041788969,
+                "diffLo": -0.10120755073062952,
+                "diffHi": -0.04712655758545635
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 strong bias (req>=0.6)",
+            "label": "Strong beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": -0.2864254697087516,
+                "lo": -0.34944700702447656,
+                "hi": -0.2311885466984214,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": -0.15667256419027573,
+                "lo": -0.2181640961896543,
+                "hi": -0.11894692933024381,
+                "songs": 4,
+                "diff": 0.12975290551847585,
+                "diffLo": 0.1051204524899608,
+                "diffHi": 0.1538151459726867
+              },
+              {
+                "key": "final",
+                "value": -0.11090578945018004,
+                "lo": -0.17359628362761345,
+                "hi": -0.07376635329315763,
+                "songs": 4,
+                "diff": 0.17551968025857154,
+                "diffLo": 0.13449220364770556,
+                "diffHi": 0.21735014109531767
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 very strong bias (req>=0.8)",
+            "label": "Very strong beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": -0.34795499206491964,
+                "lo": -0.4099578400453013,
+                "hi": -0.2598261235822167,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": -0.211297993798511,
+                "lo": -0.26127159054512417,
+                "hi": -0.16132439705189783,
+                "songs": 4,
+                "diff": 0.13665699826640862,
+                "diffLo": 0.026327019230769248,
+                "diffHi": 0.22185403846153848
+              },
+              {
+                "key": "final",
+                "value": -0.14348843062321673,
+                "lo": -0.20109818961083034,
+                "hi": -0.09783033296215399,
+                "songs": 4,
+                "diff": 0.20446656144170292,
+                "diffLo": 0.1211387980769231,
+                "diffHi": 0.2812550961538462
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "v3 quiet bias (req<0.15)",
+            "label": "Quiet beats: strength − request",
+            "better": "zero",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.06298750711088805,
+                "lo": 0.042631400080252846,
+                "hi": 0.08357494185473027,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.05543752695215788,
+                "lo": 0.027953821952258904,
+                "hi": 0.0779531350620893,
+                "songs": 4,
+                "diff": -0.007549980158730158,
+                "diffLo": -0.016483035714285714,
+                "diffHi": 0.000940833333333336
+              },
+              {
+                "key": "final",
+                "value": 0.06324143568231662,
+                "lo": 0.05482167785803062,
+                "hi": 0.07104394979123822,
+                "songs": 4,
+                "diff": 0.0002539285714285764,
+                "diffLo": -0.011876686507936505,
+                "diffHi": 0.011535972222222227
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "opposite-push boundaries / beat (v3)",
+            "label": "Opposite-push boundaries per beat (v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.23376584200113612,
+                "lo": 0.1535897435897436,
+                "hi": 0.33404977375565614,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.018235294117647058,
+                "lo": 0,
+                "hi": 0.039705882352941174,
+                "songs": 4,
+                "diff": -0.21553054788348905,
+                "diffLo": -0.2943438914027149,
+                "diffHi": -0.14358974358974358
+              },
+              {
+                "key": "final",
+                "value": 0.01373694932518462,
+                "lo": 0.003246753246753247,
+                "hi": 0.028137254901960784,
+                "songs": 4,
+                "diff": -0.2200288926759515,
+                "diffLo": -0.307579185520362,
+                "diffHi": -0.15025641025641026
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "opposite-push pairs >=0.2 / beat (v3)",
+            "label": "Opposite-push pairs per beat (both ≥0.2, v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.11158503261444438,
+                "lo": 0.05884615384615385,
+                "hi": 0.1738235294117647,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.0031372549019607846,
+                "lo": 0,
+                "hi": 0.006274509803921569,
+                "songs": 4,
+                "diff": -0.1084477777124836,
+                "diffLo": -0.1688348416289593,
+                "diffHi": -0.05551282051282051
+              },
+              {
+                "key": "final",
+                "value": 0.004564553093964859,
+                "lo": 0,
+                "hi": 0.009129106187929718,
+                "songs": 4,
+                "diff": -0.10702047952047952,
+                "diffLo": -0.165,
+                "diffHi": -0.05884615384615385
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "contested strong beats",
+            "label": "Strong beats with a competing hit",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.0333395015625506,
+                "lo": 0.0078125,
+                "hi": 0.06076983447488585,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.0017123287671232876,
+                "lo": 0,
+                "hi": 0.005136986301369863,
+                "songs": 4,
+                "diff": -0.031627172795427316,
+                "diffLo": -0.05563284817351598,
+                "diffHi": -0.0078125
+              },
+              {
+                "key": "final",
+                "value": 0.005948439878234398,
+                "lo": 0,
+                "hi": 0.011896879756468798,
+                "songs": 4,
+                "diff": -0.027391061684316202,
+                "diffLo": -0.05042451484018265,
+                "diffHi": -0.0078125
+              }
+            ]
+          },
+          {
+            "group": "Impact",
+            "metric": "R1 bend peak lag ms (median)",
+            "label": "R1 bend peak after the beat (ms, median)",
+            "better": "lower",
+            "digits": 1,
+            "stages": [
+              {
+                "key": "evening",
+                "value": 25,
+                "lo": 25,
+                "hi": 25,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 21.875,
+                "lo": 15.625,
+                "hi": 25,
+                "songs": 4,
+                "diff": -3.125,
+                "diffLo": -9.375,
+                "diffHi": 0
+              },
+              {
+                "key": "final",
+                "value": 15.625,
+                "lo": 6.25,
+                "hi": 25,
+                "songs": 4,
+                "diff": -9.375,
+                "diffLo": -18.75,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "complete",
+            "label": "Rides completed",
+            "better": "higher",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "final",
+                "value": 1,
+                "lo": 1,
+                "hi": 1,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "air rms",
+            "label": "Air error (rms)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.06834551289539259,
+                "lo": 0.04978484409088947,
+                "hi": 0.0869061816998957,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.07284767402906372,
+                "lo": 0.05995249212362927,
+                "hi": 0.09239145208606549,
+                "songs": 4,
+                "diff": 0.004502161133671137,
+                "diffLo": -0.006173593578166492,
+                "diffHi": 0.014029964634307382
+              },
+              {
+                "key": "final",
+                "value": 0.06577700709194759,
+                "lo": 0.04991122008919734,
+                "hi": 0.08701142698222086,
+                "songs": 4,
+                "diff": -0.002568505803444996,
+                "diffLo": -0.01045706637418957,
+                "diffHi": 0.004880271090470628
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "speed rms",
+            "label": "Speed error (rms)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.07552847734020737,
+                "lo": 0.05439352770231684,
+                "hi": 0.10086780880689775,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.0918644638156189,
+                "lo": 0.06897417356986818,
+                "hi": 0.13056817618667532,
+                "songs": 4,
+                "diff": 0.016335986475411516,
+                "diffLo": 0.00595295725066566,
+                "diffHi": 0.027797064105839396
+              },
+              {
+                "key": "final",
+                "value": 0.06879532897403601,
+                "lo": 0.05378204231814271,
+                "hi": 0.09636868473975867,
+                "songs": 4,
+                "diff": -0.006733148366171361,
+                "diffLo": -0.015363067685145882,
+                "diffHi": -0.00033725334622913307
+              }
+            ]
+          },
+          {
+            "group": "Spec axes",
+            "metric": "amplitude rms",
+            "label": "Amplitude error (rms, one song)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.1223059356697987,
+                "lo": 0.1223059356697987,
+                "hi": 0.1223059356697987,
+                "songs": 1,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.1196992635039773,
+                "lo": 0.1196992635039773,
+                "hi": 0.1196992635039773,
+                "songs": 1,
+                "diff": -0.002606672165821375,
+                "diffLo": -0.002606672165821375,
+                "diffHi": -0.002606672165821375
+              },
+              {
+                "key": "final",
+                "value": 0.12824509070684395,
+                "lo": 0.12824509070684395,
+                "hi": 0.12824509070684395,
+                "songs": 1,
+                "diff": 0.005939155037045257,
+                "diffLo": 0.005939155037045257,
+                "diffHi": 0.005939155037045257
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "strong arrivals inverted/backward",
+            "label": "Strong arrivals head-down/backward at first contact (v3)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.21866342519393583,
+                "lo": 0.16556170237677087,
+                "hi": 0.2761714355436437,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0.2614741043742662,
+                "lo": 0.23710255248978077,
+                "hi": 0.28200263528611674,
+                "songs": 4,
+                "diff": 0.04281067918033033,
+                "diffLo": -0.009504579307568449,
+                "diffHi": 0.09206938102486048
+              },
+              {
+                "key": "final",
+                "value": 0.14643024698811807,
+                "lo": 0.10896041704552342,
+                "hi": 0.18390007693071275,
+                "songs": 4,
+                "diff": -0.07223317820581776,
+                "diffLo": -0.12287320767807584,
+                "diffHi": -0.017633403769552115
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "body drag s/min",
+            "label": "Body dragging on lines (s/min)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 1.7770069352949789,
+                "lo": 0.9119318181818182,
+                "hi": 3.0337752525252526,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 1.9410562829380764,
+                "lo": 1.2836277173913042,
+                "hi": 2.5984848484848486,
+                "songs": 4,
+                "diff": 0.16404934764309753,
+                "diffLo": -0.5831228956228958,
+                "diffHi": 1.1207386363636362
+              },
+              {
+                "key": "final",
+                "value": 2.112225630398185,
+                "lo": 1.2112926136363638,
+                "hi": 3.4049050285463336,
+                "songs": 4,
+                "diff": 0.335218695103206,
+                "diffLo": -0.10292119565217384,
+                "diffHi": 0.8785820158102768
+              }
+            ]
+          },
+          {
+            "group": "Look",
+            "metric": "burst excess (100 ms)",
+            "label": "Unwanted speed-ups (100 ms bursts)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 0.0005451125703346688,
+                "lo": 0,
+                "hi": 0.0016353377110040063,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 0,
+                "lo": 0,
+                "hi": 0,
+                "songs": 4,
+                "diff": -0.0005451125703346688,
+                "diffLo": -0.0016353377110040063,
+                "diffHi": 0
+              },
+              {
+                "key": "final",
+                "value": 0,
+                "lo": 0,
+                "hi": 0,
+                "songs": 4,
+                "diff": -0.0005451125703346688,
+                "diffLo": -0.0016353377110040063,
+                "diffHi": 0
+              }
+            ]
+          },
+          {
+            "group": "Cost",
+            "metric": "physics frames (M)",
+            "label": "Physics frames per ride (M)",
+            "better": "lower",
+            "stages": [
+              {
+                "key": "evening",
+                "value": 2.2849577500000002,
+                "lo": 2.1616957500000002,
+                "hi": 2.4082197499999998,
+                "songs": 4,
+                "diff": 0,
+                "diffLo": 0,
+                "diffHi": 0
+              },
+              {
+                "key": "v3",
+                "value": 2.3505000000000003,
+                "lo": 2.21138975,
+                "hi": 2.5138235,
+                "songs": 4,
+                "diff": 0.06554224999999991,
+                "diffLo": -0.03467337500000012,
+                "diffHi": 0.1784056249999999
+              },
+              {
+                "key": "final",
+                "value": 2.677725625,
+                "lo": 2.47073625,
+                "hi": 2.884715,
+                "songs": 4,
+                "diff": 0.39276787499999993,
+                "diffLo": 0.29473699999999997,
+                "diffHi": 0.5481898749999999
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "curves": [
+      {
+        "key": "evening",
+        "bins": [
+          {
+            "from": 0,
+            "to": 0.1,
+            "n": 120,
+            "mean": 0.10708583333333337,
+            "p25": 0.0729,
+            "p75": 0.1276
+          },
+          {
+            "from": 0.1,
+            "to": 0.2,
+            "n": 24,
+            "mean": 0.16755416666666664,
+            "p25": 0.1247,
+            "p75": 0.2058
+          },
+          {
+            "from": 0.2,
+            "to": 0.3,
+            "n": 4,
+            "mean": 0.22135000000000002,
+            "p25": 0.1773,
+            "p75": 0.2339
+          },
+          {
+            "from": 0.3,
+            "to": 0.4,
+            "n": 140,
+            "mean": 0.2903199999999999,
+            "p25": 0.2499,
+            "p75": 0.3266
+          },
+          {
+            "from": 0.4,
+            "to": 0.5,
+            "n": 44,
+            "mean": 0.3507840909090909,
+            "p25": 0.2858,
+            "p75": 0.3912
+          },
+          {
+            "from": 0.5,
+            "to": 0.6,
+            "n": 212,
+            "mean": 0.3851556603773583,
+            "p25": 0.3207,
+            "p75": 0.4507
+          },
+          {
+            "from": 0.6,
+            "to": 0.7,
+            "n": 208,
+            "mean": 0.4250043269230775,
+            "p25": 0.3649,
+            "p75": 0.4906
+          },
+          {
+            "from": 0.7,
+            "to": 0.8,
+            "n": 204,
+            "mean": 0.4861112745098038,
+            "p25": 0.4008,
+            "p75": 0.5529
+          },
+          {
+            "from": 0.8,
+            "to": 0.9,
+            "n": 124,
+            "mean": 0.49544032258064497,
+            "p25": 0.4011,
+            "p75": 0.5843
+          },
+          {
+            "from": 0.9,
+            "to": 1,
+            "n": 180,
+            "mean": 0.5345777777777776,
+            "p25": 0.4506,
+            "p75": 0.6055
+          }
+        ]
+      },
+      {
+        "key": "v3",
+        "bins": [
+          {
+            "from": 0,
+            "to": 0.1,
+            "n": 120,
+            "mean": 0.09069749999999997,
+            "p25": 0.0572,
+            "p75": 0.1133
+          },
+          {
+            "from": 0.1,
+            "to": 0.2,
+            "n": 24,
+            "mean": 0.188025,
+            "p25": 0.1297,
+            "p75": 0.2248
+          },
+          {
+            "from": 0.2,
+            "to": 0.3,
+            "n": 4,
+            "mean": 0.282325,
+            "p25": 0.2577,
+            "p75": 0.2828
+          },
+          {
+            "from": 0.3,
+            "to": 0.4,
+            "n": 140,
+            "mean": 0.3416750000000001,
+            "p25": 0.3137,
+            "p75": 0.36
+          },
+          {
+            "from": 0.4,
+            "to": 0.5,
+            "n": 44,
+            "mean": 0.4249227272727273,
+            "p25": 0.3905,
+            "p75": 0.4744
+          },
+          {
+            "from": 0.5,
+            "to": 0.6,
+            "n": 212,
+            "mean": 0.48626792452830186,
+            "p25": 0.4457,
+            "p75": 0.5339
+          },
+          {
+            "from": 0.6,
+            "to": 0.7,
+            "n": 208,
+            "mean": 0.5254600961538464,
+            "p25": 0.4707,
+            "p75": 0.589
+          },
+          {
+            "from": 0.7,
+            "to": 0.8,
+            "n": 204,
+            "mean": 0.6076186274509805,
+            "p25": 0.5403,
+            "p75": 0.681
+          },
+          {
+            "from": 0.8,
+            "to": 0.9,
+            "n": 124,
+            "mean": 0.6234612903225808,
+            "p25": 0.5355,
+            "p75": 0.7327
+          },
+          {
+            "from": 0.9,
+            "to": 1,
+            "n": 180,
+            "mean": 0.6574311111111111,
+            "p25": 0.5656,
+            "p75": 0.754
+          }
+        ]
+      },
+      {
+        "key": "final",
+        "bins": [
+          {
+            "from": 0,
+            "to": 0.1,
+            "n": 120,
+            "mean": 0.10201833333333328,
+            "p25": 0.0655,
+            "p75": 0.1419
+          },
+          {
+            "from": 0.1,
+            "to": 0.2,
+            "n": 24,
+            "mean": 0.16611249999999997,
+            "p25": 0.1148,
+            "p75": 0.1995
+          },
+          {
+            "from": 0.2,
+            "to": 0.3,
+            "n": 4,
+            "mean": 0.2704,
+            "p25": 0.2141,
+            "p75": 0.2767
+          },
+          {
+            "from": 0.3,
+            "to": 0.4,
+            "n": 140,
+            "mean": 0.33105428571428563,
+            "p25": 0.3029,
+            "p75": 0.3566
+          },
+          {
+            "from": 0.4,
+            "to": 0.5,
+            "n": 44,
+            "mean": 0.43443409090909096,
+            "p25": 0.4082,
+            "p75": 0.4707
+          },
+          {
+            "from": 0.5,
+            "to": 0.6,
+            "n": 212,
+            "mean": 0.4878820754716984,
+            "p25": 0.4434,
+            "p75": 0.5413
+          },
+          {
+            "from": 0.6,
+            "to": 0.7,
+            "n": 208,
+            "mean": 0.5661370192307692,
+            "p25": 0.5257,
+            "p75": 0.6131
+          },
+          {
+            "from": 0.7,
+            "to": 0.8,
+            "n": 204,
+            "mean": 0.6388598039215685,
+            "p25": 0.5851,
+            "p75": 0.7077
+          },
+          {
+            "from": 0.8,
+            "to": 0.9,
+            "n": 124,
+            "mean": 0.6674620967741937,
+            "p25": 0.5769,
+            "p75": 0.7521
+          },
+          {
+            "from": 0.9,
+            "to": 1,
+            "n": 180,
+            "mean": 0.7375716666666664,
+            "p25": 0.6459,
+            "p75": 0.8392
+          }
+        ]
+      }
+    ]
+  },
+  "validation": {
+    "tests": {
+      "files": 61,
+      "passed": 273
+    },
+    "typecheck": "pass",
+    "reach": {
+      "unreachableFiles": 0
+    },
+    "compilerParity": {
+      "cases": 63,
+      "result": "byte-identical tracks and work"
+    },
+    "judgeParity": {
+      "tracks": 493,
+      "result": "unchanged"
+    },
+    "oldNewDriver": {
+      "cases": 24,
+      "result": "identical track hashes and physicalFrames",
+      "budget": 150000,
+      "jolt": 0
+    },
+    "resume": {
+      "matchingInputExit": 0,
+      "changedJoltExit": 1
+    },
+    "workerFailure": {
+      "exit": 1,
+      "failedCells": 24,
+      "incompleteReportRejected": true
+    },
+    "blindStudy": {
+      "study": "night-pairs-2026-10-05-contact",
+      "pairs": 22,
+      "postureContrastsAtFirstContact": 6,
+      "validatedHitRecords": 44,
+      "decodedClips": 44,
+      "resolution": [
+        960,
+        540
+      ],
+      "decoding": "ffmpeg full audio/video decode, error-free"
+    },
+    "browser": {
+      "night": {
+        "checkedRows": 64,
+        "videos": 21,
+        "canvas": {
+          "width": 900,
+          "height": 420
+        },
+        "ledgerRows": 26
+      },
+      "production": {
+        "title": "Luna Bala · seed 101",
+        "note": "Complete ride · every requested construction fulfilled.",
+        "metrics": "Impact quality (line.strike.v3) 738.5 · 76/76 requests · 65.3 s",
+        "impact": true
+      },
+      "pairs": {
+        "loaded": true,
+        "videos": 2,
+        "labelsSubmitted": 0
+      },
+      "failures": []
+    }
+  },
+  "preserved": {
+    "originalEvaluations": "archives/eval-before-20261005",
+    "originalNightReport": "archives/night-before-20261005",
+    "originalBlindStudy": "night-pairs-2026-10-05"
+  },
+  "sourceArchive": {
+    "path": "labels/studies/sources/night-eval-20261005.tar.gz",
+    "sha256": "a05c952b80721c4baa07af4773ae7ce0b7039afbb8bc0d956b34d9c81fe94172",
+    "runs": [
+      "ev-dev",
+      "s3-c"
+    ],
+    "tracks": 48
+  },
+  "artifacts": {
+    "generated/report/night/data.json": "e8e10129755b57f874c37640a6b390767d9e24334bb8ffa11aaf858ea4a717d9",
+    "labels/studies/night-pairs-2026-10-05-contact.key.json": "731c1f34b07465e88b98bc0897152cf5f4fe9fb0522baf99d7a855b481087142",
+    "labels/studies/night-pairs-2026-10-05-contact.manifest.json": "77a38ed563024d64c7fd16bb0b1da40292a2cfd28b130678c16a129d17bbe7ad"
+  }
+}

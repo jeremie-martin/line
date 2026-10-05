@@ -47,9 +47,23 @@ change in 50 ms, 8 pairs whole event vs 50 ms, 6 pairs with vs without spin, 3 c
 
 Re-score with `node --import tsx tools/measure/analyze_pairs.ts --studies=impact-pairs-2026-10,impact-pairs-2026-10b,impact-pairs-2026-10c --rows=<the two tables, gunzipped>`.
 
-`night-pairs-2026-10-05` checks the overnight compiler perceptually: 16 random strong
-beats (this evening's product against tonight's, same song, seed and beat, sides
-shuffled; not selected by any measure) and 6 pairs where exactly one side arrives
-head-down or backward (the check the upright-arrival change needs). Built by
-`tools/report/morning_study.ts`. Answer at
-`http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05`.
+`night-pairs-2026-10-05` is the original overnight compiler study: 16 random strong
+beats and 6 posture contrasts sampled at impact onset. Only 5 of those 6 also
+contrast at first contact, which is the instant the scorecard measures. Its clips,
+key and existing answers are preserved under that ID.
+
+`night-pairs-2026-10-05-contact` corrects that sampling mismatch: 16 random strong
+beats and 6 posture contrasts using the exact first-contact observation saved by
+evaluation. Both groups compare the same song, seed and beat, with shuffled sides;
+clips remain centered on impact onset. Built by `tools/report/morning_study.ts`.
+Answer at
+`http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05-contact`.
+
+The two complete source evaluations for the corrected study are preserved in
+`sources/night-eval-20261005.tar.gz` (plans, measurements and compressed tracks).
+To reconstruct them on a checkout without those runs, extract into
+`generated/eval/`; never overwrite an existing run. Then render the saved key with
+`tools/measure/pair_study.ts --key=labels/studies/night-pairs-2026-10-05-contact.key.json
+--study=<fresh-id>`. Rendering verifies the authoring and audio against the saved
+inputs. Existing study IDs are immutable; use a new ID for any new selection or
+rendering revision. Large videos and the complete historical archive stay local.

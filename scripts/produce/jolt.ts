@@ -12,7 +12,8 @@ export const JOLT_DEFAULT_MS = -15;
 export function resolveJoltMs(): number {
   const raw = process.env.LR_JOLT_OFFSET_MS;
   const v = raw === undefined || raw === "" ? JOLT_DEFAULT_MS : Number(raw);
-  return Number.isFinite(v) ? v : JOLT_DEFAULT_MS;
+  if (!Number.isFinite(v)) throw new Error("LR_JOLT_OFFSET_MS must be a finite number");
+  return v;
 }
 
 export function applyJolt(spec: Spec, ms: number): Spec {

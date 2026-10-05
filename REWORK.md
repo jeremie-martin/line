@@ -440,7 +440,7 @@ Only on validated measures:
     added.
   - Rejected: air weight 1.5 in the search (air −0.003 / −0.007 but strong
     bias −0.010 / −0.014): a dial for the owner, not a free gain.
-  - **Headline, evening → tonight**, under the owner-validated measure, on
+  - **Headline, evening → tonight**, under the impact account and independent diagnostics, on
     four panels (dev and fresh seeds × authored and perturbed):
     - impact loss 0.092–0.097 → 0.033–0.038;
     - strong bias −0.28 → −0.13; very strong −0.35 → −0.17;
@@ -499,3 +499,33 @@ Only on validated measures:
     (tools/research/construction_v3_round1_sources.json); the round-2
     archive (sha256 a19c42b3…) stays out of git.
 
+
+Evidence correction (2026-10-05): earlier “double impacts” figures based on
+v3-minus-v2 thresholded counts are historical proxies, not literal counts.
+The corrected overnight report uses direct opposite-push boundaries and counts
+adjacent pairs with both strengths ≥0.2. R1 bend-peak timing remains a separate
+diagnostic. See `docs/research/overnight-20261005.md` for the remeasurement,
+preserved evidence and corrected blind-study sampling.
+
+2026-10-05: **Evidence integrity implemented** (structural; compiler output unchanged).
+Evaluation now declares resolved inputs, timing, compiler and measurement identity
+before any workers run. Each saved result belongs to that plan and its saved track;
+reports require the complete panel. Worker failures fail the command, while an
+incomplete ride remains an explicit result. Evaluation and production collections
+have one writer and reject stale resumes. Measurement identity follows indirect
+dependencies and both replay engine artifacts.
+
+Compilation and historical replay share one measurement path. Direct opposite-push
+observations replace the invalid difference between thresholded event counts.
+The independent R1 bend diagnostic stays intact and is explicitly named. Scorecard
+posture and blind selection share the same first-contact observation. Published
+studies remain immutable; a new 22-pair study corrects the sampling instant.
+Review renders verify their source inputs, renderer identity and movie bytes.
+
+Remeasured all 33 historical runs with saved tracks (792 tracks), preserving their
+compiler identities and outputs; the 31 table-only runs and all originals remain
+archived locally. The six displayed runs retain the 67–70% impact-loss reduction.
+Direct opposite-push counts are 863 → 58, or 414 → 9 when both hits reach 0.2.
+The report distinguishes those observations from a universal visual definition.
+Validation and artifact identities are recorded in
+`docs/research/evidence-integrity-20261005.json`.

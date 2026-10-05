@@ -1,11 +1,12 @@
 /** Song-level summaries of eval runs, shared by the eval report and the night
  * report (tools/report): one cell's decision numbers, per-song means (optionally
  * paired differences against another run) and the song bootstrap. */
-import {readFileSync, readdirSync} from 'node:fs';
-import {join, resolve} from 'node:path';
 import {makeRng} from '../../scripts/lib/rng.ts';
 
-export const SONGS = ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'amour_de_ma_vie_44s'];
+import {SONGS} from './inputs.ts';
+import {assertPairedRuns, type Run} from './records.ts';
+export {SONGS} from './inputs.ts';
+export {loadRun, type Run} from './records.ts';
 export const median = (xs: number[]) => {const s = xs.filter(Number.isFinite).sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : NaN;};
 export const mean = (xs: number[]) => {const s = xs.filter(Number.isFinite); return s.length ? s.reduce((a, b) => a + b, 0) / s.length : NaN;};
 /** Song-level summary of one cell: the numbers a decision would be based on. */
@@ -16,8 +17,8 @@ export function summarize(cell: any) {
     complete: cell.complete ? 1 : 0, fulfilled: cell.fulfilled ? 1 : 0,
     frozenScore: cell.frozen.valid ? cell.frozen.score : NaN,
     'strength rms (R1)': strengthErr(b), 'strong strength rms': strengthErr(strong), 'quiet strength rms': strengthErr(quiet),
-    'peak lag ms (median)': median(b.map((r: any) => (r.r1?.peak ?? NaN) * 25)),
-    'peaks >100 ms late': mean(b.map((r: any) => r.r1 ? (r.r1.peak * 25 > 100 ? 1 : 0) : NaN)),
+    'R1 bend peak lag ms (median)': median(b.map((r: any) => (r.r1?.peak ?? NaN) * 25)),
+    'R1 bend peaks >100 ms late': mean(b.map((r: any) => r.r1 ? (r.r1.peak * 25 > 100 ? 1 : 0) : NaN)),
     'contested strong beats': mean(strong.map((r: any) => r.impulse.competitor >= .5 * r.impulse.hit ? 1 : 0)),
     'strong extra hits / beat': mean(b.map((r: any) => r.extrasR1.filter((e: any) => e.strength >= .25).length)),
     'hidden contacted bend / beat': mean(b.map((r: any) => r.hiddenBend)),
@@ -32,10 +33,11 @@ export function summarize(cell: any) {
     'strong extra impacts / beat (v2)': cell.impact ? cell.impact.strongExtras / cell.impact.beats : NaN,
     'impact loss (v3)': cell.impact3?.loss ?? NaN,
     'strong extra impacts / beat (v3)': cell.impact3 ? cell.impact3.strongExtras / cell.impact3.beats : NaN,
-    'double impacts / beat (v3 − v2)': cell.impact3 ? cell.impact3.splits / cell.impact3.beats : NaN,
+    'opposite-push boundaries / beat (v3)': cell.impact3.reversals.length / cell.impact3.beats,
+    'opposite-push pairs >=0.2 / beat (v3)': cell.impact3.reversals.filter((r: any) => r.beforeStrength >= .2 && r.afterStrength >= .2).length / cell.impact3.beats,
     ...(() => {
       // Per-beat v3 strength by requested band; a beat with no matched impact counts as strength 0.
-      const rows = (cell.impact3?.perBeat ?? []).filter((r: any) => r[0] != null).map((r: any) => [r[0], r[1] ?? 0]);
+      const rows = (cell.impact3?.perBeat ?? []).filter((r: any) => r.requested != null).map((r: any) => [r.requested, r.hit?.strength ?? 0]);
       const band = (a: number, b: number) => rows.filter((r: any) => r[0] >= a && r[0] < b);
       const bias = (xs: any[]) => mean(xs.map((r: any) => r[1] - r[0])), rms = (xs: any[]) => Math.sqrt(mean(xs.map((r: any) => (r[1] - r[0]) ** 2)));
       return {'v3 strong bias (req>=0.6)': bias(band(.6, 2)), 'v3 strong rms (req>=0.6)': rms(band(.6, 2)),
@@ -60,19 +62,10 @@ export function bootstrap(perSong: Map<string, number>, draws = 4000) {
 }
 
 
-export type Run = {run: any; cells: Map<string, any>};
-export function loadRun(name: string): Run {
-  const dir = resolve('generated/eval', name), cells = new Map<string, any>();
-  for (const f of readdirSync(join(dir, 'cells')).filter(f => f.endsWith('.json'))) {const c = JSON.parse(readFileSync(join(dir, 'cells', f), 'utf8')); cells.set(c.case.id, c);}
-  return {run: JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8')), cells};
-}
 /** Per-song mean of a metric over the cells passing `filter`; with `diff`, the
  * mean paired difference against the same cases of another run. */
 export function songValues(run: Run, metric: string, filter: (c: any) => boolean, diff?: Run) {
-  if (diff) {
-    const a = [...run.cells.values()].filter(filter).map((c: any) => c.case.id).sort(), b = [...diff.cells.values()].filter(filter).map((c: any) => c.case.id).sort();
-    if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error('paired runs must cover the same cases (same panel, complete runs)');
-  }
+  if (diff) assertPairedRuns(run, diff);
   const m = new Map<string, number>();
   for (const song of SONGS) {
     const xs = [...run.cells.values()].filter(filter).filter((c: any) => c.case.song === song).map((c: any) => {

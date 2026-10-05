@@ -118,7 +118,10 @@ export function observeMotion(first: number, motions: ReadonlyArray<ReturnType<t
   });
 }
 
-export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract = STRIKE_CONTRACT): StrikeEvent[] {
+/** Optional diagnostic observer reports actual opposite-push boundaries. It does not
+ * alter the events or their account; no count is inferred from another contract. */
+export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract = STRIKE_CONTRACT,
+  onReversal?: (before: StrikeEvent, after: StrikeEvent) => void): StrikeEvent[] {
   for (const [i, f] of frames.entries()) if (i && f.frame !== frames[i - 1].frame + 1) throw new Error('strike frames must be contiguous');
   const events: StrikeEvent[] = [];
   for (let first = 0; first < frames.length;) {
@@ -126,7 +129,7 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
     let last = first;
     while (last + 1 < frames.length && frames[last + 1].contact) last++;
     const S = (i: number) => .25 * frames[Math.max(first, i - 1)].J + .5 * frames[i].J + .25 * frames[Math.min(last, i + 1)].J;
-    const starts: Array<{at: number; kind: 'touchdown' | 'strike'}> = [{at: first, kind: 'touchdown'}];
+    const starts: Array<{at: number; kind: 'touchdown' | 'strike'; reversal?: true}> = [{at: first, kind: 'touchdown'}];
     // Walk the local maxima of the smoothed force in order. A maximum either renews
     // (a new strike) or, if it is higher than the current strike's peak, moves it.
     let peak = first;
@@ -139,7 +142,7 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
       if (c.split === 'reversal') {
         const a = push(peak), b = push(i), na = Math.hypot(a[0], a[1]), nb = Math.hypot(b[0], b[1]);
         if (na >= c.floor && nb >= c.floor && (a[0] * b[0] + a[1] * b[1]) / (na * nb) < c.reversalCos) {
-          starts.push({at: i, kind: 'strike'}); peak = i; continue;
+          starts.push({at: i, kind: 'strike', reversal: true}); peak = i; continue;
         }
       }
       const value = S(i);
@@ -162,6 +165,7 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
       events.push({kind: s.kind, contactStart: frames[s.at].frame, onset: frames[half].frame, end: frames[stop].frame,
         peakFrame: frames[top].frame, peakJ: frames[top].J, responsePeak: frames[top].J, raw, strength: Math.min(1, raw / c.veryStrong),
         complete: stop - s.at + 1 === c.window || stop < last || last + 1 < frames.length});
+      if (s.reversal) onReversal?.(events[events.length - 2], events[events.length - 1]);
     }
     first = last + 1;
   }

@@ -31,7 +31,8 @@ Dashboard: `npm run serve`, then http://127.0.0.1:8767/motion-gallery/night.html
 Adopted, in order (search profile `line.strike-search.v5`,
 `scripts/v0/optimizer/contact_impact_profile.ts`):
 
-1. **v3 as the objective.** Double impacts per beat −0.13.
+1. **v3 as the objective.** Opposite-push contacts are separated in the account.
+   The original net-count diagnostic (−0.13) was retired; direct counts appear below.
 2. **Steep, ask-driven arrival before strong beats (≥ 0.6).** Strong bias
    +0.02, speed rms −0.02; confirmed on fresh seeds (+0.03 / +0.02).
 3. **Lookahead ×1.3 into strong beats.** Strong bias +0.009, contested
@@ -59,17 +60,20 @@ weight 2; air weight 1.5.
 ## 3. Results: this evening's product → tonight
 
 Four panels: authored and perturbed specs, on the decision panel (seeds
-101–404) and on fresh seeds (505–808). Every value is measured with the
-owner-validated measure.
+101–404) and on fresh seeds (505–808). Impact strength and loss use the owner-tested v3 account. The table also
+includes independent diagnostics: R1 bend-peak timing, external-impulse
+competition, geometric posture and body drag. Those diagnostics were not all
+validated by the strength pair study.
 
 | | evening | tonight |
 |---|---|---|
 | impact loss (v3) | 0.092–0.097 | 0.028–0.031 |
 | strong beats: strength − request | −0.28 | −0.11 to −0.12 |
 | very strong beats | about −0.35 | −0.14 to −0.15 |
-| floor-then-rail double impacts / beat | about 0.11 | about 0 |
+| opposite-push boundaries / beat (v3) | 0.214–0.243 | 0.012–0.018 |
+| opposite-push pairs / beat, both hits ≥0.2 | 0.095–0.115 | 0–0.005 |
 | strong beats with a competing hit | 3–5% | 0.6–1.7% |
-| hit peak after the beat (median) | 22–27 ms | 16–19 ms |
+| R1 bend peak after the beat (median) | 22–27 ms | 16–19 ms |
 | strong hits arriving head-down / backward | about 22% | 12–15% |
 | speed rms | 0.075–0.084 | 0.069–0.073 |
 | air rms | 0.066–0.068 | 0.066–0.068 |
@@ -83,7 +87,7 @@ Robustness:
 - At standard budget the hardest song uses its whole allowance and still
   completes; 1.5× budget would not improve it.
 
-## 4. What limits the rest (physics and spec, measured)
+## 4. Observed tradeoffs and open limits
 
 - **Survival depends on how the rider meets the floor.**
   - At 45° the rider crashes above about 0.9.
@@ -91,13 +95,12 @@ Robustness:
     hit, about 9 px/frame into the floor (`tools/measure/survival_envelope.ts
     --fine`, `tools/report/scale_clips.ts`). A first coarse grid wrongly
     suggested 0.9 was the ceiling; the code review caught it.
-  - The gentlest touchdown reads about 0.06, so very quiet asks always read
-    a little strong.
+  - The gentlest sampled touchdown reads about 0.06. This is an observation
+    from these probes, not a proof that gentler contact is impossible.
 - **The speed bill.** A slam at an angle costs speed (tan(i/2) per unit of
   impact), which the spec's speed targets charge for; sharper turns crash.
   Past the adopted changes, strength trades against speed and survival.
-- **Dense strong runs.** Back-to-back strong asks about 13 frames apart sit
-  near a momentum limit: delivered strength is about 0.6 in every song at
+- **Dense strong runs.** Back-to-back strong asks about 13 frames apart currently deliver strength about 0.6 in every song at
   that spacing. "L'amour de ma vie" asks 77 of 85 beats strong, 47% of them
   ≥ 0.9.
 
@@ -105,8 +108,8 @@ Robustness:
 
 1. **Scale:**
    - Isolated maximal hits are physically possible (a near-vertical drop).
-   - Inside dense runs, time and energy cap strength near 0.6–0.7, and the
-     quietest asks sit below the gentlest touchdown (about 0.06).
+   - The current dense runs deliver about 0.6–0.7; the gentlest sampled
+     touchdown was about 0.06. These are not universal physical bounds.
    - Keep the scale as authored, with these limits known, or map requests
      onto what each passage can reach?
 2. **L'amour de ma vie:** re-author its densest strong runs, intro speed and
@@ -127,3 +130,28 @@ Robustness:
   evaluation songs: delete it, or replace it with the disjoint retrain.
 - New, held-out music.
 - Retire `landing` mode and strike v1/v2 once the owner is satisfied.
+
+## Evidence reconfirmation and correction, October 5
+
+Cold replay reproduced all 144 tracks behind the six displayed runs, including
+11,340 beat observations. The reported 67–70% v3 impact-loss reduction remains.
+All 64 historical panels contained their declared 24 results and used the
+expected −15 ms timing offset. The infrastructure nevertheless accepted partial
+panels and stale timing caches; it now fails closed on both.
+
+The old “double impacts” row subtracted thresholded v2 and v3 event counts and
+could be negative. Direct detector observations over the paired evening/final
+panels give **863 → 58 opposite-push boundaries**, of which **414 → 9** have
+both adjacent strengths ≥0.2. The threshold is descriptive, not a new aesthetic
+objective. “Double impacts gone” was too strong. R1 peak timing is retained and
+explicitly named; it must not be interpreted as the v3 contact-force peak.
+
+The original 22-pair study remains intact. Its six posture contrasts were sampled
+at onset; only five also contrast at first contact. The new
+`night-pairs-2026-10-05-contact` study selects the exact first-contact observations
+used by the scorecard. Both studies center clips on onset for impact judgment.
+
+33 historical runs (792 tracks) can be remeasured and are now input-bound current
+evidence. The other 31 had complete result tables but no saved tracks; their
+original evidence remains in `archives/eval-before-20261005`, outside the current
+reporting path. All originals, including the old report, stay local.

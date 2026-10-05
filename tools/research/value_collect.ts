@@ -36,7 +36,7 @@ async function worker(id: string, seed: number, out: string, requested: string) 
     phraseBoundaries: (c.phases ?? []).map((p: any) => p.start).filter((t: any) => Number.isFinite(t))});
   setValueProbeSink(null);
   writeFileSync(out, gzipSync(JSON.stringify({id, group: c.group, seed, budget, compileMs: performance.now() - began,
-    complete: cp.repertoire!.result.valid ?? null, physicalFrames: cp.repertoire!.physicalFrames,
+    complete: cp.repertoire!.valid, physicalFrames: cp.repertoire!.physicalFrames,
     trackHash: createHash('sha256').update(JSON.stringify(cp.track)).digest('hex'), probes: sink})));
 }
 

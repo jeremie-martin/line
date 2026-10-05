@@ -52,4 +52,13 @@ A change is adopted only if the whole picture improves.
 | 02:24 | Agent: retrain learned models on v3 | Running (feasibility first). |
 | 02:38 | Morning deliverables | Dashboard data, honest before/after clips (evening → tonight), scale clips, a blind 22-pair study for the owner. |
 | 03:37 | **Learned construction policies rebuilt under v3** (agent) | The old artifacts had been trained partly on the evaluation songs. The rebuild on disjoint songs is better on all four panels: impact loss −0.007, strong +0.015, air −0.005; body drag +30%. Adopted for v3. The value-model retrain was no better, so it is not adopted. |
+| 03:56 | **Final compiler: headline, evening → tonight (all four panels)** | Impact loss 0.092–0.097 → 0.028–0.031 (about −68%); strong shortfall −0.28 → −0.11; double impacts gone; competing hits 3–5% → about 1%; peaks 3–9 ms earlier; air and speed unchanged or better; head-down strong arrivals 22% → 12–15%. Costs: body drag +0.1 to +0.6 s/min, +0.35M physics frames. Completion 100%. |
+| 04:26 | Deliverables refreshed | Dashboard data, clips, scale clips, 22-pair blind study, production library (12/12) with videos. |
+
+## Where to look in the morning
+
+- **Dashboard:** `npm run serve`, then http://127.0.0.1:8767/motion-gallery/night.html
+- **Blind check (about 10 min):** http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05
+- **Production page:** tonight's rides, with "compare previous" showing this evening's.
+- **Written report:** `docs/research/overnight-20261005.md`. Ledger: `REWORK.md`.
 

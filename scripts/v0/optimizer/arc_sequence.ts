@@ -39,7 +39,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   const {contacts, options, budget, end, work} = ctx;
   type Node = {seq: ArcSequence; localCost: number};
   type Offer = {parent: Node; interval: IntervalResult; candidate: any; localCost: number; rank: number};
-  let beam: Node[] = [{seq, localCost: 0}], observedRate = 0;
+  let beam: Node[] = [{seq: {...seq, lines: seq.lines.slice(), rows: seq.rows.slice(), steps: seq.steps.slice()}, localCost: 0}], observedRate = 0;
   const frontier: Offer[][] = [];
   let deepest = {lines: seq.lines.slice(), rows: seq.rows.slice()};
   const choose = (offers: Offer[], width: number) => {
@@ -99,7 +99,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
       while (previous >= 0 && !frontier[previous]?.length) previous--;
       if (previous < 0 || work.searchBudgetExhausted) {
         seq.deepestPrefix = deepest;
-        seq.failure = {frame, reason: 'beam_no_arc'};
+        seq.failure = {frame, reason: work.searchBudgetExhausted ? 'budget' : 'no_arc'};
         return;
       }
       const retained = frontier[previous];
@@ -116,7 +116,13 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     observedRate = observedRate ? .8 * observedRate + .2 * measuredRate : measuredRate;
     work.observedConstructionRate = observedRate;
     offered.sort((a, b) => a.rank - b.rank);
-    const chosen = choose(offered, i === contacts.length - 1 ? 1 : 8);
+    // Do not keep more prefixes than the remaining allowance can search
+    // at the minimum local sampling floor. Each retained branch costs work.
+    const nextFrame = contacts[i + 1]?.frame ?? end;
+    const remainingRate = (budget - getPhysicsFrameCount() - 2 * (end + 1)) / Math.max(1, end - nextFrame);
+    const minimumScale = Math.max(.05, 12 / Math.max(12, options.samples ?? 80));
+    const width = clamp(Math.floor(remainingRate / Math.max(1, observedRate * minimumScale * 1.1)), 1, 8);
+    const chosen = choose(offered, i === contacts.length - 1 ? 1 : width);
     // A bounded beam stack keeps the next distinct alternatives at each of
     // four recent boundaries. Only a physical dead end reopens one; its cold
     // prefix and all renewed search remain charged to the ordinary meter.
@@ -127,6 +133,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     Object.assign(seq, beam[0].seq);
     Engine.retainOnly(beam.map(b => b.seq.engine));
     if (seq.rows.length > deepest.rows.length) deepest = {lines: seq.lines.slice(), rows: seq.rows.slice()};
+    seq.deepestPrefix = deepest;
     work.planningDecisions.push({index:i, frame, beamWidth:beam.length, offered:offered.length, localScale, physicsFrames:getPhysicsFrameCount()-began});
   }
 }

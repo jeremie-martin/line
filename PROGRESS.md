@@ -46,3 +46,8 @@ A change is adopted only if the whole picture improves.
 | 01:31 | Half-budget robustness | Tonight's profile also helps at 1.5M (completion +6 pp authored, strong bias +0.03). |
 | 01:42 | Visual check | Before: a head-down tumble (0.54). After: an upright slam into a V (0.88). The numbers match what the eye sees. |
 | 01:50 | **Headline, evening → tonight (all four panels, owner-validated measure)** | Impact loss 0.092 → 0.037 (−60%); strong shortfall −0.28 → −0.13; double impacts 0.11 → <0.01; head-down strong arrivals 22% → 15%; speed unchanged; air +0.005; completion 100%. |
+| 02:13 | **Code review** (agent) | No product bug. Evidence corrected (spin 8 : 3, not 12 : 4; upright judged by its own test). v1/v2 back on the evening profile. Tool fixes and tests. |
+| 02:10 | Pressing rail (agent) | Negative: a forcing roof breaks the rider or removes the hit; dense runs already refill each hit's speed bill. |
+| 02:23 | **Survival corrected** | A fine grid shows a near-vertical drop surviving 1.0; at 45° the limit is about 0.9. |
+| 02:24 | Agent: retrain learned models on v3 | Running (feasibility first). |
+| 02:38 | Morning deliverables | Dashboard data, honest before/after clips (evening → tonight), scale clips, a blind 22-pair study for the owner. |

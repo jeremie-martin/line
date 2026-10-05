@@ -9,7 +9,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/luna_bala_44s-101/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/luna_bala_44s-101/manifest.json",
       "score": 725.6709,
-      "video": false,
+      "video": true,
       "seed": 101,
       "settings": {
         "mode": "production",
@@ -37,7 +37,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/luna_bala_44s-202/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/luna_bala_44s-202/manifest.json",
       "score": 702.9923,
-      "video": false,
+      "video": true,
       "seed": 202,
       "settings": {
         "mode": "production",
@@ -65,7 +65,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/luna_bala_44s-303/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/luna_bala_44s-303/manifest.json",
       "score": 724.4729,
-      "video": false,
+      "video": true,
       "seed": 303,
       "settings": {
         "mode": "production",
@@ -93,7 +93,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/amor_na_praia_46s-101/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/amor_na_praia_46s-101/manifest.json",
       "score": 705.0172,
-      "video": false,
+      "video": true,
       "seed": 101,
       "settings": {
         "mode": "production",
@@ -121,7 +121,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/amor_na_praia_46s-202/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/amor_na_praia_46s-202/manifest.json",
       "score": 704.5073,
-      "video": false,
+      "video": true,
       "seed": 202,
       "settings": {
         "mode": "production",
@@ -149,7 +149,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/amor_na_praia_46s-303/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/amor_na_praia_46s-303/manifest.json",
       "score": 688.559,
-      "video": false,
+      "video": true,
       "seed": 303,
       "settings": {
         "mode": "production",
@@ -177,7 +177,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/tiki_tiki_48s-101/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/tiki_tiki_48s-101/manifest.json",
       "score": 641.9303,
-      "video": false,
+      "video": true,
       "seed": 101,
       "settings": {
         "mode": "production",
@@ -205,7 +205,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/tiki_tiki_48s-202/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/tiki_tiki_48s-202/manifest.json",
       "score": 640.4543,
-      "video": false,
+      "video": true,
       "seed": 202,
       "settings": {
         "mode": "production",
@@ -233,7 +233,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/tiki_tiki_48s-303/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/tiki_tiki_48s-303/manifest.json",
       "score": 627.8346,
-      "video": false,
+      "video": true,
       "seed": 303,
       "settings": {
         "mode": "production",
@@ -261,7 +261,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/amour_de_ma_vie_44s-101/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/amour_de_ma_vie_44s-101/manifest.json",
       "score": 471.6599,
-      "video": false,
+      "video": true,
       "seed": 101,
       "settings": {
         "mode": "production",
@@ -289,7 +289,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/amour_de_ma_vie_44s-202/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/amour_de_ma_vie_44s-202/manifest.json",
       "score": 463.1721,
-      "video": false,
+      "video": true,
       "seed": 202,
       "settings": {
         "mode": "production",
@@ -317,7 +317,7 @@
       "manifest": "/generated/production-repertoire/library-tonight/amour_de_ma_vie_44s-303/manifest.json",
       "priorManifest": "/generated/production-repertoire/library-strike-s1/amour_de_ma_vie_44s-303/manifest.json",
       "score": 457.0904,
-      "video": false,
+      "video": true,
       "seed": 303,
       "settings": {
         "mode": "production",

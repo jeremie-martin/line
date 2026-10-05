@@ -35,9 +35,21 @@ async function worker(id: string, seed: number, out: string, requested: string) 
   const cp = compileHandoff(spec, seed, {budget, creative: {}, impactContract: 'line.strike.v3',
     phraseBoundaries: (c.phases ?? []).map((p: any) => p.start).filter((t: any) => Number.isFinite(t))});
   setValueProbeSink(null);
+  // Construction demonstrations (as archive build_construction_examples.ts): fulfilled sections' committed controls.
+  const {arcConstructionMemoryKey} = await import('../../scripts/v0/optimizer/arc_memory.ts');
+  const {constructionStyle} = await import('../../scripts/v0/optimizer/repertoire_policy.ts');
+  const {repertoireSearchOptions} = await import('../../scripts/v0/optimizer/repertoire_search.ts');
+  const rep: any = cp.repertoire!;
+  let construction: any;
+  try { const options: any = repertoireSearchOptions(spec as any, rep.plan, budget);
+  construction = rep.result.rows.map((row: any, i: number) => {
+    const request = rep.plan.requests[i], check = rep.realization?.sections?.[i];
+    return {key: request ? arcConstructionMemoryKey({...options, ...constructionStyle(request)}) : null, context: !!request?.context,
+      fulfilled: !!check?.fulfilled, control: row.control, incoming: row.incoming, span: row.span, features: row.features};
+  }); } catch (error) { construction = {error: String(error)}; }
   writeFileSync(out, gzipSync(JSON.stringify({id, group: c.group, seed, budget, compileMs: performance.now() - began,
     complete: cp.repertoire!.valid, physicalFrames: cp.repertoire!.physicalFrames,
-    trackHash: createHash('sha256').update(JSON.stringify(cp.track)).digest('hex'), probes: sink})));
+    trackHash: createHash('sha256').update(JSON.stringify(cp.track)).digest('hex'), probes: sink, construction})));
 }
 
 const command = process.argv[2];

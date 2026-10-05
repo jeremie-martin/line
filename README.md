@@ -10,6 +10,13 @@ then judges whether the rider lands on the beats with the intended feel.
 The repository is being rebuilt on clean foundations; see [REWORK.md](REWORK.md)
 for the plan and its current phase.
 
+## Latest results
+
+The overnight report of 2026-10-05 (the impact measure settled with the owner,
+compiler changes, evening → tonight on four panels) is
+`docs/research/overnight-20261005.md`. Its dashboard: run `npm run serve`, then
+open `motion-gallery/night.html`. The running log is `PROGRESS.md`.
+
 ## Setup
 
 ```sh

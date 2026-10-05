@@ -148,28 +148,27 @@ harness.
 
 ### Current focus (owner, 2026-10-04): measuring impact, separately from producing it
 
-Two problems, worked on in order:
+Two problems, worked on in order. Status on 2026-10-05: see
+docs/research/overnight-20261005.md and the dashboard (motion-gallery/night.html).
 
-1. **Measuring impact (now).** Does the number agree with what the owner sees
-   as a big or small impact, upper hits included? Whether the compiler can
-   produce a hit is irrelevant here. The owner's description:
-   - impact = contact visibly changes the rider's motion: direction, speed
-     (a head-on stop is a very big impact) or spin;
-   - faster gives a stronger impact;
-   - a clean impact is short and locatable in time; a long smooth bend is not
-     the impact he values;
-   - a bottom hit followed by an upper hit is two impacts.
+1. **Measuring impact: done** (line.strike.v3).
+   - The owner's blind pairs chose the change of the rider's whole-body
+     motion (travel and spin) within 50 ms.
+   - Floor-then-rail opposite pushes are two impacts.
+   - Open: the absolute scale (isolated maximal hits are physically
+     possible; dense runs are capped near 0.6–0.7) and whether pass-throughs
+     and body drag matter. Both are owner questions.
+2. **Producing impact: at the measured frontier for tonight.**
+   - Adopted: the v3 objective, the steep upright arrival before strong asks
+     and a wider lookahead into them.
+   - Result, evening → tonight: impact loss −60% on four panels; speed
+     unchanged; air +0.005.
+   - Past this, strength trades against speed (a slam spends speed the spec
+     asks for) and survival.
+   - Open: retraining the learned models on v3; owner choices on the
+     speed/strength and air/impact trades.
 
-   Candidate: the change of the rider's rigid-body motion (centre-of-mass
-   velocity and spin) over a short window, with sharpness reported beside it.
-   It is validated by blind pairwise comparisons chosen where the candidate
-   and the current measure disagree. It is adopted only if it matches the
-   owner better.
-2. **Producing impact (after 1).** The compiler reaches strong hits where the
-   music asks, including dense beats, for example by using control rails to
-   gain speed before a hit.
-
-### Phase 5 — Compiler quality (paused until the impact measure is validated)
+### Phase 5 — Compiler quality (resumed 2026-10-04 night under line.strike.v3)
 
 Only on validated measures:
 

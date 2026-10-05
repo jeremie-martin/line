@@ -304,7 +304,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const pose = deg(Math.atan2(finalState.NOSE.y - finalState.TAIL.y, finalState.NOSE.x - finalState.TAIL.x));
   ctx.work.viableCandidates++;
   const valueFeatures = options.futureValueModel
-    ? ctx.futureFeatures(arcArrivalFeatures(state, heading, endSpeed, pose, angularRate, horizon - (release ?? frame)), i) : undefined;
+    ? ctx.futureValueFeatures(arcArrivalFeatures(state, heading, endSpeed, pose, angularRate, horizon - (release ?? frame)), i) : undefined;
   const predictedFuture = options.futureValueModel ? arcFutureValue(valueFeatures!, options.futureValueModel) : undefined;
   const guided = arcValueGuidance(cost, localCost, residuals, priorStart, predictedFuture,
     i < contacts.length - 1 ? options.valueGuidanceWeight ?? 0 : 0);

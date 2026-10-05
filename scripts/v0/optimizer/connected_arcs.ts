@@ -62,6 +62,6 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     // influence directly, independently of curve-search allocation.
     valueWeight: .45,
     // Let the learned arrival estimate guide geometry refinement before planning.
-    valueGuidanceWeight: .25,
+    valueGuidanceWeight: 0,
     continuationValueWeight: .5 * planningGuidanceSamples / 96 };
 }

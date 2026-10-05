@@ -103,11 +103,24 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
     return features;
   };
 
+  /** Value prediction also knows which physical constructors must follow.
+   * Keep proposal and response-memory feature contracts independent. */
+  const futureValueFeatures = (arrival: number[], i: number) => [
+    ...futureFeatures(arrival,i),
+    ...[i+1,i+2].flatMap(index=>{
+      if(index>=contacts.length)return Array(8).fill(0);
+      const style={...options,...options.sectionStyles?.[index]};
+      return [style.guides===false?0:1,style.railLayout==='transfer'?1:0,
+        ...['arcs','fold','serpentine','scallops','terraces','scattered'].map(name=>
+          options.constructionRequests?.[index]?.construction===name?1:0)];
+    }),
+  ];
+
   const reportFor = (trajectory: any, geometry: TrackLine[]) => buildDriftReport(detect(trajectory), spec, gaps, frames, duration, [],
     gaps.map(g => ({lines: geometry.filter(l => Math.floor((l.id - 1000) / 10000) === g.index + 1)})) as any, gaps.map(g => g.targets));
 
   return {options, budget, spec, duration, end, frames, impactTargets, gaps, planned, start, contacts, hasFragments,
-    lineage, work: createSearchWork(), memoryFor, futureFeatures, reportFor};
+    lineage, work: createSearchWork(), memoryFor, futureFeatures, futureValueFeatures, reportFor};
 }
 
 export type ArcCompileContext = ReturnType<typeof createArcCompileContext>;

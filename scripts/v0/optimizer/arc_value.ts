@@ -1,5 +1,5 @@
 /** Physical arrival and authored-future features; no case, seed or budget identity. */
-export const ARC_VALUE_FEATURE_SCHEMA = 'line.arc-future-value-features.v1';
+export const ARC_VALUE_FEATURE_SCHEMA = 'line.arc-future-value-features.v2';
 export function arcArrivalFeatures(state: any, heading: number, speed: number, pose: number,
   angularRate: number, airborneFrames: number): number[] {
   const features = [Math.sin(heading * Math.PI / 180), Math.cos(heading * Math.PI / 180), speed / 10,

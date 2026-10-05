@@ -1,0 +1,177 @@
+{
+  "schema": "line.compiler-campaign.v1",
+  "started": "2026-10-05T21:18:20Z",
+  "baselineCommit": "4e510f58",
+  "baselineRun": "quality-20261005-baseline",
+  "intent": "Improve precise, strong musical impacts and the overall automatic ride while preserving authored inputs, impact definitions, seeded geometry plans, normal lines, and the prior dashboard. Numerical gains alone are insufficient.",
+  "experiments": [
+    {
+      "id": "Q0",
+      "status": "complete",
+      "result": "24/24 baseline tracks and physics counts exactly reproduce s3-c."
+    },
+    {
+      "id": "Q1",
+      "branch": "exp/quality-20261005",
+      "commit": "4e440090",
+      "run": "q1-response-blocks",
+      "hypothesis": "Use the remainder of the pair-refinement allowance on measured-sensitive coordinate blocks instead of leaving it unused.",
+      "status": "not adopted",
+      "result": {
+        "authored": {
+          "impact3LossDelta": 0.002,
+          "veryStrongBiasDelta": -0.012,
+          "speedRmsDelta": -0.004
+        },
+        "perturbed": {
+          "impact3LossDelta": -0.004,
+          "strongBiasDelta": 0.011,
+          "bodyDragSecondsPerMinuteDelta": 0.558
+        }
+      },
+      "interpretation": "Mixed generalization within the dev panel; better perturbed strength with more body dragging and worse authored strength. Extra local descent does not reliably improve the complete ride."
+    },
+    {
+      "id": "Q2",
+      "branch": "exp/quality-continuation-20261005",
+      "commit": "f193760f",
+      "run": "q2-continuation-fit",
+      "hypothesis": "At the same nominal evaluation allowance, transfer up to 24 initial-proposal samples to continuation guidance, enabling a response step and spending leftover rounds on coordinates.",
+      "status": "not adopted",
+      "result": {
+        "authoredImpact3LossDelta": 0.003,
+        "perturbedImpact3LossDelta": -0.001,
+        "authoredVeryStrongBiasDelta": -0.03,
+        "perturbedVeryStrongBiasDelta": -0.028,
+        "physicsFramesDelta": "+0.20\u20130.23M"
+      },
+      "interpretation": "Reducing proposal breadth to fund local continuation refinement hurt the strongest impacts; a fairer nominal allocation was not a better physical allocation."
+    },
+    {
+      "id": "Q3",
+      "branch": "exp/quality-incidence-20261005",
+      "commit": "b76136ac",
+      "run": "q3-impact-incidence",
+      "hypothesis": "Kinematic catch-incidence proposals may find stronger, cleaner hits than shallow inherited entry proposals. Same full allowance and guards.",
+      "status": "not adopted",
+      "result": {
+        "authoredImpact3LossDelta": 0,
+        "perturbedImpact3LossDelta": -0.002,
+        "authoredBodyDragDelta": 0.639,
+        "perturbedBodyDragDelta": 0.476,
+        "authoredHeadDownDelta": 0.033,
+        "perturbedHeadDownDelta": 0.043
+      },
+      "interpretation": "Sharper entry candidates did not deliver a convincing quality gain and increased dragging and awkward arrivals. Entry sharpness alone is insufficient."
+    },
+    {
+      "id": "Q4",
+      "branch": "exp/quality-value-20261005",
+      "commit": "115416a1",
+      "hypothesis": "The future-value predictor ignores requested constructions and has historical evaluation-song overlap. Recollect current compiler probes on disjoint source groups and compare geometry-conditioned prediction, same-data geometry-blind prediction, and deletion.",
+      "status": "collecting disjoint training data"
+    },
+    {
+      "id": "Q5",
+      "branch": "exp/quality-arrival-frame-20261005",
+      "commit": "c7332d5d",
+      "run": "q5-arrival-frame",
+      "hypothesis": "Replace strong-arrival absolute heading/total-speed priors with normal/tangential centre velocity in the sled frame. Unlike the previous extra pose penalty, replace the competing constraints rather than adding one.",
+      "status": "not adopted",
+      "result": {
+        "authoredImpact3LossDelta": 0.017,
+        "perturbedImpact3LossDelta": 0.012,
+        "authoredStrongBiasDelta": -0.038,
+        "perturbedStrongBiasDelta": -0.035,
+        "authoredHeadDownDelta": -0.121,
+        "perturbedHeadDownDelta": -0.132,
+        "authoredSpeedRmsDelta": 0.033,
+        "perturbedSpeedRmsDelta": 0.027
+      },
+      "interpretation": "The posture guard improves substantially, but real impacts and speed tracking worsen. A lower guard count is not sufficient."
+    },
+    {
+      "id": "Q6",
+      "branch": "exp/quality-response-rebase-20261005",
+      "commit": "4e5680ad",
+      "run": "q6-response-rebase",
+      "hypothesis": "Rebase response corrections at the best finite-difference probe, keeping the Jacobian, allowance and actual acceptance checks.",
+      "status": "not adopted",
+      "result": {
+        "authoredImpact3LossDelta": 0.001,
+        "perturbedImpact3LossDelta": -0.001,
+        "authoredVeryStrongBiasDelta": -0.012,
+        "perturbedVeryStrongBiasDelta": -0.037
+      },
+      "interpretation": "Mixed small changes; rebasing does not reliably improve complete rides. Pair-response tests pass."
+    },
+    {
+      "id": "Q7",
+      "branch": "exp/quality-suffix-repair-20261005",
+      "commit": "dbfb3d94",
+      "hypothesis": "Complete-track refinement may stall because changed geometry invalidates saved suffix controls. Compare fixed rebuilding with bounded local repair only on those failures, on the same four saved seed-101 tracks. Every replacement must improve the complete objective.",
+      "status": "not adopted",
+      "extraAllowance": 1000000,
+      "caveat": "Four-case feasibility study with extra work, not a production-panel gain.",
+      "result": "Initial local-only rescue had no valid anchor and could not explore. Corrected seeded rescue recovered 1,637/1,823 invalid intervals, but only one of four rides improved, by 0.000059 whole-objective loss, for about 1M extra frames each.",
+      "correctedCommit": "aa0d7306"
+    },
+    {
+      "id": "Q8",
+      "branch": "exp/quality-no-value-20261005",
+      "commit": "9fccd12f",
+      "run": "q8-no-value",
+      "hypothesis": "Reassess deletion of the old future model under current construction policies; comparator for disjoint replacements.",
+      "status": "candidate for simplification, not yet selected",
+      "result": {
+        "authoredImpact3LossDelta": 0.002,
+        "perturbedImpact3LossDelta": -0.001,
+        "authoredBodyDragDelta": 0.271,
+        "perturbedBodyDragDelta": 0.469
+      },
+      "interpretation": "Impact quality is broadly similar, but air error and body dragging rise. Await the disjoint model comparisons."
+    },
+    {
+      "id": "Q9",
+      "branch": "exp/quality-translated-refinement-20261005",
+      "commit": "6ec08525",
+      "hypothesis": "Preserve suffix shape by rigid translation instead of reconstructing its controls, then validate complete physical behavior.",
+      "status": "not adopted",
+      "result": "0 improvements in four saved rides; most candidates still fail downstream construction or survival. Preserving drawn geometry does not preserve the rider state."
+    },
+    {
+      "id": "Q10",
+      "branch": "exp/quality-deeper-rollout-20261005",
+      "commit": "c3c2db80",
+      "run": "q10-deeper-rollout",
+      "hypothesis": "Trade two-branch depth-two continuation for single-branch depth-three continuation at comparable tree work, retaining root diversity.",
+      "status": "running"
+    }
+  ],
+  "unchangedPriorReview": "motion-gallery/night.html",
+  "limitations": [
+    "Four songs only; confirmation seeds do not establish unseen-music generalization.",
+    "Physical posture and body-drag diagnostics are guards and observations, not newly validated aesthetic objectives.",
+    "Compile-time differences during concurrent research jobs are confounded by machine load; physics-frame accounting is the work comparison until isolated timing checks."
+  ],
+  "diagnostics": {
+    "strongMatchedHits": 1066,
+    "underhitByAtLeastPoint2": 279,
+    "meanNormalIncomingSpeedUnderhits": 3.513,
+    "meanNormalIncomingSpeedWithinPoint05": 4.382,
+    "caveat": "Descriptive association across the 24-case development panel; target mix and arrival posture differ, so this does not establish a cause.",
+    "responseStudy": {
+      "branch": "exp/quality-response-diagnostics-20261005",
+      "commit": "edc90d36",
+      "cases": 4,
+      "allTrackHashesAndWorkUnchanged": true,
+      "pairRounds": 312,
+      "pairCoordinateImprovements": 271,
+      "pairJointStepImprovements": 21,
+      "localRounds": 2769,
+      "localCoordinateImprovements": 1693,
+      "localJointStepImprovements": 260,
+      "interpretation": "Most local improvement comes from actual coordinate probes. This motivates a better use of their measured progress, not the claim that joint steps have no value."
+    }
+  }
+}

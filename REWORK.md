@@ -529,3 +529,39 @@ Direct opposite-push counts are 863 → 58, or 414 → 9 when both hits reach 0.
 The report distinguishes those observations from a universal visual definition.
 Validation and artifact identities are recorded in
 `docs/research/evidence-integrity-20261005.json`.
+
+## Compiler quality campaign, October 5 evening
+
+Owner direction: improve the actual automatic-arrangement rides while preserving
+the lean foundations and trustworthy comparisons. Strong, precise musical hits,
+smooth quiet passages and meaningful geometric variety must improve together.
+The existing impact contract, authored requests and engine remain fixed. A high
+score alone is not grounds for adopting a change.
+
+Plan of work:
+
+1. Reproduce the current compiler on the complete development panel; analyze
+   residual errors and where search work goes, using saved tracks and telemetry.
+2. Investigate how adjacent supports are searched jointly: continuation quality,
+   dimensionality of refinement, and whether complete-track revision can usefully
+   preserve an incumbent. State each hypothesis before its paired experiment.
+3. Explore better physical proposals or search only where the measurements expose
+   a limitation. Keep construction requests and variety fixed for comparisons;
+   do not hide difficult requests or trade them away through authoring changes.
+4. Judge candidates on all rulers and guards, including completion, strength by
+   requested band, timing, extra hits, air, speed, amplitude, motion and work.
+   Diagnose regressions before accepting or rejecting an idea; first attempts
+   are not conclusions about a mechanism's potential.
+5. Confirm useful changes on reserved seeds and perturbations, retain compact
+   evidence and rejected experiments, and update the real production review with
+   comparable landscape examples. Generalization to new music remains unproved
+   until new music is actually tested. Visual judgments remain the owner's.
+
+Experiments run in an isolated checkout, so the existing production dashboard and
+baseline remain usable throughout. Each adopted behavior change gets tests,
+updated parity references and a coherent implementation; research switches do not
+accumulate in production.
+
+21:30 UTC: Fresh baseline reproduces all 24 `s3-c` tracks and physics counts exactly. Q1 (spending unused pair-response allowance) is mixed, not promoted: authored impact loss +0.002; perturbed −0.004 but body dragging +0.56 s/min. Q2 tests better local fitting inside continuation probes at unchanged nominal allowance. Full ledger: `docs/research/quality-20261005.json`. Earlier review pages and unanswered questions remain untouched.
+
+21:42 UTC: Q2 and Q3 remain research-only: neither provides a convincing overall improvement, and sharper catch proposals increase body dragging. Replay diagnostics cover 1,890 matched hits; response instrumentation reproduces all four original tracks and work counts exactly. Testing a coherent arrival prior and rebased response steps; collecting 336 disjoint catalog compiles to examine geometry-aware future prediction. A separate four-ride feasibility study checks whether bounded repair can make full-track refinement useful. No product change promoted; prior dashboard untouched.

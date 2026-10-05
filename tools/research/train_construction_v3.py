@@ -21,6 +21,7 @@ from sklearn.ensemble import ExtraTreesRegressor
 
 p = argparse.ArgumentParser(); p.add_argument('--inputs', required=True); p.add_argument('--out', required=True)
 p.add_argument('--trees', type=int, default=32); p.add_argument('--leaf', type=int, default=4)
+p.add_argument('--contract', default='line.strike.v3'); p.add_argument('--catalog', default='benchmark/v4 excluding groups luna_bala, amor_na_praia, tiki_tiki, amour_de_ma_vie')
 args = p.parse_args(); out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
 EVAL_SONGS = ('luna', 'amor', 'tiki', 'amour'); REQUIRED = ('entry', 'turn', 'exit', 'support', 'bias', 'offset')
 groups, seen, sources = {}, set(), []
@@ -66,8 +67,8 @@ for key, rows in groups.items():
     sizes[key] = len(rows)
 model = {'schema': 'line.construction-policies.v1', 'groups': policies, 'memoryGroups': memory,
     'provenance': {'seed': 261001, 'trees': args.trees, 'leaf': args.leaf, 'trainer': 'tools/research/train_construction_v3.py',
-        'trainerSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'impactContract': 'line.strike.v3',
-        'catalog': 'benchmark/v4 excluding groups luna_bala, amor_na_praia, tiki_tiki, amour_de_ma_vie', 'evalPanelDisjoint': True,
+        'trainerSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'impactContract': args.contract,
+        'catalog': args.catalog, 'evalPanelDisjoint': True,
         'examples': len(seen), 'groups': sizes, 'sources': sources,
         'note': 'Demonstrations are the committed controls of fulfilled sections from compiles that used the previous construction artifact as their proposal source.'}}
 raw = (json.dumps(model, separators=(',', ':')) + '\n').encode(); packed = gzip.compress(raw, compresslevel=9, mtime=0)

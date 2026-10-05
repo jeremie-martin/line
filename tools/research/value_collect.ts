@@ -17,7 +17,16 @@ import {createHash} from 'node:crypto';
 export const EVAL_GROUPS = ['luna_bala', 'amor_na_praia', 'tiki_tiki', 'amour_de_ma_vie'];
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 
-async function trainingCases() {
+const catalog = arg('catalog', 'v4')!;
+async function trainingCases(): Promise<any[]> {
+  if (catalog === 'v6transfer') {
+    // Explicit V6 plans with transfer rail layouts (rare in automatic plans), from non-evaluation music.
+    const {loadCatalog} = await import('../../benchmark/v6/model.ts');
+    const c = loadCatalog();
+    return c.cases.filter((x: any) => x.layout === 'transfer' && ['arcs', 'fold', 'serpentine'].includes(x.family) && !/luna|amor|tiki|amour/i.test(x.sourceId))
+      .map((x: any) => {const music = c.music.find((m: any) => m.id === x.sourceId)!;
+        return {...music, id: x.id, group: `v6:${x.family}-transfer:${(music as any).group}`, plans: x.plans};});
+  }
   const {loadCases} = await import('../../benchmark/v4/model.ts');
   return loadCases().filter((c: any) => !EVAL_GROUPS.includes(c.group) && !/luna|amor|tiki|amour/i.test(c.id));
 }
@@ -32,8 +41,9 @@ async function worker(id: string, seed: number, out: string, requested: string) 
   const budget = requested === 'standard' ? productionBudget(spec.duration) : Number(requested);
   setValueProbeSink(sink);
   const began = performance.now();
-  const cp = compileHandoff(spec, seed, {budget, creative: {}, impactContract: 'line.strike.v3',
-    phraseBoundaries: (c.phases ?? []).map((p: any) => p.start).filter((t: any) => Number.isFinite(t))});
+  const cp = c.plans ? compileHandoff(spec, seed, {budget, constructionPlan: c.plans[seed], impactContract: 'line.strike.v3'})
+    : compileHandoff(spec, seed, {budget, creative: {}, impactContract: 'line.strike.v3',
+      phraseBoundaries: (c.phases ?? []).map((p: any) => p.start).filter((t: any) => Number.isFinite(t))});
   setValueProbeSink(null);
   // Construction demonstrations (as archive build_construction_examples.ts): fulfilled sections' committed controls.
   const {arcConstructionMemoryKey} = await import('../../scripts/v0/optimizer/arc_memory.ts');
@@ -58,7 +68,8 @@ else if (command === 'run') {
   const dir = resolve(arg('out')!), jobs = Number(arg('jobs', '16')), seeds = Number(arg('seeds', '1')), budget = arg('budget', 'standard')!;
   const cases = (await trainingCases()).slice(0, Number(arg('limit', '1000')));
   mkdirSync(dir, {recursive: true});
-  const work = cases.flatMap((c: any) => Array.from({length: seeds}, (_, k) => ({id: c.id, seed: 101 * (k + 1)})))
+  // Explicit-plan cases compile at their catalog plan seeds.
+  const work = cases.flatMap((c: any) => Array.from({length: seeds}, (_, k) => ({id: c.id, seed: c.plans ? Number(Object.keys(c.plans)[k]) : 101 * (k + 1)})))
     .filter(w => !existsSync(join(dir, `${w.id}~${w.seed}.json.gz`)));
   // Longest rides first, so the tail of the run stays parallel.
   const length = new Map(cases.map((c: any) => [c.id, c.durationFrames]));
@@ -69,7 +80,7 @@ else if (command === 'run') {
     while (next < work.length) {
       const w = work[next++];
       await new Promise<void>(ok => {
-        const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--case=${w.id}`, `--seed=${w.seed}`,
+        const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--catalog=${catalog}`, `--case=${w.id}`, `--seed=${w.seed}`,
           `--budget=${budget}`, `--out=${join(dir, `${w.id}~${w.seed}.json.gz`)}`], {stdio: ['ignore', 'ignore', 'pipe']});
         let err = ''; child.stderr.on('data', d => err += d);
         child.on('close', code => { done++; console.log(`${done}/${work.length} ${w.id}~${w.seed} ${code ? 'FAILED ' + err.slice(-300) : 'ok'}`); ok(); });

@@ -393,6 +393,25 @@
       "status": "running",
       "hypothesis": "Keep already validated scattered candidates from the exact prefix/objective memo while reconstructing new carriers.",
       "reproduction": "Q17 loses Tiki section 59 and Luna section 42. This version retains both at exactly their prior measured impacts, 0.494 and 0.708 (rounded)."
+    },
+    {
+      "id": "Q22",
+      "kind": "structural",
+      "status": "adopted",
+      "branch": "exp/quality-policy-loading-20261006",
+      "commit": "05646e50",
+      "hypothesis": "Resolve the current search profile before loading its construction policies, avoiding loading and replacing the V6 archive during V3 production.",
+      "validation": {
+        "compilerParity": 63,
+        "judgeParity": 493,
+        "tests": 274,
+        "typecheck": "pass",
+        "unreachableFiles": 0,
+        "configurationDigestIdentical": true,
+        "coldHeapBytesBefore": 59828200,
+        "coldHeapBytesAfter": 42337616
+      },
+      "interpretation": "One coherent configuration path loads the selected archive once. All tracks, physics counts and judge results are exactly unchanged. Cold-process heap observation is not a whole-compile speed claim."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",

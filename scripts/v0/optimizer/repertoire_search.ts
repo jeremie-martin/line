@@ -5,6 +5,8 @@ import {constructionStyle,type ProductionPlan} from './repertoire_policy.ts';
 import {INTENTIONAL_REPERTOIRE_POLICY} from './intentional_repertoire.ts';
 import type {Spec} from '../types.ts';
 import type {ArcMotionOptions} from './arc_motion.ts';
+import {impactAccount,type ImpactAccountId} from './impact_accounts.ts';
+import {impactSearchProfile} from './contact_impact_profile.ts';
 const ARTIFACTS={
   // The V6-era policies (trained in part on the evaluation songs): v1/v2 and landing modes.
   v6:new URL('./repertoire_policy_model.json',import.meta.url),
@@ -38,9 +40,11 @@ export function loadConstructionArtifact(which:ConstructionModel='v6'){
   }
   return constructionArtifacts[which]!;
 }
-export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:number):ArcMotionOptions{
+export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:number,contract?:ImpactAccountId):ArcMotionOptions{
  if(plan.policy!==INTENTIONAL_REPERTOIRE_POLICY)throw new Error('the compiler realizes intentional repertoire plans only');
- const artifact=loadConstructionArtifact();
+ if(contract!==undefined)impactAccount(contract);
+ const {id:_id,constructionModel,...profile}=contract===undefined?{}:impactSearchProfile(contract) as any;
+ const artifact=loadConstructionArtifact(constructionModel??'v6');
  return {...connectedArcOptions(spec,allowance),
   motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},
   transitionRevision:{errorThreshold:.12},
@@ -50,5 +54,6 @@ export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:
   initialRecoverySamples:160,
   sectionStyles:Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)])),
   constructionRequests:Object.fromEntries(plan.requests.map(r=>[r.section,r])),
+  ...profile,...(contract===undefined?{}:{impactContract:contract}),
  };
 }

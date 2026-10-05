@@ -1,6 +1,6 @@
 /** Production orchestration with one accountable allowance and no implicit style fallback. */
 import {compileArcMotion} from './arc_motion.ts';
-import {repertoireSearchOptions, loadConstructionArtifact} from './repertoire_search.ts';
+import {repertoireSearchOptions} from './repertoire_search.ts';
 import {arcRailGroups} from './arc_guidance.ts';
 import {normalizeCompilerTimeline} from './compiler_input.ts';
 import {validateProductionPlan,type CreativePreferences,type ProductionPlan} from './repertoire_policy.ts';
@@ -20,17 +20,7 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   if(plan.seed!==seed)throw new Error('construction plan and compiler seed differ');
   const end=Math.round(spec.duration*40)+20,replay=end+1,budget=options.budget;
   if(!Number.isSafeInteger(budget)||budget<12*replay)throw new Error('repertoire allowance cannot cover construction and independent replay');
-  const allowance=budget-replay,searchOptions=repertoireSearchOptions(spec,plan,allowance);
-  if(options.impactContract!==undefined){
-    impactAccount(options.impactContract);
-    const {id:_id,constructionModel,...profile}=impactSearchProfile(options.impactContract) as any;
-    // A profile may name its own learned construction policies (intentional plans only).
-    if(constructionModel&&searchOptions.constructionPolicies){
-      const artifact=loadConstructionArtifact(constructionModel);
-      Object.assign(searchOptions,{constructionPolicies:artifact.policies,constructionExamples:artifact.examples});
-    }
-    Object.assign(searchOptions,profile,{impactContract:options.impactContract});
-  }
+  const allowance=budget-replay,searchOptions=repertoireSearchOptions(spec,plan,allowance,options.impactContract);
   const styles=searchOptions.sectionStyles!;
   const result=compileArcMotion(spec,seed,searchOptions);
   let physicalFrames=result.stats.sim_frames;

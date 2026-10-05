@@ -56,7 +56,7 @@ async function worker(id: string, seed: number, out: string, requested: string) 
   const {repertoireSearchOptions} = await import('../../scripts/v0/optimizer/repertoire_search.ts');
   const rep: any = cp.repertoire!;
   let construction: any;
-  try { const options: any = repertoireSearchOptions(spec as any, rep.plan, budget);
+  try { const options: any = repertoireSearchOptions(spec as any, rep.plan, budget, 'line.strike.v3');
   construction = rep.result.rows.map((row: any, i: number) => {
     const request = rep.plan.requests[i], check = rep.realization?.sections?.[i];
     return {key: request ? arcConstructionMemoryKey({...options, ...constructionStyle(request)}) : null, context: !!request?.context,

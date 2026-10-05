@@ -13,7 +13,7 @@ import type { ArcMotionOptions } from './arc_options.ts';
 const rad = (x: number) => x * Math.PI / 180;
 
 export type BudgetInterruption = {
-  phase: 'local' | 'planning' | 'continuation' | 'revision';
+  phase: 'local' | 'planning' | 'continuation' | 'revision' | 'fragments';
   index: number; frame: number; viable: number; retained: boolean;
 };
 

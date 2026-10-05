@@ -10,6 +10,8 @@ import { proposeInitialControls, proposeOpposingEntries, proposeCompactFolds, pr
 import { coordinateSearch, guidanceSearch } from './arc_local_search.ts';
 import type { IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
+import {arcControlMemoKey} from './arc_motion_control.ts';
+import {distinctCandidates} from './arc_candidates.ts';
 
 /** Searches interval `i` from `engine` with optional per-call overrides.
  * Engines in `protectedEngines` survive the search's engine cleanup. Returns
@@ -50,29 +52,45 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
 
 export type IntervalResult = NonNullable<ReturnType<typeof searchInterval>>;
 
-/** A scattered section keeps only the contact footprints of its curves: the
- * four cheapest are observed as fragments and the first valid one wins. */
+/** Replay contact footprints of distinct arrivals, retaining alternatives
+ * for the same continuation search used by connected constructions. */
 function replaceWithFragments(s: IntervalSearch) {
   const {ctx, engine, frame, horizon} = s;
   const {observerFor, observers, prefixes} = ctx.lineage;
   const stats = ctx.work.fragmentStats;
   stats.intervals++;
-  const source = s.candidates.slice().sort((a, b) => a.cost - b.cost).slice(0, 4);
+  const carriers = s.candidates.slice();
+  const source = distinctCandidates(s.options, carriers, 4);
   s.candidates.length = 0;
   s.best = null;
   const observer = observerFor(engine);
-  for (const proposal of source) {
-    const began = getPhysicsFrameCount();
-    stats.probes++;
-    const fragments = fragmentInterval(observer, proposal.lines, frame, horizon);
-    const observed = getPhysicsFrameCount();
-    stats.observationFrames += observed - began;
-    const result = evaluate(s, proposal.c, fragments);
-    stats.replayFrames += getPhysicsFrameCount() - observed;
-    if (result) {
-      const prefix = prefixes.get(result.child)!;
-      observers.set(prefix, extendContactObserver(observer, fragments.lines));
-      break;
+  // A verified realization remains eligible when its control was offered in
+  // this search. Unrelated cached controls must never enter an exact-control
+  // probe (used by joint refinement and continuation replay).
+  for (const key of new Set(carriers.map(c => arcControlMemoKey(c.c, s.options.channel)))) {
+    const saved = s.memo.get(key + '|fragments');
+    const candidate = saved?.candidate;
+    if (candidate) evaluate(s, candidate.c, {lines: candidate.lines, guideIds: candidate.meta.railGuides});
+  }
+  try {
+    for (const proposal of source) {
+      const began = getPhysicsFrameCount();
+      stats.probes++;
+      const fragments = fragmentInterval(observer, proposal.lines, frame, horizon);
+      const observed = getPhysicsFrameCount();
+      stats.observationFrames += observed - began;
+      const result = evaluate(s, proposal.c, fragments);
+      stats.replayFrames += getPhysicsFrameCount() - observed;
+      if (result) {
+        const prefix = prefixes.get(result.child)!;
+        observers.set(prefix, extendContactObserver(observer, fragments.lines));
+      }
     }
+  } catch (error) {
+    if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
+    ctx.work.searchBudgetExhausted = true;
+    ctx.work.budgetInterruptions.push({phase: 'fragments', index: s.i, frame, viable: s.candidates.length, retained: !!s.best});
+    Engine.retainOnly([...s.protectedEngines, engine, ...(s.best ? [s.best.child] : [])]);
+    if (!s.best) throw error;
   }
 }

@@ -69,7 +69,80 @@
       "branch": "exp/quality-value-20261005",
       "commit": "115416a1",
       "hypothesis": "The future-value predictor ignores requested constructions and has historical evaluation-song overlap. Recollect current compiler probes on disjoint source groups and compare geometry-conditioned prediction, same-data geometry-blind prediction, and deletion.",
-      "status": "collecting disjoint training data"
+      "status": "complete development trial; not adopted",
+      "training": {
+        "compiles": 336,
+        "completeRides": 318,
+        "sourceGroups": 15,
+        "rows": 82903,
+        "rankingContexts": 12529,
+        "productionSongsExcluded": true,
+        "collectorCommit": "115416a1",
+        "trainerCommit": "0e9bc343",
+        "blindBytes": 600889,
+        "geometryBytes": 592644,
+        "heldSourceGroupRankingRegret": {
+          "inherited": 0.1032104,
+          "localOnly": 0.1139253,
+          "blind": 0.0903788,
+          "geometry": 0.0880616
+        }
+      },
+      "result": {
+        "blind": {
+          "authored": {
+            "impact loss (v3)": 0.000587,
+            "v3 strong bias (req>=0.6)": -6.3e-05,
+            "v3 very strong bias (req>=0.8)": -0.003767,
+            "v3 quiet bias (req<0.15)": 0.001951,
+            "body drag s/min": -0.261914,
+            "strong arrivals inverted/backward": 0.011232,
+            "air rms": 0.00047,
+            "speed rms": -0.002081,
+            "burst excess (100 ms)": 0,
+            "physics frames (M)": -0.019468
+          },
+          "perturbed": {
+            "impact loss (v3)": -0.00233,
+            "v3 strong bias (req>=0.6)": 0.013578,
+            "v3 very strong bias (req>=0.8)": 0.005723,
+            "v3 quiet bias (req<0.15)": -0.004214,
+            "body drag s/min": 0.488167,
+            "strong arrivals inverted/backward": 0.002909,
+            "air rms": 0.001556,
+            "speed rms": -0.000586,
+            "burst excess (100 ms)": 0,
+            "physics frames (M)": -0.063542
+          }
+        },
+        "geometry": {
+          "authored": {
+            "impact loss (v3)": 0.000158,
+            "v3 strong bias (req>=0.6)": -0.001994,
+            "v3 very strong bias (req>=0.8)": 0.00894,
+            "v3 quiet bias (req<0.15)": -0.004019,
+            "body drag s/min": -0.277451,
+            "strong arrivals inverted/backward": 0.025536,
+            "air rms": 0.003706,
+            "speed rms": -0.002207,
+            "burst excess (100 ms)": 0,
+            "physics frames (M)": -0.018823
+          },
+          "perturbed": {
+            "impact loss (v3)": -0.003627,
+            "v3 strong bias (req>=0.6)": 0.01306,
+            "v3 very strong bias (req>=0.8)": -0.017557,
+            "v3 quiet bias (req<0.15)": 0.006786,
+            "body drag s/min": 0.09573,
+            "strong arrivals inverted/backward": 0.018187,
+            "air rms": 0.002375,
+            "speed rms": -0.001442,
+            "burst excess (100 ms)": 0,
+            "physics frames (M)": -0.055075
+          }
+        }
+      },
+      "interpretation": "Better held-group prediction is not a consistent complete-ride gain. Geometry conditioning improves perturbed mean loss but weakens its very strongest hits and increases authored head-down arrivals. Test whether local optimization is the wrong role for a tree predictor before deciding its value."
     },
     {
       "id": "Q5",
@@ -339,8 +412,8 @@
       "commit": "41f0866c",
       "run": "q16-scatter-alternatives",
       "hypothesis": "Retain four distinct, physically replayed scattered arrivals for continuation search instead of the first viable carrier reconstruction.",
-      "status": "confirmation running",
-      "interpretation": "Retaining physically replayed scattered alternatives improves mean impact loss on authored and perturbed development cases under v1/v2/v3, with mixed guard changes and roughly 0.17\u20130.25M more physics frames. Reserved confirmation running; not yet promoted.",
+      "status": "confirmed tradeoff; research only",
+      "interpretation": "48/48 dev and confirmation rides complete and fulfill their fixed plans. Mean impact loss improves in all four subsets; very-strong authored confirmation bias worsens by 0.011. Eight paired clips retain improvements, random strong beats and the worst regression. No product promotion yet.",
       "result": {
         "authored": {
           "impact loss (v3)": -0.00084,
@@ -366,6 +439,32 @@
           "burst excess (100 ms)": 0,
           "physics frames (M)": 0.247454
         }
+      },
+      "confirmation": {
+        "authored": {
+          "impact loss (v3)": -0.002283,
+          "v3 strong bias (req>=0.6)": 0.008062,
+          "v3 very strong bias (req>=0.8)": -0.011049,
+          "v3 quiet bias (req<0.15)": 0.000261,
+          "body drag s/min": 0.057842,
+          "strong arrivals inverted/backward": -0.015798,
+          "air rms": 0.001461,
+          "speed rms": -0.002754,
+          "burst excess (100 ms)": 0.000222,
+          "physics frames (M)": 0.252288
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.002601,
+          "v3 strong bias (req>=0.6)": 0.006364,
+          "v3 very strong bias (req>=0.8)": 0.008402,
+          "v3 quiet bias (req<0.15)": 0.000542,
+          "body drag s/min": -0.152415,
+          "strong arrivals inverted/backward": -0.028783,
+          "air rms": -0.001999,
+          "speed rms": -0.000887,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.235319
+        }
       }
     },
     {
@@ -382,17 +481,141 @@
       "branch": "exp/quality-staged-lookahead-20261006",
       "commit": "c0a76b65",
       "run": "q18-staged-lookahead",
-      "status": "running",
-      "hypothesis": "Broader one-interval physical screening followed by deeper continuation of promising roots, at comparable approximate tree work and unchanged total allowance."
+      "status": "complete development trial; not adopted",
+      "hypothesis": "Broader one-interval physical screening followed by deeper continuation of promising roots, at comparable approximate tree work and unchanged total allowance.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": -0.000768,
+          "v3 strong bias (req>=0.6)": 0.002813,
+          "v3 very strong bias (req>=0.8)": 0.015856,
+          "v3 quiet bias (req<0.15)": 0.001848,
+          "body drag s/min": 0.362165,
+          "strong arrivals inverted/backward": 0.031317,
+          "air rms": 2e-06,
+          "speed rms": -0.003442,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": -0.199329
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.003879,
+          "v3 strong bias (req>=0.6)": 0.016176,
+          "v3 very strong bias (req>=0.8)": 0.011436,
+          "v3 quiet bias (req<0.15)": -0.008672,
+          "body drag s/min": 0.598926,
+          "strong arrivals inverted/backward": 0.003056,
+          "air rms": 0.001591,
+          "speed rms": -0.000617,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": -0.210232
+        }
+      },
+      "interpretation": "Staged deeper selection improves mean strength but increases body dragging and authored head-down arrivals; not adopted."
     },
     {
       "id": "Q19",
       "branch": "exp/quality-fragment-incumbent-20261006",
-      "commit": "c56cb97d",
+      "commit": "7c03ad91",
       "run": "q19-fragment-incumbent",
-      "status": "running",
+      "status": "complete development trial; not adopted",
       "hypothesis": "Keep already validated scattered candidates from the exact prefix/objective memo while reconstructing new carriers.",
-      "reproduction": "Q17 loses Tiki section 59 and Luna section 42. This version retains both at exactly their prior measured impacts, 0.494 and 0.708 (rounded)."
+      "reproduction": "Q17 loses Tiki section 59 and Luna section 42. This version retains both at exactly their prior measured impacts, 0.494 and 0.708 (rounded).",
+      "result": {
+        "authored": {
+          "impact loss (v3)": -0.000112,
+          "v3 strong bias (req>=0.6)": 0.000694,
+          "v3 very strong bias (req>=0.8)": -0.000339,
+          "v3 quiet bias (req<0.15)": -0.003733,
+          "body drag s/min": 0.143314,
+          "strong arrivals inverted/backward": -0.01344,
+          "air rms": 0.001769,
+          "speed rms": 0.001681,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.075056
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.003329,
+          "v3 strong bias (req>=0.6)": 0.013859,
+          "v3 very strong bias (req>=0.8)": 0.025797,
+          "v3 quiet bias (req<0.15)": -0.001931,
+          "body drag s/min": 0.648386,
+          "strong arrivals inverted/backward": -0.018214,
+          "air rms": -0.001017,
+          "speed rms": -0.001089,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.09983
+        }
+      },
+      "interpretation": "Verified fragmented incumbents are now retained in both exact reproductions. Full-track perturbed strength improves but dragging also rises; investigate the complete retention and interruption contract before promotion."
+    },
+    {
+      "id": "Q20",
+      "branch": "exp/quality-entry-placement-20261006",
+      "commit": "b2d79674",
+      "run": "q20-entry-placement",
+      "status": "not adopted",
+      "hypothesis": "Add tangential placement of the receiving curve as an explicit geometric degree of freedom; verify unchanged baseline under the new evaluator identity.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": 0.002595,
+          "v3 strong bias (req>=0.6)": -0.005615,
+          "v3 very strong bias (req>=0.8)": -0.003698,
+          "v3 quiet bias (req<0.15)": -0.003578,
+          "body drag s/min": -0.019963,
+          "strong arrivals inverted/backward": 0.001964,
+          "air rms": 0.002431,
+          "speed rms": 0.000383,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.01429
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.001716,
+          "v3 strong bias (req>=0.6)": 0.005989,
+          "v3 very strong bias (req>=0.8)": -0.010402,
+          "v3 quiet bias (req<0.15)": -0.001888,
+          "body drag s/min": 0.170914,
+          "strong arrivals inverted/backward": 0.000458,
+          "air rms": -0.000855,
+          "speed rms": 0.001651,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.002207
+        }
+      },
+      "interpretation": "Fixed-prefix strength improves very slightly, but full authored impact loss and very-strong strength worsen. Extra geometric freedom is not yet useful."
+    },
+    {
+      "id": "Q21",
+      "branch": "exp/quality-scatter-retention-20261006",
+      "commit": "7ccc29e3",
+      "run": "q21-scatter-retention",
+      "status": "complete development trial; not adopted",
+      "hypothesis": "Combine preservation of verified scattered incumbents with distinct scattered alternatives, testing the interaction explicitly.",
+      "result": {
+        "authored": {
+          "impact loss (v3)": 0.000395,
+          "v3 strong bias (req>=0.6)": 0.000338,
+          "v3 very strong bias (req>=0.8)": 0.001,
+          "v3 quiet bias (req<0.15)": 0.00089,
+          "body drag s/min": -0.083943,
+          "strong arrivals inverted/backward": 0.018036,
+          "air rms": 0.001046,
+          "speed rms": -0.002879,
+          "burst excess (100 ms)": 5.4e-05,
+          "physics frames (M)": 0.211559
+        },
+        "perturbed": {
+          "impact loss (v3)": -0.006037,
+          "v3 strong bias (req>=0.6)": 0.01273,
+          "v3 very strong bias (req>=0.8)": 0.022472,
+          "v3 quiet bias (req<0.15)": -0.001901,
+          "body drag s/min": 0.248449,
+          "strong arrivals inverted/backward": -0.00883,
+          "air rms": 0.001657,
+          "speed rms": -0.004088,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.293499
+        }
+      },
+      "interpretation": "Perturbed loss improves, authored stays nearly unchanged; guard tradeoffs remain. Do not equate a local retention invariant with universal musical quality."
     },
     {
       "id": "Q22",
@@ -412,6 +635,23 @@
         "coldHeapBytesAfter": 42337616
       },
       "interpretation": "One coherent configuration path loads the selected archive once. All tracks, physics counts and judge results are exactly unchanged. Cold-process heap observation is not a whole-compile speed claim."
+    },
+    {
+      "id": "Q23",
+      "status": "running",
+      "hypothesis": "Separate learned arrival ranking from finite-difference geometry refinement: disable only the local learned-value residual, with both inherited and disjoint geometry-conditioned predictors."
+    },
+    {
+      "id": "Q24",
+      "status": "running",
+      "hypothesis": "Characterize the unchanged compiler on the full dev panel at six million physics frames per ride, compared with the ordinary duration-scaled allowance."
+    },
+    {
+      "id": "Q25",
+      "status": "running",
+      "branch": "exp/quality-beam-20261006",
+      "commit": "f3a56331",
+      "hypothesis": "Carry four distinct physical prefixes across the song within the shared allowance rather than committing after short lookahead; final selection uses the unchanged complete-track objective."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -440,5 +680,7 @@
       "interpretation": "Most local improvement comes from actual coordinate probes. This motivates a better use of their measured progress, not the claim that joint steps have no value."
     }
   },
-  "evidence": "docs/research/quality-20261005-evidence.json"
+  "evidence": "docs/research/quality-20261005-evidence.json",
+  "review": "generated/report/quality-20261005/index.html",
+  "updated": "2026-10-05T22:53:51.831092+00:00"
 }

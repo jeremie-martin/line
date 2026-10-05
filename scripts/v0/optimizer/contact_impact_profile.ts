@@ -1,24 +1,36 @@
-/** Search configuration applied with the impact account. The measurement contract
+/** Search configuration applied with each impact account. The measurement contract
  * lives separately: changing search work or preferences never moves its ruler.
+ *
+ * line.strike.v1 and v2 keep the profile they were adopted with (the evening product
+ * of 2026-10-04), so their compile modes reproduce it. line.strike.v3, the product
+ * account, adds what was selected under it on the song-level evaluation (REWORK.md log):
+ *  - steepArrivalFrom .6: the catch before an ask ≥ 0.6 gets a steep, ask-driven
+ *    arrival at the ordinary arrival weight (weight 1 was worse; thresholds 0.4 and
+ *    0.75 were worse);
+ *  - strongLookahead 1.3: the lookahead caps of the interval leading into such an ask
+ *    are scaled and rounded (width 5 → 7, samples 48 → 62); 1.6 cost 5× more compile
+ *    time for a similar gain;
+ *  - uprightArrival 1: that steep arrival must not come head-down or backward (judged
+ *    by the same geometric test as the eval guard row; perceptual confirmation pending).
  * Preparation 2 was selected on the song-level evaluation (docs/research/
- * strike-definition-20261004.md). The steep arrival before strong asks (≥ 0.6, at the
- * ordinary arrival weight) was selected under line.strike.v3 (REWORK.md log, L1); a
- * weight of 1 was worse. The lookahead into a strong ask widens 1.3× (L9; 1.6 cost
- * 5× more compile time for a similar gain). The steep arrival must not come head-down
- * or backward (uprightArrival 1: such strong arrivals 30% → 15%; July 13%). The rest is
- * inherited from October 2. */
+ * strike-definition-20261004.md); the rest is inherited from October 2. */
 import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../../lib/strike_impact.ts';
 
 export const STRIKE_SEARCH_PROFILE = Object.freeze({
-  id: 'line.strike-search.v4',
+  id: 'line.strike-search.v1',
   impactPreparationFrames: 2,
   opposingEntryProposals: 24,
   coupledIntervalSamples: 64,
-  impactSearch: Object.freeze({engagementGainWeight: .64, steepArrivalFrom: .6, strongLookahead: 1.3, uprightArrival: 1}),
+  impactSearch: Object.freeze({engagementGainWeight: .64}),
+} as const);
+export const STRIKE_V3_SEARCH_PROFILE = Object.freeze({
+  ...STRIKE_SEARCH_PROFILE,
+  id: 'line.strike-search.v4',
+  impactSearch: Object.freeze({...STRIKE_SEARCH_PROFILE.impactSearch, steepArrivalFrom: .6, strongLookahead: 1.3, uprightArrival: 1}),
 } as const);
 
 export function impactSearchProfile(contract: string) {
-  // v2 and v3 change only the ruler; they start from the same search work.
-  if ([STRIKE_CONTRACT.id, STRIKE_V2_CONTRACT.id, STRIKE_V3_CONTRACT.id].includes(contract)) return STRIKE_SEARCH_PROFILE;
+  if (contract === STRIKE_CONTRACT.id || contract === STRIKE_V2_CONTRACT.id) return STRIKE_SEARCH_PROFILE;
+  if (contract === STRIKE_V3_CONTRACT.id) return STRIKE_V3_SEARCH_PROFILE;
   throw new Error('unknown impact contract');
 }

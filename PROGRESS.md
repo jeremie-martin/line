@@ -51,3 +51,5 @@ A change is adopted only if the whole picture improves.
 | 02:23 | **Survival corrected** | A fine grid shows a near-vertical drop surviving 1.0; at 45° the limit is about 0.9. |
 | 02:24 | Agent: retrain learned models on v3 | Running (feasibility first). |
 | 02:38 | Morning deliverables | Dashboard data, honest before/after clips (evening → tonight), scale clips, a blind 22-pair study for the owner. |
+| 03:37 | **Learned construction policies rebuilt under v3** (agent) | The old artifacts had been trained partly on the evaluation songs. The rebuild on disjoint songs is better on all four panels: impact loss −0.007, strong +0.015, air −0.005; body drag +30%. Adopted for v3. The value-model retrain was no better, so it is not adopted. |
+

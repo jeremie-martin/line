@@ -471,4 +471,22 @@ Only on validated measures:
   - in dense runs, descent refills each hit's speed bill almost exactly;
   - a gravity-ride continuation was null on the panel, so rejected;
   - a strong hit costs about 6 px/frame of speed per unit of strength.
+- 2026-10-05: **Learned artifacts retrained under v3** (agent, exp/retrain-v3,
+  merged for provenance: tools/research/*, plus a probe hook in
+  arc_lookahead.ts that leaves tracks unchanged under parity).
+  - Hygiene finding: both V6-era artifacts were trained partly on the four
+    evaluation songs, against WORKING.md's disjointness rule.
+  - Value model retrained on disjoint data: no better. Old, retrained,
+    constant and none land within about 0.01, so it is not adopted.
+  - **Construction policies rebuilt under v3 on disjoint songs (C), adopted
+    for the v3 profile (search profile v5; v1/v2/landing keep the V6-era
+    policies).** Reproduced in main, against s3-up1 / c-up1:
+    - impact loss −0.008 / −0.006 (dev), −0.007 / −0.005 (fresh seeds);
+    - strong bias +0.017 / +0.009, +0.014 / +0.017;
+    - very strong bias +0.018 / +0.036 / +0.031 / +0.024;
+    - air rms −0.005 / −0.003 / −0.007 / −0.005 (recovers tonight's air
+      cost); contested −1.1 pp (dev authored); fewer physics frames.
+    - Exceptions, explicit: body drag +0.4 to +0.5 s/min (about +30%) and
+      quiet bias +0.010 (fresh seeds, authored).
+    - The archive is 10.3 MB, beside the 8.5 MB V6-era one.
 

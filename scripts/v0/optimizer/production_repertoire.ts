@@ -1,6 +1,6 @@
 /** Production orchestration with one accountable allowance and no implicit style fallback. */
 import {compileArcMotion} from './arc_motion.ts';
-import {repertoireSearchOptions} from './repertoire_search.ts';
+import {repertoireSearchOptions, loadConstructionArtifact} from './repertoire_search.ts';
 import {arcRailGroups} from './arc_guidance.ts';
 import {normalizeCompilerTimeline} from './compiler_input.ts';
 import {validateProductionPlan,type CreativePreferences,type ProductionPlan} from './repertoire_policy.ts';
@@ -23,7 +23,12 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   const allowance=budget-replay,searchOptions=repertoireSearchOptions(spec,plan,allowance);
   if(options.impactContract!==undefined){
     impactAccount(options.impactContract);
-    const {id:_id,...profile}=impactSearchProfile(options.impactContract);
+    const {id:_id,constructionModel,...profile}=impactSearchProfile(options.impactContract) as any;
+    // A profile may name its own learned construction policies (intentional plans only).
+    if(constructionModel&&searchOptions.constructionPolicies){
+      const artifact=loadConstructionArtifact(constructionModel);
+      Object.assign(searchOptions,{constructionPolicies:artifact.policies,constructionExamples:artifact.examples});
+    }
     Object.assign(searchOptions,profile,{impactContract:options.impactContract});
   }
   const styles=searchOptions.sectionStyles!;

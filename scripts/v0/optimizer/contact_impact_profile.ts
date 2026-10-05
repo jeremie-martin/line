@@ -11,7 +11,10 @@
  *    are scaled and rounded (width 5 → 7, samples 48 → 62); 1.6 cost 5× more compile
  *    time for a similar gain;
  *  - uprightArrival 1: that steep arrival must not come head-down or backward (judged
- *    by the same geometric test as the eval guard row; perceptual confirmation pending).
+ *    by the same geometric test as the eval guard row; perceptual confirmation pending);
+ *  - constructionModel 'v3': learned construction policies rebuilt under line.strike.v3
+ *    on songs disjoint from the evaluation panel (the V6-era ones were trained partly
+ *    on evaluation songs); better on all four panels, body drag +30% (REWORK.md log).
  * Preparation 2 was selected on the song-level evaluation (docs/research/
  * strike-definition-20261004.md); the rest is inherited from October 2. */
 import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../../lib/strike_impact.ts';
@@ -25,7 +28,8 @@ export const STRIKE_SEARCH_PROFILE = Object.freeze({
 } as const);
 export const STRIKE_V3_SEARCH_PROFILE = Object.freeze({
   ...STRIKE_SEARCH_PROFILE,
-  id: 'line.strike-search.v4',
+  id: 'line.strike-search.v5',
+  constructionModel: 'v3' as const,
   impactSearch: Object.freeze({...STRIKE_SEARCH_PROFILE.impactSearch, steepArrivalFrom: .6, strongLookahead: 1.3, uprightArrival: 1}),
 } as const);
 

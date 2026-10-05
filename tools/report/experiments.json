@@ -159,5 +159,12 @@
   "title": "Code review of tonight's changes",
   "verdict": "finding",
   "detail": "No correctness bug in product code. Corrected: spin evidence (8 : 3, not 12 : 4), v1/v2 compile modes back on the evening profile, upright judged by its own test, the survival ceiling (1.0 survives a near-vertical drop), plus tool-safety fixes and tests."
+ },
+ {
+  "time": "03:37",
+  "area": "agent",
+  "title": "Learned models retrained under v3 on data disjoint from the eval songs",
+  "verdict": "adopted",
+  "detail": "The V6-era artifacts were trained partly on the evaluation songs. Rebuilt construction policies: impact loss −0.007, strong bias +0.015, air −0.005 on all four panels; body drag +30% (explicit exception). The value-model retrain was no better (old, retrained, constant and none are within 0.01), so it is not adopted."
  }
 ]

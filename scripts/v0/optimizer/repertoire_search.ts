@@ -5,8 +5,14 @@ import {constructionStyle,type ProductionPlan} from './repertoire_policy.ts';
 import {INTENTIONAL_REPERTOIRE_POLICY} from './intentional_repertoire.ts';
 import type {Spec} from '../types.ts';
 import type {ArcMotionOptions} from './arc_motion.ts';
-const artifactUrl=new URL('./repertoire_policy_model.json',import.meta.url);
-let constructionArtifact:{policies:NonNullable<ArcMotionOptions['constructionPolicies']>;examples:NonNullable<ArcMotionOptions['constructionExamples']>}|undefined;
+const ARTIFACTS={
+  // The V6-era policies (trained in part on the evaluation songs): v1/v2 and landing modes.
+  v6:new URL('./repertoire_policy_model.json',import.meta.url),
+  // Rebuilt under line.strike.v3 on songs disjoint from the evaluation panel.
+  v3:new URL('./repertoire_policy_model_v3.json',import.meta.url),
+};
+export type ConstructionModel=keyof typeof ARTIFACTS;
+const constructionArtifacts:Partial<Record<ConstructionModel,{policies:NonNullable<ArcMotionOptions['constructionPolicies']>;examples:NonNullable<ArcMotionOptions['constructionExamples']>}>>={};
 export function constructionSearchModelData(model:any){
  if(model.schema!=='line.construction-policies.v1'||!model.groups||typeof model.groups!=='object')throw new Error('invalid construction policy artifact');
  const inherited=Object.fromEntries(Object.entries(model.groups).map(([key,group]:[string,any])=>{
@@ -25,16 +31,13 @@ export function constructionSearchModelData(model:any){
  })):inherited;
  return {policies:model.groups,examples};
 }
-function loadConstructionArtifact(){
- if(!constructionArtifact){
-  const model=parseArcPolicyArtifact(readFileSync(artifactUrl),artifactUrl);
-  constructionArtifact=constructionSearchModelData(model);
- }
- return constructionArtifact;
+export function loadConstructionArtifact(which:ConstructionModel='v6'){
+  if(!constructionArtifacts[which]){
+    const model=parseArcPolicyArtifact(readFileSync(ARTIFACTS[which]),ARTIFACTS[which]);
+    constructionArtifacts[which]=constructionSearchModelData(model);
+  }
+  return constructionArtifacts[which]!;
 }
-/** Production search configuration. Only intentional (v2) plans are realized:
- * every production and benchmark plan is one, and the construction policies,
- * memory and refinement below assume their contexts. */
 export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:number):ArcMotionOptions{
  if(plan.policy!==INTENTIONAL_REPERTOIRE_POLICY)throw new Error('the compiler realizes intentional repertoire plans only');
  const artifact=loadConstructionArtifact();

@@ -1,0 +1,14 @@
+{
+  "schema": "line.arc-compressed-policy.v1",
+  "compression": "gzip-file",
+  "file": "repertoire_policy_model_v3.json.gz",
+  "compressedSha256": "9a03b75fcbddcaef734f11ec2cdad12ccc66fbccf534d005704a02788e025e7c",
+  "sha256": "9a051c23c13c502b690ab32b48bc93a214e5f643099d7f1aa915257d8cdb2f91",
+  "uncompressedBytes": 25972467,
+  "provenance": {
+    "policyTraining": "tools/research/train_construction_v3.py",
+    "collector": "tools/research/value_collect.ts (with the probe hook in arc_lookahead.ts)",
+    "data": "benchmark/v4 cases without the four eval songs, plus V6 transfer-layout plans on non-eval music, compiled under line.strike.v3 at the standard allowance",
+    "evidence": "REWORK.md log 2026-10-05 (exp/retrain-v3: arm C)"
+  }
+}

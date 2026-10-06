@@ -1819,32 +1819,44 @@
     },
     {
       "id": "Q58",
-      "status": "waiting for complete predeclared collection",
+      "status": "24 complete pairs; not adopted",
       "hypothesis": "Refit the 73-feature geometry-aware continuation model on 336 disjoint native probe compiles from the coherent search. Keep hyperparameters and the physical target fixed, validate held-out catalog groups and independent export predictions, then compare complete production panels against Q52 and the no-model ablation. Prediction improvements alone do not justify adoption.",
       "branch": "exp/quality-current-value-20261006",
-      "collectorCommit": "bdd2f633"
+      "collectorCommit": "bdd2f633",
+      "interpretation": "Held-group regret improved, but actual strong bias worsens by .007/.008, very-strong by .008/.021 and v3 loss by .001/.002 versus Q52 (authored/perturbed). Older contact and strike rulers improve; perturbed dragging rises .301 s/min. Better prediction did not improve the intended rides."
     },
     {
       "id": "Q59",
-      "status": "waiting for complete predeclared collection",
+      "status": "24 complete pairs; not adopted",
       "hypothesis": "Refit the 57-feature arrival-only continuation model on 336 disjoint native probe compiles from the coherent search. Keep hyperparameters and the physical target fixed, validate held-out catalog groups and independent export predictions, then compare complete production panels against Q52 and the no-model ablation. Prediction improvements alone do not justify adoption.",
       "branch": "exp/quality-current-value-20261006",
-      "collectorCommit": "bdd2f633"
+      "collectorCommit": "bdd2f633",
+      "interpretation": "Arrival-only ablation loses held-group ranking quality and weakens very-strong production hits .005/.015 versus Q52; perturbed dragging rises .366 s/min. No runtime advantage demonstrated."
     },
     {
       "id": "Q60",
-      "status": "resumed exact frozen plan with three workers after freeing render memory",
+      "status": "24 complete pairs; standard allowance retained",
       "hypothesis": "Check whether doubled allowance on the clean cached-contact architecture improves full rides rather than merely spending more work. Compare all24 paired development cases against its standard allowance with every unchanged ruler. Standard production allowance remains fixed; no tuning on final reserved seeds.",
       "branch": "exp/quality-coherent-candidate-20261006",
       "commit": "9c4ae57b",
-      "run": "q60-cached-six-million"
+      "run": "q60-cached-six-million",
+      "interpretation": "Doubling nominal allowance spends only .360/.388M additional frames, with v3 loss about -.001/-.000 and very-strong bias +.004/-.007; dragging +.258/+.101 s/min. Finite proposal caps limit spending and there is no compelling overall gain."
     },
     {
       "id": "Q61",
-      "status": "predeclared continuation-target experiment",
+      "status": "24 complete pairs; not adopted",
       "hypothesis": "A continuation can legitimately lower an already-counted boundary estimate. Test learning the signed two-interval correction with asinh(100*cost), rather than clipping negative labels to zero. Same physical labels, held-out groups, features and model capacity; complete ride panels decide whether it helps. No impact ruler or authored target changes.",
       "diagnostic": "On 271 partial collection records, 218/24025 finite labels are negative (0.91%), mean \u2212.0127, minimum \u2212.0816, spanning 164 contexts. This is a feasibility observation, not a completed training result.",
-      "branch": "exp/quality-current-model-training-20261006"
+      "branch": "exp/quality-current-model-training-20261006",
+      "interpretation": "Signed labels are physically legitimate, but this fitted model weakens very-strong hits .006/.029 and raises dragging .238/.134 s/min versus Q52. Authored inverted arrivals improve .034. Keep the evidence, not another production model option."
+    },
+    {
+      "id": "Q62",
+      "status": "Catalog recovery succeeds; complete development/confirmation running",
+      "hypothesis": "The beam keeps only eight untried arrivals at each recent boundary, discarding remaining measured alternatives. Retain all distinct measured alternatives at those same four boundaries and reopen them in bounded batches. Test the three confirmed completion differences under the same allowance before broad panels. No construction request, native physics or ruler changes.",
+      "evidence": "pickup_interruptions202: original baseline completes112 sections; Q52 stops at section78 after15 backtracks with about949k frames unused. The next requested scallop spans eight authored frames. This does not establish physical infeasibility.",
+      "branch": "exp/quality-complete-frontiers-20261006",
+      "interpretation": "Fresh original/Q52 replay confirms one of three historical additional collection failures: pickup_interruptions202 stops after78/112 sections with Q52, while original completes. Cached construction already recovers the other two. Retaining all distinct measured alternatives at four recent boundaries in batches of eight completes112/112 at4,266,253/4,285,700 frames; no special case or extra allowance. Deterministic graph test fails on old reserve truncation and passes with bounded complete recovery."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1875,7 +1887,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T02:05:26.313272+00:00",
+  "updated": "2026-10-06T02:31:27.141004+00:00",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [

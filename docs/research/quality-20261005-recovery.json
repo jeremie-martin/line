@@ -1,0 +1,468 @@
+{
+  "schema": "line.quality-catalog-recovery.v1",
+  "purpose": "Reconfirm historical completion differences on identical inputs, then test generic bounded retention of measured alternatives. These are training catalog diagnostics, not held-out music.",
+  "cases": [
+    {
+      "id": "pickup_interruptions~202",
+      "baseline": {
+        "id": "pickup_interruptions",
+        "seed": 202,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "4e510f583febf63aa6c4f6a6ecb1ea74388ae7a9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "060c75ccbd2ffc1b756207612ab67cdeccc03a22b4ecb05bae8a9fb85ca095e1"
+        },
+        "inputSha256": "9a121af1f890c52b5e9a4aa5e4ba2d6fd8eda7215ff155868bc80f88e9ca9c03",
+        "trackSha256": "8d4767fdc7dd26c76f585c7a131bdd436f238975bfe8605faf9e76f53bd67828",
+        "complete": true,
+        "fulfilled": true,
+        "failure": null,
+        "duration": 62.5,
+        "requested": 112,
+        "constructed": 112,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 4285700,
+          "physicalFrames": 3479145,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 4283179,
+              "physicalFrames": 3476625,
+              "complete": true
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2521,
+              "physicalFrames": 2520,
+              "complete": true
+            }
+          ]
+        },
+        "search": {
+          "samples": 190696,
+          "viable": 98045,
+          "backtracks": 1,
+          "rebuilds": 3
+        },
+        "loss": 0.02261401715879809,
+        "wallMs": 128154.129211,
+        "cpuMs": 150028.262,
+        "peakRssKiB": 1048728
+      },
+      "Q52": {
+        "id": "pickup_interruptions",
+        "seed": 202,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "inputSha256": "9a121af1f890c52b5e9a4aa5e4ba2d6fd8eda7215ff155868bc80f88e9ca9c03",
+        "trackSha256": "c1904cddb00559e91f877c8e7155173d319c8a06810192f737c85a0428d93957",
+        "complete": false,
+        "fulfilled": false,
+        "failure": {
+          "frame": 1646,
+          "reason": "no_arc"
+        },
+        "duration": 62.5,
+        "requested": 112,
+        "constructed": 78,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 4285700,
+          "physicalFrames": 3336513,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 4283179,
+              "physicalFrames": 3333993,
+              "complete": false
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2521,
+              "physicalFrames": 2520,
+              "complete": false
+            }
+          ]
+        },
+        "search": {
+          "samples": 183901,
+          "viable": 103673,
+          "backtracks": 15,
+          "rebuilds": 17
+        },
+        "loss": 0.31858828338352413,
+        "wallMs": 105061.05452199999,
+        "cpuMs": 126919.01,
+        "peakRssKiB": 778548
+      },
+      "Q62": {
+        "id": "pickup_interruptions",
+        "seed": 202,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "6a42d84b55414f4c1f95e747b41a8b06b887a17c",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "8506d094af1561ed02b4ebb0c809a870f8606985b7d29527eebfc0cca93fec98"
+        },
+        "inputSha256": "9a121af1f890c52b5e9a4aa5e4ba2d6fd8eda7215ff155868bc80f88e9ca9c03",
+        "trackSha256": "73bb7fdd5147bb386db2bd291a3766cce926ad16c956d4d84b068374ebf25119",
+        "complete": true,
+        "fulfilled": true,
+        "failure": null,
+        "duration": 62.5,
+        "requested": 112,
+        "constructed": 112,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 4285700,
+          "physicalFrames": 4266253,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 4283179,
+              "physicalFrames": 4263733,
+              "complete": true
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2521,
+              "physicalFrames": 2520,
+              "complete": true
+            }
+          ]
+        },
+        "search": {
+          "samples": 222805,
+          "viable": 128249,
+          "backtracks": 15,
+          "rebuilds": 17
+        },
+        "loss": 0.0186628556918278,
+        "wallMs": 116372.01272700001,
+        "cpuMs": 141936.608,
+        "peakRssKiB": 924936
+      }
+    },
+    {
+      "id": "stretch_bridge_frontier_pickup_progression~101",
+      "baseline": {
+        "id": "stretch_bridge_frontier_pickup_progression",
+        "seed": 101,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "4e510f583febf63aa6c4f6a6ecb1ea74388ae7a9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "060c75ccbd2ffc1b756207612ab67cdeccc03a22b4ecb05bae8a9fb85ca095e1"
+        },
+        "inputSha256": "0808f41ffffcd0f22c843af6f1df5e25f386ea29b3a7e41789d240b471787d53",
+        "trackSha256": "a4e2cdf2a21e8605631cf5c8ea94661a5a62daf59ae3f175358b58720bcb610e",
+        "complete": true,
+        "fulfilled": true,
+        "failure": null,
+        "duration": 57.35,
+        "requested": 111,
+        "constructed": 111,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 3935500,
+          "physicalFrames": 3677970,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 3933185,
+              "physicalFrames": 3675656,
+              "complete": true
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2315,
+              "physicalFrames": 2314,
+              "complete": true
+            }
+          ]
+        },
+        "search": {
+          "samples": 226458,
+          "viable": 99982,
+          "backtracks": 48,
+          "rebuilds": 50
+        },
+        "loss": 0.04764429159672177,
+        "wallMs": 167697.888351,
+        "cpuMs": 194576.077,
+        "peakRssKiB": 1118064
+      },
+      "Q52": {
+        "id": "stretch_bridge_frontier_pickup_progression",
+        "seed": 101,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "inputSha256": "0808f41ffffcd0f22c843af6f1df5e25f386ea29b3a7e41789d240b471787d53",
+        "trackSha256": "1691c06ad349c227d6de01bd410a14d2069ff4f7450f73a3d3eb26521c6e132a",
+        "complete": true,
+        "fulfilled": true,
+        "failure": null,
+        "duration": 57.35,
+        "requested": 111,
+        "constructed": 111,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 3935500,
+          "physicalFrames": 3923159,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 3933185,
+              "physicalFrames": 3920845,
+              "complete": true
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2315,
+              "physicalFrames": 2314,
+              "complete": true
+            }
+          ]
+        },
+        "search": {
+          "samples": 224276,
+          "viable": 108923,
+          "backtracks": 19,
+          "rebuilds": 21
+        },
+        "loss": 0.032264641422601395,
+        "wallMs": 141669.530103,
+        "cpuMs": 170883.82,
+        "peakRssKiB": 919776
+      },
+      "Q62": {
+        "id": "stretch_bridge_frontier_pickup_progression",
+        "seed": 101,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "6a42d84b55414f4c1f95e747b41a8b06b887a17c",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "8506d094af1561ed02b4ebb0c809a870f8606985b7d29527eebfc0cca93fec98"
+        },
+        "inputSha256": "0808f41ffffcd0f22c843af6f1df5e25f386ea29b3a7e41789d240b471787d53",
+        "trackSha256": "03e11d1f5e25ad53c4f56579b59ca5ddec4e17455512cfdb3cbd8072d934de12",
+        "complete": true,
+        "fulfilled": true,
+        "failure": null,
+        "duration": 57.35,
+        "requested": 111,
+        "constructed": 111,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 3935500,
+          "physicalFrames": 3921833,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 3933185,
+              "physicalFrames": 3919519,
+              "complete": true
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2315,
+              "physicalFrames": 2314,
+              "complete": true
+            }
+          ]
+        },
+        "search": {
+          "samples": 219828,
+          "viable": 119869,
+          "backtracks": 9,
+          "rebuilds": 11
+        },
+        "loss": 0.03250414148345765,
+        "wallMs": 126820.460233,
+        "cpuMs": 155143.21,
+        "peakRssKiB": 1048856
+      }
+    },
+    {
+      "id": "stretch_bridge_split_signal~101",
+      "baseline": {
+        "id": "stretch_bridge_split_signal",
+        "seed": 101,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "4e510f583febf63aa6c4f6a6ecb1ea74388ae7a9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "060c75ccbd2ffc1b756207612ab67cdeccc03a22b4ecb05bae8a9fb85ca095e1"
+        },
+        "inputSha256": "b71e8c5b2c2ac05b35c84fc6b6a5d8e1aa95a32cfad6d312244fde2aafdca73c",
+        "trackSha256": "e89f22e87b9419163db29a1ac2ac19022791f1a3fcbf50d552a871bab99b25b6",
+        "complete": true,
+        "fulfilled": true,
+        "failure": null,
+        "duration": 56.4,
+        "requested": 93,
+        "constructed": 93,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 3870900,
+          "physicalFrames": 3357809,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 3868623,
+              "physicalFrames": 3355533,
+              "complete": true
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2277,
+              "physicalFrames": 2276,
+              "complete": true
+            }
+          ]
+        },
+        "search": {
+          "samples": 172108,
+          "viable": 84249,
+          "backtracks": 0,
+          "rebuilds": 2
+        },
+        "loss": 0.024479010055226017,
+        "wallMs": 98257.970661,
+        "cpuMs": 115728.947,
+        "peakRssKiB": 1017568
+      },
+      "Q52": {
+        "id": "stretch_bridge_split_signal",
+        "seed": 101,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "inputSha256": "b71e8c5b2c2ac05b35c84fc6b6a5d8e1aa95a32cfad6d312244fde2aafdca73c",
+        "trackSha256": "90f35ccf50d26dc720b582a0540895e54f40335bd418fb6b644d7748bc452c3e",
+        "complete": true,
+        "fulfilled": true,
+        "failure": null,
+        "duration": 56.4,
+        "requested": 93,
+        "constructed": 93,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 3870900,
+          "physicalFrames": 3852052,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 3868623,
+              "physicalFrames": 3849776,
+              "complete": true
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2277,
+              "physicalFrames": 2276,
+              "complete": true
+            }
+          ]
+        },
+        "search": {
+          "samples": 178196,
+          "viable": 111179,
+          "backtracks": 0,
+          "rebuilds": 2
+        },
+        "loss": 0.016757645395977915,
+        "wallMs": 106459.764516,
+        "cpuMs": 129097.76,
+        "peakRssKiB": 856256
+      },
+      "Q62": {
+        "id": "stretch_bridge_split_signal",
+        "seed": 101,
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "6a42d84b55414f4c1f95e747b41a8b06b887a17c",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "8506d094af1561ed02b4ebb0c809a870f8606985b7d29527eebfc0cca93fec98"
+        },
+        "inputSha256": "b71e8c5b2c2ac05b35c84fc6b6a5d8e1aa95a32cfad6d312244fde2aafdca73c",
+        "trackSha256": "90f35ccf50d26dc720b582a0540895e54f40335bd418fb6b644d7748bc452c3e",
+        "complete": true,
+        "fulfilled": true,
+        "failure": null,
+        "duration": 56.4,
+        "requested": 93,
+        "constructed": 93,
+        "work": {
+          "schema": "line.compile-work.v1",
+          "allowance": 3870900,
+          "physicalFrames": 3852052,
+          "exhausted": false,
+          "stages": [
+            {
+              "stage": "shared-search",
+              "allowance": 3868623,
+              "physicalFrames": 3849776,
+              "complete": true
+            },
+            {
+              "stage": "realization-replay",
+              "allowance": 2277,
+              "physicalFrames": 2276,
+              "complete": true
+            }
+          ]
+        },
+        "search": {
+          "samples": 178196,
+          "viable": 111179,
+          "backtracks": 0,
+          "rebuilds": 2
+        },
+        "loss": 0.016757645395977915,
+        "wallMs": 103468.12919800001,
+        "cpuMs": 125535.502,
+        "peakRssKiB": 871288
+      }
+    }
+  ]
+}

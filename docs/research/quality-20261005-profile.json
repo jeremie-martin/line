@@ -1,0 +1,15 @@
+{
+  "schema": "line.quality-profile.v1",
+  "compiler": "954d03535e0ff84e69bd38ba8c28416254975663",
+  "case": "luna_bala_44s~101",
+  "trackSha256": "7901ca0770ec8c70c42608245aba7f4563cd45ba61055736a4276b7c86a86833",
+  "physicsFrames": 3020404,
+  "archive": "/home/wyss/line/archives/quality-20261005/profiles/line-q62-production.cpuprofile",
+  "sha256": "f8d9e3597d988d8f76189dfcb4a3e6f873dfd2c206df8d7f49a1e6b65f6b1d17",
+  "sampledSeconds": 85.175487,
+  "wasmSeconds": 27.452063,
+  "gcSeconds": 7.717232,
+  "detectorSelfSeconds": 6.89,
+  "traceCandidateSelfSeconds": 4.656,
+  "interpretation": "One profiled exact replay, not a timing benchmark. Repeated prefix analysis is a future opportunity, not an implemented optimization."
+}

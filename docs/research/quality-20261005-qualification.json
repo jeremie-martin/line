@@ -1,0 +1,39 @@
+{
+  "schema": "line.quality-final-qualification.v1",
+  "candidateCommit": "954d0353",
+  "compilerCells": 63,
+  "sameAsQ52Cells": 63,
+  "changedHashesVsCampaignOriginal": 63,
+  "fullBudgetReferenceMeans": {
+    "landing": {
+      "cells": 18,
+      "baselineMean": 869.5627000000001,
+      "candidateMean": 883.51865,
+      "note": "Reference-cell mean under this account, not a canonical benchmark headline."
+    },
+    "strike": {
+      "cells": 5,
+      "baselineMean": 784.54374,
+      "candidateMean": 817.49134,
+      "note": "Reference-cell mean under this account, not a canonical benchmark headline."
+    },
+    "strike2": {
+      "cells": 5,
+      "baselineMean": 690.92544,
+      "candidateMean": 766.86496,
+      "note": "Reference-cell mean under this account, not a canonical benchmark headline."
+    },
+    "strike3": {
+      "cells": 5,
+      "baselineMean": 755.0971,
+      "candidateMean": 779.89072,
+      "note": "Reference-cell mean under this account, not a canonical benchmark headline."
+    }
+  },
+  "tests": 276,
+  "typecheck": "pass",
+  "unreachableFiles": 0,
+  "counterfactualRecoveryTest": "New graph test passes current and fails 9c4ae57b; useful arrival beyond first recovery batch remains reachable.",
+  "judgeStatus": "pass: 33 saved tracks, after all63 compiler references completed",
+  "changedWorkVsCampaignOriginal": 62
+}

@@ -1852,11 +1852,34 @@
     },
     {
       "id": "Q62",
-      "status": "Catalog recovery succeeds; complete development/confirmation running",
+      "status": "3 catalog pairs and 48 musical pairs complete; all48 musical tracks and work exact Q52",
       "hypothesis": "The beam keeps only eight untried arrivals at each recent boundary, discarding remaining measured alternatives. Retain all distinct measured alternatives at those same four boundaries and reopen them in bounded batches. Test the three confirmed completion differences under the same allowance before broad panels. No construction request, native physics or ruler changes.",
       "evidence": "pickup_interruptions202: original baseline completes112 sections; Q52 stops at section78 after15 backtracks with about949k frames unused. The next requested scallop spans eight authored frames. This does not establish physical infeasibility.",
       "branch": "exp/quality-complete-frontiers-20261006",
-      "interpretation": "Fresh original/Q52 replay confirms one of three historical additional collection failures: pickup_interruptions202 stops after78/112 sections with Q52, while original completes. Cached construction already recovers the other two. Retaining all distinct measured alternatives at four recent boundaries in batches of eight completes112/112 at4,266,253/4,285,700 frames; no special case or extra allowance. Deterministic graph test fails on old reserve truncation and passes with bounded complete recovery."
+      "interpretation": "Fresh original/Q52 replay confirms one of three historical additional collection failures: pickup_interruptions202 stops after78/112 sections with Q52, while original completes. Cached construction already recovers the other two. Retaining all distinct measured alternatives at four recent boundaries in batches of eight completes112/112 at4,266,253/4,285,700 frames; no special case or extra allowance. Deterministic graph test fails on old reserve truncation and passes with bounded complete recovery.",
+      "musicalResult": "Recovery is dormant on all48 development/confirmation music cases: track hashes and physical frame counts exactly match Q52. The completion improvement comes from consuming retained alternatives when needed, not changing ordinary rides."
+    },
+    {
+      "id": "Q63",
+      "status": "predeclared frozen-candidate audit running",
+      "hypothesis": "Freeze Q62 plus the lean ownership implementation and research cleanup. Run the untouched48 musical confirmation cases against the adopted Q31 baseline, and the full336 paired disjoint catalog cases against the campaign original. Same authored inputs, allowance, normal lines and all existing rulers. Do not tune on the final musical outcomes. Catalog is a training-domain robustness test, not unseen-music validation.",
+      "candidateCommit": "954d0353",
+      "branch": "exp/quality-final-candidate-20261006",
+      "musicalBaselineCommit": "56fefb44",
+      "catalogBaselineCommit": "4e510f58"
+    },
+    {
+      "id": "Q64",
+      "status": "48 cold replays reproduce every existing drag guard; physical counterexamples preserved",
+      "hypothesis": "Locate the body-drag tradeoff in the fixed Q52/Q62 tracks: re-observe every frame, reconstruct the existing six-frame body-contact guard exactly, attribute runs to authored quiet/moderate/strong time spans and rider points, and inspect the largest added runs. This is explanatory evidence, not a new objective, not a change in what counts as impact, and not permission to remove useful upper-rail interactions.",
+      "branch": "exp/quality-review-20261006",
+      "interpretation": "Additional body contact is mostly in strong contexts: +.302/.269 seconds per ride-minute (authored/perturbed). Quiet contribution +.057/-.195, with intervals spanning zero. The Amour404 quiet opening has a visibly longer inverted body slide than baseline; the Amour101 strong example retains an upright rider interacting with scattered upper fragments. Therefore the guard is useful but not a complete aesthetic judgment. Two same-music-time diagnostic clips verify cached source identities and movie bytes; no metric or objective changes."
+    },
+    {
+      "id": "Q65",
+      "status": "predeclared feasibility experiment; frozen Q63 remains unchanged",
+      "hypothesis": "The existing arrival prior treats strong catches and unguided passive catches alike for kinetic preparation, but applies its already-existing posture preference only to strong catches. Extend that same soft preference to passive catches as well, without changing its formula/weight, impact ruler, geometry permissions, authored requests or budget. Test full development panel and inspect quiet Amour404; this is not a ban on inverted geometry or an optimization of the new drag diagnostic. Frozen Q63 confirmation remains independent; any new selected behavior will need a new untouched confirmation.",
+      "branch": "exp/quality-passive-arrival-20261006"
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1887,7 +1910,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T02:31:27.141004+00:00",
+  "updated": "2026-10-06T02:42:13.678121+00:00",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [

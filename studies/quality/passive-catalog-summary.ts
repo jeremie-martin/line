@@ -55,7 +55,17 @@ for(const baseline of ['baseline','q62']){
   recovered:cases.filter((c:any)=>!c[baseline].complete&&c.passive.complete).map((c:any)=>c.id),
   regressed:cases.filter((c:any)=>c[baseline].complete&&!c.passive.complete).map((c:any)=>c.id)},subsets:summaries};
 }
+const resourceDistribution=Object.fromEntries(['baseline','q62','passive'].map(label=>{
+ const quantile=(xs:number[],q:number)=>{const sorted=[...xs].sort((a,b)=>a-b);return sorted[Math.floor((sorted.length-1)*q)]};
+ const metrics=Object.fromEntries(['cpuSeconds','peakRssMiB','physics frames (M)'].map(key=>{
+  const values=cases.map((c:any)=>c[label][key]);assert.ok(values.every(Number.isFinite));
+  return [key,{cases:values.length,mean:mean(values),median:quantile(values,.5),p95:quantile(values,.95),max:Math.max(...values)}];
+ }));
+ const slowest=[...cases].sort((a:any,b:any)=>b[label].cpuSeconds-a[label].cpuSeconds).slice(0,10).map((c:any)=>({id:c.id,
+  cpuSeconds:c[label].cpuSeconds,peakRssMiB:c[label].peakRssMiB,physicalFramesM:c[label]['physics frames (M)'],complete:c[label].complete}));
+ return [label,{metrics,slowest}];
+}));
 const output={schema:'line.quality-passive-catalog.v1',plans,planSha256:{original:digest(plans.original),passive:digest(plans.passive)},
- interpretation:'Complete frozen training-catalog audit, not unseen-music generalization. Every paired value uses identical authored inputs and one evaluator; original baseline observations are reused with their own plan identity. Equal source-group means and group bootstrap. Completion and common-completed quality are separate. Concurrent wall times are not speed evidence.',groups,comparisons,cases};
+ interpretation:'Complete frozen training-catalog audit, not unseen-music generalization. Every paired value uses identical authored inputs and one evaluator; original baseline observations are reused with their own plan identity. Equal source-group means and group bootstrap. Completion and common-completed quality are separate. Concurrent wall times are not speed evidence.',groups,comparisons,resourceDistribution,cases};
 writeFileSync('/home/wyss/line/docs/research/quality-20261005-passive-catalog.json',JSON.stringify(output)+'\n');
 for(const [name,c] of Object.entries(comparisons) as any){console.log(name,JSON.stringify(c.completion));for(const [key,v] of Object.entries(c.subsets.all.metrics) as any)console.log(key,v.paired,v.finitePairs);}

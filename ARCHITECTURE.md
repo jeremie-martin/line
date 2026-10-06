@@ -48,6 +48,16 @@ spec (beats, impacts, air/speed/amplitude targets)
    Every evaluation is native physics, charged to the allowance. Measurements
    are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)
    classifies every option by whether it can change a measurement.
+
+   Scattered sections use resolved collision positions from the carrier's
+   original simulation. Reading those cached records advances no physics;
+   the resulting fragments then undergo ordinary physical evaluation. There
+   is no second observer engine or contact-window replay.
+
+   Native engine versions share a physical cache within a lineage. Live
+   descendants and the current cache retain the ancestry they need; released
+   branches are reclaimed immediately when neither needs them. Handle slots
+   remain reserved until lineage death. The independent judge is unchanged.
 4. **Validate.** The finished track is replayed on a separate engine instance.
    That replay produces:
    - layout fulfillment, i.e. whether each requested construction actually
@@ -205,10 +215,11 @@ Known limits of the strike account:
     wave and contour recipes (contours archived). Faceted arcs (`subdivisions`)
     are live.
 - **Budget rules are saturating caps tuned to V4.**
-  - The caps are in `connected_arcs.ts` and `repertoire_search.ts`. Every
-    width saturates by about 0.52M frames on 45 s songs, and the default
-    allowance (`production_budget.ts`, 1,700 frames per ride frame) runs them
-    saturated.
+  - Local sample caps are in `connected_arcs.ts` and `repertoire_search.ts`.
+    The default allowance (`production_budget.ts`, 1,700 frames per ride
+    frame) saturates many of them. Prefix width and local sampling now adapt
+    to observed physical work and the remaining timeline; a larger allowance
+    does not automatically imply a better allocation.
   - Persistent-prefix expansion now shares the construction allowance. The
     previous two-interval lookahead and neighbor-response paths are removed.
   - Results are not monotone in budget.

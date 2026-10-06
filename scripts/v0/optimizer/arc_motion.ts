@@ -1,6 +1,6 @@
-/** Measured arc search: one connected physical support curve per contact interval.
- * The curve's entry, impact-window turn, later slope and release length are
- * corrected using actual engine measurements. No point controls or scenery. */
+/** Measured construction search over connected curves and contact fragments.
+ * Entry, turn, release and continuation are corrected by native physics;
+ * the seeded arrangement determines which constructions must be realized. */
 import { disposeAllWasmEnginesForStudy as disposeSearch } from '../../lib/native_motion/engine.ts';
 import { resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import { validateSpec } from '../core/substrate.ts';

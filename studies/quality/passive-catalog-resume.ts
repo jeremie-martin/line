@@ -12,8 +12,8 @@ assert.equal(digest(readFileSync(worker,'utf8')),plan.study,'frozen worker chang
 const release=lockArtifacts(out),failures:string[]=[];
 try{
  const queue=plan.work.map((w:any,i:number)=>({w,i}));let done=0;
- writeFileSync(join(out,'execution-resume.json'),JSON.stringify({at:new Date().toISOString(),workerSha256:plan.study,planSha256:digest(plan),workers:12,reason:'Additional machine memory became available. Resume identical frozen workers and inputs; no remeasurement or relabeling of completed results.'}));
- await Promise.all(Array.from({length:12},async()=>{while(queue.length){
+ writeFileSync(join(out,'execution-resume.json'),JSON.stringify({at:new Date().toISOString(),workerSha256:plan.study,planSha256:digest(plan),workers:20,reason:'Additional machine memory became available. Resume identical frozen workers and inputs; no remeasurement or relabeling of completed results.'}));
+ await Promise.all(Array.from({length:20},async()=>{while(queue.length){
   const {w,i}=queue.shift()!;
   await Promise.all(Object.entries(plan.roots).filter(([label])=>label==='candidate').map(async([label,root])=>{
    const file=join(out,label,`${w.id}~${w.seed}.json`);

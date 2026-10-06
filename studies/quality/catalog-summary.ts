@@ -14,17 +14,19 @@ for (const label of ['baseline', 'candidate']) {
 }
 const cases = plan.work.map((w: any) => {
   const id = `${w.id}~${w.seed}`;
+  let arrangement: unknown;
   const pair = Object.fromEntries(['baseline', 'candidate'].map(label => {
     const c = JSON.parse(readFileSync(join(dir, label, id + '.json'), 'utf8'));
     assert.equal(c.planSha256, digest(plan)); assert.equal(c.inputSha256, w.inputSha256);
     const cp = JSON.parse(gunzipSync(readFileSync(join(dir, label, id + '.checkpoint.json.gz'))).toString());
     assert.equal(c.trackHash, digest(cp.track));
+    if (arrangement === undefined) arrangement = cp.repertoire.plan; else assert.deepEqual(cp.repertoire.plan, arrangement, 'construction plan changed: '+id);
     assert.ok(cp.track.lines.every((l: any) => l.type === 0));
     return [label, {trackHash: c.trackHash, failure: c.failure, requested: c.requested, constructed: c.constructed,
       layoutFulfilled: c.layoutFulfilled, ...summarize(c), cpuSeconds: c.cpuMs / 1000, peakRssMiB: c.maxRssKiB / 1024}];
   }));
   const source = JSON.parse(readFileSync(join(dir, 'candidate', id + '.json'), 'utf8'));
-  return {id, inputSha256: w.inputSha256, group: source.group, ...pair};
+  return {id, inputSha256: w.inputSha256, group: source.group, constructionPlanSha256: digest(arrangement), ...pair};
 });
 const groups = [...new Set(cases.map((c: any) => c.group))] as string[];
 const first = JSON.parse(readFileSync(join(dir, 'candidate', ids[0] + '.json'), 'utf8'));

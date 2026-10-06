@@ -16,15 +16,19 @@ const runs:any={Baseline:baseline,Q67Baseline:passiveBaseline,Q67:loadRun('/tmp/
  Q30:loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q30-authored-spans'),
  'Q4-blind':loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q4-value-blind'),
  'Q4-geometry':loadRun('/tmp/line-quality-incidence-20261005/generated/eval/q4-value-geometry')};
-for(const [key,run] of Object.entries(runs) as any){
- assertPairedRuns(run,key.startsWith('Q67')?passiveBaseline:key.startsWith('Q63')?freshBaseline:(key==='Q62'||key==='Q65')?finalBaseline:key==='Q52'?cachedBaseline:baseline);
- curves[key]=[false,true].map(perturbed=>Array.from({length:10},(_,i)=>{
-  const rows=[...run.cells.values()].filter((c:any)=>!!c.case.perturbation===perturbed).flatMap((c:any)=>c.impact3.perBeat)
-   .filter((b:any)=>b.requested!=null&&Math.min(9,Math.floor(b.requested*10))===i);
-  return {n:rows.length,x:rows.reduce((s:number,r:any)=>s+r.requested,0)/rows.length,
-   y:rows.reduce((s:number,r:any)=>s+(r.hit?.strength??0),0)/rows.length};
- }));
+const bin=(run:any)=>[false,true].map(perturbed=>Array.from({length:10},(_,i)=>{
+ const rows=[...run.cells.values()].filter((c:any)=>!!c.case.perturbation===perturbed).flatMap((c:any)=>c.impact3.perBeat)
+  .filter((b:any)=>b.requested!=null&&Math.min(9,Math.floor(b.requested*10))===i);
+ return {n:rows.length,x:rows.reduce((s:number,r:any)=>s+r.requested,0)/rows.length,
+  y:rows.reduce((s:number,r:any)=>s+(r.hit?.strength??0),0)/rows.length};
+}));
+for(const [key,run]of Object.entries(runs) as any){
+ const paired=key.startsWith('Q67')?passiveBaseline:key.startsWith('Q63')?freshBaseline:
+  (key==='Q62'||key==='Q65')?finalBaseline:key==='Q52'?cachedBaseline:baseline;
+ assertPairedRuns(run,paired);curves[key]=bin(run);
+ if(key!=='Baseline'&&!key.endsWith('Baseline'))curves[key+'Baseline']=bin(paired);
 }
+
 mkdirSync(dir,{recursive:true});writeFileSync(dir+'/curves.json',JSON.stringify(curves));
 writeFileSync(dir+'/index.html',readFileSync(new URL('./report.html',import.meta.url)));
 console.log('Separate campaign page: http://localhost:8767/generated/report/quality-20261005/');

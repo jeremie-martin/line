@@ -15,11 +15,13 @@ const sources={baseline:{dir:join(original,'baseline'),plan:plans.original},q62:
 const ids=plans.original.work.map((w:any)=>`${w.id}~${w.seed}`);
 for(const {dir} of Object.values(sources))assert.deepEqual(readdirSync(dir).filter(n=>n.endsWith('.json')).map(n=>n.slice(0,-5)).sort(),[...ids].sort());
 const cases=plans.original.work.map((w:any)=>{
- const id=`${w.id}~${w.seed}`,values:any={id,inputSha256:w.inputSha256};
+ const id=`${w.id}~${w.seed}`,values:any={id,inputSha256:w.inputSha256};let arrangement:unknown;
  for(const [label,{dir,plan}] of Object.entries(sources)){
   const c=read(join(dir,id+'.json'));assert.equal(c.planSha256,digest(plan));assert.equal(c.inputSha256,w.inputSha256);
   const cp=JSON.parse(gunzipSync(readFileSync(join(dir,id+'.checkpoint.json.gz'))).toString());
-  assert.equal(c.trackHash,digest(cp.track));assert.ok(cp.track.lines.every((l:any)=>l.type===0));
+  assert.equal(c.trackHash,digest(cp.track));
+  if(arrangement===undefined)arrangement=cp.repertoire.plan;else assert.deepEqual(cp.repertoire.plan,arrangement,'construction plan changed: '+id);
+  values.constructionPlanSha256=digest(arrangement);assert.ok(cp.track.lines.every((l:any)=>l.type===0));
   if(values.group)assert.equal(values.group,c.group);values.group=c.group;
   values[label]={trackHash:c.trackHash,failure:c.failure,requested:c.requested,constructed:c.constructed,layoutFulfilled:c.layoutFulfilled,
    ...summarize(c),cpuSeconds:c.cpuMs/1000,peakRssMiB:c.maxRssKiB/1024};

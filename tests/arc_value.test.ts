@@ -20,3 +20,8 @@ it('describes physical arrival independently of absolute track position', () => 
   expect(describe(translated)).toEqual(describe(state));
   expect(describe(state).every(Number.isFinite)).toBe(true);
 });
+
+it('preserves a signed continuation correction', () => {
+  const constant={...model,model:{initial:Math.asinh(-3),trees:[]}};
+  expect(arcFutureValue(fixtures.cases[0].features,constant)).toBeCloseTo(-.03,14);
+});

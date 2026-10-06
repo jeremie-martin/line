@@ -21,5 +21,5 @@ export function arcFutureValue(features: number[], artifact: any): number {
     while (!tree.leaf[node]) node = features[tree.feature[node]] <= tree.threshold[node] ? tree.left[node] : tree.right[node];
     value += tree.value[node];
   }
-  return Math.max(0, Math.expm1(value) / 100);
+  return Math.sinh(value) / 100;
 }

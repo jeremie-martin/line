@@ -31,7 +31,7 @@ if(process.argv[2]==='worker'){
  for(const [key,value]of Object.entries(measured))if(key!=='compileMs')assert.deepEqual(value,cell[key],cell.case.id+'/'+key);
  assert.deepEqual(compilerIdentity(main),plan.compiler);
  writeFileSync(out+'/'+cell.case.id+'.json',JSON.stringify({id:cell.case.id,trackHash:hash,physicalFrames:cell.physicalFrames,
-  complete:cp.repertoire.valid,fulfilled:cp.repertoire.qualified,input:cell.case.input,exactTrackAndWork:true,allNonTimingMeasurementsExact:true})+'\n');
+  complete:cp.repertoire.valid,fulfilled:cp.repertoire.qualified,input:cell.case.input,exactTrackAndWork:true,allMeasurementFieldsExceptCompileMsExact:true})+'\n');
  console.log(cell.case.id,'exact track and work');
 }else{
  mkdirSync(out,{recursive:true});const release=lockArtifacts(out);try{const plan={schema:'line.quality-integration-bridge.v1',compiler:compilerIdentity(main),evaluator:(await at('tools/eval/inputs.ts')).evaluatorIdentity(main),sourcePlan:source.run,
@@ -45,6 +45,6 @@ if(process.argv[2]==='worker'){
  assert.deepEqual(compilerIdentity(main),plan.compiler);
  const records=cases.map(c=>JSON.parse(readFileSync(out+'/'+c.case.id+'.json','utf8')));
  writeFileSync(main+'/docs/research/quality-20261005-integration.json',JSON.stringify({...plan,at:new Date().toISOString(),records},null,2)+'\n');
- console.log('All four integrated review tracks, work counts and non-timing measurements match exactly');
+ console.log('All four integrated review tracks, work counts and measurements (except compilation time) match exactly');
  }finally{release()}
 }

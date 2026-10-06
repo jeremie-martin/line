@@ -20,7 +20,7 @@ it('loads only the chosen construction archive and resolves the complete search 
  expect(archives().every(p=>p.includes('repertoire_policy_model_v3'))).toBe(true);
  expect(current.impactContract).toBe('line.strike.v3');
  expect(current.impactSearch?.uprightArrival).toBe(1);
- expect(current.coupledIntervalSamples).toBe(64);
+ expect(current).not.toHaveProperty('coupledIntervalSamples');
  expect(current).not.toHaveProperty('constructionModel');
  expect(repertoireSearchOptions(spec,plan,200000,'line.strike.v3').constructionPolicies).toBe(current.constructionPolicies);
  expect(archives().length).toBe(2);

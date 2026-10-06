@@ -13,7 +13,7 @@ import type { ArcMotionOptions } from './arc_options.ts';
 const rad = (x: number) => x * Math.PI / 180;
 
 export type BudgetInterruption = {
-  phase: 'local' | 'planning' | 'continuation' | 'revision';
+  phase: 'local' | 'planning' | 'continuation' | 'revision' | 'fragments';
   index: number; frame: number; viable: number; retained: boolean;
 };
 
@@ -29,25 +29,14 @@ export function createSearchWork() {
     observedConstructionRate: 0,
     refinementStats: null as any,
     terminalSelectionStats: null as any,
-    qualityRetries: new Map<number, number>(),
     budgetInterruptions: [] as BudgetInterruption[],
     planningDecisions: [] as any[],
-    lookaheadStats: {probes: 0, changedChoices: 0, failedProbes: 0, physicsFrames: 0, continuationNodes: 0, maxDepth: 0},
-    transitionRevisionWork: [] as Array<{index: number; error: number; proposals: number; viable: number; accepted: boolean;
-      before: number; after: number; physicsFrames: number}>,
-    fragmentStats: {intervals: 0, probes: 0, observationFrames: 0, replayFrames: 0},
-    coupledIntervalWork: [] as Array<{index: number; proposals: number; viable: number; accepted: number; physicsFrames: number;
-      before: number; after: number}>,
+    fragmentStats: {intervals: 0, probes: 0, replayFrames: 0},
     observedReceiverWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
     opposingEntryWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
-    // compactProfile stays as a zero entry so stored construction evidence keeps one schema.
-    initialProposalWork: Object.fromEntries(['center', 'learned', 'memory', 'response', 'generic', 'compactFold', 'compactProfile']
+    initialProposalWork: Object.fromEntries(['center', 'learned', 'memory', 'response', 'generic', 'compactFold']
       .map(k => [k, {attempts: 0, viable: 0, physicsFrames: 0}])),
     initializationRecovery: [] as Array<{index: number; frame: number; proposals: number; viable: number; physicalFrames: number}>,
-    // No production stage records construction improvement any more; the V6
-    // construction evidence still stores this (empty) list.
-    constructionImprovement: [] as Array<{index: number; frame: number; proposals: number; viable: number; physicalFrames: number;
-      before: number | null; after: number | null}>,
   };
 }
 
@@ -76,7 +65,7 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
   const start = fixed ?? {position: {x: 0, y: 0}, velocity: {x: speed * Math.cos(pitch), y: speed * Math.sin(pitch)}};
 
   const hasFragments = Object.values(options.constructionRequests ?? {}).some(r => r.construction === 'scattered');
-  const lineage = createArcLineage(start, hasFragments);
+  const lineage = createArcLineage(start);
   const contacts = [{frame: 1, gap: -1}, ...planned.filter(g => g.endsWithContact).map(g => ({frame: g.endFrame, gap: g.index}))];
 
   const constructionMemories = new Map<string, ArcControlMemory>();
@@ -103,11 +92,24 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
     return features;
   };
 
+  /** Value prediction also knows which physical constructors must follow.
+   * Keep proposal and response-memory feature contracts independent. */
+  const futureValueFeatures = (arrival: number[], i: number) => [
+    ...futureFeatures(arrival,i),
+    ...[i+1,i+2].flatMap(index=>{
+      if(index>=contacts.length)return Array(8).fill(0);
+      const style={...options,...options.sectionStyles?.[index]};
+      return [style.guides===false?0:1,style.railLayout==='transfer'?1:0,
+        ...['arcs','fold','serpentine','scallops','terraces','scattered'].map(name=>
+          options.constructionRequests?.[index]?.construction===name?1:0)];
+    }),
+  ];
+
   const reportFor = (trajectory: any, geometry: TrackLine[]) => buildDriftReport(detect(trajectory), spec, gaps, frames, duration, [],
     gaps.map(g => ({lines: geometry.filter(l => Math.floor((l.id - 1000) / 10000) === g.index + 1)})) as any, gaps.map(g => g.targets));
 
   return {options, budget, spec, duration, end, frames, impactTargets, gaps, planned, start, contacts, hasFragments,
-    lineage, work: createSearchWork(), memoryFor, futureFeatures, reportFor};
+    lineage, work: createSearchWork(), memoryFor, futureFeatures, futureValueFeatures, reportFor};
 }
 
 export type ArcCompileContext = ReturnType<typeof createArcCompileContext>;

@@ -49,8 +49,12 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const {contacts, end, planned, gaps, duration, impactTargets} = ctx;
   const {frame, gap} = contacts[i], next = contacts[i + 1]?.frame ?? end + 1, horizon = next - 1;
   if (horizon <= frame + 2) return null;
-  const outgoing = planned.find(g => g.startFrame === (i === 0 ? 0 : frame)) ??
+  const scheduled = planned.find(g => g.startFrame === (i === 0 ? 0 : frame)) ??
     {index: gaps.length, startFrame: frame, endFrame: horizon, endsWithContact: false, targets: {}};
+  // Construction timing may lead the beat; musical span measurements keep
+  // the authored boundaries. Both an estimate and its later replacement use
+  // the same sampled search targets.
+  const outgoing = {...(gaps[scheduled.index] ?? scheduled), targets: scheduled.targets};
   const targets = outgoing.targets;
   const objectiveEnd = Math.min(horizon, duration);
 
@@ -85,7 +89,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const turn = impact === undefined ? 5 : deg(impactToRawPx(impact) / Math.max(3, pace));
 
   const memo = selectMemo(ctx, engine, i, options);
-  const priorGap = i > 0 ? gaps[contacts[i].gap] : undefined;
+  const authoredPrior = i > 0 ? gaps[contacts[i].gap] : undefined;
+  const priorGap = authoredPrior ? {...authoredPrior, targets: planned.find(g => g.index === authoredPrior.index)?.targets ?? authoredPrior.targets} : undefined;
   const priorAxes = options.completeBoundary && priorGap
     ? objectiveAxes(detect(prefixRaw), priorGap, frame - 1) : undefined;
   const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;

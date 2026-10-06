@@ -10,10 +10,11 @@ the line.strike.v3 production compiler (tools/research/value_collect.ts).
 Target: log1p(100 * future search cost) of a planning probe, where the future
 cost is the continuation's simulated local costs plus the heuristic arrival
 prior at its leaf (`pureFuture`: the old learned model's prediction is NOT in
-the label). Same feature schema, horizon filter, invalid-continuation penalty
-and gradient-boosting hyperparameters as the archived trainer
+the label). Base arrival features plus the upcoming geometry, the same invalid-continuation
+penalty and gradient-boosting hyperparameters as the archived trainer
 (archive/pre-rework-2026-10-03:scripts/benchmark/train_arc_value_correction.py),
-but a single model trained from scratch, not a correction of the old prior.
+but a single model trained from scratch. Every input must satisfy its complete
+collection plan. --features=base provides the geometry-feature ablation.
 Validation holds out complete catalog groups (GroupKFold over groups)."""
 import argparse, gzip, hashlib, json
 from pathlib import Path
@@ -22,6 +23,7 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import GroupKFold
 
 p = argparse.ArgumentParser(); p.add_argument('--inputs', required=True); p.add_argument('--out', required=True)
+p.add_argument('--features', choices=['base', 'geometry'], default='geometry')
 args = p.parse_args()
 out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
 EVAL_SONGS = ('luna', 'amor', 'tiki', 'amour')
@@ -36,22 +38,40 @@ def export(model, link):
             'value': nodes['value'].tolist(), 'leaf': nodes['is_leaf'].astype(bool).tolist()})
     return {'link': link, 'initial': float(model._baseline_prediction[0, 0]), 'trees': trees}
 
-rows, records, omitted, failed_compiles = [], [], 0, []
+rows, records, plans, omitted = [], [], [], 0
+feature_count = 73 if args.features == 'geometry' else 57
 for root in args.inputs.split(','):
-    for path in sorted(Path(root).glob('*.json.gz')):
-        b = path.read_bytes(); d = json.loads(gzip.decompress(b))
+    plan_bytes = (Path(root) / 'plan.json').read_bytes(); plan = json.loads(plan_bytes)
+    assert plan['schema'] == 'line.value-collection.v2', 'collector must provide a verified plan'
+    plan_sha = hashlib.sha256(json.dumps(plan, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+    declared = {f"{w['id']}~{w['seed']}.json.gz": w for w in plan['work']}
+    assert len(declared) == len(plan['work']) > 0, 'duplicate or empty collection'
+    paths = sorted(Path(root).glob('*.json.gz'))
+    assert {path.name for path in paths} == set(declared), 'incomplete or undeclared collection records'
+    assert plan['search']['depth'] == 2, 'trainer target requires two-interval probes'
+    plans.append({'sha256': hashlib.sha256(plan_bytes).hexdigest(), 'plan': plan})
+    for path in paths:
+        b = path.read_bytes(); d = json.loads(gzip.decompress(b)); w = declared[path.name]
+        assert d['planSha256'] == plan_sha and d['inputSha256'] == w['inputSha256'], 'record does not belong to plan'
+        assert d['id'] == w['id'] and d['seed'] == w['seed'], 'record identity mismatch'
+        assert isinstance(d['construction'], list) and isinstance(d['collection']['interrupted'], bool)
+        assert d['probes'] or not d['complete'], 'complete compile yielded no observations'
         assert not any(s in d['id'].lower() for s in EVAL_SONGS), 'evaluation song in training data'
         records.append({'file': path.name, 'id': d['id'], 'group': d['group'], 'seed': d['seed'], 'budget': d['budget'],
-            'complete': d['complete'], 'probes': len(d['probes']), 'trackSha256': d['trackHash'], 'sha256': hashlib.sha256(b).hexdigest()})
+            'complete': d['complete'], 'probes': len(d['probes']), 'planSha256': plan_sha, 'trackSha256': d['trackHash'], 'sha256': hashlib.sha256(b).hexdigest()})
         context, last = -1, None
         for probe in d['probes']:
             if probe['index'] != last: context += 1; last = probe['index']
-            f = probe['features']
-            assert len(f) == 57 and np.isfinite(f).all()
+            f = probe['features']; g = probe['geometry']
+            assert len(f) == 57 and len(g) == 16 and np.isfinite(f + g).all()
+            assert probe['pureFuture'] is None or np.isfinite(probe['pureFuture'])
+            assert probe['depth'] == min(2, probe['contacts'] - probe['index'] - 1), 'shortened probe target'
+            if args.features == 'geometry': f = f + g
             # A budget-shortened horizon is a different target; keep full two-interval or terminal labels.
             if probe['pureFuture'] is not None and probe['depth'] < 2 and f[52] > 0: omitted += 1; continue
-            rows.append({'group': d['group'], 'context': f"{path.name}:{context}", 'features': f, 'future': probe['pureFuture'],
-                'local': probe['localCost'], 'old': probe['predictedFuture']})
+            rows.append({'group': d['group'], 'context': f"{len(plans)}:{path.name}:{context}", 'features': f, 'future': probe['pureFuture'],
+                'local': probe['localCost'], 'old': probe['predictedFuture'] if probe['predictedFuture'] is not None else 0})
+assert rows and len({r['group'] for r in rows}) >= 5, 'need observations from at least five disjoint groups'
 X = np.asarray([r['features'] for r in rows]); groups = np.asarray([r['group'] for r in rows]); old = np.asarray([r['old'] for r in rows])
 finite = np.asarray([r['future'] for r in rows if r['future'] is not None])
 def costs(indices, penalty): return np.asarray([max(0, rows[i]['future']) if rows[i]['future'] is not None else penalty for i in indices])
@@ -85,13 +105,13 @@ validation = {'heldOutNew': ranking(held), 'oldModel': ranking(old), 'localOnly'
 print(json.dumps(validation), flush=True)
 penalty = max(1, float(np.quantile(finite, .99)) * 2); fitted = model().fit(X, np.log1p(100 * costs(range(len(rows)), penalty)))
 trainer = Path(__file__).read_bytes()
-artifact = {'schema': 'line.arc-future-value-model.v1', 'featureSchema': 'line.arc-future-value-features.v1', 'featureCount': 57,
+artifact = {'schema': 'line.arc-future-value-model.v1', 'featureSchema': 'line.arc-future-value-features.v2' if feature_count == 73 else 'line.arc-future-value-features.v1', 'featureCount': feature_count,
     'target': 'log1p(100 * nonnegative two-interval search value under line.strike.v3, leaf = heuristic arrival prior)', 'invalidCost': penalty,
     'model': export(fitted, 'expm1_div_100'),
     'provenance': {'trainer': 'tools/research/train_value_v3.py', 'trainerSha256': hashlib.sha256(trainer).hexdigest(),
         'collector': 'tools/research/value_collect.ts', 'catalog': 'benchmark/v4 (excluding groups luna_bala, amor_na_praia, tiki_tiki, amour_de_ma_vie)',
         'evalPanelDisjoint': True, 'impactContract': 'line.strike.v3', 'rows': len(rows), 'omittedShorterNonterminalHorizons': omitted,
-        'records': records, 'note': 'Labels come from the production compiler whose search still used the previous learned model as its behaviour policy; the label values exclude it.'}}
+        'collectionPlans': plans, 'records': records, 'note': 'Native continuation probes from saved compiler prefixes, with a separate meter. Prefixes and probe proposals use the recorded compiler policy; labels exclude learned leaf values. Interrupted probes are omitted, physical dead ends retained.'}}
 body = json.dumps(artifact, separators=(',', ':'), allow_nan=False) + '\n'
 (out / 'arc_value_model.json').write_text(body)
 idx = np.linspace(0, len(X) - 1, 32, dtype=int)

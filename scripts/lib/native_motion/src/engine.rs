@@ -403,9 +403,11 @@ struct Holder {
 // Released branches are reclaimed as soon as that ancestry is unused. Slot IDs
 // remain reserved until the last external handle in the lineage dies; only then
 // can its shared cache be dropped and its slots returned to the global free list.
-// Keep vacant slots pointer-sized; a reclaimed lineage releases its large nodes
-// without leaving inline Version storage reserved throughout the arena.
-static mut VERSIONS: Vec<Option<Box<Version>>> = Vec::new();
+// Stable handle slots index densely packed owned nodes. Vacant slots retain no
+// payload, and swap removal avoids a heap allocation for every line addition.
+struct VersionNode { slot: u32, version: Version }
+static mut VERSIONS: Vec<i32> = Vec::new();
+static mut VERSION_NODES: Vec<VersionNode> = Vec::new();
 static mut HOLDERS: Vec<Option<Holder>> = Vec::new();
 static mut FREE_VERSIONS: Vec<u32> = Vec::new();
 static mut FREE_HOLDERS: Vec<u32> = Vec::new();
@@ -419,8 +421,12 @@ static mut RECONCILE_UNDO: Vec<i32> = Vec::new();
 static mut RECONCILE_REDO: Vec<Line> = Vec::new();
 
 #[allow(static_mut_refs)]
-fn versions() -> &'static mut Vec<Option<Box<Version>>> {
+fn versions() -> &'static mut Vec<i32> {
     unsafe { &mut VERSIONS }
+}
+#[allow(static_mut_refs)]
+fn version_nodes() -> &'static mut Vec<VersionNode> {
+    unsafe { &mut VERSION_NODES }
 }
 #[allow(static_mut_refs)]
 fn holders() -> &'static mut Vec<Option<Holder>> {
@@ -442,20 +448,35 @@ fn next_gen() -> u32 {
 }
 
 fn valid(h: u32) -> bool {
-    matches!(versions().get(h as usize), Some(Some(_)))
+    versions().get(h as usize).is_some_and(|&index| index >= 0)
 }
 fn ver(id: i32) -> &'static Version {
-    versions()[id as usize].as_ref().unwrap()
+    &version_nodes()[versions()[id as usize] as usize].version
+}
+fn ver_mut(id: i32) -> &'static mut Version {
+    &mut version_nodes()[versions()[id as usize] as usize].version
 }
 
 fn alloc_version(v: Version) -> u32 {
-    if v.parent >= 0 { versions()[v.parent as usize].as_mut().unwrap().children += 1; }
-    if let Some(id) = free_versions().pop() {
-        versions()[id as usize] = Some(Box::new(v));
-        id
-    } else {
-        versions().push(Some(Box::new(v)));
+    if v.parent >= 0 { ver_mut(v.parent).children += 1; }
+    let id = free_versions().pop().unwrap_or_else(|| {
+        versions().push(-1);
         (versions().len() - 1) as u32
+    });
+    versions()[id as usize] = version_nodes().len() as i32;
+    version_nodes().push(VersionNode { slot: id, version: v });
+    id
+}
+
+/// Remove an owned payload without making its external handle reusable yet.
+fn remove_version(id: u32) {
+    let index = versions()[id as usize];
+    if index < 0 { return; }
+    versions()[id as usize] = -1;
+    version_nodes().swap_remove(index as usize);
+    if (index as usize) < version_nodes().len() {
+        let moved = version_nodes()[index as usize].slot;
+        versions()[moved as usize] = index;
     }
 }
 
@@ -553,7 +574,7 @@ pub(crate) fn free(h: u32) {
         return;
     }
     let holder_id = {
-        let v = versions()[h as usize].as_mut().unwrap();
+        let v = ver_mut(h as i32);
         if v.freed {
             return; // already freed
         }
@@ -565,7 +586,7 @@ pub(crate) fn free(h: u32) {
     if hh.live == 0 {
         let dead = holders()[holder_id as usize].take().unwrap(); // drops the heavy Cache
         for vid in dead.version_ids {
-            versions()[vid as usize] = None;
+            remove_version(vid);
             free_versions().push(vid);
         }
         free_holders().push(holder_id);
@@ -582,9 +603,9 @@ fn reclaim_unused(mut id: i32) {
         let v = ver(id);
         if !v.freed || v.children > 0 || holders()[v.holder as usize].as_ref().unwrap().current == id { break; }
         let parent = v.parent;
-        versions()[id as usize] = None;
+        remove_version(id as u32);
         if parent >= 0 {
-            let p = versions()[parent as usize].as_mut().unwrap();
+            let p = ver_mut(parent);
             assert!(p.children > 0);
             p.children -= 1;
         }
@@ -939,5 +960,7 @@ mod ownership_tests {
         assert!(!valid(base)); assert!(!valid(root)); assert!(!valid(start));
         assert_eq!(last_frame_index(unrelated), 0, "other lineage is caller-owned");
         free(unrelated);
+        assert!(version_nodes().is_empty(), "all owned payloads released");
+        assert!(versions().iter().all(|&index| index < 0), "no slot maps to a removed payload");
     }
 }

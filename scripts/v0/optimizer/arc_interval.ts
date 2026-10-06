@@ -3,7 +3,7 @@
  * refine locally around the best. All work is charged to the shared meter. */
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
-import { extendContactObserver, fragmentInterval } from './contact_interval.ts';
+import { fragmentInterval } from './contact_interval.ts';
 import { resolveIntervalOptions, openInterval, type IntervalSearch } from './arc_interval_state.ts';
 import { evaluate } from './arc_evaluate.ts';
 import { proposeInitialControls, proposeOpposingEntries, proposeCompactFolds, proposeObservedReceivers, recoverInitialization } from './arc_proposals.ts';
@@ -56,14 +56,12 @@ export type IntervalResult = NonNullable<ReturnType<typeof searchInterval>>;
  * for the same continuation search used by connected constructions. */
 function replaceWithFragments(s: IntervalSearch) {
   const {ctx, engine, frame, horizon} = s;
-  const {observerFor, observers, prefixes} = ctx.lineage;
   const stats = ctx.work.fragmentStats;
   stats.intervals++;
   const carriers = s.candidates.slice();
   const source = distinctCandidates(s.options, carriers, 4);
   s.candidates.length = 0;
   s.best = null;
-  const observer = observerFor(engine);
   // A verified realization remains eligible when its control was offered in
   // this search. Unrelated cached controls must never enter an exact-control
   // probe (used by joint refinement and continuation replay).
@@ -76,15 +74,11 @@ function replaceWithFragments(s: IntervalSearch) {
     for (const proposal of source) {
       const began = getPhysicsFrameCount();
       stats.probes++;
-      const fragments = fragmentInterval(observer, proposal.lines, frame, horizon);
+      const fragments = fragmentInterval(engine, proposal.lines, frame, horizon);
       const observed = getPhysicsFrameCount();
       stats.observationFrames += observed - began;
-      const result = evaluate(s, proposal.c, fragments);
+      evaluate(s, proposal.c, fragments);
       stats.replayFrames += getPhysicsFrameCount() - observed;
-      if (result) {
-        const prefix = prefixes.get(result.child)!;
-        observers.set(prefix, extendContactObserver(observer, fragments.lines));
-      }
     }
   } catch (error) {
     if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;

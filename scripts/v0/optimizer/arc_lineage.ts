@@ -1,21 +1,19 @@
 /** Physical prefix identity of search engines.
  * Every engine the compiler builds is linked to the geometry groups that
  * produced it. Searches with an identical physical prefix can then share
- * memoized evaluations and contact observers; nothing here simulates. */
+ * memoized evaluations; nothing here simulates. */
 import { createHash } from 'node:crypto';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import type { TrackLine } from '../types.ts';
 import { createArcEngine } from './arc_engine.ts';
-import { contactObserver, extendContactObserver } from './contact_interval.ts';
 
 export type Prefix = {parent?: Prefix; lines?: TrackLine[]; key?: string};
 type StartState = {position: {x: number; y: number}; velocity: {x: number; y: number}};
 
 const sectionOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
 
-/** Lineage is recorded for every engine; contact observers are only kept
- * when the plan contains scattered fragment sections. */
-export function createArcLineage(start: StartState, hasFragments: boolean) {
+/** Lineage is recorded for every engine without duplicating its simulation. */
+export function createArcLineage(start: StartState) {
   const prefixes = new WeakMap<Engine, Prefix>();
   const rootPrefix: Prefix = {key: 'root'};
   const memoContexts = new Map<string, Map<string, any>>();
@@ -50,29 +48,7 @@ export function createArcLineage(start: StartState, hasFragments: boolean) {
     return result;
   };
 
-  // Share immutable observed prefixes across intervals and search branches.
-  // No whole source ride or repeated suffix is needed to build scattered contacts.
-  const observers = new WeakMap<Prefix, any>();
-  if (hasFragments) observers.set(rootPrefix, contactObserver(start));
-  const observerFor = (engine: Engine) => {
-    const prefix = prefixes.get(engine);
-    if (!prefix) throw new Error('contact construction requires physical prefix lineage');
-    const missing: Prefix[] = [];
-    let current = prefix;
-    while (!observers.has(current)) {
-      missing.push(current);
-      if (!current.parent) throw new Error('missing contact observer root');
-      current = current.parent;
-    }
-    let observer = observers.get(current);
-    for (const p of missing.reverse()) {
-      observer = extendContactObserver(observer, p.lines!);
-      observers.set(p, observer);
-    }
-    return observer;
-  };
-
-  return {prefixes, memoContexts, prefixKey, add, detach, rebuild, observers, observerFor};
+  return {prefixes, memoContexts, prefixKey, add, detach, rebuild};
 }
 
 export type ArcLineage = ReturnType<typeof createArcLineage>;

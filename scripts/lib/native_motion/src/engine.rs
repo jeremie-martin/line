@@ -388,21 +388,21 @@ struct Version {
     patch: Patch,
     start: [f64; 4],
     start_gen: u32, // initialStateMap identity (bumped on SetStart)
-    freed: bool,    // its JS handle has been freed (but kept while the holder lives, for ancestry)
+    freed: bool,    // the external handle no longer owns this version
+    children: u32, // direct descendants that still need this patch as ancestry
 }
 
 struct Holder {
     cache: Cache,
     current: i32,          // version the cache is currently synced to
     live: u32,             // handles in this lineage whose JS wrapper hasn't been freed
-    version_ids: Vec<u32>, // every version in this lineage (for reclamation)
+    version_ids: Vec<u32>, // reserved slots, including reclaimed nodes; reusable at lineage death
 }
 
-// Versions/holders are kept in slot arenas with free lists. A whole lineage (its
-// heavy shared cache + all its light version nodes) is reclaimed when its last
-// handle is freed (live == 0) — at which point NO JS wrapper can reference any of
-// its handles, so reusing the slots is safe. This bounds memory across a process
-// that runs many compiles on one module instance (e.g. a multi-spec perf run).
+// Nodes are owned by external handles, their descendants and the current cache.
+// Released branches are reclaimed as soon as that ancestry is unused. Slot IDs
+// remain reserved until the last external handle in the lineage dies; only then
+// can its shared cache be dropped and its slots returned to the global free list.
 // Keep vacant slots pointer-sized; a reclaimed lineage releases its large nodes
 // without leaving inline Version storage reserved throughout the arena.
 static mut VERSIONS: Vec<Option<Box<Version>>> = Vec::new();
@@ -449,6 +449,7 @@ fn ver(id: i32) -> &'static Version {
 }
 
 fn alloc_version(v: Version) -> u32 {
+    if v.parent >= 0 { versions()[v.parent as usize].as_mut().unwrap().children += 1; }
     if let Some(id) = free_versions().pop() {
         versions()[id as usize] = Some(Box::new(v));
         id
@@ -473,7 +474,7 @@ pub(crate) fn create() -> u32 {
         patch: Patch::Root,
         start: [0.0, 0.0, 0.4, 0.0],
         start_gen: 0,
-        freed: false,
+        freed: false, children: 0,
     });
     holders()[holder as usize] = Some(Holder {
         cache: Cache::new(),
@@ -500,7 +501,7 @@ pub(crate) fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
         patch: Patch::SetStart,
         start: [px, py, vx, vy],
         start_gen: g,
-        freed: false,
+        freed: false, children: 0,
     });
     let hh = holders()[holder as usize].as_mut().unwrap();
     hh.cache.set_initial_states(px, py, vx, vy);
@@ -535,7 +536,7 @@ pub(crate) fn add_line(
         patch: Patch::AddLine(l.clone()),
         start,
         start_gen,
-        freed: false,
+        freed: false, children: 0,
     });
     let hh = holders()[holder as usize].as_mut().unwrap();
     hh.cache.add_line(l);
@@ -568,6 +569,26 @@ pub(crate) fn free(h: u32) {
             free_versions().push(vid);
         }
         free_holders().push(holder_id);
+    } else {
+        reclaim_unused(h as i32);
+    }
+}
+
+/// A released leaf can be discarded once the cache no longer needs its patch.
+/// Unwind its unowned ancestors too. The slot stays reserved in version_ids
+/// until lineage death, so stale handles cannot alias a newly allocated node.
+fn reclaim_unused(mut id: i32) {
+    while id >= 0 {
+        let v = ver(id);
+        if !v.freed || v.children > 0 || holders()[v.holder as usize].as_ref().unwrap().current == id { break; }
+        let parent = v.parent;
+        versions()[id as usize] = None;
+        if parent >= 0 {
+            let p = versions()[parent as usize].as_mut().unwrap();
+            assert!(p.children > 0);
+            p.children -= 1;
+        }
+        id = parent;
     }
 }
 
@@ -645,6 +666,7 @@ fn update_computed(target: u32) {
         );
     }
     holders()[holder as usize].as_mut().unwrap().current = target;
+    reclaim_unused(current);
 }
 
 pub(crate) fn last_frame_index(h: u32) -> i32 {
@@ -851,7 +873,7 @@ pub(crate) fn detach(h: u32) -> u32 {
         holders().push(None); (holders().len() - 1) as u32
     };
     let vid = alloc_version(Version { holder, parent: -1, depth: 0,
-        patch: Patch::Root, start, start_gen, freed: false });
+        patch: Patch::Root, start, start_gen, freed: false, children: 0 });
     holders()[holder as usize] = Some(Holder { cache, current: vid as i32,
         live: 1, version_ids: vec![vid] });
     vid
@@ -883,4 +905,39 @@ pub(crate) fn contact_positions(h: u32, start: i32, end: i32, out: &mut Vec<f64>
         }
     }
     true
+}
+
+#[cfg(test)]
+mod ownership_tests {
+    use super::*;
+    #[test]
+    fn released_branches_preserve_live_descendants_and_cache_ancestry() {
+        let unrelated = create();
+        let root = create();
+        let start = set_start(root, 0.0, -15.0, 4.0, 0.0);
+        free(root);
+        let base = add_line(start, 1, 0, -50.0, 10.0, 400.0, 10.0, 0);
+        free(start);
+        let mut expected = [0.0; 84]; state_into(base, 40, &mut expected);
+        let branch = add_line(base, 2, 0, 600.0, 10.0, 700.0, 10.0, 0);
+        free(branch);
+        assert!(valid(branch), "cache current still needs its ancestry");
+        last_frame_index(base);
+        assert!(!valid(branch), "released branch should be reclaimed after reconcile");
+        let mut actual = [0.0; 84]; state_into(base, 40, &mut actual); assert_eq!(actual, expected);
+        let parent = add_line(base, 3, 0, 600.0, 10.0, 700.0, 10.0, 0);
+        assert_ne!(parent, branch, "dead slots cannot be reused inside a live lineage");
+        let leaf = add_line(parent, 4, 0, 700.0, 10.0, 800.0, 10.0, 0);
+        free(parent); assert!(valid(parent), "live child owns ancestry");
+        last_frame_index(base); assert!(valid(parent));
+        state_into(leaf, 40, &mut actual); assert_eq!(actual, expected);
+        free(leaf); assert!(valid(leaf), "cache still owns this branch");
+        last_frame_index(base);
+        assert!(!valid(leaf)); assert!(!valid(parent));
+        state_into(base, 40, &mut actual); assert_eq!(actual, expected);
+        free(base);
+        assert!(!valid(base)); assert!(!valid(root)); assert!(!valid(start));
+        assert_eq!(last_frame_index(unrelated), 0, "other lineage is caller-owned");
+        free(unrelated);
+    }
 }

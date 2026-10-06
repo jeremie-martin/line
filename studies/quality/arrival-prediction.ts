@@ -14,11 +14,11 @@ for(const c of run.run.panel){
  for(const m of account.matches){const t=c.targets[m.target],e=events[m.event];if(t.impact===null||t.impact<.6)continue;
   const boundary=Math.max(0,t.frame-3),incoming=Math.max(boundary,e.contactStart-1),a=pose(boundary),b=pose(incoming),dt=incoming-boundary;
   rows.push({id:c.id,target:m.target,requested:t.impact,boundary,incoming,dt,angle:a.angle,omega:a.omega,actual:b.angle,
-   unpredicted:Math.abs(wrap(a.angle-b.angle)),predicted:Math.abs(wrap(a.angle+a.omega*dt-b.angle)),
+   unpredicted:Math.abs(wrap(a.angle-b.angle)),predicted:Math.abs(wrap(a.angle+a.omega*dt-b.angle)),fixedOne:Math.abs(wrap(a.angle+a.omega-b.angle)),
    unpredictedWrong:Math.abs(a.angle)>Math.PI/2,predictedWrong:Math.abs(wrap(a.angle+a.omega*dt))>Math.PI/2,actualWrong:Math.abs(b.angle)>Math.PI/2});
  }
  Engine.retainOnly([]);
 }
 writeFileSync(process.argv[3],JSON.stringify(rows));
 console.log(JSON.stringify({n:rows.length,meanAngleError:rows.reduce((s,r)=>s+r.unpredicted,0)/rows.length,predictedAngleError:rows.reduce((s,r)=>s+r.predicted,0)/rows.length,
- wrong:rows.filter(r=>r.unpredictedWrong!==r.actualWrong).length,predictedWrong:rows.filter(r=>r.predictedWrong!==r.actualWrong).length,meanDt:rows.reduce((s,r)=>s+r.dt,0)/rows.length}));
+ fixedOneError:rows.reduce((s,r)=>s+r.fixedOne,0)/rows.length,wrong:rows.filter(r=>r.unpredictedWrong!==r.actualWrong).length,predictedWrong:rows.filter(r=>r.predictedWrong!==r.actualWrong).length,meanDt:rows.reduce((s,r)=>s+r.dt,0)/rows.length}));

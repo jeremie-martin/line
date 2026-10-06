@@ -7,7 +7,7 @@ const spec: Spec = {duration: 4, preroll: 5, jitter: 0,
   axes: {air: () => .5, speed: () => .5}};
 const base = {budget: 200000, samples: 100, channel: 12, radius: 24,
   impactWeight: 1, amplitudeWeight: 1 / 3, arrivalWeight: .3,
-  headingWeight: .3, qualityRetries: 2, guidance: 'clearance' as const, guidanceSamples: 24};
+  headingWeight: .3,  guidance: 'clearance' as const, guidanceSamples: 24};
 
 it('retains a valid complete incumbent while charging every refinement proposal', () => {
   const initial = compileArcMotion(spec, 17, base);
@@ -52,11 +52,10 @@ it('expresses additional curvature and guide separation as connected normal curv
   }
 });
 
-it('allocates longer planning from measured construction work within the same hard meter', () => {
-  const result = compileArcMotion(spec, 19, {...base, lookaheadWidth: 3, lookaheadSamples: 24});
-  expect(result.planningDecisions.some(d => d.depth === 2)).toBe(true);
-  expect(result.planningDecisions.every(d => d.observedConstructionRate > 0)).toBe(true);
-  expect(result.lookaheadStats.physicsFrames).toBeGreaterThan(0);
+it('allocates physical-prefix expansion from measured construction work within the same hard meter', () => {
+  const result = compileArcMotion(spec, 19, {...base,  });
+  expect(result.planningDecisions.some(d => d.beamWidth > 1)).toBe(true);
+  expect(result.planningDecisions.every(d => d.physicsFrames > 0)).toBe(true);
   expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
 });

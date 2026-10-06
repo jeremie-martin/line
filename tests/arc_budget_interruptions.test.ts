@@ -7,7 +7,7 @@ const spec: Spec = { duration: 4, preroll: 5, jitter: 0,
   axes: {air: () => .5, speed: () => .5} };
 const options = { samples: 32, channel: 12, radius: 24, 
   impactWeight: 1, amplitudeWeight: 1 / 3, 
-  arrivalWeight: .3, headingWeight: .3, lookaheadWidth: 0 };
+  arrivalWeight: .3, headingWeight: .3, };
 
 it('keeps the physically validated final curve when another proposal hits the frame limit', () => {
   const result = compileArcMotion(spec, 17, {...options, budget: 4250});

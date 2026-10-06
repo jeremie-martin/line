@@ -12,7 +12,7 @@ import { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { arcRailGroups } from './arc_guidance.ts';
 import { arcDetectedTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
-import { arcArrivalFeatures, arcFutureValue, arcValueGuidance } from './arc_value.ts';
+import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
 import { normalizeArcControl, arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
 import { motionSamples, effectiveBodyVelocity, MOTION_BANDS } from './motion_quality.ts';
@@ -308,9 +308,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const valueFeatures = options.futureValueModel
     ? ctx.futureValueFeatures(arcArrivalFeatures(state, heading, endSpeed, pose, angularRate, horizon - (release ?? frame)), i) : undefined;
   const predictedFuture = options.futureValueModel ? arcFutureValue(valueFeatures!, options.futureValueModel) : undefined;
-  const guided = arcValueGuidance(cost, localCost, residuals, priorStart, predictedFuture,
-    i < contacts.length - 1 ? options.valueGuidanceWeight ?? 0 : 0);
-  const result = {child, lines: added, c, cost, localCost, residuals: guided.residuals, optimizationCost: guided.cost,
+  const result = {child, lines: added, c, cost, localCost, residuals, optimizationCost: cost,
     achieved, actualImpact, terminalLoss, release, railGuides: fragments?.guideIds, motion, motionCost,
     localResiduals: residuals.slice(0, priorStart), arrivalResiduals: residuals.slice(priorStart)};
   const {child: _child, ...measurement} = result;
@@ -320,6 +318,6 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   // Interrupted evaluations never reach this cache insertion.
   const {child: _saved, ...saved} = result;
   s.memo.set(key, {result: saved, candidate: {...s.candidates.at(-1)}});
-  if (!s.best || guided.cost < s.best.optimizationCost) s.best = result;
+  if (!s.best || cost < s.best.optimizationCost) s.best = result;
   return result;
 }

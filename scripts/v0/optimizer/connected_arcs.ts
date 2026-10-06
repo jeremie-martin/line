@@ -26,42 +26,35 @@ export function parseArcPolicyArtifact(bytes:Buffer|string,artifactUrl?:URL):any
  * this configuration and override a mechanism without duplicating shipped defaults. */
 export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number): ArcMotionOptions {
   const duration = Math.round(spec.duration * 40), end = duration + 20;
-  // Reserve construction capacity for revisiting difficult approaches. This
-  // scales with actual ride length and budget, without benchmark-tier gates.
+  // Scale proposal breadth with actual ride length and allowance. The prefix
+  // planner further limits each expansion using observed native work.
   // Give the base curve search its initial breadth before adding independent
   // guide variables. The allocation depends on available work per ride frame,
   // including the two cold replays, rather than named benchmark budgets.
   const allowance = .7 * (budget - 2 * (end + 1)) / Math.max(1, end);
   const refinement = Math.max(0, allowance - 80);
   const planningBreadth = Math.max(12, Math.min(160, Math.floor(Math.min(80, allowance) + .8 * refinement)));
-  // Keep continuation capacity calibrated independently of the construction mix.
-  const planningGuidanceSamples = Math.min(96, Math.floor(.8 * refinement));
-  // Preserve proposal and continuation calibration while directing more of the
-  // construction allowance to joint geometry refinement.
+  // Memory proposals retain their separate, smaller allowance curve.
+  const memoryAllowance = Math.min(96, Math.floor(.8 * refinement));
+  // Give guide fitting its own saturating allowance after base proposals.
   const proposalGuidanceSamples = Math.min(160, Math.floor(2.25 * refinement));
   const samples = Math.min(80, planningBreadth);
   const guidanceSamples = Math.min(176, Math.floor(1.5 * proposalGuidanceSamples));
   const responseSamples = Math.floor(guidanceSamples * 161 / 176);
-  const lookaheadSamples = Math.max(8, Math.round(planningBreadth * .2));
   return { budget, samples,
     channel: 12, radius: 24, impactWeight: 1,
     amplitudeWeight: 1 / 3, arrivalWeight: .3,
-    headingWeight: .3, qualityRetries: 2, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
-    lookaheadWidth: guidanceSamples ? 3 : 0, lookaheadSamples,
-    reserveFactor: .7 + .7 * (1 - planningGuidanceSamples / 96), responseSamples,
-    budgetAdaptiveLocal: guidanceSamples > 0,
+    headingWeight: .3, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
+    responseSamples,
     // Complete-span correction needs the joint search's room to adjust the
     // approach. Preserve the measured low-allowance curve search otherwise.
     completeBoundary: guidanceSamples > 0,
-    memorySamples: Math.round(4 * planningGuidanceSamples / 96),
-    memoryResponseSamples: Math.round(4 * planningGuidanceSamples / 96),
+    memorySamples: Math.round(4 * memoryAllowance / 96),
+    memoryResponseSamples: Math.round(4 * memoryAllowance / 96),
     policySamples: Math.round(32 * proposalGuidanceSamples / 160),
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
-    // Rank unprobed arrivals with the model; its value at the simulated
-    // continuation boundary is weighted separately below. Calibrate model
-    // influence directly, independently of curve-search allocation.
+    // Predicted future loss ranks physical alternatives. Native residuals
+    // alone guide local geometry fitting.
     valueWeight: .45,
-    // Let the learned arrival estimate guide geometry refinement before planning.
-    valueGuidanceWeight: 0,
-    continuationValueWeight: .5 * planningGuidanceSamples / 96 };
+  };
 }

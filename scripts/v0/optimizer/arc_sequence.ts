@@ -1,45 +1,34 @@
-/** Sequential construction: intervals are searched and committed in order,
- * with lookahead, neighbour revision, bounded quality retries and
- * backtracking to an earlier retained alternative when an interval has no
- * valid arc. The committed track and engine live in an explicit sequence. */
-import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy as disposeSearch } from '../../lib/native_motion/engine.ts';
+/** Persistent physical-prefix search. Every retained path has been replayed.
+ * One shared allowance covers expansion, bounded recovery and final replay;
+ * complete tracks are selected by the shared whole-ride objective. */
+import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { TrackLine } from '../types.ts';
-import type { ArcMotionControl } from './arc_geometry.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
 import { distinctArrival, distinctCandidates, valueRank, restoreCandidate } from './arc_candidates.ts';
-import { planLookahead } from './arc_lookahead.ts';
-import { reviseTransition, refineCoupledPair } from './arc_neighbor_revision.ts';
-import type { IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
-/** A committed interval: where its lines start, the chosen candidate and the
- * distinct alternatives left for backtracking. */
-export type SequenceStep = {lineStart: number; selected?: any; choices: any[]};
-
 /** The committed track and the engine at its end. */
 export type ArcSequence = {
-  engine: Engine; lines: TrackLine[]; rows: any[]; steps: SequenceStep[]; failure: any;
-  /** Warm start for a later interval, from lookahead or a backtracked choice. */
-  pendingControl: {index: number; control: ArcMotionControl} | null;
+  engine: Engine; lines: TrackLine[]; rows: any[]; failure: any;
   /** The longest prefix ever completed; restored if the search ends in failure. */
   deepestPrefix: {lines: TrackLine[]; rows: any[]};
 };
 
 export function startSequence(ctx: ArcCompileContext): ArcSequence {
-  return {engine: ctx.lineage.rebuild([]), lines: [], rows: [], steps: [], failure: null, pendingControl: null,
+  return {engine: ctx.lineage.rebuild([]), lines: [], rows: [], failure: null,
     deepestPrefix: {lines: [], rows: []}};
 }
 
-/** Searches and commits every interval. Backtracking resumes after the
- * re-committed interval; `seq.failure` records why the sequence stopped early. */
+/** Expand distinct physical prefixes until the track is complete. A dead end
+ * may reopen untried alternatives at a recent boundary. */
 export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   const {contacts, options, budget, end, work} = ctx;
   type Node = {seq: ArcSequence; localCost: number};
   type Offer = {parent: Node; interval: IntervalResult; candidate: any; localCost: number; rank: number};
-  let beam: Node[] = [{seq: {...seq, lines: seq.lines.slice(), rows: seq.rows.slice(), steps: seq.steps.slice()}, localCost: 0}], observedRate = 0;
+  let beam: Node[] = [{seq: {...seq, lines: seq.lines.slice(), rows: seq.rows.slice()}, localCost: 0}], observedRate = 0;
   const frontier: Offer[][] = [];
   let deepest = {lines: seq.lines.slice(), rows: seq.rows.slice()};
   const choose = (offers: Offer[], width: number) => {
@@ -56,10 +45,10 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
       const parent = proposal.parent.seq;
       const parentEngine = rebuild ? ctx.lineage.rebuild(parent.lines) : parent.engine;
       const nextSeq: ArcSequence = {...parent, engine: parentEngine, lines: parent.lines.slice(), rows: parent.rows.slice(),
-        steps: parent.steps.slice(), pendingControl: null, failure: null};
+        failure: null};
       const child = ctx.lineage.add(parentEngine, proposal.candidate.lines);
       commitInterval(ctx, nextSeq, index, {...proposal.interval, candidates: [proposal.candidate]},
-        restoreCandidate(proposal.candidate, child), null, null, [...protectedEngines, ...nodes.map(b => b.seq.engine)]);
+        restoreCandidate(proposal.candidate, child), [...protectedEngines, ...nodes.map(b => b.seq.engine)]);
       nodes.push({seq: nextSeq, localCost: proposal.localCost});
     }
     return nodes;
@@ -115,6 +104,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const measuredRate = (getPhysicsFrameCount() - began) / Math.max(1, searched * localScale * ((contacts[i + 1]?.frame ?? end + 1) - frame));
     observedRate = observedRate ? .8 * observedRate + .2 * measuredRate : measuredRate;
     work.observedConstructionRate = observedRate;
+    const firstComplete = i === contacts.length - 1 ? offered[0] : undefined;
     offered.sort((a, b) => a.rank - b.rank);
     // Do not keep more prefixes than the remaining allowance can search
     // at the minimum local sampling floor. Each retained branch costs work.
@@ -123,6 +113,8 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const minimumScale = Math.max(.05, 12 / Math.max(12, options.samples ?? 80));
     const width = clamp(Math.floor(remainingRate / Math.max(1, observedRate * minimumScale * 1.1)), 1, 8);
     const chosen = choose(offered, i === contacts.length - 1 ? 1 : width);
+    if (firstComplete) work.terminalSelectionStats = {candidates: offered.length, initialLoss: firstComplete.candidate.terminalLoss,
+      finalLoss: chosen[0].candidate.terminalLoss, changed: chosen[0] !== firstComplete};
     // A bounded beam stack keeps the next distinct alternatives at each of
     // four recent boundaries. Only a physical dead end reopens one; its cold
     // prefix and all renewed search remain charged to the ordinary meter.
@@ -138,110 +130,16 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   }
 }
 
-/** Per-interval search allowance and warm start. Budget-adaptive local search
- * shrinks the sample counts when the remaining work per remaining frame
- * falls below the observed construction rate. */
-function intervalAllowance(ctx: ArcCompileContext, seq: ArcSequence, i: number) {
-  const {options, contacts, end, budget, work} = ctx;
-  const overrides: IntervalOverrides = seq.pendingControl?.index === i ? {warmStart: seq.pendingControl.control} : {};
-  // Normalize the observed rate back to the full local allocation, so an
-  // emergency reduction does not falsely make later full searches look cheap.
-  let localScale = 1;
-  if (options.budgetAdaptiveLocal) {
-    const nominal = (options.samples ?? 160) + (options.guidance ? options.guidanceSamples ?? 48 : 0);
-    const remaining = Math.max(1, end - contacts[i].frame), available = (budget - getPhysicsFrameCount() - 2 * (end + 1)) / remaining;
-    localScale = clamp(available / (Math.max(nominal * .7, work.observedConstructionRate || nominal) * 1.1), .05, 1);
-    overrides.samples = Math.max(12, Math.floor((options.samples ?? 160) * localScale));
-    overrides.guidanceSamples = Math.floor((options.guidanceSamples ?? 48) * localScale);
-    overrides.responseSamples = Math.floor((options.responseSamples ?? 0) * localScale);
-  }
-  return {overrides, localScale};
-}
-
-/** A speed miss above 0.3 may resume from an earlier alternative, a bounded
- * number of times per contact, when the remaining work covers the rebuild.
- * Returns the index to resume after, or null. */
-function qualityRetry(ctx: ArcCompileContext, seq: ArcSequence, interval: IntervalResult, best: any): number | null {
-  const {options, end, budget, work} = ctx;
-  const {frame, targets} = interval;
-  // A quality retry resumes at an earlier fork and rebuilds its engine.
-  // Estimate from that boundary, including its cold prefix, rather than
-  // granting a retry using only the shorter suffix at the current contact.
-  let retryIndex = seq.steps.length - 1;
-  while (retryIndex >= 0 && !seq.steps[retryIndex].choices.length) retryIndex--;
-  const retryFrame = retryIndex < 0 ? frame : seq.rows[retryIndex].frame;
-  if (!(best && (options.qualityRetries ?? 0) > 0 && targets.speed !== undefined && Math.abs(best.achieved.speed - targets.speed) > .3 &&
-    (work.qualityRetries.get(frame) ?? 0) < options.qualityRetries! &&
-    getPhysicsFrameCount() + retryFrame + (end - retryFrame) * (options.samples ?? 160) * 1.1 < budget - 2 * (end + 1))) return null;
-  work.qualityRetries.set(frame, (work.qualityRetries.get(frame) ?? 0) + 1);
-  return seq.steps.some(s => s.choices.length) ? backtrack(ctx, seq) : null;
-}
-
-/** Walks back to the latest committed interval with an untried alternative,
- * commits that alternative and returns its index; null when none is left.
- * Saves the deepest completed prefix before discarding anything. */
-function backtrack(ctx: ArcCompileContext, seq: ArcSequence): number | null {
-  // Save completed intervals before destructively walking to an earlier fork.
-  if (seq.rows.length > seq.deepestPrefix.rows.length) seq.deepestPrefix = {lines: seq.lines.slice(), rows: seq.rows.slice()};
-  seq.pendingControl = null;
-  while (seq.steps.length > 0) {
-    const step = seq.steps.pop()!, old = seq.rows.pop();
-    seq.lines.length = step.lineStart;
-    if (!step.choices.length) continue;
-    const choice = step.choices.shift();
-    seq.lines.push(...choice.lines);
-    disposeSearch();
-    seq.engine = ctx.lineage.rebuild(seq.lines);
-    seq.rows.push({...old, ...choice.meta, control: choice.c, cost: choice.cost, spent: getPhysicsFrameCount()});
-    seq.steps.push(step);
-    ctx.work.backtracks++;
-    if (choice.futureControl) seq.pendingControl = {index: seq.rows.length, control: choice.futureControl};
-    return seq.rows.length - 1;
-  }
-  return null;
-}
-
-/** On the final interval, choose among the already simulated complete
- * alternatives by whole-trajectory loss; this costs no physics. */
-function selectTerminal(ctx: ArcCompileContext, i: number, interval: IntervalResult, best: any) {
-  const {contacts, work} = ctx;
-  if (i !== contacts.length - 1) return {best, childLines: null};
-  const candidates = interval.candidates;
-  const original = candidates.find(c => JSON.stringify(c.c) === JSON.stringify(best.c));
-  // Infinity is a measured invalid complete trajectory (for example a
-  // reconstructed prefix lost an earlier landing), not a missing value.
-  // Preserve that failed outcome for the final judge instead of crashing.
-  if (!original || candidates.some(c => typeof c.terminalLoss !== 'number' || Number.isNaN(c.terminalLoss)))
-    throw new Error('missing complete-trajectory candidate loss');
-  const selected = candidates.reduce((a, b) => b.terminalLoss < a.terminalLoss - 1e-15 ? b : a, original);
-  const changed = selected !== original;
-  work.terminalSelectionStats = {candidates: candidates.length, initialLoss: original.terminalLoss, finalLoss: selected.terminalLoss, changed};
-  if (!changed) return {best, childLines: null};
-  return {best: restoreCandidate(selected, best.child), childLines: selected.lines as TrackLine[]};
-}
-
-/** Commits `best` as interval `i`: keeps up to twelve distinct alternatives
- * for backtracking, remembers the control, extends lines and engine, and
- * appends the row. */
+/** Materialize a selected, already verified physical prefix. */
 function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, interval: IntervalResult, best: any,
-  terminalChildLines: TrackLine[] | null, lookahead: any, protectedEngines: Engine[] = []) {
+  protectedEngines: Engine[] = []) {
   const {options, memoryFor} = ctx;
   const {candidates, failures, frame, next, horizon, incoming} = interval;
   seq.failure = null;
-  const alternatives: any[] = [];
-  const planRank = (c: any) => c.lookaheadValue === undefined ? 1 : Number.isFinite(c.lookaheadValue) ? 0 : 2;
-  for (const candidate of candidates.sort((a, b) =>
-    planRank(a) - planRank(b) || ((a.lookaheadValue ?? a.cost) - (b.lookaheadValue ?? b.cost)))) {
-    if (alternatives.every(a => distinctArrival(a, candidate))) alternatives.push(candidate);
-    if (alternatives.length >= 12) break;
-  }
-  seq.steps.push({lineStart: seq.lines.length, selected: candidates.find(c => c.lines === best.lines),
-    choices: alternatives.filter(a => JSON.stringify(a.c) !== JSON.stringify(best.c))});
   if ((options.memorySamples ?? 0) > 0 && i > 0)
     memoryFor(i).rememberControl({features: interval.inputFeatures, incoming, span: horizon - frame, control: best.c});
   // Incoming features were captured before candidate construction, which
   // can invalidate cached prefix frames even for a validated child.
-  if (terminalChildLines) best.child = ctx.lineage.add(seq.engine, terminalChildLines);
   seq.lines.push(...best.lines);
   seq.engine = ctx.lineage.detach(best.child);
   Engine.retainOnly([...protectedEngines, seq.engine]);
@@ -250,5 +148,5 @@ function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, int
     achieved: best.achieved, impact: best.actualImpact, release: best.release, lines: best.lines.length,
     railGuides: selectedMeta?.railGuides ?? best.railGuides,
     ...(options.motionQuality ? {motion: selectedMeta?.motion ?? best.motion, motionCost: selectedMeta?.motionCost ?? best.motionCost} : {}),
-    failures, lookahead, spent: getPhysicsFrameCount()});
+    failures, spent: getPhysicsFrameCount()});
 }

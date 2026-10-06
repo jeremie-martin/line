@@ -29,25 +29,14 @@ export function createSearchWork() {
     observedConstructionRate: 0,
     refinementStats: null as any,
     terminalSelectionStats: null as any,
-    qualityRetries: new Map<number, number>(),
     budgetInterruptions: [] as BudgetInterruption[],
     planningDecisions: [] as any[],
-    lookaheadStats: {probes: 0, changedChoices: 0, failedProbes: 0, physicsFrames: 0, continuationNodes: 0, maxDepth: 0},
-    transitionRevisionWork: [] as Array<{index: number; error: number; proposals: number; viable: number; accepted: boolean;
-      before: number; after: number; physicsFrames: number}>,
     fragmentStats: {intervals: 0, probes: 0, observationFrames: 0, replayFrames: 0},
-    coupledIntervalWork: [] as Array<{index: number; proposals: number; viable: number; accepted: number; physicsFrames: number;
-      before: number; after: number}>,
     observedReceiverWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
     opposingEntryWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
-    // compactProfile stays as a zero entry so stored construction evidence keeps one schema.
-    initialProposalWork: Object.fromEntries(['center', 'learned', 'memory', 'response', 'generic', 'compactFold', 'compactProfile']
+    initialProposalWork: Object.fromEntries(['center', 'learned', 'memory', 'response', 'generic', 'compactFold']
       .map(k => [k, {attempts: 0, viable: 0, physicsFrames: 0}])),
     initializationRecovery: [] as Array<{index: number; frame: number; proposals: number; viable: number; physicalFrames: number}>,
-    // No production stage records construction improvement any more; the V6
-    // construction evidence still stores this (empty) list.
-    constructionImprovement: [] as Array<{index: number; frame: number; proposals: number; viable: number; physicalFrames: number;
-      before: number | null; after: number | null}>,
   };
 }
 

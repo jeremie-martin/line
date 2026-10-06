@@ -23,7 +23,7 @@ it('canonicalizes inactive guide variables and excludes their response probes',(
 });
 it('searches single rails from scratch through lookahead and replay without emitting guides',()=>{
   const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-  const options={budget:35000,samples:32,channel:12,guides:false,guidance:'clearance' as const,guidanceSamples:24,responseSamples:24,lookaheadWidth:2,lookaheadSamples:8,warmStart:{...control,clearance:6,guideStart:0,guideEnd:1}};
+  const options={budget:35000,samples:32,channel:12,guides:false,guidance:'clearance' as const,guidanceSamples:24,responseSamples:24,warmStart:{...control,clearance:6,guideStart:0,guideEnd:1}};
   const result=compileArcMotion(spec,17,options);
   expect(result.track.lines.length).toBeGreaterThan(0);
   expect(result.track.lines.every(l=>l.type===0)).toBe(true);
@@ -37,7 +37,7 @@ it('does not let an inactive guide clearance select a different unguided search'
  const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
  const options={budget:35000,samples:32,guides:false,radius:24,
   guidance:'clearance' as const,guidanceSamples:24,responseSamples:24,
-  lookaheadWidth:2,lookaheadSamples:8};
+  };
  const a=compileArcMotion(spec,17,{...options,channel:0}),b=compileArcMotion(spec,17,{...options,channel:24});
  expect(b.track).toEqual(a.track);expect(b.stats).toEqual(a.stats);
  expect(b.report).toEqual(a.report);

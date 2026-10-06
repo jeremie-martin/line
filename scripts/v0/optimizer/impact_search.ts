@@ -8,15 +8,14 @@ import type {RawFrame} from '../../lib/detector.ts';
 
 /** steepArrivalFrom: from this requested impact on, the arrival into the next catch
  * gets the steep, ask-driven heading and speed prior (as unguided catches do), at the
- * ordinary arrival weight (weight 1 was worse); strongLookahead
- * scales the lookahead width and sample caps of the interval leading into it;
+ * ordinary arrival weight (weight 1 was worse);
  * uprightArrival weighs a penalty on arriving head-down or backward at such a catch. */
 export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number; releaseFrames?:number;
-  steepArrivalFrom?: number; strongLookahead?: number; uprightArrival?: number};
+  steepArrivalFrom?: number; uprightArrival?: number};
 export function validateImpactSearchOptions(options:ImpactSearchOptions|undefined){
   if(!options)return;
   for(const [key,value] of Object.entries(options)){
-    if(!['extraWeight','timingWeight','engagementGainWeight','releaseFrames','steepArrivalFrom','strongLookahead','uprightArrival'].includes(key)||!Number.isFinite(value)||value<0||
+    if(!['extraWeight','timingWeight','engagementGainWeight','releaseFrames','steepArrivalFrom','uprightArrival'].includes(key)||!Number.isFinite(value)||value<0||
       (key==='releaseFrames'&&(!Number.isSafeInteger(value)||value>6))||(key==='steepArrivalFrom'&&value>1))throw new Error('invalid impact search options');
   }
 }

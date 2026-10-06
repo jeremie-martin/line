@@ -108,7 +108,7 @@
    "id": "canonical-music_amor_na_praia_46s-fold-transfer",
    "seed": 202,
    "panel": "fixed",
-   "trackHash": "8ebafabcade32e37d0e15353776031d89fc3c6c69dd5ffd1209f4bfc1235ae5b",
+   "trackHash": "6327d0652302d82cfa1e1e39feb11eee6fae2fb43a82d47a223ba41274f60524",
    "physicalFrames": 1682786,
    "score": 928.3354,
    "musicalScore": 928.3354,
@@ -306,8 +306,8 @@
    "seed": 202,
    "panel": "fixed",
    "budget": 750000,
-   "trackHash": "1528f0eed916100881d85009644a800164d3fa9bea3d4b824833fe9154c03134",
-   "physicalFrames": 744167
+   "trackHash": "c7fb7a02e826a6fc6debefd4ef4b5936350290360255dfe2d42165945a445030",
+   "physicalFrames": 734676
   },
   {
    "mode": "landing",
@@ -378,7 +378,7 @@
    "seed": 202,
    "panel": "automatic",
    "budget": 750000,
-   "trackHash": "b18be03fb86fac5f877655a98fbdbabd19b62d9408ea04ec43b57a7de6b6d0a4",
+   "trackHash": "3ae8a3b85af2b847c065275475616a8e20e93f3cf7fb3fbf426c5f8abd93039d",
    "physicalFrames": 746088
   },
   {
@@ -414,8 +414,8 @@
    "seed": 101,
    "panel": "fixed",
    "budget": 750000,
-   "trackHash": "621746fae6fac0021394de176c53d406781e0b3b583d7e3ce4da92c900c52ea4",
-   "physicalFrames": 747641
+   "trackHash": "7332654f4098de738f4a18c1140cfe536d4687540f2ce159e4ca069d2a1b5e96",
+   "physicalFrames": 747642
   },
   {
    "mode": "strike",
@@ -480,10 +480,10 @@
    "id": "canonical-music_tiki_tiki_48s-automatic",
    "seed": 202,
    "panel": "automatic",
-   "trackHash": "623f6575a67f73972bacbd0805e0b6c7ff927857accd880920d5ee8e13106608",
-   "physicalFrames": 2409368,
-   "quality": 629.4333,
-   "loss": 0.03131226795625682
+   "trackHash": "6994774cb191c5c2b5da8230759ff984ba4c34dd34e453d6fc1e6cd42ca2e5d7",
+   "physicalFrames": 2405572,
+   "quality": 629.4369,
+   "loss": 0.0313121024701082
   },
   {
    "mode": "strike2",
@@ -584,8 +584,8 @@
    "id": "canonical-music_tiki_tiki_48s-automatic",
    "seed": 202,
    "panel": "automatic",
-   "trackHash": "6f2d10de226d184cf7398cc4c50db543c215022ce1f1d3cb8001fecc9e7bc50e",
-   "physicalFrames": 2736435,
+   "trackHash": "27f00be4ce4db9efbf058bdaf2a131ff6d24e4fdb343d51181c39a264bb6ae10",
+   "physicalFrames": 2736287,
    "quality": 652.9784,
    "loss": 0.025058547734438424
   },

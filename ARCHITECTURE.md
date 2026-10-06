@@ -89,7 +89,9 @@ the evidence are in `docs/research/strike-definition-20261004.md`.
 
 The compiler uses accounts only through `impact_accounts.ts`. Search,
 refinement, terminal selection, the final replay, production and the review
-all observe and account through one interface. Its search profile is in
+all observe and account through one interface. Terminal selection, complete-track
+refinement and final selection also share `arc_objective.ts`: the trajectory loss
+and each physical-support motion/engagement cost are included exactly once. Its search profile is in
 `contact_impact_profile.ts`, chosen on the song-level evaluation (REWORK.md
 log):
 

@@ -4,12 +4,10 @@
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { setPhysicsFrameLimit } from '../../lib/detector.ts';
 import type { TrackLine } from '../types.ts';
-import { refineArcTrack, arcWholeTrajectoryObjective } from './arc_refinement.ts';
+import { refineArcTrack } from './arc_refinement.ts';
+import { arcWholeTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { arcRailGroups } from './arc_guidance.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
-import { motionSamples } from './motion_quality.ts';
-import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
-import { engagementGainResiduals } from './impact_search.ts';
 import { impactAccount } from './impact_accounts.ts';
 import { searchInterval } from './arc_interval.ts';
 import type { ConstructionRequest } from './repertoire_policy.ts';
@@ -26,7 +24,12 @@ export function refineCommittedTrack(ctx: ArcCompileContext, seq: ArcSequence) {
     contacts, end, start, budget, options,
     search: (engine, i, overrides, protectedEngines) => searchInterval(ctx, engine, i, overrides, protectedEngines),
     report: ctx.reportFor,
-    objective: wholeTrackObjective(ctx, requests),
+    objective: (raw, report, candidate) => {
+      const ruler = options.impactContract ? impactAccount(options.impactContract) : undefined;
+      const physical = ruler?.observe(candidate, raw.frames);
+      const impacts = physical ? ruler!.evaluate(physical, ctx.impactTargets, ctx.duration, report.terminus.reason === 'endOfSpec') : undefined;
+      return arcSelectionObjective(ctx, raw, physical, arcWholeTrajectoryObjective(raw, report, ctx.gaps, options.amplitudeWeight, impacts));
+    },
     validate: requests.length ? constructionValidator(requests) : undefined,
     engines: requests.length ? {create: lineage.rebuild, add: lineage.add, detach: lineage.detach} : undefined});
   seq.lines.splice(0, seq.lines.length, ...refined.lines);
@@ -45,36 +48,4 @@ function constructionValidator(requests: ConstructionRequest[]) {
     return inspectConstructionWindow(request, section, new Set<number>(guideIds), raw.frames,
       request.context || request.railLayout === 'transfer' ? (frame: number) => candidate.getAllContactLineIdsAtFrame(frame) : undefined).fulfilled;
   });
-}
-
-/** Whole authored-timeline loss with per-section regrets, plus the
- * engagement-gain and motion terms of each requested section. */
-function wholeTrackObjective(ctx: ArcCompileContext, requests: ConstructionRequest[]) {
-  const {options, contacts, duration, gaps, impactTargets} = ctx;
-  return (raw: any, report: any, candidate: Engine) => {
-    const ruler = options.impactContract ? impactAccount(options.impactContract) : undefined;
-    const physical = ruler ? ruler.observe(candidate, raw.frames) : undefined;
-    const impacts = physical ? ruler!.evaluate(physical, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
-    const whole = arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impacts);
-    if (physical && Number.isFinite(whole.loss)) for (const request of requests) {
-      const extra = engagementGainResiduals(physical as any, request.frame, request.next - 1, options.impactSearch)
-        .reduce((n, v) => n + v * v, 0) / contacts.length;
-      whole.loss += extra;
-      whole.regrets[request.section] += extra;
-    }
-    if (options.motionQuality && Number.isFinite(whole.loss)) {
-      const observed = motionSamples(raw.frames, 1, duration);
-      for (const request of requests) {
-        const samples = observed.filter(s => s.frame >= request.frame && s.frame < request.next);
-        if (!samples.length) continue;
-        const impact = request.context?.impact ??
-          (request.section ? gaps[request.section - 1]?.targets.impact : request.context?.nextImpact) ?? undefined;
-        const extra = motionResiduals(intervalMotionSummary(observed, request.frame, request.next - 1), impact, options.motionQuality)
-          .reduce((n, v) => n + v * v, 0) / contacts.length;
-        whole.loss += extra;
-        whole.regrets[request.section] += extra;
-      }
-    }
-    return whole;
-  };
 }

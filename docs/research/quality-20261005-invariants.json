@@ -530,7 +530,7 @@
     "allPositionsExactAgainstPublishedReference": true,
     "remeasuredTracks": 48,
     "all37MeasurementsUnchanged": true,
-    "instrumentOnlyCompilerParity": "running",
+    "instrumentOnlyCompilerParity": "63 tracks and work exact",
     "physicsEquationsChanged": false,
     "benchmarkEngineChanged": false,
     "qualification": "63 compiler tracks/work exact, 275 tests, typecheck, 33 saved judge tracks pass"
@@ -539,6 +539,69 @@
     "commit": "b914b3f9",
     "audit": "24 saved Q42 tracks; all 219681 resolved positions equal reference JS; cached read performs no new simulation",
     "unitTests": "missing windows, invalidated branches, stable copied results, budget-interrupted windows",
-    "suite": "275/275 tests, typecheck, 33 judge tracks pass; 63 compiler parity still running"
+    "suite": "275/275 tests, typecheck, 33 judge tracks and all63 compiler tracks/work exact before changing construction",
+    "construction": "48 development/confirmation rides complete and fulfilled; numerical tradeoffs retained in ledger",
+    "stress": {
+      "case": "stretch_bridge_frontier_low_air_endurance~101",
+      "durationSeconds": 77.6,
+      "physicalFrames": 5297435,
+      "peakRssMiB": 3130,
+      "peakHeapUsedMiB": 908,
+      "peakWasmExternalMiB": 2659,
+      "wallSeconds": 509.175,
+      "caveat": "concurrent-load exploratory runtime; candidate track differs from Q42 by design"
+    }
+  },
+  "nativeVersionOwnership": {
+    "compactArenaCommit": "49125e09",
+    "ancestryReclamationCommit": "6717e9cf",
+    "integrationCommit": "9c4ae57b",
+    "compilerParity": {
+      "cells": 63,
+      "allTrackHashesAndWorkExact": true
+    },
+    "integrationChecks": {
+      "tests": 275,
+      "testFiles": 62,
+      "judgeTracks": 33,
+      "typecheck": "pass",
+      "unreachableFiles": 0
+    },
+    "rustTests": 8,
+    "invariants": [
+      "Released version nodes remain while a descendant or current cache owns their ancestry.",
+      "Handle slots stay reserved until the entire lineage dies.",
+      "Unrelated live lineages survive reclamation."
+    ],
+    "stress": {
+      "case": "stretch_bridge_frontier_low_air_endurance~101",
+      "trackHash": "57bed400201e5b52ab9cdb5e1b192b58c862cba70bf37871e1f272f544c50bc2",
+      "physicalFrames": 5297435,
+      "allThreeRunsSameTrackAndWork": true,
+      "runs": [
+        {
+          "version": "Q52",
+          "peakSampledRssMiB": 3234.8046875,
+          "peakSampledHeapMiB": 1043.008934020996,
+          "peakSampledExternalMiB": 2659.357964515686,
+          "wallSeconds": 389.645085986
+        },
+        {
+          "version": "Q53",
+          "peakSampledRssMiB": 2345.609375,
+          "peakSampledHeapMiB": 1078.7192077636719,
+          "peakSampledExternalMiB": 1179.732964515686,
+          "wallSeconds": 571.714319261
+        },
+        {
+          "version": "Q54",
+          "peakSampledRssMiB": 1458.7734375,
+          "peakSampledHeapMiB": 824.2779541015625,
+          "peakSampledExternalMiB": 471.6094980239868,
+          "wallSeconds": 441.911505831
+        }
+      ],
+      "caveat": "Exploratory timings under different concurrent load. A six-case paired process-CPU study is running; no speed claim yet."
+    }
   }
 }

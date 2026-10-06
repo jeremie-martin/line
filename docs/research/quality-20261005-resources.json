@@ -1,0 +1,233 @@
+{
+  "schema": "line.compiler-resource-study.v1",
+  "plan": {
+    "sources": {
+      "baseline": "/tmp/line-quality-cached-contacts-20261006",
+      "candidate": "/tmp/line-quality-coherent-candidate-20261006"
+    },
+    "cases": [
+      "luna_bala_44s~101",
+      "amor_na_praia_46s~101",
+      "tiki_tiki_48s~101",
+      "amour_de_ma_vie_44s~101",
+      "luna_bala_44s~101~p1",
+      "amour_de_ma_vie_44s~101~p1"
+    ],
+    "hypothesis": "Measure structural ancestry reclamation on exact saved tracks and work; CPU time excludes time waiting for other processes. Two case pairs run concurrently, each compile isolated."
+  },
+  "cases": [
+    {
+      "case": "luna_bala_44s~101",
+      "baseline": {
+        "id": "luna_bala_44s~101",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+        },
+        "hash": "7901ca0770ec8c70c42608245aba7f4563cd45ba61055736a4276b7c86a86833",
+        "physicalFrames": 3020404,
+        "wallMs": 113325.85731600001,
+        "cpuMs": 138327.298,
+        "maxRssKiB": 794156
+      },
+      "candidate": {
+        "id": "luna_bala_44s~101",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "hash": "7901ca0770ec8c70c42608245aba7f4563cd45ba61055736a4276b7c86a86833",
+        "physicalFrames": 3020404,
+        "wallMs": 120350.459845,
+        "cpuMs": 149370.64,
+        "maxRssKiB": 859652
+      }
+    },
+    {
+      "case": "amor_na_praia_46s~101",
+      "baseline": {
+        "id": "amor_na_praia_46s~101",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+        },
+        "hash": "4365e308919395678ed774e67a19cd7f9a4e43bc64a30ca12e7a6eab519b71f6",
+        "physicalFrames": 3149419,
+        "wallMs": 123362.827043,
+        "cpuMs": 143905.338,
+        "maxRssKiB": 965536
+      },
+      "candidate": {
+        "id": "amor_na_praia_46s~101",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "hash": "4365e308919395678ed774e67a19cd7f9a4e43bc64a30ca12e7a6eab519b71f6",
+        "physicalFrames": 3149419,
+        "wallMs": 129409.35832900001,
+        "cpuMs": 154564.862,
+        "maxRssKiB": 744452
+      }
+    },
+    {
+      "case": "tiki_tiki_48s~101",
+      "baseline": {
+        "id": "tiki_tiki_48s~101",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+        },
+        "hash": "af4b61c686e2d7c0ce07c2853f740cf9b307e5ea94e76b16b13e188da4141b33",
+        "physicalFrames": 3283167,
+        "wallMs": 107816.479175,
+        "cpuMs": 127894.262,
+        "maxRssKiB": 946984
+      },
+      "candidate": {
+        "id": "tiki_tiki_48s~101",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "hash": "af4b61c686e2d7c0ce07c2853f740cf9b307e5ea94e76b16b13e188da4141b33",
+        "physicalFrames": 3283167,
+        "wallMs": 112364.455059,
+        "cpuMs": 138944.082,
+        "maxRssKiB": 802328
+      }
+    },
+    {
+      "case": "amour_de_ma_vie_44s~101",
+      "baseline": {
+        "id": "amour_de_ma_vie_44s~101",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+        },
+        "hash": "13cfff5136c690a57dbb1a473841da9e8e3f3dd9977869a4bf71e58e182f6a61",
+        "physicalFrames": 3055916,
+        "wallMs": 108052.791728,
+        "cpuMs": 135434.509,
+        "maxRssKiB": 1029288
+      },
+      "candidate": {
+        "id": "amour_de_ma_vie_44s~101",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "hash": "13cfff5136c690a57dbb1a473841da9e8e3f3dd9977869a4bf71e58e182f6a61",
+        "physicalFrames": 3055916,
+        "wallMs": 111595.57420999999,
+        "cpuMs": 142559.691,
+        "maxRssKiB": 949984
+      }
+    },
+    {
+      "case": "luna_bala_44s~101~p1",
+      "baseline": {
+        "id": "luna_bala_44s~101~p1",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+        },
+        "hash": "69426409773b9df3ee7fa7168b5425c7dad9ad5710db5e1b49bca099d149a8d9",
+        "physicalFrames": 3019006,
+        "wallMs": 81063.86383700001,
+        "cpuMs": 103813.545,
+        "maxRssKiB": 773804
+      },
+      "candidate": {
+        "id": "luna_bala_44s~101~p1",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "hash": "69426409773b9df3ee7fa7168b5425c7dad9ad5710db5e1b49bca099d149a8d9",
+        "physicalFrames": 3019006,
+        "wallMs": 83586.602693,
+        "cpuMs": 108752.477,
+        "maxRssKiB": 896208
+      }
+    },
+    {
+      "case": "amour_de_ma_vie_44s~101~p1",
+      "baseline": {
+        "id": "amour_de_ma_vie_44s~101~p1",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+        },
+        "hash": "406e4410089f2ffd22cde86f14e900f815ea5a7fcd5282b9843606074fb94a57",
+        "physicalFrames": 3047750,
+        "wallMs": 91395.342739,
+        "cpuMs": 109485.809,
+        "maxRssKiB": 916736
+      },
+      "candidate": {
+        "id": "amour_de_ma_vie_44s~101~p1",
+        "identity": {
+          "protocol": "line.compiler-identity.v3",
+          "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+          "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked": 0,
+          "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+          "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+        },
+        "hash": "406e4410089f2ffd22cde86f14e900f815ea5a7fcd5282b9843606074fb94a57",
+        "physicalFrames": 3047750,
+        "wallMs": 94823.53387700001,
+        "cpuMs": 125506.211,
+        "maxRssKiB": 998936
+      }
+    }
+  ],
+  "cpuRatio": 1.0801691234105066,
+  "rssRatio": 0.9677611957901441,
+  "interpretation": "Q54 memory improvement is strongest on the long stress case. Six normal paired tracks show about 8% higher process CPU, mixed peak RSS. Concurrent-load timing and GC vary; no speed improvement claimed."
+}

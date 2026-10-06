@@ -1725,8 +1725,9 @@
     {
       "id": "Q50",
       "commit": "0da70236",
-      "status": "running",
-      "hypothesis": "Test sixteen retained physical prefixes at standard and 6M allowance, against the eight-prefix Q48 controls. Wider future diversity may make better use of extra compute than repeated tail repair."
+      "status": "standard and high-budget panels complete; not adopted",
+      "hypothesis": "Test sixteen retained physical prefixes at standard and 6M allowance, against the eight-prefix Q48 controls. Wider future diversity may make better use of extra compute than repeated tail repair.",
+      "interpretation": "Sixteen prefixes at standard allowance worsens several strength results. At 6M, it improves v3 loss by .002/.003 relative to eight prefixes but spends about 2.45M more frames, raises authored inverted arrivals by .027 and increases hidden bend diagnostics. Breadth is useful but not a clear overall default improvement. The high-budget process was interrupted after 22 records and resumed under the identical frozen plan; all24 records are present."
     },
     {
       "id": "Q51",
@@ -1741,17 +1742,82 @@
       "id": "Q52",
       "branch": "exp/quality-cached-contacts-20261006",
       "hypothesis": "Retain resolved contact positions in existing native collision records and construct scattered fragments from the original evaluated carrier. Remove the separate observer and observation replay. Require unchanged physical trajectories, zero additional simulation on cached reads, and complete paired quality/resource comparisons.",
-      "status": "24 development pairs complete; confirmation running",
+      "status": "48 development/confirmation pairs complete; integration candidate",
       "commit": "c2af5bbc",
       "run": "q52-cached-contacts",
-      "interpretation": "Relative to Q42, v3 impact loss improves by about .001 authored/.002 perturbed; strongest authored hits improve. Older-ruler perturbed error and body dragging are mixed/worse. Pure construction now uses the original cached collision record; no separate observer history or replay. All 48 baseline/Q42 saved tracks were explicitly remeasured under the new backend identity. No promotion yet."
+      "interpretation": "Relative to Q42, v3 impact loss improves by about .001 authored/.002 perturbed; strongest authored hits improve. Older-ruler perturbed error and body dragging are mixed/worse. Pure construction now uses the original cached collision record; no separate observer history or replay. All 48 baseline/Q42 saved tracks were explicitly remeasured under the new backend identity. No promotion yet.",
+      "confirmation": "All24 confirmation rides complete and fulfilled; v3 loss \u2212.006/\u2212.008, strong bias +.018/+.020, very strong bias +.016/+.026, quiet bias \u2212.008/\u2212.005 (authored/perturbed). Body drag +.276/+.323 s/min with wide four-song intervals; all rulers retained."
     },
     {
       "id": "Q53",
-      "status": "implementing structural experiment",
+      "status": "63 exact compiler cells; integrated structural candidate",
       "hypothesis": "Native version arena slots reserve an inline large Version even when empty. Store owned version nodes behind compact optional pointers; preserve handle IDs, access order, physics and work. Require all63 exact compiler checks plus independent judging, tests and measured long-case memory/runtime.",
       "branch": "exp/quality-compact-version-arena-20261006",
-      "evidence": "At 50.6 s in the read-only long-case audit: version slot array 318767104 bytes, 8072 live version nodes. Array storage remains after holder reclamation."
+      "evidence": "At 50.6 s in the read-only long-case audit: version slot array 318767104 bytes, 8072 live version nodes. Array storage remains after holder reclamation.",
+      "result": {
+        "longCaseTrackHash": "57bed400201e5b52ab9cdb5e1b192b58c862cba70bf37871e1f272f544c50bc2",
+        "physicalFrames": 5297435,
+        "peakRssMiB": 2346,
+        "baselinePeakRssMiB": 3235,
+        "peakExternalMiB": 1180,
+        "baselinePeakExternalMiB": 2659,
+        "wallSeconds": 571.714,
+        "baselineWallSeconds": 389.645,
+        "caveat": "Different concurrent loads; timing is exploratory and does not establish a speed gain. Pointer indirection/allocation may cost CPU. Testing direct branch reclamation next."
+      }
+    },
+    {
+      "id": "Q54",
+      "status": "63 exact compiler cells; long stress exact; integration checks pass",
+      "hypothesis": "Reclaim released version branches as soon as neither a live descendant nor the current shared cache needs their ancestry. Keep handle slots reserved until lineage death to prevent premature reuse. Preserve physics/cache access order and work; test ownership cases, exact 63-cell parity, long-track hash/work and resource use.",
+      "branch": "exp/quality-owned-ancestry-20261006",
+      "evidence": "Read-only audit sees millions of retained version nodes although search retains only eight prefix engines. All released versions currently remain until the entire lineage dies.",
+      "commit": "6717e9cf",
+      "result": {
+        "stressPeakSampledRssMiB": 1459,
+        "stressBaselineMiB": 3235,
+        "sameTrackAndPhysicalFrames": true,
+        "tests": 275,
+        "judgeTracks": 33,
+        "rustTests": 8,
+        "typecheck": "pass",
+        "unreachable": 0,
+        "pairedCpuStudy": "running"
+      }
+    },
+    {
+      "id": "Q55",
+      "status": "48 development/confirmation pairs complete; under review",
+      "hypothesis": "Combine the existing one-step arrival preference forecast with cached contact construction and the coherent beam. Compare complete paired panels under every unchanged ruler, including inverted arrivals and body dragging; neither component implies the combination is better.",
+      "branch": "exp/quality-cached-arrivals-20261006",
+      "interpretation": "Confirmation versus original baseline: v3 impact loss \u2212.007/\u2212.008, strong bias +.019/+.013, very-strong +.022/+.021, quiet bias \u2212.007/\u2212.006, inverted/backward \u2212.064/\u2212.006 (authored/perturbed). Body drag +.188/+.500 s/min, older-ruler timing mixed. Compare directly against Q52 before selecting."
+    },
+    {
+      "id": "Q56",
+      "status": "development complete; confirmation running",
+      "hypothesis": "Evaluate the clean cached-contact compiler without learned future ranking, retaining native local cost and arrival preferences. This tests whether the current learned artifact earns its complexity in the actual final architecture, independently of feature-prediction accuracy. All measures and completion remain unchanged.",
+      "branch": "exp/quality-cached-no-value-20261006",
+      "interpretation": "Without model versus Q52: v3 loss +.001/+.002, strong bias \u2212.006/\u2212.009, very-strong \u2212.008/\u2212.009, inverted arrivals +.019/+.021, body drag +.099/+.730 s/min. The current model helps on this panel; no-model is not adopted."
+    },
+    {
+      "id": "Q57",
+      "status": "structural feasibility",
+      "hypothesis": "Replace per-version heap allocations with dense owned nodes and a compact stable-handle index. Swap removal updates the moved node\u2019s handle mapping; external handles and ancestry ownership remain unchanged. Test exact tracks/work, ownership, memory and process CPU before choosing it over the simpler boxed version arena.",
+      "branch": "exp/quality-dense-version-arena-20261006"
+    },
+    {
+      "id": "Q58",
+      "status": "waiting for complete predeclared collection",
+      "hypothesis": "Refit the 73-feature geometry-aware continuation model on 336 disjoint native probe compiles from the coherent search. Keep hyperparameters and the physical target fixed, validate held-out catalog groups and independent export predictions, then compare complete production panels against Q52 and the no-model ablation. Prediction improvements alone do not justify adoption.",
+      "branch": "exp/quality-current-value-20261006",
+      "collectorCommit": "bdd2f633"
+    },
+    {
+      "id": "Q59",
+      "status": "waiting for complete predeclared collection",
+      "hypothesis": "Refit the 57-feature arrival-only continuation model on 336 disjoint native probe compiles from the coherent search. Keep hyperparameters and the physical target fixed, validate held-out catalog groups and independent export predictions, then compare complete production panels against Q52 and the no-model ablation. Prediction improvements alone do not justify adoption.",
+      "branch": "exp/quality-current-value-20261006",
+      "collectorCommit": "bdd2f633"
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1782,7 +1848,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T01:21:00Z",
+  "updated": "2026-10-06T02:11:00Z",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [

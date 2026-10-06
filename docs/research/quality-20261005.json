@@ -1688,7 +1688,7 @@
     },
     {
       "id": "Q48",
-      "status": "development complete; confirmation running",
+      "status": "48 development/confirmation pairs and 24 high-budget cases complete; not promoted",
       "interpretation": "Predict the existing arrival preference one frame forward instead of assessing stale boundary pose and heading. First panel reduces inverted/backward strong arrivals while improving impact error; quiet and drag tradeoffs still require confirmation.",
       "commit": "0a480cb3",
       "result": {
@@ -1715,6 +1715,43 @@
           "physics frames (M)": 0.45352587499999997
         }
       }
+    },
+    {
+      "id": "Q49",
+      "commit": "f06e48aa",
+      "status": "complete; not adopted",
+      "hypothesis": "One extra native step observes the incoming pose exactly. Completes dev24 and reduces some pose failures, but raises perturbed body dragging by .681 s/min; not a clear improvement over the cheaper Q48 forecast."
+    },
+    {
+      "id": "Q50",
+      "commit": "0da70236",
+      "status": "running",
+      "hypothesis": "Test sixteen retained physical prefixes at standard and 6M allowance, against the eight-prefix Q48 controls. Wider future diversity may make better use of extra compute than repeated tail repair."
+    },
+    {
+      "id": "Q51",
+      "branch": "exp/quality-native-fragments-20261006",
+      "commit": "83d87b37",
+      "run": "q51-native-fragments",
+      "hypothesis": "Replace duplicate JS contact history with native metered contact-window replays; verify exact collisions, then compare all rulers.",
+      "status": "not adopted",
+      "interpretation": "219681 reference positions exact; 24 complete pairs show mixed quality. Long-case peak RSS 4446\u21924381 MiB, not a large memory reduction. Wall time 537\u2192466 s under concurrent load is not a controlled speed claim."
+    },
+    {
+      "id": "Q52",
+      "branch": "exp/quality-cached-contacts-20261006",
+      "hypothesis": "Retain resolved contact positions in existing native collision records and construct scattered fragments from the original evaluated carrier. Remove the separate observer and observation replay. Require unchanged physical trajectories, zero additional simulation on cached reads, and complete paired quality/resource comparisons.",
+      "status": "24 development pairs complete; confirmation running",
+      "commit": "c2af5bbc",
+      "run": "q52-cached-contacts",
+      "interpretation": "Relative to Q42, v3 impact loss improves by about .001 authored/.002 perturbed; strongest authored hits improve. Older-ruler perturbed error and body dragging are mixed/worse. Pure construction now uses the original cached collision record; no separate observer history or replay. All 48 baseline/Q42 saved tracks were explicitly remeasured under the new backend identity. No promotion yet."
+    },
+    {
+      "id": "Q53",
+      "status": "implementing structural experiment",
+      "hypothesis": "Native version arena slots reserve an inline large Version even when empty. Store owned version nodes behind compact optional pointers; preserve handle IDs, access order, physics and work. Require all63 exact compiler checks plus independent judging, tests and measured long-case memory/runtime.",
+      "branch": "exp/quality-compact-version-arena-20261006",
+      "evidence": "At 50.6 s in the read-only long-case audit: version slot array 318767104 bytes, 8072 live version nodes. Array storage remains after holder reclamation."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1745,7 +1782,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T00:35:00Z",
+  "updated": "2026-10-06T01:21:00Z",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [

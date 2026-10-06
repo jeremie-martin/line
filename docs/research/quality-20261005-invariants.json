@@ -1,1 +1,544 @@
-{"schema":"line.compiler-invariant-audit.v1","baseline":"4e510f583febf63aa6c4f6a6ecb1ea74388ae7a9","completeObjectiveAudit":[{"id":"luna_bala_44s~101","base":0.005742595731568976,"final":0.005973825408490693,"refinement":0.005761024669925544,"difference":-0.0002128007385651491},{"id":"luna_bala_44s~202","base":0.005329364230575451,"final":0.005475034281832283,"refinement":0.005415308956487425,"difference":-5.972532534485875e-05},{"id":"luna_bala_44s~303","base":0.00499934279449293,"final":0.005615633029414384,"refinement":0.005850839423393639,"difference":0.00023520639397925456},{"id":"luna_bala_44s~404","base":0.006883644030037768,"final":0.0070317315721003726,"refinement":0.006941422908849718,"difference":-9.03086632506548e-05},{"id":"amor_na_praia_46s~101","base":0.006742331056502523,"final":0.006975887679461038,"refinement":0.006905249411577946,"difference":-7.063826788309205e-05},{"id":"amor_na_praia_46s~202","base":0.008118173843615612,"final":0.00850194862241092,"refinement":0.008339695548213103,"difference":-0.00016225307419781738},{"id":"amor_na_praia_46s~303","base":0.006371572823768369,"final":0.006746169110372146,"refinement":0.00659377431055299,"difference":-0.00015239479981915636},{"id":"amor_na_praia_46s~404","base":0.006388462909252335,"final":0.006640426374047652,"refinement":0.006743725629232511,"difference":0.00010329925518485876},{"id":"tiki_tiki_48s~101","base":0.01057900330303207,"final":0.01087398667146097,"refinement":0.010874088553159201,"difference":1.0188169823066584e-07},{"id":"tiki_tiki_48s~202","base":0.01052896460830099,"final":0.010853232055342691,"refinement":0.010734828947245695,"difference":-0.0001184031080969962},{"id":"tiki_tiki_48s~303","base":0.00959299366453649,"final":0.010149043137323127,"refinement":0.009747137274995425,"difference":-0.0004019058623277016},{"id":"tiki_tiki_48s~404","base":0.010428978159959992,"final":0.010783678636522506,"refinement":0.010515383658095033,"difference":-0.00026829497842747324},{"id":"amour_de_ma_vie_44s~101","base":0.031069311478658504,"final":0.03221749751242432,"refinement":0.03258092788781523,"difference":0.0003634303753909038},{"id":"amour_de_ma_vie_44s~202","base":0.031689219707843115,"final":0.03230041863840494,"refinement":0.03269505708271661,"difference":0.0003946384443116735},{"id":"amour_de_ma_vie_44s~303","base":0.029765909539265528,"final":0.029897871466065998,"refinement":0.02992763011481411,"difference":2.9758648748112043e-05},{"id":"amour_de_ma_vie_44s~404","base":0.02979056968982667,"final":0.03048401202968003,"refinement":0.031019761463288876,"difference":0.0005357494336088453},{"id":"luna_bala_44s~101~p1","base":0.005988354215353808,"final":0.006575782073408986,"refinement":0.006665224841712317,"difference":8.944276830333102e-05},{"id":"luna_bala_44s~101~p2","base":0.007292601985877354,"final":0.007546239461322028,"refinement":0.007401950967643413,"difference":-0.0001442884936786147},{"id":"amor_na_praia_46s~101~p1","base":0.006886504221424522,"final":0.0070785061908561825,"refinement":0.006945216226780435,"difference":-0.00013328996407574716},{"id":"amor_na_praia_46s~101~p2","base":0.006411420686288801,"final":0.0065430298133796645,"refinement":0.006463051366092064,"difference":-7.99784472876007e-05},{"id":"tiki_tiki_48s~101~p1","base":0.011435025048900701,"final":0.011691889282879828,"refinement":0.011611129942579132,"difference":-8.07593403006953e-05},{"id":"tiki_tiki_48s~101~p2","base":0.011344706625471298,"final":0.01187693075540971,"refinement":0.011704857558605777,"difference":-0.00017207319680393254},{"id":"amour_de_ma_vie_44s~101~p1","base":0.03341163507303358,"final":0.034451176999936266,"refinement":0.034547134440397344,"difference":9.595744046107801e-05},{"id":"amour_de_ma_vie_44s~101~p2","base":0.02940189052956596,"final":0.030353066722802323,"refinement":0.03048268614376811,"difference":0.0001296194209657875}],"spanAccountingAudit":[{"id":"luna_bala_44s~101","jitter":0,"expected":0.47203981072254614,"expectedSearch":0.47203981072254614,"old":0.22181966071028908,"aligned":0.4720398107225463,"windowOnly":0.4720398107225463,"consistent":0.4720398107225463,"oldMismatch":-0.25022015001225706,"alignedMismatch":1.6653345369377348e-16,"consistentMismatch":1.6653345369377348e-16},{"id":"luna_bala_44s~202","jitter":0,"expected":0.45021519373398894,"expectedSearch":0.45021519373398894,"old":0.12469858025570815,"aligned":0.4502151937339889,"windowOnly":0.4502151937339889,"consistent":0.4502151937339889,"oldMismatch":-0.32551661347828076,"alignedMismatch":-5.551115123125783e-17,"consistentMismatch":-5.551115123125783e-17},{"id":"luna_bala_44s~303","jitter":0,"expected":0.46432785156195105,"expectedSearch":0.46432785156195105,"old":0.10821863369647208,"aligned":0.464327851561951,"windowOnly":0.464327851561951,"consistent":0.464327851561951,"oldMismatch":-0.356109217865479,"alignedMismatch":-5.551115123125783e-17,"consistentMismatch":-5.551115123125783e-17},{"id":"luna_bala_44s~404","jitter":0,"expected":0.5473570225542964,"expectedSearch":0.5473570225542964,"old":0.1985287190870058,"aligned":0.5473570225542963,"windowOnly":0.5473570225542963,"consistent":0.5473570225542963,"oldMismatch":-0.3488283034672906,"alignedMismatch":-1.1102230246251565e-16,"consistentMismatch":-1.1102230246251565e-16},{"id":"amor_na_praia_46s~101","jitter":0,"expected":0.5105580116145867,"expectedSearch":0.5105580116145867,"old":0.16837355775275017,"aligned":0.5105580116145867,"windowOnly":0.5105580116145867,"consistent":0.5105580116145867,"oldMismatch":-0.3421844538618365,"alignedMismatch":0,"consistentMismatch":0},{"id":"amor_na_praia_46s~202","jitter":0,"expected":0.6276451988852977,"expectedSearch":0.6276451988852977,"old":0.21958043027983717,"aligned":0.6276451988852976,"windowOnly":0.6276451988852976,"consistent":0.6276451988852976,"oldMismatch":-0.4080647686054605,"alignedMismatch":-1.1102230246251565e-16,"consistentMismatch":-1.1102230246251565e-16},{"id":"amor_na_praia_46s~303","jitter":0,"expected":0.44883106743285084,"expectedSearch":0.44883106743285084,"old":-0.0385362304830401,"aligned":0.44883106743285106,"windowOnly":0.44883106743285106,"consistent":0.44883106743285106,"oldMismatch":-0.48736729791589095,"alignedMismatch":2.220446049250313e-16,"consistentMismatch":2.220446049250313e-16},{"id":"amor_na_praia_46s~404","jitter":0,"expected":0.35428967313318693,"expectedSearch":0.35428967313318693,"old":0.02703934368994998,"aligned":0.35428967313318693,"windowOnly":0.35428967313318693,"consistent":0.35428967313318693,"oldMismatch":-0.32725032944323695,"alignedMismatch":0,"consistentMismatch":0},{"id":"tiki_tiki_48s~101","jitter":0,"expected":0.9761007433784457,"expectedSearch":0.9761007433784457,"old":0.6182570286846104,"aligned":0.9761007433784454,"windowOnly":0.9761007433784454,"consistent":0.9761007433784454,"oldMismatch":-0.35784371469383525,"alignedMismatch":-2.220446049250313e-16,"consistentMismatch":-2.220446049250313e-16},{"id":"tiki_tiki_48s~202","jitter":0,"expected":0.790256234936991,"expectedSearch":0.790256234936991,"old":0.4638244556544522,"aligned":0.7902562349369909,"windowOnly":0.7902562349369909,"consistent":0.7902562349369909,"oldMismatch":-0.32643177928253886,"alignedMismatch":-1.1102230246251565e-16,"consistentMismatch":-1.1102230246251565e-16},{"id":"tiki_tiki_48s~303","jitter":0,"expected":0.9047386571727858,"expectedSearch":0.9047386571727858,"old":0.6623293584109059,"aligned":0.904738657172786,"windowOnly":0.904738657172786,"consistent":0.904738657172786,"oldMismatch":-0.2424092987618799,"alignedMismatch":2.220446049250313e-16,"consistentMismatch":2.220446049250313e-16},{"id":"tiki_tiki_48s~404","jitter":0,"expected":0.9577257114929232,"expectedSearch":0.9577257114929232,"old":0.523531550886046,"aligned":0.9577257114929232,"windowOnly":0.9577257114929232,"consistent":0.9577257114929232,"oldMismatch":-0.4341941606068772,"alignedMismatch":0,"consistentMismatch":0},{"id":"amour_de_ma_vie_44s~101","jitter":0.05,"expected":1.8492817738956717,"expectedSearch":1.9405759967660752,"old":0.8866812233194968,"aligned":1.849281773895672,"windowOnly":1.9326910799732657,"consistent":1.9405759967660754,"oldMismatch":-0.9626005505761749,"alignedMismatch":2.220446049250313e-16,"consistentMismatch":2.220446049250313e-16},{"id":"amour_de_ma_vie_44s~202","jitter":0.05,"expected":2.3129932027976747,"expectedSearch":1.950530915955632,"old":0.37508329867986434,"aligned":2.3129932027976734,"windowOnly":1.8677875317309116,"consistent":1.9505309159556319,"oldMismatch":-1.9379099041178103,"alignedMismatch":-1.3322676295501878e-15,"consistentMismatch":-2.220446049250313e-16},{"id":"amour_de_ma_vie_44s~303","jitter":0.05,"expected":1.9241430053085349,"expectedSearch":1.9848698524051778,"old":1.0029775985021814,"aligned":1.9241430053085342,"windowOnly":2.102225478037264,"consistent":1.9848698524051778,"oldMismatch":-0.9211654068063535,"alignedMismatch":-6.661338147750939e-16,"consistentMismatch":0},{"id":"amour_de_ma_vie_44s~404","jitter":0.05,"expected":1.8810225215578362,"expectedSearch":2.0149383841794135,"old":0.8605561797421449,"aligned":1.8810225215578358,"windowOnly":2.0000483955022728,"consistent":2.014938384179413,"oldMismatch":-1.0204663418156912,"alignedMismatch":-4.440892098500626e-16,"consistentMismatch":-4.440892098500626e-16},{"id":"luna_bala_44s~101~p1","jitter":0,"expected":0.4359037944329362,"expectedSearch":0.4359037944329362,"old":0.13841687528726027,"aligned":0.4359037944329361,"windowOnly":0.4359037944329361,"consistent":0.4359037944329361,"oldMismatch":-0.29748691914567593,"alignedMismatch":-1.1102230246251565e-16,"consistentMismatch":-1.1102230246251565e-16},{"id":"luna_bala_44s~101~p2","jitter":0,"expected":0.5228817056982207,"expectedSearch":0.5228817056982207,"old":0.18889864784052016,"aligned":0.5228817056982207,"windowOnly":0.5228817056982207,"consistent":0.5228817056982207,"oldMismatch":-0.33398305785770055,"alignedMismatch":0,"consistentMismatch":0},{"id":"amor_na_praia_46s~101~p1","jitter":0,"expected":0.44607016658768534,"expectedSearch":0.44607016658768534,"old":0.07876599947595225,"aligned":0.44607016658768545,"windowOnly":0.44607016658768545,"consistent":0.44607016658768545,"oldMismatch":-0.3673041671117331,"alignedMismatch":1.1102230246251565e-16,"consistentMismatch":1.1102230246251565e-16},{"id":"amor_na_praia_46s~101~p2","jitter":0,"expected":0.4833381016482363,"expectedSearch":0.4833381016482363,"old":0.23141916110785057,"aligned":0.48333810164823615,"windowOnly":0.48333810164823615,"consistent":0.48333810164823615,"oldMismatch":-0.25191894054038577,"alignedMismatch":-1.6653345369377348e-16,"consistentMismatch":-1.6653345369377348e-16},{"id":"tiki_tiki_48s~101~p1","jitter":0,"expected":1.0131992781196622,"expectedSearch":1.0131992781196622,"old":0.6463779101202793,"aligned":1.013199278119662,"windowOnly":1.013199278119662,"consistent":1.013199278119662,"oldMismatch":-0.3668213679993828,"alignedMismatch":-2.220446049250313e-16,"consistentMismatch":-2.220446049250313e-16},{"id":"tiki_tiki_48s~101~p2","jitter":0,"expected":0.9223456955415626,"expectedSearch":0.9223456955415626,"old":0.6005509890526315,"aligned":0.9223456955415628,"windowOnly":0.9223456955415628,"consistent":0.9223456955415628,"oldMismatch":-0.32179470648893116,"alignedMismatch":1.1102230246251565e-16,"consistentMismatch":1.1102230246251565e-16},{"id":"amour_de_ma_vie_44s~101~p1","jitter":0.05,"expected":2.138167142534739,"expectedSearch":2.105845760832247,"old":1.0001543108398767,"aligned":2.1381671425347393,"windowOnly":2.138868623057073,"consistent":2.1058457608322465,"oldMismatch":-1.1380128316948621,"alignedMismatch":4.440892098500626e-16,"consistentMismatch":-4.440892098500626e-16},{"id":"amour_de_ma_vie_44s~101~p2","jitter":0.05,"expected":1.7168626788210912,"expectedSearch":1.72189675569867,"old":0.9126971092050413,"aligned":1.7168626788210912,"windowOnly":1.7261219913974728,"consistent":1.7218967556986702,"oldMismatch":-0.8041655696160499,"alignedMismatch":0,"consistentMismatch":2.220446049250313e-16}],"counterfactualTests":{"Q30":"two native compile tests fail old and pass corrected","Q31":"two native compile tests fail old and pass corrected","Q27":"two native frozen prefix tests fail old incumbent retention and pass corrected eligibility/interruption handling"},"impactPrefixAudit":{"cases":24,"n":1890,"missing":0,"changed":0,"maxDifference":0,"meanDifference":0,"meaning":"Every measured impact strength on its constructed prefix equals the final complete-track strength. Rules out this proposed source of incremental cost inconsistency on these tracks; not a universal proof.","study":"studies/quality/impact-prefix.ts on exp/quality-review-20261006"},"arrivalPredictionAudit":{"n":1066,"meanAngleError":0.035078497152616885,"predictedAngleError":0.0019741046332608266,"fixedOneError":0.02837368724496539,"wrong":25,"predictedWrong":1,"meanDt":0.5947467166979362,"meaning":"One-step pose anticipation modestly lowers angular prediction error. The much better variable-duration prediction uses the actual future contact time and is diagnostic only, not an implementable oracle."}}
+{
+  "schema": "line.compiler-invariant-audit.v1",
+  "baseline": "4e510f583febf63aa6c4f6a6ecb1ea74388ae7a9",
+  "completeObjectiveAudit": [
+    {
+      "id": "luna_bala_44s~101",
+      "base": 0.005742595731568976,
+      "final": 0.005973825408490693,
+      "refinement": 0.005761024669925544,
+      "difference": -0.0002128007385651491
+    },
+    {
+      "id": "luna_bala_44s~202",
+      "base": 0.005329364230575451,
+      "final": 0.005475034281832283,
+      "refinement": 0.005415308956487425,
+      "difference": -5.972532534485875e-05
+    },
+    {
+      "id": "luna_bala_44s~303",
+      "base": 0.00499934279449293,
+      "final": 0.005615633029414384,
+      "refinement": 0.005850839423393639,
+      "difference": 0.00023520639397925456
+    },
+    {
+      "id": "luna_bala_44s~404",
+      "base": 0.006883644030037768,
+      "final": 0.0070317315721003726,
+      "refinement": 0.006941422908849718,
+      "difference": -9.03086632506548e-05
+    },
+    {
+      "id": "amor_na_praia_46s~101",
+      "base": 0.006742331056502523,
+      "final": 0.006975887679461038,
+      "refinement": 0.006905249411577946,
+      "difference": -7.063826788309205e-05
+    },
+    {
+      "id": "amor_na_praia_46s~202",
+      "base": 0.008118173843615612,
+      "final": 0.00850194862241092,
+      "refinement": 0.008339695548213103,
+      "difference": -0.00016225307419781738
+    },
+    {
+      "id": "amor_na_praia_46s~303",
+      "base": 0.006371572823768369,
+      "final": 0.006746169110372146,
+      "refinement": 0.00659377431055299,
+      "difference": -0.00015239479981915636
+    },
+    {
+      "id": "amor_na_praia_46s~404",
+      "base": 0.006388462909252335,
+      "final": 0.006640426374047652,
+      "refinement": 0.006743725629232511,
+      "difference": 0.00010329925518485876
+    },
+    {
+      "id": "tiki_tiki_48s~101",
+      "base": 0.01057900330303207,
+      "final": 0.01087398667146097,
+      "refinement": 0.010874088553159201,
+      "difference": 1.0188169823066584e-07
+    },
+    {
+      "id": "tiki_tiki_48s~202",
+      "base": 0.01052896460830099,
+      "final": 0.010853232055342691,
+      "refinement": 0.010734828947245695,
+      "difference": -0.0001184031080969962
+    },
+    {
+      "id": "tiki_tiki_48s~303",
+      "base": 0.00959299366453649,
+      "final": 0.010149043137323127,
+      "refinement": 0.009747137274995425,
+      "difference": -0.0004019058623277016
+    },
+    {
+      "id": "tiki_tiki_48s~404",
+      "base": 0.010428978159959992,
+      "final": 0.010783678636522506,
+      "refinement": 0.010515383658095033,
+      "difference": -0.00026829497842747324
+    },
+    {
+      "id": "amour_de_ma_vie_44s~101",
+      "base": 0.031069311478658504,
+      "final": 0.03221749751242432,
+      "refinement": 0.03258092788781523,
+      "difference": 0.0003634303753909038
+    },
+    {
+      "id": "amour_de_ma_vie_44s~202",
+      "base": 0.031689219707843115,
+      "final": 0.03230041863840494,
+      "refinement": 0.03269505708271661,
+      "difference": 0.0003946384443116735
+    },
+    {
+      "id": "amour_de_ma_vie_44s~303",
+      "base": 0.029765909539265528,
+      "final": 0.029897871466065998,
+      "refinement": 0.02992763011481411,
+      "difference": 2.9758648748112043e-05
+    },
+    {
+      "id": "amour_de_ma_vie_44s~404",
+      "base": 0.02979056968982667,
+      "final": 0.03048401202968003,
+      "refinement": 0.031019761463288876,
+      "difference": 0.0005357494336088453
+    },
+    {
+      "id": "luna_bala_44s~101~p1",
+      "base": 0.005988354215353808,
+      "final": 0.006575782073408986,
+      "refinement": 0.006665224841712317,
+      "difference": 8.944276830333102e-05
+    },
+    {
+      "id": "luna_bala_44s~101~p2",
+      "base": 0.007292601985877354,
+      "final": 0.007546239461322028,
+      "refinement": 0.007401950967643413,
+      "difference": -0.0001442884936786147
+    },
+    {
+      "id": "amor_na_praia_46s~101~p1",
+      "base": 0.006886504221424522,
+      "final": 0.0070785061908561825,
+      "refinement": 0.006945216226780435,
+      "difference": -0.00013328996407574716
+    },
+    {
+      "id": "amor_na_praia_46s~101~p2",
+      "base": 0.006411420686288801,
+      "final": 0.0065430298133796645,
+      "refinement": 0.006463051366092064,
+      "difference": -7.99784472876007e-05
+    },
+    {
+      "id": "tiki_tiki_48s~101~p1",
+      "base": 0.011435025048900701,
+      "final": 0.011691889282879828,
+      "refinement": 0.011611129942579132,
+      "difference": -8.07593403006953e-05
+    },
+    {
+      "id": "tiki_tiki_48s~101~p2",
+      "base": 0.011344706625471298,
+      "final": 0.01187693075540971,
+      "refinement": 0.011704857558605777,
+      "difference": -0.00017207319680393254
+    },
+    {
+      "id": "amour_de_ma_vie_44s~101~p1",
+      "base": 0.03341163507303358,
+      "final": 0.034451176999936266,
+      "refinement": 0.034547134440397344,
+      "difference": 9.595744046107801e-05
+    },
+    {
+      "id": "amour_de_ma_vie_44s~101~p2",
+      "base": 0.02940189052956596,
+      "final": 0.030353066722802323,
+      "refinement": 0.03048268614376811,
+      "difference": 0.0001296194209657875
+    }
+  ],
+  "spanAccountingAudit": [
+    {
+      "id": "luna_bala_44s~101",
+      "jitter": 0,
+      "expected": 0.47203981072254614,
+      "expectedSearch": 0.47203981072254614,
+      "old": 0.22181966071028908,
+      "aligned": 0.4720398107225463,
+      "windowOnly": 0.4720398107225463,
+      "consistent": 0.4720398107225463,
+      "oldMismatch": -0.25022015001225706,
+      "alignedMismatch": 1.6653345369377348e-16,
+      "consistentMismatch": 1.6653345369377348e-16
+    },
+    {
+      "id": "luna_bala_44s~202",
+      "jitter": 0,
+      "expected": 0.45021519373398894,
+      "expectedSearch": 0.45021519373398894,
+      "old": 0.12469858025570815,
+      "aligned": 0.4502151937339889,
+      "windowOnly": 0.4502151937339889,
+      "consistent": 0.4502151937339889,
+      "oldMismatch": -0.32551661347828076,
+      "alignedMismatch": -5.551115123125783e-17,
+      "consistentMismatch": -5.551115123125783e-17
+    },
+    {
+      "id": "luna_bala_44s~303",
+      "jitter": 0,
+      "expected": 0.46432785156195105,
+      "expectedSearch": 0.46432785156195105,
+      "old": 0.10821863369647208,
+      "aligned": 0.464327851561951,
+      "windowOnly": 0.464327851561951,
+      "consistent": 0.464327851561951,
+      "oldMismatch": -0.356109217865479,
+      "alignedMismatch": -5.551115123125783e-17,
+      "consistentMismatch": -5.551115123125783e-17
+    },
+    {
+      "id": "luna_bala_44s~404",
+      "jitter": 0,
+      "expected": 0.5473570225542964,
+      "expectedSearch": 0.5473570225542964,
+      "old": 0.1985287190870058,
+      "aligned": 0.5473570225542963,
+      "windowOnly": 0.5473570225542963,
+      "consistent": 0.5473570225542963,
+      "oldMismatch": -0.3488283034672906,
+      "alignedMismatch": -1.1102230246251565e-16,
+      "consistentMismatch": -1.1102230246251565e-16
+    },
+    {
+      "id": "amor_na_praia_46s~101",
+      "jitter": 0,
+      "expected": 0.5105580116145867,
+      "expectedSearch": 0.5105580116145867,
+      "old": 0.16837355775275017,
+      "aligned": 0.5105580116145867,
+      "windowOnly": 0.5105580116145867,
+      "consistent": 0.5105580116145867,
+      "oldMismatch": -0.3421844538618365,
+      "alignedMismatch": 0,
+      "consistentMismatch": 0
+    },
+    {
+      "id": "amor_na_praia_46s~202",
+      "jitter": 0,
+      "expected": 0.6276451988852977,
+      "expectedSearch": 0.6276451988852977,
+      "old": 0.21958043027983717,
+      "aligned": 0.6276451988852976,
+      "windowOnly": 0.6276451988852976,
+      "consistent": 0.6276451988852976,
+      "oldMismatch": -0.4080647686054605,
+      "alignedMismatch": -1.1102230246251565e-16,
+      "consistentMismatch": -1.1102230246251565e-16
+    },
+    {
+      "id": "amor_na_praia_46s~303",
+      "jitter": 0,
+      "expected": 0.44883106743285084,
+      "expectedSearch": 0.44883106743285084,
+      "old": -0.0385362304830401,
+      "aligned": 0.44883106743285106,
+      "windowOnly": 0.44883106743285106,
+      "consistent": 0.44883106743285106,
+      "oldMismatch": -0.48736729791589095,
+      "alignedMismatch": 2.220446049250313e-16,
+      "consistentMismatch": 2.220446049250313e-16
+    },
+    {
+      "id": "amor_na_praia_46s~404",
+      "jitter": 0,
+      "expected": 0.35428967313318693,
+      "expectedSearch": 0.35428967313318693,
+      "old": 0.02703934368994998,
+      "aligned": 0.35428967313318693,
+      "windowOnly": 0.35428967313318693,
+      "consistent": 0.35428967313318693,
+      "oldMismatch": -0.32725032944323695,
+      "alignedMismatch": 0,
+      "consistentMismatch": 0
+    },
+    {
+      "id": "tiki_tiki_48s~101",
+      "jitter": 0,
+      "expected": 0.9761007433784457,
+      "expectedSearch": 0.9761007433784457,
+      "old": 0.6182570286846104,
+      "aligned": 0.9761007433784454,
+      "windowOnly": 0.9761007433784454,
+      "consistent": 0.9761007433784454,
+      "oldMismatch": -0.35784371469383525,
+      "alignedMismatch": -2.220446049250313e-16,
+      "consistentMismatch": -2.220446049250313e-16
+    },
+    {
+      "id": "tiki_tiki_48s~202",
+      "jitter": 0,
+      "expected": 0.790256234936991,
+      "expectedSearch": 0.790256234936991,
+      "old": 0.4638244556544522,
+      "aligned": 0.7902562349369909,
+      "windowOnly": 0.7902562349369909,
+      "consistent": 0.7902562349369909,
+      "oldMismatch": -0.32643177928253886,
+      "alignedMismatch": -1.1102230246251565e-16,
+      "consistentMismatch": -1.1102230246251565e-16
+    },
+    {
+      "id": "tiki_tiki_48s~303",
+      "jitter": 0,
+      "expected": 0.9047386571727858,
+      "expectedSearch": 0.9047386571727858,
+      "old": 0.6623293584109059,
+      "aligned": 0.904738657172786,
+      "windowOnly": 0.904738657172786,
+      "consistent": 0.904738657172786,
+      "oldMismatch": -0.2424092987618799,
+      "alignedMismatch": 2.220446049250313e-16,
+      "consistentMismatch": 2.220446049250313e-16
+    },
+    {
+      "id": "tiki_tiki_48s~404",
+      "jitter": 0,
+      "expected": 0.9577257114929232,
+      "expectedSearch": 0.9577257114929232,
+      "old": 0.523531550886046,
+      "aligned": 0.9577257114929232,
+      "windowOnly": 0.9577257114929232,
+      "consistent": 0.9577257114929232,
+      "oldMismatch": -0.4341941606068772,
+      "alignedMismatch": 0,
+      "consistentMismatch": 0
+    },
+    {
+      "id": "amour_de_ma_vie_44s~101",
+      "jitter": 0.05,
+      "expected": 1.8492817738956717,
+      "expectedSearch": 1.9405759967660752,
+      "old": 0.8866812233194968,
+      "aligned": 1.849281773895672,
+      "windowOnly": 1.9326910799732657,
+      "consistent": 1.9405759967660754,
+      "oldMismatch": -0.9626005505761749,
+      "alignedMismatch": 2.220446049250313e-16,
+      "consistentMismatch": 2.220446049250313e-16
+    },
+    {
+      "id": "amour_de_ma_vie_44s~202",
+      "jitter": 0.05,
+      "expected": 2.3129932027976747,
+      "expectedSearch": 1.950530915955632,
+      "old": 0.37508329867986434,
+      "aligned": 2.3129932027976734,
+      "windowOnly": 1.8677875317309116,
+      "consistent": 1.9505309159556319,
+      "oldMismatch": -1.9379099041178103,
+      "alignedMismatch": -1.3322676295501878e-15,
+      "consistentMismatch": -2.220446049250313e-16
+    },
+    {
+      "id": "amour_de_ma_vie_44s~303",
+      "jitter": 0.05,
+      "expected": 1.9241430053085349,
+      "expectedSearch": 1.9848698524051778,
+      "old": 1.0029775985021814,
+      "aligned": 1.9241430053085342,
+      "windowOnly": 2.102225478037264,
+      "consistent": 1.9848698524051778,
+      "oldMismatch": -0.9211654068063535,
+      "alignedMismatch": -6.661338147750939e-16,
+      "consistentMismatch": 0
+    },
+    {
+      "id": "amour_de_ma_vie_44s~404",
+      "jitter": 0.05,
+      "expected": 1.8810225215578362,
+      "expectedSearch": 2.0149383841794135,
+      "old": 0.8605561797421449,
+      "aligned": 1.8810225215578358,
+      "windowOnly": 2.0000483955022728,
+      "consistent": 2.014938384179413,
+      "oldMismatch": -1.0204663418156912,
+      "alignedMismatch": -4.440892098500626e-16,
+      "consistentMismatch": -4.440892098500626e-16
+    },
+    {
+      "id": "luna_bala_44s~101~p1",
+      "jitter": 0,
+      "expected": 0.4359037944329362,
+      "expectedSearch": 0.4359037944329362,
+      "old": 0.13841687528726027,
+      "aligned": 0.4359037944329361,
+      "windowOnly": 0.4359037944329361,
+      "consistent": 0.4359037944329361,
+      "oldMismatch": -0.29748691914567593,
+      "alignedMismatch": -1.1102230246251565e-16,
+      "consistentMismatch": -1.1102230246251565e-16
+    },
+    {
+      "id": "luna_bala_44s~101~p2",
+      "jitter": 0,
+      "expected": 0.5228817056982207,
+      "expectedSearch": 0.5228817056982207,
+      "old": 0.18889864784052016,
+      "aligned": 0.5228817056982207,
+      "windowOnly": 0.5228817056982207,
+      "consistent": 0.5228817056982207,
+      "oldMismatch": -0.33398305785770055,
+      "alignedMismatch": 0,
+      "consistentMismatch": 0
+    },
+    {
+      "id": "amor_na_praia_46s~101~p1",
+      "jitter": 0,
+      "expected": 0.44607016658768534,
+      "expectedSearch": 0.44607016658768534,
+      "old": 0.07876599947595225,
+      "aligned": 0.44607016658768545,
+      "windowOnly": 0.44607016658768545,
+      "consistent": 0.44607016658768545,
+      "oldMismatch": -0.3673041671117331,
+      "alignedMismatch": 1.1102230246251565e-16,
+      "consistentMismatch": 1.1102230246251565e-16
+    },
+    {
+      "id": "amor_na_praia_46s~101~p2",
+      "jitter": 0,
+      "expected": 0.4833381016482363,
+      "expectedSearch": 0.4833381016482363,
+      "old": 0.23141916110785057,
+      "aligned": 0.48333810164823615,
+      "windowOnly": 0.48333810164823615,
+      "consistent": 0.48333810164823615,
+      "oldMismatch": -0.25191894054038577,
+      "alignedMismatch": -1.6653345369377348e-16,
+      "consistentMismatch": -1.6653345369377348e-16
+    },
+    {
+      "id": "tiki_tiki_48s~101~p1",
+      "jitter": 0,
+      "expected": 1.0131992781196622,
+      "expectedSearch": 1.0131992781196622,
+      "old": 0.6463779101202793,
+      "aligned": 1.013199278119662,
+      "windowOnly": 1.013199278119662,
+      "consistent": 1.013199278119662,
+      "oldMismatch": -0.3668213679993828,
+      "alignedMismatch": -2.220446049250313e-16,
+      "consistentMismatch": -2.220446049250313e-16
+    },
+    {
+      "id": "tiki_tiki_48s~101~p2",
+      "jitter": 0,
+      "expected": 0.9223456955415626,
+      "expectedSearch": 0.9223456955415626,
+      "old": 0.6005509890526315,
+      "aligned": 0.9223456955415628,
+      "windowOnly": 0.9223456955415628,
+      "consistent": 0.9223456955415628,
+      "oldMismatch": -0.32179470648893116,
+      "alignedMismatch": 1.1102230246251565e-16,
+      "consistentMismatch": 1.1102230246251565e-16
+    },
+    {
+      "id": "amour_de_ma_vie_44s~101~p1",
+      "jitter": 0.05,
+      "expected": 2.138167142534739,
+      "expectedSearch": 2.105845760832247,
+      "old": 1.0001543108398767,
+      "aligned": 2.1381671425347393,
+      "windowOnly": 2.138868623057073,
+      "consistent": 2.1058457608322465,
+      "oldMismatch": -1.1380128316948621,
+      "alignedMismatch": 4.440892098500626e-16,
+      "consistentMismatch": -4.440892098500626e-16
+    },
+    {
+      "id": "amour_de_ma_vie_44s~101~p2",
+      "jitter": 0.05,
+      "expected": 1.7168626788210912,
+      "expectedSearch": 1.72189675569867,
+      "old": 0.9126971092050413,
+      "aligned": 1.7168626788210912,
+      "windowOnly": 1.7261219913974728,
+      "consistent": 1.7218967556986702,
+      "oldMismatch": -0.8041655696160499,
+      "alignedMismatch": 0,
+      "consistentMismatch": 2.220446049250313e-16
+    }
+  ],
+  "counterfactualTests": {
+    "Q30": "two native compile tests fail old and pass corrected",
+    "Q31": "two native compile tests fail old and pass corrected",
+    "Q27": "two native frozen prefix tests fail old incumbent retention and pass corrected eligibility/interruption handling"
+  },
+  "impactPrefixAudit": {
+    "cases": 24,
+    "n": 1890,
+    "missing": 0,
+    "changed": 0,
+    "maxDifference": 0,
+    "meanDifference": 0,
+    "meaning": "Every measured impact strength on its constructed prefix equals the final complete-track strength. Rules out this proposed source of incremental cost inconsistency on these tracks; not a universal proof.",
+    "study": "studies/quality/impact-prefix.ts on exp/quality-review-20261006"
+  },
+  "arrivalPredictionAudit": {
+    "n": 1066,
+    "meanAngleError": 0.035078497152616885,
+    "predictedAngleError": 0.0019741046332608266,
+    "fixedOneError": 0.02837368724496539,
+    "wrong": 25,
+    "predictedWrong": 1,
+    "meanDt": 0.5947467166979362,
+    "meaning": "One-step pose anticipation modestly lowers angular prediction error. The much better variable-duration prediction uses the actual future contact time and is diagnostic only, not an implementable oracle."
+  },
+  "leanSearchQualification": {
+    "commit": "174efa16",
+    "basis": "Q42 1c9e2e8f and its qualified references 145519b6",
+    "compilerCells": 63,
+    "allTrackHashesAndPhysicsWorkExact": true,
+    "judgeTracks": 33,
+    "tests": 273,
+    "typecheck": "pass",
+    "unreachableFiles": 0,
+    "independentDevReplay": "24 tracks and every non-wall-time measurement exact",
+    "changes": "Removed superseded lookahead, neighbor response, retry paths, learned gradient and residual wrapper; collection no longer depends on removed search hooks."
+  },
+  "nativeContactObservation": {
+    "backendCommit": "ec9c0274",
+    "integrationResearchCommit": "83d87b37",
+    "tracks": 24,
+    "contactRecords": 219681,
+    "allPositionsExactAgainstPublishedReference": true,
+    "remeasuredTracks": 48,
+    "all37MeasurementsUnchanged": true,
+    "instrumentOnlyCompilerParity": "running",
+    "physicsEquationsChanged": false,
+    "benchmarkEngineChanged": false,
+    "qualification": "63 compiler tracks/work exact, 275 tests, typecheck, 33 saved judge tracks pass"
+  },
+  "cachedContactPositions": {
+    "commit": "b914b3f9",
+    "audit": "24 saved Q42 tracks; all 219681 resolved positions equal reference JS; cached read performs no new simulation",
+    "unitTests": "missing windows, invalidated branches, stable copied results, budget-interrupted windows",
+    "suite": "275/275 tests, typecheck, 33 judge tracks pass; 63 compiler parity still running"
+  }
+}

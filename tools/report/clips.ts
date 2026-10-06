@@ -47,8 +47,9 @@ await renderRides(tracks, join(out, 'rides'), 8);
 mkdirSync(join(out, 'clips'), {recursive: true});
 const pairs = picked.map((p, n) => {
   const clip = (key: string, run: string, frame: number) => {const file = join(out, 'clips', `${n + 1}-${key}.mp4`); cutClip(join(out, 'rides', `${run}~${p.id}.mp4`), frame, file); return '/' + file;};
-  return {title: `${TITLES[p.song] ?? p.song} · seed ${p.seed} · ${(p.frame / 40).toFixed(2)} s · request ${p.requested.toFixed(2)} (${p.why})`,
-    why: p.why, requested: p.requested, before: {src: clip('before', before, p.fb), strength: p.before}, after: {src: clip('after', after, p.fa), strength: p.after}};
+  return {caseId:p.id,song:p.song,seed:p.seed,beat:p.beat,requestedFrame:p.frame,
+    title: `${TITLES[p.song] ?? p.song} · seed ${p.seed} · ${(p.frame / 40).toFixed(2)} s · request ${p.requested.toFixed(2)} (${p.why})`,
+    why: p.why, requested: p.requested, before: {src: clip('before', before, p.fb), rideSrc:'/'+join(out,'rides',`${before}~${p.id}.mp4`), strength: p.before}, after: {src: clip('after', after, p.fa), rideSrc:'/'+join(out,'rides',`${after}~${p.id}.mp4`), strength: p.after}};
 });
 writeFileSync(join(out, 'clips.json'), JSON.stringify({before, after, beforeLabel: arg('before-label', 'Evening'), afterLabel: arg('after-label', 'Tonight'), hitAt: CLIP_BEFORE, pairs}, null, 1));
 console.log(`${pairs.length} clip pairs in ${out}`);
